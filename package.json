@@ -1,36 +1,36 @@
 {
-    "name": "hello-svelte",
-    "version": "0.0.1",
-    "scripts": {
-        "dev": "svelte-kit dev",
-        "build": "svelte-kit build",
-        "start": "svelte-kit start",
-        "compile": "ts-node scripts/compile.ts"
-    },
-    "devDependencies": {
-        "@snowpack/plugin-typescript": "^1.0.0",
-        "@sveltejs/adapter-node": "next",
-        "@sveltejs/kit": "next",
-        "@sveltejs/snowpack-config": "next",
-        "autoprefixer": "^10.2.1",
-        "cssnano": "^4.1.10",
-        "estree-walker": "^2.0.2",
-        "glob": "^7.1.6",
-        "graphql": "^15.4.0",
-        "graphql-tag-pluck": "^0.8.7",
-        "recast": "^0.20.4",
-        "relay-compiler": "^10.1.2",
-        "sass": "^1.0.0",
-        "svelte": "^3.29.0",
-        "svelte-preprocess": "^4.0.0",
-        "tailwindcss": "^2.0.2",
-        "ts-node": "^9.1.1",
-        "tslib": "^2.0.0",
-        "typescript": "^4.0.0"
-    },
-    "dependencies": {
-        "@graphql-codegen/core": "^1.17.9",
-        "@graphql-codegen/typescript": "^1.20.0",
-        "babel-plugin-macros": "^3.0.1"
-    }
+	"name": "hello-svelte",
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "svelte-kit dev",
+		"build": "svelte-kit build",
+		"start": "svelte-kit start",
+		"compile": "ts-node scripts/compile.ts"
+	},
+	"devDependencies": {
+		"@snowpack/plugin-typescript": "^1.0.0",
+		"@sveltejs/adapter-node": "next",
+		"@sveltejs/kit": "next",
+		"@sveltejs/snowpack-config": "next",
+		"autoprefixer": "^10.2.1",
+		"cssnano": "^4.1.10",
+		"estree-walker": "^2.0.2",
+		"glob": "^7.1.6",
+		"graphql": "^15.4.0",
+		"graphql-tag-pluck": "^0.8.7",
+		"recast": "^0.20.4",
+		"relay-compiler": "^10.1.2",
+		"sass": "^1.0.0",
+		"svelte": "^3.29.0",
+		"svelte-preprocess": "^4.0.0",
+		"tailwindcss": "^2.0.2",
+		"ts-node": "^9.1.1",
+		"tslib": "^2.0.0",
+		"typescript": "^4.0.0"
+	},
+	"dependencies": {
+		"@graphql-codegen/core": "^1.17.9",
+		"@graphql-codegen/typescript": "^1.20.0",
+		"babel-plugin-macros": "^3.0.1"
+	}
 }

@@ -5,11 +5,11 @@ module.exports = {
 	mount: {
 		'src/components': '/_components',
 		'src/mosaic': '/_mosaic',
-		'generated': '/.generated',
+		generated: '/.generated',
 	},
 	alias: {
 		$mosaic: './src/mosaic',
 		$components: './src/components',
 		$generated: './generated',
-	}
-};
+	},
+}
