@@ -55,6 +55,9 @@ module.exports = function mosaicPreprocessor({ artifactDirectory, artifactDirect
 						// in either case, we can just replace the tagged template expression
 						// with an import expression and let the compiler do the work
 
+						// TODO: inline the necessary bits into the function call to avoid any impact on
+						// 		 bundle size if compiler leaves behind more than is needed during runtime
+
 						// define the import expression both cases need
 						const importExpression = typeBuilders.importExpression(
 							typeBuilders.literal(`${artifactDirectoryAlias}/${name}.graphql.js`)
