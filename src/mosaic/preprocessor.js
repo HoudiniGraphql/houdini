@@ -56,7 +56,6 @@ module.exports = function mosaicPreprocessor({artifactDirectory, artifactDirecto
                         // with an import expression and let the compiler do the work
 
                         // define the import expression both cases need
-                        const relativePath = path.join(path.relative(filename, artifactDirectory), ``)
                         const importExpression = typeBuilders.importExpression(typeBuilders.literal(`${artifactDirectoryAlias}/${name}.graphql.js`))
 
                         // check if we are being passed straight to a function
@@ -78,15 +77,11 @@ module.exports = function mosaicPreprocessor({artifactDirectory, artifactDirecto
                 },
             })
 
-
-            // turn the results into something the svelte toolchain can use
-            const result = recast.print(parsed)
-
             // save the result for later
-            memo[filename] = result
+            memo[filename] = recast.print(parsed)
 
             // return the printed result
-            return result
+            return memo[filename]
         },
     }
 }
