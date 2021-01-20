@@ -14,6 +14,7 @@
         "@sveltejs/snowpack-config": "next",
         "autoprefixer": "^10.2.1",
         "cssnano": "^4.1.10",
+        "estree-walker": "^2.0.2",
         "glob": "^7.1.6",
         "graphql": "^15.4.0",
         "graphql-tag-pluck": "^0.8.7",
