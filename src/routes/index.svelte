@@ -22,7 +22,7 @@
 
 <main>
 	<p>
-		{#await $query}
+		{#await query}
 			loading...
 		{:then data}
 			There are {data.characters.info.count} characters in Rick and Morty!

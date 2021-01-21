@@ -5,7 +5,10 @@ import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { Kind as GraphqlKinds } from 'graphql/language'
-import { ProvidedRequiredArgumentsOnDirectivesRule } from 'graphql/validation/rules/ProvidedRequiredArgumentsRule'
+import path from 'path'
+import * as recast from 'recast'
+const AST = recast.types.builders
+import mkdirp from 'mkdirp'
 
 // the objects used to hold document meta data
 export type Document = {
@@ -15,10 +18,20 @@ export type Document = {
 	requiredFragments: Array<string>
 }
 
+type Config = {
+	artifactDirectory: string
+}
+
+const defaultConfig: Config = {
+	artifactDirectory: path.join(__dirname, '..', 'generated'),
+}
+
 // the compile script is responsible for two different things:
 // - joining operations with all of the fragments that are used for a valid request
 // - generating types to match the result of operations and fragments
-async function main() {
+//
+// note: this is invoked at the bottom of the file
+async function main(config: Config = defaultConfig) {
 	// the first step we have to do is grab a list of every file in the source tree
 	const sourceFiles: string[] = glob.sync('src/**/*.svelte')
 
@@ -32,7 +45,7 @@ async function main() {
 			// read the file
 			const contents = await fs.readFile(filePath, 'utf-8')
 			// the javascript bits
-			let jsContent
+			let jsContent: string
 
 			// pretend we are preprocessing to get access to the javascript bits
 			svelte.preprocess(contents, {
@@ -87,12 +100,7 @@ async function main() {
 	// now that we've processed every file, lets build up the artifacts that the library will use
 
 	// every operation will need the complete query
-	await Promise.all(
-		Object.values(operations).map(async (operation) => {
-			// we need a flat list of every fragment used by the operation
-			const operationFragments = flattenFragments(operation, fragments)
-		})
-	)
+	await Promise.all(Object.values(operations).map(writeOperationArtifact(config, fragments)))
 }
 
 function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<string> {
@@ -118,6 +126,45 @@ function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<st
 	// we're done
 	return referencedFragments
 }
+
+const writeOperationArtifact = (config: Config, fragments: { [name: string]: Document }) =>
+	async function writeOperationArtifact(operation: Document) {
+		// make sure the artifact directory exists
+		await mkdirp(config.artifactDirectory)
+
+		// the location we will put the operation artifact
+		const targetLocation = path.join(config.artifactDirectory, `${operation.name}.graphql.js`)
+
+		// we need a flat list of every fragment used by the operation
+		const operationFragments = flattenFragments(operation, fragments).map(
+			(fragmentName) => fragments[fragmentName].raw
+		)
+
+		// build up the query string
+		const rawString = [operation.raw, ...operationFragments].join('\n\n')
+
+		// an operation artifact is a javascript file in the appropriate directory.
+		// we'll build it up as an ast and then print it to the right spot
+		const artifact = AST.program([
+			AST.exportDefaultDeclaration(
+				AST.objectExpression([
+					AST.objectProperty(
+						AST.identifier('raw'),
+						AST.templateLiteral(
+							[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
+							[]
+						)
+					),
+				])
+			),
+		])
+
+		// write the result
+		await fs.writeFile(targetLocation, recast.print(artifact).code)
+
+		// log the file location to confirm
+		console.log(operation.name)
+	}
 
 // take a list of required fragments and turn it into a list of fragments
 // needed to create the query document
