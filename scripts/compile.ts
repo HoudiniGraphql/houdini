@@ -148,6 +148,7 @@ const writeOperationArtifact = (config: Config, fragments: { [name: string]: Doc
 		const artifact = AST.program([
 			AST.exportDefaultDeclaration(
 				AST.objectExpression([
+					AST.objectProperty(AST.identifier('name'), AST.stringLiteral(operation.name)),
 					AST.objectProperty(
 						AST.identifier('raw'),
 						AST.templateLiteral(
