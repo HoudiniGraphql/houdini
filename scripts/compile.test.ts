@@ -1,7 +1,7 @@
 // locals
 import { flattenFragments, Document } from './compile'
 
-test('happy path', function () {
+test('flattenFragments - happy path', function () {
 	// build up the list of dependents
 	const fragments = {
 		A: {

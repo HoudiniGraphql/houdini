@@ -146,10 +146,17 @@ const writeOperationArtifact = (config: Config, fragments: { [name: string]: Doc
 		// an operation artifact is a javascript file in the appropriate directory.
 		// we'll build it up as an ast and then print it to the right spot
 		const artifact = AST.program([
-			AST.exportDefaultDeclaration(
-				AST.objectExpression([
-					AST.objectProperty(AST.identifier('name'), AST.stringLiteral(operation.name)),
-					AST.objectProperty(
+			AST.exportNamedDeclaration(
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
+						AST.identifier('name'),
+						AST.stringLiteral(operation.name)
+					),
+				])
+			),
+			AST.exportNamedDeclaration(
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
 						AST.identifier('raw'),
 						AST.templateLiteral(
 							[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
