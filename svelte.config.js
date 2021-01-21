@@ -1,5 +1,5 @@
 const sveltePreprocess = require('svelte-preprocess')
-const mosaicPreprocessor = require('./src/mosaic/preprocessor')
+const houdiniPreprocessor = require('./src/houdini/preprocessor')
 const path = require('path')
 
 module.exports = {
@@ -7,7 +7,7 @@ module.exports = {
 	// for more information about preprocessors
 	preprocess: [
 		sveltePreprocess(),
-		mosaicPreprocessor({
+		houdiniPreprocessor({
 			artifactDirectory: path.join(__dirname, 'generated'),
 			artifactDirectoryAlias: '$generated',
 		}),

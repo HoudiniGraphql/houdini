@@ -46,8 +46,8 @@ async function main() {
 			// grab the graphql document listed in the file
 			const document = await gqlPluckFromCodeString(jsContent, {
 				modules: [
-					{ name: '$mosaic', identifier: 'graphql' },
-					{ name: 'mosaic', identifier: 'graphql' },
+					{ name: '$houdini', identifier: 'graphql' },
+					{ name: 'houdini', identifier: 'graphql' },
 				],
 			})
 
@@ -80,6 +80,19 @@ async function main() {
 			else if (definition.kind === GraphqlKinds.OPERATION_DEFINITION) {
 				operations[definition.name.value] = doc
 			}
+		})
+	)
+
+	// now that we've processed every file, lets build up the artifacts that the library will use
+
+	// every operation will need the complete query
+	await Promise.all(
+		Object.values(operations).map(async (operation) => {
+			// fragments can be cyclic so we'll need to keep track of fragments we've already processed
+			const handledFragments = new Set()
+
+			// the total query string
+			let queryString = ''
 		})
 	)
 }

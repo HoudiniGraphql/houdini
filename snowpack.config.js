@@ -4,11 +4,11 @@ module.exports = {
 	plugins: ['@snowpack/plugin-typescript'],
 	mount: {
 		'src/components': '/_components',
-		'src/mosaic': '/_mosaic',
+		'src/houdini': '/_houdini',
 		generated: '/.generated',
 	},
 	alias: {
-		$mosaic: './src/mosaic',
+		$houdini: './src/houdini',
 		$components: './src/components',
 		$generated: './generated',
 	},

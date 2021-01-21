@@ -19,8 +19,8 @@
 		"baseUrl": ".",
 		"paths": {
 			"$components/*": ["./src/components/*"],
-			"$mosaic/*": ["./src/mosaic/*"],
-			"$mosaic": ["./src/mosaic"]
+			"$houdini/*": ["./src/houdini/*"],
+			"$houdini": ["./src/houdini"]
 		}
 	},
 	"include": ["src/**/*"],

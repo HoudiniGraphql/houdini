@@ -16,9 +16,9 @@ const VariableDeclarator = astTypes.namedTypes.VariableDeclarator.name
 // a place to store memoized results
 let memo = {}
 
-// the mosaic preprocessor is required to strip away the graphql tags
+// the houdini preprocessor is required to strip away the graphql tags
 // and leave behind something for the runtime
-module.exports = function mosaicPreprocessor({ artifactDirectory, artifactDirectoryAlias }) {
+module.exports = function houdiniPreprocessor({ artifactDirectory, artifactDirectoryAlias }) {
 	return {
 		// the only thing we have to modify is the script blocks
 		async script({ content, filename }) {
@@ -75,7 +75,7 @@ module.exports = function mosaicPreprocessor({ artifactDirectory, artifactDirect
 							await fs.stat(path.join(artifactDirectory, `${name}.graphql.js`))
 						} catch (e) {
 							throw new Error(
-								'Looks like you need to run the mosaic compiler for this file'
+								'Looks like you need to run the houdini compiler for this file'
 							)
 						}
 					}

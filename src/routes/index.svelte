@@ -1,5 +1,5 @@
 <script>
-	import { getQuery, graphql } from '$mosaic'
+	import { getQuery, graphql } from '$houdini'
 
 	// can this be compiled away to something that just sends the request?
 	const query = getQuery(graphql`
