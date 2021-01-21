@@ -123,10 +123,10 @@ function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<st
 // needed to create the query document
 export function flattenFragments(
 	operation: { requiredFragments: Array<string> },
-	fragments: { [name: string]: Document }
-): IterableIterator<string> {
+	fragments: { [name: string]: { requiredFragments: Array<string> } }
+): Array<string> {
 	// the list of fragments to return
-	const frags = new Set(...operation.requiredFragments)
+	const frags = new Set<string>()
 
 	// we're going to do this as a breadth-first search to avoid creating
 	// duplicates. If we did this a depth-first we would process dependent
@@ -143,8 +143,9 @@ export function flattenFragments(
 		// if we haven't seen this fragment before we need to add it to the pile
 		if (!frags.has(nextFragment)) {
 			frags.add(nextFragment)
-			// we have seen this value already
-		} else {
+		}
+		// we have seen this value already
+		else {
 			continue
 		}
 
@@ -153,7 +154,7 @@ export function flattenFragments(
 	}
 
 	// we're done
-	return frags.values()
+	return [...frags]
 }
 
 main()
