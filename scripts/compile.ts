@@ -5,9 +5,10 @@ import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { Kind as GraphqlKinds } from 'graphql/language'
+import { ProvidedRequiredArgumentsOnDirectivesRule } from 'graphql/validation/rules/ProvidedRequiredArgumentsRule'
 
 // the objects used to hold document meta data
-type Document = {
+export type Document = {
 	name: string
 	raw: string
 	parsed: graphql.DefinitionNode
@@ -88,11 +89,8 @@ async function main() {
 	// every operation will need the complete query
 	await Promise.all(
 		Object.values(operations).map(async (operation) => {
-			// fragments can be cyclic so we'll need to keep track of fragments we've already processed
-			const handledFragments = new Set()
-
-			// the total query string
-			let queryString = ''
+			// we need a flat list of every fragment used by the operation
+			const operationFragments = flattenFragments(operation, fragments)
 		})
 	)
 }
@@ -119,6 +117,43 @@ function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<st
 
 	// we're done
 	return referencedFragments
+}
+
+// take a list of required fragments and turn it into a list of fragments
+// needed to create the query document
+export function flattenFragments(
+	operation: { requiredFragments: Array<string> },
+	fragments: { [name: string]: Document }
+): IterableIterator<string> {
+	// the list of fragments to return
+	const frags = new Set(...operation.requiredFragments)
+
+	// we're going to do this as a breadth-first search to avoid creating
+	// duplicates. If we did this a depth-first we would process dependent
+	// fragments after we check if we've already processed this node
+
+	// the list of fragments we still have to process
+	const remaining = [...operation.requiredFragments]
+
+	// make sure we hit every node
+	while (remaining.length > 0) {
+		// grab the fragment we are going to add
+		const nextFragment = remaining.shift()
+
+		// if we haven't seen this fragment before we need to add it to the pile
+		if (!frags.has(nextFragment)) {
+			frags.add(nextFragment)
+			// we have seen this value already
+		} else {
+			continue
+		}
+
+		// add this framgnets dependents to the pile
+		remaining.push(...fragments[nextFragment].requiredFragments)
+	}
+
+	// we're done
+	return frags.values()
 }
 
 main()
