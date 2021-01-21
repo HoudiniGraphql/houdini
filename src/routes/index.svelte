@@ -25,7 +25,7 @@
 		{#await query}
 			loading...
 		{:then data}
-			There are {data.characters.info.count} characters in Rick and Morty!
+			There are characters in Rick and Morty!
 		{:catch error}
 			error! {error.message}
 		{/await}

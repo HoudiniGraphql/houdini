@@ -60,7 +60,7 @@ module.exports = function houdiniPreprocessor({ artifactDirectory, artifactDirec
 
 						// define the import expression both cases need
 						const importExpression = typeBuilders.importExpression(
-							typeBuilders.literal(`${artifactDirectoryAlias}/${name}.graphql.js`)
+							typeBuilders.literal(`${artifactDirectoryAlias}/${name}.graphql.ts`)
 						)
 
 						// check if we are being passed straight to a function
@@ -72,7 +72,7 @@ module.exports = function houdiniPreprocessor({ artifactDirectory, artifactDirec
 
 						// check if the artifact exists
 						try {
-							await fs.stat(path.join(artifactDirectory, `${name}.graphql.js`))
+							await fs.stat(path.join(artifactDirectory, `${name}.graphql.ts`))
 						} catch (e) {
 							throw new Error(
 								'Looks like you need to run the houdini compiler for this file'

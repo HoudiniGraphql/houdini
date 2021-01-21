@@ -133,7 +133,7 @@ const writeOperationArtifact = (config: Config, fragments: { [name: string]: Doc
 		await mkdirp(config.artifactDirectory)
 
 		// the location we will put the operation artifact
-		const targetLocation = path.join(config.artifactDirectory, `${operation.name}.graphql.js`)
+		const targetLocation = path.join(config.artifactDirectory, `${operation.name}.graphql.ts`)
 
 		// we need a flat list of every fragment used by the operation
 		const operationFragments = flattenFragments(operation, fragments).map(

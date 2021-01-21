@@ -14,7 +14,7 @@ export function getQuery<_QueryType extends TaggedGraphqlOperation>(
 	queryImport: GraphQLTagResult
 ): Readable<string> {
 	// we have to resolve the import and then fire the query
-	queryImport.then(console.log)
+	queryImport.then((module) => console.log(module.raw))
 
 	return readable(null, () => {})
 }
