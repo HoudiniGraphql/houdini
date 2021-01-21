@@ -21,8 +21,6 @@ export function getQuery<_QueryType extends TaggedGraphqlOperation>(
 
 // for type reasons, this function needs to return the same value as what the preprocessor leaves behind
 export function graphql(query: TemplateStringsArray): GraphQLTagResult {
-	return Promise.resolve({
-		name: 'hello',
-		raw: 'raw',
-	})
+	// if this is executed, the preprocessor is not enabled
+	throw new Error("Looks like you don't have the preprocessor enabled.")
 }
