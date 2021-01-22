@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 // externals
 import glob from 'glob'
 import { gqlPluckFromCodeString } from 'graphql-tag-pluck'
@@ -12,7 +14,7 @@ import mkdirp from 'mkdirp'
 
 // the objects used to hold document meta data
 export type Document = {
-	name: string
+	name?: string
 	raw: string
 	parsed: graphql.DefinitionNode
 	requiredFragments: Array<string>
@@ -23,7 +25,7 @@ type Config = {
 }
 
 const defaultConfig: Config = {
-	artifactDirectory: path.join(__dirname, '..', 'generated'),
+	artifactDirectory: path.join(__dirname, '..', '..', '..', 'example', 'generated'),
 }
 
 // the compile script is responsible for two different things:
@@ -45,7 +47,7 @@ async function main(config: Config = defaultConfig) {
 			// read the file
 			const contents = await fs.readFile(filePath, 'utf-8')
 			// the javascript bits
-			let jsContent: string
+			let jsContent: string = ''
 
 			// pretend we are preprocessing to get access to the javascript bits
 			svelte.preprocess(contents, {
@@ -56,6 +58,9 @@ async function main(config: Config = defaultConfig) {
 					}
 				},
 			})
+			if (!jsContent) {
+				return
+			}
 
 			// grab the graphql document listed in the file
 			const document = await gqlPluckFromCodeString(jsContent, {
@@ -64,6 +69,11 @@ async function main(config: Config = defaultConfig) {
 					{ name: 'houdini', identifier: 'graphql' },
 				],
 			})
+
+			// if there is no graphql tag in the file we dont care about it
+			if (!document) {
+				return
+			}
 
 			// parse the document
 			const parsedDoc = graphql.parse(document)
@@ -80,7 +90,7 @@ async function main(config: Config = defaultConfig) {
 
 			// the document we'll register
 			const doc: Document = {
-				name: definition.name.value,
+				name: definition.name?.value,
 				raw: document,
 				parsed: definition,
 				requiredFragments: findRequiredFragments(definition.selectionSet),
@@ -88,11 +98,14 @@ async function main(config: Config = defaultConfig) {
 
 			// if we are dealing with a fragment
 			if (definition.kind === GraphqlKinds.FRAGMENT_DEFINITION) {
-				fragments[definition.name.value] = doc
+				fragments[definition.name?.value] = doc
 			}
 			// could have been an operation
 			else if (definition.kind === GraphqlKinds.OPERATION_DEFINITION) {
-				operations[definition.name.value] = doc
+				if (!definition.name) {
+					throw new Error('Encountered operation with no name')
+				}
+				operations[definition.name?.value] = doc
 			}
 		})
 	)
@@ -150,7 +163,7 @@ const writeOperationArtifact = (config: Config, fragments: { [name: string]: Doc
 				AST.variableDeclaration('const', [
 					AST.variableDeclarator(
 						AST.identifier('name'),
-						AST.stringLiteral(operation.name)
+						AST.stringLiteral(operation.name || 'NO_NAME')
 					),
 				])
 			),
@@ -194,6 +207,11 @@ export function flattenFragments(
 	while (remaining.length > 0) {
 		// grab the fragment we are going to add
 		const nextFragment = remaining.shift()
+
+		// make sure we got something
+		if (!nextFragment) {
+			continue
+		}
 
 		// if we haven't seen this fragment before we need to add it to the pile
 		if (!frags.has(nextFragment)) {
