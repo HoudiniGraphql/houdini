@@ -1,7 +1,7 @@
 {
 	"name": "houdini-monorepo",
 	"workspaces": [
-		"example/",
+		"example",
 		"packages/*"
 	],
 	"devDependencies": {
