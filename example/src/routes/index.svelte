@@ -11,9 +11,9 @@
 					}
 				}
 			}
-		`) 
+		`)
 
-		return { data } 
+		return { data, loading: false }
 	}
 
 	// getFragment can be preprocessed into a reference to the appropriate store
@@ -25,11 +25,15 @@
 </script>
 
 <script>
-	export let data
+	export let data = { loading: true }
 </script>
 
 <main>
 	<p>
-		There are {data.characters.info.count} characters in the API.
+		{#if data.loading}
+			loading...
+		{:else}
+			There are {data.characters.info.count} characters in the API.
+		{/if}
 	</p>
 </main>
