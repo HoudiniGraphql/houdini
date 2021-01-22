@@ -4,7 +4,7 @@
 	export let character
 
 	const data = getFragment(
-		`
+		graphql`
 			fragment CharacterAvatar_character on Character {
 				name
 				image
