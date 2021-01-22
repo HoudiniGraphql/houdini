@@ -11,6 +11,7 @@ import path from 'path'
 import * as recast from 'recast'
 const AST = recast.types.builders
 import mkdirp from 'mkdirp'
+import { TaggedTemplateExpression, Identifier } from 'estree'
 
 // the objects used to hold document meta data
 export type Document = {
@@ -35,7 +36,7 @@ const defaultConfig: Config = {
 // note: this is invoked at the bottom of the file
 async function main(config: Config = defaultConfig) {
 	// the first step we have to do is grab a list of every file in the source tree
-	const sourceFiles: string[] = glob.sync('src/**/*.svelte')
+	const sourceFiles: string[] = glob.sync('src/routes/index.svelte')
 
 	// we need to collect all of the fragment definitions before we can do anything for operations
 	const fragments: { [name: string]: Document } = {}
@@ -46,67 +47,66 @@ async function main(config: Config = defaultConfig) {
 		sourceFiles.map(async (filePath) => {
 			// read the file
 			const contents = await fs.readFile(filePath, 'utf-8')
-			// the javascript bits
-			let jsContent: string = ''
 
-			// pretend we are preprocessing to get access to the javascript bits
-			svelte.preprocess(contents, {
-				script({ content }) {
-					jsContent = content
-					return {
-						code: content,
-					}
-				},
-			})
-			if (!jsContent) {
-				return
-			}
+			// parse the contents
+			const parsedFile = svelte.parse(contents)
 
-			// grab the graphql document listed in the file
-			const document = await gqlPluckFromCodeString(jsContent, {
-				modules: [
-					{ name: '$houdini', identifier: 'graphql' },
-					{ name: 'houdini', identifier: 'graphql' },
-				],
-			})
+			// we need to look for multiple script tags to support sveltekit
+			const scripts = [parsedFile.instance, parsedFile.module]
 
-			// if there is no graphql tag in the file we dont care about it
-			if (!document) {
-				return
-			}
+			await Promise.all(
+				scripts.map(async (jsContent) => {
+					// look for any template tag literals in the script body
+					svelte.walk(jsContent, {
+						enter(node) {
+							// if we are looking at the graphql template tag
+							if (
+								node.type === 'TaggedTemplateExpression' &&
+								((node as TaggedTemplateExpression).tag as Identifier).name ===
+									'graphql'
+							) {
+								const expr = node as TaggedTemplateExpression
 
-			// parse the document
-			const parsedDoc = graphql.parse(document)
+								// first, lets parse the tag contents to get the info we need
+								const rawDocument = expr.quasi.quasis[0].value.raw
+								const parsedDoc = graphql.parse(rawDocument)
 
-			// make sure there is only one definition in a document
-			if (parsedDoc.definitions.length > 1) {
-				throw new Error('encountered multiple definitions')
-			}
+								// make sure there is only one definition in the document
+								if (parsedDoc.definitions.length > 1) {
+									throw new Error('encountered multiple definitions')
+								}
 
-			// grab the top level definition
-			const definition = parsedDoc.definitions[0] as
-				| graphql.FragmentDefinitionNode
-				| graphql.OperationDefinitionNode
+								// grab the top level definition
+								const definition = parsedDoc.definitions[0] as
+									| graphql.FragmentDefinitionNode
+									| graphql.OperationDefinitionNode
 
-			// the document we'll register
-			const doc: Document = {
-				name: definition.name?.value,
-				raw: document,
-				parsed: definition,
-				requiredFragments: findRequiredFragments(definition.selectionSet),
-			}
+								// the document we'll register
+								const doc: Document = {
+									name: definition.name?.value,
+									raw: rawDocument,
+									parsed: definition,
+									requiredFragments: findRequiredFragments(
+										definition.selectionSet
+									),
+								}
 
-			// if we are dealing with a fragment
-			if (definition.kind === GraphqlKinds.FRAGMENT_DEFINITION) {
-				fragments[definition.name?.value] = doc
-			}
-			// could have been an operation
-			else if (definition.kind === GraphqlKinds.OPERATION_DEFINITION) {
-				if (!definition.name) {
-					throw new Error('Encountered operation with no name')
-				}
-				operations[definition.name?.value] = doc
-			}
+								// if we are dealing with a fragment
+								if (definition.kind === GraphqlKinds.FRAGMENT_DEFINITION) {
+									fragments[definition.name?.value] = doc
+								}
+								// could have been an operation
+								else if (definition.kind === GraphqlKinds.OPERATION_DEFINITION) {
+									if (!definition.name) {
+										throw new Error('Encountered operation with no name')
+									}
+									operations[definition.name?.value] = doc
+								}
+							}
+						},
+					})
+				})
+			)
 		})
 	)
 

@@ -2,7 +2,6 @@
 import path from 'path'
 import fs from 'fs/promises'
 import { parse as recast, print, types } from 'recast'
-import { namedTypes } from 'ast-types'
 import { parse } from 'graphql'
 import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpression, Identifier } from 'estree'
