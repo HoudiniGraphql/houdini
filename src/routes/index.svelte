@@ -1,5 +1,25 @@
 <script>
-	import { getQuery, graphql } from '$houdini'
+	import { getQuery, graphql, setEnvironment, Environment } from '$houdini'
+
+	// configure the network layer for the application
+	setEnvironment(
+		new Environment(async function ({ text, variables }) {
+			// send the request to the ricky and morty api
+			const result = await fetch('https://rickandmortyapi.com/graphql', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					query: text,
+					variables,
+				}),
+			})
+
+			// parse the result as json
+			return await result.json()
+		})
+	)
 
 	// can this be compiled away to something that just sends the request?
 	const query = getQuery(graphql`
@@ -22,9 +42,10 @@
 
 <main>
 	<p>
-		{#await query}
+		{#await $query}
 			loading...
 		{:then data}
+			{(console.log(data), '')}
 			There are characters in Rick and Morty!
 		{:catch error}
 			error! {error.message}
