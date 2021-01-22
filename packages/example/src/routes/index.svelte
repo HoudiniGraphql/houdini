@@ -1,50 +1,54 @@
 <script>
-	import successkid from 'images/successkid.jpg';
+	import { getQuery, graphql, setEnvironment, Environment } from 'houdini'
+
+	// configure the network layer for the application
+	setEnvironment(
+		new Environment(async function ({ text, variables }) {
+			// send the request to the ricky and morty api
+			const result = await fetch('https://rickandmortyapi.com/graphql', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					query: text,
+					variables,
+				}),
+			})
+
+			// parse the result as json
+			return await result.json()
+		})
+	)
+
+	// can this be compiled away to something that just sends the request?
+	const query = getQuery(graphql`
+		query AllCharacters {
+			characters {
+				info {
+					count
+				}
+			}
+		}
+	`)
+
+	// getFragment can be preprocessed into a reference to the appropriate store
+	// to get updated values.
+
+	// - getFragment(foo, user123) could just preprocess into a derived statement from the user store
+	// - generated runtime can provide some kind of hook for a specific derived statement that is updated
+	// whenever a mutation asks for values which intersect with the mutation
 </script>
 
-<style>
-	h1, figure, p {
-		text-align: center;
-		margin: 0 auto;
-	}
-
-	h1 {
-		font-size: 2.8em;
-		text-transform: uppercase;
-		font-weight: 700;
-		margin: 0 0 0.5em 0;
-	}
-
-	figure {
-		margin: 0 0 1em 0;
-	}
-
-	img {
-		width: 100%;
-		max-width: 400px;
-		margin: 0 0 1em 0;
-	}
-
-	p {
-		margin: 1em auto;
-	}
-
-	@media (min-width: 480px) {
-		h1 {
-			font-size: 4em;
-		}
-	}
-</style>
-
-<svelte:head>
-	<title>Sapper project template</title>
-</svelte:head>
-
-<h1>Great success!</h1>
-
-<figure>
-	<img alt="Success Kid" src="{successkid}">
-	<figcaption>Have fun with Sapper!</figcaption>
-</figure>
-
-<p><strong>Try editing this file (src/routes/index.svelte) to test live reloading.</strong></p>
+<main>
+	<p>
+		{#await $query}
+			loading...
+		{:then data}
+			{(console.log(data), '')}
+			There are characters in Rick and Morty!
+		{:catch error}
+			error! {error.message}
+		{/await}
+	</p>
+</main>
