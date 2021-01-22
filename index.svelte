@@ -5,7 +5,7 @@
 	setEnvironment(
 		new Environment(async function ({ text, variables }) {
 			// send the request to the ricky and morty api
-			const result = await fetch('https://rickandmortyapi.com/graphql', {
+			const result = await f('https://rickandmortyapi.com/graphql', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
