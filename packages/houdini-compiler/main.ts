@@ -12,7 +12,7 @@ import mkdirp from 'mkdirp'
 
 // the objects used to hold document meta data
 export type Document = {
-	name: string
+	name?: string
 	raw: string
 	parsed: graphql.DefinitionNode
 	requiredFragments: Array<string>
@@ -58,6 +58,7 @@ async function main(config: Config = defaultConfig) {
 			})
 
 			// grab the graphql document listed in the file
+			// @ts-ignore
 			const document = await gqlPluckFromCodeString(jsContent, {
 				modules: [
 					{ name: '$houdini', identifier: 'graphql' },
@@ -80,7 +81,7 @@ async function main(config: Config = defaultConfig) {
 
 			// the document we'll register
 			const doc: Document = {
-				name: definition.name.value,
+				name: definition.name?.value,
 				raw: document,
 				parsed: definition,
 				requiredFragments: findRequiredFragments(definition.selectionSet),
@@ -88,11 +89,14 @@ async function main(config: Config = defaultConfig) {
 
 			// if we are dealing with a fragment
 			if (definition.kind === GraphqlKinds.FRAGMENT_DEFINITION) {
-				fragments[definition.name.value] = doc
+				fragments[definition.name?.value] = doc
 			}
 			// could have been an operation
 			else if (definition.kind === GraphqlKinds.OPERATION_DEFINITION) {
-				operations[definition.name.value] = doc
+				if (!definition.name) {
+					throw new Error('Encountered operation with no name')
+				}
+				operations[definition.name?.value] = doc
 			}
 		})
 	)
@@ -150,7 +154,7 @@ const writeOperationArtifact = (config: Config, fragments: { [name: string]: Doc
 				AST.variableDeclaration('const', [
 					AST.variableDeclarator(
 						AST.identifier('name'),
-						AST.stringLiteral(operation.name)
+						AST.stringLiteral(operation.name || 'NO_NAME')
 					),
 				])
 			),
@@ -194,6 +198,11 @@ export function flattenFragments(
 	while (remaining.length > 0) {
 		// grab the fragment we are going to add
 		const nextFragment = remaining.shift()
+
+		// make sure we got something
+		if (!nextFragment) {
+			continue
+		}
 
 		// if we haven't seen this fragment before we need to add it to the pile
 		if (!frags.has(nextFragment)) {

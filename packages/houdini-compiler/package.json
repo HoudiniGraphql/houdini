@@ -1,0 +1,23 @@
+{
+	"name": "houdini-compiler",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"build": "tsc",
+		"prepare": "npm run build"
+    },
+    "bin": {
+        "houdini-compiler": "build/main.js"
+    },
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/glob": "^7.1.3",
+		"@types/mkdirp": "^1.0.1"
+	},
+	"dependencies": {
+		"@types/mkdirp": "^1.0.1"
+	}
+}

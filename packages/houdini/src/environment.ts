@@ -21,7 +21,7 @@ type FetchParams = {
 type RequestHandler = <ResponseType>(params: FetchParams) => Promise<ResponseType>
 
 export class Environment {
-	private handler: RequestHandler = null
+	private handler: RequestHandler
 
 	constructor(networkFn: RequestHandler) {
 		this.handler = networkFn
