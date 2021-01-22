@@ -1,6 +1,5 @@
 // externals
-import { readable, Readable } from 'svelte/store'
-import { getEnvironment } from './environment'
+import { currentEnv } from './environment'
 
 export * from './environment'
 
@@ -13,32 +12,20 @@ type TaggedGraphqlOperation = {
 // the result of the template tag (also what the compiler leaves behind in the artifact directory)
 type GraphQLTagResult = Promise<TaggedGraphqlOperation>
 
-export function getQuery(
+export async function getQuery(
 	queryImport: GraphQLTagResult,
 	variables: { [name: string]: unknown }
-): Readable<Promise<unknown>> {
-	// grab the environment we're supposed to use
-	const environent = getEnvironment()
-	if (!environent) {
-		throw new Error('Could not find environment in context.')
+): Promise<unknown> {
+	// wait for the import to resolve
+	const { raw } = await queryImport
+
+	// if there is no environment configured
+	if (!currentEnv) {
+		throw new Error('Please provide an environment')
 	}
 
-	// build up a promise that sends the query
-	const queryPromise = new Promise(async (resolve, reject) => {
-		// wait for the import to resolve
-		const { raw } = await queryImport
-
-		// trigger the environment's network function
-		resolve(
-			await environent.sendRequest<unknown>({
-				text: raw,
-				variables,
-			})
-		)
-	})
-
-	// wrap the promise in a store that we will update when we get to cache invalidation
-	return readable(queryPromise, (set) => {})
+	// wrap the result in a store we can use to keep this query up to date
+	return await currentEnv?.sendRequest({ text: raw, variables: {} })
 }
 
 // for type reasons, this function needs to return the same value as what the preprocessor leaves behind

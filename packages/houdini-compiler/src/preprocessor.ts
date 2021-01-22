@@ -1,43 +1,51 @@
 // externals
-const path = require('path')
-const fs = require('fs/promises')
-const recast = require('recast')
-const { walk } = require('svelte/compiler')
-const astTypes = require('ast-types')
-const { parse } = require('graphql')
-const { asyncWalk } = require('estree-walker')
-const typeBuilders = recast.types.builders
+import path from 'path'
+import fs from 'fs/promises'
+import { parse as recast, print, types } from 'recast'
+import { namedTypes } from 'ast-types'
+import { parse } from 'graphql'
+import { asyncWalk } from 'estree-walker'
+import { TaggedTemplateExpression, CallExpression, ImportExpression } from 'estree'
+import { OperationDefinitionNode } from 'graphql/language'
+const typeBuilders = types.builders
 
-// pull out some useful ast constants
-const TaggedTemplateExpression = astTypes.namedTypes.TaggedTemplateExpression.name
-const CallExpression = astTypes.namedTypes.CallExpression.name
-const VariableDeclarator = astTypes.namedTypes.VariableDeclarator.name
+type PreProcessorConfig = {
+	artifactDirectory: string
+	artifactDirectoryAlias: string
+}
+
+type Result = {
+	code: string
+}
 
 // a place to store memoized results
-let memo = {}
+let memo: { [filename: string]: Result } = {}
 
 // the houdini preprocessor is required to strip away the graphql tags
 // and leave behind something for the runtime
-module.exports = function houdiniPreprocessor({ artifactDirectory, artifactDirectoryAlias }) {
+export function preprocessor({ artifactDirectory, artifactDirectoryAlias }: PreProcessorConfig) {
 	return {
 		// the only thing we have to modify is the script blocks
-		async script({ content, filename }) {
+		async script({ content, filename }: { content: string; filename: string }) {
 			if (memo[filename]) {
 				return memo[filename]
 			}
 
 			// parse the javascript content
-			const parsed = recast.parse(content)
+			const parsed = recast(content)
 
 			// svelte walk over recast?
 			await asyncWalk(parsed, {
 				async enter(node, parent) {
 					// if we are looking at the graphql template tag
-					if (node.type === TaggedTemplateExpression && node.tag.name === 'graphql') {
+					if (node.type === 'TaggedTemplateExpression') {
+						console.log('found a tagged template expression')
+						const expr = node as TaggedTemplateExpression
+
 						// we're going to replace the tag with an import from the artifact directory
 
 						// first, lets parse the tag contents to get the info we need
-						const parsedTag = parse(node.quasi.quasis[0].value.raw)
+						const parsedTag = parse(expr.quasi.quasis[0].value.raw)
 
 						// make sure there is only one definition
 						if (parsedTag.definitions.length > 1) {
@@ -45,7 +53,8 @@ module.exports = function houdiniPreprocessor({ artifactDirectory, artifactDirec
 						}
 
 						// pull out the name of the thing
-						const name = parsedTag.definitions[0].name.value
+						const name = (parsedTag.definitions[0] as OperationDefinitionNode).name
+							?.value
 
 						// there are two options for "valid" usage of the tag.
 						// either inline with a call to a function
@@ -64,9 +73,11 @@ module.exports = function houdiniPreprocessor({ artifactDirectory, artifactDirec
 						)
 
 						// check if we are being passed straight to a function
-						if (parent.type === CallExpression) {
+						if (parent.type === 'CallExpression') {
+							// @ts-ignore
 							parent.arguments[0] = importExpression
-						} else if (parent.type === VariableDeclarator) {
+						} else if (parent.type === 'VariableDeclarator') {
+							// @ts-ignore
 							parent.init = importExpression
 						}
 
@@ -83,12 +94,10 @@ module.exports = function houdiniPreprocessor({ artifactDirectory, artifactDirec
 			})
 
 			// save the result for later
-			memo[filename] = recast.print(parsed)
+			memo[filename] = print(parsed)
 
 			// return the printed result
 			return memo[filename]
 		},
 	}
 }
-
-function processQuery(query) {}

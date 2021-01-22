@@ -18,6 +18,7 @@
 		"graphql": "^15.4.0",
 		"graphql-tag-pluck": "^0.8.7",
 		"recast": "^0.20.4",
+		"sapper": "^0.29.0",
 		"svelte": "^3.29.0"
 	}
 }

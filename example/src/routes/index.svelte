@@ -1,36 +1,22 @@
-<script>
+<script context="module">
 	import { getQuery, graphql, setEnvironment, Environment } from 'houdini'
 
-	// configure the network layer for the application
-	setEnvironment(
-		new Environment(async function ({ text, variables }) {
-			// send the request to the ricky and morty api
-			const result = await f('https://rickandmortyapi.com/graphql', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					query: text,
-					variables,
-				}),
-			})
-
-			// parse the result as json
-			return await result.json()
-		})
-	)
-
-	// can this be compiled away to something that just sends the request?
-	const query = getQuery(graphql`
-		query AllCharacters {
-			characters {
-				info {
-					count
+	export async function preload() {
+		// load the data
+		const data = await getQuery(graphql`
+			query AllCharacters {
+				characters {
+					info {
+						count
+					}
 				}
 			}
+		`) 
+
+		return {
+			data,
 		}
-	`)
+	}
 
 	// getFragment can be preprocessed into a reference to the appropriate store
 	// to get updated values.
@@ -40,15 +26,12 @@
 	// whenever a mutation asks for values which intersect with the mutation
 </script>
 
+<script>
+	export let data
+</script>
+
 <main>
 	<p>
-		{#await $query}
-			loading...
-		{:then data}
-			{(console.log(data), '')}
-			There are characters in Rick and Morty!
-		{:catch error}
-			error! {error.message}
-		{/await}
+		{data.message}
 	</p>
 </main>
