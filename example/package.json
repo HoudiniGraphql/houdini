@@ -7,6 +7,7 @@
 		"build": "sapper build --legacy",
 		"export": "sapper export --legacy",
 		"start": "node __sapper__/build",
+		"compile": "houdini-compiler",
 		"validate": "svelte-check --ignore src/node_modules/@sapper"
 	},
 	"dependencies": {

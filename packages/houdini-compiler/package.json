@@ -19,6 +19,7 @@
 	},
 	"dependencies": {
 		"@types/mkdirp": "^1.0.1",
-		"estree-walker": "^2.0.2"
+		"estree-walker": "^2.0.2",
+		"mkdirp": "^1.0.4"
 	}
 }

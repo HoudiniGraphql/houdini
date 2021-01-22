@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 // externals
 import glob from 'glob'
 import { gqlPluckFromCodeString } from 'graphql-tag-pluck'
@@ -23,7 +25,7 @@ type Config = {
 }
 
 const defaultConfig: Config = {
-	artifactDirectory: path.join(__dirname, '..', 'generated'),
+	artifactDirectory: path.join(__dirname, '..', '..', '..', 'example', 'generated'),
 }
 
 // the compile script is responsible for two different things:
@@ -45,7 +47,7 @@ async function main(config: Config = defaultConfig) {
 			// read the file
 			const contents = await fs.readFile(filePath, 'utf-8')
 			// the javascript bits
-			let jsContent: string
+			let jsContent: string = ''
 
 			// pretend we are preprocessing to get access to the javascript bits
 			svelte.preprocess(contents, {
@@ -56,15 +58,22 @@ async function main(config: Config = defaultConfig) {
 					}
 				},
 			})
+			if (!jsContent) {
+				return
+			}
 
 			// grab the graphql document listed in the file
-			// @ts-ignore
 			const document = await gqlPluckFromCodeString(jsContent, {
 				modules: [
 					{ name: '$houdini', identifier: 'graphql' },
 					{ name: 'houdini', identifier: 'graphql' },
 				],
 			})
+
+			// if there is no graphql tag in the file we dont care about it
+			if (!document) {
+				return
+			}
 
 			// parse the document
 			const parsedDoc = graphql.parse(document)

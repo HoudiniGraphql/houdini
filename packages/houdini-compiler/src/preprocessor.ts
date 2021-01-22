@@ -5,7 +5,7 @@ import { parse as recast, print, types } from 'recast'
 import { namedTypes } from 'ast-types'
 import { parse } from 'graphql'
 import { asyncWalk } from 'estree-walker'
-import { TaggedTemplateExpression, CallExpression, ImportExpression } from 'estree'
+import { TaggedTemplateExpression, Identifier } from 'estree'
 import { OperationDefinitionNode } from 'graphql/language'
 const typeBuilders = types.builders
 
@@ -38,8 +38,10 @@ export function preprocessor({ artifactDirectory, artifactDirectoryAlias }: PreP
 			await asyncWalk(parsed, {
 				async enter(node, parent) {
 					// if we are looking at the graphql template tag
-					if (node.type === 'TaggedTemplateExpression') {
-						console.log('found a tagged template expression')
+					if (
+						node.type === 'TaggedTemplateExpression' &&
+						((node as TaggedTemplateExpression).tag as Identifier).name === 'graphql'
+					) {
 						const expr = node as TaggedTemplateExpression
 
 						// we're going to replace the tag with an import from the artifact directory
