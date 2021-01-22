@@ -1,15 +1,8 @@
 // externals
 import { readable, Readable } from 'svelte/store'
-import {
-	getEnvironment as _getEnv,
-	setEnvironment as _setEnv,
-	Environment as Env,
-} from './environment'
+import { getEnvironment } from './environment'
 
-// 🤮
-export const getEnvironment = _getEnv
-export const setEnvironment = _setEnv
-export const Environment = Env
+export * from './environment'
 
 // the compiled version of an operation
 type TaggedGraphqlOperation = {
@@ -25,7 +18,7 @@ export function getQuery(
 	variables: { [name: string]: unknown }
 ): Readable<Promise<unknown>> {
 	// grab the environment we're supposed to use
-	const environent = _getEnv()
+	const environent = getEnvironment()
 	if (!environent) {
 		throw new Error('Could not find environment in context.')
 	}

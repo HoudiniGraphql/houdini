@@ -10,12 +10,13 @@
 		"typescript": "^4.0.0"
 	},
 	"dependencies": {
+		"@tsconfig/svelte": "^1.0.10",
 		"estree-walker": "^2.0.2",
 		"glob": "^7.1.6",
 		"graphql": "^15.4.0",
 		"graphql-tag-pluck": "^0.8.7",
+		"mkdirp": "^1.0.4",
 		"recast": "^0.20.4",
-		"svelte": "^3.29.0",
-		"mkdirp": "^1.0.4"
+		"svelte": "^3.29.0"
 	}
 }
