@@ -15,13 +15,12 @@
 		"sirv": "^1.0.0"
 	},
 	"devDependencies": {
-		"houdini": "0.0.1",
-		"houdini-compiler": "0.0.0",
 		"@babel/core": "^7.0.0",
 		"@babel/plugin-syntax-dynamic-import": "^7.0.0",
 		"@babel/plugin-transform-runtime": "^7.0.0",
 		"@babel/preset-env": "^7.0.0",
 		"@babel/runtime": "^7.0.0",
+		"@rollup/plugin-alias": "^3.1.1",
 		"@rollup/plugin-babel": "^5.0.0",
 		"@rollup/plugin-commonjs": "^14.0.0",
 		"@rollup/plugin-node-resolve": "^8.0.0",
@@ -32,6 +31,8 @@
 		"@types/compression": "^1.7.0",
 		"@types/node": "^14.11.1",
 		"@types/polka": "^0.5.1",
+		"houdini": "0.0.1",
+		"houdini-compiler": "0.0.0",
 		"rollup": "^2.3.4",
 		"rollup-plugin-svelte": "^7.0.0",
 		"rollup-plugin-terser": "^7.0.0",

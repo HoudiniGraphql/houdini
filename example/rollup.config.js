@@ -8,6 +8,7 @@ import babel from '@rollup/plugin-babel'
 import { terser } from 'rollup-plugin-terser'
 import sveltePreprocess from 'svelte-preprocess'
 import typescript from '@rollup/plugin-typescript'
+import alias from '@rollup/plugin-alias'
 import config from 'sapper/config/rollup.js'
 import pkg from './package.json'
 import { preprocessor as houdiniPreprocessor } from 'houdini-compiler'
@@ -22,6 +23,8 @@ const onwarn = (warning, onwarn) =>
 	warning.code === 'THIS_IS_UNDEFINED' ||
 	onwarn(warning)
 
+const artifactDirectory = path.join(__dirname, 'generated')
+
 export default {
 	client: {
 		input: config.client.input().replace(/\.js$/, '.ts'),
@@ -35,7 +38,7 @@ export default {
 				preprocess: [
 					sveltePreprocess(),
 					houdiniPreprocessor({
-						artifactDirectory: path.join(__dirname, 'generated'),
+						artifactDirectory,
 						artifactDirectoryAlias: 'generated',
 					}),
 				],
@@ -54,6 +57,15 @@ export default {
 			}),
 			commonjs(),
 			typescript({ sourceMap: dev }),
+			alias({
+				resolve: ['.jsx', '.js', '.ts', '.tsx'],
+				entries: [
+					{
+						find: 'generated',
+						replacement: './generated',
+					},
+				],
+			}),
 
 			legacy &&
 				babel({
@@ -98,7 +110,13 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 			}),
 			svelte({
-				preprocess: sveltePreprocess(),
+				preprocess: [
+					sveltePreprocess(),
+					houdiniPreprocessor({
+						artifactDirectory,
+						artifactDirectoryAlias: 'generated',
+					}),
+				],
 				compilerOptions: {
 					dev,
 					generate: 'ssr',
@@ -116,28 +134,19 @@ export default {
 			}),
 			commonjs(),
 			typescript({ sourceMap: dev }),
+			alias({
+				resolve: ['.jsx', '.js', '.ts', '.tsx'],
+				entries: [
+					{
+						find: 'generated',
+						replacement: './generated',
+					},
+				],
+			}),
 		],
 		external: Object.keys(pkg.dependencies).concat(require('module').builtinModules),
 
 		preserveEntrySignatures: 'strict',
-		onwarn,
-	},
-
-	serviceworker: {
-		input: config.serviceworker.input().replace(/\.js$/, '.ts'),
-		output: config.serviceworker.output(),
-		plugins: [
-			resolve(),
-			replace({
-				'process.browser': true,
-				'process.env.NODE_ENV': JSON.stringify(mode),
-			}),
-			commonjs(),
-			typescript({ sourceMap: dev }),
-			!dev && terser(),
-		],
-
-		preserveEntrySignatures: false,
 		onwarn,
 	},
 }

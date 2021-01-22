@@ -3,7 +3,7 @@
 
 	export async function preload() {
 		// load the data
-		const data = await getQuery(graphql`
+		const { data } = await getQuery(graphql`
 			query AllCharacters {
 				characters {
 					info {
@@ -13,9 +13,7 @@
 			}
 		`) 
 
-		return {
-			data,
-		}
+		return { data } 
 	}
 
 	// getFragment can be preprocessed into a reference to the appropriate store
@@ -32,6 +30,6 @@
 
 <main>
 	<p>
-		{data.message}
+		There are {data.characters.info.count} characters in the API.
 	</p>
 </main>
