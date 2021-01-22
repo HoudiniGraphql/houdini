@@ -1,0 +1,34 @@
+{
+  "name": "TODO",
+  "description": "TODO",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "sapper dev",
+    "build": "sapper build",
+    "export": "sapper export",
+    "start": "node __sapper__/build",
+    "validate": "svelte-check --ignore src/node_modules/@sapper"
+  },
+  "dependencies": {
+    "compression": "^1.7.1",
+    "polka": "next",
+    "sirv": "^1.0.0"
+  },
+  "devDependencies": {
+    "sapper": "^0.28.0",
+    "svelte": "^3.17.3",
+    "file-loader": "^6.0.0",
+    "svelte-loader": "^2.9.0",
+    "webpack": "^4.7.0",
+    "webpack-modules": "^1.0.0",
+    "ts-loader": "^8.0.4",
+    "@tsconfig/svelte": "^1.0.10",
+    "@types/compression": "^1.7.0",
+    "@types/node": "^14.11.1",
+    "@types/polka": "^0.5.1",
+    "svelte-check": "^1.0.46",
+    "svelte-preprocess": "^4.3.0",
+    "tslib": "^2.0.1",
+    "typescript": "^4.0.3"
+  }
+}
