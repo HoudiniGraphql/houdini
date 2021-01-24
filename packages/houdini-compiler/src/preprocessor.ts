@@ -3,10 +3,13 @@ import path from 'path'
 import fs from 'fs/promises'
 import { parse as recast, print, types } from 'recast'
 import { parse } from 'graphql'
-import { asyncWalk } from 'estree-walker'
+import { asyncWalk, BaseNode } from 'estree-walker'
 import { TaggedTemplateExpression, Identifier } from 'estree'
-import { OperationDefinitionNode } from 'graphql/language'
+import { OperationDefinitionNode, Kind } from 'graphql/language'
 const typeBuilders = types.builders
+// locals
+import { TaggedGraphqlOperation, TaggedGraphqlFragment } from 'houdini'
+import { Document } from './compile'
 
 type PreProcessorConfig = {
 	artifactDirectory: string
@@ -22,7 +25,7 @@ let memo: { [filename: string]: Result } = {}
 
 // the houdini preprocessor is required to strip away the graphql tags
 // and leave behind something for the runtime
-export function preprocessor({ artifactDirectory, artifactDirectoryAlias }: PreProcessorConfig) {
+export function preprocessor(config: PreProcessorConfig) {
 	return {
 		// the only thing we have to modify is the script blocks
 		async script({ content, filename }: { content: string; filename: string }) {
@@ -57,39 +60,30 @@ export function preprocessor({ artifactDirectory, artifactDirectoryAlias }: PreP
 						const name = (parsedTag.definitions[0] as OperationDefinitionNode).name
 							?.value
 
-						// there are two options for "valid" usage of the tag.
-						// either inline with a call to a function
-						//      ie: getQuery(graphql``)
-						// or as a variable definition (to be passed to the function)
-						//      ie const query = graphql``
-						// in either case, we can just replace the tagged template expression
-						// with an import expression and let the compiler do the work
+						// import the document's artiface
 
-						// TODO: inline the necessary bits into the function call to avoid any impact on
-						// 		 bundle size if compiler leaves behind more than is needed during runtime
-
-						// define the import expression both cases need
-						const importExpression = typeBuilders.importExpression(
-							typeBuilders.literal(`${artifactDirectoryAlias}/${name}.graphql.ts`)
-						)
-
-						// check if we are being passed straight to a function
-						if (parent.type === 'CallExpression') {
-							// @ts-ignore
-							parent.arguments[0] = importExpression
-						} else if (parent.type === 'VariableDeclarator') {
-							// @ts-ignore
-							parent.init = importExpression
-						}
-
-						// check if the artifact exists
+						// grab the document meta data
+						let document: TaggedGraphqlOperation | TaggedGraphqlFragment
 						try {
-							await fs.stat(path.join(artifactDirectory, `${name}.graphql.ts`))
+							document = await import(
+								path.join(config.artifactDirectory, `${name}.graphql.ts`)
+							)
 						} catch (e) {
 							throw new Error(
 								'Looks like you need to run the houdini compiler for ' + name
 							)
 						}
+
+						// if we are looking at an operation
+						if (document.kind === Kind.OPERATION_DEFINITION) {
+							preprocessOperation(config, this.replace, document)
+						}
+						// we are processing a fragment
+						else {
+							preprocessFragment(config, this.replace, document)
+						}
+
+						// check if the artifact exists
 					}
 				},
 			})
@@ -102,3 +96,33 @@ export function preprocessor({ artifactDirectory, artifactDirectoryAlias }: PreP
 		},
 	}
 }
+
+function preprocessOperation(
+	config: PreProcessorConfig,
+	replace: (node: BaseNode) => void,
+	operation: TaggedGraphqlOperation
+) {
+	// replace the template tag with a
+	replace(
+		typeBuilders.objectExpression([
+			typeBuilders.objectProperty(
+				typeBuilders.stringLiteral('name'),
+				typeBuilders.stringLiteral(operation.name)
+			),
+			typeBuilders.objectProperty(
+				typeBuilders.stringLiteral('raw'),
+				typeBuilders.stringLiteral(operation.raw)
+			),
+			typeBuilders.objectProperty(
+				typeBuilders.stringLiteral('kind'),
+				typeBuilders.stringLiteral(operation.kind)
+			),
+		])
+	)
+}
+
+function preprocessFragment(
+	config: PreProcessorConfig,
+	replace: (node: BaseNode) => void,
+	fragment: TaggedGraphqlFragment
+) {}

@@ -230,7 +230,22 @@ function operationExports(
 }
 
 function fragmentExports(config: Config, fragment: Document): StatementKind[] {
-	return []
+	// dry
+	const rawString = fragment.raw
+
+	return [
+		AST.exportNamedDeclaration(
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					AST.identifier('raw'),
+					AST.templateLiteral(
+						[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
+						[]
+					)
+				),
+			])
+		),
+	]
 }
 
 // take a list of required fragments and turn it into a list of fragments
