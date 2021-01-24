@@ -10,7 +10,19 @@ const AST = recast.types.builders
 import mkdirp from 'mkdirp'
 import { StatementKind } from 'ast-types/gen/kinds'
 
-// the objects used to hold document meta data
+// the compiled version of an operation
+type CompiledDocument = {
+	name: string
+}
+
+export type CompiledGraphqlOperation = CompiledDocument & {
+	kind: import('graphql/language').OperationDefinitionNode['kind']
+	raw: string
+}
+
+export type CompiledGraphqlFragment = CompiledDocument & {
+	kind: import('graphql/language').FragmentDefinitionNode['kind']
+}
 
 type FirstPassDocument = {
 	name: string

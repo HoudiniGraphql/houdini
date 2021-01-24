@@ -1,14 +1,14 @@
 // externals
 import path from 'path'
 import { parse as recast, print, types } from 'recast'
-import { parse } from 'graphql'
+import graphql from 'graphql'
 import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpression, Identifier } from 'estree'
 import { OperationDefinitionNode } from 'graphql/language'
 const typeBuilders = types.builders
-type Property = types.namedTypes.Property
+type Property = types.namedTypes.ObjectProperty
 // locals
-import { TaggedGraphqlOperation, TaggedGraphqlFragment } from 'houdini'
+import { CompiledGraphqlOperation, CompiledGraphqlFragment } from './compile'
 import { OperationDocumentKind } from './compile'
 
 type PreProcessorConfig = {
@@ -34,7 +34,9 @@ export function preprocessor(config: PreProcessorConfig) {
 			}
 
 			// parse the javascript content
-			const parsed = recast(content)
+			const parsed = recast(content, {
+				parser: require('recast/parsers/typescript'),
+			})
 
 			// svelte walk over recast?
 			await asyncWalk(parsed, {
@@ -49,7 +51,7 @@ export function preprocessor(config: PreProcessorConfig) {
 						// we're going to replace the tag with an import from the artifact directory
 
 						// first, lets parse the tag contents to get the info we need
-						const parsedTag = parse(expr.quasi.quasis[0].value.raw)
+						const parsedTag = graphql.parse(expr.quasi.quasis[0].value.raw)
 
 						// make sure there is only one definition
 						if (parsedTag.definitions.length > 1) {
@@ -63,7 +65,7 @@ export function preprocessor(config: PreProcessorConfig) {
 						// import the document's artiface
 
 						// grab the document meta data
-						let document: TaggedGraphqlOperation | TaggedGraphqlFragment
+						let document: CompiledGraphqlOperation | CompiledGraphqlFragment
 						try {
 							document = await import(
 								path.join(config.artifactDirectory, `${name}.graphql.ts`)
@@ -81,10 +83,6 @@ export function preprocessor(config: PreProcessorConfig) {
 								typeBuilders.stringLiteral(document.name)
 							),
 							typeBuilders.objectProperty(
-								typeBuilders.stringLiteral('raw'),
-								typeBuilders.stringLiteral(document.raw)
-							),
-							typeBuilders.objectProperty(
 								typeBuilders.stringLiteral('kind'),
 								typeBuilders.stringLiteral(document.kind)
 							),
@@ -96,7 +94,9 @@ export function preprocessor(config: PreProcessorConfig) {
 						}
 						// we are processing a fragment
 						else {
-							replacement.properties.push(...fragmentProperties(config, document))
+							replacement.properties.push(
+								...fragmentProperties(config, document, parsedTag)
+							)
 						}
 
 						// perform the replacement
@@ -114,17 +114,47 @@ export function preprocessor(config: PreProcessorConfig) {
 	}
 }
 
-function operationProperties(
+export function operationProperties(
 	config: PreProcessorConfig,
-	operation: TaggedGraphqlOperation
+	operation: CompiledGraphqlOperation
 ): Property[] {
-	// operations just use the default fields (the compiler does the hard work there)
+	// pass the raw query string for the network request
+	return [
+		typeBuilders.objectProperty(
+			typeBuilders.stringLiteral('raw'),
+			typeBuilders.stringLiteral(operation.raw)
+		),
+	]
+}
+
+export function fragmentProperties(
+	config: PreProcessorConfig,
+	fragment: CompiledGraphqlFragment,
+	doc: graphql.DocumentNode
+): Property[] {
+	const parsedFragment = doc.definitions[0] as graphql.FragmentDefinitionNode
+
+	// the primary requirement for a fragment is the selector, a function that returns the requested
+	// data from the object. we're going to build this up as a function
+	const selector = typeBuilders.functionExpression(
+		null,
+		[typeBuilders.identifier('object')],
+		typeBuilders.blockStatement([
+			typeBuilders.returnStatement(
+				typeBuilders.objectExpression(
+					// any field or inline fragment selections contribute fields to the selector
+					parsedFragment.selectionSet.selections.map((selection) =>
+						typeBuilders.objectProperty(
+							typeBuilders.stringLiteral(selection.kind),
+							typeBuilders.stringLiteral(fragment.name)
+						)
+					)
+				)
+			),
+		])
+	)
+
 	return []
 }
 
-function fragmentProperties(
-	config: PreProcessorConfig,
-	fragment: TaggedGraphqlFragment
-): Property[] {
-	return []
-}
+// in building up the selector

@@ -1,21 +1,17 @@
 // externals
 import { Kind } from 'graphql/language'
 import { getEnvironment } from './environment'
+import { CompiledGraphqlOperation, CompiledGraphqlFragment } from 'houdini-compiler'
 
 export * from './environment'
 
-// the compiled version of an operation
-type TaggedDocument = {
-	name: string
-	raw: string
-}
+// the preprocessor might leave behind fields that the compiler doesn't. Those extra fields are
+// registered in the 'Tagged' variants
 
-export type TaggedGraphqlOperation = TaggedDocument & {
-	kind: import('graphql/language').OperationDefinitionNode['kind']
-}
+type TaggedGraphqlOperation = CompiledGraphqlOperation
 
-export type TaggedGraphqlFragment = TaggedDocument & {
-	kind: import('graphql/language').FragmentDefinitionNode['kind']
+type TaggedGraphqlFragment = CompiledGraphqlFragment & {
+	selector: (root: any) => any
 }
 
 // the result of the template tag (also what the compiler leaves behind in the artifact directory)
@@ -48,6 +44,9 @@ export function getFragment<T>(fragment: GraphQLTagResult, reference: T) {
 	if (fragment.kind !== Kind.FRAGMENT_DEFINITION) {
 		throw new Error('getFragment can only take fragment documents')
 	}
+
+	// dont be fancy yet, just pull out the fields we care about
+	return fragment.selector(reference)
 }
 
 // for type reasons, this function needs to return the same value as what the preprocessor leaves behind

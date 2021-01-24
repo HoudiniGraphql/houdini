@@ -1,6 +1,3 @@
-// externals
-import { getContext, setContext } from 'svelte'
-
 type FetchParams = {
 	text: string
 	variables: { [key: string]: any }
