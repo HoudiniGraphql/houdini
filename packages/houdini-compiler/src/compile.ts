@@ -29,6 +29,10 @@ type Config = {
 	artifactDirectory: string
 }
 
+export const FragmentDocumentKind = GraphqlKinds.FRAGMENT_DEFINITION
+
+export const OperationDocumentKind = GraphqlKinds.OPERATION_DEFINITION
+
 const defaultConfig: Config = {
 	artifactDirectory: path.join(__dirname, '..', '..', '..', 'example', 'generated'),
 }
@@ -120,7 +124,7 @@ export default async function compile(config: Config = defaultConfig) {
 			}
 
 			// if the document is a fragment
-			if (doc.kind === GraphqlKinds.FRAGMENT_DEFINITION) {
+			if (doc.kind === FragmentDocumentKind) {
 				fragments[doc.name] = doc
 			}
 
@@ -158,7 +162,7 @@ export default async function compile(config: Config = defaultConfig) {
 			])
 
 			// we might have to add document kind specific exports
-			if (document.kind === GraphqlKinds.OPERATION_DEFINITION) {
+			if (document.kind === OperationDocumentKind) {
 				artifact.body.push(...operationExports(config, fragments, document))
 			}
 			// its a fragment definition so add those exports

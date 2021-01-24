@@ -1,27 +1,27 @@
 // externals
 import path from 'path'
-import fs from 'fs/promises'
 import { parse as recast, print, types } from 'recast'
 import { parse } from 'graphql'
-import { asyncWalk, BaseNode } from 'estree-walker'
+import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpression, Identifier } from 'estree'
-import { OperationDefinitionNode, Kind } from 'graphql/language'
+import { OperationDefinitionNode } from 'graphql/language'
 const typeBuilders = types.builders
+type Property = types.namedTypes.Property
 // locals
 import { TaggedGraphqlOperation, TaggedGraphqlFragment } from 'houdini'
-import { Document } from './compile'
+import { OperationDocumentKind } from './compile'
 
 type PreProcessorConfig = {
 	artifactDirectory: string
 	artifactDirectoryAlias: string
 }
 
-type Result = {
-	code: string
-}
-
 // a place to store memoized results
-let memo: { [filename: string]: Result } = {}
+let memo: {
+	[filename: string]: {
+		code: string
+	}
+} = {}
 
 // the houdini preprocessor is required to strip away the graphql tags
 // and leave behind something for the runtime
@@ -74,16 +74,33 @@ export function preprocessor(config: PreProcessorConfig) {
 							)
 						}
 
+						// every graphql tag gets replaced by an object with similar fields
+						const replacement = typeBuilders.objectExpression([
+							typeBuilders.objectProperty(
+								typeBuilders.stringLiteral('name'),
+								typeBuilders.stringLiteral(document.name)
+							),
+							typeBuilders.objectProperty(
+								typeBuilders.stringLiteral('raw'),
+								typeBuilders.stringLiteral(document.raw)
+							),
+							typeBuilders.objectProperty(
+								typeBuilders.stringLiteral('kind'),
+								typeBuilders.stringLiteral(document.kind)
+							),
+						])
+
 						// if we are looking at an operation
-						if (document.kind === Kind.OPERATION_DEFINITION) {
-							preprocessOperation(config, this.replace, document)
+						if (document.kind === OperationDocumentKind) {
+							replacement.properties.push(...operationProperties(config, document))
 						}
 						// we are processing a fragment
 						else {
-							preprocessFragment(config, this.replace, document)
+							replacement.properties.push(...fragmentProperties(config, document))
 						}
 
-						// check if the artifact exists
+						// perform the replacement
+						this.replace(replacement)
 					}
 				},
 			})
@@ -97,32 +114,17 @@ export function preprocessor(config: PreProcessorConfig) {
 	}
 }
 
-function preprocessOperation(
+function operationProperties(
 	config: PreProcessorConfig,
-	replace: (node: BaseNode) => void,
 	operation: TaggedGraphqlOperation
-) {
-	// replace the template tag with a
-	replace(
-		typeBuilders.objectExpression([
-			typeBuilders.objectProperty(
-				typeBuilders.stringLiteral('name'),
-				typeBuilders.stringLiteral(operation.name)
-			),
-			typeBuilders.objectProperty(
-				typeBuilders.stringLiteral('raw'),
-				typeBuilders.stringLiteral(operation.raw)
-			),
-			typeBuilders.objectProperty(
-				typeBuilders.stringLiteral('kind'),
-				typeBuilders.stringLiteral(operation.kind)
-			),
-		])
-	)
+): Property[] {
+	// operations just use the default fields (the compiler does the hard work there)
+	return []
 }
 
-function preprocessFragment(
+function fragmentProperties(
 	config: PreProcessorConfig,
-	replace: (node: BaseNode) => void,
 	fragment: TaggedGraphqlFragment
-) {}
+): Property[] {
+	return []
+}
