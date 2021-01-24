@@ -8,6 +8,7 @@ import path from 'path'
 import * as recast from 'recast'
 const AST = recast.types.builders
 import mkdirp from 'mkdirp'
+import { StatementKind } from 'ast-types/gen/kinds'
 
 // the objects used to hold document meta data
 
@@ -39,6 +40,9 @@ const defaultConfig: Config = {
 export default async function compile(config: Config = defaultConfig) {
 	// the first step we have to do is grab a list of every file in the source tree
 	const sourceFiles: string[] = glob.sync('src/{routes,components}/*.svelte')
+
+	// make sure the artifact directory exists
+	await mkdirp(config.artifactDirectory)
 
 	// we need to collect all of the fragment definitions before we can do anything for operations
 	const firstPass: Array<FirstPassDocument> = []
@@ -126,11 +130,47 @@ export default async function compile(config: Config = defaultConfig) {
 
 	// write the artifacts
 	await Promise.all(
-		Object.values(docs).map((document) => {
+		Object.values(docs).map(async (document) => {
+			// the location we will put the operation artifact
+			const targetLocation = path.join(
+				config.artifactDirectory,
+				`${document.name}.graphql.ts`
+			)
+
+			// start building up the artiface
+			const artifact = AST.program([
+				AST.exportNamedDeclaration(
+					AST.variableDeclaration('const', [
+						AST.variableDeclarator(
+							AST.identifier('name'),
+							AST.stringLiteral(document.name || 'NO_NAME')
+						),
+					])
+				),
+				AST.exportNamedDeclaration(
+					AST.variableDeclaration('const', [
+						AST.variableDeclarator(
+							AST.identifier('kind'),
+							AST.stringLiteral(document.kind)
+						),
+					])
+				),
+			])
+
+			// we might have to add document kind specific exports
 			if (document.kind === GraphqlKinds.OPERATION_DEFINITION) {
-				// write the operation documents
-				return writeOperationArtifact(config, fragments, document)
+				artifact.body.push(...operationExports(config, fragments, document))
 			}
+			// its a fragment definition so add those exports
+			else {
+				artifact.body.push(...fragmentExports(config, document))
+			}
+
+			// write the result
+			await fs.writeFile(targetLocation, recast.print(artifact).code)
+
+			// log the file location to confirm
+			console.log(document.name)
 		})
 	)
 }
@@ -159,17 +199,11 @@ function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<st
 	return referencedFragments
 }
 
-async function writeOperationArtifact(
+function operationExports(
 	config: Config,
 	fragments: { [name: string]: Document },
 	operation: Document
-): Promise<void> {
-	// make sure the artifact directory exists
-	await mkdirp(config.artifactDirectory)
-
-	// the location we will put the operation artifact
-	const targetLocation = path.join(config.artifactDirectory, `${operation.name}.graphql.ts`)
-
+): StatementKind[] {
 	// we need a flat list of every fragment used by the operation
 	const operationFragments = flattenFragments(operation, fragments).map(
 		(fragmentName) => fragments[fragmentName].raw
@@ -180,15 +214,7 @@ async function writeOperationArtifact(
 
 	// an operation artifact is a javascript file in the appropriate directory.
 	// we'll build it up as an ast and then print it to the right spot
-	const artifact = AST.program([
-		AST.exportNamedDeclaration(
-			AST.variableDeclaration('const', [
-				AST.variableDeclarator(
-					AST.identifier('name'),
-					AST.stringLiteral(operation.name || 'NO_NAME')
-				),
-			])
-		),
+	return [
 		AST.exportNamedDeclaration(
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
@@ -200,13 +226,11 @@ async function writeOperationArtifact(
 				),
 			])
 		),
-	])
+	]
+}
 
-	// write the result
-	await fs.writeFile(targetLocation, recast.print(artifact).code)
-
-	// log the file location to confirm
-	console.log(operation.name)
+function fragmentExports(config: Config, fragment: Document): StatementKind[] {
+	return []
 }
 
 // take a list of required fragments and turn it into a list of fragments

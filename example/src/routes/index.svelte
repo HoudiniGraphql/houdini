@@ -22,7 +22,7 @@
 </script>
 
 <script>
-	import CharacterAvatar from '../components/CharacterAvatar'
+	import CharacterAvatar from 'components/CharacterAvatar.svelte'
 
 	export let data = { loading: true }
 </script>

@@ -4,6 +4,9 @@
 		"example",
 		"packages/*"
 	],
+	"scripts": {
+		"build": "yarn workspace houdini-compiler run build && yarn workspace houdini run build"
+	},
 	"devDependencies": {
 		"prettier": "^2.0.5",
 		"typescript": "^3.9.5"

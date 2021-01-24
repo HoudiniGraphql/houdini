@@ -58,11 +58,15 @@ export default {
 			commonjs(),
 			typescript({ sourceMap: dev }),
 			alias({
-				resolve: ['.jsx', '.js', '.ts', '.tsx'],
+				resolve: ['.jsx', '.js', '.ts', '.tsx', '.svelte'],
 				entries: [
 					{
 						find: 'generated',
 						replacement: './generated',
+					},
+					{
+						find: 'components',
+						replacement: './src/components',
 					},
 				],
 			}),

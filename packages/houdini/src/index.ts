@@ -10,7 +10,7 @@ type TaggedGraphqlOperation = {
 }
 
 // the result of the template tag (also what the compiler leaves behind in the artifact directory)
-type GraphQLTagResult = Promise<TaggedGraphqlOperation>
+type GraphQLTagResult = Promise<TaggedGraphqlOperation | TaggedGraphqlFragment>
 
 export async function getQuery(
 	queryImport: GraphQLTagResult,

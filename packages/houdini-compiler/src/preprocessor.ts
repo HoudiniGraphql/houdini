@@ -87,7 +87,7 @@ export function preprocessor({ artifactDirectory, artifactDirectoryAlias }: PreP
 							await fs.stat(path.join(artifactDirectory, `${name}.graphql.ts`))
 						} catch (e) {
 							throw new Error(
-								'Looks like you need to run the houdini compiler for this file'
+								'Looks like you need to run the houdini compiler for ' + name
 							)
 						}
 					}
