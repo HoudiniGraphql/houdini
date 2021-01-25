@@ -1,7 +1,7 @@
 // externals
 import path from 'path'
 import { parse as recast, print, types } from 'recast'
-import graphql from 'graphql'
+import * as graphql from 'graphql'
 import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpression, Identifier } from 'estree'
 import { OperationDefinitionNode } from 'graphql/language'
@@ -144,22 +144,52 @@ export function fragmentSelector(
 	fragment: CompiledGraphqlFragment,
 	parsedFragment: graphql.FragmentDefinitionNode
 ): Property {
-	const selector = typeBuilders.arrowFunctionExpression(
-		[typeBuilders.identifier('obj')],
-		typeBuilders.blockStatement([
-			typeBuilders.returnStatement(
-				typeBuilders.objectExpression(
-					// any field or inline fragment selections contribute fields to the selector
-					parsedFragment.selectionSet.selections.map((selection) =>
+	return typeBuilders.objectProperty(
+		typeBuilders.stringLiteral('selector'),
+		typeBuilders.arrowFunctionExpression(
+			[typeBuilders.identifier('obj')],
+			typeBuilders.blockStatement([
+				typeBuilders.returnStatement(
+					typeBuilders.objectExpression([
+						// make sure there is always the root reference
 						typeBuilders.objectProperty(
-							typeBuilders.stringLiteral(selection.kind),
-							typeBuilders.stringLiteral(fragment.name)
-						)
-					)
-				)
-			),
-		])
-	)
+							typeBuilders.stringLiteral('__ref'),
+							typeBuilders.memberExpression(
+								typeBuilders.identifier('obj'),
+								typeBuilders.identifier('_ref')
+							)
+						),
 
-	return typeBuilders.objectProperty(typeBuilders.stringLiteral('selector'), selector)
+						// any field or inline fragment selections contribute fields to the selector
+						...parsedFragment.selectionSet.selections.map((selection) => {
+							// if the selection is a field without any sub selections
+							if (
+								selection.kind === graphql.Kind.FIELD &&
+								!selection.selectionSet?.selections.length
+							) {
+								// the name of the field
+								const fieldName = selection.alias?.value || selection.name.value
+
+								return typeBuilders.objectProperty(
+									typeBuilders.stringLiteral(fieldName),
+									typeBuilders.memberExpression(
+										typeBuilders.memberExpression(
+											typeBuilders.identifier('obj'),
+											typeBuilders.identifier('_ref')
+										),
+										typeBuilders.identifier(fieldName)
+									)
+								)
+							}
+
+							// if we got this far, we dont recognize the selection kind
+							throw new Error(
+								'Could not create selector for selection type: ' + selection.kind
+							)
+						}),
+					])
+				),
+			])
+		)
+	)
 }

@@ -14,10 +14,10 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        __ref: obj,
-        name: obj.name,
-        age: obj.age,
-    }
+        "__ref": obj._ref,
+        "name": obj._ref.name,
+        "age": obj._ref.age
+    };
 }`,
 		],
 		[
@@ -30,10 +30,10 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        __ref: obj,
-        name: obj.name,
-        age: obj.age,
-    }
+        "__ref": obj._ref,
+        "name": obj._ref.name,
+        "age": obj._ref.age
+    };
 }`,
 		],
 		[
@@ -47,13 +47,13 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        __ref: obj,
-        name: obj.name,
-        parent: {
-            __ref: obj.parent,
-            name: obj.parent.name
+        "__ref": obj._ref,
+        "name": obj._ref.name,
+        "parent": {
+            "__ref": obj._ref.parent,
+            "name": obj._ref.parent.name
         }
-    }
+    };
 }`,
 		],
 		[
@@ -67,14 +67,14 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        __ref: obj,
-        name: obj.name,
-        friends: obj.friends.map(obj_friends => ({
-            __ref: obj_friends,
-            name: obj_friends.name,
-            age: obj_friends.age
+        "__ref": obj._ref,
+        "name": obj._ref.name,
+        friends: obj._ref.friends.map(obj_friends => ({
+            "__ref": obj_friends._ref,
+            "name": obj_friends._ref.name,
+            "age": obj_friends._ref.age
         }))
-    }
+    };
 }`,
 		],
 	]
