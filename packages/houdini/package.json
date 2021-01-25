@@ -5,10 +5,7 @@
 		"build": "tsc"
 	},
 	"devDependencies": {
-		"houdini-compiler": "0.0.0",
-		"@types/jest": "^26.0.20",
-		"jest": "^26.6.3",
-		"typescript": "^4.0.0"
+		"houdini-compiler": "0.0.0"
 	},
 	"main": "build/index.js",
 	"dependencies": {

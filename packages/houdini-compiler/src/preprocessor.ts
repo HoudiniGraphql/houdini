@@ -8,8 +8,7 @@ import { OperationDefinitionNode } from 'graphql/language'
 const typeBuilders = types.builders
 type Property = types.namedTypes.ObjectProperty
 // locals
-import { CompiledGraphqlOperation, CompiledGraphqlFragment } from './compile'
-import { OperationDocumentKind } from './compile'
+import { CompiledGraphqlOperation, CompiledGraphqlFragment, OperationDocumentKind } from './compile'
 
 type PreProcessorConfig = {
 	artifactDirectory: string
@@ -136,9 +135,17 @@ export function fragmentProperties(
 
 	// the primary requirement for a fragment is the selector, a function that returns the requested
 	// data from the object. we're going to build this up as a function
-	const selector = typeBuilders.functionExpression(
-		null,
-		[typeBuilders.identifier('object')],
+
+	// add the selector to the inlined object
+	return [fragmentSelector(fragment, parsedFragment)]
+}
+
+export function fragmentSelector(
+	fragment: CompiledGraphqlFragment,
+	parsedFragment: graphql.FragmentDefinitionNode
+): Property {
+	const selector = typeBuilders.arrowFunctionExpression(
+		[typeBuilders.identifier('obj')],
 		typeBuilders.blockStatement([
 			typeBuilders.returnStatement(
 				typeBuilders.objectExpression(
@@ -154,7 +161,5 @@ export function fragmentProperties(
 		])
 	)
 
-	return []
+	return typeBuilders.objectProperty(typeBuilders.stringLiteral('selector'), selector)
 }
-
-// in building up the selector
