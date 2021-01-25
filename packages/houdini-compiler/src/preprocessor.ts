@@ -13,6 +13,7 @@ import { CompiledGraphqlOperation, CompiledGraphqlFragment, OperationDocumentKin
 type PreProcessorConfig = {
 	artifactDirectory: string
 	artifactDirectoryAlias: string
+	schema: graphql.GraphQLSchema
 }
 
 // a place to store memoized results
@@ -137,10 +138,11 @@ export function fragmentProperties(
 	// data from the object. we're going to build this up as a function
 
 	// add the selector to the inlined object
-	return [fragmentSelector(fragment, parsedFragment)]
+	return [fragmentSelector(config, fragment, parsedFragment)]
 }
 
 export function fragmentSelector(
+	config: PreProcessorConfig,
 	fragment: CompiledGraphqlFragment,
 	parsedFragment: graphql.FragmentDefinitionNode
 ): Property {

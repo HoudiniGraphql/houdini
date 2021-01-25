@@ -3,6 +3,22 @@ import * as recast from 'recast'
 import { FragmentDocumentKind } from './compile'
 import { fragmentSelector } from './preprocessor'
 
+// declare a schema we will use
+const schema = graphql.buildSchema(`
+    type User {
+        name: String!
+        age: Int!
+        parent: User!
+        friends: [User!]!
+    }
+`)
+
+const config = {
+	artifactDirectory: 'TODO',
+	artifactDirectoryAlias: 'TODO',
+	schema,
+}
+
 describe('fragment selector', function () {
 	// define the test cases
 	const table = [
@@ -93,6 +109,7 @@ describe('fragment selector', function () {
 
 			// generate the selector
 			const selector = fragmentSelector(
+				config,
 				{
 					name: 'asdf',
 					kind: FragmentDocumentKind,
