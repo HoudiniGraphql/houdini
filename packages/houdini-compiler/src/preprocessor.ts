@@ -20,6 +20,7 @@ type PreProcessorConfig = {
 let memo: {
 	[filename: string]: {
 		code: string
+		dependencies: string[]
 	}
 } = {}
 
@@ -37,6 +38,9 @@ export function preprocessor(config: PreProcessorConfig) {
 			const parsed = recast(content, {
 				parser: require('recast/parsers/typescript'),
 			})
+
+			// the list of paths that should be "watched" alongside this file
+			const relatedPaths: string[] = []
 
 			// svelte walk over recast?
 			await asyncWalk(parsed, {
@@ -62,14 +66,17 @@ export function preprocessor(config: PreProcessorConfig) {
 						const name = (parsedTag.definitions[0] as OperationDefinitionNode).name
 							?.value
 
-						//
-
 						// grab the document meta data
 						let document: CompiledGraphqlOperation | CompiledGraphqlFragment
 						try {
-							document = await import(
-								path.join(config.artifactDirectory, `${name}.js`)
-							)
+							// the location for the document artifact
+							const documentPath = path.join(config.artifactDirectory, `${name}.js`)
+
+							// try to resolve the compiled document
+							document = await import(documentPath)
+
+							// make sure we watch the compiled fragment
+							relatedPaths.push(documentPath)
 						} catch (e) {
 							console.log(e)
 							throw new Error(
@@ -107,7 +114,10 @@ export function preprocessor(config: PreProcessorConfig) {
 			})
 
 			// save the result for later
-			memo[filename] = print(parsed)
+			memo[filename] = {
+				...print(parsed),
+				dependencies: relatedPaths,
+			}
 
 			// return the printed result
 			return memo[filename]
@@ -168,7 +178,7 @@ export function fragmentSelector(
 							)
 						),
 
-						// any field or inline fragment selections contribute fields to the selector
+						// process every selection in the selection set
 						...parsedFragment.selectionSet.selections.map((selection) => {
 							// if the selection is a field without any sub selections
 							if (
@@ -178,6 +188,7 @@ export function fragmentSelector(
 								// the name of the field
 								const fieldName = selection.alias?.value || selection.name.value
 
+								// we need to add a key to the object that points to obj._ref.{fieldName}
 								return typeBuilders.objectProperty(
 									typeBuilders.stringLiteral(fieldName),
 									typeBuilders.memberExpression(
