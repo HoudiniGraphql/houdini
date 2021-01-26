@@ -9,7 +9,7 @@
 					info {
 						count
 					}
-					result {
+					results {
 						name
 						...CharacterAvatar_character
 					}
@@ -22,7 +22,7 @@
 </script>
 
 <script>
-	import CharacterAvatar from 'components/CharacterAvatar.svelte'
+	import CharacterAvatar from '../components/CharacterAvatar.svelte'
 
 	export let data = { loading: true }
 </script>
@@ -34,7 +34,7 @@
 		{:else}
 			There are {data.characters.info.count} characters in the API.
 			<ul>
-				{#each data.characters.result as character}
+				{#each data.characters.results as character}
 					<li>
 						<CharacterAvatar {character} />
 						{character.name}

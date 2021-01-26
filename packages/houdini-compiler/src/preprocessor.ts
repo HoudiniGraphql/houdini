@@ -30,10 +30,6 @@ export function preprocessor(config: PreProcessorConfig) {
 	return {
 		// the only thing we have to modify is the script blocks
 		async script({ content, filename }: { content: string; filename: string }) {
-			if (memo[filename]) {
-				return memo[filename]
-			}
-
 			// parse the javascript content
 			const parsed = recast(content, {
 				parser: require('recast/parsers/typescript'),
@@ -78,7 +74,6 @@ export function preprocessor(config: PreProcessorConfig) {
 							// make sure we watch the compiled fragment
 							relatedPaths.push(documentPath)
 						} catch (e) {
-							console.log(e)
 							throw new Error(
 								'Looks like you need to run the houdini compiler for ' + name
 							)
@@ -188,7 +183,7 @@ export function fragmentSelector(
 								// the name of the field
 								const fieldName = selection.alias?.value || selection.name.value
 
-								// we need to add a key to the object that points to obj._ref.{fieldName}
+								// we need to add a key to the object that points {fieldName} to obj._ref.{fieldName}
 								return typeBuilders.objectProperty(
 									typeBuilders.stringLiteral(fieldName),
 									typeBuilders.memberExpression(
