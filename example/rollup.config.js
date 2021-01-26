@@ -11,6 +11,8 @@ import typescript from '@rollup/plugin-typescript'
 import alias from '@rollup/plugin-alias'
 import config from 'sapper/config/rollup.js'
 import pkg from './package.json'
+import fs from 'fs'
+import graphql from 'graphql'
 import { preprocessor as houdiniPreprocessor } from 'houdini-compiler'
 
 const mode = process.env.NODE_ENV
@@ -23,7 +25,10 @@ const onwarn = (warning, onwarn) =>
 	warning.code === 'THIS_IS_UNDEFINED' ||
 	onwarn(warning)
 
-const artifactDirectory = path.join(__dirname, 'generated')
+const houdiniConfig = {
+	artifactDirectory: path.join(__dirname, 'generated'),
+	schema: graphql.buildClientSchema(JSON.parse(fs.readFileSync('./schema.json', 'utf-8'))),
+}
 
 export default {
 	client: {
@@ -35,13 +40,7 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 			}),
 			svelte({
-				preprocess: [
-					sveltePreprocess(),
-					houdiniPreprocessor({
-						artifactDirectory,
-						artifactDirectoryAlias: 'generated',
-					}),
-				],
+				preprocess: [houdiniPreprocessor(houdiniConfig), sveltePreprocess()],
 				compilerOptions: {
 					dev,
 					hydratable: true,
@@ -58,11 +57,15 @@ export default {
 			commonjs(),
 			typescript({ sourceMap: dev }),
 			alias({
-				resolve: ['.jsx', '.js', '.ts', '.tsx'],
+				resolve: ['.jsx', '.js', '.ts', '.tsx', '.svelte'],
 				entries: [
 					{
 						find: 'generated',
 						replacement: './generated',
+					},
+					{
+						find: 'components',
+						replacement: './src/components',
 					},
 				],
 			}),
@@ -110,13 +113,7 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 			}),
 			svelte({
-				preprocess: [
-					sveltePreprocess(),
-					houdiniPreprocessor({
-						artifactDirectory,
-						artifactDirectoryAlias: 'generated',
-					}),
-				],
+				preprocess: [sveltePreprocess(), houdiniPreprocessor(houdiniConfig)],
 				compilerOptions: {
 					dev,
 					generate: 'ssr',

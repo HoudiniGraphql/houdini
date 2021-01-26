@@ -1,5 +1,5 @@
 // locals
-import { flattenFragments } from './main'
+import { flattenFragments } from './compile'
 
 test('flattenFragments - happy path', function () {
 	// build up the list of dependents
