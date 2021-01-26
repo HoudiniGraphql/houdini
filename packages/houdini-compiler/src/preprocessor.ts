@@ -48,7 +48,7 @@ export function preprocessor(config: PreProcessorConfig) {
 					) {
 						const expr = node as TaggedTemplateExpression
 
-						// we're going to replace the tag with an import from the artifact directory
+						// we're going to replace the tag with something the runtime can use
 
 						// first, lets parse the tag contents to get the info we need
 						const parsedTag = graphql.parse(expr.quasi.quasis[0].value.raw)
@@ -186,7 +186,10 @@ export function fragmentSelector(
 								return typeBuilders.objectProperty(
 									typeBuilders.stringLiteral(fieldName),
 									typeBuilders.memberExpression(
-										typeBuilders.identifier('obj'),
+										typeBuilders.memberExpression(
+											typeBuilders.identifier('obj'),
+											typeBuilders.identifier('__ref')
+										),
 										typeBuilders.identifier(fieldName)
 									)
 								)
@@ -207,15 +210,6 @@ export function fragmentSelector(
 							) {
 								// the name of the field
 								const fieldName = selection.alias?.value || selection.name.value
-
-								// we need to return a map over the results to the information we need
-								return typeBuilders.objectProperty(
-									typeBuilders.stringLiteral(fieldName),
-									typeBuilders.memberExpression(
-										typeBuilders.identifier('obj'),
-										typeBuilders.identifier(fieldName)
-									)
-								)
 							}
 
 							// if we got this far, we dont recognize the selection kind
