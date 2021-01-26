@@ -1,6 +1,5 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { FragmentDocumentKind } from './compile'
 import { fragmentSelector } from './preprocessor'
 
 // declare a schema we will use
@@ -30,9 +29,8 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        "__ref": obj._ref,
-        "name": obj._ref.name,
-        "age": obj._ref.age
+        "name": obj.name,
+        "age": obj.age
     };
 }`,
 		],
@@ -46,9 +44,8 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        "__ref": obj._ref,
-        "name": obj._ref.name,
-        "age": obj._ref.age
+        "name": obj.name,
+        "age": obj.age
     };
 }`,
 		],
@@ -63,11 +60,10 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        "__ref": obj._ref,
-        "name": obj._ref.name,
+        "name": obj.name,
         "parent": {
-            "__ref": obj._ref.parent,
-            "name": obj._ref.parent.name
+            "__ref": obj.parent,
+            "name": obj.parent.name
         }
     };
 }`,
@@ -83,9 +79,8 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        "__ref": obj._ref,
-        "name": obj._ref.name,
-        friends: obj._ref.friends.map(obj_friends => ({
+        "name": obj.name,
+        friends: obj.friends.map(obj_friends => ({
             "__ref": obj_friends._ref,
             "name": obj_friends._ref.name,
             "age": obj_friends._ref.age

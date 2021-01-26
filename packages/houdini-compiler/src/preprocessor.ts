@@ -107,7 +107,6 @@ export function preprocessor(config: PreProcessorConfig) {
 					}
 				},
 			})
-
 			// save the result for later
 			memo[filename] = {
 				...print(parsed),
@@ -169,7 +168,7 @@ export function fragmentSelector(
 							typeBuilders.stringLiteral('__ref'),
 							typeBuilders.memberExpression(
 								typeBuilders.identifier('obj'),
-								typeBuilders.identifier('_ref')
+								typeBuilders.identifier('__ref')
 							)
 						),
 
@@ -187,10 +186,7 @@ export function fragmentSelector(
 								return typeBuilders.objectProperty(
 									typeBuilders.stringLiteral(fieldName),
 									typeBuilders.memberExpression(
-										typeBuilders.memberExpression(
-											typeBuilders.identifier('obj'),
-											typeBuilders.identifier('_ref')
-										),
+										typeBuilders.identifier('obj'),
 										typeBuilders.identifier(fieldName)
 									)
 								)
@@ -216,10 +212,7 @@ export function fragmentSelector(
 								return typeBuilders.objectProperty(
 									typeBuilders.stringLiteral(fieldName),
 									typeBuilders.memberExpression(
-										typeBuilders.memberExpression(
-											typeBuilders.identifier('obj'),
-											typeBuilders.identifier('_ref')
-										),
+										typeBuilders.identifier('obj'),
 										typeBuilders.identifier(fieldName)
 									)
 								)
