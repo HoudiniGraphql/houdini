@@ -1,6 +1,3 @@
-// externals
-import { getContext, setContext } from 'svelte'
-
 type FetchParams = {
 	text: string
 	variables: { [key: string]: any }
@@ -20,8 +17,12 @@ export class Environment {
 	}
 }
 
-export let currentEnv: Environment | null = null
+let currentEnv: Environment | null = null
 
 export function setEnvironment(env: Environment) {
 	currentEnv = env
+}
+
+export function getEnvironment(): Environment | null {
+	return currentEnv
 }

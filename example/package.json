@@ -1,5 +1,5 @@
 {
-	"name": "TODO",
+	"name": "houdini-example",
 	"description": "TODO",
 	"version": "0.0.1",
 	"scripts": {
@@ -32,7 +32,7 @@
 		"@types/compression": "^1.7.0",
 		"@types/node": "^14.11.1",
 		"@types/polka": "^0.5.1",
-		"houdini": "0.0.1",
+		"houdini": "0.0.0",
 		"houdini-compiler": "0.0.0",
 		"rollup": "^2.3.4",
 		"rollup-plugin-svelte": "^7.0.0",
