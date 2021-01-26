@@ -108,14 +108,7 @@ describe('fragment selector', function () {
 			}).program.body[0].expression
 
 			// generate the selector
-			const selector = fragmentSelector(
-				config,
-				{
-					name: 'asdf',
-					kind: FragmentDocumentKind,
-				},
-				parsedFragment
-			).value
+			const selector = fragmentSelector(config, parsedFragment).value
 
 			// make sure that both print the same way
 			expect(recast.print(selector).code).toBe(recast.print(expected).code)

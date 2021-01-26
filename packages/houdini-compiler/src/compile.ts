@@ -8,7 +8,7 @@ import path from 'path'
 import * as recast from 'recast'
 const AST = recast.types.builders
 import mkdirp from 'mkdirp'
-import { StatementKind } from 'ast-types/gen/kinds'
+import { StatementKind, ExpressionKind } from 'ast-types/gen/kinds'
 
 // the compiled version of an operation
 type CompiledDocument = {
@@ -148,29 +148,12 @@ export default async function compile(config: Config = defaultConfig) {
 	await Promise.all(
 		Object.values(docs).map(async (document) => {
 			// the location we will put the operation artifact
-			const targetLocation = path.join(
-				config.artifactDirectory,
-				`${document.name}.graphql.ts`
-			)
+			const targetLocation = path.join(config.artifactDirectory, `${document.name}.js`)
 
 			// start building up the artiface
 			const artifact = AST.program([
-				AST.exportNamedDeclaration(
-					AST.variableDeclaration('const', [
-						AST.variableDeclarator(
-							AST.identifier('name'),
-							AST.stringLiteral(document.name || 'NO_NAME')
-						),
-					])
-				),
-				AST.exportNamedDeclaration(
-					AST.variableDeclaration('const', [
-						AST.variableDeclarator(
-							AST.identifier('kind'),
-							AST.stringLiteral(document.kind)
-						),
-					])
-				),
+				moduleExport('name', AST.stringLiteral(document.name || 'NO_NAME')),
+				moduleExport('kind', AST.stringLiteral(document.kind)),
 			])
 
 			// we might have to add document kind specific exports
@@ -231,16 +214,12 @@ function operationExports(
 	// an operation artifact is a javascript file in the appropriate directory.
 	// we'll build it up as an ast and then print it to the right spot
 	return [
-		AST.exportNamedDeclaration(
-			AST.variableDeclaration('const', [
-				AST.variableDeclarator(
-					AST.identifier('raw'),
-					AST.templateLiteral(
-						[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
-						[]
-					)
-				),
-			])
+		moduleExport(
+			'raw',
+			AST.templateLiteral(
+				[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
+				[]
+			)
 		),
 	]
 }
@@ -250,16 +229,12 @@ function fragmentExports(config: Config, fragment: Document): StatementKind[] {
 	const rawString = fragment.raw
 
 	return [
-		AST.exportNamedDeclaration(
-			AST.variableDeclaration('const', [
-				AST.variableDeclarator(
-					AST.identifier('raw'),
-					AST.templateLiteral(
-						[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
-						[]
-					)
-				),
-			])
+		moduleExport(
+			'raw',
+			AST.templateLiteral(
+				[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
+				[]
+			)
 		),
 	]
 }
@@ -311,4 +286,17 @@ export function flattenFragments(
 
 	// we're done
 	return [...frags]
+}
+
+function moduleExport(key: string, value: ExpressionKind) {
+	return AST.expressionStatement(
+		AST.assignmentExpression(
+			'=',
+			AST.memberExpression(
+				AST.memberExpression(AST.identifier('module'), AST.identifier('exports')),
+				AST.identifier(key)
+			),
+			value
+		)
+	)
 }

@@ -62,15 +62,16 @@ export function preprocessor(config: PreProcessorConfig) {
 						const name = (parsedTag.definitions[0] as OperationDefinitionNode).name
 							?.value
 
-						// import the document's artiface
+						//
 
 						// grab the document meta data
 						let document: CompiledGraphqlOperation | CompiledGraphqlFragment
 						try {
 							document = await import(
-								path.join(config.artifactDirectory, `${name}.graphql.ts`)
+								path.join(config.artifactDirectory, `${name}.js`)
 							)
 						} catch (e) {
+							console.log(e)
 							throw new Error(
 								'Looks like you need to run the houdini compiler for ' + name
 							)
@@ -138,14 +139,19 @@ export function fragmentProperties(
 	// data from the object. we're going to build this up as a function
 
 	// add the selector to the inlined object
-	return [fragmentSelector(config, fragment, parsedFragment)]
+	return [fragmentSelector(config, parsedFragment)]
 }
 
 export function fragmentSelector(
 	config: PreProcessorConfig,
-	fragment: CompiledGraphqlFragment,
 	parsedFragment: graphql.FragmentDefinitionNode
 ): Property {
+	// the root type
+	const rootType = config.schema.getType(parsedFragment.typeCondition.name.value)
+	if (!rootType) {
+		throw new Error(parsedFragment.typeCondition.name.value + 'is not a valid type')
+	}
+
 	return typeBuilders.objectProperty(
 		typeBuilders.stringLiteral('selector'),
 		typeBuilders.arrowFunctionExpression(
@@ -172,6 +178,35 @@ export function fragmentSelector(
 								// the name of the field
 								const fieldName = selection.alias?.value || selection.name.value
 
+								return typeBuilders.objectProperty(
+									typeBuilders.stringLiteral(fieldName),
+									typeBuilders.memberExpression(
+										typeBuilders.memberExpression(
+											typeBuilders.identifier('obj'),
+											typeBuilders.identifier('_ref')
+										),
+										typeBuilders.identifier(fieldName)
+									)
+								)
+							}
+
+							// the field we are looking at
+							const field = (rootType.astNode as graphql.ObjectTypeDefinitionNode).fields?.find(
+								(field) => field.name === (selection as graphql.FieldNode).name
+							)
+							if (!field) {
+								throw new Error('Could not find type information for field')
+							}
+
+							// if the field is a list
+							if (
+								selection.kind === graphql.Kind.FIELD &&
+								graphql.isListType(field.type)
+							) {
+								// the name of the field
+								const fieldName = selection.alias?.value || selection.name.value
+
+								// we need to return a map over the results to the information we need
 								return typeBuilders.objectProperty(
 									typeBuilders.stringLiteral(fieldName),
 									typeBuilders.memberExpression(
