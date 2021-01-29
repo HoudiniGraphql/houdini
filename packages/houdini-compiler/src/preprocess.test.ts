@@ -1,6 +1,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { fragmentSelector } from './preprocessor'
+import { FragmentDocumentKind } from './compile'
+import { selector } from './preprocessor'
 
 // declare a schema we will use
 const schema = graphql.buildSchema(`
@@ -84,11 +85,13 @@ describe('fragment selector', function () {
     return {
         "__ref": obj.__ref.,
         "name": obj.__ref.name,
-        friends: obj.__ref.friends.map(obj_friends => ({
-            "__ref": obj_friends.__ref,
-            "name": obj_friends.__ref.name,
-            "age": obj_friends.__ref.age
-        }))
+        friends: obj.__ref.friends.map(obj_friends => {
+            return {
+                "__ref": obj_friends.__ref,
+                "name": obj_friends.__ref.name,
+                "age": obj_friends.__ref.age
+            }
+        })
     };
 }`,
 		],
@@ -107,10 +110,15 @@ describe('fragment selector', function () {
 			}).program.body[0].expression
 
 			// generate the selector
-			const selector = fragmentSelector(config, parsedFragment).value
+			const result = selector(
+				'obj',
+				config,
+				{ name: 'testFragment', kind: FragmentDocumentKind },
+				parsedFragment
+			)
 
 			// make sure that both print the same way
-			expect(recast.print(selector).code).toBe(recast.print(expected).code)
+			expect(recast.print(result).code).toBe(recast.print(expected).code)
 		})
 	}
 })

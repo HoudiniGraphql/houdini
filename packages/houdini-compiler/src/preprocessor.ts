@@ -1,14 +1,18 @@
 // externals
 import path from 'path'
-import { parse as recast, print, types } from 'recast'
+import { parse, parse as recast, print, types } from 'recast'
 import * as graphql from 'graphql'
 import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpression, Identifier } from 'estree'
 import { OperationDefinitionNode } from 'graphql/language'
-const typeBuilders = types.builders
-type Property = types.namedTypes.ObjectProperty
+import {} from 'ast-types'
 // locals
-import { CompiledGraphqlOperation, CompiledGraphqlFragment, OperationDocumentKind } from './compile'
+import {
+	CompiledGraphqlOperation,
+	CompiledGraphqlFragment,
+	OperationDocumentKind,
+	CompiledDocument,
+} from './compile'
 
 type PreProcessorConfig = {
 	artifactDirectory: string
@@ -16,13 +20,10 @@ type PreProcessorConfig = {
 	schema: graphql.GraphQLSchema
 }
 
-// a place to store memoized results
-let memo: {
-	[filename: string]: {
-		code: string
-		dependencies: string[]
-	}
-} = {}
+// pull out reused types
+const typeBuilders = types.builders
+type Property = types.namedTypes.ObjectProperty
+type ArrowFunctionExpression = types.namedTypes.ArrowFunctionExpression
 
 // the houdini preprocessor is required to strip away the graphql tags
 // and leave behind something for the runtime
@@ -107,14 +108,12 @@ export function preprocessor(config: PreProcessorConfig) {
 					}
 				},
 			})
-			// save the result for later
-			memo[filename] = {
+
+			// return the printed result
+			return {
 				...print(parsed),
 				dependencies: relatedPaths,
 			}
-
-			// return the printed result
-			return memo[filename]
 		},
 	}
 }
@@ -143,83 +142,92 @@ export function fragmentProperties(
 	// data from the object. we're going to build this up as a function
 
 	// add the selector to the inlined object
-	return [fragmentSelector(config, parsedFragment)]
+	return [
+		typeBuilders.objectProperty(
+			typeBuilders.stringLiteral('selector'),
+			selector('obj', config, fragment, parsedFragment)
+		),
+	]
 }
 
-export function fragmentSelector(
+export function selector(
+	rootIdentifier: string,
 	config: PreProcessorConfig,
-	parsedFragment: graphql.FragmentDefinitionNode
-): Property {
-	// the root type
-	const rootType = config.schema.getType(parsedFragment.typeCondition.name.value)
-	if (!rootType) {
-		throw new Error(parsedFragment.typeCondition.name.value + 'is not a valid type')
+	artifact: CompiledDocument,
+	graphqlDoc: graphql.FragmentDefinitionNode | graphql.OperationDefinitionNode
+): ArrowFunctionExpression {
+	// figure out the root type
+	let rootType: graphql.GraphQLNamedType | undefined | null
+	if (graphqlDoc.kind === graphql.Kind.FRAGMENT_DEFINITION) {
+		rootType = config.schema.getType(graphqlDoc.typeCondition.name.value)
 	}
 
-	return typeBuilders.objectProperty(
-		typeBuilders.stringLiteral('selector'),
-		typeBuilders.arrowFunctionExpression(
-			[typeBuilders.identifier('obj')],
-			typeBuilders.blockStatement([
-				typeBuilders.returnStatement(
-					typeBuilders.objectExpression([
-						// make sure there is always the root reference
-						typeBuilders.objectProperty(
-							typeBuilders.stringLiteral('__ref'),
-							typeBuilders.memberExpression(
-								typeBuilders.identifier('obj'),
-								typeBuilders.identifier('__ref')
-							)
-						),
+	// make sure we found something
+	if (!rootType) {
+		throw new Error('Could not find document root type: ' + artifact.name)
+	}
 
-						// process every selection in the selection set
-						...parsedFragment.selectionSet.selections.map((selection) => {
-							// if the selection is a field without any sub selections
-							if (
-								selection.kind === graphql.Kind.FIELD &&
-								!selection.selectionSet?.selections.length
-							) {
-								// the name of the field
-								const fieldName = selection.alias?.value || selection.name.value
+	return typeBuilders.arrowFunctionExpression(
+		[typeBuilders.identifier(rootIdentifier)],
+		typeBuilders.blockStatement([
+			typeBuilders.returnStatement(
+				typeBuilders.objectExpression([
+					// make sure there is always the root reference
+					typeBuilders.objectProperty(
+						typeBuilders.stringLiteral('__ref'),
+						typeBuilders.memberExpression(
+							typeBuilders.identifier(rootIdentifier),
+							typeBuilders.identifier('__ref')
+						)
+					),
 
-								// we need to add a key to the object that points {fieldName} to obj._ref.{fieldName}
-								return typeBuilders.objectProperty(
-									typeBuilders.stringLiteral(fieldName),
+					// process every selection in the selection set
+					...graphqlDoc.selectionSet.selections.map((selection) => {
+						// if the selection is a field without any sub selections
+						if (
+							selection.kind === graphql.Kind.FIELD &&
+							!selection.selectionSet?.selections.length
+						) {
+							// the name of the field
+							const fieldName = selection.alias?.value || selection.name.value
+
+							// we need to add a key to the object that points {fieldName} to obj._ref.{fieldName}
+							return typeBuilders.objectProperty(
+								typeBuilders.stringLiteral(fieldName),
+								typeBuilders.memberExpression(
 									typeBuilders.memberExpression(
-										typeBuilders.memberExpression(
-											typeBuilders.identifier('obj'),
-											typeBuilders.identifier('__ref')
-										),
-										typeBuilders.identifier(fieldName)
-									)
+										typeBuilders.identifier(rootIdentifier),
+										typeBuilders.identifier('__ref')
+									),
+									typeBuilders.identifier(fieldName)
 								)
-							}
-
-							// the field we are looking at
-							const field = (rootType.astNode as graphql.ObjectTypeDefinitionNode).fields?.find(
-								(field) => field.name === (selection as graphql.FieldNode).name
 							)
-							if (!field) {
-								throw new Error('Could not find type information for field')
-							}
+						}
 
-							// if the field is a list
-							if (
-								selection.kind === graphql.Kind.FIELD &&
-								graphql.isListType(field.type)
-							) {
-								// the name of the field
-								const fieldName = selection.alias?.value || selection.name.value
-							}
+						// the field we are looking at
+						const field = (rootType?.astNode as graphql.ObjectTypeDefinitionNode).fields?.find(
+							(field) => field.name === (selection as graphql.FieldNode).name
+						)
+						if (!field) {
+							throw new Error('Could not find type information for field')
+						}
 
-							// if we got this far, we dont recognize the selection kind
-							throw new Error(
-								'Could not create selector for selection type: ' + selection.kind
-							)
-						}),
-					])
-				),
-			])
-		)
+						// if the field is a list
+						if (
+							selection.kind === graphql.Kind.FIELD &&
+							graphql.isListType(field.type)
+						) {
+							// the name of the field
+							const fieldName = selection.alias?.value || selection.name.value
+						}
+
+						// if we got this far, we dont recognize the selection kind
+						throw new Error(
+							'Could not create selector for selection type: ' + selection.kind
+						)
+					}),
+				])
+			),
+		])
 	)
 }
