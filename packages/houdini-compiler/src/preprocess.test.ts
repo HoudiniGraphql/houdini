@@ -56,7 +56,7 @@ describe('fragment selector', function () {
 }`,
 		],
 		[
-			'nested objects',
+			'related objects',
 			`fragment foo on User {
                 name
                 parent {
@@ -68,9 +68,11 @@ describe('fragment selector', function () {
     return {
         "__ref": obj.__ref,
         "name": obj.__ref.name,
+
         "parent": {
-            "__ref": obj.__ref.parent,
-            "name": obj.__ref.parent.name
+            "__ref": obj.__ref.parent.__ref,
+            "name": obj.__ref.parent.__ref.name,
+            "age": obj.__ref.parent.__ref.age
         }
     };
 }`,

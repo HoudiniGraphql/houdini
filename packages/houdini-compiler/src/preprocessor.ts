@@ -170,96 +170,154 @@ export function selector(
 		[typeBuilders.identifier(rootIdentifier)],
 		typeBuilders.blockStatement([
 			typeBuilders.returnStatement(
-				typeBuilders.objectExpression([
-					// make sure there is always the root reference
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('__ref'),
-						typeBuilders.memberExpression(
-							typeBuilders.identifier(rootIdentifier),
-							typeBuilders.identifier('__ref')
-						)
-					),
-
-					// process every selection in the selection set
-					...selectionSet.selections.map((selection) => {
-						// if the selection is a field without any sub selections
-						if (
-							selection.kind === graphql.Kind.FIELD &&
-							!selection.selectionSet?.selections.length
-						) {
-							// the name of the field
-							const fieldName = selection.alias?.value || selection.name.value
-
-							// we need to add a key to the object that points {fieldName} to obj._ref.{fieldName}
-							return typeBuilders.objectProperty(
-								typeBuilders.stringLiteral(fieldName),
-								typeBuilders.memberExpression(
-									typeBuilders.memberExpression(
-										typeBuilders.identifier(rootIdentifier),
-										typeBuilders.identifier('__ref')
-									),
-									typeBuilders.identifier(fieldName)
-								)
-							)
-						}
-
-						// the field we are looking at
-						const field = (rootType?.astNode as graphql.ObjectTypeDefinitionNode).fields?.find(
-							(field) => {
-								return (
-									field.name.value === (selection as graphql.FieldNode).name.value
-								)
-							}
-						)
-						if (!field) {
-							throw new Error('Could not find type information for field')
-						}
-
-						// if the field is a lists
-						if (
-							selection.kind === graphql.Kind.FIELD &&
-							isListType(field.type) &&
-							selection.selectionSet !== undefined
-						) {
-							// the name of the field
-							const fieldName = selection.alias?.value || selection.name.value
-
-							// we need to transform every entry in this list to a masked version
-							return typeBuilders.objectProperty(
-								typeBuilders.stringLiteral(fieldName),
-								typeBuilders.callExpression(
-									// {rootIdentifier}.__ref.{fieldName}.map
-									typeBuilders.memberExpression(
-										typeBuilders.memberExpression(
-											typeBuilders.memberExpression(
-												typeBuilders.identifier(rootIdentifier),
-												typeBuilders.identifier('__ref')
-											),
-											typeBuilders.identifier(fieldName)
-										),
-										typeBuilders.identifier('map')
-									),
-									// the function passed to
-									[
-										selector(
-											config,
-											artifact,
-											`${rootIdentifier}_${fieldName}`,
-											getNamedType(config.schema, typeName(field.type)),
-											selection.selectionSet
-										),
-									]
-								)
-							)
-						}
-
-						// if we got this far, we dont recognize the selection kind
-						throw new Error(
-							'Could not create selector for selection type: ' + selection.kind
-						)
-					}),
-				])
+				typeBuilders.objectExpression(
+					objectProperties({
+						config,
+						artifact,
+						rootIdentifier,
+						rootType,
+						selectionSet,
+					})
+				)
 			),
 		])
 	)
+}
+
+function objectProperties({
+	config,
+	artifact,
+	rootIdentifier,
+	rootType,
+	selectionSet,
+	includeRefField = true,
+}: {
+	config: PreProcessorConfig
+	artifact: CompiledDocument
+	rootIdentifier: string
+	rootType: graphql.GraphQLNamedType
+	selectionSet: graphql.SelectionSetNode
+	includeRefField?: boolean
+}): Property[] {
+	return [
+		// optionally include the embedded ref
+		...(includeRefField
+			? [
+					typeBuilders.objectProperty(
+						typeBuilders.stringLiteral('__ref'),
+						memberExpression(rootIdentifier, '__ref')
+					),
+			  ]
+			: []),
+
+		// make sure there is always the root reference
+		// process every selection in the selection set
+		...selectionSet.selections.flatMap((selection) => {
+			// if the selection is a spread of another fragment, ignore it
+			if (selection.kind === graphql.Kind.FRAGMENT_SPREAD) {
+				return []
+			}
+
+			// if the selection is an inline fragment (has no name) we should process it first
+			// to dry up the rest of the conditions
+			if (selection.kind === graphql.Kind.INLINE_FRAGMENT) {
+				return objectProperties({
+					config,
+					artifact,
+					rootIdentifier,
+					rootType,
+					selectionSet: selection.selectionSet,
+					includeRefField: false,
+				})
+			}
+
+			// the name of the field in the response
+			const attributeName = selection.alias?.value || selection.name.value
+
+			// the field we are looking at
+			const field = (rootType?.astNode as graphql.ObjectTypeDefinitionNode).fields?.find(
+				(field) => {
+					return field.name.value === (selection as graphql.FieldNode).name.value
+				}
+			)
+			if (!field) {
+				throw new Error('Could not find type information for field')
+			}
+
+			// if the selection is a field without any sub selections
+			if (
+				selection.kind === graphql.Kind.FIELD &&
+				!selection.selectionSet?.selections.length
+			) {
+				// we need to add a key to the object that points {attributeName} to obj._ref.{attributeName}
+				return typeBuilders.objectProperty(
+					typeBuilders.stringLiteral(attributeName),
+					memberExpression(rootIdentifier, '__ref', attributeName)
+				)
+			}
+
+			// if the field is a lists
+			if (
+				selection.kind === graphql.Kind.FIELD &&
+				isListType(field.type) &&
+				// this will always be true in order to be a valid graphql document
+				// but im leaving it here to make typescript happy
+				selection.selectionSet !== undefined
+			) {
+				// we need to transform every entry in this list to a masked version
+				return typeBuilders.objectProperty(
+					typeBuilders.stringLiteral(attributeName),
+					// invoke {rootIdentifier}.__ref.{attributeName}.map
+					typeBuilders.callExpression(
+						memberExpression(rootIdentifier, '__ref', attributeName, 'map'),
+						// pass the selector to the functor
+						[
+							selector(
+								config,
+								artifact,
+								`${rootIdentifier}_${attributeName}`,
+								getNamedType(config.schema, typeName(field.type)),
+								selection.selectionSet
+							),
+						]
+					)
+				)
+			}
+
+			// the selection is neither a field, nor a list so it must be related object.
+			// wrap it in an presumed-true predicate to catch edge cases we don't know about
+			if (selection.kind === graphql.Kind.FIELD && selection.selectionSet !== undefined) {
+				// we need to return a single field that's equal to the masked version of the
+				// related object
+				return typeBuilders.objectProperty(
+					typeBuilders.identifier(JSON.stringify(attributeName)),
+					typeBuilders.objectExpression(
+						objectProperties({
+							config,
+							artifact,
+							rootIdentifier: `${rootIdentifier}.__ref.${attributeName}`,
+							rootType: getNamedType(config.schema, typeName(field.type)),
+							selectionSet: selection.selectionSet,
+						})
+					)
+				)
+			}
+
+			// if we got this far, we dont recognize the selection kind
+			throw new Error('Could not create selector for selection type: ' + selection.kind)
+		}),
+	]
+}
+
+function memberExpression(root: string, next: string, ...rest: string[]) {
+	// the object we are accessing
+	let target = typeBuilders.memberExpression(
+		typeBuilders.identifier(root),
+		typeBuilders.identifier(next)
+	)
+	for (const member of rest) {
+		target = typeBuilders.memberExpression(target, typeBuilders.identifier(member))
+	}
+
+	return target
 }
