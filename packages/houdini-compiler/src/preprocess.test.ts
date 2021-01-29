@@ -1,7 +1,10 @@
+// externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
+// locals
 import { FragmentDocumentKind } from './compile'
 import { selector } from './preprocessor'
+import { getNamedType, typeName } from './graphql'
 
 // declare a schema we will use
 const schema = graphql.buildSchema(`
@@ -46,7 +49,7 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        "__ref": obj.__ref.,
+        "__ref": obj.__ref,
         "name": obj.__ref.name,
         "age": obj.__ref.age
     };
@@ -63,7 +66,7 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        "__ref": obj.__ref.,
+        "__ref": obj.__ref,
         "name": obj.__ref.name,
         "parent": {
             "__ref": obj.__ref.parent,
@@ -83,14 +86,15 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        "__ref": obj.__ref.,
+        "__ref": obj.__ref,
         "name": obj.__ref.name,
-        friends: obj.__ref.friends.map(obj_friends => {
+
+        "friends": obj.__ref.friends.map(obj_friends => {
             return {
                 "__ref": obj_friends.__ref,
                 "name": obj_friends.__ref.name,
                 "age": obj_friends.__ref.age
-            }
+            };
         })
     };
 }`,
@@ -111,10 +115,11 @@ describe('fragment selector', function () {
 
 			// generate the selector
 			const result = selector(
-				'obj',
 				config,
 				{ name: 'testFragment', kind: FragmentDocumentKind },
-				parsedFragment
+				'obj',
+				getNamedType(schema, typeName(parsedFragment.typeCondition)),
+				parsedFragment.selectionSet
 			)
 
 			// make sure that both print the same way
