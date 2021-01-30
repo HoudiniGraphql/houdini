@@ -142,7 +142,9 @@ export function fragmentProperties(
 	// data from the object. we're going to build this up as a function
 
 	// figure out the root type
-	const rootType = config.schema.getType(parsedFragment.typeCondition.name.value)
+	const rootType = config.schema.getType(
+		parsedFragment.typeCondition.name.value
+	) as graphql.GraphQLObjectType
 	if (!rootType) {
 		throw new Error(
 			'Could not find type definition for fragment root' +
@@ -169,7 +171,7 @@ type SelectorProps = {
 	config: PreProcessorConfig
 	artifact: CompiledDocument
 	rootIdentifier: string
-	rootType: graphql.GraphQLNamedType
+	rootType: graphql.GraphQLObjectType
 	selectionSet: graphql.SelectionSetNode
 	pullValuesFromRef?: boolean
 	includeRefField?: boolean
@@ -228,12 +230,8 @@ function objectProperties({
 			// the name of the field in the response
 			const attributeName = selection.alias?.value || selection.name.value
 
-			// the field we are looking at
-			const field = (rootType?.astNode as graphql.ObjectTypeDefinitionNode).fields?.find(
-				(field) => {
-					return field.name.value === (selection as graphql.FieldNode).name.value
-				}
-			)
+			// the field we are looking ats
+			const field = rootType.getFields()[(selection as graphql.FieldNode).name.value]
 			if (!field) {
 				throw new Error('Could not find type information for field')
 			}
@@ -253,7 +251,7 @@ function objectProperties({
 			// if the field is a lists
 			if (
 				selection.kind === graphql.Kind.FIELD &&
-				isListType(field.type) &&
+				graphql.isListType(field.type) &&
 				// this will always be true in order to be a valid graphql document
 				// but im leaving it here to make typescript happy
 				selection.selectionSet !== undefined
@@ -270,7 +268,10 @@ function objectProperties({
 								config,
 								artifact,
 								rootIdentifier: `${rootIdentifier}_${attributeName}`,
-								rootType: getNamedType(config.schema, typeName(field.type)),
+								rootType: getNamedType(
+									config.schema,
+									graphql.getNamedType(field.type).name
+								),
 								selectionSet: selection.selectionSet,
 							}),
 						]
@@ -290,7 +291,10 @@ function objectProperties({
 							config,
 							artifact,
 							rootIdentifier: `${rootIdentifier}.__ref.${attributeName}`,
-							rootType: getNamedType(config.schema, typeName(field.type)),
+							rootType: getNamedType(
+								config.schema,
+								graphql.getNamedType(field.type).name
+							),
 							selectionSet: selection.selectionSet,
 						})
 					)

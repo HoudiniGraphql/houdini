@@ -16,11 +16,11 @@ export const typeName = (type: graphql.TypeNode): string =>
 export const getNamedType = (
 	schema: graphql.GraphQLSchema,
 	name: string
-): graphql.GraphQLNamedType => {
+): graphql.GraphQLObjectType => {
 	const type = schema.getType(name)
 	if (!type) {
 		throw new Error('Could not find type for ' + name)
 	}
 
-	return type
+	return type as graphql.GraphQLObjectType
 }
