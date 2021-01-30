@@ -1,0 +1,37 @@
+name: Tests
+
+# run this workflow on specific events in github
+on:
+    # pull requests to master
+    pull_request:
+        paths:
+            - '**'
+
+    # every commit on master
+    push:
+        branches:
+            - master
+
+jobs:
+    tests:
+        name: Linter
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Use Node.js 12.x
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 12.x
+
+            - name: Checkout source
+              uses: actions/checkout@master
+              with:
+                  ref: ${{ github.ref }}
+
+            - name: Install dependencies
+              run: yarn
+              env:
+                  CI: true
+
+            - name: Tests
+              run: yarn run tests
