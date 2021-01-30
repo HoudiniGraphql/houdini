@@ -203,6 +203,41 @@ describe('fragment selector', function () {
     };
 }`,
 		],
+		[
+			'list in object',
+			`fragment foo on User {
+                name
+                parent {
+                    name
+                    age
+
+                    friends {
+                        name
+                        age
+                    }
+                }
+            }`,
+			`obj => {
+    return {
+        "__ref": obj.__ref,
+        "name": obj.__ref.name,
+
+        "parent": {
+            "__ref": obj.__ref.parent.__ref,
+            "name": obj.__ref.parent.__ref.name,
+            "age": obj.__ref.parent.__ref.age,
+
+            "friends": obj.__ref.parent.__ref.friends.map(obj_parent_friends => {
+                return {
+                    "__ref": obj_parent_friends.__ref,
+                    "name": obj_parent_friends.__ref.name,
+                    "age": obj_parent_friends.__ref.age
+                };
+            })
+        }
+    };
+}`,
+		],
 	]
 
 	for (const [title, fragment, expectedFunction] of table) {

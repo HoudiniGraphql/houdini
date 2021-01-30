@@ -294,6 +294,12 @@ function objectProperties({
 				// but im leaving it here to make typescript happy
 				selection.selectionSet !== undefined
 			) {
+				// we need an identifier that is garunteed not to conflict with fields that could be
+				// arbitrarily deep. to address this we'll use the field location as the name
+				const argument = `${rootIdentifier}_${attributeName}`
+					.replace('.__ref', '')
+					.replace('.', '_')
+
 				// we need to transform every entry in this list to a masked version
 				return typeBuilders.objectProperty(
 					typeBuilders.stringLiteral(attributeName),
@@ -308,9 +314,10 @@ function objectProperties({
 							selector({
 								config,
 								artifact,
-								rootIdentifier: `${rootIdentifier}_${attributeName}`,
+								rootIdentifier: argument,
 								rootType: selectionType,
 								selectionSet: selection.selectionSet,
+								pullValuesFromRef,
 							}),
 						]
 					)

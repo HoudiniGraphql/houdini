@@ -37,8 +37,11 @@ export async function getQuery(
 		throw new Error('Please provide an environment')
 	}
 
+	// grab the response from the server
+	const { data } = await currentEnv.sendRequest({ text, variables })
+
 	// wrap the result in a store we can use to keep this query up to date
-	return document.processResult(await currentEnv.sendRequest({ text, variables }))
+	return { data: document.processResult(data) }
 }
 
 export function getFragment<T>(fragment: GraphQLTagResult, reference: T) {
