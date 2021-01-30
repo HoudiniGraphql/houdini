@@ -154,32 +154,32 @@ export function fragmentProperties(
 	return [
 		typeBuilders.objectProperty(
 			typeBuilders.stringLiteral('selector'),
-			selector(config, fragment, 'obj', rootType, parsedFragment.selectionSet)
+			selector({
+				config,
+				artifact: fragment,
+				rootIdentifier: 'obj',
+				rootType,
+				selectionSet: parsedFragment.selectionSet,
+			})
 		),
 	]
 }
 
-export function selector(
-	config: PreProcessorConfig,
-	artifact: CompiledDocument,
-	rootIdentifier: string,
-	rootType: graphql.GraphQLNamedType,
+type SelectorProps = {
+	config: PreProcessorConfig
+	artifact: CompiledDocument
+	rootIdentifier: string
+	rootType: graphql.GraphQLNamedType
 	selectionSet: graphql.SelectionSetNode
-): ArrowFunctionExpression {
+	pullValuesFromRef?: boolean
+	includeRefField?: boolean
+}
+
+export function selector(props: SelectorProps): ArrowFunctionExpression {
 	return typeBuilders.arrowFunctionExpression(
-		[typeBuilders.identifier(rootIdentifier)],
+		[typeBuilders.identifier(props.rootIdentifier)],
 		typeBuilders.blockStatement([
-			typeBuilders.returnStatement(
-				typeBuilders.objectExpression(
-					objectProperties({
-						config,
-						artifact,
-						rootIdentifier,
-						rootType,
-						selectionSet,
-					})
-				)
-			),
+			typeBuilders.returnStatement(typeBuilders.objectExpression(objectProperties(props))),
 		])
 	)
 }
@@ -191,14 +191,8 @@ function objectProperties({
 	rootType,
 	selectionSet,
 	includeRefField = true,
-}: {
-	config: PreProcessorConfig
-	artifact: CompiledDocument
-	rootIdentifier: string
-	rootType: graphql.GraphQLNamedType
-	selectionSet: graphql.SelectionSetNode
-	includeRefField?: boolean
-}): Property[] {
+	pullValuesFromRef = true,
+}: SelectorProps): Property[] {
 	return [
 		// optionally include the embedded ref
 		...(includeRefField
@@ -272,13 +266,13 @@ function objectProperties({
 						memberExpression(rootIdentifier, '__ref', attributeName, 'map'),
 						// pass the selector to the functor
 						[
-							selector(
+							selector({
 								config,
 								artifact,
-								`${rootIdentifier}_${attributeName}`,
-								getNamedType(config.schema, typeName(field.type)),
-								selection.selectionSet
-							),
+								rootIdentifier: `${rootIdentifier}_${attributeName}`,
+								rootType: getNamedType(config.schema, typeName(field.type)),
+								selectionSet: selection.selectionSet,
+							}),
 						]
 					)
 				)

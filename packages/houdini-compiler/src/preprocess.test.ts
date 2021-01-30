@@ -116,13 +116,13 @@ describe('fragment selector', function () {
 			}).program.body[0].expression
 
 			// generate the selector
-			const result = selector(
+			const result = selector({
 				config,
-				{ name: 'testFragment', kind: FragmentDocumentKind },
-				'obj',
-				getNamedType(schema, typeName(parsedFragment.typeCondition)),
-				parsedFragment.selectionSet
-			)
+				artifact: { name: 'testFragment', kind: FragmentDocumentKind },
+				rootIdentifier: 'obj',
+				rootType: getNamedType(schema, typeName(parsedFragment.typeCondition)),
+				selectionSet: parsedFragment.selectionSet,
+			})
 
 			// make sure that both print the same way
 			expect(recast.print(result).code).toBe(recast.print(expected).code)
