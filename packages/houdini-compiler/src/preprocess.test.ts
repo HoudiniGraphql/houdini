@@ -1,6 +1,9 @@
+// externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { fragmentSelector } from './preprocessor'
+// locals
+import { FragmentDocumentKind } from './compile'
+import { selector } from './preprocessor'
 
 // declare a schema we will use
 const schema = graphql.buildSchema(`
@@ -29,8 +32,9 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        "name": obj.name,
-        "age": obj.age
+        "__ref": obj.__ref,
+        "name": obj.__ref.name,
+        "age": obj.__ref.age
     };
 }`,
 		],
@@ -44,13 +48,14 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        "name": obj.name,
-        "age": obj.age
+        "__ref": obj.__ref,
+        "name": obj.__ref.name,
+        "age": obj.__ref.age
     };
 }`,
 		],
 		[
-			'nested objects',
+			'related objects',
 			`fragment foo on User {
                 name
                 parent {
@@ -60,10 +65,13 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
-        "name": obj.name,
+        "__ref": obj.__ref,
+        "name": obj.__ref.name,
+
         "parent": {
-            "__ref": obj.parent,
-            "name": obj.parent.name
+            "__ref": obj.__ref.parent.__ref,
+            "name": obj.__ref.parent.__ref.name,
+            "age": obj.__ref.parent.__ref.age
         }
     };
 }`,
@@ -79,12 +87,154 @@ describe('fragment selector', function () {
             }`,
 			`obj => {
     return {
+        "__ref": obj.__ref,
+        "name": obj.__ref.name,
+
+        "friends": obj.__ref.friends.map(obj_friends => {
+            return {
+                "__ref": obj_friends.__ref,
+                "name": obj_friends.__ref.name,
+                "age": obj_friends.__ref.age
+            };
+        })
+    };
+}`,
+		],
+		[
+			'query selector',
+			`fragment foo on User {
+                name
+                parent {
+                    name
+                    age
+                }
+                friends {
+                    name
+                    age
+                }
+            }`,
+			`obj => {
+    return {
+        "__ref": obj,
         "name": obj.name,
-        friends: obj.friends.map(obj_friends => ({
-            "__ref": obj_friends._ref,
-            "name": obj_friends._ref.name,
-            "age": obj_friends._ref.age
-        }))
+
+        "parent": {
+            "__ref": obj.parent,
+            "name": obj.parent.name,
+            "age": obj.parent.age
+        },
+
+        "friends": obj.friends.map(obj_friends => {
+            return {
+                "__ref": obj_friends.__ref,
+                "name": obj_friends.__ref.name,
+                "age": obj_friends.__ref.age
+            };
+        })
+    };
+}`,
+		],
+		[
+			'nested objects',
+			`fragment foo on User {
+                name
+                parent {
+                    name
+                    age
+                    parent {
+                        name
+                        age
+                    }
+                }
+            }`,
+			`obj => {
+    return {
+        "__ref": obj.__ref,
+        "name": obj.__ref.name,
+
+        "parent": {
+            "__ref": obj.__ref.parent.__ref,
+            "name": obj.__ref.parent.__ref.name,
+            "age": obj.__ref.parent.__ref.age,
+
+            "parent": {
+                "__ref": obj.__ref.parent.__ref.parent.__ref,
+                "name": obj.__ref.parent.__ref.parent.__ref.name,
+                "age": obj.__ref.parent.__ref.parent.__ref.age
+            }
+        }
+    };
+}`,
+		],
+		[
+			'nested lists',
+			`fragment foo on User {
+                name
+                friends {
+                    name
+                    age
+
+                    friends {
+                        name
+                        age
+                    }
+                }
+            }`,
+			`obj => {
+    return {
+        "__ref": obj.__ref,
+        "name": obj.__ref.name,
+
+        "friends": obj.__ref.friends.map(obj_friends => {
+            return {
+                "__ref": obj_friends.__ref,
+                "name": obj_friends.__ref.name,
+                "age": obj_friends.__ref.age,
+
+                "friends": obj_friends.__ref.friends.map(obj_friends_friends => {
+                    return {
+                        "__ref": obj_friends_friends.__ref,
+                        "name": obj_friends_friends.__ref.name,
+                        "age": obj_friends_friends.__ref.age
+                    };
+                })
+            };
+        })
+    };
+}`,
+		],
+		[
+			'list in object',
+			`fragment foo on User {
+                name
+                parent {
+                    name
+                    age
+
+                    friends {
+                        name
+                        age
+                    }
+                }
+            }`,
+			`obj => {
+    return {
+        "__ref": obj.__ref,
+        "name": obj.__ref.name,
+
+        "parent": {
+            "__ref": obj.__ref.parent.__ref,
+            "name": obj.__ref.parent.__ref.name,
+            "age": obj.__ref.parent.__ref.age,
+
+            "friends": obj.__ref.parent.__ref.friends.map(obj_parent_friends => {
+                return {
+                    "__ref": obj_parent_friends.__ref,
+                    "name": obj_parent_friends.__ref.name,
+                    "age": obj_parent_friends.__ref.age
+                };
+            })
+        }
     };
 }`,
 		],
@@ -103,10 +253,18 @@ describe('fragment selector', function () {
 			}).program.body[0].expression
 
 			// generate the selector
-			const selector = fragmentSelector(config, parsedFragment).value
+			const result = selector({
+				config,
+				artifact: { name: 'testFragment', kind: FragmentDocumentKind },
+				rootIdentifier: 'obj',
+				rootType: schema.getType('User') as graphql.GraphQLObjectType,
+				selectionSet: parsedFragment.selectionSet,
+				// don't pull the values out of the ref for the query selector test
+				pullValuesFromRef: title !== 'query selector',
+			})
 
 			// make sure that both print the same way
-			expect(recast.print(selector).code).toBe(recast.print(expected).code)
+			expect(recast.print(result).code).toBe(recast.print(expected).code)
 		})
 	}
 })

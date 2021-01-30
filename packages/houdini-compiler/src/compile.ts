@@ -11,18 +11,20 @@ import mkdirp from 'mkdirp'
 import { StatementKind, ExpressionKind } from 'ast-types/gen/kinds'
 
 // the compiled version of an operation
-type CompiledDocument = {
+type BaseCompiledDocument = {
 	name: string
 }
 
-export type CompiledGraphqlOperation = CompiledDocument & {
+export type CompiledGraphqlOperation = BaseCompiledDocument & {
 	kind: import('graphql/language').OperationDefinitionNode['kind']
 	raw: string
 }
 
-export type CompiledGraphqlFragment = CompiledDocument & {
+export type CompiledGraphqlFragment = BaseCompiledDocument & {
 	kind: import('graphql/language').FragmentDefinitionNode['kind']
 }
+
+export type CompiledDocument = CompiledGraphqlFragment | CompiledGraphqlOperation
 
 type FirstPassDocument = {
 	name: string
