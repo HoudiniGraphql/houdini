@@ -100,6 +100,109 @@ describe('fragment selector', function () {
     };
 }`,
 		],
+		[
+			'query selector',
+			`fragment foo on User {
+                name
+                parent {
+                    name
+                    age
+                }
+                friends {
+                    name
+                    age
+                }
+            }`,
+			`obj => {
+    return {
+        "__ref": obj,
+        "name": obj.name,
+
+        "parent": {
+            "__ref": obj.parent,
+            "name": obj.parent.name,
+            "age": obj.parent.age
+        },
+
+        "friends": obj.friends.map(obj_friends => {
+            return {
+                "__ref": obj_friends.__ref,
+                "name": obj_friends.__ref.name,
+                "age": obj_friends.__ref.age
+            };
+        })
+    };
+}`,
+		],
+		[
+			'nested objects',
+			`fragment foo on User {
+                name
+                parent {
+                    name
+                    age
+                    parent {
+                        name
+                        age
+                    }
+                }
+            }`,
+			`obj => {
+    return {
+        "__ref": obj.__ref,
+        "name": obj.__ref.name,
+
+        "parent": {
+            "__ref": obj.__ref.parent.__ref,
+            "name": obj.__ref.parent.__ref.name,
+            "age": obj.__ref.parent.__ref.age,
+
+            "parent": {
+                "__ref": obj.__ref.parent.__ref.parent.__ref,
+                "name": obj.__ref.parent.__ref.parent.__ref.name,
+                "age": obj.__ref.parent.__ref.parent.__ref.age
+            }
+        }
+    };
+}`,
+		],
+		[
+			'nested lists',
+			`fragment foo on User {
+                name
+                friends {
+                    name
+                    age
+
+                    friends {
+                        name
+                        age
+                    }
+                }
+            }`,
+			`obj => {
+    return {
+        "__ref": obj.__ref,
+        "name": obj.__ref.name,
+
+        "friends": obj.__ref.friends.map(obj_friends => {
+            return {
+                "__ref": obj_friends.__ref,
+                "name": obj_friends.__ref.name,
+                "age": obj_friends.__ref.age,
+
+                "friends": obj_friends.__ref.friends.map(obj_friends_friends => {
+                    return {
+                        "__ref": obj_friends_friends.__ref,
+                        "name": obj_friends_friends.__ref.name,
+                        "age": obj_friends_friends.__ref.age
+                    };
+                })
+            };
+        })
+    };
+}`,
+		],
 	]
 
 	for (const [title, fragment, expectedFunction] of table) {
@@ -121,6 +224,8 @@ describe('fragment selector', function () {
 				rootIdentifier: 'obj',
 				rootType: schema.getType('User') as graphql.GraphQLObjectType,
 				selectionSet: parsedFragment.selectionSet,
+				// don't pull the values out of the ref for the query selector test
+				pullValuesFromRef: title !== 'query selector',
 			})
 
 			// make sure that both print the same way

@@ -59,8 +59,8 @@ export function preprocessor(config: PreProcessorConfig) {
 						}
 
 						// pull out the name of the thing
-						const name = (parsedTag.definitions[0] as OperationDefinitionNode).name
-							?.value
+						const operation = parsedTag.definitions[0] as OperationDefinitionNode
+						const name = operation.name?.value
 
 						// grab the document meta data
 						let document: CompiledGraphqlOperation | CompiledGraphqlFragment
@@ -93,7 +93,9 @@ export function preprocessor(config: PreProcessorConfig) {
 
 						// if we are looking at an operation
 						if (document.kind === OperationDocumentKind) {
-							replacement.properties.push(...operationProperties(config, document))
+							replacement.properties.push(
+								...operationProperties(config, document, operation)
+							)
 						}
 						// we are processing a fragment
 						else {
@@ -119,13 +121,39 @@ export function preprocessor(config: PreProcessorConfig) {
 
 export function operationProperties(
 	config: PreProcessorConfig,
-	operation: CompiledGraphqlOperation
+	operation: CompiledGraphqlOperation,
+	doc: graphql.OperationDefinitionNode
 ): Property[] {
+	// figure out the root type
+	let rootType: graphql.GraphQLObjectType | null | undefined
+	if (doc.operation === 'query') {
+		rootType = config.schema.getQueryType()
+	} else if (doc.operation === 'mutation') {
+		rootType = config.schema.getMutationType()
+	} else if (doc.operation === 'subscription') {
+		rootType = config.schema.getSubscriptionType()
+	}
+	if (!rootType) {
+		throw new Error('Could not find operation type')
+	}
+
 	// pass the raw query string for the network request
 	return [
 		typeBuilders.objectProperty(
 			typeBuilders.stringLiteral('raw'),
 			typeBuilders.stringLiteral(operation.raw)
+		),
+		typeBuilders.objectProperty(
+			typeBuilders.stringLiteral('processResult'),
+			selector({
+				config,
+				artifact: operation,
+				rootIdentifier: 'data',
+				rootType,
+				selectionSet: doc.selectionSet,
+				// grab values from the immediate response
+				pullValuesFromRef: false,
+			})
 		),
 	]
 }
@@ -200,12 +228,13 @@ function objectProperties({
 			? [
 					typeBuilders.objectProperty(
 						typeBuilders.stringLiteral('__ref'),
-						memberExpression(rootIdentifier, '__ref')
+						pullValuesFromRef
+							? memberExpression(rootIdentifier, '__ref')
+							: typeBuilders.identifier(rootIdentifier)
 					),
 			  ]
 			: []),
 
-		// make sure there is always the root reference
 		// process every selection in the selection set
 		...selectionSet.selections.flatMap((selection) => {
 			// if the selection is a spread of another fragment, ignore it
@@ -250,7 +279,10 @@ function objectProperties({
 				// we need to add a key to the object that points {attributeName} to obj._ref.{attributeName}
 				return typeBuilders.objectProperty(
 					typeBuilders.stringLiteral(attributeName),
-					memberExpression(rootIdentifier, '__ref', attributeName)
+
+					pullValuesFromRef
+						? memberExpression(rootIdentifier, '__ref', attributeName)
+						: memberExpression(rootIdentifier, attributeName)
 				)
 			}
 
@@ -267,7 +299,10 @@ function objectProperties({
 					typeBuilders.stringLiteral(attributeName),
 					// invoke {rootIdentifier}.__ref.{attributeName}.map
 					typeBuilders.callExpression(
-						memberExpression(rootIdentifier, '__ref', attributeName, 'map'),
+						pullValuesFromRef
+							? memberExpression(rootIdentifier, '__ref', attributeName, 'map')
+							: memberExpression(rootIdentifier, attributeName, 'map'),
+
 						// pass the selector to the functor
 						[
 							selector({
@@ -293,9 +328,12 @@ function objectProperties({
 						objectProperties({
 							config,
 							artifact,
-							rootIdentifier: `${rootIdentifier}.__ref.${attributeName}`,
+							rootIdentifier: pullValuesFromRef
+								? `${rootIdentifier}.__ref.${attributeName}`
+								: `${rootIdentifier}.${attributeName}`,
 							rootType: selectionType,
 							selectionSet: selection.selectionSet,
+							pullValuesFromRef,
 						})
 					)
 				)
@@ -321,7 +359,7 @@ function memberExpression(root: string, next: string, ...rest: string[]) {
 }
 
 function isListType(type: graphql.GraphQLType): boolean {
-	// if the type is non-null or a list
+	// if the type is non-null, unwrap and check again
 	if (graphql.isNonNullType(type)) {
 		return isListType((type as graphql.GraphQLNonNull<any>).ofType)
 	}
