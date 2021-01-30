@@ -4,7 +4,6 @@ import * as recast from 'recast'
 // locals
 import { FragmentDocumentKind } from './compile'
 import { selector } from './preprocessor'
-import { getNamedType, typeName } from './graphql'
 
 // declare a schema we will use
 const schema = graphql.buildSchema(`
@@ -120,7 +119,7 @@ describe('fragment selector', function () {
 				config,
 				artifact: { name: 'testFragment', kind: FragmentDocumentKind },
 				rootIdentifier: 'obj',
-				rootType: getNamedType(schema, typeName(parsedFragment.typeCondition)),
+				rootType: schema.getType('User') as graphql.GraphQLObjectType,
 				selectionSet: parsedFragment.selectionSet,
 			})
 

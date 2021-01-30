@@ -12,7 +12,6 @@ import {
 	OperationDocumentKind,
 	CompiledDocument,
 } from './compile'
-import { isListType, getNamedType, typeName } from './graphql'
 
 type PreProcessorConfig = {
 	artifactDirectory: string
@@ -230,10 +229,17 @@ function objectProperties({
 			// the name of the field in the response
 			const attributeName = selection.alias?.value || selection.name.value
 
-			// the field we are looking ats
+			// the field we are looking at
 			const field = rootType.getFields()[(selection as graphql.FieldNode).name.value]
 			if (!field) {
 				throw new Error('Could not find type information for field')
+			}
+			// and the actual object type that it refers to
+			const selectionType = config.schema.getType(
+				graphql.getNamedType(field.type).name
+			) as graphql.GraphQLObjectType
+			if (!selectionType) {
+				throw new Error('Could not find type for ' + name)
 			}
 
 			// if the selection is a field without any sub selections
@@ -251,7 +257,7 @@ function objectProperties({
 			// if the field is a lists
 			if (
 				selection.kind === graphql.Kind.FIELD &&
-				graphql.isListType(field.type) &&
+				isListType(field.type) &&
 				// this will always be true in order to be a valid graphql document
 				// but im leaving it here to make typescript happy
 				selection.selectionSet !== undefined
@@ -268,10 +274,7 @@ function objectProperties({
 								config,
 								artifact,
 								rootIdentifier: `${rootIdentifier}_${attributeName}`,
-								rootType: getNamedType(
-									config.schema,
-									graphql.getNamedType(field.type).name
-								),
+								rootType: selectionType,
 								selectionSet: selection.selectionSet,
 							}),
 						]
@@ -291,10 +294,7 @@ function objectProperties({
 							config,
 							artifact,
 							rootIdentifier: `${rootIdentifier}.__ref.${attributeName}`,
-							rootType: getNamedType(
-								config.schema,
-								graphql.getNamedType(field.type).name
-							),
+							rootType: selectionType,
 							selectionSet: selection.selectionSet,
 						})
 					)
@@ -318,4 +318,13 @@ function memberExpression(root: string, next: string, ...rest: string[]) {
 	}
 
 	return target
+}
+
+function isListType(type: graphql.GraphQLType): boolean {
+	// if the type is non-null or a list
+	if (graphql.isNonNullType(type)) {
+		return isListType((type as graphql.GraphQLNonNull<any>).ofType)
+	}
+
+	return graphql.isListType(type)
 }
