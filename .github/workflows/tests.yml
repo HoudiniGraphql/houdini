@@ -1,4 +1,4 @@
-name: Tests
+name: CI Checks
 
 # run this workflow on specific events in github
 on:
@@ -14,7 +14,7 @@ on:
 
 jobs:
     tests:
-        name: Linter
+        name: Tests
         runs-on: ubuntu-latest
 
         steps:
