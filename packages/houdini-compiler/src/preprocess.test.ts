@@ -126,9 +126,9 @@ describe('fragment selector', function () {
 
         "friends": obj.friends.map(obj_friends => {
             return {
-                "__ref": obj_friends.__ref,
-                "name": obj_friends.__ref.name,
-                "age": obj_friends.__ref.age
+                "__ref": obj_friends,
+                "name": obj_friends.name,
+                "age": obj_friends.age
             };
         })
     };

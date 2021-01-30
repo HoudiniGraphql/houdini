@@ -5,12 +5,18 @@
 		"packages/*"
 	],
 	"scripts": {
+		"tests": "jest",
 		"build": "yarn workspace houdini-compiler run build && yarn workspace houdini run build"
 	},
 	"devDependencies": {
+		"@babel/core": "^7.12.10",
+		"@babel/preset-env": "^7.12.11",
+		"@types/jest": "^26.0.20",
+		"babel-jest": "^26.6.3",
+		"jest": "^26.6.3",
 		"prettier": "^2.0.5",
-		"typescript": "^3.9.5",
-		"@types/jest": "^26.0.20"
+		"ts-node": "^9.1.1",
+		"typescript": "^3.9.5"
 	},
 	"private": true
 }
