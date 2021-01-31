@@ -18,7 +18,7 @@
 <script>
 	import ItemEntry from '../components/ItemEntry.svelte'
 
-	export let data = null
+	export let data
 </script>
 
 {#each data.items as item}
