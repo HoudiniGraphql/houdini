@@ -3,7 +3,7 @@ type FetchParams = {
 	variables: { [key: string]: any }
 }
 
-type RequestHandler = <ResponseType>(params: FetchParams) => Promise<ResponseType>
+type RequestHandler = (params: FetchParams) => Promise<any>
 
 export class Environment {
 	private handler: RequestHandler
@@ -12,8 +12,8 @@ export class Environment {
 		this.handler = networkFn
 	}
 
-	sendRequest<_ResponseType>(params: FetchParams) {
-		return this.handler<_ResponseType>(params)
+	sendRequest(params: FetchParams) {
+		return this.handler(params)
 	}
 }
 

@@ -1,9 +1,17 @@
+<!-- 
+	okay. i apologize in advanced for what you are about to read.
+	i know its probably the ugliest thing you've seen in a svelte application, but 
+	i spent a bunch of time trying to find a way to include a playground that 
+	could execute an in-memory schema  that didn't rely on react but i  couldn't 
+	figure out something that worked well.
+
+	if you have an idea, PLEASE open a PR. 
+-->
 <script type="text/javascript">
 	import { onMount } from 'svelte'
 	import { graphql } from 'graphql'
 	import schema from '../schema'
 
-	// mount
 	onMount(() => {
 		ReactDOM.render(
 			React.createElement(GraphiQL, {
