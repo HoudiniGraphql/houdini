@@ -12,7 +12,6 @@ import {
 	OperationDocumentKind,
 	CompiledDocument,
 } from 'houdini-compiler'
-import { doc } from 'prettier'
 
 type PreProcessorConfig = {
 	artifactDirectory: string
