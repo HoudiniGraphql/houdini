@@ -2,7 +2,8 @@
 	"name": "houdini",
 	"version": "0.0.0",
 	"scripts": {
-		"build": "tsc"
+		"build": "tsc",
+		"prepare": "npm run build"
 	},
 	"devDependencies": {
 		"houdini-compiler": "0.0.0"
