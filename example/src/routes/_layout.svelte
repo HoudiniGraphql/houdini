@@ -34,7 +34,7 @@
 		<a href="/">
 			<h1>todos</h1>
 		</a>
-		<input class="new-todo" placeholder="What needs to be done?" autofocus />
+		<input class="new-todo" placeholder="What needs to be done?" />
 		<section class="main">
 			<input id="toggle-all" class="toggle-all" type="checkbox" />
 			<label for="toggle-all">Mark all as complete</label>
