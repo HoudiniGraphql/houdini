@@ -19,7 +19,7 @@ type TaggedGraphqlFragment = CompiledGraphqlFragment & {
 // the result of the template tag (also what the compiler leaves behind in the artifact directory)
 export type GraphQLTagResult = TaggedGraphqlOperation | TaggedGraphqlFragment
 
-export async function getQuery(
+export async function query(
 	document: GraphQLTagResult,
 	variables: { [name: string]: unknown }
 ): Promise<unknown> {

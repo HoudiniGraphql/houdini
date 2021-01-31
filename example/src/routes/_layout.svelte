@@ -1,9 +1,9 @@
 <script context="module">
-	import { getQuery, graphql } from 'houdini'
+	import { query, graphql } from 'houdini'
 
 	export async function preload() {
 		// load some data at the top of the app for general information
-		const data = await getQuery(graphql`
+		const data = await query(graphql`
 			query IndexInfo {
 				items {
 					completed
