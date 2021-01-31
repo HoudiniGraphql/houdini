@@ -5,13 +5,15 @@
 	"scripts": {
 		"dev": "sapper dev",
 		"compile": "houdini-compiler",
-		"api": "node ./server.js"
+		"api": "node ./api/index.js"
 	},
 	"dependencies": {
 		"@graphql-tools/wrap": "^7.0.5",
 		"@types/node": "^14.14.22",
+		"apollo-server": "^2.19.2",
 		"compression": "^1.7.1",
 		"cross-fetch": "^3.0.6",
+		"graphql": "^15.5.0",
 		"polka": "next",
 		"sirv": "^1.0.0"
 	},
