@@ -1,5 +1,5 @@
 // externals
-import graphql, { Kind as GraphqlKinds } from 'graphql'
+import graphql, { visit as walkGraphQL, Kind as GraphqlKinds } from 'graphql'
 import { FragmentDocumentKind, OperationDocumentKind } from '../constants'
 // locals
 import { CollectedGraphQLDocument } from '../types'
@@ -11,8 +11,8 @@ export default async function includeFragmentDefinitions(
 	// fragments can depend on each other so we need to first find the dependency graph of fragments
 	// and then we can add every necessary fragment defintion to the operations
 	const documentsByName: {
-		[name: string]: CollectedGraphQLDocument & { requiredFragments: string[] }
-	} = documents.reduce((acc, { name, document }) => {
+		[name: string]: CollectedGraphQLDocument & { requiredFragments: string[]; index: number }
+	} = documents.reduce((acc, { name, document }, index) => {
 		// a document can contain muliple definitions, all of which could require fragments
 		const requiredFragments = document.definitions.flatMap((definition) => {
 			// if we are looking at an operation or fragment definition
@@ -29,14 +29,42 @@ export default async function includeFragmentDefinitions(
 		return {
 			...acc,
 			[name]: {
-				...document,
+				document,
 				// add the required fragments to the definition
 				requiredFragments,
+				index,
 			},
 		}
 	}, {})
 
 	// every operation in the list needs to have their required fragments added to their definition
+	for (const name of Object.keys(documentsByName)) {
+		const document = documentsByName[name]
+		// we need to find the complete list of fragments that this document depends on
+		const allFragments = flattenFragments(document, documentsByName)
+
+		// add any definitions found in the documents associated with the related fragments
+		documents[document.index].document = walkGraphQL(document.document, {
+			enter: {
+				[GraphqlKinds.DOCUMENT](node) {
+					// if there are operations in this document
+					if (node.definitions.find(({ kind }) => kind === OperationDocumentKind)) {
+						// we need to add every necessary fragment definition
+						return {
+							...node,
+							definitions: [
+								...node.definitions,
+								...allFragments.flatMap(
+									(fragmentName) =>
+										documentsByName[fragmentName].document.definitions
+								),
+							],
+						}
+					}
+				},
+			},
+		})
+	}
 }
 
 function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<string> {

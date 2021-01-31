@@ -115,7 +115,7 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 			}),
 			svelte({
-				preprocess: [sveltePreprocess(), houdiniPreprocessor(houdiniConfig)],
+				preprocess: [sveltePreprocess(), houdini(houdiniConfig)],
 				compilerOptions: {
 					dev,
 					generate: 'ssr',

@@ -12,6 +12,7 @@ import {
 	OperationDocumentKind,
 	CompiledDocument,
 } from 'houdini-compiler'
+import { doc } from 'prettier'
 
 type PreProcessorConfig = {
 	artifactDirectory: string
@@ -61,7 +62,6 @@ export default function houdiniPreprocessor(config: PreProcessorConfig) {
 						// pull out the name of the thing
 						const operation = parsedTag.definitions[0] as OperationDefinitionNode
 						const name = operation.name?.value
-
 						// grab the document meta data
 						let document: CompiledGraphqlOperation | CompiledGraphqlFragment
 						try {

@@ -46,6 +46,10 @@ export default async function compile(config: HoudiniCompilerConfig) {
 			const operations = document.definitions.filter(
 				({ kind }) => kind === OperationDocumentKind
 			)
+			// there are no operations, so its a fragment
+			const fragments = document.definitions.filter(
+				({ kind }) => kind === FragmentDocumentKind
+			)
 			// if there are operations in the document
 			if (operations.length > 0) {
 				// if there is more than one operation, throw an error
@@ -55,12 +59,8 @@ export default async function compile(config: HoudiniCompilerConfig) {
 
 				docKind = OperationDocumentKind
 			}
-			// there are no operations, so its a fragment
-			const fragments = document.definitions.filter(
-				({ kind }) => kind === FragmentDocumentKind
-			)
 			// if there are operations in the document
-			if (fragments.length > 0) {
+			else if (fragments.length > 0) {
 				// if there is more than one operation, throw an error
 				if (fragments.length > 1) {
 					throw new Error('Fsragment documents can only have one fragment')
@@ -98,7 +98,7 @@ export default async function compile(config: HoudiniCompilerConfig) {
 
 async function collectDocuments(): Promise<CollectedGraphQLDocument[]> {
 	// the first step we have to do is grab a list of every file in the source tree
-	const sourceFiles = await promisify(glob)('src/**/*.svelte')
+	const sourceFiles = await promisify(glob)('src/{routes,components}/*.svelte')
 
 	// the list of documents we found
 	const documents: CollectedGraphQLDocument[] = []

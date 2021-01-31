@@ -6,6 +6,7 @@ const start = [
 	`
         query Foo {
             hello
+            ...A
         }
     `,
 	`
