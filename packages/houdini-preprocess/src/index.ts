@@ -11,7 +11,7 @@ import {
 	CompiledGraphqlFragment,
 	OperationDocumentKind,
 	CompiledDocument,
-} from './compile'
+} from 'houdini-compiler'
 
 type PreProcessorConfig = {
 	artifactDirectory: string
@@ -26,7 +26,7 @@ type ArrowFunctionExpression = recast.types.namedTypes.ArrowFunctionExpression
 
 // the houdini preprocessor is required to strip away the graphql tags
 // and leave behind something for the runtime
-export function preprocessor(config: PreProcessorConfig) {
+export default function houdiniPreprocessor(config: PreProcessorConfig) {
 	return {
 		// the only thing we have to modify is the script blocks
 		async script({ content, filename }: { content: string; filename: string }) {

@@ -13,7 +13,7 @@ import config from 'sapper/config/rollup.js'
 import pkg from './package.json'
 import fs from 'fs'
 import graphql from 'graphql'
-import { preprocessor as houdiniPreprocessor } from 'houdini-compiler'
+import houdini from 'houdini-preprocess'
 
 const mode = process.env.NODE_ENV
 const dev = mode === 'development'
@@ -42,7 +42,7 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 			}),
 			svelte({
-				preprocess: [houdiniPreprocessor(houdiniConfig), sveltePreprocess()],
+				preprocess: [houdini(houdiniConfig), sveltePreprocess()],
 				compilerOptions: {
 					dev,
 					hydratable: true,
