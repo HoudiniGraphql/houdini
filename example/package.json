@@ -4,14 +4,14 @@
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "sapper dev",
-		"build": "sapper build --legacy",
-		"export": "sapper export --legacy",
-		"start": "node __sapper__/build",
 		"compile": "houdini-compiler",
-		"validate": "svelte-check --ignore src/node_modules/@sapper"
+		"api": "node ./server.js"
 	},
 	"dependencies": {
+		"@graphql-tools/wrap": "^7.0.5",
+		"@types/node": "^14.14.22",
 		"compression": "^1.7.1",
+		"cross-fetch": "^3.0.6",
 		"polka": "next",
 		"sirv": "^1.0.0"
 	},
@@ -30,8 +30,10 @@
 		"@rollup/plugin-url": "^5.0.0",
 		"@tsconfig/svelte": "^1.0.10",
 		"@types/compression": "^1.7.0",
-		"@types/node": "^14.11.1",
+		"@types/node": "^14.14.22",
 		"@types/polka": "^0.5.1",
+		"apollo-server-express": "^2.19.2",
+		"graphql": "^15.5.0",
 		"houdini": "0.0.0",
 		"houdini-compiler": "0.0.0",
 		"rollup": "^2.3.4",
