@@ -11,8 +11,9 @@ import mkdirp from 'mkdirp'
 import { ExpressionKind } from 'ast-types/gen/kinds'
 import { promisify } from 'util'
 // locals
-import { HoudiniCompilerConfig, CollectedGraphQLDocument } from './types'
+import { HoudiniCompilerConfig, CollectedGraphQLDocument, CompiledGraphqlOperation } from './types'
 import { applyTransforms } from './transforms'
+import { FragmentDocumentKind, OperationDocumentKind } from './constants'
 
 // the compile script is responsible for two different things:
 // - joining operations with all of the fragments that are used for a valid request
@@ -31,17 +32,52 @@ export default async function compile(config: HoudiniCompilerConfig) {
 
 	// write the artifacts
 	await Promise.all(
-		documents.map(async (document) => {
+		documents.map(async ({ document, name }) => {
 			// build up the query string
-			const rawString = graphql.print(document.definition)
+			const rawString = graphql.print(document)
 
 			// the location we will put the operation artifact
-			const targetLocation = path.join(config.artifactDirectory, `${document.name}.js`)
+			const targetLocation = path.join(config.artifactDirectory, `${name}.js`)
+
+			// figure out the document kind
+			let docKind = ''
+
+			// look for the operation
+			const operations = document.definitions.filter(
+				({ kind }) => kind === OperationDocumentKind
+			)
+			// if there are operations in the document
+			if (operations.length > 0) {
+				// if there is more than one operation, throw an error
+				if (operations.length > 1) {
+					throw new Error('Operation documents can only have one operation')
+				}
+
+				docKind = OperationDocumentKind
+			}
+			// there are no operations, so its a fragment
+			const fragments = document.definitions.filter(
+				({ kind }) => kind === FragmentDocumentKind
+			)
+			// if there are operations in the document
+			if (fragments.length > 0) {
+				// if there is more than one operation, throw an error
+				if (fragments.length > 1) {
+					throw new Error('Fsragment documents can only have one fragment')
+				}
+
+				docKind = FragmentDocumentKind
+			}
+
+			// if we couldn't figure out the kind
+			if (!docKind) {
+				throw new Error('Could not figure out what kind of document we were given')
+			}
 
 			// start building up the artiface
 			const artifact = AST.program([
-				moduleExport('name', AST.stringLiteral(document.name || 'NO_NAME')),
-				moduleExport('kind', AST.stringLiteral(document.definition.kind)),
+				moduleExport('name', AST.stringLiteral(name || 'NO_NAME')),
+				moduleExport('kind', AST.stringLiteral(docKind)),
 				moduleExport(
 					'raw',
 					AST.templateLiteral(
@@ -55,7 +91,7 @@ export default async function compile(config: HoudiniCompilerConfig) {
 			await fs.writeFile(targetLocation, recast.print(artifact).code)
 
 			// log the file location to confirm
-			console.log(document.name)
+			console.log(name)
 		})
 	)
 }
@@ -113,9 +149,7 @@ async function collectDocuments(): Promise<CollectedGraphQLDocument[]> {
 								// add it to the list
 								documents.push({
 									name: definition.name.value,
-									definition: definition as
-										| graphql.FragmentDefinitionNode
-										| graphql.OperationDefinitionNode,
+									document: parsedDoc,
 								})
 							}
 						},

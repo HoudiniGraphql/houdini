@@ -26,7 +26,7 @@ export type HoudiniCompilerConfig = {
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {
 	name: string
-	definition: graphql.FragmentDefinitionNode | graphql.OperationDefinitionNode
+	document: graphql.DocumentNode
 }
 
 // transforms are functions that takes the collected documents. some will mutate

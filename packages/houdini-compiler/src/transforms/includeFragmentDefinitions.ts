@@ -1,5 +1,6 @@
 // externals
 import graphql, { Kind as GraphqlKinds } from 'graphql'
+import { FragmentDocumentKind, OperationDocumentKind } from '../constants'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 
@@ -11,17 +12,29 @@ export default async function includeFragmentDefinitions(
 	// and then we can add every necessary fragment defintion to the operations
 	const documentsByName: {
 		[name: string]: CollectedGraphQLDocument & { requiredFragments: string[] }
-	} = documents.reduce(
-		(acc, fragment) => ({
+	} = documents.reduce((acc, { name, document }) => {
+		// a document can contain muliple definitions, all of which could require fragments
+		const requiredFragments = document.definitions.flatMap((definition) => {
+			// if we are looking at an operation or fragment definition
+			if (
+				definition.kind === OperationDocumentKind ||
+				definition.kind === FragmentDocumentKind
+			) {
+				return findRequiredFragments(definition.selectionSet)
+			}
+			// otherwise we dont care about this definition
+			return []
+		})
+
+		return {
 			...acc,
-			[fragment.name]: {
-				...fragment,
+			[name]: {
+				...document,
 				// add the required fragments to the definition
-				requiredFragments: findRequiredFragments(fragment.definition.selectionSet),
+				requiredFragments,
 			},
-		}),
-		{}
-	)
+		}
+	}, {})
 
 	// every operation in the list needs to have their required fragments added to their definition
 }
@@ -59,7 +72,7 @@ export function flattenFragments(
 	// the list of fragments to return
 	const frags = new Set<string>()
 
-	// we're going to do this as a breadth-first search to avoid creating
+	// we're going to do this breadth-first to avoid creating
 	// duplicates. If we did this a depth-first we would process dependent
 	// fragments after we check if we've already processed this node
 
