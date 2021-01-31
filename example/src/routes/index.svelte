@@ -2,45 +2,25 @@
 	import { getQuery, graphql } from 'houdini'
 
 	export async function preload() {
-		// load the data
-		const { data } = await getQuery(graphql`
-			query AllCharacters {
-				characters {
-					info {
-						count
-					}
-					results {
-						name
-						...CharacterAvatar_character
-					}
+		const data = await getQuery(graphql`
+			query AllItems {
+				items {
+					...ItemEntry_item
+					completed
 				}
 			}
 		`)
 
-		return { data, loading: false }
+		return { data }
 	}
 </script>
 
 <script>
-	import CharacterAvatar from '../components/CharacterAvatar.svelte'
+	import ItemEntry from '../components/ItemEntry.svelte'
 
-	export let data = { loading: true }
+	export let data = null
 </script>
 
-<main>
-	<p>
-		{#if data.loading}
-			loading...
-		{:else}
-			There are {data.characters.info.count} characters in the API.
-			<ul>
-				{#each data.characters.results as character}
-					<li>
-						<CharacterAvatar {character} />
-						{character.name}
-					</li>
-				{/each}
-			</ul>
-		{/if}
-	</p>
-</main>
+{#each data.items as item}
+	<ItemEntry {item} />
+{/each}

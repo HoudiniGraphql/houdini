@@ -259,9 +259,12 @@ function objectProperties({
 			const attributeName = selection.alias?.value || selection.name.value
 
 			// the field we are looking at
-			const field = rootType.getFields()[(selection as graphql.FieldNode).name.value]
+			const selectionName = (selection as graphql.FieldNode).name.value
+			const field = rootType.getFields()[selectionName]
 			if (!field) {
-				throw new Error('Could not find type information for field')
+				throw new Error(
+					`Could not find type information for field ${rootType.toString()}.${selectionName}`
+				)
 			}
 			// and the actual object type that it refers to
 			const selectionType = config.schema.getType(

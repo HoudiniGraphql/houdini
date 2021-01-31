@@ -3,6 +3,10 @@
 		"compilerOptions": {
 			"lib": ["DOM", "ES2017", "WebWorker"]
 		},
+		"types": [
+			"svelte",
+			"node",
+		],
 		"include": ["src/**/*", "src/node_modules/**/*"],
 		"exclude": ["node_modules/*", "__sapper__/*", "static/*"]
 	}
