@@ -1,23 +1,14 @@
 <script context="module">
 	import { setEnvironment, Environment } from 'houdini'
+	import { graphql } from 'graphql'
+	import schema from '../schema'
 
 	export async function preload() {
 		setEnvironment(
-			new Environment(async ({ text, variables = {} }) => {
-				// send the request to the ricky and morty api
-				const result = await this.fetch('https://rickandmortyapi.com/graphql', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						query: text,
-						variables,
-					}),
-				})
-
-				// parse the result as json
-				return await result.json()
+			new Environment(({ text, variables = {} }) => {
+				// usually this would require a network request but we're going to
+				// use the schema directly here to avoid the server
+				return graphql(schema, text, null, null, variables)
 			})
 		)
 	}
