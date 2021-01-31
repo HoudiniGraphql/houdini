@@ -1,6 +1,6 @@
-import { makeExecutableSchema } from '@graphql-tools/schema'
-import gql from 'graphql-tag'
-import { find, filter } from 'lodash'
+const { makeExecutableSchema } = require('@graphql-tools/schema')
+const gql = require('graphql-tag')
+const { find, filter } = require('lodash')
 
 const typeDefs = gql`
 	type TodoItem {
@@ -29,7 +29,7 @@ const resolvers = {
 	},
 }
 
-export default makeExecutableSchema({
+module.exports = makeExecutableSchema({
 	typeDefs,
 	resolvers,
 })

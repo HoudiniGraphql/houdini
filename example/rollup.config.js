@@ -28,7 +28,7 @@ const onwarn = (warning, onwarn) =>
 const houdiniConfig = {
 	artifactDirectory: path.join(__dirname, 'generated'),
 	schema: graphql.buildClientSchema(
-		JSON.parse(fs.readFileSync('./src/schema/introspection.json', 'utf-8'))
+		JSON.parse(fs.readFileSync('./schema/introspection.json', 'utf-8'))
 	),
 }
 
