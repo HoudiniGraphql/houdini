@@ -12,6 +12,7 @@
 		`)
 
 		return {
+			numberOfItems: data.items.length,
 			itemsLeft: data.items.filter((item) => !item.completed).length,
 			hasCompleted: Boolean(data.items.find((item) => item.completed)),
 		}
@@ -21,6 +22,7 @@
 <script>
 	export let itemsLeft
 	export let hasCompleted
+	export let numberOfItems
 </script>
 
 <svelte:head>
@@ -35,13 +37,15 @@
 			<h1>todos</h1>
 		</a>
 		<input class="new-todo" placeholder="What needs to be done?" />
-		<section class="main">
-			<input id="toggle-all" class="toggle-all" type="checkbox" />
-			<label for="toggle-all">Mark all as complete</label>
-			<ul class="todo-list">
-				<slot />
-			</ul>
-		</section>
+	</header>
+	<section class="main">
+		<input id="toggle-all" class="toggle-all" type="checkbox" />
+		<label for="toggle-all">Mark all as complete</label>
+		<ul class="todo-list">
+			<slot />
+		</ul>
+	</section>
+	{#if numberOfItems > 0}
 		<footer class="footer">
 			<span class="todo-count"><strong>{itemsLeft}</strong> item left</span>
 			<ul class="filters">
@@ -59,5 +63,13 @@
 				<button class="clear-completed">Clear completed</button>
 			{/if}
 		</footer>
-	</header>
+	{/if}
 </section>
+<footer class="info">
+	<p>Double-click to edit a todo</p>
+	<!-- Remove the below line ↓ -->
+	<p>Template by <a href="http://sindresorhus.com">Sindre Sorhus</a></p>
+	<!-- Change this out with your name and url ↓ -->
+	<p>Created by <a href="http://todomvc.com">Alec Aivazis</a></p>
+	<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
+</footer>
