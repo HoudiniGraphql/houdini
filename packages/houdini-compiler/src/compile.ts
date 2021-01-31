@@ -6,12 +6,11 @@ import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
 const AST = recast.types.builders
-import { Kind as GraphqlKinds } from 'graphql/language'
 import mkdirp from 'mkdirp'
 import { ExpressionKind } from 'ast-types/gen/kinds'
 import { promisify } from 'util'
 // locals
-import { HoudiniCompilerConfig, CollectedGraphQLDocument, CompiledGraphqlOperation } from './types'
+import { HoudiniCompilerConfig, CollectedGraphQLDocument } from './types'
 import { applyTransforms } from './transforms'
 import { FragmentDocumentKind, OperationDocumentKind } from './constants'
 

@@ -33,5 +33,8 @@ jobs:
               env:
                   CI: true
 
+            - name: Build packages
+              run: yarn build
+
             - name: Tests
-              run: yarn run tests
+              run: yarn tests
