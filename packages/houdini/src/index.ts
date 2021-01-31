@@ -44,6 +44,8 @@ export async function query(
 	return document.processResult(data)
 }
 
+export function mutation(operation: GraphQLTagResult) {}
+
 export function getFragment<T>(fragment: GraphQLTagResult, reference: T) {
 	// make sure we got a query document
 	if (fragment.kind !== Kind.FRAGMENT_DEFINITION) {
