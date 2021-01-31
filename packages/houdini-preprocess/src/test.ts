@@ -2,8 +2,8 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
-import { FragmentDocumentKind } from './compile'
-import { selector } from './preprocessor'
+import { FragmentDocumentKind } from 'houdini-compiler'
+import { selector } from '.'
 
 // declare a schema we will use
 const schema = graphql.buildSchema(`
@@ -255,7 +255,7 @@ describe('fragment selector', function () {
 			// generate the selector
 			const result = selector({
 				config,
-				artifact: { name: 'testFragment', kind: FragmentDocumentKind },
+				artifact: { name: 'testFragment', kind: FragmentDocumentKind, raw: fragment },
 				rootIdentifier: 'obj',
 				rootType: schema.getType('User') as graphql.GraphQLObjectType,
 				selectionSet: parsedFragment.selectionSet,

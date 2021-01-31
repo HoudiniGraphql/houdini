@@ -4,7 +4,8 @@
 	"version": "0.0.1",
 	"scripts": {
 		"dev": "sapper dev",
-		"compile": "houdini-compiler"
+		"compile": "houdini-compiler",
+		"api": "node api.js"
 	},
 	"dependencies": {
 		"@graphql-tools/wrap": "^7.0.5",
@@ -41,6 +42,7 @@
 		"graphql": "^15.5.0",
 		"houdini": "0.0.0",
 		"houdini-compiler": "0.0.0",
+		"houdini-preprocess": "0.0.0",
 		"lodash": "^4.17.20",
 		"rollup": "^2.3.4",
 		"rollup-plugin-svelte": "^7.0.0",

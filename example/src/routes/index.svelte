@@ -1,8 +1,8 @@
 <script context="module">
-	import { getQuery, graphql } from 'houdini'
+	import { query, graphql } from 'houdini'
 
 	export async function preload() {
-		const data = await getQuery(graphql`
+		const data = await query(graphql`
 			query AllItems {
 				items {
 					...ItemEntry_item

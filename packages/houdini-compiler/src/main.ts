@@ -1,5 +1,10 @@
 #! /usr/bin/env node
-export * from './preprocessor'
+
+// externals
+import path from 'path'
+// locals
 import compile from './compile'
 
-compile()
+compile({
+	artifactDirectory: path.join(__dirname, '..', '..', '..', 'example', 'generated'),
+})

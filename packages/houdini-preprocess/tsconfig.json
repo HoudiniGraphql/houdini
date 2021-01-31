@@ -1,0 +1,11 @@
+{
+	"extends": "../../tsconfig",
+	"compilerOptions": {
+		"outDir": "build"
+	},
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "**/*.test.ts"],
+	"paths": {
+		"houdini-compiler": ["../packages/houdini-compiler"]
+	}
+}

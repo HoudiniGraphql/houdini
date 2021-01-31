@@ -13,7 +13,7 @@ import config from 'sapper/config/rollup.js'
 import pkg from './package.json'
 import fs from 'fs'
 import graphql from 'graphql'
-import { preprocessor as houdiniPreprocessor } from 'houdini-compiler'
+import houdini from 'houdini-preprocess'
 
 const mode = process.env.NODE_ENV
 const dev = mode === 'development'
@@ -28,7 +28,7 @@ const onwarn = (warning, onwarn) =>
 const houdiniConfig = {
 	artifactDirectory: path.join(__dirname, 'generated'),
 	schema: graphql.buildClientSchema(
-		JSON.parse(fs.readFileSync('./src/schema/introspection.json', 'utf-8'))
+		JSON.parse(fs.readFileSync('./schema/introspection.json', 'utf-8'))
 	),
 }
 
@@ -42,7 +42,7 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 			}),
 			svelte({
-				preprocess: [houdiniPreprocessor(houdiniConfig), sveltePreprocess()],
+				preprocess: [houdini(houdiniConfig), sveltePreprocess()],
 				compilerOptions: {
 					dev,
 					hydratable: true,
@@ -115,7 +115,7 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 			}),
 			svelte({
-				preprocess: [sveltePreprocess(), houdiniPreprocessor(houdiniConfig)],
+				preprocess: [sveltePreprocess(), houdini(houdiniConfig)],
 				compilerOptions: {
 					dev,
 					generate: 'ssr',
