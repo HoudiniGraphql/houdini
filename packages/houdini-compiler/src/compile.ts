@@ -14,10 +14,10 @@ import { HoudiniCompilerConfig, CollectedGraphQLDocument } from './types'
 import { applyTransforms } from './transforms'
 import { FragmentDocumentKind, OperationDocumentKind } from './constants'
 
-// the compile script is responsible for two different things:
-// - joining operations with all of the fragments that are used for a valid request
-// - generating types to match the result of operations and fragments
-//
+// the compiler's job can be broken down into three different tasks:
+// - collect all of the graphql documents defined in the project
+// - perform a series of transformations on those documents
+// - write the corresponding artifacts to disk
 export default async function compile(config: HoudiniCompilerConfig) {
 	// make sure the artifact directory exists
 	await mkdirp(config.artifactDirectory)
@@ -30,69 +30,7 @@ export default async function compile(config: HoudiniCompilerConfig) {
 	await applyTransforms(documents)
 
 	// write the artifacts
-	await Promise.all(
-		documents.map(async ({ document, name }) => {
-			// build up the query string
-			const rawString = graphql.print(document)
-
-			// the location we will put the operation artifact
-			const targetLocation = path.join(config.artifactDirectory, `${name}.js`)
-
-			// figure out the document kind
-			let docKind = ''
-
-			// look for the operation
-			const operations = document.definitions.filter(
-				({ kind }) => kind === OperationDocumentKind
-			)
-			// there are no operations, so its a fragment
-			const fragments = document.definitions.filter(
-				({ kind }) => kind === FragmentDocumentKind
-			)
-			// if there are operations in the document
-			if (operations.length > 0) {
-				// if there is more than one operation, throw an error
-				if (operations.length > 1) {
-					throw new Error('Operation documents can only have one operation')
-				}
-
-				docKind = OperationDocumentKind
-			}
-			// if there are operations in the document
-			else if (fragments.length > 0) {
-				// if there is more than one operation, throw an error
-				if (fragments.length > 1) {
-					throw new Error('Fsragment documents can only have one fragment')
-				}
-
-				docKind = FragmentDocumentKind
-			}
-
-			// if we couldn't figure out the kind
-			if (!docKind) {
-				throw new Error('Could not figure out what kind of document we were given')
-			}
-
-			// start building up the artiface
-			const artifact = AST.program([
-				moduleExport('name', AST.stringLiteral(name || 'NO_NAME')),
-				moduleExport('kind', AST.stringLiteral(docKind)),
-				moduleExport(
-					'raw',
-					AST.templateLiteral(
-						[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
-						[]
-					)
-				),
-			])
-
-			// write the result
-			await fs.writeFile(targetLocation, recast.print(artifact).code)
-
-			// log the file location to confirm
-			console.log(name)
-		})
-	)
+	await writeArtifacts(config, documents)
 }
 
 async function collectDocuments(): Promise<CollectedGraphQLDocument[]> {
@@ -160,6 +98,71 @@ async function collectDocuments(): Promise<CollectedGraphQLDocument[]> {
 
 	// return the list we built up
 	return documents
+}
+function writeArtifacts(config: HoudiniCompilerConfig, documents: CollectedGraphQLDocument[]) {
+	return Promise.all(
+		documents.map(async ({ document, name }) => {
+			// build up the query string
+			const rawString = graphql.print(document)
+
+			// the location we will put the operation artifact
+			const targetLocation = path.join(config.artifactDirectory, `${name}.js`)
+
+			// figure out the document kind
+			let docKind = ''
+
+			// look for the operation
+			const operations = document.definitions.filter(
+				({ kind }) => kind === OperationDocumentKind
+			)
+			// there are no operations, so its a fragment
+			const fragments = document.definitions.filter(
+				({ kind }) => kind === FragmentDocumentKind
+			)
+			// if there are operations in the document
+			if (operations.length > 0) {
+				// if there is more than one operation, throw an error
+				if (operations.length > 1) {
+					throw new Error('Operation documents can only have one operation')
+				}
+
+				docKind = OperationDocumentKind
+			}
+			// if there are operations in the document
+			else if (fragments.length > 0) {
+				// if there is more than one operation, throw an error
+				if (fragments.length > 1) {
+					throw new Error('Fsragment documents can only have one fragment')
+				}
+
+				docKind = FragmentDocumentKind
+			}
+
+			// if we couldn't figure out the kind
+			if (!docKind) {
+				throw new Error('Could not figure out what kind of document we were given')
+			}
+
+			// start building up the artiface
+			const artifact = AST.program([
+				moduleExport('name', AST.stringLiteral(name || 'NO_NAME')),
+				moduleExport('kind', AST.stringLiteral(docKind)),
+				moduleExport(
+					'raw',
+					AST.templateLiteral(
+						[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
+						[]
+					)
+				),
+			])
+
+			// write the result
+			await fs.writeFile(targetLocation, recast.print(artifact).code)
+
+			// log the file location to confirm
+			console.log(name)
+		})
+	)
 }
 
 function moduleExport(key: string, value: ExpressionKind) {
