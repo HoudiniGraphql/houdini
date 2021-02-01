@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
 import { FragmentDocumentKind } from 'houdini-compiler'
-import { selector } from '.'
+import selector from './selector'
 
 // declare a schema we will use
 const schema = graphql.buildSchema(`
@@ -21,7 +21,7 @@ const config = {
 	schema,
 }
 
-describe('fragment selector', function () {
+describe('selector', function () {
 	// define the test cases
 	const table = [
 		[
