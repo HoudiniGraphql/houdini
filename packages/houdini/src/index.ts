@@ -1,23 +1,9 @@
 // externals
 import { Kind } from 'graphql/language'
 import { getEnvironment } from './environment'
-import { CompiledGraphqlOperation, CompiledGraphqlFragment } from 'houdini-compiler'
+import { GraphQLTagResult } from 'houdini-preprocess'
 
 export * from './environment'
-
-// the preprocessor might leave behind fields that the compiler doesn't. Those extra fields are
-// registered in the 'Tagged' variants
-
-type TaggedGraphqlOperation = CompiledGraphqlOperation & {
-	processResult: (result: any) => any
-}
-
-type TaggedGraphqlFragment = CompiledGraphqlFragment & {
-	selector: (root: any) => any
-}
-
-// the result of the template tag (also what the compiler leaves behind in the artifact directory)
-export type GraphQLTagResult = TaggedGraphqlOperation | TaggedGraphqlFragment
 
 export async function query(
 	document: GraphQLTagResult,

@@ -7,6 +7,12 @@ import { PreProcessorConfig } from '.'
 import { selector } from './utils'
 const typeBuilders = recast.types.builders
 
+export type TaggedGraphqlFragment = {
+	name: string
+	kind: 'FragmentDefinition'
+	selector: (root: any) => any
+}
+
 // returns the expression that should replace the graphql
 export default function fragmentReplacement(
 	config: PreProcessorConfig,

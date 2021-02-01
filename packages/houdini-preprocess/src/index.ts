@@ -7,18 +7,9 @@ import { TaggedTemplateExpression, Identifier } from 'estree'
 import { OperationDefinitionNode } from 'graphql/language'
 // locals
 import { CompiledDocument, OperationDocumentKind, FragmentDocumentKind } from 'houdini-compiler'
-import fragmentReplacement from './fragment'
-import operationReplacement from './operation'
-
-export type PreProcessorConfig = {
-	artifactDirectory: string
-	artifactDirectoryAlias: string
-	schema: graphql.GraphQLSchema
-}
-
-// pull out reused types
-const typeBuilders = recast.types.builders
-type Property = recast.types.namedTypes.ObjectProperty
+import fragmentReplacement, { TaggedGraphqlFragment } from './fragment'
+import queryReplacement, { TaggedGraphqlQuery } from './query'
+import mutationReplacement, { TaggedGraphqlMutation } from './mutation'
 
 // the houdini preprocessor is required to strip away the graphql tags
 // and leave behind something for the runtime
@@ -82,8 +73,18 @@ export default function houdiniPreprocessor(config: PreProcessorConfig) {
 							replacement = fragmentReplacement(config, document, parsedTag)
 						}
 						// we could be looking at a query
-						else if (document.kind === OperationDocumentKind) {
-							replacement = operationReplacement(config, document, operation)
+						else if (
+							document.kind === OperationDocumentKind &&
+							operation.operation === 'query'
+						) {
+							replacement = queryReplacement(config, document, operation)
+						}
+						// we could be looking at a mutation
+						else if (
+							document.kind === OperationDocumentKind &&
+							operation.operation === 'mutation'
+						) {
+							replacement = mutationReplacement(config, document, operation)
 						}
 
 						// if we couldn't find a replacement
@@ -104,4 +105,19 @@ export default function houdiniPreprocessor(config: PreProcessorConfig) {
 			}
 		},
 	}
+}
+
+// export some types for others to consume
+
+export * from './fragment'
+export * from './query'
+export * from './mutation'
+
+// the result of the template tag (also what the compiler leaves behind in the artifact directory)
+export type GraphQLTagResult = TaggedGraphqlQuery | TaggedGraphqlFragment | TaggedGraphqlMutation
+
+export type PreProcessorConfig = {
+	artifactDirectory: string
+	artifactDirectoryAlias: string
+	schema: graphql.GraphQLSchema
 }

@@ -7,20 +7,21 @@ import { PreProcessorConfig } from '.'
 import { selector } from './utils'
 const typeBuilders = recast.types.builders
 
+// the result of tagging an operation
+export type TaggedGraphqlQuery = {
+	name: string
+	kind: 'OperationDefinition'
+	raw: string
+	processResult: (result: any) => any
+}
+
 export default function operationProperties(
 	config: PreProcessorConfig,
 	operation: CompiledGraphqlOperation,
 	doc: graphql.OperationDefinitionNode
 ): recast.types.namedTypes.Expression {
 	// figure out the root type
-	let rootType: graphql.GraphQLObjectType | null | undefined
-	if (doc.operation === 'query') {
-		rootType = config.schema.getQueryType()
-	} else if (doc.operation === 'mutation') {
-		rootType = config.schema.getMutationType()
-	} else if (doc.operation === 'subscription') {
-		rootType = config.schema.getSubscriptionType()
-	}
+	const rootType = config.schema.getQueryType()
 	if (!rootType) {
 		throw new Error('Could not find operation type')
 	}
