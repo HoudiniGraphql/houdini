@@ -143,7 +143,7 @@ function writeArtifacts(config: HoudiniCompilerConfig, documents: CollectedGraph
 				throw new Error('Could not figure out what kind of document we were given')
 			}
 
-			// start building up the artiface
+			// start building up the artifact
 			const artifact = AST.program([
 				moduleExport('name', AST.stringLiteral(name || 'NO_NAME')),
 				moduleExport('kind', AST.stringLiteral(docKind)),
