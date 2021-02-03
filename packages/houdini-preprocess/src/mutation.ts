@@ -21,7 +21,7 @@ export default function mutationProperties(
 	doc: graphql.OperationDefinitionNode
 ): recast.types.namedTypes.Expression {
 	// figure out the root type
-	const rootType = config.schema.getQueryType()
+	const rootType = config.schema.getMutationType()
 	if (!rootType) {
 		throw new Error('Could not find operation type')
 	}
