@@ -10,7 +10,7 @@ import { CompiledDocument, OperationDocumentKind, FragmentDocumentKind } from 'h
 
 // the houdini preprocessor is required to strip away the graphql tags
 // and leave behind something for the runtime
-export default function houdiniPreprocessor(config: PreProcessorConfig) {
+export default function houdiniPreprocessor(config: any) {
 	return {
 		// the only thing we have to modify is the script blocks
 		async script({ content, filename }: { content: string; filename: string }) {
@@ -60,36 +60,6 @@ export default function houdiniPreprocessor(config: PreProcessorConfig) {
 								'Looks like you need to run the houdini compiler for ' + name
 							)
 						}
-
-						// what replaces the template tag depends on a few different things
-						let replacement: recast.types.namedTypes.Expression | null = null
-
-						// if we are looking at a fragment
-						if (document.kind === FragmentDocumentKind) {
-							replacement = fragmentReplacement(config, document, parsedTag)
-						}
-						// we could be looking at a query
-						else if (
-							document.kind === OperationDocumentKind &&
-							operation.operation === 'query'
-						) {
-							replacement = queryReplacement(config, document, operation)
-						}
-						// we could be looking at a mutation
-						else if (
-							document.kind === OperationDocumentKind &&
-							operation.operation === 'mutation'
-						) {
-							replacement = mutationReplacement(config, document, operation)
-						}
-
-						// if we couldn't find a replacement
-						if (!replacement) {
-							throw new Error("Don't know what to do with document in " + filename)
-						}
-
-						// perform the replacement
-						this.replace(replacement)
 					}
 				},
 			})

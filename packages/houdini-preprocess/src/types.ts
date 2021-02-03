@@ -34,4 +34,8 @@ export type PreProcessorConfig = {
 	schema: graphql.GraphQLSchema
 }
 
-export type TransformDocument = { instance: Maybe<Script>; module: Maybe<Script> }
+export type TransformDocument = {
+	instance: Maybe<Script>
+	module: Maybe<Script>
+	config: PreProcessorConfig
+}

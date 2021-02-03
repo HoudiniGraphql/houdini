@@ -2,7 +2,7 @@
 import * as svelte from 'svelte/compiler'
 import { Script } from 'svelte/types/compiler/interfaces'
 import * as recast from 'recast'
-import { applyTransforms as apply } from 'houdini-compiler'
+import { applyTransforms as apply, TransformPipeline } from 'houdini-compiler'
 // locals
 import { defaultTransforms } from './transforms'
 import * as types from './types'
@@ -13,15 +13,16 @@ export default function houdiniPreprocessor(config: types.PreProcessorConfig) {
 	return {
 		async markup({ content, filename }: { content: string; filename: string }) {
 			return {
-				code: await applyTransforms({ content, filename }),
+				code: await applyTransforms(config, { content, filename }),
 			}
 		},
 	}
 }
 
 export async function applyTransforms(
+	config: types.PreProcessorConfig,
 	doc: { content: string; filename: string },
-	pipeline: any = defaultTransforms
+	pipeline: TransformPipeline<types.TransformDocument> = defaultTransforms
 ): Promise<string> {
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
@@ -33,15 +34,15 @@ export async function applyTransforms(
 	)
 
 	// send the scripts through the pipeline
-	apply(pipeline, result)
+	apply(pipeline, { ...result, config })
 
 	// we need to apply the changes to the file. we'll do this by printing the mutated
 	// content as a string and then replacing everything between the appropriate
 	// script tags. the parser tells us the locations for the different tags so we
 	// just have to replace the indices it tells us to
 
-	const printedModule = result.module ? recast.print(result.module).code : null
-	const printedInstance = result.instance ? recast.print(result.instance).code : null
+	const printedModule = result.module ? recast.print(result.module.content).code : null
+	const printedInstance = result.instance ? recast.print(result.instance.content).code : null
 
 	// if there is a module and no instance
 	if (result.module && !result.instance) {
