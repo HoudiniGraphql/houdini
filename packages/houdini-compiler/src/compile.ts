@@ -11,7 +11,7 @@ import { ExpressionKind } from 'ast-types/gen/kinds'
 import { promisify } from 'util'
 // locals
 import { HoudiniCompilerConfig, CollectedGraphQLDocument } from './types'
-import { applyTransforms } from './transforms'
+import applyTransforms from './transforms'
 import { FragmentDocumentKind, OperationDocumentKind } from './constants'
 
 // the compiler's job can be broken down into three different tasks:

@@ -2,7 +2,7 @@
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument } from '../types'
-import { applyTransforms } from '.'
+import applyTransforms from '.'
 
 export function transformTest(
 	title: string,

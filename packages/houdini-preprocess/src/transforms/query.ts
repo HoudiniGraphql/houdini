@@ -3,25 +3,17 @@ import * as graphql from 'graphql'
 import { CompiledGraphqlOperation } from 'houdini-compiler'
 import * as recast from 'recast'
 // locals
-import { PreProcessorConfig } from '.'
-import { selector } from './utils'
+import { PreProcessorConfig } from '../types'
+import { selector } from '../utils'
 const typeBuilders = recast.types.builders
 
-// the result of tagging an operation
-export type TaggedGraphqlMutation = {
-	name: string
-	kind: 'OperationDefinition'
-	raw: string
-	processResult: (result: any) => any
-}
-
-export default function mutationProperties(
+export default function operationProperties(
 	config: PreProcessorConfig,
 	operation: CompiledGraphqlOperation,
 	doc: graphql.OperationDefinitionNode
 ): recast.types.namedTypes.Expression {
 	// figure out the root type
-	const rootType = config.schema.getMutationType()
+	const rootType = config.schema.getQueryType()
 	if (!rootType) {
 		throw new Error('Could not find operation type')
 	}
