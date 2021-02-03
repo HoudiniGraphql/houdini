@@ -41,37 +41,103 @@ export async function applyTransforms(
 	// script tags. the parser tells us the locations for the different tags so we
 	// just have to replace the indices it tells us to
 
-	const printedModule = result.module ? recast.print(result.module.content).code : null
-	const printedInstance = result.instance ? recast.print(result.instance.content).code : null
+	const printedModule = result.module
+		? (recast.print(result.module.content).code as string)
+		: null
+	const printedInstance = result.instance
+		? (recast.print(result.instance.content).code as string)
+		: null
 
 	// if there is a module and no instance
-	if (result.module && !result.instance) {
+	if (result.module && !result.instance && printedModule) {
 		// just copy the module where it needs to go
-		return replaceBetween(
-			doc.content,
-			result.module.start,
-			result.module.end,
-			printedModule as string
-		)
+		return replaceTagContent(doc.content, result.module.start, result.module.end, printedModule)
 	}
 
 	// if there is an instance and no module
-	if (result.instance && !result.module) {
+	if (result.instance && !result.module && printedInstance) {
 		// just copy the instance where it needs to go
-		return replaceBetween(
+		return replaceTagContent(
 			doc.content,
 			result.instance.start,
 			result.instance.end,
-			printedInstance as string
+			printedInstance
 		)
+	}
+
+	if (!result.module || !result.instance || !printedModule || !printedInstance) {
+		throw new Error('Would never get here.')
 	}
 
 	// there is both a module and an instance so we want to replace the lowest
 	// one first so that the first's indices stay valid after we change content
 
-	// if the m
+	// if the module is lower than the instance
+	if (result.module.start > result.instance.start) {
+		// replace the module content first
+		const updatedModule = replaceTagContent(
+			doc.content,
+			result.module.start,
+			result.module.end,
+			printedModule
+		)
 
-	return ''
+		return replaceTagContent(
+			updatedModule,
+			result.instance.start,
+			result.instance.end,
+			printedInstance
+		)
+	}
+	// the instance is lower than the module
+
+	// replace the instance content first
+	const updatedInstance = replaceTagContent(
+		doc.content,
+		result.instance.start,
+		result.instance.end,
+		printedInstance
+	)
+
+	// then replace the module content
+	return replaceTagContent(updatedInstance, result.module.start, result.module.end, printedModule)
+}
+
+function replaceTagContent(source: string, start: number, end: number, insert: string) {
+	// {start} points to the < of the opening tag, we want to find the >
+	let greaterThanIndex = start
+	// keep looking until the end
+	while (greaterThanIndex < end) {
+		// if we found the > we can stop looking
+		if (source[greaterThanIndex] === '>') {
+			break
+		}
+
+		// keep looking
+		greaterThanIndex++
+	}
+	// if we didn't find it
+	if (greaterThanIndex === start) {
+		throw new Error('Could not find the end of the tag open')
+	}
+
+	// {end} points to the > of the closing tag
+	let lessThanIndex = end
+	while (lessThanIndex > greaterThanIndex) {
+		// if we found the > we can stop looking
+		if (source[lessThanIndex] === '<') {
+			break
+		}
+		// keep looking
+		lessThanIndex--
+	}
+	// if we didn't find it
+	if (lessThanIndex === end) {
+		throw new Error('Could not find the start of the tag close')
+	}
+
+	// replace the content between the closing of the open and open of the close
+	return replaceBetween(source, greaterThanIndex + 1, lessThanIndex, insert)
 }
 
 // replaceSubstring replaces the substring string between the indices with the provided new value
