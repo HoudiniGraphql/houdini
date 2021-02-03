@@ -89,7 +89,7 @@ export default function houdiniPreprocessor(config: PreProcessorConfig) {
 
 						// if we couldn't find a replacement
 						if (!replacement) {
-							throw new Error("Didn't know what to do with document in " + filename)
+							throw new Error("Don't know what to do with document in " + filename)
 						}
 
 						// perform the replacement
