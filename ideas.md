@@ -38,3 +38,6 @@ if (CheckTodoItem.isMounted) {
 } else if (UncheckTodoItem.isMounted) {
 }
 ```
+
+-   user doesn't define `data` (or whatever variable they use) as a store,
+    -   might have to define operations in script tag and then hoist to preload in the processor
