@@ -1,20 +1,19 @@
 // externals
 import * as svelte from 'svelte/compiler'
-import { Script } from 'svelte/types/compiler/interfaces'
 import * as recast from 'recast'
 import { applyTransforms as apply, TransformPipeline } from 'houdini-compiler'
 // locals
 import { defaultTransforms } from './transforms'
 import * as types from './types'
+
 // export some types for others to consume
 export * from './types'
 
+// the main entry point for the preprocessor
 export default function houdiniPreprocessor(config: types.PreProcessorConfig) {
 	return {
 		async markup({ content, filename }: { content: string; filename: string }) {
-			return {
-				code: await applyTransforms(config, { content, filename }),
-			}
+			return await applyTransforms(config, { content, filename })
 		},
 	}
 }
@@ -23,18 +22,24 @@ export async function applyTransforms(
 	config: types.PreProcessorConfig,
 	doc: { content: string; filename: string },
 	pipeline: TransformPipeline<types.TransformDocument> = defaultTransforms
-): Promise<string> {
+): Promise<{ code: string; dependencies: string[] }> {
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
 	// and then join them back together
 
 	// wrap the two ASTs in something we can pass through the pipeline
-	const result: { instance: types.Maybe<Script>; module: types.Maybe<Script> } = svelte.parse(
-		doc.content
-	)
+	const parsed = svelte.parse(doc.content)
+
+	// wrap everything up in an object we'll thread through the transforms
+	const result: types.TransformDocument = {
+		instance: parsed.instance,
+		module: parsed.module,
+		config,
+		dependencies: [],
+	}
 
 	// send the scripts through the pipeline
-	apply(pipeline, { ...result, config })
+	apply(pipeline, result)
 
 	// we need to apply the changes to the file. we'll do this by printing the mutated
 	// content as a string and then replacing everything between the appropriate
@@ -51,18 +56,29 @@ export async function applyTransforms(
 	// if there is a module and no instance
 	if (result.module && !result.instance && printedModule) {
 		// just copy the module where it needs to go
-		return replaceTagContent(doc.content, result.module.start, result.module.end, printedModule)
+		return {
+			code: replaceTagContent(
+				doc.content,
+				result.module.start,
+				result.module.end,
+				printedModule
+			),
+			dependencies: result.dependencies,
+		}
 	}
 
 	// if there is an instance and no module
 	if (result.instance && !result.module && printedInstance) {
 		// just copy the instance where it needs to go
-		return replaceTagContent(
-			doc.content,
-			result.instance.start,
-			result.instance.end,
-			printedInstance
-		)
+		return {
+			code: replaceTagContent(
+				doc.content,
+				result.instance.start,
+				result.instance.end,
+				printedInstance
+			),
+			dependencies: result.dependencies,
+		}
 	}
 
 	if (!result.module || !result.instance || !printedModule || !printedInstance) {
@@ -82,16 +98,19 @@ export async function applyTransforms(
 			printedModule
 		)
 
-		return replaceTagContent(
-			updatedModule,
-			result.instance.start,
-			result.instance.end,
-			printedInstance
-		)
+		return {
+			code: replaceTagContent(
+				updatedModule,
+				result.instance.start,
+				result.instance.end,
+				printedInstance
+			),
+			dependencies: result.dependencies,
+		}
 	}
 	// the instance is lower than the module
 
-	// replace the instance content first
+	// replace the instance content first (so the module indices are valid)
 	const updatedInstance = replaceTagContent(
 		doc.content,
 		result.instance.start,
@@ -100,7 +119,15 @@ export async function applyTransforms(
 	)
 
 	// then replace the module content
-	return replaceTagContent(updatedInstance, result.module.start, result.module.end, printedModule)
+	return {
+		code: replaceTagContent(
+			updatedInstance,
+			result.module.start,
+			result.module.end,
+			printedModule
+		),
+		dependencies: result.dependencies,
+	}
 }
 
 function replaceTagContent(source: string, start: number, end: number, insert: string) {

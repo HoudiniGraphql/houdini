@@ -6,6 +6,10 @@ import prettier, { Doc, FastPath } from 'prettier'
 // @ts-ignore
 import LocalFastPath from './fastPath.js'
 
+// note: this file is mostly scratch notes for a time when we might
+// want to use the prettier plugin to format the html bits of a
+// svelte document
+
 function processSvelteContent(content: string) {
 	// parse the contents
 	const parsed = svelte.parse(content)

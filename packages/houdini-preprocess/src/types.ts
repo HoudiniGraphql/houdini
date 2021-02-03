@@ -25,7 +25,7 @@ export type TaggedGraphqlQuery = {
 	processResult: (result: any) => any
 }
 
-// the result of the template tag (also what the compiler leaves behind in the artifact directory)
+// the result of the template tag
 export type GraphQLTagResult = TaggedGraphqlQuery | TaggedGraphqlFragment | TaggedGraphqlMutation
 
 export type PreProcessorConfig = {
@@ -38,4 +38,5 @@ export type TransformDocument = {
 	instance: Maybe<Script>
 	module: Maybe<Script>
 	config: PreProcessorConfig
+	dependencies: string[]
 }

@@ -40,7 +40,7 @@ describe('preprocessor can replace content', function () {
 		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
 
 		// make sure we got the result back
-		expect(result.trim()).toBe(`<script>"hello";</script>
+		expect(result.code.trim()).toBe(`<script>"hello";</script>
 		<div>
 		helllo
 		</div>`)
@@ -73,7 +73,7 @@ describe('preprocessor can replace content', function () {
 		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
 
 		// make sure we got the result back
-		expect(result.trim()).toBe(`<script context="module">"hello";</script>
+		expect(result.code.trim()).toBe(`<script context="module">"hello";</script>
 		<div>
 		helllo
 		</div>`)
@@ -103,7 +103,7 @@ describe('preprocessor can replace content', function () {
 		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
 
 		// make sure we got the result back
-		expect(result.trim()).toBe(`<script context="module" lang="ts">"hello";</script>`)
+		expect(result.code.trim()).toBe(`<script context="module" lang="ts">"hello";</script>`)
 	})
 
 	test('can modify both at the same time (module above instance)', async function () {
@@ -139,7 +139,7 @@ describe('preprocessor can replace content', function () {
 		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
 
 		// make sure we got the result back
-		expect(result.trim()).toBe(`<script context="module">"hello";</script>
+		expect(result.code.trim()).toBe(`<script context="module">"hello";</script>
 		<script>"world";</script>`)
 	})
 
@@ -174,7 +174,7 @@ describe('preprocessor can replace content', function () {
 		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
 
 		// make sure we got the result back
-		expect(result.trim()).toBe(`<script>"world";</script>
+		expect(result.code.trim()).toBe(`<script>"world";</script>
         <script context="module">"hello";</script>`)
 	})
 })
