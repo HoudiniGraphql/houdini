@@ -10,20 +10,28 @@ import { CompiledDocument } from 'houdini-compiler'
 import { TransformDocument } from '../types'
 
 type EmbeddedGraphqlDocument = {
-	parsed: graphql.DocumentNode
+	parsedDocument: graphql.DocumentNode
 	artifact: CompiledDocument
-	replaceTag: (replacement: BaseNode) => void
+}
+
+type GraphqlTagWalker = {
+	where?: (tag: graphql.DocumentNode) => boolean
+	onTag: (
+		this: {
+			skip: () => void
+			remove: () => void
+			replace: (node: BaseNode) => void
+		},
+		tag: EmbeddedGraphqlDocument
+	) => void
 }
 
 // yield the tagged graphql documents contained within the provided AST
-export default async function taggedDocuments(
+export default async function walkTaggedDocuments(
 	doc: TransformDocument,
 	parsedScript: BaseNode,
-	predicate?: (node: graphql.DocumentNode) => boolean
-): Promise<EmbeddedGraphqlDocument[]> {
-	// the list of documents we encountered
-	const docs: EmbeddedGraphqlDocument[] = []
-
+	walker: GraphqlTagWalker
+): Promise<void> {
 	// svelte walk over recast?
 	await asyncWalk(parsedScript, {
 		async enter(node, parent) {
@@ -44,7 +52,7 @@ export default async function taggedDocuments(
 				}
 
 				// if there is a predicate and the graphql tag does not satisfy it
-				if (predicate && !predicate(parsedTag)) {
+				if (walker.where && !walker.where(parsedTag)) {
 					// ignore the tag
 					return
 				}
@@ -60,11 +68,10 @@ export default async function taggedDocuments(
 					// make sure we watch the compiled fragment
 					doc.dependencies.push(documentPath)
 
-					// add the document to the list
-					docs.push({
-						parsed: parsedTag,
+					// invoker the walker's callback with the right context
+					walker.onTag.call(this, {
+						parsedDocument: parsedTag,
 						artifact: await import(documentPath),
-						replaceTag: this.replace,
 					})
 				} catch (e) {
 					throw new Error('Looks like you need to run the houdini compiler for ' + name)
@@ -72,7 +79,4 @@ export default async function taggedDocuments(
 			}
 		},
 	})
-
-	// we're done here
-	return docs
 }

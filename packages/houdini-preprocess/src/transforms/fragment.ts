@@ -3,8 +3,9 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { FragmentDocumentKind } from 'houdini-compiler'
 // locals
-import { selector, taggedDocuments } from '../utils'
+import { selector, walkTaggedDocuments } from '../utils'
 import { TransformDocument } from '../types'
+import { asyncWalk } from 'estree-walker'
 const typeBuilders = recast.types.builders
 
 // returns the expression that should replace the graphql
@@ -17,57 +18,54 @@ export default async function fragmentProcesesor(doc: TransformDocument): Promis
 		return
 	}
 
-	// look for any graphql documents in the file's script that contain fragments and no queries
-	// note: any documents that we do want to keep will be added to the list of dependencies that
-	// we watch for changes
-	const documents = await taggedDocuments(
-		doc,
-		doc.instance.content,
-		(graphqlDoc) =>
-			graphqlDoc.definitions.length === 1 &&
-			graphqlDoc.definitions[0].kind === FragmentDocumentKind
-	)
+	// go to every graphql document
+	await walkTaggedDocuments(doc, doc.instance.content, {
+		// with only one definition defining a fragment
+		// note: the tags that satisfy this predicate will be added to the watch list
+		where(tag: graphql.DocumentNode) {
+			return tag.definitions.length === 1 && tag.definitions[0].kind === FragmentDocumentKind
+		},
+		// we want to replace it with an object that the runtime can use
+		onTag({ artifact, parsedDocument }) {
+			// we know the document contains a single fragment definition
+			const parsedFragment = parsedDocument.definitions[0] as graphql.FragmentDefinitionNode
 
-	// process each tag
-	for (const { parsed, artifact, replaceTag } of documents) {
-		// we know its a fragment definition
-		const parsedFragment = parsed.definitions[0] as graphql.FragmentDefinitionNode
+			// the primary requirement for a fragment is the selector, a function that returns the requested
+			// data from the object. we're going to build this up as a function
+			// figure out the root type
+			const rootType = doc.config.schema.getType(
+				parsedFragment.typeCondition.name.value
+			) as graphql.GraphQLObjectType
+			if (!rootType) {
+				throw new Error(
+					'Could not find type definition for fragment root' +
+						parsedFragment.typeCondition.name.value
+				)
+			}
 
-		// the primary requirement for a fragment is the selector, a function that returns the requested
-		// data from the object. we're going to build this up as a function
-		// figure out the root type
-		const rootType = doc.config.schema.getType(
-			parsedFragment.typeCondition.name.value
-		) as graphql.GraphQLObjectType
-		if (!rootType) {
-			throw new Error(
-				'Could not find type definition for fragment root' +
-					parsedFragment.typeCondition.name.value
+			// figure out the root type of the fragment
+			this.replace(
+				typeBuilders.objectExpression([
+					typeBuilders.objectProperty(
+						typeBuilders.stringLiteral('name'),
+						typeBuilders.stringLiteral(artifact.name)
+					),
+					typeBuilders.objectProperty(
+						typeBuilders.stringLiteral('kind'),
+						typeBuilders.stringLiteral(artifact.kind)
+					),
+					typeBuilders.objectProperty(
+						typeBuilders.stringLiteral('selector'),
+						selector({
+							config: doc.config,
+							artifact,
+							rootIdentifier: 'obj',
+							rootType,
+							selectionSet: parsedFragment.selectionSet,
+						})
+					),
+				])
 			)
-		}
-
-		// replace the graphql tag with the object
-		replaceTag(
-			typeBuilders.objectExpression([
-				typeBuilders.objectProperty(
-					typeBuilders.stringLiteral('name'),
-					typeBuilders.stringLiteral(artifact.name)
-				),
-				typeBuilders.objectProperty(
-					typeBuilders.stringLiteral('kind'),
-					typeBuilders.stringLiteral(artifact.kind)
-				),
-				typeBuilders.objectProperty(
-					typeBuilders.stringLiteral('selector'),
-					selector({
-						config: doc.config,
-						artifact,
-						rootIdentifier: 'obj',
-						rootType,
-						selectionSet: parsedFragment.selectionSet,
-					})
-				),
-			])
-		)
-	}
+		},
+	})
 }
