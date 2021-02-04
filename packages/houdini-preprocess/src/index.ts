@@ -81,6 +81,8 @@ export async function applyTransforms(
 		}
 	}
 
+	// we know that there is a module and an instance so we printed both
+	// lets make typescript happy.
 	if (!result.module || !result.instance || !printedModule || !printedInstance) {
 		throw new Error('Would never get here.')
 	}
@@ -151,7 +153,7 @@ function replaceTagContent(source: string, start: number, end: number, insert: s
 	// {end} points to the > of the closing tag
 	let lessThanIndex = end
 	while (lessThanIndex > greaterThanIndex) {
-		// if we found the > we can stop looking
+		// if we found the < we can stop looking
 		if (source[lessThanIndex] === '<') {
 			break
 		}
