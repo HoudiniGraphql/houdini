@@ -1,5 +1,4 @@
 // externals
-import { OperationDocumentKind } from 'houdini-compiler'
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 // locals
@@ -26,7 +25,7 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 		where(graphqlDoc: graphql.DocumentNode) {
 			return (
 				graphqlDoc.definitions.length === 1 &&
-				graphqlDoc.definitions[0].kind === OperationDocumentKind &&
+				graphqlDoc.definitions[0].kind === graphql.Kind.OPERATION_DEFINITION &&
 				graphqlDoc.definitions[0].operation === 'query'
 			)
 		},

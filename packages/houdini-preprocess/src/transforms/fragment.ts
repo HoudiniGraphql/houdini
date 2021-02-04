@@ -1,11 +1,10 @@
 // externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { FragmentDocumentKind } from 'houdini-compiler'
 // locals
 import { selector, walkTaggedDocuments } from '../utils'
 import { TransformDocument } from '../types'
-import { asyncWalk } from 'estree-walker'
+
 const typeBuilders = recast.types.builders
 
 // returns the expression that should replace the graphql
@@ -23,7 +22,10 @@ export default async function fragmentProcesesor(doc: TransformDocument): Promis
 		// with only one definition defining a fragment
 		// note: the tags that satisfy this predicate will be added to the watch list
 		where(tag: graphql.DocumentNode) {
-			return tag.definitions.length === 1 && tag.definitions[0].kind === FragmentDocumentKind
+			return (
+				tag.definitions.length === 1 &&
+				tag.definitions[0].kind === graphql.Kind.FRAGMENT_DEFINITION
+			)
 		},
 		// we want to replace it with an object that the runtime can use
 		onTag({ artifact, parsedDocument, node }) {
@@ -42,7 +44,7 @@ export default async function fragmentProcesesor(doc: TransformDocument): Promis
 			}
 
 			// replace the node with an object
-			node.replace(
+			node.replaceWith(
 				typeBuilders.objectExpression([
 					typeBuilders.objectProperty(
 						typeBuilders.stringLiteral('name'),
