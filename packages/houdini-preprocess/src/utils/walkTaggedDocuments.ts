@@ -12,18 +12,16 @@ import { TransformDocument } from '../types'
 type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
 	artifact: CompiledDocument
+	tag: {
+		skip: () => void
+		remove: () => void
+		replace: (node: BaseNode) => void
+	}
 }
 
 type GraphqlTagWalker = {
 	where?: (tag: graphql.DocumentNode) => boolean
-	onTag: (
-		this: {
-			skip: () => void
-			remove: () => void
-			replace: (node: BaseNode) => void
-		},
-		tag: EmbeddedGraphqlDocument
-	) => void
+	onTag: (tag: EmbeddedGraphqlDocument) => void
 }
 
 // yield the tagged graphql documents contained within the provided AST
@@ -69,9 +67,10 @@ export default async function walkTaggedDocuments(
 					doc.dependencies.push(documentPath)
 
 					// invoker the walker's callback with the right context
-					walker.onTag.call(this, {
+					walker.onTag({
 						parsedDocument: parsedTag,
 						artifact: await import(documentPath),
+						tag: this,
 					})
 				} catch (e) {
 					throw new Error('Looks like you need to run the houdini compiler for ' + name)

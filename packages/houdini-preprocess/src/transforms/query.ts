@@ -31,12 +31,12 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 			)
 		},
 		// we want to replace it with an object that the runtime can use
-		onTag({ artifact, parsedDocument }) {
+		onTag({ artifact, parsedDocument, tag }) {
 			// figure out the root type of the fragment
 			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 
 			// replace the graphql tag with the object
-			this.replace(
+			tag.replace(
 				typeBuilders.objectExpression([
 					typeBuilders.objectProperty(
 						typeBuilders.stringLiteral('name'),
