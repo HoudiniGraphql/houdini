@@ -36,7 +36,7 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 
 			// replace the graphql node with the object
-			node.replace(
+			node.replaceWith(
 				typeBuilders.objectExpression([
 					typeBuilders.objectProperty(
 						typeBuilders.stringLiteral('name'),

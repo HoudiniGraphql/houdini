@@ -13,9 +13,8 @@ type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
 	artifact: CompiledDocument
 	node: BaseNode & {
-		skip: () => void
 		remove: () => void
-		replace: (node: BaseNode) => void
+		replaceWith: (node: BaseNode) => void
 	}
 	parent: BaseNode
 }
@@ -74,6 +73,8 @@ export default async function walkTaggedDocuments(
 						node: {
 							...node,
 							...this,
+							remove: this.remove,
+							replaceWith: this.replace,
 						},
 						parent,
 					})
