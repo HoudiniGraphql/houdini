@@ -64,7 +64,7 @@ export function getFragment<T>(fragment: GraphQLTagResult, reference: T) {
 	}
 
 	// dont be fancy yet, just pull out the fields we care about
-	return fragment.selector(reference)
+	return fragment.applyMask(reference)
 }
 
 // this template tag gets removed by the preprocessor so it should never be invoked.

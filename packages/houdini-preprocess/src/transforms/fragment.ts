@@ -30,8 +30,6 @@ export default async function fragmentProcesesor(doc: TransformDocument): Promis
 			// we know the document contains a single fragment definition
 			const parsedFragment = parsedDocument.definitions[0] as graphql.FragmentDefinitionNode
 
-			// the primary requirement for a fragment is the selector, a function that returns the requested
-			// data from the object. we're going to build this up as a function
 			// figure out the root type
 			const rootType = doc.config.schema.getType(
 				parsedFragment.typeCondition.name.value
@@ -54,8 +52,10 @@ export default async function fragmentProcesesor(doc: TransformDocument): Promis
 						typeBuilders.stringLiteral('kind'),
 						typeBuilders.stringLiteral(artifact.kind)
 					),
+					// the primary requirement for a fragment is applyMask, a function that returns the requested
+					// data from the object. we're going to build this up as a function
 					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('selector'),
+						typeBuilders.stringLiteral('applyMask'),
 						selector({
 							config: doc.config,
 							artifact,

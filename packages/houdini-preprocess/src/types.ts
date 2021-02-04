@@ -6,7 +6,7 @@ export type Maybe<T> = T | undefined
 export type TaggedGraphqlFragment = {
 	name: string
 	kind: 'FragmentDefinition'
-	selector: (root: any) => any
+	applyMask: (root: any) => any
 }
 
 // the result of tagging an operation
