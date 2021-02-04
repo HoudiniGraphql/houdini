@@ -26,7 +26,7 @@ export default async function fragmentProcesesor(doc: TransformDocument): Promis
 			return tag.definitions.length === 1 && tag.definitions[0].kind === FragmentDocumentKind
 		},
 		// we want to replace it with an object that the runtime can use
-		onTag({ artifact, parsedDocument, tag }) {
+		onTag({ artifact, parsedDocument, node }) {
 			// we know the document contains a single fragment definition
 			const parsedFragment = parsedDocument.definitions[0] as graphql.FragmentDefinitionNode
 
@@ -43,8 +43,8 @@ export default async function fragmentProcesesor(doc: TransformDocument): Promis
 				)
 			}
 
-			// replace the tag with an object
-			tag.replace(
+			// replace the node with an object
+			node.replace(
 				typeBuilders.objectExpression([
 					typeBuilders.objectProperty(
 						typeBuilders.stringLiteral('name'),
