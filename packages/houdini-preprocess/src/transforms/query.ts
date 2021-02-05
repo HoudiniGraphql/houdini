@@ -226,5 +226,5 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 }
 
 export function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
-	return 'preload'
+	return `_${operation.name?.value}`
 }
