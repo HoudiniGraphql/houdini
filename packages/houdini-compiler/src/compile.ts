@@ -10,7 +10,12 @@ import mkdirp from 'mkdirp'
 import { ExpressionKind } from 'ast-types/gen/kinds'
 import { promisify } from 'util'
 // locals
-import { HoudiniCompilerConfig, CollectedGraphQLDocument } from './types'
+import {
+	HoudiniCompilerConfig,
+	CollectedGraphQLDocument,
+	CompiledMutationKind,
+	CompiledQueryKind,
+} from './types'
 import applyTransforms from './transforms'
 
 const OperationDocumentKind = graphql.Kind.OPERATION_DEFINITION
@@ -128,7 +133,14 @@ function writeArtifacts(config: HoudiniCompilerConfig, documents: CollectedGraph
 					throw new Error('Operation documents can only have one operation')
 				}
 
-				docKind = OperationDocumentKind
+				if (
+					operations[0].kind === graphql.Kind.OPERATION_DEFINITION &&
+					operations[0].operation === 'query'
+				) {
+					docKind = CompiledQueryKind
+				} else {
+					docKind = CompiledMutationKind
+				}
 			}
 			// if there are operations in the document
 			else if (fragments.length > 0) {

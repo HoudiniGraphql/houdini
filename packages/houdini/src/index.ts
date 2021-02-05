@@ -1,10 +1,6 @@
 // externals
-import {
-	GraphQLTagResult,
-	TaggedQueryKind,
-	TaggedMutationKind,
-	TaggedFragmentKind,
-} from 'houdini-preprocess'
+import { GraphQLTagResult } from 'houdini-preprocess'
+import { CompiledQueryKind, CompiledMutationKind, CompiledFragmentKind } from 'houdini-compiler'
 import { doc } from 'prettier'
 import { readable, Readable } from 'svelte/store'
 // locals
@@ -27,7 +23,7 @@ export function query(
 	variables: { [name: string]: unknown }
 ): Readable<unknown> {
 	// make sure we got a query document
-	if (document.kind !== TaggedQueryKind) {
+	if (document.kind !== CompiledQueryKind) {
 		throw new Error('getQuery can only take query operations')
 	}
 
@@ -41,7 +37,7 @@ export function query(
 // invoked
 export function mutation(document: GraphQLTagResult) {
 	// make sure we got a query document
-	if (document.kind !== TaggedMutationKind) {
+	if (document.kind !== CompiledMutationKind) {
 		throw new Error('getQuery can only take query operations')
 	}
 	// pull the query text out of the compiled artifact
@@ -66,7 +62,7 @@ export function mutation(document: GraphQLTagResult) {
 // getFragment returns the requested data from the reference
 export function getFragment<T>(fragment: GraphQLTagResult, reference: T) {
 	// make sure we got a query document
-	if (fragment.kind !== TaggedFragmentKind) {
+	if (fragment.kind !== CompiledFragmentKind) {
 		throw new Error('getFragment can only take fragment documents')
 	}
 

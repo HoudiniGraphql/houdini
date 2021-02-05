@@ -3,7 +3,6 @@ import { Script } from 'svelte/types/compiler/interfaces'
 
 export type Maybe<T> = T | undefined
 
-export const TaggedFragmentKind = 'HoudiniFragment'
 export type TaggedGraphqlFragment = {
 	name: string
 	kind: 'HoudiniFragment'
@@ -11,7 +10,6 @@ export type TaggedGraphqlFragment = {
 }
 
 // the result of tagging an operation
-export const TaggedMutationKind = 'HoudiniMutation'
 export type TaggedGraphqlMutation = {
 	name: string
 	kind: 'HoudiniMutation'
@@ -20,7 +18,6 @@ export type TaggedGraphqlMutation = {
 }
 
 // the result of tagging an operation
-export const TaggedQueryKind = 'HoudiniQuery'
 export type TaggedGraphqlQuery = {
 	name: string
 	kind: 'HoudiniQuery'

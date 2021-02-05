@@ -71,7 +71,7 @@ describe('query preprocessor', function () {
 		// <script>
 		//     export let _TestQuery
 		//
-		//     const data = query(graphql\`${query}\`)
+		//     const data = ...
 		// </script>
 
 		const parsedQuery = graphql.parse(query)
