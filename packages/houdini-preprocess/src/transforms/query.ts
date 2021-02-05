@@ -3,7 +3,7 @@ import * as recast from 'recast'
 import * as graphql from 'graphql'
 // locals
 import { TransformDocument } from '../types'
-import { selector, walkTaggedDocuments } from '../utils'
+import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
 const typeBuilders = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
@@ -25,6 +25,12 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 		throw new Error('Could not find operation type')
 	}
 
+	// we need to keep a list of the queries that are fired in this document
+	// note: node.replace can only be called inside of the walk function
+	// so we'll have to leave a reference to what we are going to addto the
+	// script down below
+	const queries: EmbeddedGraphqlDocument[] = []
+
 	// go to every graphql document
 	await walkTaggedDocuments(doc, doc.module.content, {
 		// with only one definition defining a fragment
@@ -37,9 +43,15 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 			)
 		},
 		// we want to replace it with an object that the runtime can use
-		onTag({ artifact, parsedDocument, node }) {
+		onTag(tag: EmbeddedGraphqlDocument) {
+			// pull out what we need
+			const { artifact, parsedDocument, node } = tag
+
 			// figure out the root type of the fragment
 			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+
+			// add the document to the list
+			queries.push(tag)
 
 			// replace the graphql node with the object
 			node.replaceWith(
@@ -72,4 +84,11 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 			)
 		},
 	})
+
+	// now that we've walked over the document and collected every query doc
+	// we need to hoist the queries to a preload in the
+}
+
+export function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
+	return ''
 }
