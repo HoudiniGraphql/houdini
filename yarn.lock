@@ -4594,7 +4594,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-compiler@0.0.0, houdini-compiler@workspace:packages/houdini-compiler":
+"houdini-compiler@0.0.0, houdini-compiler@workspace:*, houdini-compiler@workspace:packages/houdini-compiler":
   version: 0.0.0-use.local
   resolution: "houdini-compiler@workspace:packages/houdini-compiler"
   dependencies:
@@ -4680,7 +4680,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@0.0.0, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@0.0.0, houdini-preprocess@workspace:*, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -4693,7 +4693,7 @@ __metadata:
     babel-jest: ^26.6.3
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
-    houdini-compiler: "workspace:packages/houdini-compiler"
+    houdini-compiler: "workspace:*"
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -4709,8 +4709,8 @@ __metadata:
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
     graphql: ^15.4.0
-    houdini-compiler: "workspace:packages/houdini-compiler"
-    houdini-preprocess: "workspace:packages/houdini-preprocess"
+    houdini-compiler: "workspace:*"
+    houdini-preprocess: "workspace:*"
   languageName: unknown
   linkType: soft
 

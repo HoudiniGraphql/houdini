@@ -8,7 +8,7 @@
 	],
 	"scripts": {
 		"tests": "jest",
-		"build": "yarn workspaces foreach --exclude example run build"
+		"build": "yarn workspaces foreach -pt --exclude example run build"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.12.10",
