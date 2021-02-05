@@ -1,13 +1,16 @@
 // locals
-import { CollectedGraphQLDocument } from '../types'
-import apply, { TransformPipelineNode } from './apply'
+import { CollectedGraphQLDocument, TransformPipeline } from '../types'
+import { applyTransforms as apply } from './apply'
 import includeFragmentDefinitions from './includeFragmentDefinitions'
 
 // the default list of transforms to apply
-const transformPipeline: TransformPipelineNode = {
+const transformPipeline: TransformPipeline<CollectedGraphQLDocument[]> = {
 	transforms: [includeFragmentDefinitions],
 }
 
-export function applyTransforms(documents: CollectedGraphQLDocument[]) {
-	return apply(documents, transformPipeline)
+export default function applyTransforms(documents: CollectedGraphQLDocument[]) {
+	return apply(transformPipeline, documents)
 }
+
+// other packages might want the transform utilities
+export * from './apply'

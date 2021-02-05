@@ -1,270 +1,180 @@
-// externals
-import * as graphql from 'graphql'
+// external imports
 import * as recast from 'recast'
-// locals
-import { FragmentDocumentKind } from 'houdini-compiler'
-import { selector } from '.'
+import * as graphql from 'graphql'
+// local imports
+import { applyTransforms } from '.'
+import * as types from './types'
 
-// declare a schema we will use
-const schema = graphql.buildSchema(`
-    type User {
-        name: String!
-        age: Int!
-        parent: User!
-        friends: [User!]!
-    }
-`)
+const typeBuilders = recast.types.builders
 
-const config = {
-	artifactDirectory: 'TODO',
-	artifactDirectoryAlias: 'TODO',
-	schema,
+const config: types.PreProcessorConfig = {
+	artifactDirectory: '',
+	artifactDirectoryAlias: '',
+	schema: graphql.buildSchema(`type Query { foo: Int! }`),
 }
 
-describe('fragment selector', function () {
-	// define the test cases
-	const table = [
-		[
-			'flat object',
-			`fragment foo on User {
-                name
-                age
-            }`,
-			`obj => {
-    return {
-        "__ref": obj.__ref,
-        "name": obj.__ref.name,
-        "age": obj.__ref.age
-    };
-}`,
-		],
-		[
-			'inline fragments',
-			`fragment foo on User {
-                name
-                ... on User {
-                    age
-                }
-            }`,
-			`obj => {
-    return {
-        "__ref": obj.__ref,
-        "name": obj.__ref.name,
-        "age": obj.__ref.age
-    };
-}`,
-		],
-		[
-			'related objects',
-			`fragment foo on User {
-                name
-                parent {
-                    name
-                    age
-                }
-            }`,
-			`obj => {
-    return {
-        "__ref": obj.__ref,
-        "name": obj.__ref.name,
+describe('preprocessor can replace content', function () {
+	test('can update instance content', async function () {
+		// the source
+		const content = `
+        <script>
 
-        "parent": {
-            "__ref": obj.__ref.parent.__ref,
-            "name": obj.__ref.parent.__ref.name,
-            "age": obj.__ref.parent.__ref.age
-        }
-    };
-}`,
-		],
-		[
-			'related lists',
-			`fragment foo on User {
-                name
-                friends {
-                    name
-                    age
-                }
-            }`,
-			`obj => {
-    return {
-        "__ref": obj.__ref,
-        "name": obj.__ref.name,
+		</script>
+		<div>
+		helllo
+		</div>
+`
 
-        "friends": obj.__ref.friends.map(obj_friends => {
-            return {
-                "__ref": obj_friends.__ref,
-                "name": obj_friends.__ref.name,
-                "age": obj_friends.__ref.age
-            };
-        })
-    };
-}`,
-		],
-		[
-			'query selector',
-			`fragment foo on User {
-                name
-                parent {
-                    name
-                    age
-                }
-                friends {
-                    name
-                    age
-                }
-            }`,
-			`obj => {
-    return {
-        "__ref": obj,
-        "name": obj.name,
+		// lets apply a simple transform that replaces the content with the literal expression 'hello'
+		const transforms = [
+			async (document: types.TransformDocument) => {
+				// @ts-ignore
+				// we're going to set the content of the instance to a literal expression
+				document.instance.content.body[0] = typeBuilders.expressionStatement(
+					typeBuilders.stringLiteral('hello')
+				)
+			},
+		]
 
-        "parent": {
-            "__ref": obj.parent,
-            "name": obj.parent.name,
-            "age": obj.parent.age
-        },
+		// apply the transforms
+		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
 
-        "friends": obj.friends.map(obj_friends => {
-            return {
-                "__ref": obj_friends,
-                "name": obj_friends.name,
-                "age": obj_friends.age
-            };
-        })
-    };
-}`,
-		],
-		[
-			'nested objects',
-			`fragment foo on User {
-                name
-                parent {
-                    name
-                    age
-                    parent {
-                        name
-                        age
-                    }
-                }
-            }`,
-			`obj => {
-    return {
-        "__ref": obj.__ref,
-        "name": obj.__ref.name,
+		// make sure we got the result back
+		expect(result.code.trim()).toBe(`<script>"hello";</script>
+		<div>
+		helllo
+		</div>`)
+	})
 
-        "parent": {
-            "__ref": obj.__ref.parent.__ref,
-            "name": obj.__ref.parent.__ref.name,
-            "age": obj.__ref.parent.__ref.age,
+	test('can update instance content', async function () {
+		// the source
+		const content = `
+        <script context="module">
 
-            "parent": {
-                "__ref": obj.__ref.parent.__ref.parent.__ref,
-                "name": obj.__ref.parent.__ref.parent.__ref.name,
-                "age": obj.__ref.parent.__ref.parent.__ref.age
-            }
-        }
-    };
-}`,
-		],
-		[
-			'nested lists',
-			`fragment foo on User {
-                name
-                friends {
-                    name
-                    age
+		</script>
+		<div>
+		helllo
+		</div>
+`
 
-                    friends {
-                        name
-                        age
-                    }
-                }
-            }`,
-			`obj => {
-    return {
-        "__ref": obj.__ref,
-        "name": obj.__ref.name,
+		// lets apply a simple transform that replaces the content with the literal expression 'hello'
+		const transforms = [
+			async (document: types.TransformDocument) => {
+				// @ts-ignore
+				// we're going to set the content of the instance to a literal expression
+				document.module.content.body.push(
+					// @ts-ignore
+					typeBuilders.expressionStatement(typeBuilders.stringLiteral('hello'))
+				)
+			},
+		]
 
-        "friends": obj.__ref.friends.map(obj_friends => {
-            return {
-                "__ref": obj_friends.__ref,
-                "name": obj_friends.__ref.name,
-                "age": obj_friends.__ref.age,
+		// apply the transforms
+		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
 
-                "friends": obj_friends.__ref.friends.map(obj_friends_friends => {
-                    return {
-                        "__ref": obj_friends_friends.__ref,
-                        "name": obj_friends_friends.__ref.name,
-                        "age": obj_friends_friends.__ref.age
-                    };
-                })
-            };
-        })
-    };
-}`,
-		],
-		[
-			'list in object',
-			`fragment foo on User {
-                name
-                parent {
-                    name
-                    age
+		// make sure we got the result back
+		expect(result.code.trim()).toBe(`<script context="module">"hello";</script>
+		<div>
+		helllo
+		</div>`)
+	})
 
-                    friends {
-                        name
-                        age
-                    }
-                }
-            }`,
-			`obj => {
-    return {
-        "__ref": obj.__ref,
-        "name": obj.__ref.name,
+	test('retains attributes', async function () {
+		// the source
+		const content = `
+        <script context="module" lang="ts">
 
-        "parent": {
-            "__ref": obj.__ref.parent.__ref,
-            "name": obj.__ref.parent.__ref.name,
-            "age": obj.__ref.parent.__ref.age,
+		</script>
+`
 
-            "friends": obj.__ref.parent.__ref.friends.map(obj_parent_friends => {
-                return {
-                    "__ref": obj_parent_friends.__ref,
-                    "name": obj_parent_friends.__ref.name,
-                    "age": obj_parent_friends.__ref.age
-                };
-            })
-        }
-    };
-}`,
-		],
-	]
+		// lets apply a simple transform that replaces the content with the literal expression 'hello'
+		const transforms = [
+			async (document: types.TransformDocument) => {
+				// @ts-ignore
+				// we're going to set the content of the instance to a literal expression
+				document.module.content.body.push(
+					// @ts-ignore
+					typeBuilders.expressionStatement(typeBuilders.stringLiteral('hello'))
+				)
+			},
+		]
 
-	for (const [title, fragment, expectedFunction] of table) {
-		// run the tests
-		test(title, function () {
-			// parse the fragment
-			const parsedFragment = graphql.parse(fragment)
-				.definitions[0] as graphql.FragmentDefinitionNode
+		// apply the transforms
+		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
 
-			// get the expected selector
-			const expected = recast.parse(expectedFunction, {
-				parser: require('recast/parsers/typescript'),
-			}).program.body[0].expression
+		// make sure we got the result back
+		expect(result.code.trim()).toBe(`<script context="module" lang="ts">"hello";</script>`)
+	})
 
-			// generate the selector
-			const result = selector({
-				config,
-				artifact: { name: 'testFragment', kind: FragmentDocumentKind, raw: fragment },
-				rootIdentifier: 'obj',
-				rootType: schema.getType('User') as graphql.GraphQLObjectType,
-				selectionSet: parsedFragment.selectionSet,
-				// don't pull the values out of the ref for the query selector test
-				pullValuesFromRef: title !== 'query selector',
-			})
+	test('can modify both at the same time (module above instance)', async function () {
+		// the source
+		const content = `
+        <script context="module">
 
-			// make sure that both print the same way
-			expect(recast.print(result).code).toBe(recast.print(expected).code)
-		})
-	}
+		</script>
+		<script>
+
+		</script>
+`
+
+		// lets apply a simple transform that replaces the content with the literal expression 'hello'
+		const transforms = [
+			async (document: types.TransformDocument) => {
+				// @ts-ignore
+				// we're going to set the content of the instance to a literal expression
+				document.module.content.body.push(
+					// @ts-ignore
+					typeBuilders.expressionStatement(typeBuilders.stringLiteral('hello'))
+				)
+				// @ts-ignore
+				// we're going to set the content of the instance to a literal expression
+				document.instance.content.body.push(
+					// @ts-ignore
+					typeBuilders.expressionStatement(typeBuilders.stringLiteral('world'))
+				)
+			},
+		]
+
+		// apply the transforms
+		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
+
+		// make sure we got the result back
+		expect(result.code.trim()).toBe(`<script context="module">"hello";</script>
+		<script>"world";</script>`)
+	})
+
+	test('can modify both at the same time (instance above module)', async function () {
+		// the source
+		const content = `<script>
+
+		</script>
+        <script context="module">
+
+		</script>`
+
+		// lets apply a simple transform that replaces the content with the literal expression 'hello'
+		const transforms = [
+			async (document: types.TransformDocument) => {
+				// @ts-ignore
+				// we're going to set the content of the instance to a literal expression
+				document.module.content.body.push(
+					// @ts-ignore
+					typeBuilders.expressionStatement(typeBuilders.stringLiteral('hello'))
+				)
+				// @ts-ignore
+				// we're going to set the content of the instance to a literal expression
+				document.instance.content.body.push(
+					// @ts-ignore
+					typeBuilders.expressionStatement(typeBuilders.stringLiteral('world'))
+				)
+			},
+		]
+
+		// apply the transforms
+		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
+
+		// make sure we got the result back
+		expect(result.code.trim()).toBe(`<script>"world";</script>
+        <script context="module">"hello";</script>`)
+	})
 })

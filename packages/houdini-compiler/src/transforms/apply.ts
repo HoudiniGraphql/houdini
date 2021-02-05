@@ -1,14 +1,9 @@
-import { CollectedGraphQLDocument, Transform } from '../types'
+// local imports
+import { TransformPipeline } from '../types'
 
-// the transforms to apply form a graph
-export type TransformPipelineNode = {
-	transforms: Transform[]
-	then?: TransformPipelineNode[]
-}
-
-export default async function applyTransforms(
-	documents: CollectedGraphQLDocument[],
-	pipeline: TransformPipelineNode
+export async function applyTransforms<_TransformType>(
+	pipeline: TransformPipeline<_TransformType>,
+	target: _TransformType
 ) {
 	// we're going to append transforms that need to be applied
 	// start with the initial set of transforms
@@ -25,7 +20,7 @@ export default async function applyTransforms(
 		}
 
 		// apply every transform in the node
-		await Promise.all(node.transforms.map((transform) => transform(documents)))
+		await Promise.all(node.transforms.map((transform) => transform(target)))
 
 		// add the node's depedents to the list
 		if (node.then) {

@@ -11,7 +11,7 @@ import { ExpressionKind } from 'ast-types/gen/kinds'
 import { promisify } from 'util'
 // locals
 import { HoudiniCompilerConfig, CollectedGraphQLDocument } from './types'
-import { applyTransforms } from './transforms'
+import applyTransforms from './transforms'
 import { FragmentDocumentKind, OperationDocumentKind } from './constants'
 
 // the compiler's job can be broken down into three different tasks:
@@ -143,7 +143,7 @@ function writeArtifacts(config: HoudiniCompilerConfig, documents: CollectedGraph
 				throw new Error('Could not figure out what kind of document we were given')
 			}
 
-			// start building up the artiface
+			// start building up the artifact
 			const artifact = AST.program([
 				moduleExport('name', AST.stringLiteral(name || 'NO_NAME')),
 				moduleExport('kind', AST.stringLiteral(docKind)),

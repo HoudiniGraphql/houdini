@@ -11,3 +11,10 @@ __sapper__/
 build
 bin
 /example/generated
+
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*

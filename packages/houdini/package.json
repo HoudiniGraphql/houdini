@@ -6,7 +6,8 @@
 		"prepare": "npm run build"
 	},
 	"devDependencies": {
-		"houdini-compiler": "0.0.0"
+		"houdini-compiler": "workspace:*",
+		"houdini-preprocess": "workspace:*"
 	},
 	"main": "build/index.js",
 	"dependencies": {
