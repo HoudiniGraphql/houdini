@@ -29,12 +29,15 @@ jobs:
                   ref: ${{ github.ref }}
 
             - name: Install dependencies
-              run: yarn
+              uses: borales/actions-yarn@v2.0.0
+              run: install
               env:
                   CI: true
 
             - name: Build packages
-              run: yarn build
+              uses: borales/actions-yarn@v2.0.0
+              run: build
 
             - name: Tests
-              run: yarn tests
+              uses: borales/actions-yarn@v2.0.0
+              run: tests

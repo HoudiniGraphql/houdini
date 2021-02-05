@@ -27,7 +27,9 @@
 		"babylon": "^7.0.0-beta.47",
 		"estree-walker": "^2.0.2",
 		"mkdirp": "^1.0.4",
+		"prettier": "*",
 		"prettier-plugin-svelte": "^2.1.1",
-		"recast": "^0.20.4"
+		"recast": "^0.20.4",
+		"svelte": "^3.17.3"
 	}
 }
