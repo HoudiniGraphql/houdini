@@ -19,9 +19,9 @@ jobs:
 
         steps:
             - name: Use Node.js 15.x
-              uses: actions/setup-node@v2
+              uses: actions/setup-node@v1
               with:
-                  node-version: '14'
+                  node-version: 15.x
 
             - name: Checkout source
               uses: actions/checkout@master
@@ -29,18 +29,12 @@ jobs:
                   ref: ${{ github.ref }}
 
             - name: Install dependencies
-              uses: borales/actions-yarn@v2.0.0
-              with:
-                  cmd: install
+              run: yarn
               env:
                   CI: true
 
             - name: Build packages
-              uses: borales/actions-yarn@v2.0.0
-              with:
-                  cmd: build
+              run: yarn build
 
             - name: Tests
-              uses: borales/actions-yarn@v2.0.0
-              with:
-                  cmd: tests
+              run: yarn tests
