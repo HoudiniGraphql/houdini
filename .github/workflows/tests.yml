@@ -30,14 +30,17 @@ jobs:
 
             - name: Install dependencies
               uses: borales/actions-yarn@v2.0.0
-              run: install
+              with:
+                  cmd: install
               env:
                   CI: true
 
             - name: Build packages
               uses: borales/actions-yarn@v2.0.0
-              run: build
+              with:
+                  cmd: build
 
             - name: Tests
               uses: borales/actions-yarn@v2.0.0
-              run: tests
+              with:
+                  cmd: tests
