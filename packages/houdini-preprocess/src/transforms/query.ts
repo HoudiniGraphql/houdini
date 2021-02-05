@@ -6,6 +6,13 @@ import { TransformDocument } from '../types'
 import { selector, walkTaggedDocuments } from '../utils'
 const typeBuilders = recast.types.builders
 
+// in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
+// stores can't be serialized in preload (understandably) so we're going to have to interact with the query document in
+// the instance script and treat the module preload as an implementation detail to get the initial value for the store
+
+// what this means in practice is that if we see a getQuery(graphql``) in the instance script of a component, we need to hoist
+// it into the module's preload, grab the result and set it as the initial value in the store.
+
 export default async function queryProcessor(doc: TransformDocument): Promise<void> {
 	// if there is no module script we don't care about the document
 	if (!doc.module) {
