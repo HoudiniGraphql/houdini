@@ -2,13 +2,11 @@
 	"name": "houdini-monorepo",
 	"workspaces": [
 		"example",
-		"packages/houdini-compiler",
-		"packages/houdini-preprocess",
-		"packages/houdini"
+		"packages/*"
 	],
 	"scripts": {
 		"tests": "jest",
-		"build": "yarn workspaces foreach -pt --exclude example run build"
+		"build": "yarn workspace houdini-compiler run build && yarn workspace houdini-preprocess run build && yarn workspace houdini run build"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.12.10",

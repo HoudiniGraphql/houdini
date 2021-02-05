@@ -7,10 +7,5 @@
 		"declarationMap": true,
 		"skipLibCheck": true,
 		"downlevelIteration": true,
-		"baseUrl": ".",
-		"paths": {
-		  "houdini-compiler": ["packages/houdini-compiler"],
-		  "houdini-preprocess": ["packages/houdini-preprocess"],
-		}
 	}
 }
