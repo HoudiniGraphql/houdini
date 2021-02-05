@@ -16,6 +16,28 @@
 		item
 	)
 
+	// create a callbacks we'll invoke to check and uncheck thie item
+	const completeItem = mutation(graphql`
+		mutation CompleteItem($id: ID!) {
+			completeItem(id: $id) {
+				item {
+					id
+					completed
+				}
+			}
+		}
+	`)
+	const uncompleteItem = mutation(graphql`
+		mutation UncompleteItem($id: ID!) {
+			uncompleteItem(id: $id) {
+				item {
+					id
+					completed
+				}
+			}
+		}
+	`)
+
 	async function handleClick(input) {
 		// the click even is triggered after the state has been updated
 

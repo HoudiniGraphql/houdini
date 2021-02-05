@@ -52,8 +52,6 @@ export async function applyTransforms(
 		? (recast.print(result.instance.content).code as string)
 		: ''
 
-	console.log({ printedInstance, printedModule })
-
 	// if there is a module and no instance
 	if (result.module && !result.instance) {
 		// just copy the module where it needs to go
