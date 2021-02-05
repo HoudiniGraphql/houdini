@@ -29,9 +29,7 @@ jobs:
                   ref: ${{ github.ref }}
 
             - name: Install dependencies
-              run: yarn
-              env:
-                  CI: true
+              run: yarn install
 
             - name: Build packages
               run: yarn build
