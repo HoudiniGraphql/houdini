@@ -1,7 +1,8 @@
 // externals
 import { Kind } from 'graphql/language'
-import { getEnvironment } from './environment'
 import { GraphQLTagResult } from 'houdini-preprocess'
+// locals
+import { getEnvironment } from './environment'
 
 export * from './environment'
 
