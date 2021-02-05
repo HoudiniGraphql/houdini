@@ -39,4 +39,5 @@ export type TransformDocument = {
 	module: Maybe<Script>
 	config: PreProcessorConfig
 	dependencies: string[]
+	filename: string
 }

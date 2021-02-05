@@ -1,4 +1,5 @@
-// externals
+// externalsr
+
 import * as svelte from 'svelte/compiler'
 import * as recast from 'recast'
 import { applyTransforms as apply, TransformPipeline } from 'houdini-compiler'
@@ -36,16 +37,16 @@ export async function applyTransforms(
 		module: parsed.module,
 		config,
 		dependencies: [],
+		filename: doc.filename,
 	}
 
 	// send the scripts through the pipeline
-	apply(pipeline, result)
+	await apply(pipeline, result)
 
 	// we need to apply the changes to the file. we'll do this by printing the mutated
 	// content as a string and then replacing everything between the appropriate
 	// script tags. the parser tells us the locations for the different tags so we
 	// just have to replace the indices it tells us to
-
 	const printedModule = result.module
 		? (recast.print(result.module.content).code as string)
 		: null

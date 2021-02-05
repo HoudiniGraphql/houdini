@@ -5,9 +5,11 @@ import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpression, Identifier } from 'estree'
 import { OperationDefinitionNode } from 'graphql/language'
 import { BaseNode } from 'estree'
+import * as recast from 'recast'
 // locals
 import { CompiledDocument } from 'houdini-compiler'
 import { TransformDocument } from '../types'
+const typeBuilders = recast.types.builders
 
 type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode

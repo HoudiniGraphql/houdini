@@ -7,8 +7,8 @@ import { selector, walkTaggedDocuments } from '../utils'
 const typeBuilders = recast.types.builders
 
 export default async function queryProcessor(doc: TransformDocument): Promise<void> {
-	// if there is no script we don't care about the document
-	if (!doc.instance) {
+	// if there is no module script we don't care about the document
+	if (!doc.module) {
 		return
 	}
 
@@ -19,7 +19,7 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 	}
 
 	// go to every graphql document
-	await walkTaggedDocuments(doc, doc.instance.content, {
+	await walkTaggedDocuments(doc, doc.module.content, {
 		// with only one definition defining a fragment
 		// note: the tags that satisfy this predicate will be added to the watch list
 		where(graphqlDoc: graphql.DocumentNode) {
