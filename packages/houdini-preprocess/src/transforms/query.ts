@@ -99,6 +99,11 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 		},
 	})
 
+	// if there are no queries dont do anything
+	if (queries.length === 0) {
+		return
+	}
+
 	// now that we've walked over the document and collected every query doc
 	// we need to hoist the queries to a preload function in the module
 
