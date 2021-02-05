@@ -6,8 +6,7 @@
 	],
 	"scripts": {
 		"tests": "jest",
-		"build-full": "yarn workspace houdini-compiler run build && yarn workspace houdini-preprocess run build && yarn workspace houdini run build",
-		"build": "yarn workspaces foreach -pt run build"
+		"build": "yarn workspace houdini-compiler run build && yarn workspace houdini-preprocess run build && yarn workspace houdini run build"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.12.10",
