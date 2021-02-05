@@ -1,5 +1,6 @@
+// external imports
+import * as graphql from 'graphql'
 // locals
-import { FragmentDocumentKind } from '../constants'
 import { transformTest } from './testUtils'
 
 const start = [
@@ -31,10 +32,12 @@ transformTest('include fragment definitions', start, function (docs) {
 
 	// make sure that there is one for each fragment
 	const fragmentADef = fooDoc.document.definitions.find(
-		(definition) => definition.kind === FragmentDocumentKind && definition.name.value === 'A'
+		(definition) =>
+			definition.kind === graphql.Kind.FRAGMENT_DEFINITION && definition.name.value === 'A'
 	)
 	const fragmentBDef = fooDoc.document.definitions.find(
-		(definition) => definition.kind === FragmentDocumentKind && definition.name.value === 'B'
+		(definition) =>
+			definition.kind === graphql.Kind.FRAGMENT_DEFINITION && definition.name.value === 'B'
 	)
 	expect(fragmentADef).toBeDefined()
 	expect(fragmentBDef).toBeDefined()

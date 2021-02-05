@@ -6,16 +6,26 @@ import {
 	TaggedFragmentKind,
 } from 'houdini-preprocess'
 import { doc } from 'prettier'
-import { readable } from 'svelte/store'
+import { readable, Readable } from 'svelte/store'
 // locals
 import { getEnvironment } from './environment'
 
 export * from './environment'
 
-export async function query(
+export function fetchQuery({
+	text,
+	variables,
+}: {
+	text: string
+	variables: { [name: string]: unknown }
+}) {
+	return getEnvironment()?.sendRequest({ text, variables })
+}
+
+export function query(
 	document: GraphQLTagResult,
 	variables: { [name: string]: unknown }
-): Promise<unknown> {
+): Readable<unknown> {
 	// make sure we got a query document
 	if (document.kind !== TaggedQueryKind) {
 		throw new Error('getQuery can only take query operations')

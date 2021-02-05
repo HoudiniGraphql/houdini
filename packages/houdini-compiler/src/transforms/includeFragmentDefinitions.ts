@@ -1,6 +1,5 @@
 // externals
 import graphql, { visit as walkGraphQL, Kind as GraphqlKinds } from 'graphql'
-import { FragmentDocumentKind, OperationDocumentKind } from '../constants'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 
@@ -17,8 +16,8 @@ export default async function includeFragmentDefinitions(
 		const requiredFragments = document.definitions.flatMap((definition) => {
 			// if we are looking at an operation or fragment definition
 			if (
-				definition.kind === OperationDocumentKind ||
-				definition.kind === FragmentDocumentKind
+				definition.kind === GraphqlKinds.OPERATION_DEFINITION ||
+				definition.kind === GraphqlKinds.FRAGMENT_DEFINITION
 			) {
 				return findRequiredFragments(definition.selectionSet)
 			}
@@ -48,7 +47,11 @@ export default async function includeFragmentDefinitions(
 			enter: {
 				[GraphqlKinds.DOCUMENT](node) {
 					// if there are operations in this document
-					if (node.definitions.find(({ kind }) => kind === OperationDocumentKind)) {
+					if (
+						node.definitions.find(
+							({ kind }) => kind === GraphqlKinds.OPERATION_DEFINITION
+						)
+					) {
 						// we need to add every necessary fragment definition
 						return {
 							...node,
