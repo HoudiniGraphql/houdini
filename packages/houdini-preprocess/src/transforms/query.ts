@@ -196,7 +196,7 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 			returnStatementIndex,
 			0,
 			// @ts-ignore
-			typeBuilders.variableDeclaration('const', [
+			typeBuilders.variableDeclaration('let', [
 				typeBuilders.variableDeclarator(
 					typeBuilders.identifier(preloadKey),
 					typeBuilders.awaitExpression(
