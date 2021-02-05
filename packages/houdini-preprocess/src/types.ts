@@ -3,26 +3,30 @@ import { Script } from 'svelte/types/compiler/interfaces'
 
 export type Maybe<T> = T | undefined
 
+export const TaggedFragmentKind = 'HoudiniFragment'
 export type TaggedGraphqlFragment = {
 	name: string
-	kind: 'FragmentDefinition'
+	kind: 'HoudiniFragment'
 	applyMask: (root: any) => any
 }
 
 // the result of tagging an operation
+export const TaggedMutationKind = 'HoudiniMutation'
 export type TaggedGraphqlMutation = {
 	name: string
-	kind: 'OperationDefinition'
+	kind: 'HoudiniMutation'
 	raw: string
 	processResult: (result: any) => any
 }
 
 // the result of tagging an operation
+export const TaggedQueryKind = 'HoudiniQuery'
 export type TaggedGraphqlQuery = {
 	name: string
-	kind: 'OperationDefinition'
+	kind: 'HoudiniQuery'
 	raw: string
 	processResult: (result: any) => any
+	initialValue: any
 }
 
 // the result of the template tag

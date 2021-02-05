@@ -12,7 +12,9 @@ import { promisify } from 'util'
 // locals
 import { HoudiniCompilerConfig, CollectedGraphQLDocument } from './types'
 import applyTransforms from './transforms'
-import { FragmentDocumentKind, OperationDocumentKind } from './constants'
+
+const OperationDocumentKind = graphql.Kind.OPERATION_DEFINITION
+const FragmentDocumentKind = graphql.Kind.FRAGMENT_DEFINITION
 
 // the compiler's job can be broken down into three different tasks:
 // - collect all of the graphql documents defined in the project

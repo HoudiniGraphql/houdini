@@ -75,6 +75,14 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 						typeBuilders.stringLiteral(artifact.raw)
 					),
 					typeBuilders.objectProperty(
+						typeBuilders.stringLiteral('initialValue'),
+						typeBuilders.identifier(
+							preloadPayloadKey(
+								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+							)
+						)
+					),
+					typeBuilders.objectProperty(
 						typeBuilders.stringLiteral('processResult'),
 						selector({
 							config: doc.config,
@@ -196,7 +204,7 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 			returnStatementIndex,
 			0,
 			// @ts-ignore
-			typeBuilders.variableDeclaration('let', [
+			typeBuilders.variableDeclaration('const', [
 				typeBuilders.variableDeclarator(
 					typeBuilders.identifier(preloadKey),
 					typeBuilders.awaitExpression(
