@@ -1,6 +1,12 @@
 // externals
 import * as recast from 'recast'
 import * as graphql from 'graphql'
+import {
+	ExportNamedDeclaration,
+	FunctionDeclaration,
+	ReturnStatement,
+	ImportDeclaration,
+} from 'estree'
 // locals
 import { TransformDocument } from '../types'
 import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
@@ -15,7 +21,7 @@ const typeBuilders = recast.types.builders
 
 export default async function queryProcessor(doc: TransformDocument): Promise<void> {
 	// if there is no module script we don't care about the document
-	if (!doc.module) {
+	if (!doc.instance) {
 		return
 	}
 
@@ -32,7 +38,7 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 	const queries: EmbeddedGraphqlDocument[] = []
 
 	// go to every graphql document
-	await walkTaggedDocuments(doc, doc.module.content, {
+	await walkTaggedDocuments(doc, doc.instance.content, {
 		// with only one definition defining a fragment
 		// note: the tags that satisfy this predicate will be added to the watch list
 		where(graphqlDoc: graphql.DocumentNode) {
@@ -86,9 +92,139 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 	})
 
 	// now that we've walked over the document and collected every query doc
-	// we need to hoist the queries to a preload in the
+	// we need to hoist the queries to a preload function in the module
+
+	// make sure there is a module script
+	if (!doc.module) {
+		doc.module = {
+			type: 'Script',
+			start: 0,
+			end: 0,
+			context: '',
+			content: {
+				type: 'Program',
+				sourceType: 'script',
+				body: [],
+				comments: [],
+			},
+		}
+	}
+
+	// look for a preload definition
+	let preloadDefinition = doc.module.content.body.find(
+		(expression) =>
+			expression.type === 'ExportNamedDeclaration' &&
+			expression.declaration?.type === 'FunctionDeclaration' &&
+			expression.declaration?.id?.name === 'preload'
+	) as ExportNamedDeclaration
+	// if there isn't one, add something that can take it place.
+	// in this context, that means that there would be a return at the end of an object
+	if (!preloadDefinition) {
+		const preloadFn = typeBuilders.functionDeclaration(
+			typeBuilders.identifier('preload'),
+			[],
+			// return an object
+			typeBuilders.blockStatement([
+				typeBuilders.returnStatement(typeBuilders.objectExpression([])),
+			])
+		)
+		// mark the function as async
+		preloadFn.async = true
+
+		// hold onto this new declaration
+		preloadDefinition = typeBuilders.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration
+
+		// add it to the module
+		doc.module.content.body.push(preloadDefinition)
+	}
+	const preloadFn = preloadDefinition.declaration as FunctionDeclaration
+
+	/// add the import if its not there
+	let importStatement = doc.module.content.body.find(
+		(statement) =>
+			statement.type === 'ImportDeclaration' &&
+			statement.source.value === 'houdini' &&
+			statement.specifiers.find(
+				(importSpecifier) =>
+					importSpecifier.type === 'ImportSpecifier' &&
+					importSpecifier.imported.name === 'fetchQuery' &&
+					importSpecifier.local.name === 'fetchQuery'
+			)
+	) as ImportDeclaration
+	// add the import if it doesn't exist, add it
+	if (!importStatement) {
+		doc.module.content.body.unshift({
+			type: 'ImportDeclaration',
+			// @ts-ignore
+			source: typeBuilders.literal('houdini'),
+			specifiers: [
+				// @ts-ignore
+				typeBuilders.importSpecifier(
+					typeBuilders.identifier('fetchQuery'),
+					typeBuilders.identifier('fetchQuery')
+				),
+			],
+		})
+	}
+
+	/// add the preloaded payload to the return statement
+
+	// find the return statement in the preload function
+	const returnStatementIndex = preloadFn.body.body.findIndex(
+		({ type }) => type === 'ReturnStatement'
+	)
+	const returnStatement = preloadFn.body.body[returnStatementIndex] as ReturnStatement
+	// if we couldn't find the return statement we need to yell
+	if (
+		!returnStatement ||
+		!returnStatement.argument ||
+		returnStatement.argument.type !== 'ObjectExpression'
+	) {
+		throw new Error('Could not find return statement to hoist query into')
+	}
+	const returnedValue = returnStatement.argument
+
+	// every query document we ran into creates a local variable as well as a new key in the returned value
+	for (const document of queries) {
+		// figure out the local variable that holds the result
+		const preloadKey = preloadPayloadKey(
+			document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+		)
+
+		// add a local variable right before the return statement
+		preloadFn.body.body.splice(
+			returnStatementIndex,
+			0,
+			// @ts-ignore
+			typeBuilders.variableDeclaration('const', [
+				typeBuilders.variableDeclarator(
+					typeBuilders.identifier(preloadKey),
+					typeBuilders.awaitExpression(
+						typeBuilders.callExpression(typeBuilders.identifier('fetchQuery'), [
+							typeBuilders.objectExpression([
+								typeBuilders.objectProperty(
+									typeBuilders.literal('text'),
+									typeBuilders.stringLiteral(document.artifact.raw)
+								),
+							]),
+						])
+					)
+				),
+				,
+			])
+		)
+
+		// add the field to the return value of preload
+		returnedValue.properties.push(
+			// @ts-ignore
+			typeBuilders.objectProperty(
+				typeBuilders.identifier(preloadKey),
+				typeBuilders.identifier(preloadKey)
+			)
+		)
+	}
 }
 
 export function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
-	return ''
+	return 'preload'
 }

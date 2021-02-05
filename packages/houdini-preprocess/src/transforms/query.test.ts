@@ -5,13 +5,14 @@ import * as graphql from 'graphql'
 import { OperationDocumentKind } from 'houdini-compiler'
 import * as recast from 'recast'
 import {
-	FunctionDeclaration,
 	ReturnStatement,
 	ObjectExpression,
 	Identifier,
 	VariableDeclaration,
 	AwaitExpression,
 	CallExpression,
+	FunctionDeclaration,
+	ExportNamedDeclaration,
 } from 'estree'
 // local imports
 import queryProcessor, { preloadPayloadKey } from './query'
@@ -137,16 +138,20 @@ describe('query preprocessor', function () {
 		expect(doc.module).toBeTruthy()
 
 		// there should be an exported function called "preload"
-		const preloadFn = doc.module.content.body.find(
+		const preloadFnExport = doc.module.content.body.find(
 			(expression) =>
 				expression.type === 'ExportNamedDeclaration' &&
 				expression.declaration.type == 'FunctionDeclaration' &&
 				expression.declaration.id.name === 'preload'
-		) as FunctionDeclaration
+		) as ExportNamedDeclaration
 
 		// sanity checks
-		expect(preloadFn).toBeTruthy()
-		expect(preloadFn.async).toBeTruthy()
+		expect(
+			preloadFnExport &&
+				preloadFnExport.declaration.type === 'FunctionDeclaration' &&
+				preloadFnExport.declaration.async
+		).toBeTruthy()
+		const preloadFn = preloadFnExport.declaration as FunctionDeclaration
 
 		// pull out the function body
 		const functionBody = preloadFn.body
@@ -159,7 +164,7 @@ describe('query preprocessor', function () {
 		/// verify the import
 
 		// look for the import
-		const importStatement = doc.module.content.body.filter(
+		const importStatement = doc.module.content.body.find(
 			(statement) =>
 				statement.type === 'ImportDeclaration' &&
 				statement.source.value === 'houdini' &&
@@ -173,7 +178,7 @@ describe('query preprocessor', function () {
 		expect(importStatement).toBeTruthy()
 
 		/// look for the declaration of the local variaable
-		const localDeclaration = doc.module.content.body.find(
+		const localDeclaration = preloadFn.body.body.find(
 			(statement) =>
 				statement.type === 'VariableDeclaration' &&
 				statement.declarations[0].id.type === 'Identifier' &&
@@ -211,16 +216,19 @@ describe('query preprocessor', function () {
 		/// verify the return statement of the function
 
 		// the final thing in the function body should be a return statement
-		const returnStatement = functionBody[functionBody.body.length - 1] as ReturnStatement
+		const returnStatement = functionBody.body.find(
+			({ type }) => type === 'ReturnStatement'
+		) as ReturnStatement
+		expect(returnStatement).toBeTruthy()
 		expect(returnStatement.type).toEqual('ReturnStatement')
 		// there should be one argument returned
 		const returnedObj = returnStatement.argument as ObjectExpression
 		expect(returnedObj).toBeTruthy()
 
 		// one of the keys in the response should contain the initial data for the query
-		const queryPreloadProperty = returnedObj.properties.find(
-			(prop) => prop.key.type === 'Literal' && prop.key.value === preloadKey
-		)
+		const queryPreloadProperty = returnedObj.properties.find((prop) => {
+			return prop.key.type === 'Identifier' && prop.key.name === preloadKey
+		})
 		// make sure that it exists
 		expect(queryPreloadProperty).toBeTruthy()
 		// the value of the key should be an identifier of the same variable
