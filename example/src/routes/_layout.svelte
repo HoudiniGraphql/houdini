@@ -36,9 +36,9 @@
 			<slot />
 		</ul>
 	</section>
-	{#if numberOfItems > 0}
+	{#if $numberOfItems > 0}
 		<footer class="footer">
-			<span class="todo-count"><strong>{itemsLeft}</strong> item left</span>
+			<span class="todo-count"><strong>{$itemsLeft}</strong> item left</span>
 			<ul class="filters">
 				<li>
 					<a class="selected" href="/">All</a>
@@ -50,7 +50,7 @@
 					<a href="/completed">Completed</a>
 				</li>
 			</ul>
-			{#if hasCompleted}
+			{#if $hasCompleted}
 				<button class="clear-completed">Clear completed</button>
 			{/if}
 		</footer>
