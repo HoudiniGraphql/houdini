@@ -1,4 +1,4 @@
-import graphql from 'graphql'
+
 import { Script } from 'svelte/types/compiler/interfaces'
 import { Config } from 'houdini-common'
 

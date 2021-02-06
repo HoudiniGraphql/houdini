@@ -1,7 +1,6 @@
 // externals
 import { Config } from 'houdini-common'
 import * as graphql from 'graphql'
-import path from 'path'
 import { CompiledQueryKind, CompiledFragmentKind, CompiledMutationKind } from '../types'
 import * as recast from 'recast'
 import { ExpressionKind } from 'ast-types/gen/kinds'

@@ -1,6 +1,5 @@
 // external imports
 import * as recast from 'recast'
-import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
 // local imports
 import { applyTransforms } from '.'

@@ -1,15 +1,12 @@
 // externals
-import path from 'path'
 import * as graphql from 'graphql'
 import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpression, Identifier } from 'estree'
 import { OperationDefinitionNode } from 'graphql/language'
 import { BaseNode } from 'estree'
-import * as recast from 'recast'
-// locals
 import { CompiledDocument } from 'houdini-compiler'
+// locals
 import { TransformDocument } from '../types'
-const typeBuilders = recast.types.builders
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
@@ -60,6 +57,9 @@ export default async function walkTaggedDocuments(
 				// pull out the name of the thing
 				const operation = parsedTag.definitions[0] as OperationDefinitionNode
 				const name = operation.name?.value
+				if (!name) {
+					throw new Error('Could not find operation name')
+				}
 
 				try {
 					// the location for the document artifact
