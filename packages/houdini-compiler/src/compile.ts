@@ -10,9 +10,17 @@ import mkdirp from 'mkdirp'
 import { ExpressionKind } from 'ast-types/gen/kinds'
 import { promisify } from 'util'
 // locals
-import { HoudiniCompilerConfig, CollectedGraphQLDocument } from './types'
+import {
+	HoudiniCompilerConfig,
+	CollectedGraphQLDocument,
+	CompiledMutationKind,
+	CompiledQueryKind,
+	CompiledFragmentKind,
+} from './types'
 import applyTransforms from './transforms'
-import { FragmentDocumentKind, OperationDocumentKind } from './constants'
+
+const OperationDocumentKind = graphql.Kind.OPERATION_DEFINITION
+const FragmentDocumentKind = graphql.Kind.FRAGMENT_DEFINITION
 
 // the compiler's job can be broken down into three different tasks:
 // - collect all of the graphql documents defined in the project
@@ -126,7 +134,14 @@ function writeArtifacts(config: HoudiniCompilerConfig, documents: CollectedGraph
 					throw new Error('Operation documents can only have one operation')
 				}
 
-				docKind = OperationDocumentKind
+				if (
+					operations[0].kind === graphql.Kind.OPERATION_DEFINITION &&
+					operations[0].operation === 'query'
+				) {
+					docKind = CompiledQueryKind
+				} else {
+					docKind = CompiledMutationKind
+				}
 			}
 			// if there are operations in the document
 			else if (fragments.length > 0) {
@@ -135,7 +150,7 @@ function writeArtifacts(config: HoudiniCompilerConfig, documents: CollectedGraph
 					throw new Error('Fsragment documents can only have one fragment')
 				}
 
-				docKind = FragmentDocumentKind
+				docKind = CompiledFragmentKind
 			}
 
 			// if we couldn't figure out the kind

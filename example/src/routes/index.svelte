@@ -1,26 +1,18 @@
-<script context="module">
-	import { query, graphql } from 'houdini'
-
-	export async function preload() {
-		const data = await query(graphql`
-			query AllItems {
-				items {
-					...ItemEntry_item
-					completed
-				}
-			}
-		`)
-
-		return { data }
-	}
-</script>
-
 <script>
+	import { query, graphql } from 'houdini'
 	import ItemEntry from '../components/ItemEntry.svelte'
 
-	export let data
+	// load the items
+	const data = query(graphql`
+		query AllItems {
+			items {
+				...ItemEntry_item
+				completed
+			}
+		}
+	`)
 </script>
 
-{#each data.items as item}
+{#each $data.items as item}
 	<ItemEntry {item} />
 {/each}

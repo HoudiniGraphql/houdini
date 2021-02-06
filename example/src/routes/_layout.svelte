@@ -1,28 +1,23 @@
-<script context="module">
+<script>
 	import { query, graphql } from 'houdini'
 
-	export async function preload() {
-		// load some data at the top of the app for general information
-		const data = await query(graphql`
-			query IndexInfo {
-				items {
-					completed
-				}
-			}
-		`)
+	// load some data at the top of the app for general information
+	// const data = query(graphql`
+	// 	query IndexInfo {
+	// 		items {
+	// 			completed
+	// 		}
+	// 	}
+	// `)
 
-		return {
-			numberOfItems: data.items.length,
-			itemsLeft: data.items.filter((item) => !item.completed).length,
-			hasCompleted: Boolean(data.items.find((item) => item.completed)),
-		}
-	}
-</script>
+	// $: numberOfItems = data.items.length
+	// $: itemsLeft = data.items.filter((item) => !item.completed).length
+	// $: hasCompleted = Boolean(data.items.find((item) => item.completed))
 
-<script>
-	export let itemsLeft
-	export let hasCompleted
-	export let numberOfItems
+	// we're not ready for reactive data yet
+	const numberOfItems = 0
+	const itemsLeft = 0
+	const hasCompleted = false
 </script>
 
 <svelte:head>

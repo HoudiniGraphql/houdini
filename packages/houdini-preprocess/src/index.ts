@@ -47,18 +47,17 @@ export async function applyTransforms(
 	// content as a string and then replacing everything between the appropriate
 	// script tags. the parser tells us the locations for the different tags so we
 	// just have to replace the indices it tells us to
-	const printedModule = result.module
-		? (recast.print(result.module.content).code as string)
-		: null
+	const printedModule = result.module ? (recast.print(result.module.content).code as string) : ''
 	const printedInstance = result.instance
 		? (recast.print(result.instance.content).code as string)
-		: null
+		: ''
 
 	// if there is a module and no instance
-	if (result.module && !result.instance && printedModule) {
+	if (result.module && !result.instance) {
 		// just copy the module where it needs to go
 		return {
 			code: replaceTagContent(
+				'module',
 				doc.content,
 				result.module.start,
 				result.module.end,
@@ -69,10 +68,11 @@ export async function applyTransforms(
 	}
 
 	// if there is an instance and no module
-	if (result.instance && !result.module && printedInstance) {
+	if (result.instance && !result.module) {
 		// just copy the instance where it needs to go
 		return {
 			code: replaceTagContent(
+				'instance',
 				doc.content,
 				result.instance.start,
 				result.instance.end,
@@ -84,7 +84,7 @@ export async function applyTransforms(
 
 	// we know that there is a module and an instance so we printed both
 	// lets make typescript happy.
-	if (!result.module || !result.instance || !printedModule || !printedInstance) {
+	if (!result.module || !result.instance) {
 		throw new Error('Would never get here.')
 	}
 
@@ -92,9 +92,10 @@ export async function applyTransforms(
 	// one first so that the first's indices stay valid after we change content
 
 	// if the module is lower than the instance
-	if (result.module.start > result.instance.start) {
+	if (result.module.end > result.instance.end) {
 		// replace the module content first
 		const updatedModule = replaceTagContent(
+			'module',
 			doc.content,
 			result.module.start,
 			result.module.end,
@@ -103,6 +104,7 @@ export async function applyTransforms(
 
 		return {
 			code: replaceTagContent(
+				'instance',
 				updatedModule,
 				result.instance.start,
 				result.instance.end,
@@ -115,6 +117,7 @@ export async function applyTransforms(
 
 	// replace the instance content first (so the module indices are valid)
 	const updatedInstance = replaceTagContent(
+		'instance',
 		doc.content,
 		result.instance.start,
 		result.instance.end,
@@ -124,6 +127,7 @@ export async function applyTransforms(
 	// then replace the module content
 	return {
 		code: replaceTagContent(
+			'module',
 			updatedInstance,
 			result.module.start,
 			result.module.end,
@@ -133,7 +137,22 @@ export async function applyTransforms(
 	}
 }
 
-function replaceTagContent(source: string, start: number, end: number, insert: string) {
+function replaceTagContent(
+	context: 'module' | 'instance',
+	source: string,
+	start: number,
+	end: number,
+	insert: string
+) {
+	// if we're supposed to insert the tag
+	if (start === 0 && end === 0) {
+		// make sure to define the right context
+		const attrs = context === 'module' ? ' context="module"' : ''
+
+		// just add the script at the start
+		return `<script${attrs}>${insert}</script>${source}`
+	}
+
 	// {start} points to the < of the opening tag, we want to find the >
 	let greaterThanIndex = start
 	// keep looking until the end

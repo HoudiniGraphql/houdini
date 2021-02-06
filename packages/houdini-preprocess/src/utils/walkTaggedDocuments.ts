@@ -11,7 +11,7 @@ import { CompiledDocument } from 'houdini-compiler'
 import { TransformDocument } from '../types'
 const typeBuilders = recast.types.builders
 
-type EmbeddedGraphqlDocument = {
+export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
 	artifact: CompiledDocument
 	node: BaseNode & {

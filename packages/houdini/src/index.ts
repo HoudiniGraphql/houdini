@@ -1,41 +1,41 @@
 // externals
-import { Kind } from 'graphql/language'
 import { GraphQLTagResult } from 'houdini-preprocess'
+import { CompiledQueryKind, CompiledMutationKind, CompiledFragmentKind } from 'houdini-compiler'
+import { doc } from 'prettier'
+import { readable, Readable } from 'svelte/store'
 // locals
 import { getEnvironment } from './environment'
 
 export * from './environment'
 
-export async function query(
+export function fetchQuery({
+	text,
+	variables,
+}: {
+	text: string
+	variables: { [name: string]: unknown }
+}) {
+	return getEnvironment()?.sendRequest({ text, variables })
+}
+
+export function query(
 	document: GraphQLTagResult,
 	variables: { [name: string]: unknown }
-): Promise<unknown> {
+): Readable<unknown> {
 	// make sure we got a query document
-	if (document.kind !== Kind.OPERATION_DEFINITION) {
+	if (document.kind !== CompiledQueryKind) {
 		throw new Error('getQuery can only take query operations')
 	}
 
-	// pull the query text out of the compiled artifact
-	const { raw: text } = document
-
-	// if there is no environment configured
-	const currentEnv = getEnvironment()
-	if (!currentEnv) {
-		throw new Error('Please provide an environment')
-	}
-
-	// grab the response from the server
-	const { data } = await currentEnv.sendRequest({ text, variables })
-
 	// wrap the result in a store we can use to keep this query up to date
-	return document.processResult(data)
+	return readable(document.processResult(document.initialValue.data), (set) => {})
 }
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
 export function mutation(document: GraphQLTagResult) {
 	// make sure we got a query document
-	if (document.kind !== Kind.OPERATION_DEFINITION) {
+	if (document.kind !== CompiledMutationKind) {
 		throw new Error('getQuery can only take query operations')
 	}
 	// pull the query text out of the compiled artifact
@@ -60,7 +60,7 @@ export function mutation(document: GraphQLTagResult) {
 // getFragment returns the requested data from the reference
 export function getFragment<T>(fragment: GraphQLTagResult, reference: T) {
 	// make sure we got a query document
-	if (fragment.kind !== Kind.FRAGMENT_DEFINITION) {
+	if (fragment.kind !== CompiledFragmentKind) {
 		throw new Error('getFragment can only take fragment documents')
 	}
 

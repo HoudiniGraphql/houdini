@@ -6,18 +6,26 @@ type BaseCompiledDocument = {
 	raw: string
 }
 
+export const CompiledFragmentKind = 'HoudiniFragment'
+export const CompiledMutationKind = 'HoudiniMutation'
+export const CompiledQueryKind = 'HoudiniQuery'
+
 // the information that the compiler leaves behind after processing an operation
-export type CompiledGraphqlOperation = BaseCompiledDocument & {
-	kind: import('graphql/language').OperationDefinitionNode['kind']
+export type CompiledGraphqlQuery = BaseCompiledDocument & {
+	kind: 'HoudiniQuery'
+}
+
+export type CompiledGraphqlMutation = BaseCompiledDocument & {
+	kind: 'HoudiniMutation'
 }
 
 // the information that the compiler leaves behind after processing a fragment
 export type CompiledGraphqlFragment = BaseCompiledDocument & {
-	kind: import('graphql/language').FragmentDefinitionNode['kind']
+	kind: 'HoudiniFragment'
 }
 
 // any compiled result
-export type CompiledDocument = CompiledGraphqlFragment | CompiledGraphqlOperation
+export type CompiledDocument = CompiledGraphqlFragment | CompiledGraphqlQuery
 
 export type HoudiniCompilerConfig = {
 	artifactDirectory: string

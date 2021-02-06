@@ -5,14 +5,14 @@ export type Maybe<T> = T | undefined
 
 export type TaggedGraphqlFragment = {
 	name: string
-	kind: 'FragmentDefinition'
+	kind: 'HoudiniFragment'
 	applyMask: (root: any) => any
 }
 
 // the result of tagging an operation
 export type TaggedGraphqlMutation = {
 	name: string
-	kind: 'OperationDefinition'
+	kind: 'HoudiniMutation'
 	raw: string
 	processResult: (result: any) => any
 }
@@ -20,9 +20,10 @@ export type TaggedGraphqlMutation = {
 // the result of tagging an operation
 export type TaggedGraphqlQuery = {
 	name: string
-	kind: 'OperationDefinition'
+	kind: 'HoudiniQuery'
 	raw: string
 	processResult: (result: any) => any
+	initialValue: any
 }
 
 // the result of the template tag
