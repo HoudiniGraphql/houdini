@@ -1,10 +1,12 @@
 // externals
 import graphql, { visit as walkGraphQL, Kind as GraphqlKinds } from 'graphql'
+import { Config } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 
 // includeFragmentDefinitions adds any referenced fragments to operations
 export default async function includeFragmentDefinitions(
+	config: Config,
 	documents: CollectedGraphQLDocument[]
 ): Promise<void> {
 	// fragments can depend on each other so we need to first find the dependency graph of fragments

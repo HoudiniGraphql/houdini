@@ -23,7 +23,7 @@ export type EmbeddedGraphqlDocument = {
 
 type GraphqlTagWalker = {
 	where?: (tag: graphql.DocumentNode) => boolean
-	onTag: (tag: EmbeddedGraphqlDocument) => void
+	onTag: (tag: EmbeddedGraphqlDocument) => void | Promise<void>
 }
 
 // yield the tagged graphql documents contained within the provided AST
@@ -69,7 +69,7 @@ export default async function walkTaggedDocuments(
 					doc.dependencies.push(documentPath)
 
 					// invoker the walker's callback with the right context
-					walker.onTag({
+					await walker.onTag({
 						parsedDocument: parsedTag,
 						artifact: await import(documentPath),
 						node: {

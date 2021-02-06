@@ -18,9 +18,7 @@ import {
 	CompiledFragmentKind,
 } from './types'
 import applyTransforms from './transforms'
-
-const OperationDocumentKind = graphql.Kind.OPERATION_DEFINITION
-const FragmentDocumentKind = graphql.Kind.FRAGMENT_DEFINITION
+import runGenerators from './generators'
 
 // the compiler's job can be broken down into three different tasks:
 // - collect all of the graphql documents defined in the project
@@ -35,10 +33,10 @@ export default async function compile(config: Config) {
 
 	// now that we have the list of documents, we need to pass them through our transforms
 	// to optimize their content, validate their structure, and add anything else we need behind the scenes
-	await applyTransforms(documents)
+	await applyTransforms(config, documents)
 
 	// write the artifacts
-	await writeArtifacts(config, documents)
+	await runGenerators(config, documents)
 }
 
 async function collectDocuments(): Promise<CollectedGraphQLDocument[]> {
@@ -121,11 +119,11 @@ function writeArtifacts(config: Config, documents: CollectedGraphQLDocument[]) {
 
 			// look for the operation
 			const operations = document.definitions.filter(
-				({ kind }) => kind === OperationDocumentKind
+				({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
 			)
 			// there are no operations, so its a fragment
 			const fragments = document.definitions.filter(
-				({ kind }) => kind === FragmentDocumentKind
+				({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
 			)
 			// if there are operations in the document
 			if (operations.length > 0) {

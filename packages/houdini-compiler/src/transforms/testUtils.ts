@@ -1,5 +1,6 @@
 // externals
 import * as graphql from 'graphql'
+import { Config } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 import applyTransforms from '.'
@@ -28,7 +29,13 @@ export function transformTest(
 			})
 
 			// apply the transforms
-			await applyTransforms(docs)
+			await applyTransforms(
+				new Config({
+					artifactDirectory: '',
+					schema: `type Query { version: Int!}`,
+				}),
+				docs
+			)
 
 			// run the rest of the test
 			testBody(docs)
