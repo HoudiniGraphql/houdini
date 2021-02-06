@@ -19,9 +19,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			// build up the query string
 			const rawString = graphql.print(document)
 
-			// the location we will put the operation artifact
-			const targetLocation = path.join(config.artifactDirectory, `${name}.js`)
-
 			// figure out the document kind
 			let docKind = ''
 
@@ -77,16 +74,14 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				),
 			])
 
-			// write the result
-			await fs.writeFile(targetLocation, recast.print(artifact).code)
+			// write the result to the artifact path we're configured to write to
+			await fs.writeFile(config.artifactPath(name), recast.print(artifact).code)
 
 			// log the file location to confirm
 			console.log(name)
 		})
 	)
 }
-
-function writeArtifacts(config: Config, documents: CollectedGraphQLDocument[]) {}
 
 function moduleExport(key: string, value: ExpressionKind) {
 	return AST.expressionStatement(

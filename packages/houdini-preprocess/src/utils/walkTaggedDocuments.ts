@@ -63,7 +63,7 @@ export default async function walkTaggedDocuments(
 
 				try {
 					// the location for the document artifact
-					const documentPath = path.join(doc.config.artifactDirectory, `${name}.js`)
+					const documentPath = doc.config.artifactPath(name)
 
 					// make sure we watch the compiled fragment
 					doc.dependencies.push(documentPath)

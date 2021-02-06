@@ -31,6 +31,10 @@ export class Config {
 		// hold onto the artifact directory
 		this.artifactDirectory = artifactDirectory
 	}
+
+	artifactPath(name: string): string {
+		return path.join(this.artifactDirectory, `${name}.js`)
+	}
 }
 
 // a place to store the current configuration
