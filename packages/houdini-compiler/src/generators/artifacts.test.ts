@@ -6,7 +6,12 @@ import * as graphql from 'graphql'
 import fs from 'fs/promises'
 // local imports
 import runGenerators from '.'
-import { CollectedGraphQLDocument, CompiledQueryKind, CompiledFragmentKind } from '../types'
+import {
+	CollectedGraphQLDocument,
+	CompiledQueryKind,
+	CompiledFragmentKind,
+	CompiledDocument,
+} from '../types'
 
 // the config to use in tests
 const config = testConfig({
@@ -52,20 +57,27 @@ test('generates an artifact for every document', async function () {
 	expect(files).toEqual(expect.arrayContaining(['TestQuery.js', 'TestFragment.js']))
 })
 
-test('adds kind and name', async function () {
+test('adds kind, name, and raw', async function () {
 	// execute the generator
 	await runGenerators(config, docs)
 
 	// look at the files in the artifact directory
 	for (const fileName of await fs.readdir(config.artifactDirectory)) {
 		// import the artifact
-		const artifact = await import(path.join(config.artifactDirectory, fileName))
+		const artifact = (await require(path.join(
+			config.artifactDirectory,
+			fileName
+		))) as CompiledDocument
 
 		// if we are looking at the query
 		if (artifact.name === 'TestQuery') {
 			expect(artifact.kind).toEqual(CompiledQueryKind)
+			expect(artifact.raw).toEqual(graphql.print(graphql.parse(`{ query { version } }`)))
 		} else if (artifact.name === 'TestFragment') {
 			expect(artifact.kind).toEqual(CompiledFragmentKind)
+			expect(artifact.raw).toEqual(
+				graphql.print(graphql.parse(`fragment Foo on User { version }`))
+			)
 		}
 	}
 })
