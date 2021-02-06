@@ -3,18 +3,11 @@ import glob from 'glob'
 import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
-import path from 'path'
-import * as recast from 'recast'
 import mkdirp from 'mkdirp'
 import { promisify } from 'util'
 import { Config } from 'houdini-common'
 // locals
-import {
-	CollectedGraphQLDocument,
-	CompiledMutationKind,
-	CompiledQueryKind,
-	CompiledFragmentKind,
-} from './types'
+import { CollectedGraphQLDocument } from './types'
 import applyTransforms from './transforms'
 import runGenerators from './generators'
 
