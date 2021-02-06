@@ -4,16 +4,17 @@ import path from 'path'
 
 // the values we can take in from the config file
 export type ConfigFile = {
-	artifactDirectory: string
+	runtimeDirectory: string
+	sourceGlob: string
 	schemaPath?: string
 	schema?: string
 }
 
 export class Config {
-	artifactDirectory: string
+	runtimeDirectory: string
 	schema: graphql.GraphQLSchema
 
-	constructor({ artifactDirectory, schema, schemaPath }: ConfigFile) {
+	constructor({ runtimeDirectory, schema, schemaPath }: ConfigFile) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
 			throw new Error('Please provide one of schema or schema path')
@@ -29,11 +30,11 @@ export class Config {
 		}
 
 		// hold onto the artifact directory
-		this.artifactDirectory = artifactDirectory
+		this.runtimeDirectory = runtimeDirectory
 	}
 
 	artifactPath(name: string): string {
-		return path.join(this.artifactDirectory, `${name}.js`)
+		return path.join(this.runtimeDirectory, `${name}.js`)
 	}
 }
 

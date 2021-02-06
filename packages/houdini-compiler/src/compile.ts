@@ -32,7 +32,7 @@ export default async function compile(config: Config) {
 
 async function collectDocuments(): Promise<CollectedGraphQLDocument[]> {
 	// the first step we have to do is grab a list of every file in the source tree
-	const sourceFiles = await promisify(glob)('src/{routes,components}/*.svelte')
+	const sourceFiles = await promisify(glob)(config.sourceGlob)
 
 	// the list of documents we found
 	const documents: CollectedGraphQLDocument[] = []
