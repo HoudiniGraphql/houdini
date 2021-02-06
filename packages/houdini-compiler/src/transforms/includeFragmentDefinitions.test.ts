@@ -2,6 +2,7 @@
 import * as graphql from 'graphql'
 // locals
 import { transformTest } from './testUtils'
+import { CollectedGraphQLDocument } from '../types'
 
 const start = [
 	`
@@ -25,7 +26,7 @@ const start = [
 
 transformTest('include fragment definitions', start, function (docs) {
 	// we only care about the Foo document
-	const fooDoc = docs.find((doc) => doc.name === 'Foo')
+	const fooDoc = docs.find((doc) => doc.name === 'Foo') as CollectedGraphQLDocument
 
 	// make sure there are at least three definitions
 	expect(fooDoc.document.definitions).toHaveLength(3)
