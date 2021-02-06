@@ -73,7 +73,9 @@ test('adds kind, name, and raw', async function () {
 		if (artifact.name === 'TestQuery') {
 			expect(artifact.kind).toEqual(CompiledQueryKind)
 			expect(artifact.raw).toEqual(graphql.print(graphql.parse(`{ query { version } }`)))
-		} else if (artifact.name === 'TestFragment') {
+		}
+		// otherwise we are looking at the fragment definition
+		else if (artifact.name === 'TestFragment') {
 			expect(artifact.kind).toEqual(CompiledFragmentKind)
 			expect(artifact.raw).toEqual(
 				graphql.print(graphql.parse(`fragment Foo on User { version }`))
