@@ -12,6 +12,7 @@ import {
 	AwaitExpression,
 	CallExpression,
 	FunctionDeclaration,
+	Property,
 	ExportNamedDeclaration,
 } from 'estree'
 // local imports
@@ -105,7 +106,7 @@ describe('query preprocessor', function () {
 					artifact: {
 						name: 'TestQuery',
 						raw: query,
-						kind: OperationDocumentKind,
+						kind: 'HoudiniQuery',
 					},
 					node: {
 						...templateNode,
@@ -141,14 +142,14 @@ describe('query preprocessor', function () {
 		const preloadFnExport = doc.module.content.body.find(
 			(expression) =>
 				expression.type === 'ExportNamedDeclaration' &&
-				expression.declaration.type == 'FunctionDeclaration' &&
-				expression.declaration.id.name === 'preload'
+				expression.declaration?.type == 'FunctionDeclaration' &&
+				expression.declaration.id?.name === 'preload'
 		) as ExportNamedDeclaration
 
 		// sanity checks
 		expect(
 			preloadFnExport &&
-				preloadFnExport.declaration.type === 'FunctionDeclaration' &&
+				preloadFnExport.declaration?.type === 'FunctionDeclaration' &&
 				preloadFnExport.declaration.async
 		).toBeTruthy()
 		const preloadFn = preloadFnExport.declaration as FunctionDeclaration
@@ -178,17 +179,17 @@ describe('query preprocessor', function () {
 		expect(importStatement).toBeTruthy()
 
 		/// look for the declaration of the local variaable
-		const localDeclaration = preloadFn.body.body.find(
+		const preloadLocalVariable = preloadFn.body.body.find(
 			(statement) =>
 				statement.type === 'VariableDeclaration' &&
 				statement.declarations[0].id.type === 'Identifier' &&
 				statement.declarations[0].id.name === preloadKey
 		) as VariableDeclaration
-		expect(localDeclaration).toBeTruthy()
-		expect(localDeclaration.declarations[0].init.type === 'AwaitExpression')
+		expect(preloadLocalVariable).toBeTruthy()
+		expect(preloadLocalVariable.declarations[0].init?.type === 'AwaitExpression')
 
 		// make sure we are awaiting something
-		const declarationResult = localDeclaration.declarations[0].init as AwaitExpression
+		const declarationResult = preloadLocalVariable.declarations[0].init as AwaitExpression
 		// we should be await fetchQuery
 		expect(declarationResult.argument.type).toEqual('CallExpression')
 
@@ -228,11 +229,28 @@ describe('query preprocessor', function () {
 		// one of the keys in the response should contain the initial data for the query
 		const queryPreloadProperty = returnedObj.properties.find((prop) => {
 			return prop.key.type === 'Identifier' && prop.key.name === preloadKey
-		})
+		}) as Property
 		// make sure that it exists
 		expect(queryPreloadProperty).toBeTruthy()
 		// the value of the key should be an identifier of the same variable
 		expect(queryPreloadProperty.value.type).toEqual('Identifier')
 		expect((queryPreloadProperty.value as Identifier).name).toEqual(preloadKey)
+
+		// look for the variable exported in the instance
+		expect(doc.instance).toBeTruthy()
+
+		// look for an exported variable with the right name
+		const componentProp = doc.instance.content.body.find(
+			(expression) =>
+				expression.type === 'ExportNamedDeclaration' &&
+				expression.declaration?.type === 'VariableDeclaration' &&
+				expression.declaration?.kind === 'let' &&
+				expression.declaration.declarations.length === 1 &&
+				expression.declaration.declarations[0].id.type === 'Identifier' &&
+				expression.declaration.declarations[0].id.name === preloadKey
+		)
+
+		// make sure its there
+		expect(componentProp).toBeTruthy()
 	})
 })
