@@ -74,7 +74,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			])
 
 			// write the result to the artifact path we're configured to write to
-			await fs.writeFile(config.artifactPath(name), recast.print(artifact).code)
+			await fs.writeFile(config.artifactPath(document), recast.print(artifact).code)
 
 			// log the file location to confirm
 			if (!config.quiet) {

@@ -43,13 +43,41 @@ export class Config {
 		return path.join(this.runtimeDirectory, 'artifacts')
 	}
 
-	// the location for an
-	artifactPath(name: string): string {
-		return path.join(this.artifactDirectory, `${name}.js`)
+	// the location of the artifact generated corresponding to the provided documents
+	artifactPath(document: graphql.DocumentNode): string {
+		// if there is an operation in the document
+		const operation = document.definitions.find(
+			({ kind }) => graphql.Kind.OPERATION_DEFINITION
+		) as graphql.OperationDefinitionNode
+		if (operation) {
+			// if the operation does not have a name
+			if (!operation.name) {
+				// we can't give them a file
+				throw new Error('encountered operation with no name: ' + graphql.print(document))
+			}
+
+			// use the operation name for the artifact
+			return path.join(this.artifactDirectory, `${operation.name.value}.js`)
+		}
+
+		// look for a fragment definition
+		const fragmentDefinitions = document.definitions.filter(
+			({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
+		) as graphql.FragmentDefinitionNode[]
+		if (fragmentDefinitions.length) {
+			// join all of the fragment definitions into one
+			const fragmentNames = fragmentDefinitions.map((fragment) => fragment.name).join('_')
+
+			// use the operation name for the artifact
+			return path.join(this.artifactDirectory, `${fragmentNames}.js`)
+		}
+
+		// we don't know how to generate a name for this document
+		throw new Error('Could not generate artifact name for document: ' + graphql.print(document))
 	}
 }
 
-export function testConfig(config: {}) {
+export function testConfig(config: {} = {}) {
 	return new Config({
 		runtimeDirectory: path.resolve(process.cwd(), 'generated'),
 		sourceGlob: '123',
