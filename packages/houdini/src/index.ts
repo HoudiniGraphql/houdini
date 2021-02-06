@@ -1,7 +1,6 @@
 // externals
 import { GraphQLTagResult } from 'houdini-preprocess'
 import { CompiledQueryKind, CompiledMutationKind, CompiledFragmentKind } from 'houdini-compiler'
-import { doc } from 'prettier'
 import { readable, Readable } from 'svelte/store'
 // locals
 import { getEnvironment } from './environment'

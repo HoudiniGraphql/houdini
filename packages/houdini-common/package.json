@@ -1,0 +1,14 @@
+{
+	"name": "houdini-common",
+	"version": "0.0.0",
+	"description": "",
+	"main": "build/index.js",
+	"scripts": {
+		"build": "tsc",
+		"prepare": "npm run build"
+	},
+	"bin": "build/main.js",
+	"keywords": [],
+	"author": "",
+	"license": "ISC"
+}

@@ -2,7 +2,7 @@
 
 import * as svelte from 'svelte/compiler'
 import * as recast from 'recast'
-import { applyTransforms as apply, TransformPipeline } from 'houdini-compiler'
+import { applyTransforms as apply, TransformPipeline, Config } from 'houdini-common'
 // locals
 import { defaultTransforms } from './transforms'
 import * as types from './types'
@@ -11,7 +11,7 @@ import * as types from './types'
 export * from './types'
 
 // the main entry point for the preprocessor
-export default function houdiniPreprocessor(config: types.PreProcessorConfig) {
+export default function houdiniPreprocessor(config: Config) {
 	return {
 		async markup({ content, filename }: { content: string; filename: string }) {
 			return await applyTransforms(config, { content, filename })
@@ -20,7 +20,7 @@ export default function houdiniPreprocessor(config: types.PreProcessorConfig) {
 }
 
 export async function applyTransforms(
-	config: types.PreProcessorConfig,
+	config: Config,
 	doc: { content: string; filename: string },
 	pipeline: TransformPipeline<types.TransformDocument> = defaultTransforms
 ): Promise<{ code: string; dependencies: string[] }> {

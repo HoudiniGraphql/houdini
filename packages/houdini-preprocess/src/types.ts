@@ -1,5 +1,6 @@
 import graphql from 'graphql'
 import { Script } from 'svelte/types/compiler/interfaces'
+import { Config } from 'houdini-common'
 
 export type Maybe<T> = T | undefined
 
@@ -29,16 +30,10 @@ export type TaggedGraphqlQuery = {
 // the result of the template tag
 export type GraphQLTagResult = TaggedGraphqlQuery | TaggedGraphqlFragment | TaggedGraphqlMutation
 
-export type PreProcessorConfig = {
-	artifactDirectory: string
-	artifactDirectoryAlias: string
-	schema: graphql.GraphQLSchema
-}
-
 export type TransformDocument = {
 	instance: Maybe<Script>
 	module: Maybe<Script>
-	config: PreProcessorConfig
+	config: Config
 	dependencies: string[]
 	filename: string
 }

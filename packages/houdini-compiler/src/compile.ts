@@ -9,9 +9,9 @@ const AST = recast.types.builders
 import mkdirp from 'mkdirp'
 import { ExpressionKind } from 'ast-types/gen/kinds'
 import { promisify } from 'util'
+import { Config } from 'houdini-common'
 // locals
 import {
-	HoudiniCompilerConfig,
 	CollectedGraphQLDocument,
 	CompiledMutationKind,
 	CompiledQueryKind,
@@ -26,7 +26,7 @@ const FragmentDocumentKind = graphql.Kind.FRAGMENT_DEFINITION
 // - collect all of the graphql documents defined in the project
 // - perform a series of transformations on those documents
 // - write the corresponding artifacts to disk
-export default async function compile(config: HoudiniCompilerConfig) {
+export default async function compile(config: Config) {
 	// make sure the artifact directory exists
 	await mkdirp(config.artifactDirectory)
 
@@ -107,7 +107,7 @@ async function collectDocuments(): Promise<CollectedGraphQLDocument[]> {
 	// return the list we built up
 	return documents
 }
-function writeArtifacts(config: HoudiniCompilerConfig, documents: CollectedGraphQLDocument[]) {
+function writeArtifacts(config: Config, documents: CollectedGraphQLDocument[]) {
 	return Promise.all(
 		documents.map(async ({ document, name }) => {
 			// build up the query string
