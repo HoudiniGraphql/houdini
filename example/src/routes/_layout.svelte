@@ -1,23 +1,19 @@
 <script>
 	import { query, graphql } from 'houdini'
+	import { derived } from 'svelte/store'
 
 	// load some data at the top of the app for general information
-	// const data = query(graphql`
-	// 	query IndexInfo {
-	// 		items {
-	// 			completed
-	// 		}
-	// 	}
-	// `)
+	const data = query(graphql`
+		query IndexInfo {
+			items {
+				completed
+			}
+		}
+	`)
 
-	// $: numberOfItems = data.items.length
-	// $: itemsLeft = data.items.filter((item) => !item.completed).length
-	// $: hasCompleted = Boolean(data.items.find((item) => item.completed))
-
-	// we're not ready for reactive data yet
-	const numberOfItems = 0
-	const itemsLeft = 0
-	const hasCompleted = false
+	const numberOfItems = derived(data, $data => $data.items.length)
+	const itemsLeft = derived(data, $data => $data.items.filter((item) => !item.completed).length)
+	const hasCompleted = derived(data, $data => Boolean($data.items.find((item) => item.completed)))
 </script>
 
 <svelte:head>
