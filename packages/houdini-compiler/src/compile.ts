@@ -15,6 +15,7 @@ import {
 	CollectedGraphQLDocument,
 	CompiledMutationKind,
 	CompiledQueryKind,
+	CompiledFragmentKind,
 } from './types'
 import applyTransforms from './transforms'
 
@@ -149,7 +150,7 @@ function writeArtifacts(config: HoudiniCompilerConfig, documents: CollectedGraph
 					throw new Error('Fsragment documents can only have one fragment')
 				}
 
-				docKind = FragmentDocumentKind
+				docKind = CompiledFragmentKind
 			}
 
 			// if we couldn't figure out the kind

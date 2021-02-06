@@ -197,11 +197,31 @@ export default async function queryProcessor(doc: TransformDocument): Promise<vo
 	}
 	const returnedValue = returnStatement.argument
 
-	// every query document we ran into creates a local variable as well as a new key in the returned value
+	// add props to the component for every query while we're here
+
+	// find the first non import statement
+	const propInsertIndex = doc.instance.content.body.findIndex(
+		(expression) => expression.type !== 'ImportDeclaration'
+	)
+
+	// every query document we ran into creates a local variable as well as a new key in the returned value of
+	// the preload function as well as a prop declaration in the instance script
 	for (const document of queries) {
 		// figure out the local variable that holds the result
 		const preloadKey = preloadPayloadKey(
 			document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+		)
+
+		// add a prop declaration
+		doc.instance.content.body.splice(
+			propInsertIndex,
+			0,
+			// @ts-ignore
+			typeBuilders.exportNamedDeclaration(
+				typeBuilders.variableDeclaration('let', [
+					typeBuilders.variableDeclarator(typeBuilders.identifier(preloadKey)),
+				])
+			)
 		)
 
 		// add a local variable right before the return statement

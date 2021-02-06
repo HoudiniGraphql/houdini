@@ -28,9 +28,7 @@ export function query(
 	}
 
 	// wrap the result in a store we can use to keep this query up to date
-	return readable(document.processResult(document.initialValue), (set) => {
-		console.log('setting store')
-	})
+	return readable(document.processResult(document.initialValue.data), (set) => {})
 }
 
 // mutation returns a handler that will send the mutation to the server when
