@@ -1,17 +1,17 @@
 // external imports
 import * as recast from 'recast'
 import * as graphql from 'graphql'
+import { Config } from 'houdini-common'
 // local imports
 import { applyTransforms } from '.'
 import * as types from './types'
 
 const typeBuilders = recast.types.builders
 
-const config: types.PreProcessorConfig = {
+const config: Config = new Config({
 	artifactDirectory: '',
-	artifactDirectoryAlias: '',
-	schema: graphql.buildSchema(`type Query { foo: Int! }`),
-}
+	schema: `type Query { foo: Int! }`,
+})
 
 describe('preprocessor can replace content', function () {
 	test('update instance content', async function () {
@@ -27,7 +27,7 @@ describe('preprocessor can replace content', function () {
 
 		// lets apply a simple transform that replaces the content with the literal expression 'hello'
 		const transforms = [
-			async (document: types.TransformDocument) => {
+			async (config: Config, document: types.TransformDocument) => {
 				// @ts-ignore
 				// we're going to set the content of the instance to a literal expression
 				document.instance.content.body[0] = typeBuilders.expressionStatement(
@@ -59,7 +59,7 @@ describe('preprocessor can replace content', function () {
 
 		// lets apply a simple transform that replaces the content with the literal expression 'hello'
 		const transforms = [
-			async (document: types.TransformDocument) => {
+			async (config: Config, document: types.TransformDocument) => {
 				// @ts-ignore
 				// we're going to set the content of the instance to a literal expression
 				document.module.content.body.push(
@@ -89,7 +89,7 @@ describe('preprocessor can replace content', function () {
 
 		// lets apply a simple transform that replaces the content with the literal expression 'hello'
 		const transforms = [
-			async (document: types.TransformDocument) => {
+			async (config: Config, document: types.TransformDocument) => {
 				// @ts-ignore
 				// we're going to set the content of the instance to a literal expression
 				document.module.content.body.push(
@@ -119,7 +119,7 @@ describe('preprocessor can replace content', function () {
 
 		// lets apply a simple transform that replaces the content with the literal expression 'hello'
 		const transforms = [
-			async (document: types.TransformDocument) => {
+			async (config: Config, document: types.TransformDocument) => {
 				// @ts-ignore
 				// we're going to set the content of the instance to a literal expression
 				document.module.content.body.push(
@@ -154,7 +154,7 @@ describe('preprocessor can replace content', function () {
 
 		// lets apply a simple transform that replaces the content with the literal expression 'hello'
 		const transforms = [
-			async (document: types.TransformDocument) => {
+			async (config: Config, document: types.TransformDocument) => {
 				// @ts-ignore
 				// we're going to set the content of the instance to a literal expression
 				document.module.content.body.push(
@@ -190,7 +190,7 @@ describe('preprocessor can replace content', function () {
 
 		// lets apply a simple transform that replaces the content with the literal expression 'hello'
 		const transforms = [
-			async (document: types.TransformDocument) => {
+			async (config: Config, document: types.TransformDocument) => {
 				// @ts-ignore
 				// we're going to set the content of the instance to a literal expression
 				document.module = {
@@ -230,7 +230,7 @@ describe('preprocessor can replace content', function () {
 
 		// lets apply a simple transform that replaces the content with the literal expression 'hello'
 		const transforms = [
-			async (document: types.TransformDocument) => {
+			async (config: Config, document: types.TransformDocument) => {
 				// @ts-ignore
 				// we're going to set the content of the instance to a literal expression
 				document.instance = {

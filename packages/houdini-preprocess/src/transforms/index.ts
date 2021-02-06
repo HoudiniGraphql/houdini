@@ -1,5 +1,5 @@
 // external imports
-import { TransformPipeline } from 'houdini-compiler'
+import { TransformPipeline } from 'houdini-common'
 
 // local imports
 import fragmentProcessor from './fragment'

@@ -7,6 +7,7 @@ import {
 	ReturnStatement,
 	ImportDeclaration,
 } from 'estree'
+import { Config } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
 import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
@@ -19,7 +20,10 @@ const typeBuilders = recast.types.builders
 // what this means in practice is that if we see a getQuery(graphql``) in the instance script of a component, we need to hoist
 // it into the module's preload, grab the result and set it as the initial value in the store.
 
-export default async function queryProcessor(doc: TransformDocument): Promise<void> {
+export default async function queryProcessor(
+	config: Config,
+	doc: TransformDocument
+): Promise<void> {
 	// if there is no module script we don't care about the document
 	if (!doc.instance) {
 		return

@@ -2,7 +2,6 @@
 import * as svelte from 'svelte/compiler'
 import { Program } from 'estree'
 import * as graphql from 'graphql'
-import { OperationDocumentKind } from 'houdini-compiler'
 import * as recast from 'recast'
 import {
 	ReturnStatement,
@@ -133,7 +132,7 @@ describe('query preprocessor', function () {
 		}
 
 		// run the source through the processor
-		await queryProcessor(doc)
+		await queryProcessor({}, doc)
 
 		// make sure we added a module script
 		expect(doc.module).toBeTruthy()

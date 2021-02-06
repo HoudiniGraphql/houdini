@@ -1,12 +1,16 @@
 // externals
 import * as recast from 'recast'
 import * as graphql from 'graphql'
+import { Config } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
 import { selector, walkTaggedDocuments } from '../utils'
 const typeBuilders = recast.types.builders
 
-export default async function mutationProcessor(doc: TransformDocument): Promise<void> {
+export default async function mutationProcessor(
+	config: Config,
+	doc: TransformDocument
+): Promise<void> {
 	// if there is no script we don't care about the document
 	if (!doc.instance) {
 		return

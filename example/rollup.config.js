@@ -11,8 +11,6 @@ import typescript from '@rollup/plugin-typescript'
 import alias from '@rollup/plugin-alias'
 import config from 'sapper/config/rollup.js'
 import pkg from './package.json'
-import fs from 'fs'
-import graphql from 'graphql'
 import houdini from 'houdini-preprocess'
 
 const mode = process.env.NODE_ENV
@@ -25,13 +23,6 @@ const onwarn = (warning, onwarn) =>
 	warning.code === 'THIS_IS_UNDEFINED' ||
 	onwarn(warning)
 
-const houdiniConfig = {
-	artifactDirectory: path.join(__dirname, 'generated'),
-	schema: graphql.buildClientSchema(
-		JSON.parse(fs.readFileSync('./schema/introspection.json', 'utf-8'))
-	),
-}
-
 export default {
 	client: {
 		input: config.client.input().replace(/\.js$/, '.ts'),
@@ -42,7 +33,7 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 			}),
 			svelte({
-				preprocess: [houdini(houdiniConfig), sveltePreprocess()],
+				preprocess: [houdini(), sveltePreprocess()],
 				compilerOptions: {
 					dev,
 					hydratable: true,
@@ -115,7 +106,7 @@ export default {
 				'process.env.NODE_ENV': JSON.stringify(mode),
 			}),
 			svelte({
-				preprocess: [sveltePreprocess(), houdini(houdiniConfig)],
+				preprocess: [sveltePreprocess(), houdini()],
 				compilerOptions: {
 					dev,
 					generate: 'ssr',

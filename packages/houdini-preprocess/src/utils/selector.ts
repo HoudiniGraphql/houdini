@@ -2,8 +2,8 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { CompiledDocument } from 'houdini-compiler'
+import { Config } from 'houdini-common'
 // locals
-import { PreProcessorConfig } from '..'
 import memberExpression from './memberExpression'
 
 const typeBuilders = recast.types.builders
@@ -11,7 +11,7 @@ type Property = recast.types.namedTypes.ObjectProperty
 type ArrowFunctionExpression = recast.types.namedTypes.ArrowFunctionExpression
 
 type SelectorProps = {
-	config: PreProcessorConfig
+	config: Config
 	artifact: CompiledDocument
 	rootIdentifier: string
 	rootType: graphql.GraphQLObjectType

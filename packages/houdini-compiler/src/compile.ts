@@ -3,30 +3,19 @@ import glob from 'glob'
 import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
-import path from 'path'
-import * as recast from 'recast'
-const AST = recast.types.builders
 import mkdirp from 'mkdirp'
-import { ExpressionKind } from 'ast-types/gen/kinds'
 import { promisify } from 'util'
+import { Config } from 'houdini-common'
 // locals
-import {
-	HoudiniCompilerConfig,
-	CollectedGraphQLDocument,
-	CompiledMutationKind,
-	CompiledQueryKind,
-	CompiledFragmentKind,
-} from './types'
+import { CollectedGraphQLDocument } from './types'
 import applyTransforms from './transforms'
-
-const OperationDocumentKind = graphql.Kind.OPERATION_DEFINITION
-const FragmentDocumentKind = graphql.Kind.FRAGMENT_DEFINITION
+import runGenerators from './generators'
 
 // the compiler's job can be broken down into three different tasks:
 // - collect all of the graphql documents defined in the project
 // - perform a series of transformations on those documents
 // - write the corresponding artifacts to disk
-export default async function compile(config: HoudiniCompilerConfig) {
+export default async function compile(config: Config) {
 	// make sure the artifact directory exists
 	await mkdirp(config.artifactDirectory)
 
@@ -35,10 +24,10 @@ export default async function compile(config: HoudiniCompilerConfig) {
 
 	// now that we have the list of documents, we need to pass them through our transforms
 	// to optimize their content, validate their structure, and add anything else we need behind the scenes
-	await applyTransforms(documents)
+	await applyTransforms(config, documents)
 
 	// write the artifacts
-	await writeArtifacts(config, documents)
+	await runGenerators(config, documents)
 }
 
 async function collectDocuments(): Promise<CollectedGraphQLDocument[]> {
@@ -106,89 +95,4 @@ async function collectDocuments(): Promise<CollectedGraphQLDocument[]> {
 
 	// return the list we built up
 	return documents
-}
-function writeArtifacts(config: HoudiniCompilerConfig, documents: CollectedGraphQLDocument[]) {
-	return Promise.all(
-		documents.map(async ({ document, name }) => {
-			// build up the query string
-			const rawString = graphql.print(document)
-
-			// the location we will put the operation artifact
-			const targetLocation = path.join(config.artifactDirectory, `${name}.js`)
-
-			// figure out the document kind
-			let docKind = ''
-
-			// look for the operation
-			const operations = document.definitions.filter(
-				({ kind }) => kind === OperationDocumentKind
-			)
-			// there are no operations, so its a fragment
-			const fragments = document.definitions.filter(
-				({ kind }) => kind === FragmentDocumentKind
-			)
-			// if there are operations in the document
-			if (operations.length > 0) {
-				// if there is more than one operation, throw an error
-				if (operations.length > 1) {
-					throw new Error('Operation documents can only have one operation')
-				}
-
-				if (
-					operations[0].kind === graphql.Kind.OPERATION_DEFINITION &&
-					operations[0].operation === 'query'
-				) {
-					docKind = CompiledQueryKind
-				} else {
-					docKind = CompiledMutationKind
-				}
-			}
-			// if there are operations in the document
-			else if (fragments.length > 0) {
-				// if there is more than one operation, throw an error
-				if (fragments.length > 1) {
-					throw new Error('Fsragment documents can only have one fragment')
-				}
-
-				docKind = CompiledFragmentKind
-			}
-
-			// if we couldn't figure out the kind
-			if (!docKind) {
-				throw new Error('Could not figure out what kind of document we were given')
-			}
-
-			// start building up the artifact
-			const artifact = AST.program([
-				moduleExport('name', AST.stringLiteral(name || 'NO_NAME')),
-				moduleExport('kind', AST.stringLiteral(docKind)),
-				moduleExport(
-					'raw',
-					AST.templateLiteral(
-						[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
-						[]
-					)
-				),
-			])
-
-			// write the result
-			await fs.writeFile(targetLocation, recast.print(artifact).code)
-
-			// log the file location to confirm
-			console.log(name)
-		})
-	)
-}
-
-function moduleExport(key: string, value: ExpressionKind) {
-	return AST.expressionStatement(
-		AST.assignmentExpression(
-			'=',
-			AST.memberExpression(
-				AST.memberExpression(AST.identifier('module'), AST.identifier('exports')),
-				AST.identifier(key)
-			),
-			value
-		)
-	)
 }

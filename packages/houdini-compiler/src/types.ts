@@ -27,21 +27,8 @@ export type CompiledGraphqlFragment = BaseCompiledDocument & {
 // any compiled result
 export type CompiledDocument = CompiledGraphqlFragment | CompiledGraphqlQuery
 
-export type HoudiniCompilerConfig = {
-	artifactDirectory: string
-}
-
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {
 	name: string
 	document: graphql.DocumentNode
-}
-// transforms are functions that takes the collected documents. some will mutate
-// the document definition, some check the definition for errors (undefined fields, etc)
-export type Transform<_TransformType> = (documents: _TransformType) => Promise<void>
-
-// the transforms to apply form a graph
-export type TransformPipeline<_TransformType> = {
-	transforms: Transform<_TransformType>[]
-	then?: TransformPipeline<_TransformType>[]
 }

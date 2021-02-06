@@ -1,6 +1,7 @@
 // externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
+import { Config } from 'houdini-common'
 // locals
 import { selector, walkTaggedDocuments } from '../utils'
 import { TransformDocument } from '../types'
@@ -8,7 +9,10 @@ import { TransformDocument } from '../types'
 const typeBuilders = recast.types.builders
 
 // returns the expression that should replace the graphql
-export default async function fragmentProcesesor(doc: TransformDocument): Promise<void> {
+export default async function fragmentProcesesor(
+	config: Config,
+	doc: TransformDocument
+): Promise<void> {
 	// we need to find any graphql documents in the instance script containing fragments
 	// and replace them with an object expression that has the keys that the runtime expects
 
@@ -28,7 +32,7 @@ export default async function fragmentProcesesor(doc: TransformDocument): Promis
 			)
 		},
 		// we want to replace it with an object that the runtime can use
-		onTag({ artifact, parsedDocument, node }) {
+		async onTag({ artifact, parsedDocument, node }) {
 			// we know the document contains a single fragment definition
 			const parsedFragment = parsedDocument.definitions[0] as graphql.FragmentDefinitionNode
 
