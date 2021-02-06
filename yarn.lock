@@ -2081,6 +2081,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/mock-fs@npm:^4.13.0":
+  version: 4.13.0
+  resolution: "@types/mock-fs@npm:4.13.0"
+  dependencies:
+    "@types/node": "*"
+  checksum: 183b3e10bf3317b86a0889adbbefa34f9ac6b8c1a96dda3950b28530970cb3a1c3353fe101f39c74e0058665e97cb0aad51a12bb73d08ddab2eebb1796329bef
+  languageName: node
+  linkType: hard
+
 "@types/node-fetch@npm:2.5.7":
   version: 2.5.7
   resolution: "@types/node-fetch@npm:2.5.7"
@@ -4612,6 +4621,7 @@ __metadata:
     "@types/glob": ^7.1.3
     "@types/jest": ^26.0.20
     "@types/mkdirp": ^1.0.1
+    "@types/mock-fs": ^4.13.0
     babel-jest: ^26.6.3
     babylon: ^7.0.0-beta.47
     commander: ^7.0.0
@@ -4619,6 +4629,7 @@ __metadata:
     houdini-common: "workspace:*"
     jest: ^26.6.3
     mkdirp: ^1.0.4
+    mock-fs: ^4.13.0
     recast: ^0.20.4
     typescript: ^4.0.0
   bin:
@@ -6209,6 +6220,13 @@ __metadata:
   bin:
     mkdirp: bin/cmd.js
   checksum: 1aa3a6a2d7514f094a91329ec09994f5d32d2955a4985ecbb3d86f2aaeafc4aa11521f98d606144c1d49cd9835004d9a73342709b8c692c92e59eacf37412468
+  languageName: node
+  linkType: hard
+
+"mock-fs@npm:^4.13.0":
+  version: 4.13.0
+  resolution: "mock-fs@npm:4.13.0"
+  checksum: cfb2134de7dfa53ebbbbacdd1b4fc834cce99ee9c231e8e129d9d32b669d15936217a7cdef8325946dd4e398ecfc401aa14c79030b8421cdf6ebd904786d8578
   languageName: node
   linkType: hard
 

@@ -8,13 +8,16 @@ export type ConfigFile = {
 	sourceGlob: string
 	schemaPath?: string
 	schema?: string
+	quiet?: boolean
 }
 
 export class Config {
 	runtimeDirectory: string
 	schema: graphql.GraphQLSchema
+	sourceGlob: string
+	quiet: boolean
 
-	constructor({ runtimeDirectory, schema, schemaPath }: ConfigFile) {
+	constructor({ runtimeDirectory, schema, schemaPath, sourceGlob, quiet = false }: ConfigFile) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
 			throw new Error('Please provide one of schema or schema path')
@@ -31,11 +34,29 @@ export class Config {
 
 		// hold onto the artifact directory
 		this.runtimeDirectory = runtimeDirectory
+		this.sourceGlob = sourceGlob
+		this.quiet = quiet
 	}
 
-	artifactPath(name: string): string {
-		return path.join(this.runtimeDirectory, `${name}.js`)
+	// the directory where we put all of the artifacts
+	get artifactDirectory() {
+		return path.join(this.runtimeDirectory, 'artifacts')
 	}
+
+	// the location for an
+	artifactPath(name: string): string {
+		return path.join(this.artifactDirectory, `${name}.js`)
+	}
+}
+
+export function testConfig(config: {}) {
+	return new Config({
+		runtimeDirectory: path.resolve(process.cwd(), 'generated'),
+		sourceGlob: '123',
+		schema: `type Query { version: Int! }`,
+		quiet: true,
+		...config,
+	})
 }
 
 // a place to store the current configuration

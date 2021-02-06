@@ -77,7 +77,9 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			await fs.writeFile(config.artifactPath(name), recast.print(artifact).code)
 
 			// log the file location to confirm
-			console.log(name)
+			if (!config.quiet) {
+				console.log(name)
+			}
 		})
 	)
 }
