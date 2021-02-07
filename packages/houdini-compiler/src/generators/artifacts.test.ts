@@ -16,7 +16,7 @@ import {
 const config = testConfig()
 
 // make sure the runtime directory is clear before each test
-beforeEach(() => fs.rmdir(config.runtimeDirectory, { recursive: true }))
+afterEach(async () => await fs.rmdir(config.runtimeDirectory, { recursive: true }))
 
 // the documents to test
 const docs: CollectedGraphQLDocument[] = [

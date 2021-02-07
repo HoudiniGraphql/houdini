@@ -11,7 +11,7 @@ import { CollectedGraphQLDocument } from '../types'
 const config = testConfig()
 
 // make sure the runtime directory is clear before each test
-beforeEach(() => fs.rmdir(config.runtimeDirectory, { recursive: true }))
+afterEach(async () => await fs.rmdir(config.runtimeDirectory, { recursive: true }))
 
 test('generates cache updaters', async function () {
 	// the documents to test

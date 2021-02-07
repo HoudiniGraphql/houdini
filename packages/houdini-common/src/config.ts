@@ -48,9 +48,16 @@ export class Config {
 		return path.join(this.runtimeDirectory, 'interactions')
 	}
 
+	interactionName({ query, mutation }: { query: string; mutation: string }) {
+		return `${query}_${mutation}`
+	}
+
 	// the location for the artifact for an interaction
 	interactionPath({ query, mutation }: { query: string; mutation: string }) {
-		return path.join(this.interactionDirectory, `${query}_${mutation}.js`)
+		return path.join(
+			this.interactionDirectory,
+			`${this.interactionName({ query, mutation })}.js`
+		)
 	}
 
 	// the location of the artifact generated corresponding to the provided documents
