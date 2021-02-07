@@ -321,12 +321,19 @@ async function generateFiles(config: Config, interactionAtoms: Interaction[]) {
 			const mutations = interactions[interactionName]
 
 			// figure out the path for the interaction
+			// note: the query and mutation names are the same for every mutation in the interaction
 			const filePath = config.interactionPath({
 				query: mutations[0].queryName,
 				mutation: mutations[0].mutationName,
 			})
+
 			// build up the file contents
 			const program = typeBuilders.program([])
+
+			// the main thing we are responsible for is generating a function that takes
+			// the current state, the mutation payload, and the function to call that updates the
+			// store's data
+
 			// write the contents of the file to the location
 			await fs.writeFile(filePath, recast.print(program).code, 'utf-8')
 		})
