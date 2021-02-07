@@ -40,7 +40,7 @@ const docs: CollectedGraphQLDocument[] = [
 	},
 	{
 		name: 'TestFragment',
-		document: graphql.parse(`fragment TestFragment on User { version }`),
+		document: graphql.parse(`fragment TestFragment on User { firstName }`),
 	},
 ]
 
@@ -80,7 +80,7 @@ test('adds kind, name, and raw', async function () {
 		else if (artifact.name === 'TestFragment') {
 			expect(artifact.kind).toEqual(CompiledFragmentKind)
 			expect(artifact.raw).toEqual(
-				graphql.print(graphql.parse(`fragment TestFragment on User { version }`))
+				graphql.print(graphql.parse(`fragment TestFragment on User { firstName }`))
 			)
 		}
 	}

@@ -72,7 +72,7 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		// collect all of the fields referenced by the mutation
 		// and fragments within the mutation since those are the fields that we
 		// will update in response to the mutation
-		collectFields(config, mutationTargets, name, mutationType, definition.selectionSet, [])
+		fillMutationMap(config, mutationTargets, name, mutationType, definition.selectionSet, [])
 	}
 
 	// now that we know which fields the mutation can update we can walk through every document
@@ -80,7 +80,7 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 	const interactions: Interaction[] = []
 
 	// we will run into the same document many times so we have to make sure we are only processing a document once
-	const _interactionDocumentsVisited: { [name: string]: boolean } = {}
+	const _docsVisited: { [name: string]: boolean } = {}
 
 	// every document with a query might have an interaction with a mutation, the compiler identifier
 	// doesn't matter because multiple documents could include the same fragment.
@@ -99,7 +99,7 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		}
 
 		// if we have seen this document already, ignore it
-		if (_interactionDocumentsVisited[definition.name.value]) {
+		if (_docsVisited[definition.name.value]) {
 			continue
 		}
 
@@ -113,7 +113,7 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 
 		// make sure we found something
 		if (!rootType) {
-			throw new Error('could not find root type for document: ' + name)
+			throw new Error('could not find root type for document: ' + definition.name.value)
 		}
 
 		// compute and add the interactions
@@ -127,10 +127,84 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		)
 
 		// we're done with this document
-		_interactionDocumentsVisited[definition.name.value] = true
+		_docsVisited[definition.name.value] = true
 	}
 
 	// we now have a list of every possible interaction
+	console.log(interactions)
+}
+
+function fillMutationMap(
+	config: Config,
+	mutationTargets: MutationMap,
+	name: string,
+	rootType: graphql.GraphQLObjectType<any, any>,
+	selectionSet: graphql.SelectionSetNode,
+	path: string[]
+) {
+	// only consider fields in this selection if we have the id present
+	const useFields = selectionSet.selections.find(
+		(selection) => selection.kind === graphql.Kind.FIELD && selection.name.value === 'id'
+	)
+
+	// every field in the selection set could contribute to the mutation's targets
+	for (const selection of selectionSet.selections) {
+		// look up the type of the selection
+		const { type, field } = selectionTypeInfo(config.schema, rootType, selection)
+
+		// ignore any fragment spreads
+		if (selection.kind === graphql.Kind.FRAGMENT_SPREAD) {
+			continue
+		}
+
+		// process inline fragments
+		if (selection.kind === graphql.Kind.INLINE_FRAGMENT) {
+			continue
+		}
+
+		// if we are looking at a normal field
+		if (selection.kind === graphql.Kind.FIELD) {
+			const attributeName = selection.alias?.value || selection.name.value
+
+			// since the id field is used to filter out a mutation, we don't want to register
+			// that the mutation will update the id field
+			if (attributeName === 'id') {
+				continue
+			}
+
+			// add the field name to the path
+			const pathSoFar = path.concat(attributeName)
+
+			// if the field is a scalar type and there is an id field
+			if (graphql.isLeafType(type) && useFields) {
+				// make sure the object's deep index exists
+				if (!mutationTargets[rootType.name]) {
+					mutationTargets[rootType.name] = {}
+				}
+				if (!mutationTargets[rootType.name][attributeName]) {
+					mutationTargets[rootType.name][attributeName] = {}
+				}
+				// add the field to the list of things that the mutation can update
+				mutationTargets[rootType.name][attributeName][name] = pathSoFar
+
+				// we're done
+				continue
+			}
+
+			// if the field is points to another type (is an object or list)
+			if (selection.selectionSet && (isListType(type) || isObjectType(type))) {
+				// walk down the query for more chagnes
+				fillMutationMap(
+					config,
+					mutationTargets,
+					name,
+					getRootType(type) as graphql.GraphQLObjectType<any, any>,
+					selection.selectionSet,
+					pathSoFar
+				)
+			}
+		}
+	}
 }
 
 function addInteractions(
@@ -142,6 +216,11 @@ function addInteractions(
 	{ selections }: graphql.SelectionSetNode,
 	path: string[] = []
 ) {
+	// only consider fields in this selection if we have the id present
+	const useFields = selections.find(
+		(selection) => selection.kind === graphql.Kind.FIELD && selection.name.value === 'id'
+	)
+
 	// every selection in the selection set might contribute an interaction
 	for (const selection of selections) {
 		// ignore any fragment spreads
@@ -162,8 +241,13 @@ function addInteractions(
 			const attributeName = selection.alias?.value || selection.name.value
 			const pathSoFar = path.concat(attributeName)
 
+			// don't consider id for intersections
+			if (attributeName === 'id') {
+				continue
+			}
+
 			// if the field is a scalar, it could be updated by a mutation (needs an entry in interactions)
-			if (graphql.isLeafType(type)) {
+			if (graphql.isLeafType(type) && useFields) {
 				// grab the object mapping mutation names to the path in response that updates this field
 				let mutators
 				// look up the field in mutation map
@@ -182,7 +266,6 @@ function addInteractions(
 						queryPath: pathSoFar,
 					})
 				}
-
 				// we're done processing the leaf node
 				continue
 			}
@@ -193,70 +276,6 @@ function addInteractions(
 				addInteractions(
 					config,
 					interactions,
-					mutationTargets,
-					name,
-					getRootType(type) as graphql.GraphQLObjectType<any, any>,
-					selection.selectionSet,
-					pathSoFar
-				)
-			}
-		}
-	}
-}
-
-function collectFields(
-	config: Config,
-	mutationTargets: MutationMap,
-	name: string,
-	rootType: graphql.GraphQLObjectType<any, any>,
-	selectionSet: graphql.SelectionSetNode,
-	path: string[]
-) {
-	// only consider fields in this selection if we have the id present
-	const useFields = selectionSet.selections.length > 1
-
-	// every field in the selection set could contribute to the mutation's targets
-	for (const selection of selectionSet.selections) {
-		// look up the type of the selection
-		const { type, field } = selectionTypeInfo(config.schema, rootType, selection)
-
-		// ignore any fragment spreads
-		if (selection.kind === graphql.Kind.FRAGMENT_SPREAD) {
-			continue
-		}
-
-		// process inline fragments
-		if (selection.kind === graphql.Kind.INLINE_FRAGMENT) {
-			continue
-		}
-
-		// if we are looking at a normal field
-		if (selection.kind === graphql.Kind.FIELD) {
-			const attributeName = selection.alias?.value || selection.name.value
-			const pathSoFar = path.concat(attributeName)
-
-			// if the field is a scalar type and there is an id field
-			if (graphql.isLeafType(type) && useFields) {
-				// make sure the object's deep index exists
-				if (!mutationTargets[rootType.name]) {
-					mutationTargets[rootType.name] = {}
-				}
-				if (!mutationTargets[rootType.name][attributeName]) {
-					mutationTargets[rootType.name][attributeName] = {}
-				}
-
-				// add the field to the list of things that the mutation can update
-				mutationTargets[rootType.name][attributeName][name] = pathSoFar
-
-				// we're done
-				continue
-			}
-
-			// if the field is points to another type (is an object or list)
-			if (selection.selectionSet && (isListType(type) || isObjectType(type))) {
-				// walk down the query for more chagnes
-				collectFields(
-					config,
 					mutationTargets,
 					name,
 					getRootType(type) as graphql.GraphQLObjectType<any, any>,

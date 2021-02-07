@@ -89,7 +89,21 @@ export function testConfig(config: {} = {}) {
 	return new Config({
 		runtimeDirectory: path.resolve(process.cwd(), 'generated'),
 		sourceGlob: '123',
-		schema: `type Query { version: Int! }`,
+		schema: `
+			type User {
+				id: ID!
+				firstName: String!
+			}
+
+			type Query {
+				user: User!
+				version: Int!
+			}
+
+			type Mutation {
+				updateUser: User!
+			}
+		`,
 		quiet: true,
 		...config,
 	})

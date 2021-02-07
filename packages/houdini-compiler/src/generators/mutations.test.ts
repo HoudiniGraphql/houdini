@@ -24,22 +24,7 @@ afterEach(() => {
 
 test('generates cache updaters', async function () {
 	// define the schema
-	const config = testConfig({
-		schema: `
-			type User {
-				id: ID!
-				firstName: String!
-			}
-
-            type Query {
-                user: User!
-            }
-
-            type Mutation {
-                updateUser: User!
-            }
-        `,
-	})
+	const config = testConfig()
 
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
