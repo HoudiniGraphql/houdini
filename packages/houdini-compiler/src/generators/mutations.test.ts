@@ -43,7 +43,7 @@ test('generates cache updaters', async function () {
 	await runGenerators(config, docs)
 
 	// look up the files in the mutation directory
-	const files = await fs.readdir(config.mutationHandlersDirectory)
+	const files = await fs.readdir(config.interactionDirectory)
 
 	// make sure we made two files
 	expect(files).toHaveLength(1)

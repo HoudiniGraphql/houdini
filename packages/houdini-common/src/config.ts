@@ -44,8 +44,13 @@ export class Config {
 	}
 
 	// the directory where the mutation handlers live
-	get mutationHandlersDirectory() {
-		return path.join(this.runtimeDirectory, 'mutations')
+	get interactionDirectory() {
+		return path.join(this.runtimeDirectory, 'interactions')
+	}
+
+	// the location for the artifact for an interaction
+	interactionPath({ query, mutation }: { query: string; mutation: string }) {
+		return path.join(this.interactionDirectory, `${query}_${mutation}.js`)
 	}
 
 	// the location of the artifact generated corresponding to the provided documents

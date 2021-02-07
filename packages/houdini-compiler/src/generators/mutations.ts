@@ -2,8 +2,12 @@
 import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from 'houdini-common'
 import * as graphql from 'graphql'
 import mkdirp from 'mkdirp'
+import * as recast from 'recast'
+import fs from 'fs/promises'
 // locals
 import { CollectedGraphQLDocument } from '../types'
+
+const typeBuilders = recast.types.builders
 
 // We consider every query and every mutation that could affect it. This can only possibly
 // happen if we get the {id} of the type in the payload. Therefore we're going to look at
@@ -28,11 +32,9 @@ type Interaction = {
 	queryPath: string[]
 }
 
-type InteractionMap = { [mutationName: string]: [] }
-
 export default async function mutationGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// make sure the mutation directory exists
-	await mkdirp(config.mutationHandlersDirectory)
+	await mkdirp(config.interactionDirectory)
 
 	// build up a map of mutations to the types they modify
 	const mutationTargets: MutationMap = {}
@@ -131,7 +133,7 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 	}
 
 	// we now have a list of every possible interaction
-	console.log(interactions)
+	await generateFiles(config, interactions)
 }
 
 function fillMutationMap(
@@ -285,4 +287,23 @@ function addInteractions(
 			}
 		}
 	}
+}
+
+async function generateFiles(config: Config, interactions: Interaction[]) {
+	// every interaction needs a file
+	await Promise.all(
+		interactions.map(async (interaction) => {
+			// figure out the path for the interaction
+			const filePath = config.interactionPath({
+				query: interaction.queryName,
+				mutation: interaction.mutationName,
+			})
+
+			// build up the file contents
+			const program = typeBuilders.program([])
+
+			// write the contents of the file to the location
+			await fs.writeFile(filePath, recast.print(program).code, 'utf-8')
+		})
+	)
 }
