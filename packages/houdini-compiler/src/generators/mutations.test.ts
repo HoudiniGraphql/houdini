@@ -3,6 +3,7 @@ import path from 'path'
 import { testConfig } from 'houdini-common'
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
+import mockFs from 'mock-fs'
 // local imports
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../types'
@@ -10,8 +11,17 @@ import { CollectedGraphQLDocument } from '../types'
 // define the schema
 const config = testConfig()
 
+beforeEach(() => {
+	mockFs({
+		[config.runtimeDirectory]: {
+			[config.artifactDirectory]: {},
+			[config.interactionDirectory]: {},
+		},
+	})
+})
+
 // make sure the runtime directory is clear before each test
-afterEach(async () => await fs.rmdir(config.runtimeDirectory, { recursive: true }))
+afterEach(mockFs.restore)
 
 test('generates cache updaters', async function () {
 	// the documents to test

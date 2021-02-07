@@ -36,12 +36,15 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 			// if there are operations in the document
 			if (operations.length > 0) {
+				// figure out if its a query
 				if (
 					operations[0].kind === graphql.Kind.OPERATION_DEFINITION &&
 					operations[0].operation === 'query'
 				) {
 					docKind = CompiledQueryKind
-				} else {
+				}
+				// or a mutation
+				else {
 					docKind = CompiledMutationKind
 				}
 			}
