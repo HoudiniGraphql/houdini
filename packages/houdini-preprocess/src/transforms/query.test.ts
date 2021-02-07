@@ -18,6 +18,7 @@ import {
 import queryProcessor, { preloadPayloadKey } from './query'
 import walkTaggedDocuments, { EmbeddedGraphqlDocument } from '../utils/walkTaggedDocuments'
 import { TransformDocument } from '../types'
+import { testConfig } from 'houdini-common'
 // mock out the walker so that imports don't actually happen
 jest.mock('../utils/walkTaggedDocuments')
 
@@ -123,16 +124,17 @@ describe('query preprocessor', function () {
 		const parsed = svelte.parse(content)
 
 		// build up the document we'll pass to the processor
+		const config = testConfig()
 		const doc = {
 			instance: parsed.instance,
 			module: parsed.module,
-			config: { artifactDirectory: '', artifactDirectoryAlias: '', schema },
+			config,
 			dependencies: [],
 			filename: 'base.svelte',
 		}
 
 		// run the source through the processor
-		await queryProcessor({}, doc)
+		await queryProcessor(config, doc)
 
 		// make sure we added a module script
 		expect(doc.module).toBeTruthy()
