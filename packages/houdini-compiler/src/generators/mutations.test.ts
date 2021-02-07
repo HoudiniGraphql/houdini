@@ -14,7 +14,7 @@ beforeEach(async () => {
 	// mock the fs module
 	mock({
 		// create the directory we will put the artifacts
-		[testConfig({}).artifactDirectory]: {},
+		[testConfig().artifactDirectory]: {},
 	})
 })
 
@@ -26,6 +26,11 @@ test('generates cache updaters', async function () {
 	// define the schema
 	const config = testConfig({
 		schema: `
+			type User {
+				id: ID!
+				firstName: String!
+			}
+
             type Query {
                 user: User!
             }
@@ -41,7 +46,7 @@ test('generates cache updaters', async function () {
 		// the query asks needs to ask for a field that the mutation could update
 		{
 			name: 'TestQuery',
-			document: graphql.parse(`{ query TestQuery { user { id firstName } } }`),
+			document: graphql.parse(`query TestQuery { user { id firstName } }`),
 		},
 		{
 			name: 'TestMutation',
@@ -51,4 +56,22 @@ test('generates cache updaters', async function () {
 
 	// run the generators
 	await runGenerators(config, docs)
+
+	// look up the files in the mutation directory
+	const files = await fs.readdir(config.mutationHandlersDirectory)
+
+	// make sure we made two files
+	expect(files).toHaveLength(1)
+	// and they have the right names
+	expect(files).toEqual(expect.arrayContaining(['TestQuery_TestMutation.js']))
 })
+
+test.skip('inline fragments in mutation body count as an intersection', function () {})
+
+test.skip('inline fragments in queries count as an intersection', function () {})
+
+test.skip('inline fragments in fragments count as an intersection', function () {})
+
+test.skip('fragment spread in mutation body', function () {})
+
+test.skip("nested objects that don't have id should also update", function () {})

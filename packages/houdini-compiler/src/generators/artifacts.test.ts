@@ -36,11 +36,11 @@ afterEach(() => {
 const docs: CollectedGraphQLDocument[] = [
 	{
 		name: 'TestQuery',
-		document: graphql.parse(`{ query { version } }`),
+		document: graphql.parse(`query TestQuery { version }`),
 	},
 	{
 		name: 'TestFragment',
-		document: graphql.parse(`fragment Foo on User { version }`),
+		document: graphql.parse(`fragment TestFragment on User { version }`),
 	},
 ]
 
@@ -72,13 +72,15 @@ test('adds kind, name, and raw', async function () {
 		// if we are looking at the query
 		if (artifact.name === 'TestQuery') {
 			expect(artifact.kind).toEqual(CompiledQueryKind)
-			expect(artifact.raw).toEqual(graphql.print(graphql.parse(`{ query { version } }`)))
+			expect(artifact.raw).toEqual(
+				graphql.print(graphql.parse(`query TestQuery { version }`))
+			)
 		}
 		// otherwise we are looking at the fragment definition
 		else if (artifact.name === 'TestFragment') {
 			expect(artifact.kind).toEqual(CompiledFragmentKind)
 			expect(artifact.raw).toEqual(
-				graphql.print(graphql.parse(`fragment Foo on User { version }`))
+				graphql.print(graphql.parse(`fragment TestFragment on User { version }`))
 			)
 		}
 	}

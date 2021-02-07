@@ -43,8 +43,19 @@ export class Config {
 		return path.join(this.runtimeDirectory, 'artifacts')
 	}
 
+	// the directory where the mutation handlers live
+	get mutationHandlersDirectory() {
+		return path.join(this.runtimeDirectory, 'mutations')
+	}
+
 	// the location of the artifact generated corresponding to the provided documents
 	artifactPath(document: graphql.DocumentNode): string {
+		// use the operation name for the artifact
+		return path.join(this.artifactDirectory, `${this.documentName(document)}.js`)
+	}
+
+	// a string identifier for the document (must be unique)
+	documentName(document: graphql.DocumentNode): string {
 		// if there is an operation in the document
 		const operation = document.definitions.find(
 			({ kind }) => graphql.Kind.OPERATION_DEFINITION
@@ -57,7 +68,7 @@ export class Config {
 			}
 
 			// use the operation name for the artifact
-			return path.join(this.artifactDirectory, `${operation.name.value}.js`)
+			return operation.name.value
 		}
 
 		// look for a fragment definition
@@ -66,10 +77,7 @@ export class Config {
 		) as graphql.FragmentDefinitionNode[]
 		if (fragmentDefinitions.length) {
 			// join all of the fragment definitions into one
-			const fragmentNames = fragmentDefinitions.map((fragment) => fragment.name).join('_')
-
-			// use the operation name for the artifact
-			return path.join(this.artifactDirectory, `${fragmentNames}.js`)
+			return fragmentDefinitions.map((fragment) => fragment.name).join('_')
 		}
 
 		// we don't know how to generate a name for this document
