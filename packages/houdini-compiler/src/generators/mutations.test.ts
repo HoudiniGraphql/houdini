@@ -8,24 +8,13 @@ import fs from 'fs/promises'
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../types'
 
-// we need to make sure to mock out the filesystem so the generators don't leave behind a bunch
-// of extra files somewhere
-beforeEach(async () => {
-	// mock the fs module
-	mock({
-		// create the directory we will put the artifacts
-		[testConfig().artifactDirectory]: {},
-	})
-})
+// define the schema
+const config = testConfig()
 
-afterEach(() => {
-	mock.restore()
-})
+// make sure the runtime directory is clear before each test
+beforeEach(() => fs.rmdir(config.runtimeDirectory, { recursive: true }))
 
 test('generates cache updaters', async function () {
-	// define the schema
-	const config = testConfig()
-
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
 		// the query asks needs to ask for a field that the mutation could update

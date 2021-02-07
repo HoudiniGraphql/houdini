@@ -14,23 +14,10 @@ import {
 } from '../types'
 
 // the config to use in tests
-const config = testConfig({
-	runtimeDirectory: path.resolve('./generated'),
-})
+const config = testConfig()
 
-// we need to make sure to mock out the filesystem so the generators don't leave behind a bunch
-// of extra files somewhere
-beforeEach(async () => {
-	// mock the fs module
-	mock({
-		// create the directory we will put the artifacts
-		[config.artifactDirectory]: {},
-	})
-})
-
-afterEach(() => {
-	mock.restore()
-})
+// make sure the runtime directory is clear before each test
+beforeEach(() => fs.rmdir(config.runtimeDirectory, { recursive: true }))
 
 // the documents to test
 const docs: CollectedGraphQLDocument[] = [

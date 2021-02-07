@@ -92,7 +92,7 @@ export class Config {
 
 export function testConfig(config: {} = {}) {
 	return new Config({
-		runtimeDirectory: path.resolve(process.cwd(), 'generated'),
+		runtimeDirectory: path.resolve(process.cwd(), '__tests__'),
 		sourceGlob: '123',
 		schema: `
 			type User {
