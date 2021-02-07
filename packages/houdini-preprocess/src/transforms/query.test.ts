@@ -32,7 +32,7 @@ beforeEach(() => {
 
 describe('query preprocessor', function () {
 	test('preload initial data', async function () {
-		const schema = graphql.buildSchema(`
+		const schema = `
             type User {
                 id: ID!
             }
@@ -40,7 +40,7 @@ describe('query preprocessor', function () {
             type Query {
                 viewer: User!
             }
-        `)
+        `
 
 		const query = `
             query TestQuery {
@@ -124,7 +124,7 @@ describe('query preprocessor', function () {
 		const parsed = svelte.parse(content)
 
 		// build up the document we'll pass to the processor
-		const config = testConfig()
+		const config = testConfig({ schema })
 		const doc = {
 			instance: parsed.instance,
 			module: parsed.module,
