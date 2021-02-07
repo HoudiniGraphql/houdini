@@ -1,13 +1,18 @@
 // externals
-import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from 'houdini-common'
+import {
+	Config,
+	isListType,
+	isObjectType,
+	getRootType,
+	selectionTypeInfo,
+	DefaultDict,
+} from 'houdini-common'
 import * as graphql from 'graphql'
 import mkdirp from 'mkdirp'
 import * as recast from 'recast'
 import fs from 'fs/promises'
 // locals
 import { CollectedGraphQLDocument } from '../types'
-
-const typeBuilders = recast.types.builders
 
 // We consider every query and every mutation that could affect it. This can only possibly
 // happen if we get the {id} of the type in the payload. Therefore we're going to look at
@@ -16,14 +21,8 @@ const typeBuilders = recast.types.builders
 // we need to generate some kind of response handler.
 
 // keep track of which mutation affects which fields of which type
-type MutationMap = {
-	[typeName: string]: {
-		[fieldName: string]: {
-			// keep track of the path in the response that points to the updated object
-			[mutationName: string]: string[]
-		}
-	}
-}
+// we need to map types to fields to the mutations that update it
+type MutationMap = DefaultDict<DefaultDict<DefaultDict<string[]>>>
 
 type Interaction = {
 	mutationName: string
@@ -37,7 +36,7 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 	await mkdirp(config.interactionDirectory)
 
 	// build up a map of mutations to the types they modify
-	const mutationTargets: MutationMap = {}
+	const mutationTargets: MutationMap = new DefaultDict(new DefaultDict(new DefaultDict([])))
 
 	// look at every document for one containing a mutation
 	for (const { name, document } of docs) {
@@ -179,13 +178,6 @@ function fillMutationMap(
 
 			// if the field is a scalar type and there is an id field
 			if (graphql.isLeafType(type) && useFields) {
-				// make sure the object's deep index exists
-				if (!mutationTargets[rootType.name]) {
-					mutationTargets[rootType.name] = {}
-				}
-				if (!mutationTargets[rootType.name][attributeName]) {
-					mutationTargets[rootType.name][attributeName] = {}
-				}
 				// add the field to the list of things that the mutation can update
 				mutationTargets[rootType.name][attributeName][name] = pathSoFar
 
@@ -289,21 +281,25 @@ function addInteractions(
 	}
 }
 
-async function generateFiles(config: Config, interactions: Interaction[]) {
-	// every interaction needs a file
-	await Promise.all(
-		interactions.map(async (interaction) => {
-			// figure out the path for the interaction
-			const filePath = config.interactionPath({
-				query: interaction.queryName,
-				mutation: interaction.mutationName,
-			})
+async function generateFiles(config: Config, interactionAtoms: Interaction[]) {
+	// there could be more than one interaction between a query and mutation
+	// so group up all interactions pairs
+	const interactions = {}
 
-			// build up the file contents
-			const program = typeBuilders.program([])
+	//
 
-			// write the contents of the file to the location
-			await fs.writeFile(filePath, recast.print(program).code, 'utf-8')
-		})
-	)
+	// // every interaction needs a file
+	// await Promise.all(
+	// 	interactions.map(async (interaction) => {
+	// 		// figure out the path for the interaction
+	// 		const filePath = config.interactionPath({
+	// 			query: interaction.queryName,
+	// 			mutation: interaction.mutationName,
+	// 		})
+	// 		// build up the file contents
+	// 		const program = typeBuilders.program([])
+	// 		// write the contents of the file to the location
+	// 		await fs.writeFile(filePath, recast.print(program).code, 'utf-8')
+	// 	})
+	// )
 }

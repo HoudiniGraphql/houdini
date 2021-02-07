@@ -1,5 +1,4 @@
 // external imports
-import mock from 'mock-fs'
 import path from 'path'
 import { testConfig } from 'houdini-common'
 import * as graphql from 'graphql'
