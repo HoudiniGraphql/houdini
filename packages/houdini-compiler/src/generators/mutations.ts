@@ -258,6 +258,12 @@ function addInteractions(
 					continue
 				}
 
+				// if nothing mutates this field
+				if (!mutators) {
+					// ignore it
+					continue
+				}
+
 				for (const mutationName of Object.keys(mutators)) {
 					// we have an interaction
 					interactions.push({

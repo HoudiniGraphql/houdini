@@ -14,9 +14,6 @@ const AST = recast.types.builders
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
 export default async function artifactGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
-	// make sure the artifact directory exists
-	await mkdirp(config.artifactDirectory)
-
 	await Promise.all(
 		docs.map(async ({ document, name }) => {
 			// build up the query string
