@@ -48,7 +48,11 @@ test('generates cache updaters', async function () {
 	// make sure we made two files
 	expect(files).toHaveLength(1)
 	// and they have the right names
-	expect(files).toEqual(expect.arrayContaining(['TestQuery_TestMutation.js']))
+	expect(files).toEqual(
+		expect.arrayContaining([
+			path.basename(config.interactionPath({ query: 'TestQuery', mutation: 'TestMutation' })),
+		])
+	)
 })
 
 test.skip('inline fragments in mutation body count as an intersection', function () {})
