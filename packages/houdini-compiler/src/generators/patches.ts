@@ -122,7 +122,7 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		}
 
 		// compute and add the patches
-		addPatchs(
+		addPatches(
 			config,
 			patches,
 			mutationTargets,
@@ -211,7 +211,7 @@ function fillMutationMap(
 	}
 }
 
-function addPatchs(
+function addPatches(
 	config: Config,
 	patches: PatchAtom[],
 	mutationTargets: MutationMap,
@@ -283,7 +283,7 @@ function addPatchs(
 			// if the field is points to another type (is an object or list)
 			if (selection.selectionSet && (isListType(type) || isObjectType(type))) {
 				// walk down the query for more chagnes
-				addPatchs(
+				addPatches(
 					config,
 					patches,
 					mutationTargets,
