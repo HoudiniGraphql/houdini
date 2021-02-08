@@ -9,8 +9,5 @@
 		"houdini-compiler": "workspace:*",
 		"houdini-preprocess": "workspace:*"
 	},
-	"main": "build/index.js",
-	"dependencies": {
-		"graphql": "^15.4.0"
-	}
+	"main": "build/index.js"
 }

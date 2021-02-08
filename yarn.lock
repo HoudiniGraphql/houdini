@@ -4909,7 +4909,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:^15.3.0, graphql@npm:^15.4.0":
+"graphql@npm:^15.3.0":
   version: 15.5.0
   resolution: "graphql@npm:15.5.0"
   checksum: 789cdcb069a3e00592e779002217a6bc5fd09efad63ee8c4190c4b3ea96c89010e74f085fb1cba876a0bb0e324e01df2eddb84d79dca90a28e582bc425fef9ef
@@ -5168,7 +5168,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
-    graphql: ^15.4.0
     houdini-compiler: "workspace:*"
     houdini-preprocess: "workspace:*"
   languageName: unknown
