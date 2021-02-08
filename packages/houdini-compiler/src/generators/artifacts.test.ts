@@ -3,7 +3,6 @@ import path from 'path'
 import { testConfig } from 'houdini-common'
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
-import mockFs from 'mock-fs'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
@@ -14,21 +13,6 @@ import { CollectedGraphQLDocument } from '../types'
 
 // the config to use in tests
 const config = testConfig()
-
-beforeEach(() => {
-	mockFs({
-		[config.runtimeDirectory]: {
-			[config.artifactDirectory]: {},
-			[config.patchDirectory]: {},
-		},
-		[__dirname]: {
-			__snapshots__: mockFs.load(path.resolve(__dirname, '__snapshots__')),
-		},
-	})
-})
-
-// make sure the runtime directory is clear before each test
-afterEach(mockFs.restore)
 
 // the documents to test
 const docs: CollectedGraphQLDocument[] = [

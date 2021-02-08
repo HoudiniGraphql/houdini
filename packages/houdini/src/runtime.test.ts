@@ -1,17 +1,17 @@
 // externals
-import { Interaction } from 'houdini-compiler'
+import { Patch } from 'houdini-compiler'
 // locals
-import { applyInteraction } from './runtime'
+import { applyPatch } from './runtime'
 
-describe('apply interaction', function () {
+describe('apply patch', function () {
 	test('base case', function () {
 		// grab the value of mutationName.{field} and apply it to the object at the
 		// root of the payload under the field target
-		const interaction: Interaction = {
-			scalars: {},
+		const patch: Patch = {
+			fields: {},
 			edges: {
 				mutationName: {
-					scalars: {
+					fields: {
 						field: [['target']],
 					},
 					edges: {},
@@ -33,10 +33,12 @@ describe('apply interaction', function () {
 			},
 		}
 
-		// apply the interaction
-		applyInteraction(interaction, set, current, payload)
+		// apply the patch
+		applyPatch(patch, set, current, payload)
 
 		// make sure we got the expected value
-		expect(current.target).toEqual('world')
+		expect(set).toHaveBeenCalledWith({
+			target: 'world',
+		})
 	})
 })

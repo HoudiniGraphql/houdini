@@ -7,30 +7,12 @@ import fs from 'fs/promises'
 import mockFs from 'mock-fs'
 import { FileKind } from 'ast-types/gen/kinds'
 import * as typeScriptParser from 'recast/parsers/typescript'
-import { BaseNode } from 'estree-walker'
 // local imports
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../types'
 import '../../../../jest.setup'
 
-// define the schema
 const config = testConfig()
-
-beforeEach(() => {
-	mockFs({
-		[config.runtimeDirectory]: {
-			[config.artifactDirectory]: {},
-			[config.patchDirectory]: {},
-		},
-		// make sure that the snapshots are loadable
-		[__dirname]: {
-			__snapshots__: mockFs.load(path.resolve(__dirname, '__snapshots__')),
-		},
-	})
-})
-
-// make sure the runtime directory is clear before each test
-afterEach(mockFs.restore)
 
 test('generates cache updaters', async function () {
 	// the documents to test
@@ -78,11 +60,11 @@ test('generates cache updaters', async function () {
 	// make sure this doesn't change without approval
 	expect(parsedContents).toMatchInlineSnapshot(`
 		module.exports = {
-		    "scalars": {},
+		    "fields": {},
 
 		    "edges": {
 		        "updateUser": {
-		            "scalars": {
+		            "fields": {
 		                "firstName": [["user", "firstName"]]
 		            },
 

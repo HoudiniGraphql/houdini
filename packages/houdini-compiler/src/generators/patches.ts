@@ -327,7 +327,7 @@ async function generateFiles(config: Config, patchAtoms: PatchAtom[]) {
 			// grouped together to easily traverse
 			const updateMap: Patch = {
 				edges: {},
-				scalars: {},
+				fields: {},
 			}
 
 			// make sure very mutation in the patch ends up in the tree
@@ -341,12 +341,12 @@ async function generateFiles(config: Config, patchAtoms: PatchAtom[]) {
 					// if we are at the end of the path
 					if (i === mutationPath.length - 1) {
 						// if this is the first time we are treating this entry as a source
-						if (!node.scalars[pathEntry]) {
-							node.scalars[pathEntry] = []
+						if (!node.fields[pathEntry]) {
+							node.fields[pathEntry] = []
 						}
 
-						// add the entry to the node's list of scalars to update
-						node.scalars[pathEntry].push(queryPath)
+						// add the entry to the node's list of fields to update
+						node.fields[pathEntry].push(queryPath)
 
 						// we're done with this atom
 						continue
@@ -355,7 +355,7 @@ async function generateFiles(config: Config, patchAtoms: PatchAtom[]) {
 					// if this is the first time we've encountered this field in the response
 					if (!node.edges[pathEntry]) {
 						node.edges[pathEntry] = {
-							scalars: {},
+							fields: {},
 							edges: {},
 						}
 					}
@@ -393,13 +393,13 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 	// the scalar object has a field for every scalar entry in the patch
 	targetObject.properties.push(
 		typeBuilders.objectProperty(
-			typeBuilders.stringLiteral('scalars'),
+			typeBuilders.stringLiteral('fields'),
 			typeBuilders.objectExpression(
-				Object.keys(patch.scalars).map((fieldName) =>
+				Object.keys(patch.fields).map((fieldName) =>
 					typeBuilders.objectProperty(
 						typeBuilders.stringLiteral(fieldName),
 						typeBuilders.arrayExpression(
-							patch.scalars[fieldName].map((paths) =>
+							patch.fields[fieldName].map((paths) =>
 								typeBuilders.arrayExpression(
 									paths.map((entry) => typeBuilders.stringLiteral(entry))
 								)

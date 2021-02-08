@@ -26,7 +26,7 @@ export type CompiledGraphqlFragment = BaseCompiledDocument & {
 
 // a description of an interaction between a mutation and a query
 export type Patch = {
-	scalars: { [fieldName: string]: Array<string[]> }
+	fields: { [fieldName: string]: Array<string[]> }
 	edges: { [path: string]: Patch }
 }
 
