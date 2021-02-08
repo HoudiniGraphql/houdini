@@ -49,7 +49,7 @@ export class Config {
 	}
 
 	interactionName({ query, mutation }: { query: string; mutation: string }) {
-		return `${query}_${mutation}`
+		return `${mutation}_${query}`
 	}
 
 	// the location for the artifact for an interaction
