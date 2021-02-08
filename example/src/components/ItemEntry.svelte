@@ -1,11 +1,11 @@
 <script>
-	import { getFragment, mutation, graphql } from 'houdini'
+	import { fragment, mutation, graphql } from 'houdini'
 
 	// the reference we're passed from our parents
 	export let item
 
 	// get the information we need about the item
-	const data = getFragment(
+	const data = fragment(
 		graphql`
 			fragment ItemEntry_item on TodoItem {
 				id
