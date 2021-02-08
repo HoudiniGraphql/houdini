@@ -5,11 +5,18 @@ import { testConfig } from 'houdini-common'
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
 import mockFs from 'mock-fs'
-import { Program } from 'estree'
+import {
+	Program,
+	ExportNamedDeclaration,
+	ExportDefaultDeclaration,
+	FunctionDeclaration,
+} from 'estree'
 import * as typeScriptParser from 'recast/parsers/typescript'
+
 // local imports
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../types'
+import { variableNames } from './mutations'
 
 // define the schema
 const config = testConfig()
@@ -29,7 +36,7 @@ afterEach(mockFs.restore)
 test('generates cache updaters', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
-		// the query asks needs to ask for a field that the mutation could update
+		// the query needs to ask for a field that the mutation could update
 		{
 			name: 'TestQuery',
 			document: graphql.parse(`query TestQuery { user { id firstName } }`),
@@ -72,15 +79,57 @@ test('generates cache updaters', async function () {
 	expect(parsedContents.type).toBe('Program')
 
 	// find the definition of the interaction handler
-	const handlerDefinition = parsedContents.body.filter(
+	const handlerDefinition = parsedContents.body.find(
 		(expression) =>
 			(expression.type === 'ExportNamedDeclaration' ||
 				expression.type === 'ExportDefaultDeclaration') &&
 			expression.declaration?.type === 'FunctionDeclaration' &&
 			expression.declaration.id.name === 'applyMutation'
-	)
+	) as ExportNamedDeclaration | ExportDefaultDeclaration
 	// make sure it exists
 	expect(handlerDefinition).toBeTruthy()
+
+	// pull out the declaration
+	const handler = handlerDefinition.declaration as FunctionDeclaration
+
+	// the handler should be something like:
+
+	// function applyMutation(currentState, set, payload) {
+	// 	let updated = false
+
+	// 	// update the update to the current state
+	// 	if (currentState.user.id === payload.updateUser.id) {
+	// 		currentState.user.firstName = payload.updateUser.firstName
+	// 		updated = true
+	// 	}
+
+	// 	if (updated) {
+	// 		// apply the change
+	// 		set(currentState)
+	// 	}
+	// }
+
+	// make sure there are three arguments in the right order
+	expect(handler.params).toHaveLength(3)
+	expect(
+		handler.params[0].type === 'Identifier' &&
+			handler.params[0].name === variableNames.currentState
+	)
+	expect(handler.params[1].type === 'Identifier' && handler.params[1].name === variableNames.set)
+	expect(
+		handler.params[2].type === 'Identifier' && handler.params[2].name === variableNames.payload
+	)
+
+	// there should be a declaration for the predicate at the top
+	const predicateIndex = handler.body.body.findIndex(
+		(expression) =>
+			expression.type === 'VariableDeclaration' &&
+			expression.declarations[0].id.type === 'Identifier' &&
+			expression.declarations[0].id.name === variableNames.updatePredicate
+	)
+	const predicateDeclaration = handler.body.body[predicateIndex]
+	expect(predicateDeclaration).toBeTruthy()
+	expect(predicateIndex).toEqual(0)
 })
 
 test.skip('inline fragments in mutation body count as an intersection', function () {})

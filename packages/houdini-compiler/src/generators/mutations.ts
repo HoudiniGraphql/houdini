@@ -4,6 +4,7 @@ import * as graphql from 'graphql'
 import mkdirp from 'mkdirp'
 import * as recast from 'recast'
 import fs from 'fs/promises'
+import { CallExpression, Identifier } from 'estree'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 
@@ -320,20 +321,81 @@ async function generateFiles(config: Config, interactionAtoms: Interaction[]) {
 			// grab the list of things that will change because of this interaction
 			const mutations = interactions[interactionName]
 
-			// combine all of the mutations into something that we can refer to
-			// the mutation side of an interaction determines the source in the
-			// mutation payload that needs to be applied to the target
-			const pathKey = (path: string[]) => path.join(',')
-			// create a map indexed by mutation path whose value points to the place
-			// we need to apply the mutation
-			const targets: { [mutationPath: string]: string[] } = mutations.reduce(
-				(acc, mutation) => ({
-					...acc,
-					[pathKey(mutation.mutationPath)]: mutation.queryPath,
-				}),
-				{}
+			// we need an object that contains every field we want to copy over in this interaction
+			// grouped together to easily traverse
+			const updateMap: UpdateTree = {
+				children: {},
+				scalars: {},
+			}
+
+			// make sure very mutation in the interaction ends up in the tree
+			for (const { mutationPath, queryPath } of mutations) {
+				// the mutation path defines where in the update tree this entry belongs
+				let node = updateMap
+				for (let i = 0; i < mutationPath.length; i++) {
+					// the path entry we are considering
+					const pathEntry = mutationPath[i]
+
+					// if we are at the end of the path
+					if (i === mutationPath.length - 1) {
+						// add the entry to the node's list of scalars to update
+						node.scalars[pathEntry] = queryPath
+						// we're done with this atom
+						continue
+					}
+
+					// if this is the first time we've encountered this field in the response
+					if (!node.children[pathEntry]) {
+						node.children[pathEntry] = {
+							scalars: {},
+							children: {},
+						}
+					}
+
+					// keep walking
+					node = node.children[pathEntry]
+				}
+			}
+
+			// build up the program statements
+			// start the program with a declaration of the update predicate
+			const body = typeBuilders.blockStatement([
+				// let update = false
+				typeBuilders.variableDeclaration('let', [
+					typeBuilders.variableDeclarator(
+						typeBuilders.identifier(variableNames.updatePredicate),
+						typeBuilders.booleanLiteral(false)
+					),
+				]),
+				// and a declaration of the object we'll use to update
+				typeBuilders.variableDeclaration('const', [
+					typeBuilders.variableDeclarator(
+						typeBuilders.identifier(variableNames.updatedState),
+						localCopyExpression(typeBuilders.identifier(variableNames.currentState))
+					),
+				]),
+			])
+
+			// add something to the body for everything in the update map
+			console.log(JSON.stringify(updateMap))
+
+			// add the optional update
+			body.body.push(
+				// if (update) {
+				// 		set(updatedState)
+				// }
+				typeBuilders.ifStatement(
+					typeBuilders.identifier(variableNames.updatePredicate),
+					typeBuilders.blockStatement([
+						typeBuilders.expressionStatement(
+							typeBuilders.callExpression(
+								typeBuilders.identifier(variableNames.set),
+								[typeBuilders.identifier(variableNames.updatedState)]
+							)
+						),
+					])
+				)
 			)
-			console.log(targets)
 
 			// we need to generate a function that takes the current state of a store, the function
 			// to call that updates the store's data, and the mutation payload. this function
@@ -341,11 +403,11 @@ async function generateFiles(config: Config, interactionAtoms: Interaction[]) {
 			const updater = typeBuilders.functionDeclaration(
 				typeBuilders.identifier('applyMutation'),
 				[
-					typeBuilders.identifier('currentState'),
-					typeBuilders.identifier('set'),
-					typeBuilders.identifier('payload'),
+					typeBuilders.identifier(variableNames.currentState),
+					typeBuilders.identifier(variableNames.set),
+					typeBuilders.identifier(variableNames.payload),
 				],
-				typeBuilders.blockStatement([])
+				body
 			)
 
 			// build up the file contents
@@ -365,4 +427,21 @@ async function generateFiles(config: Config, interactionAtoms: Interaction[]) {
 			await fs.writeFile(filePath, recast.print(program).code, 'utf-8')
 		})
 	)
+}
+
+type UpdateTree = {
+	scalars: { [fieldName: string]: string[] }
+	children: { [path: string]: UpdateTree }
+}
+
+export const variableNames = {
+	set: 'set',
+	currentState: 'currentState',
+	updatedState: 'updatedState',
+	payload: 'payload',
+	updatePredicate: 'update',
+}
+
+function localCopyExpression(target: Identifier): Identifier {
+	return target
 }
