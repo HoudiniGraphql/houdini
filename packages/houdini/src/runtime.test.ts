@@ -22,13 +22,13 @@ describe('apply patch', function () {
 
 		// the current data
 		const current = {
-			id: 1,
+			id: '1',
 			target: 'hello',
 		}
 		// the mutation payload
 		const payload = {
 			mutationName: {
-				id: 1,
+				id: '1',
 				field: 'world',
 			},
 		}
@@ -38,7 +38,7 @@ describe('apply patch', function () {
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
-			id: 1,
+			id: '1',
 			target: 'world',
 		})
 	})
@@ -61,13 +61,13 @@ describe('apply patch', function () {
 
 		// the current data
 		const current = {
-			id: 1,
+			id: '1',
 			target: 'hello',
 		}
 		// the mutation payload
 		const payload = {
 			mutationName: {
-				id: 2,
+				id: '2',
 				field: 'world',
 			},
 		}
@@ -102,14 +102,14 @@ describe('apply patch', function () {
 
 		// the current data
 		const current = {
-			id: 1,
+			id: '1',
 			target: 'hello',
 		}
 		// the mutation payload
 		const payload = {
 			mutationName: {
 				updateUser: {
-					id: 1,
+					id: '1',
 					field: 'world',
 				},
 			},
@@ -120,7 +120,7 @@ describe('apply patch', function () {
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
-			id: 1,
+			id: '1',
 			target: 'world',
 		})
 	})
@@ -143,14 +143,14 @@ describe('apply patch', function () {
 
 		// the current data
 		const current = {
-			id: 1,
+			id: '1',
 			target: 'hello',
 		}
 		// the mutation payload
 		const payload = {
 			mutationName: [
 				{
-					id: 1,
+					id: '1',
 					field: 'world',
 				},
 			],
@@ -161,7 +161,7 @@ describe('apply patch', function () {
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
-			id: 1,
+			id: '1',
 			target: 'world',
 		})
 	})
@@ -185,14 +185,14 @@ describe('apply patch', function () {
 		// the current data
 		const current = {
 			nested: {
-				id: 1,
+				id: '1',
 				target: 'hello',
 			},
 		}
 		// the mutation payload
 		const payload = {
 			mutationName: {
-				id: 1,
+				id: '1',
 				field: 'world',
 			},
 		}
@@ -203,7 +203,7 @@ describe('apply patch', function () {
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
 			nested: {
-				id: 1,
+				id: '1',
 				target: 'world',
 			},
 		})
@@ -215,7 +215,7 @@ describe('apply patch', function () {
 			edges: {
 				mutationName: {
 					fields: {
-						field: [['target']],
+						field: [['field', 'target']],
 					},
 					edges: {},
 				},
@@ -226,17 +226,19 @@ describe('apply patch', function () {
 		const set = jest.fn()
 
 		// the current data
-		const current = [
-			{
-				id: 1,
-				target: 'hello',
-			},
-		]
+		const current = {
+			field: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+			],
+		}
 
 		// the mutation payload
 		const payload = {
 			mutationName: {
-				id: 1,
+				id: '1',
 				field: 'world',
 			},
 		}
@@ -245,11 +247,13 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload)
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith([
-			{
-				id: 1,
-				target: 'world',
-			},
-		])
+		expect(set).toHaveBeenCalledWith({
+			field: [
+				{
+					id: '1',
+					target: 'world',
+				},
+			],
+		})
 	})
 })

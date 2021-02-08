@@ -14,7 +14,8 @@ export function fetchQuery({
 	return getEnvironment()?.sendRequest({ text, variables })
 }
 
-type Data = { [key: string]: {} } | { [key: string]: {} }[]
+type Record = { [key: string]: any | Data } & { id?: string }
+type Data = Record | Record[]
 
 export function applyPatch(
 	patch: Patch,
@@ -31,11 +32,7 @@ export function applyPatch(
 	}
 }
 
-function walkPatch(
-	patch: Patch,
-	payload: { [key: string]: {} } | { [key: string]: {} }[],
-	target: { [key: string]: {} } | { [key: string]: {} }[]
-): boolean {
+function walkPatch(patch: Patch, payload: Data, target: Record): boolean {
 	// track if we update something
 	let updated = false
 
@@ -53,25 +50,18 @@ function walkPatch(
 		return updated
 	}
 
-	// look for any fields to update
+	// during the search for fields to update, we might need to go searching through
+	// many nodes for the response
 	for (const fieldName of Object.keys(patch.fields)) {
 		// update the target object at every path we need to
 		for (const path of patch.fields[fieldName]) {
-			let subtarget = target
-			for (const [i, entry] of path.entries()) {
-				// if we are looking at the last element
-				if (i === path.length - 1) {
-					// only update fields if the id's match
-					if (subtarget.id === payload.id) {
-						// we need to update the field
-						subtarget[entry] = payload[fieldName]
+			// if there is no id, we can update the fields
+			if (!payload.id) {
+				throw new Error('Cannot update fields without id in payload')
+			}
 
-						// track that we did something
-						updated = true
-					}
-				} else {
-					subtarget = subtarget[entry]
-				}
+			if (updateField(path, target, payload.id, payload[fieldName]) && !updated) {
+				updated = true
 			}
 		}
 	}
@@ -85,5 +75,56 @@ function walkPatch(
 	}
 
 	// bubble up if there was an update
+	return updated
+}
+
+function updateField(path: string[], target: Record, targetId: string, value: any): boolean {
+	// keep track if we updated a field
+	let updated = false
+
+	// if we are looking at the last element, the entry in the path corresponds to the field that we need to update
+	if (path.length === 1) {
+		// if the target is a list, there's something wrong
+		if (Array.isArray(target)) {
+			throw new Error('final entry in path is a list?')
+		}
+
+		// only update fields if the id's match
+		if (target.id === targetId) {
+			// we need to update the field
+			target[path[0]] = value
+
+			// track that we did something
+			updated = true
+		}
+	} else {
+		// pull the first element off of the list
+		const head = path[0]
+		const tail = path.slice(1, path.length)
+
+		// look at the value in the response
+		const element = target[head]
+
+		// if the element is a list
+		if (Array.isArray(element)) {
+			// walk down every element in the list
+			for (const entry of element) {
+				// if we applied the udpate
+				if (updateField(tail, entry, targetId, value)) {
+					updated = true
+					// dont keep searching
+					break
+				}
+			}
+		}
+		// the element is an object
+		else {
+			// keep going down
+			if (updateField(tail, element, targetId, value) && !updated) {
+				updated = true
+			}
+		}
+	}
+
 	return updated
 }
