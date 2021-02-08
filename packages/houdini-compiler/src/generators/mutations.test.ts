@@ -10,6 +10,7 @@ import {
 	ExportNamedDeclaration,
 	ExportDefaultDeclaration,
 	FunctionDeclaration,
+	IfStatement,
 } from 'estree'
 import * as typeScriptParser from 'recast/parsers/typescript'
 
@@ -130,6 +131,32 @@ test('generates cache updaters', async function () {
 	const predicateDeclaration = handler.body.body[predicateIndex]
 	expect(predicateDeclaration).toBeTruthy()
 	expect(predicateIndex).toEqual(0)
+
+	// there should be an if statement wrapping the updated state
+	const updateIfStatment = handler.body.body.find(
+		(expression) =>
+			expression.type === 'IfStatement' &&
+			expression.test.type === 'Identifier' &&
+			expression.test.name === variableNames.updatePredicate
+	) as IfStatement
+	expect(updateIfStatment).toBeTruthy()
+	// make sure we invoke set in the body of the if statement
+	if (updateIfStatment.consequent.type !== 'BlockStatement') {
+		fail('if statement was wrong type')
+		return
+	}
+
+	// look for an expression like set(updatedState)
+	const setCall = updateIfStatment.consequent.body.find(
+		(expression) =>
+			expression.type === 'ExpressionStatement' &&
+			expression.expression.type === 'CallExpression' &&
+			expression.expression.callee.type === 'Identifier' &&
+			expression.expression.callee.name === variableNames.set &&
+			expression.expression.arguments[0].type === 'Identifier' &&
+			expression.expression.arguments[0].name === variableNames.updatedState
+	)
+	expect(setCall).toBeTruthy()
 })
 
 test.skip('inline fragments in mutation body count as an intersection', function () {})
