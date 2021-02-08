@@ -1,12 +1,14 @@
 // externals
 import { GraphQLTagResult } from 'houdini-preprocess'
-import { CompiledQueryKind, CompiledMutationKind, CompiledFragmentKind } from 'houdini-compiler'
-import { readable, Readable } from 'svelte/store'
 // locals
 import { getEnvironment } from './environment'
 
 export * from './environment'
+export { default as query } from './query'
+export { default as mutation } from './mutation'
+export { default as fragment } from './fragment'
 
+// fetchQuery is used by the preprocess-generated runtime to send an operation to the server
 export function fetchQuery({
 	text,
 	variables,
@@ -15,56 +17,6 @@ export function fetchQuery({
 	variables: { [name: string]: unknown }
 }) {
 	return getEnvironment()?.sendRequest({ text, variables })
-}
-
-export function query(
-	document: GraphQLTagResult,
-	variables: { [name: string]: unknown }
-): Readable<unknown> {
-	// make sure we got a query document
-	if (document.kind !== CompiledQueryKind) {
-		throw new Error('getQuery can only take query operations')
-	}
-
-	// wrap the result in a store we can use to keep this query up to date
-	return readable(document.processResult(document.initialValue.data), (set) => {})
-}
-
-// mutation returns a handler that will send the mutation to the server when
-// invoked
-export function mutation(document: GraphQLTagResult) {
-	// make sure we got a query document
-	if (document.kind !== CompiledMutationKind) {
-		throw new Error('getQuery can only take query operations')
-	}
-	// pull the query text out of the compiled artifact
-	const { raw: text } = document
-
-	// if there is no environment configured
-	const currentEnv = getEnvironment()
-	if (!currentEnv) {
-		throw new Error('Please provide an environment')
-	}
-
-	// return an async function that sends the mutation go the server
-	return async (variables: any) => {
-		// grab the response from the server
-		const { data } = await currentEnv.sendRequest({ text, variables })
-
-		// wrap the result in a store we can use to keep this query up to date
-		return document.processResult(data)
-	}
-}
-
-// getFragment returns the requested data from the reference
-export function getFragment<T>(fragment: GraphQLTagResult, reference: T) {
-	// make sure we got a query document
-	if (fragment.kind !== CompiledFragmentKind) {
-		throw new Error('getFragment can only take fragment documents')
-	}
-
-	// dont be fancy yet, just pull out the fields we care about
-	return fragment.applyMask(reference)
 }
 
 // this template tag gets removed by the preprocessor so it should never be invoked.
