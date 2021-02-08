@@ -6,7 +6,7 @@ import * as recast from 'recast'
 import fs from 'fs/promises'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
-import { CollectedGraphQLDocument, Interaction } from '../types'
+import { CollectedGraphQLDocument, Patch } from '../types'
 import { moduleExport } from '../utils'
 
 const typeBuilders = recast.types.builders
@@ -28,7 +28,7 @@ type MutationMap = {
 }
 
 // another intermediate type used when building up the mutation description
-type InteractionAtom = {
+type PatchAtom = {
 	mutationName: string
 	mutationPath: string[]
 	queryName: string
@@ -37,7 +37,7 @@ type InteractionAtom = {
 
 export default async function mutationGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// make sure the mutation directory exists
-	await mkdirp(config.interactionDirectory)
+	await mkdirp(config.patchDirectory)
 
 	// build up a map of mutations to the types they modify
 	const mutationTargets: MutationMap = {}
@@ -82,12 +82,12 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 
 	// now that we know which fields the mutation can update we can walk through every document
 	// and look for queries or fragments that intersect with the fields changed by the mutations
-	const interactions: InteractionAtom[] = []
+	const patches: PatchAtom[] = []
 
 	// we will run into the same document many times so we have to make sure we are only processing a document once
 	const _docsVisited: { [name: string]: boolean } = {}
 
-	// every document with a query might have an interaction with a mutation, the compiler identifier
+	// every document with a query might have an patch with a mutation, the compiler identifier
 	// doesn't matter because multiple documents could include the same fragment.
 	for (const definition of docs.flatMap(({ document }) => document.definitions)) {
 		// we only care about fragments or query definitions
@@ -121,10 +121,10 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 			throw new Error('could not find root type for document: ' + definition.name.value)
 		}
 
-		// compute and add the interactions
-		addInteractions(
+		// compute and add the patches
+		addPatchs(
 			config,
-			interactions,
+			patches,
 			mutationTargets,
 			definition.name.value,
 			rootType,
@@ -135,8 +135,8 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		_docsVisited[definition.name.value] = true
 	}
 
-	// we now have a list of every possible interaction
-	await generateFiles(config, interactions)
+	// we now have a list of every possible patch
+	await generateFiles(config, patches)
 }
 
 function fillMutationMap(
@@ -211,9 +211,9 @@ function fillMutationMap(
 	}
 }
 
-function addInteractions(
+function addPatchs(
 	config: Config,
-	interactions: InteractionAtom[],
+	patches: PatchAtom[],
 	mutationTargets: MutationMap,
 	name: string,
 	rootType: graphql.GraphQLObjectType<any, any>,
@@ -225,7 +225,7 @@ function addInteractions(
 		(selection) => selection.kind === graphql.Kind.FIELD && selection.name.value === 'id'
 	)
 
-	// every selection in the selection set might contribute an interaction
+	// every selection in the selection set might contribute an patch
 	for (const selection of selections) {
 		// ignore any fragment spreads
 		if (selection.kind === graphql.Kind.FRAGMENT_SPREAD) {
@@ -250,7 +250,7 @@ function addInteractions(
 				continue
 			}
 
-			// if the field is a scalar, it could be updated by a mutation (needs an entry in interactions)
+			// if the field is a scalar, it could be updated by a mutation (needs an entry in patches)
 			if (graphql.isLeafType(type) && useFields) {
 				// grab the object mapping mutation names to the path in response that updates this field
 				let mutators
@@ -268,8 +268,8 @@ function addInteractions(
 				}
 
 				for (const mutationName of Object.keys(mutators)) {
-					// we have an interaction
-					interactions.push({
+					// we have an patch
+					patches.push({
 						mutationName,
 						mutationPath: mutators[mutationName],
 						queryName: name,
@@ -283,9 +283,9 @@ function addInteractions(
 			// if the field is points to another type (is an object or list)
 			if (selection.selectionSet && (isListType(type) || isObjectType(type))) {
 				// walk down the query for more chagnes
-				addInteractions(
+				addPatchs(
 					config,
-					interactions,
+					patches,
 					mutationTargets,
 					name,
 					getRootType(type) as graphql.GraphQLObjectType<any, any>,
@@ -297,40 +297,40 @@ function addInteractions(
 	}
 }
 
-async function generateFiles(config: Config, interactionAtoms: InteractionAtom[]) {
-	// there could be more than one interaction between a query and mutation
-	// so group up all interactions pairs
-	const interactions: { [name: string]: InteractionAtom[] } = {}
-	for (const interaction of interactionAtoms) {
-		// the interaction name
-		const name = config.interactionName({
-			query: interaction.queryName,
-			mutation: interaction.mutationName,
+async function generateFiles(config: Config, patchAtoms: PatchAtom[]) {
+	// there could be more than one patch between a query and mutation
+	// so group up all patches pairs
+	const patches: { [name: string]: PatchAtom[] } = {}
+	for (const patch of patchAtoms) {
+		// the patch name
+		const name = config.patchName({
+			query: patch.queryName,
+			mutation: patch.mutationName,
 		})
 
-		// if we haven't seen the interaction before, put down a list we can call home
-		if (!interactions[name]) {
-			interactions[name] = []
+		// if we haven't seen the patch before, put down a list we can call home
+		if (!patches[name]) {
+			patches[name] = []
 		}
 
-		// add the interaction to the list
-		interactions[name].push(interaction)
+		// add the patch to the list
+		patches[name].push(patch)
 	}
 
-	// every interaction needs a file
+	// every patch needs a file
 	await Promise.all(
-		Object.keys(interactions).map(async (interactionName) => {
-			// grab the list of things that will change because of this interaction
-			const mutations = interactions[interactionName]
+		Object.keys(patches).map(async (patchName) => {
+			// grab the list of things that will change because of this patch
+			const mutations = patches[patchName]
 
-			// we need an object that contains every field we want to copy over in this interaction
+			// we need an object that contains every field we want to copy over in this patch
 			// grouped together to easily traverse
-			const updateMap: Interaction = {
+			const updateMap: Patch = {
 				edges: {},
 				scalars: {},
 			}
 
-			// make sure very mutation in the interaction ends up in the tree
+			// make sure very mutation in the patch ends up in the tree
 			for (const { mutationPath, queryPath } of mutations) {
 				// the mutation path defines where in the update tree this entry belongs
 				let node = updateMap
@@ -365,20 +365,20 @@ async function generateFiles(config: Config, interactionAtoms: InteractionAtom[]
 				}
 			}
 
-			const interaction = typeBuilders.objectExpression([])
+			const patch = typeBuilders.objectExpression([])
 
-			// we need to build up the interaction as an object that the runtime can import
-			buildInteraction(updateMap, interaction)
+			// we need to build up the patch as an object that the runtime can import
+			buildPatch(updateMap, patch)
 
 			// build up the file contents
 			const program = typeBuilders.program([
 				// export the function as a named export
-				typeBuilders.exportDefaultDeclaration(interaction),
+				moduleExport('default', patch),
 			])
 
-			// figure out the path for the interaction
-			// note: the query and mutation names are the same for every mutation in the interaction
-			const filePath = config.interactionPath({
+			// figure out the path for the patch
+			// note: the query and mutation names are the same for every mutation in the patch
+			const filePath = config.patchPath({
 				query: mutations[0].queryName,
 				mutation: mutations[0].mutationName,
 			})
@@ -389,17 +389,17 @@ async function generateFiles(config: Config, interactionAtoms: InteractionAtom[]
 	)
 }
 
-function buildInteraction(interaction: Interaction, targetObject: namedTypes.ObjectExpression) {
-	// the scalar object has a field for every scalar entry in the interaction
+function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
+	// the scalar object has a field for every scalar entry in the patch
 	targetObject.properties.push(
 		typeBuilders.objectProperty(
 			typeBuilders.stringLiteral('scalars'),
 			typeBuilders.objectExpression(
-				Object.keys(interaction.scalars).map((fieldName) =>
+				Object.keys(patch.scalars).map((fieldName) =>
 					typeBuilders.objectProperty(
 						typeBuilders.stringLiteral(fieldName),
 						typeBuilders.arrayExpression(
-							interaction.scalars[fieldName].map((paths) =>
+							patch.scalars[fieldName].map((paths) =>
 								typeBuilders.arrayExpression(
 									paths.map((entry) => typeBuilders.stringLiteral(entry))
 								)
@@ -411,26 +411,21 @@ function buildInteraction(interaction: Interaction, targetObject: namedTypes.Obj
 		)
 	)
 
-	// add the link entry
+	// add the edges entry
 	targetObject.properties.push(
 		typeBuilders.objectProperty(
 			typeBuilders.stringLiteral('edges'),
 			typeBuilders.objectExpression(
-				Object.keys(interaction.edges).map((fieldName) => {
+				Object.keys(patch.edges).map((fieldName) => {
 					// build up an object expression we will assign in the link object
 					const link = typeBuilders.objectExpression([])
 
 					// add the necessary properties to the nested object
-					buildInteraction(interaction.edges[fieldName], link)
+					buildPatch(patch.edges[fieldName], link)
 
 					return typeBuilders.objectProperty(typeBuilders.stringLiteral(fieldName), link)
 				})
 			)
 		)
 	)
-
-	// go down one more level and add any related edges
-	for (const target of Object.keys(interaction.edges)) {
-		// add the link to the
-	}
 }

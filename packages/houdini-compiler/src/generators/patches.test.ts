@@ -5,12 +5,13 @@ import { testConfig } from 'houdini-common'
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
 import mockFs from 'mock-fs'
-import { ProgramKind } from 'ast-types/gen/kinds'
+import { FileKind } from 'ast-types/gen/kinds'
 import * as typeScriptParser from 'recast/parsers/typescript'
-
+import { BaseNode } from 'estree-walker'
 // local imports
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../types'
+import '../../../../jest.setup'
 
 // define the schema
 const config = testConfig()
@@ -19,7 +20,7 @@ beforeEach(() => {
 	mockFs({
 		[config.runtimeDirectory]: {
 			[config.artifactDirectory]: {},
-			[config.interactionDirectory]: {},
+			[config.patchDirectory]: {},
 		},
 		// make sure that the snapshots are loadable
 		[__dirname]: {
@@ -49,20 +50,20 @@ test('generates cache updaters', async function () {
 	await runGenerators(config, docs)
 
 	// look up the files in the mutation directory
-	const files = await fs.readdir(config.interactionDirectory)
+	const files = await fs.readdir(config.patchDirectory)
 
 	// make sure we made two files
 	expect(files).toHaveLength(1)
 	// and they have the right names
 	expect(files).toEqual(
 		expect.arrayContaining([
-			path.basename(config.interactionPath({ query: 'TestQuery', mutation: 'TestMutation' })),
+			path.basename(config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' })),
 		])
 	)
 
 	// load the contents of the file
 	const contents = await fs.readFile(
-		config.interactionPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
 		'utf-8'
 	)
 
@@ -70,14 +71,26 @@ test('generates cache updaters', async function () {
 	expect(contents).toBeTruthy()
 
 	// parse the contents
-	const parsedContents: ProgramKind = recast.parse(contents, {
+	const parsedContents: FileKind = recast.parse(contents, {
 		parser: typeScriptParser,
-	}).program
-	// sanity check
-	expect(parsedContents.type).toBe('Program')
+	})
 
 	// make sure this doesn't change without approval
-	expect(parsedContents).toMatchSnapshot()
+	expect(parsedContents).toMatchInlineSnapshot(`
+		module.exports = {
+		    "scalars": {},
+
+		    "edges": {
+		        "updateUser": {
+		            "scalars": {
+		                "firstName": [["user", "firstName"]]
+		            },
+
+		            "edges": {}
+		        }
+		    }
+		};
+	`)
 })
 
 test.skip('inline fragments in mutation body count as an intersection', function () {})

@@ -16,6 +16,7 @@
 		"jest": "^25.0.0",
 		"mock-fs": "^4.13.0",
 		"prettier": "^2.0.5",
+		"ts-ast-serializer": "^1.0.1",
 		"ts-node": "^9.1.1",
 		"typescript": "^3.9.5"
 	},

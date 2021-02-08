@@ -7,6 +7,7 @@ import mockFs from 'mock-fs'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
+import '../../../../jest.setup'
 // local imports
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../types'
@@ -18,7 +19,7 @@ beforeEach(() => {
 	mockFs({
 		[config.runtimeDirectory]: {
 			[config.artifactDirectory]: {},
-			[config.interactionDirectory]: {},
+			[config.patchDirectory]: {},
 		},
 		[__dirname]: {
 			__snapshots__: mockFs.load(path.resolve(__dirname, '__snapshots__')),
@@ -58,18 +59,45 @@ test('adds kind, name, and raw', async function () {
 	// execute the generator
 	await runGenerators(config, docs)
 
-	// look at the files in the artifact directory
-	for (const fileName of await fs.readdir(config.artifactDirectory)) {
-		// load the contents of the file
-		const contents = await fs.readFile(path.join(config.artifactDirectory, fileName), 'utf-8')
+	//
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "TestQuery";
+		module.exports.kind = "HoudiniQuery";
 
-		// make sure there is something
-		expect(contents).toBeTruthy()
+		module.exports.raw = \`query TestQuery {
+		  version
+		}
+		\`;
+	`)
 
-		// parse the contents
-		const parsedContents: ProgramKind = recast.parse(contents, {
-			parser: typeScriptParser,
-		}).program
-		expect(parsedContents).toMatchSnapshot()
-	}
+	const fragmentContents = await fs.readFile(
+		path.join(config.artifactPath(docs[1].document)),
+		'utf-8'
+	)
+	expect(fragmentContents).toBeTruthy()
+	// parse the contents
+	const parsedFragment: ProgramKind = recast.parse(fragmentContents, {
+		parser: typeScriptParser,
+	}).program
+	// and verify their content
+	expect(parsedFragment).toMatchInlineSnapshot(`
+		module.exports.name = "TestFragment";
+		module.exports.kind = "HoudiniFragment";
+
+		module.exports.raw = \`fragment TestFragment on User {
+		  firstName
+		}
+		\`;
+	`)
 })

@@ -25,17 +25,10 @@ export type CompiledGraphqlFragment = BaseCompiledDocument & {
 }
 
 // a description of an interaction between a mutation and a query
-export type Interaction = {
+export type Patch = {
 	scalars: { [fieldName: string]: Array<string[]> }
-	edges: { [path: string]: Interaction }
+	edges: { [path: string]: Patch }
 }
-
-// the function to call that applies a mutation payload to a store
-export type InteractionUpdate<_StoreState, _MutationPayload> = (
-	currentState: _StoreState,
-	set: (newState: _StoreState) => void,
-	payload: _MutationPayload
-) => void
 
 // any compiled result
 export type CompiledDocument = CompiledGraphqlFragment | CompiledGraphqlQuery

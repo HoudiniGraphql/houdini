@@ -44,20 +44,17 @@ export class Config {
 	}
 
 	// the directory where the mutation handlers live
-	get interactionDirectory() {
-		return path.join(this.runtimeDirectory, 'interactions')
+	get patchDirectory() {
+		return path.join(this.runtimeDirectory, 'patches')
 	}
 
-	interactionName({ query, mutation }: { query: string; mutation: string }) {
+	patchName({ query, mutation }: { query: string; mutation: string }) {
 		return `${mutation}_${query}`
 	}
 
-	// the location for the artifact for an interaction
-	interactionPath({ query, mutation }: { query: string; mutation: string }) {
-		return path.join(
-			this.interactionDirectory,
-			`${this.interactionName({ query, mutation })}.js`
-		)
+	// the location for the artifact for anpatch
+	patchPath({ query, mutation }: { query: string; mutation: string }) {
+		return path.join(this.patchDirectory, `${this.patchName({ query, mutation })}.js`)
 	}
 
 	// the location of the artifact generated corresponding to the provided documents
