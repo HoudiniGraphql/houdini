@@ -21,6 +21,10 @@ beforeEach(() => {
 			[config.artifactDirectory]: {},
 			[config.interactionDirectory]: {},
 		},
+		// make sure that the snapshots are loadable
+		[__dirname]: {
+			__snapshots__: mockFs.load(path.resolve(__dirname, '__snapshots__')),
+		},
 	})
 })
 

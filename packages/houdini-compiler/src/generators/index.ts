@@ -14,8 +14,8 @@ const generatorPipeline: TransformPipeline<CollectedGraphQLDocument[]> = {
 
 export default async function runGenerators(config: Config, documents: CollectedGraphQLDocument[]) {
 	// delete and recreate the runtime directory
-	await fs.rmdir(config.artifactDirectory, { recursive: true })
-	await mkdirp(config.artifactDirectory)
+	// await fs.rmdir(config.runtimeDirectory, { recursive: true })
+	await Promise.all([mkdirp(config.interactionDirectory), mkdirp(config.artifactDirectory)])
 
 	// run the generators
 	return await apply(config, generatorPipeline, documents)

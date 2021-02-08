@@ -22,8 +22,6 @@ export default async function compile(config: Config) {
 	// to optimize their content, validate their structure, and add anything else we need behind the scenes
 	await applyTransforms(config, documents)
 
-	// delete the runtime directory we are about to create
-
 	// write the artifacts
 	await runGenerators(config, documents)
 }

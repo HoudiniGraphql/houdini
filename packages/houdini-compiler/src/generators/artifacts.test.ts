@@ -25,6 +25,9 @@ beforeEach(() => {
 			[config.artifactDirectory]: {},
 			[config.interactionDirectory]: {},
 		},
+		[__dirname]: {
+			__snapshots__: mockFs.load(path.resolve(__dirname, '__snapshots__')),
+		},
 	})
 })
 
@@ -62,9 +65,6 @@ test('adds kind, name, and raw', async function () {
 
 	// look at the files in the artifact directory
 	for (const fileName of await fs.readdir(config.artifactDirectory)) {
-		// import the artifact
-		const artifact = {} as CompiledDocument
-
 		// load the contents of the file
 		const contents = await fs.readFile(path.join(config.artifactDirectory, fileName), 'utf-8')
 
@@ -75,7 +75,6 @@ test('adds kind, name, and raw', async function () {
 		const parsedContents: ProgramKind = recast.parse(contents, {
 			parser: typeScriptParser,
 		}).program
-
 		expect(parsedContents).toMatchSnapshot()
 	}
 })
