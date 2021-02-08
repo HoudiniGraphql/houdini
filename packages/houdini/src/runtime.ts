@@ -14,7 +14,7 @@ export function fetchQuery({
 	return getEnvironment()?.sendRequest({ text, variables })
 }
 
-type Record = { [key: string]: any | Data } & { id?: string }
+type Record = { [key: string]: any } & { id?: string }
 type Data = Record | Record[]
 
 export function applyPatch(
