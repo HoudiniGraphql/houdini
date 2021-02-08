@@ -17,7 +17,7 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../types'
-import { variableNames } from './mutations'
+import { variableNames } from './interactions'
 
 // define the schema
 const config = testConfig()

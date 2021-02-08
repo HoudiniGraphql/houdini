@@ -5,11 +5,11 @@ import fs from 'fs/promises'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 import artifacts from './artifacts'
-import mutations from './mutations'
+import interactions from './interactions'
 
 // the default list of transforms to apply
 const generatorPipeline: TransformPipeline<CollectedGraphQLDocument[]> = {
-	transforms: [artifacts, mutations],
+	transforms: [artifacts, interactions],
 }
 
 export default async function runGenerators(config: Config, documents: CollectedGraphQLDocument[]) {
