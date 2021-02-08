@@ -14,33 +14,74 @@ export function fetchQuery({
 	return getEnvironment()?.sendRequest({ text, variables })
 }
 
-export function applyPatch<_StateType, _PayloadType>(
+type Data = { [key: string]: {} } | { [key: string]: {} }[]
+
+export function applyPatch(
 	patch: Patch,
-	set: (newValue: _StateType) => void,
-	currentState: _StateType,
-	payload: _PayloadType
+	set: (newValue: Data) => void,
+	currentState: Data,
+	payload: Data
 ) {
 	// a place to write updates to
 	const target = currentState
 
 	// walk down the the patch and if there was a mutation, commit the update
-	if (walkPatch(patch, currentState, payload, target)) {
+	if (walkPatch(patch, payload, target)) {
 		set(target)
 	}
 }
 
-function walkPatch<_StateType, _PayloadType>(
+function walkPatch(
 	patch: Patch,
-	currentState: _StateType,
-	payload: _PayloadType,
-	target: _StateType
+	payload: { [key: string]: {} } | { [key: string]: {} }[],
+	target: { [key: string]: {} } | { [key: string]: {} }[]
 ): boolean {
-	// we will update something if we have fields up date
-	let updated = Object.keys(patch.fields).length > 0
+	// track if we update something
+	let updated = false
+
+	// if we are walking down a list then we need to take one more step
+	if (Array.isArray(payload)) {
+		for (const subobj of payload) {
+			// if walking down updated something and we don't think we have
+			if (walkPatch(patch, subobj, target) && !updated) {
+				// keep us up to date
+				updated = true
+			}
+		}
+
+		// we're done with this entry (ignore fields and edges on lists)
+		return updated
+	}
 
 	// look for any fields to update
 	for (const fieldName of Object.keys(patch.fields)) {
-		// update the target object
+		// update the target object at every path we need to
+		for (const path of patch.fields[fieldName]) {
+			let subtarget = target
+			for (const [i, entry] of path.entries()) {
+				// if we are looking at the last element
+				if (i === path.length - 1) {
+					// only update fields if the id's match
+					if (subtarget.id === payload.id) {
+						// we need to update the field
+						subtarget[entry] = payload[fieldName]
+
+						// track that we did something
+						updated = true
+					}
+				} else {
+					subtarget = subtarget[entry]
+				}
+			}
+		}
+	}
+
+	// walk down any related fields
+	for (const edgeName of Object.keys(patch.edges)) {
+		// walk down and keep track if we updated anything
+		if (walkPatch(patch.edges[edgeName], payload[edgeName], target) && !updated) {
+			updated = true
+		}
 	}
 
 	// bubble up if there was an update
