@@ -256,4 +256,6 @@ describe('apply patch', function () {
 			],
 		})
 	})
+
+	test.skip('null values in current state', function () {})
 })
