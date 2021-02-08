@@ -3,11 +3,10 @@ import { Config } from 'houdini-common'
 import * as graphql from 'graphql'
 import { CompiledQueryKind, CompiledFragmentKind, CompiledMutationKind } from '../types'
 import * as recast from 'recast'
-import { ExpressionKind } from 'ast-types/gen/kinds'
 import fs from 'fs/promises'
-import mkdirp from 'mkdirp'
 // locals
 import { CollectedGraphQLDocument } from '../types'
+import { moduleExport } from '../utils'
 
 const AST = recast.types.builders
 
@@ -76,18 +75,5 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				console.log(name)
 			}
 		})
-	)
-}
-
-function moduleExport(key: string, value: ExpressionKind) {
-	return AST.expressionStatement(
-		AST.assignmentExpression(
-			'=',
-			AST.memberExpression(
-				AST.memberExpression(AST.identifier('module'), AST.identifier('exports')),
-				AST.identifier(key)
-			),
-			value
-		)
 	)
 }

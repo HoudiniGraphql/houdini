@@ -4,9 +4,10 @@ import * as graphql from 'graphql'
 import mkdirp from 'mkdirp'
 import * as recast from 'recast'
 import fs from 'fs/promises'
-import { CallExpression, Identifier } from 'estree'
+import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
-import { CollectedGraphQLDocument } from '../types'
+import { CollectedGraphQLDocument, Interaction } from '../types'
+import { moduleExport } from '../utils'
 
 const typeBuilders = recast.types.builders
 
@@ -14,7 +15,7 @@ const typeBuilders = recast.types.builders
 // happen if we get the {id} of the type in the payload. Therefore we're going to look at
 // every mutation and collect the types in the payload with {id} in their selection set.
 // Then look at every query and fragment to see if it asks for the type. If so, then
-// we need to generate some kind of response handler.
+// we need to generate something the runtime can use.
 
 // keep track of which mutation affects which fields of which type
 // we need to map types to fields to the mutations that update it
@@ -26,7 +27,8 @@ type MutationMap = {
 	}
 }
 
-type Interaction = {
+// another intermediate type used when building up the mutation description
+type InteractionAtom = {
 	mutationName: string
 	mutationPath: string[]
 	queryName: string
@@ -80,7 +82,7 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 
 	// now that we know which fields the mutation can update we can walk through every document
 	// and look for queries or fragments that intersect with the fields changed by the mutations
-	const interactions: Interaction[] = []
+	const interactions: InteractionAtom[] = []
 
 	// we will run into the same document many times so we have to make sure we are only processing a document once
 	const _docsVisited: { [name: string]: boolean } = {}
@@ -211,7 +213,7 @@ function fillMutationMap(
 
 function addInteractions(
 	config: Config,
-	interactions: Interaction[],
+	interactions: InteractionAtom[],
 	mutationTargets: MutationMap,
 	name: string,
 	rootType: graphql.GraphQLObjectType<any, any>,
@@ -295,10 +297,10 @@ function addInteractions(
 	}
 }
 
-async function generateFiles(config: Config, interactionAtoms: Interaction[]) {
+async function generateFiles(config: Config, interactionAtoms: InteractionAtom[]) {
 	// there could be more than one interaction between a query and mutation
 	// so group up all interactions pairs
-	const interactions: { [name: string]: Interaction[] } = {}
+	const interactions: { [name: string]: InteractionAtom[] } = {}
 	for (const interaction of interactionAtoms) {
 		// the interaction name
 		const name = config.interactionName({
@@ -323,8 +325,8 @@ async function generateFiles(config: Config, interactionAtoms: Interaction[]) {
 
 			// we need an object that contains every field we want to copy over in this interaction
 			// grouped together to easily traverse
-			const updateMap: UpdateTree = {
-				children: {},
+			const updateMap: Interaction = {
+				edges: {},
 				scalars: {},
 			}
 
@@ -338,82 +340,40 @@ async function generateFiles(config: Config, interactionAtoms: Interaction[]) {
 
 					// if we are at the end of the path
 					if (i === mutationPath.length - 1) {
+						// if this is the first time we are treating this entry as a source
+						if (!node.scalars[pathEntry]) {
+							node.scalars[pathEntry] = []
+						}
+
 						// add the entry to the node's list of scalars to update
-						node.scalars[pathEntry] = queryPath
+						node.scalars[pathEntry].push(queryPath)
+
 						// we're done with this atom
 						continue
 					}
 
 					// if this is the first time we've encountered this field in the response
-					if (!node.children[pathEntry]) {
-						node.children[pathEntry] = {
+					if (!node.edges[pathEntry]) {
+						node.edges[pathEntry] = {
 							scalars: {},
-							children: {},
+							edges: {},
 						}
 					}
 
 					// keep walking
-					node = node.children[pathEntry]
+					node = node.edges[pathEntry]
 				}
 			}
 
-			// build up the program statements
-			// start the program with a declaration of the update predicate
-			const body = typeBuilders.blockStatement([
-				// let update = false
-				typeBuilders.variableDeclaration('let', [
-					typeBuilders.variableDeclarator(
-						typeBuilders.identifier(variableNames.updatePredicate),
-						typeBuilders.booleanLiteral(false)
-					),
-				]),
-				// and a declaration of the object we'll use to update
-				typeBuilders.variableDeclaration('const', [
-					typeBuilders.variableDeclarator(
-						typeBuilders.identifier(variableNames.updatedState),
-						localCopyExpression(typeBuilders.identifier(variableNames.currentState))
-					),
-				]),
-			])
+			const interaction = typeBuilders.objectExpression([])
 
-			// add something to the body for everything in the update map
-			console.log(JSON.stringify(updateMap))
-
-			// add the optional update
-			body.body.push(
-				// if (update) {
-				// 		set(updatedState)
-				// }
-				typeBuilders.ifStatement(
-					typeBuilders.identifier(variableNames.updatePredicate),
-					typeBuilders.blockStatement([
-						typeBuilders.expressionStatement(
-							typeBuilders.callExpression(
-								typeBuilders.identifier(variableNames.set),
-								[typeBuilders.identifier(variableNames.updatedState)]
-							)
-						),
-					])
-				)
-			)
-
-			// we need to generate a function that takes the current state of a store, the function
-			// to call that updates the store's data, and the mutation payload. this function
-			// should be invoked by the runtime to apply the mutation response to a local store
-			const updater = typeBuilders.functionDeclaration(
-				typeBuilders.identifier('applyMutation'),
-				[
-					typeBuilders.identifier(variableNames.currentState),
-					typeBuilders.identifier(variableNames.set),
-					typeBuilders.identifier(variableNames.payload),
-				],
-				body
-			)
+			// we need to build up the interaction as an object that the runtime can import
+			buildInteraction(updateMap, interaction)
 
 			// build up the file contents
 			const program = typeBuilders.program([
 				// export the function as a named export
-				typeBuilders.exportNamedDeclaration(updater, []),
+				typeBuilders.exportDefaultDeclaration(interaction),
 			])
 
 			// figure out the path for the interaction
@@ -429,19 +389,48 @@ async function generateFiles(config: Config, interactionAtoms: Interaction[]) {
 	)
 }
 
-type UpdateTree = {
-	scalars: { [fieldName: string]: string[] }
-	children: { [path: string]: UpdateTree }
-}
+function buildInteraction(interaction: Interaction, targetObject: namedTypes.ObjectExpression) {
+	// the scalar object has a field for every scalar entry in the interaction
+	targetObject.properties.push(
+		typeBuilders.objectProperty(
+			typeBuilders.stringLiteral('scalars'),
+			typeBuilders.objectExpression(
+				Object.keys(interaction.scalars).map((fieldName) =>
+					typeBuilders.objectProperty(
+						typeBuilders.stringLiteral(fieldName),
+						typeBuilders.arrayExpression(
+							interaction.scalars[fieldName].map((paths) =>
+								typeBuilders.arrayExpression(
+									paths.map((entry) => typeBuilders.stringLiteral(entry))
+								)
+							)
+						)
+					)
+				)
+			)
+		)
+	)
 
-export const variableNames = {
-	set: 'set',
-	currentState: 'currentState',
-	updatedState: 'updatedState',
-	payload: 'payload',
-	updatePredicate: 'update',
-}
+	// add the link entry
+	targetObject.properties.push(
+		typeBuilders.objectProperty(
+			typeBuilders.stringLiteral('edges'),
+			typeBuilders.objectExpression(
+				Object.keys(interaction.edges).map((fieldName) => {
+					// build up an object expression we will assign in the link object
+					const link = typeBuilders.objectExpression([])
 
-function localCopyExpression(target: Identifier): Identifier {
-	return target
+					// add the necessary properties to the nested object
+					buildInteraction(interaction.edges[fieldName], link)
+
+					return typeBuilders.objectProperty(typeBuilders.stringLiteral(fieldName), link)
+				})
+			)
+		)
+	)
+
+	// go down one more level and add any related edges
+	for (const target of Object.keys(interaction.edges)) {
+		// add the link to the
+	}
 }

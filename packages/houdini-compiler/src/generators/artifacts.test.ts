@@ -4,6 +4,9 @@ import { testConfig } from 'houdini-common'
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
 import mockFs from 'mock-fs'
+import * as typeScriptParser from 'recast/parsers/typescript'
+import { ProgramKind } from 'ast-types/gen/kinds'
+import * as recast from 'recast'
 // local imports
 import runGenerators from '.'
 import {
@@ -62,21 +65,17 @@ test('adds kind, name, and raw', async function () {
 		// import the artifact
 		const artifact = {} as CompiledDocument
 
-		// if we are looking at the query
-		if (artifact.name === 'TestQuery') {
-			expect(artifact.kind).toEqual(CompiledQueryKind)
-			expect(artifact.raw).toEqual(
-				graphql.print(graphql.parse(`query TestQuery { version }`))
-			)
-		}
-		// otherwise we are looking at the fragment definition
-		else if (artifact.name === 'TestFragment') {
-			expect(artifact.kind).toEqual(CompiledFragmentKind)
-			expect(artifact.raw).toEqual(
-				graphql.print(graphql.parse(`fragment TestFragment on User { firstName }`))
-			)
-		} else {
-			fail('did not encounter the artifacts we expected')
-		}
+		// load the contents of the file
+		const contents = await fs.readFile(path.join(config.artifactDirectory, fileName), 'utf-8')
+
+		// make sure there is something
+		expect(contents).toBeTruthy()
+
+		// parse the contents
+		const parsedContents: ProgramKind = recast.parse(contents, {
+			parser: typeScriptParser,
+		}).program
+
+		expect(parsedContents).toMatchSnapshot()
 	}
 })

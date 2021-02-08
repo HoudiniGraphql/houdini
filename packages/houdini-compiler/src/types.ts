@@ -24,6 +24,12 @@ export type CompiledGraphqlFragment = BaseCompiledDocument & {
 	kind: 'HoudiniFragment'
 }
 
+// a description of an interaction between a mutation and a query
+export type Interaction = {
+	scalars: { [fieldName: string]: Array<string[]> }
+	edges: { [path: string]: Interaction }
+}
+
 // the function to call that applies a mutation payload to a store
 export type InteractionUpdate<_StoreState, _MutationPayload> = (
 	currentState: _StoreState,
