@@ -320,19 +320,46 @@ async function generateFiles(config: Config, interactionAtoms: Interaction[]) {
 			// grab the list of things that will change because of this interaction
 			const mutations = interactions[interactionName]
 
+			// combine all of the mutations into something that we can refer to
+			// the mutation side of an interaction determines the source in the
+			// mutation payload that needs to be applied to the target
+			const pathKey = (path: string[]) => path.join(',')
+			// create a map indexed by mutation path whose value points to the place
+			// we need to apply the mutation
+			const targets: { [mutationPath: string]: string[] } = mutations.reduce(
+				(acc, mutation) => ({
+					...acc,
+					[pathKey(mutation.mutationPath)]: mutation.queryPath,
+				}),
+				{}
+			)
+			console.log(targets)
+
+			// we need to generate a function that takes the current state of a store, the function
+			// to call that updates the store's data, and the mutation payload. this function
+			// should be invoked by the runtime to apply the mutation response to a local store
+			const updater = typeBuilders.functionDeclaration(
+				typeBuilders.identifier('applyMutation'),
+				[
+					typeBuilders.identifier('currentState'),
+					typeBuilders.identifier('set'),
+					typeBuilders.identifier('payload'),
+				],
+				typeBuilders.blockStatement([])
+			)
+
+			// build up the file contents
+			const program = typeBuilders.program([
+				// export the function as a named export
+				typeBuilders.exportNamedDeclaration(updater, []),
+			])
+
 			// figure out the path for the interaction
 			// note: the query and mutation names are the same for every mutation in the interaction
 			const filePath = config.interactionPath({
 				query: mutations[0].queryName,
 				mutation: mutations[0].mutationName,
 			})
-
-			// build up the file contents
-			const program = typeBuilders.program([])
-
-			// the main thing we are responsible for is generating a function that takes
-			// the current state, the mutation payload, and the function to call that updates the
-			// store's data
 
 			// write the contents of the file to the location
 			await fs.writeFile(filePath, recast.print(program).code, 'utf-8')

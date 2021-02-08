@@ -5,7 +5,8 @@ import { testConfig } from 'houdini-common'
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
 import mockFs from 'mock-fs'
-import { Program, ExportDefaultDeclaration, ExportNamedDeclaration } from 'estree'
+import { Program } from 'estree'
+import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../types'
@@ -64,7 +65,9 @@ test('generates cache updaters', async function () {
 	expect(contents).toBeTruthy()
 
 	// parse the contents
-	const parsedContents: Program = recast.parse(contents)
+	const parsedContents: Program = recast.parse(contents, {
+		parser: typeScriptParser,
+	}).program
 	// sanity check
 	expect(parsedContents.type).toBe('Program')
 

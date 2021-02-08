@@ -60,10 +60,7 @@ test('adds kind, name, and raw', async function () {
 	// look at the files in the artifact directory
 	for (const fileName of await fs.readdir(config.artifactDirectory)) {
 		// import the artifact
-		const artifact = (await require(path.join(
-			config.artifactDirectory,
-			fileName
-		))) as CompiledDocument
+		const artifact = {} as CompiledDocument
 
 		// if we are looking at the query
 		if (artifact.name === 'TestQuery') {
@@ -78,6 +75,8 @@ test('adds kind, name, and raw', async function () {
 			expect(artifact.raw).toEqual(
 				graphql.print(graphql.parse(`fragment TestFragment on User { firstName }`))
 			)
+		} else {
+			fail('did not encounter the artifacts we expected')
 		}
 	}
 })
