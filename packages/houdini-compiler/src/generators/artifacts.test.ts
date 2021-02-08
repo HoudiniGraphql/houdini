@@ -9,12 +9,7 @@ import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
 import runGenerators from '.'
-import {
-	CollectedGraphQLDocument,
-	CompiledQueryKind,
-	CompiledFragmentKind,
-	CompiledDocument,
-} from '../types'
+import { CollectedGraphQLDocument } from '../types'
 
 // the config to use in tests
 const config = testConfig()
