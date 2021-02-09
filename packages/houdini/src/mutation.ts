@@ -23,7 +23,6 @@ export default function mutation(document: GraphQLTagResult) {
 
 	// return an async function that sends the mutation go the server
 	return async (variables: any) => {
-		console.log(variables)
 		// grab the response from the server
 		const { data } = await currentEnv.sendRequest({ text, variables })
 
