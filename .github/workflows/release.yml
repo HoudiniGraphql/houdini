@@ -15,10 +15,14 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
 
-            - name: Setup Node ${{ matrix.node_version }}
+            - name: Attached head
+              run: |
+                  git checkout ${github.event.pull_request.base.ref}
+
+            - name: Setup Node 15
               uses: actions/setup-node@v1
               with:
-                  node-version: 12
+                  node-version: 15
                   registry-url: 'https://npm.pkg.github.com'
 
             # run git actions as a bot
