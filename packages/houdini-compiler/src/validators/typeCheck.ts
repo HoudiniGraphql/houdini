@@ -19,7 +19,13 @@ export default async function typeCheck(
 		// build up a list of the rules we want to validate with
 		const validateRules = [...graphql.specifiedRules].filter(
 			// remove the rules that conflict with houdini
-			(rule) => [NoUnusedFragments, KnownFragmentNames].indexOf(rule) === -1
+			(rule) =>
+				![
+					// fragments are defined on their own
+					NoUnusedFragments,
+					// query documents do contain the fragments
+					KnownFragmentNames,
+				].includes(rule)
 		)
 
 		// validate the document
