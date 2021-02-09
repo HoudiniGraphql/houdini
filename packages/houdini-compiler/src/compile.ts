@@ -4,7 +4,7 @@ import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { promisify } from 'util'
-import { Config, Pipeline, runPipeline as run } from 'houdini-common'
+import { Config, runPipeline as run } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from './types'
 import * as transforms from './transforms'
@@ -97,6 +97,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 								documents.push({
 									name: config.documentName(parsedDoc),
 									document: parsedDoc,
+									filename: filePath,
 								})
 							}
 						},

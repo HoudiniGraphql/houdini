@@ -35,6 +35,7 @@ export type CompiledDocument = CompiledGraphqlFragment | CompiledGraphqlQuery
 
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {
+	filename: string
 	name: string
 	document: graphql.DocumentNode
 }

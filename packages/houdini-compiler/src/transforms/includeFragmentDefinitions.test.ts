@@ -25,7 +25,7 @@ const start = [
     `,
 ]
 
-pipelineTest('include fragment definitions', start, function (docs) {
+pipelineTest('include fragment definitions', start, true, function (docs) {
 	// we only care about the Foo document
 	const fooDoc = docs.find((doc) => doc.name === 'Foo') as CollectedGraphQLDocument
 
