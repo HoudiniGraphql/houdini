@@ -2,7 +2,7 @@
 	"name": "houdini-example",
 	"private": true,
 	"description": "TODO",
-	"version": "0.0.1",
+	"version": "0.0.0",
 	"scripts": {
 		"dev": "sapper dev",
 		"compile": "houdini-compiler",
