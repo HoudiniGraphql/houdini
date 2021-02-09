@@ -37,11 +37,11 @@ jobs:
             - name: Bump version
               run: |
                   if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} = "true" ] ; then
-                    lerna version major
+                    yarn lerna version major
                   elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor') }} = "true" ] ; then
-                    lerna version minor
+                    yarn lerna version minor
                   elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} = "true" ] ; then
-                    lerna version patch
+                    yarn lerna version patch
                   fi
 
             # define ${CURRENT_VERSION}
