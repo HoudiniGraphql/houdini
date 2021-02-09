@@ -9,5 +9,6 @@
 		"houdini-compiler": "^0.2.1",
 		"houdini-preprocess": "^0.2.1"
 	},
-	"main": "build/index.js"
+	"main": "build/index.js",
+	"gitHead": "35e95832c02b1e748e915345cd4fbf2fac17847a"
 }

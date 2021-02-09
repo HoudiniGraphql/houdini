@@ -29,5 +29,6 @@
 		"houdini-common": "^0.2.1",
 		"mkdirp": "^1.0.4",
 		"recast": "^0.20.4"
-	}
+	},
+	"gitHead": "35e95832c02b1e748e915345cd4fbf2fac17847a"
 }
