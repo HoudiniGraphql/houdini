@@ -40,6 +40,7 @@ jobs:
               run: |
                   yarn install
                   yarn build
+                  git checkout yarn.lock
 
             # bump the package versions depending on the labels of the pull request
             - name: Bump version
