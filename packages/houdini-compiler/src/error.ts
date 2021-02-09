@@ -8,4 +8,4 @@ export type HoudiniDocumentError = graphql.GraphQLError & { filepath: string }
 export type HoudiniInfoError = { message: string; description?: string[] }
 
 // any error that the compiler could fire
-export type HoudiniError = HoudiniDocumentError
+export type HoudiniError = HoudiniDocumentError | HoudiniInfoError
