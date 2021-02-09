@@ -15,7 +15,7 @@ const typeDefs = gql`
 	}
 
 	type Query {
-		items: [TodoItem!]!
+		items(completed: Boolean): [TodoItem!]!
 	}
 
 	type Mutation {
@@ -37,7 +37,14 @@ const items = [
 
 const resolvers = {
 	Query: {
-		items: () => items,
+		items: (_, { completed } = {}) => {
+			// if completed is undefined there is no filter
+			if (typeof completed === 'undefined') {
+				return items
+			}
+
+			return items.filter((item) => Boolean(item.completed) === Boolean(completed))
+		},
 	},
 	Mutation: {
 		completeItem(_, { id: targetID }) {
