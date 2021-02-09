@@ -1,10 +1,11 @@
 // externals
-import { Config, HoudiniDocumentError } from 'houdini-common'
+import { Config } from 'houdini-common'
 import * as graphql from 'graphql'
 import { NoUnusedFragments } from 'graphql/validation/rules/NoUnusedFragments'
 import { KnownFragmentNames } from 'graphql/validation/rules/KnownFragmentNames'
 // locals
 import { CollectedGraphQLDocument } from '../types'
+import { HoudiniDocumentError } from '../error'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line

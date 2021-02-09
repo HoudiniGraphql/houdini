@@ -1,9 +1,10 @@
 // externals
 import * as graphql from 'graphql'
-import { HoudiniError, testConfig } from 'houdini-common'
+import { testConfig } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from './types'
 import { runPipeline } from './compile'
+import { HoudiniError } from './error'
 
 export function pipelineTest(
 	title: string,
@@ -27,6 +28,7 @@ export function pipelineTest(
 			return {
 				name: definition.name?.value || 'NO_NAME',
 				document,
+				filename: 'test_file.js',
 			}
 		})
 
