@@ -51,14 +51,17 @@ jobs:
             # ${BUMP}
             - name: Set BUMP
               shell: bash -ex {0}
+              # run: |
+              #     if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') }} = "true" ] ; then
+              #       BUMP=major
+              #     elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor Version') }} = "true" ] ; then
+              #       BUMP=minor
+              #     elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Patch Version') }} = "true" ] ; then
+              #       BUMP=patch
+              #     fi
+              #     echo "BUMP=${BUMP}" >> $GITHUB_ENV
               run: |
-                  if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') }} = "true" ] ; then
-                    BUMP=major
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor Version') }} = "true" ] ; then
-                    BUMP=minor
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Patch Version') }} = "true" ] ; then
-                    BUMP=patch
-                  fi
+                  BUMP=patch
                   echo "BUMP=${BUMP}" >> $GITHUB_ENV
 
             # define ${CURRENT_VERSION}
@@ -70,7 +73,6 @@ jobs:
 
             - name: Authenticate with Registry
               run: |
-                  yarn logout
                   echo "@apollo-elements:registry=http://registry.npmjs.org/" > .npmrc
                   echo "registry=http://registry.npmjs.org/" >> .npmrc
                   echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> .npmrc
