@@ -58,7 +58,7 @@ test('generates patches', async function () {
 
 	// make sure this doesn't change without approval
 	expect(parsedContents).toMatchInlineSnapshot(`
-		module.exports = {
+		export default {
 		    "fields": {},
 
 		    "edges": {

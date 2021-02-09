@@ -183,7 +183,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 			// build up the file contents
 			const program = typeBuilders.program([
 				// export the function as a named export
-				moduleExport('default', patch),
+				typeBuilders.exportDefaultDeclaration(patch),
 			])
 
 			// figure out the path for the patch
