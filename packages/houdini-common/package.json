@@ -1,6 +1,6 @@
 {
 	"name": "houdini-common",
-	"version": "0.0.0",
+	"version": "0.2.2",
 	"description": "",
 	"main": "build/index.js",
 	"scripts": {
@@ -10,5 +10,6 @@
 	"bin": "build/main.js",
 	"keywords": [],
 	"author": "",
-	"license": "ISC"
+	"license": "ISC",
+	"gitHead": "5c8d7507e445cdfb5db7e31ce724a9be9672452c"
 }
