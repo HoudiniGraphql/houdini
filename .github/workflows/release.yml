@@ -30,8 +30,10 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Install
-              run: yarn install
+            - name: Install and Build
+              run: |
+                  yarn install
+                  yarn build
 
             # bump the package versions depending on the labels of the pull request
             - name: Bump version
