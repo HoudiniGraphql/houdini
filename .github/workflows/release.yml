@@ -30,8 +30,7 @@ jobs:
 
             - name: Bump version
               run: |
-                  echo ${{ github.event.pull_request.labels }}
-                  node scripts/version.js
+                  echo ${{ contains(github.event.issue.labels.*.name, 'bug') }}
 
             # - name: Check bump type
             #   run: |
