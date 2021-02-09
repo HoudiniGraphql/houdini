@@ -32,7 +32,7 @@ jobs:
             - name: Attach head
               run: |
                   git pull origin
-                  git checkout ${{github.event.pull_request.base.ref}}
+                  git checkout ${{github.event.pull_request.target.ref}}
 
             - name: Install and Build
               run: |
