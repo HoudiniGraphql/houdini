@@ -75,7 +75,7 @@ const table: Row[] = [
                 }
             `,
 		],
-		check: function (e: HoudiniError[]) {
+		check: function (e: HoudiniError | HoudiniError[]) {
 			expect(e).toHaveLength(2)
 		},
 	},

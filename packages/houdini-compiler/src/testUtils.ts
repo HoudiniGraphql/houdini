@@ -1,6 +1,6 @@
 // externals
 import * as graphql from 'graphql'
-import { testConfig } from 'houdini-common'
+import { HoudiniError, testConfig } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from './types'
 import { runPipeline } from './compile'
@@ -9,7 +9,9 @@ export function pipelineTest(
 	title: string,
 	documents: string[],
 	shouldPass: boolean,
-	testBody?: ((result: Error) => void) | ((docs: CollectedGraphQLDocument[]) => void)
+	testBody?:
+		| ((result: HoudiniError | HoudiniError[]) => void)
+		| ((docs: CollectedGraphQLDocument[]) => void)
 ) {
 	test(title, async function () {
 		// the first thing to do is to create the list of collected documents

@@ -1,11 +1,10 @@
 // externals
-import { Config, HoudiniError } from 'houdini-common'
+import { Config, HoudiniDocumentError } from 'houdini-common'
 import * as graphql from 'graphql'
 import { NoUnusedFragments } from 'graphql/validation/rules/NoUnusedFragments'
 import { KnownFragmentNames } from 'graphql/validation/rules/KnownFragmentNames'
 // locals
 import { CollectedGraphQLDocument } from '../types'
-import { parse } from 'commander'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line
@@ -14,7 +13,7 @@ export default async function typeCheck(
 	docs: CollectedGraphQLDocument[]
 ): Promise<void> {
 	// wrap the errors we run into in a HoudiniError
-	const errors: HoudiniError[] = []
+	const errors: HoudiniDocumentError[] = []
 
 	for (const { filename, document: parsed } of docs) {
 		// build up a list of the rules we want to validate with
