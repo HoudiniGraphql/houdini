@@ -31,7 +31,7 @@ jobs:
 
             - name: Attach head
               run: |
-                  git pull origin ${{github.event.pull_request.target.ref}}
+                  git pull origin main
                   git checkout ${{github.event.pull_request.target.ref}}
 
             - name: Install and Build
