@@ -1,10 +1,13 @@
 name: Publish Release
 on:
     # When Release Pull Request is merged
-    pull_request:
+    # pull_request:
+    #     branches:
+    #         - main
+    # types: [closed]
+    push:
         branches:
             - main
-    types: [closed]
 
 env:
     CI: true
@@ -13,7 +16,7 @@ jobs:
         name: Publish
         runs-on: ubuntu-18.04
         # only publish if the PR was labeled with one of the versions
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') || contains(github.event.pull_request.labels.*.name, 'Minor Version') || contains(github.event.pull_request.labels.*.name, 'Patch Version')}}
+        # if: ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') || contains(github.event.pull_request.labels.*.name, 'Minor Version') || contains(github.event.pull_request.labels.*.name, 'Patch Version')}}
         steps:
             - name: Checkout
               uses: actions/checkout@v2
@@ -45,16 +48,18 @@ jobs:
                   yarn build
                   git checkout yarn.lock
 
-            # bump the package versions depending on the labels of the pull request
-            - name: Bump version
+            # ${BUMP}
+            - name: Set BUMP
+              shell: bash -ex {0}
               run: |
                   if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') }} = "true" ] ; then
-                    yarn lerna version major --yes
+                    BUMP=major
                   elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor Version') }} = "true" ] ; then
-                    yarn lerna version minor --yes
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') }} = "true" ] ; then
-                    yarn lerna version patch --yes
+                    BUMP=minor
+                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Patch Version') }} = "true" ] ; then
+                    BUMP=patch
                   fi
+                  echo "BUMP=${BUMP}" >> $GITHUB_ENV
 
             # define ${CURRENT_VERSION}
             - name: Set Current Version
@@ -62,6 +67,24 @@ jobs:
               run: |
                   CURRENT_VERSION=$(node -p 'require("./lerna.json").version')
                   echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
+
+            - name: Authenticate with Registry
+              run: |
+                  yarn logout
+                  echo "@apollo-elements:registry=http://registry.npmjs.org/" > .npmrc
+                  echo "registry=http://registry.npmjs.org/" >> .npmrc
+                  echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> .npmrc
+                  npm whoami
+              env:
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            # publish new package versions to npm
+            - name: Publish
+              run: |
+                  yarn lerna publish ${BUMP} --yes
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             # create the release in github
             - name: Create Release
@@ -77,14 +100,6 @@ jobs:
                       ${{ github.event.pull_request.body }}
                   draft: false
                   prerelease: false
-
-            # publish new package versions to npm
-            - name: Publish
-              run: |
-                  yarn lerna publish from-package --yes
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             # commit and push any local changes we've made (ie, new package versions)
             - name: Push Git Artifacts
