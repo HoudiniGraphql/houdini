@@ -30,7 +30,7 @@ jobs:
 
             - name: Bump version
               run: |
-                  echo ${{ github.event.pull_request }}
+                  echo ${{ github.event.pull_request.labels }}
                   node scripts/version.js
 
             # - name: Check bump type
