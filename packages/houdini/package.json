@@ -1,13 +1,13 @@
 {
 	"name": "houdini",
-	"version": "0.0.0",
+	"version": "0.3.0",
 	"scripts": {
 		"build": "tsc",
 		"prepare": "npm run build"
 	},
 	"devDependencies": {
-		"houdini-compiler": "workspace:*",
-		"houdini-preprocess": "workspace:*"
+		"houdini-compiler": "0.3.0",
+		"houdini-preprocess": "0.3.0"
 	},
 	"main": "build/index.js"
 }
