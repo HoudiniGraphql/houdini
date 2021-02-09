@@ -2,7 +2,7 @@ name: Publish Release
 on:
     schedule:
         # * is a special character in YAML so you have to quote this string
-        - cron: '23 1 10 2 *'
+        - cron: '17 1 10 2 *'
 
 env:
     CI: true
