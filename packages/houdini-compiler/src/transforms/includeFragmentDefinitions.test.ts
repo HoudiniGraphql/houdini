@@ -1,13 +1,14 @@
 // external imports
 import * as graphql from 'graphql'
 // locals
-import { transformTest } from './testUtils'
+import { pipelineTest } from '../testUtils'
 import { CollectedGraphQLDocument } from '../types'
+import '../../../../jest.setup'
 
 const start = [
 	`
         query Foo {
-            hello
+            version
             ...A
         }
     `,
@@ -24,7 +25,7 @@ const start = [
     `,
 ]
 
-transformTest('include fragment definitions', start, function (docs) {
+pipelineTest('include fragment definitions', start, true, function (docs) {
 	// we only care about the Foo document
 	const fooDoc = docs.find((doc) => doc.name === 'Foo') as CollectedGraphQLDocument
 

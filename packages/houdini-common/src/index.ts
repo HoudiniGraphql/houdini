@@ -1,3 +1,3 @@
-export * from './transforms'
+export * from './pipeline'
 export * from './config'
 export * from './graphql'

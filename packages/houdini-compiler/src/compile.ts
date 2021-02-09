@@ -4,26 +4,42 @@ import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { promisify } from 'util'
-import { Config } from 'houdini-common'
+import { Config, runPipeline as run } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from './types'
-import applyTransforms from './transforms'
-import runGenerators from './generators'
+import * as transforms from './transforms'
+import * as generators from './generators'
+import * as validators from './validators'
 
-// the compiler's job can be broken down into three different tasks:
-// - collect all of the graphql documents defined in the project
-// - perform a series of transformations on those documents
-// - write the corresponding artifacts to disk
+// the main entry point of the compile script
 export default async function compile(config: Config) {
 	// grab the graphql documents
 	const documents = await collectDocuments(config)
 
-	// now that we have the list of documents, we need to pass them through our transforms
-	// to optimize their content, validate their structure, and add anything else we need behind the scenes
-	await applyTransforms(config, documents)
+	// push the documents through the pipeline
+	await runPipeline(config, documents)
+}
 
-	// write the artifacts
-	await runGenerators(config, documents)
+// the compiler's job can be broken down into a few different tasks after the documents have been collected:
+// - validate their structure
+// - perform a series of transformations
+// - write the corresponding artifacts to disk
+export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument[]) => {
+	// we need to create the runtime folder structure
+	await config.createDirectories()
+
+	await run(
+		config,
+		[
+			validators.typeCheck,
+			validators.uniqueDocumentNames,
+			validators.noIDAlias,
+			transforms.includeFragmentDefinitions,
+			generators.artifacts,
+			generators.mutations,
+		],
+		docs
+	)
 }
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {
@@ -83,6 +99,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 								documents.push({
 									name: config.documentName(parsedDoc),
 									document: parsedDoc,
+									filename: filePath,
 								})
 							}
 						},
