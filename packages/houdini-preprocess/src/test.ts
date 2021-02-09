@@ -37,7 +37,7 @@ describe('preprocessor can replace content', function () {
 		]
 
 		// apply the transforms
-		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
+		const result = await applyTransforms(config, { content, filename: 'test' }, transforms)
 
 		// make sure we got the result back
 		expect(result.code.trim()).toBe(`<script>"hello";</script>
@@ -70,7 +70,7 @@ describe('preprocessor can replace content', function () {
 		]
 
 		// apply the transforms
-		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
+		const result = await applyTransforms(config, { content, filename: 'test' }, transforms)
 
 		// make sure we got the result back
 		expect(result.code.trim()).toBe(`<script context="module">"hello";</script>
@@ -100,7 +100,7 @@ describe('preprocessor can replace content', function () {
 		]
 
 		// apply the transforms
-		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
+		const result = await applyTransforms(config, { content, filename: 'test' }, transforms)
 
 		// make sure we got the result back
 		expect(result.code.trim()).toBe(`<script context="module" lang="ts">"hello";</script>`)
@@ -136,7 +136,7 @@ describe('preprocessor can replace content', function () {
 		]
 
 		// apply the transforms
-		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
+		const result = await applyTransforms(config, { content, filename: 'test' }, transforms)
 
 		// make sure we got the result back
 		expect(result.code.trim()).toBe(`<script context="module">"hello";</script>
@@ -171,7 +171,7 @@ describe('preprocessor can replace content', function () {
 		]
 
 		// apply the transforms
-		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
+		const result = await applyTransforms(config, { content, filename: 'test' }, transforms)
 
 		// make sure we got the result back
 		expect(result.code.trim()).toBe(`<script>"world";</script>
@@ -209,7 +209,7 @@ describe('preprocessor can replace content', function () {
 		]
 
 		// apply the transforms
-		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
+		const result = await applyTransforms(config, { content, filename: 'test' }, transforms)
 
 		// make sure we got the result back
 		expect(result.code.trim()).toBe(`<script context="module"></script>
@@ -249,7 +249,7 @@ describe('preprocessor can replace content', function () {
 		]
 
 		// apply the transforms
-		const result = await applyTransforms(config, { content, filename: 'test' }, { transforms })
+		const result = await applyTransforms(config, { content, filename: 'test' }, transforms)
 
 		// make sure we got the result back
 		expect(result.code.trim()).toBe(`<script></script><script context="module"></script>

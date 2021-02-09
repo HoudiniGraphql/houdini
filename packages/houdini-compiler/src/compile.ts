@@ -4,26 +4,42 @@ import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { promisify } from 'util'
-import { Config } from 'houdini-common'
+import { Config, Pipeline, runPipeline as run } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from './types'
-import applyTransforms from './transforms'
-import runGenerators from './generators'
+import * as transforms from './transforms'
+import * as generators from './generators'
+import * as validators from './validators'
 
-// the compiler's job can be broken down into three different tasks:
-// - collect all of the graphql documents defined in the project
-// - perform a series of transformations on those documents
+// the compiler's job can be broken down into a few different tasks after the documents have been collected:
+// - validate their structure
+// - perform a series of transformations
 // - write the corresponding artifacts to disk
+export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument[]) => {
+	// we need to create the runtime folder structure
+	await config.createDirectories()
+
+	await run(
+		config,
+		[
+			validators.noIDAlias,
+			validators.typeCheck,
+			transforms.addErrorsToMutations,
+			transforms.addIDs,
+			transforms.includeFragmentDefinitions, // include fragment definitions after we have potentially mutated them
+			generators.artifacts,
+			generators.mutations,
+		],
+		docs
+	)
+}
+
 export default async function compile(config: Config) {
 	// grab the graphql documents
 	const documents = await collectDocuments(config)
 
-	// now that we have the list of documents, we need to pass them through our transforms
-	// to optimize their content, validate their structure, and add anything else we need behind the scenes
-	await applyTransforms(config, documents)
-
-	// write the artifacts
-	await runGenerators(config, documents)
+	// push the documents through the pipeline
+	await runPipeline(config, documents)
 }
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {

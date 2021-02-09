@@ -2,7 +2,7 @@
 
 import * as svelte from 'svelte/compiler'
 import * as recast from 'recast'
-import { applyTransforms as apply, TransformPipeline, Config, getConfig } from 'houdini-common'
+import { runPipeline, Pipeline, Config, getConfig } from 'houdini-common'
 // locals
 import { defaultTransforms } from './transforms'
 import * as types from './types'
@@ -26,7 +26,7 @@ export default function houdiniPreprocessor() {
 export async function applyTransforms(
 	config: Config,
 	doc: { content: string; filename: string },
-	pipeline: TransformPipeline<types.TransformDocument> = defaultTransforms
+	pipeline: Pipeline<types.TransformDocument> = defaultTransforms
 ): Promise<{ code: string; dependencies: string[] }> {
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
@@ -45,7 +45,7 @@ export async function applyTransforms(
 	}
 
 	// send the scripts through the pipeline
-	await apply(config, pipeline, result)
+	await runPipeline(config, pipeline, result)
 
 	// we need to apply the changes to the file. we'll do this by printing the mutated
 	// content as a string and then replacing everything between the appropriate

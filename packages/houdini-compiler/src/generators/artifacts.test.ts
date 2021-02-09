@@ -8,7 +8,7 @@ import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
 import '../../../../jest.setup'
-import runGenerators from '.'
+import { runPipeline } from '../compile'
 import { CollectedGraphQLDocument } from '../types'
 
 // the config to use in tests
@@ -28,7 +28,7 @@ const docs: CollectedGraphQLDocument[] = [
 
 test('generates an artifact for every document', async function () {
 	// execute the generator
-	await runGenerators(config, docs)
+	await runPipeline(config, docs)
 
 	// look up the files in the artifact directory
 	const files = await fs.readdir(config.artifactDirectory)
@@ -41,7 +41,7 @@ test('generates an artifact for every document', async function () {
 
 test('adds kind, name, and raw', async function () {
 	// execute the generator
-	await runGenerators(config, docs)
+	await runPipeline(config, docs)
 
 	//
 	// load the contents of the file

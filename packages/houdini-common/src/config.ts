@@ -1,6 +1,7 @@
 import * as graphql from 'graphql'
 import fs from 'fs'
 import path from 'path'
+import mkdirp from 'mkdirp'
 
 // the values we can take in from the config file
 export type ConfigFile = {
@@ -101,6 +102,10 @@ export class Config {
 
 		// we don't know how to generate a name for this document
 		throw new Error('Could not generate artifact name for document: ' + graphql.print(document))
+	}
+
+	async createDirectories(): Promise<void> {
+		await Promise.all([mkdirp(this.mutationLinksDirectory), mkdirp(this.artifactDirectory)])
 	}
 }
 

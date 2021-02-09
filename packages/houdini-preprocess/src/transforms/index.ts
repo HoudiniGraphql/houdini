@@ -1,12 +1,13 @@
 // external imports
-import { TransformPipeline } from 'houdini-common'
-
+import { Pipeline } from 'houdini-common'
 // local imports
+import { TransformDocument } from '../types'
 import fragmentProcessor from './fragment'
 import queryProcessor from './query'
 import mutationProcessor from './mutation'
-import { TransformDocument } from '../types'
 
-export const defaultTransforms: TransformPipeline<TransformDocument> = {
-	transforms: [fragmentProcessor, queryProcessor, mutationProcessor],
-}
+export const defaultTransforms: Pipeline<TransformDocument> = [
+	fragmentProcessor,
+	queryProcessor,
+	mutationProcessor,
+]
