@@ -41,24 +41,27 @@ export async function generateLinks(config: Config, patches: PatchAtom[]) {
 			// build up the file contents
 			const file = typeBuilders.program([
 				typeBuilders.exportDefaultDeclaration(
-					typeBuilders.objectExpression(
-						queries.map((queryName) => {
-							// the path of the patch describing the link
-							const patchPath = path.relative(
-								config.mutationLinksDirectory,
-								config.patchPath({
-									mutation: mutationName,
-									query: queryName,
-								})
-							)
+					typeBuilders.arrowFunctionExpression(
+						[],
+						typeBuilders.objectExpression(
+							queries.map((queryName) => {
+								// the path of the patch describing the link
+								const patchPath = path.relative(
+									config.mutationLinksDirectory,
+									config.patchPath({
+										mutation: mutationName,
+										query: queryName,
+									})
+								)
 
-							return typeBuilders.objectProperty(
-								typeBuilders.stringLiteral(queryName),
-								typeBuilders.callExpression(typeBuilders.identifier('import'), [
-									typeBuilders.stringLiteral(patchPath),
-								])
-							)
-						})
+								return typeBuilders.objectProperty(
+									typeBuilders.stringLiteral(queryName),
+									typeBuilders.callExpression(typeBuilders.identifier('import'), [
+										typeBuilders.stringLiteral(patchPath),
+									])
+								)
+							})
+						)
 					)
 				),
 			])
