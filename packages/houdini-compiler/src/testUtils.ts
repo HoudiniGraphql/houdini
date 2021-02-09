@@ -5,10 +5,11 @@ import { testConfig } from 'houdini-common'
 import { CollectedGraphQLDocument } from './types'
 import { runPipeline } from './compile'
 
-export function transformTest(
+export function pipelineTest(
 	title: string,
 	documents: string[],
-	testBody: (docs: CollectedGraphQLDocument[]) => void
+	shouldPass: boolean,
+	testBody?: ((result: Error) => void) | ((docs: CollectedGraphQLDocument[]) => void)
 ) {
 	test(title, async function () {
 		// the first thing to do is to create the list of collected documents
@@ -27,10 +28,31 @@ export function transformTest(
 			}
 		})
 
-		// apply the transforms
-		await runPipeline(testConfig(), docs)
+		// we need to trap if we didn't fail
+		let error = null
+
+		try {
+			// apply the transforms
+			await runPipeline(testConfig(), docs)
+		} catch (e) {
+			// only bubble the error up if we're supposed to pass the test
+			if (shouldPass) {
+				throw e
+			}
+			error = e
+		}
+
+		// if we shouldn't pass but we did, we failed the test
+		if (!shouldPass && !error) {
+			fail('did not fail test')
+			return
+		}
 
 		// run the rest of the test
-		testBody(docs)
+		if (testBody) {
+			process.stdout.write('invoking check')
+			// invoke the test body with the error instead of the documents
+			testBody(shouldPass ? docs : error)
+		}
 	})
 }

@@ -11,6 +11,15 @@ import * as transforms from './transforms'
 import * as generators from './generators'
 import * as validators from './validators'
 
+// the main entry point of the compile script
+export default async function compile(config: Config) {
+	// grab the graphql documents
+	const documents = await collectDocuments(config)
+
+	// push the documents through the pipeline
+	await runPipeline(config, documents)
+}
+
 // the compiler's job can be broken down into a few different tasks after the documents have been collected:
 // - validate their structure
 // - perform a series of transformations
@@ -29,14 +38,6 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 		],
 		docs
 	)
-}
-
-export default async function compile(config: Config) {
-	// grab the graphql documents
-	const documents = await collectDocuments(config)
-
-	// push the documents through the pipeline
-	await runPipeline(config, documents)
 }
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {
