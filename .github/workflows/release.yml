@@ -30,6 +30,9 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+            - name: Install
+              run: yarn install
+
             # bump the package versions depending on the labels of the pull request
             - name: Bump version
               run: |
@@ -40,9 +43,6 @@ jobs:
                   elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} = "true" ] ; then
                     lerna version patch
                   fi
-
-            - name: Install
-              run: yarn install
 
             # define ${CURRENT_VERSION}
             - name: Set Current Version
