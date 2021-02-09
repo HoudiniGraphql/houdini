@@ -22,11 +22,8 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 	await run(
 		config,
 		[
-			validators.noIDAlias,
 			validators.typeCheck,
-			transforms.addErrorsToMutations,
-			transforms.addIDs,
-			transforms.includeFragmentDefinitions, // include fragment definitions after we have potentially mutated them
+			transforms.includeFragmentDefinitions,
 			generators.artifacts,
 			generators.mutations,
 		],
