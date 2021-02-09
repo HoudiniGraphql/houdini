@@ -30,7 +30,7 @@ jobs:
 
             - name: Bump version
               run: |
-                  echo ${{ contains(github.event.issue.labels.*.name, 'Minor') }}
+                  echo ${{ contains(github.event.pull_request.labels.*.name, 'Minor') }}
 
             # - name: Check bump type
             #   run: |
