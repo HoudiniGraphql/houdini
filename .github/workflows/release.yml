@@ -31,11 +31,11 @@ jobs:
             - name: Bump version
               run: |
                   echo
-                  if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} -e "true" ] ; then
+                  if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} = "true" ] ; then
                     echo "major"
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor') }} -e "true" ] ; then
+                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor') }} = "true" ] ; then
                     echo "minor"
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} -e "true" ] ; then
+                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} = "true" ] ; then
                     echo "patch"
                   fi
 
