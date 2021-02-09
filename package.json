@@ -1,5 +1,6 @@
 {
 	"name": "houdini-monorepo",
+	"description": "The disappearing graphql client built for Sveltekit",
 	"workspaces": [
 		"example",
 		"packages/*"
