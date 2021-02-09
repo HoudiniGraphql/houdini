@@ -17,6 +17,10 @@ jobs:
               with:
                   fetch-depth: 0
 
+            - name: Attach Head
+              run: |
+                  git checkout ${{ github.event.pull_request.target.ref }}
+
             - name: Setup Node 15
               uses: actions/setup-node@v1
               with:
