@@ -17,7 +17,7 @@ jobs:
 
             - name: Attached head
               run: |
-                  git checkout ${github.event.pull_request.base.ref}
+                  git checkout ${{github.event.pull_request.base.ref}}
 
             - name: Setup Node 15
               uses: actions/setup-node@v1
