@@ -1,10 +1,8 @@
 name: Publish Release
 on:
-    # When Release Pull Request is merged
-    pull_request:
-        branches:
-            - main
-        types: [closed]
+    schedule:
+        # * is a special character in YAML so you have to quote this string
+        - cron: '23 1 10 2 *'
 
 env:
     CI: true
@@ -13,7 +11,7 @@ jobs:
         name: Publish
         runs-on: ubuntu-18.04
         # only publish if the PR was labeled with one of the versions
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') || contains(github.event.pull_request.labels.*.name, 'Minor Version') || contains(github.event.pull_request.labels.*.name, 'Patch Version')}}
+        # if: ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') || contains(github.event.pull_request.labels.*.name, 'Minor Version') || contains(github.event.pull_request.labels.*.name, 'Patch Version')}}
         steps:
             - name: Checkout
               uses: actions/checkout@v2
@@ -48,17 +46,22 @@ jobs:
             # ${BUMP}
             - name: Set Bump
               shell: bash -ex {0}
+              # run: |
+              #     if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') }} = "true" ] ; then
+              #       BUMP=major
+              #       BUMP_EMOJI=🚀
+              #     elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor Version') }} = "true" ] ; then
+              #       BUMP=minor
+              #       BUMP_EMOJI=📦
+              #     elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Patch Version') }} = "true" ] ; then
+              #       BUMP=patch
+              #       BUMP_EMOJI=🔧
+              #     fi
+              #     echo "BUMP=${BUMP}" >> $GITHUB_ENV
+              #     echo "BUMP_EMOJI=${BUMP_EMOJI}" >> $GITHUB_ENV
               run: |
-                  if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') }} = "true" ] ; then
-                    BUMP=major
-                    BUMP_EMOJI=🚀
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor Version') }} = "true" ] ; then
-                    BUMP=minor
-                    BUMP_EMOJI=📦
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Patch Version') }} = "true" ] ; then
-                    BUMP=patch
-                    BUMP_EMOJI=🔧
-                  fi
+                  BUMP=patch
+                  BUMP_EMOJI=🔧
                   echo "BUMP=${BUMP}" >> $GITHUB_ENV
                   echo "BUMP_EMOJI=${BUMP_EMOJI}" >> $GITHUB_ENV
 
