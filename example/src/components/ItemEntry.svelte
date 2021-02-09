@@ -39,31 +39,29 @@
 	`)
 
 	async function handleClick(input) {
-		// the click even is triggered after the state has been updated
-
 		// if we are supposed to mark an item as complete
-		if (input.checked) {
-			// trigger the mutation to check the item
-			await completeItem({ id: data.id })
+		if ($data.completed) {
+			// trigger that mutation instead
+			await uncompleteItem({ id: $data.id })
 		}
 		// we are supposed to mark the item an incomplete
 		else {
-			// trigger that mutation instead
-			await uncompleteItem({ id: data.id })
+			// trigger the mutation to check the item
+			await completeItem({ id: $data.id })
 		}
 	}
 </script>
 
-<li class:completed={data.completed}>
+<li class:completed={$data.completed}>
 	<div class="view">
 		<input
-			name={data.text}
+			name={$data.text}
 			class="toggle"
 			type="checkbox"
-			checked={data.completed}
+			checked={$data.completed}
 			on:click={handleClick}
 		/>
-		<label for={data.text}>{data.text}</label>
+		<label for={$data.text}>{$data.text}</label>
 		<button class="destroy" />
 	</div>
 </li>

@@ -31,8 +31,8 @@ const typeDefs = gql`
 
 // example data
 const items = [
-	{ id: 1, text: 'Taste JavaScript' },
-	{ id: 2, text: 'Buy a unicorn' },
+	{ id: '1', text: 'Taste JavaScript' },
+	{ id: '2', text: 'Buy a unicorn' },
 ]
 
 const resolvers = {
@@ -40,9 +40,12 @@ const resolvers = {
 		items: () => items,
 	},
 	Mutation: {
-		completeItem({ id: targetID }) {
+		completeItem(_, { id: targetID }) {
 			// grab the item in question
 			const item = items.find(({ id }) => id === targetID)
+			if (!item) {
+				throw new Error('Could not find item')
+			}
 
 			// update the completed value
 			item.completed = true
@@ -52,7 +55,7 @@ const resolvers = {
 				item,
 			}
 		},
-		uncompleteItem({ id: targetID }) {
+		uncompleteItem(_, { id: targetID }) {
 			// grab the item in question
 			const item = items.find(({ id }) => id === targetID)
 

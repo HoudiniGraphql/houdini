@@ -2,6 +2,7 @@
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
+import path from 'path'
 // locals
 import { TransformDocument } from '../types'
 import { selector, walkTaggedDocuments } from '../utils'
@@ -38,6 +39,12 @@ export default async function mutationProcessor(
 			// figure out the root type of the fragment
 			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 
+			// the path to the link file
+			const linkPath = path.relative(
+				path.join(process.cwd(), doc.filename, '..'),
+				config.mutationLinksPath(artifact.name)
+			)
+
 			// replace the graphql node with the object
 			node.replaceWith(
 				typeBuilders.objectExpression([
@@ -64,6 +71,12 @@ export default async function mutationProcessor(
 							// grab values from the immediate response
 							pullValuesFromRef: false,
 						})
+					),
+					typeBuilders.objectProperty(
+						typeBuilders.stringLiteral('links'),
+						typeBuilders.callExpression(typeBuilders.identifier('import'), [
+							typeBuilders.stringLiteral(linkPath),
+						])
 					),
 				])
 			)

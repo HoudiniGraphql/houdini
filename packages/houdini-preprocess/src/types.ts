@@ -1,6 +1,9 @@
-
+// externals
 import { Script } from 'svelte/types/compiler/interfaces'
 import { Config } from 'houdini-common'
+import { Patch } from 'houdini-compiler'
+
+type Module<T> = Promise<{ default: T }>
 
 export type Maybe<T> = T | undefined
 
@@ -16,6 +19,7 @@ export type TaggedGraphqlMutation = {
 	kind: 'HoudiniMutation'
 	raw: string
 	processResult: (result: any) => any
+	links: Module<{ [queryName: string]: Module<Patch> }>
 }
 
 // the result of tagging an operation

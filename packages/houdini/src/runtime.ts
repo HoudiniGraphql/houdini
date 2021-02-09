@@ -14,6 +14,29 @@ export function fetchQuery({
 	return getEnvironment()?.sendRequest({ text, variables })
 }
 
+// the dispatch table
+export type DocumentStore = {
+	name: string
+	currentValue: any
+	set: (value: any) => void
+}
+
+const _stores: { [name: string]: DocumentStore[] } = {}
+
+export function getDocumentStores(name: string): DocumentStore[] {
+	return _stores[name] || []
+}
+
+// registerDocumentStore is used by query and fragment runtimes to register their updater with the dispatch table
+export function registerDocumentStore(store: DocumentStore) {
+	_stores[store.name] = [...getDocumentStores(store.name), store]
+}
+
+// unregisterDocumentStore is used by query and fragment runtimes to remove their updater from the dispatch table
+export function unregisterDocumentStore(target: DocumentStore) {
+	_stores[target.name] = getDocumentStores(target.name).filter(({ set }) => set !== target.set)
+}
+
 type Record = { [key: string]: any } & { id?: string }
 type Data = Record | Record[]
 
