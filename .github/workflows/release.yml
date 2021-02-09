@@ -14,11 +14,6 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v2
-
-            - name: Attached head
-              run: |
-                  git checkout ${{github.event.pull_request.base.ref}}
-
             - name: Setup Node 15
               uses: actions/setup-node@v1
               with:
@@ -33,6 +28,11 @@ jobs:
                   git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Attach head
+              run: |
+                  git pull origin
+                  git checkout ${{github.event.pull_request.base.ref}}
 
             - name: Install and Build
               run: |
