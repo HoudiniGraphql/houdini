@@ -45,11 +45,11 @@ jobs:
             # bump the package versions depending on the labels of the pull request
             - name: Bump version
               run: |
-                  if [ "${{ contains(github.event.pull_request.labels.*.name, 'Major')"" }} = "true" ] ; then
+                  if [ "${{ contains(github.event.pull_request.labels.*.name, 'Major Version')"" }} = "true" ] ; then
                     yarn lerna version major --yes
-                  elif [ "${{ contains(github.event.pull_request.labels.*.name, 'Minor') }}" = "true" ] ; then
+                  elif [ "${{ contains(github.event.pull_request.labels.*.name, 'Minor Version') }}" = "true" ] ; then
                     yarn lerna version minor --yes
-                  elif [ "${{ contains(github.event.pull_request.labels.*.name, 'Major') }}" = "true" ] ; then
+                  elif [ "${{ contains(github.event.pull_request.labels.*.name, 'Major Version') }}" = "true" ] ; then
                     yarn lerna version patch --yes
                   fi
 
