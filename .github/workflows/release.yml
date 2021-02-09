@@ -30,18 +30,14 @@ jobs:
 
             - name: Bump version
               run: |
-                  echo ${{ contains(github.event.pull_request.labels.*.name, 'Minor') }}
-
-            # - name: Check bump type
-            #   run: |
-            #       GET_API_URL="https://api.github.com/repos/${GITHUB_REPOSITORY}/git/ref/tags/v${CURRENT_VERSION}"
-            #       http_status_code=$(curl -LI $GET_API_URL -o /dev/null -w '%{http_code}\n' -s \
-            #         -H "Authorization: token ${GITHUB_TOKEN}")
-            #       if [ "$http_status_code" -ne "404" ] ; then
-            #         echo "::set-output name=exists_tag::true"
-            #       else
-            #         echo "::set-output name=exists_tag::false"
-            #       fi
+                  echo
+                  if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} -e "true" ] ; then
+                    echo "major"
+                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor') }} -e "true" ] ; then
+                    echo "minor"
+                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} -e "true" ] ; then
+                    echo "patch"
+                  fi
 
             # - name: Install
             #   run: yarn install
