@@ -2,9 +2,9 @@
 
 import * as svelte from 'svelte/compiler'
 import * as recast from 'recast'
-import { runPipeline, Pipeline, Config, getConfig } from 'houdini-common'
+import { runPipeline, ExecutablePipeline, Config, getConfig } from 'houdini-common'
 // locals
-import { defaultTransforms } from './transforms'
+import defaultTransforms from './transforms'
 import * as types from './types'
 
 // export some types for others to consume
@@ -26,7 +26,7 @@ export default function houdiniPreprocessor() {
 export async function applyTransforms(
 	config: Config,
 	doc: { content: string; filename: string },
-	pipeline: Pipeline<types.TransformDocument> = defaultTransforms
+	pipeline: ExecutablePipeline<types.TransformDocument> = defaultTransforms
 ): Promise<{ code: string; dependencies: string[] }> {
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,

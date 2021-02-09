@@ -8,9 +8,13 @@ export type Transform<_TransformType> = (config: Config, documents: _TransformTy
 // a pipeline can have dependencies or not
 export type Pipeline<_TransformType> = [Transform<_TransformType>[], Pipeline<_TransformType>?]
 
+export type ExecutablePipeline<_TransformType> =
+	| Pipeline<_TransformType>
+	| Transform<_TransformType>[]
+
 export async function runPipeline<_TransformType>(
 	config: Config,
-	_p: Pipeline<_TransformType> | Transform<_TransformType>[],
+	_p: ExecutablePipeline<_TransformType>,
 	target: _TransformType
 ) {
 	// if we were given a flat list, embed it one level down
