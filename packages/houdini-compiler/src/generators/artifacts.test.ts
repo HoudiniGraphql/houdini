@@ -6,8 +6,8 @@ import fs from 'fs/promises'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
-import '../../../../jest.setup'
 // local imports
+import '../../../../jest.setup'
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../types'
 

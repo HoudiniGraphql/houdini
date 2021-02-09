@@ -14,8 +14,12 @@ test('generates a link file for each intersection', async function () {
 	const docs: CollectedGraphQLDocument[] = [
 		// the query needs to ask for a field that the mutation could update
 		{
-			name: 'TestQuery',
-			document: graphql.parse(`query TestQuery { user { id firstName } }`),
+			name: 'TestQuery1',
+			document: graphql.parse(`query TestQuery1 { user { id firstName } }`),
+		},
+		{
+			name: 'TestQuery2',
+			document: graphql.parse(`query TestQuery2 { user { id firstName } }`),
 		},
 		{
 			name: 'TestMutation',
@@ -31,4 +35,14 @@ test('generates a link file for each intersection', async function () {
 
 	// there should be only one link
 	expect(files).toEqual(['TestMutation.js'])
+
+	// read the contents of the file
+	const contents = await fs.readFile(config.mutationLinksPath('TestMutation'), 'utf-8')
+
+	expect(contents).toMatchInlineSnapshot(`
+		"export default {
+		    \\"TestQuery1\\": import(\\"../patches/TestMutation_TestQuery1.js\\"),
+		    \\"TestQuery2\\": import(\\"../patches/TestMutation_TestQuery2.js\\")
+		};"
+	`)
 })

@@ -105,6 +105,9 @@ export function patchesForSelectionSet(
 }
 
 export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
+	// create the directory
+	await mkdirp(config.patchDirectory)
+
 	// there could be more than one patch between a query and mutation
 	// so group up all patches pairs
 	const patches: { [name: string]: PatchAtom[] } = {}

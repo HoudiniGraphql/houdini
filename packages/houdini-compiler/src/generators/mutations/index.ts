@@ -32,9 +32,6 @@ export type PatchAtom = {
 }
 
 export default async function mutationGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
-	// make sure the mutation directories exist
-	await Promise.all([mkdirp(config.patchDirectory), mkdirp(config.mutationLinksDirectory)])
-
 	// build up a map of mutations to the types they modify
 	const mutationTargets: MutationMap = {}
 
@@ -132,11 +129,12 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		_docsVisited[definition.name.value] = true
 	}
 
-	// generate the patch descriptions
-	await generatePatches(config, patches)
-
-	// create the link files
-	await generateLinks(config, patches)
+	await Promise.all([
+		// generate the patch descriptions
+		generatePatches(config, patches),
+		// create the link files
+		generateLinks(config, patches),
+	])
 }
 
 function fillMutationMap(
