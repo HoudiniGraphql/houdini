@@ -62,13 +62,6 @@ jobs:
                   echo "BUMP=${BUMP}" >> $GITHUB_ENV
                   echo "BUMP_EMOJI=${BUMP_EMOJI}" >> $GITHUB_ENV
 
-            # define ${CURRENT_VERSION}
-            - name: Set Current Version
-              shell: bash -ex {0}
-              run: |
-                  CURRENT_VERSION=$(node -p 'require("./package.json").version')
-                  echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
-
             - name: Authenticate with Registry
               run: |
                   echo "@apollo-elements:registry=http://registry.npmjs.org/" > .npmrc
@@ -85,18 +78,3 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            # create the release in github
-            - name: Create Release
-              id: create_release
-              uses: actions/create-release@v1
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  tag_name: v${{ env.CURRENT_VERSION }}
-                  # Copy Pull Request's tile and body to Release Note
-                  release_name: ${{ github.event.pull_request.title }}
-                  body: |
-                      ${{ github.event.pull_request.body }}
-                  draft: false
-                  prerelease: false
