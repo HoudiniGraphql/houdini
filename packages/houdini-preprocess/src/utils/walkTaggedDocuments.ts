@@ -1,7 +1,7 @@
 // externals
 import * as graphql from 'graphql'
 import { asyncWalk } from 'estree-walker'
-import { TaggedTemplateExpression, Identifier } from 'estree'
+import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
 import { OperationDefinitionNode } from 'graphql/language'
 import { BaseNode } from 'estree'
 import { CompiledDocument } from 'houdini-compiler'
@@ -35,9 +35,9 @@ export default async function walkTaggedDocuments(
 			// if we are looking at the graphql template tag
 			if (
 				node.type === 'TaggedTemplateExpression' &&
-				((node as TaggedTemplateExpression).tag as Identifier).name === 'graphql'
+				((node as TaggedTemplateExpressionKind).tag as IdentifierKind).name === 'graphql'
 			) {
-				const expr = node as TaggedTemplateExpression
+				const expr = node as TaggedTemplateExpressionKind
 				// we're going to replace the tag with something the runtime can use
 
 				// first, lets parse the tag contents to get the info we need
@@ -63,7 +63,7 @@ export default async function walkTaggedDocuments(
 
 				try {
 					// the location for the document artifact
-					const documentPath = doc.config.artifactPath(name)
+					const documentPath = doc.config.artifactPath(parsedTag)
 
 					// make sure we watch the compiled fragment
 					doc.dependencies.push(documentPath)

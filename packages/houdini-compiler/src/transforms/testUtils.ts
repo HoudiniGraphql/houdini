@@ -31,8 +31,9 @@ export function transformTest(
 			// apply the transforms
 			await applyTransforms(
 				new Config({
-					artifactDirectory: '',
+					runtimeDirectory: '',
 					schema: `type Query { version: Int!}`,
+					sourceGlob: '',
 				}),
 				docs
 			)

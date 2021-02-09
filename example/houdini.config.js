@@ -1,6 +1,7 @@
 const path = require('path')
 
 module.exports = {
-	artifactDirectory: path.resolve('./generated'),
+	runtimeDirectory: path.resolve('./generated'),
 	schemaPath: path.resolve('./schema/introspection.json'),
+	sourceGlob: 'src/{routes,components}/*.svelte',
 }

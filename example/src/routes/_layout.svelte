@@ -6,6 +6,7 @@
 	const data = query(graphql`
 		query IndexInfo {
 			items {
+				id
 				completed
 			}
 		}

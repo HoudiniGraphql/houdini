@@ -24,6 +24,12 @@ export type CompiledGraphqlFragment = BaseCompiledDocument & {
 	kind: 'HoudiniFragment'
 }
 
+// a description of an interaction between a mutation and a query
+export type Patch = {
+	fields: { [fieldName: string]: Array<string[]> }
+	edges: { [path: string]: Patch }
+}
+
 // any compiled result
 export type CompiledDocument = CompiledGraphqlFragment | CompiledGraphqlQuery
 

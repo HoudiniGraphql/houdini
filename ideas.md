@@ -1,9 +1,3 @@
-query maintains local state of the its value. when a mutation is triggered, find the intersections
-and apply specific updates to the data model
-
-ie, if a mutation updates User.firstName, find every query that asks for User.firstName and
-generate the code that finds the corresponding user and updates the values in the response
-
 -   mutation can't hunt down every single possible query, there could be thousands that will never appear and it would cause unnecessary
     bloat. instead we need to scale with the number of queries we have on the screen
 -   queries could listen for any possible mutation
@@ -39,5 +33,5 @@ if (CheckTodoItem.isMounted) {
 }
 ```
 
--   user doesn't define `data` (or whatever variable they use) as a store,
-    -   might have to define operations in script tag and then hoist to preload in the processor
+-   mutation handler should walk down the response and trigger changes in stores to avoid
+    walking multiple times

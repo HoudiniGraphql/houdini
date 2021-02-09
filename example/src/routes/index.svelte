@@ -6,8 +6,9 @@
 	const data = query(graphql`
 		query AllItems {
 			items {
-				...ItemEntry_item
+				id
 				completed
+				...ItemEntry_item
 			}
 		}
 	`)

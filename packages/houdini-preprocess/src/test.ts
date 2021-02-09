@@ -8,8 +8,9 @@ import * as types from './types'
 const typeBuilders = recast.types.builders
 
 const config: Config = new Config({
-	artifactDirectory: '',
 	schema: `type Query { foo: Int! }`,
+	runtimeDirectory: '',
+	sourceGlob: '',
 })
 
 describe('preprocessor can replace content', function () {

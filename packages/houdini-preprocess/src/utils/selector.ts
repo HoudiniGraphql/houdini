@@ -2,7 +2,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { CompiledDocument } from 'houdini-compiler'
-import { Config } from 'houdini-common'
+import { Config, selectionTypeInfo, isListType } from 'houdini-common'
 // locals
 import memberExpression from './memberExpression'
 
@@ -73,22 +73,11 @@ function objectProperties({
 
 			// the name of the field in the response
 			const attributeName = selection.alias?.value || selection.name.value
-
-			// the field we are looking at
-			const selectionName = (selection as graphql.FieldNode).name.value
-			const field = rootType.getFields()[selectionName]
-			if (!field) {
-				throw new Error(
-					`Could not find type information for field ${rootType.toString()}.${selectionName}`
-				)
-			}
-			// and the actual object type that it refers to
-			const selectionType = config.schema.getType(
-				graphql.getNamedType(field.type).name
-			) as graphql.GraphQLObjectType
-			if (!selectionType) {
-				throw new Error('Could not find type for ' + name)
-			}
+			const { type: attributeType, field } = selectionTypeInfo(
+				config.schema,
+				rootType,
+				selection
+			)
 
 			// if the selection is a field without any sub selections
 			if (
@@ -134,7 +123,7 @@ function objectProperties({
 								config,
 								artifact,
 								rootIdentifier: argument,
-								rootType: selectionType,
+								rootType: attributeType as graphql.GraphQLObjectType<any, any>,
 								selectionSet: selection.selectionSet,
 								pullValuesFromRef,
 							}),
@@ -157,7 +146,7 @@ function objectProperties({
 							rootIdentifier: pullValuesFromRef
 								? `${rootIdentifier}.__ref.${attributeName}`
 								: `${rootIdentifier}.${attributeName}`,
-							rootType: selectionType,
+							rootType: attributeType as graphql.GraphQLObjectType<any, any>,
 							selectionSet: selection.selectionSet,
 							pullValuesFromRef,
 						})
@@ -169,13 +158,4 @@ function objectProperties({
 			throw new Error('Could not create selector for selection type: ' + selection.kind)
 		}),
 	]
-}
-
-function isListType(type: graphql.GraphQLType): boolean {
-	// if the type is non-null, unwrap and check again
-	if (graphql.isNonNullType(type)) {
-		return isListType((type as graphql.GraphQLNonNull<any>).ofType)
-	}
-
-	return graphql.isListType(type)
 }

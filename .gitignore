@@ -18,3 +18,4 @@ bin
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
+__tests__
