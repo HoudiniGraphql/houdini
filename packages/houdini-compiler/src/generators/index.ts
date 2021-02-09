@@ -5,7 +5,7 @@ import fs from 'fs/promises'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 import artifacts from './artifacts'
-import patches from './patches'
+import patches from './mutations'
 
 // the default list of transforms to apply
 const generatorPipeline: TransformPipeline<CollectedGraphQLDocument[]> = {

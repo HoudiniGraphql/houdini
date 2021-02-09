@@ -4,17 +4,16 @@ import path from 'path'
 import { testConfig } from 'houdini-common'
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
-import mockFs from 'mock-fs'
 import { FileKind } from 'ast-types/gen/kinds'
 import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
 import runGenerators from '.'
-import { CollectedGraphQLDocument } from '../types'
-import '../../../../jest.setup'
+import { CollectedGraphQLDocument } from '../../types'
+import '../../../../../jest.setup'
 
 const config = testConfig()
 
-test('generates cache updaters', async function () {
+test('generates patches', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
 		// the query needs to ask for a field that the mutation could update

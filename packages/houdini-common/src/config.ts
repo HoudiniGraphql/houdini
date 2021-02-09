@@ -48,13 +48,23 @@ export class Config {
 		return path.join(this.runtimeDirectory, 'patches')
 	}
 
+	// the directory where mutation links live
+	get mutationLinksDirectory() {
+		return path.join(this.runtimeDirectory, 'links')
+	}
+
 	patchName({ query, mutation }: { query: string; mutation: string }) {
 		return `${mutation}_${query}`
 	}
 
-	// the location for the artifact for anpatch
+	// the location for the artifact for a patch
 	patchPath({ query, mutation }: { query: string; mutation: string }) {
 		return path.join(this.patchDirectory, `${this.patchName({ query, mutation })}.js`)
+	}
+
+	// the location for the links associated with the provided mutation
+	mutationLinksPath(mutationName: string): string {
+		return path.join(this.mutationLinksDirectory, `${mutationName}.js`)
 	}
 
 	// the location of the artifact generated corresponding to the provided documents
