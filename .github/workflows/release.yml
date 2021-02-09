@@ -4,7 +4,7 @@ on:
     pull_request:
         branches:
             - main
-        types: [closed]
+
 env:
     CI: true
 jobs:
@@ -14,11 +14,17 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
 
-            - name: Setup Node ${{ matrix.node_version }}
+            - name: Attach Head
+              run: |
+                  git checkout ${{ github.event.pull_request.base.ref }}
+
+            - name: Setup Node 15
               uses: actions/setup-node@v1
               with:
-                  node-version: 12
+                  node-version: 15
                   registry-url: 'https://npm.pkg.github.com'
 
             # run git actions as a bot
@@ -30,18 +36,21 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Install
-              run: yarn install
+            - name: Install and Build
+              run: |
+                  yarn install
+                  yarn build
+                  git checkout yarn.lock
 
             # bump the package versions depending on the labels of the pull request
             - name: Bump version
               run: |
-                  if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} = "true" ] ; then
-                    lerna version major
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor') }} = "true" ] ; then
-                    lerna version minor
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Major') }} = "true" ] ; then
-                    lerna version patch
+                  if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') }} = "true" ] ; then
+                    yarn lerna version major --yes
+                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor Version') }} = "true" ] ; then
+                    yarn lerna version minor --yes
+                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') }} = "true" ] ; then
+                    yarn lerna version patch --yes
                   fi
 
             # define ${CURRENT_VERSION}
@@ -68,7 +77,6 @@ jobs:
 
             # publish new package versions to npm
             - name: Publish
-              if: steps.tag_check.outputs.exists_tag == 'false'
               run: |
                   yarn lerna publish from-package --yes
               env:
