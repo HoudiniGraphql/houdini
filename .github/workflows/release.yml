@@ -1,4 +1,4 @@
-name: publish
+name: Publish Release
 on:
     # pull requests to master
     pull_request:
