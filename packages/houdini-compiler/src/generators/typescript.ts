@@ -139,11 +139,17 @@ async function generateOperationTypeDefs(
 // return the property
 const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTypeKind => {
 	let type = definition.type
+
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	let nonNull = false
 	if (type.kind === 'NonNullType') {
 		type = type.type
 		nonNull = true
+	}
+	if (type instanceof graphql.GraphQLNonNull) {
+		nonNull = true
+		// @ts-ignore
+		type = type.ofType
 	}
 	let list = false
 	if (type.kind === 'ListType') {
@@ -155,10 +161,15 @@ const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTy
 		type = type.type
 		innerNonNull = true
 	}
+	if (type instanceof graphql.GraphQLNonNull) {
+		innerNonNull = true
+		// @ts-ignore
+		type = type.ofType
+	}
 
 	// make typescript happy
 	if (type.kind !== 'NamedType' && !graphql.isNamedType(type) && !graphql.isScalarType(type)) {
-		throw new Error('Too many wrappers')
+		throw new Error('Too many wrappers: ' + type.kind)
 	}
 	const namedTypeNode = type as graphql.NamedTypeNode | graphql.GraphQLScalarType
 
