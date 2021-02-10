@@ -5,6 +5,7 @@ import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kind
 import { OperationDefinitionNode } from 'graphql/language'
 import { BaseNode } from 'estree'
 import { DocumentArtifact } from 'houdini-compiler'
+import { hashDocument } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
 
@@ -41,7 +42,8 @@ export default async function walkTaggedDocuments(
 				// we're going to replace the tag with something the runtime can use
 
 				// first, lets parse the tag contents to get the info we need
-				const parsedTag = graphql.parse(expr.quasi.quasis[0].value.raw)
+				const tagContent = expr.quasi.quasis[0].value.raw
+				const parsedTag = graphql.parse(tagContent)
 
 				// make sure there is only one definition
 				if (parsedTag.definitions.length > 1) {
@@ -61,17 +63,18 @@ export default async function walkTaggedDocuments(
 					throw new Error('Could not find operation name')
 				}
 
+				// the location for the document artifact
+				const documentPath = doc.config.artifactPath(parsedTag)
+
+				// make sure we watch the compiled fragment
+				doc.dependencies.push(documentPath)
+
+				let tag
 				try {
-					// the location for the document artifact
-					const documentPath = doc.config.artifactPath(parsedTag)
-
-					// make sure we watch the compiled fragment
-					doc.dependencies.push(documentPath)
-
-					// invoker the walker's callback with the right context
-					await walker.onTag({
+					// collect the information we care about
+					tag = {
 						parsedDocument: parsedTag,
-						artifact: await import(documentPath),
+						artifact: (await import(documentPath)) as DocumentArtifact,
 						node: {
 							...node,
 							...this,
@@ -79,10 +82,21 @@ export default async function walkTaggedDocuments(
 							replaceWith: this.replace,
 						},
 						parent,
-					})
+					}
 				} catch (e) {
 					throw new Error('Looks like you need to run the houdini compiler for ' + name)
 				}
+				// check if the artifact points to a different query than what the template tag is wrapping
+				if (tag.artifact.hash !== hashDocument(tagContent)) {
+					throw new Error(
+						'Looks like the contents of ' +
+							tag.artifact.name +
+							' has changed. Please regenerate your runtime.'
+					)
+				}
+
+				// invoker the walker's callback with the right context
+				await walker.onTag(tag)
 			}
 		},
 	})

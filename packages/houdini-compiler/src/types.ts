@@ -4,6 +4,7 @@ import graphql from 'graphql'
 type BaseCompiledDocument = {
 	name: string
 	raw: string
+	hash: string
 }
 
 export const CompiledFragmentKind = 'HoudiniFragment'
@@ -38,4 +39,5 @@ export type CollectedGraphQLDocument = {
 	filename: string
 	name: string
 	document: graphql.DocumentNode
+	printed: string
 }

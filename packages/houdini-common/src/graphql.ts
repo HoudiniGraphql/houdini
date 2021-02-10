@@ -1,4 +1,5 @@
 import * as graphql from 'graphql'
+import crypto from 'crypto'
 
 // look up the selection type info
 export function selectionTypeInfo(
@@ -58,4 +59,12 @@ export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 
 	// we've unwrapped everythings
 	return type
+}
+
+export function hashDocument(document: string | graphql.DocumentNode): string {
+	// if we were given an AST document, print it first
+	const docString = typeof document === 'string' ? document : graphql.print(document)
+
+	// hash the string
+	return crypto.createHash('md5').update(docString).digest('hex')
 }

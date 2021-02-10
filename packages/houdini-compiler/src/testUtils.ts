@@ -29,6 +29,7 @@ export function pipelineTest(
 				name: definition.name?.value || 'NO_NAME',
 				document,
 				filename: 'test_file.js',
+				printed: documentBody,
 			}
 		})
 
@@ -54,7 +55,6 @@ export function pipelineTest(
 
 		// run the rest of the test
 		if (testBody) {
-			process.stdout.write('invoking check')
 			// invoke the test body with the error instead of the documents
 			testBody(shouldPass ? docs : error)
 		}

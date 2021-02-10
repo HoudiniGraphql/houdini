@@ -1,5 +1,5 @@
 // externals
-import { Config } from 'houdini-common'
+import { Config, hashDocument } from 'houdini-common'
 import * as graphql from 'graphql'
 import { CompiledQueryKind, CompiledFragmentKind, CompiledMutationKind } from '../types'
 import * as recast from 'recast'
@@ -14,7 +14,7 @@ const AST = recast.types.builders
 // document containing meta data that the preprocessor might use
 export default async function artifactGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	await Promise.all(
-		docs.map(async ({ document, name }) => {
+		docs.map(async ({ document, name, printed }) => {
 			// build up the query string
 			const rawString = graphql.print(document)
 
@@ -54,10 +54,12 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				throw new Error('Could not figure out what kind of document we were given')
 			}
 
+			// generate a hash of the document that we can use to detect changes
 			// start building up the artifact
 			const artifact = AST.program([
 				moduleExport('name', AST.stringLiteral(name)),
 				moduleExport('kind', AST.stringLiteral(docKind)),
+				moduleExport('hash', AST.stringLiteral(hashDocument(printed))),
 				moduleExport(
 					'raw',
 					AST.templateLiteral(

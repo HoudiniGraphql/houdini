@@ -74,7 +74,8 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 							) {
 								// @ts-ignore
 								// parse the tag contents to get the info we need
-								const parsedDoc = graphql.parse(node.quasi.quasis[0].value.raw)
+								const printedDoc = node.quasi.quasis[0].value.raw
+								const parsedDoc = graphql.parse(printedDoc)
 
 								// look for the operation
 								const operations = parsedDoc.definitions.filter(
@@ -100,6 +101,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 									name: config.documentName(parsedDoc),
 									document: parsedDoc,
 									filename: filePath,
+									printed: printedDoc,
 								})
 							}
 						},
