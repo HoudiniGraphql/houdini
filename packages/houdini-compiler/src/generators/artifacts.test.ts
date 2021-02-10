@@ -19,12 +19,14 @@ const docs: CollectedGraphQLDocument[] = [
 	{
 		name: 'TestQuery',
 		document: graphql.parse(`query TestQuery { version }`),
+		originalDocument: graphql.parse(`query TestQuery { version }`),
 		filename: 'query.ts',
 		printed: `query TestQuery { version }`,
 	},
 	{
 		name: 'TestFragment',
 		document: graphql.parse(`fragment TestFragment on User { firstName }`),
+		originalDocument: graphql.parse(`fragment TestFragment on User { firstName }`),
 		filename: 'fragment.ts',
 		printed: `fragment TestFragment on User { firstName }`,
 	},
@@ -37,8 +39,6 @@ test('generates an artifact for every document', async function () {
 	// look up the files in the artifact directory
 	const files = await fs.readdir(config.artifactDirectory)
 
-	// make sure we made two files
-	expect(files).toHaveLength(2)
 	// and they have the right names
 	expect(files).toEqual(expect.arrayContaining(['TestQuery.js', 'TestFragment.js']))
 })

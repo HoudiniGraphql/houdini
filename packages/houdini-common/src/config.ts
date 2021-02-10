@@ -54,6 +54,15 @@ export class Config {
 		return path.join(this.runtimeDirectory, 'links')
 	}
 
+	// the directory where artifact types live
+	get artifactTypeDirectory() {
+		return this.artifactDirectory
+	}
+
+	artifactTypePath(document: graphql.DocumentNode) {
+		return path.join(this.artifactTypeDirectory, `${this.documentName(document)}.d.ts`)
+	}
+
 	patchName({ query, mutation }: { query: string; mutation: string }) {
 		return `${mutation}_${query}`
 	}
@@ -105,7 +114,11 @@ export class Config {
 	}
 
 	async createDirectories(): Promise<void> {
-		await Promise.all([mkdirp(this.mutationLinksDirectory), mkdirp(this.artifactDirectory)])
+		await Promise.all([
+			mkdirp(this.mutationLinksDirectory),
+			mkdirp(this.artifactDirectory),
+			mkdirp(this.artifactTypeDirectory),
+		])
 	}
 }
 

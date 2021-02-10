@@ -39,5 +39,6 @@ export type CollectedGraphQLDocument = {
 	filename: string
 	name: string
 	document: graphql.DocumentNode
+	originalDocument: graphql.DocumentNode
 	printed: string
 }

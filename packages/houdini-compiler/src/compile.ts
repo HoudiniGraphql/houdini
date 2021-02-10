@@ -37,6 +37,7 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 			transforms.includeFragmentDefinitions,
 			generators.artifacts,
 			generators.mutations,
+			generators.typescript,
 		],
 		docs
 	)
@@ -91,9 +92,14 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 										'Operation documents can only have one operation'
 									)
 								}
-								// if there is more than one operation, throw an error
-								if (fragments.length > 1) {
-									throw new Error('Fragment documents can only have one fragment')
+								// we are looking at a fragment document
+								else {
+									// if there is more than one fragment, throw an error
+									if (fragments.length > 1) {
+										throw new Error(
+											'Fragment documents can only have one fragment'
+										)
+									}
 								}
 
 								// add it to the list
@@ -102,6 +108,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 									document: parsedDoc,
 									filename: filePath,
 									printed: printedDoc,
+									originalDocument: parsedDoc,
 								})
 							}
 						},
