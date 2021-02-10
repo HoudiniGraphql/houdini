@@ -11,16 +11,16 @@ export const CompiledMutationKind = 'HoudiniMutation'
 export const CompiledQueryKind = 'HoudiniQuery'
 
 // the information that the compiler leaves behind after processing an operation
-export type CompiledGraphqlQuery = BaseCompiledDocument & {
+export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
 }
 
-export type CompiledGraphqlMutation = BaseCompiledDocument & {
+export type MutationArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniMutation'
 }
 
 // the information that the compiler leaves behind after processing a fragment
-export type CompiledGraphqlFragment = BaseCompiledDocument & {
+export type FragmentArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniFragment'
 }
 
@@ -31,7 +31,7 @@ export type Patch = {
 }
 
 // any compiled result
-export type CompiledDocument = CompiledGraphqlFragment | CompiledGraphqlQuery
+export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifact
 
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {

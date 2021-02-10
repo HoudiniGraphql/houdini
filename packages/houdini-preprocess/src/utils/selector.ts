@@ -1,7 +1,7 @@
 // externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { CompiledDocument } from 'houdini-compiler'
+import { DocumentArtifact } from 'houdini-compiler'
 import { Config, selectionTypeInfo, isListType } from 'houdini-common'
 // locals
 import memberExpression from './memberExpression'
@@ -12,7 +12,7 @@ type ArrowFunctionExpression = recast.types.namedTypes.ArrowFunctionExpression
 
 type SelectorProps = {
 	config: Config
-	artifact: CompiledDocument
+	artifact: DocumentArtifact
 	rootIdentifier: string
 	rootType: graphql.GraphQLObjectType
 	selectionSet: graphql.SelectionSetNode

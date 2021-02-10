@@ -4,13 +4,13 @@ import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
 import { OperationDefinitionNode } from 'graphql/language'
 import { BaseNode } from 'estree'
-import { CompiledDocument } from 'houdini-compiler'
+import { DocumentArtifact } from 'houdini-compiler'
 // locals
 import { TransformDocument } from '../types'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
-	artifact: CompiledDocument
+	artifact: DocumentArtifact
 	node: BaseNode & {
 		remove: () => void
 		replaceWith: (node: BaseNode) => void
