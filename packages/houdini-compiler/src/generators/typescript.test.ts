@@ -13,7 +13,15 @@ import { runPipeline } from '../compile'
 const config = testConfig({
 	schema: `
 		type Query {
-			user: User
+			user(id: ID, filter: UserFilter): User
+		}
+
+		input UserFilter {
+			middle: NestedUserFilter
+		}
+
+		input NestedUserFilter {
+			search: String
 		}
 
 		type User {
@@ -33,6 +41,90 @@ const config = testConfig({
 })
 
 describe('typescript', function () {
+	test('query types', async function () {
+		const query = `query Query($id: ID!) { user(id: $id) { firstName } }`
+		// the document to test
+		const doc = {
+			name: 'TestFragment',
+			document: graphql.parse(query),
+			originalDocument: graphql.parse(query),
+			filename: 'fragment.ts',
+			printed: query,
+		}
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": Query$input,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly user: {
+		        readonly firstName: string
+		    } | null
+		};
+
+		export type Query$input = {
+		    id: string | null | undefined
+		};
+	`)
+	})
+
+	test('nested input objects', async function () {
+		const query = `query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
+		// the document to test
+		const doc = {
+			name: 'TestFragment',
+			document: graphql.parse(query),
+			originalDocument: graphql.parse(query),
+			filename: 'fragment.ts',
+			printed: query,
+		}
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": Query$input,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly user: {
+		        readonly firstName: string
+		    } | null
+		};
+
+		export type Query$input = {
+		    filter: {
+		        middle: {
+		            search: string | null | undefined
+		        } | null | undefined
+		    } | null | undefined
+		};
+	`)
+	})
+
 	test('fragment types', async function () {
 		// the document to test
 		const doc = {
@@ -177,4 +269,8 @@ describe('typescript', function () {
 		};
 	`)
 	})
+
+	test.skip('fragment spreads', function () {})
+
+	test.skip('inline fragments', function () {})
 })

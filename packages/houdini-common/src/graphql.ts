@@ -9,19 +9,25 @@ export function selectionTypeInfo(
 ): { field: graphql.GraphQLField<any, any>; type: graphql.GraphQLNamedType } {
 	// the field we are looking at
 	const selectionName = (selection as graphql.FieldNode).name.value
-	const field = rootType.getFields()[selectionName]
+	const fieldMap = graphql.isNonNullType(rootType)
+		? rootType.ofType.getFields()
+		: rootType.getFields()
 
-	if (!field) {
+	const field = fieldMap[selectionName]
+
+	const fieldType = (graphql.getNamedType(field.type) as unknown) as graphql.GraphQLNamedType
+	const fieldTypeName = fieldType.name
+
+	if (!field || !fieldType) {
 		throw new Error(
-			`Could not find type information for field ${rootType.toString()}.${selectionName}`
+			`Could not find type information for field ${rootType.toString()}.${selectionName} ${field} ${fieldType}`
 		)
 	}
 	// and the actual object type that it refers to
-	const selectionType = schema.getType(
-		graphql.getNamedType(field.type).name
-	) as graphql.GraphQLObjectType
+	// @ts-ignore
+	const selectionType = schema.getType(fieldTypeName) as graphql.GraphQLObjectType
 	if (!selectionType) {
-		throw new Error('Could not find type for ' + graphql.getNamedType(field.type).name)
+		throw new Error('Could not find type for ' + fieldTypeName)
 	}
 
 	return { field, type: selectionType }
