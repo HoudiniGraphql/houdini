@@ -2,9 +2,9 @@ import graphql from 'graphql'
 
 // the compiled version of an operation
 type BaseCompiledDocument = {
-	hash: string
 	name: string
 	raw: string
+	hash: string
 }
 
 export const CompiledFragmentKind = 'HoudiniFragment'
