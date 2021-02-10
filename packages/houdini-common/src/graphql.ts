@@ -61,6 +61,10 @@ export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	return type
 }
 
-export function hashDocument(documentString: string): string {
-	return crypto.createHash('md5').update(documentString).digest('hex')
+export function hashDocument(document: string | graphql.DocumentNode): string {
+	// if we were given an AST document, print it first
+	const docString = typeof document === 'string' ? document : graphql.print(document)
+
+	// hash the string
+	return crypto.createHash('md5').update(docString).digest('hex')
 }

@@ -19,10 +19,14 @@ const docs: CollectedGraphQLDocument[] = [
 	{
 		name: 'TestQuery',
 		document: graphql.parse(`query TestQuery { version }`),
+		filename: 'query.ts',
+		printed: `query TestQuery { version }`,
 	},
 	{
 		name: 'TestFragment',
 		document: graphql.parse(`fragment TestFragment on User { firstName }`),
+		filename: 'fragment.ts',
+		printed: `fragment TestFragment on User { firstName }`,
 	},
 ]
 
@@ -58,7 +62,7 @@ test('adds kind, name, and raw', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "TestQuery";
 		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "02dc84ad7f8f413b4442940b9ae316a4";
+		module.exports.hash = "41ec892821ed25278cbbaf2c4d434205";
 
 		module.exports.raw = \`query TestQuery {
 		  version
@@ -79,7 +83,7 @@ test('adds kind, name, and raw', async function () {
 	expect(parsedFragment).toMatchInlineSnapshot(`
 		module.exports.name = "TestFragment";
 		module.exports.kind = "HoudiniFragment";
-		module.exports.hash = "c5880b10e851c99708e94cbe2570d6cf";
+		module.exports.hash = "a77288e39dcdadb70e4010b543c89c6a";
 
 		module.exports.raw = \`fragment TestFragment on User {
 		  firstName

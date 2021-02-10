@@ -68,8 +68,8 @@ export default async function walkTaggedDocuments(
 					// make sure we watch the compiled fragment
 					doc.dependencies.push(documentPath)
 
-					// invoker the walker's callback with the right context
-					await walker.onTag({
+					// collect the information we care about
+					const tag = {
 						parsedDocument: parsedTag,
 						artifact: await import(documentPath),
 						node: {
@@ -79,7 +79,10 @@ export default async function walkTaggedDocuments(
 							replaceWith: this.replace,
 						},
 						parent,
-					})
+					}
+
+					// invoker the walker's callback with the right context
+					await walker.onTag(tag)
 				} catch (e) {
 					throw new Error('Looks like you need to run the houdini compiler for ' + name)
 				}

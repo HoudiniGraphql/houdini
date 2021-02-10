@@ -55,7 +55,6 @@ export function pipelineTest(
 
 		// run the rest of the test
 		if (testBody) {
-			process.stdout.write('invoking check')
 			// invoke the test body with the error instead of the documents
 			testBody(shouldPass ? docs : error)
 		}
