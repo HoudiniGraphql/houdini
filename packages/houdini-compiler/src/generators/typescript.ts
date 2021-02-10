@@ -1,5 +1,12 @@
 // externals
-import { Config, selectionTypeInfo, isScalarType, isObjectType, isListType } from 'houdini-common'
+import {
+	Config,
+	selectionTypeInfo,
+	isScalarType,
+	isObjectType,
+	isListType,
+	getRootType,
+} from 'houdini-common'
 import * as recast from 'recast'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
@@ -97,7 +104,7 @@ async function generateFragmentTypeDefs(
 			AST.exportNamedDeclaration(
 				AST.tsTypeAliasDeclaration(
 					AST.identifier(shapeTypeName),
-					tsType(config, type, definition.selectionSet)
+					tsType(config, type, definition.selectionSet, true)
 				)
 			)
 		)
@@ -118,35 +125,51 @@ function readonly(
 function tsType(
 	config: Config,
 	rootType: graphql.GraphQLNamedType,
-	selectionSet: graphql.SelectionSetNode | undefined
+	selectionSet: graphql.SelectionSetNode | undefined,
+	root: boolean
 ): TSTypeKind {
+	// debugger
+	// @ts-ignore
+	let result: TSTypeKind
 	// if we are looking at a scalar field
 	if (isScalarType(rootType)) {
-		return scalarPropertyValue(rootType)
+		result = scalarPropertyValue(rootType)
 	}
 	// if we are looking at a list
 	else if (isListType(rootType)) {
-		// @ts-ignore
-		return AST.tsArrayType(tsType(config, rootType.ofType, selectionSet))
+		// debugger
+		result = AST.tsArrayType(
+			// @ts-ignore
+			AST.tsParenthesizedType(tsType(config, rootType.ofType, selectionSet, false))
+		)
 	}
 	// if we are looking at an object
 	else if (isObjectType(rootType)) {
 		const rootObj = rootType as graphql.GraphQLObjectType<any, any>
 
-		return AST.tsTypeLiteral(
+		result = AST.tsTypeLiteral(
 			((selectionSet?.selections || []).filter(
 				(field) => field.kind === 'Field'
 			) as graphql.FieldNode[]).map((selection) => {
 				// grab the type info for the selection
-				const { type } = selectionTypeInfo(config.schema, rootObj, selection)
+				const { type, field } = selectionTypeInfo(config.schema, rootObj, selection)
 
 				// figure out the response name
 				const attributeName = selection.alias?.value || selection.name.value
 
-				return AST.tsPropertySignature(
-					AST.identifier(attributeName),
-					AST.tsTypeAnnotation(
-						tsType(config, type, selection.selectionSet as graphql.SelectionSetNode)
+				// figure out the corresponding typescript type
+				let attributeType = tsType(
+					config,
+					field.type as graphql.GraphQLNamedType,
+					selection.selectionSet as graphql.SelectionSetNode,
+					false
+				)
+
+				// we're done
+				return readonly(
+					AST.tsPropertySignature(
+						AST.identifier(attributeName),
+						AST.tsTypeAnnotation(attributeType)
 					)
 				)
 			})
@@ -156,6 +179,14 @@ function tsType(
 	else {
 		throw Error('Could not convert selection to typescript')
 	}
+
+	debugger
+	// if the field isn't marked non- null we need to wrap it in a | null
+	if (!root && !graphql.isNonNullType(rootType)) {
+		result = AST.tsUnionType([result, AST.tsNullKeyword()])
+	}
+
+	return result
 }
 
 function scalarPropertyValue(target: graphql.GraphQLNamedType): TSTypeKind {
