@@ -190,6 +190,42 @@ describe('typescript', function () {
 	`)
 	})
 
+	test('query with no input', async function () {
+		const query = `query Query { user { firstName } }`
+		// the document to test
+		const doc = {
+			name: 'TestFragment',
+			document: graphql.parse(query),
+			originalDocument: graphql.parse(query),
+			filename: 'fragment.ts',
+			printed: query,
+		}
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly user: {
+		        readonly firstName: string
+		    } | null
+		};
+	`)
+	})
+
 	test('query with input', async function () {
 		const query = `query Query($id: ID!) { user(id: $id) { firstName } }`
 		// the document to test

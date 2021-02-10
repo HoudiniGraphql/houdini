@@ -76,6 +76,10 @@ async function generateOperationTypeDefs(
 			throw new Error('Could not find root type for document')
 		}
 
+		// dry
+		const hasInputs =
+			definition.variableDefinitions && definition.variableDefinitions.length > 0
+
 		// add our types to the body
 		body.push(
 			// add the root type named after the document that links the input and result types
@@ -87,7 +91,9 @@ async function generateOperationTypeDefs(
 							AST.tsPropertySignature(
 								AST.stringLiteral('input'),
 								AST.tsTypeAnnotation(
-									AST.tsTypeReference(AST.identifier(inputTypeName))
+									hasInputs
+										? AST.tsTypeReference(AST.identifier(inputTypeName))
+										: AST.tsNullKeyword()
 								)
 							)
 						),
@@ -113,7 +119,7 @@ async function generateOperationTypeDefs(
 		)
 
 		// if there are variables in this query
-		if (definition.variableDefinitions && definition.variableDefinitions.length > 0) {
+		if (hasInputs) {
 			// merge all of the variables into a single object
 			body.push(
 				AST.exportNamedDeclaration(
