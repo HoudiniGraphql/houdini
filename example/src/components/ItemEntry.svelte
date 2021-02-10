@@ -39,14 +39,14 @@
 	`)
 
 	async function handleClick(input) {
-		// if we are supposed to mark an item as complete
+		// if the item is already checked
 		if ($data.completed) {
-			// trigger that mutation instead
+			// uncheck it
 			await uncompleteItem({ id: $data.id })
 		}
-		// we are supposed to mark the item an incomplete
+		// the item is unchecked
 		else {
-			// trigger the mutation to check the item
+			// check it
 			await completeItem({ id: $data.id })
 		}
 	}
