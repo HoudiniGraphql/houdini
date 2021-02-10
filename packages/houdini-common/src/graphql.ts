@@ -43,7 +43,7 @@ export function isListType(type: graphql.GraphQLType): boolean {
 	return graphql.isListType(type)
 }
 
-// return if the type is a list or not
+// return if the type is a scalar or not
 export function isScalarType(type: graphql.GraphQLType): boolean {
 	// if the type is non-null, unwrap and check again
 	if (graphql.isNonNullType(type)) {

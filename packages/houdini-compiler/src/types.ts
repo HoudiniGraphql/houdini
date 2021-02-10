@@ -42,13 +42,3 @@ export type CollectedGraphQLDocument = {
 	originalDocument: graphql.DocumentNode
 	printed: string
 }
-
-// export type ItemEntry_item = {
-//     readonly "shape": ItemEntry_item$data
-// };
-
-// export type ItemEntry_item$data = {
-//     readonly id: string,
-//     readonly text: string,
-//     readonly completed: boolean
-// };
