@@ -4,6 +4,7 @@ import * as recast from 'recast'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { TSTypeKind, StatementKind, TSPropertySignatureKind } from 'ast-types/gen/kinds'
+import path from 'path'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 
@@ -14,6 +15,9 @@ export default async function typescriptGenerator(
 	config: Config,
 	docs: CollectedGraphQLDocument[]
 ) {
+	// build up a list of paths we have types in (to export from index.d.ts)
+	const typePaths: string[] = []
+
 	// every document needs a generated type
 	await Promise.all(
 		// the generated types depend solely on user-provided information
@@ -37,8 +41,29 @@ export default async function typescriptGenerator(
 
 			// write the file contents
 			await fs.writeFile(typeDefPath, recast.print(program).code, 'utf-8')
+
+			typePaths.push(typeDefPath)
 		})
 	)
+
+	// now that we have every type generated, create an index file in the runtime root that exports the types
+	const typeIndex = AST.program(
+		typePaths.map((typePath) => {
+			return AST.exportAllDeclaration(
+				AST.literal(
+					'./' +
+						path
+							.relative(path.resolve(config.typeIndexPath, '..'), typePath)
+							// remove the .d.ts from the end of the path
+							.replace(/\.[^/.]+\.[^/.]+$/, '')
+				),
+				null
+			)
+		})
+	)
+
+	// write the contents
+	await fs.writeFile(config.typeIndexPath, recast.print(typeIndex).code, 'utf-8')
 }
 
 async function generateOperationTypeDefs(

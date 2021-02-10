@@ -59,6 +59,10 @@ export class Config {
 		return this.artifactDirectory
 	}
 
+	get typeIndexPath() {
+		return path.join(this.runtimeDirectory, 'index.d.ts')
+	}
+
 	artifactTypePath(document: graphql.DocumentNode) {
 		return path.join(this.artifactTypeDirectory, `${this.documentName(document)}.d.ts`)
 	}

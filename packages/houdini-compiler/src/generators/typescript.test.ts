@@ -314,6 +314,30 @@ describe('typescript', function () {
 	`)
 	})
 
+	test('generates index file', async function () {
+		const query = `query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
+		// the document to test
+		const doc = {
+			name: 'Query',
+			document: graphql.parse(query),
+			originalDocument: graphql.parse(query),
+			filename: 'fragment.ts',
+			printed: query,
+		}
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// read the type index file
+		const fileContents = await fs.readFile(config.typeIndexPath, 'utf-8')
+
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`export * from "./artifacts/Query";`)
+	})
+
 	test.skip('null input on queries', function () {})
 
 	test.skip('fragment spreads', function () {})

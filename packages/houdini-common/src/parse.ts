@@ -54,10 +54,6 @@ export function parseFile(content: string): ParsedSvelteFile {
 		const scriptEndIndex = end - startOfContent - scriptEnd.length
 		const scriptContents = content.substr(startOfContent, scriptEndIndex).trim()
 
-		console.log(scriptContents)
-
-		console.log()
-
 		// parse the script contents
 		const script = {
 			content: parseJS(scriptContents, {
