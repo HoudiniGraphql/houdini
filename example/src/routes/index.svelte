@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
 	import { query, graphql } from 'houdini'
 	import ItemEntry from '../components/ItemEntry.svelte'
+	import type { AllItems } from '../../generated'
 
 	// load the items
-	const data = query(graphql`
+	const data = query<AllItems>(graphql`
 		query AllItems {
 			items {
 				id

@@ -4,10 +4,13 @@ import { CompiledMutationKind } from 'houdini-compiler'
 // locals
 import { getEnvironment } from './environment'
 import { getDocumentStores, applyPatch } from './runtime'
+import { Operation } from './types'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
-export default function mutation(document: GraphQLTagResult) {
+export default function mutation<_Mutation extends Operation<any, any>>(
+	document: GraphQLTagResult
+): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
 	if (document.kind !== CompiledMutationKind) {
 		throw new Error('getQuery can only take query operations')
@@ -22,7 +25,7 @@ export default function mutation(document: GraphQLTagResult) {
 	}
 
 	// return an async function that sends the mutation go the server
-	return async (variables: any) => {
+	return async (variables: _Mutation['input']) => {
 		// grab the response from the server
 		const { data } = await currentEnv.sendRequest({ text, variables })
 

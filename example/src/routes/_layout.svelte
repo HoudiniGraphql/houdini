@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
 	import { query, graphql } from 'houdini'
 	import { derived } from 'svelte/store'
+	import type { IndexInfo } from '../../generated'
 
 	// load some data at the top of the app for general information
-	const data = query(graphql`
+	const data = query<IndexInfo>(graphql`
 		query IndexInfo {
 			items {
 				id
