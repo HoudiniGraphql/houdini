@@ -126,7 +126,7 @@ async function generateOperationTypeDefs(
 					AST.tsTypeAliasDeclaration(
 						AST.identifier(inputTypeName),
 						AST.tsTypeLiteral(
-							definition.variableDefinitions.map(
+							(definition.variableDefinitions || []).map(
 								(definition: graphql.VariableDefinitionNode) =>
 									// add a property describing the variable to the root object
 									AST.tsPropertySignature(

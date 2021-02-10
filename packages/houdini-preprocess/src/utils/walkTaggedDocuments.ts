@@ -4,6 +4,7 @@ import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
 import { OperationDefinitionNode } from 'graphql/language'
 import { BaseNode } from 'estree'
+import { Program } from '@babel/types'
 import { DocumentArtifact } from 'houdini-compiler'
 import { hashDocument } from 'houdini-common'
 // locals
@@ -27,10 +28,10 @@ type GraphqlTagWalker = {
 // yield the tagged graphql documents contained within the provided AST
 export default async function walkTaggedDocuments(
 	doc: TransformDocument,
-	parsedScript: BaseNode,
+	parsedScript: Program,
 	walker: GraphqlTagWalker
 ): Promise<void> {
-	// svelte walk over recast?
+	// @ts-ignore
 	await asyncWalk(parsedScript, {
 		async enter(node, parent) {
 			// if we are looking at the graphql template tag

@@ -106,6 +106,28 @@ describe('preprocessor can replace content', function () {
 		expect(result.code.trim()).toBe(`<script context="module" lang="ts">"hello";</script>`)
 	})
 
+	test('parses typescript', async function () {
+		// the source
+		const content = `
+        <script "lang"="ts">
+			type Foo = { hello: string }
+		</script>
+`
+
+		// apply the transforms
+		await expect(
+			applyTransforms(config, { content, filename: 'test' }, [])
+		).resolves.toBeTruthy()
+
+		// apply the transforms
+		const result = await applyTransforms(config, { content, filename: 'test' }, [])
+
+		// make sure we got the result back
+		expect(result.code.trim()).toBe(`<script "lang"="ts">type Foo = {
+    hello: string
+};</script>`)
+	})
+
 	test('modify both at the same time (module above instance)', async function () {
 		// the source
 		const content = `
@@ -191,19 +213,12 @@ describe('preprocessor can replace content', function () {
 		// lets apply a simple transform that replaces the content with the literal expression 'hello'
 		const transforms = [
 			async (config: Config, document: types.TransformDocument) => {
-				// @ts-ignore
 				// we're going to set the content of the instance to a literal expression
 				document.module = {
-					type: 'Script',
 					start: 0,
 					end: 0,
-					context: '',
-					content: {
-						type: 'Program',
-						sourceType: 'script',
-						body: [],
-						comments: [],
-					},
+					// @ts-ignore
+					content: typeBuilders.program([]),
 				}
 			},
 		]
@@ -238,12 +253,8 @@ describe('preprocessor can replace content', function () {
 					start: 0,
 					end: 0,
 					context: '',
-					content: {
-						type: 'Program',
-						sourceType: 'script',
-						body: [],
-						comments: [],
-					},
+					// @ts-ignore
+					content: typeBuilders.program([]),
 				}
 			},
 		]
