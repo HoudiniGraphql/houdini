@@ -1,8 +1,6 @@
-// externalsr
-
+// externals
 import * as recast from 'recast'
 import { runPipeline, Config, Transform, getConfig, parseFile } from 'houdini-common'
-import { parse as parseJS } from '@babel/parser'
 // locals
 import defaultTransforms from './transforms'
 import * as types from './types'
