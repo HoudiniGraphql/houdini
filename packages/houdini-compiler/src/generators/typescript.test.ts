@@ -17,10 +17,16 @@ const config = testConfig({
 		}
 
 		type User {
+			id: ID!
+
 			firstName: String!
 			nickname: String
 			parent: User
 			friends: [User]
+
+			admin: Boolean
+			age: Int
+			weight: Float
 		}
 
 	`,
@@ -93,6 +99,44 @@ describe('typescript', function () {
 		    readonly parent: {
 		        readonly firstName: string
 		    } | null
+		};
+	`)
+	})
+
+	test('scalars', async function () {
+		const fragment = `fragment TestFragment on User { firstName admin age id weight }`
+
+		// the document to test
+		const doc = {
+			name: 'TestFragment',
+			document: graphql.parse(fragment),
+			originalDocument: graphql.parse(fragment),
+			filename: 'fragment.ts',
+			printed: fragment,
+		}
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type TestFragment = {
+		    readonly "shape": TestFragment$data
+		};
+
+		export type TestFragment$data = {
+		    readonly firstName: string,
+		    readonly admin: boolean | null,
+		    readonly age: number | null,
+		    readonly id: string,
+		    readonly weight: number | null
 		};
 	`)
 	})

@@ -1,12 +1,5 @@
 // externals
-import {
-	Config,
-	selectionTypeInfo,
-	isScalarType,
-	isObjectType,
-	isListType,
-	getRootType,
-} from 'houdini-common'
+import { Config, selectionTypeInfo, isScalarType, isObjectType, isListType } from 'houdini-common'
 import * as recast from 'recast'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
@@ -190,5 +183,29 @@ function tsType(
 }
 
 function scalarPropertyValue(target: graphql.GraphQLNamedType): TSTypeKind {
-	return AST.tsStringKeyword()
+	switch (target.name) {
+		case 'String': {
+			return AST.tsStringKeyword()
+		}
+		case 'Int': {
+			return AST.tsNumberKeyword()
+		}
+		case 'Float': {
+			return AST.tsNumberKeyword()
+		}
+		case 'Boolean': {
+			return AST.tsBooleanKeyword()
+		}
+		case 'ID': {
+			return AST.tsStringKeyword()
+		}
+		default: {
+			// if we're looking at a non-null type
+			if (graphql.isNonNullType(target)) {
+				return scalarPropertyValue(target.ofType)
+			}
+
+			throw new Error('Could not convert scalar type: ' + target.toString())
+		}
+	}
 }
