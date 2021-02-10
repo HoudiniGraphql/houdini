@@ -34,7 +34,6 @@ export async function applyTransforms(
 
 	// wrap the two ASTs in something we can pass through the pipeline
 	const parsed = svelte.parse(doc.content)
-
 	// wrap everything up in an object we'll thread through the transforms
 	const result: types.TransformDocument = {
 		instance: parsed.instance,
@@ -86,10 +85,13 @@ export async function applyTransforms(
 		}
 	}
 
-	// we know that there is a module and an instance so we printed both
-	// lets make typescript happy.
+	// if we still dont have any javascript on this page
 	if (!result.module || !result.instance) {
-		throw new Error('Would never get here.')
+		// ignore it
+		return {
+			code: doc.content,
+			dependencies: [],
+		}
 	}
 
 	// there is both a module and an instance so we want to replace the lowest
