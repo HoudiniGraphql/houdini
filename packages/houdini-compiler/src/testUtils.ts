@@ -29,6 +29,7 @@ export function pipelineTest(
 				name: definition.name?.value || 'NO_NAME',
 				document,
 				filename: 'test_file.js',
+				printed: documentBody,
 			}
 		})
 

@@ -2,6 +2,7 @@ import graphql from 'graphql'
 
 // the compiled version of an operation
 type BaseCompiledDocument = {
+	hash: string
 	name: string
 	raw: string
 }
@@ -38,4 +39,5 @@ export type CollectedGraphQLDocument = {
 	filename: string
 	name: string
 	document: graphql.DocumentNode
+	printed: string
 }

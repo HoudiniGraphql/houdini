@@ -58,6 +58,7 @@ test('adds kind, name, and raw', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "TestQuery";
 		module.exports.kind = "HoudiniQuery";
+		module.exports.hash = "02dc84ad7f8f413b4442940b9ae316a4";
 
 		module.exports.raw = \`query TestQuery {
 		  version
@@ -78,6 +79,7 @@ test('adds kind, name, and raw', async function () {
 	expect(parsedFragment).toMatchInlineSnapshot(`
 		module.exports.name = "TestFragment";
 		module.exports.kind = "HoudiniFragment";
+		module.exports.hash = "c5880b10e851c99708e94cbe2570d6cf";
 
 		module.exports.raw = \`fragment TestFragment on User {
 		  firstName

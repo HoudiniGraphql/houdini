@@ -1,5 +1,5 @@
 // externals
-import { Config } from 'houdini-common'
+import { Config, hashDocument } from 'houdini-common'
 import * as graphql from 'graphql'
 import { CompiledQueryKind, CompiledFragmentKind, CompiledMutationKind } from '../types'
 import * as recast from 'recast'
@@ -54,10 +54,12 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				throw new Error('Could not figure out what kind of document we were given')
 			}
 
+			// generate a hash of the document that we can use to detect changes
 			// start building up the artifact
 			const artifact = AST.program([
 				moduleExport('name', AST.stringLiteral(name)),
 				moduleExport('kind', AST.stringLiteral(docKind)),
+				moduleExport('hash', AST.stringLiteral(hashDocument(graphql.print(document)))),
 				moduleExport(
 					'raw',
 					AST.templateLiteral(
