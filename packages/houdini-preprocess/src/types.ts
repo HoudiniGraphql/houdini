@@ -19,7 +19,7 @@ export type TaggedGraphqlMutation = {
 	kind: 'HoudiniMutation'
 	raw: string
 	processResult: (result: any) => any
-	links: Module<{ [queryName: string]: Module<Patch> }>
+	links: Module<() => { [queryName: string]: Module<Patch> }>
 }
 
 // the result of tagging an operation

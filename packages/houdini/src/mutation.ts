@@ -33,11 +33,11 @@ export default function mutation(document: GraphQLTagResult) {
 
 		// we need to update any that this mutation touches
 		// wait for the link module to load
-		linkModule.then(async ({ default: links }) => {
+		linkModule.then(({ default: links }) => {
 			// every entry in the link could point to a store that needs to update
 			// we can process them in parallel since there is no shared data
 			Promise.all(
-				Object.entries(links).map(async ([queryName, patchModule]) => {
+				Object.entries(links()).map(async ([queryName, patchModule]) => {
 					// wait for the patch to load
 					const { default: patch } = await patchModule
 					// apply the changes to any stores that have registered themselves
