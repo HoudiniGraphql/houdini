@@ -14,6 +14,7 @@ const config = testConfig({
 	schema: `
 		type Query {
 			user(id: ID, filter: UserFilter): User
+			users: [User]
 		}
 
 		input UserFilter {
@@ -40,7 +41,6 @@ const config = testConfig({
 			age: Int
 			weight: Float
 		}
-
 	`,
 })
 
@@ -222,6 +222,59 @@ describe('typescript', function () {
 		    readonly user: {
 		        readonly firstName: string
 		    } | null
+		};
+	`)
+	})
+
+	test('query with root list', async function () {
+		// the document with the query
+		const query = `
+			query Query {
+				users {
+					firstName,
+					...Fragment
+				}
+			}
+		`
+		const queryDoc = {
+			name: 'Query',
+			document: graphql.parse(query),
+			originalDocument: graphql.parse(query),
+			filename: 'fragment.ts',
+			printed: query,
+		}
+
+		// the document with the fragment
+		const fragment = `fragment Fragment on User { firstName }`
+		const fragmentDoc = {
+			name: 'Fragment',
+			document: graphql.parse(fragment),
+			originalDocument: graphql.parse(fragment),
+			filename: 'fragment.ts',
+			printed: fragment,
+		}
+
+		// execute the generator
+		await runPipeline(config, [queryDoc, fragmentDoc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(queryDoc.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly users: ({
+		        readonly firstName: string
+		    } | null)[] | null
 		};
 	`)
 	})

@@ -39,7 +39,7 @@
 		}
 	`)
 
-	async function handleClick(input) {
+	async function handleClick() {
 		// if the item is already checked
 		if ($data.completed) {
 			// uncheck it

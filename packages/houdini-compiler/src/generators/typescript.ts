@@ -236,7 +236,7 @@ const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTy
 
 	// if we have an inner non-null
 	if (!innerNonNull) {
-		result = AST.tsUnionType([result, AST.tsNullKeyword(), AST.tsUndefinedKeyword()])
+		result = nullable(result, true)
 	}
 	// list?
 	if (list) {
@@ -244,7 +244,7 @@ const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTy
 	}
 	// wrap it again
 	if (list && !nonNull) {
-		result = AST.tsUnionType([result, AST.tsNullKeyword(), AST.tsUndefinedKeyword()])
+		result = nullable(result, true)
 	}
 
 	// return the property describing the variable
@@ -313,21 +313,31 @@ function tsType(
 	root: boolean,
 	allowReadonly: boolean
 ): TSTypeKind {
+	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
+	let type: graphql.GraphQLNullableType = rootType
+	let nonNull = false
+	if (type instanceof graphql.GraphQLNonNull) {
+		type = type.ofType
+		nonNull = true
+	}
+	let list = false
+	if (type instanceof graphql.GraphQLList) {
+		type = type.ofType
+		list = true
+	}
+	let innerNonNull = false
+	if (type instanceof graphql.GraphQLNonNull) {
+		type = type.ofType
+		innerNonNull = true
+	}
 	let result: TSTypeKind
 	// if we are looking at a scalar field
-	if (isScalarType(rootType)) {
-		result = scalarPropertyValue(rootType)
-	}
-	// if we are looking at a list
-	else if (isListType(rootType)) {
-		result = AST.tsArrayType(
-			// @ts-ignore
-			AST.tsParenthesizedType(tsType(config, rootType.ofType, selections, false))
-		)
+	if (isScalarType(type)) {
+		result = scalarPropertyValue(type as graphql.GraphQLNamedType)
 	}
 	// if we are looking at an object
-	else if (isObjectType(rootType)) {
-		const rootObj = rootType as graphql.GraphQLObjectType<any, any>
+	else if (isObjectType(type)) {
+		const rootObj = type as graphql.GraphQLObjectType<any, any>
 
 		result = AST.tsTypeLiteral(
 			((selections || []).filter(
@@ -364,9 +374,24 @@ function tsType(
 		throw Error('Could not convert selection to typescript')
 	}
 
-	// if the field isn't marked non- null we need to wrap it in a | null
-	if (!root && !graphql.isNonNullType(rootType)) {
-		result = AST.tsUnionType([result, AST.tsNullKeyword()])
+	// if we are wrapping a list
+	if (list) {
+		// if we do not have an inner non-null, wrap it
+		if (!innerNonNull) {
+			result = nullable(result)
+		}
+		// wrap it in the list
+		result = AST.tsArrayType(AST.tsParenthesizedType(result))
+
+		// if we do not have an outer null
+		if (!nonNull) {
+			result = nullable(result)
+		}
+	} else {
+		// if we aren't marked as non-null
+		if (!innerNonNull && !root && !nonNull) {
+			result = nullable(result)
+		}
 	}
 
 	return result
@@ -380,6 +405,16 @@ function readonlyProperty(
 		prop.readonly = true
 	}
 	return prop
+}
+
+function nullable(inner: TSTypeKind, input = false) {
+	// the members of the union
+	const members = [inner, AST.tsNullKeyword()]
+	if (input) {
+		members.push(AST.tsUndefinedKeyword())
+	}
+
+	return AST.tsUnionType(members)
 }
 
 function scalarPropertyValue(target: graphql.GraphQLNamedType): TSTypeKind {

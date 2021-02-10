@@ -11,7 +11,7 @@
 				completed
 			}
 		}
-	`)
+	`, null)
 
 	const numberOfItems = derived(data, $data => $data.items.length)
 	const itemsLeft = derived(data, $data => $data.items.filter((item) => !item.completed).length)
