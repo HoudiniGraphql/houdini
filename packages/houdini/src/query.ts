@@ -7,21 +7,9 @@ import { onMount } from 'svelte'
 import { registerDocumentStore, unregisterDocumentStore } from './runtime'
 import { Operation } from './types'
 
-// we're going to define two overlaods for query, one for queries
-// with an input and one without (so that the variables argument can be optional)
-export function query<_Query extends Operation<any, null>>(
-	document: GraphQLTagResult,
-	variables?: null
-): Readable<_Query['result']>
-
-export function query<_Query extends Operation<any, null>>(
-	document: GraphQLTagResult,
-	variables: null
-): Readable<_Query['result']>
-
 export default function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult,
-	variables: undefined | null | _Query['input']
+	variables: undefined | _Query['input']
 ): Readable<_Query['result']> {
 	// make sure we got a query document
 	if (document.kind !== CompiledQueryKind) {

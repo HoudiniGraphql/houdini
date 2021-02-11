@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { query, graphql } from 'houdini'
 	import ItemEntry from '../components/ItemEntry.svelte'
-	import type { AllItems } from '../../generated'
+	import type { AllItems, CompleteItem } from '../../generated'
 
 	// load the items
 	const data = query<AllItems>(graphql`
