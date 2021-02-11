@@ -68,7 +68,10 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 		export type TestFragment = {
-		    readonly "shape": TestFragment$data
+		    readonly "shape"?: TestFragment$data,
+		    readonly "$fragments": {
+		        "TestFragment": true
+		    }
 		};
 
 		export type TestFragment$data = {
@@ -103,7 +106,10 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 		export type TestFragment = {
-		    readonly "shape": TestFragment$data
+		    readonly "shape"?: TestFragment$data,
+		    readonly "$fragments": {
+		        "TestFragment": true
+		    }
 		};
 
 		export type TestFragment$data = {
@@ -140,7 +146,10 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 		export type TestFragment = {
-		    readonly "shape": TestFragment$data
+		    readonly "shape"?: TestFragment$data,
+		    readonly "$fragments": {
+		        "TestFragment": true
+		    }
 		};
 
 		export type TestFragment$data = {
@@ -178,7 +187,10 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 		export type TestFragment = {
-		    readonly "shape": TestFragment$data
+		    readonly "shape"?: TestFragment$data,
+		    readonly "$fragments": {
+		        "TestFragment": true
+		    }
 		};
 
 		export type TestFragment$data = {
@@ -232,7 +244,6 @@ describe('typescript', function () {
 			query Query {
 				users {
 					firstName,
-					...Fragment
 				}
 			}
 		`
@@ -243,19 +254,8 @@ describe('typescript', function () {
 			filename: 'fragment.ts',
 			printed: query,
 		}
-
-		// the document with the fragment
-		const fragment = `fragment Fragment on User { firstName }`
-		const fragmentDoc = {
-			name: 'Fragment',
-			document: graphql.parse(fragment),
-			originalDocument: graphql.parse(fragment),
-			filename: 'fragment.ts',
-			printed: fragment,
-		}
-
 		// execute the generator
-		await runPipeline(config, [queryDoc, fragmentDoc])
+		await runPipeline(config, [queryDoc])
 
 		// look up the files in the artifact directory
 		const fileContents = await fs.readFile(config.artifactTypePath(queryDoc.document), 'utf-8')
@@ -391,9 +391,53 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`export * from "./artifacts/Query";`)
 	})
 
-	test.skip('null input on queries', function () {})
+	test('fragment spreads', async function () {
+		// the document with the fragment
+		const fragment = `fragment Foo on User { firstName }`
+		const fragmentDoc = {
+			name: 'Foo',
+			document: graphql.parse(fragment),
+			originalDocument: graphql.parse(fragment),
+			filename: 'fragment.ts',
+			printed: fragment,
+		}
 
-	test.skip('fragment spreads', function () {})
+		// the document to test
+		const query = `query Query { user { ...Foo } }`
+		const doc = {
+			name: 'Query',
+			document: graphql.parse(query),
+			originalDocument: graphql.parse(query),
+			filename: 'query.ts',
+			printed: query,
+		}
+
+		// execute the generator
+		await runPipeline(config, [doc, fragmentDoc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly user: {
+		        readonly $fragments: {
+		            Foo: true
+		        }
+		    } | null
+		};
+	`)
+	})
 
 	test.skip('inline fragments', function () {})
 

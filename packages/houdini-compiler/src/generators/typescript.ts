@@ -10,6 +10,8 @@ import { CollectedGraphQLDocument } from '../types'
 
 const AST = recast.types.builders
 
+const fragmentKey = '$fragments'
+
 // typescriptGenerator generates typescript definitions for the artifacts
 export default async function typescriptGenerator(
 	config: Config,
@@ -288,6 +290,22 @@ async function generateFragmentTypeDefs(
 								AST.stringLiteral('shape'),
 								AST.tsTypeAnnotation(
 									AST.tsTypeReference(AST.identifier(shapeTypeName))
+								),
+								true
+							)
+						),
+						readonlyProperty(
+							AST.tsPropertySignature(
+								AST.stringLiteral(fragmentKey),
+								AST.tsTypeAnnotation(
+									AST.tsTypeLiteral([
+										AST.tsPropertySignature(
+											AST.stringLiteral(propTypeName),
+											AST.tsTypeAnnotation(
+												AST.tsLiteralType(AST.booleanLiteral(true))
+											)
+										),
+									])
 								)
 							)
 						),
@@ -339,8 +357,9 @@ function tsType(
 	else if (isObjectType(type)) {
 		const rootObj = type as graphql.GraphQLObjectType<any, any>
 
-		result = AST.tsTypeLiteral(
-			((selections || []).filter(
+		result = AST.tsTypeLiteral([
+			// every field gets an entry in the object
+			...((selections || []).filter(
 				(field) => field.kind === 'Field'
 			) as graphql.FieldNode[]).map((selection) => {
 				// grab the type info for the selection
@@ -366,8 +385,35 @@ function tsType(
 					),
 					allowReadonly
 				)
-			})
-		)
+			}),
+		])
+
+		// embed any referenced fragments in the result
+		const fragmentSpreads = selections?.filter(({ kind }) => kind === 'FragmentSpread') as
+			| graphql.FragmentSpreadNode[]
+			| undefined
+		if (fragmentSpreads && fragmentSpreads.length) {
+			result.members.push(
+				readonlyProperty(
+					AST.tsPropertySignature(
+						AST.identifier(fragmentKey),
+						AST.tsTypeAnnotation(
+							AST.tsTypeLiteral(
+								(fragmentSpreads || []).map((fragmentSpread) =>
+									AST.tsPropertySignature(
+										AST.identifier(fragmentSpread.name.value),
+										AST.tsTypeAnnotation(
+											AST.tsLiteralType(AST.booleanLiteral(true))
+										)
+									)
+								)
+							)
+						)
+					),
+					allowReadonly
+				)
+			)
+		}
 	}
 	// we shouldn't get here
 	else {
