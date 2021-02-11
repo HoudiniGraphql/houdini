@@ -4,7 +4,8 @@ import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { promisify } from 'util'
-import { Config, runPipeline as run } from 'houdini-common'
+import { Config, runPipeline as run, parseFile } from 'houdini-common'
+import { Program } from '@babel/types'
 // locals
 import { CollectedGraphQLDocument } from './types'
 import * as transforms from './transforms'
@@ -37,6 +38,7 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 			transforms.includeFragmentDefinitions,
 			generators.artifacts,
 			generators.mutations,
+			generators.typescript,
 		],
 		docs
 	)
@@ -56,13 +58,16 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			const contents = await fs.readFile(filePath, 'utf-8')
 
 			// parse the contents
-			const parsedFile = svelte.parse(contents)
+			const parsedFile = parseFile(contents)
 
 			// we need to look for multiple script tags to support sveltekit
 			const scripts = [parsedFile.instance, parsedFile.module]
+				.map((script) => (script ? script.content : null))
+				.filter(Boolean) as Program[]
 
 			await Promise.all(
 				scripts.map(async (jsContent) => {
+					// @ts-ignore
 					// look for any template tag literals in the script body
 					svelte.walk(jsContent, {
 						enter(node) {
@@ -91,9 +96,14 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 										'Operation documents can only have one operation'
 									)
 								}
-								// if there is more than one operation, throw an error
-								if (fragments.length > 1) {
-									throw new Error('Fragment documents can only have one fragment')
+								// we are looking at a fragment document
+								else {
+									// if there is more than one fragment, throw an error
+									if (fragments.length > 1) {
+										throw new Error(
+											'Fragment documents can only have one fragment'
+										)
+									}
 								}
 
 								// add it to the list
@@ -102,6 +112,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 									document: parsedDoc,
 									filename: filePath,
 									printed: printedDoc,
+									originalDocument: parsedDoc,
 								})
 							}
 						},

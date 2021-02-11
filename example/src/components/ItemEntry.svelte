@@ -1,8 +1,9 @@
-<script>
+<script lang="ts">
 	import { fragment, mutation, graphql } from 'houdini'
+	import type { ItemEntry_item, CompleteItem, UncompleteItem } from '../../generated'
 
 	// the reference we're passed from our parents
-	export let item
+	export let item: ItemEntry_item
 
 	// get the information we need about the item
 	const data = fragment(
@@ -17,7 +18,7 @@
 	)
 
 	// create a callbacks we'll invoke to check and uncheck thie item
-	const completeItem = mutation(graphql`
+	const completeItem = mutation<CompleteItem>(graphql`
 		mutation CompleteItem($id: ID!) {
 			completeItem(id: $id) {
 				item {
@@ -27,7 +28,7 @@
 			}
 		}
 	`)
-	const uncompleteItem = mutation(graphql`
+	const uncompleteItem = mutation<UncompleteItem>(graphql`
 		mutation UncompleteItem($id: ID!) {
 			uncompleteItem(id: $id) {
 				item {
@@ -38,7 +39,7 @@
 		}
 	`)
 
-	async function handleClick(input) {
+	async function handleClick() {
 		// if the item is already checked
 		if ($data.completed) {
 			// uncheck it

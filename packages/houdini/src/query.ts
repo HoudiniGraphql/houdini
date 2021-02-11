@@ -5,11 +5,12 @@ import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
 import { registerDocumentStore, unregisterDocumentStore } from './runtime'
+import { Operation } from './types'
 
-export default function query(
+export default function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult,
-	variables: { [name: string]: unknown }
-): Readable<unknown> {
+	variables: undefined | _Query['input']
+): Readable<_Query['result']> {
 	// make sure we got a query document
 	if (document.kind !== CompiledQueryKind) {
 		throw new Error('getQuery can only take query operations')

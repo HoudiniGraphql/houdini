@@ -1,11 +1,8 @@
 // externals
-import { Script } from 'svelte/types/compiler/interfaces'
-import { Config } from 'houdini-common'
+import { Config, Maybe, Script } from 'houdini-common'
 import { Patch } from 'houdini-compiler'
 
 type Module<T> = Promise<{ default: T }>
-
-export type Maybe<T> = T | undefined
 
 export type TaggedGraphqlFragment = {
 	name: string

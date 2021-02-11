@@ -1,13 +1,17 @@
 // externals
 import { GraphQLTagResult } from 'houdini-preprocess'
 import { CompiledFragmentKind } from 'houdini-compiler'
-import { readable } from 'svelte/store'
+import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
 import { registerDocumentStore, unregisterDocumentStore } from './runtime'
+import type { Fragment } from './types'
 
 // fragment returns the requested data from the reference
-export default function fragment<T>(fragment: GraphQLTagResult, reference: T) {
+export default function fragment<_Fragment extends Fragment<any>>(
+	fragment: GraphQLTagResult,
+	reference: _Fragment
+): Readable<_Fragment['shape']> {
 	// make sure we got a query document
 	if (fragment.kind !== CompiledFragmentKind) {
 		throw new Error('getFragment can only take fragment documents')

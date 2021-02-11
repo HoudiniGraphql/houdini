@@ -6,7 +6,7 @@ import {
 	FunctionDeclaration,
 	ReturnStatement,
 	ImportDeclaration,
-} from 'estree'
+} from '@babel/types'
 import { Config } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
@@ -114,17 +114,15 @@ export default async function queryProcessor(
 	// make sure there is a module script
 	if (!doc.module) {
 		doc.module = {
-			type: 'Script',
 			start: 0,
 			end: 0,
-			context: '',
-			content: {
-				type: 'Program',
-				sourceType: 'script',
-				body: [],
-				comments: [],
-			},
+			// @ts-ignore
+			content: typeBuilders.program([]),
 		}
+	}
+
+	if (!doc.module) {
+		throw new Error('type script!!')
 	}
 
 	// look for a preload definition
@@ -164,6 +162,7 @@ export default async function queryProcessor(
 			statement.specifiers.find(
 				(importSpecifier) =>
 					importSpecifier.type === 'ImportSpecifier' &&
+					importSpecifier.imported.type === 'Identifier' &&
 					importSpecifier.imported.name === 'fetchQuery' &&
 					importSpecifier.local.name === 'fetchQuery'
 			)

@@ -1,5 +1,6 @@
 export * from './environment'
 export * from './runtime'
+export * from './types'
 
 export { default as query } from './query'
 export { default as mutation } from './mutation'
