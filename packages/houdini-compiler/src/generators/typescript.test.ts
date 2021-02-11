@@ -314,7 +314,7 @@ describe('typescript', function () {
 		};
 
 		export type Query$input = {
-		    id: string | null | undefined
+		    id: string
 		};
 	`)
 	})
@@ -356,13 +356,13 @@ describe('typescript', function () {
 		export type Query$input = {
 		    filter: {
 		        middle: {
-		            id: string | null | undefined,
-		            firstName: string | null | undefined,
+		            id: string,
+		            firstName: string,
 		            admin: boolean | null | undefined,
 		            age: number | null | undefined,
 		            weight: number | null | undefined
 		        } | null | undefined
-		    } | null | undefined
+		    }
 		};
 	`)
 	})

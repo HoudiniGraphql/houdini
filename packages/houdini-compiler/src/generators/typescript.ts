@@ -236,18 +236,27 @@ const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTy
 		)
 	}
 
-	// if we have an inner non-null
-	if (!innerNonNull) {
-		result = nullable(result, true)
-	}
-	// list?
+	// if we are wrapping a list
 	if (list) {
-		result = AST.tsArrayType(result)
+		// if we do not have an inner non-null, wrap it
+		if (!innerNonNull) {
+			result = nullable(result, true)
+		}
+		// wrap it in the list
+		result = AST.tsArrayType(AST.tsParenthesizedType(result))
+
+		// if we do not have an outer null
+		if (!nonNull) {
+			result = nullable(result, true)
+		}
+	} else {
+		// if we aren't marked as non-null
+		if (!innerNonNull && !nonNull) {
+			result = nullable(result, true)
+		}
 	}
-	// wrap it again
-	if (list && !nonNull) {
-		result = nullable(result, true)
-	}
+
+	return result
 
 	// return the property describing the variable
 	return result
