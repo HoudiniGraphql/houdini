@@ -1,5 +1,5 @@
 export type Fragment<_Result> = {
-	readonly shape: _Result
+	readonly shape?: _Result
 }
 
 export type Operation<_Result, _Input> = {
@@ -8,7 +8,7 @@ export type Operation<_Result, _Input> = {
 }
 
 export interface _FragmentRefs<Refs extends string> {
-	' $fragments': FragmentRefs<Refs>
+	$fragments: FragmentRefs<Refs>
 }
 
 // a field used to track references to fragments
