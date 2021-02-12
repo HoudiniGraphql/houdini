@@ -134,6 +134,7 @@ export function testConfig(config: {} = {}) {
 			type User {
 				id: ID!
 				firstName: String!
+				friends: [User!]!
 			}
 
 			type Query {

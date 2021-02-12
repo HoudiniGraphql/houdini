@@ -35,6 +35,9 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 	// build up a map of mutations to the types they modify
 	const mutationTargets: MutationMap = {}
 
+	// pull the schema out
+	const { schema } = config
+
 	// look at every document for one containing a mutation
 	for (const { name, document } of docs) {
 		// look for a mutation definition in the document
@@ -62,7 +65,7 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 			throw new Error('Encountered mutation named id.')
 		}
 
-		const mutationType = config.schema.getMutationType()
+		const mutationType = schema.getMutationType()
 		if (!mutationType) {
 			throw new Error('Schema does not have a mutation type defined.')
 		}
@@ -104,10 +107,11 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		// find the root type
 		const rootType =
 			definition.kind === graphql.Kind.OPERATION_DEFINITION
-				? config.schema.getQueryType()
-				: (config.schema.getType(
-						definition.typeCondition.name.value
-				  ) as graphql.GraphQLObjectType<any, any>)
+				? schema.getQueryType()
+				: (schema.getType(definition.typeCondition.name.value) as graphql.GraphQLObjectType<
+						any,
+						any
+				  >)
 
 		// make sure we found something
 		if (!rootType) {
@@ -152,9 +156,6 @@ function fillMutationMap(
 
 	// every field in the selection set could contribute to the mutation's targets
 	for (const selection of selectionSet.selections) {
-		// look up the type of the selection
-		const { type, field } = selectionTypeInfo(config.schema, rootType, selection)
-
 		// ignore any fragment spreads
 		if (selection.kind === graphql.Kind.FRAGMENT_SPREAD) {
 			continue
@@ -164,6 +165,11 @@ function fillMutationMap(
 		if (selection.kind === graphql.Kind.INLINE_FRAGMENT) {
 			continue
 		}
+
+		// look up the type of the selection
+		const info = selectionTypeInfo(config.schema, rootType, selection)
+
+		const { type, field } = info
 
 		// if we are looking at a normal field
 		if (selection.kind === graphql.Kind.FIELD) {
