@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { query, graphql } from 'houdini'
+	import { query, graphql, mutation } from 'houdini'
 	import { derived } from 'svelte/store'
-	import type { IndexInfo } from '../../generated'
+	import type { IndexInfo, AddItem } from '../../generated'
 
 	// load some data at the top of the app for general information
 	const data = query<IndexInfo>(graphql`
@@ -12,6 +12,17 @@
 			}
 		}
 	`, null)
+
+	const addItem = mutation<AddItem>(graphql`
+		mutation AddItem($input: AddItemInput!) {
+			addItem(input: $input) {
+				newItem {
+					...All_Items_Connection @prepend
+					...Active_Items_Connection @prepend
+				}
+			}
+		}
+	`)
 
 	const numberOfItems = derived(data, $data => $data.items.length)
 	const itemsLeft = derived(data, $data => $data.items.filter((item) => !item.completed).length)

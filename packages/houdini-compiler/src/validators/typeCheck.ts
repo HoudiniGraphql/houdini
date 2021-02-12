@@ -22,9 +22,10 @@ export default async function typeCheck(
 			// remove the rules that conflict with houdini
 			(rule) =>
 				![
-					// fragments are defined on their own
+					// fragments are defined on their own so unused fragments are a face of life
 					NoUnusedFragments,
-					// query documents do contain the fragments
+					// query documents don't contain the fragments they use so we can't enforce
+					// that we know every fragment
 					KnownFragmentNames,
 				].includes(rule)
 		)

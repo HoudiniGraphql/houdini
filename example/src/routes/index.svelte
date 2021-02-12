@@ -6,7 +6,7 @@
 	// load the items
 	const data = query<AllItems>(graphql`
 		query AllItems {
-			items {
+			items @connection(name: "All_Items") {
 				id
 				completed
 				...ItemEntry_item
