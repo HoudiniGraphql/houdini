@@ -14,25 +14,28 @@ export default async function includeFragmentDefinitions(
 	const documentsByName: {
 		[name: string]: CollectedGraphQLDocument & { requiredFragments: string[]; index: number }
 	} = documents.reduce((acc, { name, document }, index) => {
-		// a document can contain muliple definitions, all of which could require fragments
-		const requiredFragments = document.definitions.flatMap((definition) => {
-			// if we are looking at an operation or fragment definition
-			if (
-				definition.kind === GraphqlKinds.OPERATION_DEFINITION ||
-				definition.kind === GraphqlKinds.FRAGMENT_DEFINITION
-			) {
-				return findRequiredFragments(definition.selectionSet)
-			}
-			// otherwise we dont care about this definition
-			return []
-		})
+		// for now assume every document only has one definition
+		if (document.definitions.length > 1) {
+			throw new Error('Encountered document with multiple definitions')
+		}
+
+		// pull out the definition
+		const definition = document.definitions[0]
+		// make sure its an operation or fragment
+		if (
+			(definition.kind !== GraphqlKinds.OPERATION_DEFINITION &&
+				definition.kind !== GraphqlKinds.FRAGMENT_DEFINITION) ||
+			definition.name == undefined
+		) {
+			return acc
+		}
 
 		return {
 			...acc,
-			[name]: {
+			[definition.name?.value]: {
 				document,
 				// add the required fragments to the definition
-				requiredFragments,
+				requiredFragments: findRequiredFragments(definition.selectionSet),
 				index,
 			},
 		}

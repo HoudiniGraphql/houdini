@@ -36,3 +36,5 @@ const internalSchema = graphql.buildSchema(`
     directive @append on FRAGMENT_SPREAD
 
 `)
+
+export const internalDirectives = ['connection', 'prepend', 'append']

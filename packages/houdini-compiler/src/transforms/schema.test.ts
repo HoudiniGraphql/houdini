@@ -38,6 +38,24 @@ describe('schema transform', function () {
 			],
 			pass: true,
 		},
+		{
+			title: 'append directive',
+			documents: [
+				`
+					mutation Update {
+						updateUser {
+							...A @prepend
+						}
+					}
+				`,
+				`
+					fragment A on User {
+						id
+					}
+				`,
+			],
+			pass: true,
+		},
 	]
 
 	for (const row of table) {

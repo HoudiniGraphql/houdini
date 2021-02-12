@@ -25,13 +25,7 @@ export function pipelineTest(
 				| graphql.FragmentDefinitionNode
 				| graphql.OperationDefinitionNode
 
-			return {
-				name: definition.name?.value || 'NO_NAME',
-				document,
-				originalDocument: document,
-				filename: 'test_file.js',
-				printed: documentBody,
-			}
+			return docFromQuery(definition.name?.value || 'NO_NAME', documentBody)
 		})
 
 		// we need to trap if we didn't fail
@@ -60,4 +54,14 @@ export function pipelineTest(
 			testBody(shouldPass ? docs : error)
 		}
 	})
+}
+
+export function docFromQuery(name: string, query: string) {
+	return {
+		name,
+		document: graphql.parse(query),
+		originalDocument: graphql.parse(query),
+		filename: `${name}.ts`,
+		printed: query,
+	}
 }
