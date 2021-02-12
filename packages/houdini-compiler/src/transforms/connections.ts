@@ -1,12 +1,9 @@
 // externals
 import { Config, getRootType } from 'houdini-common'
-import { mergeSchemas } from '@graphql-tools/merge'
 import * as graphql from 'graphql'
-
 // locals
 import { CollectedGraphQLDocument } from '../types'
 import { HoudiniError } from '../error'
-import { doc } from 'prettier'
 
 // graphqlExtensions adds a few different things to the graphql schema
 export default async function graphqlExtensions(

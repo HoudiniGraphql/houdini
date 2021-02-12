@@ -10,15 +10,15 @@ import * as recast from 'recast'
 import '../../../../jest.setup'
 import { runPipeline } from '../compile'
 import { CollectedGraphQLDocument } from '../types'
-import { docFromQuery } from '../testUtils'
+import { mockCollectedDoc } from '../testUtils'
 
 // the config to use in tests
 const config = testConfig()
 
 // the documents to test
 const docs: CollectedGraphQLDocument[] = [
-	docFromQuery('TestQuery', `query TestQuery { version }`),
-	docFromQuery('TestFragment', `fragment TestFragment on User { firstName }`),
+	mockCollectedDoc('TestQuery', `query TestQuery { version }`),
+	mockCollectedDoc('TestFragment', `fragment TestFragment on User { firstName }`),
 ]
 
 test('generates an artifact for every document', async function () {
@@ -84,8 +84,8 @@ test('adds kind, name, and raw', async function () {
 test('internal directives are scrubbed', async function () {
 	// execute the generator
 	await runPipeline(config, [
-		docFromQuery('Fragment', `fragment A on User { firstName }`),
-		docFromQuery('TestQuery', `query TestQuery { user { ...A @prepend } }`),
+		mockCollectedDoc('Fragment', `fragment A on User { firstName }`),
+		mockCollectedDoc('TestQuery', `query TestQuery { user { ...A @prepend } }`),
 	])
 
 	// load the contents of the file

@@ -10,6 +10,7 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../../types'
 import '../../../../../jest.setup'
+import { mockCollectedDoc } from '../../testUtils'
 
 const config = testConfig()
 
@@ -17,14 +18,8 @@ test('generates patches', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
 		// the query needs to ask for a field that the mutation could update
-		{
-			name: 'TestQuery',
-			document: graphql.parse(`query TestQuery { user { id firstName } }`),
-		},
-		{
-			name: 'TestMutation',
-			document: graphql.parse(`mutation TestMutation { updateUser { id firstName } }`),
-		},
+		mockCollectedDoc('TestQuery', `query TestQuery { user { id firstName } }`),
+		mockCollectedDoc('TestMutation', `mutation TestMutation { updateUser { id firstName } }`),
 	]
 
 	// run the generators
@@ -72,6 +67,40 @@ test('generates patches', async function () {
 		    }
 		};
 	`)
+})
+
+test('does not count connection fragments for patches', async function () {
+	// we need a query with a labeled connection that the mutation updates
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`
+			query TestQuery {
+				user {
+					friends @connection(name: "Test") {
+						firstName
+					}
+				}
+			}
+		`
+		),
+		mockCollectedDoc('TestMutation', `mutation TestMutation { updateUser { id firstName } }`),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// look up the files in the mutation directory
+	const files = await fs.readdir(config.patchDirectory)
+
+	// make sure there isn't a patch between the generated fragment and the mutation
+	expect(files).not.toBe(
+		expect.arrayContaining([
+			path.basename(config.patchPath({ query: 'Test_Connection', mutation: 'TestMutation' })),
+		])
+	)
 })
 
 test.skip('inline fragments in mutation body count as an intersection', function () {})

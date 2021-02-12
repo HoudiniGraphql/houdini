@@ -25,7 +25,7 @@ export function pipelineTest(
 				| graphql.FragmentDefinitionNode
 				| graphql.OperationDefinitionNode
 
-			return docFromQuery(definition.name?.value || 'NO_NAME', documentBody)
+			return mockCollectedDoc(definition.name?.value || 'NO_NAME', documentBody)
 		})
 
 		// we need to trap if we didn't fail
@@ -56,7 +56,7 @@ export function pipelineTest(
 	})
 }
 
-export function docFromQuery(name: string, query: string) {
+export function mockCollectedDoc(name: string, query: string) {
 	return {
 		name,
 		document: graphql.parse(query),

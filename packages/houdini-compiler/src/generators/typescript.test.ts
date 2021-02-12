@@ -8,7 +8,7 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
 import '../../../../jest.setup'
 import { runPipeline } from '../compile'
-import { docFromQuery } from '../testUtils'
+import { mockCollectedDoc } from '../testUtils'
 
 // the config to use in tests
 const config = testConfig({
@@ -48,7 +48,7 @@ const config = testConfig({
 describe('typescript', function () {
 	test('fragment types', async function () {
 		// the document to test
-		const doc = docFromQuery(
+		const doc = mockCollectedDoc(
 			'TestFragment',
 			`fragment TestFragment on User { firstName nickname }`
 		)
@@ -83,7 +83,7 @@ describe('typescript', function () {
 		const fragment = `fragment TestFragment on User { firstName parent { firstName } }`
 
 		// the document to test
-		const doc = docFromQuery('TestFragment', fragment)
+		const doc = mockCollectedDoc('TestFragment', fragment)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -115,7 +115,7 @@ describe('typescript', function () {
 
 	test('scalars', async function () {
 		// the document to test
-		const doc = docFromQuery(
+		const doc = mockCollectedDoc(
 			'TestFragment',
 			`fragment TestFragment on User { firstName admin age id weight }`
 		)
@@ -151,7 +151,7 @@ describe('typescript', function () {
 
 	test('list types', async function () {
 		// the document to test
-		const doc = docFromQuery(
+		const doc = mockCollectedDoc(
 			'TestFragment',
 			`fragment TestFragment on User { firstName friends { firstName } }`
 		)
@@ -186,7 +186,7 @@ describe('typescript', function () {
 
 	test('query with no input', async function () {
 		// the document to test
-		const doc = docFromQuery('TestFragment', `query Query { user { firstName } }`)
+		const doc = mockCollectedDoc('TestFragment', `query Query { user { firstName } }`)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -256,7 +256,7 @@ describe('typescript', function () {
 
 	test('query with input', async function () {
 		// the document to test
-		const doc = docFromQuery(
+		const doc = mockCollectedDoc(
 			'TestFragment',
 			`query Query($id: ID!) { user(id: $id) { firstName } }`
 		)
@@ -292,7 +292,7 @@ describe('typescript', function () {
 
 	test('nested input objects', async function () {
 		// the document to test
-		const doc = docFromQuery(
+		const doc = mockCollectedDoc(
 			'TestFragment',
 			`query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
 		)
@@ -336,7 +336,7 @@ describe('typescript', function () {
 
 	test('generates index file', async function () {
 		// the document to test
-		const doc = docFromQuery(
+		const doc = mockCollectedDoc(
 			'Query',
 			`query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
 		)
@@ -356,10 +356,10 @@ describe('typescript', function () {
 
 	test('fragment spreads', async function () {
 		// the document with the fragment
-		const fragment = docFromQuery('Foo', `fragment Foo on User { firstName }`)
+		const fragment = mockCollectedDoc('Foo', `fragment Foo on User { firstName }`)
 
 		// the document to test
-		const query = docFromQuery('Query', `query Query { user { ...Foo } }`)
+		const query = mockCollectedDoc('Query', `query Query { user { ...Foo } }`)
 
 		// execute the generator
 		await runPipeline(config, [query, fragment])

@@ -4,11 +4,11 @@ import * as graphql from 'graphql'
 // local imports
 import '../../../../jest.setup'
 import { runPipeline } from '../compile'
-import { docFromQuery } from '../testUtils'
+import { mockCollectedDoc } from '../testUtils'
 
 test('connection fragments on query selection set', async function () {
 	const docs = [
-		docFromQuery(
+		mockCollectedDoc(
 			'UpdateUser',
 			`
 				mutation UpdateUser {
@@ -18,7 +18,7 @@ test('connection fragments on query selection set', async function () {
 				}
 			`
 		),
-		docFromQuery(
+		mockCollectedDoc(
 			'TestQuery',
 			`
 				query AllUsers {
@@ -54,7 +54,7 @@ test('connection fragments on query selection set', async function () {
 
 test('connection fragments on fragment selection set', async function () {
 	const docs = [
-		docFromQuery(
+		mockCollectedDoc(
 			'UpdateUser',
 			`
 				mutation UpdateUser {
@@ -64,7 +64,7 @@ test('connection fragments on fragment selection set', async function () {
 				}
 			`
 		),
-		docFromQuery(
+		mockCollectedDoc(
 			'TestQuery',
 			`
 				fragment AllUsers  on User{
@@ -98,7 +98,7 @@ test('connection fragments on fragment selection set', async function () {
 
 test('connection fragments must be unique', async function () {
 	const docs = [
-		docFromQuery(
+		mockCollectedDoc(
 			'TestQuery',
 			`
 				query AllUsers {
