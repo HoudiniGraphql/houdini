@@ -88,7 +88,6 @@ test('internal directives are scrubbed', async function () {
 		docFromQuery('TestQuery', `query TestQuery { user { ...A @prepend } }`),
 	])
 
-	//
 	// load the contents of the file
 	const queryContents = await fs.readFile(
 		path.join(config.artifactPath(docs[0].document)),
