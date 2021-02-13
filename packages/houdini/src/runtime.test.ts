@@ -242,7 +242,7 @@ describe('apply patch', function () {
 		})
 	})
 
-	test('add to connection', function () {
+	test('add to root connection', function () {
 		const patch: Patch = {
 			fields: {},
 			edges: {
@@ -252,7 +252,7 @@ describe('apply patch', function () {
 					operations: {
 						add: [
 							{
-								path: ['field'],
+								path: ['outer', 'inner'],
 								parentID: {
 									kind: 'Root',
 									value: 'root',
@@ -272,7 +272,69 @@ describe('apply patch', function () {
 
 		// the current data
 		const current = {
-			field: [
+			outer: {
+				id: '1',
+				target: 'hello',
+			},
+		}
+
+		// the mutation payload
+		const payload = {
+			mutationName: {
+				id: '2',
+				target: 'world',
+			},
+		}
+
+		// apply the patch
+		applyPatch(patch, set, current, payload)
+
+		// make sure we got the expected value
+		expect(set).toHaveBeenCalledWith({
+			outer: {
+				id: '1',
+				target: 'hello',
+				inner: [
+					{
+						id: '2',
+						target: 'world',
+					},
+				],
+			},
+		})
+	})
+
+	test('add to connection with specific ID', function () {
+		const patch: Patch = {
+			fields: {},
+			edges: {
+				mutationName: {
+					edges: {},
+					fields: {},
+					operations: {
+						add: [
+							{
+								path: ['outer', 'inner'],
+								parentID: {
+									kind: 'String',
+									value: '1',
+								},
+							},
+						],
+					},
+				},
+			},
+			operations: {
+				add: [],
+			},
+		}
+
+		// a function to spy on the update
+		const set = jest.fn()
+
+		// the current data
+		const current = {
+			outer: [
 				{
 					id: '1',
 					target: 'hello',
@@ -293,14 +355,16 @@ describe('apply patch', function () {
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
-			field: [
+			outer: [
 				{
 					id: '1',
 					target: 'hello',
-				},
-				{
-					id: '2',
-					target: 'world',
+					inner: [
+						{
+							id: '2',
+							target: 'world',
+						},
+					],
 				},
 			],
 		})

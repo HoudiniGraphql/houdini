@@ -97,11 +97,11 @@ function walkPatch(patch: Patch, payload: Data, target: Record): boolean {
 		}
 
 		// copy the entry into every path in the response
-		for (const { path } of paths) {
+		for (const { path, parentID } of paths) {
 			if (operation === 'add') {
 				// add the entity to the connection
 
-				if (insertInConnection(path, target, 'root', payload) && !updated) {
+				if (insertInConnection(path, target, parentID, payload) && !updated) {
 					updated = true
 				}
 			}
@@ -120,21 +120,51 @@ function walkPatch(patch: Patch, payload: Data, target: Record): boolean {
 	return updated
 }
 
-function insertInConnection(path: string[], target: Record, parentID: string, value: Record) {
+function insertInConnection(
+	path: string[],
+	target: Record,
+	parentID: { kind: 'Variable' | 'String' | 'Root'; value: string },
+	value: Record
+) {
 	// keep track if we updated a field
 	let updated = false
 
+	// dry
+	const head = path[0]
+
 	// since we are entering something into a list, we need to stop on the second to
-	// last element to find the node with match id
-	if (path.length <= 2) {
+	// last element to find the node with matching id
+	if (path.length == 2) {
+		const attributeName = path[1]
 		// if we are entering something from root the target should be an object
-		if (parentID === 'root') {
-			const fieldName = path[0]
-			target[fieldName].push(value)
+		if (parentID.kind === 'Root') {
+			// the current head of the list is the container for the attribute
+			target[head][attributeName] = [...(target[head][attributeName] || []), value]
 
 			// we did update something
-			updated = true
+			return true
 		}
+
+		// the head points to the list we have to look at for possible parents
+		const parents = target[head]
+		if (!Array.isArray(parents)) {
+			throw new Error('Expected array in response')
+		}
+
+		// look at every option for a matching id
+		for (const entry of parents) {
+			// if the id matches
+			if (entry.id === parentID.value) {
+				// we found it!
+
+				// add the value to the entry's list
+				entry[attributeName] = [...(entry[attributeName] || []), value]
+				// we did in fact update something
+				return true
+			}
+		}
+
+		// we are inserting it into an entity with a specific id so we should be looking at an array
 	} else {
 		// pull the first element off of the list
 		const head = path[0]
