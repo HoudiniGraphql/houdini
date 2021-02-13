@@ -1,10 +1,8 @@
-// external imports
-import * as graphql from 'graphql'
-import { HoudiniError } from 'houdini-common'
 // locals
 import { pipelineTest } from '../testUtils'
 import '../../../../jest.setup'
 import { CollectedGraphQLDocument } from '../types'
+import { HoudiniError } from '../error'
 
 const table: Row[] = [
 	{
@@ -61,6 +59,191 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@connection on query',
+		pass: true,
+		documents: [
+			`
+                query TestQuery {
+					user {
+						friends @connection(name: "Friends") {
+							id
+						}
+					}
+                }
+            `,
+			`
+                mutation Mutation {
+					addFriend {
+						...Friends_Connection
+					}
+                }
+            `,
+		],
+	},
+	{
+		title: '@connection with parentID on query',
+		pass: true,
+		documents: [
+			`
+                query TestQuery {
+					user {
+						friends {
+							friends @connection(name: "Friends") {
+								id
+							}
+						}
+					}
+                }
+            `,
+			`
+                mutation Mutation {
+					addFriend {
+						...Friends_Connection @prepend(parentID: "1234")
+					}
+                }
+            `,
+		],
+	},
+	{
+		title: '@connection with parentID as variable on query',
+		pass: true,
+		documents: [
+			`
+                query TestQuery {
+					user {
+						friends {
+							friends @connection(name: "Friends") {
+								id
+							}
+						}
+					}
+                }
+            `,
+			`
+                mutation Mutation($parentID: ID!) {
+					addFriend {
+						...Friends_Connection @prepend(parentID: $parentID)
+					}
+                }
+            `,
+		],
+	},
+	{
+		title: '@connection without parentID on fragment',
+		pass: false,
+		documents: [
+			`
+                fragment FragmentA on User {
+					friends @connection(name: "Friends") {
+						firstName
+					}
+                }
+            `,
+			`
+                mutation Mutation {
+					addFriend {
+						...Friends_Connection
+					}
+                }
+            `,
+		],
+	},
+	{
+		title: '@connection prepend on query no id',
+		pass: false,
+		documents: [
+			`
+                query UserFriends {
+					user {
+						friends {
+							friends @connection(name: "Friends") {
+								id
+							}
+						}
+					}
+                }
+            `,
+			`
+                mutation Mutation {
+					addFriend {
+						...Friends_Connection @prepend
+					}
+                }
+            `,
+		],
+	},
+	{
+		title: '@connection append on query no id',
+		pass: false,
+		documents: [
+			`
+                query UserFriends {
+					user {
+						friends {
+							friends @connection(name: "Friends") {
+								id
+							}
+						}
+					}
+                }
+            `,
+			`
+                mutation Mutation {
+					addFriend {
+						...Friends_Connection @append
+					}
+                }
+            `,
+		],
+	},
+	{
+		title: '@connection no directive on query',
+		pass: false,
+		documents: [
+			`
+                query UserFriends {
+					user {
+						friends {
+							friends @connection(name: "Friends") {
+								id
+							}
+						}
+					}
+                }
+            `,
+			`
+                mutation Mutation {
+					addFriend {
+						...Friends_Connection
+					}
+                }
+            `,
+		],
+	},
+	{
+		title: '@connection on root field with no id passes',
+		pass: true,
+		documents: [
+			`
+                query believers {
+					ghost {
+						name
+						believers @connection(name: "Believers") {
+							id
+						}
+					}
+                }
+            `,
+			`
+                mutation Mutation {
+					addFriend {
+						...Believers_Connection
+					}
+                }
+            `,
+		],
+	},
+	{
 		title: 'returns multiple errors',
 		pass: false,
 		documents: [
@@ -97,6 +280,12 @@ type Row =
 
 // run the tests
 for (const { title, pass, documents, check } of table) {
-	// run the pipeline over the documents
-	pipelineTest(title, documents, pass, check)
+	describe('type check', function () {
+		// run the pipeline over the documents
+		pipelineTest(title, documents, pass, check)
+	})
 }
+
+test.todo('Unknown connection fragments')
+
+test.todo('@connection on root list with no id fails')

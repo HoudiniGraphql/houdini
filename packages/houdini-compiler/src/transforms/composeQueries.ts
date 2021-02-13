@@ -4,71 +4,72 @@ import { Config } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 
+type FragmentDependency = {
+	definition: graphql.FragmentDefinitionNode
+	requiredFragments: string[]
+}
+
 // includeFragmentDefinitions adds any referenced fragments to operations
 export default async function includeFragmentDefinitions(
 	config: Config,
 	documents: CollectedGraphQLDocument[]
 ): Promise<void> {
-	// fragments can depend on each other so we need to first find the dependency graph of fragments
-	// and then we can add every necessary fragment defintion to the operations
-	const documentsByName: {
-		[name: string]: CollectedGraphQLDocument & { requiredFragments: string[]; index: number }
-	} = documents.reduce((acc, { name, document }, index) => {
-		// a document can contain muliple definitions, all of which could require fragments
-		const requiredFragments = document.definitions.flatMap((definition) => {
-			// if we are looking at an operation or fragment definition
-			if (
-				definition.kind === GraphqlKinds.OPERATION_DEFINITION ||
-				definition.kind === GraphqlKinds.FRAGMENT_DEFINITION
-			) {
-				return findRequiredFragments(definition.selectionSet)
+	// we will need to add the same fragment definitions to multiple operations so lets compute
+	// a single mapping that we'll reference later from the list of documents
+	const fragments = documents.reduce<{ [name: string]: FragmentDependency }>(
+		(acc, { name, document }) => {
+			// look for any definitions in this document
+			const definitions = document.definitions.reduce(
+				(prev, definition) =>
+					definition.kind !== 'FragmentDefinition'
+						? prev
+						: {
+								...prev,
+								[definition.name.value]: {
+									definition,
+									requiredFragments: findRequiredFragments(
+										definition.selectionSet
+									),
+								},
+						  },
+				{}
+			)
+
+			// add any defintions we found in this document
+			return {
+				...acc,
+				...definitions,
 			}
-			// otherwise we dont care about this definition
-			return []
-		})
+		},
+		{}
+	)
 
-		return {
-			...acc,
-			[name]: {
-				document,
-				// add the required fragments to the definition
-				requiredFragments,
-				index,
-			},
+	// visit every document and add any fragment definitions that are missing
+	for (const [index, { name, document }] of documents.entries()) {
+		// look for the operation in this document
+		const operation = document.definitions.find(
+			({ kind }) => kind === GraphqlKinds.OPERATION_DEFINITION
+		) as graphql.OperationDefinitionNode
+
+		// if there isn't one we dont care about this document
+		if (!operation) {
+			continue
 		}
-	}, {})
 
-	// every operation in the list needs to have their required fragments added to their definition
-	for (const name of Object.keys(documentsByName)) {
-		const document = documentsByName[name]
-		// we need to find the complete list of fragments that this document depends on
-		const allFragments = flattenFragments(document, documentsByName)
+		// grab the full list of required fragments
+		const allFragments = flattenFragments(
+			{ requiredFragments: findRequiredFragments(operation.selectionSet) },
+			fragments
+		)
 
-		// add any definitions found in the documents associated with the related fragments
-		documents[document.index].document = walkGraphQL(document.document, {
-			enter: {
-				[GraphqlKinds.DOCUMENT](node) {
-					// if there are operations in this document
-					if (
-						node.definitions.find(
-							({ kind }) => kind === GraphqlKinds.OPERATION_DEFINITION
-						)
-					) {
-						// we need to add every necessary fragment definition
-						return {
-							...node,
-							definitions: [
-								...node.definitions,
-								...allFragments.flatMap(
-									(fragmentName) =>
-										documentsByName[fragmentName].document.definitions
-								),
-							],
-						}
-					}
-				},
-			},
-		})
+		// add every required fragment to the document
+		documents[index].document = {
+			...document,
+			definitions: [
+				operation,
+				...allFragments.map((fragmentName) => fragments[fragmentName].definition),
+			],
+		}
 	}
 }
 

@@ -1,6 +1,5 @@
 // external imports
 import { testConfig } from 'houdini-common'
-import * as graphql from 'graphql'
 import fs from 'fs/promises'
 import * as recast from 'recast'
 import { FileKind } from 'ast-types/gen/kinds'
@@ -9,6 +8,7 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import runGenerators from '.'
 import { CollectedGraphQLDocument } from '../../types'
 import '../../../../../jest.setup'
+import { mockCollectedDoc } from '../../testUtils'
 
 const config = testConfig()
 
@@ -16,18 +16,9 @@ test('generates a link for every mutation', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
 		// the query needs to ask for a field that the mutation could update
-		{
-			name: 'TestQuery1',
-			document: graphql.parse(`query TestQuery1 { user { id firstName } }`),
-		},
-		{
-			name: 'TestMutation1',
-			document: graphql.parse(`mutation TestMutation { updateUser { id firstName } }`),
-		},
-		{
-			name: 'TestMutation2',
-			document: graphql.parse(`mutation TestMutation { updateUser { id firstName } }`),
-		},
+		mockCollectedDoc('TestQuery1', `query TestQuery1 { user { id firstName } }`),
+		mockCollectedDoc('TestMutation1', `mutation TestMutation { updateUser { id firstName } }`),
+		mockCollectedDoc('TestMutation2', `mutation TestMutation { updateUser { id firstName } }`),
 	]
 
 	// run the generators
@@ -40,22 +31,48 @@ test('generates a link for every mutation', async function () {
 	expect(files).toEqual(expect.arrayContaining(['TestMutation1.js', 'TestMutation2.js']))
 })
 
+test('generates a link for connection operations', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery1',
+			`query TestQuery1 {
+				user {
+					friends @connection(name: "Friends") {
+						firstName
+					}
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation1',
+			`
+			mutation TestMutation {
+				updateUser {
+					...Friends_Connection
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// look up the files in the mutation directory
+	const files = await fs.readdir(config.mutationLinksDirectory)
+
+	// there should be only one link
+	expect(files).toEqual(expect.arrayContaining(['TestMutation1.js']))
+})
+
 test('link contains patch imports', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
 		// the query needs to ask for a field that the mutation could update
-		{
-			name: 'TestQuery1',
-			document: graphql.parse(`query TestQuery1 { user { id firstName } }`),
-		},
-		{
-			name: 'TestQuery2',
-			document: graphql.parse(`query TestQuery2 { user { id firstName } }`),
-		},
-		{
-			name: 'TestMutation',
-			document: graphql.parse(`mutation TestMutation { updateUser { id firstName } }`),
-		},
+		mockCollectedDoc('TestQuery1', `query TestQuery1 { user { id firstName } }`),
+		mockCollectedDoc('TestQuery2', `query TestQuery2 { user { id firstName } }`),
+		mockCollectedDoc('TestMutation', `mutation TestMutation { updateUser { id firstName } }`),
 	]
 
 	// run the generators

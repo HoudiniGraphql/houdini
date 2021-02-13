@@ -17,24 +17,26 @@ export default function fragment<_Fragment extends Fragment<any>>(
 		throw new Error('getFragment can only take fragment documents')
 	}
 
+	const initialValue = fragment.applyMask(reference)
 	// wrap the result in a store we can use to keep this query up to date
-	const value = readable(fragment.applyMask(reference), (set) => {
+	const value = readable(initialValue, (set) => {
 		// build up the store object
 		const store = {
+			loaded: false,
 			name: fragment.name,
-			set,
-			currentValue: {},
+			updateValue: (newValue: _Fragment['shape']) => {
+				// update the public store
+				set(newValue)
+				// keep the internal value up to date aswell
+				store.currentValue = newValue
+			},
+			currentValue: initialValue,
 		}
 
 		// when the component monuts
 		onMount(() => {
 			// register the updater for the query
 			registerDocumentStore(store)
-
-			// keep the stores' values in sync
-			value.subscribe((val) => {
-				store.currentValue = val
-			})
 		})
 
 		// the function used to clean up the store

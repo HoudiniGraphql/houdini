@@ -1,39 +1,66 @@
 // externals
 import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from 'houdini-common'
 import * as graphql from 'graphql'
-import mkdirp from 'mkdirp'
+import fs from 'fs/promises'
 // locals
-import { CollectedGraphQLDocument } from '../../types'
+import { CollectedGraphQLDocument, Patch } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
 
-// We consider every query and every mutation that could affect it. This can only possibly
-// happen if we get the {id} of the type in the payload. Therefore we're going to look at
-// every mutation and collect the types in the payload with {id} in their selection set.
-// Then look at every query and fragment to see if it asks for the type. If so, then
-// we need to generate something the runtime can use.
+// We consider every query and every mutation that could affect it. We'll start by looking at every field
+// addressed by every mutation and then look at every query and fragment to see if it asks for the type.
+// If so, then we need to generate something the runtime can use.
+//
+// note: This can only possibly happen if we get the {id} of the type in the payload so we need to check
+// 		 for that along the way
 
 // keep track of which mutation affects which fields of which type
 // we need to map types to fields to the mutations that update it
 export type MutationMap = {
 	[typeName: string]: {
-		[fieldName: string]: {
-			[mutationName: string]: string[]
+		fields: {
+			[fieldName: string]: {
+				[mutationName: string]: string[]
+			}
+		}
+		operations: {
+			[connectionName: string]: {
+				[mutationName: string]: {
+					kind: keyof Patch['operations']
+					position: 'start' | 'end'
+					parentID: {
+						kind: 'Variable' | 'String' | 'Root'
+						value: string
+					}
+					path: string[]
+				}
+			}
 		}
 	}
 }
 
 // another intermediate type used when building up the mutation description
 export type PatchAtom = {
+	// add update to the list of public operations
+	operation: keyof Patch['operations'] | 'update'
 	mutationName: string
 	mutationPath: string[]
 	queryName: string
 	queryPath: string[]
+	// connection fields
+	parentID?: {
+		kind: 'Variable' | 'String' | 'Root'
+		value: string
+	}
+	position?: 'start' | 'end'
 }
 
 export default async function mutationGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// build up a map of mutations to the types they modify
 	const mutationTargets: MutationMap = {}
+
+	// pull the schema out
+	const { schema } = config
 
 	// look at every document for one containing a mutation
 	for (const { name, document } of docs) {
@@ -62,7 +89,7 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 			throw new Error('Encountered mutation named id.')
 		}
 
-		const mutationType = config.schema.getMutationType()
+		const mutationType = schema.getMutationType()
 		if (!mutationType) {
 			throw new Error('Schema does not have a mutation type defined.')
 		}
@@ -96,6 +123,13 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 			throw new Error('Encountered document with no name')
 		}
 
+		if (
+			definition.kind === graphql.Kind.FRAGMENT_DEFINITION &&
+			config.isConnectionFragment(definition.name.value)
+		) {
+			continue
+		}
+
 		// if we have seen this document already, ignore it
 		if (_docsVisited[definition.name.value]) {
 			continue
@@ -104,10 +138,11 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		// find the root type
 		const rootType =
 			definition.kind === graphql.Kind.OPERATION_DEFINITION
-				? config.schema.getQueryType()
-				: (config.schema.getType(
-						definition.typeCondition.name.value
-				  ) as graphql.GraphQLObjectType<any, any>)
+				? schema.getQueryType()
+				: (schema.getType(definition.typeCondition.name.value) as graphql.GraphQLObjectType<
+						any,
+						any
+				  >)
 
 		// make sure we found something
 		if (!rootType) {
@@ -128,6 +163,10 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		// we're done with this document
 		_docsVisited[definition.name.value] = true
 	}
+	// console.log('-----------------')
+	// console.log(JSON.stringify(mutationTargets, null, 4))
+	// console.log('-----------------')
+	// console.log(JSON.stringify(patches, null, 4))
 
 	await Promise.all([
 		// generate the patch descriptions
@@ -152,11 +191,88 @@ function fillMutationMap(
 
 	// every field in the selection set could contribute to the mutation's targets
 	for (const selection of selectionSet.selections) {
-		// look up the type of the selection
-		const { type, field } = selectionTypeInfo(config.schema, rootType, selection)
+		// make sure there is an entry in the target map for this type
+		if (!mutationTargets[rootType.name]) {
+			mutationTargets[rootType.name] = {
+				fields: {},
+				operations: {},
+			}
+		}
 
-		// ignore any fragment spreads
+		// fragment spreads can short circuit cache invalidation (not yet implemented)
+		// or be used to describe operations on connections
 		if (selection.kind === graphql.Kind.FRAGMENT_SPREAD) {
+			// if the fragment indicates a connection operation
+			if (config.isConnectionFragment(selection.name.value)) {
+				// the name of the mutation
+				const mutationName = name
+
+				if (!mutationTargets[rootType.name]) {
+					mutationTargets[rootType.name] = {
+						fields: {},
+						operations: {},
+					}
+				}
+
+				// if this is the first time we've seen this m
+				if (!mutationTargets[rootType.name].operations[selection.name.value]) {
+					mutationTargets[rootType.name].operations[selection.name.value] = {}
+				}
+
+				// look at the directices applies to the spread for meta data about the mutation
+				let parentID = 'root'
+				let parentKind: 'Root' | 'Variable' | 'String' = 'Root'
+				let insertLocation: MutationMap[string]['operations'][string][string]['position'] =
+					'end'
+
+				const internalDirectives = selection.directives?.filter((directive) =>
+					config.isInternalDirective(directive)
+				)
+				if (internalDirectives && internalDirectives.length > 0) {
+					// is prepend applied?
+					const prepend = internalDirectives.find(
+						({ name }) => name.value === config.connectionPrependDirective
+					)
+					// is append applied?
+					const append = internalDirectives.find(
+						({ name }) => name.value === config.connectionAppendDirective
+					)
+
+					// if both are applied, there's a problem
+					if (append && prepend) {
+						throw new Error('WRAP THIS IN A HOUDINI ERROR. you have both applied')
+					}
+					insertLocation = prepend ? 'start' : 'end'
+
+					// look for the parentID argument
+					const parentIDArg = (append || prepend)?.arguments?.find(
+						({ name }) => name.value === config.connectionDirectiveParentIDArg
+					)
+					if (parentIDArg) {
+						// if the argument is a string
+						if (parentIDArg.value.kind === 'StringValue') {
+							// use its value
+							parentID = parentIDArg.value.value
+							parentKind = 'String'
+						} else if (parentIDArg.value.kind === 'Variable') {
+							parentKind = 'Variable'
+							parentID = parentIDArg.value.name.value
+						}
+					}
+				}
+
+				// we need to add an operation to the list for this open
+				mutationTargets[rootType.name].operations[selection.name.value][mutationName] = {
+					parentID: {
+						kind: parentKind,
+						value: parentID,
+					},
+					position: insertLocation,
+					kind: 'add',
+					path,
+				}
+			}
+
 			continue
 		}
 
@@ -165,14 +281,23 @@ function fillMutationMap(
 			continue
 		}
 
+		// look up the type of the selection
+		const info = selectionTypeInfo(config.schema, rootType, selection)
+
+		const { type, field } = info
+
 		// if we are looking at a normal field
 		if (selection.kind === graphql.Kind.FIELD) {
 			const attributeName = selection.alias?.value || selection.name.value
 
 			// since the id field is used to filter out a mutation, we don't want to register
-			// that the mutation will update the id field
+			// that the mutation will update the id field (it wont)
 			if (attributeName === 'id') {
 				continue
+			}
+
+			if (!mutationTargets[rootType.name].fields[attributeName]) {
+				mutationTargets[rootType.name].fields[attributeName] = {}
 			}
 
 			// add the field name to the path
@@ -180,14 +305,8 @@ function fillMutationMap(
 
 			// if the field is a scalar type and there is an id field
 			if (graphql.isLeafType(type) && useFields) {
-				if (!mutationTargets[rootType.name]) {
-					mutationTargets[rootType.name] = {}
-				}
-				if (!mutationTargets[rootType.name][attributeName]) {
-					mutationTargets[rootType.name][attributeName] = {}
-				}
 				// add the field to the list of things that the mutation can update
-				mutationTargets[rootType.name][attributeName][name] = pathSoFar
+				mutationTargets[rootType.name].fields[attributeName][name] = pathSoFar
 
 				// we're done
 				continue

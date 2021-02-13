@@ -10,26 +10,15 @@ import * as recast from 'recast'
 import '../../../../jest.setup'
 import { runPipeline } from '../compile'
 import { CollectedGraphQLDocument } from '../types'
+import { mockCollectedDoc } from '../testUtils'
 
 // the config to use in tests
 const config = testConfig()
 
 // the documents to test
 const docs: CollectedGraphQLDocument[] = [
-	{
-		name: 'TestQuery',
-		document: graphql.parse(`query TestQuery { version }`),
-		originalDocument: graphql.parse(`query TestQuery { version }`),
-		filename: 'query.ts',
-		printed: `query TestQuery { version }`,
-	},
-	{
-		name: 'TestFragment',
-		document: graphql.parse(`fragment TestFragment on User { firstName }`),
-		originalDocument: graphql.parse(`fragment TestFragment on User { firstName }`),
-		filename: 'fragment.ts',
-		printed: `fragment TestFragment on User { firstName }`,
-	},
+	mockCollectedDoc('TestQuery', `query TestQuery { version }`),
+	mockCollectedDoc('TestFragment', `fragment TestFragment on User { firstName }`),
 ]
 
 test('generates an artifact for every document', async function () {
@@ -86,6 +75,42 @@ test('adds kind, name, and raw', async function () {
 		module.exports.hash = "a77288e39dcdadb70e4010b543c89c6a";
 
 		module.exports.raw = \`fragment TestFragment on User {
+		  firstName
+		}
+		\`;
+	`)
+})
+
+test('internal directives are scrubbed', async function () {
+	// execute the generator
+	await runPipeline(config, [
+		mockCollectedDoc('Fragment', `fragment A on User { firstName }`),
+		mockCollectedDoc('TestQuery', `query TestQuery { user { ...A @prepend } }`),
+	])
+
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "TestQuery";
+		module.exports.kind = "HoudiniQuery";
+		module.exports.hash = "f4887b164296c8e6be4c4461520a7f99";
+
+		module.exports.raw = \`query TestQuery {
+		  user {
+		    ...A
+		  }
+		}
+
+		fragment A on User {
 		  firstName
 		}
 		\`;

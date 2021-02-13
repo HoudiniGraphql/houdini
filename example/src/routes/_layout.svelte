@@ -1,17 +1,39 @@
 <script lang="ts">
-	import { query, graphql } from 'houdini'
+	import { query, graphql, mutation } from 'houdini'
 	import { derived } from 'svelte/store'
-	import type { IndexInfo } from '../../generated'
+	import type { IndexInfo, AddItem } from '../../generated'
 
 	// load some data at the top of the app for general information
 	const data = query<IndexInfo>(graphql`
 		query IndexInfo {
-			items {
+			items @connection(name: "Item_Info") {
 				id
 				completed
 			}
 		}
 	`, null)
+
+	// state and handler for the new item input
+	const addItem = mutation<AddItem>(graphql`
+		mutation AddItem($input: AddItemInput!) {
+			addItem(input: $input) {
+				item {
+					...All_Items_Connection @prepend
+					...Active_Items_Connection @prepend
+					...Item_Info_Connection
+				}
+			}
+		}
+	`)
+	let inputValue = ""
+	async function onBlur() {
+		// trigger the mutation
+		await addItem({input: { text: inputValue }})
+
+		// clear the input
+		inputValue = ""
+	}
+
 
 	const numberOfItems = derived(data, $data => $data.items.length)
 	const itemsLeft = derived(data, $data => $data.items.filter((item) => !item.completed).length)
@@ -29,7 +51,7 @@
 		<a href="/">
 			<h1>todos</h1>
 		</a>
-		<input class="new-todo" placeholder="What needs to be done?" />
+		<input class="new-todo" placeholder="What needs to be done?" bind:value={inputValue} on:blur={onBlur} />
 	</header>
 	<section class="main">
 		<input id="toggle-all" class="toggle-all" type="checkbox" />

@@ -15,8 +15,19 @@ const AST = recast.types.builders
 export default async function artifactGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	await Promise.all(
 		docs.map(async ({ document, name, printed }) => {
-			// build up the query string
-			const rawString = graphql.print(document)
+			// before we can print the document, we need to strip all references to internal directives
+			const rawString = graphql.print(
+				graphql.visit(document, {
+					Directive: {
+						enter(node) {
+							// if the directive is one of the internal ones, remove it
+							if (config.isInternalDirective(node)) {
+								return null
+							}
+						},
+					},
+				})
+			)
 
 			// figure out the document kind
 			let docKind = ''

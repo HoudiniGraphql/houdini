@@ -12,6 +12,7 @@ export type ConfigFile = {
 	quiet?: boolean
 }
 
+// a place to hold conventions and magic strings
 export class Config {
 	runtimeDirectory: string
 	schema: graphql.GraphQLSchema
@@ -38,6 +39,12 @@ export class Config {
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
 	}
+
+	/*
+
+		Directory structure
+
+	*/
 
 	// the directory where we put all of the artifacts
 	get artifactDirectory() {
@@ -124,6 +131,48 @@ export class Config {
 			mkdirp(this.artifactTypeDirectory),
 		])
 	}
+
+	/*
+
+		GraphqQL conventions
+
+	*/
+
+	get connectionDirective() {
+		return 'connection'
+	}
+
+	get connectionPrependDirective() {
+		return 'prepend'
+	}
+
+	get connectionAppendDirective() {
+		return 'append'
+	}
+
+	get connectionDirectiveParentIDArg() {
+		return 'parentID'
+	}
+
+	get connectionNameArg() {
+		return 'name'
+	}
+
+	isInternalDirective({ name }: graphql.DirectiveNode): boolean {
+		return [
+			this.connectionDirective,
+			this.connectionPrependDirective,
+			this.connectionAppendDirective,
+		].includes(name.value)
+	}
+
+	connectionFragmentName(name: string): string {
+		return `${name}_Connection`
+	}
+
+	isConnectionFragment(name: string): boolean {
+		return name.endsWith('_Connection')
+	}
 }
 
 export function testConfig(config: {} = {}) {
@@ -134,15 +183,34 @@ export function testConfig(config: {} = {}) {
 			type User {
 				id: ID!
 				firstName: String!
+				friends: [User!]!
+				believesIn: [Ghost!]!
+			}
+
+			type Ghost {
+				name: String!
+				believers: [User!]!
+				friends: [Ghost!]!
 			}
 
 			type Query {
 				user: User!
 				version: Int!
+				ghost: Ghost!
 			}
 
 			type Mutation {
 				updateUser: User!
+				addFriend: AddFriendOutput!
+				believeIn: BelieveInOutput!
+			}
+
+			type AddFriendOutput {
+				friend: User
+			}
+
+			type BelieveInOutput {
+				ghost: Ghost
 			}
 		`,
 		quiet: true,
@@ -153,6 +221,7 @@ export function testConfig(config: {} = {}) {
 // a place to store the current configuration
 let _config: Config
 
+// get the project's current configuration
 export async function getConfig(): Promise<Config> {
 	if (_config) {
 		return _config

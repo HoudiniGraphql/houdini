@@ -7,9 +7,10 @@ import fs from 'fs/promises'
 import { FileKind } from 'ast-types/gen/kinds'
 import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
-import runGenerators from '.'
+import { runPipeline as runGenerators } from '../../compile'
 import { CollectedGraphQLDocument } from '../../types'
 import '../../../../../jest.setup'
+import { mockCollectedDoc } from '../../testUtils'
 
 const config = testConfig()
 
@@ -17,14 +18,8 @@ test('generates patches', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
 		// the query needs to ask for a field that the mutation could update
-		{
-			name: 'TestQuery',
-			document: graphql.parse(`query TestQuery { user { id firstName } }`),
-		},
-		{
-			name: 'TestMutation',
-			document: graphql.parse(`mutation TestMutation { updateUser { id firstName } }`),
-		},
+		mockCollectedDoc('TestQuery', `query TestQuery { user { id firstName } }`),
+		mockCollectedDoc('TestMutation', `mutation TestMutation { updateUser { id firstName } }`),
 	]
 
 	// run the generators
@@ -67,19 +62,384 @@ test('generates patches', async function () {
 		                "firstName": [["user", "firstName"]]
 		            },
 
-		            "edges": {}
+		            "edges": {},
+
+		            "operations": {
+		                "add": []
+		            }
 		        }
+		    },
+
+		    "operations": {
+		        "add": []
 		    }
 		};
 	`)
 })
 
-test.skip('inline fragments in mutation body count as an intersection', function () {})
+test('patches include connection operations', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`query TestQuery {
+				user {
+					id
+					believesIn @connection(name: "Friends") {
+						name
+					}
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				believeIn {
+					ghost {
+						...Friends_Connection
+					}
+				}
+			}`
+		),
+	]
 
-test.skip('inline fragments in queries count as an intersection', function () {})
+	// run the generators
+	await runGenerators(config, docs)
 
-test.skip('inline fragments in fragments count as an intersection', function () {})
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		'utf-8'
+	)
 
-test.skip('fragment spread in mutation body', function () {})
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "fields": {},
 
-test.skip("nested objects that don't have id should also update", function () {})
+		    "edges": {
+		        "believeIn": {
+		            "fields": {},
+
+		            "edges": {
+		                "ghost": {
+		                    "fields": {},
+		                    "edges": {},
+
+		                    "operations": {
+		                        "add": [{
+		                            "position": "end",
+
+		                            "parentID": {
+		                                "kind": "Root",
+		                                "value": "root"
+		                            },
+
+		                            "path": ["user", "believesIn"]
+		                        }]
+		                    }
+		                }
+		            },
+
+		            "operations": {
+		                "add": []
+		            }
+		        }
+		    },
+
+		    "operations": {
+		        "add": []
+		    }
+		};
+	`)
+})
+
+test('connection patches track insert position', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`fragment TestFragment on User {
+				id
+				believesIn @connection(name: "Friends") {
+					name
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				believeIn {
+					ghost {
+						...Friends_Connection @prepend(parentID: "1234")
+					}
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestFragment', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "fields": {},
+
+		    "edges": {
+		        "believeIn": {
+		            "fields": {},
+
+		            "edges": {
+		                "ghost": {
+		                    "fields": {},
+		                    "edges": {},
+
+		                    "operations": {
+		                        "add": [{
+		                            "position": "start",
+
+		                            "parentID": {
+		                                "kind": "String",
+		                                "value": "1234"
+		                            },
+
+		                            "path": ["believesIn"]
+		                        }]
+		                    }
+		                }
+		            },
+
+		            "operations": {
+		                "add": []
+		            }
+		        }
+		    },
+
+		    "operations": {
+		        "add": []
+		    }
+		};
+	`)
+})
+
+test('connection patches include reference to parentID string value', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`fragment TestFragment on User {
+				id
+				believesIn @connection(name: "Friends") {
+					name
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				believeIn {
+					ghost {
+						...Friends_Connection @append(parentID: "1234")
+					}
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestFragment', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "fields": {},
+
+		    "edges": {
+		        "believeIn": {
+		            "fields": {},
+
+		            "edges": {
+		                "ghost": {
+		                    "fields": {},
+		                    "edges": {},
+
+		                    "operations": {
+		                        "add": [{
+		                            "position": "end",
+
+		                            "parentID": {
+		                                "kind": "String",
+		                                "value": "1234"
+		                            },
+
+		                            "path": ["believesIn"]
+		                        }]
+		                    }
+		                }
+		            },
+
+		            "operations": {
+		                "add": []
+		            }
+		        }
+		    },
+
+		    "operations": {
+		        "add": []
+		    }
+		};
+	`)
+})
+
+test('connection patches include reference to parentID variable', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`fragment TestFragment on User {
+				id
+				believesIn @connection(name: "Friends") {
+					name
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation($userID: ID!) {
+				believeIn {
+					ghost {
+						...Friends_Connection @append(parentID: $userID)
+					}
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestFragment', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "fields": {},
+
+		    "edges": {
+		        "believeIn": {
+		            "fields": {},
+
+		            "edges": {
+		                "ghost": {
+		                    "fields": {},
+		                    "edges": {},
+
+		                    "operations": {
+		                        "add": [{
+		                            "position": "end",
+
+		                            "parentID": {
+		                                "kind": "Variable",
+		                                "value": "userID"
+		                            },
+
+		                            "path": ["believesIn"]
+		                        }]
+		                    }
+		                }
+		            },
+
+		            "operations": {
+		                "add": []
+		            }
+		        }
+		    },
+
+		    "operations": {
+		        "add": []
+		    }
+		};
+	`)
+})
+
+test('no patches for connection fragments', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`fragment TestFragment on User {
+				id
+				believesIn @connection(name: "Friends") {
+					name
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation($userID: ID!) {
+				believeIn {
+					ghost {
+						...Friends_Connection @append(parentID: $userID)
+					}
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	await expect(
+		fs.stat(config.patchPath({ query: 'Friends_Connection', mutation: 'TestMutation' }))
+	).rejects.toBeTruthy()
+})
+
+test.todo('inline fragments in mutation body count as an intersection')
+
+test.todo('inline fragments in queries count as an intersection')
+
+test.todo('inline fragments in fragments count as an intersection')
+
+test.todo('fragment spread in mutation body')
+
+test.todo("nested objects that don't have id should also update")

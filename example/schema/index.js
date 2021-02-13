@@ -19,8 +19,18 @@ const typeDefs = gql`
 	}
 
 	type Mutation {
-		completeItem(id: ID!): UpdateItemOutput!
-		uncompleteItem(id: ID!): UpdateItemOutput!
+		checkItem(item: ID!): UpdateItemOutput!
+		uncheckItem(item: ID!): UpdateItemOutput!
+		addItem(input: AddItemInput!): AddItemOutput!
+	}
+
+	input AddItemInput {
+		text: String!
+	}
+
+	type AddItemOutput {
+		error: Error
+		item: TodoItem
 	}
 
 	type UpdateItemOutput {
@@ -47,7 +57,7 @@ const resolvers = {
 		},
 	},
 	Mutation: {
-		completeItem(_, { id: targetID }) {
+		checkItem(_, { item: targetID, ...rest }) {
 			// grab the item in question
 			const item = items.find(({ id }) => id === targetID)
 			if (!item) {
@@ -62,7 +72,7 @@ const resolvers = {
 				item,
 			}
 		},
-		uncompleteItem(_, { id: targetID }) {
+		uncheckItem(_, { item: targetID }) {
 			// grab the item in question
 			const item = items.find(({ id }) => id === targetID)
 
@@ -73,6 +83,11 @@ const resolvers = {
 				error: null,
 				item,
 			}
+		},
+		addItem(_, { input: { text } }) {
+			const item = { text, completed: false, id: (items.length + 1).toString() }
+			items.unshift(item)
+			return { item, error: null }
 		},
 	},
 	TodoItem: {

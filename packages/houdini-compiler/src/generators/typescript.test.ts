@@ -8,6 +8,7 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
 import '../../../../jest.setup'
 import { runPipeline } from '../compile'
+import { mockCollectedDoc } from '../testUtils'
 
 // the config to use in tests
 const config = testConfig({
@@ -47,13 +48,10 @@ const config = testConfig({
 describe('typescript', function () {
 	test('fragment types', async function () {
 		// the document to test
-		const doc = {
-			name: 'TestFragment',
-			document: graphql.parse(`fragment TestFragment on User { firstName nickname }`),
-			originalDocument: graphql.parse(`fragment TestFragment on User { firstName nickname }`),
-			filename: 'fragment.ts',
-			printed: `fragment TestFragment on User { firstName nickname }`,
-		}
+		const doc = mockCollectedDoc(
+			'TestFragment',
+			`fragment TestFragment on User { firstName nickname }`
+		)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -85,13 +83,7 @@ describe('typescript', function () {
 		const fragment = `fragment TestFragment on User { firstName parent { firstName } }`
 
 		// the document to test
-		const doc = {
-			name: 'TestFragment',
-			document: graphql.parse(fragment),
-			originalDocument: graphql.parse(fragment),
-			filename: 'fragment.ts',
-			printed: fragment,
-		}
+		const doc = mockCollectedDoc('TestFragment', fragment)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -122,16 +114,11 @@ describe('typescript', function () {
 	})
 
 	test('scalars', async function () {
-		const fragment = `fragment TestFragment on User { firstName admin age id weight }`
-
 		// the document to test
-		const doc = {
-			name: 'TestFragment',
-			document: graphql.parse(fragment),
-			originalDocument: graphql.parse(fragment),
-			filename: 'fragment.ts',
-			printed: fragment,
-		}
+		const doc = mockCollectedDoc(
+			'TestFragment',
+			`fragment TestFragment on User { firstName admin age id weight }`
+		)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -163,16 +150,11 @@ describe('typescript', function () {
 	})
 
 	test('list types', async function () {
-		const fragment = `fragment TestFragment on User { firstName friends { firstName } }`
-
 		// the document to test
-		const doc = {
-			name: 'TestFragment',
-			document: graphql.parse(fragment),
-			originalDocument: graphql.parse(fragment),
-			filename: 'fragment.ts',
-			printed: fragment,
-		}
+		const doc = mockCollectedDoc(
+			'TestFragment',
+			`fragment TestFragment on User { firstName friends { firstName } }`
+		)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -203,15 +185,8 @@ describe('typescript', function () {
 	})
 
 	test('query with no input', async function () {
-		const query = `query Query { user { firstName } }`
 		// the document to test
-		const doc = {
-			name: 'TestFragment',
-			document: graphql.parse(query),
-			originalDocument: graphql.parse(query),
-			filename: 'fragment.ts',
-			printed: query,
-		}
+		const doc = mockCollectedDoc('TestFragment', `query Query { user { firstName } }`)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -280,15 +255,11 @@ describe('typescript', function () {
 	})
 
 	test('query with input', async function () {
-		const query = `query Query($id: ID!) { user(id: $id) { firstName } }`
 		// the document to test
-		const doc = {
-			name: 'TestFragment',
-			document: graphql.parse(query),
-			originalDocument: graphql.parse(query),
-			filename: 'fragment.ts',
-			printed: query,
-		}
+		const doc = mockCollectedDoc(
+			'TestFragment',
+			`query Query($id: ID!) { user(id: $id) { firstName } }`
+		)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -320,15 +291,11 @@ describe('typescript', function () {
 	})
 
 	test('nested input objects', async function () {
-		const query = `query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
 		// the document to test
-		const doc = {
-			name: 'TestFragment',
-			document: graphql.parse(query),
-			originalDocument: graphql.parse(query),
-			filename: 'fragment.ts',
-			printed: query,
-		}
+		const doc = mockCollectedDoc(
+			'TestFragment',
+			`query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
+		)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -368,15 +335,11 @@ describe('typescript', function () {
 	})
 
 	test('generates index file', async function () {
-		const query = `query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
 		// the document to test
-		const doc = {
-			name: 'Query',
-			document: graphql.parse(query),
-			originalDocument: graphql.parse(query),
-			filename: 'fragment.ts',
-			printed: query,
-		}
+		const doc = mockCollectedDoc(
+			'Query',
+			`query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
+		)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -393,30 +356,16 @@ describe('typescript', function () {
 
 	test('fragment spreads', async function () {
 		// the document with the fragment
-		const fragment = `fragment Foo on User { firstName }`
-		const fragmentDoc = {
-			name: 'Foo',
-			document: graphql.parse(fragment),
-			originalDocument: graphql.parse(fragment),
-			filename: 'fragment.ts',
-			printed: fragment,
-		}
+		const fragment = mockCollectedDoc('Foo', `fragment Foo on User { firstName }`)
 
 		// the document to test
-		const query = `query Query { user { ...Foo } }`
-		const doc = {
-			name: 'Query',
-			document: graphql.parse(query),
-			originalDocument: graphql.parse(query),
-			filename: 'query.ts',
-			printed: query,
-		}
+		const query = mockCollectedDoc('Query', `query Query { user { ...Foo } }`)
 
 		// execute the generator
-		await runPipeline(config, [doc, fragmentDoc])
+		await runPipeline(config, [query, fragment])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
 
 		// make sure they match what we expect
 		expect(
@@ -439,9 +388,9 @@ describe('typescript', function () {
 	`)
 	})
 
-	test.skip('inline fragments', function () {})
+	test.todo('inline fragments')
 
-	test.skip('interface', function () {})
+	test.todo('interface')
 
-	test.skip('union', function () {})
+	test.todo('union')
 })

@@ -2,24 +2,22 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
-import { FragmentDocumentKind } from 'houdini-compiler'
+import { CompiledFragmentKind } from 'houdini-compiler'
 import selector from './selector'
+import { testConfig } from 'houdini-common'
 
 // declare a schema we will use
-const schema = graphql.buildSchema(`
-    type User {
-        name: String!
-        age: Int!
-        parent: User!
-        friends: [User!]!
-    }
-`)
 
-const config = {
-	artifactDirectory: 'TODO',
-	artifactDirectoryAlias: 'TODO',
-	schema,
-}
+const config = testConfig({
+	schema: `
+        type User {
+            name: String!
+            age: Int!
+            parent: User!
+            friends: [User!]!
+        }
+    `,
+})
 
 describe('selector', function () {
 	// define the test cases
@@ -255,9 +253,14 @@ describe('selector', function () {
 			// generate the selector
 			const result = selector({
 				config,
-				artifact: { name: 'testFragment', kind: FragmentDocumentKind, raw: fragment },
+				artifact: {
+					name: 'testFragment',
+					kind: CompiledFragmentKind,
+					raw: fragment,
+					hash: 'asf',
+				},
 				rootIdentifier: 'obj',
-				rootType: schema.getType('User') as graphql.GraphQLObjectType,
+				rootType: config.schema.getType('User') as graphql.GraphQLObjectType,
 				selectionSet: parsedFragment.selectionSet,
 				// don't pull the values out of the ref for the query selector test
 				pullValuesFromRef: title !== 'query selector',

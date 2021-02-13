@@ -6,7 +6,7 @@
 	// load the items
 	const data = query<CompletedItems>(graphql`
 		query CompletedItems {
-			items(completed: true) {
+			items(completed: true) @connection(name: "Completed_Items") {
 				id
 				completed
 				...ItemEntry_item
@@ -15,6 +15,6 @@
 	`, null)
 </script>
 
-{#each $data.items as item}
+{#each $data.items as item (item.id)}
 	<ItemEntry {item} />
 {/each}
