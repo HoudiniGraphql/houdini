@@ -9,7 +9,7 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 import { Patch } from '../../types'
 import { PatchAtom, MutationMap } from '.'
 
-const typeBuilders = recast.types.builders
+const AST = recast.types.builders
 
 // patchesForSelectionSet generates the list of patches that the provided MutationMap creates
 // for the given selection set
@@ -111,7 +111,7 @@ export function patchesForSelectionSet(
 
 				// every mutation that adds to the connection needs an entry
 				for (const mutationName of Object.keys(mutations)) {
-					const { kind, path } = mutations[mutationName]
+					const { kind, path, parentID } = mutations[mutationName]
 
 					// we have an patch
 					patches.push({
@@ -120,6 +120,7 @@ export function patchesForSelectionSet(
 						mutationPath: path,
 						queryName: name,
 						queryPath: pathSoFar,
+						parentID,
 					})
 				}
 			}
@@ -179,7 +180,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 			}
 
 			// make sure very mutation in the patch ends up in the tree
-			for (const { mutationPath, queryPath, operation } of mutations) {
+			for (const { mutationPath, queryPath, operation, parentID } of mutations) {
 				// the mutation path defines where in the update tree this entry belongs
 				let node = updateMap
 				for (let i = 0; i < mutationPath.length; i++) {
@@ -242,21 +243,29 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 							ops[operation] = []
 						}
 
-						// @ts-ignore
-						ops[operation].push(queryPath)
+						if (parentID) {
+							// @ts-ignore: i just ensured it wasn't undefined
+							ops[operation].push({
+								path: queryPath,
+								parentID: {
+									kind: parentID.kind,
+									value: parentID.value,
+								},
+							})
+						}
 					}
 				}
 			}
 
-			const patch = typeBuilders.objectExpression([])
+			const patch = AST.objectExpression([])
 
 			// we need to build up the patch as an object that the runtime can import
 			buildPatch(updateMap, patch)
 
 			// build up the file contents
-			const program = typeBuilders.program([
+			const program = AST.program([
 				// export the function as a named export
-				typeBuilders.exportDefaultDeclaration(patch),
+				AST.exportDefaultDeclaration(patch),
 			])
 
 			// figure out the path for the patch
@@ -275,17 +284,15 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 	targetObject.properties.push(
 		// the fields property has a field for every scalar entry in the patch
-		typeBuilders.objectProperty(
-			typeBuilders.stringLiteral('fields'),
-			typeBuilders.objectExpression(
+		AST.objectProperty(
+			AST.stringLiteral('fields'),
+			AST.objectExpression(
 				Object.keys(patch.fields).map((fieldName) =>
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral(fieldName),
-						typeBuilders.arrayExpression(
+					AST.objectProperty(
+						AST.stringLiteral(fieldName),
+						AST.arrayExpression(
 							patch.fields[fieldName].map((paths) =>
-								typeBuilders.arrayExpression(
-									paths.map((entry) => typeBuilders.stringLiteral(entry))
-								)
+								AST.arrayExpression(paths.map((entry) => AST.stringLiteral(entry)))
 							)
 						)
 					)
@@ -293,34 +300,52 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 			)
 		),
 		// add the edges entry
-		typeBuilders.objectProperty(
-			typeBuilders.stringLiteral('edges'),
-			typeBuilders.objectExpression(
+		AST.objectProperty(
+			AST.stringLiteral('edges'),
+			AST.objectExpression(
 				Object.keys(patch.edges).map((fieldName) => {
 					// build up an object expression we will assign in the link object
-					const link = typeBuilders.objectExpression([])
+					const link = AST.objectExpression([])
 
 					// add the necessary properties to the nested object
 					buildPatch(patch.edges[fieldName], link)
 
-					return typeBuilders.objectProperty(typeBuilders.stringLiteral(fieldName), link)
+					return AST.objectProperty(AST.stringLiteral(fieldName), link)
 				})
 			)
 		),
 		// add any operations that we found
-		typeBuilders.objectProperty(
-			typeBuilders.stringLiteral('operations'),
-			typeBuilders.objectExpression(
+		AST.objectProperty(
+			AST.stringLiteral('operations'),
+			AST.objectExpression(
 				(Object.keys(patch.operations) as Array<
 					keyof typeof patch.operations
 				>).map((patchOperation) =>
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral(patchOperation),
-						typeBuilders.arrayExpression(
-							(patch.operations[patchOperation] || []).map((paths) =>
-								typeBuilders.arrayExpression(
-									paths.map((entry) => typeBuilders.stringLiteral(entry))
-								)
+					AST.objectProperty(
+						AST.stringLiteral(patchOperation),
+						AST.arrayExpression(
+							(patch.operations[patchOperation] || []).map(({ parentID, path }) =>
+								AST.objectExpression([
+									AST.objectProperty(
+										AST.stringLiteral('parentID'),
+										AST.objectExpression([
+											AST.objectProperty(
+												AST.stringLiteral('kind'),
+												AST.stringLiteral(parentID.kind)
+											),
+											AST.objectProperty(
+												AST.stringLiteral('value'),
+												AST.stringLiteral(parentID.value)
+											),
+										])
+									),
+									AST.objectProperty(
+										AST.stringLiteral('path'),
+										AST.arrayExpression(
+											path.map((entry) => AST.stringLiteral(entry))
+										)
+									),
+								])
 							)
 						)
 					)

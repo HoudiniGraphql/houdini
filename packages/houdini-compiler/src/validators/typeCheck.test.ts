@@ -1,10 +1,8 @@
-// external imports
-import * as graphql from 'graphql'
-import { HoudiniError } from 'houdini-common'
 // locals
 import { pipelineTest } from '../testUtils'
 import '../../../../jest.setup'
 import { CollectedGraphQLDocument } from '../types'
+import { HoudiniError } from '../error'
 
 const table: Row[] = [
 	{

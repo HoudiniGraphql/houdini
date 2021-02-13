@@ -97,7 +97,7 @@ function walkPatch(patch: Patch, payload: Data, target: Record): boolean {
 		}
 
 		// copy the entry into every path in the response
-		for (const path of paths) {
+		for (const { path } of paths) {
 			if (operation === 'add') {
 				// add the entity to the connection
 

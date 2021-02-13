@@ -28,7 +28,10 @@ export type MutationMap = {
 				[mutationName: string]: {
 					kind: keyof Patch['operations']
 					insertLocation: 'start' | 'end'
-					parentID: string
+					parentID: {
+						kind: 'Variable' | 'String' | 'Root'
+						value: string
+					}
 					path: string[]
 				}
 			}
@@ -38,6 +41,10 @@ export type MutationMap = {
 
 // another intermediate type used when building up the mutation description
 export type PatchAtom = {
+	parentID?: {
+		kind: 'Variable' | 'String' | 'Root'
+		value: string
+	}
 	operation: keyof Patch['operations'] | 'update'
 	mutationName: string
 	mutationPath: string[]
@@ -200,6 +207,7 @@ function fillMutationMap(
 
 				// look at the directices applies to the spread for meta data about the mutation
 				let parentID = 'root'
+				let parentKind: 'Root' | 'Variable' | 'String' = 'Root'
 				let insertLocation: MutationMap[string]['operations'][string][string]['insertLocation'] =
 					'end'
 
@@ -226,16 +234,25 @@ function fillMutationMap(
 					const parentIDArg = (append || prepend)?.arguments?.find(
 						({ name }) => name.value === config.connectionDirectiveParentIDArg
 					)
-					if (!parentIDArg) {
-						throw new HoudiniErrorTodo(
-							'Could not find parent ID arg in connection insert directive'
-						)
+					if (parentIDArg) {
+						// if the argument is a string
+						if (parentIDArg.value.kind === 'StringValue') {
+							// use its value
+							parentID = parentIDArg.value.value
+							parentKind = 'String'
+						} else if (parentIDArg.value.kind === 'Variable') {
+							parentKind = 'Variable'
+							parentID = parentIDArg.value.name.value
+						}
 					}
 				}
 
 				// we need to add an operation to the list for this open
 				mutationTargets[rootType.name].operations[selection.name.value][mutationName] = {
-					parentID,
+					parentID: {
+						kind: parentKind,
+						value: parentID,
+					},
 					insertLocation,
 					kind: 'add',
 					path,

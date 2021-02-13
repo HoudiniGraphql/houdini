@@ -59,7 +59,7 @@ test('connection fragments on fragment selection set', async function () {
 			`
 				mutation UpdateUser {
 					updateUser {
-                        ...User_Friends_Connection
+                        ...User_Friends_Connection @prepend(parentID: "1234")
 					}
 				}
 			`
@@ -84,7 +84,7 @@ test('connection fragments on fragment selection set', async function () {
 	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
 		"mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_Connection
+		    ...User_Friends_Connection @prepend(parentID: \\"1234\\")
 		  }
 		}
 

@@ -250,7 +250,15 @@ describe('apply patch', function () {
 					edges: {},
 					fields: {},
 					operations: {
-						add: [['field']],
+						add: [
+							{
+								path: ['field'],
+								parentID: {
+									kind: 'Root',
+									value: 'root',
+								},
+							},
+						],
 					},
 				},
 			},

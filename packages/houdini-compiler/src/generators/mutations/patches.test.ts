@@ -7,7 +7,7 @@ import fs from 'fs/promises'
 import { FileKind } from 'ast-types/gen/kinds'
 import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
-import runGenerators from '.'
+import { runPipeline as runGenerators } from '../../compile'
 import { CollectedGraphQLDocument } from '../../types'
 import '../../../../../jest.setup'
 import { mockCollectedDoc } from '../../testUtils'
@@ -132,7 +132,14 @@ test('patches include connection operations', async function () {
 		                    "edges": {},
 
 		                    "operations": {
-		                        "add": [["user", "friends"]]
+		                        "add": [{
+		                            "parentID": {
+		                                "kind": "Root",
+		                                "value": "root"
+		                            },
+
+		                            "path": ["user", "friends"]
+		                        }]
 		                    }
 		                }
 		            },
@@ -157,11 +164,9 @@ test('connection patches include reference to parentID string value', async func
 		mockCollectedDoc(
 			'TestQuery',
 			`fragment TestFragment on User {
-				user {
-					id
-					friends @connection(name: "Friends") {
-						firstName
-					}
+				id
+				friends @connection(name: "Friends") {
+					firstName
 				}
 			}`
 		),
@@ -170,7 +175,7 @@ test('connection patches include reference to parentID string value', async func
 			`mutation TestMutation {
 				addFriend {
 					friend {
-						...Friends_Connection @append(parent: "1234")
+						...Friends_Connection @append(parentID: "1234")
 					}
 				}
 			}`
@@ -183,7 +188,7 @@ test('connection patches include reference to parentID string value', async func
 	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
 	// to the marked connection
 	const contents = await fs.readFile(
-		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		config.patchPath({ query: 'TestFragment', mutation: 'TestMutation' }),
 		'utf-8'
 	)
 
@@ -191,7 +196,43 @@ test('connection patches include reference to parentID string value', async func
 		recast.parse(contents, {
 			parser: typeScriptParser,
 		})
-	).toMatchInlineSnapshot()
+	).toMatchInlineSnapshot(`
+		export default {
+		    "fields": {},
+
+		    "edges": {
+		        "addFriend": {
+		            "fields": {},
+
+		            "edges": {
+		                "friend": {
+		                    "fields": {},
+		                    "edges": {},
+
+		                    "operations": {
+		                        "add": [{
+		                            "parentID": {
+		                                "kind": "String",
+		                                "value": "1234"
+		                            },
+
+		                            "path": ["friends"]
+		                        }]
+		                    }
+		                }
+		            },
+
+		            "operations": {
+		                "add": []
+		            }
+		        }
+		    },
+
+		    "operations": {
+		        "add": []
+		    }
+		};
+	`)
 })
 
 test('connection patches include reference to parentID variable', async function () {
@@ -201,11 +242,9 @@ test('connection patches include reference to parentID variable', async function
 		mockCollectedDoc(
 			'TestQuery',
 			`fragment TestFragment on User {
-				user {
-					id
-					friends @connection(name: "Friends") {
-						firstName
-					}
+				id
+				friends @connection(name: "Friends") {
+					firstName
 				}
 			}`
 		),
@@ -214,7 +253,7 @@ test('connection patches include reference to parentID variable', async function
 			`mutation TestMutation($userID: ID!) {
 				addFriend {
 					friend {
-						...Friends_Connection @append(parent: $userID)
+						...Friends_Connection @append(parentID: $userID)
 					}
 				}
 			}`
@@ -227,7 +266,7 @@ test('connection patches include reference to parentID variable', async function
 	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
 	// to the marked connection
 	const contents = await fs.readFile(
-		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		config.patchPath({ query: 'TestFragment', mutation: 'TestMutation' }),
 		'utf-8'
 	)
 
@@ -235,7 +274,43 @@ test('connection patches include reference to parentID variable', async function
 		recast.parse(contents, {
 			parser: typeScriptParser,
 		})
-	).toMatchInlineSnapshot()
+	).toMatchInlineSnapshot(`
+		export default {
+		    "fields": {},
+
+		    "edges": {
+		        "addFriend": {
+		            "fields": {},
+
+		            "edges": {
+		                "friend": {
+		                    "fields": {},
+		                    "edges": {},
+
+		                    "operations": {
+		                        "add": [{
+		                            "parentID": {
+		                                "kind": "Variable",
+		                                "value": "userID"
+		                            },
+
+		                            "path": ["friends"]
+		                        }]
+		                    }
+		                }
+		            },
+
+		            "operations": {
+		                "add": []
+		            }
+		        }
+		    },
+
+		    "operations": {
+		        "add": []
+		    }
+		};
+	`)
 })
 
 test.skip('inline fragments in mutation body count as an intersection', function () {})

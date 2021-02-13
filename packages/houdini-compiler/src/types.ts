@@ -29,7 +29,15 @@ export type FragmentArtifact = BaseCompiledDocument & {
 // a description of an interaction between a mutation and a query
 export type Patch = {
 	operations: {
-		add: { parentID: string; path: string[] }[] | undefined
+		add:
+			| {
+					parentID: {
+						kind: 'String' | 'Variable' | 'Root'
+						value: string
+					}
+					path: string[]
+			  }[]
+			| undefined
 	}
 	fields: { [fieldName: string]: Array<string[]> }
 	edges: { [path: string]: Patch }
