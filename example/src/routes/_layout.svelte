@@ -6,7 +6,7 @@
 	// load some data at the top of the app for general information
 	const data = query<IndexInfo>(graphql`
 		query IndexInfo {
-			items {
+			items @connection(name: "Item_Info") {
 				id
 				completed
 			}
@@ -20,6 +20,7 @@
 				item {
 					...All_Items_Connection @prepend
 					...Active_Items_Connection @prepend
+					...Item_Info_Connection
 				}
 			}
 		}

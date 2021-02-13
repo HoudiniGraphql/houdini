@@ -33,13 +33,13 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 			// every entry in the link could point to a store that needs to update
 			// we can process them in parallel since there is no shared data
 			Promise.all(
-				Object.entries(links()).map(async ([queryName, patchModule]) => {
+				Object.entries(links()).map(async ([documentName, patchModule]) => {
 					// wait for the patch to load
 					const { default: patch } = await patchModule
 					// apply the changes to any stores that have registered themselves
-					for (const { currentValue, set } of getDocumentStores(queryName)) {
+					for (const { currentValue, updateValue } of getDocumentStores(documentName)) {
 						// apply the patch
-						applyPatch(patch, set, currentValue, data, variables)
+						applyPatch(patch, updateValue, currentValue, data, variables)
 					}
 				})
 			)

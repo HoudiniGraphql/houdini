@@ -18,7 +18,7 @@ export function fetchQuery({
 export type DocumentStore = {
 	name: string
 	currentValue: any
-	set: (value: any) => void
+	updateValue: (value: any) => void
 }
 
 const _stores: { [name: string]: DocumentStore[] } = {}
@@ -34,7 +34,9 @@ export function registerDocumentStore(store: DocumentStore) {
 
 // unregisterDocumentStore is used by query and fragment runtimes to remove their updater from the dispatch table
 export function unregisterDocumentStore(target: DocumentStore) {
-	_stores[target.name] = getDocumentStores(target.name).filter(({ set }) => set !== target.set)
+	_stores[target.name] = getDocumentStores(target.name).filter(
+		({ updateValue }) => updateValue !== target.updateValue
+	)
 }
 
 type Record = { [key: string]: any } & { id?: string }
@@ -42,17 +44,16 @@ type Data = Record | Record[]
 
 export function applyPatch(
 	patch: Patch,
-	set: (newValue: Data) => void,
+	updateValue: (newValue: Data) => void,
 	currentState: Data,
 	payload: Data,
 	variables: { [key: string]: any }
 ) {
 	// a place to write updates to
 	const target = currentState
-
 	// walk down the the patch and if there was a mutation, commit the update
 	if (walkPatch(patch, payload, target, variables)) {
-		set(target)
+		updateValue(target)
 	}
 }
 

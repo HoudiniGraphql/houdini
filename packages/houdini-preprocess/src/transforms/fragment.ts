@@ -47,19 +47,6 @@ export default async function fragmentProcesesor(
 				)
 			}
 
-			console.log(
-				doc.filename,
-				recast.print(
-					selector({
-						config: doc.config,
-						artifact,
-						rootIdentifier: 'obj',
-						rootType,
-						selectionSet: parsedFragment.selectionSet,
-					})
-				).code
-			)
-
 			// replace the node with an object
 			node.replaceWith(
 				typeBuilders.objectExpression([
