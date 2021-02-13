@@ -69,38 +69,54 @@ test('generates patches', async function () {
 	`)
 })
 
-test('does not count connection fragments for patches', async function () {
-	// we need a query with a labeled connection that the mutation updates
+test('patches include connection operations', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
 		// the query needs to ask for a field that the mutation could update
 		mockCollectedDoc(
 			'TestQuery',
-			`
-			query TestQuery {
-				user {
-					friends @connection(name: "Test") {
-						firstName
-					}
-				}
-			}
-		`
+			`query TestQuery { user { id friends @connection(name: "Friends"){ firstName } } }`
 		),
-		mockCollectedDoc('TestMutation', `mutation TestMutation { updateUser { id firstName } }`),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation { updateUser { id ...Friends_Connection } }`
+		),
 	]
 
 	// run the generators
 	await runGenerators(config, docs)
 
-	// look up the files in the mutation directory
-	const files = await fs.readdir(config.patchDirectory)
-
-	// make sure there isn't a patch between the generated fragment and the mutation
-	expect(files).not.toBe(
-		expect.arrayContaining([
-			path.basename(config.patchPath({ query: 'Test_Connection', mutation: 'TestMutation' })),
-		])
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		'utf-8'
 	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "fields": {},
+
+		    "edges": {
+		        "updateUser": {
+		            "fields": {},
+		            "edges": {},
+
+		            "operations": {
+		                "add": [["user", "friends"]]
+		            }
+		        }
+		    },
+
+		    "operations": {
+		        "add": []
+		    }
+		};
+	`)
 })
 
 test.skip('inline fragments in mutation body count as an intersection', function () {})

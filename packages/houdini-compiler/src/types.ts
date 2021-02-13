@@ -1,4 +1,5 @@
 import graphql from 'graphql'
+import { PatchAtom } from './generators/mutations'
 
 // the compiled version of an operation
 type BaseCompiledDocument = {
@@ -27,6 +28,9 @@ export type FragmentArtifact = BaseCompiledDocument & {
 
 // a description of an interaction between a mutation and a query
 export type Patch = {
+	operations: {
+		add?: string[][]
+	}
 	fields: { [fieldName: string]: Array<string[]> }
 	edges: { [path: string]: Patch }
 }

@@ -22,7 +22,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					Directive: {
 						enter(node) {
 							// if the directive is one of the internal ones, remove it
-							if (internalDirectives.includes(node.name.value)) {
+							if (config.isInternalDirective(node)) {
 								return null
 							}
 						},

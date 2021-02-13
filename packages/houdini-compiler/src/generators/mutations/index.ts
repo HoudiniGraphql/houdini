@@ -1,30 +1,41 @@
 // externals
 import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from 'houdini-common'
 import * as graphql from 'graphql'
-import mkdirp from 'mkdirp'
 // locals
-import { CollectedGraphQLDocument } from '../../types'
+import { CollectedGraphQLDocument, Patch } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
 
-// We consider every query and every mutation that could affect it. This can only possibly
-// happen if we get the {id} of the type in the payload. Therefore we're going to look at
-// every mutation and collect the types in the payload with {id} in their selection set.
-// Then look at every query and fragment to see if it asks for the type. If so, then
-// we need to generate something the runtime can use.
+// We consider every query and every mutation that could affect it. We'll start by looking at every field
+// addressed by every mutation and then look at every query and fragment to see if it asks for the type.
+// If so, then we need to generate something the runtime can use.
+//
+// note: This can only possibly happen if we get the {id} of the type in the payload so we need to check
+// 		 for that along the way
 
 // keep track of which mutation affects which fields of which type
 // we need to map types to fields to the mutations that update it
 export type MutationMap = {
 	[typeName: string]: {
-		[fieldName: string]: {
-			[mutationName: string]: string[]
+		fields: {
+			[fieldName: string]: {
+				[mutationName: string]: string[]
+			}
+		}
+		operations: {
+			[connectionName: string]: {
+				[mutationName: string]: {
+					kind: keyof Patch['operations']
+					path: string[]
+				}
+			}
 		}
 	}
 }
 
 // another intermediate type used when building up the mutation description
 export type PatchAtom = {
+	operation: keyof Patch['operations'] | 'update'
 	mutationName: string
 	mutationPath: string[]
 	queryName: string
@@ -156,14 +167,40 @@ function fillMutationMap(
 
 	// every field in the selection set could contribute to the mutation's targets
 	for (const selection of selectionSet.selections) {
-		// ignore any fragment spreads
+		// fragment spreads can short circuit cache invalidation (not yet implemented)
+		// or be used to describe operations on connections
 		if (selection.kind === graphql.Kind.FRAGMENT_SPREAD) {
+			// if the fragment indicates a connection operation
+			if (config.isConnectionFragment(selection.name.value)) {
+				// the name of the mutation
+				const mutationName = name
+
+				// if this is the first time we've seen this m
+				if (!mutationTargets[rootType.name].operations[selection.name.value]) {
+					mutationTargets[rootType.name].operations[selection.name.value] = {}
+				}
+
+				// we need to add an operation to the list for this open
+				mutationTargets[rootType.name].operations[selection.name.value][mutationName] = {
+					kind: 'add',
+					path,
+				}
+			}
+
 			continue
 		}
 
 		// process inline fragments
 		if (selection.kind === graphql.Kind.INLINE_FRAGMENT) {
 			continue
+		}
+
+		// make sure there is an entry in the target map for this type
+		if (!mutationTargets[rootType.name]) {
+			mutationTargets[rootType.name] = {
+				fields: {},
+				operations: {},
+			}
 		}
 
 		// look up the type of the selection
@@ -176,9 +213,13 @@ function fillMutationMap(
 			const attributeName = selection.alias?.value || selection.name.value
 
 			// since the id field is used to filter out a mutation, we don't want to register
-			// that the mutation will update the id field
+			// that the mutation will update the id field (it wont)
 			if (attributeName === 'id') {
 				continue
+			}
+
+			if (!mutationTargets[rootType.name].fields[attributeName]) {
+				mutationTargets[rootType.name].fields[attributeName] = {}
 			}
 
 			// add the field name to the path
@@ -186,14 +227,8 @@ function fillMutationMap(
 
 			// if the field is a scalar type and there is an id field
 			if (graphql.isLeafType(type) && useFields) {
-				if (!mutationTargets[rootType.name]) {
-					mutationTargets[rootType.name] = {}
-				}
-				if (!mutationTargets[rootType.name][attributeName]) {
-					mutationTargets[rootType.name][attributeName] = {}
-				}
 				// add the field to the list of things that the mutation can update
-				mutationTargets[rootType.name][attributeName][name] = pathSoFar
+				mutationTargets[rootType.name].fields[attributeName][name] = pathSoFar
 
 				// we're done
 				continue

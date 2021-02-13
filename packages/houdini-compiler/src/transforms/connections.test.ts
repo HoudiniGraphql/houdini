@@ -120,3 +120,11 @@ test('connection fragments must be unique', async function () {
 	// run the pipeline and make sure it fails
 	await expect(runPipeline(testConfig(), docs)).rejects.toBeTruthy()
 })
+
+test('includes `id` in connection fragment', function () {
+	fail('high prio')
+})
+
+test('fails if id is not present as a connection operation target', function () {
+	fail('high prio')
+})
