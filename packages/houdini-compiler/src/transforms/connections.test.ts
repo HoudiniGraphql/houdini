@@ -164,24 +164,18 @@ test('includes `id` in connection fragment', async function () {
 	`)
 })
 
-test('cannot add connection fragment if id is not a valid field', async function () {
+test('cannot use connection directive if id is not a valid field', async function () {
 	const docs = [
-		mockCollectedDoc(
-			'UpdateUser',
-			`
-			mutation UpdateUser {
-				updateUser {
-					...User_Friends_Connection @prepend(parentID: "1234")
-				}
-			}
-		`
-		),
 		mockCollectedDoc(
 			'TestQuery',
 			`
-			fragment AllUsers  on User{
-				friends @connection(name:"User_Friends") {
-					firstName
+			query AllGhosts {
+				ghost {
+					friends {
+						friends @connection(name: "Ghost_Friends"){
+							name
+						}
+					}
 				}
 			}
 		`

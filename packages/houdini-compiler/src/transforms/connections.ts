@@ -5,8 +5,8 @@ import * as graphql from 'graphql'
 import { CollectedGraphQLDocument } from '../types'
 import { HoudiniError } from '../error'
 
-// graphqlExtensions adds a few different things to the graphql schema
-export default async function graphqlExtensions(
+// addConnectionFragments adds fragments for the fields tagged with @connection
+export default async function addConnectionFragments(
 	config: Config,
 	documents: CollectedGraphQLDocument[]
 ): Promise<void> {
