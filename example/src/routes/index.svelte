@@ -13,6 +13,8 @@
 			}
 		}
 	`, null)
+
+	$: items = $data.items
 </script>
 
 {#each $data.items as item}

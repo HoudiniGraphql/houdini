@@ -22,7 +22,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 		// build up the store object
 		const store = {
 			name: fragment.name,
-			set,
+			set: (val: _Fragment['shape']) => set(fragment.applyMask(val)),
 			currentValue: {},
 		}
 

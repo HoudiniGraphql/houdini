@@ -85,7 +85,7 @@ const resolvers = {
 			}
 		},
 		addItem(_, { input: { text } }) {
-			const item = { text, completed: false }
+			const item = { text, completed: false, id: items.length.toString() }
 			items.push(item)
 			return { item, error: null }
 		},
