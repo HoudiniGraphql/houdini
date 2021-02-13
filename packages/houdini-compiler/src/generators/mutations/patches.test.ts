@@ -313,6 +313,43 @@ test('connection patches include reference to parentID variable', async function
 	`)
 })
 
+test('no patches for connection fragments', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`fragment TestFragment on User {
+				id
+				friends @connection(name: "Friends") {
+					firstName
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation($userID: ID!) {
+				addFriend {
+					friend {
+						...Friends_Connection @append(parentID: $userID)
+					}
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	const dir = await fs.readdir(config.patchDirectory)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	await expect(
+		fs.stat(config.patchPath({ query: 'Friends_Connection', mutation: 'TestMutation' }))
+	).rejects.toBeTruthy()
+})
+
 test.skip('inline fragments in mutation body count as an intersection', function () {})
 
 test.skip('inline fragments in queries count as an intersection', function () {})
