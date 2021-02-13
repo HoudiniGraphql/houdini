@@ -40,7 +40,7 @@ describe('apply patch', function () {
 		}
 
 		// apply the patch
-		applyPatch(patch, set, current, payload)
+		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
@@ -85,7 +85,7 @@ describe('apply patch', function () {
 		}
 
 		// apply the patch
-		applyPatch(patch, set, current, payload)
+		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
 		expect(set).not.toHaveBeenCalled()
@@ -137,7 +137,7 @@ describe('apply patch', function () {
 		}
 
 		// apply the patch
-		applyPatch(patch, set, current, payload)
+		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
@@ -184,7 +184,7 @@ describe('apply patch', function () {
 		}
 
 		// apply the patch
-		applyPatch(patch, set, current, payload)
+		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
@@ -231,7 +231,7 @@ describe('apply patch', function () {
 		}
 
 		// apply the patch
-		applyPatch(patch, set, current, payload)
+		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
@@ -287,7 +287,7 @@ describe('apply patch', function () {
 		}
 
 		// apply the patch
-		applyPatch(patch, set, current, payload)
+		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
@@ -304,7 +304,7 @@ describe('apply patch', function () {
 		})
 	})
 
-	test('add to connection with specific ID', function () {
+	test('add to connection with literal ID', function () {
 		const patch: Patch = {
 			fields: {},
 			edges: {
@@ -351,7 +351,73 @@ describe('apply patch', function () {
 		}
 
 		// apply the patch
-		applyPatch(patch, set, current, payload)
+		applyPatch(patch, set, current, payload, {})
+
+		// make sure we got the expected value
+		expect(set).toHaveBeenCalledWith({
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+					inner: [
+						{
+							id: '2',
+							target: 'world',
+						},
+					],
+				},
+			],
+		})
+	})
+
+	test('add to connection with variable ID', function () {
+		const patch: Patch = {
+			fields: {},
+			edges: {
+				mutationName: {
+					edges: {},
+					fields: {},
+					operations: {
+						add: [
+							{
+								path: ['outer', 'inner'],
+								parentID: {
+									kind: 'Variable',
+									value: 'testID',
+								},
+							},
+						],
+					},
+				},
+			},
+			operations: {
+				add: [],
+			},
+		}
+
+		// a function to spy on the update
+		const set = jest.fn()
+
+		// the current data
+		const current = {
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+			],
+		}
+
+		// the mutation payload
+		const payload = {
+			mutationName: {
+				id: '2',
+				target: 'world',
+			},
+		}
+
+		// apply the patch
+		applyPatch(patch, set, current, payload, { testID: '1' })
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
@@ -411,7 +477,7 @@ describe('apply patch', function () {
 		}
 
 		// apply the patch
-		applyPatch(patch, set, current, payload)
+		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({

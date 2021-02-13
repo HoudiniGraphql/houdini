@@ -44,18 +44,24 @@ export function applyPatch(
 	patch: Patch,
 	set: (newValue: Data) => void,
 	currentState: Data,
-	payload: Data
+	payload: Data,
+	variables: { [key: string]: any }
 ) {
 	// a place to write updates to
 	const target = currentState
 
 	// walk down the the patch and if there was a mutation, commit the update
-	if (walkPatch(patch, payload, target)) {
+	if (walkPatch(patch, payload, target, variables)) {
 		set(target)
 	}
 }
 
-function walkPatch(patch: Patch, payload: Data, target: Record): boolean {
+function walkPatch(
+	patch: Patch,
+	payload: Data,
+	target: Record,
+	variables: { [key: string]: any }
+): boolean {
 	// track if we update something
 	let updated = false
 
@@ -63,7 +69,7 @@ function walkPatch(patch: Patch, payload: Data, target: Record): boolean {
 	if (Array.isArray(payload)) {
 		for (const subobj of payload) {
 			// if walking down updated something and we don't think we have
-			if (walkPatch(patch, subobj, target) && !updated) {
+			if (walkPatch(patch, subobj, target, variables) && !updated) {
 				// keep us up to date
 				updated = true
 			}
@@ -101,7 +107,7 @@ function walkPatch(patch: Patch, payload: Data, target: Record): boolean {
 			if (operation === 'add') {
 				// add the entity to the connection
 
-				if (insertInConnection(path, target, parentID, payload) && !updated) {
+				if (insertInConnection(path, target, parentID, payload, variables) && !updated) {
 					updated = true
 				}
 			}
@@ -111,7 +117,7 @@ function walkPatch(patch: Patch, payload: Data, target: Record): boolean {
 	// walk down any related fields
 	for (const edgeName of Object.keys(patch.edges)) {
 		// walk down and keep track if we updated anything
-		if (walkPatch(patch.edges[edgeName], payload[edgeName], target) && !updated) {
+		if (walkPatch(patch.edges[edgeName], payload[edgeName], target, variables) && !updated) {
 			updated = true
 		}
 	}
@@ -124,7 +130,8 @@ function insertInConnection(
 	path: string[],
 	target: Record,
 	parentID: { kind: 'Variable' | 'String' | 'Root'; value: string },
-	value: Record
+	value: Record,
+	variables: { [key: string]: any }
 ) {
 	// keep track if we updated a field
 	let updated = false
@@ -153,8 +160,11 @@ function insertInConnection(
 
 		// look at every option for a matching id
 		for (const entry of parents) {
+			// the id we are looking for
+			const targetID = parentID.kind === 'String' ? parentID.value : variables[parentID.value]
+
 			// if the id matches
-			if (entry.id === parentID.value) {
+			if (entry.id === targetID) {
 				// we found it!
 
 				// add the value to the entry's list
@@ -178,7 +188,7 @@ function insertInConnection(
 			// walk down every element in the list
 			for (const entry of element) {
 				// if we applied the udpate
-				if (insertInConnection(tail, entry, parentID, value)) {
+				if (insertInConnection(tail, entry, parentID, value, variables)) {
 					updated = true
 					// dont keep searching
 					break
@@ -188,7 +198,7 @@ function insertInConnection(
 		// the element is an object
 		else {
 			// keep going down
-			if (insertInConnection(tail, element, parentID, value) && !updated) {
+			if (insertInConnection(tail, element, parentID, value, variables) && !updated) {
 				updated = true
 			}
 		}

@@ -46,7 +46,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 					// apply the changes to any stores that have registered themselves
 					for (const { currentValue, set } of getDocumentStores(queryName)) {
 						// apply the patch
-						applyPatch(patch, set, currentValue, data)
+						applyPatch(patch, set, currentValue, data, variables)
 					}
 				})
 			)
