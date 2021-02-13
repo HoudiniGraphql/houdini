@@ -221,6 +221,29 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@connection on root field with no id passes',
+		pass: true,
+		documents: [
+			`
+                query believers {
+					ghost {
+						name
+						believers @connection(name: "Believers") {
+							id
+						}
+					}
+                }
+            `,
+			`
+                mutation Mutation {
+					addFriend {
+						...Believers_Connection
+					}
+                }
+            `,
+		],
+	},
+	{
 		title: 'returns multiple errors',
 		pass: false,
 		documents: [
@@ -262,3 +285,7 @@ for (const { title, pass, documents, check } of table) {
 		pipelineTest(title, documents, pass, check)
 	})
 }
+
+test.todo('Unknown connection fragments')
+
+test.todo('@connection on root list with no id fails')

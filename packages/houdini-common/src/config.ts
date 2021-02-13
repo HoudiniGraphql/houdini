@@ -186,9 +186,15 @@ export function testConfig(config: {} = {}) {
 				friends: [User!]!
 			}
 
+			type Ghost {
+				name: String!
+				believers: [User!]!
+			}
+
 			type Query {
 				user: User!
 				version: Int!
+				ghost: Ghost!
 			}
 
 			type Mutation {

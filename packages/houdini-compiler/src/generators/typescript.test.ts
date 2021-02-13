@@ -388,9 +388,9 @@ describe('typescript', function () {
 	`)
 	})
 
-	test.skip('inline fragments', function () {})
+	test.todo('inline fragments')
 
-	test.skip('interface', function () {})
+	test.todo('interface')
 
-	test.skip('union', function () {})
+	test.todo('union')
 })

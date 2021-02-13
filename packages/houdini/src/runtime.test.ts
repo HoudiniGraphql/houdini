@@ -554,5 +554,5 @@ describe('apply patch', function () {
 		})
 	})
 
-	test.skip('null values in current state', function () {})
+	test.todo('null values in current state')
 })

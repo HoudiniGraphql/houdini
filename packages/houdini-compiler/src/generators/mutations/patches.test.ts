@@ -350,12 +350,12 @@ test('no patches for connection fragments', async function () {
 	).rejects.toBeTruthy()
 })
 
-test.skip('inline fragments in mutation body count as an intersection', function () {})
+test.todo('inline fragments in mutation body count as an intersection')
 
-test.skip('inline fragments in queries count as an intersection', function () {})
+test.todo('inline fragments in queries count as an intersection')
 
-test.skip('inline fragments in fragments count as an intersection', function () {})
+test.todo('inline fragments in fragments count as an intersection')
 
-test.skip('fragment spread in mutation body', function () {})
+test.todo('fragment spread in mutation body')
 
-test.skip("nested objects that don't have id should also update", function () {})
+test.todo("nested objects that don't have id should also update")
