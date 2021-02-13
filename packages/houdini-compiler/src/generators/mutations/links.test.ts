@@ -31,6 +31,41 @@ test('generates a link for every mutation', async function () {
 	expect(files).toEqual(expect.arrayContaining(['TestMutation1.js', 'TestMutation2.js']))
 })
 
+test('generates a link for connection operations', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery1',
+			`query TestQuery1 {
+				user {
+					friends @connection(name: "Friends") {
+						firstName
+					}
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation1',
+			`
+			mutation TestMutation {
+				updateUser {
+					...Friends_Connection
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// look up the files in the mutation directory
+	const files = await fs.readdir(config.mutationLinksDirectory)
+
+	// there should be only one link
+	expect(files).toEqual(expect.arrayContaining(['TestMutation1.js']))
+})
+
 test('link contains patch imports', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [

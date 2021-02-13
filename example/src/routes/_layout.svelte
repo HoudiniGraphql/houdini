@@ -13,16 +13,26 @@
 		}
 	`, null)
 
+	// state and handler for the new item input
 	const addItem = mutation<AddItem>(graphql`
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
-				newItem {
+				item {
 					...All_Items_Connection @prepend
 					...Active_Items_Connection @prepend
 				}
 			}
 		}
 	`)
+	let inputValue = ""
+	async function onBlur() {
+		// trigger the mutation
+		await addItem({input: { text: inputValue }})
+
+		// clear the input
+		inputValue = ""
+	}
+
 
 	const numberOfItems = derived(data, $data => $data.items.length)
 	const itemsLeft = derived(data, $data => $data.items.filter((item) => !item.completed).length)
@@ -40,7 +50,7 @@
 		<a href="/">
 			<h1>todos</h1>
 		</a>
-		<input class="new-todo" placeholder="What needs to be done?" />
+		<input class="new-todo" placeholder="What needs to be done?" bind:value={inputValue} on:blur={onBlur} />
 	</header>
 	<section class="main">
 		<input id="toggle-all" class="toggle-all" type="checkbox" />

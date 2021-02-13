@@ -1,5 +1,5 @@
 {
-	  "__schema": {
+	"__schema": {
 		"queryType": {
 		  "name": "Query"
 		},
@@ -148,11 +148,11 @@
 			"description": null,
 			"fields": [
 			  {
-				"name": "completeItem",
+				"name": "checkItem",
 				"description": null,
 				"args": [
 				  {
-					"name": "id",
+					"name": "item",
 					"description": null,
 					"type": {
 					  "kind": "NON_NULL",
@@ -179,11 +179,11 @@
 				"deprecationReason": null
 			  },
 			  {
-				"name": "uncompleteItem",
+				"name": "uncheckItem",
 				"description": null,
 				"args": [
 				  {
-					"name": "id",
+					"name": "item",
 					"description": null,
 					"type": {
 					  "kind": "NON_NULL",
@@ -203,6 +203,37 @@
 				  "ofType": {
 					"kind": "OBJECT",
 					"name": "UpdateItemOutput",
+					"ofType": null
+				  }
+				},
+				"isDeprecated": false,
+				"deprecationReason": null
+			  },
+			  {
+				"name": "addItem",
+				"description": null,
+				"args": [
+				  {
+					"name": "input",
+					"description": null,
+					"type": {
+					  "kind": "NON_NULL",
+					  "name": null,
+					  "ofType": {
+						"kind": "INPUT_OBJECT",
+						"name": "AddItemInput",
+						"ofType": null
+					  }
+					},
+					"defaultValue": null
+				  }
+				],
+				"type": {
+				  "kind": "NON_NULL",
+				  "name": null,
+				  "ofType": {
+					"kind": "OBJECT",
+					"name": "AddItemOutput",
 					"ofType": null
 				  }
 				},
@@ -283,6 +314,66 @@
 					"name": "String",
 					"ofType": null
 				  }
+				},
+				"isDeprecated": false,
+				"deprecationReason": null
+			  }
+			],
+			"inputFields": null,
+			"interfaces": [],
+			"enumValues": null,
+			"possibleTypes": null
+		  },
+		  {
+			"kind": "INPUT_OBJECT",
+			"name": "AddItemInput",
+			"description": null,
+			"fields": null,
+			"inputFields": [
+			  {
+				"name": "text",
+				"description": null,
+				"type": {
+				  "kind": "NON_NULL",
+				  "name": null,
+				  "ofType": {
+					"kind": "SCALAR",
+					"name": "String",
+					"ofType": null
+				  }
+				},
+				"defaultValue": null
+			  }
+			],
+			"interfaces": null,
+			"enumValues": null,
+			"possibleTypes": null
+		  },
+		  {
+			"kind": "OBJECT",
+			"name": "AddItemOutput",
+			"description": null,
+			"fields": [
+			  {
+				"name": "error",
+				"description": null,
+				"args": [],
+				"type": {
+				  "kind": "OBJECT",
+				  "name": "Error",
+				  "ofType": null
+				},
+				"isDeprecated": false,
+				"deprecationReason": null
+			  },
+			  {
+				"name": "item",
+				"description": null,
+				"args": [],
+				"type": {
+				  "kind": "OBJECT",
+				  "name": "TodoItem",
+				  "ofType": null
 				},
 				"isDeprecated": false,
 				"deprecationReason": null
@@ -1158,4 +1249,4 @@
 		  }
 		]
 	  }
-  }
+	}

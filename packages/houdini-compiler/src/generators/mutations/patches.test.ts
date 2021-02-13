@@ -341,13 +341,13 @@ test('no patches for connection fragments', async function () {
 	// run the generators
 	await runGenerators(config, docs)
 
-	const dir = await fs.readdir(config.patchDirectory)
-
 	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
 	// to the marked connection
 	await expect(
 		fs.stat(config.patchPath({ query: 'Friends_Connection', mutation: 'TestMutation' }))
-	).rejects.toBeTruthy()
+	).resolves.toBeTruthy()
+
+	fail()
 })
 
 test.todo('inline fragments in mutation body count as an intersection')

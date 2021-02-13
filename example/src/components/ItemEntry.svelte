@@ -20,7 +20,7 @@
 	// create a callbacks we'll invoke to check and uncheck thie item
 	const completeItem = mutation<CompleteItem>(graphql`
 		mutation CompleteItem($id: ID!) {
-			completeItem(id: $id) {
+			checkItem(item: $id) {
 				item {
 					id
 					completed
@@ -30,7 +30,7 @@
 	`)
 	const uncompleteItem = mutation<UncompleteItem>(graphql`
 		mutation UncompleteItem($id: ID!) {
-			uncompleteItem(id: $id) {
+			uncheckItem(item: $id) {
 				item {
 					id
 					completed

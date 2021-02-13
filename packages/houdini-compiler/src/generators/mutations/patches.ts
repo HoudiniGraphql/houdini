@@ -93,7 +93,7 @@ export function patchesForSelectionSet(
 			const connectionDirective = selection.directives?.find(
 				(directive) => directive.name.value === config.connectionDirective
 			)
-			if (connectionDirective) {
+			if (connectionDirective && selection.kind === 'Field') {
 				// grab the name value
 				const nameArg = connectionDirective.arguments?.find(
 					(argument) => argument.value.kind === 'StringValue' && argument.value.value
@@ -103,9 +103,15 @@ export function patchesForSelectionSet(
 				}
 				const nameVal = nameArg.value.value
 
+				// the field with the decorator defines the type that connections mutate so
+				// we need to grab its type and look that up in the schema
+				const fieldType = getRootType(
+					rootType.getFields()[selection.name.value].type
+				) as graphql.GraphQLObjectType<any, any>
+
 				// grab any mutations that modify this field
 				let mutations =
-					mutationTargets[rootType.name]?.operations[
+					mutationTargets[fieldType.name]?.operations[
 						config.connectionFragmentName(nameVal)
 					] || {}
 

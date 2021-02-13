@@ -184,6 +184,7 @@ export function testConfig(config: {} = {}) {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
+				believesIn: [Ghost!]!
 			}
 
 			type Ghost {

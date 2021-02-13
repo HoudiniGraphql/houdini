@@ -1,11 +1,11 @@
 // externals
 import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from 'houdini-common'
 import * as graphql from 'graphql'
+import fs from 'fs/promises'
 // locals
 import { CollectedGraphQLDocument, Patch } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
-import { HoudiniErrorTodo } from '../../error'
 
 // We consider every query and every mutation that could affect it. We'll start by looking at every field
 // addressed by every mutation and then look at every query and fragment to see if it asks for the type.
@@ -120,6 +120,13 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 			throw new Error('Encountered document with no name')
 		}
 
+		if (
+			definition.kind === graphql.Kind.FRAGMENT_DEFINITION &&
+			config.isConnectionFragment(definition.name.value)
+		) {
+			continue
+		}
+
 		// if we have seen this document already, ignore it
 		if (_docsVisited[definition.name.value]) {
 			continue
@@ -153,6 +160,10 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		// we're done with this document
 		_docsVisited[definition.name.value] = true
 	}
+	console.log('-----------------')
+	console.log(JSON.stringify(mutationTargets, null, 4))
+	console.log('-----------------')
+	console.log(JSON.stringify(patches, null, 4))
 
 	await Promise.all([
 		// generate the patch descriptions
