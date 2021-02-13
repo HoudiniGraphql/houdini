@@ -121,10 +121,74 @@ test('connection fragments must be unique', async function () {
 	await expect(runPipeline(testConfig(), docs)).rejects.toBeTruthy()
 })
 
-test('includes `id` in connection fragment', function () {
-	fail('high prio')
+test('includes `id` in connection fragment', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'UpdateUser',
+			`
+			mutation UpdateUser {
+				updateUser {
+					...User_Friends_Connection @prepend(parentID: "1234")
+				}
+			}
+		`
+		),
+		mockCollectedDoc(
+			'TestQuery',
+			`
+			fragment AllUsers  on User{
+				friends @connection(name:"User_Friends") {
+					firstName
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
+		"mutation UpdateUser {
+		  updateUser {
+		    ...User_Friends_Connection @prepend(parentID: \\"1234\\")
+		  }
+		}
+
+		fragment User_Friends_Connection on User {
+		  firstName
+		  id
+		}
+		"
+	`)
 })
 
-test('fails if id is not present as a connection operation target', function () {
-	fail('high prio')
+test('cannot add connection fragment if id is not a valid field', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'UpdateUser',
+			`
+			mutation UpdateUser {
+				updateUser {
+					...User_Friends_Connection @prepend(parentID: "1234")
+				}
+			}
+		`
+		),
+		mockCollectedDoc(
+			'TestQuery',
+			`
+			fragment AllUsers  on User{
+				friends @connection(name:"User_Friends") {
+					firstName
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await expect(runPipeline(config, docs)).rejects.toBeTruthy()
 })

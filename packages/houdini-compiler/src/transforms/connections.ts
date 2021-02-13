@@ -12,7 +12,11 @@ export default async function graphqlExtensions(
 ): Promise<void> {
 	// collect all of the fields that have the connection applied
 	const connections: {
-		[name: string]: { field: graphql.FieldNode; type: graphql.GraphQLNamedType }
+		[name: string]: {
+			field: graphql.FieldNode
+			type: graphql.GraphQLNamedType
+			filename: string
+		}
 	} = {}
 
 	const errors: HoudiniError[] = []
@@ -76,6 +80,7 @@ export default async function graphqlExtensions(
 						connections[nameArg.value.value] = {
 							field: ancestors[ancestors.length - 1] as graphql.FieldNode,
 							type,
+							filename,
 						}
 					}
 				},
@@ -94,7 +99,40 @@ export default async function graphqlExtensions(
 		...documents[0].document,
 		definitions: [
 			...documents[0].document.definitions,
-			...Object.entries(connections).map(([name, { field, type }]) => {
+			...Object.entries(connections).map(([name, { field, type, filename }]) => {
+				// look up the type
+				const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
+
+				// is there no id selection
+				if (
+					schemaType &&
+					field.selectionSet &&
+					!field.selectionSet?.selections.find(
+						(selection) => selection.kind === 'Field' && selection.name.value === 'id'
+					)
+				) {
+					// if id is not a valid field
+					if (!schemaType.getFields().id) {
+						throw {
+							...new graphql.GraphQLError(
+								'Can only use a connection field on fragment on a type with id'
+							),
+							filepath: filename,
+						}
+					}
+
+					field.selectionSet.selections = [
+						...field.selectionSet.selections,
+						{
+							kind: 'Field',
+							name: {
+								kind: 'Name',
+								value: 'id',
+							},
+						},
+					]
+				}
+
 				return {
 					kind: graphql.Kind.FRAGMENT_DEFINITION,
 					selectionSet: field.selectionSet,
