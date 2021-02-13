@@ -112,7 +112,7 @@ export function patchesForSelectionSet(
 				// grab any mutations that modify this field
 				let mutations =
 					mutationTargets[fieldType.name]?.operations[
-						config.connectionFragmentName(nameVal)
+						config.connectionInsertFragment(nameVal)
 					] || {}
 
 				// every mutation that adds to the connection needs an entry

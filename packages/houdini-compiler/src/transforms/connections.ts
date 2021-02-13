@@ -131,7 +131,7 @@ export default async function addConnectionFragments(
 					selectionSet: field.selectionSet,
 					name: {
 						kind: 'Name',
-						value: `${name}_Connection`,
+						value: config.connectionInsertFragment(name),
 					},
 					typeCondition: {
 						kind: 'NamedType',

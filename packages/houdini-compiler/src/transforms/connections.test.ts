@@ -13,7 +13,7 @@ test('connection fragments on query selection set', async function () {
 			`
 				mutation UpdateUser {
 					updateUser {
-                        ...User_Friends_Connection
+                        ...User_Friends_insert
 					}
 				}
 			`
@@ -40,11 +40,11 @@ test('connection fragments on query selection set', async function () {
 	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
 		"mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_Connection
+		    ...User_Friends_insert
 		  }
 		}
 
-		fragment User_Friends_Connection on User {
+		fragment User_Friends_insert on User {
 		  firstName
 		  id
 		}
@@ -59,7 +59,7 @@ test('connection fragments on fragment selection set', async function () {
 			`
 				mutation UpdateUser {
 					updateUser {
-                        ...User_Friends_Connection @prepend(parentID: "1234")
+                        ...User_Friends_insert @prepend(parentID: "1234")
 					}
 				}
 			`
@@ -84,11 +84,11 @@ test('connection fragments on fragment selection set', async function () {
 	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
 		"mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_Connection @prepend(parentID: \\"1234\\")
+		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
 		  }
 		}
 
-		fragment User_Friends_Connection on User {
+		fragment User_Friends_insert on User {
 		  firstName
 		  id
 		}
@@ -128,7 +128,7 @@ test('includes `id` in connection fragment', async function () {
 			`
 			mutation UpdateUser {
 				updateUser {
-					...User_Friends_Connection @prepend(parentID: "1234")
+					...User_Friends_insert @prepend(parentID: "1234")
 				}
 			}
 		`
@@ -152,11 +152,11 @@ test('includes `id` in connection fragment', async function () {
 	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
 		"mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_Connection @prepend(parentID: \\"1234\\")
+		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
 		  }
 		}
 
-		fragment User_Friends_Connection on User {
+		fragment User_Friends_insert on User {
 		  firstName
 		}
 		"

@@ -163,7 +163,7 @@ export default async function typeCheck(
 							throw new HoudiniErrorTodo('Could not find name arg')
 						}
 
-						freeConnections.push(config.connectionFragmentName(nameArg.value.value))
+						freeConnections.push(config.connectionInsertFragment(nameArg.value.value))
 					}
 				},
 			},

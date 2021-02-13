@@ -97,7 +97,7 @@ test('patches include connection operations', async function () {
 			`mutation TestMutation {
 				believeIn {
 					ghost {
-						...Friends_Connection
+						...Friends_insert
 					}
 				}
 			}`
@@ -177,7 +177,7 @@ test('connection patches track insert position', async function () {
 			`mutation TestMutation {
 				believeIn {
 					ghost {
-						...Friends_Connection @prepend(parentID: "1234")
+						...Friends_insert @prepend(parentID: "1234")
 					}
 				}
 			}`
@@ -257,7 +257,7 @@ test('connection patches include reference to parentID string value', async func
 			`mutation TestMutation {
 				believeIn {
 					ghost {
-						...Friends_Connection @append(parentID: "1234")
+						...Friends_insert @append(parentID: "1234")
 					}
 				}
 			}`
@@ -337,7 +337,7 @@ test('connection patches include reference to parentID variable', async function
 			`mutation TestMutation($userID: ID!) {
 				believeIn {
 					ghost {
-						...Friends_Connection @append(parentID: $userID)
+						...Friends_insert @append(parentID: $userID)
 					}
 				}
 			}`
@@ -417,7 +417,7 @@ test('no patches for connection fragments', async function () {
 			`mutation TestMutation($userID: ID!) {
 				believeIn {
 					ghost {
-						...Friends_Connection @append(parentID: $userID)
+						...Friends_insert @append(parentID: $userID)
 					}
 				}
 			}`
@@ -430,7 +430,7 @@ test('no patches for connection fragments', async function () {
 	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
 	// to the marked connection
 	await expect(
-		fs.stat(config.patchPath({ query: 'Friends_Connection', mutation: 'TestMutation' }))
+		fs.stat(config.patchPath({ query: 'Friends_insert', mutation: 'TestMutation' }))
 	).rejects.toBeTruthy()
 })
 
