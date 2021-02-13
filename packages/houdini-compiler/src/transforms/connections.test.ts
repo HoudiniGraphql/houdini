@@ -158,7 +158,6 @@ test('includes `id` in connection fragment', async function () {
 
 		fragment User_Friends_Connection on User {
 		  firstName
-		  id
 		}
 		"
 	`)

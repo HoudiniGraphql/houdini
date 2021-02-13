@@ -15,6 +15,7 @@ export default async function addConnectionFragments(
 		[name: string]: {
 			field: graphql.FieldNode
 			type: graphql.GraphQLNamedType
+			parent: graphql.GraphQLNamedType
 			filename: string
 		}
 	} = {}
@@ -64,23 +65,26 @@ export default async function addConnectionFragments(
 						}
 
 						// we need to traverse the ancestors from child up
-						const parents = [...ancestors]
+						const parents = [...ancestors] as (
+							| graphql.OperationDefinitionNode
+							| graphql.FragmentDefinitionNode
+							| graphql.SelectionNode
+						)[]
 						parents.reverse()
 
-						const type = getTypeFromAncestors(
-							config.schema,
-							parents as (
-								| graphql.OperationDefinitionNode
-								| graphql.FragmentDefinitionNode
-								| graphql.SelectionNode
-							)[]
-						)
+						const type = getTypeFromAncestors(config.schema, [...parents])
+
+						// look up the parent's type
+						const parentType = getTypeFromAncestors(config.schema, [
+							...parents.slice(1),
+						])
 
 						// add the target of the directive to the list
 						connections[nameArg.value.value] = {
 							field: ancestors[ancestors.length - 1] as graphql.FieldNode,
 							type,
 							filename,
+							parent: parentType,
 						}
 					}
 				},
@@ -99,7 +103,7 @@ export default async function addConnectionFragments(
 		...documents[0].document,
 		definitions: [
 			...documents[0].document.definitions,
-			...Object.entries(connections).map(([name, { field, type, filename }]) => {
+			...Object.entries(connections).map(([name, { field, type, filename, parent }]) => {
 				// look up the type
 				const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
 
@@ -112,7 +116,7 @@ export default async function addConnectionFragments(
 					)
 				) {
 					// if id is not a valid field
-					if (!schemaType.getFields().id) {
+					if (!(parent instanceof graphql.GraphQLObjectType) || !parent.getFields().id) {
 						throw {
 							...new graphql.GraphQLError(
 								'Can only use a connection field on fragment on a type with id'
@@ -120,17 +124,6 @@ export default async function addConnectionFragments(
 							filepath: filename,
 						}
 					}
-
-					field.selectionSet.selections = [
-						...field.selectionSet.selections,
-						{
-							kind: 'Field',
-							name: {
-								kind: 'Name',
-								value: 'id',
-							},
-						},
-					]
 				}
 
 				return {
@@ -227,4 +220,16 @@ function getTypeFromAncestors(
 	}
 
 	return getRootType(field.type) as graphql.GraphQLNamedType
+}
+
+// returns the first non-list element in an array
+function skipLists<_Result>([head, ...rest]: (any | any[])[], i: number = 0): [_Result, number] {
+	// if the head is a list, return the
+	if (Array.isArray(head)) {
+		// keep searching
+		return skipLists(rest, i + 1)
+	}
+
+	// we're done
+	return [head, i]
 }

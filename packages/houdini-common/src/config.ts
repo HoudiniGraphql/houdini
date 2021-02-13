@@ -202,10 +202,15 @@ export function testConfig(config: {} = {}) {
 			type Mutation {
 				updateUser: User!
 				addFriend: AddFriendOutput!
+				believeIn: BelieveInOutput!
 			}
 
 			type AddFriendOutput {
 				friend: User
+			}
+
+			type BelieveInOutput {
+				ghost: Ghost
 			}
 		`,
 		quiet: true,

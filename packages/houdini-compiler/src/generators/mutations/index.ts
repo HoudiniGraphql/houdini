@@ -160,10 +160,10 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		// we're done with this document
 		_docsVisited[definition.name.value] = true
 	}
-	console.log('-----------------')
-	console.log(JSON.stringify(mutationTargets, null, 4))
-	console.log('-----------------')
-	console.log(JSON.stringify(patches, null, 4))
+	// console.log('-----------------')
+	// console.log(JSON.stringify(mutationTargets, null, 4))
+	// console.log('-----------------')
+	// console.log(JSON.stringify(patches, null, 4))
 
 	await Promise.all([
 		// generate the patch descriptions
