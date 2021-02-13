@@ -13,10 +13,8 @@
 			}
 		}
 	`, null)
-
-	$: items = $data.items
 </script>
 
-{#each $data.items as item}
+{#each $data.items as item (item.id)}
 	<ItemEntry {item} />
 {/each}

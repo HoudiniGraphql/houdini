@@ -51,6 +51,7 @@
 			await completeItem({ id: $data.id })
 		}
 	}
+
 </script>
 
 <li class:completed={$data.completed}>

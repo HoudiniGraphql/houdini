@@ -117,7 +117,7 @@ export function patchesForSelectionSet(
 
 				// every mutation that adds to the connection needs an entry
 				for (const mutationName of Object.keys(mutations)) {
-					const { kind, path, parentID } = mutations[mutationName]
+					const { kind, path, parentID, position } = mutations[mutationName]
 
 					// we have an patch
 					patches.push({
@@ -127,6 +127,7 @@ export function patchesForSelectionSet(
 						queryName: name,
 						queryPath: pathSoFar,
 						parentID,
+						position,
 					})
 				}
 			}
@@ -186,7 +187,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 			}
 
 			// make sure very mutation in the patch ends up in the tree
-			for (const { mutationPath, queryPath, operation, parentID } of mutations) {
+			for (const { mutationPath, queryPath, operation, parentID, position } of mutations) {
 				// the mutation path defines where in the update tree this entry belongs
 				let node = updateMap
 				for (let i = 0; i < mutationPath.length; i++) {
@@ -251,13 +252,17 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 
 						if (parentID) {
 							// @ts-ignore: i just ensured it wasn't undefined
-							ops[operation].push({
-								path: queryPath,
-								parentID: {
-									kind: parentID.kind,
-									value: parentID.value,
-								},
-							})
+							ops[operation].push(
+								// a comment to isolate the ignore
+								{
+									path: queryPath,
+									parentID: {
+										kind: parentID.kind,
+										value: parentID.value,
+									},
+									position: position || 'start',
+								}
+							)
 						}
 					}
 				}
@@ -330,8 +335,14 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 					AST.objectProperty(
 						AST.stringLiteral(patchOperation),
 						AST.arrayExpression(
-							(patch.operations[patchOperation] || []).map(({ parentID, path }) =>
+							(
+								patch.operations[patchOperation] || []
+							).map(({ parentID, path, position }) =>
 								AST.objectExpression([
+									AST.objectProperty(
+										AST.stringLiteral('position'),
+										AST.stringLiteral(position)
+									),
 									AST.objectProperty(
 										AST.stringLiteral('parentID'),
 										AST.objectExpression([

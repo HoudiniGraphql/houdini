@@ -35,6 +35,7 @@ export type Patch = {
 						kind: 'String' | 'Variable' | 'Root'
 						value: string
 					}
+					position: 'start' | 'end'
 					path: string[]
 			  }[]
 			| undefined

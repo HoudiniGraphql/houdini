@@ -103,12 +103,19 @@ function walkPatch(
 		}
 
 		// copy the entry into every path in the response
-		for (const { path, parentID } of paths) {
+		for (const { path, parentID, position } of paths) {
 			if (operation === 'add') {
 				// add the entity to the connection
-
 				if (
-					insertInConnection(path, target, parentID, payload, variables, path.length) &&
+					insertInConnection(
+						path,
+						target,
+						parentID,
+						position,
+						payload,
+						variables,
+						path.length
+					) &&
 					!updated
 				) {
 					updated = true
@@ -133,6 +140,7 @@ function insertInConnection(
 	path: string[],
 	target: Record,
 	parentID: { kind: 'Variable' | 'String' | 'Root'; value: string },
+	position: 'start' | 'end',
 	value: Record,
 	variables: { [key: string]: any },
 	pathLength: number
@@ -153,16 +161,22 @@ function insertInConnection(
 			// attribute for the item pointed at by head
 			if (attributeName) {
 				target[head][attributeName] = [...(target[head][attributeName] || []), value]
+				// position === 'end'
+				// 	? [...(target[head][attributeName] || []), value]
+				// 	: [value, ...(target[head][attributeName] || [])]
 			}
 			// no attribute name means head is in fact the accesor and we just need to push
 			else {
-				target[head] = [...(target[head] || []), value]
+				console.log(target, value, parentID, position, attributeName)
+				// target[head] = [...(target[head] || []), value]
+				target[head] =
+					position === 'end'
+						? [...(target[head] || []), value]
+						: [value, ...(target[head] || [])]
 			}
 
-			// the current head of the list is the container for the attribute
-
 			// we did update something
-			return true
+			updated = true
 		}
 
 		// the head points to the list we have to look at for possible parents
@@ -180,8 +194,15 @@ function insertInConnection(
 			if (entry.id === targetID) {
 				// we found it!
 
-				// add the value to the entry's list
-				entry[attributeName] = [...(entry[attributeName] || []), value]
+				// check if we're supposed to add it to the end
+				if (position === 'end') {
+					entry[attributeName] = [...(entry[attributeName] || []), value]
+				}
+				// we're supposed to add it to the front
+				else {
+					entry[attributeName] = [value, ...(entry[attributeName] || [])]
+				}
+
 				// we did in fact update something
 				return true
 			}
@@ -201,7 +222,17 @@ function insertInConnection(
 			// walk down every element in the list
 			for (const entry of element) {
 				// if we applied the udpate
-				if (insertInConnection(tail, entry, parentID, value, variables, pathLength)) {
+				if (
+					insertInConnection(
+						tail,
+						entry,
+						parentID,
+						position,
+						value,
+						variables,
+						pathLength
+					)
+				) {
 					updated = true
 					// dont keep searching
 					break
@@ -212,7 +243,15 @@ function insertInConnection(
 		else {
 			// keep going down
 			if (
-				insertInConnection(tail, element, parentID, value, variables, pathLength) &&
+				insertInConnection(
+					tail,
+					element,
+					parentID,
+					position,
+					value,
+					variables,
+					pathLength
+				) &&
 				!updated
 			) {
 				updated = true

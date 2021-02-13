@@ -133,12 +133,94 @@ test('patches include connection operations', async function () {
 
 		                    "operations": {
 		                        "add": [{
+		                            "position": "end",
+
 		                            "parentID": {
 		                                "kind": "Root",
 		                                "value": "root"
 		                            },
 
 		                            "path": ["user", "believesIn"]
+		                        }]
+		                    }
+		                }
+		            },
+
+		            "operations": {
+		                "add": []
+		            }
+		        }
+		    },
+
+		    "operations": {
+		        "add": []
+		    }
+		};
+	`)
+})
+
+test('connection patches track insert position', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`fragment TestFragment on User {
+				id
+				believesIn @connection(name: "Friends") {
+					name
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				believeIn {
+					ghost {
+						...Friends_Connection @prepend(parentID: "1234")
+					}
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestFragment', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "fields": {},
+
+		    "edges": {
+		        "believeIn": {
+		            "fields": {},
+
+		            "edges": {
+		                "ghost": {
+		                    "fields": {},
+		                    "edges": {},
+
+		                    "operations": {
+		                        "add": [{
+		                            "position": "start",
+
+		                            "parentID": {
+		                                "kind": "String",
+		                                "value": "1234"
+		                            },
+
+		                            "path": ["believesIn"]
 		                        }]
 		                    }
 		                }
@@ -211,6 +293,8 @@ test('connection patches include reference to parentID string value', async func
 
 		                    "operations": {
 		                        "add": [{
+		                            "position": "end",
+
 		                            "parentID": {
 		                                "kind": "String",
 		                                "value": "1234"
@@ -289,6 +373,8 @@ test('connection patches include reference to parentID variable', async function
 
 		                    "operations": {
 		                        "add": [{
+		                            "position": "end",
+
 		                            "parentID": {
 		                                "kind": "Variable",
 		                                "value": "userID"

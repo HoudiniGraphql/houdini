@@ -22,7 +22,14 @@ export default function fragment<_Fragment extends Fragment<any>>(
 		// build up the store object
 		const store = {
 			name: fragment.name,
-			set: (val: _Fragment['shape']) => set(fragment.applyMask(val)),
+			set: (val: _Fragment['shape']) => {
+				console.log({
+					apply: fragment.applyMask,
+					valOld: val,
+					val: fragment.applyMask(val),
+				})
+				set(fragment.applyMask(val))
+			},
 			currentValue: {},
 		}
 
@@ -30,11 +37,6 @@ export default function fragment<_Fragment extends Fragment<any>>(
 		onMount(() => {
 			// register the updater for the query
 			registerDocumentStore(store)
-
-			// keep the stores' values in sync
-			value.subscribe((val) => {
-				store.currentValue = val
-			})
 		})
 
 		// the function used to clean up the store

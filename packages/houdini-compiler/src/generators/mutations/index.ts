@@ -27,7 +27,7 @@ export type MutationMap = {
 			[connectionName: string]: {
 				[mutationName: string]: {
 					kind: keyof Patch['operations']
-					insertLocation: 'start' | 'end'
+					position: 'start' | 'end'
 					parentID: {
 						kind: 'Variable' | 'String' | 'Root'
 						value: string
@@ -41,15 +41,18 @@ export type MutationMap = {
 
 // another intermediate type used when building up the mutation description
 export type PatchAtom = {
-	parentID?: {
-		kind: 'Variable' | 'String' | 'Root'
-		value: string
-	}
+	// add update to the list of public operations
 	operation: keyof Patch['operations'] | 'update'
 	mutationName: string
 	mutationPath: string[]
 	queryName: string
 	queryPath: string[]
+	// connection fields
+	parentID?: {
+		kind: 'Variable' | 'String' | 'Root'
+		value: string
+	}
+	position?: 'start' | 'end'
 }
 
 export default async function mutationGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
@@ -219,7 +222,7 @@ function fillMutationMap(
 				// look at the directices applies to the spread for meta data about the mutation
 				let parentID = 'root'
 				let parentKind: 'Root' | 'Variable' | 'String' = 'Root'
-				let insertLocation: MutationMap[string]['operations'][string][string]['insertLocation'] =
+				let insertLocation: MutationMap[string]['operations'][string][string]['position'] =
 					'end'
 
 				const internalDirectives = selection.directives?.filter((directive) =>
@@ -264,7 +267,7 @@ function fillMutationMap(
 						kind: parentKind,
 						value: parentID,
 					},
-					insertLocation,
+					position: insertLocation,
 					kind: 'add',
 					path,
 				}
