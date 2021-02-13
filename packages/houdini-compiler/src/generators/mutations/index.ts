@@ -5,6 +5,7 @@ import * as graphql from 'graphql'
 import { CollectedGraphQLDocument, Patch } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
+import { HoudiniErrorTodo } from '../../error'
 
 // We consider every query and every mutation that could affect it. We'll start by looking at every field
 // addressed by every mutation and then look at every query and fragment to see if it asks for the type.
@@ -26,6 +27,8 @@ export type MutationMap = {
 			[connectionName: string]: {
 				[mutationName: string]: {
 					kind: keyof Patch['operations']
+					insertLocation: 'start' | 'end'
+					parentID: string
 					path: string[]
 				}
 			}
@@ -195,8 +198,45 @@ function fillMutationMap(
 					mutationTargets[rootType.name].operations[selection.name.value] = {}
 				}
 
+				// look at the directices applies to the spread for meta data about the mutation
+				let parentID = 'root'
+				let insertLocation: MutationMap[string]['operations'][string][string]['insertLocation'] =
+					'end'
+
+				const internalDirectives = selection.directives?.filter((directive) =>
+					config.isInternalDirective(directive)
+				)
+				if (internalDirectives && internalDirectives.length > 0) {
+					// is prepend applied?
+					const prepend = internalDirectives.find(
+						({ name }) => name.value === config.connectionPrependDirective
+					)
+					// is append applied?
+					const append = internalDirectives.find(
+						({ name }) => name.value === config.connectionAppendDirective
+					)
+
+					// if both are applied, there's a problem
+					if (append && prepend) {
+						throw new Error('WRAP THIS IN A HOUDINI ERROR. you have both applied')
+					}
+					insertLocation = prepend ? 'start' : 'end'
+
+					// look for the parentID argument
+					const parentIDArg = (append || prepend)?.arguments?.find(
+						({ name }) => name.value === config.connectionDirectiveParentIDArg
+					)
+					if (!parentIDArg) {
+						throw new HoudiniErrorTodo(
+							'Could not find parent ID arg in connection insert directive'
+						)
+					}
+				}
+
 				// we need to add an operation to the list for this open
 				mutationTargets[rootType.name].operations[selection.name.value][mutationName] = {
+					parentID,
+					insertLocation,
 					kind: 'add',
 					path,
 				}

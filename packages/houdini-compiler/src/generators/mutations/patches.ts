@@ -11,9 +11,6 @@ import { PatchAtom, MutationMap } from '.'
 
 const typeBuilders = recast.types.builders
 
-// an insert with no parent has to be accessible from the root without going through a list
-// its the list that makes us ask "which tag"
-
 // patchesForSelectionSet generates the list of patches that the provided MutationMap creates
 // for the given selection set
 export function patchesForSelectionSet(

@@ -150,6 +150,14 @@ export class Config {
 		return 'append'
 	}
 
+	get connectionDirectiveParentIDArg() {
+		return 'parentID'
+	}
+
+	get connectionNameArg() {
+		return 'name'
+	}
+
 	isInternalDirective({ name }: graphql.DirectiveNode): boolean {
 		return [
 			this.connectionDirective,

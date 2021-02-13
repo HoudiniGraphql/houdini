@@ -22,17 +22,17 @@ export default async function graphqlExtensions(
 				@connection is used to mark a field for the runtime as a place to add or remove
 				entities in mutations
 			"""
-			directive @${config.connectionDirective}(name: String!) on FIELD
+			directive @${config.connectionDirective}(${config.connectionNameArg}: String!) on FIELD
 
 			"""
 				@prepend is used to tell the runtime to add the result to the end of the list
 			"""
-			directive @${config.connectionPrependDirective} on FRAGMENT_SPREAD
+			directive @${config.connectionPrependDirective}(${config.connectionDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
 
 			"""
 				@append is used to tell the runtime to add the result to the start of the list
 			"""
-			directive @${config.connectionAppendDirective} on FRAGMENT_SPREAD
+			directive @${config.connectionAppendDirective}(${config.connectionDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
 		`),
 		],
 	})
