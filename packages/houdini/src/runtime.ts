@@ -161,14 +161,13 @@ function insertInConnection(
 			// if there is an element after this then we need to treat it as an
 			// attribute for the item pointed at by head
 			if (attributeName) {
-				target[head][attributeName] = [...(target[head][attributeName] || []), value]
-				// position === 'end'
-				// 	? [...(target[head][attributeName] || []), value]
-				// 	: [value, ...(target[head][attributeName] || [])]
+				target[head][attributeName] =
+					position === 'end'
+						? [...(target[head][attributeName] || []), value]
+						: [value, ...(target[head][attributeName] || [])]
 			}
 			// no attribute name means head is in fact the accesor and we just need to push
 			else {
-				console.log(target, value, parentID, position, attributeName)
 				// target[head] = [...(target[head] || []), value]
 				target[head] =
 					position === 'end'

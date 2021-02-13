@@ -317,7 +317,7 @@ describe('apply patch', function () {
 					operations: {
 						add: [
 							{
-								path: ['outer', 'inner'],
+								path: ['outer'],
 								position: 'end',
 								parentID: {
 									kind: 'Root',
@@ -338,10 +338,12 @@ describe('apply patch', function () {
 
 		// the current data
 		const current = {
-			outer: {
-				id: '1',
-				target: 'hello',
-			},
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+			],
 		}
 
 		// the mutation payload
@@ -357,16 +359,16 @@ describe('apply patch', function () {
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
-			outer: {
-				id: '1',
-				target: 'hello',
-				inner: [
-					{
-						id: '2',
-						target: 'world',
-					},
-				],
-			},
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+				{
+					id: '2',
+					target: 'world',
+				},
+			],
 		})
 	})
 
