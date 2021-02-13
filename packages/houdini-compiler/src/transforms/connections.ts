@@ -3,7 +3,7 @@ import { Config, getRootType } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument } from '../types'
-import { HoudiniError } from '../error'
+import { HoudiniError, HoudiniErrorTodo } from '../error'
 
 // addConnectionFragments adds fragments for the fields tagged with @connection
 export default async function addConnectionFragments(
@@ -103,45 +103,89 @@ export default async function addConnectionFragments(
 		...documents[0].document,
 		definitions: [
 			...documents[0].document.definitions,
-			...Object.entries(connections).map(([name, { field, type, filename, parent }]) => {
-				// look up the type
-				const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
+			...Object.entries(connections).flatMap<graphql.FragmentDefinitionNode>(
+				([name, { field, type, filename, parent }]) => {
+					// look up the type
+					const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
 
-				// is there no id selection
-				if (
-					schemaType &&
-					field.selectionSet &&
-					!field.selectionSet?.selections.find(
-						(selection) => selection.kind === 'Field' && selection.name.value === 'id'
-					)
-				) {
-					// if id is not a valid field
-					if (!(parent instanceof graphql.GraphQLObjectType) || !parent.getFields().id) {
-						throw {
-							...new graphql.GraphQLError(
-								'Can only use a connection field on fragment on a type with id'
-							),
-							filepath: filename,
+					// is there no id selection
+					if (
+						schemaType &&
+						field.selectionSet &&
+						!field.selectionSet?.selections.find(
+							(selection) =>
+								selection.kind === 'Field' && selection.name.value === 'id'
+						)
+					) {
+						// if id is not a valid field
+						if (
+							!(parent instanceof graphql.GraphQLObjectType) ||
+							!parent.getFields().id
+						) {
+							throw {
+								...new graphql.GraphQLError(
+									'Can only use a connection field on fragment on a type with id'
+								),
+								filepath: filename,
+							}
 						}
 					}
-				}
 
-				return {
-					kind: graphql.Kind.FRAGMENT_DEFINITION,
-					selectionSet: field.selectionSet,
-					name: {
-						kind: 'Name',
-						value: config.connectionInsertFragment(name),
-					},
-					typeCondition: {
-						kind: 'NamedType',
-						name: {
-							kind: 'Name',
-							value: type.name,
+					// if there is no selection set
+					if (!field.selectionSet) {
+						throw new HoudiniErrorTodo('Connections must have a selection')
+					}
+
+					return [
+						// a fragment to insert items into this connection
+						{
+							kind: graphql.Kind.FRAGMENT_DEFINITION,
+							// in order to insert an item into this connection, it must
+							// have all of the same fields as the list
+							selectionSet: field.selectionSet,
+							name: {
+								kind: 'Name',
+								value: config.connectionInsertFragment(name),
+							},
+							typeCondition: {
+								kind: 'NamedType',
+								name: {
+									kind: 'Name',
+									value: type.name,
+								},
+							},
 						},
-					},
-				} as graphql.FragmentDefinitionNode
-			}),
+						// a fragment to delete items from the list
+						{
+							kind: graphql.Kind.FRAGMENT_DEFINITION,
+							selectionSet: {
+								kind: 'SelectionSet',
+								// all we need to know from an element is its id
+								selections: [
+									{
+										kind: 'Field',
+										name: {
+											kind: 'Name',
+											value: 'id',
+										},
+									},
+								],
+							},
+							name: {
+								kind: 'Name',
+								value: config.connectionDeleteFragment(name),
+							},
+							typeCondition: {
+								kind: 'NamedType',
+								name: {
+									kind: 'Name',
+									value: type.name,
+								},
+							},
+						},
+					]
+				}
+			),
 		],
 	}
 }

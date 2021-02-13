@@ -18,9 +18,9 @@
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
 				item {
-					...All_Items_Connection @prepend
-					...Active_Items_Connection @prepend
-					...Item_Info_Connection
+					...All_Items_insert @prepend
+					...Active_Items_insert @prepend
+					...Item_Info_insert
 				}
 			}
 		}
