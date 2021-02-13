@@ -62,8 +62,16 @@ test('generates patches', async function () {
 		                "firstName": [["user", "firstName"]]
 		            },
 
-		            "edges": {}
+		            "edges": {},
+
+		            "operations": {
+		                "add": []
+		            }
 		        }
+		    },
+
+		    "operations": {
+		        "add": []
 		    }
 		};
 	`)

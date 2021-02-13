@@ -105,7 +105,7 @@ export function patchesForSelectionSet(
 
 				// grab any mutations that modify this field
 				let mutations =
-					mutationTargets[rootType.name].operations[
+					mutationTargets[rootType.name]?.operations[
 						config.connectionFragmentName(nameVal)
 					] || {}
 

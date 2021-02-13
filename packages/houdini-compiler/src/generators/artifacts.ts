@@ -7,7 +7,6 @@ import fs from 'fs/promises'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 import { moduleExport } from '../utils'
-import { internalDirectives } from '../transforms/schema'
 
 const AST = recast.types.builders
 

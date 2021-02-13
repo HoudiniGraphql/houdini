@@ -167,6 +167,14 @@ function fillMutationMap(
 
 	// every field in the selection set could contribute to the mutation's targets
 	for (const selection of selectionSet.selections) {
+		// make sure there is an entry in the target map for this type
+		if (!mutationTargets[rootType.name]) {
+			mutationTargets[rootType.name] = {
+				fields: {},
+				operations: {},
+			}
+		}
+
 		// fragment spreads can short circuit cache invalidation (not yet implemented)
 		// or be used to describe operations on connections
 		if (selection.kind === graphql.Kind.FRAGMENT_SPREAD) {
@@ -174,6 +182,13 @@ function fillMutationMap(
 			if (config.isConnectionFragment(selection.name.value)) {
 				// the name of the mutation
 				const mutationName = name
+
+				if (!mutationTargets[rootType.name]) {
+					mutationTargets[rootType.name] = {
+						fields: {},
+						operations: {},
+					}
+				}
 
 				// if this is the first time we've seen this m
 				if (!mutationTargets[rootType.name].operations[selection.name.value]) {
@@ -193,14 +208,6 @@ function fillMutationMap(
 		// process inline fragments
 		if (selection.kind === graphql.Kind.INLINE_FRAGMENT) {
 			continue
-		}
-
-		// make sure there is an entry in the target map for this type
-		if (!mutationTargets[rootType.name]) {
-			mutationTargets[rootType.name] = {
-				fields: {},
-				operations: {},
-			}
 		}
 
 		// look up the type of the selection
