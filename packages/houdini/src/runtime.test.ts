@@ -13,7 +13,13 @@ describe('apply patch', function () {
 						field: [['target']],
 					},
 					edges: {},
+					operations: {
+						add: [],
+					},
 				},
+			},
+			operations: {
+				add: [],
 			},
 		}
 
@@ -52,7 +58,13 @@ describe('apply patch', function () {
 						field: [['target']],
 					},
 					edges: {},
+					operations: {
+						add: [],
+					},
 				},
+			},
+			operations: {
+				add: [],
 			},
 		}
 
@@ -91,9 +103,18 @@ describe('apply patch', function () {
 								field: [['target']],
 							},
 							edges: {},
+							operations: {
+								add: [],
+							},
 						},
 					},
+					operations: {
+						add: [],
+					},
 				},
+			},
+			operations: {
+				add: [],
 			},
 		}
 
@@ -134,7 +155,13 @@ describe('apply patch', function () {
 						field: [['target']],
 					},
 					edges: {},
+					operations: {
+						add: [],
+					},
 				},
+			},
+			operations: {
+				add: [],
 			},
 		}
 
@@ -175,7 +202,13 @@ describe('apply patch', function () {
 						field: [['nested', 'target']],
 					},
 					edges: {},
+					operations: {
+						add: [],
+					},
 				},
+			},
+			operations: {
+				add: [],
 			},
 		}
 
@@ -209,6 +242,62 @@ describe('apply patch', function () {
 		})
 	})
 
+	test('add to connection', function () {
+		const patch: Patch = {
+			fields: {},
+			edges: {
+				mutationName: {
+					edges: {},
+					fields: {},
+					operations: {
+						add: [['field']],
+					},
+				},
+			},
+			operations: {
+				add: [],
+			},
+		}
+
+		// a function to spy on the update
+		const set = jest.fn()
+
+		// the current data
+		const current = {
+			field: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+			],
+		}
+
+		// the mutation payload
+		const payload = {
+			mutationName: {
+				id: '2',
+				target: 'world',
+			},
+		}
+
+		// apply the patch
+		applyPatch(patch, set, current, payload)
+
+		// make sure we got the expected value
+		expect(set).toHaveBeenCalledWith({
+			field: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+				{
+					id: '2',
+					target: 'world',
+				},
+			],
+		})
+	})
+
 	test('put values into lists', function () {
 		const patch: Patch = {
 			fields: {},
@@ -218,7 +307,13 @@ describe('apply patch', function () {
 						field: [['field', 'target']],
 					},
 					edges: {},
+					operations: {
+						add: [],
+					},
 				},
+			},
+			operations: {
+				add: [],
 			},
 		}
 

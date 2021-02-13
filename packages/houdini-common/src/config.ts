@@ -185,6 +185,11 @@ export function testConfig(config: {} = {}) {
 
 			type Mutation {
 				updateUser: User!
+				addFriend: AddFriendOutput!
+			}
+
+			type AddFriendOutput {
+				friend: User
 			}
 		`,
 		quiet: true,

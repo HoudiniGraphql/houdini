@@ -83,11 +83,24 @@ test('patches include connection operations', async function () {
 		// the query needs to ask for a field that the mutation could update
 		mockCollectedDoc(
 			'TestQuery',
-			`query TestQuery { user { id friends @connection(name: "Friends"){ firstName } } }`
+			`query TestQuery {
+				user {
+					id
+					friends @connection(name: "Friends") {
+						firstName
+					}
+				}
+			}`
 		),
 		mockCollectedDoc(
 			'TestMutation',
-			`mutation TestMutation { updateUser { id ...Friends_Connection } }`
+			`mutation TestMutation {
+				addFriend {
+					friend {
+						...Friends_Connection
+					}
+				}
+			}`
 		),
 	]
 
@@ -110,12 +123,22 @@ test('patches include connection operations', async function () {
 		    "fields": {},
 
 		    "edges": {
-		        "updateUser": {
+		        "addFriend": {
 		            "fields": {},
-		            "edges": {},
+
+		            "edges": {
+		                "friend": {
+		                    "fields": {},
+		                    "edges": {},
+
+		                    "operations": {
+		                        "add": [["user", "friends"]]
+		                    }
+		                }
+		            },
 
 		            "operations": {
-		                "add": [["user", "friends"]]
+		                "add": []
 		            }
 		        }
 		    },
