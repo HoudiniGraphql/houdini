@@ -107,7 +107,10 @@ function walkPatch(
 			if (operation === 'add') {
 				// add the entity to the connection
 
-				if (insertInConnection(path, target, parentID, payload, variables) && !updated) {
+				if (
+					insertInConnection(path, target, parentID, payload, variables, path.length) &&
+					!updated
+				) {
 					updated = true
 				}
 			}
@@ -131,7 +134,8 @@ function insertInConnection(
 	target: Record,
 	parentID: { kind: 'Variable' | 'String' | 'Root'; value: string },
 	value: Record,
-	variables: { [key: string]: any }
+	variables: { [key: string]: any },
+	pathLength: number
 ) {
 	// keep track if we updated a field
 	let updated = false
@@ -141,12 +145,21 @@ function insertInConnection(
 
 	// since we are entering something into a list, we need to stop on the second to
 	// last element to find the node with matching id
-	if (path.length == 2) {
+	if (path.length <= 2) {
 		const attributeName = path[1]
 		// if we are entering something from root the target should be an object
 		if (parentID.kind === 'Root') {
+			// if there is an element after this then we need to treat it as an
+			// attribute for the item pointed at by head
+			if (attributeName) {
+				target[head][attributeName] = [...(target[head][attributeName] || []), value]
+			}
+			// no attribute name means head is in fact the accesor and we just need to push
+			else {
+				target[head] = [...(target[head] || []), value]
+			}
+
 			// the current head of the list is the container for the attribute
-			target[head][attributeName] = [...(target[head][attributeName] || []), value]
 
 			// we did update something
 			return true
@@ -173,9 +186,9 @@ function insertInConnection(
 				return true
 			}
 		}
-
-		// we are inserting it into an entity with a specific id so we should be looking at an array
-	} else {
+	}
+	// keep going walking the path
+	else {
 		// pull the first element off of the list
 		const head = path[0]
 		const tail = path.slice(1, path.length)
@@ -188,7 +201,7 @@ function insertInConnection(
 			// walk down every element in the list
 			for (const entry of element) {
 				// if we applied the udpate
-				if (insertInConnection(tail, entry, parentID, value, variables)) {
+				if (insertInConnection(tail, entry, parentID, value, variables, pathLength)) {
 					updated = true
 					// dont keep searching
 					break
@@ -198,7 +211,10 @@ function insertInConnection(
 		// the element is an object
 		else {
 			// keep going down
-			if (insertInConnection(tail, element, parentID, value, variables) && !updated) {
+			if (
+				insertInConnection(tail, element, parentID, value, variables, pathLength) &&
+				!updated
+			) {
 				updated = true
 			}
 		}
