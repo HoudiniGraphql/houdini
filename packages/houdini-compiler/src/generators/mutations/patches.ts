@@ -178,13 +178,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 		Object.entries(patches).map(async ([patchName, mutations]) => {
 			// we need an object that contains every field we want to copy over in this patch
 			// grouped together to easily traverse
-			const updateMap: Patch = {
-				edges: {},
-				fields: {},
-				operations: {
-					add: [],
-				},
-			}
+			const updateMap: Patch = {}
 
 			// make sure very mutation in the patch ends up in the tree
 			for (const { mutationPath, queryPath, operation, parentID, position } of mutations) {
@@ -242,13 +236,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 						}
 
 						if (!node.edges[pathEntry]) {
-							node.edges[pathEntry] = {
-								fields: {},
-								edges: {},
-								operations: {
-									add: [],
-								},
-							}
+							node.edges[pathEntry] = {}
 						}
 
 						if (!node.edges[pathEntry].operations) {
