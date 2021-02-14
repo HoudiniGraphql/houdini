@@ -74,7 +74,7 @@ const table: Row[] = [
 			`
                 mutation Mutation {
 					addFriend {
-						...Friends_Connection
+						...Friends_insert
 					}
                 }
             `,
@@ -98,7 +98,7 @@ const table: Row[] = [
 			`
                 mutation Mutation {
 					addFriend {
-						...Friends_Connection @prepend(parentID: "1234")
+						...Friends_insert @prepend(parentID: "1234")
 					}
                 }
             `,
@@ -122,7 +122,7 @@ const table: Row[] = [
 			`
                 mutation Mutation($parentID: ID!) {
 					addFriend {
-						...Friends_Connection @prepend(parentID: $parentID)
+						...Friends_insert @prepend(parentID: $parentID)
 					}
                 }
             `,
@@ -142,7 +142,7 @@ const table: Row[] = [
 			`
                 mutation Mutation {
 					addFriend {
-						...Friends_Connection
+						...Friends_insert
 					}
                 }
             `,
@@ -166,7 +166,7 @@ const table: Row[] = [
 			`
                 mutation Mutation {
 					addFriend {
-						...Friends_Connection @prepend
+						...Friends_insert @prepend
 					}
                 }
             `,
@@ -190,7 +190,7 @@ const table: Row[] = [
 			`
                 mutation Mutation {
 					addFriend {
-						...Friends_Connection @append
+						...Friends_insert @append
 					}
                 }
             `,
@@ -214,7 +214,7 @@ const table: Row[] = [
 			`
                 mutation Mutation {
 					addFriend {
-						...Friends_Connection
+						...Friends_insert
 					}
                 }
             `,
@@ -237,7 +237,7 @@ const table: Row[] = [
 			`
                 mutation Mutation {
 					addFriend {
-						...Believers_Connection
+						...Believers_insert
 					}
                 }
             `,

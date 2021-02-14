@@ -150,6 +150,10 @@ export class Config {
 		return 'append'
 	}
 
+	get connectionParentDirective() {
+		return this.connectionDirectiveParentIDArg
+	}
+
 	get connectionDirectiveParentIDArg() {
 		return 'parentID'
 	}
@@ -158,20 +162,41 @@ export class Config {
 		return 'name'
 	}
 
+	get insertFragmentSuffix() {
+		return `_insert`
+	}
+
+	isInsertFragment(name: string) {
+		return name.endsWith(this.insertFragmentSuffix)
+	}
+
+	isRemoveFragment(name: string) {
+		return name.endsWith(this.removeFragmentSuffix)
+	}
+
+	get removeFragmentSuffix() {
+		return `_remove`
+	}
+
+	connectionInsertFragment(name: string): string {
+		return name + this.insertFragmentSuffix
+	}
+
+	connectionDeleteFragment(name: string): string {
+		return name + this.removeFragmentSuffix
+	}
+
 	isInternalDirective({ name }: graphql.DirectiveNode): boolean {
 		return [
 			this.connectionDirective,
 			this.connectionPrependDirective,
 			this.connectionAppendDirective,
+			this.connectionDirectiveParentIDArg,
 		].includes(name.value)
 	}
 
-	connectionFragmentName(name: string): string {
-		return `${name}_Connection`
-	}
-
 	isConnectionFragment(name: string): boolean {
-		return name.endsWith('_Connection')
+		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.removeFragmentSuffix)
 	}
 }
 

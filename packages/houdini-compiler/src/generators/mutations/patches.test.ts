@@ -54,24 +54,12 @@ test('generates patches', async function () {
 	// make sure this doesn't change without approval
 	expect(parsedContents).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "updateUser": {
 		            "fields": {
 		                "firstName": [["user", "firstName"]]
-		            },
-
-		            "edges": {},
-
-		            "operations": {
-		                "add": []
 		            }
 		        }
-		    },
-
-		    "operations": {
-		        "add": []
 		    }
 		};
 	`)
@@ -97,7 +85,7 @@ test('patches include connection operations', async function () {
 			`mutation TestMutation {
 				believeIn {
 					ghost {
-						...Friends_Connection
+						...Friends_insert
 					}
 				}
 			}`
@@ -120,17 +108,10 @@ test('patches include connection operations', async function () {
 		})
 	).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "believeIn": {
-		            "fields": {},
-
 		            "edges": {
 		                "ghost": {
-		                    "fields": {},
-		                    "edges": {},
-
 		                    "operations": {
 		                        "add": [{
 		                            "position": "end",
@@ -144,16 +125,75 @@ test('patches include connection operations', async function () {
 		                        }]
 		                    }
 		                }
-		            },
-
-		            "operations": {
-		                "add": []
 		            }
 		        }
-		    },
+		    }
+		};
+	`)
+})
 
-		    "operations": {
-		        "add": []
+test('patches include delete operations', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`query TestQuery {
+				user {
+					id
+					believesIn @connection(name: "Friends") {
+						name
+					}
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				believeIn {
+					ghost {
+						...Friends_remove
+					}
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "believeIn": {
+		            "edges": {
+		                "ghost": {
+		                    "operations": {
+		                        "remove": [{
+		                            "position": "end",
+
+		                            "parentID": {
+		                                "kind": "Root",
+		                                "value": "root"
+		                            },
+
+		                            "path": ["user", "believesIn"]
+		                        }]
+		                    }
+		                }
+		            }
+		        }
 		    }
 		};
 	`)
@@ -177,7 +217,7 @@ test('connection patches track insert position', async function () {
 			`mutation TestMutation {
 				believeIn {
 					ghost {
-						...Friends_Connection @prepend(parentID: "1234")
+						...Friends_insert @prepend(parentID: "1234")
 					}
 				}
 			}`
@@ -200,17 +240,10 @@ test('connection patches track insert position', async function () {
 		})
 	).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "believeIn": {
-		            "fields": {},
-
 		            "edges": {
 		                "ghost": {
-		                    "fields": {},
-		                    "edges": {},
-
 		                    "operations": {
 		                        "add": [{
 		                            "position": "start",
@@ -224,16 +257,8 @@ test('connection patches track insert position', async function () {
 		                        }]
 		                    }
 		                }
-		            },
-
-		            "operations": {
-		                "add": []
 		            }
 		        }
-		    },
-
-		    "operations": {
-		        "add": []
 		    }
 		};
 	`)
@@ -257,7 +282,7 @@ test('connection patches include reference to parentID string value', async func
 			`mutation TestMutation {
 				believeIn {
 					ghost {
-						...Friends_Connection @append(parentID: "1234")
+						...Friends_insert @append(parentID: "1234")
 					}
 				}
 			}`
@@ -280,17 +305,10 @@ test('connection patches include reference to parentID string value', async func
 		})
 	).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "believeIn": {
-		            "fields": {},
-
 		            "edges": {
 		                "ghost": {
-		                    "fields": {},
-		                    "edges": {},
-
 		                    "operations": {
 		                        "add": [{
 		                            "position": "end",
@@ -304,16 +322,8 @@ test('connection patches include reference to parentID string value', async func
 		                        }]
 		                    }
 		                }
-		            },
-
-		            "operations": {
-		                "add": []
 		            }
 		        }
-		    },
-
-		    "operations": {
-		        "add": []
 		    }
 		};
 	`)
@@ -337,7 +347,7 @@ test('connection patches include reference to parentID variable', async function
 			`mutation TestMutation($userID: ID!) {
 				believeIn {
 					ghost {
-						...Friends_Connection @append(parentID: $userID)
+						...Friends_insert @append(parentID: $userID)
 					}
 				}
 			}`
@@ -360,17 +370,10 @@ test('connection patches include reference to parentID variable', async function
 		})
 	).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "believeIn": {
-		            "fields": {},
-
 		            "edges": {
 		                "ghost": {
-		                    "fields": {},
-		                    "edges": {},
-
 		                    "operations": {
 		                        "add": [{
 		                            "position": "end",
@@ -384,16 +387,73 @@ test('connection patches include reference to parentID variable', async function
 		                        }]
 		                    }
 		                }
-		            },
-
-		            "operations": {
-		                "add": []
 		            }
 		        }
-		    },
+		    }
+		};
+	`)
+})
 
-		    "operations": {
-		        "add": []
+test('connection patches include reference to parentID directive', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`fragment TestFragment on User {
+				id
+				believesIn @connection(name: "Friends") {
+					name
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation($userID: ID!) {
+				believeIn {
+					ghost {
+						...Friends_insert @append @parentID(value: $userID)
+					}
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestFragment', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "believeIn": {
+		            "edges": {
+		                "ghost": {
+		                    "operations": {
+		                        "add": [{
+		                            "position": "end",
+
+		                            "parentID": {
+		                                "kind": "Variable",
+		                                "value": "userID"
+		                            },
+
+		                            "path": ["believesIn"]
+		                        }]
+		                    }
+		                }
+		            }
+		        }
 		    }
 		};
 	`)
@@ -417,7 +477,7 @@ test('no patches for connection fragments', async function () {
 			`mutation TestMutation($userID: ID!) {
 				believeIn {
 					ghost {
-						...Friends_Connection @append(parentID: $userID)
+						...Friends_insert @append(parentID: $userID)
 					}
 				}
 			}`
@@ -430,7 +490,7 @@ test('no patches for connection fragments', async function () {
 	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
 	// to the marked connection
 	await expect(
-		fs.stat(config.patchPath({ query: 'Friends_Connection', mutation: 'TestMutation' }))
+		fs.stat(config.patchPath({ query: 'Friends_insert', mutation: 'TestMutation' }))
 	).rejects.toBeTruthy()
 })
 

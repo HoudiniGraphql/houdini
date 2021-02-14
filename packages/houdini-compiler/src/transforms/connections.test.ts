@@ -6,14 +6,14 @@ import '../../../../jest.setup'
 import { runPipeline } from '../compile'
 import { mockCollectedDoc } from '../testUtils'
 
-test('connection fragments on query selection set', async function () {
+test('insert fragments on query selection set', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'UpdateUser',
 			`
 				mutation UpdateUser {
 					updateUser {
-                        ...User_Friends_Connection
+                        ...User_Friends_insert
 					}
 				}
 			`
@@ -40,12 +40,57 @@ test('connection fragments on query selection set', async function () {
 	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
 		"mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_Connection
+		    ...User_Friends_insert
 		  }
 		}
 
-		fragment User_Friends_Connection on User {
+		fragment User_Friends_insert on User {
 		  firstName
+		  id
+		}
+		"
+	`)
+})
+
+test('delete fragments on query selection set', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'UpdateUser',
+			`
+				mutation UpdateUser {
+					updateUser {
+                        ...User_Friends_remove
+					}
+				}
+			`
+		),
+		mockCollectedDoc(
+			'TestQuery',
+			`
+				query AllUsers {
+					user {
+						friends @connection(name:"User_Friends") {
+							firstName
+							id
+						}
+					}
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
+		"mutation UpdateUser {
+		  updateUser {
+		    ...User_Friends_remove
+		  }
+		}
+
+		fragment User_Friends_remove on User {
 		  id
 		}
 		"
@@ -59,7 +104,7 @@ test('connection fragments on fragment selection set', async function () {
 			`
 				mutation UpdateUser {
 					updateUser {
-                        ...User_Friends_Connection @prepend(parentID: "1234")
+                        ...User_Friends_insert @prepend(parentID: "1234")
 					}
 				}
 			`
@@ -84,11 +129,11 @@ test('connection fragments on fragment selection set', async function () {
 	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
 		"mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_Connection @prepend(parentID: \\"1234\\")
+		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
 		  }
 		}
 
-		fragment User_Friends_Connection on User {
+		fragment User_Friends_insert on User {
 		  firstName
 		  id
 		}
@@ -128,7 +173,7 @@ test('includes `id` in connection fragment', async function () {
 			`
 			mutation UpdateUser {
 				updateUser {
-					...User_Friends_Connection @prepend(parentID: "1234")
+					...User_Friends_insert @prepend(parentID: "1234")
 				}
 			}
 		`
@@ -152,11 +197,11 @@ test('includes `id` in connection fragment', async function () {
 	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
 		"mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_Connection @prepend(parentID: \\"1234\\")
+		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
 		  }
 		}
 
-		fragment User_Friends_Connection on User {
+		fragment User_Friends_insert on User {
 		  firstName
 		}
 		"

@@ -8,6 +8,7 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
 import { Patch } from '../../types'
 import { PatchAtom, MutationMap } from '.'
+import { HoudiniErrorTodo } from '../../error'
 
 const AST = recast.types.builders
 
@@ -110,26 +111,29 @@ export function patchesForSelectionSet(
 				) as graphql.GraphQLObjectType<any, any>
 
 				// grab any mutations that modify this field
-				let mutations =
-					mutationTargets[fieldType.name]?.operations[
-						config.connectionFragmentName(nameVal)
-					] || {}
+				let operations = mutationTargets[fieldType.name]?.operations || {}
+				// mutationTargets[fieldType.name]?.operations[
+				// 	// vvvvvvv this only picks the @append entries!!!
+				// 	config.connectionInsertFragment(nameVal)
+				// ] || {}
 
-				// every mutation that adds to the connection needs an entry
-				for (const mutationName of Object.keys(mutations)) {
-					const { kind, path, parentID, position } = mutations[mutationName]
+				const newPatches = Object.values(operations).flatMap((mutations) =>
+					Object.entries(mutations).map(
+						([mutationName, { kind, path, parentID, position }]) => ({
+							operation: kind,
+							mutationName,
+							mutationPath: path,
+							queryName: name,
+							queryPath: pathSoFar,
+							parentID,
+							position,
+						})
+					)
+				)
 
-					// we have an patch
-					patches.push({
-						operation: kind,
-						mutationName,
-						mutationPath: path,
-						queryName: name,
-						queryPath: pathSoFar,
-						parentID,
-						position,
-					})
-				}
+				// every key in the operation object points to a connection fragment
+				// and can contribute an operation to the list of patches
+				patches.push(...newPatches)
 			}
 
 			// walk down the query for more chagnes
@@ -178,13 +182,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 		Object.entries(patches).map(async ([patchName, mutations]) => {
 			// we need an object that contains every field we want to copy over in this patch
 			// grouped together to easily traverse
-			const updateMap: Patch = {
-				edges: {},
-				fields: {},
-				operations: {
-					add: [],
-				},
-			}
+			const updateMap: Patch = {}
 
 			// make sure very mutation in the patch ends up in the tree
 			for (const { mutationPath, queryPath, operation, parentID, position } of mutations) {
@@ -196,16 +194,14 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 
 					// if we are not at the mutations target field yet
 					if (i !== mutationPath.length - 1) {
+						if (!node.edges) {
+							node.edges = {}
+						}
+
 						// we're about to step down, so make sure there is an entry in the target
 						// for what will be our parent
 						if (!node.edges[pathEntry]) {
-							node.edges[pathEntry] = {
-								fields: {},
-								edges: {},
-								operations: {
-									add: [],
-								},
-							}
+							node.edges[pathEntry] = {}
 						}
 
 						// keep walking
@@ -217,6 +213,10 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 
 					// if we are supposed to be updating a field
 					if (operation == 'update') {
+						if (!node.fields) {
+							node.fields = {}
+						}
+
 						// if this is the first time we are treating this entry as a source
 						if (!node.fields[pathEntry]) {
 							node.fields[pathEntry] = []
@@ -229,42 +229,40 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 						continue
 					}
 
-					// we could need to copy the response into a tagged connection
-					if (operation === 'add') {
-						// add it to the list of operations one level down since it describes
-						// the path entry itself
-
-						// if this is the first time we've seen this child
-						if (!node.edges[pathEntry]) {
-							node.edges[pathEntry] = {
-								fields: {},
-								edges: {},
-								operations: {
-									add: [],
-								},
-							}
-						}
-
-						const ops = node.edges[pathEntry].operations
-						if (!ops[operation]) {
-							ops[operation] = []
-						}
-
-						if (parentID) {
-							// @ts-ignore: i just ensured it wasn't undefined
-							ops[operation].push(
-								// a comment to isolate the ignore
-								{
-									path: queryPath,
-									parentID: {
-										kind: parentID.kind,
-										value: parentID.value,
-									},
-									position: position || 'start',
-								}
-							)
-						}
+					// make sure we have an entry in the operation
+					if (!node.edges) {
+						node.edges = {}
 					}
+					if (!node.edges[pathEntry]) {
+						node.edges[pathEntry] = {}
+					}
+					if (!node.edges[pathEntry].operations) {
+						node.edges[pathEntry].operations = {}
+					}
+					if (!node.edges[pathEntry].operations![operation]) {
+						node.edges[pathEntry].operations![operation] = []
+					}
+
+					// add it to the list of operations one level down since it describes
+					// the path entry itself
+
+					// make sure we have a parent id
+					if (!parentID) {
+						throw new HoudiniErrorTodo('Could not find parentID')
+					}
+
+					// @ts-ignore just made sure this didn't happen
+					node.edges[pathEntry].operations![operation].push(
+						// a comment to isolate the ignore
+						{
+							path: queryPath,
+							parentID: {
+								kind: parentID.kind,
+								value: parentID.value,
+							},
+							position: position || 'start',
+						}
+					)
 				}
 			}
 
@@ -293,81 +291,110 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 }
 
 function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
-	targetObject.properties.push(
-		// the fields property has a field for every scalar entry in the patch
-		AST.objectProperty(
-			AST.stringLiteral('fields'),
-			AST.objectExpression(
-				Object.keys(patch.fields).map((fieldName) =>
-					AST.objectProperty(
-						AST.stringLiteral(fieldName),
-						AST.arrayExpression(
-							patch.fields[fieldName].map((paths) =>
-								AST.arrayExpression(paths.map((entry) => AST.stringLiteral(entry)))
+	// if there are fields updated in this patch
+	if (patch.fields && Object.keys(patch.fields).length > 0) {
+		targetObject.properties.push(
+			// the fields property has a field for every scalar entry in the patch
+			AST.objectProperty(
+				AST.stringLiteral('fields'),
+				AST.objectExpression(
+					Object.keys(patch.fields).map((fieldName) => {
+						if (!patch.fields) {
+							throw new Error('must please typescript gods')
+						}
+
+						return AST.objectProperty(
+							AST.stringLiteral(fieldName),
+							AST.arrayExpression(
+								patch.fields[fieldName].map((paths) =>
+									AST.arrayExpression(
+										paths.map((entry) => AST.stringLiteral(entry))
+									)
+								)
 							)
 						)
-					)
+					})
 				)
 			)
-		),
-		// add the edges entry
-		AST.objectProperty(
-			AST.stringLiteral('edges'),
-			AST.objectExpression(
-				Object.keys(patch.edges).map((fieldName) => {
-					// build up an object expression we will assign in the link object
-					const link = AST.objectExpression([])
+		)
+	}
 
-					// add the necessary properties to the nested object
-					buildPatch(patch.edges[fieldName], link)
+	// edges
+	if (patch.edges && Object.keys(patch.edges).length > 0) {
+		targetObject.properties.push(
+			// add the edges entry
+			AST.objectProperty(
+				AST.stringLiteral('edges'),
+				AST.objectExpression(
+					Object.keys(patch.edges).map((fieldName) => {
+						// build up an object expression we will assign in the link object
+						const link = AST.objectExpression([])
 
-					return AST.objectProperty(AST.stringLiteral(fieldName), link)
-				})
+						if (!patch.edges) {
+							throw new Error('must please typescript gods')
+						}
+
+						// add the necessary properties to the nested object
+						buildPatch(patch.edges[fieldName], link)
+
+						return AST.objectProperty(AST.stringLiteral(fieldName), link)
+					})
+				)
 			)
-		),
-		// add any operations that we found
-		AST.objectProperty(
-			AST.stringLiteral('operations'),
-			AST.objectExpression(
-				(Object.keys(patch.operations) as Array<
-					keyof typeof patch.operations
-				>).map((patchOperation) =>
-					AST.objectProperty(
-						AST.stringLiteral(patchOperation),
-						AST.arrayExpression(
-							(
-								patch.operations[patchOperation] || []
-							).map(({ parentID, path, position }) =>
-								AST.objectExpression([
-									AST.objectProperty(
-										AST.stringLiteral('position'),
-										AST.stringLiteral(position)
-									),
-									AST.objectProperty(
-										AST.stringLiteral('parentID'),
+		)
+	}
+
+	// operations
+	if (patch.operations && Object.keys(patch.operations).length > 0) {
+		targetObject.properties.push(
+			// add any operations that we found
+			AST.objectProperty(
+				AST.stringLiteral('operations'),
+				AST.objectExpression(
+					(Object.keys(patch.operations) as Array<PatchAtom['operation']>).map(
+						(patchOperation) => {
+							if (!patch.operations) {
+								throw new Error('must please typescript gods')
+							}
+
+							return AST.objectProperty(
+								AST.stringLiteral(patchOperation),
+								AST.arrayExpression(
+									(
+										patch.operations[patchOperation] || []
+									).map(({ parentID, path, position }) =>
 										AST.objectExpression([
 											AST.objectProperty(
-												AST.stringLiteral('kind'),
-												AST.stringLiteral(parentID.kind)
+												AST.stringLiteral('position'),
+												AST.stringLiteral(position)
 											),
 											AST.objectProperty(
-												AST.stringLiteral('value'),
-												AST.stringLiteral(parentID.value)
+												AST.stringLiteral('parentID'),
+												AST.objectExpression([
+													AST.objectProperty(
+														AST.stringLiteral('kind'),
+														AST.stringLiteral(parentID.kind)
+													),
+													AST.objectProperty(
+														AST.stringLiteral('value'),
+														AST.stringLiteral(parentID.value)
+													),
+												])
+											),
+											AST.objectProperty(
+												AST.stringLiteral('path'),
+												AST.arrayExpression(
+													path.map((entry) => AST.stringLiteral(entry))
+												)
 											),
 										])
-									),
-									AST.objectProperty(
-										AST.stringLiteral('path'),
-										AST.arrayExpression(
-											path.map((entry) => AST.stringLiteral(entry))
-										)
-									),
-								])
+									)
+								)
 							)
-						)
+						}
 					)
 				)
 			)
 		)
-	)
+	}
 }

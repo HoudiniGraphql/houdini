@@ -50,7 +50,7 @@ test('generates a link for connection operations', async function () {
 			`
 			mutation TestMutation {
 				updateUser {
-					...Friends_Connection
+					...Friends_insert
 				}
 			}`
 		),
