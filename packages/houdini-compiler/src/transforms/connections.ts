@@ -141,7 +141,7 @@ export default async function addConnectionFragments(
 						{
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
 							// in order to insert an item into this connection, it must
-							// have all of the same fields as the list
+							// have the same selection as the field
 							selectionSet: field.selectionSet,
 							name: {
 								kind: 'Name',
@@ -173,7 +173,7 @@ export default async function addConnectionFragments(
 							},
 							name: {
 								kind: 'Name',
-								value: config.connectionDeleteFragment(name),
+								value: config.connectionRemoveFragment(name),
 							},
 							typeCondition: {
 								kind: 'NamedType',

@@ -166,7 +166,7 @@ export default async function typeCheck(
 
 						freeConnections.push(
 							config.connectionInsertFragment(nameArg.value.value),
-							config.connectionDeleteFragment(nameArg.value.value)
+							config.connectionRemoveFragment(nameArg.value.value)
 						)
 					}
 				},

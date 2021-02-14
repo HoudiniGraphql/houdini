@@ -182,7 +182,7 @@ export class Config {
 		return name + this.insertFragmentSuffix
 	}
 
-	connectionDeleteFragment(name: string): string {
+	connectionRemoveFragment(name: string): string {
 		return name + this.removeFragmentSuffix
 	}
 
