@@ -60,10 +60,6 @@ test('generates patches', async function () {
 		                "firstName": [["user", "firstName"]]
 		            }
 		        }
-		    },
-
-		    "operations": {
-		        "add": []
 		    }
 		};
 	`)
@@ -131,10 +127,6 @@ test('patches include connection operations', async function () {
 		                }
 		            }
 		        }
-		    },
-
-		    "operations": {
-		        "add": []
 		    }
 		};
 	`)
@@ -267,10 +259,6 @@ test('connection patches track insert position', async function () {
 		                }
 		            }
 		        }
-		    },
-
-		    "operations": {
-		        "add": []
 		    }
 		};
 	`)
@@ -336,10 +324,6 @@ test('connection patches include reference to parentID string value', async func
 		                }
 		            }
 		        }
-		    },
-
-		    "operations": {
-		        "add": []
 		    }
 		};
 	`)
@@ -405,10 +389,71 @@ test('connection patches include reference to parentID variable', async function
 		                }
 		            }
 		        }
-		    },
+		    }
+		};
+	`)
+})
 
-		    "operations": {
-		        "add": []
+test('connection patches include reference to parentID directive', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`fragment TestFragment on User {
+				id
+				believesIn @connection(name: "Friends") {
+					name
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation($userID: ID!) {
+				believeIn {
+					ghost {
+						...Friends_insert @append @parentID(value: $userID)
+					}
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestFragment', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "believeIn": {
+		            "edges": {
+		                "ghost": {
+		                    "operations": {
+		                        "add": [{
+		                            "position": "end",
+
+		                            "parentID": {
+		                                "kind": "Variable",
+		                                "value": "userID"
+		                            },
+
+		                            "path": ["believesIn"]
+		                        }]
+		                    }
+		                }
+		            }
+		        }
 		    }
 		};
 	`)

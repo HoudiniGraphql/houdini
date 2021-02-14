@@ -190,10 +190,18 @@ export default async function typeCheck(
 							return
 						}
 
-						// make sure that there is a parent ID assigned to this directive
+						// the typechecker will verify that there is a value passed to @parentID
+						// so if it exists, we're good to go
+						let directive = node.directives?.find(
+							({ name }) => name.value === config.connectionParentDirective
+						)
+						if (directive) {
+							// there's nothing else to check
+							return
+						}
 
-						// look for a connection directive
-						const directive = node.directives?.find(({ name }) => [
+						// look for one of the connection directives
+						directive = node.directives?.find(({ name }) => [
 							[
 								config.connectionPrependDirective,
 								config.connectionAppendDirective,
@@ -209,10 +217,11 @@ export default async function typeCheck(
 							return
 						}
 
-						// look for a parent id
-						const parentArg = directive.arguments?.find(
+						// find the argument holding the parent ID
+						let parentArg = directive.arguments?.find(
 							(arg) => arg.name.value === config.connectionDirectiveParentIDArg
 						)
+
 						if (!parentArg) {
 							// yell loudly
 							throw {

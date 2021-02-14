@@ -6,6 +6,7 @@ import fs from 'fs/promises'
 import { CollectedGraphQLDocument, Patch } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
+import { HoudiniErrorTodo } from '../../error'
 
 // We consider every query and every mutation that could affect it. We'll start by looking at every field
 // addressed by every mutation and then look at every query and fragment to see if it asks for the type.
@@ -207,6 +208,7 @@ function fillMutationMap(
 				// the name of the mutation
 				const mutationName = name
 
+				// make sure we have an entry in the mutation map
 				if (!mutationTargets[rootType.name]) {
 					mutationTargets[rootType.name] = {
 						fields: {},
@@ -219,9 +221,22 @@ function fillMutationMap(
 					mutationTargets[rootType.name].operations[selection.name.value] = {}
 				}
 
+				// figure out the operation
+				let operation: PatchAtom['operation']
+				if (config.isInsertFragment(selection.name.value)) {
+					operation = 'add'
+				} else if (config.isDeleteFragment(selection.name.value)) {
+					operation = 'delete'
+				} else {
+					throw new HoudiniErrorTodo(
+						'Could not identify connection operation: ' + selection.name.value
+					)
+				}
+
 				// look at the directices applies to the spread for meta data about the mutation
 				let parentID = 'root'
 				let parentKind: 'Root' | 'Variable' | 'String' = 'Root'
+
 				let insertLocation: MutationMap[string]['operations'][string][string]['position'] =
 					'end'
 
@@ -244,10 +259,23 @@ function fillMutationMap(
 					}
 					insertLocation = prepend ? 'start' : 'end'
 
-					// look for the parentID argument
-					const parentIDArg = (append || prepend)?.arguments?.find(
-						({ name }) => name.value === config.connectionDirectiveParentIDArg
+					// the parent ID can be provided a few ways, either as an argument to the prepend
+					// and append directives or with the parentID directive.
+
+					// look for the parentID directive
+					let parentDirective = internalDirectives.find(
+						({ name }) => name.value === config.connectionParentDirective
 					)
+					let parentIDArg = parentDirective?.arguments?.find(
+						(argument) => argument.name.value === 'value'
+					)
+					// if there is no parent id argument, it could have been provided by one of the connection directives
+					if (!parentIDArg) {
+						parentIDArg = (append || prepend)?.arguments?.find(
+							({ name }) => name.value === config.connectionDirectiveParentIDArg
+						)
+					}
+
 					if (parentIDArg) {
 						// if the argument is a string
 						if (parentIDArg.value.kind === 'StringValue') {
@@ -268,7 +296,7 @@ function fillMutationMap(
 						value: parentID,
 					},
 					position: insertLocation,
-					kind: 'add',
+					kind: operation,
 					path,
 				}
 			}

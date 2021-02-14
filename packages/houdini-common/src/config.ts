@@ -150,6 +150,10 @@ export class Config {
 		return 'append'
 	}
 
+	get connectionParentDirective() {
+		return this.connectionDirectiveParentIDArg
+	}
+
 	get connectionDirectiveParentIDArg() {
 		return 'parentID'
 	}
@@ -160,6 +164,14 @@ export class Config {
 
 	get insertFragmentSuffix() {
 		return `_insert`
+	}
+
+	isInsertFragment(name: string) {
+		return name.endsWith(this.insertFragmentSuffix)
+	}
+
+	isDeleteFragment(name: string) {
+		return name.endsWith(this.deleteFragmentSuffix)
 	}
 
 	get deleteFragmentSuffix() {
@@ -179,6 +191,7 @@ export class Config {
 			this.connectionDirective,
 			this.connectionPrependDirective,
 			this.connectionAppendDirective,
+			this.connectionDirectiveParentIDArg,
 		].includes(name.value)
 	}
 

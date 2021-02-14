@@ -33,10 +33,10 @@ export default async function graphqlExtensions(
 			directive @${config.connectionAppendDirective}(${config.connectionDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
 
 			"""
-				@${config.connectionDirectiveParentIDArg} is used to provide a parentID without specifying position or in situations
+				@${config.connectionParentDirective} is used to provide a parentID without specifying position or in situations
 				where it doesn't make sense (eg when deleting a node.)
 			"""
-			directive @${config.connectionDirectiveParentIDArg}(value: ID!) on FRAGMENT_SPREAD
+			directive @${config.connectionParentDirective}(value: ID!) on FRAGMENT_SPREAD
 
 		`),
 		],
