@@ -265,15 +265,3 @@ function getTypeFromAncestors(
 
 	return getRootType(field.type) as graphql.GraphQLNamedType
 }
-
-// returns the first non-list element in an array
-function skipLists<_Result>([head, ...rest]: (any | any[])[], i: number = 0): [_Result, number] {
-	// if the head is a list, return the
-	if (Array.isArray(head)) {
-		// keep searching
-		return skipLists(rest, i + 1)
-	}
-
-	// we're done
-	return [head, i]
-}

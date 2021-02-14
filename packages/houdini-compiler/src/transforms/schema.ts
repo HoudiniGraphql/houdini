@@ -17,20 +17,27 @@ export default async function graphqlExtensions(
 			config.schema,
 			graphql.buildSchema(`
 			"""
-				@connection is used to mark a field for the runtime as a place to add or remove
+				@${config.connectionDirective} is used to mark a field for the runtime as a place to add or remove
 				entities in mutations
 			"""
 			directive @${config.connectionDirective}(${config.connectionNameArg}: String!) on FIELD
 
 			"""
-				@prepend is used to tell the runtime to add the result to the end of the list
+				@${config.connectionPrependDirective} is used to tell the runtime to add the result to the end of the list
 			"""
 			directive @${config.connectionPrependDirective}(${config.connectionDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
 
 			"""
-				@append is used to tell the runtime to add the result to the start of the list
+				@${config.connectionAppendDirective} is used to tell the runtime to add the result to the start of the list
 			"""
 			directive @${config.connectionAppendDirective}(${config.connectionDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
+
+			"""
+				@${config.connectionDirectiveParentIDArg} is used to provide a parentID without specifying position or in situations
+				where it doesn't make sense (eg when deleting a node.)
+			"""
+			directive @${config.connectionDirectiveParentIDArg}(value: ID!) on FRAGMENT_SPREAD
+
 		`),
 		],
 	})
