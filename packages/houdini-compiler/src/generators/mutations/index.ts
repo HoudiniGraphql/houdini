@@ -42,8 +42,7 @@ export type MutationMap = {
 
 // another intermediate type used when building up the mutation description
 export type PatchAtom = {
-	// add update to the list of public operations
-	operation: 'add' | 'remove' | 'update'
+	operation: 'add' | 'remove' | 'update' | 'delete'
 	mutationName: string
 	mutationPath: string[]
 	queryName: string

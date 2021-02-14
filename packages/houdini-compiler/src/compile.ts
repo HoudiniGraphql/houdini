@@ -32,11 +32,11 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 	await run(
 		config,
 		[
-			transforms.addInternalSchema,
+			transforms.internalSchema,
+			transforms.connections,
 			validators.typeCheck,
-			validators.uniqueDocumentNames,
+			validators.uniqueNames,
 			validators.noIDAlias,
-			transforms.addConnectionFragments,
 			transforms.composeQueries,
 			generators.artifacts,
 			generators.mutations,

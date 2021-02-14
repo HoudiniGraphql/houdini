@@ -45,7 +45,7 @@ export default async function typeCheck(
 
 	// we need to catch errors in the connection API. this means that a user
 	// must provide parentID if they are using a connection that is not all-objects
-	// from root
+	// from root. figure out which connections are "free" (ie, can be applied without a parentID arg)
 
 	const freeConnections: string[] = []
 	for (const { filename, document: parsed, printed } of docs) {
@@ -147,12 +147,13 @@ export default async function typeCheck(
 							}
 
 							// @ts-ignore
-							// look up the field in the parent type
+							// look at the next entry for a list or someting else that would make us
+							// require a parent ID
 							rootType = rootType?.getFields()[parent.name.value].type
 						}
 					}
 
-					// if we still dont need a parent by now, add it to the list
+					// if we still dont need a parent by now, add it to the list of free connections
 					if (!needsParent) {
 						// look up the name of the connection
 						const nameArg = directive.arguments?.find(

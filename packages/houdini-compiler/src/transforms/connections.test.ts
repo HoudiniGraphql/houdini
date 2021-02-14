@@ -141,6 +141,24 @@ test('connection fragments on fragment selection set', async function () {
 	`)
 })
 
+test('delete node', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'DeleteUser',
+			`
+				mutation DeleteUser {
+					deleteUser(id: "1234") {
+						userID @User_delete
+					}
+				}
+			`
+		),
+	]
+
+	// the document should validate
+	await expect(runPipeline(testConfig(), docs)).resolves.toBeTruthy()
+})
+
 test('connection fragments must be unique', async function () {
 	const docs = [
 		mockCollectedDoc(

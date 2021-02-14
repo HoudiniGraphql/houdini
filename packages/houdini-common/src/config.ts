@@ -228,6 +228,7 @@ export function testConfig(config: {} = {}) {
 				updateUser: User!
 				addFriend: AddFriendOutput!
 				believeIn: BelieveInOutput!
+				deleteUser(id: ID!): DeleteUserOutput!
 			}
 
 			type AddFriendOutput {
@@ -236,6 +237,10 @@ export function testConfig(config: {} = {}) {
 
 			type BelieveInOutput {
 				ghost: Ghost
+			}
+
+			type DeleteUserOutput {
+				userID: ID
 			}
 		`,
 		quiet: true,
