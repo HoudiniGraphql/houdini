@@ -26,7 +26,7 @@ export type MutationMap = {
 		operations: {
 			[connectionName: string]: {
 				[mutationName: string]: {
-					kind: keyof Patch['operations']
+					kind: PatchAtom['operation']
 					position: 'start' | 'end'
 					parentID: {
 						kind: 'Variable' | 'String' | 'Root'
@@ -42,7 +42,7 @@ export type MutationMap = {
 // another intermediate type used when building up the mutation description
 export type PatchAtom = {
 	// add update to the list of public operations
-	operation: keyof Patch['operations'] | 'update'
+	operation: 'add' | 'delete' | 'update'
 	mutationName: string
 	mutationPath: string[]
 	queryName: string

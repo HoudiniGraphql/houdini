@@ -54,18 +54,10 @@ test('generates patches', async function () {
 	// make sure this doesn't change without approval
 	expect(parsedContents).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "updateUser": {
 		            "fields": {
 		                "firstName": [["user", "firstName"]]
-		            },
-
-		            "edges": {},
-
-		            "operations": {
-		                "add": []
 		            }
 		        }
 		    },
@@ -120,17 +112,10 @@ test('patches include connection operations', async function () {
 		})
 	).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "believeIn": {
-		            "fields": {},
-
 		            "edges": {
 		                "ghost": {
-		                    "fields": {},
-		                    "edges": {},
-
 		                    "operations": {
 		                        "add": [{
 		                            "position": "end",
@@ -144,10 +129,6 @@ test('patches include connection operations', async function () {
 		                        }]
 		                    }
 		                }
-		            },
-
-		            "operations": {
-		                "add": []
 		            }
 		        }
 		    },
@@ -202,20 +183,11 @@ test('patches include delete operations', async function () {
 		})
 	).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "believeIn": {
-		            "fields": {},
-
 		            "edges": {
 		                "ghost": {
-		                    "fields": {},
-		                    "edges": {},
-
 		                    "operations": {
-								"add": [],
-
 		                        "delete": [{
 		                            "position": "end",
 
@@ -229,20 +201,8 @@ test('patches include delete operations', async function () {
 		                    }
 		                }
 		            },
-
-		            "operations": {
-		                "add": [],
-
-						"delete": []
-		            }
 		        }
 		    },
-
-		    "operations": {
-		        "add": [],
-
-				"delete": []
-		    }
 		};
 	`)
 })
@@ -288,17 +248,10 @@ test('connection patches track insert position', async function () {
 		})
 	).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "believeIn": {
-		            "fields": {},
-
 		            "edges": {
 		                "ghost": {
-		                    "fields": {},
-		                    "edges": {},
-
 		                    "operations": {
 		                        "add": [{
 		                            "position": "start",
@@ -312,10 +265,6 @@ test('connection patches track insert position', async function () {
 		                        }]
 		                    }
 		                }
-		            },
-
-		            "operations": {
-		                "add": []
 		            }
 		        }
 		    },
@@ -368,17 +317,10 @@ test('connection patches include reference to parentID string value', async func
 		})
 	).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "believeIn": {
-		            "fields": {},
-
 		            "edges": {
 		                "ghost": {
-		                    "fields": {},
-		                    "edges": {},
-
 		                    "operations": {
 		                        "add": [{
 		                            "position": "end",
@@ -392,10 +334,6 @@ test('connection patches include reference to parentID string value', async func
 		                        }]
 		                    }
 		                }
-		            },
-
-		            "operations": {
-		                "add": []
 		            }
 		        }
 		    },
@@ -448,17 +386,10 @@ test('connection patches include reference to parentID variable', async function
 		})
 	).toMatchInlineSnapshot(`
 		export default {
-		    "fields": {},
-
 		    "edges": {
 		        "believeIn": {
-		            "fields": {},
-
 		            "edges": {
 		                "ghost": {
-		                    "fields": {},
-		                    "edges": {},
-
 		                    "operations": {
 		                        "add": [{
 		                            "position": "end",
@@ -472,10 +403,6 @@ test('connection patches include reference to parentID variable', async function
 		                        }]
 		                    }
 		                }
-		            },
-
-		            "operations": {
-		                "add": []
 		            }
 		        }
 		    },

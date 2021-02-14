@@ -12,14 +12,7 @@ describe('apply patch', function () {
 					fields: {
 						field: [['target']],
 					},
-					edges: {},
-					operations: {
-						add: [],
-					},
 				},
-			},
-			operations: {
-				add: [],
 			},
 		}
 
@@ -57,14 +50,7 @@ describe('apply patch', function () {
 					fields: {
 						field: [['target']],
 					},
-					edges: {},
-					operations: {
-						add: [],
-					},
 				},
-			},
-			operations: {
-				add: [],
 			},
 		}
 
@@ -102,19 +88,9 @@ describe('apply patch', function () {
 							fields: {
 								field: [['target']],
 							},
-							edges: {},
-							operations: {
-								add: [],
-							},
 						},
 					},
-					operations: {
-						add: [],
-					},
 				},
-			},
-			operations: {
-				add: [],
 			},
 		}
 
@@ -154,14 +130,7 @@ describe('apply patch', function () {
 					fields: {
 						field: [['target']],
 					},
-					edges: {},
-					operations: {
-						add: [],
-					},
 				},
-			},
-			operations: {
-				add: [],
 			},
 		}
 
@@ -201,14 +170,7 @@ describe('apply patch', function () {
 					fields: {
 						field: [['nested', 'target']],
 					},
-					edges: {},
-					operations: {
-						add: [],
-					},
 				},
-			},
-			operations: {
-				add: [],
 			},
 		}
 
@@ -262,9 +224,6 @@ describe('apply patch', function () {
 						],
 					},
 				},
-			},
-			operations: {
-				add: [],
 			},
 		}
 
@@ -328,9 +287,6 @@ describe('apply patch', function () {
 					},
 				},
 			},
-			operations: {
-				add: [],
-			},
 		}
 
 		// a function to spy on the update
@@ -393,9 +349,6 @@ describe('apply patch', function () {
 					},
 				},
 			},
-			operations: {
-				add: [],
-			},
 		}
 
 		// a function to spy on the update
@@ -457,9 +410,6 @@ describe('apply patch', function () {
 						],
 					},
 				},
-			},
-			operations: {
-				add: [],
 			},
 		}
 
@@ -525,9 +475,6 @@ describe('apply patch', function () {
 					},
 				},
 			},
-			operations: {
-				add: [],
-			},
 		}
 
 		// a function to spy on the update
@@ -579,14 +526,7 @@ describe('apply patch', function () {
 					fields: {
 						field: [['field', 'target']],
 					},
-					edges: {},
-					operations: {
-						add: [],
-					},
 				},
-			},
-			operations: {
-				add: [],
 			},
 		}
 

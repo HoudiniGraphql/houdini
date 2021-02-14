@@ -82,7 +82,7 @@ function walkPatch(
 
 	// during the search for fields to update, we might need to go searching through
 	// many nodes for the response
-	for (const [fieldName, targetPaths] of Object.entries(patch.fields)) {
+	for (const [fieldName, targetPaths] of Object.entries(patch.fields || {})) {
 		// update the target object at every path we need to
 		for (const path of targetPaths) {
 			// if there is no id, we can update the fields
@@ -97,7 +97,7 @@ function walkPatch(
 	}
 
 	// we might need to add this entity to some connections in the response
-	for (const [operation, paths] of Object.entries(patch.operations)) {
+	for (const [operation, paths] of Object.entries(patch.operations || {})) {
 		// if this is undefined, ill admit typescript saved me from something
 		if (!paths) {
 			continue
@@ -125,11 +125,16 @@ function walkPatch(
 		}
 	}
 
-	// walk down any related fields
-	for (const edgeName of Object.keys(patch.edges)) {
-		// walk down and keep track if we updated anything
-		if (walkPatch(patch.edges[edgeName], payload[edgeName], target, variables) && !updated) {
-			updated = true
+	// walk down any related fields if they exist
+	if (patch.edges) {
+		for (const edgeName of Object.keys(patch.edges || {})) {
+			// walk down and keep track if we updated anything
+			if (
+				walkPatch(patch.edges[edgeName], payload[edgeName], target, variables) &&
+				!updated
+			) {
+				updated = true
+			}
 		}
 	}
 

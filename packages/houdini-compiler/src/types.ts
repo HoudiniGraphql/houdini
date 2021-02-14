@@ -28,20 +28,18 @@ export type FragmentArtifact = BaseCompiledDocument & {
 
 // a description of an interaction between a mutation and a query
 export type Patch = {
-	operations: {
-		add:
-			| {
-					parentID: {
-						kind: 'String' | 'Variable' | 'Root'
-						value: string
-					}
-					position: 'start' | 'end'
-					path: string[]
-			  }[]
-			| undefined
+	operations?: {
+		[op in PatchAtom['operation']]?: {
+			parentID: {
+				kind: 'String' | 'Variable' | 'Root'
+				value: string
+			}
+			position: 'start' | 'end'
+			path: string[]
+		}[]
 	}
-	fields: { [fieldName: string]: Array<string[]> }
-	edges: { [path: string]: Patch }
+	fields?: { [fieldName: string]: Array<string[]> }
+	edges?: { [path: string]: Patch }
 }
 
 // any compiled result
