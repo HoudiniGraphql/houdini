@@ -180,7 +180,7 @@ test('patches include delete operations', async function () {
 		            "edges": {
 		                "ghost": {
 		                    "operations": {
-		                        "delete": [{
+		                        "remove": [{
 		                            "position": "end",
 
 		                            "parentID": {
@@ -192,9 +192,9 @@ test('patches include delete operations', async function () {
 		                        }]
 		                    }
 		                }
-		            },
+		            }
 		        }
-		    },
+		    }
 		};
 	`)
 })

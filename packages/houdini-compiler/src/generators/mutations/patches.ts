@@ -8,6 +8,7 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
 import { Patch } from '../../types'
 import { PatchAtom, MutationMap } from '.'
+import { HoudiniErrorTodo } from '../../error'
 
 const AST = recast.types.builders
 
@@ -110,26 +111,29 @@ export function patchesForSelectionSet(
 				) as graphql.GraphQLObjectType<any, any>
 
 				// grab any mutations that modify this field
-				let mutations =
-					mutationTargets[fieldType.name]?.operations[
-						config.connectionInsertFragment(nameVal)
-					] || {}
+				let operations = mutationTargets[fieldType.name]?.operations || {}
+				// mutationTargets[fieldType.name]?.operations[
+				// 	// vvvvvvv this only picks the @append entries!!!
+				// 	config.connectionInsertFragment(nameVal)
+				// ] || {}
 
-				// every mutation that adds to the connection needs an entry
-				for (const mutationName of Object.keys(mutations)) {
-					const { kind, path, parentID, position } = mutations[mutationName]
+				const newPatches = Object.values(operations).flatMap((mutations) =>
+					Object.entries(mutations).map(
+						([mutationName, { kind, path, parentID, position }]) => ({
+							operation: kind,
+							mutationName,
+							mutationPath: path,
+							queryName: name,
+							queryPath: pathSoFar,
+							parentID,
+							position,
+						})
+					)
+				)
 
-					// we have an patch
-					patches.push({
-						operation: kind,
-						mutationName,
-						mutationPath: path,
-						queryName: name,
-						queryPath: pathSoFar,
-						parentID,
-						position,
-					})
-				}
+				// every key in the operation object points to a connection fragment
+				// and can contribute an operation to the list of patches
+				patches.push(...newPatches)
 			}
 
 			// walk down the query for more chagnes
@@ -225,43 +229,40 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 						continue
 					}
 
-					// we could need to copy the response into a tagged connection
-					if (operation === 'add') {
-						// add it to the list of operations one level down since it describes
-						// the path entry itself
-
-						// if this is the first time we've seen this child
-						if (!node.edges) {
-							node.edges = {}
-						}
-
-						if (!node.edges[pathEntry]) {
-							node.edges[pathEntry] = {}
-						}
-
-						if (!node.edges[pathEntry].operations) {
-							node.edges[pathEntry].operations = {}
-						}
-
-						if (!node.edges[pathEntry].operations![operation]) {
-							node.edges[pathEntry].operations![operation] = []
-						}
-
-						if (parentID) {
-							// @ts-ignore just made sure this didn't happen
-							node.edges[pathEntry].operations![operation].push(
-								// a comment to isolate the ignore
-								{
-									path: queryPath,
-									parentID: {
-										kind: parentID.kind,
-										value: parentID.value,
-									},
-									position: position || 'start',
-								}
-							)
-						}
+					// make sure we have an entry in the operation
+					if (!node.edges) {
+						node.edges = {}
 					}
+					if (!node.edges[pathEntry]) {
+						node.edges[pathEntry] = {}
+					}
+					if (!node.edges[pathEntry].operations) {
+						node.edges[pathEntry].operations = {}
+					}
+					if (!node.edges[pathEntry].operations![operation]) {
+						node.edges[pathEntry].operations![operation] = []
+					}
+
+					// add it to the list of operations one level down since it describes
+					// the path entry itself
+
+					// make sure we have a parent id
+					if (!parentID) {
+						throw new HoudiniErrorTodo('Could not find parentID')
+					}
+
+					// @ts-ignore just made sure this didn't happen
+					node.edges[pathEntry].operations![operation].push(
+						// a comment to isolate the ignore
+						{
+							path: queryPath,
+							parentID: {
+								kind: parentID.kind,
+								value: parentID.value,
+							},
+							position: position || 'start',
+						}
+					)
 				}
 			}
 

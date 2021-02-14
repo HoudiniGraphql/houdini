@@ -390,6 +390,70 @@ describe('apply patch', function () {
 		})
 	})
 
+	test('remove from connection with literal ID', function () {
+		const patch: Patch = {
+			fields: {},
+			edges: {
+				mutationName: {
+					edges: {},
+					fields: {},
+					operations: {
+						remove: [
+							{
+								path: ['outer', 'inner'],
+								position: 'end',
+								parentID: {
+									kind: 'String',
+									value: '1',
+								},
+							},
+						],
+					},
+				},
+			},
+		}
+
+		// a function to spy on the update
+		const set = jest.fn()
+
+		// the current data
+		const current = {
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+					inner: [
+						{
+							id: '2',
+							target: 'hello',
+						},
+					],
+				},
+			],
+		}
+
+		// the mutation payload
+		const payload = {
+			mutationName: {
+				id: '2',
+			},
+		}
+
+		// apply the patch
+		applyPatch(patch, set, current, payload, {})
+
+		// make sure we got the expected value
+		expect(set).toHaveBeenCalledWith({
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+					inner: [],
+				},
+			],
+		})
+	})
+
 	test('add to connection with literal ID', function () {
 		const patch: Patch = {
 			fields: {},

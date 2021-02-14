@@ -43,7 +43,7 @@ export type MutationMap = {
 // another intermediate type used when building up the mutation description
 export type PatchAtom = {
 	// add update to the list of public operations
-	operation: 'add' | 'delete' | 'update'
+	operation: 'add' | 'remove' | 'update'
 	mutationName: string
 	mutationPath: string[]
 	queryName: string
@@ -226,7 +226,7 @@ function fillMutationMap(
 				if (config.isInsertFragment(selection.name.value)) {
 					operation = 'add'
 				} else if (config.isDeleteFragment(selection.name.value)) {
-					operation = 'delete'
+					operation = 'remove'
 				} else {
 					throw new HoudiniErrorTodo(
 						'Could not identify connection operation: ' + selection.name.value

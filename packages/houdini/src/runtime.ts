@@ -103,24 +103,23 @@ function walkPatch(
 			continue
 		}
 
-		// copy the entry into every path in the response
+		// look at every path we have to perform this operation
 		for (const { path, parentID, position } of paths) {
-			if (operation === 'add') {
-				// add the entity to the connection
-				if (
-					insertInConnection(
-						path,
-						target,
-						parentID,
-						position,
-						payload,
-						variables,
-						path.length
-					) &&
-					!updated
-				) {
-					updated = true
-				}
+			// if we have to add the connection somewhere
+			if (
+				operation === 'add' &&
+				insertInConnection(path, target, parentID, position, payload, variables) &&
+				!updated
+			) {
+				updated = true
+			}
+			// we could have to remove this element from somewhere
+			else if (
+				operation === 'remove' &&
+				removeFromConnection(path, target, parentID, payload, variables) &&
+				!updated
+			) {
+				updated = true
 			}
 		}
 	}
@@ -148,19 +147,10 @@ function insertInConnection(
 	parentID: { kind: 'Variable' | 'String' | 'Root'; value: string },
 	position: 'start' | 'end',
 	value: Record,
-	variables: { [key: string]: any },
-	pathLength: number
+	variables: { [key: string]: any }
 ) {
-	// keep track if we updated a field
-	let updated = false
-
-	// dry
-	const head = path[0]
-
-	// since we are entering something into a list, we need to stop on the second to
-	// last element to find the node with matching id
-	if (path.length <= 2) {
-		const attributeName = path[1]
+	return walkToConnection(path, target, function (head, path, target) {
+		const attributeName = path[0]
 		// if we are entering something from root the target should be an object
 		if (parentID.kind === 'Root') {
 			// if there is an element after this then we need to treat it as an
@@ -181,7 +171,7 @@ function insertInConnection(
 			}
 
 			// we did update something
-			updated = true
+			return true
 		}
 
 		// the head points to the list we have to look at for possible parents
@@ -212,6 +202,84 @@ function insertInConnection(
 				return true
 			}
 		}
+
+		// we didn't update anything
+		return false
+	})
+}
+
+function removeFromConnection(
+	path: string[],
+	target: Record,
+	parentID: { kind: 'Variable' | 'String' | 'Root'; value: string },
+	value: Record,
+	variables: { [key: string]: any }
+) {
+	return walkToConnection(path, target, function (head, path, target) {
+		const attributeName = path[0]
+		// if we are entering something from root the target should be an object
+		if (parentID.kind === 'Root') {
+			// if there is an element after this then we need to treat it as an
+			// attribute for the item pointed at by head
+			if (attributeName) {
+				target[head][attributeName] = (target[head][attributeName] || []).filter(
+					({ id }: { id: string }) => id !== value.id
+				)
+			}
+			// no attribute name means head is in fact the accesor and we just need to push
+			else {
+				// target[head] = [...(target[head] || []), value]
+				target[head] = (target[head] || []).filter(
+					({ id }: { id: string }) => id !== value.id
+				)
+			}
+
+			// we did update something
+			return true
+		}
+
+		// the head points to the list we have to look at for possible parents
+		const parents = target[head]
+		if (!Array.isArray(parents)) {
+			throw new Error('Expected array in response')
+		}
+
+		// look at every option for a matching id
+		for (const entry of parents) {
+			// the id we are looking for
+			const targetID = parentID.kind === 'String' ? parentID.value : variables[parentID.value]
+
+			// if the id matches
+			if (entry.id === targetID) {
+				// we found the parent so remove the element from the connection
+				entry[attributeName] = (entry[attributeName] || []).filter(
+					({ id }: { id: string }) => id !== value.id
+				)
+
+				// TODO: we might not have updated something, returning true anyway
+				return true
+			}
+		}
+
+		// we didn't update anything
+		return false
+	})
+}
+
+function walkToConnection(
+	path: string[],
+	target: Record,
+	onConnection: (head: string, path: string[], target: Record) => boolean
+) {
+	// keep track if we updated a field
+	let updated = false
+
+	// since we are entering something into a list, we need to stop on the second to
+	// last element to find the node with matching id
+	if (path.length <= 2) {
+		if (onConnection(path[0], path.slice(1), target) && !updated) {
+			updated = true
+		}
 	}
 	// keep going walking the path
 	else {
@@ -227,17 +295,7 @@ function insertInConnection(
 			// walk down every element in the list
 			for (const entry of element) {
 				// if we applied the udpate
-				if (
-					insertInConnection(
-						tail,
-						entry,
-						parentID,
-						position,
-						value,
-						variables,
-						pathLength
-					)
-				) {
+				if (walkToConnection(tail, entry, onConnection)) {
 					updated = true
 					// dont keep searching
 					break
@@ -247,18 +305,7 @@ function insertInConnection(
 		// the element is an object
 		else {
 			// keep going down
-			if (
-				insertInConnection(
-					tail,
-					element,
-					parentID,
-					position,
-					value,
-					variables,
-					pathLength
-				) &&
-				!updated
-			) {
+			if (walkToConnection(tail, element, onConnection) && !updated) {
 				updated = true
 			}
 		}
