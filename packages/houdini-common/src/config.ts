@@ -170,12 +170,12 @@ export class Config {
 		return name.endsWith(this.insertFragmentSuffix)
 	}
 
-	isDeleteFragment(name: string) {
-		return name.endsWith(this.deleteFragmentSuffix)
+	isRemoveFragment(name: string) {
+		return name.endsWith(this.removeFragmentSuffix)
 	}
 
-	get deleteFragmentSuffix() {
-		return `_delete`
+	get removeFragmentSuffix() {
+		return `_remove`
 	}
 
 	connectionInsertFragment(name: string): string {
@@ -183,7 +183,7 @@ export class Config {
 	}
 
 	connectionDeleteFragment(name: string): string {
-		return name + this.deleteFragmentSuffix
+		return name + this.removeFragmentSuffix
 	}
 
 	isInternalDirective({ name }: graphql.DirectiveNode): boolean {
@@ -196,7 +196,7 @@ export class Config {
 	}
 
 	isConnectionFragment(name: string): boolean {
-		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.deleteFragmentSuffix)
+		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.removeFragmentSuffix)
 	}
 }
 

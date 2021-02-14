@@ -225,7 +225,7 @@ function fillMutationMap(
 				let operation: PatchAtom['operation']
 				if (config.isInsertFragment(selection.name.value)) {
 					operation = 'add'
-				} else if (config.isDeleteFragment(selection.name.value)) {
+				} else if (config.isRemoveFragment(selection.name.value)) {
 					operation = 'remove'
 				} else {
 					throw new HoudiniErrorTodo(

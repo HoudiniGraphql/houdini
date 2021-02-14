@@ -152,7 +152,7 @@ test('patches include delete operations', async function () {
 			`mutation TestMutation {
 				believeIn {
 					ghost {
-						...Friends_delete
+						...Friends_remove
 					}
 				}
 			}`

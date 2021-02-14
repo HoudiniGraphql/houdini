@@ -59,7 +59,7 @@ test('delete fragments on query selection set', async function () {
 			`
 				mutation UpdateUser {
 					updateUser {
-                        ...User_Friends_delete
+                        ...User_Friends_remove
 					}
 				}
 			`
@@ -86,11 +86,11 @@ test('delete fragments on query selection set', async function () {
 	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
 		"mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_delete
+		    ...User_Friends_remove
 		  }
 		}
 
-		fragment User_Friends_delete on User {
+		fragment User_Friends_remove on User {
 		  id
 		}
 		"
