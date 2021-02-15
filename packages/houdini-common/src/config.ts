@@ -248,6 +248,7 @@ export function testConfig(config: {} = {}) {
 				believeIn: BelieveInOutput!
 				deleteUser(id: ID!): DeleteUserOutput!
 				catMutation: CatMutationOutput!
+				deleteCat: DeleteCatOutput!
 			}
 
 			type AddFriendOutput {
@@ -260,6 +261,10 @@ export function testConfig(config: {} = {}) {
 
 			type DeleteUserOutput {
 				userID: ID
+			}
+
+			type DeleteCatOutput {
+				catID: ID
 			}
 
 			type CatMutationOutput {

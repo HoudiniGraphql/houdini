@@ -212,6 +212,7 @@ test('includes `id` in connection fragment', async function () {
 			`
 			fragment AllUsers  on User{
 				friends @connection(name:"User_Friends") {
+					id
 					firstName
 				}
 			}
@@ -231,6 +232,7 @@ test('includes `id` in connection fragment', async function () {
 		}
 
 		fragment User_Friends_insert on User {
+		  id
 		  firstName
 		}
 		"
