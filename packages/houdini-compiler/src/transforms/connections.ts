@@ -189,7 +189,6 @@ export default async function addConnectionFragments(
 						})
 					} else {
 						// TODO: do something about this
-						console.warn('not generating remove fragment from node')
 					}
 
 					return fragments
