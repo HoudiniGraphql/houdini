@@ -512,7 +512,7 @@ describe('apply patch', function () {
 		// the mutation payload
 		const payload = {
 			mutationName: {
-				id: '2',
+				targetId: '2',
 			},
 		}
 
