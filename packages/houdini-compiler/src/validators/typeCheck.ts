@@ -3,6 +3,7 @@ import { Config, isListType } from 'houdini-common'
 import * as graphql from 'graphql'
 import { NoUnusedFragments } from 'graphql/validation/rules/NoUnusedFragments'
 import { KnownFragmentNames } from 'graphql/validation/rules/KnownFragmentNames'
+import { KnownDirectives } from 'graphql/validation/rules/KnownDirectives'
 import { ExecutableDefinitions } from 'graphql/validation/rules/ExecutableDefinitions'
 import { ASTValidationContext } from 'graphql/validation/ValidationContext'
 // locals
@@ -22,6 +23,8 @@ const validateRules = [...graphql.specifiedRules].filter(
 			// some of the documents (ie the injected ones) will contain directive defintions
 			// and therefor not be explicitly executable
 			ExecutableDefinitions,
+			// connection include directives that aren't defined by the schema
+			KnownDirectives,
 		].includes(rule)
 )
 

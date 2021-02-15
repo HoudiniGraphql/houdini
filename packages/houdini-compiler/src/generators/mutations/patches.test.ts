@@ -241,11 +241,11 @@ test('patches include delete operations', async function () {
 	).toMatchInlineSnapshot(`
 		export default {
 		    "edges": {
-		        "catMutation": {
+		        "deleteCat": {
 		            "edges": {
-		                "cat": {
+		                "catID": {
 		                    "operations": {
-		                        "remove": [{
+		                        "delete": [{
 		                            "position": "end",
 
 		                            "parentID": {

@@ -309,13 +309,45 @@ function fillMutationMap(
 		}
 
 		// look up the type of the selection
-		const info = selectionTypeInfo(config.schema, rootType, selection)
-
-		const { type, field } = info
+		const { field, type } = selectionTypeInfo(config.schema, rootType, selection)
 
 		// if we are looking at a normal field
 		if (selection.kind === graphql.Kind.FIELD) {
 			const attributeName = selection.alias?.value || selection.name.value
+
+			// the field might be tagged with a delete directive
+			const deleteDirective = selection.directives?.find(({ name }) =>
+				config.isDeleteDirective(name.value)
+			)
+			if (deleteDirective) {
+				// the target of the delete is the type identified by the directive name
+				const deleteTarget = config.deleteDirectiveType(deleteDirective.name.value)
+				// there is no specific connection for a delete operation
+				const connectionName = '_'
+
+				// the delete directive gets attached to the target field
+				if (!mutationTargets[deleteTarget]) {
+					mutationTargets[deleteTarget] = {
+						operations: {},
+						fields: {},
+					}
+				}
+				// if we haven't registered an operation here before, do so
+				if (!mutationTargets[deleteTarget].operations[connectionName]) {
+					mutationTargets[deleteTarget].operations[connectionName] = {}
+				}
+
+				// add the delete operation to the patch list
+				mutationTargets[deleteTarget].operations[connectionName][name] = {
+					parentID: {
+						kind: 'Root',
+						value: 'root',
+					},
+					position: 'end',
+					kind: 'delete',
+					path: path.concat(attributeName),
+				}
+			}
 
 			// since the id field is used to filter out a mutation, we don't want to register
 			// that the mutation will update the id field (it wont)

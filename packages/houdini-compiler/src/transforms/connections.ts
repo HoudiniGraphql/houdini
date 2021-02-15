@@ -109,6 +109,20 @@ export default async function addConnectionFragments(
 		throw errors
 	}
 
+	// we need to add a delete directive for every type that is the target of a connection
+	const connectionTargets = [
+		...new Set(
+			Object.values(connections).map(({ type, field }) => {
+				// only consider object types
+				if (!(type instanceof graphql.GraphQLObjectType)) {
+					return ''
+				}
+
+				return type.name
+			})
+		).values(),
+	].filter(Boolean)
+
 	// we need to add the fragment definitions __somewhere__ where they will be picked up
 	// so we're going to add them to the list of documents, one each
 	documents[0].document = {
@@ -207,47 +221,24 @@ export default async function addConnectionFragments(
 				}
 			),
 
-			// we need to add a delete directive for every type that is the target of a connection
-			...[
-				...new Set(
-					Object.values(connections).map(({ type, field }) => {
-						// only consider object types
-						if (!(type instanceof graphql.GraphQLObjectType)) {
-							return ''
-						}
-						// grab the type of the field marked with connection
-						const fieldType = getRootType(type.getFields()[field.name.value]?.type)
-
-						// if we're not looking at an object
-						if (!(fieldType instanceof graphql.GraphQLObjectType)) {
-							return ''
-						}
-
-						return fieldType.name
-					})
-				).values(),
-			]
-				.filter(Boolean)
-				.flatMap<graphql.DirectiveDefinitionNode>((typeName) => {
-					return [
+			...connectionTargets.flatMap<graphql.DirectiveDefinitionNode>((typeName) => [
+				{
+					kind: 'DirectiveDefinition',
+					name: {
+						kind: 'Name',
+						value: config.connectionDeleteDirective(typeName),
+					},
+					locations: [
+						// the delete directive must be applied to a field in the response
+						// corresponding to the id
 						{
-							kind: 'DirectiveDefinition',
-							name: {
-								kind: 'Name',
-								value: config.connectionDeleteDirective(typeName),
-							},
-							locations: [
-								// the delete directive must be applied to a field in the response
-								// corresponding to the id
-								{
-									kind: 'Name',
-									value: 'FIELD',
-								},
-							],
-							repeatable: true,
+							kind: 'Name',
+							value: 'FIELD',
 						},
-					]
-				}),
+					],
+					repeatable: true,
+				},
+			]),
 		],
 	}
 }

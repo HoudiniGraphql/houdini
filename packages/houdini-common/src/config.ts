@@ -182,6 +182,10 @@ export class Config {
 		return name + this.deleteDirectiveSuffix
 	}
 
+	deleteDirectiveType(name: string) {
+		return name.slice(0, name.length - this.deleteDirectiveSuffix.length)
+	}
+
 	isInsertFragment(name: string) {
 		return name.endsWith(this.insertFragmentSuffix)
 	}
@@ -199,12 +203,14 @@ export class Config {
 	}
 
 	isInternalDirective({ name }: graphql.DirectiveNode): boolean {
-		return [
-			this.connectionDirective,
-			this.connectionPrependDirective,
-			this.connectionAppendDirective,
-			this.connectionDirectiveParentIDArg,
-		].includes(name.value)
+		return (
+			[
+				this.connectionDirective,
+				this.connectionPrependDirective,
+				this.connectionAppendDirective,
+				this.connectionDirectiveParentIDArg,
+			].includes(name.value) || this.isDeleteDirective(name.value)
+		)
 	}
 
 	isConnectionFragment(name: string): boolean {
