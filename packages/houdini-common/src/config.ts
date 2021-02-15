@@ -210,12 +210,18 @@ export function testConfig(config: {} = {}) {
 				firstName: String!
 				friends: [User!]!
 				believesIn: [Ghost!]!
+				cats: [Cat!]!
 			}
 
 			type Ghost {
 				name: String!
 				believers: [User!]!
 				friends: [Ghost!]!
+			}
+
+			type Cat {
+				id: ID!
+				name: String
 			}
 
 			type Query {
@@ -229,6 +235,7 @@ export function testConfig(config: {} = {}) {
 				addFriend: AddFriendOutput!
 				believeIn: BelieveInOutput!
 				deleteUser(id: ID!): DeleteUserOutput!
+				catMutation: CatMutationOutput!
 			}
 
 			type AddFriendOutput {
@@ -241,6 +248,10 @@ export function testConfig(config: {} = {}) {
 
 			type DeleteUserOutput {
 				userID: ID
+			}
+
+			type CatMutationOutput {
+				cat: Cat
 			}
 		`,
 		quiet: true,

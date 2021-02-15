@@ -141,7 +141,7 @@ test('patches include delete operations', async function () {
 			`query TestQuery {
 				user {
 					id
-					believesIn @connection(name: "Friends") {
+					cats @connection(name: "Friends") {
 						name
 					}
 				}
@@ -150,8 +150,8 @@ test('patches include delete operations', async function () {
 		mockCollectedDoc(
 			'TestMutation',
 			`mutation TestMutation {
-				believeIn {
-					ghost {
+				catMutation {
+					cat {
 						...Friends_remove
 					}
 				}

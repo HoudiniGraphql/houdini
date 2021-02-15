@@ -136,7 +136,8 @@ export default async function addConnectionFragments(
 						throw new HoudiniErrorTodo('Connections must have a selection')
 					}
 
-					return [
+					// we at least want to create fragment to indicate inserts in connections
+					const fragments: graphql.FragmentDefinitionNode[] = [
 						// a fragment to insert items into this connection
 						{
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
@@ -155,12 +156,19 @@ export default async function addConnectionFragments(
 								},
 							},
 						},
-						// a fragment to delete items from the list
-						{
+					]
+
+					// if the type has an id field, it can also be deleted from connections
+					if (type instanceof graphql.GraphQLObjectType && type.getFields()['id']) {
+						fragments.push({
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
+							name: {
+								kind: 'Name',
+								value: config.connectionRemoveFragment(name),
+							},
+							// deleting an entity just takes its id and the parent
 							selectionSet: {
 								kind: 'SelectionSet',
-								// all we need to know from an element is its id
 								selections: [
 									{
 										kind: 'Field',
@@ -171,10 +179,6 @@ export default async function addConnectionFragments(
 									},
 								],
 							},
-							name: {
-								kind: 'Name',
-								value: config.connectionRemoveFragment(name),
-							},
 							typeCondition: {
 								kind: 'NamedType',
 								name: {
@@ -182,8 +186,13 @@ export default async function addConnectionFragments(
 									value: type.name,
 								},
 							},
-						},
-					]
+						})
+					} else {
+						// TODO: do something about this
+						console.warn('not generating remove fragment from node')
+					}
+
+					return fragments
 				}
 			),
 		],
