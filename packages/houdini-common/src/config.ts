@@ -166,20 +166,32 @@ export class Config {
 		return `_insert`
 	}
 
-	isInsertFragment(name: string) {
-		return name.endsWith(this.insertFragmentSuffix)
-	}
-
-	isRemoveFragment(name: string) {
-		return name.endsWith(this.removeFragmentSuffix)
-	}
-
 	get removeFragmentSuffix() {
 		return `_remove`
 	}
 
+	get deleteDirectiveSuffix() {
+		return `_delete`
+	}
+
+	isDeleteDirective(name: string) {
+		return name.endsWith(this.deleteDirectiveSuffix)
+	}
+
+	connectionDeleteDirective(name: string): string {
+		return name + this.deleteDirectiveSuffix
+	}
+
+	isInsertFragment(name: string) {
+		return name.endsWith(this.insertFragmentSuffix)
+	}
+
 	connectionInsertFragment(name: string): string {
 		return name + this.insertFragmentSuffix
+	}
+
+	isRemoveFragment(name: string) {
+		return name.endsWith(this.removeFragmentSuffix)
 	}
 
 	connectionRemoveFragment(name: string): string {

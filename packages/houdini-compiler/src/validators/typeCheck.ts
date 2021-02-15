@@ -3,6 +3,7 @@ import { Config, isListType } from 'houdini-common'
 import * as graphql from 'graphql'
 import { NoUnusedFragments } from 'graphql/validation/rules/NoUnusedFragments'
 import { KnownFragmentNames } from 'graphql/validation/rules/KnownFragmentNames'
+import { ExecutableDefinitions } from 'graphql/validation/rules/ExecutableDefinitions'
 import { ASTValidationContext } from 'graphql/validation/ValidationContext'
 // locals
 import { CollectedGraphQLDocument } from '../types'
@@ -10,7 +11,7 @@ import { HoudiniDocumentError, HoudiniErrorTodo } from '../error'
 
 // build up a list of the rules we want to validate with
 const validateRules = [...graphql.specifiedRules].filter(
-	// remove the rules that conflict with houdini
+	// remove the rules that conflict with our
 	(rule) =>
 		![
 			// fragments are defined on their own so unused fragments are a face of life
@@ -18,6 +19,9 @@ const validateRules = [...graphql.specifiedRules].filter(
 			// query documents don't contain the fragments they use so we can't enforce
 			// that we know every fragment
 			KnownFragmentNames,
+			// some of the documents (ie the injected ones) will contain directive defintions
+			// and therefor not be explicitly executable
+			ExecutableDefinitions,
 		].includes(rule)
 )
 

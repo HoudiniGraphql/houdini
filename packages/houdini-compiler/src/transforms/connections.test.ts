@@ -153,10 +153,21 @@ test('delete node', async function () {
 				}
 			`
 		),
+		mockCollectedDoc(
+			'TestQuery',
+			`
+				fragment AllUsers  on User{
+					friends @connection(name:"User_Friends") {
+						firstName
+						id
+					}
+				}
+			`
+		),
 	]
 
 	// the document should validate
-	await expect(runPipeline(testConfig(), docs)).resolves.toBeTruthy()
+	await expect(runPipeline(testConfig(), docs)).resolves.toBeUndefined()
 })
 
 test('connection fragments must be unique', async function () {

@@ -103,6 +103,7 @@ export default async function addConnectionFragments(
 		...documents[0].document,
 		definitions: [
 			...documents[0].document.definitions,
+			// every connection needs insert and remove fragments
 			...Object.entries(connections).flatMap<graphql.FragmentDefinitionNode>(
 				([name, { field, type, filename, parent }]) => {
 					// look up the type
@@ -137,7 +138,7 @@ export default async function addConnectionFragments(
 					}
 
 					// we at least want to create fragment to indicate inserts in connections
-					const fragments: graphql.FragmentDefinitionNode[] = [
+					const definitions: graphql.DefinitionNode[] = [
 						// a fragment to insert items into this connection
 						{
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
@@ -160,7 +161,8 @@ export default async function addConnectionFragments(
 
 					// if the type has an id field, it can also be deleted from connections
 					if (type instanceof graphql.GraphQLObjectType && type.getFields()['id']) {
-						fragments.push({
+						// add a dfragment to remove from the specific connection
+						definitions.push({
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
 							name: {
 								kind: 'Name',
@@ -191,9 +193,34 @@ export default async function addConnectionFragments(
 						// TODO: do something about this
 					}
 
-					return fragments
+					// we're done
+					return definitions
 				}
 			),
+
+			// add fragments every type in the unique set of types with connections
+			...[
+				...new Set(Object.values(connections).map(({ type }) => type.name)).values(),
+			].flatMap<graphql.DirectiveDefinitionNode>((typeName) => {
+				return [
+					{
+						kind: 'DirectiveDefinition',
+						name: {
+							kind: 'Name',
+							value: config.connectionDeleteDirective(typeName),
+						},
+						locations: [
+							// the delete directive must be applied to a field in the response
+							// corresponding to the id
+							{
+								kind: 'Name',
+								value: 'FIELD',
+							},
+						],
+						repeatable: true,
+					},
+				]
+			}),
 		],
 	}
 }

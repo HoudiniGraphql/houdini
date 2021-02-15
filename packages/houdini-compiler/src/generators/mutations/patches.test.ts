@@ -132,7 +132,7 @@ test('patches include connection operations', async function () {
 	`)
 })
 
-test('patches include delete operations', async function () {
+test('patches include remove operations', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
 		// the query needs to ask for a field that the mutation could update
@@ -176,9 +176,9 @@ test('patches include delete operations', async function () {
 	).toMatchInlineSnapshot(`
 		export default {
 		    "edges": {
-		        "believeIn": {
+		        "catMutation": {
 		            "edges": {
-		                "ghost": {
+		                "cat": {
 		                    "operations": {
 		                        "remove": [{
 		                            "position": "end",
@@ -188,7 +188,7 @@ test('patches include delete operations', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "believesIn"]
+		                            "path": ["user", "cats"]
 		                        }]
 		                    }
 		                }
