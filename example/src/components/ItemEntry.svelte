@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { fragment, mutation, graphql } from 'houdini'
-	import type { ItemEntry_item, CompleteItem, UncompleteItem } from '../../generated'
+	import type { ItemEntry_item, CompleteItem, UncompleteItem, DeleteItem } from '../../generated'
 
 	// the reference we're passed from our parents
 	export let item: ItemEntry_item
@@ -39,6 +39,14 @@
 		}
 	`)
 
+	const deleteItem = mutation<DeleteItem>(graphql`
+		mutation DeleteItem($id: ID!) {
+			deleteItem(item: $id) {
+				itemID @Item_delete
+			}
+		}
+	`)
+
 	async function handleClick() {
 		// if the item is already checked
 		if ($data.completed) {
@@ -64,6 +72,6 @@
 			on:click={handleClick}
 		/>
 		<label for={$data.text}>{$data.text}</label>
-		<button class="destroy" />
+		<button class="destroy" on:click={() => deleteItem({id: $data.id})} />
 	</div>
 </li>

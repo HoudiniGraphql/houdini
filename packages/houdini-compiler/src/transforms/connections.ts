@@ -82,7 +82,8 @@ export default async function addConnectionFragments(
 						// from this connection if it doesn't fall under root
 						if (
 							!(parentType instanceof graphql.GraphQLObjectType) ||
-							!parentType.getFields().id
+							(parentType.name !== config.schema.getQueryType()?.name &&
+								!parentType.getFields().id)
 						) {
 							throw {
 								...new graphql.GraphQLError(
