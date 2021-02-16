@@ -113,7 +113,8 @@ export function patchesForSelectionSet(
 				// grab any mutations that modify this field
 				let operations = mutationTargets[fieldType.name]?.operations || {}
 
-				// grab the operations corresponding to the connection
+				// every key in the operation object points to a connection fragment
+				// and can contribute an operation to the list of patches
 				const newPatches = Object.entries(operations).flatMap(([fragmentName, mutations]) => {
 					// if we are looking at an operation that's relevant for this connection
 					if (!config.isFragmentForConnection(nameVal, fragmentName) && !fragmentName.startsWith('__houdini__delete')) {
@@ -133,8 +134,7 @@ export function patchesForSelectionSet(
 					)
 				})
 
-				// every key in the operation object points to a connection fragment
-				// and can contribute an operation to the list of patches
+				// add the patches
 				patches.push(...newPatches)
 			}
 
