@@ -243,7 +243,6 @@ function deleteFromConnection(path: string[], target: Record, targetID: string) 
 
 		// look at every option for a matching id
 		for (const entry of parents) {
-			console.log(entry)
 			// if the element does not exist in the target
 			if (attributeName && !entry[attributeName]) {
 				// there's nothing to remove
