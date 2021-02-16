@@ -112,10 +112,6 @@ export function patchesForSelectionSet(
 
 				// grab any mutations that modify this field
 				let operations = mutationTargets[fieldType.name]?.operations || {}
-				// mutationTargets[fieldType.name]?.operations[
-				// 	// vvvvvvv this only picks the @append entries!!!
-				// 	config.connectionInsertFragment(nameVal)
-				// ] || {}
 
 				const newPatches = Object.values(operations).flatMap((mutations) =>
 					Object.entries(mutations).map(

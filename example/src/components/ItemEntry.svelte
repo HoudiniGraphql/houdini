@@ -42,7 +42,7 @@
 	const deleteItem = mutation<DeleteItem>(graphql`
 		mutation DeleteItem($id: ID!) {
 			deleteItem(item: $id) {
-				itemID @Item_delete
+				itemID @TodoItem_delete
 			}
 		}
 	`)

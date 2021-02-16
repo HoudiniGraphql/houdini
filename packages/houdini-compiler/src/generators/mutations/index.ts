@@ -163,10 +163,6 @@ export default async function mutationGenerator(config: Config, docs: CollectedG
 		// we're done with this document
 		_docsVisited[definition.name.value] = true
 	}
-	// console.log('-----------------')
-	// console.log(JSON.stringify(mutationTargets, null, 4))
-	// console.log('-----------------')
-	// console.log(JSON.stringify(patches, null, 4))
 
 	await Promise.all([
 		// generate the patch descriptions
@@ -323,7 +319,7 @@ function fillMutationMap(
 				// the target of the delete is the type identified by the directive name
 				const deleteTarget = config.deleteDirectiveType(deleteDirective.name.value)
 				// there is no specific connection for a delete operation
-				const connectionName = '_'
+				const connectionName = name
 
 				// the delete directive gets attached to the target field
 				if (!mutationTargets[deleteTarget]) {
