@@ -74,7 +74,7 @@ test('patches include connection operations', async function () {
 			`query TestQuery {
 				user {
 					id
-					believesIn @connection(name: "Friends") {
+					cats @connection(name: "Friends") {
 						name
 					}
 				}
@@ -83,8 +83,8 @@ test('patches include connection operations', async function () {
 		mockCollectedDoc(
 			'TestMutation',
 			`mutation TestMutation {
-				believeIn {
-					ghost {
+				catMutation {
+					cat {
 						...Friends_insert
 					}
 				}
@@ -109,9 +109,9 @@ test('patches include connection operations', async function () {
 	).toMatchInlineSnapshot(`
 		export default {
 		    "edges": {
-		        "believeIn": {
+		        "catMutation": {
 		            "edges": {
-		                "ghost": {
+		                "cat": {
 		                    "operations": {
 		                        "add": [{
 		                            "position": "end",
@@ -121,7 +121,7 @@ test('patches include connection operations', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "believesIn"]
+		                            "path": ["user", "cats"]
 		                        }]
 		                    }
 		                }
@@ -132,7 +132,7 @@ test('patches include connection operations', async function () {
 	`)
 })
 
-test('patches include delete operations', async function () {
+test('patches include remove operations', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
 		// the query needs to ask for a field that the mutation could update
@@ -141,7 +141,7 @@ test('patches include delete operations', async function () {
 			`query TestQuery {
 				user {
 					id
-					believesIn @connection(name: "Friends") {
+					cats @connection(name: "Friends") {
 						name
 					}
 				}
@@ -150,8 +150,8 @@ test('patches include delete operations', async function () {
 		mockCollectedDoc(
 			'TestMutation',
 			`mutation TestMutation {
-				believeIn {
-					ghost {
+				catMutation {
+					cat {
 						...Friends_remove
 					}
 				}
@@ -176,9 +176,9 @@ test('patches include delete operations', async function () {
 	).toMatchInlineSnapshot(`
 		export default {
 		    "edges": {
-		        "believeIn": {
+		        "catMutation": {
 		            "edges": {
-		                "ghost": {
+		                "cat": {
 		                    "operations": {
 		                        "remove": [{
 		                            "position": "end",
@@ -188,7 +188,72 @@ test('patches include delete operations', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "believesIn"]
+		                            "path": ["user", "cats"]
+		                        }]
+		                    }
+		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test('patches include delete operations', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`query TestQuery {
+				user {
+					id
+					cats @connection(name: "Friends") {
+						name
+					}
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				deleteCat {
+					catID @Cat_delete
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "deleteCat": {
+		            "edges": {
+		                "catID": {
+		                    "operations": {
+		                        "delete": [{
+		                            "position": "end",
+
+		                            "parentID": {
+		                                "kind": "Root",
+		                                "value": "root"
+		                            },
+
+		                            "path": ["user", "cats"]
 		                        }]
 		                    }
 		                }
@@ -207,7 +272,7 @@ test('connection patches track insert position', async function () {
 			'TestQuery',
 			`fragment TestFragment on User {
 				id
-				believesIn @connection(name: "Friends") {
+				cats @connection(name: "Friends") {
 					name
 				}
 			}`
@@ -215,8 +280,8 @@ test('connection patches track insert position', async function () {
 		mockCollectedDoc(
 			'TestMutation',
 			`mutation TestMutation {
-				believeIn {
-					ghost {
+				catMutation {
+					cat {
 						...Friends_insert @prepend(parentID: "1234")
 					}
 				}
@@ -241,9 +306,9 @@ test('connection patches track insert position', async function () {
 	).toMatchInlineSnapshot(`
 		export default {
 		    "edges": {
-		        "believeIn": {
+		        "catMutation": {
 		            "edges": {
-		                "ghost": {
+		                "cat": {
 		                    "operations": {
 		                        "add": [{
 		                            "position": "start",
@@ -253,7 +318,7 @@ test('connection patches track insert position', async function () {
 		                                "value": "1234"
 		                            },
 
-		                            "path": ["believesIn"]
+		                            "path": ["cats"]
 		                        }]
 		                    }
 		                }
@@ -272,7 +337,7 @@ test('connection patches include reference to parentID string value', async func
 			'TestQuery',
 			`fragment TestFragment on User {
 				id
-				believesIn @connection(name: "Friends") {
+				cats @connection(name: "Friends") {
 					name
 				}
 			}`
@@ -280,8 +345,8 @@ test('connection patches include reference to parentID string value', async func
 		mockCollectedDoc(
 			'TestMutation',
 			`mutation TestMutation {
-				believeIn {
-					ghost {
+				catMutation {
+					cat {
 						...Friends_insert @append(parentID: "1234")
 					}
 				}
@@ -306,9 +371,9 @@ test('connection patches include reference to parentID string value', async func
 	).toMatchInlineSnapshot(`
 		export default {
 		    "edges": {
-		        "believeIn": {
+		        "catMutation": {
 		            "edges": {
-		                "ghost": {
+		                "cat": {
 		                    "operations": {
 		                        "add": [{
 		                            "position": "end",
@@ -318,7 +383,7 @@ test('connection patches include reference to parentID string value', async func
 		                                "value": "1234"
 		                            },
 
-		                            "path": ["believesIn"]
+		                            "path": ["cats"]
 		                        }]
 		                    }
 		                }
@@ -337,7 +402,7 @@ test('connection patches include reference to parentID variable', async function
 			'TestQuery',
 			`fragment TestFragment on User {
 				id
-				believesIn @connection(name: "Friends") {
+				cats @connection(name: "Friends") {
 					name
 				}
 			}`
@@ -345,8 +410,8 @@ test('connection patches include reference to parentID variable', async function
 		mockCollectedDoc(
 			'TestMutation',
 			`mutation TestMutation($userID: ID!) {
-				believeIn {
-					ghost {
+				catMutation {
+					cat {
 						...Friends_insert @append(parentID: $userID)
 					}
 				}
@@ -371,9 +436,9 @@ test('connection patches include reference to parentID variable', async function
 	).toMatchInlineSnapshot(`
 		export default {
 		    "edges": {
-		        "believeIn": {
+		        "catMutation": {
 		            "edges": {
-		                "ghost": {
+		                "cat": {
 		                    "operations": {
 		                        "add": [{
 		                            "position": "end",
@@ -383,7 +448,7 @@ test('connection patches include reference to parentID variable', async function
 		                                "value": "userID"
 		                            },
 
-		                            "path": ["believesIn"]
+		                            "path": ["cats"]
 		                        }]
 		                    }
 		                }
@@ -402,7 +467,7 @@ test('connection patches include reference to parentID directive', async functio
 			'TestQuery',
 			`fragment TestFragment on User {
 				id
-				believesIn @connection(name: "Friends") {
+				cats @connection(name: "Friends") {
 					name
 				}
 			}`
@@ -410,8 +475,8 @@ test('connection patches include reference to parentID directive', async functio
 		mockCollectedDoc(
 			'TestMutation',
 			`mutation TestMutation($userID: ID!) {
-				believeIn {
-					ghost {
+				catMutation {
+					cat {
 						...Friends_insert @append @parentID(value: $userID)
 					}
 				}
@@ -436,9 +501,9 @@ test('connection patches include reference to parentID directive', async functio
 	).toMatchInlineSnapshot(`
 		export default {
 		    "edges": {
-		        "believeIn": {
+		        "catMutation": {
 		            "edges": {
-		                "ghost": {
+		                "cat": {
 		                    "operations": {
 		                        "add": [{
 		                            "position": "end",
@@ -448,7 +513,7 @@ test('connection patches include reference to parentID directive', async functio
 		                                "value": "userID"
 		                            },
 
-		                            "path": ["believesIn"]
+		                            "path": ["cats"]
 		                        }]
 		                    }
 		                }
@@ -467,7 +532,7 @@ test('no patches for connection fragments', async function () {
 			'TestQuery',
 			`fragment TestFragment on User {
 				id
-				believesIn @connection(name: "Friends") {
+				cats @connection(name: "Friends") {
 					name
 				}
 			}`
@@ -475,8 +540,8 @@ test('no patches for connection fragments', async function () {
 		mockCollectedDoc(
 			'TestMutation',
 			`mutation TestMutation($userID: ID!) {
-				believeIn {
-					ghost {
+				catMutation {
+					cat {
 						...Friends_insert @append(parentID: $userID)
 					}
 				}

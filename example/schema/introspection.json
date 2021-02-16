@@ -1,5 +1,5 @@
 {
-	"__schema": {
+	  "__schema": {
 		"queryType": {
 		  "name": "Query"
 		},
@@ -239,6 +239,37 @@
 				},
 				"isDeprecated": false,
 				"deprecationReason": null
+			  },
+			  {
+				"name": "deleteItem",
+				"description": null,
+				"args": [
+				  {
+					"name": "item",
+					"description": null,
+					"type": {
+					  "kind": "NON_NULL",
+					  "name": null,
+					  "ofType": {
+						"kind": "SCALAR",
+						"name": "ID",
+						"ofType": null
+					  }
+					},
+					"defaultValue": null
+				  }
+				],
+				"type": {
+				  "kind": "NON_NULL",
+				  "name": null,
+				  "ofType": {
+					"kind": "OBJECT",
+					"name": "DeleteIemOutput",
+					"ofType": null
+				  }
+				},
+				"isDeprecated": false,
+				"deprecationReason": null
 			  }
 			],
 			"inputFields": null,
@@ -373,6 +404,41 @@
 				"type": {
 				  "kind": "OBJECT",
 				  "name": "TodoItem",
+				  "ofType": null
+				},
+				"isDeprecated": false,
+				"deprecationReason": null
+			  }
+			],
+			"inputFields": null,
+			"interfaces": [],
+			"enumValues": null,
+			"possibleTypes": null
+		  },
+		  {
+			"kind": "OBJECT",
+			"name": "DeleteIemOutput",
+			"description": null,
+			"fields": [
+			  {
+				"name": "error",
+				"description": null,
+				"args": [],
+				"type": {
+				  "kind": "OBJECT",
+				  "name": "Error",
+				  "ofType": null
+				},
+				"isDeprecated": false,
+				"deprecationReason": null
+			  },
+			  {
+				"name": "itemID",
+				"description": null,
+				"args": [],
+				"type": {
+				  "kind": "SCALAR",
+				  "name": "ID",
 				  "ofType": null
 				},
 				"isDeprecated": false,

@@ -141,6 +141,35 @@ test('connection fragments on fragment selection set', async function () {
 	`)
 })
 
+test('delete node', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'DeleteUser',
+			`
+				mutation DeleteUser {
+					deleteUser(id: "1234") {
+						userID @User_delete
+					}
+				}
+			`
+		),
+		mockCollectedDoc(
+			'TestQuery',
+			`
+				fragment AllUsers  on User{
+					friends @connection(name:"User_Friends") {
+						firstName
+						id
+					}
+				}
+			`
+		),
+	]
+
+	// the document should validate
+	await expect(runPipeline(testConfig(), docs)).resolves.toBeUndefined()
+})
+
 test('connection fragments must be unique', async function () {
 	const docs = [
 		mockCollectedDoc(
@@ -183,6 +212,7 @@ test('includes `id` in connection fragment', async function () {
 			`
 			fragment AllUsers  on User{
 				friends @connection(name:"User_Friends") {
+					id
 					firstName
 				}
 			}
@@ -202,6 +232,7 @@ test('includes `id` in connection fragment', async function () {
 		}
 
 		fragment User_Friends_insert on User {
+		  id
 		  firstName
 		}
 		"

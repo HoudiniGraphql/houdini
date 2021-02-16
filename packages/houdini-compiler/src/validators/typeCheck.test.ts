@@ -221,29 +221,6 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@connection on root field with no id passes',
-		pass: true,
-		documents: [
-			`
-                query believers {
-					ghost {
-						name
-						believers @connection(name: "Believers") {
-							id
-						}
-					}
-                }
-            `,
-			`
-                mutation Mutation {
-					addFriend {
-						...Believers_insert
-					}
-                }
-            `,
-		],
-	},
-	{
 		title: 'returns multiple errors',
 		pass: false,
 		documents: [

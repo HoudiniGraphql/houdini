@@ -3,6 +3,8 @@ import { Config, isListType } from 'houdini-common'
 import * as graphql from 'graphql'
 import { NoUnusedFragments } from 'graphql/validation/rules/NoUnusedFragments'
 import { KnownFragmentNames } from 'graphql/validation/rules/KnownFragmentNames'
+import { KnownDirectives } from 'graphql/validation/rules/KnownDirectives'
+import { ExecutableDefinitions } from 'graphql/validation/rules/ExecutableDefinitions'
 import { ASTValidationContext } from 'graphql/validation/ValidationContext'
 // locals
 import { CollectedGraphQLDocument } from '../types'
@@ -10,7 +12,7 @@ import { HoudiniDocumentError, HoudiniErrorTodo } from '../error'
 
 // build up a list of the rules we want to validate with
 const validateRules = [...graphql.specifiedRules].filter(
-	// remove the rules that conflict with houdini
+	// remove the rules that conflict with our
 	(rule) =>
 		![
 			// fragments are defined on their own so unused fragments are a face of life
@@ -18,6 +20,11 @@ const validateRules = [...graphql.specifiedRules].filter(
 			// query documents don't contain the fragments they use so we can't enforce
 			// that we know every fragment
 			KnownFragmentNames,
+			// some of the documents (ie the injected ones) will contain directive defintions
+			// and therefor not be explicitly executable
+			ExecutableDefinitions,
+			// connection include directives that aren't defined by the schema
+			KnownDirectives,
 		].includes(rule)
 )
 
@@ -45,7 +52,7 @@ export default async function typeCheck(
 
 	// we need to catch errors in the connection API. this means that a user
 	// must provide parentID if they are using a connection that is not all-objects
-	// from root
+	// from root. figure out which connections are "free" (ie, can be applied without a parentID arg)
 
 	const freeConnections: string[] = []
 	for (const { filename, document: parsed, printed } of docs) {
@@ -147,12 +154,13 @@ export default async function typeCheck(
 							}
 
 							// @ts-ignore
-							// look up the field in the parent type
+							// look at the next entry for a list or someting else that would make us
+							// require a parent ID
 							rootType = rootType?.getFields()[parent.name.value].type
 						}
 					}
 
-					// if we still dont need a parent by now, add it to the list
+					// if we still dont need a parent by now, add it to the list of free connections
 					if (!needsParent) {
 						// look up the name of the connection
 						const nameArg = directive.arguments?.find(
@@ -165,7 +173,7 @@ export default async function typeCheck(
 
 						freeConnections.push(
 							config.connectionInsertFragment(nameArg.value.value),
-							config.connectionDeleteFragment(nameArg.value.value)
+							config.connectionRemoveFragment(nameArg.value.value)
 						)
 					}
 				},

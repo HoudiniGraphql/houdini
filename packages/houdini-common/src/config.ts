@@ -166,33 +166,51 @@ export class Config {
 		return `_insert`
 	}
 
-	isInsertFragment(name: string) {
-		return name.endsWith(this.insertFragmentSuffix)
-	}
-
-	isRemoveFragment(name: string) {
-		return name.endsWith(this.removeFragmentSuffix)
-	}
-
 	get removeFragmentSuffix() {
 		return `_remove`
+	}
+
+	get deleteDirectiveSuffix() {
+		return `_delete`
+	}
+
+	isDeleteDirective(name: string) {
+		return name.endsWith(this.deleteDirectiveSuffix)
+	}
+
+	connectionDeleteDirective(name: string): string {
+		return name + this.deleteDirectiveSuffix
+	}
+
+	deleteDirectiveType(name: string) {
+		return name.slice(0, name.length - this.deleteDirectiveSuffix.length)
+	}
+
+	isInsertFragment(name: string) {
+		return name.endsWith(this.insertFragmentSuffix)
 	}
 
 	connectionInsertFragment(name: string): string {
 		return name + this.insertFragmentSuffix
 	}
 
-	connectionDeleteFragment(name: string): string {
+	isRemoveFragment(name: string) {
+		return name.endsWith(this.removeFragmentSuffix)
+	}
+
+	connectionRemoveFragment(name: string): string {
 		return name + this.removeFragmentSuffix
 	}
 
 	isInternalDirective({ name }: graphql.DirectiveNode): boolean {
-		return [
-			this.connectionDirective,
-			this.connectionPrependDirective,
-			this.connectionAppendDirective,
-			this.connectionDirectiveParentIDArg,
-		].includes(name.value)
+		return (
+			[
+				this.connectionDirective,
+				this.connectionPrependDirective,
+				this.connectionAppendDirective,
+				this.connectionDirectiveParentIDArg,
+			].includes(name.value) || this.isDeleteDirective(name.value)
+		)
 	}
 
 	isConnectionFragment(name: string): boolean {
@@ -210,12 +228,18 @@ export function testConfig(config: {} = {}) {
 				firstName: String!
 				friends: [User!]!
 				believesIn: [Ghost!]!
+				cats: [Cat!]!
 			}
 
 			type Ghost {
 				name: String!
 				believers: [User!]!
 				friends: [Ghost!]!
+			}
+
+			type Cat {
+				id: ID!
+				name: String
 			}
 
 			type Query {
@@ -228,6 +252,9 @@ export function testConfig(config: {} = {}) {
 				updateUser: User!
 				addFriend: AddFriendOutput!
 				believeIn: BelieveInOutput!
+				deleteUser(id: ID!): DeleteUserOutput!
+				catMutation: CatMutationOutput!
+				deleteCat: DeleteCatOutput!
 			}
 
 			type AddFriendOutput {
@@ -236,6 +263,18 @@ export function testConfig(config: {} = {}) {
 
 			type BelieveInOutput {
 				ghost: Ghost
+			}
+
+			type DeleteUserOutput {
+				userID: ID
+			}
+
+			type DeleteCatOutput {
+				catID: ID
+			}
+
+			type CatMutationOutput {
+				cat: Cat
 			}
 		`,
 		quiet: true,

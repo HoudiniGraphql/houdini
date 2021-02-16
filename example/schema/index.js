@@ -22,6 +22,7 @@ const typeDefs = gql`
 		checkItem(item: ID!): UpdateItemOutput!
 		uncheckItem(item: ID!): UpdateItemOutput!
 		addItem(input: AddItemInput!): AddItemOutput!
+		deleteItem(item: ID!): DeleteIemOutput!
 	}
 
 	input AddItemInput {
@@ -37,10 +38,15 @@ const typeDefs = gql`
 		error: Error
 		item: TodoItem
 	}
+
+	type DeleteIemOutput {
+		error: Error
+		itemID: ID
+	}
 `
 
 // example data
-const items = [
+let items = [
 	{ id: '1', text: 'Taste JavaScript' },
 	{ id: '2', text: 'Buy a unicorn' },
 ]
@@ -82,6 +88,15 @@ const resolvers = {
 			return {
 				error: null,
 				item,
+			}
+		},
+		deleteItem(_, { item: targetID }) {
+			// filter out the item with the matching id
+			items = items.filter(({ id }) => id !== targetID)
+
+			return {
+				error: null,
+				itemID: targetID,
 			}
 		},
 		addItem(_, { input: { text } }) {

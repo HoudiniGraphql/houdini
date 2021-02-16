@@ -15,7 +15,6 @@ export default async function addConnectionFragments(
 		[name: string]: {
 			field: graphql.FieldNode
 			type: graphql.GraphQLNamedType
-			parent: graphql.GraphQLNamedType
 			filename: string
 		}
 	} = {}
@@ -79,12 +78,26 @@ export default async function addConnectionFragments(
 							...parents.slice(1),
 						])
 
+						// if id is not a valid field on the parent, we won't be able to add or remove
+						// from this connection if it doesn't fall under root
+						if (
+							!(parentType instanceof graphql.GraphQLObjectType) ||
+							(parentType.name !== config.schema.getQueryType()?.name &&
+								!parentType.getFields().id)
+						) {
+							throw {
+								...new graphql.GraphQLError(
+									'Can only use a connection field on fragment on a type with id'
+								),
+								filepath: filename,
+							}
+						}
+
 						// add the target of the directive to the list
 						connections[nameArg.value.value] = {
 							field: ancestors[ancestors.length - 1] as graphql.FieldNode,
 							type,
 							filename,
-							parent: parentType,
 						}
 					}
 				},
@@ -97,52 +110,74 @@ export default async function addConnectionFragments(
 		throw errors
 	}
 
+	// we need to add a delete directive for every type that is the target of a connection
+	const connectionTargets = [
+		...new Set(
+			Object.values(connections).map(({ type, field }) => {
+				// only consider object types
+				if (!(type instanceof graphql.GraphQLObjectType)) {
+					return ''
+				}
+
+				return type.name
+			})
+		).values(),
+	].filter(Boolean)
+
 	// we need to add the fragment definitions __somewhere__ where they will be picked up
 	// so we're going to add them to the list of documents, one each
 	documents[0].document = {
 		...documents[0].document,
 		definitions: [
 			...documents[0].document.definitions,
+			// every connection needs insert and remove fragments
 			...Object.entries(connections).flatMap<graphql.FragmentDefinitionNode>(
-				([name, { field, type, filename, parent }]) => {
+				([name, { field, type, filename }]) => {
 					// look up the type
 					const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
-
-					// is there no id selection
-					if (
-						schemaType &&
-						field.selectionSet &&
-						!field.selectionSet?.selections.find(
-							(selection) =>
-								selection.kind === 'Field' && selection.name.value === 'id'
-						)
-					) {
-						// if id is not a valid field
-						if (
-							!(parent instanceof graphql.GraphQLObjectType) ||
-							!parent.getFields().id
-						) {
-							throw {
-								...new graphql.GraphQLError(
-									'Can only use a connection field on fragment on a type with id'
-								),
-								filepath: filename,
-							}
-						}
-					}
 
 					// if there is no selection set
 					if (!field.selectionSet) {
 						throw new HoudiniErrorTodo('Connections must have a selection')
 					}
 
+					// we need a copy of the field's selection set that we can mutate
+					const selection: graphql.SelectionSetNode = {
+						kind: 'SelectionSet',
+						selections: [...field.selectionSet.selections],
+						loc: field.selectionSet.loc,
+					}
+
+					// is there no id selection
+					if (
+						schemaType &&
+						selection &&
+						!selection?.selections.find(
+							(selection) =>
+								selection.kind === 'Field' && selection.name.value === 'id'
+						)
+					) {
+						// add the id field to the selection
+						selection.selections = [
+							...selection.selections,
+							{
+								kind: 'Field',
+								name: {
+									kind: 'Name',
+									value: 'id',
+								},
+							},
+						]
+					}
+
+					// we at least want to create fragment to indicate inserts in connections
 					return [
 						// a fragment to insert items into this connection
 						{
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
 							// in order to insert an item into this connection, it must
-							// have all of the same fields as the list
-							selectionSet: field.selectionSet,
+							// have the same selection as the field
+							selectionSet: selection,
 							name: {
 								kind: 'Name',
 								value: config.connectionInsertFragment(name),
@@ -155,12 +190,16 @@ export default async function addConnectionFragments(
 								},
 							},
 						},
-						// a fragment to delete items from the list
+						// add a dfragment to remove from the specific connection
 						{
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
+							name: {
+								kind: 'Name',
+								value: config.connectionRemoveFragment(name),
+							},
+							// deleting an entity just takes its id and the parent
 							selectionSet: {
 								kind: 'SelectionSet',
-								// all we need to know from an element is its id
 								selections: [
 									{
 										kind: 'Field',
@@ -170,10 +209,6 @@ export default async function addConnectionFragments(
 										},
 									},
 								],
-							},
-							name: {
-								kind: 'Name',
-								value: config.connectionDeleteFragment(name),
 							},
 							typeCondition: {
 								kind: 'NamedType',
@@ -186,6 +221,25 @@ export default async function addConnectionFragments(
 					]
 				}
 			),
+
+			...connectionTargets.flatMap<graphql.DirectiveDefinitionNode>((typeName) => [
+				{
+					kind: 'DirectiveDefinition',
+					name: {
+						kind: 'Name',
+						value: config.connectionDeleteDirective(typeName),
+					},
+					locations: [
+						// the delete directive must be applied to a field in the response
+						// corresponding to the id
+						{
+							kind: 'Name',
+							value: 'FIELD',
+						},
+					],
+					repeatable: true,
+				},
+			]),
 		],
 	}
 }
