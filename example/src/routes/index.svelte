@@ -12,7 +12,7 @@
 				...ItemEntry_item
 			}
 		}
-	`, null)
+	`)
 </script>
 
 {#each $data.items as item (item.id)}

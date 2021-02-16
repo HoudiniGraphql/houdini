@@ -11,7 +11,7 @@
 				completed
 			}
 		}
-	`, null)
+	`)
 
 	// state and handler for the new item input
 	const addItem = mutation<AddItem>(graphql`

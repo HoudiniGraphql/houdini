@@ -8,8 +8,7 @@ import { registerDocumentStore, unregisterDocumentStore } from './runtime'
 import { Operation } from './types'
 
 export default function query<_Query extends Operation<any, any>>(
-	document: GraphQLTagResult,
-	variables: undefined | _Query['input']
+	document: GraphQLTagResult
 ): Readable<_Query['result']> {
 	// make sure we got a query document
 	if (document.kind !== CompiledQueryKind) {
