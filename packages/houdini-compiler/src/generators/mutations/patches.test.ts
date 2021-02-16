@@ -559,6 +559,85 @@ test('no patches for connection fragments', async function () {
 	).rejects.toBeTruthy()
 })
 
+test('one operation multiple queries dont double up', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery1',
+			`query TestQuery1 {
+				user {
+					id
+					cats @connection(name: "Friends1") {
+						name
+					}
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestQuery2',
+			`query TestQuery2 {
+				user {
+					id
+					cats @connection(name: "Friends2") {
+						name
+					}
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				catMutation {
+					cat {
+						...Friends1_insert
+						...Friends2_insert
+					}
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery1', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "catMutation": {
+		            "edges": {
+		                "cat": {
+		                    "operations": {
+		                        "add": [{
+		                            "position": "end",
+
+		                            "parentID": {
+		                                "kind": "Root",
+		                                "value": "root"
+		                            },
+
+		                            "path": ["user", "cats"]
+		                        }]
+		                    }
+		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
 test.todo('inline fragments in mutation body count as an intersection')
 
 test.todo('inline fragments in queries count as an intersection')
