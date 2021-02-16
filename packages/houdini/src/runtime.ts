@@ -221,6 +221,17 @@ function deleteFromConnection(path: string[], target: Record, targetID: string) 
 	return walkToConnection(path, target, function (head, path, target) {
 		const attributeName = path[0]
 
+		// if this is a root list
+		if (!attributeName) {
+			const lengthBefore = target[head].length || 0
+			// remove any entries with the matching id
+			target[head] = target[head].filter(({ id }: { id?: string }) => id !== targetID)
+			const lengthAfter = target[head].length || 0
+
+			// track if we did infact update something
+			return lengthBefore !== lengthAfter
+		}
+
 		// the head points to the list we have to look at for possible parents
 		const parents = target[head]
 		if (!Array.isArray(parents)) {
@@ -232,12 +243,19 @@ function deleteFromConnection(path: string[], target: Record, targetID: string) 
 
 		// look at every option for a matching id
 		for (const entry of parents) {
-			const lengthBefore = entry[attributeName]?.length || 0
+			console.log(entry)
+			// if the element does not exist in the target
+			if (attributeName && !entry[attributeName]) {
+				// there's nothing to remove
+				continue
+			}
+
+			const lengthBefore = entry[attributeName].length || 0
 			// remove any entries with the matching id
 			entry[attributeName] = entry[attributeName].filter(
 				({ id }: { id?: string }) => id !== targetID
 			)
-			const lengthAfter = entry[attributeName]?.length || 0
+			const lengthAfter = entry[attributeName].length || 0
 
 			// track if we did infact update something
 			updated = lengthBefore !== lengthAfter

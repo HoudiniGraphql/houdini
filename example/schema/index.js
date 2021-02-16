@@ -46,7 +46,7 @@ const typeDefs = gql`
 `
 
 // example data
-const items = [
+let items = [
 	{ id: '1', text: 'Taste JavaScript' },
 	{ id: '2', text: 'Buy a unicorn' },
 ]
