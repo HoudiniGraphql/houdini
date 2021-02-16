@@ -218,7 +218,7 @@ export class Config {
 	}
 
 	isFragmentForConnection(connectionName: string, fragmentName: string) {
-		return fragmentName.startsWith(connection)
+		return fragmentName.startsWith(connectionName)
 	}
 }
 

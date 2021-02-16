@@ -319,7 +319,7 @@ function fillMutationMap(
 				// the target of the delete is the type identified by the directive name
 				const deleteTarget = config.deleteDirectiveType(deleteDirective.name.value)
 				// there is no specific connection for a delete operation
-				const connectionName = name
+				const connectionName = `__houdini__delete_${deleteTarget}_${name}`
 
 				// the delete directive gets attached to the target field
 				if (!mutationTargets[deleteTarget]) {
