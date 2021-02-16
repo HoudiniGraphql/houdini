@@ -216,6 +216,10 @@ export class Config {
 	isConnectionFragment(name: string): boolean {
 		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.removeFragmentSuffix)
 	}
+
+	isFragmentForConnection(connectionName: string, fragmentName: string) {
+		return fragmentName.startsWith(connectionName)
+	}
 }
 
 export function testConfig(config: {} = {}) {

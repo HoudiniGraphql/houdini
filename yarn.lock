@@ -7110,17 +7110,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.0.5, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.0.6, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
     mkdirp: ^1.0.4
+    typescript: ^4.1.5
   bin:
     houdini-common: build/main.js
   languageName: unknown
   linkType: soft
 
-"houdini-compiler@^0.0.5, houdini-compiler@workspace:packages/houdini-compiler":
+"houdini-compiler@^0.0.6, houdini-compiler@workspace:packages/houdini-compiler":
   version: 0.0.0-use.local
   resolution: "houdini-compiler@workspace:packages/houdini-compiler"
   dependencies:
@@ -7135,7 +7136,7 @@ __metadata:
     babylon: ^7.0.0-beta.47
     commander: ^7.0.0
     estree-walker: ^2.0.2
-    houdini-common: ^0.0.5
+    houdini-common: ^0.0.6
     jest: ^26.6.3
     mkdirp: ^1.0.4
     recast: ^0.20.4
@@ -7175,9 +7176,9 @@ __metadata:
     graphql: ^14.0.0
     graphql-relay: ^0.6.0
     graphql-tag: ^2.11.0
-    houdini: ^0.0.5
-    houdini-compiler: ^0.0.5
-    houdini-preprocess: ^0.0.5
+    houdini: ^0.0.6
+    houdini-compiler: ^0.0.6
+    houdini-preprocess: ^0.0.6
     lodash: ^4.17.20
     polka: next
     rollup: ^2.3.4
@@ -7214,7 +7215,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.0.5, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.0.6, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -7227,7 +7228,7 @@ __metadata:
     babel-jest: ^26.6.3
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
-    houdini-compiler: ^0.0.5
+    houdini-compiler: ^0.0.6
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -7238,12 +7239,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.0.5, houdini@workspace:packages/houdini":
+"houdini@^0.0.6, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
-    houdini-compiler: ^0.0.5
-    houdini-preprocess: ^0.0.5
+    houdini-compiler: ^0.0.6
+    houdini-preprocess: ^0.0.6
   languageName: unknown
   linkType: soft
 
@@ -13321,6 +13322,16 @@ typescript@^3.9.5:
   languageName: node
   linkType: hard
 
+typescript@^4.1.5:
+  version: 4.1.5
+  resolution: "typescript@npm:4.1.5"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 29157c84426ac94ce97aac836264f303a26bd9fb30865650229e3406a36ca2e89735ef4b8878075ba1b95fa4d3ff9810057b64888700c28e20b4034a6db4da83
+  languageName: node
+  linkType: hard
+
 "typescript@patch:typescript@*#builtin<compat/typescript>, typescript@patch:typescript@^4.0.0#builtin<compat/typescript>, typescript@patch:typescript@^4.0.3#builtin<compat/typescript>":
   version: 4.1.3
   resolution: "typescript@patch:typescript@npm%3A4.1.3#builtin<compat/typescript>::version=4.1.3&hash=cc6730"
@@ -13338,6 +13349,16 @@ typescript@^3.9.5:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: f0d3d9c987860c7c458229ab6dd7e3d322405db36b70abccba610b5efd9f9451e4e67a3fc7983c0d3741033c1f1a8d7aa859a1510caa8f20fad762fc39648bfa
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@^4.1.5#builtin<compat/typescript>":
+  version: 4.1.5
+  resolution: "typescript@patch:typescript@npm%3A4.1.5#builtin<compat/typescript>::version=4.1.5&hash=cc6730"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 58cc7786be0f8485c124944883b1384287532e4867ec37f1fb5cb2811dbc10f7a9decccad89097f924043285f3515bfd8223c61dbb4f88af00b2d8dc2ef73207
   languageName: node
   linkType: hard
 
