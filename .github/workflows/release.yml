@@ -1,6 +1,6 @@
 name: Publish Release
 on:
-    # When Release Pull Request is merged
+    # When a pull request to main is merged
     pull_request:
         branches:
             - main
@@ -30,8 +30,7 @@ jobs:
                   node-version: 15
                   registry-url: 'https://npm.pkg.github.com'
 
-            # run git actions as a bot
-            - name: Git Identity
+            - name: Set Git Identity
               run: |
                   git config --global user.name 'github-actions[bot]'
                   git config --global user.email 'github-actions[bot]@users.noreply.github.com'
@@ -62,7 +61,7 @@ jobs:
                   echo "BUMP=${BUMP}" >> $GITHUB_ENV
                   echo "BUMP_EMOJI=${BUMP_EMOJI}" >> $GITHUB_ENV
 
-            - name: Authenticate with Registry
+            - name: Authenticate With Registry
               run: |
                   echo "@apollo-elements:registry=http://registry.npmjs.org/" > .npmrc
                   echo "registry=http://registry.npmjs.org/" >> .npmrc
@@ -71,7 +70,6 @@ jobs:
               env:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-            # publish new package versions to npm
             - name: Publish
               run: |
                   yarn lerna publish ${BUMP} --yes --message "$BUMP_EMOJI %s"
