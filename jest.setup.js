@@ -4,12 +4,12 @@ const { testConfig } = require('houdini-common')
 const mockFs = require('mock-fs')
 
 expect.addSnapshotSerializer({
-	test: (val) => val.type,
+	test: (val) => val && val.type,
 	serialize: (val) => recast.print(val).code,
 })
 
 expect.addSnapshotSerializer({
-	test: (val) => val.kind,
+	test: (val) => val && val.kind,
 	serialize: (val) => graphql.print(val),
 })
 

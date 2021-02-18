@@ -9,6 +9,7 @@ import { DocumentArtifact } from 'houdini-compiler'
 import { hashDocument } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
+import importArtifact from './importArtifact'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
@@ -75,7 +76,7 @@ export default async function walkTaggedDocuments(
 					// collect the information we care about
 					tag = {
 						parsedDocument: parsedTag,
-						artifact: (await import(documentPath)) as DocumentArtifact,
+						artifact: await importArtifact(documentPath),
 						node: {
 							...node,
 							...this,
@@ -88,7 +89,7 @@ export default async function walkTaggedDocuments(
 					throw new Error('Looks like you need to run the houdini compiler for ' + name)
 				}
 				// check if the artifact points to a different query than what the template tag is wrapping
-				if (tag.artifact.hash !== hashDocument(tagContent)) {
+				if (doc.config.verifyHash && tag.artifact.hash !== hashDocument(tagContent)) {
 					throw new Error(
 						'Looks like the contents of ' +
 							tag.artifact.name +

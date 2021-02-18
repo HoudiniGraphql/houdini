@@ -19,7 +19,6 @@
 			addItem(input: $input) {
 				item {
 					...All_Items_insert @prepend
-					...Active_Items_insert @prepend
 					...Item_Info_insert
 				}
 			}

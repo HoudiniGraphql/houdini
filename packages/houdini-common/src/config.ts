@@ -10,6 +10,7 @@ export type ConfigFile = {
 	schemaPath?: string
 	schema?: string
 	quiet?: boolean
+	verifyHash?: boolean
 }
 
 // a place to hold conventions and magic strings
@@ -18,8 +19,9 @@ export class Config {
 	schema: graphql.GraphQLSchema
 	sourceGlob: string
 	quiet: boolean
+	verifyHash: boolean
 
-	constructor({ runtimeDirectory, schema, schemaPath, sourceGlob, quiet = false }: ConfigFile) {
+	constructor({ runtimeDirectory, schema, schemaPath, sourceGlob, quiet = false, verifyHash }: ConfigFile) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
 			throw new Error('Please provide one of schema or schema path')
@@ -38,6 +40,7 @@ export class Config {
 		this.runtimeDirectory = runtimeDirectory
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
+		this.verifyHash = typeof verifyHash ==='undefined' ? true : verifyHash
 	}
 
 	/*

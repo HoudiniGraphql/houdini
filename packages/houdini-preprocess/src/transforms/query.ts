@@ -36,9 +36,7 @@ export default async function queryProcessor(
 	}
 
 	// we need to keep a list of the queries that are fired in this document
-	// note: node.replace can only be called inside of the walk function
-	// so we'll have to leave a reference to what we are going to addto the
-	// script down below
+	// note: we'll  replace the tags as we discover them with something the runtime library can use
 	const queries: EmbeddedGraphqlDocument[] = []
 
 	// go to every graphql document
@@ -62,7 +60,6 @@ export default async function queryProcessor(
 
 			// add the document to the list
 			queries.push(tag)
-
 			// replace the graphql node with the object
 			node.replaceWith(
 				typeBuilders.objectExpression([
