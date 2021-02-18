@@ -1,11 +1,14 @@
 // external imports
 import * as svelte from 'svelte/compiler'
+import * as graphql from 'graphql'
 // local imports
 import queryProcessor from './query'
-import { testConfig } from 'houdini-common'
+import { hashDocument, testConfig } from 'houdini-common'
 import importArtifact from '../utils/importArtifact'
 import '../../../../jest.setup'
 import { GraphQLTagResult } from '../types'
+import { preloadPayloadKey } from '../../build/transforms/query'
+import { DocumentArtifact } from 'houdini-compiler'
 // mock out the walker so that imports don't actually happen
 jest.mock('../utils/importArtifact')
 
@@ -35,7 +38,7 @@ describe('query preprocessor', function () {
 
 		export async function preload() {
 		    const _TestQuery = await fetchQuery({
-		              "text": "__query__string__"
+		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t"
 		          });
 
 		    return {
@@ -49,7 +52,7 @@ describe('query preprocessor', function () {
 		const data = query({
 		    "name": "TestQuery",
 		    "kind": "HoudiniQuery",
-		    "raw": "__query__string__",
+		    "raw": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		    "initialValue": _TestQuery,
 
 		    "processResult": data => {
@@ -81,6 +84,12 @@ async function preprocessorTest(content: string) {
 	// parse the document
 	const parsed = svelte.parse(content)
 
+	// grab the content between graphql``
+	const after = content.substr(content.indexOf('graphql`') + 'graphql`'.length)
+	const query = after.substr(0, after.indexOf('`'))
+
+	const parsedQuery = graphql.parse(query)
+
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema, verifyHash: false })
 
@@ -94,13 +103,12 @@ async function preprocessorTest(content: string) {
 
 	// @ts-ignore
 	// mock the import statement
-	importArtifact.mockImplementation(function (): GraphQLTagResult {
+	importArtifact.mockImplementation(function (): DocumentArtifact {
 		return {
 			name: 'TestQuery',
 			kind: 'HoudiniQuery',
-			raw: '__query__string__',
-			processResult: (result: any) => {},
-			initialValue: '_TestQuery',
+			raw: query,
+			hash: hashDocument(parsedQuery),
 		}
 	})
 
