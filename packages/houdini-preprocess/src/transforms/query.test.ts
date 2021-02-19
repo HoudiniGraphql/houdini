@@ -37,7 +37,7 @@ describe('query preprocessor', function () {
 		import { fetchQuery } from "houdini";
 
 		export async function preload(page, session) {
-		    const _TestQuery_Input = undefined;
+		    const _TestQuery_Input = {};
 
 		    const _TestQuery = await fetchQuery({
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
