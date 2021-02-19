@@ -6,7 +6,7 @@ import * as recast from 'recast'
 import fs from 'fs/promises'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
-import { Patch, ConnectionWhen, ConnectionWhenGeneric } from '../../types'
+import { Patch } from '../../types'
 import { PatchAtom, MutationMap } from '.'
 import { HoudiniErrorTodo } from '../../error'
 
@@ -141,27 +141,15 @@ export function patchesForSelectionSet(
 										return acc
 									}
 
-									let value: ConnectionWhenGeneric[string]
+									let value: string | boolean | number
 									if (arg.type.name === 'Boolean') {
-										value = {
-											kind: 'Boolean',
-											value: val === 'true',
-										}
+										value = val === 'true'
 									} else if (arg.type.name === 'String') {
-										value = {
-											kind: 'String',
-											value: val,
-										}
+										value = val
 									} else if (arg.type.name === 'Int') {
-										value = {
-											kind: 'Int',
-											value: val,
-										}
+										value = parseInt(val, 10)
 									} else if (arg.type.name === 'Float') {
-										value = {
-											kind: 'Float',
-											value: val,
-										}
+										value = parseFloat(val)
 									} else {
 										throw new Error('Could not identify arg type: ' + arg.name)
 									}
@@ -315,27 +303,6 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 						throw new HoudiniErrorTodo('Could not find parentID')
 					}
 
-					const operationWhen = Object.entries(when || {}).reduce<ConnectionWhen>(
-						(acc, [key, val]) => {
-							let value
-							if (val.kind === 'Boolean') {
-								value = val.value
-							} else if (val.kind === 'Float') {
-								value = parseFloat(val.value)
-							} else if (val.kind === 'Int') {
-								value = parseInt(val.value, 10)
-							} else {
-								value = val.value
-							}
-
-							return {
-								...acc,
-								[key]: value,
-							}
-						},
-						{}
-					)
-
 					// @ts-ignore just made sure this didn't happen
 					node.edges[pathEntry].operations![operation].push(
 						// a comment to isolate the ignore
@@ -346,7 +313,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 								value: parentID.value,
 							},
 							position: position || 'start',
-							when: operationWhen,
+							when,
 							connectionName,
 						}
 					)

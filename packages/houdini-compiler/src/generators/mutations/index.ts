@@ -3,7 +3,7 @@ import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
 // locals
-import { CollectedGraphQLDocument, ConnectionWhenGeneric } from '../../types'
+import { CollectedGraphQLDocument } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
 import { HoudiniErrorTodo } from '../../error'
@@ -54,7 +54,7 @@ export type PatchAtom = {
 		kind: 'Variable' | 'String' | 'Root'
 		value: string
 	}
-	when?: ConnectionWhenGeneric
+	when?:{[key: string]: string | boolean | number} 
 	connectionName?: string
 	position?: 'start' | 'end'
 }
