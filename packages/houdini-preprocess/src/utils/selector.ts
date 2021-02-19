@@ -53,7 +53,7 @@ export default function selector(props: SelectorProps): ArrowFunctionExpression 
 											value = AST.literal(parseInt(arg.value.value, 10))
 										}
 										 else if (arg.value.kind === graphql.Kind.FLOAT) {
-											value = AST.literal(parseFloat(arg.value.value, 10))
+											value = AST.literal(parseFloat(arg.value.value))
 										}
 										 else if (arg.value.kind === graphql.Kind.BOOLEAN) {
 											value = AST.booleanLiteral(arg.value.value)
