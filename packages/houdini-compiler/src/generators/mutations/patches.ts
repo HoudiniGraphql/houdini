@@ -79,7 +79,6 @@ export function patchesForSelectionSet(
 						mutationPath: mutators[mutationName],
 						queryName: name,
 						queryPath: pathSoFar,
-						when: {},
 					})
 				}
 				// we're done processing the leaf node
@@ -127,7 +126,7 @@ export function patchesForSelectionSet(
 						}
 
 						return Object.entries(mutations).map(
-							([mutationName, { kind, path, parentID, position, when }]) => ({
+							([mutationName, { kind, path, parentID, position, when, connectionName }]) => ({
 								operation: kind,
 								mutationName,
 								mutationPath: path,
@@ -136,6 +135,7 @@ export function patchesForSelectionSet(
 								parentID,
 								position,
 								when,
+								connectionName,
 							})
 						)
 					}
@@ -201,6 +201,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 				parentID,
 				position,
 				when,
+				connectionName
 			} of mutations) {
 				// the mutation path defines where in the update tree this entry belongs
 				let node = updateMap
@@ -278,6 +279,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 							},
 							position: position || 'start',
 							when,
+							connectionName,
 						}
 					)
 				}
@@ -379,7 +381,7 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 								AST.arrayExpression(
 									(
 										patch.operations[patchOperation] || []
-									).map(({ parentID, path, position, when }) =>
+									).map(({ parentID, path, position, when, connectionName }) =>
 										AST.objectExpression(
 											[
 												AST.objectProperty(
@@ -408,7 +410,9 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 													)
 												),
 											].concat(
-												!when
+												!connectionName ? [] : AST.objectProperty(AST.stringLiteral('connectionName'), AST.stringLiteral(connectionName))
+											).concat(
+												!when || Object.keys(when).length === 0
 													? []
 													: AST.objectProperty(
 															AST.stringLiteral('when'),

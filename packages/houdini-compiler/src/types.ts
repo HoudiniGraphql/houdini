@@ -19,10 +19,6 @@ export type ConnectionWhen = {
 				value: string
 		  }
 		| {
-				kind: 'Variable'
-				value: string
-		  }
-		| {
 				kind: 'Boolean'
 				value: boolean
 		  }
@@ -61,6 +57,7 @@ export type Patch = {
 			position: 'start' | 'end'
 			path: string[]
 			when?: ConnectionWhen
+			connectionName?: string
 		}[]
 	}
 	fields?: { [fieldName: string]: Array<string[]> }

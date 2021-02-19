@@ -35,6 +35,7 @@ export type MutationMap = {
 						value: string
 					}
 					path: string[]
+					connectionName: string
 				}
 			}
 		}
@@ -53,7 +54,8 @@ export type PatchAtom = {
 		kind: 'Variable' | 'String' | 'Root'
 		value: string
 	}
-	when: ConnectionWhen
+	when?: ConnectionWhen
+	connectionName?: string
 	position?: 'start' | 'end'
 }
 
@@ -346,6 +348,7 @@ function fillMutationMap(
 					kind: operation,
 					path,
 					when,
+					connectionName: config.connectionNameFromFragment(selection.name.value)
 				}
 			}
 
@@ -396,6 +399,7 @@ function fillMutationMap(
 					kind: 'delete',
 					path: path.concat(attributeName),
 					when: {},
+					connectionName: config.connectionNameFromFragment(connectionName)
 				}
 			}
 

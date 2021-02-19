@@ -177,16 +177,40 @@ describe('selector', function () {
 		    return {
 		        "__ref": obj.__ref,
 		        "__variables": variables,
+                "__connectionFilters": {
+                    "Test":  {
+                        "stringKey": {
+                            "kind: "String",
+                            "value": "StringValue",
+                        },
+                        "boolKey": {
+                            "kind: "Boolean",
+                            "value": true,
+                        },
+                        "variableKey": {
+                            "kind: "Variable",
+                            "value": "hello",
+                        },
+                        "intKey": {
+                            "kind": "Int",
+                            "value": 1,
+                        }
+                        "floatKey": {
+                            "kind": "Float",
+                            "value": 1.2
+                        }
+                    }
+                },
 
-		        "users": obj.__ref.users.map(obj_users => {
-		            return {
-		                "__ref": obj_users.__ref,
-		                "__variables": variables,
-		                "name": obj_users.__ref.name
-		            };
-		        })
-		    };
-		}
+        "users": obj.__ref.users.map(obj_users => {
+            return {
+                "__ref": obj_users.__ref,
+                "__variables": variables,
+                "name": obj_users.__ref.name
+            };
+        })
+    };
+}
 	`)
 	})
 

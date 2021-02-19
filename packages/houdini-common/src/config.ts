@@ -230,6 +230,19 @@ export class Config {
 	isFragmentForConnection(connectionName: string, fragmentName: string) {
 		return fragmentName.startsWith(connectionName)
 	}
+
+	connectionNameFromFragment(fragmentName: string): string {
+		// starting at the end of the fragment name going left, look for a _
+		for (let i = fragmentName.length - 1; i >= 0; i--) {
+			// if we hit a _
+			if (fragmentName[i] === '_') {
+				return fragmentName.substr(0, fragmentName.length - i)
+			}
+		}
+
+		throw new Error("Could not find connection name from fragment: " + fragmentName)
+
+	}
 }
 
 export function testConfig(config: {} = {}) {
