@@ -383,7 +383,10 @@ test('connection patches track insert condition', async function () {
 		                    "path": ["user", "friends"],
 
 		                    "when": {
-		                        "key": "value"
+		                        "key": {
+		                            "kind": "String",
+		                            "value": "value"
+		                        }
 		                    }
 		                }]
 		            }
