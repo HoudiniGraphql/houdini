@@ -18,7 +18,7 @@
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
 				item {
-					...All_Items_insert @prepend(when: { argument: "completed", value: "false" })
+					...All_Items_insert @prepend(when: { argument: "completed", value: false })
 					...Item_Info_insert
 				}
 			}

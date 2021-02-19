@@ -256,7 +256,7 @@ test('patches include delete operations', async function () {
 		                            },
 
 		                            "path": ["user", "cats"],
-		                            "connectionName": "__houdini__de"
+		                            "connectionName": "__houdini__delete_Cat"
 		                        }]
 		                    }
 		                }
@@ -340,10 +340,8 @@ test('connection patches track insert condition', async function () {
 		mockCollectedDoc(
 			'TestQuery',
 			`query TestQuery {
-				user { 
-					friends @connection(name: "Friends") {
-						firstName
-					}
+				users(stringValue: "1234")  @connection(name:"Friends"){
+					firstName
 				}
 			}`
 		),
@@ -351,7 +349,7 @@ test('connection patches track insert condition', async function () {
 			'TestMutation',
 			`mutation TestMutation {
 				updateUser {
-					...Friends_insert @prepend(when: { argument: "key", value: "value" })
+					...Friends_insert @prepend(when: { argument: "boolValue", value: "true" })
 				}
 			}`
 		),
@@ -384,11 +382,11 @@ test('connection patches track insert condition', async function () {
 		                        "value": "root"
 		                    },
 
-		                    "path": ["user", "friends"],
+		                    "path": ["users"],
 		                    "connectionName": "Friends",
 
 		                    "when": {
-		                        "key": "value"
+		                        "boolValue": true
 		                    }
 		                }]
 		            }
@@ -700,7 +698,7 @@ test('one operation multiple queries dont double up', async function () {
 		                            },
 
 		                            "path": ["user", "cats"],
-		                            "connectionName": "Friends"
+		                            "connectionName": "Friends1"
 		                        }]
 		                    }
 		                }

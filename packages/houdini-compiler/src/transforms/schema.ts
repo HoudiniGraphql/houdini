@@ -16,6 +16,7 @@ export default async function graphqlExtensions(
 		schemas: [
 			config.schema,
 			graphql.buildSchema(`
+
 			input HoudiniConnectionWhen {
 				argument: String
 				value: String

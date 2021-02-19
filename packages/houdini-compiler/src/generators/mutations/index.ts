@@ -29,7 +29,7 @@ export type MutationMap = {
 				[mutationName: string]: {
 					kind: PatchAtom['operation']
 					position: 'start' | 'end'
-					when: ConnectionWhenGeneric
+					when: {[key: string]: string} 
 					parentID: {
 						kind: 'Variable' | 'String' | 'Root'
 						value: string
@@ -232,14 +232,14 @@ function fillMutationMap(
 					)
 				}
 
-				// look at the directices applies to the spread for meta data about the mutation
+				// look at the directives applies to the spread for meta data about the mutation
 				let parentID = 'root'
 				let parentKind: 'Root' | 'Variable' | 'String' = 'Root'
 
 				let insertLocation: MutationMap[string]['operations'][string][string]['position'] =
 					'end'
 
-				let when: ConnectionWhenGeneric = {}
+				let when: {[key: string]: string}= {}
 
 				const internalDirectives = selection.directives?.filter((directive) =>
 					config.isInternalDirective(directive)
@@ -303,38 +303,15 @@ function fillMutationMap(
 						)
 
 						// make sure we got a string for the key
-						if (key?.kind !== 'StringValue' || !value) {
-							throw new Error('Key must be a string')
+						if (key?.kind !== 'StringValue' || !value || value.value.kind !== 'StringValue') {
+							throw new Error('Key and Value must be strings')
 						}
 
-						// strings
-						if (value.value.kind === 'StringValue') {
-							when[key.value] = {
-								kind: 'String',
-								value: value.value.value,
-							}
-						}
-						// boolean
-						else if (value.value.kind === 'BooleanValue') {
-							when[key.value] = {
-								kind: 'Boolean',
-								value: value.value.value,
-							}
-						}
-						// float
-						else if (value.value.kind === 'FloatValue') {
-							when[key.value] = {
-								kind: 'Float',
-								value: value.value.value,
-							}
-						}
-						// int
-						else if (value.value.kind === 'IntValue') {
-							when[key.value] = {
-								kind: 'Int',
-								value: value.value.value,
-							}
-						}
+						// the kind of `value` is always going to be a string because the directive
+						// can only take one type as its argument so we have to go look at the 
+						// field definition in the schema for type information to cast the value
+						// to something useful for the rest of the world
+						when[key.value] = value.value.value
 					}
 				}
 

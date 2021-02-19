@@ -272,6 +272,7 @@ export function testConfig(config: {} = {}) {
 				user: User!
 				version: Int!
 				ghost: Ghost!
+				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 			}
 
 			type Mutation {

@@ -6,7 +6,7 @@ import * as recast from 'recast'
 import fs from 'fs/promises'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
-import { Patch, ConnectionWhen } from '../../types'
+import { Patch, ConnectionWhen, ConnectionWhenGeneric } from '../../types'
 import { PatchAtom, MutationMap } from '.'
 import { HoudiniErrorTodo } from '../../error'
 
@@ -125,11 +125,53 @@ export function patchesForSelectionSet(
 							return []
 						}
 
+						// `key` points to an argument in the field marked connection, look there for type info
+						const { args } = rootType.getFields()[attributeName]
+
 						return Object.entries(mutations).map(
 							([
 								mutationName,
 								{ kind, path, parentID, position, when, connectionName },
-							]) => ({
+							]) => {
+								// `when` currently has no type information. let's fix that now
+								const typedWhen = Object.entries(when).reduce((acc, [key, val]) => {
+									// grab the field we're filtering on
+									const arg = args.find(({name}) => name === key)
+									if (!arg || !(arg.type instanceof graphql.GraphQLScalarType)) {
+										return acc
+									}
+
+									let value: ConnectionWhenGeneric[string]
+									if (arg.type.name === 'Boolean') {
+										value = {
+											kind: "Boolean",
+											value: val === 'true'
+										}
+									} else if (arg.type.name === 'String') {
+										value = {
+											kind: "String",
+											value: val
+										}
+									} else if (arg.type.name === 'Int') {
+										value = {
+											kind: "Int",
+											value: val
+										}
+									} else if (arg.type.name === 'Float') {
+										value = {
+											kind: 'Float',
+											value: val
+										}
+									} else {
+										throw new Error("Could not identify arg type: " + arg.name)
+									}
+
+									return{
+										...acc,
+										[key]: value
+									}}, {})
+
+								return {
 								operation: kind,
 								mutationName,
 								mutationPath: path,
@@ -137,9 +179,10 @@ export function patchesForSelectionSet(
 								queryPath: pathSoFar,
 								parentID,
 								position,
-								when,
+								when: typedWhen,
 								connectionName,
-							})
+							}
+						}
 						)
 					}
 				)
