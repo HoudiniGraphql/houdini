@@ -177,30 +177,11 @@ describe('selector', function () {
 		    return {
 		        "__connectionFilters": {
 		            "Test": {
-		                "stringKey": {
-		                    "kind": "String",
-		                    "value": "StringValue"
-		                },
-
-		                "boolKey": {
-		                    "kind": "Boolean",
-		                    "value": true
-		                },
-
-		                "variableKey": {
-		                    "kind": "Variable",
-		                    "value": "hello"
-		                },
-
-		                "intKey": {
-		                    "kind": "Int",
-		                    "value": "1"
-		                },
-
-		                "floatKey": {
-		                    "kind": "Float",
-		                    "value": "1.2"
-		                }
+		                "stringKey": "StringValue",
+		                "boolKey": true,
+		                "variableKey": variables.hello,
+		                "intKey": 1,
+		                "floatKey": 1.2
 		            }
 		        },
 

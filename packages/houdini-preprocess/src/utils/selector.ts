@@ -46,32 +46,26 @@ export default function selector(props: SelectorProps): ArrowFunctionExpression 
 								AST.stringLiteral(nameArg.value.value),
 								AST.objectExpression(
 									(parent.arguments || []).flatMap((arg) => {
-										// figure out the kind and value for the filter
-										let kind
+										// figure out the value to use 
 										let value
 
 										if (arg.value.kind === graphql.Kind.INT) {
-											kind = "Int"
-											value = AST.stringLiteral(arg.value.value)
+											value = AST.literal(parseInt(arg.value.value, 10))
 										}
 										 else if (arg.value.kind === graphql.Kind.FLOAT) {
-											kind = "Float"
-											value = AST.stringLiteral(arg.value.value)
+											value = AST.literal(parseFloat(arg.value.value, 10))
 										}
 										 else if (arg.value.kind === graphql.Kind.BOOLEAN) {
-											kind = "Boolean"
 											value = AST.booleanLiteral(arg.value.value)
 										}
 										 else if (arg.value.kind === graphql.Kind.VARIABLE) {
-											kind = "Variable"
-											value = AST.stringLiteral(arg.value.name.value)
+											value = AST.memberExpression(AST.identifier('variables'), AST.identifier(arg.value.name.value))
 										}
 										 else if (arg.value.kind === graphql.Kind.STRING) {
-											kind = "String"
 											value = AST.stringLiteral(arg.value.value)
 										}
 
-										if (!kind || !value) {
+										if (!value) {
 											return []
 										}
 
@@ -79,10 +73,7 @@ export default function selector(props: SelectorProps): ArrowFunctionExpression 
 										return[ 
 											AST.objectProperty(
 												AST.stringLiteral(arg.name.value),
-												AST.objectExpression([
-													AST.objectProperty(AST.stringLiteral("kind"), AST.stringLiteral(kind)),
-													AST.objectProperty(AST.stringLiteral("value"), value),
-												])
+												value,
 											)
 										]
 									})
