@@ -56,11 +56,13 @@ describe('query preprocessor', function () {
 		    "raw": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		    "initialValue": _TestQuery,
 
-		    "processResult": data => {
+		    "processResult": (data, variables) => {
 		        return {
+					"__variables": variables,
 		            "__ref": data,
 
 		            "viewer": {
+						"__variables": variables,
 		                "__ref": data.viewer,
 		                "id": data.viewer.id
 		            }

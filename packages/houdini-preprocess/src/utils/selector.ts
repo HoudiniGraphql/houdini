@@ -18,11 +18,12 @@ type SelectorProps = {
 	selectionSet: graphql.SelectionSetNode
 	pullValuesFromRef?: boolean
 	includeRefField?: boolean
+	root?: boolean
 }
 
 export default function selector(props: SelectorProps): ArrowFunctionExpression {
 	return typeBuilders.arrowFunctionExpression(
-		[typeBuilders.identifier(props.rootIdentifier)],
+		[typeBuilders.identifier(props.rootIdentifier)].concat(props.root ? typeBuilders.identifier('variables') : []),
 		typeBuilders.blockStatement([
 			typeBuilders.returnStatement(typeBuilders.objectExpression(objectProperties(props))),
 		])
@@ -38,7 +39,7 @@ function objectProperties({
 	includeRefField = true,
 	pullValuesFromRef = true,
 }: SelectorProps): Property[] {
-	return [
+	const properties = [
 		// optionally include the embedded ref
 		...(includeRefField
 			? [
@@ -47,9 +48,15 @@ function objectProperties({
 						pullValuesFromRef
 							? memberExpression(rootIdentifier, '__ref')
 							: typeBuilders.identifier(rootIdentifier)
-					),
+					)
 			  ]
 			: []),
+
+		
+		typeBuilders.objectProperty(
+			typeBuilders.stringLiteral('__variables'),
+			typeBuilders.identifier('variables')
+		),
 
 		// process every selection in the selection set
 		...selectionSet.selections.flatMap((selection) => {
@@ -68,7 +75,9 @@ function objectProperties({
 					rootType,
 					selectionSet: selection.selectionSet,
 					includeRefField: false,
-				})
+
+				// make sure we dont include __variables
+				}).filter(property => property.key.type === 'StringLiteral' && property.key.value !== '__variables')
 			}
 
 			// the name of the field in the response
@@ -158,4 +167,16 @@ function objectProperties({
 			throw new Error('Could not create selector for selection type: ' + selection.kind)
 		}),
 	]
+
+
+	// reverse the list of indices so we can remove without destroying
+	// const extras = propIndices.slice(1)
+	// extras.reverse()
+	// for (const extra of extras) {
+	// 	properties.splice(extra, 1)
+	// }
+
+
+
+	return properties
 }

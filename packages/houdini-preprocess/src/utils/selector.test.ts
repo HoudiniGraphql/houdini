@@ -28,9 +28,10 @@ describe('selector', function () {
                 name
                 age
             }`,
-			`obj => {
+			`(obj, variables) => {
     return {
         "__ref": obj.__ref,
+        "__variables": variables,
         "name": obj.__ref.name,
         "age": obj.__ref.age
     };
@@ -44,9 +45,10 @@ describe('selector', function () {
                     age
                 }
             }`,
-			`obj => {
+			`(obj, variables) => {
     return {
         "__ref": obj.__ref,
+        "__variables": variables,
         "name": obj.__ref.name,
         "age": obj.__ref.age
     };
@@ -61,13 +63,15 @@ describe('selector', function () {
                     age
                 }
             }`,
-			`obj => {
+			`(obj, variables) => {
     return {
         "__ref": obj.__ref,
+        "__variables": variables,
         "name": obj.__ref.name,
 
         "parent": {
             "__ref": obj.__ref.parent.__ref,
+            "__variables": variables,
             "name": obj.__ref.parent.__ref.name,
             "age": obj.__ref.parent.__ref.age
         }
@@ -83,14 +87,16 @@ describe('selector', function () {
                     age
                 }
             }`,
-			`obj => {
+			`(obj, variables) => {
     return {
         "__ref": obj.__ref,
+        "__variables": variables,
         "name": obj.__ref.name,
 
         "friends": obj.__ref.friends.map(obj_friends => {
             return {
                 "__ref": obj_friends.__ref,
+                "__variables": variables,
                 "name": obj_friends.__ref.name,
                 "age": obj_friends.__ref.age
             };
@@ -111,13 +117,15 @@ describe('selector', function () {
                     age
                 }
             }`,
-			`obj => {
+			`(obj, variables) => {
     return {
         "__ref": obj,
+        "__variables": variables,
         "name": obj.name,
 
         "parent": {
             "__ref": obj.parent,
+            "__variables": variables,
             "name": obj.parent.name,
             "age": obj.parent.age
         },
@@ -125,6 +133,7 @@ describe('selector', function () {
         "friends": obj.friends.map(obj_friends => {
             return {
                 "__ref": obj_friends,
+                "__variables": variables,
                 "name": obj_friends.name,
                 "age": obj_friends.age
             };
@@ -145,18 +154,21 @@ describe('selector', function () {
                     }
                 }
             }`,
-			`obj => {
+			`(obj, variables) => {
     return {
         "__ref": obj.__ref,
+        "__variables": variables,
         "name": obj.__ref.name,
 
         "parent": {
             "__ref": obj.__ref.parent.__ref,
+            "__variables": variables,
             "name": obj.__ref.parent.__ref.name,
             "age": obj.__ref.parent.__ref.age,
 
             "parent": {
                 "__ref": obj.__ref.parent.__ref.parent.__ref,
+                "__variables": variables,
                 "name": obj.__ref.parent.__ref.parent.__ref.name,
                 "age": obj.__ref.parent.__ref.parent.__ref.age
             }
@@ -178,20 +190,23 @@ describe('selector', function () {
                     }
                 }
             }`,
-			`obj => {
+			`(obj, variables) => {
     return {
         "__ref": obj.__ref,
+        "__variables": variables,
         "name": obj.__ref.name,
 
         "friends": obj.__ref.friends.map(obj_friends => {
             return {
                 "__ref": obj_friends.__ref,
+                "__variables": variables,
                 "name": obj_friends.__ref.name,
                 "age": obj_friends.__ref.age,
 
                 "friends": obj_friends.__ref.friends.map(obj_friends_friends => {
                     return {
                         "__ref": obj_friends_friends.__ref,
+                        "__variables": variables,
                         "name": obj_friends_friends.__ref.name,
                         "age": obj_friends_friends.__ref.age
                     };
@@ -215,19 +230,22 @@ describe('selector', function () {
                     }
                 }
             }`,
-			`obj => {
+			`(obj, variables) => {
     return {
         "__ref": obj.__ref,
+        "__variables": variables,
         "name": obj.__ref.name,
 
         "parent": {
             "__ref": obj.__ref.parent.__ref,
+            "__variables": variables,
             "name": obj.__ref.parent.__ref.name,
             "age": obj.__ref.parent.__ref.age,
 
             "friends": obj.__ref.parent.__ref.friends.map(obj_parent_friends => {
                 return {
                     "__ref": obj_parent_friends.__ref,
+                    "__variables": variables,
                     "name": obj_parent_friends.__ref.name,
                     "age": obj_parent_friends.__ref.age
                 };
@@ -264,6 +282,7 @@ describe('selector', function () {
 				selectionSet: parsedFragment.selectionSet,
 				// don't pull the values out of the ref for the query selector test
 				pullValuesFromRef: title !== 'query selector',
+                root: true,
 			})
 
 			// make sure that both print the same way

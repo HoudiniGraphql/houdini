@@ -93,6 +93,8 @@ export default async function queryProcessor(
 							selectionSet: operation.selectionSet,
 							// grab values from the immediate response
 							pullValuesFromRef: false,
+							// make sure we can pass in variables
+							root: true,
 						})
 					),
 				])
