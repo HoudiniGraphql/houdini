@@ -781,10 +781,7 @@ describe('apply patch', function () {
 									value: 'root',
 								},
 								when: {
-									target: {
-										kind: 'String',
-										value: 'not-value',
-									},
+									target: 'not-value',
 								},
 								connectionName: "Test"
 							},
@@ -805,6 +802,11 @@ describe('apply patch', function () {
 					target: 'hello',
 				},
 			],
+			__connectionFilters: {
+				Test: {
+					stringKey: "StringValue",
+				}
+			},
 		}
 
 		// the mutation payload
@@ -819,20 +821,7 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith(
-			{
-				__variables: {
-					target: 'value',
-				},
-				outer: [
-					{
-						id: '1',
-						target: 'hello',
-					},
-				],
-			},
-			{}
-		)
+		expect(set).not.toHaveBeenCalled()
 	})
 
 	test('put values into lists', function () {

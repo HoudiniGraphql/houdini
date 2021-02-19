@@ -39,7 +39,7 @@ export function unregisterDocumentStore(target: DocumentStore) {
 	)
 }
 
-type Record = { [key: string]: any } & { id?: string }
+type Record = { [key: string]: any } & { id?: string, __connectionFilters?: {[connectionName: string]: {[key: string]: string| number | boolean}} }
 type Data = Record | Record[]
 
 export function applyPatch(
@@ -104,7 +104,23 @@ function walkPatch(
 		}
 
 		// look at every path we have to perform this operation
-		for (const { path, parentID, position } of paths) {
+		for (const { path, parentID, position, when, connectionName } of paths) {
+			// check for a filter before we apply the application
+			if (when) {
+				// if there are no filters for the matching connection
+				if (!connectionName || !target.__connectionFilters || !target.__connectionFilters[connectionName]) {
+					continue
+				}
+
+				const filters = target.__connectionFilters[connectionName]
+
+				// check every value in the when condition
+				if(!Object.keys(when).reduce((prev, key) => prev || when[key] === filters[key] , false)) {
+					continue
+				}
+			}
+
+
 			// if we have to add the connection somewhere
 			if (
 				operation === 'add' &&
