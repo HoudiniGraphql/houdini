@@ -16,9 +16,9 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	if (fragment.kind !== CompiledFragmentKind) {
 		throw new Error('getFragment can only take fragment documents')
 	}
-
 	// @ts-ignore: .__variables is added by the selector and hidden from the user's world
-	const initialValue = fragment.applyMask(reference, reference.__variables)
+	const variables = reference.__variables
+	const initialValue = fragment.applyMask(reference, variables)
 	// wrap the result in a store we can use to keep this query up to date
 	const value = readable(initialValue, (set) => {
 		// build up the store object

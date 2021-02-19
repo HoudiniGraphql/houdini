@@ -61,7 +61,7 @@ describe('query preprocessor', function () {
 		    "raw": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		    "initialValue": _TestQuery,
 
-		    "processResult": (data, variables) => {
+		    "processResult": (data, variables = {}) => {
 		        return {
 		            "__ref": data,
 		            "__variables": variables,
@@ -140,7 +140,7 @@ describe('query preprocessor', function () {
 		    "raw": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		    "initialValue": _TestQuery,
 
-		    "processResult": (data, variables) => {
+		    "processResult": (data, variables = {}) => {
 		        return {
 		            "__ref": data,
 		            "__variables": variables,

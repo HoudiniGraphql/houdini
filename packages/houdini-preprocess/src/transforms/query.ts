@@ -88,6 +88,7 @@ export default async function queryProcessor(
 						selector({
 							config: doc.config,
 							artifact,
+							parsedDocument,
 							rootIdentifier: 'data',
 							rootType,
 							selectionSet: operation.selectionSet,
@@ -315,7 +316,7 @@ export default async function queryProcessor(
 									typeBuilders.identifier('session'),
 								]
 						  )
-						: typeBuilders.identifier('undefined')
+						: typeBuilders.objectExpression([])
 				),
 			]),
 

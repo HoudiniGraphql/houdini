@@ -34,6 +34,7 @@
 	`)
 </script>
 
+
 {#each $data.items as item (item.id)}
 	<ItemEntry {item} />
 {/each}

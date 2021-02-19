@@ -113,7 +113,7 @@ function walkPatch(
 				// we only NEED there to be target filters for must's 
 				const targets = target.__connectionFilters ? target.__connectionFilters[connectionName || ''] : null
 				let ok = true
-
+				
 				// check must's first
 				if (when.must && targets) {
 					ok = Object.entries(when.must || {}).reduce<boolean>((prev, [key, value]) => Boolean(prev && targets[key] == value), ok)

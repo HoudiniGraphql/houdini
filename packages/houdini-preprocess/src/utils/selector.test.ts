@@ -30,7 +30,7 @@ describe('selector', function () {
             }`)
 
 		expect(result).toMatchInlineSnapshot(`
-		(obj, variables) => {
+		(obj, variables = {}) => {
 		    return {
 		        "__ref": obj.__ref,
 		        "__variables": variables,
@@ -50,7 +50,7 @@ describe('selector', function () {
             }`)
 
 		expect(result).toMatchInlineSnapshot(`
-		(obj, variables) => {
+		(obj, variables = {}) => {
 		    return {
 		        "__ref": obj.__ref,
 		        "__variables": variables,
@@ -71,7 +71,7 @@ describe('selector', function () {
             }`)
 
 		expect(result).toMatchInlineSnapshot(`
-		(obj, variables) => {
+		(obj, variables = {}) => {
 		    return {
 		        "__ref": obj.__ref,
 		        "__variables": variables,
@@ -98,7 +98,7 @@ describe('selector', function () {
             }`)
 
 		expect(result).toMatchInlineSnapshot(`
-		(obj, variables) => {
+		(obj, variables = {}) => {
 		    return {
 		        "__ref": obj.__ref,
 		        "__variables": variables,
@@ -134,7 +134,7 @@ describe('selector', function () {
 		)
 
 		expect(result).toMatchInlineSnapshot(`
-		(obj, variables) => {
+		(obj, variables = {}) => {
 		    return {
 		        "__ref": obj,
 		        "__variables": variables,
@@ -173,7 +173,7 @@ describe('selector', function () {
 		)
 
 		expect(result).toMatchInlineSnapshot(`
-		(obj, variables) => {
+		(obj, variables = {}) => {
 		    return {
 		        "__connectionFilters": {
 		            "Test": {
@@ -214,7 +214,7 @@ describe('selector', function () {
             }`)
 
 		expect(result).toMatchInlineSnapshot(`
-		(obj, variables) => {
+		(obj, variables = {}) => {
 		    return {
 		        "__ref": obj.__ref,
 		        "__variables": variables,
@@ -253,7 +253,7 @@ describe('selector', function () {
             }`)
 
 		expect(result).toMatchInlineSnapshot(`
-		(obj, variables) => {
+		(obj, variables = {}) => {
 		    return {
 		        "__ref": obj.__ref,
 		        "__variables": variables,
@@ -296,7 +296,7 @@ describe('selector', function () {
             }`)
 
 		expect(result).toMatchInlineSnapshot(`
-		(obj, variables) => {
+		(obj, variables = {}) => {
 		    return {
 		        "__ref": obj.__ref,
 		        "__variables": variables,
@@ -325,7 +325,8 @@ describe('selector', function () {
 
 function selectorTest(doc: string, extraConfig?: {}) {
 	// parse the fragment
-	const parsedFragment = graphql.parse(doc).definitions[0] as graphql.FragmentDefinitionNode
+	const parsedDocument = graphql.parse(doc)
+	const parsedFragment = parsedDocument.definitions[0] as graphql.FragmentDefinitionNode
 
 	// generate the selector
 	return selector({
@@ -340,6 +341,7 @@ function selectorTest(doc: string, extraConfig?: {}) {
 		rootType: config.schema.getType('User') as graphql.GraphQLObjectType,
 		selectionSet: parsedFragment.selectionSet,
 		root: true,
+		parsedDocument,
 		...extraConfig,
 	})
 }

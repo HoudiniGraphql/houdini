@@ -68,6 +68,8 @@ export default async function fragmentProcesesor(
 							rootIdentifier: 'obj',
 							rootType,
 							selectionSet: parsedFragment.selectionSet,
+							root: true,
+							parsedDocument,
 						})
 					),
 				])

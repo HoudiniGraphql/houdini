@@ -7,7 +7,7 @@ type Module<T> = Promise<{ default: T }>
 export type TaggedGraphqlFragment = {
 	name: string
 	kind: 'HoudiniFragment'
-	applyMask: (root: any) => any
+	applyMask: (root: any, variables: any) => any
 }
 
 // the result of tagging an operation

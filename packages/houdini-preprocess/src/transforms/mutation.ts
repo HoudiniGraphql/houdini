@@ -70,6 +70,8 @@ export default async function mutationProcessor(
 							selectionSet: operation.selectionSet,
 							// grab values from the immediate response
 							pullValuesFromRef: false,
+							root: true,
+							parsedDocument,
 						})
 					),
 					typeBuilders.objectProperty(
