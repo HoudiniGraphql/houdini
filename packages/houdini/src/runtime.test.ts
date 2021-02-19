@@ -39,7 +39,7 @@ describe('apply patch', function () {
 		expect(set).toHaveBeenCalledWith({
 			id: '1',
 			target: 'world',
-		})
+		}, {})
 	})
 
 	test("no update if id doesn't match", function () {
@@ -119,7 +119,7 @@ describe('apply patch', function () {
 		expect(set).toHaveBeenCalledWith({
 			id: '1',
 			target: 'world',
-		})
+		}, {})
 	})
 
 	test('pull values out of lists', function () {
@@ -159,7 +159,7 @@ describe('apply patch', function () {
 		expect(set).toHaveBeenCalledWith({
 			id: '1',
 			target: 'world',
-		})
+		}, {})
 	})
 
 	test('put values into objects', function () {
@@ -201,7 +201,7 @@ describe('apply patch', function () {
 				id: '1',
 				target: 'world',
 			},
-		})
+		}, {})
 	})
 
 	test('add to root lists', function () {
@@ -263,7 +263,7 @@ describe('apply patch', function () {
 					target: 'world',
 				},
 			],
-		})
+		}, {})
 	})
 
 	test('add to connection under root', function () {
@@ -325,7 +325,7 @@ describe('apply patch', function () {
 					target: 'world',
 				},
 			],
-		})
+		}, {})
 	})
 
 	test('prepend connection', function () {
@@ -387,7 +387,7 @@ describe('apply patch', function () {
 					target: 'hello',
 				},
 			],
-		})
+		}, {})
 	})
 
 	test('remove from connection with literal ID', function () {
@@ -451,7 +451,7 @@ describe('apply patch', function () {
 					inner: [],
 				},
 			],
-		})
+		}, {})
 	})
 
 	test('delete from multiple connections with literal id', function () {
@@ -533,7 +533,7 @@ describe('apply patch', function () {
 					inner: [],
 				},
 			],
-		})
+		}, {})
 	})
 
 	test('delete from root connection with literal id', function () {
@@ -597,7 +597,7 @@ describe('apply patch', function () {
 					target: 'hello',
 				},
 			],
-		})
+		}, {})
 	})
 
 	test('add to connection with literal ID', function () {
@@ -661,7 +661,7 @@ describe('apply patch', function () {
 					],
 				},
 			],
-		})
+		}, {})
 	})
 
 	test('add to connection with variable ID', function () {
@@ -725,10 +725,10 @@ describe('apply patch', function () {
 					],
 				},
 			],
-		})
+		}, {testID: "1"})
 	})
 
-	test('apply connection when', function() {
+	test('apply connection when  negative', function() {
 		const patch: Patch = {
 			fields: {},
 			edges: {
@@ -744,6 +744,9 @@ describe('apply patch', function () {
 									kind: 'Root',
 									value: 'root',
 								},
+								when: {
+									'target': 'not-value',
+								}
 							},
 						],
 					},
@@ -777,17 +780,16 @@ describe('apply patch', function () {
 
 		// make sure we got the expected value
 		expect(set).toHaveBeenCalledWith({
+			__variables: {
+				target: "value",
+			},
 			outer: [
 				{
 					id: '1',
 					target: 'hello',
 				},
-				{
-					id: '2',
-					target: 'world',
-				},
 			],
-		})
+		}, {})
 	})
 
 	test('put values into lists', function () {
@@ -834,7 +836,7 @@ describe('apply patch', function () {
 					target: 'world',
 				},
 			],
-		})
+		}, {})
 	})
 
 	test.todo('null values in current state')

@@ -24,8 +24,9 @@ export type TaggedGraphqlQuery = {
 	name: string
 	kind: 'HoudiniQuery'
 	raw: string
-	processResult: (result: any) => any
+	processResult: (result: any, variables: any) => any
 	initialValue: any
+	variables: {[key:string]: any}
 }
 
 // the result of the template tag

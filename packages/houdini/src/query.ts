@@ -16,7 +16,7 @@ export default function query<_Query extends Operation<any, any>>(
 	}
 
 	// wrap the result in a store we can use to keep this query up to date
-	const value = readable(document.processResult(document.initialValue.data), (set) => {
+	const value = readable(document.processResult(document.initialValue.data, document.variables), (set) => {
 		// build up the store object
 		const store = {
 			name: document.name,

@@ -97,6 +97,15 @@ export default async function queryProcessor(
 							root: true,
 						})
 					),
+					typeBuilders.objectProperty(
+						typeBuilders.stringLiteral('variables'),
+						typeBuilders.identifier(
+							variablesKey(
+								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+							)
+						)
+
+					)
 				])
 			)
 		},
@@ -245,6 +254,9 @@ export default async function queryProcessor(
 		// figure out the local variable that holds the result
 		const preloadKey = preloadPayloadKey(operation)
 		
+		// the identifier for the query variables
+		const variableIdentifier = variablesKey(operation)
+		
 		// prop declarations needs to be added to the top of the document
 		doc.instance.content.body.splice(
 			propInsertIndex,
@@ -253,6 +265,12 @@ export default async function queryProcessor(
 			typeBuilders.exportNamedDeclaration(
 				typeBuilders.variableDeclaration('let', [
 					typeBuilders.variableDeclarator(typeBuilders.identifier(preloadKey)),
+				])
+			),
+			// @ts-ignore: babel's ast does something weird with comments, we won't use em
+			typeBuilders.exportNamedDeclaration(
+				typeBuilders.variableDeclaration('let', [
+					typeBuilders.variableDeclarator(typeBuilders.identifier(variableIdentifier)),
 				])
 			)
 		)
@@ -267,44 +285,50 @@ export default async function queryProcessor(
 						typeBuilders.identifier('updateStoreData'), [
 							typeBuilders.stringLiteral(document.artifact.name),
 							typeBuilders.memberExpression(typeBuilders.identifier(preloadKey), typeBuilders.identifier("data")),
+							typeBuilders.identifier(variableIdentifier)
 						]
 					)
 				)
 			]))
 		)
 
-		// the arguments we'll pass to fetchQuery
-		const fetchArgs = [
-			typeBuilders.objectProperty(
-				typeBuilders.literal('text'),
-				typeBuilders.stringLiteral(document.artifact.raw)
-			),
-		]
-
-		// if there are variables in the operation
-		if (operation.variableDefinitions && operation.variableDefinitions.length > 0) { 
-			// grab the variables from the function
-			fetchArgs.push(typeBuilders.objectProperty(
-				typeBuilders.literal('variables'),
-				typeBuilders.callExpression(typeBuilders.memberExpression(typeBuilders.identifier(queryInputFunction(document.artifact.name)), typeBuilders.identifier("call")), [
-					typeBuilders.identifier('this'),
-					typeBuilders.identifier('page'),
-					typeBuilders.identifier('session'),
-				])
-			))
-		}
 
 		// add a local variable right before the return statement
 		preloadFn.body.body.splice(
 			returnStatementIndex,
 			0,
 			// @ts-ignore
+			// compute the query variables once
+			typeBuilders.variableDeclaration('const', [
+				typeBuilders.variableDeclarator(
+					typeBuilders.identifier(variableIdentifier),
+					operation.variableDefinitions && operation.variableDefinitions.length > 0
+						? typeBuilders.callExpression(typeBuilders.memberExpression(typeBuilders.identifier(queryInputFunction(document.artifact.name)), typeBuilders.identifier("call")), [
+							typeBuilders.identifier('this'),
+							typeBuilders.identifier('page'),
+							typeBuilders.identifier('session'),
+						])
+						: typeBuilders.identifier('undefined') 
+				)
+			]),
+
+			// @ts-ignore
 			typeBuilders.variableDeclaration('const', [
 				typeBuilders.variableDeclarator(
 					typeBuilders.identifier(preloadKey),
 					typeBuilders.awaitExpression(
 						typeBuilders.callExpression(typeBuilders.identifier('fetchQuery'), [
-							typeBuilders.objectExpression(fetchArgs),
+							typeBuilders.objectExpression([
+								typeBuilders.objectProperty(
+									typeBuilders.literal('text'),
+									typeBuilders.stringLiteral(document.artifact.raw)
+								),
+								// grab the variables from the function
+								typeBuilders.objectProperty(
+									typeBuilders.literal('variables'),
+									typeBuilders.identifier(variableIdentifier)
+								)
+							]),
 						])
 					)
 				),
@@ -318,13 +342,23 @@ export default async function queryProcessor(
 			typeBuilders.objectProperty(
 				typeBuilders.identifier(preloadKey),
 				typeBuilders.identifier(preloadKey)
-			)
+			),
+			// @ts-ignore
+			typeBuilders.objectProperty(
+				typeBuilders.identifier(variableIdentifier),
+				typeBuilders.identifier(variableIdentifier)
+			),
 		)
+
 	}
 }
 
 export function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
 	return `_${operation.name?.value}`
+}
+
+export function variablesKey(operation: graphql.OperationDefinitionNode): string {
+	return `_${operation.name?.value}_Input`
 }
 
 export function queryInputFunction(name: string) {

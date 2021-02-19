@@ -121,7 +121,8 @@ test('patches include connection operations', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "cats"]
+		                            "path": ["user", "cats"],
+		                            "when": {}
 		                        }]
 		                    }
 		                }
@@ -188,7 +189,8 @@ test('patches include remove operations', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "cats"]
+		                            "path": ["user", "cats"],
+		                            "when": {}
 		                        }]
 		                    }
 		                }
@@ -253,7 +255,8 @@ test('patches include delete operations', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "cats"]
+		                            "path": ["user", "cats"],
+		                            "when": {}
 		                        }]
 		                    }
 		                }
@@ -318,7 +321,8 @@ test('connection patches track insert position', async function () {
 		                                "value": "1234"
 		                            },
 
-		                            "path": ["cats"]
+		                            "path": ["cats"],
+		                            "when": {}
 		                        }]
 		                    }
 		                }
@@ -450,7 +454,8 @@ test('connection patches include reference to parentID string value', async func
 		                                "value": "1234"
 		                            },
 
-		                            "path": ["cats"]
+		                            "path": ["cats"],
+		                            "when": {}
 		                        }]
 		                    }
 		                }
@@ -515,7 +520,8 @@ test('connection patches include reference to parentID variable', async function
 		                                "value": "userID"
 		                            },
 
-		                            "path": ["cats"]
+		                            "path": ["cats"],
+		                            "when": {}
 		                        }]
 		                    }
 		                }
@@ -580,7 +586,8 @@ test('connection patches include reference to parentID directive', async functio
 		                                "value": "userID"
 		                            },
 
-		                            "path": ["cats"]
+		                            "path": ["cats"],
+		                            "when": {}
 		                        }]
 		                    }
 		                }
@@ -694,7 +701,8 @@ test('one operation multiple queries dont double up', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "cats"]
+		                            "path": ["user", "cats"],
+		                            "when": {}
 		                        }]
 		                    }
 		                }

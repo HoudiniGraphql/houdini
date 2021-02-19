@@ -18,7 +18,7 @@ export function fetchQuery({
 export type DocumentStore = {
 	name: string
 	currentValue: any
-	updateValue: (value: any) => void
+	updateValue: (value: any, variables: any) => void
 }
 
 const _stores: { [name: string]: DocumentStore[] } = {}
@@ -44,7 +44,7 @@ type Data = Record | Record[]
 
 export function applyPatch(
 	patch: Patch,
-	updateValue: (newValue: Data) => void,
+	updateValue: (newValue: Data, variables: { [key: string]: any }) => void,
 	currentState: Data,
 	payload: Data,
 	variables: { [key: string]: any }
@@ -53,7 +53,7 @@ export function applyPatch(
 	const target = currentState
 	// walk down the the patch and if there was a mutation, commit the update
 	if (walkPatch(patch, payload, target, variables)) {
-		updateValue(target)
+		updateValue(target, variables)
 	}
 }
 
@@ -421,12 +421,12 @@ function updateField(path: string[], target: Record, targetId: string, value: an
 	return updated
 }
 
-export function updateStoreData(storeName: string, data: any) {
+export function updateStoreData(storeName: string, data: any, variables: any) {
 	// TODO: this is definitely not what we want. the same query could show up 
 	// in multiple places and get the same update
 	// apply the new update to every store matching the name
 	for (const store of getDocumentStores(storeName)) {
 		// apply the new date
-		store.updateValue(data)	
+		store.updateValue(data, variables)	
 	}
 }

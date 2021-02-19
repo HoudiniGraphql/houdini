@@ -37,18 +37,23 @@ describe('query preprocessor', function () {
 		import { fetchQuery } from "houdini";
 
 		export async function preload(page, session) {
+		    const _TestQuery_Input = undefined;
+
 		    const _TestQuery = await fetchQuery({
-		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t"
+		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		              "variables": _TestQuery_Input
 		          });
 
 		    return {
-		        _TestQuery: _TestQuery
+		        _TestQuery: _TestQuery,
+		        _TestQuery_Input: _TestQuery_Input
 		    };
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
 		import { updateStoreData } from "houdini";
 		export let _TestQuery;
+		export let _TestQuery_Input;
 
 		const data = query({
 		    "name": "TestQuery",
@@ -58,21 +63,23 @@ describe('query preprocessor', function () {
 
 		    "processResult": (data, variables) => {
 		        return {
-					"__variables": variables,
 		            "__ref": data,
+		            "__variables": variables,
 
 		            "viewer": {
-						"__variables": variables,
 		                "__ref": data.viewer,
+		                "__variables": variables,
 		                "id": data.viewer.id
 		            }
 		        };
-		    }
+		    },
+
+		    "variables": _TestQuery_Input
 		});
 
 		$:
 		{
-		    updateStoreData("TestQuery", _TestQuery.data);
+		    updateStoreData("TestQuery", _TestQuery.data, _TestQuery_Input);
 		}
 	`)
 	})
@@ -109,19 +116,23 @@ describe('query preprocessor', function () {
 		}
 
 		export async function preload(page, session) {
+		    const _TestQuery_Input = TestQueryVariables.call(this, page, session);
+
 		    const _TestQuery = await fetchQuery({
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
-		              "variables": TestQueryVariables.call(this, page, session)
+		              "variables": _TestQuery_Input
 		          });
 
 		    return {
-		        _TestQuery: _TestQuery
+		        _TestQuery: _TestQuery,
+		        _TestQuery_Input: _TestQuery_Input
 		    };
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
 		import { updateStoreData } from "houdini";
 		export let _TestQuery;
+		export let _TestQuery_Input;
 
 		const data = query({
 		    "name": "TestQuery",
@@ -129,21 +140,25 @@ describe('query preprocessor', function () {
 		    "raw": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		    "initialValue": _TestQuery,
 
-		    "processResult": data => {
+		    "processResult": (data, variables) => {
 		        return {
 		            "__ref": data,
+		            "__variables": variables,
 
 		            "viewer": {
 		                "__ref": data.viewer,
+		                "__variables": variables,
 		                "id": data.viewer.id
 		            }
 		        };
-		    }
+		    },
+
+		    "variables": _TestQuery_Input
 		});
 
 		$:
 		{
-		    updateStoreData("TestQuery", _TestQuery.data);
+		    updateStoreData("TestQuery", _TestQuery.data, _TestQuery_Input);
 		}
 	`)
 	})
