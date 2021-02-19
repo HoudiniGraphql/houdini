@@ -28,7 +28,7 @@ export default function selector(props: SelectorProps): ArrowFunctionExpression 
 		),
 		typeBuilders.blockStatement([
 			typeBuilders.returnStatement(typeBuilders.objectExpression(objectProperties(props))),
-		])
+		]) 
 	)
 }
 
