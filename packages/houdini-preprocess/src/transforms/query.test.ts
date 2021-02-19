@@ -165,7 +165,7 @@ describe('query preprocessor', function () {
 
 	test.todo('fails if variable function is not present')
 
-	test.todo('adds argumens to an empty preload')
+	test.todo('adds arguments to an empty preload')
 
 	test.todo('adds second argument to preload with only one argument')
 
