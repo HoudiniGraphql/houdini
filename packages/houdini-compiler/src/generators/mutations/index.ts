@@ -348,7 +348,7 @@ function fillMutationMap(
 					kind: operation,
 					path,
 					when,
-					connectionName: config.connectionNameFromFragment(selection.name.value)
+					connectionName: config.connectionNameFromFragment(selection.name.value),
 				}
 			}
 
@@ -399,7 +399,7 @@ function fillMutationMap(
 					kind: 'delete',
 					path: path.concat(attributeName),
 					when: {},
-					connectionName: config.connectionNameFromFragment(connectionName)
+					connectionName: config.connectionNameFromFragment(connectionName),
 				}
 			}
 

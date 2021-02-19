@@ -240,8 +240,7 @@ export class Config {
 			}
 		}
 
-		throw new Error("Could not find connection name from fragment: " + fragmentName)
-
+		throw new Error('Could not find connection name from fragment: ' + fragmentName)
 	}
 }
 

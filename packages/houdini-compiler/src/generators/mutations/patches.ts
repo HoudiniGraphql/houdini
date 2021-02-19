@@ -126,7 +126,10 @@ export function patchesForSelectionSet(
 						}
 
 						return Object.entries(mutations).map(
-							([mutationName, { kind, path, parentID, position, when, connectionName }]) => ({
+							([
+								mutationName,
+								{ kind, path, parentID, position, when, connectionName },
+							]) => ({
 								operation: kind,
 								mutationName,
 								mutationPath: path,
@@ -201,7 +204,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 				parentID,
 				position,
 				when,
-				connectionName
+				connectionName,
 			} of mutations) {
 				// the mutation path defines where in the update tree this entry belongs
 				let node = updateMap
@@ -409,47 +412,54 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 														)
 													)
 												),
-											].concat(
-												!connectionName ? [] : AST.objectProperty(AST.stringLiteral('connectionName'), AST.stringLiteral(connectionName))
-											).concat(
-												!when || Object.keys(when).length === 0
-													? []
-													: AST.objectProperty(
-															AST.stringLiteral('when'),
-															AST.objectExpression(
-																Object.entries(
-																	when
-																).map(([key, value]) =>
-																	AST.objectProperty(
-																		AST.stringLiteral(key),
-																		AST.objectExpression([
-																			AST.objectProperty(
-																				AST.stringLiteral(
-																					'kind'
+											]
+												.concat(
+													!connectionName
+														? []
+														: AST.objectProperty(
+																AST.stringLiteral('connectionName'),
+																AST.stringLiteral(connectionName)
+														  )
+												)
+												.concat(
+													!when || Object.keys(when).length === 0
+														? []
+														: AST.objectProperty(
+																AST.stringLiteral('when'),
+																AST.objectExpression(
+																	Object.entries(
+																		when
+																	).map(([key, value]) =>
+																		AST.objectProperty(
+																			AST.stringLiteral(key),
+																			AST.objectExpression([
+																				AST.objectProperty(
+																					AST.stringLiteral(
+																						'kind'
+																					),
+																					AST.stringLiteral(
+																						value.kind
+																					)
 																				),
-																				AST.stringLiteral(
-																					value.kind
-																				)
-																			),
-																			AST.objectProperty(
-																				AST.stringLiteral(
-																					'value'
+																				AST.objectProperty(
+																					AST.stringLiteral(
+																						'value'
+																					),
+																					value.kind ===
+																						'Boolean'
+																						? AST.booleanLiteral(
+																								value.value
+																						  )
+																						: AST.stringLiteral(
+																								value.value
+																						  )
 																				),
-																				value.kind ===
-																					'Boolean'
-																					? AST.booleanLiteral(
-																							value.value
-																					  )
-																					: AST.stringLiteral(
-																							value.value
-																					  )
-																			),
-																		])
+																			])
+																		)
 																	)
 																)
-															)
-													  )
-											)
+														  )
+												)
 										)
 									)
 								)

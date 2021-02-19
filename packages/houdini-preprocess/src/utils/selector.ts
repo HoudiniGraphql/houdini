@@ -2,11 +2,11 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { DocumentArtifact } from 'houdini-compiler'
-import { Config, selectionTypeInfo, isListType } from 'houdini-common'
+import { Config, selectionTypeInfo, isListType, getTypeFromAncestors } from 'houdini-common'
 // locals
 import memberExpression from './memberExpression'
 
-const typeBuilders = recast.types.builders
+const AST = recast.types.builders
 type Property = recast.types.namedTypes.ObjectProperty
 type ArrowFunctionExpression = recast.types.namedTypes.ArrowFunctionExpression
 
@@ -22,13 +22,98 @@ export type SelectorProps = {
 }
 
 export default function selector(props: SelectorProps): ArrowFunctionExpression {
-	return typeBuilders.arrowFunctionExpression(
-		[typeBuilders.identifier(props.rootIdentifier)].concat(
-			props.root ? typeBuilders.identifier('variables') : []
+	// before we build up the actual function, we might need to collect all of the connection filters
+	let fields: Property[] = []
+	if (props.root) {
+		// the connections that provide filters will emebed keys in the result
+		const connectionFilters: Property[] = []
+
+		graphql.visit(graphql.parse(props.artifact.raw), {
+			Directive: {
+				enter(node, _, __, ___, ancestors) {
+					// look for connections
+					if (node.name.value === props.config.connectionDirective) {
+						const parent = ancestors[ancestors.length - 1] as graphql.FieldNode
+
+						// find the name arg
+						const nameArg = node.arguments?.find(({name}) => name.value === 'name')
+						if (!nameArg || nameArg.value.kind !== 'StringValue') {
+							throw new Error('cant find name')
+						}
+
+						connectionFilters.push(
+							AST.objectProperty(
+								AST.stringLiteral(nameArg.value.value),
+								AST.objectExpression(
+									(parent.arguments || []).flatMap((arg) => {
+										// figure out the kind and value for the filter
+										let kind
+										let value
+
+										if (arg.value.kind === graphql.Kind.INT) {
+											kind = "Int"
+											value = AST.stringLiteral(arg.value.value)
+										}
+										 else if (arg.value.kind === graphql.Kind.FLOAT) {
+											kind = "Float"
+											value = AST.stringLiteral(arg.value.value)
+										}
+										 else if (arg.value.kind === graphql.Kind.BOOLEAN) {
+											kind = "Boolean"
+											value = AST.booleanLiteral(arg.value.value)
+										}
+										 else if (arg.value.kind === graphql.Kind.VARIABLE) {
+											kind = "Variable"
+											value = AST.stringLiteral(arg.value.name.value)
+										}
+										 else if (arg.value.kind === graphql.Kind.STRING) {
+											kind = "String"
+											value = AST.stringLiteral(arg.value.value)
+										}
+
+										if (!kind || !value) {
+											return []
+										}
+
+										
+										return[ 
+											AST.objectProperty(
+												AST.stringLiteral(arg.name.value),
+												AST.objectExpression([
+													AST.objectProperty(AST.stringLiteral("kind"), AST.stringLiteral(kind)),
+													AST.objectProperty(AST.stringLiteral("value"), value),
+												])
+											)
+										]
+									})
+								)
+							)
+						)
+					}
+				},
+			},
+		})
+
+		// if there are connections we care about
+		if (connectionFilters.length > 0) {
+			fields.push(
+				AST.objectProperty(
+					AST.stringLiteral('__connectionFilters'),
+					AST.objectExpression(connectionFilters)
+				)
+			)
+		}
+	}
+
+	return AST.arrowFunctionExpression(
+		// if we are at the top of the function definition, we need to define `variables`
+		[AST.identifier(props.rootIdentifier)].concat(
+			props.root ? AST.identifier('variables') : []
 		),
-		typeBuilders.blockStatement([
-			typeBuilders.returnStatement(typeBuilders.objectExpression(objectProperties(props))),
-		]) 
+		// add the field values to the default ones
+		AST.blockStatement([
+			AST.returnStatement(AST.objectExpression(fields.concat(objectProperties(props)))),
+		])
 	)
 }
 
@@ -45,19 +130,16 @@ function objectProperties({
 		// optionally include the embedded ref
 		...(includeRefField
 			? [
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('__ref'),
+					AST.objectProperty(
+						AST.stringLiteral('__ref'),
 						pullValuesFromRef
 							? memberExpression(rootIdentifier, '__ref')
-							: typeBuilders.identifier(rootIdentifier)
+							: AST.identifier(rootIdentifier)
 					),
 			  ]
 			: []),
 
-		typeBuilders.objectProperty(
-			typeBuilders.stringLiteral('__variables'),
-			typeBuilders.identifier('variables')
-		),
+		AST.objectProperty(AST.stringLiteral('__variables'), AST.identifier('variables')),
 
 		// process every selection in the selection set
 		...selectionSet.selections.flatMap((selection) => {
@@ -99,8 +181,8 @@ function objectProperties({
 				!selection.selectionSet?.selections.length
 			) {
 				// we need to add a key to the object that points {attributeName} to obj._ref.{attributeName}
-				return typeBuilders.objectProperty(
-					typeBuilders.stringLiteral(attributeName),
+				return AST.objectProperty(
+					AST.stringLiteral(attributeName),
 
 					pullValuesFromRef
 						? memberExpression(rootIdentifier, '__ref', attributeName)
@@ -123,10 +205,10 @@ function objectProperties({
 					.replace('.', '_')
 
 				// we need to transform every entry in this list to a masked version
-				return typeBuilders.objectProperty(
-					typeBuilders.stringLiteral(attributeName),
+				return AST.objectProperty(
+					AST.stringLiteral(attributeName),
 					// invoke {rootIdentifier}.__ref.{attributeName}.map
-					typeBuilders.callExpression(
+					AST.callExpression(
 						pullValuesFromRef
 							? memberExpression(rootIdentifier, '__ref', attributeName, 'map')
 							: memberExpression(rootIdentifier, attributeName, 'map'),
@@ -151,9 +233,9 @@ function objectProperties({
 			if (selection.kind === graphql.Kind.FIELD && selection.selectionSet !== undefined) {
 				// we need to return a single field that's equal to the masked version of the
 				// related object
-				return typeBuilders.objectProperty(
-					typeBuilders.identifier(JSON.stringify(attributeName)),
-					typeBuilders.objectExpression(
+				return AST.objectProperty(
+					AST.identifier(JSON.stringify(attributeName)),
+					AST.objectExpression(
 						objectProperties({
 							config,
 							artifact,
