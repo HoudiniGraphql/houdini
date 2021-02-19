@@ -108,26 +108,23 @@ function walkPatch(
 
 		// look at every path we have to perform this operation
 		for (const { path, parentID, position, when, connectionName } of paths) {
-			// check for a filter before we apply the application
+			// if there are conditions for this operation
 			if (when) {
-				// if there are no filters for the matching connection
-				if (
-					!connectionName ||
-					!target.__connectionFilters ||
-					!target.__connectionFilters[connectionName]
-				) {
+				// make sure there are connection filters in the target
+				if (!connectionName || !target.__connectionFilters || !target.__connectionFilters[connectionName]) { 
 					continue
 				}
 
-				const filters = target.__connectionFilters[connectionName]
+				const targets = target.__connectionFilters[connectionName]
+				let ok = true
 
-				// check every value in the when condition
-				if (
-					!Object.keys(when).reduce(
-						(prev, key) => prev || when[key] === filters[key],
-						false
-					)
-				) {
+				// check must's first
+				if (when.must) {
+					ok = Object.entries(when.must || {}).reduce<boolean>((prev, [key, value]) => Boolean(prev && targets[key] == value), ok)
+				}
+
+				// if we didn't satisfy everything we needed to
+				if (!ok) {
 					continue
 				}
 			}

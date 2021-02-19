@@ -33,13 +33,14 @@ export default async function graphqlExtensions(
 			"""
 			directive @${config.connectionPrependDirective}(
 				${config.connectionDirectiveParentIDArg}: ID, 
-				when: HoudiniConnectionWhen
+				when: HoudiniConnectionWhen, 
+				when_not: HoudiniConnectionWhen
 			) on FRAGMENT_SPREAD
 
 			"""
 				@${config.connectionAppendDirective} is used to tell the runtime to add the result to the start of the list
 			"""
-			directive @${config.connectionAppendDirective}(${config.connectionDirectiveParentIDArg}: ID, when: HoudiniConnectionWhen) on FRAGMENT_SPREAD
+			directive @${config.connectionAppendDirective}(${config.connectionDirectiveParentIDArg}: ID, when: HoudiniConnectionWhen, when_not: HoudiniConnectionWhen) on FRAGMENT_SPREAD
 
 			"""
 				@${config.connectionParentDirective} is used to provide a parentID without specifying position or in situations

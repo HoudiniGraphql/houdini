@@ -781,7 +781,9 @@ describe('apply patch', function () {
 									value: 'root',
 								},
 								when: {
-									target: 'not-value',
+									must: {
+										target: 'not-value',
+									}
 								},
 								connectionName: 'Test',
 							},
@@ -804,7 +806,7 @@ describe('apply patch', function () {
 			],
 			__connectionFilters: {
 				Test: {
-					stringKey: 'StringValue',
+					target: 'value',
 				},
 			},
 		}
@@ -822,6 +824,84 @@ describe('apply patch', function () {
 
 		// make sure we got the expected value
 		expect(set).not.toHaveBeenCalled()
+	})
+
+	test('apply connection when  positive', function () {
+		const patch: Patch = {
+			fields: {},
+			edges: {
+				mutationName: {
+					edges: {},
+					fields: {},
+					operations: {
+						add: [
+							{
+								path: ['outer'],
+								position: 'end',
+								parentID: {
+									kind: 'Root',
+									value: 'root',
+								},
+								when: {
+									must: {
+										target: 'value',
+									}
+								},
+								connectionName: 'Test',
+							},
+						],
+					},
+				},
+			},
+		}
+
+		// a function to spy on the update
+		const set = jest.fn()
+
+		// the current data
+		const current = {
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+			],
+			__connectionFilters: {
+				Test: {
+					target: 'value',
+				},
+			},
+		}
+
+		// the mutation payload
+		const payload = {
+			mutationName: {
+				id: '2',
+				target: 'world',
+			},
+		}
+
+		// apply the patch
+		applyPatch(patch, set, current, payload, {})
+
+		// make sure we got the expected value
+		expect(set).toHaveBeenCalledWith( {
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+				{
+					id: '2',
+					target: 'world',
+				},
+			],
+			__connectionFilters: {
+				Test: {
+					target: 'value',
+				},
+			},
+		}, {})
 	})
 
 	test('put values into lists', function () {

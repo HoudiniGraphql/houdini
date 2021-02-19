@@ -3,7 +3,7 @@ import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
 // locals
-import { CollectedGraphQLDocument } from '../../types'
+import { CollectedGraphQLDocument, ConnectionWhen } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
 import { HoudiniErrorTodo } from '../../error'
@@ -29,7 +29,7 @@ export type MutationMap = {
 				[mutationName: string]: {
 					kind: PatchAtom['operation']
 					position: 'start' | 'end'
-					when: { [key: string]: string }
+					when: { [T in keyof ConnectionWhen]: { [key: string]: string } }
 					parentID: {
 						kind: 'Variable' | 'String' | 'Root'
 						value: string
@@ -54,7 +54,7 @@ export type PatchAtom = {
 		kind: 'Variable' | 'String' | 'Root'
 		value: string
 	}
-	when?:{[key: string]: string | boolean | number} 
+	when?: ConnectionWhen
 	connectionName?: string
 	position?: 'start' | 'end'
 }
@@ -239,7 +239,7 @@ function fillMutationMap(
 				let insertLocation: MutationMap[string]['operations'][string][string]['position'] =
 					'end'
 
-				let when: { [key: string]: string } = {}
+				let when: MutationMap[string]['operations'][string][string]['when'] = {}
 
 				const internalDirectives = selection.directives?.filter((directive) =>
 					config.isInternalDirective(directive)
@@ -293,14 +293,25 @@ function fillMutationMap(
 					const whenArg = (append || prepend)?.arguments?.find(
 						({ name }) => name.value === 'when'
 					)
-					if (whenArg && whenArg.value.kind === 'ObjectValue') {
+
+					// look for a when_not condition on the operation
+					const whenNotArg = (append || prepend)?.arguments?.find(
+						({ name }) => name.value === 'when_not'
+					)
+
+					for (const [i, arg] of [whenArg, whenNotArg].entries()) {
+						// we may not have the argument
+						if (!arg || arg.value.kind !== 'ObjectValue') {
+							continue
+						}
+
+						//which are we looking at
+						const which = i ? 'must_not' : 'must'
 						// build up all of the values into a single object
-						const key = whenArg.value.fields.find(
+						const key = arg.value.fields.find(
 							({ name, value }) => name.value === 'argument'
 						)?.value
-						const value = whenArg.value.fields.find(
-							({ name }) => name.value === 'value'
-						)
+						const value = arg.value.fields.find(({ name }) => name.value === 'value')
 
 						// make sure we got a string for the key
 						if (
@@ -312,10 +323,11 @@ function fillMutationMap(
 						}
 
 						// the kind of `value` is always going to be a string because the directive
-						// can only take one type as its argument so we have to go look at the
-						// field definition in the schema for type information to cast the value
-						// to something useful for the rest of the world
-						when[key.value] = value.value.value
+						// can only take one type as its argument so we'll worry about parsing when
+						// generating the patches
+						when[which] = {
+							[key.value]: value.value.value,
+						}
 					}
 				}
 

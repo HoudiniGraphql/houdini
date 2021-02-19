@@ -386,7 +386,74 @@ test('connection patches track insert condition', async function () {
 		                    "connectionName": "Friends",
 
 		                    "when": {
-		                        "boolValue": true
+		                        "must": {
+		                            "boolValue": true
+		                        }
+		                    }
+		                }]
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test('connection when not', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`query TestQuery {
+				users(stringValue: "1234")  @connection(name:"Friends"){
+					firstName
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				updateUser {
+					...Friends_insert @prepend(when_not: { argument: "boolValue", value: "true" })
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "updateUser": {
+		            "operations": {
+		                "add": [{
+		                    "position": "start",
+
+		                    "parentID": {
+		                        "kind": "Root",
+		                        "value": "root"
+		                    },
+
+		                    "path": ["users"],
+		                    "connectionName": "Friends",
+
+		                    "when": {
+		                        "must_not": {
+		                            "boolValue": true
+		                        }
 		                    }
 		                }]
 		            }
