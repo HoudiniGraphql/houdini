@@ -745,7 +745,10 @@ describe('apply patch', function () {
 									value: 'root',
 								},
 								when: {
-									'target': 'not-value',
+									'target': {
+										kind: 'String',
+										value: 'not-value'
+									},
 								}
 							},
 						],

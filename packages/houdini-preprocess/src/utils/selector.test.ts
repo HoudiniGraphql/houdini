@@ -1,112 +1,59 @@
 // externals
 import * as graphql from 'graphql'
-import * as recast from 'recast'
 // locals
 import { CompiledFragmentKind } from 'houdini-compiler'
 import selector from './selector'
 import { testConfig } from 'houdini-common'
+import '../../../../jest.setup'
 
-// declare a schema we will use
-
-const config = testConfig({
-	schema: `
-        type User {
-            name: String!
-            age: Int!
-            parent: User!
-            friends: [User!]!
-        }
-    `,
-})
 
 describe('selector', function () {
-	// define the test cases
-	const table = [
-		[
-			'flat object',
-			`fragment foo on User {
+    test('flat object', function() {
+			const result = selectorTest(`fragment foo on User {
                 name
                 age
-            }`,
-			`(obj, variables) => {
-    return {
-        "__ref": obj.__ref,
-        "__variables": variables,
-        "name": obj.__ref.name,
-        "age": obj.__ref.age
-    };
-}`,
-		],
-		[
-			'inline fragments',
-			`fragment foo on User {
+            }`)
+
+            expect(result).toMatchInlineSnapshot()
+})    
+    
+    test('inline fragments', function() {
+			const result = selectorTest(`fragment foo on User {
                 name
                 ... on User {
                     age
                 }
-            }`,
-			`(obj, variables) => {
-    return {
-        "__ref": obj.__ref,
-        "__variables": variables,
-        "name": obj.__ref.name,
-        "age": obj.__ref.age
-    };
-}`,
-		],
-		[
-			'related objects',
-			`fragment foo on User {
+            }`)
+
+            expect(result).toMatchInlineSnapshot()
+})    
+    
+    test('related objects', function() {
+			const result = selectorTest(`fragment foo on User {
                 name
                 parent {
                     name
                     age
                 }
-            }`,
-			`(obj, variables) => {
-    return {
-        "__ref": obj.__ref,
-        "__variables": variables,
-        "name": obj.__ref.name,
+            }`)
 
-        "parent": {
-            "__ref": obj.__ref.parent.__ref,
-            "__variables": variables,
-            "name": obj.__ref.parent.__ref.name,
-            "age": obj.__ref.parent.__ref.age
-        }
-    };
-}`,
-		],
-		[
-			'related lists',
-			`fragment foo on User {
+            expect(result).toMatchInlineSnapshot()
+})    
+    
+    test('related lists', function() {
+			const result = selectorTest(`fragment foo on User {
                 name
                 friends {
                     name
                     age
                 }
-            }`,
-			`(obj, variables) => {
-    return {
-        "__ref": obj.__ref,
-        "__variables": variables,
-        "name": obj.__ref.name,
+            }`)
 
-        "friends": obj.__ref.friends.map(obj_friends => {
-            return {
-                "__ref": obj_friends.__ref,
-                "__variables": variables,
-                "name": obj_friends.__ref.name,
-                "age": obj_friends.__ref.age
-            };
-        })
-    };
-}`,
-		],
-		[
-			'query selector',
-			`fragment foo on User {
+            expect(result).toMatchInlineSnapshot()
+})    
+    
+    test('query selector', function() {
+			const result = selectorTest(`fragment foo on User {
                 name
                 parent {
                     name
@@ -116,34 +63,19 @@ describe('selector', function () {
                     name
                     age
                 }
-            }`,
-			`(obj, variables) => {
-    return {
-        "__ref": obj,
-        "__variables": variables,
-        "name": obj.name,
+            }`, {pullValuesFromRef: false})
 
-        "parent": {
-            "__ref": obj.parent,
-            "__variables": variables,
-            "name": obj.parent.name,
-            "age": obj.parent.age
-        },
+            expect(result).toMatchInlineSnapshot()})
 
-        "friends": obj.friends.map(obj_friends => {
-            return {
-                "__ref": obj_friends,
-                "__variables": variables,
-                "name": obj_friends.name,
-                "age": obj_friends.age
-            };
-        })
-    };
-}`,
-		],
-		[
-			'nested objects',
-			`fragment foo on User {
+    test('connection arguments', function() {
+			const result = selectorTest(`query {
+                foo(stringKey: "StringValue", boolKey: true, variableKey: $hello, intKey: 1, floatKey: 1.2) @connection(name: "Test")
+            }`)
+
+            expect(result).toMatchInlineSnapshot()})    
+    
+    test('nested objects', function() {
+			const result = selectorTest(`fragment foo on User {
                 name
                 parent {
                     name
@@ -153,32 +85,13 @@ describe('selector', function () {
                         age
                     }
                 }
-            }`,
-			`(obj, variables) => {
-    return {
-        "__ref": obj.__ref,
-        "__variables": variables,
-        "name": obj.__ref.name,
+            }`)
 
-        "parent": {
-            "__ref": obj.__ref.parent.__ref,
-            "__variables": variables,
-            "name": obj.__ref.parent.__ref.name,
-            "age": obj.__ref.parent.__ref.age,
-
-            "parent": {
-                "__ref": obj.__ref.parent.__ref.parent.__ref,
-                "__variables": variables,
-                "name": obj.__ref.parent.__ref.parent.__ref.name,
-                "age": obj.__ref.parent.__ref.parent.__ref.age
-            }
-        }
-    };
-}`,
-		],
-		[
-			'nested lists',
-			`fragment foo on User {
+            expect(result).toMatchInlineSnapshot()
+})    
+    
+    test('nested lists', function() {
+			const result = selectorTest(`fragment foo on User {
                 name
                 friends {
                     name
@@ -189,36 +102,13 @@ describe('selector', function () {
                         age
                     }
                 }
-            }`,
-			`(obj, variables) => {
-    return {
-        "__ref": obj.__ref,
-        "__variables": variables,
-        "name": obj.__ref.name,
+            }`)
 
-        "friends": obj.__ref.friends.map(obj_friends => {
-            return {
-                "__ref": obj_friends.__ref,
-                "__variables": variables,
-                "name": obj_friends.__ref.name,
-                "age": obj_friends.__ref.age,
-
-                "friends": obj_friends.__ref.friends.map(obj_friends_friends => {
-                    return {
-                        "__ref": obj_friends_friends.__ref,
-                        "__variables": variables,
-                        "name": obj_friends_friends.__ref.name,
-                        "age": obj_friends_friends.__ref.age
-                    };
-                })
-            };
-        })
-    };
-}`,
-		],
-		[
-			'list in object',
-			`fragment foo on User {
+            expect(result).toMatchInlineSnapshot()
+})    
+    
+    test('list in object', function() {
+			const result = selectorTest(`fragment foo on User {
                 name
                 parent {
                     name
@@ -229,64 +119,47 @@ describe('selector', function () {
                         age
                     }
                 }
-            }`,
-			`(obj, variables) => {
-    return {
-        "__ref": obj.__ref,
-        "__variables": variables,
-        "name": obj.__ref.name,
+            }`)
 
-        "parent": {
-            "__ref": obj.__ref.parent.__ref,
-            "__variables": variables,
-            "name": obj.__ref.parent.__ref.name,
-            "age": obj.__ref.parent.__ref.age,
-
-            "friends": obj.__ref.parent.__ref.friends.map(obj_parent_friends => {
-                return {
-                    "__ref": obj_parent_friends.__ref,
-                    "__variables": variables,
-                    "name": obj_parent_friends.__ref.name,
-                    "age": obj_parent_friends.__ref.age
-                };
-            })
-        }
-    };
-}`,
-		],
-	]
-
-	for (const [title, fragment, expectedFunction] of table) {
-		// run the tests
-		test(title, function () {
-			// parse the fragment
-			const parsedFragment = graphql.parse(fragment)
-				.definitions[0] as graphql.FragmentDefinitionNode
-
-			// get the expected selector
-			const expected = recast.parse(expectedFunction, {
-				parser: require('recast/parsers/typescript'),
-			}).program.body[0].expression
-
-			// generate the selector
-			const result = selector({
-				config,
-				artifact: {
-					name: 'testFragment',
-					kind: CompiledFragmentKind,
-					raw: fragment,
-					hash: 'asf',
-				},
-				rootIdentifier: 'obj',
-				rootType: config.schema.getType('User') as graphql.GraphQLObjectType,
-				selectionSet: parsedFragment.selectionSet,
-				// don't pull the values out of the ref for the query selector test
-				pullValuesFromRef: title !== 'query selector',
-                root: true,
-			})
-
-			// make sure that both print the same way
-			expect(recast.print(result).code).toBe(recast.print(expected).code)
-		})
-	}
+            expect(result).toMatchInlineSnapshot()
 })
+    })
+
+function selectorTest(doc:string, extraConfig?: {}) {
+    // declare a schema we will use
+    const config = testConfig({
+        schema: `
+            type User {
+                name: String!
+                age: Int!
+                parent: User!
+                friends: [User!]!
+            }
+
+            type Query { 
+                users(stringKey: String, boolKey: Boolean, variableKey: String, intKey: Int, floatKey: Float)
+            }
+        `,
+    })
+
+    // parse the fragment
+    const parsedFragment = graphql.parse(doc)
+        .definitions[0] as graphql.FragmentDefinitionNode
+
+
+    // generate the selector
+    return selector({
+        config,
+        artifact: {
+            name: 'testFragment',
+            kind: CompiledFragmentKind,
+            raw: doc,
+            hash: 'asf',
+        },
+        rootIdentifier: 'obj',
+        rootType: config.schema.getType('User') as graphql.GraphQLObjectType,
+        selectionSet: parsedFragment.selectionSet,
+        root: true,
+        ...extraConfig,
+    })
+}

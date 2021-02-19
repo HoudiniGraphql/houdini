@@ -10,7 +10,7 @@ const typeBuilders = recast.types.builders
 type Property = recast.types.namedTypes.ObjectProperty
 type ArrowFunctionExpression = recast.types.namedTypes.ArrowFunctionExpression
 
-type SelectorProps = {
+export type SelectorProps = {
 	config: Config
 	artifact: DocumentArtifact
 	rootIdentifier: string
@@ -39,7 +39,7 @@ function objectProperties({
 	includeRefField = true,
 	pullValuesFromRef = true,
 }: SelectorProps): Property[] {
-	const properties = [
+	return [
 		// optionally include the embedded ref
 		...(includeRefField
 			? [
@@ -167,16 +167,4 @@ function objectProperties({
 			throw new Error('Could not create selector for selection type: ' + selection.kind)
 		}),
 	]
-
-
-	// reverse the list of indices so we can remove without destroying
-	// const extras = propIndices.slice(1)
-	// extras.reverse()
-	// for (const extra of extras) {
-	// 	properties.splice(extra, 1)
-	// }
-
-
-
-	return properties
 }
