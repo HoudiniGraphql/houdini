@@ -36,7 +36,7 @@ export default function selector(props: SelectorProps): ArrowFunctionExpression 
 						const parent = ancestors[ancestors.length - 1] as graphql.FieldNode
 
 						// find the name arg
-						const nameArg = node.arguments?.find(({name}) => name.value === 'name')
+						const nameArg = node.arguments?.find(({ name }) => name.value === 'name')
 						if (!nameArg || nameArg.value.kind !== 'StringValue') {
 							throw new Error('cant find name')
 						}
@@ -46,22 +46,21 @@ export default function selector(props: SelectorProps): ArrowFunctionExpression 
 								AST.stringLiteral(nameArg.value.value),
 								AST.objectExpression(
 									(parent.arguments || []).flatMap((arg) => {
-										// figure out the value to use 
+										// figure out the value to use
 										let value
 
 										if (arg.value.kind === graphql.Kind.INT) {
 											value = AST.literal(parseInt(arg.value.value, 10))
-										}
-										 else if (arg.value.kind === graphql.Kind.FLOAT) {
+										} else if (arg.value.kind === graphql.Kind.FLOAT) {
 											value = AST.literal(parseFloat(arg.value.value))
-										}
-										 else if (arg.value.kind === graphql.Kind.BOOLEAN) {
+										} else if (arg.value.kind === graphql.Kind.BOOLEAN) {
 											value = AST.booleanLiteral(arg.value.value)
-										}
-										 else if (arg.value.kind === graphql.Kind.VARIABLE) {
-											value = AST.memberExpression(AST.identifier('variables'), AST.identifier(arg.value.name.value))
-										}
-										 else if (arg.value.kind === graphql.Kind.STRING) {
+										} else if (arg.value.kind === graphql.Kind.VARIABLE) {
+											value = AST.memberExpression(
+												AST.identifier('variables'),
+												AST.identifier(arg.value.name.value)
+											)
+										} else if (arg.value.kind === graphql.Kind.STRING) {
 											value = AST.stringLiteral(arg.value.value)
 										}
 
@@ -69,12 +68,11 @@ export default function selector(props: SelectorProps): ArrowFunctionExpression 
 											return []
 										}
 
-										
-										return[ 
+										return [
 											AST.objectProperty(
 												AST.stringLiteral(arg.name.value),
-												value,
-											)
+												value
+											),
 										]
 									})
 								)

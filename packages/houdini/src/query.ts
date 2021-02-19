@@ -22,7 +22,8 @@ export default function query<_Query extends Operation<any, any>>(
 			// build up the store object
 			const store = {
 				name: document.name,
-				updateValue: (val: _Query['result']) => set(document.processResult(val, document.variables)),
+				updateValue: (val: _Query['result']) =>
+					set(document.processResult(val, document.variables)),
 				currentValue: {},
 			}
 

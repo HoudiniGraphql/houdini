@@ -32,7 +32,7 @@ export type ConnectionWhenGeneric = {
 		  }
 }
 
-export type ConnectionWhen = {[key: string]: string | boolean | number }
+export type ConnectionWhen = { [key: string]: string | boolean | number }
 
 // the information that the compiler leaves behind after processing an operation
 export type QueryArtifact = BaseCompiledDocument & {

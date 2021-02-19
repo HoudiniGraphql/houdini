@@ -136,7 +136,7 @@ export function patchesForSelectionSet(
 								// `when` currently has no type information. let's fix that now
 								const typedWhen = Object.entries(when).reduce((acc, [key, val]) => {
 									// grab the field we're filtering on
-									const arg = args.find(({name}) => name === key)
+									const arg = args.find(({ name }) => name === key)
 									if (!arg || !(arg.type instanceof graphql.GraphQLScalarType)) {
 										return acc
 									}
@@ -144,45 +144,46 @@ export function patchesForSelectionSet(
 									let value: ConnectionWhenGeneric[string]
 									if (arg.type.name === 'Boolean') {
 										value = {
-											kind: "Boolean",
-											value: val === 'true'
+											kind: 'Boolean',
+											value: val === 'true',
 										}
 									} else if (arg.type.name === 'String') {
 										value = {
-											kind: "String",
-											value: val
+											kind: 'String',
+											value: val,
 										}
 									} else if (arg.type.name === 'Int') {
 										value = {
-											kind: "Int",
-											value: val
+											kind: 'Int',
+											value: val,
 										}
 									} else if (arg.type.name === 'Float') {
 										value = {
 											kind: 'Float',
-											value: val
+											value: val,
 										}
 									} else {
-										throw new Error("Could not identify arg type: " + arg.name)
+										throw new Error('Could not identify arg type: ' + arg.name)
 									}
 
-									return{
+									return {
 										...acc,
-										[key]: value
-									}}, {})
+										[key]: value,
+									}
+								}, {})
 
 								return {
-								operation: kind,
-								mutationName,
-								mutationPath: path,
-								queryName: name,
-								queryPath: pathSoFar,
-								parentID,
-								position,
-								when: typedWhen,
-								connectionName,
+									operation: kind,
+									mutationName,
+									mutationPath: path,
+									queryName: name,
+									queryPath: pathSoFar,
+									parentID,
+									position,
+									when: typedWhen,
+									connectionName,
+								}
 							}
-						}
 						)
 					}
 				)
@@ -314,23 +315,26 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 						throw new HoudiniErrorTodo('Could not find parentID')
 					}
 
-					const operationWhen = Object.entries(when || {}).reduce<ConnectionWhen>((acc, [key, val]) => {
-						let value	
-						if (val.kind === 'Boolean') {
-							value = val.value
-						} else if (val.kind === 'Float') {
-							value = parseFloat(val.value)
-						} else if (val.kind === 'Int') {
-							value = parseInt(val.value, 10)
-						} else {
-							value = val.value
-						}
+					const operationWhen = Object.entries(when || {}).reduce<ConnectionWhen>(
+						(acc, [key, val]) => {
+							let value
+							if (val.kind === 'Boolean') {
+								value = val.value
+							} else if (val.kind === 'Float') {
+								value = parseFloat(val.value)
+							} else if (val.kind === 'Int') {
+								value = parseInt(val.value, 10)
+							} else {
+								value = val.value
+							}
 
-						return {
-							...acc,
-							[key]: value
-						}
-					}, {})
+							return {
+								...acc,
+								[key]: value,
+							}
+						},
+						{}
+					)
 
 					// @ts-ignore just made sure this didn't happen
 					node.edges[pathEntry].operations![operation].push(
@@ -443,73 +447,90 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 							return AST.objectProperty(
 								AST.stringLiteral(patchOperation),
 								AST.arrayExpression(
-									(
-										patch.operations[patchOperation] || []
-									).map(({ parentID, path, position, when, connectionName }) =>
-										AST.objectExpression(
-											[
-												AST.objectProperty(
-													AST.stringLiteral('position'),
-													AST.stringLiteral(position)
-												),
-												AST.objectProperty(
-													AST.stringLiteral('parentID'),
-													AST.objectExpression([
-														AST.objectProperty(
-															AST.stringLiteral('kind'),
-															AST.stringLiteral(parentID.kind)
-														),
-														AST.objectProperty(
-															AST.stringLiteral('value'),
-															AST.stringLiteral(parentID.value)
-														),
-													])
-												),
-												AST.objectProperty(
-													AST.stringLiteral('path'),
-													AST.arrayExpression(
-														path.map((entry) =>
-															AST.stringLiteral(entry)
+									(patch.operations[patchOperation] || []).map(
+										({ parentID, path, position, when, connectionName }) =>
+											AST.objectExpression(
+												[
+													AST.objectProperty(
+														AST.stringLiteral('position'),
+														AST.stringLiteral(position)
+													),
+													AST.objectProperty(
+														AST.stringLiteral('parentID'),
+														AST.objectExpression([
+															AST.objectProperty(
+																AST.stringLiteral('kind'),
+																AST.stringLiteral(parentID.kind)
+															),
+															AST.objectProperty(
+																AST.stringLiteral('value'),
+																AST.stringLiteral(parentID.value)
+															),
+														])
+													),
+													AST.objectProperty(
+														AST.stringLiteral('path'),
+														AST.arrayExpression(
+															path.map((entry) =>
+																AST.stringLiteral(entry)
+															)
 														)
+													),
+												]
+													.concat(
+														!connectionName
+															? []
+															: AST.objectProperty(
+																	AST.stringLiteral(
+																		'connectionName'
+																	),
+																	AST.stringLiteral(
+																		connectionName
+																	)
+															  )
 													)
-												),
-											]
-												.concat(
-													!connectionName
-														? []
-														: AST.objectProperty(
-																AST.stringLiteral('connectionName'),
-																AST.stringLiteral(connectionName)
-														  )
-												)
-												.concat(
-													!when || Object.keys(when).length === 0
-														? []
-														: AST.objectProperty(
-																AST.stringLiteral('when'),
-																AST.objectExpression(
-																	Object.entries(
-																		when
-																	).map(([key, val]) =>{
-																		// figure out the value
-																		let value
-																		if (typeof val === 'string') {
-																			value = AST.stringLiteral(val)
-																		} else if (typeof val === 'boolean') {
-																			value = AST.booleanLiteral(val)
-																		} else {
-																			value = AST.literal(val)
-																		}
+													.concat(
+														!when || Object.keys(when).length === 0
+															? []
+															: AST.objectProperty(
+																	AST.stringLiteral('when'),
+																	AST.objectExpression(
+																		Object.entries(when).map(
+																			([key, val]) => {
+																				// figure out the value
+																				let value
+																				if (
+																					typeof val ===
+																					'string'
+																				) {
+																					value = AST.stringLiteral(
+																						val
+																					)
+																				} else if (
+																					typeof val ===
+																					'boolean'
+																				) {
+																					value = AST.booleanLiteral(
+																						val
+																					)
+																				} else {
+																					value = AST.literal(
+																						val
+																					)
+																				}
 
-																		return AST.objectProperty(
-																			AST.stringLiteral(key),
-																			value
+																				return AST.objectProperty(
+																					AST.stringLiteral(
+																						key
+																					),
+																					value
+																				)
+																			}
 																		)
-																	})
-																)
-														  )
-												)
-										)
+																	)
+															  )
+													)
+											)
 									)
 								)
 							)

@@ -783,7 +783,7 @@ describe('apply patch', function () {
 								when: {
 									target: 'not-value',
 								},
-								connectionName: "Test"
+								connectionName: 'Test',
 							},
 						],
 					},
@@ -804,8 +804,8 @@ describe('apply patch', function () {
 			],
 			__connectionFilters: {
 				Test: {
-					stringKey: "StringValue",
-				}
+					stringKey: 'StringValue',
+				},
 			},
 		}
 
