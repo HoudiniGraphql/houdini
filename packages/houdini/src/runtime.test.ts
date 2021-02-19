@@ -786,6 +786,7 @@ describe('apply patch', function () {
 										value: 'not-value',
 									},
 								},
+								connectionName: "Test"
 							},
 						],
 					},

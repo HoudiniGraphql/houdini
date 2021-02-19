@@ -12,7 +12,7 @@ export const CompiledFragmentKind = 'HoudiniFragment'
 export const CompiledMutationKind = 'HoudiniMutation'
 export const CompiledQueryKind = 'HoudiniQuery'
 
-export type ConnectionWhen = {
+export type ConnectionWhenGeneric = {
 	[key: string]:
 		| {
 				kind: 'String'
@@ -31,6 +31,8 @@ export type ConnectionWhen = {
 				value: string
 		  }
 }
+
+export type ConnectionWhen = {[key: string]: string | boolean | number }
 
 // the information that the compiler leaves behind after processing an operation
 export type QueryArtifact = BaseCompiledDocument & {

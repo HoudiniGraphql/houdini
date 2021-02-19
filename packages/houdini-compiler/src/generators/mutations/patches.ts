@@ -6,7 +6,7 @@ import * as recast from 'recast'
 import fs from 'fs/promises'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
-import { Patch } from '../../types'
+import { Patch, ConnectionWhen } from '../../types'
 import { PatchAtom, MutationMap } from '.'
 import { HoudiniErrorTodo } from '../../error'
 
@@ -271,6 +271,24 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 						throw new HoudiniErrorTodo('Could not find parentID')
 					}
 
+					const operationWhen = Object.entries(when || {}).reduce<ConnectionWhen>((acc, [key, val]) => {
+						let value	
+						if (val.kind === 'Boolean') {
+							value = val.value
+						} else if (val.kind === 'Float') {
+							value = parseFloat(val.value)
+						} else if (val.kind === 'Int') {
+							value = parseInt(val.value, 10)
+						} else {
+							value = val.value
+						}
+
+						return {
+							...acc,
+							[key]: value
+						}
+					}, {})
+
 					// @ts-ignore just made sure this didn't happen
 					node.edges[pathEntry].operations![operation].push(
 						// a comment to isolate the ignore
@@ -281,7 +299,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 								value: parentID.value,
 							},
 							position: position || 'start',
-							when,
+							when: operationWhen,
 							connectionName,
 						}
 					)
@@ -429,34 +447,22 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 																AST.objectExpression(
 																	Object.entries(
 																		when
-																	).map(([key, value]) =>
-																		AST.objectProperty(
+																	).map(([key, val]) =>{
+																		// figure out the value
+																		let value
+																		if (typeof val === 'string') {
+																			value = AST.stringLiteral(val)
+																		} else if (typeof val === 'boolean') {
+																			value = AST.booleanLiteral(val)
+																		} else {
+																			value = AST.literal(val)
+																		}
+
+																		return AST.objectProperty(
 																			AST.stringLiteral(key),
-																			AST.objectExpression([
-																				AST.objectProperty(
-																					AST.stringLiteral(
-																						'kind'
-																					),
-																					AST.stringLiteral(
-																						value.kind
-																					)
-																				),
-																				AST.objectProperty(
-																					AST.stringLiteral(
-																						'value'
-																					),
-																					value.kind ===
-																						'Boolean'
-																						? AST.booleanLiteral(
-																								value.value
-																						  )
-																						: AST.stringLiteral(
-																								value.value
-																						  )
-																				),
-																			])
+																			value
 																		)
-																	)
+																	})
 																)
 														  )
 												)

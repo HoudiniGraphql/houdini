@@ -3,7 +3,7 @@ import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
 // locals
-import { CollectedGraphQLDocument, ConnectionWhen } from '../../types'
+import { CollectedGraphQLDocument, ConnectionWhenGeneric } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
 import { HoudiniErrorTodo } from '../../error'
@@ -29,7 +29,7 @@ export type MutationMap = {
 				[mutationName: string]: {
 					kind: PatchAtom['operation']
 					position: 'start' | 'end'
-					when: ConnectionWhen
+					when: ConnectionWhenGeneric
 					parentID: {
 						kind: 'Variable' | 'String' | 'Root'
 						value: string
@@ -54,7 +54,7 @@ export type PatchAtom = {
 		kind: 'Variable' | 'String' | 'Root'
 		value: string
 	}
-	when?: ConnectionWhen
+	when?: ConnectionWhenGeneric
 	connectionName?: string
 	position?: 'start' | 'end'
 }
@@ -239,7 +239,7 @@ function fillMutationMap(
 				let insertLocation: MutationMap[string]['operations'][string][string]['position'] =
 					'end'
 
-				let when: ConnectionWhen = {}
+				let when: ConnectionWhenGeneric = {}
 
 				const internalDirectives = selection.directives?.filter((directive) =>
 					config.isInternalDirective(directive)
@@ -348,7 +348,7 @@ function fillMutationMap(
 					kind: operation,
 					path,
 					when,
-					connectionName: config.connectionNameFromFragment(selection.name.value),
+					connectionName: config.connectionNameFromFragment(selection.name.value)
 				}
 			}
 
@@ -399,7 +399,7 @@ function fillMutationMap(
 					kind: 'delete',
 					path: path.concat(attributeName),
 					when: {},
-					connectionName: config.connectionNameFromFragment(connectionName),
+					connectionName: config.connectionNameFromFragment(connectionName)
 				}
 			}
 
