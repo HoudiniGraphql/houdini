@@ -236,7 +236,7 @@ export class Config {
 		for (let i = fragmentName.length - 1; i >= 0; i--) {
 			// if we hit a _
 			if (fragmentName[i] === '_') {
-				return fragmentName.substr(0, fragmentName.length - i)
+				return fragmentName.substr(0, i)
 			}
 		}
 
