@@ -56,6 +56,78 @@ describe('schema transform', function () {
 			],
 			pass: true,
 		},
+		{
+			title: 'prepend directive - when arg',
+			documents: [
+				`
+					mutation Update {
+						updateUser {
+							...A @prepend(when: { argument: "value", value: "value" })
+						}
+					}
+				`,
+				`
+					fragment A on User {
+						id
+					}
+				`,
+			],
+			pass: true,
+		},
+		{
+			title: 'when directive',
+			documents: [
+				`
+					mutation Update {
+						updateUser {
+							...A @when(argument: "value", value: "value")
+						}
+					}
+				`,
+				`
+					fragment A on User {
+						id
+					}
+				`,
+			],
+			pass: true,
+		},
+		{
+			title: 'when_not directive',
+			documents: [
+				`
+					mutation Update {
+						updateUser {
+							...A @when_not(argument: "value", value: "value")
+						}
+					}
+				`,
+				`
+					fragment A on User {
+						id
+					}
+				`,
+			],
+			pass: true,
+		},
+		{
+			title: 'append directive - when arg',
+			documents: [
+				`
+					mutation Update {
+						updateUser {
+							...A @append(when: { argument: "value", value: "value" })
+						}
+					}
+				`,
+				`
+					fragment A on User {
+						id
+					}
+				`,
+			],
+			pass: true,
+		},
 	]
 
 	for (const row of table) {

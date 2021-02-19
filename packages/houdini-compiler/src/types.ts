@@ -1,4 +1,4 @@
-import graphql from 'graphql'
+import * as graphql from 'graphql'
 import { PatchAtom } from './generators/mutations'
 
 // the compiled version of an operation
@@ -11,6 +11,13 @@ type BaseCompiledDocument = {
 export const CompiledFragmentKind = 'HoudiniFragment'
 export const CompiledMutationKind = 'HoudiniMutation'
 export const CompiledQueryKind = 'HoudiniQuery'
+
+type Filter = { [key: string]: string | boolean | number }
+
+export type ConnectionWhen = {
+	must?: Filter
+	must_not?: Filter
+}
 
 // the information that the compiler leaves behind after processing an operation
 export type QueryArtifact = BaseCompiledDocument & {
@@ -36,6 +43,8 @@ export type Patch = {
 			}
 			position: 'start' | 'end'
 			path: string[]
+			when?: ConnectionWhen
+			connectionName?: string
 		}[]
 	}
 	fields?: { [fieldName: string]: Array<string[]> }

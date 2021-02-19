@@ -10,6 +10,7 @@ export type ConfigFile = {
 	schemaPath?: string
 	schema?: string
 	quiet?: boolean
+	verifyHash?: boolean
 }
 
 // a place to hold conventions and magic strings
@@ -18,8 +19,16 @@ export class Config {
 	schema: graphql.GraphQLSchema
 	sourceGlob: string
 	quiet: boolean
+	verifyHash: boolean
 
-	constructor({ runtimeDirectory, schema, schemaPath, sourceGlob, quiet = false }: ConfigFile) {
+	constructor({
+		runtimeDirectory,
+		schema,
+		schemaPath,
+		sourceGlob,
+		quiet = false,
+		verifyHash,
+	}: ConfigFile) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
 			throw new Error('Please provide one of schema or schema path')
@@ -38,6 +47,7 @@ export class Config {
 		this.runtimeDirectory = runtimeDirectory
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
+		this.verifyHash = typeof verifyHash === 'undefined' ? true : verifyHash
 	}
 
 	/*
@@ -209,6 +219,8 @@ export class Config {
 				this.connectionPrependDirective,
 				this.connectionAppendDirective,
 				this.connectionDirectiveParentIDArg,
+				'when',
+				'when_not',
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}
@@ -219,6 +231,18 @@ export class Config {
 
 	isFragmentForConnection(connectionName: string, fragmentName: string) {
 		return fragmentName.startsWith(connectionName)
+	}
+
+	connectionNameFromFragment(fragmentName: string): string {
+		// starting at the end of the fragment name going left, look for a _
+		for (let i = fragmentName.length - 1; i >= 0; i--) {
+			// if we hit a _
+			if (fragmentName[i] === '_') {
+				return fragmentName.substr(0, i)
+			}
+		}
+
+		throw new Error('Could not find connection name from fragment: ' + fragmentName)
 	}
 }
 
@@ -250,6 +274,7 @@ export function testConfig(config: {} = {}) {
 				user: User!
 				version: Int!
 				ghost: Ghost!
+				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 			}
 
 			type Mutation {

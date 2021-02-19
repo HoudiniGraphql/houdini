@@ -6,7 +6,7 @@ import * as recast from 'recast'
 import fs from 'fs/promises'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
-import { Patch } from '../../types'
+import { ConnectionWhen, Patch } from '../../types'
 import { PatchAtom, MutationMap } from '.'
 import { HoudiniErrorTodo } from '../../error'
 
@@ -115,24 +115,82 @@ export function patchesForSelectionSet(
 
 				// every key in the operation object points to a connection fragment
 				// and can contribute an operation to the list of patches
-				const newPatches = Object.entries(operations).flatMap(([fragmentName, mutations]) => {
-					// if we are looking at an operation that's relevant for this connection
-					if (!config.isFragmentForConnection(nameVal, fragmentName) && !fragmentName.startsWith('__houdini__delete')) {
-						return []
-					}
+				const newPatches = Object.entries(operations).flatMap<PatchAtom>(
+					([fragmentName, mutations]) => {
+						// if we are looking at an operation that's relevant for this connection
+						if (
+							!config.isFragmentForConnection(nameVal, fragmentName) &&
+							!fragmentName.startsWith('__houdini__delete')
+						) {
+							return []
+						}
 
-					return Object.entries(mutations).map(
-						([mutationName, { kind, path, parentID, position }]) => ({
-							operation: kind,
-							mutationName,
-							mutationPath: path,
-							queryName: name,
-							queryPath: pathSoFar,
-							parentID,
-							position,
-						})
-					)
-				})
+						// `key` points to an argument in the field marked connection, look there for type info
+						const { args } = rootType.getFields()[attributeName]
+
+						return Object.entries(mutations).map(
+							([
+								mutationName,
+								{ kind, path, parentID, position, when, connectionName },
+							]) => {
+								// `when` and `when_not` currently has no type information. let's fix that now
+								const typeWhen = (
+									which: MutationMap[string]['operations'][string][string]['when']['must']
+								) =>
+									Object.entries(which || {}).reduce<ConnectionWhen['must']>(
+										(acc, [key, val]) => {
+											// grab the field we're filtering on
+											const arg = args.find(({ name }) => name === key)
+											if (
+												!arg ||
+												!(arg.type instanceof graphql.GraphQLScalarType)
+											) {
+												return acc
+											}
+
+											let value: string | boolean | number
+											if (arg.type.name === 'Boolean') {
+												value = val === 'true'
+											} else if (arg.type.name === 'String') {
+												value = val
+											} else if (arg.type.name === 'Int') {
+												value = parseInt(val, 10)
+											} else if (arg.type.name === 'Float') {
+												value = parseFloat(val)
+											} else {
+												throw new Error(
+													'Could not identify arg type: ' + arg.name
+												)
+											}
+
+											return {
+												...acc,
+												[key]: value,
+											}
+										},
+										{}
+									)
+
+								return {
+									operation: kind,
+									mutationName,
+									mutationPath: path,
+									queryName: name,
+									queryPath: pathSoFar,
+									parentID,
+									position,
+									when: {
+										must: when.must ? typeWhen(when.must) : undefined,
+										must_not: when.must_not
+											? typeWhen(when.must_not)
+											: undefined,
+									},
+									connectionName,
+								}
+							}
+						)
+					}
+				)
 
 				// add the patches
 				patches.push(...newPatches)
@@ -187,7 +245,15 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 			const updateMap: Patch = {}
 
 			// make sure very mutation in the patch ends up in the tree
-			for (const { mutationPath, queryPath, operation, parentID, position } of mutations) {
+			for (const {
+				mutationPath,
+				queryPath,
+				operation,
+				parentID,
+				position,
+				when,
+				connectionName,
+			} of mutations) {
 				// the mutation path defines where in the update tree this entry belongs
 				let node = updateMap
 				for (let i = 0; i < mutationPath.length; i++) {
@@ -263,6 +329,8 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 								value: parentID.value,
 							},
 							position: position || 'start',
+							when,
+							connectionName,
 						}
 					)
 				}
@@ -362,34 +430,85 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 							return AST.objectProperty(
 								AST.stringLiteral(patchOperation),
 								AST.arrayExpression(
-									(
-										patch.operations[patchOperation] || []
-									).map(({ parentID, path, position }) =>
-										AST.objectExpression([
-											AST.objectProperty(
-												AST.stringLiteral('position'),
-												AST.stringLiteral(position)
-											),
-											AST.objectProperty(
-												AST.stringLiteral('parentID'),
-												AST.objectExpression([
+									(patch.operations[patchOperation] || []).map(
+										({ parentID, path, position, when, connectionName }) => {
+											// start with the default operation fields
+											let fields = [
+												AST.objectProperty(
+													AST.stringLiteral('position'),
+													AST.stringLiteral(position)
+												),
+												AST.objectProperty(
+													AST.stringLiteral('parentID'),
+													AST.objectExpression([
+														AST.objectProperty(
+															AST.stringLiteral('kind'),
+															AST.stringLiteral(parentID.kind)
+														),
+														AST.objectProperty(
+															AST.stringLiteral('value'),
+															AST.stringLiteral(parentID.value)
+														),
+													])
+												),
+												AST.objectProperty(
+													AST.stringLiteral('path'),
+													AST.arrayExpression(
+														path.map((entry) =>
+															AST.stringLiteral(entry)
+														)
+													)
+												),
+											]
+
+											// add the connection name if there is one
+											if (connectionName) {
+												fields.push(
 													AST.objectProperty(
-														AST.stringLiteral('kind'),
-														AST.stringLiteral(parentID.kind)
-													),
-													AST.objectProperty(
-														AST.stringLiteral('value'),
-														AST.stringLiteral(parentID.value)
-													),
-												])
-											),
-											AST.objectProperty(
-												AST.stringLiteral('path'),
-												AST.arrayExpression(
-													path.map((entry) => AST.stringLiteral(entry))
+														AST.stringLiteral('connectionName'),
+														AST.stringLiteral(connectionName)
+													)
 												)
-											),
-										])
+											}
+
+											// if there is a when statement
+											if (when && Object.keys(when).length > 0) {
+												const whenFields: namedTypes.ObjectProperty[] = []
+
+												if (when.must) {
+													whenFields.push(
+														AST.objectProperty(
+															AST.stringLiteral('must'),
+															AST.objectExpression(
+																whenExpression(when.must)
+															)
+														)
+													)
+												}
+												if (when.must_not) {
+													whenFields.push(
+														AST.objectProperty(
+															AST.stringLiteral('must_not'),
+															AST.objectExpression(
+																whenExpression(when.must_not)
+															)
+														)
+													)
+												}
+
+												// if we added a when
+												if (whenFields.length > 0) {
+													fields.push(
+														AST.objectProperty(
+															AST.stringLiteral('when'),
+															AST.objectExpression(whenFields)
+														)
+													)
+												}
+											}
+
+											return AST.objectExpression(fields)
+										}
 									)
 								)
 							)
@@ -399,4 +518,20 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 			)
 		)
 	}
+}
+
+function whenExpression(when: ConnectionWhen['must']): namedTypes.ObjectProperty[] {
+	return Object.entries(when || {}).map(([key, val]) => {
+		// figure out the value
+		let value
+		if (typeof val === 'string') {
+			value = AST.stringLiteral(val)
+		} else if (typeof val === 'boolean') {
+			value = AST.booleanLiteral(val)
+		} else {
+			value = AST.literal(val)
+		}
+
+		return AST.objectProperty(AST.stringLiteral(key), value)
+	})
 }

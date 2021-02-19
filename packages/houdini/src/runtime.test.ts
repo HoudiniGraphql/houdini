@@ -36,10 +36,13 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			id: '1',
-			target: 'world',
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				id: '1',
+				target: 'world',
+			},
+			{}
+		)
 	})
 
 	test("no update if id doesn't match", function () {
@@ -116,10 +119,13 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			id: '1',
-			target: 'world',
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				id: '1',
+				target: 'world',
+			},
+			{}
+		)
 	})
 
 	test('pull values out of lists', function () {
@@ -156,10 +162,13 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			id: '1',
-			target: 'world',
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				id: '1',
+				target: 'world',
+			},
+			{}
+		)
 	})
 
 	test('put values into objects', function () {
@@ -196,12 +205,15 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			nested: {
-				id: '1',
-				target: 'world',
+		expect(set).toHaveBeenCalledWith(
+			{
+				nested: {
+					id: '1',
+					target: 'world',
+				},
 			},
-		})
+			{}
+		)
 	})
 
 	test('add to root lists', function () {
@@ -252,18 +264,21 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			outer: [
-				{
-					id: '1',
-					target: 'hello',
-				},
-				{
-					id: '2',
-					target: 'world',
-				},
-			],
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+					},
+					{
+						id: '2',
+						target: 'world',
+					},
+				],
+			},
+			{}
+		)
 	})
 
 	test('add to connection under root', function () {
@@ -314,18 +329,21 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			outer: [
-				{
-					id: '1',
-					target: 'hello',
-				},
-				{
-					id: '2',
-					target: 'world',
-				},
-			],
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+					},
+					{
+						id: '2',
+						target: 'world',
+					},
+				],
+			},
+			{}
+		)
 	})
 
 	test('prepend connection', function () {
@@ -376,18 +394,21 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			outer: [
-				{
-					id: '2',
-					target: 'world',
-				},
-				{
-					id: '1',
-					target: 'hello',
-				},
-			],
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '2',
+						target: 'world',
+					},
+					{
+						id: '1',
+						target: 'hello',
+					},
+				],
+			},
+			{}
+		)
 	})
 
 	test('remove from connection with literal ID', function () {
@@ -443,15 +464,18 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			outer: [
-				{
-					id: '1',
-					target: 'hello',
-					inner: [],
-				},
-			],
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+						inner: [],
+					},
+				],
+			},
+			{}
+		)
 	})
 
 	test('delete from multiple connections with literal id', function () {
@@ -520,20 +544,23 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			outer: [
-				{
-					id: '1',
-					target: 'hello',
-					inner: [],
-				},
-				{
-					id: '3',
-					target: 'hello',
-					inner: [],
-				},
-			],
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+						inner: [],
+					},
+					{
+						id: '3',
+						target: 'hello',
+						inner: [],
+					},
+				],
+			},
+			{}
+		)
 	})
 
 	test('delete from root connection with literal id', function () {
@@ -590,14 +617,17 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			outer: [
-				{
-					id: '1',
-					target: 'hello',
-				},
-			],
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+					},
+				],
+			},
+			{}
+		)
 	})
 
 	test('add to connection with literal ID', function () {
@@ -648,20 +678,23 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			outer: [
-				{
-					id: '1',
-					target: 'hello',
-					inner: [
-						{
-							id: '2',
-							target: 'world',
-						},
-					],
-				},
-			],
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+						inner: [
+							{
+								id: '2',
+								target: 'world',
+							},
+						],
+					},
+				],
+			},
+			{}
+		)
 	})
 
 	test('add to connection with variable ID', function () {
@@ -712,20 +745,309 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, { testID: '1' })
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+						inner: [
+							{
+								id: '2',
+								target: 'world',
+							},
+						],
+					},
+				],
+			},
+			{ testID: '1' }
+		)
+	})
+
+	test('apply connection when  negative', function () {
+		const patch: Patch = {
+			fields: {},
+			edges: {
+				mutationName: {
+					edges: {},
+					fields: {},
+					operations: {
+						add: [
+							{
+								path: ['outer'],
+								position: 'end',
+								parentID: {
+									kind: 'Root',
+									value: 'root',
+								},
+								when: {
+									must: {
+										target: 'not-value',
+									},
+								},
+								connectionName: 'Test',
+							},
+						],
+					},
+				},
+			},
+		}
+
+		// a function to spy on the update
+		const set = jest.fn()
+
+		// the current data
+		const current = {
 			outer: [
 				{
 					id: '1',
 					target: 'hello',
-					inner: [
-						{
-							id: '2',
-							target: 'world',
-						},
-					],
 				},
 			],
-		})
+			__connectionFilters: {
+				Test: {
+					target: 'value',
+				},
+			},
+		}
+
+		// the mutation payload
+		const payload = {
+			mutationName: {
+				id: '2',
+				target: 'world',
+			},
+		}
+
+		// apply the patch
+		applyPatch(patch, set, current, payload, {})
+
+		// make sure we got the expected value
+		expect(set).not.toHaveBeenCalled()
+	})
+
+	test('apply connection when  positive', function () {
+		const patch: Patch = {
+			fields: {},
+			edges: {
+				mutationName: {
+					edges: {},
+					fields: {},
+					operations: {
+						add: [
+							{
+								path: ['outer'],
+								position: 'end',
+								parentID: {
+									kind: 'Root',
+									value: 'root',
+								},
+								when: {
+									must: {
+										target: 'value',
+									},
+								},
+								connectionName: 'Test',
+							},
+						],
+					},
+				},
+			},
+		}
+
+		// a function to spy on the update
+		const set = jest.fn()
+
+		// the current data
+		const current = {
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+			],
+			__connectionFilters: {
+				Test: {
+					target: 'value',
+				},
+			},
+		}
+
+		// the mutation payload
+		const payload = {
+			mutationName: {
+				id: '2',
+				target: 'world',
+			},
+		}
+
+		// apply the patch
+		applyPatch(patch, set, current, payload, {})
+
+		// make sure we got the expected value
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+					},
+					{
+						id: '2',
+						target: 'world',
+					},
+				],
+				__connectionFilters: {
+					Test: {
+						target: 'value',
+					},
+				},
+			},
+			{}
+		)
+	})
+
+	test('apply connection when_not  positive', function () {
+		const patch: Patch = {
+			fields: {},
+			edges: {
+				mutationName: {
+					edges: {},
+					fields: {},
+					operations: {
+						add: [
+							{
+								path: ['outer'],
+								position: 'end',
+								parentID: {
+									kind: 'Root',
+									value: 'root',
+								},
+								when: {
+									must_not: {
+										target: 'value',
+									},
+								},
+								connectionName: 'Test',
+							},
+						],
+					},
+				},
+			},
+		}
+
+		// a function to spy on the update
+		const set = jest.fn()
+
+		// the current data
+		const current = {
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+			],
+			__connectionFilters: {
+				Test: {
+					target: 'not-value',
+				},
+			},
+		}
+
+		// the mutation payload
+		const payload = {
+			mutationName: {
+				id: '2',
+				target: 'world',
+			},
+		}
+
+		// apply the patch
+		applyPatch(patch, set, current, payload, {})
+
+		// make sure we got the expected value
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+					},
+					{
+						id: '2',
+						target: 'world',
+					},
+				],
+				__connectionFilters: {
+					Test: {
+						target: 'not-value',
+					},
+				},
+			},
+			{}
+		)
+	})
+
+	test('apply connection when_not  negative', function () {
+		const patch: Patch = {
+			fields: {},
+			edges: {
+				mutationName: {
+					edges: {},
+					fields: {},
+					operations: {
+						add: [
+							{
+								path: ['outer'],
+								position: 'end',
+								parentID: {
+									kind: 'Root',
+									value: 'root',
+								},
+								when: {
+									must_not: {
+										target: 'value',
+									},
+								},
+								connectionName: 'Test',
+							},
+						],
+					},
+				},
+			},
+		}
+
+		// a function to spy on the update
+		const set = jest.fn()
+
+		// the current data
+		const current = {
+			outer: [
+				{
+					id: '1',
+					target: 'hello',
+				},
+			],
+			__connectionFilters: {
+				Test: {
+					target: 'value',
+				},
+			},
+		}
+
+		// the mutation payload
+		const payload = {
+			mutationName: {
+				id: '2',
+				target: 'world',
+			},
+		}
+
+		// apply the patch
+		applyPatch(patch, set, current, payload, {})
+
+		// make sure we got the expected value
+		expect(set).not.toHaveBeenCalled()
 	})
 
 	test('put values into lists', function () {
@@ -765,14 +1087,17 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith({
-			field: [
-				{
-					id: '1',
-					target: 'world',
-				},
-			],
-		})
+		expect(set).toHaveBeenCalledWith(
+			{
+				field: [
+					{
+						id: '1',
+						target: 'world',
+					},
+				],
+			},
+			{}
+		)
 	})
 
 	test.todo('null values in current state')

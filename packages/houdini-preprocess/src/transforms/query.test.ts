@@ -1,257 +1,223 @@
 // external imports
 import * as svelte from 'svelte/compiler'
-import { Program } from 'estree'
 import * as graphql from 'graphql'
-import * as recast from 'recast'
-import {
-	ReturnStatement,
-	ObjectExpression,
-	Identifier,
-	VariableDeclaration,
-	AwaitExpression,
-	CallExpression,
-	FunctionDeclaration,
-	Property,
-	ExportNamedDeclaration,
-} from 'estree'
 // local imports
-import queryProcessor, { preloadPayloadKey } from './query'
-import walkTaggedDocuments, { EmbeddedGraphqlDocument } from '../utils/walkTaggedDocuments'
-import { TransformDocument } from '../types'
-import { testConfig } from 'houdini-common'
+import queryProcessor from './query'
+import { hashDocument, testConfig } from 'houdini-common'
+import importArtifact from '../utils/importArtifact'
+import '../../../../jest.setup'
+import { GraphQLTagResult } from '../types'
+import { preloadPayloadKey } from '../../build/transforms/query'
+import { DocumentArtifact } from 'houdini-compiler'
 // mock out the walker so that imports don't actually happen
-jest.mock('../utils/walkTaggedDocuments')
-
-const typeBuilders = recast.types.builders
+jest.mock('../utils/importArtifact')
 
 beforeEach(() => {
 	// @ts-ignore
 	// Clear all instances and calls to constructor and all methods:
-	walkTaggedDocuments.mockClear()
+	importArtifact.mockClear()
 })
 
 describe('query preprocessor', function () {
 	test('preload initial data', async function () {
-		const schema = `
-            type User {
-                id: ID!
-            }
+		const doc = await preprocessorTest(`
+			<script>
+				const data = query(graphql\`
+					query TestQuery {
+						viewer {
+							id
+						}
+					}
+				\`)
+			</script>
+		`)
 
-            type Query {
-                viewer: User!
-            }
-        `
+		// make sure we added the right stuff
+		expect(doc.module.content).toMatchInlineSnapshot(`
+		import { fetchQuery } from "houdini";
 
-		const query = `
-            query TestQuery {
-                viewer {
-                    id
-                }
-            }
-        `
+		export async function preload(page, session) {
+		    const _TestQuery_Input = {};
 
-		const content = `
-            <script>
-                const data = query(graphql\`${query}\`)
-            </script>
-        `
+		    const _TestQuery = await fetchQuery({
+		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		              "variables": _TestQuery_Input
+		          });
 
-		// the result should be something like:
-		// <script context="module">
-		//     export async function preload() {
-		//         import { fetchQuery } from 'houdini'
-		//
-		//         const _TestQuery = await fetchQuery({text: query})
-		//
-		//         return {
-		//            _TestQuery: _TestQuery,
-		//         }
-		//     }
-		// </script>
-		//
-		// <script>
-		//     export let _TestQuery
-		//
-		//     const data = ...
-		// </script>
+		    return {
+		        _TestQuery: _TestQuery,
+		        _TestQuery_Input: _TestQuery_Input
+		    };
+		}
+	`)
+		expect(doc.instance.content).toMatchInlineSnapshot(`
+		import { updateStoreData } from "houdini";
+		export let _TestQuery;
+		export let _TestQuery_Input;
 
-		const parsedQuery = graphql.parse(query)
+		const data = query({
+		    "name": "TestQuery",
+		    "kind": "HoudiniQuery",
+		    "raw": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		    "initialValue": _TestQuery,
 
-		// the ast node for the template tag
-		const templateNode = typeBuilders.taggedTemplateExpression(
-			typeBuilders.identifier('graphql'),
-			typeBuilders.templateLiteral(
-				[typeBuilders.templateElement({ raw: query, cooked: query }, true)],
-				[]
-			)
-		)
+		    "processResult": (data, variables = {}) => {
+		        return {
+		            "__ref": data,
+		            "__variables": variables,
 
-		// @ts-ignore
-		// provide a mock implementation for the walker
-		walkTaggedDocuments.mockImplementation(
-			async (
-				doc: TransformDocument,
-				script: Program,
-				{
-					where,
-					onTag,
-				}: {
-					where: (node: graphql.DocumentNode) => boolean
-					onTag: (tag: EmbeddedGraphqlDocument) => void
+		            "viewer": {
+		                "__ref": data.viewer,
+		                "__variables": variables,
+		                "id": data.viewer.id
+		            }
+		        };
+		    },
+
+		    "variables": _TestQuery_Input
+		});
+
+		$:
+		{
+		    updateStoreData("TestQuery", _TestQuery.data, _TestQuery_Input);
+		}
+	`)
+	})
+
+	test('preload initial data with variables', async function () {
+		const doc = await preprocessorTest(`
+			<script context="module">
+				export function TestQueryVariables(page) {
+					return { 
+						test: true
+					}
 				}
-			) => {
-				// just invoke the tag callback with the mock data
-				onTag({
-					parsedDocument: parsedQuery,
-					artifact: {
-						name: 'TestQuery',
-						raw: query,
-						kind: 'HoudiniQuery',
-					},
-					node: {
-						...templateNode,
-						replaceWith: () => {},
-						remove: () => {},
-					},
-					parent: typeBuilders.callExpression(typeBuilders.identifier('query'), [
-						templateNode,
-					]),
-				})
-			}
-		)
+			</script>
 
-		// parse the document
-		const parsed = svelte.parse(content)
+			<script>
+				const data = query(graphql\`
+					query TestQuery($test: Boolean!) {
+						viewer {
+							id
+						}
+					}
+				\`)
+			</script>
+		`)
 
-		// build up the document we'll pass to the processor
-		const config = testConfig({ schema })
-		const doc = {
-			instance: parsed.instance,
-			module: parsed.module,
-			config,
-			dependencies: [],
-			filename: 'base.svelte',
+		// make sure we added the right stuff
+		expect(doc.module.content).toMatchInlineSnapshot(`
+		import { fetchQuery } from "houdini";
+
+		export function TestQueryVariables(page) {
+		    return {
+		        test: true
+		    };
 		}
 
-		// run the source through the processor
-		await queryProcessor(config, doc)
+		export async function preload(page, session) {
+		    const _TestQuery_Input = TestQueryVariables.call(this, page, session);
 
-		// make sure we added a module script
-		expect(doc.module).toBeTruthy()
+		    const _TestQuery = await fetchQuery({
+		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		              "variables": _TestQuery_Input
+		          });
 
-		// there should be an exported function called "preload"
-		const preloadFnExport = doc.module.content.body.find(
-			(expression) =>
-				expression.type === 'ExportNamedDeclaration' &&
-				expression.declaration?.type == 'FunctionDeclaration' &&
-				expression.declaration.id?.name === 'preload'
-		) as ExportNamedDeclaration
+		    return {
+		        _TestQuery: _TestQuery,
+		        _TestQuery_Input: _TestQuery_Input
+		    };
+		}
+	`)
+		expect(doc.instance.content).toMatchInlineSnapshot(`
+		import { updateStoreData } from "houdini";
+		export let _TestQuery;
+		export let _TestQuery_Input;
 
-		// sanity checks
-		expect(
-			preloadFnExport &&
-				preloadFnExport.declaration?.type === 'FunctionDeclaration' &&
-				preloadFnExport.declaration.async
-		).toBeTruthy()
-		const preloadFn = preloadFnExport.declaration as FunctionDeclaration
+		const data = query({
+		    "name": "TestQuery",
+		    "kind": "HoudiniQuery",
+		    "raw": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		    "initialValue": _TestQuery,
 
-		// pull out the function body
-		const functionBody = preloadFn.body
+		    "processResult": (data, variables = {}) => {
+		        return {
+		            "__ref": data,
+		            "__variables": variables,
 
-		// the identifier that links the data
-		const preloadKey = preloadPayloadKey(
-			parsedQuery.definitions[0] as graphql.OperationDefinitionNode
-		)
+		            "viewer": {
+		                "__ref": data.viewer,
+		                "__variables": variables,
+		                "id": data.viewer.id
+		            }
+		        };
+		    },
 
-		/// verify the import
+		    "variables": _TestQuery_Input
+		});
 
-		// look for the import
-		const importStatement = doc.module.content.body.find(
-			(statement) =>
-				statement.type === 'ImportDeclaration' &&
-				statement.source.value === 'houdini' &&
-				statement.specifiers.find(
-					(importSpecifier) =>
-						importSpecifier.type === 'ImportSpecifier' &&
-						importSpecifier.imported.name === 'fetchQuery' &&
-						importSpecifier.local.name === 'fetchQuery'
-				)
-		)
-		expect(importStatement).toBeTruthy()
-
-		/// look for the declaration of the local variaable
-		const preloadLocalVariable = preloadFn.body.body.find(
-			(statement) =>
-				statement.type === 'VariableDeclaration' &&
-				statement.declarations[0].id.type === 'Identifier' &&
-				statement.declarations[0].id.name === preloadKey
-		) as VariableDeclaration
-		expect(preloadLocalVariable).toBeTruthy()
-		expect(preloadLocalVariable.declarations[0].init?.type === 'AwaitExpression')
-
-		// make sure we are awaiting something
-		const declarationResult = preloadLocalVariable.declarations[0].init as AwaitExpression
-		// we should be await fetchQuery
-		expect(declarationResult.argument.type).toEqual('CallExpression')
-
-		const awaitedThing = declarationResult.argument as CallExpression
-		expect(
-			awaitedThing.callee.type === 'Identifier' && awaitedThing.callee.name === 'fetchQuery'
-		).toBeTruthy
-		expect(awaitedThing.arguments).toHaveLength(1)
-
-		// grab what we passed to fetchQuery
-		const fetchQueryArgument = awaitedThing.arguments[0] as ObjectExpression
-		expect(fetchQueryArgument.type).toEqual('ObjectExpression')
-		// there should be one property
-		expect(fetchQueryArgument.properties).toHaveLength(1)
-		const argumentProperty = fetchQueryArgument.properties[0]
-
-		// the key needs to be text
-		expect(argumentProperty.key.type === 'Identifier' && argumentProperty.key.name === 'text')
-		// and the value needs to be the query
-		expect(
-			argumentProperty.value.type === 'Identifier' &&
-				argumentProperty.value.name === preloadKey
-		)
-
-		/// verify the return statement of the function
-
-		// the final thing in the function body should be a return statement
-		const returnStatement = functionBody.body.find(
-			({ type }) => type === 'ReturnStatement'
-		) as ReturnStatement
-		expect(returnStatement).toBeTruthy()
-		expect(returnStatement.type).toEqual('ReturnStatement')
-		// there should be one argument returned
-		const returnedObj = returnStatement.argument as ObjectExpression
-		expect(returnedObj).toBeTruthy()
-
-		// one of the keys in the response should contain the initial data for the query
-		const queryPreloadProperty = returnedObj.properties.find((prop) => {
-			return prop.key.type === 'Identifier' && prop.key.name === preloadKey
-		}) as Property
-		// make sure that it exists
-		expect(queryPreloadProperty).toBeTruthy()
-		// the value of the key should be an identifier of the same variable
-		expect(queryPreloadProperty.value.type).toEqual('Identifier')
-		expect((queryPreloadProperty.value as Identifier).name).toEqual(preloadKey)
-
-		// look for the variable exported in the instance
-		expect(doc.instance).toBeTruthy()
-
-		// look for an exported variable with the right name
-		const componentProp = doc.instance.content.body.find(
-			(expression) =>
-				expression.type === 'ExportNamedDeclaration' &&
-				expression.declaration?.type === 'VariableDeclaration' &&
-				expression.declaration?.kind === 'let' &&
-				expression.declaration.declarations.length === 1 &&
-				expression.declaration.declarations[0].id.type === 'Identifier' &&
-				expression.declaration.declarations[0].id.name === preloadKey
-		)
-
-		// make sure its there
-		expect(componentProp).toBeTruthy()
+		$:
+		{
+		    updateStoreData("TestQuery", _TestQuery.data, _TestQuery_Input);
+		}
+	`)
 	})
+
+	test.todo('fails if variable function is not present')
+
+	test.todo('adds arguments to an empty preload')
+
+	test.todo('adds second argument to preload with only one argument')
+
+	test.todo('fails if arguments in preload are not page and params')
 })
+
+async function preprocessorTest(content: string) {
+	const schema = `
+		type User {
+			id: ID!
+		}
+
+		type Query {
+			viewer: User!
+		}
+	`
+
+	// parse the document
+	const parsed = svelte.parse(content)
+
+	// grab the content between graphql``
+	const after = content.substr(content.indexOf('graphql`') + 'graphql`'.length)
+	const query = after.substr(0, after.indexOf('`'))
+
+	const parsedQuery = graphql.parse(query)
+
+	// build up the document we'll pass to the processor
+	const config = testConfig({ schema, verifyHash: false })
+
+	const doc = {
+		instance: parsed.instance,
+		module: parsed.module,
+		config,
+		dependencies: [],
+		filename: 'base.svelte',
+	}
+
+	// @ts-ignore
+	// mock the import statement
+	importArtifact.mockImplementation(function (): DocumentArtifact {
+		return {
+			name: 'TestQuery',
+			kind: 'HoudiniQuery',
+			raw: query,
+			hash: hashDocument(parsedQuery),
+		}
+	})
+
+	// @ts-ignore
+	// run the source through the processor
+	await queryProcessor(config, doc)
+
+	// invoke the test
+	return doc
+}

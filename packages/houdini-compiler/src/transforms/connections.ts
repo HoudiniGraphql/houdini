@@ -1,5 +1,5 @@
 // externals
-import { Config, getRootType } from 'houdini-common'
+import { Config, getTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument } from '../types'
@@ -242,80 +242,4 @@ export default async function addConnectionFragments(
 			]),
 		],
 	}
-}
-
-function getTypeFromAncestors(
-	schema: graphql.GraphQLSchema,
-	ancestors: (
-		| graphql.OperationDefinitionNode
-		| graphql.FragmentDefinitionNode
-		| graphql.SelectionNode
-		| graphql.SelectionSetNode
-	)[]
-): graphql.GraphQLNamedType {
-	// get the front node
-	let head = ancestors.shift()
-	// if it was a list, skip it
-	if (Array.isArray(head)) {
-		return getTypeFromAncestors(schema, ancestors)
-	}
-
-	if (!head) {
-		throw new Error('Could not figure out type of field where directive is applied')
-	}
-
-	// if we are at the top of the definition stack
-	if (head.kind === 'OperationDefinition') {
-		// grab the appropriate
-		const operationType = {
-			query: schema.getQueryType(),
-			mutation: schema.getMutationType(),
-			subscription: schema.getSubscriptionType(),
-		}[head.operation]
-
-		if (!operationType) {
-			throw new Error('Could not find operation type')
-		}
-		return operationType
-	}
-
-	if (head.kind === 'FragmentDefinition') {
-		// look up the type condition in the schema
-		const result = schema.getType(head.typeCondition.name.value)
-		if (!result) {
-			throw new Error(
-				`Could not find definition for ${head.typeCondition.name} in the schema`
-			)
-		}
-
-		// we're done here
-		return result
-	}
-
-	// if we are looking at a fragment spread there is a serious problem
-	if (head.kind === 'FragmentSpread') {
-		throw new Error('How the hell did this happen?')
-	}
-
-	// grab our parent type
-	const parent = getTypeFromAncestors(schema, ancestors)
-
-	// if the parent type is not an object type, we have a problem
-	if (!(parent instanceof graphql.GraphQLObjectType)) {
-		throw new Error('parent type was not an object')
-	}
-
-	// we are looking at an inline fragment or selection select
-	if (head.kind === 'InlineFragment' || head.kind === 'SelectionSet') {
-		// our type is our parent's type
-		return parent
-	}
-
-	// we are looking at a field so we can just access the field map of the parent type
-	const field = parent.getFields()[head.name.value]
-	if (!field) {
-		throw new Error(`Could not find definition of ${head.name.value} in ${parent.toString()}`)
-	}
-
-	return getRootType(field.type) as graphql.GraphQLNamedType
 }

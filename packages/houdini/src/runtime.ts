@@ -18,7 +18,8 @@ export function fetchQuery({
 export type DocumentStore = {
 	name: string
 	currentValue: any
-	updateValue: (value: any) => void
+	variables: any
+	updateValue: (value: any, variables: any) => void
 }
 
 const _stores: { [name: string]: DocumentStore[] } = {}
@@ -39,12 +40,15 @@ export function unregisterDocumentStore(target: DocumentStore) {
 	)
 }
 
-type Record = { [key: string]: any } & { id?: string }
+type Record = { [key: string]: any } & {
+	id?: string
+	__connectionFilters?: { [connectionName: string]: { [key: string]: string | number | boolean } }
+}
 type Data = Record | Record[]
 
 export function applyPatch(
 	patch: Patch,
-	updateValue: (newValue: Data) => void,
+	updateValue: (newValue: Data, variables: { [key: string]: any }) => void,
 	currentState: Data,
 	payload: Data,
 	variables: { [key: string]: any }
@@ -53,7 +57,7 @@ export function applyPatch(
 	const target = currentState
 	// walk down the the patch and if there was a mutation, commit the update
 	if (walkPatch(patch, payload, target, variables)) {
-		updateValue(target)
+		updateValue(target, variables)
 	}
 }
 
@@ -104,7 +108,38 @@ function walkPatch(
 		}
 
 		// look at every path we have to perform this operation
-		for (const { path, parentID, position } of paths) {
+		for (const { path, parentID, position, when, connectionName } of paths) {
+			// if there are conditions for this operation
+			if (when) {
+				// we only NEED there to be target filters for must's
+				const targets = target.__connectionFilters
+					? target.__connectionFilters[connectionName || '']
+					: null
+				let ok = true
+
+				// check must's first
+				if (when.must && targets) {
+					ok = Object.entries(when.must || {}).reduce<boolean>(
+						(prev, [key, value]) => Boolean(prev && targets[key] == value),
+						ok
+					)
+				}
+				// and then must_not
+				if (when.must_not) {
+					ok =
+						!targets ||
+						Object.entries(when.must_not || {}).reduce<boolean>(
+							(prev, [key, value]) => Boolean(prev && targets[key] != value),
+							ok
+						)
+				}
+
+				// if we didn't satisfy everything we needed to
+				if (!ok) {
+					continue
+				}
+			}
+
 			// if we have to add the connection somewhere
 			if (
 				operation === 'add' &&
@@ -419,4 +454,14 @@ function updateField(path: string[], target: Record, targetId: string, value: an
 	}
 
 	return updated
+}
+
+export function updateStoreData(storeName: string, data: any, variables: any) {
+	// TODO: this is definitely not what we want. the same query could show up
+	// in multiple places and get the same update
+	// apply the new update to every store matching the name
+	for (const store of getDocumentStores(storeName)) {
+		// apply the new date
+		store.updateValue(data, variables)
+	}
 }

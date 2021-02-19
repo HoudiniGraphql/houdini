@@ -69,6 +69,8 @@ export async function applyTransforms(
 
 	// if there is an instance and no module
 	if (result.instance && !result.module) {
+		// the instance is lower than the module
+
 		// just copy the instance where it needs to go
 		return {
 			code: replaceTagContent(
@@ -116,7 +118,6 @@ export async function applyTransforms(
 			dependencies: result.dependencies,
 		}
 	}
-	// the instance is lower than the module
 
 	// replace the instance content first (so the module indices are valid)
 	const updatedInstance = replaceTagContent(

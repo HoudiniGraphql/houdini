@@ -1,20 +1,9 @@
-<script lang="ts">
-	import { query, graphql } from 'houdini'
-	import ItemEntry from '../components/ItemEntry.svelte'
-	import type { AllItems } from '../../generated'
-
-	// load the items
-	const data = query<AllItems>(graphql`
-		query AllItems {
-			items @connection(name: "All_Items") {
-				id
-				completed
-				...ItemEntry_item
-			}
-		}
-	`, null)
+<!-- 
+    I couldn't figure out how to only have [filter].svelte. As far as I can tell,
+    there HAS to be an index.svelte file. so let's redirect to /active
+-->
+<script context="module">
+	export async function preload(page, session) {
+		return this.redirect(301, 'all')
+	}
 </script>
-
-{#each $data.items as item (item.id)}
-	<ItemEntry {item} />
-{/each}

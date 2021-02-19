@@ -121,7 +121,8 @@ test('patches include connection operations', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "cats"]
+		                            "path": ["user", "cats"],
+		                            "connectionName": "Friends"
 		                        }]
 		                    }
 		                }
@@ -188,7 +189,8 @@ test('patches include remove operations', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "cats"]
+		                            "path": ["user", "cats"],
+		                            "connectionName": "Friends"
 		                        }]
 		                    }
 		                }
@@ -253,7 +255,8 @@ test('patches include delete operations', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "cats"]
+		                            "path": ["user", "cats"],
+		                            "connectionName": "__houdini__delete_Cat"
 		                        }]
 		                    }
 		                }
@@ -318,10 +321,271 @@ test('connection patches track insert position', async function () {
 		                                "value": "1234"
 		                            },
 
-		                            "path": ["cats"]
+		                            "path": ["cats"],
+		                            "connectionName": "Friends"
 		                        }]
 		                    }
 		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test('connection when argument', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`query TestQuery {
+				users(stringValue: "1234")  @connection(name:"Friends"){
+					firstName
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				updateUser {
+					...Friends_insert @prepend(when: { argument: "boolValue", value: "true" })
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "updateUser": {
+		            "operations": {
+		                "add": [{
+		                    "position": "start",
+
+		                    "parentID": {
+		                        "kind": "Root",
+		                        "value": "root"
+		                    },
+
+		                    "path": ["users"],
+		                    "connectionName": "Friends",
+
+		                    "when": {
+		                        "must": {
+		                            "boolValue": true
+		                        }
+		                    }
+		                }]
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test('connection when directive', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`query TestQuery {
+				users(stringValue: "1234")  @connection(name:"Friends"){
+					firstName
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				updateUser {
+					...Friends_insert @when(argument: "boolValue", value: "true")
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "updateUser": {
+		            "operations": {
+		                "add": [{
+		                    "position": "end",
+
+		                    "parentID": {
+		                        "kind": "Root",
+		                        "value": "root"
+		                    },
+
+		                    "path": ["users"],
+		                    "connectionName": "Friends",
+
+		                    "when": {
+		                        "must": {
+		                            "boolValue": true
+		                        }
+		                    }
+		                }]
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test('connection when not argument', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`query TestQuery {
+				users(stringValue: "1234")  @connection(name:"Friends"){
+					firstName
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				updateUser {
+					...Friends_insert @prepend(when_not: { argument: "boolValue", value: "true" })
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "updateUser": {
+		            "operations": {
+		                "add": [{
+		                    "position": "start",
+
+		                    "parentID": {
+		                        "kind": "Root",
+		                        "value": "root"
+		                    },
+
+		                    "path": ["users"],
+		                    "connectionName": "Friends",
+
+		                    "when": {
+		                        "must_not": {
+		                            "boolValue": true
+		                        }
+		                    }
+		                }]
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test('connection when not directive', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`query TestQuery {
+				users(stringValue: "1234")  @connection(name:"Friends"){
+					firstName
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				updateUser {
+					...Friends_insert @when_not(argument: "boolValue", value: "true")
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "updateUser": {
+		            "operations": {
+		                "add": [{
+		                    "position": "end",
+
+		                    "parentID": {
+		                        "kind": "Root",
+		                        "value": "root"
+		                    },
+
+		                    "path": ["users"],
+		                    "connectionName": "Friends",
+
+		                    "when": {
+		                        "must_not": {
+		                            "boolValue": true
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
@@ -383,7 +647,8 @@ test('connection patches include reference to parentID string value', async func
 		                                "value": "1234"
 		                            },
 
-		                            "path": ["cats"]
+		                            "path": ["cats"],
+		                            "connectionName": "Friends"
 		                        }]
 		                    }
 		                }
@@ -448,7 +713,8 @@ test('connection patches include reference to parentID variable', async function
 		                                "value": "userID"
 		                            },
 
-		                            "path": ["cats"]
+		                            "path": ["cats"],
+		                            "connectionName": "Friends"
 		                        }]
 		                    }
 		                }
@@ -513,7 +779,8 @@ test('connection patches include reference to parentID directive', async functio
 		                                "value": "userID"
 		                            },
 
-		                            "path": ["cats"]
+		                            "path": ["cats"],
+		                            "connectionName": "Friends"
 		                        }]
 		                    }
 		                }
@@ -627,7 +894,8 @@ test('one operation multiple queries dont double up', async function () {
 		                                "value": "root"
 		                            },
 
-		                            "path": ["user", "cats"]
+		                            "path": ["user", "cats"],
+		                            "connectionName": "Friends1"
 		                        }]
 		                    }
 		                }

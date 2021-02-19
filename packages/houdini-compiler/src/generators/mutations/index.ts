@@ -3,7 +3,7 @@ import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
 // locals
-import { CollectedGraphQLDocument, Patch } from '../../types'
+import { CollectedGraphQLDocument, ConnectionWhen } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
 import { HoudiniErrorTodo } from '../../error'
@@ -29,11 +29,13 @@ export type MutationMap = {
 				[mutationName: string]: {
 					kind: PatchAtom['operation']
 					position: 'start' | 'end'
+					when: { [T in keyof ConnectionWhen]: { [key: string]: string } }
 					parentID: {
 						kind: 'Variable' | 'String' | 'Root'
 						value: string
 					}
 					path: string[]
+					connectionName: string
 				}
 			}
 		}
@@ -52,6 +54,8 @@ export type PatchAtom = {
 		kind: 'Variable' | 'String' | 'Root'
 		value: string
 	}
+	when?: ConnectionWhen
+	connectionName?: string
 	position?: 'start' | 'end'
 }
 
@@ -228,71 +232,17 @@ function fillMutationMap(
 					)
 				}
 
-				// look at the directices applies to the spread for meta data about the mutation
-				let parentID = 'root'
-				let parentKind: 'Root' | 'Variable' | 'String' = 'Root'
-
-				let insertLocation: MutationMap[string]['operations'][string][string]['position'] =
-					'end'
-
-				const internalDirectives = selection.directives?.filter((directive) =>
-					config.isInternalDirective(directive)
-				)
-				if (internalDirectives && internalDirectives.length > 0) {
-					// is prepend applied?
-					const prepend = internalDirectives.find(
-						({ name }) => name.value === config.connectionPrependDirective
-					)
-					// is append applied?
-					const append = internalDirectives.find(
-						({ name }) => name.value === config.connectionAppendDirective
-					)
-
-					// if both are applied, there's a problem
-					if (append && prepend) {
-						throw new Error('WRAP THIS IN A HOUDINI ERROR. you have both applied')
-					}
-					insertLocation = prepend ? 'start' : 'end'
-
-					// the parent ID can be provided a few ways, either as an argument to the prepend
-					// and append directives or with the parentID directive.
-
-					// look for the parentID directive
-					let parentDirective = internalDirectives.find(
-						({ name }) => name.value === config.connectionParentDirective
-					)
-					let parentIDArg = parentDirective?.arguments?.find(
-						(argument) => argument.name.value === 'value'
-					)
-					// if there is no parent id argument, it could have been provided by one of the connection directives
-					if (!parentIDArg) {
-						parentIDArg = (append || prepend)?.arguments?.find(
-							({ name }) => name.value === config.connectionDirectiveParentIDArg
-						)
-					}
-
-					if (parentIDArg) {
-						// if the argument is a string
-						if (parentIDArg.value.kind === 'StringValue') {
-							// use its value
-							parentID = parentIDArg.value.value
-							parentKind = 'String'
-						} else if (parentIDArg.value.kind === 'Variable') {
-							parentKind = 'Variable'
-							parentID = parentIDArg.value.name.value
-						}
-					}
-				}
+				// look at the selection for connection information
+				const { parentID, position, when } = operationInfo(config, selection)
 
 				// we need to add an operation to the list for this open
 				mutationTargets[rootType.name].operations[selection.name.value][mutationName] = {
-					parentID: {
-						kind: parentKind,
-						value: parentID,
-					},
-					position: insertLocation,
+					parentID,
+					position,
 					kind: operation,
 					path,
+					when,
+					connectionName: config.connectionNameFromFragment(selection.name.value),
 				}
 			}
 
@@ -342,6 +292,8 @@ function fillMutationMap(
 					position: 'end',
 					kind: 'delete',
 					path: path.concat(attributeName),
+					when: {},
+					connectionName: config.connectionNameFromFragment(connectionName),
 				}
 			}
 
@@ -380,5 +332,134 @@ function fillMutationMap(
 				)
 			}
 		}
+	}
+}
+
+function operationInfo(config: Config, selection: graphql.SelectionNode) {
+	// look at the directives applies to the spread for meta data about the mutation
+	let parentID = 'root'
+	let parentKind: 'Root' | 'Variable' | 'String' = 'Root'
+
+	let position: MutationMap[string]['operations'][string][string]['position'] = 'end'
+
+	let operationWhen: MutationMap[string]['operations'][string][string]['when'] = {}
+
+	const internalDirectives = selection.directives?.filter((directive) =>
+		config.isInternalDirective(directive)
+	)
+	if (internalDirectives && internalDirectives.length > 0) {
+		// is prepend applied?
+		const prepend = internalDirectives.find(
+			({ name }) => name.value === config.connectionPrependDirective
+		)
+		// is append applied?
+		const append = internalDirectives.find(
+			({ name }) => name.value === config.connectionAppendDirective
+		)
+		// is when applied?
+		const when = internalDirectives.find(({ name }) => name.value === 'when')
+		// is when_not applied?
+		const when_not = internalDirectives.find(({ name }) => name.value === 'when_not')
+		// look for the parentID directive
+		let parent = internalDirectives.find(
+			({ name }) => name.value === config.connectionParentDirective
+		)
+
+		// if both are applied, there's a problem
+		if (append && prepend) {
+			throw new Error('WRAP THIS IN A HOUDINI ERROR. you have both applied')
+		}
+		position = prepend ? 'start' : 'end'
+
+		// the parent ID can be provided a few ways, either as an argument to the prepend
+		// and append directives or with the parentID directive.
+
+		let parentIDArg = parent?.arguments?.find((argument) => argument.name.value === 'value')
+		// if there is no parent id argument, it could have been provided by one of the connection directives
+		if (!parentIDArg) {
+			parentIDArg = (append || prepend)?.arguments?.find(
+				({ name }) => name.value === config.connectionDirectiveParentIDArg
+			)
+		}
+
+		if (parentIDArg) {
+			// if the argument is a string
+			if (parentIDArg.value.kind === 'StringValue') {
+				// use its value
+				parentID = parentIDArg.value.value
+				parentKind = 'String'
+			} else if (parentIDArg.value.kind === 'Variable') {
+				parentKind = 'Variable'
+				parentID = parentIDArg.value.name.value
+			}
+		}
+
+		// look for a when arguments on the operation directives
+		const whenArg = (append || prepend)?.arguments?.find(({ name }) => name.value === 'when')
+		// look for a when_not condition on the operation
+		const whenNotArg = (append || prepend)?.arguments?.find(
+			({ name }) => name.value === 'when_not'
+		)
+
+		for (const [i, arg] of [whenArg, whenNotArg].entries()) {
+			// we may not have the argument
+			if (!arg || arg.value.kind !== 'ObjectValue') {
+				continue
+			}
+
+			//which are we looking at
+			const which = i ? 'must_not' : 'must'
+			// build up all of the values into a single object
+			const key = arg.value.fields.find(({ name, value }) => name.value === 'argument')?.value
+			const value = arg.value.fields.find(({ name }) => name.value === 'value')
+
+			// make sure we got a string for the key
+			if (key?.kind !== 'StringValue' || !value || value.value.kind !== 'StringValue') {
+				throw new Error('Key and Value must be strings')
+			}
+
+			// the kind of `value` is always going to be a string because the directive
+			// can only take one type as its argument so we'll worry about parsing when
+			// generating the patches
+			operationWhen[which] = {
+				[key.value]: value.value.value,
+			}
+		}
+
+		// look at the when and when_not directives
+		for (const [i, directive] of [when, when_not].entries()) {
+			// we may not have the directive applied
+			if (!directive) {
+				continue
+			}
+			//which are we looking at
+			const which = i ? 'must_not' : 'must'
+
+			// look for the argument field
+			const key = directive.arguments?.find(({ name }) => name.value === 'argument')
+			const value = directive.arguments?.find(({ name }) => name.value === 'value')
+
+			// make sure we got a string for the key
+			if (key?.value.kind !== 'StringValue' || !value || value.value.kind !== 'StringValue') {
+				throw new Error('Key and Value must be strings')
+			}
+
+			// the kind of `value` is always going to be a string because the directive
+			// can only take one type as its argument so we'll worry about parsing when
+			// generating the patches
+			operationWhen[which] = {
+				[key.value.value]: value.value.value,
+			}
+		}
+	}
+
+	return {
+		parentID: {
+			value: parentID,
+			kind: parentKind,
+		},
+		parentKind,
+		position,
+		when: operationWhen,
 	}
 }

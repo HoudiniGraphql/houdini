@@ -36,9 +36,7 @@ export default async function queryProcessor(
 	}
 
 	// we need to keep a list of the queries that are fired in this document
-	// note: node.replace can only be called inside of the walk function
-	// so we'll have to leave a reference to what we are going to addto the
-	// script down below
+	// note: we'll  replace the tags as we discover them with something the runtime library can use
 	const queries: EmbeddedGraphqlDocument[] = []
 
 	// go to every graphql document
@@ -62,7 +60,6 @@ export default async function queryProcessor(
 
 			// add the document to the list
 			queries.push(tag)
-
 			// replace the graphql node with the object
 			node.replaceWith(
 				typeBuilders.objectExpression([
@@ -91,12 +88,23 @@ export default async function queryProcessor(
 						selector({
 							config: doc.config,
 							artifact,
+							parsedDocument,
 							rootIdentifier: 'data',
 							rootType,
 							selectionSet: operation.selectionSet,
 							// grab values from the immediate response
 							pullValuesFromRef: false,
+							// make sure we can pass in variables
+							root: true,
 						})
+					),
+					typeBuilders.objectProperty(
+						typeBuilders.stringLiteral('variables'),
+						typeBuilders.identifier(
+							variablesKey(
+								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+							)
+						)
 					),
 				])
 			)
@@ -137,7 +145,7 @@ export default async function queryProcessor(
 	if (!preloadDefinition) {
 		const preloadFn = typeBuilders.functionDeclaration(
 			typeBuilders.identifier('preload'),
-			[],
+			[typeBuilders.identifier('page'), typeBuilders.identifier('session')],
 			// return an object
 			typeBuilders.blockStatement([
 				typeBuilders.returnStatement(typeBuilders.objectExpression([])),
@@ -154,8 +162,9 @@ export default async function queryProcessor(
 	}
 	const preloadFn = preloadDefinition.declaration as FunctionDeclaration
 
-	/// add the import if its not there
-	let importStatement = doc.module.content.body.find(
+	/// add the imports if they're  not there
+
+	let fetchQueryImport = doc.module.content.body.find(
 		(statement) =>
 			statement.type === 'ImportDeclaration' &&
 			statement.source.value === 'houdini' &&
@@ -168,7 +177,7 @@ export default async function queryProcessor(
 			)
 	) as ImportDeclaration
 	// add the import if it doesn't exist, add it
-	if (!importStatement) {
+	if (!fetchQueryImport) {
 		doc.module.content.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
@@ -178,6 +187,34 @@ export default async function queryProcessor(
 				typeBuilders.importSpecifier(
 					typeBuilders.identifier('fetchQuery'),
 					typeBuilders.identifier('fetchQuery')
+				),
+			],
+		})
+	}
+
+	let storeUpdateImport = doc.instance.content.body.find(
+		(statement) =>
+			statement.type === 'ImportDeclaration' &&
+			statement.source.value === 'houdini' &&
+			statement.specifiers.find(
+				(importSpecifier) =>
+					importSpecifier.type === 'ImportSpecifier' &&
+					importSpecifier.imported.type === 'Identifier' &&
+					importSpecifier.imported.name === 'fetchQuery' &&
+					importSpecifier.local.name === 'updateStoreData'
+			)
+	) as ImportDeclaration
+	// add the import if it doesn't exist, add it
+	if (!storeUpdateImport) {
+		doc.instance.content.body.unshift({
+			type: 'ImportDeclaration',
+			// @ts-ignore
+			source: typeBuilders.literal('houdini'),
+			specifiers: [
+				// @ts-ignore
+				typeBuilders.importSpecifier(
+					typeBuilders.identifier('updateStoreData'),
+					typeBuilders.identifier('updateStoreData')
 				),
 			],
 		})
@@ -210,19 +247,48 @@ export default async function queryProcessor(
 	// every query document we ran into creates a local variable as well as a new key in the returned value of
 	// the preload function as well as a prop declaration in the instance script
 	for (const document of queries) {
+		const operation = document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 		// figure out the local variable that holds the result
-		const preloadKey = preloadPayloadKey(
-			document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-		)
+		const preloadKey = preloadPayloadKey(operation)
 
-		// add a prop declaration
+		// the identifier for the query variables
+		const variableIdentifier = variablesKey(operation)
+
+		// prop declarations needs to be added to the top of the document
 		doc.instance.content.body.splice(
 			propInsertIndex,
 			0,
-			// @ts-ignore
+			// @ts-ignore: babel's ast does something weird with comments, we won't use em
 			typeBuilders.exportNamedDeclaration(
 				typeBuilders.variableDeclaration('let', [
 					typeBuilders.variableDeclarator(typeBuilders.identifier(preloadKey)),
+				])
+			),
+			// @ts-ignore: babel's ast does something weird with comments, we won't use em
+			typeBuilders.exportNamedDeclaration(
+				typeBuilders.variableDeclaration('let', [
+					typeBuilders.variableDeclarator(typeBuilders.identifier(variableIdentifier)),
+				])
+			)
+		)
+
+		// reactive statements to synchronize state with query updates need to be at the bottom (where everything
+		// will have a definition)
+		doc.instance.content.body.push(
+			// @ts-ignore: babel's ast does something weird with comments, we won't use em
+			typeBuilders.labeledStatement(
+				typeBuilders.identifier('$'),
+				typeBuilders.blockStatement([
+					typeBuilders.expressionStatement(
+						typeBuilders.callExpression(typeBuilders.identifier('updateStoreData'), [
+							typeBuilders.stringLiteral(document.artifact.name),
+							typeBuilders.memberExpression(
+								typeBuilders.identifier(preloadKey),
+								typeBuilders.identifier('data')
+							),
+							typeBuilders.identifier(variableIdentifier),
+						])
+					),
 				])
 			)
 		)
@@ -231,6 +297,29 @@ export default async function queryProcessor(
 		preloadFn.body.body.splice(
 			returnStatementIndex,
 			0,
+			// @ts-ignore
+			// compute the query variables once
+			typeBuilders.variableDeclaration('const', [
+				typeBuilders.variableDeclarator(
+					typeBuilders.identifier(variableIdentifier),
+					operation.variableDefinitions && operation.variableDefinitions.length > 0
+						? typeBuilders.callExpression(
+								typeBuilders.memberExpression(
+									typeBuilders.identifier(
+										queryInputFunction(document.artifact.name)
+									),
+									typeBuilders.identifier('call')
+								),
+								[
+									typeBuilders.identifier('this'),
+									typeBuilders.identifier('page'),
+									typeBuilders.identifier('session'),
+								]
+						  )
+						: typeBuilders.objectExpression([])
+				),
+			]),
+
 			// @ts-ignore
 			typeBuilders.variableDeclaration('const', [
 				typeBuilders.variableDeclarator(
@@ -241,6 +330,11 @@ export default async function queryProcessor(
 								typeBuilders.objectProperty(
 									typeBuilders.literal('text'),
 									typeBuilders.stringLiteral(document.artifact.raw)
+								),
+								// grab the variables from the function
+								typeBuilders.objectProperty(
+									typeBuilders.literal('variables'),
+									typeBuilders.identifier(variableIdentifier)
 								),
 							]),
 						])
@@ -256,6 +350,11 @@ export default async function queryProcessor(
 			typeBuilders.objectProperty(
 				typeBuilders.identifier(preloadKey),
 				typeBuilders.identifier(preloadKey)
+			),
+			// @ts-ignore
+			typeBuilders.objectProperty(
+				typeBuilders.identifier(variableIdentifier),
+				typeBuilders.identifier(variableIdentifier)
 			)
 		)
 	}
@@ -263,4 +362,12 @@ export default async function queryProcessor(
 
 export function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
 	return `_${operation.name?.value}`
+}
+
+export function variablesKey(operation: graphql.OperationDefinitionNode): string {
+	return `_${operation.name?.value}_Input`
+}
+
+export function queryInputFunction(name: string) {
+	return `${name}Variables`
 }
