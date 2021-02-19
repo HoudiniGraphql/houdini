@@ -4,6 +4,6 @@
 -->
 <script context="module">
     export async function preload(page, session) {
-      return this.redirect(301, 'active')
+      return this.redirect(301, 'all')
     }
 </script>

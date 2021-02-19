@@ -3,7 +3,7 @@ import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
 // locals
-import { CollectedGraphQLDocument, Patch } from '../../types'
+import { CollectedGraphQLDocument, ConnectionWhen } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
 import { HoudiniErrorTodo } from '../../error'
@@ -29,6 +29,7 @@ export type MutationMap = {
 				[mutationName: string]: {
 					kind: PatchAtom['operation']
 					position: 'start' | 'end'
+					when: ConnectionWhen
 					parentID: {
 						kind: 'Variable' | 'String' | 'Root'
 						value: string
@@ -52,6 +53,7 @@ export type PatchAtom = {
 		kind: 'Variable' | 'String' | 'Root'
 		value: string
 	}
+	when: ConnectionWhen
 	position?: 'start' | 'end'
 }
 
@@ -235,6 +237,8 @@ function fillMutationMap(
 				let insertLocation: MutationMap[string]['operations'][string][string]['position'] =
 					'end'
 
+				let when: ConnectionWhen = {}
+
 				const internalDirectives = selection.directives?.filter((directive) =>
 					config.isInternalDirective(directive)
 				)
@@ -282,6 +286,48 @@ function fillMutationMap(
 							parentID = parentIDArg.value.name.value
 						}
 					}
+
+					// look for a when condition on the operation
+					const whenArg = (append || prepend)?.arguments?.find(({name}) => name.value === 'when')
+					if (whenArg && whenArg.value.kind === 'ObjectValue') {
+						// build up all of the values into a single object
+						const key = whenArg.value.fields.find(({name, value}) => name.value === 'argument')?.value
+						const value = whenArg.value.fields.find(({name}) => name.value === 'value')
+
+						// make sure we got a string for the key
+						if (key?.kind !== 'StringValue' || !value) {
+							throw new Error("Key must be a string")
+						}
+
+						// strings
+						if (value.value.kind === 'StringValue') {
+							when[key.value] = {
+								kind: 'String',
+								value: value.value.value
+							}
+						}
+						// boolean
+						else if (value.value.kind === 'BooleanValue') {
+							when[key.value] = {
+								kind: 'Boolean',
+								value: value.value.value
+							}
+						}
+						// float
+						else if (value.value.kind === 'FloatValue') {
+							when[key.value] = {
+								kind: 'Float',
+								value: value.value.value
+							}
+						}
+						// int
+						else if (value.value.kind === 'IntValue') {
+							when[key.value] = {
+								kind: 'Int',
+								value: value.value.value
+							}
+						}
+					}
 				}
 
 				// we need to add an operation to the list for this open
@@ -293,6 +339,7 @@ function fillMutationMap(
 					position: insertLocation,
 					kind: operation,
 					path,
+					when
 				}
 			}
 
@@ -342,6 +389,7 @@ function fillMutationMap(
 					position: 'end',
 					kind: 'delete',
 					path: path.concat(attributeName),
+					when: {},
 				}
 			}
 

@@ -16,6 +16,11 @@ export default async function graphqlExtensions(
 		schemas: [
 			config.schema,
 			graphql.buildSchema(`
+			input HoudiniConnectionWhen {
+				argument: String
+				value: String
+			}
+
 			"""
 				@${config.connectionDirective} is used to mark a field for the runtime as a place to add or remove
 				entities in mutations
@@ -25,12 +30,15 @@ export default async function graphqlExtensions(
 			"""
 				@${config.connectionPrependDirective} is used to tell the runtime to add the result to the end of the list
 			"""
-			directive @${config.connectionPrependDirective}(${config.connectionDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
+			directive @${config.connectionPrependDirective}(
+				${config.connectionDirectiveParentIDArg}: ID, 
+				when: HoudiniConnectionWhen
+			) on FRAGMENT_SPREAD
 
 			"""
 				@${config.connectionAppendDirective} is used to tell the runtime to add the result to the start of the list
 			"""
-			directive @${config.connectionAppendDirective}(${config.connectionDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
+			directive @${config.connectionAppendDirective}(${config.connectionDirectiveParentIDArg}: ID, when: HoudiniConnectionWhen) on FRAGMENT_SPREAD
 
 			"""
 				@${config.connectionParentDirective} is used to provide a parentID without specifying position or in situations

@@ -79,6 +79,7 @@ export function patchesForSelectionSet(
 						mutationPath: mutators[mutationName],
 						queryName: name,
 						queryPath: pathSoFar,
+						when: {}
 					})
 				}
 				// we're done processing the leaf node
@@ -115,14 +116,14 @@ export function patchesForSelectionSet(
 
 				// every key in the operation object points to a connection fragment
 				// and can contribute an operation to the list of patches
-				const newPatches = Object.entries(operations).flatMap(([fragmentName, mutations]) => {
+				const newPatches = Object.entries(operations).flatMap<PatchAtom>(([fragmentName, mutations]) => {
 					// if we are looking at an operation that's relevant for this connection
 					if (!config.isFragmentForConnection(nameVal, fragmentName) && !fragmentName.startsWith('__houdini__delete')) {
 						return []
 					}
 
 					return Object.entries(mutations).map(
-						([mutationName, { kind, path, parentID, position }]) => ({
+						([mutationName, { kind, path, parentID, position, when }]) => ({
 							operation: kind,
 							mutationName,
 							mutationPath: path,
@@ -130,6 +131,7 @@ export function patchesForSelectionSet(
 							queryPath: pathSoFar,
 							parentID,
 							position,
+							when
 						})
 					)
 				})
@@ -187,7 +189,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 			const updateMap: Patch = {}
 
 			// make sure very mutation in the patch ends up in the tree
-			for (const { mutationPath, queryPath, operation, parentID, position } of mutations) {
+			for (const { mutationPath, queryPath, operation, parentID, position, when } of mutations) {
 				// the mutation path defines where in the update tree this entry belongs
 				let node = updateMap
 				for (let i = 0; i < mutationPath.length; i++) {
@@ -263,6 +265,7 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 								value: parentID.value,
 							},
 							position: position || 'start',
+							when,
 						}
 					)
 				}
@@ -364,7 +367,7 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 								AST.arrayExpression(
 									(
 										patch.operations[patchOperation] || []
-									).map(({ parentID, path, position }) =>
+									).map(({ parentID, path, position, when }) =>
 										AST.objectExpression([
 											AST.objectProperty(
 												AST.stringLiteral('position'),
@@ -389,7 +392,26 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 													path.map((entry) => AST.stringLiteral(entry))
 												)
 											),
-										])
+										].concat(!when ? [] : (
+											AST.objectProperty(
+												AST.stringLiteral('when'),
+												AST.objectExpression(Object.entries(when).map(([key, value]) => (
+													AST.objectProperty(
+														AST.stringLiteral(key),
+														AST.objectExpression([
+															AST.objectProperty(
+																AST.stringLiteral("kind"),
+																AST.stringLiteral(value.kind)
+															),
+															AST.objectProperty(
+																AST.stringLiteral("value"),
+																(value.kind === 'Boolean' ? AST.booleanLiteral(value.value) : AST.stringLiteral(value.value) )
+															)
+														])
+													)
+												)))
+											)
+										)))
 									)
 								)
 							)

@@ -329,6 +329,70 @@ test('connection patches track insert position', async function () {
 	`)
 })
 
+test('connection patches track insert condition', async function () {
+	// the documents to test
+	const docs: CollectedGraphQLDocument[] = [
+		// the query needs to ask for a field that the mutation could update
+		mockCollectedDoc(
+			'TestQuery',
+			`query TestQuery {
+				user { 
+					friends @connection(name: "Friends") {
+						firstName
+					}
+				}
+			}`
+		),
+		mockCollectedDoc(
+			'TestMutation',
+			`mutation TestMutation {
+				updateUser {
+					...Friends_insert @prepend(when: { argument: "key", value: "value" })
+				}
+			}`
+		),
+	]
+
+	// run the generators
+	await runGenerators(config, docs)
+
+	// the patch betweeen TestQuery and TestMutation should include an operation that adds the result
+	// to the marked connection
+	const contents = await fs.readFile(
+		config.patchPath({ query: 'TestQuery', mutation: 'TestMutation' }),
+		'utf-8'
+	)
+
+	expect(
+		recast.parse(contents, {
+			parser: typeScriptParser,
+		})
+	).toMatchInlineSnapshot(`
+		export default {
+		    "edges": {
+		        "updateUser": {
+		            "operations": {
+		                "add": [{
+		                    "position": "start",
+
+		                    "parentID": {
+		                        "kind": "Root",
+		                        "value": "root"
+		                    },
+
+		                    "path": ["user", "friends"],
+
+		                    "when": {
+		                        "key": "value"
+		                    }
+		                }]
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
 test('connection patches include reference to parentID string value', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [
