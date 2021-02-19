@@ -24,16 +24,19 @@
 				item {
 					id
 					completed
+					...All_Items_remove @when(argument: "completed", value: "false")
 				}
 			}
 		}
 	`)
+	
 	const uncompleteItem = mutation<UncompleteItem>(graphql`
 		mutation UncompleteItem($id: ID!) {
 			uncheckItem(item: $id) {
 				item {
 					id
 					completed
+					...All_Items_remove @when(argument: "completed", value: "true")
 				}
 			}
 		}
