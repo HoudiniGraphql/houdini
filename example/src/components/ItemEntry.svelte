@@ -29,7 +29,7 @@
 			}
 		}
 	`)
-	
+
 	const uncompleteItem = mutation<UncompleteItem>(graphql`
 		mutation UncompleteItem($id: ID!) {
 			uncheckItem(item: $id) {

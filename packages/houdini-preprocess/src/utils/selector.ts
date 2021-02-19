@@ -2,7 +2,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { DocumentArtifact } from 'houdini-compiler'
-import { Config, selectionTypeInfo, isListType,  } from 'houdini-common'
+import { Config, selectionTypeInfo, isListType } from 'houdini-common'
 import { PatternKind } from 'ast-types/gen/kinds'
 // locals
 import memberExpression from './memberExpression'
@@ -99,7 +99,9 @@ export default function selector(props: SelectorProps): ArrowFunctionExpression 
 	return AST.arrowFunctionExpression(
 		// if we are at the top of the function definition, we need to define `variables`
 		([AST.identifier(props.rootIdentifier)] as PatternKind[]).concat(
-			props.root ? AST.assignmentPattern(AST.identifier('variables'), AST.objectExpression([])) : []
+			props.root
+				? AST.assignmentPattern(AST.identifier('variables'), AST.objectExpression([]))
+				: []
 		),
 		// add the field values to the default ones
 		AST.blockStatement([

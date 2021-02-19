@@ -783,7 +783,7 @@ describe('apply patch', function () {
 								when: {
 									must: {
 										target: 'not-value',
-									}
+									},
 								},
 								connectionName: 'Test',
 							},
@@ -845,7 +845,7 @@ describe('apply patch', function () {
 								when: {
 									must: {
 										target: 'value',
-									}
+									},
 								},
 								connectionName: 'Test',
 							},
@@ -885,23 +885,26 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith( {
-			outer: [
-				{
-					id: '1',
-					target: 'hello',
-				},
-				{
-					id: '2',
-					target: 'world',
-				},
-			],
-			__connectionFilters: {
-				Test: {
-					target: 'value',
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+					},
+					{
+						id: '2',
+						target: 'world',
+					},
+				],
+				__connectionFilters: {
+					Test: {
+						target: 'value',
+					},
 				},
 			},
-		}, {})
+			{}
+		)
 	})
 
 	test('apply connection when_not  positive', function () {
@@ -923,7 +926,7 @@ describe('apply patch', function () {
 								when: {
 									must_not: {
 										target: 'value',
-									}
+									},
 								},
 								connectionName: 'Test',
 							},
@@ -963,23 +966,26 @@ describe('apply patch', function () {
 		applyPatch(patch, set, current, payload, {})
 
 		// make sure we got the expected value
-		expect(set).toHaveBeenCalledWith( {
-			outer: [
-				{
-					id: '1',
-					target: 'hello',
-				},
-				{
-					id: '2',
-					target: 'world',
-				},
-			],
-			__connectionFilters: {
-				Test: {
-					target: 'not-value',
+		expect(set).toHaveBeenCalledWith(
+			{
+				outer: [
+					{
+						id: '1',
+						target: 'hello',
+					},
+					{
+						id: '2',
+						target: 'world',
+					},
+				],
+				__connectionFilters: {
+					Test: {
+						target: 'not-value',
+					},
 				},
 			},
-		}, {})
+			{}
+		)
 	})
 
 	test('apply connection when_not  negative', function () {
@@ -1001,7 +1007,7 @@ describe('apply patch', function () {
 								when: {
 									must_not: {
 										target: 'value',
-									}
+									},
 								},
 								connectionName: 'Test',
 							},
@@ -1043,7 +1049,6 @@ describe('apply patch', function () {
 		// make sure we got the expected value
 		expect(set).not.toHaveBeenCalled()
 	})
-
 
 	test('put values into lists', function () {
 		const patch: Patch = {

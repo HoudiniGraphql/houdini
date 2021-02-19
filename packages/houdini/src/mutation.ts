@@ -37,7 +37,9 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 					// wait for the patch to load
 					const { default: patch } = await patchModule
 					// apply the changes to any stores that have registered themselves
-					for (const { currentValue, updateValue, variables } of getDocumentStores(documentName)) {
+					for (const { currentValue, updateValue, variables } of getDocumentStores(
+						documentName
+					)) {
 						// apply the patch
 						applyPatch(patch, updateValue, currentValue, data, variables)
 					}

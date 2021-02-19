@@ -398,7 +398,6 @@ test('connection when argument', async function () {
 	`)
 })
 
-
 test('connection when directive', async function () {
 	// the documents to test
 	const docs: CollectedGraphQLDocument[] = [

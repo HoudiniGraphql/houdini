@@ -22,7 +22,7 @@ export default function query<_Query extends Operation<any, any>>(
 			// build up the store object
 			const store = {
 				name: document.name,
-				updateValue: (val: _Query['result'], variables: _Query['input']) =>{
+				updateValue: (val: _Query['result'], variables: _Query['input']) => {
 					set(document.processResult(val, variables))
 					store.variables = variables
 				},

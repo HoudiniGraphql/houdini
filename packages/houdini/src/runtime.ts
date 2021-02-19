@@ -111,17 +111,27 @@ function walkPatch(
 		for (const { path, parentID, position, when, connectionName } of paths) {
 			// if there are conditions for this operation
 			if (when) {
-				// we only NEED there to be target filters for must's 
-				const targets = target.__connectionFilters ? target.__connectionFilters[connectionName || ''] : null
+				// we only NEED there to be target filters for must's
+				const targets = target.__connectionFilters
+					? target.__connectionFilters[connectionName || '']
+					: null
 				let ok = true
 
 				// check must's first
 				if (when.must && targets) {
-					ok = Object.entries(when.must || {}).reduce<boolean>((prev, [key, value]) => Boolean(prev && targets[key] == value), ok)
+					ok = Object.entries(when.must || {}).reduce<boolean>(
+						(prev, [key, value]) => Boolean(prev && targets[key] == value),
+						ok
+					)
 				}
 				// and then must_not
 				if (when.must_not) {
-					ok = !targets || Object.entries(when.must_not || {}).reduce<boolean>((prev, [key, value]) => Boolean(prev && targets[key] != value), ok)
+					ok =
+						!targets ||
+						Object.entries(when.must_not || {}).reduce<boolean>(
+							(prev, [key, value]) => Boolean(prev && targets[key] != value),
+							ok
+						)
 				}
 
 				// if we didn't satisfy everything we needed to

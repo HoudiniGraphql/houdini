@@ -233,7 +233,7 @@ function fillMutationMap(
 				}
 
 				// look at the selection for connection information
-				const { parentID, position, when} = operationInfo(config, selection)
+				const { parentID, position, when } = operationInfo(config, selection)
 
 				// we need to add an operation to the list for this open
 				mutationTargets[rootType.name].operations[selection.name.value][mutationName] = {
@@ -335,13 +335,12 @@ function fillMutationMap(
 	}
 }
 
-function operationInfo(config: Config, selection: graphql.SelectionNode){
+function operationInfo(config: Config, selection: graphql.SelectionNode) {
 	// look at the directives applies to the spread for meta data about the mutation
 	let parentID = 'root'
 	let parentKind: 'Root' | 'Variable' | 'String' = 'Root'
 
-	let position: MutationMap[string]['operations'][string][string]['position'] =
-		'end'
+	let position: MutationMap[string]['operations'][string][string]['position'] = 'end'
 
 	let operationWhen: MutationMap[string]['operations'][string][string]['when'] = {}
 
@@ -358,13 +357,9 @@ function operationInfo(config: Config, selection: graphql.SelectionNode){
 			({ name }) => name.value === config.connectionAppendDirective
 		)
 		// is when applied?
-		const when = internalDirectives.find(
-			({name}) => name.value === 'when'
-		)
+		const when = internalDirectives.find(({ name }) => name.value === 'when')
 		// is when_not applied?
-		const when_not = internalDirectives.find(
-			({name}) => name.value === 'when_not'
-		)
+		const when_not = internalDirectives.find(({ name }) => name.value === 'when_not')
 		// look for the parentID directive
 		let parent = internalDirectives.find(
 			({ name }) => name.value === config.connectionParentDirective
@@ -379,9 +374,7 @@ function operationInfo(config: Config, selection: graphql.SelectionNode){
 		// the parent ID can be provided a few ways, either as an argument to the prepend
 		// and append directives or with the parentID directive.
 
-		let parentIDArg = parent?.arguments?.find(
-			(argument) => argument.name.value === 'value'
-		)
+		let parentIDArg = parent?.arguments?.find((argument) => argument.name.value === 'value')
 		// if there is no parent id argument, it could have been provided by one of the connection directives
 		if (!parentIDArg) {
 			parentIDArg = (append || prepend)?.arguments?.find(
@@ -402,9 +395,7 @@ function operationInfo(config: Config, selection: graphql.SelectionNode){
 		}
 
 		// look for a when arguments on the operation directives
-		const whenArg = (append || prepend)?.arguments?.find(
-			({ name }) => name.value === 'when'
-		)
+		const whenArg = (append || prepend)?.arguments?.find(({ name }) => name.value === 'when')
 		// look for a when_not condition on the operation
 		const whenNotArg = (append || prepend)?.arguments?.find(
 			({ name }) => name.value === 'when_not'
@@ -419,17 +410,11 @@ function operationInfo(config: Config, selection: graphql.SelectionNode){
 			//which are we looking at
 			const which = i ? 'must_not' : 'must'
 			// build up all of the values into a single object
-			const key = arg.value.fields.find(
-				({ name, value }) => name.value === 'argument'
-			)?.value
+			const key = arg.value.fields.find(({ name, value }) => name.value === 'argument')?.value
 			const value = arg.value.fields.find(({ name }) => name.value === 'value')
 
 			// make sure we got a string for the key
-			if (
-				key?.kind !== 'StringValue' ||
-				!value ||
-				value.value.kind !== 'StringValue'
-			) {
+			if (key?.kind !== 'StringValue' || !value || value.value.kind !== 'StringValue') {
 				throw new Error('Key and Value must be strings')
 			}
 
@@ -449,17 +434,13 @@ function operationInfo(config: Config, selection: graphql.SelectionNode){
 			}
 			//which are we looking at
 			const which = i ? 'must_not' : 'must'
-			
+
 			// look for the argument field
-			const key = directive.arguments?.find(({name}) => name.value === 'argument')
-			const value = directive.arguments?.find(({name}) => name.value === 'value')
-			
+			const key = directive.arguments?.find(({ name }) => name.value === 'argument')
+			const value = directive.arguments?.find(({ name }) => name.value === 'value')
+
 			// make sure we got a string for the key
-			if (
-				key?.value.kind !== 'StringValue' ||
-				!value ||
-				value.value.kind !== 'StringValue'
-			) {
+			if (key?.value.kind !== 'StringValue' || !value || value.value.kind !== 'StringValue') {
 				throw new Error('Key and Value must be strings')
 			}
 
@@ -472,12 +453,12 @@ function operationInfo(config: Config, selection: graphql.SelectionNode){
 		}
 	}
 
-	return { 
-		parentID: { 
+	return {
+		parentID: {
 			value: parentID,
 			kind: parentKind,
 		},
-		parentKind, 
+		parentKind,
 		position,
 		when: operationWhen,
 	}
