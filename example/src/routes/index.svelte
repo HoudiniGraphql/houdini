@@ -3,7 +3,7 @@
     there HAS to be an index.svelte file. so let's redirect to /active
 -->
 <script context="module">
-    export async function preload(page, session) {
-      return this.redirect(301, 'all')
-    }
+	export async function preload(page, session) {
+		return this.redirect(301, 'all')
+	}
 </script>

@@ -79,7 +79,7 @@ export function patchesForSelectionSet(
 						mutationPath: mutators[mutationName],
 						queryName: name,
 						queryPath: pathSoFar,
-						when: {}
+						when: {},
 					})
 				}
 				// we're done processing the leaf node
@@ -116,25 +116,30 @@ export function patchesForSelectionSet(
 
 				// every key in the operation object points to a connection fragment
 				// and can contribute an operation to the list of patches
-				const newPatches = Object.entries(operations).flatMap<PatchAtom>(([fragmentName, mutations]) => {
-					// if we are looking at an operation that's relevant for this connection
-					if (!config.isFragmentForConnection(nameVal, fragmentName) && !fragmentName.startsWith('__houdini__delete')) {
-						return []
-					}
+				const newPatches = Object.entries(operations).flatMap<PatchAtom>(
+					([fragmentName, mutations]) => {
+						// if we are looking at an operation that's relevant for this connection
+						if (
+							!config.isFragmentForConnection(nameVal, fragmentName) &&
+							!fragmentName.startsWith('__houdini__delete')
+						) {
+							return []
+						}
 
-					return Object.entries(mutations).map(
-						([mutationName, { kind, path, parentID, position, when }]) => ({
-							operation: kind,
-							mutationName,
-							mutationPath: path,
-							queryName: name,
-							queryPath: pathSoFar,
-							parentID,
-							position,
-							when
-						})
-					)
-				})
+						return Object.entries(mutations).map(
+							([mutationName, { kind, path, parentID, position, when }]) => ({
+								operation: kind,
+								mutationName,
+								mutationPath: path,
+								queryName: name,
+								queryPath: pathSoFar,
+								parentID,
+								position,
+								when,
+							})
+						)
+					}
+				)
 
 				// add the patches
 				patches.push(...newPatches)
@@ -189,7 +194,14 @@ export async function generatePatches(config: Config, patchAtoms: PatchAtom[]) {
 			const updateMap: Patch = {}
 
 			// make sure very mutation in the patch ends up in the tree
-			for (const { mutationPath, queryPath, operation, parentID, position, when } of mutations) {
+			for (const {
+				mutationPath,
+				queryPath,
+				operation,
+				parentID,
+				position,
+				when,
+			} of mutations) {
 				// the mutation path defines where in the update tree this entry belongs
 				let node = updateMap
 				for (let i = 0; i < mutationPath.length; i++) {
@@ -368,50 +380,73 @@ function buildPatch(patch: Patch, targetObject: namedTypes.ObjectExpression) {
 									(
 										patch.operations[patchOperation] || []
 									).map(({ parentID, path, position, when }) =>
-										AST.objectExpression([
-											AST.objectProperty(
-												AST.stringLiteral('position'),
-												AST.stringLiteral(position)
-											),
-											AST.objectProperty(
-												AST.stringLiteral('parentID'),
-												AST.objectExpression([
-													AST.objectProperty(
-														AST.stringLiteral('kind'),
-														AST.stringLiteral(parentID.kind)
-													),
-													AST.objectProperty(
-														AST.stringLiteral('value'),
-														AST.stringLiteral(parentID.value)
-													),
-												])
-											),
-											AST.objectProperty(
-												AST.stringLiteral('path'),
-												AST.arrayExpression(
-													path.map((entry) => AST.stringLiteral(entry))
-												)
-											),
-										].concat(!when ? [] : (
-											AST.objectProperty(
-												AST.stringLiteral('when'),
-												AST.objectExpression(Object.entries(when).map(([key, value]) => (
-													AST.objectProperty(
-														AST.stringLiteral(key),
-														AST.objectExpression([
-															AST.objectProperty(
-																AST.stringLiteral("kind"),
-																AST.stringLiteral(value.kind)
-															),
-															AST.objectProperty(
-																AST.stringLiteral("value"),
-																(value.kind === 'Boolean' ? AST.booleanLiteral(value.value) : AST.stringLiteral(value.value) )
-															)
-														])
+										AST.objectExpression(
+											[
+												AST.objectProperty(
+													AST.stringLiteral('position'),
+													AST.stringLiteral(position)
+												),
+												AST.objectProperty(
+													AST.stringLiteral('parentID'),
+													AST.objectExpression([
+														AST.objectProperty(
+															AST.stringLiteral('kind'),
+															AST.stringLiteral(parentID.kind)
+														),
+														AST.objectProperty(
+															AST.stringLiteral('value'),
+															AST.stringLiteral(parentID.value)
+														),
+													])
+												),
+												AST.objectProperty(
+													AST.stringLiteral('path'),
+													AST.arrayExpression(
+														path.map((entry) =>
+															AST.stringLiteral(entry)
+														)
 													)
-												)))
+												),
+											].concat(
+												!when
+													? []
+													: AST.objectProperty(
+															AST.stringLiteral('when'),
+															AST.objectExpression(
+																Object.entries(
+																	when
+																).map(([key, value]) =>
+																	AST.objectProperty(
+																		AST.stringLiteral(key),
+																		AST.objectExpression([
+																			AST.objectProperty(
+																				AST.stringLiteral(
+																					'kind'
+																				),
+																				AST.stringLiteral(
+																					value.kind
+																				)
+																			),
+																			AST.objectProperty(
+																				AST.stringLiteral(
+																					'value'
+																				),
+																				value.kind ===
+																					'Boolean'
+																					? AST.booleanLiteral(
+																							value.value
+																					  )
+																					: AST.stringLiteral(
+																							value.value
+																					  )
+																			),
+																		])
+																	)
+																)
+															)
+													  )
 											)
-										)))
+										)
 									)
 								)
 							)

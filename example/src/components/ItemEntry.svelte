@@ -59,7 +59,6 @@
 			await completeItem({ id: $data.id })
 		}
 	}
-
 </script>
 
 <li class:completed={$data.completed}>
@@ -72,6 +71,6 @@
 			on:click={handleClick}
 		/>
 		<label for={$data.text}>{$data.text}</label>
-		<button class="destroy" on:click={() => deleteItem({id: $data.id})} />
+		<button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
 	</div>
 </li>

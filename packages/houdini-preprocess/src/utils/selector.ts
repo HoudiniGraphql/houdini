@@ -23,7 +23,9 @@ export type SelectorProps = {
 
 export default function selector(props: SelectorProps): ArrowFunctionExpression {
 	return typeBuilders.arrowFunctionExpression(
-		[typeBuilders.identifier(props.rootIdentifier)].concat(props.root ? typeBuilders.identifier('variables') : []),
+		[typeBuilders.identifier(props.rootIdentifier)].concat(
+			props.root ? typeBuilders.identifier('variables') : []
+		),
 		typeBuilders.blockStatement([
 			typeBuilders.returnStatement(typeBuilders.objectExpression(objectProperties(props))),
 		])
@@ -48,11 +50,10 @@ function objectProperties({
 						pullValuesFromRef
 							? memberExpression(rootIdentifier, '__ref')
 							: typeBuilders.identifier(rootIdentifier)
-					)
+					),
 			  ]
 			: []),
 
-		
 		typeBuilders.objectProperty(
 			typeBuilders.stringLiteral('__variables'),
 			typeBuilders.identifier('variables')
@@ -76,8 +77,12 @@ function objectProperties({
 					selectionSet: selection.selectionSet,
 					includeRefField: false,
 
-				// make sure we dont include __variables
-				}).filter(property => property.key.type === 'StringLiteral' && property.key.value !== '__variables')
+					// make sure we dont include __variables
+				}).filter(
+					(property) =>
+						property.key.type === 'StringLiteral' &&
+						property.key.value !== '__variables'
+				)
 			}
 
 			// the name of the field in the response

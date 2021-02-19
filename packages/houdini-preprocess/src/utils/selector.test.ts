@@ -6,30 +6,29 @@ import selector from './selector'
 import { testConfig } from 'houdini-common'
 import '../../../../jest.setup'
 
-
 describe('selector', function () {
-    test('flat object', function() {
-			const result = selectorTest(`fragment foo on User {
+	test('flat object', function () {
+		const result = selectorTest(`fragment foo on User {
                 name
                 age
             }`)
 
-            expect(result).toMatchInlineSnapshot()
-})    
-    
-    test('inline fragments', function() {
-			const result = selectorTest(`fragment foo on User {
+		expect(result).toMatchInlineSnapshot()
+	})
+
+	test('inline fragments', function () {
+		const result = selectorTest(`fragment foo on User {
                 name
                 ... on User {
                     age
                 }
             }`)
 
-            expect(result).toMatchInlineSnapshot()
-})    
-    
-    test('related objects', function() {
-			const result = selectorTest(`fragment foo on User {
+		expect(result).toMatchInlineSnapshot()
+	})
+
+	test('related objects', function () {
+		const result = selectorTest(`fragment foo on User {
                 name
                 parent {
                     name
@@ -37,11 +36,11 @@ describe('selector', function () {
                 }
             }`)
 
-            expect(result).toMatchInlineSnapshot()
-})    
-    
-    test('related lists', function() {
-			const result = selectorTest(`fragment foo on User {
+		expect(result).toMatchInlineSnapshot()
+	})
+
+	test('related lists', function () {
+		const result = selectorTest(`fragment foo on User {
                 name
                 friends {
                     name
@@ -49,11 +48,12 @@ describe('selector', function () {
                 }
             }`)
 
-            expect(result).toMatchInlineSnapshot()
-})    
-    
-    test('query selector', function() {
-			const result = selectorTest(`fragment foo on User {
+		expect(result).toMatchInlineSnapshot()
+	})
+
+	test('query selector', function () {
+		const result = selectorTest(
+			`fragment foo on User {
                 name
                 parent {
                     name
@@ -63,19 +63,23 @@ describe('selector', function () {
                     name
                     age
                 }
-            }`, {pullValuesFromRef: false})
+            }`,
+			{ pullValuesFromRef: false }
+		)
 
-            expect(result).toMatchInlineSnapshot()})
+		expect(result).toMatchInlineSnapshot()
+	})
 
-    test('connection arguments', function() {
-			const result = selectorTest(`query {
+	test('connection arguments', function () {
+		const result = selectorTest(`query {
                 foo(stringKey: "StringValue", boolKey: true, variableKey: $hello, intKey: 1, floatKey: 1.2) @connection(name: "Test")
             }`)
 
-            expect(result).toMatchInlineSnapshot()})    
-    
-    test('nested objects', function() {
-			const result = selectorTest(`fragment foo on User {
+		expect(result).toMatchInlineSnapshot()
+	})
+
+	test('nested objects', function () {
+		const result = selectorTest(`fragment foo on User {
                 name
                 parent {
                     name
@@ -87,11 +91,11 @@ describe('selector', function () {
                 }
             }`)
 
-            expect(result).toMatchInlineSnapshot()
-})    
-    
-    test('nested lists', function() {
-			const result = selectorTest(`fragment foo on User {
+		expect(result).toMatchInlineSnapshot()
+	})
+
+	test('nested lists', function () {
+		const result = selectorTest(`fragment foo on User {
                 name
                 friends {
                     name
@@ -104,11 +108,11 @@ describe('selector', function () {
                 }
             }`)
 
-            expect(result).toMatchInlineSnapshot()
-})    
-    
-    test('list in object', function() {
-			const result = selectorTest(`fragment foo on User {
+		expect(result).toMatchInlineSnapshot()
+	})
+
+	test('list in object', function () {
+		const result = selectorTest(`fragment foo on User {
                 name
                 parent {
                     name
@@ -121,14 +125,14 @@ describe('selector', function () {
                 }
             }`)
 
-            expect(result).toMatchInlineSnapshot()
+		expect(result).toMatchInlineSnapshot()
+	})
 })
-    })
 
-function selectorTest(doc:string, extraConfig?: {}) {
-    // declare a schema we will use
-    const config = testConfig({
-        schema: `
+function selectorTest(doc: string, extraConfig?: {}) {
+	// declare a schema we will use
+	const config = testConfig({
+		schema: `
             type User {
                 name: String!
                 age: Int!
@@ -140,26 +144,24 @@ function selectorTest(doc:string, extraConfig?: {}) {
                 users(stringKey: String, boolKey: Boolean, variableKey: String, intKey: Int, floatKey: Float)
             }
         `,
-    })
+	})
 
-    // parse the fragment
-    const parsedFragment = graphql.parse(doc)
-        .definitions[0] as graphql.FragmentDefinitionNode
+	// parse the fragment
+	const parsedFragment = graphql.parse(doc).definitions[0] as graphql.FragmentDefinitionNode
 
-
-    // generate the selector
-    return selector({
-        config,
-        artifact: {
-            name: 'testFragment',
-            kind: CompiledFragmentKind,
-            raw: doc,
-            hash: 'asf',
-        },
-        rootIdentifier: 'obj',
-        rootType: config.schema.getType('User') as graphql.GraphQLObjectType,
-        selectionSet: parsedFragment.selectionSet,
-        root: true,
-        ...extraConfig,
-    })
+	// generate the selector
+	return selector({
+		config,
+		artifact: {
+			name: 'testFragment',
+			kind: CompiledFragmentKind,
+			raw: doc,
+			hash: 'asf',
+		},
+		rootIdentifier: 'obj',
+		rootType: config.schema.getType('User') as graphql.GraphQLObjectType,
+		selectionSet: parsedFragment.selectionSet,
+		root: true,
+		...extraConfig,
+	})
 }

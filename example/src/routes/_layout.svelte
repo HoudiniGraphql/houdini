@@ -18,25 +18,26 @@
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
 				item {
-					...All_Items_insert @prepend(when: {argument: "completed", value: "false"})
+					...All_Items_insert @prepend(when: { argument: "completed", value: "false" })
 					...Item_Info_insert
 				}
 			}
 		}
 	`)
-	let inputValue = ""
+	let inputValue = ''
 	async function onBlur() {
 		// trigger the mutation
-		await addItem({input: { text: inputValue }})
+		await addItem({ input: { text: inputValue } })
 
 		// clear the input
-		inputValue = ""
+		inputValue = ''
 	}
 
-
-	const numberOfItems = derived(data, $data => $data.items.length)
-	const itemsLeft = derived(data, $data => $data.items.filter((item) => !item.completed).length)
-	const hasCompleted = derived(data, $data => Boolean($data.items.find((item) => item.completed)))
+	const numberOfItems = derived(data, ($data) => $data.items.length)
+	const itemsLeft = derived(data, ($data) => $data.items.filter((item) => !item.completed).length)
+	const hasCompleted = derived(data, ($data) =>
+		Boolean($data.items.find((item) => item.completed))
+	)
 </script>
 
 <svelte:head>
@@ -50,7 +51,12 @@
 		<a href="/">
 			<h1>todos</h1>
 		</a>
-		<input class="new-todo" placeholder="What needs to be done?" bind:value={inputValue} on:blur={onBlur} />
+		<input
+			class="new-todo"
+			placeholder="What needs to be done?"
+			bind:value={inputValue}
+			on:blur={onBlur}
+		/>
 	</header>
 	<section class="main">
 		<input id="toggle-all" class="toggle-all" type="checkbox" />

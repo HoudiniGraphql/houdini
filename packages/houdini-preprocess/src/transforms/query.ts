@@ -104,8 +104,7 @@ export default async function queryProcessor(
 								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 							)
 						)
-
-					)
+					),
 				])
 			)
 		},
@@ -145,10 +144,7 @@ export default async function queryProcessor(
 	if (!preloadDefinition) {
 		const preloadFn = typeBuilders.functionDeclaration(
 			typeBuilders.identifier('preload'),
-			[
-				typeBuilders.identifier('page'),
-				typeBuilders.identifier('session')
-			],
+			[typeBuilders.identifier('page'), typeBuilders.identifier('session')],
 			// return an object
 			typeBuilders.blockStatement([
 				typeBuilders.returnStatement(typeBuilders.objectExpression([])),
@@ -253,10 +249,10 @@ export default async function queryProcessor(
 		const operation = document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 		// figure out the local variable that holds the result
 		const preloadKey = preloadPayloadKey(operation)
-		
+
 		// the identifier for the query variables
 		const variableIdentifier = variablesKey(operation)
-		
+
 		// prop declarations needs to be added to the top of the document
 		doc.instance.content.body.splice(
 			propInsertIndex,
@@ -279,19 +275,22 @@ export default async function queryProcessor(
 		// will have a definition)
 		doc.instance.content.body.push(
 			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			typeBuilders.labeledStatement(typeBuilders.identifier('$'), typeBuilders.blockStatement([
-				typeBuilders.expressionStatement(
-					typeBuilders.callExpression(
-						typeBuilders.identifier('updateStoreData'), [
+			typeBuilders.labeledStatement(
+				typeBuilders.identifier('$'),
+				typeBuilders.blockStatement([
+					typeBuilders.expressionStatement(
+						typeBuilders.callExpression(typeBuilders.identifier('updateStoreData'), [
 							typeBuilders.stringLiteral(document.artifact.name),
-							typeBuilders.memberExpression(typeBuilders.identifier(preloadKey), typeBuilders.identifier("data")),
-							typeBuilders.identifier(variableIdentifier)
-						]
-					)
-				)
-			]))
+							typeBuilders.memberExpression(
+								typeBuilders.identifier(preloadKey),
+								typeBuilders.identifier('data')
+							),
+							typeBuilders.identifier(variableIdentifier),
+						])
+					),
+				])
+			)
 		)
-
 
 		// add a local variable right before the return statement
 		preloadFn.body.body.splice(
@@ -303,13 +302,21 @@ export default async function queryProcessor(
 				typeBuilders.variableDeclarator(
 					typeBuilders.identifier(variableIdentifier),
 					operation.variableDefinitions && operation.variableDefinitions.length > 0
-						? typeBuilders.callExpression(typeBuilders.memberExpression(typeBuilders.identifier(queryInputFunction(document.artifact.name)), typeBuilders.identifier("call")), [
-							typeBuilders.identifier('this'),
-							typeBuilders.identifier('page'),
-							typeBuilders.identifier('session'),
-						])
-						: typeBuilders.identifier('undefined') 
-				)
+						? typeBuilders.callExpression(
+								typeBuilders.memberExpression(
+									typeBuilders.identifier(
+										queryInputFunction(document.artifact.name)
+									),
+									typeBuilders.identifier('call')
+								),
+								[
+									typeBuilders.identifier('this'),
+									typeBuilders.identifier('page'),
+									typeBuilders.identifier('session'),
+								]
+						  )
+						: typeBuilders.identifier('undefined')
+				),
 			]),
 
 			// @ts-ignore
@@ -327,7 +334,7 @@ export default async function queryProcessor(
 								typeBuilders.objectProperty(
 									typeBuilders.literal('variables'),
 									typeBuilders.identifier(variableIdentifier)
-								)
+								),
 							]),
 						])
 					)
@@ -347,9 +354,8 @@ export default async function queryProcessor(
 			typeBuilders.objectProperty(
 				typeBuilders.identifier(variableIdentifier),
 				typeBuilders.identifier(variableIdentifier)
-			),
+			)
 		)
-
 	}
 }
 

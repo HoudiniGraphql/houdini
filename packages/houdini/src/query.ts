@@ -16,30 +16,33 @@ export default function query<_Query extends Operation<any, any>>(
 	}
 
 	// wrap the result in a store we can use to keep this query up to date
-	const value = readable(document.processResult(document.initialValue.data, document.variables), (set) => {
-		// build up the store object
-		const store = {
-			name: document.name,
-			updateValue: (val: _Query['result']) => set(document.processResult(val)),
-			currentValue: {},
-		}
+	const value = readable(
+		document.processResult(document.initialValue.data, document.variables),
+		(set) => {
+			// build up the store object
+			const store = {
+				name: document.name,
+				updateValue: (val: _Query['result']) => set(document.processResult(val)),
+				currentValue: {},
+			}
 
-		// when the component monuts
-		onMount(() => {
-			// register the updater for the query
-			registerDocumentStore(store)
+			// when the component monuts
+			onMount(() => {
+				// register the updater for the query
+				registerDocumentStore(store)
 
-			// keep the stores' values in sync
-			value.subscribe((val) => {
-				store.currentValue = val
+				// keep the stores' values in sync
+				value.subscribe((val) => {
+					store.currentValue = val
+				})
 			})
-		})
 
-		// the function used to clean up the store
-		return () => {
-			unregisterDocumentStore(store)
+			// the function used to clean up the store
+			return () => {
+				unregisterDocumentStore(store)
+			}
 		}
-	})
+	)
 
 	return value
 }

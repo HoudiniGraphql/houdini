@@ -288,43 +288,49 @@ function fillMutationMap(
 					}
 
 					// look for a when condition on the operation
-					const whenArg = (append || prepend)?.arguments?.find(({name}) => name.value === 'when')
+					const whenArg = (append || prepend)?.arguments?.find(
+						({ name }) => name.value === 'when'
+					)
 					if (whenArg && whenArg.value.kind === 'ObjectValue') {
 						// build up all of the values into a single object
-						const key = whenArg.value.fields.find(({name, value}) => name.value === 'argument')?.value
-						const value = whenArg.value.fields.find(({name}) => name.value === 'value')
+						const key = whenArg.value.fields.find(
+							({ name, value }) => name.value === 'argument'
+						)?.value
+						const value = whenArg.value.fields.find(
+							({ name }) => name.value === 'value'
+						)
 
 						// make sure we got a string for the key
 						if (key?.kind !== 'StringValue' || !value) {
-							throw new Error("Key must be a string")
+							throw new Error('Key must be a string')
 						}
 
 						// strings
 						if (value.value.kind === 'StringValue') {
 							when[key.value] = {
 								kind: 'String',
-								value: value.value.value
+								value: value.value.value,
 							}
 						}
 						// boolean
 						else if (value.value.kind === 'BooleanValue') {
 							when[key.value] = {
 								kind: 'Boolean',
-								value: value.value.value
+								value: value.value.value,
 							}
 						}
 						// float
 						else if (value.value.kind === 'FloatValue') {
 							when[key.value] = {
 								kind: 'Float',
-								value: value.value.value
+								value: value.value.value,
 							}
 						}
 						// int
 						else if (value.value.kind === 'IntValue') {
 							when[key.value] = {
 								kind: 'Int',
-								value: value.value.value
+								value: value.value.value,
 							}
 						}
 					}
@@ -339,7 +345,7 @@ function fillMutationMap(
 					position: insertLocation,
 					kind: operation,
 					path,
-					when
+					when,
 				}
 			}
 

@@ -26,7 +26,7 @@ export type TaggedGraphqlQuery = {
 	raw: string
 	processResult: (result: any, variables: any) => any
 	initialValue: any
-	variables: {[key:string]: any}
+	variables: { [key: string]: any }
 }
 
 // the result of the template tag
