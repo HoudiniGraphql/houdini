@@ -24,8 +24,10 @@ export default function query<_Query extends Operation<any, any>>(
 				name: document.name,
 				updateValue: (val: _Query['result'], variables: _Query['input']) =>{
 					set(document.processResult(val, variables))
+					store.variables = variables
 				},
 				currentValue: {},
+				variables: document.variables,
 			}
 
 			// when the component monuts

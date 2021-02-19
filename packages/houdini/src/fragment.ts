@@ -32,6 +32,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 				store.currentValue = newValue
 			},
 			currentValue: initialValue,
+			variables: variables,
 		}
 
 		// when the component monuts

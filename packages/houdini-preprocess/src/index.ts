@@ -96,11 +96,6 @@ export async function applyTransforms(
 	// there is both a module and an instance so we want to replace the lowest
 	// one first so that the first's indices stay valid after we change content
 
-	// if (doc.filename === 'src/routes/[filter].svelte') {
-	// 	console.log(doc.filename, printedInstance)
-
-	// }
-
 	// if the module is lower than the instance
 	if (result.module.end > result.instance.end) {
 		// replace the module content first
