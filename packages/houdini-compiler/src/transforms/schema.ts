@@ -48,6 +48,16 @@ export default async function graphqlExtensions(
 			"""
 			directive @${config.connectionParentDirective}(value: ID!) on FRAGMENT_SPREAD
 
+			"""
+				@when is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+			"""
+			directive @when(argument: String!, value: String!) on FRAGMENT_SPREAD
+
+			"""
+				@when_not is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+			"""
+			directive @when_not(argument: String!, value: String!) on FRAGMENT_SPREAD
+
 		`),
 		],
 	})

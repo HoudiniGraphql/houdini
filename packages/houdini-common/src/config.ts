@@ -219,6 +219,8 @@ export class Config {
 				this.connectionPrependDirective,
 				this.connectionAppendDirective,
 				this.connectionDirectiveParentIDArg,
+				'when', 
+				'when_not'
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}
