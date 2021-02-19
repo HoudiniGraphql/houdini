@@ -36,7 +36,7 @@ describe('query preprocessor', function () {
 		expect(doc.module.content).toMatchInlineSnapshot(`
 		import { fetchQuery } from "houdini";
 
-		export async function preload() {
+		export async function preload(page, session) {
 		    const _TestQuery = await fetchQuery({
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t"
 		          });
@@ -47,6 +47,7 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
+		import { updateStoreData } from "houdini";
 		export let _TestQuery;
 
 		const data = query({
@@ -66,8 +67,92 @@ describe('query preprocessor', function () {
 		        };
 		    }
 		});
+
+		$:
+		{
+		    updateStoreData("TestQuery", _TestQuery.data);
+		}
 	`)
 	})
+
+	test('preload initial data with variables', async function () {
+		const doc = await preprocessorTest(`
+			<script context="module">
+				export function TestQueryVariables(page) {
+					return { 
+						test: true
+					}
+				}
+			</script>
+
+			<script>
+				const data = query(graphql\`
+					query TestQuery($test: Boolean!) {
+						viewer {
+							id
+						}
+					}
+				\`)
+			</script>
+		`)
+
+		// make sure we added the right stuff
+		expect(doc.module.content).toMatchInlineSnapshot(`
+		import { fetchQuery } from "houdini";
+
+		export function TestQueryVariables(page) {
+		    return {
+		        test: true
+		    };
+		}
+
+		export async function preload(page, session) {
+		    const _TestQuery = await fetchQuery({
+		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		              "variables": TestQueryVariables.call(this, page, session)
+		          });
+
+		    return {
+		        _TestQuery: _TestQuery
+		    };
+		}
+	`)
+		expect(doc.instance.content).toMatchInlineSnapshot(`
+		import { updateStoreData } from "houdini";
+		export let _TestQuery;
+
+		const data = query({
+		    "name": "TestQuery",
+		    "kind": "HoudiniQuery",
+		    "raw": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		    "initialValue": _TestQuery,
+
+		    "processResult": data => {
+		        return {
+		            "__ref": data,
+
+		            "viewer": {
+		                "__ref": data.viewer,
+		                "id": data.viewer.id
+		            }
+		        };
+		    }
+		});
+
+		$:
+		{
+		    updateStoreData("TestQuery", _TestQuery.data);
+		}
+	`)
+	})
+
+	test.todo('fails if variable function is not present')
+
+	test.todo('adds argumens to an empty preload')
+
+	test.todo('adds second argument to preload with only one argument')
+
+	test.todo('fails if arguments in preload are not page and params')
 })
 
 async function preprocessorTest(content: string) {

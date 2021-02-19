@@ -420,3 +420,13 @@ function updateField(path: string[], target: Record, targetId: string, value: an
 
 	return updated
 }
+
+export function updateStoreData(storeName: string, data: any) {
+	// TODO: this is definitely not what we want. the same query could show up 
+	// in multiple places and get the same update
+	// apply the new update to every store matching the name
+	for (const store of getDocumentStores(storeName)) {
+		// apply the new date
+		store.updateValue(data)	
+	}
+}

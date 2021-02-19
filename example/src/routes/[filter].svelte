@@ -5,8 +5,8 @@
 
 	// load the items
 	const data = query<AllItems>(graphql`
-		query AllItems {
-			items @connection(name: "All_Items") {
+		query AllItems($completed: Boolean) {
+			items(completed: $completed) @connection(name: "All_Items") {
 				id
 				completed
 				...ItemEntry_item
@@ -20,10 +20,10 @@
 		// if there is no filter assigned, dont enforce one in the query
 		if (!page.params.filter) {
 			return {}
-		}	
+		}
 
 		// make sure we recognize the value
-		if (!['active', 'completed'].includes(page.params)) { 
+		if (!['active', 'completed', ''].includes(page.params.filter)) { 
 			this.error(400, "filter must be one of 'active' or 'completed'")
 			return
 		}
