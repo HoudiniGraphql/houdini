@@ -1,4 +1,4 @@
-# 🪄 houdini
+# 🎩 houdini
 
 The disappearing GraphQL client built for the Svelte community.
 
