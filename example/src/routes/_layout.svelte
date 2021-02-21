@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { query, graphql, mutation } from 'houdini'
 	import { derived } from 'svelte/store'
+	import { stores } from '@sapper/app'
 	import type { IndexInfo, AddItem } from '../../generated'
 
 	// load some data at the top of the app for general information
@@ -38,6 +39,16 @@
 	const hasCompleted = derived(data, ($data) =>
 		Boolean($data.items.find((item) => item.completed))
 	)
+
+	// figure out the current page
+	const currentPage = derived(stores().page, $page => {
+		if ($page.path.includes('active')) {
+			return 'active'
+		} else if ($page.path.includes('completed')) {
+			return 'completed'
+		}
+		return 'all'
+	}) 
 </script>
 
 <svelte:head>
@@ -70,13 +81,13 @@
 			<span class="todo-count"><strong>{$itemsLeft}</strong> item left</span>
 			<ul class="filters">
 				<li>
-					<a class="selected" href="/">All</a>
+					<a class:selected={$currentPage === 'all'} class="selected" href="/">All</a>
 				</li>
 				<li>
-					<a href="/active">Active</a>
+					<a class:selected={$currentPage === 'active'} href="/active">Active</a>
 				</li>
 				<li>
-					<a href="/completed">Completed</a>
+					<a class:selected={$currentPage === 'completed'} href="/completed">Completed</a>
 				</li>
 			</ul>
 			{#if $hasCompleted}
