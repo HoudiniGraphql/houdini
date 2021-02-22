@@ -180,7 +180,7 @@ inside if your component. Take, for example, a `UserAvatar` component:
 <img src={$data.profilePicture} />
 ```
 
-This component can be rendered anywhere we can query for a user with a garuntee
+This component can be rendered anywhere we can query for a user with a guaruntee
 that the necessary data has been asked for:
 
 ```svelte
