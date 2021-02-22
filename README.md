@@ -86,7 +86,7 @@ Grabbing data from your API is done with the `query` function:
     `)
 </script>
 
-{#each $data.items as item (item.id)}
+{#each $data.items as item}
     <div>{item.text}</div>
 {/each}
 
