@@ -24,7 +24,7 @@ A demo can be found in the <a href='./example'>example directory</a>.
 houdini is available on npm:
 
 ```sh
-yarn add houdini houdini-tools
+yarn add houdini
 # or
 npm install --save houdini
 ```
