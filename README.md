@@ -96,7 +96,7 @@ Grabbing data from your API is done with the `query` function:
 At the moment, query variables are declared as a function in the module context of your component.
 This function must be named after your query and takes the same `page` and `session` arguments
 that are given to the `preload` function as described in the [Sapper](https://sapper.svelte.dev/docs#Pages) 
-documentation. Here is an example from the [demo](./example):
+documentation. Here is a modified example from the [demo](./example):
 
 ```svelte
 // src/routes/[filter].svelte
@@ -118,13 +118,8 @@ documentation. Here is an example from the [demo](./example):
 <script context="module">
     // This is the function for the AllItems query. Query variable functions must be named <QueryName>Variables. 
     export function AllItemsVariables(page) {
-        // if there is no filter assigned, dont enforce one in the query
-        if (!page.params.filter || page.params.filter === 'all') {
-            return {}
-        }
-
         // make sure we recognize the value
-        if (!['active', 'completed', 'all'].includes(page.params.filter)) {
+        if (!['active', 'completed'].includes(page.params.filter)) {
             this.error(400, "filter must be one of 'active' or 'completed'")
             return
         }
