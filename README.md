@@ -174,7 +174,7 @@ inside if your component. Take, for example, a `UserAvatar` component:
     	fragment UserAvatar on User { 
 	    profilePicture
 	}
-    `)
+    `, user)
 </script>
 
 <img src={$data.profilePicture} />
