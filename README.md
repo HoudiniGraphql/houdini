@@ -46,11 +46,11 @@ import { preprocess as houdini } from 'houdini-tools'
 
 // somewhere in your config file
 {
-	plugins: [
-		svelte({
-			preprocess: houdini(),
-		}),
-	]
+    plugins: [
+        svelte({
+            preprocess: houdini(),
+        }),
+    ]
 }
 ```
 
@@ -72,22 +72,22 @@ Grabbing data from your API is done simply with the `query` function:
 
 ```svelte
 <script lang="ts">
-	import { query, graphql } from 'houdini'
-	import type { AllItems } from '../../generated'
+    import { query, graphql } from 'houdini'
+    import type { AllItems } from '../../generated'
 
-	// load the items
-	const data = query<AllItems>(graphql`
-		query AllItems {
-			items {
-				id
-				text
-			}
-		}
-	`)
+    // load the items
+    const data = query<AllItems>(graphql`
+        query AllItems {
+            items {
+                id
+                text
+            }
+        }
+    ` )
 </script>
 
 {#each $data.items as item (item.id)}
-	<div>{item.text}</div>
+    <div>{item.text}</div>
 {/each}
 
 ```
@@ -116,12 +116,12 @@ fetch into a `preload`. You can think of the above block as being equivalent to:
 </script>
 
 <script>
-    	export let _initialValue
+    export let _initialValue
 
-    	const data = readable(_initialValue, ...)
+    const data = readable(_initialValue, ...)
 </script>
 
 {#each $data.items as item (item.id)}
-	<div>{item.text}</div>
+    <div>{item.text}</div>
 {/each}
 ```
