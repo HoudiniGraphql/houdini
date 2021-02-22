@@ -120,10 +120,6 @@ documentation. Here is an example from the [demo](./example):
 </script>
 ```
 
-
-
-
-
 ### What about `preload`?
 
 Don't worry - that's where the preprocessor comes in. One of its responsibilities is moving the actual 
@@ -157,6 +153,14 @@ fetch into a `preload`. You can think of the block at the top of this section as
     <div>{item.text}</div>
 {/each}
 ```
+
+## 🧩&nbsp;&nbsp;Fragments
+
+## 📝&nbsp;&nbsp;Mutations 
+
+### Updating a record's field
+
+### Connections
 
 ## ⚠️&nbsp;&nbsp;Notes, Constraints, and Conventions
 - The compiler must be ran every time the contents of a `graphql` tagged string changes
