@@ -7110,7 +7110,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.0.7, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.0.9, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
@@ -7121,7 +7121,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-compiler@^0.0.7, houdini-compiler@workspace:packages/houdini-compiler":
+"houdini-compiler@^0.0.9, houdini-compiler@workspace:packages/houdini-compiler":
   version: 0.0.0-use.local
   resolution: "houdini-compiler@workspace:packages/houdini-compiler"
   dependencies:
@@ -7136,7 +7136,7 @@ __metadata:
     babylon: ^7.0.0-beta.47
     commander: ^7.0.0
     estree-walker: ^2.0.2
-    houdini-common: ^0.0.7
+    houdini-common: ^0.0.9
     jest: ^26.6.3
     mkdirp: ^1.0.4
     recast: ^0.20.4
@@ -7176,9 +7176,9 @@ __metadata:
     graphql: ^14.0.0
     graphql-relay: ^0.6.0
     graphql-tag: ^2.11.0
-    houdini: ^0.0.7
-    houdini-compiler: ^0.0.7
-    houdini-preprocess: ^0.0.7
+    houdini: ^0.0.9
+    houdini-compiler: ^0.0.9
+    houdini-preprocess: ^0.0.9
     lodash: ^4.17.20
     polka: next
     rollup: ^2.3.4
@@ -7215,7 +7215,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.0.7, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.0.9, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -7228,7 +7228,7 @@ __metadata:
     babel-jest: ^26.6.3
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
-    houdini-compiler: ^0.0.7
+    houdini-compiler: ^0.0.9
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -7239,12 +7239,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.0.7, houdini@workspace:packages/houdini":
+"houdini@^0.0.9, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
-    houdini-compiler: ^0.0.7
-    houdini-preprocess: ^0.0.7
+    houdini-compiler: ^0.0.9
+    houdini-preprocess: ^0.0.9
   languageName: unknown
   linkType: soft
 
