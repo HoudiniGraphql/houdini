@@ -34,7 +34,7 @@ npm install --save houdini houdini-tools
 All GraphQL documents are wrapped in the `graphql` tag imported from `houdini`. Any time
 the contents of the tag changes, you **must** run the compiler for the changes to take affect.
 
-### 🔧&nbsp;&nbsp;Configuring Your Environment
+### Configuring Your Environment
 
 Setting up a new houdini project can easily be done with the provided command-line tool:
 
@@ -71,9 +71,9 @@ import env from './environment'
 setEnvironment(env)
 ```
 
-### 🔍&nbsp;&nbsp;Fetching Data
+### Fetching Data
 
-Fetching data from your API is done simply with the `query` function:
+Grabbing data from your API is done simply with the `query` function:
 
 ```svelte
 <script lang="ts">
@@ -82,8 +82,8 @@ Fetching data from your API is done simply with the `query` function:
 
 	// load the items
 	const data = query<AllItems>(graphql`
-		query AllItems($completed: Boolean) {
-			items(completed: $completed) @connection(name: "All_Items") {
+		query AllItems {
+			items {
 				id
 				text
 			}
