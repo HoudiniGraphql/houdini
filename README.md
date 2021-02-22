@@ -92,6 +92,27 @@ Grabbing data from your API is done simply with the `query` function:
 
 ```
 
-### ❓  What about preload?
+### ❓  What about `preload`?
 
-Don't worry - that's where the preprocessor comes in. 
+Don't worry - that's where the preprocessor comes in. One of its responsbilities is moving the actual 
+fetch into a `preload`. You can think of the above block as being equivalent to:
+
+```
+<script lang="ts" context="module">
+	import fetch from 'fetch
+	
+	return {
+	   _initialValue: await fetchQuery({text: queryString }),
+	}
+</script>
+
+<script lang="ts">
+    	export let _initialValue
+
+    	const data = readable(_initialValue, ...)
+</script>
+
+{#each $data.items as item (item.id)}
+	<div>{item.text}</div>
+{/each}
+```
