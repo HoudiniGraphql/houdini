@@ -118,7 +118,7 @@ fetch into a `preload`. You can think of the above block as being equivalent to:
 <script>
     export let _data
 
-    const data = readable(_initialValue, ...)
+    const data = readable(_data, ...)
 </script>
 
 {#each $data.items as item (item.id)}
