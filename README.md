@@ -101,7 +101,7 @@ fetch into a `preload`. You can think of the above block as being equivalent to:
 <script context="module">
     export async function preload() {
             return {
-                _data: await fetch({
+                _data: await this.fetch({
                     text: `
                         query AllItems {
                             items {
