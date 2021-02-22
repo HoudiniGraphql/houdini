@@ -100,6 +100,7 @@ documentation. Here is an example from the [demo](./example):
 
 ```svelte
 <script context="module">
+    // This is the function for the AllItems query. Query variable functions must be named <QueryName>Variables. 
     export function AllItemsVariables(page) {
         // if there is no filter assigned, dont enforce one in the query
         if (!page.params.filter || page.params.filter === 'all') {
