@@ -265,33 +265,33 @@ record's id. Take for example, a `TodoItem` component:
 
 ```svelte
 <script lang="ts">
-	import { fragment, mutation, graphql } from 'houdini'
+    import { fragment, mutation, graphql } from 'houdini'
 
-	export let item
+    export let item
 
     // the resulting store will stay up to date whenever `checkItem`
     // is triggered
-	const data = fragment(
-		graphql`
-			fragment ItemEntry_item on TodoItem {
-				id
-				text
-				completed
-			}
-		`,
-		item
-	)
+    const data = fragment(
+        graphql`
+            fragment ItemEntry_item on TodoItem {
+                id
+                text
+                completed
+            }
+        `,
+        item
+    )
 
-	const checkItem = mutation(graphql`
-		mutation CompleteItem($id: ID!) {
-			checkItem(item: $id) {
-				item {
-					id
-					completed
-				}
-			}
-		}
-	`)
+    const checkItem = mutation(graphql`
+        mutation CompleteItem($id: ID!) {
+            checkItem(item: $id) {
+                item {
+                    id
+                    completed
+                }
+            }
+        }
+    `)
 </script>
 
 <li class:completed={$data.completed}>
