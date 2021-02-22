@@ -187,8 +187,8 @@ the `profilePicture` field of a `User`:
     
     const data = fragment(graphql`
         fragment UserAvatar on User { 
-        profilePicture
-    }
+            profilePicture
+        }
     `, user)
 </script>
 
