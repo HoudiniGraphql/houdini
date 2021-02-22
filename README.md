@@ -24,9 +24,9 @@ A demo can be found in the <a href='./example'>example directory</a>.
 houdini is available on npm:
 
 ```sh
-yarn add houdini houdini-tools
+yarn add houdini
 # or
-npm install --save houdini houdini-tools
+npm install --save houdini
 ```
 
 ## 🔧&nbsp;&nbsp;Configuring Your Environment
@@ -34,7 +34,7 @@ npm install --save houdini houdini-tools
 Setting up a new houdini project can easily be done with the provided command-line tool:
 
 ```sh
-npx houdini-tools init
+npx houdini init
 ```
 
 This will create a few necessary files as well as pull down a json representation of
@@ -42,7 +42,7 @@ your API's schema. Up next, add the preprocessor to your sapper/sveltekit setup.
 forget to add it to both the client and the server configurations!
 
 ```typescript
-import { preprocess as houdini } from 'houdini-tools'
+import houdini from 'houdini/preprocess'
 
 // somewhere in your config file
 {
@@ -95,7 +95,7 @@ Grabbing data from your API is done with the `query` function:
 
 At the moment, query variables are declared as a function in the module context of your component.
 This function must be named after your query and takes the same `page` and `session` arguments
-that are given to the `preload` function as described in the [Sapper](https://sapper.svelte.dev/docs#Pages) 
+that are given to the `preload` function described in the [Sapper](https://sapper.svelte.dev/docs#Pages) 
 documentation. Here is a modified example from the [demo](./example):
 
 ```svelte
@@ -187,8 +187,8 @@ the `profilePicture` field of a `User`:
     
     const data = fragment(graphql`
         fragment UserAvatar on User { 
-        profilePicture
-    }
+            profilePicture
+        }
     `, user)
 </script>
 
@@ -236,8 +236,8 @@ which can be invoked to execute the mutation. Here's another modified example fr
 
     let itemID
 
-    const uncompleteItem = mutation(graphql`
-        mutation UncompleteItem($id: ID!) {
+    const uncheckItem = mutation(graphql`
+        mutation UncheckItem($id: ID!) {
             uncheckItem(item: $id) {
                 item {
                     id
