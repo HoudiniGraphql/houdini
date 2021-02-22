@@ -15,11 +15,11 @@ without compromising bundle size. Like Svelte, Houdini shifts what is
 traditionally handled by a bloated runtime into a compile step that allows
 for the generation of an incredibly lean GraphQL abstraction for your application.
 
-## ⚡&nbsp;&nbsp;Example
+## 🕹️&nbsp;&nbsp;Example
 
 A demo can be found in the <a href='./example'>example directory.</a>
 
-## 🕹️&nbsp;&nbsp;Installation
+## ⚡&nbsp;&nbsp;Installation
 
 Houdini is available on npm:
 
