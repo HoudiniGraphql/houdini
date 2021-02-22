@@ -257,13 +257,124 @@ Note: mutations usually do best when combined with at least one fragment grabbin
 the information needed for the mutation (for an example of this pattern, see the TodoItem 
 component in the demo.)
 
-### Cache invalidation
-
-
-
 ### Updating a record's field
 
+When a mutation is responsible for updating a small number of fields on a single entity, houdini 
+should take care of the details for you as long as you request the updated data alongside the 
+record's id. Take for example, a `TodoItem` component:
+
+```svelte
+<script lang="ts">
+	import { fragment, mutation, graphql } from 'houdini'
+
+	export let item
+
+    // the resulting store will stay up to date whenever `checkItem`
+    // is triggered
+	const data = fragment(
+		graphql`
+			fragment ItemEntry_item on TodoItem {
+				id
+				text
+				completed
+			}
+		`,
+		item
+	)
+
+	const checkItem = mutation(graphql`
+		mutation CompleteItem($id: ID!) {
+			checkItem(item: $id) {
+				item {
+					id
+					completed
+				}
+			}
+		}
+	`)
+</script>
+
+<li class:completed={$data.completed}>
+    <input
+        name={$data.text}
+        class="toggle"
+        type="checkbox"
+        checked={$data.completed}
+        on:click={handleClick}
+    />
+    <label for={$data.text}>{$data.text}</label>
+    <button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
+</li>
+```
+
 ### Connections
+
+Adding and removing records from a list is done by mixing together a few different generated fragments.
+In order to tell the compiler which lists are targets for these operations, you have to 
+mark them with the `@connection` directive and provide a unique name:
+
+```graphql
+query AllItems {
+    items @connection(name: "All_Items") {
+        id
+    }
+}
+```
+
+It's recommended to name these connections with an different casing convention than the rest of your 
+application to distinguish the generated fragments from those in your codebase. 
+
+#### Inserting a record
+
+With this field tagged, any mutation that returns an `Item` can be used to insert items in this list:
+
+```graphql
+mutation NewItem($input: AddItemInput!) {
+    addItem(input: $input) { 
+        ...All_Items_insert
+    }
+}
+```
+
+#### Removing a record
+
+Any mutation that returns an `Item` can also be used to remove an item from the connection:
+
+```graphql
+mutation RemoveItem($input: RemoveItemInput!) {
+    removeItem(input: $input) { 
+        ...All_Items_remove
+    }
+}
+```
+
+#### Deleting a record
+
+Sometimes it can be tedious to remove an record from every single connection it is found in.
+For these situations, Houdini provides a directive that can be used to mark a field in
+the mutation response holding the ID of a record to delete from all connections. 
+
+```graphql
+mutation DeleteItem($id: ID!) {
+    deleteItem(id: $id) {
+        itemID @Item_delete
+    }
+}
+```
+
+#### Conditionals
+ 
+Sometimes you only want to add or remove a record from a connection when an argument has a particular value.
+For example, in a todo list you might only want to add the result to the list if there is no filter being 
+applied. To support this, houdini provides the `@when` and `@when_not` directives:
+
+```graphql
+mutation NewItem($input: AddItemInput!) {
+    addItem(input: $input) { 
+        ...All_Items_insert @when_not(argument: "completed", value: "true")
+    }
+}
+```
 
 ## ⚠️&nbsp;&nbsp;Notes, Constraints, and Conventions
 - The compiler must be ran every time the contents of a `graphql` tagged string changes
