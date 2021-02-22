@@ -1,6 +1,6 @@
 # 🎩 houdini
 
-The disappearing GraphQL client built for the Svelte community.
+The disappearing GraphQL client built for Sapper, and Sveltekit.
 
 ## ✨&nbsp;&nbsp;Features
 
