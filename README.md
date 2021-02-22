@@ -107,9 +107,9 @@ documentation. Here is a modified example from the [demo](./example):
     // load the items
     const data = query(graphql`
         query AllItems($completed: Boolean) {
-            items(completed: $completed) @connection(name: "All_Items") {
+            items(completed: $completed) {
                 id
-		text
+                text
             }
         }
     `)
@@ -155,7 +155,7 @@ fetch into a `preload`. You can think of the block at the top of this section as
                     ` 
                 }),
             }
-	}
+    }
 </script>
 
 <script>
@@ -186,9 +186,9 @@ the `profilePicture` field of a `User`:
     export let user
     
     const data = fragment(graphql`
-    	fragment UserAvatar on User { 
-	    profilePicture
-	}
+        fragment UserAvatar on User { 
+        profilePicture
+    }
     `, user)
 </script>
 
@@ -208,9 +208,9 @@ that the necessary data has been asked for:
     const data = query(graphql`
         query AllUsers { 
             users { 
-	        id
-	        ...UserAvatar
-	    }
+                id
+                ...UserAvatar
+            }
         }
     `)
 </script>
@@ -220,7 +220,46 @@ that the necessary data has been asked for:
 {/each}
 ```
 
+It's worth mentioning explicitly that a component can rely on multiple fragments
+at the same time so long as the fragment names are unique and prop names are different. 
+
 ## 📝&nbsp;&nbsp;Mutations 
+
+Mutations are defined in your component like the rest of the documents but 
+instead of triggering a network request when called, a function is returned
+which can be invoked to execute the mutation. Here's another modified example from 
+[the demo](./example):
+
+```svelte
+<script>
+    import { mutation, graphql } from 'houdini'
+
+    let itemID
+
+    const uncompleteItem = mutation(graphql`
+        mutation UncompleteItem($id: ID!) {
+            uncheckItem(item: $id) {
+                item {
+                    id
+                    completed
+                }
+            }
+        }
+    `)
+</script>
+
+<button on:click={() => uncheckItem({ id: itemID })}>
+    Uncheck Item
+</button>
+```
+
+Note: mutations usually do best when combined with at least one fragment grabbing
+the information needed for the mutation (for an example of this pattern, see the TodoItem 
+component in the demo.)
+
+### Cache invalidation
+
+
 
 ### Updating a record's field
 
