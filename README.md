@@ -15,6 +15,24 @@ without compromising bundle size. Like Svelte, Houdini shifts what is
 traditionally handled by a bloated runtime into a compile step that allows
 for the generation of an incredibly lean GraphQL abstraction for your application.
 
+## 📚&nbsp;&nbsp;Table of Contents
+
+1. [Example](#example)
+1. [Installation](#installation)
+1. [Configuring Your Environment](#configuring-your-environment)
+1. [Fetching Data](#fetching-data)
+    1. [Query variables and page data](#query-variables-and-page-data)
+    1. [What about preload?](#what-about-preload)
+1. [Fragments](#fragments)
+1. [Mutations](#mutations)
+    1. [Updating fields](#updating-fields)
+    1. [Connections](#connections)
+        1. [Insert](#inserting-a-record)
+        1. [Remove](#removing-a-record)
+        1. [Delete](#deleting-a-record)
+        1. [Conditionals](#conditionals)
+1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
+
 ## 🕹️&nbsp;&nbsp;Example
 
 A demo can be found in the <a href='./example'>example directory</a>.
