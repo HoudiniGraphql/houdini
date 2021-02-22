@@ -24,9 +24,9 @@ A demo can be found in the <a href='./example'>example directory</a>.
 houdini is available on npm:
 
 ```sh
-yarn add houdini
+yarn add -D houdini houdini-preprocess houdini-compiler
 # or
-npm install --save houdini
+npm install --save-dev houdini houdini-preprocess houdini-compiler
 ```
 
 ## 🔧&nbsp;&nbsp;Configuring Your Environment
@@ -42,7 +42,7 @@ your API's schema. Up next, add the preprocessor to your sapper/sveltekit setup.
 forget to add it to both the client and the server configurations!
 
 ```typescript
-import houdini from 'houdini/preprocess'
+import houdini from 'houdini-preprocess'
 
 // somewhere in your config file
 {
@@ -67,7 +67,7 @@ setEnvironment(env)
 ```
 
 ## 🚀&nbsp;&nbsp;Fetching Data
- 
+
 Grabbing data from your API is done with the `query` function:
 
 ```svelte
@@ -95,7 +95,7 @@ Grabbing data from your API is done with the `query` function:
 
 At the moment, query variables are declared as a function in the module context of your component.
 This function must be named after your query and takes the same `page` and `session` arguments
-that are given to the `preload` function described in the [Sapper](https://sapper.svelte.dev/docs#Pages) 
+that are given to the `preload` function described in the [Sapper](https://sapper.svelte.dev/docs#Pages)
 documentation. Here is a modified example from the [demo](./example):
 
 ```svelte
@@ -116,8 +116,8 @@ documentation. Here is a modified example from the [demo](./example):
 </script>
 
 <script context="module">
-    // This is the function for the AllItems query. 
-    // Query variable functions must be named <QueryName>Variables. 
+    // This is the function for the AllItems query.
+    // Query variable functions must be named <QueryName>Variables.
     export function AllItemsVariables(page) {
         // make sure we recognize the value
         if (!['active', 'completed'].includes(page.params.filter)) {
@@ -138,7 +138,7 @@ documentation. Here is a modified example from the [demo](./example):
 
 ### What about `preload`?
 
-Don't worry - that's where the preprocessor comes in. One of its responsibilities is moving the actual 
+Don't worry - that's where the preprocessor comes in. One of its responsibilities is moving the actual
 fetch into a `preload`. You can think of the block at the top of this section as equivalent to:
 
 ```svelte
@@ -153,7 +153,7 @@ fetch into a `preload`. You can think of the block at the top of this section as
                                 text
                             }
                         }
-                    ` 
+                    `
                 }),
             }
     }
@@ -172,9 +172,9 @@ fetch into a `preload`. You can think of the block at the top of this section as
 
 ## 🧩&nbsp;&nbsp;Fragments
 
-Your components will want to make assumptions about which attributes are 
-available in your queries. To support this, Houdini uses GraphQL fragments embedded 
-inside of your component. Take, for example, a `UserAvatar` component that requires 
+Your components will want to make assumptions about which attributes are
+available in your queries. To support this, Houdini uses GraphQL fragments embedded
+inside of your component. Take, for example, a `UserAvatar` component that requires
 the `profilePicture` field of a `User`:
 
 ```svelte
@@ -182,12 +182,12 @@ the `profilePicture` field of a `User`:
 
 <script lang="ts">
     import { fragment, graphql } from 'houdini'
-    
+
     // the reference we will get passed as a prop
     export let user
-    
+
     const data = fragment(graphql`
-        fragment UserAvatar on User { 
+        fragment UserAvatar on User {
             profilePicture
         }
     `, user)
@@ -207,8 +207,8 @@ that the necessary data has been asked for:
     import { UserAvatar } from 'components/UserAvatar'
 
     const data = query(graphql`
-        query AllUsers { 
-            users { 
+        query AllUsers {
+            users {
                 id
                 ...UserAvatar
             }
@@ -222,13 +222,13 @@ that the necessary data has been asked for:
 ```
 
 It's worth mentioning explicitly that a component can rely on multiple fragments
-at the same time so long as the fragment names are unique and prop names are different. 
+at the same time so long as the fragment names are unique and prop names are different.
 
-## 📝&nbsp;&nbsp;Mutations 
+## 📝&nbsp;&nbsp;Mutations
 
-Mutations are defined in your component like the rest of the documents but 
+Mutations are defined in your component like the rest of the documents but
 instead of triggering a network request when called, a function is returned
-which can be invoked to execute the mutation. Here's another modified example from 
+which can be invoked to execute the mutation. Here's another modified example from
 [the demo](./example):
 
 ```svelte
@@ -255,13 +255,13 @@ which can be invoked to execute the mutation. Here's another modified example fr
 ```
 
 Note: mutations usually do best when combined with at least one fragment grabbing
-the information needed for the mutation (for an example of this pattern, see the TodoItem 
+the information needed for the mutation (for an example of this pattern, see the TodoItem
 component in the demo.)
 
 ### Updating a record's field
 
-When a mutation is responsible for updating a small number of fields on a single entity, houdini 
-should take care of the details for you as long as you request the updated data alongside the 
+When a mutation is responsible for updating a small number of fields on a single entity, houdini
+should take care of the details for you as long as you request the updated data alongside the
 record's id. Take for example, a `TodoItem` component:
 
 ```svelte
@@ -311,7 +311,7 @@ record's id. Take for example, a `TodoItem` component:
 ### Connections
 
 Adding and removing records from a list is done by mixing together a few different generated fragments
-and directives. In order to tell the compiler which lists are targets for these operations, you have to 
+and directives. In order to tell the compiler which lists are targets for these operations, you have to
 mark them with the `@connection` directive and provide a unique name:
 
 ```graphql
@@ -322,8 +322,8 @@ query AllItems {
 }
 ```
 
-It's recommended to name these connections with an different casing convention than the rest of your 
-application to distinguish the generated fragments from those in your codebase. 
+It's recommended to name these connections with an different casing convention than the rest of your
+application to distinguish the generated fragments from those in your codebase.
 
 #### Inserting a record
 
@@ -331,7 +331,7 @@ With this field tagged, any mutation that returns an `Item` can be used to inser
 
 ```graphql
 mutation NewItem($input: AddItemInput!) {
-    addItem(input: $input) { 
+    addItem(input: $input) {
         ...All_Items_insert
     }
 }
@@ -343,7 +343,7 @@ Any mutation that returns an `Item` can also be used to remove an item from the 
 
 ```graphql
 mutation RemoveItem($input: RemoveItemInput!) {
-    removeItem(input: $input) { 
+    removeItem(input: $input) {
         ...All_Items_remove
     }
 }
@@ -353,7 +353,7 @@ mutation RemoveItem($input: RemoveItemInput!) {
 
 Sometimes it can be tedious to remove an record from every single connection it is found in.
 For these situations, Houdini provides a directive that can be used to mark a field in
-the mutation response holding the ID of a record to delete from all connections. 
+the mutation response holding the ID of a record to delete from all connections.
 
 ```graphql
 mutation DeleteItem($id: ID!) {
@@ -364,14 +364,14 @@ mutation DeleteItem($id: ID!) {
 ```
 
 #### Conditionals
- 
+
 Sometimes you only want to add or remove a record from a connection when an argument has a particular value.
-For example, in a todo list you might only want to add the result to the list if there is no filter being 
+For example, in a todo list you might only want to add the result to the list if there is no filter being
 applied. To support this, houdini provides the `@when` and `@when_not` directives:
 
 ```graphql
 mutation NewItem($input: AddItemInput!) {
-    addItem(input: $input) { 
+    addItem(input: $input) {
         ...All_Items_insert @when_not(argument: "completed", value: "true")
     }
 }
