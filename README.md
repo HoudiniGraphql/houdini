@@ -5,7 +5,7 @@ The disappearing GraphQL client built for the Svelte community.
 ## ✨&nbsp;&nbsp;Features
 
 -   Composable and colocated data requirements for your components
--   Document caching and declarative updates
+-   Document caching with declarative updates
 -   Sapper/Sveltekit ready
 -   Generated types
 -   Customizable error handling (coming soon)
@@ -29,12 +29,7 @@ yarn add houdini houdini-tools
 npm install --save houdini houdini-tools
 ```
 
-## 🚀&nbsp;&nbsp;Getting Started
-
-All GraphQL documents are wrapped in the `graphql` tag imported from `houdini`. Any time
-the contents of the tag changes, you **must** run the compiler for the changes to take affect.
-
-### Configuring Your Environment
+## 🔧 Configuring Your Environment
 
 Setting up a new houdini project can easily be done with the provided command-line tool:
 
@@ -71,8 +66,8 @@ import env from './environment'
 setEnvironment(env)
 ```
 
-### Fetching Data
-
+## 🚀 Fetching Data
+ 
 Grabbing data from your API is done simply with the `query` function:
 
 ```svelte
@@ -96,3 +91,7 @@ Grabbing data from your API is done simply with the `query` function:
 {/each}
 
 ```
+
+### ❓  What about preload?
+
+Don't worry - that's where the preprocessor comes in. 
