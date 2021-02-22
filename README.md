@@ -116,7 +116,8 @@ documentation. Here is a modified example from the [demo](./example):
 </script>
 
 <script context="module">
-    // This is the function for the AllItems query. Query variable functions must be named <QueryName>Variables. 
+    // This is the function for the AllItems query. 
+    // Query variable functions must be named <QueryName>Variables. 
     export function AllItemsVariables(page) {
         // make sure we recognize the value
         if (!['active', 'completed'].includes(page.params.filter)) {
