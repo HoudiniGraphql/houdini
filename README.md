@@ -237,7 +237,7 @@ which can be invoked to execute the mutation. Here's another modified example fr
     let itemID
 
     const uncheckItem = mutation(graphql`
-        mutation UncompleteItem($id: ID!) {
+        mutation UncheckItem($id: ID!) {
             uncheckItem(item: $id) {
                 item {
                     id
