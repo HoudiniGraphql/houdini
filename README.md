@@ -149,7 +149,7 @@ fetch into a `preload`. You can think of the block at the top of this section as
     const data = readable(_data, ...)
 </script>
 
-{#each $data.items as item (item.id)}
+{#each $data.items as item}
     <div>{item.text}</div>
 {/each}
 ```
@@ -200,7 +200,7 @@ that the necessary data has been asked for:
     `)
 </script>
 
-{#each $data.users as user (user.id)}
+{#each $data.users as user}
     <UserAvatar user={user} />
 {/each}
 ```
