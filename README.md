@@ -2,24 +2,24 @@
 
 The disappearing GraphQL client built for the Svelte community.
 
-## ✨ Features
+## ✨&nbsp;&nbsp;Features
 
-- Composable and colocated data requirements for your components
-- Document caching and declarative updates
-- Sapper/Sveltekit ready
-- Generated types 
-- Customizable error handling (coming soon)
+-   Composable and colocated data requirements for your components
+-   Document caching and declarative updates
+-   Sapper/Sveltekit ready
+-   Generated types
+-   Customizable error handling (coming soon)
 
 At its core, Houdini seeks to enable a high quality developer experience
-without compromising runtime bundle size. Like Svelte, Houdini shifts what is 
-traditionally handled by a bloated runtime into a compile step that allows 
+without compromising runtime bundle size. Like Svelte, Houdini shifts what is
+traditionally handled by a bloated runtime into a compile step that allows
 for the generation of an incredibly lean GraphQL abstraction for your application.
 
-## ⚡ Example
+## ⚡&nbsp;&nbsp;Example
 
 A demo can be found in the <a href='./example'>example directory.</a>
 
-## 🕹️ Installation
+## 🕹️&nbsp;&nbsp;Installation
 
 Houdini is available on npm:
 
@@ -29,7 +29,12 @@ yarn add houdini houdini-tools
 npm install --save houdini houdini-tools
 ```
 
-## 🔧 Configuring Your Environment
+## 🚀&nbsp;&nbsp;Getting Started
+
+All GraphQL documents are wrapped in the `graphql` tag imported from `houdini`. Any time
+the contents of the tag changes, you **must** run the compiler for the changes to take affect.
+
+### 🔧&nbsp;&nbsp;Configuring Your Environment
 
 Setting up a new houdini project can easily be done with the provided command-line tool:
 
@@ -37,20 +42,20 @@ Setting up a new houdini project can easily be done with the provided command-li
 npx houdini-tools init
 ```
 
-This will create a few necessary files as well as pull down a json representation of 
+This will create a few necessary files as well as pull down a json representation of
 your API's schema. Up next, add the preprocessor to your sapper/sveltekit setup. Don't
 forget to add it to both the client and the server configurations!
 
 ```typescript
 import { preprocess as houdini } from 'houdini-tools'
 
-// somewhere in your config file 
+// somewhere in your config file
 {
-  plugins: [
-    svelte({
-      preprocess: houdini()
-    })
-  ]
+	plugins: [
+		svelte({
+			preprocess: houdini(),
+		}),
+	]
 }
 ```
 
@@ -66,12 +71,7 @@ import env from './environment'
 setEnvironment(env)
 ```
 
-## 🚀 Getting Started
-
-All GraphQL documents are wrapped in the `graphql` tag imported from `houdini`. Any time 
-the contents of the tag changes, you **must** run the compiler for the changes to take affect.
-
-### Queries
+### 🔍&nbsp;&nbsp;Fetching Data
 
 Fetching data from your API is done simply with the `query` function:
 
@@ -85,13 +85,14 @@ Fetching data from your API is done simply with the `query` function:
 		query AllItems($completed: Boolean) {
 			items(completed: $completed) @connection(name: "All_Items") {
 				id
-                text
+				text
 			}
 		}
 	`)
 </script>
 
 {#each $data.items as item (item.id)}
-    <div>{item.text}</div>
+	<div>{item.text}</div>
 {/each}
+
 ```
