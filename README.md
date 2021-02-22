@@ -48,7 +48,7 @@ import { preprocess as houdini } from 'houdini-tools'
 {
     plugins: [
         svelte({
-            preprocess: houdini(),
+            preprocess: [houdini()],
         }),
     ]
 }
