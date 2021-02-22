@@ -23,7 +23,7 @@ A demo can be found in the <a href='./example'>example directory.</a>
 
 Houdini is available on npm:
 
-```
+```sh
 yarn add houdini houdini-tools
 # or
 npm install --save houdini houdini-tools
@@ -33,7 +33,7 @@ npm install --save houdini houdini-tools
 
 Setting up a new houdini project can easily be done with the provided command-line tool:
 
-```bash
+```sh
 npx houdini-tools init
 ```
 
