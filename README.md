@@ -156,8 +156,9 @@ fetch into a `preload`. You can think of the block at the top of this section as
 ## 🧩&nbsp;&nbsp;Fragments
 
 Your components will want to make assumptions about which attributes are 
-available in your queries. To address this, Houdini uses GraphQL fragments embedded 
-inside if your component. Take, for example, a `UserAvatar` component:
+available in your queries. To support this, Houdini uses GraphQL fragments embedded 
+inside if your component. Take, for example, a `UserAvatar` component that requires 
+the `profilePicture` field of a `User`:
 
 ```svelte
 // components/UserAvatar.svelte
