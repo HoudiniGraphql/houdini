@@ -73,7 +73,7 @@ Grabbing data from your API is done with the `query` function:
 ```svelte
 <script lang="ts">
     import { query, graphql } from 'houdini'
-    import type { AllItems } from '../../generated'
+    import type { AllItems } from '$generated'
 
     // load the items
     const data = query<AllItems>(graphql`
@@ -100,7 +100,7 @@ that are given to the `preload` function as described in the [Sapper](https://sa
 documentation. Here is an example from the [demo](./example):
 
 ```svelte
-<script context="module" lang="ts">
+<script context="module">
     export function AllItemsVariables(page) {
         // if there is no filter assigned, dont enforce one in the query
         if (!page.params.filter || page.params.filter === 'all') {
@@ -155,6 +155,55 @@ fetch into a `preload`. You can think of the block at the top of this section as
 ```
 
 ## 🧩&nbsp;&nbsp;Fragments
+
+Your components will want to make assumptions about which attributes are 
+available in your queries. To address this, Houdini uses GraphQL fragments embedded 
+inside if your component. Take, for example, a `UserAvatar` component:
+
+```svelte
+// components/UserAvatar.svelte
+
+<script lang="ts">
+    import { fragment, graphql } from 'houdini'
+    import { UserAvatar } from '$generated'
+    
+    // the reference we will get passed from our parent as a prop
+    export let user: UserAvatar
+    
+    const data = fragment(graphql`
+    	fragment UserAvatar on User { 
+	    profilePicture
+	}
+    `)
+</script>
+
+<img src={$data.profilePicture} />
+```
+
+This component can be rendered anywhere we can query for a user with a garuntee
+that the necessary data has been asked for:
+
+```svelte
+// src/routes/users.svelte
+
+<script>
+    import { query, graphql } from 'houdini'
+    import { UserAvatar } from 'components/UserAvatar'
+
+    const data = query(graphql`
+        query AllUsers { 
+            users { 
+	        id
+	        ...UserAvatar
+	    }
+        }
+    `)
+</script>
+
+{#each $data.users as user (user.id)}
+    <UserAvatar user={user} />
+{/each}
+```
 
 ## 📝&nbsp;&nbsp;Mutations 
 
