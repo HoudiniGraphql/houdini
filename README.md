@@ -99,6 +99,20 @@ that are given to the `preload` function as described in the [Sapper](https://sa
 documentation. Here is an example from the [demo](./example):
 
 ```svelte
+<script lang="ts">
+    import { query, graphql } from 'houdini'
+
+    // load the items
+    const data = query(graphql`
+    query AllItems($completed: Boolean) {
+            items(completed: $completed) @connection(name: "All_Items") {
+                id
+		text
+            }
+        }
+    `)
+</script>
+
 <script context="module">
     // This is the function for the AllItems query. Query variable functions must be named <QueryName>Variables. 
     export function AllItemsVariables(page) {
@@ -118,6 +132,10 @@ documentation. Here is an example from the [demo](./example):
         }
     }
 </script>
+
+{#each $data.items as item}
+    <div>{item.text}</div>
+{/each}
 ```
 
 ### What about `preload`?
