@@ -29,7 +29,7 @@ yarn add houdini houdini-tools
 npm install --save houdini houdini-tools
 ```
 
-## 🔧 Configuring Your Environment
+## 🔧&nbsp;&nbsp;Configuring Your Environment
 
 Setting up a new houdini project can easily be done with the provided command-line tool:
 
@@ -66,7 +66,7 @@ import env from './environment'
 setEnvironment(env)
 ```
 
-## 🚀 Fetching Data
+## 🚀&nbsp;&nbsp;Fetching Data
  
 Grabbing data from your API is done simply with the `query` function:
 
@@ -158,7 +158,7 @@ fetch into a `preload`. You can think of the block at the top of this section as
 {/each}
 ```
 
-## ⚠️ Notes, Constraints, and Conventions
+## ⚠️&nbsp;&nbsp;Notes, Constraints, and Conventions
 - The compiler must be ran every time the contents of a `graphql` tagged string changes
 - Every GraphQL Document must have a name that is unique
 - Variable functions must be named after their query
