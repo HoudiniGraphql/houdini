@@ -99,10 +99,10 @@ fetch into a `preload`. You can think of the above block as being equivalent to:
 
 ```svelte
 <script context="module">
-	import fetch from 'fetch'
-	
-	return {
-	   _initialValue: await fetchQuery({text: queryString }),
+	export async preload() {
+		return {
+		   _initialValue: await fetch({text: queryString }),
+		}
 	}
 </script>
 
