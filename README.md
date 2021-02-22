@@ -158,6 +158,6 @@ fetch into a `preload`. You can think of the block at the top of this section as
 {/each}
 ```
 
-## Notes, Constraints, and Conventions:
+## ⚠️ Notes, Constraints, and Conventions:
 - Every GraphQL Document must have a name that is unique
 - Variable functions must be names
