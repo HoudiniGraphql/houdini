@@ -73,10 +73,9 @@ Grabbing data from your API is done with the `query` function:
 ```svelte
 <script lang="ts">
     import { query, graphql } from 'houdini'
-    import type { AllItems } from '$generated'
 
     // load the items
-    const data = query<AllItems>(graphql`
+    const data = query(graphql`
         query AllItems {
             items {
                 id
@@ -165,10 +164,9 @@ inside if your component. Take, for example, a `UserAvatar` component:
 
 <script lang="ts">
     import { fragment, graphql } from 'houdini'
-    import { UserAvatar } from '$generated'
     
     // the reference we will get passed from our parent as a prop
-    export let user: UserAvatar
+    export let user
     
     const data = fragment(graphql`
     	fragment UserAvatar on User { 
