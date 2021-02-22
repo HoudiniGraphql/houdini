@@ -95,7 +95,7 @@ Grabbing data from your API is done with the `query` function:
 
 At the moment, query variables are declared as a function in the module context of your component.
 This function must be named after your query and takes the same `page` and `session` arguments
-that are given to the `preload` function as described in the [Sapper](https://sapper.svelte.dev/docs#Pages) 
+that are given to the `preload` function described in the [Sapper](https://sapper.svelte.dev/docs#Pages) 
 documentation. Here is a modified example from the [demo](./example):
 
 ```svelte
