@@ -26,7 +26,7 @@ houdini is available on npm:
 ```sh
 yarn add houdini houdini-tools
 # or
-npm install --save houdini houdini-tools
+npm install --save houdini
 ```
 
 ## 🔧&nbsp;&nbsp;Configuring Your Environment
@@ -34,7 +34,7 @@ npm install --save houdini houdini-tools
 Setting up a new houdini project can easily be done with the provided command-line tool:
 
 ```sh
-npx houdini-tools init
+npx houdini init
 ```
 
 This will create a few necessary files as well as pull down a json representation of
@@ -42,7 +42,7 @@ your API's schema. Up next, add the preprocessor to your sapper/sveltekit setup.
 forget to add it to both the client and the server configurations!
 
 ```typescript
-import { preprocess as houdini } from 'houdini-tools'
+import houdini from 'houdini/preprocess'
 
 // somewhere in your config file
 {
