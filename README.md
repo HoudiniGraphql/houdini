@@ -162,3 +162,5 @@ fetch into a `preload`. You can think of the block at the top of this section as
 - The compiler must be ran every time the contents of a `graphql` tagged string changes
 - Every GraphQL Document must have a name that is unique
 - Variable functions must be named after their query
+- Documents with a query must have only one operation in them
+- Documents without an operation must have only one fragment in them
