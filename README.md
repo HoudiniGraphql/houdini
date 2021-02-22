@@ -10,7 +10,7 @@ The disappearing GraphQL client built for the Svelte community.
 - Generated types 
 - Customizable error handling (coming soon)
 
-At it's core, Houdini seeks to enable a high quality developer experience
+At its core, Houdini seeks to enable a high quality developer experience
 without compromising runtime bundle size. Like Svelte, Houdini shifts what is 
 traditionally handled by a bloated runtime into a compile step that allows 
 for the generation of an incredibly lean GraphQL abstraction for your application.
@@ -64,4 +64,34 @@ import { setEnvironment } from 'houdini'
 import env from './environment'
 
 setEnvironment(env)
+```
+
+## 🚀 Getting Started
+
+All GraphQL documents are wrapped in the `graphql` tag imported from `houdini`. Any time 
+the contents of the tag changes, you **must** run the compiler for the changes to take affect.
+
+### Queries
+
+Fetching data from your API is done simply with the `query` function:
+
+```svelte
+<script lang="ts">
+	import { query, graphql } from 'houdini'
+	import type { AllItems } from '../../generated'
+
+	// load the items
+	const data = query<AllItems>(graphql`
+		query AllItems($completed: Boolean) {
+			items(completed: $completed) @connection(name: "All_Items") {
+				id
+                text
+			}
+		}
+	`)
+</script>
+
+{#each $data.items as item (item.id)}
+    <div>{item.text}</div>
+{/each}
 ```
