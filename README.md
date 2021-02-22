@@ -182,7 +182,7 @@ the `profilePicture` field of a `User`:
 <script lang="ts">
     import { fragment, graphql } from 'houdini'
     
-    // the reference we will get passed from our parent as a prop
+    // the reference we will get passed as a prop
     export let user
     
     const data = fragment(graphql`
