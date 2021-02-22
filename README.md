@@ -98,7 +98,7 @@ Don't worry - that's where the preprocessor comes in. One of its responsbilities
 fetch into a `preload`. You can think of the above block as being equivalent to:
 
 ```svelte
-<script lang="ts" context="module">
+<script context="module">
 	import fetch from 'fetch
 	
 	return {
@@ -106,7 +106,7 @@ fetch into a `preload`. You can think of the above block as being equivalent to:
 	}
 </script>
 
-<script lang="ts">
+<script>
     	export let _initialValue
 
     	const data = readable(_initialValue, ...)
