@@ -158,7 +158,7 @@ fetch into a `preload`. You can think of the block at the top of this section as
 {/each}
 ```
 
-## ⚠️ Notes, Constraints, and Conventions:
+## ⚠️ Notes, Constraints, and Conventions
 - The compiler must be ran every time the contents of a `graphql` tagged string changes
 - Every GraphQL Document must have a name that is unique
 - Variable functions must be named after their query
