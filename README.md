@@ -68,7 +68,7 @@ setEnvironment(env)
 
 ## 🚀&nbsp;&nbsp;Fetching Data
  
-Grabbing data from your API is done simply with the `query` function:
+Grabbing data from your API is done with the `query` function:
 
 ```svelte
 <script lang="ts">
