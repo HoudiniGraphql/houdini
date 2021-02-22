@@ -17,7 +17,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 
 ## 🕹️&nbsp;&nbsp;Example
 
-A demo can be found in the <a href='./example'>example directory.</a>
+A demo can be found in the <a href='./example'>example directory</a>.
 
 ## ⚡&nbsp;&nbsp;Installation
 
