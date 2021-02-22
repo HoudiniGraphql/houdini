@@ -11,7 +11,7 @@ The disappearing GraphQL client built for the Svelte community.
 -   Customizable error handling (coming soon)
 
 At its core, Houdini seeks to enable a high quality developer experience
-without compromising runtime bundle size. Like Svelte, Houdini shifts what is
+without compromising bundle size. Like Svelte, Houdini shifts what is
 traditionally handled by a bloated runtime into a compile step that allows
 for the generation of an incredibly lean GraphQL abstraction for your application.
 
@@ -159,5 +159,6 @@ fetch into a `preload`. You can think of the block at the top of this section as
 ```
 
 ## ⚠️ Notes, Constraints, and Conventions:
+- The compiler must be ran every time the contents of a `graphql` tagged string changes
 - Every GraphQL Document must have a name that is unique
-- Variable functions must be names
+- Variable functions must be named after their query
