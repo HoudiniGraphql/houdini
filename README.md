@@ -92,7 +92,7 @@ Grabbing data from your API is done simply with the `query` function:
 
 ```
 
-### ❓  What about `preload`?
+### What about `preload`?
 
 Don't worry - that's where the preprocessor comes in. One of its responsibilities is moving the actual 
 fetch into a `preload`. You can think of the above block as being equivalent to:
