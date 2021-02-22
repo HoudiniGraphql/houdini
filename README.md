@@ -309,8 +309,8 @@ record's id. Take for example, a `TodoItem` component:
 
 ### Connections
 
-Adding and removing records from a list is done by mixing together a few different generated fragments.
-In order to tell the compiler which lists are targets for these operations, you have to 
+Adding and removing records from a list is done by mixing together a few different generated fragments
+and directives. In order to tell the compiler which lists are targets for these operations, you have to 
 mark them with the `@connection` directive and provide a unique name:
 
 ```graphql
