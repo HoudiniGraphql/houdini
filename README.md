@@ -127,7 +127,7 @@ documentation. Here is an example from the [demo](./example):
 ### What about `preload`?
 
 Don't worry - that's where the preprocessor comes in. One of its responsibilities is moving the actual 
-fetch into a `preload`. You can think of the above block as being equivalent to:
+fetch into a `preload`. You can think of the block at the top of this section as equivalent to:
 
 ```svelte
 <script context="module">
