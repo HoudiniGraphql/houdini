@@ -88,7 +88,7 @@ import env from './environment'
 setEnvironment(env)
 ```
 
-## <img src="./.github/assets/cylon.gif" height="28px" /> &nbsp;&nbsp;Running the Compiler
+## <img src="./.github/assets/cylon.gif" height="28px" />&nbsp;&nbsp;Running the Compiler
 
 Running the compiler can be done with npx or via a script in `package.json`. This command needs to be 
 run anytime a GraphQL document in your source code changes:
