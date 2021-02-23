@@ -1,13 +1,13 @@
 {
 	"name": "houdini",
-	"version": "0.0.9",
+	"version": "0.0.10",
 	"scripts": {
 		"build": "tsc",
 		"prepare": "npm run build"
 	},
 	"devDependencies": {
-		"houdini-compiler": "^0.0.9",
-		"houdini-preprocess": "^0.0.9"
+		"houdini-compiler": "^0.0.10",
+		"houdini-preprocess": "^0.0.10"
 	},
 	"main": "build/index.js",
 	"gitHead": "5c8d7507e445cdfb5db7e31ce724a9be9672452c"

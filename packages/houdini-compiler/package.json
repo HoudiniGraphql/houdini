@@ -1,6 +1,6 @@
 {
 	"name": "houdini-compiler",
-	"version": "0.0.9",
+	"version": "0.0.10",
 	"description": "",
 	"main": "build/index.js",
 	"scripts": {
@@ -28,7 +28,7 @@
 		"babylon": "^7.0.0-beta.47",
 		"commander": "^7.1.0",
 		"estree-walker": "^2.0.2",
-		"houdini-common": "^0.0.9",
+		"houdini-common": "^0.0.10",
 		"inquirer": "^7.3.3",
 		"mkdirp": "^1.0.4",
 		"recast": "^0.20.4"
