@@ -20,6 +20,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Example](#example)
 1. [Installation](#installation)
 1. [Configuring Your Environment](#configuring-your-environment)
+1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
     1. [What about preload?](#what-about-preload)
@@ -31,6 +32,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
         1. [Remove](#removing-a-record)
         1. [Delete](#deleting-a-record)
         1. [Conditionals](#conditionals)
+1. [Typescript](#typescript)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
 
 ## 🕹️&nbsp;&nbsp;Example
@@ -52,7 +54,7 @@ npm install --save-dev houdini houdini-preprocess houdini-compiler
 Setting up a new houdini project can easily be done with the provided command-line tool:
 
 ```sh
-npx houdini init
+npx houdini-compiler init
 ```
 
 This will create a few necessary files as well as pull down a json representation of
@@ -82,6 +84,15 @@ import { setEnvironment } from 'houdini'
 import env from './environment'
 
 setEnvironment(env)
+```
+
+## 🦾&nbsp;&nbsp;Running the Compiler
+
+Running the compiler can be done with npx or via a script in `package.json`. This command needs to be 
+run anytime a GraphQL document in your source code changes:
+
+```sh
+npx houdini-compiler generate
 ```
 
 ## 🚀&nbsp;&nbsp;Fetching Data
