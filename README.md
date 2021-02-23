@@ -299,7 +299,7 @@ component in the demo.)
 
 ### Updating a record field
 
-When a mutation is responsible for updating a small number of fields on a single entity, houdini
+When a mutation is responsible for updating fields of entities, houdini
 should take care of the details for you as long as you request the updated data alongside the
 record's id. Take for example, an `TodoItemRow` component:
 
