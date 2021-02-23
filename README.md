@@ -141,8 +141,8 @@ documentation. Here is a modified example from the [demo](./example):
     import type { AllItems } from 'path/to/generated/runtime'
 
     // load the items
-    const data = query(graphql`
-        query AllItems<AllItems>($completed: Boolean) {
+    const data = query<AllItems>(graphql`
+        query AllItems($completed: Boolean) {
             items(completed: $completed) {
                 id
                 text
