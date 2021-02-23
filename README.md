@@ -407,7 +407,7 @@ mutation NewItem($input: AddItemInput!) {
 }
 ```
 
-## <img src="./.github/assets/ts-logo-128.png" height="28px" /> Typescript
+## <img src="./.github/assets/ts-logo-128.png" height="28px" style="margin-bottom: -4px"/> Typescript
 
 
 
