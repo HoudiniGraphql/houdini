@@ -3234,6 +3234,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/inquirer@npm:^7.3.1":
+  version: 7.3.1
+  resolution: "@types/inquirer@npm:7.3.1"
+  dependencies:
+    "@types/through": "*"
+    rxjs: ^6.4.0
+  checksum: 2db996acf8d9073a215c5f87797d08a50a86dd1921f4f7b45040aa225b62c522d7d67a37529329395c6e24f6f5e877ddf463f20686aad819d70c0afea6297a4a
+  languageName: node
+  linkType: hard
+
 "@types/istanbul-lib-coverage@npm:*, @types/istanbul-lib-coverage@npm:^2.0.0, @types/istanbul-lib-coverage@npm:^2.0.1":
   version: 2.0.3
   resolution: "@types/istanbul-lib-coverage@npm:2.0.3"
@@ -3474,6 +3484,15 @@ __metadata:
   version: 2.0.0
   resolution: "@types/stack-utils@npm:2.0.0"
   checksum: 662312302e07685c99a1c45c6753eb997b31d2af66e646c5937f62d593a63a111289503d0b06a8d1e6f3922b67fc2ed94889d84653a08861a7fee67b81ce5b92
+  languageName: node
+  linkType: hard
+
+"@types/through@npm:*":
+  version: 0.0.30
+  resolution: "@types/through@npm:0.0.30"
+  dependencies:
+    "@types/node": "*"
+  checksum: 67bae5cefe5c2604a522d98e6227bd5fccf0fa73fd878dddaf54af495c5b89c8a768d62c84efac3cb28e2ce241ffdcd74b3cd0246a7d9723624b5f13d822d09a
   languageName: node
   linkType: hard
 
@@ -7155,6 +7174,7 @@ __metadata:
     "@babel/preset-typescript": ^7.12.7
     "@graphql-tools/merge": ^6.2.7
     "@types/glob": ^7.1.3
+    "@types/inquirer": ^7.3.1
     "@types/jest": ^26.0.20
     "@types/mkdirp": ^1.0.1
     babel-jest: ^26.6.3

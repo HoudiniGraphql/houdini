@@ -5,6 +5,7 @@ import { getConfig } from 'houdini-common'
 import { Command } from 'commander'
 // local imports
 import compile from './compile'
+import init from './init'
 
 // build up the cli
 const program = new Command()
@@ -18,6 +19,11 @@ program.command('generate')
 
 		await compile(config)
 	})
+
+// register the init command
+program.command('init [path]')
+	.description('initialize a new houdini project')
+	.action(init)
 
 // start the command
 program.parse()
