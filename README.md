@@ -88,7 +88,7 @@ import env from './environment'
 setEnvironment(env)
 ```
 
-## 🦾&nbsp;&nbsp;Running the Compiler
+## <img src="./.github/assets/cylong.gif" height="28px" /> &nbsp;&nbsp;Running the Compiler
 
 Running the compiler can be done with npx or via a script in `package.json`. This command needs to be 
 run anytime a GraphQL document in your source code changes:
@@ -407,7 +407,7 @@ mutation NewItem($input: AddItemInput!) {
 }
 ```
 
-## <img src="./.github/assets/ts-logo-128.png" height="32px" /> Typescript
+## <img src="./.github/assets/ts-logo-128.png" height="28px" /> Typescript
 
 
 
