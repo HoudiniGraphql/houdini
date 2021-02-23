@@ -293,8 +293,7 @@ which can be invoked to execute the mutation. Here's another modified example fr
 ```
 
 Note: mutations usually do best when combined with at least one fragment grabbing
-the information needed for the mutation (for an example of this pattern, see the TodoItem
-component in the demo.)
+the information needed for the mutation (for an example of this pattern, see below.)
 
 ### Updating a record field
 
