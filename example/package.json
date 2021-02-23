@@ -5,7 +5,7 @@
 	"version": "0.0.9",
 	"scripts": {
 		"dev": "sapper dev",
-		"compile": "houdini-compiler",
+		"compile": "houdini-compiler generate",
 		"api": "node api.js"
 	},
 	"dependencies": {

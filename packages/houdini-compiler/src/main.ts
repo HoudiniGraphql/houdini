@@ -1,18 +1,29 @@
-#! /usr/bin/env node
+#!/usr/bin/env node
 
-// externals
+// external imports
 import { getConfig } from 'houdini-common'
-// locals
+import { Command } from 'commander'
+// local imports
 import compile from './compile'
+import init from './init'
 
-async function main() {
-	// invoke the compiler
-	await compile(await getConfig())
-}
+// build up the cli
+const program = new Command()
 
-// run the main entry point and if there is an error
-main().catch((err) => {
-	console.log(err)
-	// return with a status code 1
-	process.exit(1)
-})
+// register the generate command
+program.command('generate')
+	.description('generate the application runtime')
+	.action(async () => {
+		// grab the config file
+		const config = await getConfig()
+
+		await compile(config)
+	})
+
+// register the init command
+program.command('init [path]')
+	.description('initialize a new houdini project')
+	.action(init)
+
+// start the command
+program.parse()
