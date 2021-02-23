@@ -61,7 +61,6 @@ export default async (_path: string | undefined) => {
     await fs.writeFile(configPath, configFile(directory, schemaPath))
     // write the environment file
     await fs.writeFile(environmentPath, networkFile(url))
-
 }
 
 

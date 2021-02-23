@@ -51,7 +51,9 @@ npm install --save-dev houdini houdini-preprocess houdini-compiler
 
 ## 🔧&nbsp;&nbsp;Configuring Your Environment
 
-Setting up a new houdini project can easily be done with the provided command-line tool:
+Adding houdini to an existing sapper/sveltekit project can easily be done with the provided command-line tool.
+If you don't already have an existing app, visit [this link](zhttps://sapper.svelte.dev/docs#Getting_started) 
+for help setting one up. Once you have an project and want to add houdini, execute the following command:
 
 ```sh
 npx houdini-compiler init
@@ -117,7 +119,6 @@ Grabbing data from your API is done with the `query` function:
 {#each $data.items as item}
     <div>{item.text}</div>
 {/each}
-
 ```
 
 ### Query variables and page data
@@ -406,7 +407,7 @@ mutation NewItem($input: AddItemInput!) {
 }
 ```
 
-## Typescript
+## <img src="./.github/assets/ts-logo-128.png" height="32px" /> Typescript
 
 
 
