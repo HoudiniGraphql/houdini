@@ -406,6 +406,10 @@ mutation NewItem($input: AddItemInput!) {
 }
 ```
 
+## Typescript
+
+
+
 ## ⚠️&nbsp;&nbsp;Notes, Constraints, and Conventions
 - The compiler must be ran every time the contents of a `graphql` tagged string changes
 - Every GraphQL Document must have a name that is unique
