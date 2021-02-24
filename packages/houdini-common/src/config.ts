@@ -101,7 +101,7 @@ export class Config {
 	// the location of the artifact generated corresponding to the provided documents
 	artifactPath(document: graphql.DocumentNode): string {
 		// use the operation name for the artifact
-		return path.join(this.artifactDirectory, `${this.documentName(document)}.js`)
+		return path.join(this.artifactDirectory, `${this.documentName(document)}.cjs`)
 	}
 
 	// a string identifier for the document (must be unique)
