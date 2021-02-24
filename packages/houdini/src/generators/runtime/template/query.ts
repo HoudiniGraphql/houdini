@@ -1,5 +1,5 @@
 // externals
-import { GraphQLTagResult } from 'houdini-preprocess'
+import type { GraphQLTagResult } from 'houdini-preprocess'
 import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
