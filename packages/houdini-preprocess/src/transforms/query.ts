@@ -338,7 +338,7 @@ export default async function queryProcessor(
 									typeBuilders.identifier(variableIdentifier)
 								),
 							]),
-							typeBuilders.identifier("session")
+							typeBuilders.identifier('session'),
 						])
 					)
 				),

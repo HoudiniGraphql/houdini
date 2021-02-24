@@ -10,7 +10,7 @@ import { FetchContext } from './environment'
 // invoked
 export default function mutation<_Mutation extends Operation<any, any>>(
 	document: GraphQLTagResult,
-	session?: Session, 
+	session?: Session
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
 	if (document.kind !== CompiledMutationKind) {

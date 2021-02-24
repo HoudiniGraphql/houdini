@@ -3,6 +3,6 @@
 	"semi": false,
 	"useTabs": true,
 	"singleQuote": true,
-	"printWidth": 110,
+	"printWidth": 100,
 	"trailingComma": "es5"
 }

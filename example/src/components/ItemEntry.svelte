@@ -19,43 +19,37 @@
 	)
 
 	// create a callbacks we'll invoke to check and uncheck thie item
-	const completeItem = mutation<CompleteItem>(
-		graphql`
-			mutation CompleteItem($id: ID!) {
-				checkItem(item: $id) {
-					item {
-						id
-						completed
-						...All_Items_remove @when(argument: "completed", value: "false")
-					}
+	const completeItem = mutation<CompleteItem>(graphql`
+		mutation CompleteItem($id: ID!) {
+			checkItem(item: $id) {
+				item {
+					id
+					completed
+					...All_Items_remove @when(argument: "completed", value: "false")
 				}
 			}
-		`
-	)
+		}
+	`)
 
-	const uncompleteItem = mutation<UncompleteItem>(
-		graphql`
-			mutation UncompleteItem($id: ID!) {
-				uncheckItem(item: $id) {
-					item {
-						id
-						completed
-						...All_Items_remove @when(argument: "completed", value: "true")
-					}
+	const uncompleteItem = mutation<UncompleteItem>(graphql`
+		mutation UncompleteItem($id: ID!) {
+			uncheckItem(item: $id) {
+				item {
+					id
+					completed
+					...All_Items_remove @when(argument: "completed", value: "true")
 				}
 			}
-		`
-	)
+		}
+	`)
 
-	const deleteItem = mutation<DeleteItem>(
-		graphql`
-			mutation DeleteItem($id: ID!) {
-				deleteItem(item: $id) {
-					itemID @TodoItem_delete
-				}
+	const deleteItem = mutation<DeleteItem>(graphql`
+		mutation DeleteItem($id: ID!) {
+			deleteItem(item: $id) {
+				itemID @TodoItem_delete
 			}
-		`
-	)
+		}
+	`)
 
 	async function handleClick() {
 		// if the item is already checked

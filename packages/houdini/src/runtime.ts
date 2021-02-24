@@ -13,7 +13,7 @@ export function fetchQuery(
 		text: string
 		variables: { [name: string]: unknown }
 	},
-	session?: FetchSession,
+	session?: FetchSession
 ) {
 	return getEnvironment()?.sendRequest(ctx, { text, variables }, session)
 }

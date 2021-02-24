@@ -11,7 +11,11 @@ export type FetchContext = {
 
 export type FetchSession = any
 
-type RequestHandler = (this: FetchContext, params: FetchParams, session?: FetchSession) => Promise<any>
+type RequestHandler = (
+	this: FetchContext,
+	params: FetchParams,
+	session?: FetchSession
+) => Promise<any>
 
 export class Environment {
 	private handler: RequestHandler
@@ -20,7 +24,7 @@ export class Environment {
 		this.handler = networkFn
 	}
 
-	sendRequest(ctx: FetchContext, params: FetchParams, session?: FetchSession, ) {
+	sendRequest(ctx: FetchContext, params: FetchParams, session?: FetchSession) {
 		return this.handler.call(ctx, params, session)
 	}
 }

@@ -18,18 +18,16 @@
 	const { page } = stores()
 
 	// state and handler for the new item input
-	const addItem = mutation<AddItem>(
-		graphql`
-			mutation AddItem($input: AddItemInput!) {
-				addItem(input: $input) {
-					item {
-						...All_Items_insert @prepend(when_not: { argument: "completed", value: "true" })
-						...Item_Info_insert
-					}
+	const addItem = mutation<AddItem>(graphql`
+		mutation AddItem($input: AddItemInput!) {
+			addItem(input: $input) {
+				item {
+					...All_Items_insert @prepend(when_not: { argument: "completed", value: "true" })
+					...Item_Info_insert
 				}
 			}
-		`
-	)
+		}
+	`)
 	let inputValue = ''
 	async function onBlur() {
 		// trigger the mutation
@@ -41,7 +39,9 @@
 
 	const numberOfItems = derived(data, ($data) => $data.items.length)
 	const itemsLeft = derived(data, ($data) => $data.items.filter((item) => !item.completed).length)
-	const hasCompleted = derived(data, ($data) => Boolean($data.items.find((item) => item.completed)))
+	const hasCompleted = derived(data, ($data) =>
+		Boolean($data.items.find((item) => item.completed))
+	)
 
 	// figure out the current page
 	const currentPage = derived(page, ($page) => {
