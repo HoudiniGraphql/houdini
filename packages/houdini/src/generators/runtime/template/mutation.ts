@@ -5,11 +5,10 @@ import { Operation, GraphQLTagResult } from './types'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter'
 
-
 // mutation returns a handler that will send the mutation to the server when
 // invoked
 export default function mutation<_Mutation extends Operation<any, any>>(
-	document: GraphQLTagResult,
+	document: GraphQLTagResult
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniMutation') {
@@ -26,7 +25,6 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	return (variables: _Mutation['input']) =>
 		// we want the mutation to throw an error if the network layer invokes this.error
 		new Promise(async (resolve, reject) => {
-
 			let result
 
 			// since we have a promise that's wrapping async/await we need a giant try/catch that will

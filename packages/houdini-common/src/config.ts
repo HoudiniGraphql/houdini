@@ -89,7 +89,7 @@ export class Config {
 		return this.artifactDirectory
 	}
 
-	// where we will place the runtime	
+	// where we will place the runtime
 	get runtimeDirectory() {
 		return path.join(this.rootDir, 'runtime')
 	}

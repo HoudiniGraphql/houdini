@@ -26,7 +26,6 @@ export type FragmentArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniFragment'
 }
 
-
 // any compiled result
 export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifact
 

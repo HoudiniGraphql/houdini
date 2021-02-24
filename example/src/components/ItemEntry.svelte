@@ -1,5 +1,13 @@
 <script lang="ts">
-	import { fragment, mutation, graphql, ItemEntry_item, CompleteItem, UncompleteItem, DeleteItem } from '$houdini'
+	import {
+		fragment,
+		mutation,
+		graphql,
+		ItemEntry_item,
+		CompleteItem,
+		UncompleteItem,
+		DeleteItem,
+	} from '$houdini'
 
 	// the reference we're passed from our parents
 	export let item: ItemEntry_item
