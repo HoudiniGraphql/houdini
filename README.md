@@ -32,6 +32,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
         1. [Remove](#removing-a-record)
         1. [Delete](#deleting-a-record)
         1. [Conditionals](#conditionals)
+1. [Authentication](#authentication)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
 
 ## 🕹️&nbsp;&nbsp;Example
