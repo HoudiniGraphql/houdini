@@ -28,7 +28,9 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 				console.warn('dont know what to do with this just yet')
 			},
 			redirect: (code: number, location: string) => {
-				console.warn('dont know what to do with this just yet')
+				// send the user to the new location
+				window.location.href = location
+				console.warn('dont know what to do with code just yet')
 			},
 		}
 
