@@ -6,3 +6,5 @@ export type Operation<_Result, _Input> = {
 	readonly result: _Result
 	readonly input: _Input
 }
+
+export type Session = any

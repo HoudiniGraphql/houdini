@@ -42,7 +42,7 @@ describe('query preprocessor', function () {
 		    const _TestQuery = await fetchQuery(this, {
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		              "variables": _TestQuery_Input
-		          });
+		          }, session);
 
 		    return {
 		        _TestQuery: _TestQuery,
@@ -121,7 +121,7 @@ describe('query preprocessor', function () {
 		    const _TestQuery = await fetchQuery(this, {
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		              "variables": _TestQuery_Input
-		          });
+		          }, session);
 
 		    return {
 		        _TestQuery: _TestQuery,
