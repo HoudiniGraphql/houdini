@@ -1,5 +1,5 @@
 // locals
-import { applyPatch } from './runtime'
+import { applyPatch } from './template/runtime'
 import { Patch } from '../../types'
 
 describe('apply patch', function () {

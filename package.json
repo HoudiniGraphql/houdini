@@ -8,7 +8,7 @@
 	"scripts": {
 		"tests": "jest",
 		"tests:watch": "jest  --watch",
-		"build": "yarn workspace houdini-common run build && yarn workspace houdini-preprocess run build && yarn workspace houdini run build",
+		"build": "yarn workspace houdini-common run build && yarn workspace houdini run build && yarn workspace houdini-preprocess run build ",
 		"clean": "rm -rf packages/*/build"
 	},
 	"devDependencies": {

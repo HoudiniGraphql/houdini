@@ -5,7 +5,7 @@ import fs from 'fs/promises'
 import * as recast from 'recast'
 import path from 'path'
 // local imports
-import { PatchAtom } from '.'
+import { PatchAtom } from '../../types'
 
 const typeBuilders = recast.types.builders
 

@@ -91,6 +91,34 @@ import env from './environment'
 setEnvironment(env)
 ```
 
+### Supporting Sveltekit
+
+Supporting Sveltekit takes a few extra configuration values. First, we add the following field 
+to the `houdini.config.cjs` file:
+
+```javascript
+{
+    // ...
+    mode: 'kit',
+}
+
+```
+
+And finally, we need to define a mount in the snowpack config:
+
+```javascript
+{
+	mount: {
+        // ...
+		'.houdini': '/_houdini'
+	},
+	alias: {
+        // ...
+		$houdini: './.houdini'
+	}
+}
+```
+
 ## <img src="./.github/assets/cylon.gif" height="28px" />&nbsp;&nbsp;Running the Compiler
 
 The compiler is responsible for a number of things, ranging from generating the actual runtime
@@ -100,6 +128,8 @@ in `package.json` and needs to be run every time a GraphQL document in your sour
 ```sh
 npx houdini generate
 ```
+
+The generated runtime can be accessed by importing `$houdini` anywhere in your application.
 
 ## 🚀&nbsp;&nbsp;Fetching Data
 

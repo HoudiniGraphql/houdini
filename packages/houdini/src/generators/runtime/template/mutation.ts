@@ -1,20 +1,23 @@
-// externals
-import type { GraphQLTagResult } from 'houdini-preprocess'
 // locals
 import { getDocumentStores, applyPatch, fetchQuery } from './runtime'
 import { FetchContext } from './environment'
-import { Operation, Session } from './types'
+import { Operation, GraphQLTagResult } from './types'
+// @ts-ignore
+import { stores } from '@sapper/app'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
 export default function mutation<_Mutation extends Operation<any, any>>(
 	document: GraphQLTagResult,
-	session?: Session
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniMutation') {
 		throw new Error('getQuery can only take query operations')
 	}
+
+	const { session } = stores()
+	console.log(session)
+
 	// pull the query text out of the compiled artifact
 	const { raw: text, links: linkModule } = document
 

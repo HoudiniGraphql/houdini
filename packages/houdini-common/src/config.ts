@@ -2,7 +2,6 @@ import * as graphql from 'graphql'
 import fs from 'fs'
 import path from 'path'
 import mkdirp from 'mkdirp'
-import { file } from 'mock-fs/lib/filesystem'
 
 // the values we can take in from the config file
 export type ConfigFile = {

@@ -7177,27 +7177,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-compiler@npm:^0.0.15":
-  version: 0.0.15
-  resolution: "houdini-compiler@npm:0.0.15"
-  dependencies:
-    "@graphql-tools/merge": ^6.2.7
-    "@types/inquirer": ^7.3.1
-    babylon: ^7.0.0-beta.47
-    commander: ^7.1.0
-    estree-walker: ^2.0.2
-    glob: ^7.1.6
-    houdini-common: ^0.0.15
-    inquirer: ^7.3.3
-    mkdirp: ^1.0.4
-    node-fetch: ^2.6.1
-    recast: ^0.20.4
-  bin:
-    houdini-compiler: build/main.js
-  checksum: 9e353fd2b4afb708e730f44705ff32df9247f24bf801223da73777efe984552e0fdd4a17133f57888fc15b3361086c00aaab86e68f8fb515e0b3d7363a2126f7
-  languageName: node
-  linkType: hard
-
 "houdini-example@workspace:example":
   version: 0.0.0-use.local
   resolution: "houdini-example@workspace:example"
@@ -7280,7 +7259,8 @@ __metadata:
     babel-jest: ^26.6.3
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
-    houdini-compiler: ^0.0.15
+    houdini: ^0.0.15
+    houdini-common: ^0.0.15
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"

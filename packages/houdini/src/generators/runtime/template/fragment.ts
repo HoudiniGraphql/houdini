@@ -1,10 +1,9 @@
 // externals
-import type { GraphQLTagResult } from 'houdini-preprocess'
 import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
 import { registerDocumentStore, unregisterDocumentStore } from './runtime'
-import type { Fragment } from './types'
+import type { Fragment, GraphQLTagResult } from './types'
 
 // fragment returns the requested data from the reference
 export default function fragment<_Fragment extends Fragment<any>>(

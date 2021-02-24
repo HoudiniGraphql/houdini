@@ -5,7 +5,7 @@ import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kind
 import { OperationDefinitionNode } from 'graphql/language'
 import { BaseNode } from 'estree'
 import { Program } from '@babel/types'
-import { DocumentArtifact } from 'houdini-compiler'
+import { DocumentArtifact } from 'houdini'
 import { hashDocument } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'

@@ -1,10 +1,9 @@
 // externals
-import type { GraphQLTagResult } from 'houdini-preprocess'
 import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
 import { registerDocumentStore, unregisterDocumentStore } from './runtime'
-import { Operation } from './types'
+import { Operation, GraphQLTagResult } from './types'
 
 export default function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult

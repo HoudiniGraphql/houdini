@@ -6,6 +6,7 @@
 		"build": "tsc",
 		"prepare": "npm run build"
 	},
+	"main": "build/index.js",
 	"bin": "build/main.js",
 	"keywords": [],
 	"author": "",
