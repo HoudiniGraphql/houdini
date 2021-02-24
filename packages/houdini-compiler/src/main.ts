@@ -11,7 +11,8 @@ import init from './init'
 const program = new Command()
 
 // register the generate command
-program.command('generate')
+program
+	.command('generate')
 	.description('generate the application runtime')
 	.action(async () => {
 		// grab the config file
@@ -21,9 +22,7 @@ program.command('generate')
 	})
 
 // register the init command
-program.command('init [path]')
-	.description('initialize a new houdini project')
-	.action(init)
+program.command('init [path]').description('initialize a new houdini project').action(init)
 
 // start the command
 program.parse()

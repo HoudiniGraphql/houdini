@@ -1,17 +1,20 @@
 // externals
 import { Patch } from 'houdini-compiler'
 // locals
-import { getEnvironment } from './environment'
+import { getEnvironment, FetchContext } from './environment'
 
 // fetchQuery is used by the preprocess-generated runtime to send an operation to the server
-export function fetchQuery({
-	text,
-	variables,
-}: {
-	text: string
-	variables: { [name: string]: unknown }
-}) {
-	return getEnvironment()?.sendRequest({ text, variables })
+export function fetchQuery(
+	ctx: FetchContext,
+	{
+		text,
+		variables,
+	}: {
+		text: string
+		variables: { [name: string]: unknown }
+	}
+) {
+	return getEnvironment()?.sendRequest(ctx, { text, variables })
 }
 
 // the dispatch table

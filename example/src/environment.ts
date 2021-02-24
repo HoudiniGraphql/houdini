@@ -1,9 +1,8 @@
 import { Environment } from 'houdini'
-import fetch from 'cross-fetch'
 
-export default new Environment(async ({ text, variables = {} }) => {
+export default new Environment(async function ({ text, variables = {} }) {
 	// send the request to the ricky and morty api
-	const result = await fetch('http://localhost:4000', {
+	const result = await this.fetch('http://localhost:4000', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -13,6 +12,7 @@ export default new Environment(async ({ text, variables = {} }) => {
 			variables,
 		}),
 	})
+
 	// parse the result as json
 	return await result.json()
 })

@@ -39,7 +39,7 @@ describe('query preprocessor', function () {
 		export async function preload(page, session) {
 		    const _TestQuery_Input = {};
 
-		    const _TestQuery = await fetchQuery({
+		    const _TestQuery = await fetchQuery(this, {
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		              "variables": _TestQuery_Input
 		          });
@@ -88,7 +88,7 @@ describe('query preprocessor', function () {
 		const doc = await preprocessorTest(`
 			<script context="module">
 				export function TestQueryVariables(page) {
-					return { 
+					return {
 						test: true
 					}
 				}
@@ -118,7 +118,7 @@ describe('query preprocessor', function () {
 		export async function preload(page, session) {
 		    const _TestQuery_Input = TestQueryVariables.call(this, page, session);
 
-		    const _TestQuery = await fetchQuery({
+		    const _TestQuery = await fetchQuery(this, {
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		              "variables": _TestQuery_Input
 		          });
