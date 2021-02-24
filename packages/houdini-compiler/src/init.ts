@@ -9,25 +9,22 @@ import fs from 'fs/promises'
 export default async (_path: string | undefined) => {
 	// we need to collect some information from the user before we
 	// can continue
-	let { schemaPath, url, directory } = await inquirer.prompt([
-		{
-			name: 'url',
-			type: 'input',
-			message: 'Please enter the URL for your api with its protocol.',
-		},
-		{
-			name: 'directory',
-			type: 'input',
-			message: 'Where would you like to put the generated runtime?',
-			default: './__houdini__',
-		},
-		{
-			name: 'schemaPath',
-			type: 'input',
-			message:
-				"Do you have a json representation of your schema? If so, enter its relative path here. If not, leave this blank - I'll pull it down for you.",
-		},
-	])
+	// let { schemaPath, url, directory } = await inquirer.prompt([
+	// 	{
+	// 		name: 'url',
+	// 		type: 'input',
+	// 		message: 'Please enter the URL for your api with its protocol.',
+	// 	},
+	// 	{
+	// 		name: 'directory',
+	// 		type: 'input',
+	// 		message: 'Where would you like to put the generated runtime?',
+	// 		default: './__houdini__',
+	// 	},
+	// ])
+	let schemaPath = ''
+	let directory = "./__houdini__"
+	let url = "http://localhost:4000"
 
 	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
@@ -46,18 +43,18 @@ export default async (_path: string | undefined) => {
 
 		// send the request
 		const resp = await fetch(url, {
-			method: 'post',
+			method: 'POST',
 			body: JSON.stringify({
-				body: getIntrospectionQuery(),
+				query: getIntrospectionQuery(),
 			}),
 			headers: { 'Content-Type': 'application/json' },
 		})
-		const { data } = await resp.json()
+		const data = await resp.text()
 
 		// write the schema file
 		await fs.writeFile(
 			path.resolve(path.join(targetPath, schemaPath)),
-			JSON.stringify(data),
+			JSON.stringify(JSON.parse(data).data),
 			'utf-8'
 		)
 	}
@@ -66,6 +63,8 @@ export default async (_path: string | undefined) => {
 	await fs.writeFile(configPath, configFile(directory, schemaPath))
 	// write the environment file
 	await fs.writeFile(environmentPath, networkFile(url))
+
+	console.log("Welcome to houdini!")
 }
 
 const networkFile = (url: string) => `
