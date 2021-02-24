@@ -435,7 +435,7 @@ export default new Environment(async function ({ text, variables = {} }, session
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-            		'Authentication': session.token ? `Bearer ${session.token}` : null,
+            		'Authorization': session.token ? `Bearer ${session.token}` : null,
 		},
 		body: JSON.stringify({
 			query: text,
