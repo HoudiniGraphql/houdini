@@ -15,7 +15,7 @@
 	`)
 
 	// grab the session store to pass to the mutation
-	const { session, page } = stores()
+	const { page } = stores()
 
 	// state and handler for the new item input
 	const addItem = mutation<AddItem>(
@@ -28,8 +28,7 @@
 					}
 				}
 			}
-		`,
-		session
+		`
 	)
 	let inputValue = ''
 	async function onBlur() {

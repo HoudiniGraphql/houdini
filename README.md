@@ -415,6 +415,41 @@ mutation NewItem($input: AddItemInput!) {
 }
 ```
 
+## 🔐&nbsp;&nbsp;Authentication
+
+houdini relies on Sapper's sessions to store and retrieve authentication information. 
+Assuming that the session has been populated somehow, you can access it via the 
+second argument in the environment definition:
+
+```typescript
+//src/environment.ts
+
+import { Environment } from 'houdini'
+
+// this function can take a second argument that will contain the session
+// data during a request or mutation
+export default new Environment(async function ({ text, variables = {} }, session) {
+	// send the request to the ricky and morty api
+	const result = await this.fetch('http://localhost:4000', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+            'Authentication': session.token ? `Bearer ${session.token}` : null,
+		},
+		body: JSON.stringify({
+			query: text,
+			variables,
+		}),
+	})
+
+	// parse the result as json
+	return await result.json()
+})
+```
+
+You will also need to pass the session as a second argument to `mutation`. NOTE: It is most
+easily accesible  when triggering a mutation from the `stores` function in `@sapper/app`.
+
 ## ⚠️&nbsp;&nbsp;Notes, Constraints, and Conventions
 - The compiler must be run every time the contents of a `graphql` tagged string changes
 - Every GraphQL Document must have a name that is unique

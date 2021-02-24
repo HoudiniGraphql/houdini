@@ -18,9 +18,6 @@
 		item
 	)
 
-	// pull the session store out to pass to the mutation generator
-	const { session } = stores()
-
 	// create a callbacks we'll invoke to check and uncheck thie item
 	const completeItem = mutation<CompleteItem>(
 		graphql`
@@ -33,8 +30,7 @@
 					}
 				}
 			}
-		`,
-		session
+		`
 	)
 
 	const uncompleteItem = mutation<UncompleteItem>(
@@ -48,8 +44,7 @@
 					}
 				}
 			}
-		`,
-		session
+		`
 	)
 
 	const deleteItem = mutation<DeleteItem>(
@@ -59,8 +54,7 @@
 					itemID @TodoItem_delete
 				}
 			}
-		`,
-		session
+		`
 	)
 
 	async function handleClick() {
