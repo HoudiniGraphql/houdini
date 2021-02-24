@@ -23,7 +23,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 		// we need to define a fetch context that plays well on the client without
 		// access to this.fetch (mutations can't get access to preload)
 		const mutationCtx: FetchContext = {
-			fetch: window.fetch,
+			fetch: window.fetch.bind(window),
 			error: (code: number, message: string) => {
 				console.warn('dont know what to do with this just yet')
 			},
