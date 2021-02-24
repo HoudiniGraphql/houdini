@@ -67,8 +67,7 @@ export default async (_path: string | undefined) => {
 	console.log("Welcome to houdini!")
 }
 
-const networkFile = (url: string) => `
-import { Environment } from 'houdini'
+const networkFile = (url: string) => `import { Environment } from 'houdini'
 
 export default new Environment(async function ({ text, variables = {} }) {
 	// send the request to the ricky and morty api
@@ -88,12 +87,11 @@ export default new Environment(async function ({ text, variables = {} }) {
 })
 `
 
-const configFile = (runtimeDirectory: string, schemaPath: string) => `
-const path = require('path')
+const configFile = (runtimeDirectory: string, schemaPath: string) => `const path = require('path')
 
 module.exports = {
-	runtimeDirectory: path.resolve(${runtimeDirectory}),
-	schemaPath: path.resolve(${schemaPath}),
+	runtimeDirectory: path.resolve('${runtimeDirectory}'),
+	schemaPath: path.resolve('${schemaPath}'),
 	sourceGlob: 'src/{routes,components}/*.svelte',
 }
 `
