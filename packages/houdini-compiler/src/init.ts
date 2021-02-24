@@ -32,7 +32,7 @@ export default async (_path: string | undefined) => {
 	// the source directory
 	const sourceDir = path.join(targetPath, 'src')
 	// the config file path
-	const configPath = path.join(targetPath, 'houdini.config.js')
+	const configPath = path.join(targetPath, 'houdini.config.cjs')
 	// where we put the environment
 	const environmentPath = path.join(sourceDir, 'environment.js')
 
