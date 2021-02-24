@@ -17,7 +17,7 @@
 		item
 	)
 
-	// create a callbacks we'll invoke to check and uncheck thie item
+	// create the functions we'll invoke to check, uncheck, and delete the item
 	const completeItem = mutation<CompleteItem>(graphql`
 		mutation CompleteItem($id: ID!) {
 			checkItem(item: $id) {
@@ -29,7 +29,6 @@
 			}
 		}
 	`)
-
 	const uncompleteItem = mutation<UncompleteItem>(graphql`
 		mutation UncompleteItem($id: ID!) {
 			uncheckItem(item: $id) {
@@ -41,7 +40,6 @@
 			}
 		}
 	`)
-
 	const deleteItem = mutation<DeleteItem>(graphql`
 		mutation DeleteItem($id: ID!) {
 			deleteItem(item: $id) {

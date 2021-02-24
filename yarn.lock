@@ -362,6 +362,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/parser@npm:^7.13.4":
+  version: 7.13.4
+  resolution: "@babel/parser@npm:7.13.4"
+  bin:
+    parser: ./bin/babel-parser.js
+  checksum: 3aac62adbd1fd91798751a09b385ed3810acffb7bd637066bea65acf16670fdc8c7c39bab2148c57b4d6606355344de01922c9aba86405c771eaabc58701077a
+  languageName: node
+  linkType: hard
+
 "@babel/plugin-proposal-async-generator-functions@npm:^7.12.13":
   version: 7.12.13
   resolution: "@babel/plugin-proposal-async-generator-functions@npm:7.12.13"
@@ -6988,7 +6997,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:^15.3.0":
+"graphql@npm:^15.3.0, graphql@npm:^15.5.0":
   version: 15.5.0
   resolution: "graphql@npm:15.5.0"
   checksum: 789cdcb069a3e00592e779002217a6bc5fd09efad63ee8c4190c4b3ea96c89010e74f085fb1cba876a0bb0e324e01df2eddb84d79dca90a28e582bc425fef9ef
@@ -7154,10 +7163,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.0.10, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.0.11, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
+    "@babel/parser": ^7.13.4
+    graphql: ^15.5.0
     mkdirp: ^1.0.4
     typescript: ^4.1.5
   bin:
@@ -7165,7 +7176,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-compiler@^0.0.10, houdini-compiler@workspace:packages/houdini-compiler":
+"houdini-compiler@^0.0.11, houdini-compiler@workspace:packages/houdini-compiler":
   version: 0.0.0-use.local
   resolution: "houdini-compiler@workspace:packages/houdini-compiler"
   dependencies:
@@ -7181,7 +7192,8 @@ __metadata:
     babylon: ^7.0.0-beta.47
     commander: ^7.1.0
     estree-walker: ^2.0.2
-    houdini-common: ^0.0.10
+    glob: ^7.1.6
+    houdini-common: ^0.0.11
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
@@ -7222,9 +7234,9 @@ __metadata:
     graphql: ^14.0.0
     graphql-relay: ^0.6.0
     graphql-tag: ^2.11.0
-    houdini: ^0.0.10
-    houdini-compiler: ^0.0.10
-    houdini-preprocess: ^0.0.10
+    houdini: ^0.0.11
+    houdini-compiler: ^0.0.11
+    houdini-preprocess: ^0.0.11
     lodash: ^4.17.20
     polka: next
     rollup: ^2.3.4
@@ -7261,7 +7273,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.0.10, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.0.11, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -7274,7 +7286,7 @@ __metadata:
     babel-jest: ^26.6.3
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
-    houdini-compiler: ^0.0.10
+    houdini-compiler: ^0.0.11
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -7285,12 +7297,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.0.10, houdini@workspace:packages/houdini":
+"houdini@^0.0.11, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
-    houdini-compiler: ^0.0.10
-    houdini-preprocess: ^0.0.10
+    houdini-compiler: ^0.0.11
+    houdini-preprocess: ^0.0.11
   languageName: unknown
   linkType: soft
 
