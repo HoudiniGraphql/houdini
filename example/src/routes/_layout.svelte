@@ -41,14 +41,14 @@
 	)
 
 	// figure out the current page
-	const currentPage = derived(stores().page, $page => {
+	const currentPage = derived(stores().page, ($page) => {
 		if ($page.path.includes('active')) {
 			return 'active'
 		} else if ($page.path.includes('completed')) {
 			return 'completed'
 		}
 		return 'all'
-	}) 
+	})
 </script>
 
 <svelte:head>

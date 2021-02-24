@@ -3,7 +3,13 @@ type FetchParams = {
 	variables: { [key: string]: any }
 }
 
-type RequestHandler = (params: FetchParams) => Promise<any>
+export type FetchContext = {
+	fetch: (url: string, options: {}) => Promise<{}>
+	error: (code: number, mesage: string) => void
+	redirect: (statusCode: number, location: string) => void
+}
+
+type RequestHandler = (this: FetchContext, params: FetchParams) => Promise<any>
 
 export class Environment {
 	private handler: RequestHandler
@@ -12,8 +18,8 @@ export class Environment {
 		this.handler = networkFn
 	}
 
-	sendRequest(params: FetchParams) {
-		return this.handler(params)
+	sendRequest(ctx: FetchContext, params: FetchParams) {
+		return this.handler.call(ctx, params)
 	}
 }
 

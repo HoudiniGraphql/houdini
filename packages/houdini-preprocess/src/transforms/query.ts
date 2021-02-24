@@ -326,6 +326,7 @@ export default async function queryProcessor(
 					typeBuilders.identifier(preloadKey),
 					typeBuilders.awaitExpression(
 						typeBuilders.callExpression(typeBuilders.identifier('fetchQuery'), [
+							typeBuilders.identifier('this'),
 							typeBuilders.objectExpression([
 								typeBuilders.objectProperty(
 									typeBuilders.literal('text'),

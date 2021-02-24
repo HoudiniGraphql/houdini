@@ -4,6 +4,7 @@ import { CompiledMutationKind } from 'houdini-compiler'
 // locals
 import { getDocumentStores, applyPatch, fetchQuery } from './runtime'
 import { Operation } from './types'
+import { FetchContext } from './environment'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
@@ -19,8 +20,20 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 
 	// return an async function that sends the mutation go the server
 	return async (variables: _Mutation['input']) => {
+		// we need to define a fetch context that plays well on the client without
+		// access to this.fetch (mutations can't get access to preload)
+		const mutationCtx: FetchContext = {
+			fetch: window.fetch,
+			error: (code: number, message: string) => {
+				console.warn('dont know what to do with this just yet')
+			},
+			redirect: (code: number, location: string) => {
+				console.warn('dont know what to do with this just yet')
+			},
+		}
+
 		// grab the response from the server
-		const { data } = await fetchQuery({ text, variables })
+		const { data } = await fetchQuery(mutationCtx, { text, variables })
 
 		// we could have gotten a null response
 		if (!data) {
