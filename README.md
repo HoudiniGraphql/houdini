@@ -442,9 +442,8 @@ mutation NewItem($input: AddItemInput!) {
 
 ## 🔐&nbsp;&nbsp;Authentication
 
-houdini relies on Sapper's sessions to store and retrieve authentication information. 
-Assuming that the session has been populated somehow, you can access it via the 
-second argument in the environment definition:
+houdini defers to Sapper's sessions for authentication. Assuming that the session has been populated 
+somehow, you can access it through the second argument in the environment definition:
 
 ```typescript
 //src/environment.ts
@@ -459,7 +458,7 @@ export default new Environment(async function ({ text, variables = {} }, session
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-            		'Authorization': session.token ? `Bearer ${session.token}` : null,
+            'Authorization': session.token ? `Bearer ${session.token}` : null,
 		},
 		body: JSON.stringify({
 			query: text,
@@ -471,9 +470,6 @@ export default new Environment(async function ({ text, variables = {} }, session
 	return await result.json()
 })
 ```
-
-You will also need to pass the session as a second argument to `mutation`. NOTE: It is most
-easily accesible  when triggering a mutation from the `stores` function in `@sapper/app`.
 
 ## ⚠️&nbsp;&nbsp;Notes, Constraints, and Conventions
 - The compiler must be run every time the contents of a `graphql` tagged string changes

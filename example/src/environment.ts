@@ -1,4 +1,4 @@
-import { Environment } from 'houdini'
+import { Environment } from '$houdini'
 
 // this function can take a second argument that will contain the session
 // data during a request or mutation

@@ -2,8 +2,9 @@
 import { getDocumentStores, applyPatch, fetchQuery } from './runtime'
 import { FetchContext } from './environment'
 import { Operation, GraphQLTagResult } from './types'
-// @ts-ignore
-import { stores } from '@sapper/app'
+// @ts-ignore: this file will get generated and does not exist in the source code
+import { getSession } from './adapter'
+
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
@@ -15,16 +16,17 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 		throw new Error('getQuery can only take query operations')
 	}
 
-	const { session } = stores()
-	console.log(session)
-
 	// pull the query text out of the compiled artifact
 	const { raw: text, links: linkModule } = document
+
+	// grab the sesion from the adapter
+	const session = getSession()
 
 	// return an async function that sends the mutation go the server
 	return (variables: _Mutation['input']) =>
 		// we want the mutation to throw an error if the network layer invokes this.error
 		new Promise(async (resolve, reject) => {
+
 			let result
 
 			// since we have a promise that's wrapping async/await we need a giant try/catch that will

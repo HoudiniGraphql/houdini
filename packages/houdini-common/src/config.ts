@@ -21,6 +21,7 @@ export class Config {
 	sourceGlob: string
 	quiet: boolean
 	verifyHash: boolean
+	mode: string
 
 	constructor({
 		schema,
@@ -50,6 +51,7 @@ export class Config {
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
 		this.verifyHash = typeof verifyHash === 'undefined' ? true : verifyHash
+		this.mode = mode
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
