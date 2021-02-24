@@ -61,7 +61,7 @@ export default async (_path: string | undefined) => {
 	// write the environment file
 	await fs.writeFile(environmentPath, networkFile(url))
 
-	console.log("Welcome to houdini!")
+	console.log('Welcome to houdini!')
 }
 
 const networkFile = (url: string) => `import { Environment } from 'houdini'

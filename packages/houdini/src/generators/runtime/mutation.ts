@@ -1,10 +1,9 @@
 // externals
-import { GraphQLTagResult } from 'houdini-preprocess'
-import { CompiledMutationKind } from 'houdini-compiler'
+import type { GraphQLTagResult } from 'houdini-preprocess'
 // locals
 import { getDocumentStores, applyPatch, fetchQuery } from './runtime'
-import { Operation, Session } from './types'
 import { FetchContext } from './environment'
+import { Operation, Session } from './types'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
@@ -13,7 +12,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	session?: Session
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
-	if (document.kind !== CompiledMutationKind) {
+	if (document.kind !== 'HoudiniMutation') {
 		throw new Error('getQuery can only take query operations')
 	}
 	// pull the query text out of the compiled artifact

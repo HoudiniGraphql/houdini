@@ -1,7 +1,6 @@
-// externals
-import { Patch } from 'houdini-compiler'
 // locals
 import { applyPatch } from './runtime'
+import { Patch } from '../../types'
 
 describe('apply patch', function () {
 	test('base case', function () {

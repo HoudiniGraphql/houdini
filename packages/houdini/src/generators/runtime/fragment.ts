@@ -1,6 +1,5 @@
 // externals
 import { GraphQLTagResult } from 'houdini-preprocess'
-import { CompiledFragmentKind } from 'houdini-compiler'
 import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
@@ -13,7 +12,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	reference: _Fragment
 ): Readable<_Fragment['shape']> {
 	// make sure we got a query document
-	if (fragment.kind !== CompiledFragmentKind) {
+	if (fragment.kind !== 'HoudiniFragment') {
 		throw new Error('getFragment can only take fragment documents')
 	}
 	// @ts-ignore: .__variables is added by the selector and hidden from the user's world

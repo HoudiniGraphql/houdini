@@ -2,19 +2,21 @@ import * as graphql from 'graphql'
 import fs from 'fs'
 import path from 'path'
 import mkdirp from 'mkdirp'
+import { file } from 'mock-fs/lib/filesystem'
 
 // the values we can take in from the config file
 export type ConfigFile = {
-	runtimeDirectory: string
 	sourceGlob: string
 	schemaPath?: string
 	schema?: string
 	quiet?: boolean
 	verifyHash?: boolean
+	mode?: 'sapper' | 'kit'
 }
 
 // a place to hold conventions and magic strings
 export class Config {
+	filepath: string
 	runtimeDirectory: string
 	schema: graphql.GraphQLSchema
 	sourceGlob: string
@@ -22,13 +24,14 @@ export class Config {
 	verifyHash: boolean
 
 	constructor({
-		runtimeDirectory,
 		schema,
 		schemaPath,
 		sourceGlob,
 		quiet = false,
 		verifyHash,
-	}: ConfigFile) {
+		filepath,
+		mode = 'sapper',
+	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
 			throw new Error('Please provide one of schema or schema path')
@@ -43,11 +46,20 @@ export class Config {
 			)
 		}
 
-		// hold onto the artifact directory
-		this.runtimeDirectory = runtimeDirectory
+		// save the values we were given
+		this.filepath = filepath
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
 		this.verifyHash = typeof verifyHash === 'undefined' ? true : verifyHash
+
+		// if we are building a sapper project, we want to put the runtime in
+		// src/node_modules so that we can access @sapper/app and interact
+		// with the application stores directly
+		const rootDir = path.dirname(filepath)
+		this.runtimeDirectory =
+			mode === 'sapper'
+				? path.join(rootDir, 'src', 'node_modules', '$houdini')
+				: path.join(rootDir, '.houdini')
 	}
 
 	/*
@@ -248,7 +260,7 @@ export class Config {
 
 export function testConfig(config: {} = {}) {
 	return new Config({
-		runtimeDirectory: path.resolve(process.cwd(), '__tests__'),
+		filepath: path.join(process.cwd(), 'config.cjs'),
 		sourceGlob: '123',
 		schema: `
 			type User {
@@ -320,5 +332,13 @@ export async function getConfig(): Promise<Config> {
 		return _config
 	}
 
-	return new Config(await import(path.join(process.cwd(), 'houdini.config.cjs')))
+	// load the config file
+	const configPath = path.join(process.cwd(), 'houdini.config.cjs')
+	const config = await import(configPath)
+
+	// add the filepath
+	return new Config({
+		...config,
+		filepath: configPath,
+	})
 }

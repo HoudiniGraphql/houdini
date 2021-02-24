@@ -1,6 +1,5 @@
 // externals
 import { GraphQLTagResult } from 'houdini-preprocess'
-import { CompiledQueryKind } from 'houdini-compiler'
 import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
@@ -11,7 +10,7 @@ export default function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): Readable<_Query['result']> {
 	// make sure we got a query document
-	if (document.kind !== CompiledQueryKind) {
+	if (document.kind !== 'HoudiniQuery') {
 		throw new Error('getQuery can only take query operations')
 	}
 
