@@ -1,11 +1,6 @@
 // externals
-import { Config, isListType } from 'houdini-common'
+import { Config } from 'houdini-common'
 import * as graphql from 'graphql'
-import { NoUnusedFragments } from 'graphql/validation/rules/NoUnusedFragments'
-import { KnownFragmentNames } from 'graphql/validation/rules/KnownFragmentNames'
-import { KnownDirectives } from 'graphql/validation/rules/KnownDirectives'
-import { ExecutableDefinitions } from 'graphql/validation/rules/ExecutableDefinitions'
-import { ASTValidationContext } from 'graphql/validation/ValidationContext'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 import { HoudiniDocumentError, HoudiniErrorTodo } from '../error'
@@ -16,15 +11,15 @@ const validateRules = [...graphql.specifiedRules].filter(
 	(rule) =>
 		![
 			// fragments are defined on their own so unused fragments are a face of life
-			NoUnusedFragments,
+			graphql.NoUnusedFragmentsRule,
 			// query documents don't contain the fragments they use so we can't enforce
 			// that we know every fragment
-			KnownFragmentNames,
+			graphql.KnownFragmentNamesRule,
 			// some of the documents (ie the injected ones) will contain directive defintions
 			// and therefor not be explicitly executable
-			ExecutableDefinitions,
+			graphql.ExecutableDefinitionsRule,
 			// connection include directives that aren't defined by the schema
-			KnownDirectives,
+			graphql.KnownDirectivesRule,
 		].includes(rule)
 )
 
@@ -184,7 +179,7 @@ export default async function typeCheck(
 	for (const { filename, document: parsed, printed } of docs) {
 		// build up the custom rule that requires parentID on all connection directives
 		// applied to connection fragment spreads whose name does not appear in `freeConnections`
-		const requireParentID = (ctx: ASTValidationContext): graphql.ASTVisitor => {
+		const requireParentID = (ctx: graphql.ValidationContext): graphql.ASTVisitor => {
 			return {
 				[graphql.Kind.FRAGMENT_SPREAD]: {
 					enter(node) {
