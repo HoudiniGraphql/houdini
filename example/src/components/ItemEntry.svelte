@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { fragment, mutation, graphql } from 'houdini'
 	import type { ItemEntry_item, CompleteItem, UncompleteItem, DeleteItem } from '../../generated'
-	import { stores } from '@sapper/app'
 
 	// the reference we're passed from our parents
 	export let item: ItemEntry_item
