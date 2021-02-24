@@ -29,6 +29,11 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 	// we need to create the runtime folder structure
 	await config.createDirectories()
 
+	// if there are no documents dont do anything
+	if (docs.length === 0) {
+		return
+	}
+
 	await run(
 		config,
 		[

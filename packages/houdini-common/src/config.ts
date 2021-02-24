@@ -320,5 +320,5 @@ export async function getConfig(): Promise<Config> {
 		return _config
 	}
 
-	return new Config(await import(path.join(process.cwd(), 'houdini.config')))
+	return new Config(await import(path.join(process.cwd(), 'houdini.config.cjs')))
 }
