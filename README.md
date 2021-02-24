@@ -51,7 +51,7 @@ yarn add -D houdini houdini-preprocess houdini-compiler
 npm install --save-dev houdini houdini-preprocess houdini-compiler
 ```
 
-## 🔧&nbsp;&nbsp;Configuring Your Environment
+## 🔧&nbsp;&nbsp;Configuring Your Application
 
 Adding houdini to an existing sapper/sveltekit project can easily be done with the provided command-line tool.
 If you don't already have an existing app, visit [this link](https://sapper.svelte.dev/docs#Getting_started)
