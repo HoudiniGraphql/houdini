@@ -48,17 +48,24 @@ async function generateAdapter(config: Config) {
 }
 
 const kitAdapter = () => `const stores = import('$app/stores')
+const navigation = import('$app/navigation')
 
 module.exports.getSession = () => {
     stores.session
 }
+
+module.exports.goTo = navigation.goTo
 `
 
-const sapperAdapter = () => `const app = require('@sapper/app')
+const sapperAdapter = () => `const sapper = require('@sapper/app')
 
 module.exports.getSession = function() {
-    const { session } = app.stores()
+    const { session } = sapper.stores()
 
     return session
+}
+
+module.exports.goTo = (location, options) => {
+    sapper.goTo(location, options)
 }
 `

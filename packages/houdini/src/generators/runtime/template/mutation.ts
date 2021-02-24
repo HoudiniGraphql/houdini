@@ -3,7 +3,7 @@ import { getDocumentStores, applyPatch, fetchQuery } from './runtime'
 import { FetchContext } from './environment'
 import { Operation, GraphQLTagResult } from './types'
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession } from './adapter'
+import { getSession, goTo } from './adapter'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
@@ -39,7 +39,8 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 					},
 					redirect: (code: number, location: string) => {
 						// send the user to the new location
-						window.location.href = location
+						goTo(location)
+
 						console.warn('dont know what to do with code just yet')
 					},
 				}
