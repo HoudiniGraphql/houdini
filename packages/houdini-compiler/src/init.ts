@@ -21,12 +21,6 @@ export default async (_path: string | undefined) => {
 			message: 'Where would you like to put the generated runtime?',
 			default: './__houdini__',
 		},
-		{
-			name: 'schemaPath',
-			type: 'input',
-			message:
-				"Do you have a json representation of your schema? If so, enter its relative path here. If not, leave this blank - I'll pull it down for you.",
-		},
 	])
 
 	// if no path was given, we'll use cwd
@@ -35,7 +29,7 @@ export default async (_path: string | undefined) => {
 	// the source directory
 	const sourceDir = path.join(targetPath, 'src')
 	// the config file path
-	const configPath = path.join(targetPath, 'houdini.config.js')
+	const configPath = path.join(targetPath, 'houdini.config.cjs')
 	// where we put the environment
 	const environmentPath = path.join(sourceDir, 'environment.js')
 
@@ -46,18 +40,18 @@ export default async (_path: string | undefined) => {
 
 		// send the request
 		const resp = await fetch(url, {
-			method: 'post',
+			method: 'POST',
 			body: JSON.stringify({
-				body: getIntrospectionQuery(),
+				query: getIntrospectionQuery(),
 			}),
 			headers: { 'Content-Type': 'application/json' },
 		})
-		const { data } = await resp.json()
+		const data = await resp.text()
 
 		// write the schema file
 		await fs.writeFile(
 			path.resolve(path.join(targetPath, schemaPath)),
-			JSON.stringify(data),
+			JSON.stringify(JSON.parse(data).data),
 			'utf-8'
 		)
 	}
@@ -66,10 +60,11 @@ export default async (_path: string | undefined) => {
 	await fs.writeFile(configPath, configFile(directory, schemaPath))
 	// write the environment file
 	await fs.writeFile(environmentPath, networkFile(url))
+
+	console.log("Welcome to houdini!")
 }
 
-const networkFile = (url: string) => `
-import { Environment } from 'houdini'
+const networkFile = (url: string) => `import { Environment } from 'houdini'
 
 export default new Environment(async function ({ text, variables = {} }) {
 	// send the request to the ricky and morty api
@@ -89,12 +84,11 @@ export default new Environment(async function ({ text, variables = {} }) {
 })
 `
 
-const configFile = (runtimeDirectory: string, schemaPath: string) => `
-const path = require('path')
+const configFile = (runtimeDirectory: string, schemaPath: string) => `const path = require('path')
 
 module.exports = {
-	runtimeDirectory: path.resolve(${runtimeDirectory}),
-	schemaPath: path.resolve(${schemaPath}),
+	runtimeDirectory: path.resolve('${runtimeDirectory}'),
+	schemaPath: path.resolve('${schemaPath}'),
 	sourceGlob: 'src/{routes,components}/*.svelte',
 }
 `
