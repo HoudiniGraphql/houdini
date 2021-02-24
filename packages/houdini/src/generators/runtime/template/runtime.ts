@@ -1,6 +1,6 @@
 // locals
 import { getEnvironment, FetchContext, FetchSession } from './environment'
-import type { Patch } from '../../types'
+import type { Patch } from '../../../types'
 
 // fetchQuery is used by the preprocess-generated runtime to send an operation to the server
 export function fetchQuery(

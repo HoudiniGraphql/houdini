@@ -28,6 +28,7 @@
 		"commander": "^7.1.0",
 		"estree-walker": "^2.0.2",
 		"glob": "^7.1.6",
+		"graphql": "^15.5.0",
 		"houdini-common": "^0.0.15",
 		"inquirer": "^7.3.3",
 		"mkdirp": "^1.0.4",
