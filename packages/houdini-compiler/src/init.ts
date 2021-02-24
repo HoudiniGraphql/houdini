@@ -9,22 +9,19 @@ import fs from 'fs/promises'
 export default async (_path: string | undefined) => {
 	// we need to collect some information from the user before we
 	// can continue
-	// let { schemaPath, url, directory } = await inquirer.prompt([
-	// 	{
-	// 		name: 'url',
-	// 		type: 'input',
-	// 		message: 'Please enter the URL for your api with its protocol.',
-	// 	},
-	// 	{
-	// 		name: 'directory',
-	// 		type: 'input',
-	// 		message: 'Where would you like to put the generated runtime?',
-	// 		default: './__houdini__',
-	// 	},
-	// ])
-	let schemaPath = ''
-	let directory = "./__houdini__"
-	let url = "http://localhost:4000"
+	let { schemaPath, url, directory } = await inquirer.prompt([
+		{
+			name: 'url',
+			type: 'input',
+			message: 'Please enter the URL for your api with its protocol.',
+		},
+		{
+			name: 'directory',
+			type: 'input',
+			message: 'Where would you like to put the generated runtime?',
+			default: './__houdini__',
+		},
+	])
 
 	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
