@@ -85,7 +85,7 @@ to use the generated starting point for your network layer:
 ```typescript
 // in both src/client.js and src/server.js
 
-import { setEnvironment } from 'houdini'
+import { setEnvironment } from '$houdini'
 import env from './environment'
 
 setEnvironment(env)
@@ -107,8 +107,7 @@ Grabbing data from your API is done with the `query` function:
 
 ```svelte
 <script lang="ts">
-    import { query, graphql } from 'houdini'
-    import type { AllItems } from 'path/to/generated/runtime'
+    import { query, graphql, AllItems } from '$houdini'
 
     // load the items
     const data = query<AllItems>(graphql`
@@ -137,8 +136,7 @@ documentation. Here is a modified example from the [demo](./example):
 // src/routes/[filter].svelte
 
 <script lang="ts">
-    import { query, graphql } from 'houdini'
-    import type { AllItems } from 'path/to/generated/runtime'
+    import { query, graphql, AllItems } from '$houdini'
 
     // load the items
     const data = query<AllItems>(graphql`
@@ -217,8 +215,7 @@ the `profilePicture` field of a `User`:
 // components/UserAvatar.svelte
 
 <script lang="ts">
-    import { fragment, graphql } from 'houdini'
-    import type { UserAvatar } from 'path/to/generated/runtime'
+    import { fragment, graphql, UserAvatar } from '$houdini'
 
     // the reference will get passed as a prop
     export let user: UserAvatar
@@ -240,9 +237,8 @@ that all necessary data has been asked for:
 // src/routes/users.svelte
 
 <script>
-    import { query, graphql } from 'houdini'
+    import { query, graphql, AllUsers } from '$houdini'
     import { UserAvatar } from 'components'
-    import type { AllUsers } from 'path/to/generated/runtime'
 
     const data = query<AllUsers>(graphql`
         query AllUsers {
@@ -271,8 +267,7 @@ which can be invoked to execute the mutation. Here's another modified example fr
 
 ```svelte
 <script lang="ts">
-    import { mutation, graphql } from 'houdini'
-    import type { UncheckItem } from 'path/to/generated/runtime'
+    import { mutation, graphql, UncheckItem } from '$houdini'
 
     let itemID: string
 
@@ -304,8 +299,7 @@ record's id. Take for example, an `TodoItemRow` component:
 
 ```svelte
 <script lang="ts">
-    import { fragment, mutation, graphql } from 'houdini'
-    import type { TodoItemRow, CompleteItem } from 'path/to/generated/runtime'
+    import { fragment, mutation, graphql, TodoItemRow } from '$houdini'
 
     export let item: TodoItemRow
 
@@ -425,7 +419,7 @@ second argument in the environment definition:
 ```typescript
 //src/environment.ts
 
-import { Environment } from 'houdini'
+import { Environment } from '$houdini'
 
 // this function can take a second argument that will contain the session
 // data during a request or mutation
