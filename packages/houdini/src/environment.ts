@@ -4,7 +4,7 @@ type FetchParams = {
 }
 
 export type FetchContext = {
-	fetch: (url: string, options: {}) => Promise<{}>
+	fetch: typeof window.fetch
 	error: (code: number, mesage: string) => void
 	redirect: (statusCode: number, location: string) => void
 }
