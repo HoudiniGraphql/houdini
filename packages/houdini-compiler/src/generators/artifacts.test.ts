@@ -29,7 +29,7 @@ test('generates an artifact for every document', async function () {
 	const files = await fs.readdir(config.artifactDirectory)
 
 	// and they have the right names
-	expect(files).toEqual(expect.arrayContaining(['TestQuery.js', 'TestFragment.js']))
+	expect(files).toEqual(expect.arrayContaining(['TestQuery.cjs', 'TestFragment.cjs']))
 })
 
 test('adds kind, name, and raw', async function () {
