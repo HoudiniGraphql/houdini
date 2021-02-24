@@ -7229,7 +7229,6 @@ __metadata:
     graphql-relay: ^0.6.0
     graphql-tag: ^2.11.0
     houdini: ^0.0.15
-    houdini-compiler: ^0.0.15
     houdini-preprocess: ^0.0.15
     lodash: ^4.17.20
     polka: next

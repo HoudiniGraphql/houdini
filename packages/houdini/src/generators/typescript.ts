@@ -61,7 +61,9 @@ export default async function typescriptGenerator(
 				),
 				null
 			)
-		})
+		}).concat([
+			AST.exportAllDeclaration(AST.literal('./runtime'), null),
+		])
 	)
 
 	// write the contents

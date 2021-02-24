@@ -17,7 +17,7 @@ export type ConfigFile = {
 // a place to hold conventions and magic strings
 export class Config {
 	filepath: string
-	runtimeDirectory: string
+	rootDir: string
 	schema: graphql.GraphQLSchema
 	sourceGlob: string
 	quiet: boolean
@@ -56,7 +56,7 @@ export class Config {
 		// src/node_modules so that we can access @sapper/app and interact
 		// with the application stores directly
 		const rootDir = path.dirname(filepath)
-		this.runtimeDirectory =
+		this.rootDir =
 			mode === 'sapper'
 				? path.join(rootDir, 'src', 'node_modules', '$houdini')
 				: path.join(rootDir, '.houdini')
@@ -70,17 +70,17 @@ export class Config {
 
 	// the directory where we put all of the artifacts
 	get artifactDirectory() {
-		return path.join(this.runtimeDirectory, 'artifacts')
+		return path.join(this.rootDir, 'artifacts')
 	}
 
 	// the directory where the mutation handlers live
 	get patchDirectory() {
-		return path.join(this.runtimeDirectory, 'patches')
+		return path.join(this.rootDir, 'patches')
 	}
 
 	// the directory where mutation links live
 	get mutationLinksDirectory() {
-		return path.join(this.runtimeDirectory, 'links')
+		return path.join(this.rootDir, 'links')
 	}
 
 	// the directory where artifact types live
@@ -88,8 +88,13 @@ export class Config {
 		return this.artifactDirectory
 	}
 
+	// where we will place the runtime	
+	get runtimeDirectory() {
+		return path.join(this.rootDir, 'runtime')
+	}
+
 	get typeIndexPath() {
-		return path.join(this.runtimeDirectory, 'index.d.ts')
+		return path.join(this.rootDir, 'index.d.ts')
 	}
 
 	artifactTypePath(document: graphql.DocumentNode) {
@@ -151,6 +156,7 @@ export class Config {
 			mkdirp(this.mutationLinksDirectory),
 			mkdirp(this.artifactDirectory),
 			mkdirp(this.artifactTypeDirectory),
+			mkdirp(this.runtimeDirectory),
 		])
 	}
 

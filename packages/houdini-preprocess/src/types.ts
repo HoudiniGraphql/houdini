@@ -1,6 +1,6 @@
 // externals
 import { Config, Maybe, Script } from 'houdini-common'
-import { Patch } from 'houdini-compiler'
+import { Patch } from 'houdini'
 
 type Module<T> = Promise<{ default: T }>
 

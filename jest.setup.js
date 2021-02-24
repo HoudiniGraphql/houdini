@@ -18,9 +18,10 @@ const config = testConfig()
 
 beforeEach(() => {
 	mockFs({
-		[config.runtimeDirectory]: {
+		[config.rootDir]: {
 			[config.artifactDirectory]: {},
 			[config.patchDirectory]: {},
+			[config.runtimeDirectory]: {},
 		},
 	})
 })

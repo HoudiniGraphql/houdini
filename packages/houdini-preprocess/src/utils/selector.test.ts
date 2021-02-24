@@ -1,7 +1,7 @@
 // externals
 import * as graphql from 'graphql'
 // locals
-import { CompiledFragmentKind } from 'houdini-compiler'
+import { CompiledFragmentKind } from 'houdini'
 import selector from './selector'
 import { testConfig } from 'houdini-common'
 import '../../../../jest.setup'
