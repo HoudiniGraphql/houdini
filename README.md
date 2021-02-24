@@ -240,7 +240,7 @@ that all necessary data has been asked for:
 
 <script>
     import { query, graphql } from 'houdini'
-    import { UserAvatar } from 'components/UserAvatar'
+    import { UserAvatar } from 'components'
     import type { AllUsers } from 'path/to/generated/runtime'
 
     const data = query<AllUsers>(graphql`
