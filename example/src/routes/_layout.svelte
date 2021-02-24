@@ -14,17 +14,23 @@
 		}
 	`)
 
+	// grab the session store to pass to the mutation
+	const { session, page } = stores()
+
 	// state and handler for the new item input
-	const addItem = mutation<AddItem>(graphql`
-		mutation AddItem($input: AddItemInput!) {
-			addItem(input: $input) {
-				item {
-					...All_Items_insert @prepend(when_not: { argument: "completed", value: "true" })
-					...Item_Info_insert
+	const addItem = mutation<AddItem>(
+		graphql`
+			mutation AddItem($input: AddItemInput!) {
+				addItem(input: $input) {
+					item {
+						...All_Items_insert @prepend(when_not: { argument: "completed", value: "true" })
+						...Item_Info_insert
+					}
 				}
 			}
-		}
-	`)
+		`,
+		session
+	)
 	let inputValue = ''
 	async function onBlur() {
 		// trigger the mutation
@@ -36,12 +42,10 @@
 
 	const numberOfItems = derived(data, ($data) => $data.items.length)
 	const itemsLeft = derived(data, ($data) => $data.items.filter((item) => !item.completed).length)
-	const hasCompleted = derived(data, ($data) =>
-		Boolean($data.items.find((item) => item.completed))
-	)
+	const hasCompleted = derived(data, ($data) => Boolean($data.items.find((item) => item.completed)))
 
 	// figure out the current page
-	const currentPage = derived(stores().page, ($page) => {
+	const currentPage = derived(page, ($page) => {
 		if ($page.path.includes('active')) {
 			return 'active'
 		} else if ($page.path.includes('completed')) {

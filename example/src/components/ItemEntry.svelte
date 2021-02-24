@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fragment, mutation, graphql } from 'houdini'
 	import type { ItemEntry_item, CompleteItem, UncompleteItem, DeleteItem } from '../../generated'
+	import { stores } from '@sapper/app'
 
 	// the reference we're passed from our parents
 	export let item: ItemEntry_item
@@ -17,38 +18,50 @@
 		item
 	)
 
+	// pull the session store out to pass to the mutation generator
+	const { session } = stores()
+
 	// create a callbacks we'll invoke to check and uncheck thie item
-	const completeItem = mutation<CompleteItem>(graphql`
-		mutation CompleteItem($id: ID!) {
-			checkItem(item: $id) {
-				item {
-					id
-					completed
-					...All_Items_remove @when(argument: "completed", value: "false")
+	const completeItem = mutation<CompleteItem>(
+		graphql`
+			mutation CompleteItem($id: ID!) {
+				checkItem(item: $id) {
+					item {
+						id
+						completed
+						...All_Items_remove @when(argument: "completed", value: "false")
+					}
 				}
 			}
-		}
-	`)
+		`,
+		session
+	)
 
-	const uncompleteItem = mutation<UncompleteItem>(graphql`
-		mutation UncompleteItem($id: ID!) {
-			uncheckItem(item: $id) {
-				item {
-					id
-					completed
-					...All_Items_remove @when(argument: "completed", value: "true")
+	const uncompleteItem = mutation<UncompleteItem>(
+		graphql`
+			mutation UncompleteItem($id: ID!) {
+				uncheckItem(item: $id) {
+					item {
+						id
+						completed
+						...All_Items_remove @when(argument: "completed", value: "true")
+					}
 				}
 			}
-		}
-	`)
+		`,
+		session
+	)
 
-	const deleteItem = mutation<DeleteItem>(graphql`
-		mutation DeleteItem($id: ID!) {
-			deleteItem(item: $id) {
-				itemID @TodoItem_delete
+	const deleteItem = mutation<DeleteItem>(
+		graphql`
+			mutation DeleteItem($id: ID!) {
+				deleteItem(item: $id) {
+					itemID @TodoItem_delete
+				}
 			}
-		}
-	`)
+		`,
+		session
+	)
 
 	async function handleClick() {
 		// if the item is already checked

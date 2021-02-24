@@ -3,13 +3,14 @@ import { GraphQLTagResult } from 'houdini-preprocess'
 import { CompiledMutationKind } from 'houdini-compiler'
 // locals
 import { getDocumentStores, applyPatch, fetchQuery } from './runtime'
-import { Operation } from './types'
+import { Operation, Session } from './types'
 import { FetchContext } from './environment'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
 export default function mutation<_Mutation extends Operation<any, any>>(
-	document: GraphQLTagResult
+	document: GraphQLTagResult,
+	session?: Session, 
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
 	if (document.kind !== CompiledMutationKind) {
@@ -42,7 +43,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 				}
 
 				// grab the response from the server
-				const { data } = await fetchQuery(mutationCtx, { text, variables })
+				const { data } = await fetchQuery(mutationCtx, { text, variables }, session)
 
 				// we could have gotten a null response
 				if (!data) {
