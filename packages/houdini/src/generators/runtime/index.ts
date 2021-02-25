@@ -38,7 +38,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 
 async function generateAdapter(config: Config) {
 	// the location of the adapter
-	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.js')
+	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.cjs')
 
 	// figure out the correct content
 	const content = config.mode === 'kit' ? kitAdapter() : sapperAdapter()
