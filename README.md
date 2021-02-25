@@ -453,21 +453,21 @@ import { Environment } from '$houdini'
 // this function can take a second argument that will contain the session
 // data during a request or mutation
 export default new Environment(async function ({ text, variables = {} }, session) {
-	// send the request to the ricky and morty api
-	const result = await this.fetch('http://localhost:4000', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
+    // send the request to the ricky and morty api
+    const result = await this.fetch('http://localhost:4000', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
             'Authorization': session.token ? `Bearer ${session.token}` : null,
-		},
-		body: JSON.stringify({
-			query: text,
-			variables,
-		}),
-	})
+        },
+        body: JSON.stringify({
+            query: text,
+            variables,
+        }),
+    })
 
-	// parse the result as json
-	return await result.json()
+    // parse the result as json
+    return await result.json()
 })
 ```
 
