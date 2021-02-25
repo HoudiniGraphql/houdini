@@ -18,14 +18,15 @@ expect.addSnapshotSerializer({
 const config = testConfig()
 
 beforeEach(() => {
-	mockFs({
+	const paths = {
 		[path.relative(process.cwd(), config.rootDir)]: {
 			[path.relative(config.rootDir, config.artifactDirectory)]: {},
 			[path.relative(config.rootDir, config.patchDirectory)]: {},
 			[path.relative(config.rootDir, config.runtimeDirectory)]: {},
 		},
 		[`src/generators/runtime/template`]: {}
-	})
+	}
+	mockFs(paths)
 })
 
 // make sure the runtime directory is clear before each test
