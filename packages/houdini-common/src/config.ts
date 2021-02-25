@@ -248,8 +248,20 @@ export class Config {
 		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.removeFragmentSuffix)
 	}
 
+	isConnectionDirective(name: string): boolean {
+		return name.endsWith(this.deleteDirectiveSuffix)
+	}
+
 	isFragmentForConnection(connectionName: string, fragmentName: string) {
 		return fragmentName.startsWith(connectionName)
+	}
+
+	connectionNameFromDirective(directiveName: string): string {
+		try {
+			return this.connectionNameFromFragment(directiveName)
+		} catch (e) {
+			throw new Error('Could not find connection name from directive: ' + directiveName)
+		}
 	}
 
 	connectionNameFromFragment(fragmentName: string): string {

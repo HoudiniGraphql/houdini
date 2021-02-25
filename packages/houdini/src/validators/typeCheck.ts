@@ -1,27 +1,9 @@
 // externals
-import { Config } from 'houdini-common'
+import { Config, getTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 import { HoudiniError, HoudiniDocumentError, HoudiniErrorTodo } from '../error'
-
-// build up a list of the rules we want to validate with
-const validateRules = [...graphql.specifiedRules].filter(
-	// remove the rules that conflict with our
-	(rule) =>
-		![
-			// fragments are defined on their own so unused fragments are a face of life
-			graphql.NoUnusedFragmentsRule,
-			// query documents don't contain the fragments they use so we can't enforce
-			// that we know every fragment
-			graphql.KnownFragmentNamesRule,
-			// some of the documents (ie the injected ones) will contain directive defintions
-			// and therefor not be explicitly executable
-			graphql.ExecutableDefinitionsRule,
-			// connection include directives that aren't defined by the schema
-			graphql.KnownDirectivesRule,
-		].includes(rule)
-)
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.
@@ -38,12 +20,14 @@ export default async function typeCheck(
 	const freeConnections: string[] = []
 	// we also want to keep track of all connection names so we can validate the mutation fragments
 	const connections: string[] = []
+	// keep track of every type in a connection so we can validate the directives too
+	const connectionTypes: string[] = []
 
 	// visit every document and build up the lists
-	for (const { filename, document: parsed, printed } of docs) {
+	for (const { document: parsed } of docs) {
 		graphql.visit(parsed, {
 			[graphql.Kind.DIRECTIVE]: {
-				enter(directive, key, parent, path, ancestors) {
+				enter(directive, _, parent, __, ancestors) {
 					// if the fragment is a connection fragment
 					if (directive.name.value !== config.connectionDirective) {
 						return
@@ -59,13 +43,10 @@ export default async function typeCheck(
 						return
 					}
 
-					// look at the list of ancestors to see if we required a parent ID
-					let needsParent = false
-
 					// in order to look up field type information we have to start at the parent
 					// and work our way down
 					// note:  the top-most parent is always gonna be a document so we ignore it
-					const parents = [...ancestors] as (
+					let parents = [...ancestors] as (
 						| graphql.FieldNode
 						| graphql.InlineFragmentNode
 						| graphql.FragmentDefinitionNode
@@ -83,16 +64,15 @@ export default async function typeCheck(
 						definition = parents.shift()
 					}
 
-					// if we are looking at a fragment definition then the
-					// connection needs to have a parent id
-					if (definition.kind === 'FragmentDefinition') {
-						needsParent = true
-					}
+					// look at the list of ancestors to see if we required a parent ID
+					let needsParent = definition.kind === 'FragmentDefinition'
 
 					// if we are looking at an operation that's not query
 					if (
-						definition.kind === 'OperationDefinition' &&
-						definition.operation !== 'query'
+						(definition.kind !== 'OperationDefinition' &&
+							definition.kind !== 'FragmentDefinition') ||
+						(definition.kind === 'OperationDefinition' &&
+							definition.operation !== 'query')
 					) {
 						errors.push(
 							new Error('@connection can only appear in queries or fragments')
@@ -100,68 +80,74 @@ export default async function typeCheck(
 						return
 					}
 
-					// if we are looking at a query
-					if (
-						definition.kind === 'OperationDefinition' &&
-						definition.operation === 'query'
-					) {
-						let rootType:
-							| graphql.GraphQLNamedType
-							| undefined
-							| null = config.schema.getQueryType()
-						if (!rootType) {
-							errors.push(new Error('Could not find query type'))
+					// we need to figure out the type of the connection so lets start walking down
+					// the list of parents starting at the root type
+					let rootType: graphql.GraphQLNamedType | undefined | null =
+						definition.kind === 'OperationDefinition'
+							? config.schema.getQueryType()
+							: config.schema.getType(definition.typeCondition.name)
+					if (!rootType) {
+						errors.push(new Error('Could not find root type'))
+						return
+					}
+
+					// go over the rest of the parent tree
+					for (const parent of parents) {
+						// if we are looking at a list or selection set, ignore it
+						if (
+							Array.isArray(parent) ||
+							parent.kind === 'SelectionSet' ||
+							parent.kind === 'InlineFragment'
+						) {
+							continue
+						}
+
+						// if the directive isn't a field we have a problem
+						if (parent.kind !== 'Field') {
+							errors.push(new HoudiniErrorTodo("Shouldn't get here"))
 							return
 						}
 
-						// go over the rest of the parent tree
-						for (const parent of parents) {
-							// if we are looking at a list or selection set, ignore it
-							if (
-								Array.isArray(parent) ||
-								parent.kind === 'SelectionSet' ||
-								parent.kind === 'InlineFragment'
-							) {
-								continue
-							}
-
-							// if the directive isn't a field we have a problem
-							if (parent.kind !== 'Field') {
-								errors.push(new HoudiniErrorTodo("Shouldn't get here"))
-								return
-							}
-
-							// if we are looking at a list type
-							if (
-								graphql.isListType(rootType) ||
-								(graphql.isNonNullType(rootType) &&
-									graphql.isListType(rootType.ofType))
-							) {
-								// we need an id to know which element to add to
-								needsParent = true
-								break
-							}
-
-							// if we have a non-null type, unwrap it
-							if (graphql.isNonNullType(rootType)) {
-								rootType = rootType.ofType
-							}
-
-							// if we hit a scalar
-							if (graphql.isScalarType(rootType)) {
-								// we're done
-								break
-							}
-
-							// @ts-ignore
-							// look at the next entry for a list or someting else that would make us
-							// require a parent ID
-							rootType = rootType?.getFields()[parent.name.value].type
+						// if we are looking at a list type
+						if (
+							graphql.isListType(rootType) ||
+							(graphql.isNonNullType(rootType) && graphql.isListType(rootType.ofType))
+						) {
+							// we need an id to know which element to add to
+							needsParent = true
+							break
 						}
+
+						// if we have a non-null type, unwrap it
+						if (graphql.isNonNullType(rootType)) {
+							rootType = rootType.ofType
+						}
+
+						// if we hit a scalar
+						if (graphql.isScalarType(rootType)) {
+							// we're done
+							break
+						}
+
+						// @ts-ignore
+						// look at the next entry for a list or someting else that would make us
+						// require a parent ID
+						rootType = rootType?.getFields()[parent.name.value].type
 					}
+
+					parents = [...ancestors] as (
+						| graphql.FieldNode
+						| graphql.InlineFragmentNode
+						| graphql.FragmentDefinitionNode
+						| graphql.OperationDefinitionNode
+						| graphql.SelectionSetNode
+					)[]
+					parents.reverse()
+					const parentType = getTypeFromAncestors(config.schema, parents.slice(1))
 
 					// add the connection to the list
 					connections.push(nameArg.value.value)
+					connectionTypes.push(parentType.name)
 
 					// if we still dont need a parent by now, add it to the list of free connections
 					if (!needsParent) {
@@ -172,12 +158,37 @@ export default async function typeCheck(
 		})
 	}
 
-	for (const { filename, document: parsed, printed } of docs) {
-		// build up the list of rules
-		const rules = validateRules.concat(
-			validateConnections({ filename, config, printed, freeConnections, connections })
+	// build up the list of rules we'll apply to every document
+	const rules = [...graphql.specifiedRules]
+		.filter(
+			// remove the rules that conflict with our
+			(rule) =>
+				![
+					// fragments are defined on their own so unused fragments are a fact of life
+					graphql.NoUnusedFragmentsRule,
+					// query documents don't contain the fragments they use so we can't enforce
+					// that we know every fragment. this is replaced with a more appopriate version
+					// down below
+					graphql.KnownFragmentNamesRule,
+					// some of the documents (ie the injected ones) will contain directive defintions
+					// and therefor not be explicitly executable
+					graphql.ExecutableDefinitionsRule,
+					// connection include directives that aren't defined by the schema. this
+					// is replaced with a more appopriate version down below
+					graphql.KnownDirectivesRule,
+				].includes(rule)
+		)
+		.concat(
+			// this will replace `KnownDirectives` and `KnownFragmentNames`
+			validateConnections({
+				config,
+				freeConnections,
+				connections,
+				connectionTypes,
+			})
 		)
 
+	for (const { filename, document: parsed, printed } of docs) {
 		// validate the document
 		for (const error of graphql.validate(config.schema, parsed, rules)) {
 			errors.push({
@@ -201,16 +212,17 @@ const validateConnections = ({
 	config,
 	freeConnections,
 	connections,
+	connectionTypes,
 }: {
 	config: Config
-	filename: string
 	freeConnections: string[]
-	printed: string
 	connections: string[]
+	connectionTypes: string[]
 }) =>
-	function requireParentID(ctx: graphql.ValidationContext): graphql.ASTVisitor {
+	function verifyConnectionArtifacts(ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		return {
-			[graphql.Kind.FRAGMENT_SPREAD]: {
+			// if we run into a fragment spread
+			FragmentSpread: {
 				enter(node) {
 					// if the fragment is not a connection id then move along
 					if (!config.isConnectionFragment(node.name.value)) {
@@ -271,6 +283,30 @@ const validateConnections = ({
 						ctx.reportError(
 							new graphql.GraphQLError(
 								'parentID is required for this connection fragment'
+							)
+						)
+						return
+					}
+				},
+			},
+			// if we run into a directive that points to a connection, make sure that connection exists
+			Directive: {
+				enter(node) {
+					const directiveName = node.name.value
+
+					// if the directive is not a connection directive
+					if (!config.isConnectionDirective(directiveName)) {
+						return
+					}
+
+					// if the directive points to a type we dont recognize as the target of a connection
+					if (
+						!connectionTypes.includes(config.connectionNameFromDirective(directiveName))
+					) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								'Encountered directive referencing unknown connection: ' +
+									directiveName
 							)
 						)
 						return

@@ -236,6 +236,8 @@ const table: Row[] = [
 	{
 		title: 'unknown connection fragments errors before generation',
 		pass: false,
+		// note: we pass parentID here to ensure we're not getting caught on the
+		//		 free connections check
 		documents: [
 			`
 				mutation Foo {
@@ -248,6 +250,57 @@ const table: Row[] = [
 				mutation Bar {
 					addFriend { 
 						...UserFragment_insert @parentID(value: "2")
+					}
+				}
+			`,
+		],
+		check: function (e: HoudiniError | HoudiniError[]) {
+			expect(e).toHaveLength(2)
+		},
+	},
+	{
+		title: 'known connection directives ',
+		pass: true,
+		// note: we pass parentID here to ensure we're not getting caught on the
+		//		 free connections check
+		documents: [
+			`
+				query UserFriends {
+					user {
+						friends {
+							friends @connection(name: "Friends") {
+								id
+							}
+						}
+					}
+				}
+			`,
+			`
+				mutation Bar {
+					deleteUser(id: "2") { 
+						userID @User_delete
+					}
+				}
+			`,
+		],
+	},
+	{
+		title: 'unknown connection directives errors before generation',
+		pass: false,
+		// note: we pass parentID here to ensure we're not getting caught on the
+		//		 free connections check
+		documents: [
+			`
+				mutation Foo {
+					deleteUser(id: "2") { 
+						userID @Foo_delete
+					}
+				}
+			`,
+			`
+				mutation Bar {
+					deleteUser(id: "2") { 
+						userID @Foo_delete
 					}
 				}
 			`,
