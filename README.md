@@ -19,21 +19,22 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 
 1. [Example](#example)
 1. [Installation](#installation)
-1. [Configuring Your Environment](#configuring-your-environment)
-1. [Running the Compiler](#running-the-compiler)
-1. [Fetching Data](#fetching-data)
+1. [Configuring Your Application](#configuring-your-application)
+   1.  [Sveltekit](#sveltekit) 
+3. [Running the Compiler](#running-the-compiler)
+4. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
     1. [What about preload?](#what-about-preload)
-1. [Fragments](#fragments)
-1. [Mutations](#mutations)
+5. [Fragments](#fragments)
+6. [Mutations](#mutations)
     1. [Updating fields](#updating-fields)
     1. [Connections](#connections)
         1. [Insert](#inserting-a-record)
         1. [Remove](#removing-a-record)
         1. [Delete](#deleting-a-record)
         1. [Conditionals](#conditionals)
-1. [Authentication](#authentication)
-1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
+7. [Authentication](#authentication)
+8. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
 
 ## 🕹️&nbsp;&nbsp;Example
 
@@ -91,7 +92,7 @@ import env from './environment'
 setEnvironment(env)
 ```
 
-### Supporting Sveltekit
+### Sveltekit
 
 Supporting Sveltekit takes a few extra configuration values. First, we add the following field 
 to the `houdini.config.cjs` file:
