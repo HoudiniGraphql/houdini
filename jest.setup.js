@@ -26,6 +26,7 @@ beforeEach(() => {
 		},
 		[`src/generators/runtime/template`]: {}
 	}
+	console.log(paths)
 	mockFs(paths)
 })
 
