@@ -8,6 +8,7 @@ import * as types from './types'
 const typeBuilders = recast.types.builders
 
 const config: Config = new Config({
+	filepath: 'hello',
 	schema: `type Query { foo: Int! }`,
 	runtimeDirectory: '',
 	sourceGlob: '',

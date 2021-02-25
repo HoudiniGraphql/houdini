@@ -50,18 +50,20 @@ export default async function typescriptGenerator(
 
 	// now that we have every type generated, create an index file in the runtime root that exports the types
 	const typeIndex = AST.program(
-		typePaths.map((typePath) => {
-			return AST.exportAllDeclaration(
-				AST.literal(
-					'./' +
-						path
-							.relative(path.resolve(config.typeIndexPath, '..'), typePath)
-							// remove the .d.ts from the end of the path
-							.replace(/\.[^/.]+\.[^/.]+$/, '')
-				),
-				null
-			)
-		})
+		typePaths
+			.map((typePath) => {
+				return AST.exportAllDeclaration(
+					AST.literal(
+						'./' +
+							path
+								.relative(path.resolve(config.typeIndexPath, '..'), typePath)
+								// remove the .d.ts from the end of the path
+								.replace(/\.[^/.]+\.[^/.]+$/, '')
+					),
+					null
+				)
+			})
+			.concat([AST.exportAllDeclaration(AST.literal('./runtime'), null)])
 	)
 
 	// write the contents

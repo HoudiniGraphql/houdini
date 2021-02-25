@@ -6,8 +6,8 @@ import * as recast from 'recast'
 import fs from 'fs/promises'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
-import { ConnectionWhen, Patch } from '../../types'
-import { PatchAtom, MutationMap } from '.'
+import { ConnectionWhen, Patch, PatchAtom } from '../../types'
+import { MutationMap } from '.'
 import { HoudiniErrorTodo } from '../../error'
 
 const AST = recast.types.builders

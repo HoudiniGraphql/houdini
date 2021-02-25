@@ -181,7 +181,7 @@ export default async function queryProcessor(
 		doc.module.content.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
-			source: typeBuilders.literal('houdini'),
+			source: typeBuilders.literal('$houdini'),
 			specifiers: [
 				// @ts-ignore
 				typeBuilders.importSpecifier(
@@ -195,7 +195,7 @@ export default async function queryProcessor(
 	let storeUpdateImport = doc.instance.content.body.find(
 		(statement) =>
 			statement.type === 'ImportDeclaration' &&
-			statement.source.value === 'houdini' &&
+			statement.source.value === '$houdini' &&
 			statement.specifiers.find(
 				(importSpecifier) =>
 					importSpecifier.type === 'ImportSpecifier' &&
@@ -209,7 +209,7 @@ export default async function queryProcessor(
 		doc.instance.content.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
-			source: typeBuilders.literal('houdini'),
+			source: typeBuilders.literal('$houdini'),
 			specifiers: [
 				// @ts-ignore
 				typeBuilders.importSpecifier(

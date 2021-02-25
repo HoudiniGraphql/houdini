@@ -1,7 +1,7 @@
 // externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { DocumentArtifact } from 'houdini-compiler'
+import { DocumentArtifact } from 'houdini'
 import { Config, selectionTypeInfo, isListType } from 'houdini-common'
 import { PatternKind } from 'ast-types/gen/kinds'
 // locals

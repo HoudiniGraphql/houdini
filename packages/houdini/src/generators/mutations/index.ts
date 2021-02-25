@@ -1,9 +1,8 @@
 // externals
 import { Config, isListType, isObjectType, getRootType, selectionTypeInfo } from 'houdini-common'
 import * as graphql from 'graphql'
-import fs from 'fs/promises'
 // locals
-import { CollectedGraphQLDocument, ConnectionWhen } from '../../types'
+import { CollectedGraphQLDocument, ConnectionWhen, PatchAtom } from '../../types'
 import { patchesForSelectionSet, generatePatches } from './patches'
 import { generateLinks } from './links'
 import { HoudiniErrorTodo } from '../../error'
@@ -40,23 +39,6 @@ export type MutationMap = {
 			}
 		}
 	}
-}
-
-// another intermediate type used when building up the mutation description
-export type PatchAtom = {
-	operation: 'add' | 'remove' | 'update' | 'delete'
-	mutationName: string
-	mutationPath: string[]
-	queryName: string
-	queryPath: string[]
-	// connection fields
-	parentID?: {
-		kind: 'Variable' | 'String' | 'Root'
-		value: string
-	}
-	when?: ConnectionWhen
-	connectionName?: string
-	position?: 'start' | 'end'
 }
 
 export default async function mutationGenerator(config: Config, docs: CollectedGraphQLDocument[]) {

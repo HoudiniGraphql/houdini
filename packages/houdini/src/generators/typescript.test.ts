@@ -351,7 +351,10 @@ describe('typescript', function () {
 			recast.parse(fileContents, {
 				parser: typeScriptParser,
 			})
-		).toMatchInlineSnapshot(`export * from "./artifacts/Query";`)
+		).toMatchInlineSnapshot(`
+		export * from "./artifacts/Query";
+		export * from "./runtime";
+	`)
 	})
 
 	test('fragment spreads', async function () {

@@ -5,30 +5,33 @@ import mkdirp from 'mkdirp'
 
 // the values we can take in from the config file
 export type ConfigFile = {
-	runtimeDirectory: string
 	sourceGlob: string
 	schemaPath?: string
 	schema?: string
 	quiet?: boolean
 	verifyHash?: boolean
+	mode?: 'sapper' | 'kit'
 }
 
 // a place to hold conventions and magic strings
 export class Config {
-	runtimeDirectory: string
+	filepath: string
+	rootDir: string
 	schema: graphql.GraphQLSchema
 	sourceGlob: string
 	quiet: boolean
 	verifyHash: boolean
+	mode: string
 
 	constructor({
-		runtimeDirectory,
 		schema,
 		schemaPath,
 		sourceGlob,
 		quiet = false,
 		verifyHash,
-	}: ConfigFile) {
+		filepath,
+		mode = 'sapper',
+	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
 			throw new Error('Please provide one of schema or schema path')
@@ -43,11 +46,21 @@ export class Config {
 			)
 		}
 
-		// hold onto the artifact directory
-		this.runtimeDirectory = runtimeDirectory
+		// save the values we were given
+		this.filepath = filepath
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
 		this.verifyHash = typeof verifyHash === 'undefined' ? true : verifyHash
+		this.mode = mode
+
+		// if we are building a sapper project, we want to put the runtime in
+		// src/node_modules so that we can access @sapper/app and interact
+		// with the application stores directly
+		const rootDir = path.dirname(filepath)
+		this.rootDir =
+			mode === 'sapper'
+				? path.join(rootDir, 'src', 'node_modules', '$houdini')
+				: path.join(rootDir, '.houdini')
 	}
 
 	/*
@@ -58,17 +71,17 @@ export class Config {
 
 	// the directory where we put all of the artifacts
 	get artifactDirectory() {
-		return path.join(this.runtimeDirectory, 'artifacts')
+		return path.join(this.rootDir, 'artifacts')
 	}
 
 	// the directory where the mutation handlers live
 	get patchDirectory() {
-		return path.join(this.runtimeDirectory, 'patches')
+		return path.join(this.rootDir, 'patches')
 	}
 
 	// the directory where mutation links live
 	get mutationLinksDirectory() {
-		return path.join(this.runtimeDirectory, 'links')
+		return path.join(this.rootDir, 'links')
 	}
 
 	// the directory where artifact types live
@@ -76,8 +89,13 @@ export class Config {
 		return this.artifactDirectory
 	}
 
+	// where we will place the runtime
+	get runtimeDirectory() {
+		return path.join(this.rootDir, 'runtime')
+	}
+
 	get typeIndexPath() {
-		return path.join(this.runtimeDirectory, 'index.d.ts')
+		return path.join(this.rootDir, 'index.d.ts')
 	}
 
 	artifactTypePath(document: graphql.DocumentNode) {
@@ -139,6 +157,7 @@ export class Config {
 			mkdirp(this.mutationLinksDirectory),
 			mkdirp(this.artifactDirectory),
 			mkdirp(this.artifactTypeDirectory),
+			mkdirp(this.runtimeDirectory),
 		])
 	}
 
@@ -248,7 +267,7 @@ export class Config {
 
 export function testConfig(config: {} = {}) {
 	return new Config({
-		runtimeDirectory: path.resolve(process.cwd(), '__tests__'),
+		filepath: path.join(process.cwd(), 'config.cjs'),
 		sourceGlob: '123',
 		schema: `
 			type User {
@@ -320,5 +339,13 @@ export async function getConfig(): Promise<Config> {
 		return _config
 	}
 
-	return new Config(await import(path.join(process.cwd(), 'houdini.config.cjs')))
+	// load the config file
+	const configPath = path.join(process.cwd(), 'houdini.config.cjs')
+	const config = await import(configPath)
+
+	// add the filepath
+	return new Config({
+		...config,
+		filepath: configPath,
+	})
 }

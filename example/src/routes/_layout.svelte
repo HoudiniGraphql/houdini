@@ -1,8 +1,7 @@
 <script lang="ts">
-	import { query, graphql, mutation } from 'houdini'
+	import { query, graphql, mutation, IndexInfo, AddItem } from '$houdini'
 	import { derived } from 'svelte/store'
 	import { stores } from '@sapper/app'
-	import type { IndexInfo, AddItem } from '../../generated'
 
 	// load some data at the top of the app for general information
 	const data = query<IndexInfo>(graphql`

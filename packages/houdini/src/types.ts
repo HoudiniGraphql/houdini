@@ -1,10 +1,39 @@
-export type Fragment<_Result> = {
-	readonly shape?: _Result
+import * as graphql from 'graphql'
+export { PatchAtom, Patch, ConnectionWhen } from './generators/runtime/template/types'
+
+// the compiled version of an operation
+type BaseCompiledDocument = {
+	name: string
+	raw: string
+	hash: string
 }
 
-export type Operation<_Result, _Input> = {
-	readonly result: _Result
-	readonly input: _Input
+export const CompiledFragmentKind = 'HoudiniFragment'
+export const CompiledMutationKind = 'HoudiniMutation'
+export const CompiledQueryKind = 'HoudiniQuery'
+
+// the information that the compiler leaves behind after processing an operation
+export type QueryArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniQuery'
 }
 
-export type Session = any
+export type MutationArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniMutation'
+}
+
+// the information that the compiler leaves behind after processing a fragment
+export type FragmentArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniFragment'
+}
+
+// any compiled result
+export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifact
+
+// the result of collecting documents from source code
+export type CollectedGraphQLDocument = {
+	filename: string
+	name: string
+	document: graphql.DocumentNode
+	originalDocument: graphql.DocumentNode
+	printed: string
+}

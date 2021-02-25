@@ -1,23 +1,25 @@
-// externals
-import { GraphQLTagResult } from 'houdini-preprocess'
-import { CompiledMutationKind } from 'houdini-compiler'
 // locals
 import { getDocumentStores, applyPatch, fetchQuery } from './runtime'
-import { Operation, Session } from './types'
 import { FetchContext } from './environment'
+import { Operation, GraphQLTagResult } from './types'
+// @ts-ignore: this file will get generated and does not exist in the source code
+import { getSession, goTo } from './adapter'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
 export default function mutation<_Mutation extends Operation<any, any>>(
-	document: GraphQLTagResult,
-	session?: Session
+	document: GraphQLTagResult
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
-	if (document.kind !== CompiledMutationKind) {
+	if (document.kind !== 'HoudiniMutation') {
 		throw new Error('getQuery can only take query operations')
 	}
+
 	// pull the query text out of the compiled artifact
 	const { raw: text, links: linkModule } = document
+
+	// grab the sesion from the adapter
+	const session = getSession()
 
 	// return an async function that sends the mutation go the server
 	return (variables: _Mutation['input']) =>
@@ -37,7 +39,8 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 					},
 					redirect: (code: number, location: string) => {
 						// send the user to the new location
-						window.location.href = location
+						goTo(location)
+
 						console.warn('dont know what to do with code just yet')
 					},
 				}
