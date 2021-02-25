@@ -18,16 +18,14 @@ expect.addSnapshotSerializer({
 const config = testConfig()
 
 beforeEach(() => {
-	const paths = {
+	mockFs({
 		[path.relative(process.cwd(), config.rootDir)]: {
 			[path.relative(config.rootDir, config.artifactDirectory)]: {},
 			[path.relative(config.rootDir, config.patchDirectory)]: {},
 			[path.relative(config.rootDir, config.runtimeDirectory)]: {},
 		},
-		[`src/generators/runtime/template`]: {}
-	}
-	console.log(process.cwd(), paths)
-	mockFs(paths)
+		[`packages/houdini/src/generators/runtime/template`]: {}
+	})
 })
 
 // make sure the runtime directory is clear before each test

@@ -34,7 +34,7 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module.content).toMatchInlineSnapshot(`
-		import { fetchQuery } from "houdini";
+		import { fetchQuery } from "$houdini";
 
 		export async function preload(page, session) {
 		    const _TestQuery_Input = {};
@@ -51,7 +51,7 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import { updateStoreData } from "houdini";
+		import { updateStoreData } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
@@ -107,7 +107,7 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module.content).toMatchInlineSnapshot(`
-		import { fetchQuery } from "houdini";
+		import { fetchQuery } from "$houdini";
 
 		export function TestQueryVariables(page) {
 		    return {
@@ -130,7 +130,7 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import { updateStoreData } from "houdini";
+		import { updateStoreData } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
