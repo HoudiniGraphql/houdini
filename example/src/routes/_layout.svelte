@@ -13,9 +13,6 @@
 		}
 	`)
 
-	// grab the session store to pass to the mutation
-	const { page } = stores()
-
 	// state and handler for the new item input
 	const addItem = mutation<AddItem>(graphql`
 		mutation AddItem($input: AddItemInput!) {
@@ -43,7 +40,7 @@
 	)
 
 	// figure out the current page
-	const currentPage = derived(page, ($page) => {
+	const currentPage = derived(stores().page, ($page) => {
 		if ($page.path.includes('active')) {
 			return 'active'
 		} else if ($page.path.includes('completed')) {
