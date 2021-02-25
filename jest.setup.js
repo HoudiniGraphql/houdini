@@ -2,6 +2,7 @@ const recast = require('recast')
 const graphql = require('graphql')
 const { testConfig } = require('houdini-common')
 const mockFs = require('mock-fs')
+const path = require('path')
 
 expect.addSnapshotSerializer({
 	test: (val) => val && val.type,
@@ -18,11 +19,12 @@ const config = testConfig()
 
 beforeEach(() => {
 	mockFs({
-		[config.rootDir]: {
-			[config.artifactDirectory]: {},
-			[config.patchDirectory]: {},
-			[config.runtimeDirectory]: {},
+		[path.relative(process.cwd(), config.rootDir)]: {
+			[path.relative(config.rootDir, config.artifactDirectory)]: {},
+			[path.relative(config.rootDir, config.patchDirectory)]: {},
+			[path.relative(config.rootDir, config.runtimeDirectory)]: {},
 		},
+		[`src/generators/runtime/template`]: {}
 	})
 })
 
