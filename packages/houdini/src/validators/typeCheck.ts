@@ -3,7 +3,7 @@ import { Config } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument } from '../types'
-import { HoudiniDocumentError, HoudiniErrorTodo } from '../error'
+import { HoudiniError, HoudiniDocumentError, HoudiniErrorTodo } from '../error'
 
 // build up a list of the rules we want to validate with
 const validateRules = [...graphql.specifiedRules].filter(
@@ -30,32 +30,32 @@ export default async function typeCheck(
 	docs: CollectedGraphQLDocument[]
 ): Promise<void> {
 	// wrap the errors we run into in a HoudiniError
-	const errors: HoudiniDocumentError[] = []
-	for (const { filename, document: parsed } of docs) {
-		// validate the document
-		for (const error of graphql.validate(config.schema, parsed, validateRules)) {
-			errors.push({
-				...error,
-				filepath: filename,
-			})
-		}
-	}
-	// if we found any type errors
-	if (errors.length > 0) {
-		throw errors
-	}
+	const errors: HoudiniError[] = []
 
 	// we need to catch errors in the connection API. this means that a user
 	// must provide parentID if they are using a connection that is not all-objects
 	// from root. figure out which connections are "free" (ie, can be applied without a parentID arg)
-
 	const freeConnections: string[] = []
+	// we also want to keep track of all connection names so we can validate the mutation fragments
+	const connections: string[] = []
+
+	// visit every document and build up the lists
 	for (const { filename, document: parsed, printed } of docs) {
 		graphql.visit(parsed, {
 			[graphql.Kind.DIRECTIVE]: {
 				enter(directive, key, parent, path, ancestors) {
 					// if the fragment is a connection fragment
 					if (directive.name.value !== config.connectionDirective) {
+						return
+					}
+
+					// look up the name of the connection
+					const nameArg = directive.arguments?.find(
+						({ name }) => name.value === config.connectionNameArg
+					)
+
+					if (!nameArg || nameArg.value.kind !== 'StringValue') {
+						errors.push(new HoudiniErrorTodo('Could not find name arg'))
 						return
 					}
 
@@ -94,7 +94,10 @@ export default async function typeCheck(
 						definition.kind === 'OperationDefinition' &&
 						definition.operation !== 'query'
 					) {
-						throw new Error('@connection can only appear in queries or fragments')
+						errors.push(
+							new Error('@connection can only appear in queries or fragments')
+						)
+						return
 					}
 
 					// if we are looking at a query
@@ -107,7 +110,8 @@ export default async function typeCheck(
 							| undefined
 							| null = config.schema.getQueryType()
 						if (!rootType) {
-							throw new Error('Could not find query type')
+							errors.push(new Error('Could not find query type'))
+							return
 						}
 
 						// go over the rest of the parent tree
@@ -123,7 +127,8 @@ export default async function typeCheck(
 
 							// if the directive isn't a field we have a problem
 							if (parent.kind !== 'Field') {
-								throw new HoudiniErrorTodo("Shouldn't get here")
+								errors.push(new HoudiniErrorTodo("Shouldn't get here"))
+								return
 							}
 
 							// if we are looking at a list type
@@ -155,21 +160,12 @@ export default async function typeCheck(
 						}
 					}
 
+					// add the connection to the list
+					connections.push(nameArg.value.value)
+
 					// if we still dont need a parent by now, add it to the list of free connections
 					if (!needsParent) {
-						// look up the name of the connection
-						const nameArg = directive.arguments?.find(
-							({ name }) => name.value === config.connectionNameArg
-						)
-
-						if (!nameArg || nameArg.value.kind !== 'StringValue') {
-							throw new HoudiniErrorTodo('Could not find name arg')
-						}
-
-						freeConnections.push(
-							config.connectionInsertFragment(nameArg.value.value),
-							config.connectionRemoveFragment(nameArg.value.value)
-						)
+						freeConnections.push(nameArg.value.value)
 					}
 				},
 			},
@@ -177,74 +173,13 @@ export default async function typeCheck(
 	}
 
 	for (const { filename, document: parsed, printed } of docs) {
-		// build up the custom rule that requires parentID on all connection directives
-		// applied to connection fragment spreads whose name does not appear in `freeConnections`
-		const requireParentID = (ctx: graphql.ValidationContext): graphql.ASTVisitor => {
-			return {
-				[graphql.Kind.FRAGMENT_SPREAD]: {
-					enter(node) {
-						// if the fragment is not a connection id then move along
-						if (!config.isConnectionFragment(node.name.value)) {
-							return
-						}
-
-						// if the connection fragment doesn't need a parent ID, we can ignore it
-						if (freeConnections.includes(node.name.value)) {
-							return
-						}
-
-						// the typechecker will verify that there is a value passed to @parentID
-						// so if it exists, we're good to go
-						let directive = node.directives?.find(
-							({ name }) => name.value === config.connectionParentDirective
-						)
-						if (directive) {
-							// there's nothing else to check
-							return
-						}
-
-						// look for one of the connection directives
-						directive = node.directives?.find(({ name }) => [
-							[
-								config.connectionPrependDirective,
-								config.connectionAppendDirective,
-							].includes(name.value),
-						])
-						// if ther is no directive
-						if (!directive) {
-							ctx.reportError(
-								new graphql.GraphQLError(
-									'parentID is required for this connection fragment'
-								)
-							)
-							return
-						}
-
-						// find the argument holding the parent ID
-						let parentArg = directive.arguments?.find(
-							(arg) => arg.name.value === config.connectionDirectiveParentIDArg
-						)
-
-						if (!parentArg) {
-							// yell loudly
-							throw {
-								...new graphql.GraphQLError(
-									'parentID is required for this fragment',
-									node,
-									new graphql.Source(printed),
-									node.loc ? [node.loc.start, node.loc.end] : null,
-									null
-								),
-								filepath: filename,
-							}
-						}
-					},
-				},
-			}
-		}
+		// build up the list of rules
+		const rules = validateRules.concat(
+			validateConnections({ filename, config, printed, freeConnections, connections })
+		)
 
 		// validate the document
-		for (const error of graphql.validate(config.schema, parsed, [requireParentID])) {
+		for (const error of graphql.validate(config.schema, parsed, rules)) {
 			errors.push({
 				...error,
 				filepath: filename,
@@ -260,3 +195,87 @@ export default async function typeCheck(
 	// we're done here
 	return
 }
+// build up the custom rule that requires parentID on all connection directives
+// applied to connection fragment spreads whose name does not appear in `freeConnections`
+const validateConnections = ({
+	config,
+	freeConnections,
+	connections,
+}: {
+	config: Config
+	filename: string
+	freeConnections: string[]
+	printed: string
+	connections: string[]
+}) =>
+	function requireParentID(ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		return {
+			[graphql.Kind.FRAGMENT_SPREAD]: {
+				enter(node) {
+					// if the fragment is not a connection id then move along
+					if (!config.isConnectionFragment(node.name.value)) {
+						return
+					}
+					// compute the name of the connection from the fragment
+					const connectionName = config.connectionNameFromFragment(node.name.value)
+
+					// make sure we know the connection
+					if (!connections.includes(connectionName)) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								'Encountered fragment referencing unknown connection: ' +
+									connectionName
+							)
+						)
+						return
+					}
+
+					// if the connection fragment doesn't need a parent ID, we can ignore it
+					if (freeConnections.includes(connectionName)) {
+						return
+					}
+
+					// the typechecker will verify that there is a value passed to @parentID
+					// so if it exists, we're good to go
+					let directive = node.directives?.find(
+						({ name }) => name.value === config.connectionParentDirective
+					)
+					if (directive) {
+						// there's nothing else to check
+						return
+					}
+
+					// look for one of the connection directives
+					directive = node.directives?.find(({ name }) => [
+						[
+							config.connectionPrependDirective,
+							config.connectionAppendDirective,
+						].includes(name.value),
+					])
+					// if ther is no directive
+					if (!directive) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								'parentID is required for this connection fragment'
+							)
+						)
+						return
+					}
+
+					// find the argument holding the parent ID
+					let parentArg = directive.arguments?.find(
+						(arg) => arg.name.value === config.connectionDirectiveParentIDArg
+					)
+
+					if (!parentArg) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								'parentID is required for this connection fragment'
+							)
+						)
+						return
+					}
+				},
+			},
+		}
+	}

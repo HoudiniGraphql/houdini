@@ -221,6 +221,42 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: 'unknown fragments',
+		pass: false,
+		documents: [
+			`
+				query Foo {
+					user { 
+						...UserFragment
+					}
+				}
+			`,
+		],
+	},
+	{
+		title: 'unknown connection fragments errors before generation',
+		pass: false,
+		documents: [
+			`
+				mutation Foo {
+					addFriend { 
+						...UserFragment_insert @parentID(value: "2")
+					}
+				}
+			`,
+			`
+				mutation Bar {
+					addFriend { 
+						...UserFragment_insert @parentID(value: "2")
+					}
+				}
+			`,
+		],
+		check: function (e: HoudiniError | HoudiniError[]) {
+			expect(e).toHaveLength(2)
+		},
+	},
+	{
 		title: 'returns multiple errors',
 		pass: false,
 		documents: [
