@@ -65,7 +65,7 @@ const networkFile = (url: string) => `import { Environment } from '$houdini'
 
 export default new Environment(async function ({ text, variables = {} }) {
 	// send the request to the ricky and morty api
-	const result = await this.fetch('http://localhost:4000', {
+	const result = await this.fetch('${url}', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
