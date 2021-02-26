@@ -1,10 +1,11 @@
 name: Publish Release
 on:
-    # When a pull request to main is merged
-    pull_request:
-        branches:
-            - main
-        types: [closed]
+    workflow_dispatch:
+        inputs:
+            bump:
+                description: 'The kind of version bump. One of: patch, minor, major'
+                required: true
+                default: 'patch'
 
 env:
     CI: true
@@ -44,17 +45,16 @@ jobs:
                   yarn build
                   git checkout yarn.lock
 
-            # ${BUMP}
             - name: Set Bump
               shell: bash -ex {0}
               run: |
-                  if [ ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') }} = "true" ] ; then
+                  if [ ${{ github.event.inputs.name }} = "major" ] ; then
                     BUMP=major
                     BUMP_EMOJI=🚀
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Minor Version') }} = "true" ] ; then
+                  elif [ ${{ github.event.inputs.name }} = "minor" ] ; then
                     BUMP=minor
                     BUMP_EMOJI=📦
-                  elif [ ${{ contains(github.event.pull_request.labels.*.name, 'Patch Version') }} = "true" ] ; then
+                  elif [ ${{ github.event.inputs.name }} = "patch" ] ; then
                     BUMP=patch
                     BUMP_EMOJI=🔧
                   fi
