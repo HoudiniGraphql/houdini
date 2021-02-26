@@ -13,8 +13,6 @@ jobs:
     publish:
         name: Publish
         runs-on: ubuntu-18.04
-        # only publish if the PR was labeled with one of the versions
-        if: ${{ contains(github.event.pull_request.labels.*.name, 'Major Version') || contains(github.event.pull_request.labels.*.name, 'Minor Version') || contains(github.event.pull_request.labels.*.name, 'Patch Version')}}
         steps:
             - name: Checkout
               uses: actions/checkout@v2
