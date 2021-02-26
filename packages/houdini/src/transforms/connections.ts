@@ -124,6 +124,11 @@ export default async function addConnectionFragments(
 		).values(),
 	].filter(Boolean)
 
+	// if there are no documents, we dont have anything to do
+	if (documents.length === 0) {
+		return
+	}
+
 	// we need to add the fragment definitions __somewhere__ where they will be picked up
 	// so we're going to add them to the list of documents, one each
 	documents[0].document = {
