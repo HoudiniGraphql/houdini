@@ -57,7 +57,7 @@ module.exports.getSession = () => {
 module.exports.goTo = navigation.goTo
 `
 
-const sapperAdapter = () => `const sapper = require('@sapper/app')
+const sapperAdapter = () => `const sapper = import('@sapper/app')
 
 module.exports.getSession = function() {
     const { session } = sapper.stores()
