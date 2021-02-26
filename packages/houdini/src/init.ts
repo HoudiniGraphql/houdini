@@ -38,17 +38,18 @@ export default async (_path: string | undefined) => {
 		}),
 		headers: { 'Content-Type': 'application/json' },
 	})
-	const data = await resp.text()
+	const content = await resp.text()
 
 	try {
 		// write the schema file
 		await fs.writeFile(
 			path.resolve(path.join(targetPath, schemaPath)),
-			JSON.stringify(JSON.parse(data).data),
+			JSON.stringify(JSON.parse(content).data),
 			'utf-8'
 		)
 	} catch (e) {
 		console.log('encountered error parsing response as json: ' + e.message)
+		console.log('full body: ' + content)
 		return
 	}
 
