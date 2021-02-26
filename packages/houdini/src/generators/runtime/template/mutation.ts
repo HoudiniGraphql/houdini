@@ -3,7 +3,7 @@ import { getDocumentStores, applyPatch, fetchQuery } from './runtime'
 import { FetchContext } from './environment'
 import { Operation, GraphQLTagResult } from './types'
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession, goTo } from './adapter'
+import { getSession, goTo } from './adapter.cjs'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked

@@ -1,8 +1,5 @@
 .DS_Store
 node_modules
-/.svelte
-/build
-/functions
 packages/example/src/node_modules/@sapper/
 yarn-error.log
 __sapper__/
@@ -19,3 +16,7 @@ bin
 !.yarn/versions
 .pnp.*
 __tests__
+
+__sapper__
+/example/src/node_modules/@sapper/
+yarn-error.log
