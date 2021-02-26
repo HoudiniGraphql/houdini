@@ -46,13 +46,13 @@ jobs:
             - name: Set Bump
               shell: bash -ex {0}
               run: |
-                  if [ "${{ github.event.inputs.patch }}" = "major" ] ; then
+                  if [ "${{ github.event.inputs.bump }}" = "major" ] ; then
                     BUMP=major
                     BUMP_EMOJI=🚀
-                  elif [ "${{ github.event.inputs.patch }}" = "minor" ] ; then
+                  elif [ "${{ github.event.inputs.bump }}" = "minor" ] ; then
                     BUMP=minor
                     BUMP_EMOJI=📦
-                  elif [ "${{ github.event.inputs.patch }}" = "patch" ] ; then
+                  elif [ "${{ github.event.inputs.bump }}" = "patch" ] ; then
                     BUMP=patch
                     BUMP_EMOJI=🔧
                   fi
