@@ -38,7 +38,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 
 async function generateAdapter(config: Config) {
 	// the location of the adapter
-	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.cjs')
+	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.mjs')
 
 	// figure out the correct content
 	const content = config.mode === 'kit' ? kitAdapter() : sapperAdapter()
@@ -50,22 +50,22 @@ async function generateAdapter(config: Config) {
 const kitAdapter = () => `const stores = import('$app/stores')
 const navigation = import('$app/navigation')
 
-module.exports.getSession = () => {
+export function getSession() {
     stores.session
 }
 
-module.exports.goTo = navigation.goTo
+export const goTo = navigation.goTo
 `
 
 const sapperAdapter = () => `const sapper = import('@sapper/app')
 
-module.exports.getSession = function() {
+export function getSession() {
     const { session } = sapper.stores()
 
     return session
 }
 
-module.exports.goTo = (location, options) => {
+export function goTo(location, options) {
     sapper.goTo(location, options)
 }
 `
