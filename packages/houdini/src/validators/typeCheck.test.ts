@@ -4,6 +4,10 @@ import '../../../../jest.setup'
 import { CollectedGraphQLDocument } from '../types'
 import { HoudiniError } from '../error'
 
+// since generation will catch a lot of these errors for us, the goal of these tests is to make sure
+// errors are caught __before__ we get to the generation stage. This means that our failure tests
+// need to look for multiple errors thrown at once
+
 const table: Row[] = [
 	{
 		title: 'allows documents that satisfy schema',
@@ -43,6 +47,11 @@ const table: Row[] = [
                     bar
                 }
             `,
+			`
+                fragment FragmentA2 on Foo {
+                    bar
+                }
+            `,
 		],
 	},
 	{
@@ -50,7 +59,14 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-                query {
+                query one {
+                    user {
+                        foo
+                    }
+                }
+            `,
+			`
+                query two {
                     user {
                         foo
                     }
@@ -146,6 +162,13 @@ const table: Row[] = [
 					}
                 }
             `,
+			`
+                mutation Mutation2 {
+					addFriend {
+						...Friends_insert
+					}
+                }
+            `,
 		],
 	},
 	{
@@ -165,6 +188,13 @@ const table: Row[] = [
             `,
 			`
                 mutation Mutation {
+					addFriend {
+						...Friends_insert @prepend
+					}
+                }
+            `,
+			`
+                mutation Mutation2 {
 					addFriend {
 						...Friends_insert @prepend
 					}
@@ -194,6 +224,13 @@ const table: Row[] = [
 					}
                 }
             `,
+			`
+                mutation Mutation2 {
+					addFriend {
+						...Friends_insert @append
+					}
+                }
+            `,
 		],
 	},
 	{
@@ -218,6 +255,13 @@ const table: Row[] = [
 					}
                 }
             `,
+			`
+                mutation Mutation2 {
+					addFriend {
+						...Friends_insert
+					}
+                }
+            `,
 		],
 	},
 	{
@@ -226,6 +270,13 @@ const table: Row[] = [
 		documents: [
 			`
 				query Foo {
+					user { 
+						...UserFragment
+					}
+				}
+			`,
+			`
+				query Foo2 {
 					user { 
 						...UserFragment
 					}
@@ -254,12 +305,9 @@ const table: Row[] = [
 				}
 			`,
 		],
-		check: function (e: HoudiniError | HoudiniError[]) {
-			expect(e).toHaveLength(2)
-		},
 	},
 	{
-		title: 'known connection directives ',
+		title: 'known connection directives',
 		pass: true,
 		// note: we pass parentID here to ensure we're not getting caught on the
 		//		 free connections check
@@ -267,10 +315,8 @@ const table: Row[] = [
 			`
 				query UserFriends {
 					user {
-						friends {
-							friends @connection(name: "Friends") {
-								id
-							}
+						cats @connection(name: "Friends") {
+							id
 						}
 					}
 				}
@@ -278,7 +324,7 @@ const table: Row[] = [
 			`
 				mutation Bar {
 					deleteUser(id: "2") { 
-						userID @User_delete
+						userID @Cat_delete
 					}
 				}
 			`,
@@ -309,25 +355,6 @@ const table: Row[] = [
 			expect(e).toHaveLength(2)
 		},
 	},
-	{
-		title: 'returns multiple errors',
-		pass: false,
-		documents: [
-			`
-                fragment FragmentA on Foo {
-                    bar
-                }
-            `,
-			`
-                fragment FragmentA on Foo {
-                    bar
-                }
-            `,
-		],
-		check: function (e: HoudiniError | HoudiniError[]) {
-			expect(e).toHaveLength(2)
-		},
-	},
 ]
 
 type Row =
@@ -345,13 +372,20 @@ type Row =
 	  }
 
 // run the tests
-for (const { title, pass, documents, check } of table) {
+for (const { title, pass, documents } of table) {
 	describe('type check', function () {
 		// run the pipeline over the documents
-		pipelineTest(title, documents, pass, check)
+		pipelineTest(
+			title,
+			documents,
+			pass,
+			pass
+				? null
+				: function (e: HoudiniError | HoudiniError[]) {
+						expect(e).toHaveLength(2)
+				  }
+		)
 	})
 }
-
-test.todo('Unknown connection fragments')
 
 test.todo('@connection on root list with no id fails')

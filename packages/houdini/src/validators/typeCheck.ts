@@ -22,10 +22,17 @@ export default async function typeCheck(
 	const connections: string[] = []
 	// keep track of every type in a connection so we can validate the directives too
 	const connectionTypes: string[] = []
+	// keep track of every fragment that's defined in the set
+	const fragments: string[] = []
 
 	// visit every document and build up the lists
 	for (const { document: parsed } of docs) {
 		graphql.visit(parsed, {
+			[graphql.Kind.FRAGMENT_DEFINITION]: {
+				enter(definition) {
+					fragments.push(definition.name.value)
+				},
+			},
 			[graphql.Kind.DIRECTIVE]: {
 				enter(directive, _, parent, __, ancestors) {
 					// if the fragment is a connection fragment
@@ -85,7 +92,7 @@ export default async function typeCheck(
 					let rootType: graphql.GraphQLNamedType | undefined | null =
 						definition.kind === 'OperationDefinition'
 							? config.schema.getQueryType()
-							: config.schema.getType(definition.typeCondition.name)
+							: config.schema.getType(definition.typeCondition.name.value)
 					if (!rootType) {
 						errors.push(new Error('Could not find root type'))
 						return
@@ -143,7 +150,7 @@ export default async function typeCheck(
 						| graphql.SelectionSetNode
 					)[]
 					parents.reverse()
-					const parentType = getTypeFromAncestors(config.schema, parents.slice(1))
+					const parentType = getTypeFromAncestors(config.schema, parents)
 
 					// add the connection to the list
 					connections.push(nameArg.value.value)
@@ -185,6 +192,7 @@ export default async function typeCheck(
 				freeConnections,
 				connections,
 				connectionTypes,
+				fragments,
 			})
 		)
 
@@ -213,19 +221,30 @@ const validateConnections = ({
 	freeConnections,
 	connections,
 	connectionTypes,
+	fragments,
 }: {
 	config: Config
 	freeConnections: string[]
 	connections: string[]
 	connectionTypes: string[]
+	fragments: string[]
 }) =>
 	function verifyConnectionArtifacts(ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		return {
 			// if we run into a fragment spread
 			FragmentSpread: {
 				enter(node) {
-					// if the fragment is not a connection id then move along
+					// if the fragment is not a connection fragment dont do the normal processing
 					if (!config.isConnectionFragment(node.name.value)) {
+						// make sure its a defined fragment
+						if (!fragments.includes(node.name.value)) {
+							ctx.reportError(
+								new graphql.GraphQLError(
+									'Encountered unknown fragment: ' + node.name.value
+								)
+							)
+						}
+
 						return
 					}
 					// compute the name of the connection from the fragment
