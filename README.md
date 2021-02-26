@@ -1,6 +1,13 @@
-# 🎩 houdini
+<div align="center">
+  <img alt="houdini" height="200" src=".github/assets/logo.png" />
 
-The disappearing GraphQL client built for Sapper and Sveltekit.
+  <br />
+  <br />
+
+  <strong>
+	The disappearing GraphQL client built for Sapper and Sveltekit.
+  </strong>
+</div>
 
 ## ✨&nbsp;&nbsp;Features
 
