@@ -40,12 +40,17 @@ export default async (_path: string | undefined) => {
 	})
 	const data = await resp.text()
 
-	// write the schema file
-	await fs.writeFile(
-		path.resolve(path.join(targetPath, schemaPath)),
-		JSON.stringify(JSON.parse(data).data),
-		'utf-8'
-	)
+	try {
+		// write the schema file
+		await fs.writeFile(
+			path.resolve(path.join(targetPath, schemaPath)),
+			JSON.stringify(JSON.parse(data).data),
+			'utf-8'
+		)
+	} catch (e) {
+		console.log('encountered error parsing response as json: ' + e.message)
+		return
+	}
 
 	// write the config file
 	await fs.writeFile(configPath, configFile(schemaPath))
