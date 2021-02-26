@@ -34,7 +34,8 @@
 		"inquirer": "^7.3.3",
 		"mkdirp": "^1.0.4",
 		"node-fetch": "^2.6.1",
-		"recast": "^0.20.4"
+		"recast": "^0.20.4",
+		"svelte": "^3.34.0"
 	},
 	"gitHead": "5c8d7507e445cdfb5db7e31ce724a9be9672452c"
 }
