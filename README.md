@@ -1,5 +1,5 @@
 <div align="center">
-  <img alt="houdini" height="200" src=".github/assets/logo.png" />
+  <img alt="houdini" height="200" src=".github/assets/houdini-v5.png" />
 
   <br />
   <br />
