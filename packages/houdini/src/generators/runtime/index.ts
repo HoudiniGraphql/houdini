@@ -47,25 +47,24 @@ async function generateAdapter(config: Config) {
 	await fs.writeFile(adapterLocation, content, 'utf-8')
 }
 
-const kitAdapter = () => `const stores = import('$app/stores')
-const navigation = import('$app/navigation')
+const kitAdapter = () => `import stores from '$app/stores'
+import navigation from '$app/navigation'
 
 export function getSession() {
-    stores.session
-}
-
-export const goTo = navigation.goTo
-`
-
-const sapperAdapter = () => `const sapper = import('@sapper/app')
-
-export function getSession() {
-    const { session } = sapper.stores()
-
-    return session
+    return stores.session
 }
 
 export function goTo(location, options) {
-    sapper.goTo(location, options)
+	navigation.goTo(location, options)
+`
+
+const sapperAdapter = () => `import { stores } from '@sapper/app'
+
+export function getSession() {
+    return stores().session
+}
+
+export function goTo(location, options) {
+    goTo(location, options)
 }
 `
