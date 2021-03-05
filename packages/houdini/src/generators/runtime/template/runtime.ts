@@ -3,7 +3,7 @@ import { getEnvironment, FetchContext, FetchSession } from './environment'
 import type { Patch } from '../../../types'
 
 // fetchQuery is used by the preprocess-generated runtime to send an operation to the server
-export function fetchQuery(
+export async function fetchQuery(
 	ctx: FetchContext,
 	{
 		text,
@@ -14,7 +14,14 @@ export function fetchQuery(
 	},
 	session?: FetchSession
 ) {
-	return getEnvironment()?.sendRequest(ctx, { text, variables }, session)
+	// grab the current environment
+	const environment = getEnvironment()
+	// if there is no environment
+	if (!environment) {
+		return { data: {}, errors: [{ message: 'could not find houdini environment' }] }
+	}
+
+	return await environment.sendRequest(ctx, { text, variables }, session)
 }
 
 // the dispatch table
@@ -459,12 +466,43 @@ function updateField(path: string[], target: Record, targetId: string, value: an
 	return updated
 }
 
-export function updateStoreData(storeName: string, data: any, variables: any) {
-	// TODO: this is definitely not what we want. the same query could show up
-	// in multiple places and get the same update
+export function updateStoreData(storeName: string, result: any, variables: any) {
+	if (!result) {
+		console.log('updating with null result')
+		return
+	}
+
 	// apply the new update to every store matching the name
+	// TODO: this might not be what we want. the same query could show up
+	// in multiple places and get the same update
 	for (const store of getDocumentStores(storeName)) {
 		// apply the new date
-		store.updateValue(data, variables)
+		store.updateValue(result.data, variables)
+	}
+}
+
+export class RequestContext implements FetchContext {
+	_ctx: FetchContext
+	continue: boolean
+
+	constructor(ctx: FetchContext) {
+		this._ctx = ctx
+		this.continue = true
+	}
+
+	error(statusCode: number, message: string | Error) {
+		console.log('calling error', statusCode, message)
+		this.continue = false
+		return this._ctx.error(statusCode, message)
+	}
+
+	redirect(statusCode: number, location: string) {
+		this.continue = false
+		return this._ctx.redirect(statusCode, location)
+	}
+
+	fetch(input: RequestInfo, init?: RequestInit) {
+		console.log('fetching', input, init)
+		return this._ctx.fetch(input, init)
 	}
 }

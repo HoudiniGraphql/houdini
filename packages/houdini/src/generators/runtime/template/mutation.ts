@@ -34,8 +34,13 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 				// access to this.fetch (mutations can't get access to preload)
 				const mutationCtx: FetchContext = {
 					fetch: window.fetch.bind(window),
-					error: (code: number, message: string) => {
-						reject(new Error(message))
+					error: (code: number, e: string | Error) => {
+						// if we were given an error
+						if (e instanceof Error) {
+							reject(e)
+						} else {
+							reject(new Error(e))
+						}
 					},
 					redirect: (code: number, location: string) => {
 						// send the user to the new location
@@ -46,9 +51,13 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 				}
 
 				// grab the response from the server
-				const { data } = await fetchQuery(mutationCtx, { text, variables }, session)
+				const { data, errors } = await fetchQuery(mutationCtx, { text, variables }, session)
 
 				// we could have gotten a null response
+				if (errors) {
+					reject(errors)
+					return
+				}
 				if (!data) {
 					reject(new Error('Encountered error'))
 					return

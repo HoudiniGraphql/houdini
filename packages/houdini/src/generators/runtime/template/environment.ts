@@ -5,17 +5,19 @@ type FetchParams = {
 
 export type FetchContext = {
 	fetch: typeof window.fetch
-	error: (code: number, mesage: string) => void
+	error: (code: number, mesage: string | Error) => void
 	redirect: (statusCode: number, location: string) => void
 }
 
 export type FetchSession = any
 
+type RequestPayload = { data: any; errors?: Error[] }
+
 type RequestHandler = (
 	this: FetchContext,
 	params: FetchParams,
 	session?: FetchSession
-) => Promise<any>
+) => Promise<RequestPayload>
 
 export class Environment {
 	private handler: RequestHandler
@@ -24,7 +26,11 @@ export class Environment {
 		this.handler = networkFn
 	}
 
-	sendRequest(ctx: FetchContext, params: FetchParams, session?: FetchSession) {
+	sendRequest(
+		ctx: FetchContext,
+		params: FetchParams,
+		session?: FetchSession
+	): Promise<RequestPayload> {
 		return this.handler.call(ctx, params, session)
 	}
 }

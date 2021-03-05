@@ -6,8 +6,6 @@ import queryProcessor from './query'
 import { hashDocument, testConfig } from 'houdini-common'
 import importArtifact from '../utils/importArtifact'
 import '../../../../jest.setup'
-import { GraphQLTagResult } from '../types'
-import { preloadPayloadKey } from '../../build/transforms/query'
 import { DocumentArtifact } from 'houdini-compiler'
 // mock out the walker so that imports don't actually happen
 jest.mock('../utils/importArtifact')
@@ -34,15 +32,26 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module.content).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini";
 		import { fetchQuery } from "$houdini";
 
 		export async function preload(page, session) {
+		    const _houdini_context = new RequestContext(this);
 		    const _TestQuery_Input = {};
 
-		    const _TestQuery = await fetchQuery(this, {
+		    if (!_houdini_context.continue) {
+		        return;
+		    }
+
+		    const _TestQuery = await fetchQuery(_houdini_context, {
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		              "variables": _TestQuery_Input
 		          }, session);
+
+		    if (_TestQuery.errors) {
+		        this.error(500, _TestQuery.errors[0]);
+		        return;
+		    }
 
 		    return {
 		        _TestQuery: _TestQuery,
@@ -79,7 +88,7 @@ describe('query preprocessor', function () {
 
 		$:
 		{
-		    updateStoreData("TestQuery", _TestQuery.data, _TestQuery_Input);
+		    updateStoreData("TestQuery", _TestQuery, _TestQuery_Input);
 		}
 	`)
 	})
@@ -107,6 +116,7 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module.content).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini";
 		import { fetchQuery } from "$houdini";
 
 		export function TestQueryVariables(page) {
@@ -116,12 +126,22 @@ describe('query preprocessor', function () {
 		}
 
 		export async function preload(page, session) {
-		    const _TestQuery_Input = TestQueryVariables.call(this, page, session);
+		    const _houdini_context = new RequestContext(this);
+		    const _TestQuery_Input = TestQueryVariables.call(_houdini_context, page, session);
 
-		    const _TestQuery = await fetchQuery(this, {
+		    if (!_houdini_context.continue) {
+		        return;
+		    }
+
+		    const _TestQuery = await fetchQuery(_houdini_context, {
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		              "variables": _TestQuery_Input
 		          }, session);
+
+		    if (_TestQuery.errors) {
+		        this.error(500, _TestQuery.errors[0]);
+		        return;
+		    }
 
 		    return {
 		        _TestQuery: _TestQuery,
@@ -158,7 +178,7 @@ describe('query preprocessor', function () {
 
 		$:
 		{
-		    updateStoreData("TestQuery", _TestQuery.data, _TestQuery_Input);
+		    updateStoreData("TestQuery", _TestQuery, _TestQuery_Input);
 		}
 	`)
 	})
