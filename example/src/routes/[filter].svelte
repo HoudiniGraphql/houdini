@@ -18,21 +18,105 @@
 </script>
 
 <script lang="ts">
-	import { query, graphql, AllItems } from '$houdini'
+	import { query, graphql, mutation, AllItems, AddItem } from '$houdini'
 	import ItemEntry from '../components/ItemEntry.svelte'
+	import { stores } from '@sapper/app'
+	import { derived } from 'svelte/store'
 
 	// load the items
 	const data = query<AllItems>(graphql`
 		query AllItems($completed: Boolean) {
-			items(completed: $completed) @connection(name: "All_Items") {
+			filteredItems: items(completed: $completed) @connection(name: "Filtered_Items") {
 				id
 				completed
 				...ItemEntry_item
 			}
+			allItems: items @connection(name: "All_Items") {
+				id
+				completed
+			}
 		}
 	`)
+
+	// state and handler for the new item input
+	const addItem = mutation<AddItem>(graphql`
+		mutation AddItem($input: AddItemInput!) {
+			addItem(input: $input) {
+				item {
+					...Filtered_Items_insert
+						@prepend(when_not: { argument: "completed", value: "true" })
+					...All_Items_insert
+				}
+			}
+		}
+	`)
+
+	const numberOfItems = derived(data, ($data) => $data.allItems.length)
+	const itemsLeft = derived(
+		data,
+		($data) => $data.allItems.filter((item) => !item.completed).length
+	)
+	const hasCompleted = derived(data, ($data) =>
+		Boolean($data.allItems.find((item) => item.completed))
+	)
+
+	// figure out the current page
+	const currentPage = derived(stores().page, ($page) => {
+		if ($page.path.includes('active')) {
+			return 'active'
+		} else if ($page.path.includes('completed')) {
+			return 'completed'
+		}
+		return 'all'
+	})
+
+	let inputValue = ''
+	async function onBlur() {
+		// trigger the mutation
+		await addItem({ input: { text: inputValue } })
+
+		// clear the input
+		inputValue = ''
+	}
 </script>
 
-{#each $data.items as item (item.id)}
-	<ItemEntry {item} />
-{/each}
+<header class="header">
+	<a href="/">
+		<h1>todos</h1>
+	</a>
+	<input
+		class="new-todo"
+		placeholder="What needs to be done?"
+		bind:value={inputValue}
+		on:blur={onBlur}
+	/>
+</header>
+
+<section class="main">
+	<input id="toggle-all" class="toggle-all" type="checkbox" />
+	<label for="toggle-all">Mark all as complete</label>
+	<ul class="todo-list">
+		{#each $data.filteredItems as item (item.id)}
+			<ItemEntry {item} />
+		{/each}
+	</ul>
+</section>
+{#if $numberOfItems > 0}
+	<footer class="footer">
+		<span class="todo-count"><strong>{$itemsLeft}</strong> item left</span>
+		<ul class="filters">
+			<li>
+				<a class:selected={$currentPage === 'all'} class="selected" href="/">All</a>
+			</li>
+			<li>
+				<a class:selected={$currentPage === 'active'} href="/active">Active</a>
+			</li>
+			<li>
+				<a class:selected={$currentPage === 'completed'} href="/completed">Completed</a>
+			</li>
+		</ul>
+		{#if $hasCompleted}
+			<button class="clear-completed">Clear completed</button>
+		{/if}
+	</footer>
+{/if}
