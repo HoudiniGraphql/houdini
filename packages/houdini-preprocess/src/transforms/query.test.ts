@@ -49,7 +49,7 @@ describe('query preprocessor', function () {
 		          }, session);
 
 		    if (_TestQuery.errors) {
-		        this.error(500, _TestQuery.errors[0]);
+		        _houdini_context.graphqlErrors(_TestQuery.errors);
 		        return;
 		    }
 
@@ -139,7 +139,7 @@ describe('query preprocessor', function () {
 		          }, session);
 
 		    if (_TestQuery.errors) {
-		        this.error(500, _TestQuery.errors[0]);
+		        _houdini_context.graphqlErrors(_TestQuery.errors);
 		        return;
 		    }
 

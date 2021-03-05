@@ -1,28 +1,5 @@
 // locals
-import { getEnvironment, FetchContext, FetchSession } from './environment'
 import type { Patch } from '../../../types'
-
-// fetchQuery is used by the preprocess-generated runtime to send an operation to the server
-export async function fetchQuery(
-	ctx: FetchContext,
-	{
-		text,
-		variables,
-	}: {
-		text: string
-		variables: { [name: string]: unknown }
-	},
-	session?: FetchSession
-) {
-	// grab the current environment
-	const environment = getEnvironment()
-	// if there is no environment
-	if (!environment) {
-		return { data: {}, errors: [{ message: 'could not find houdini environment' }] }
-	}
-
-	return await environment.sendRequest(ctx, { text, variables }, session)
-}
 
 // the dispatch table
 export type DocumentStore = {
@@ -478,31 +455,5 @@ export function updateStoreData(storeName: string, result: any, variables: any) 
 	for (const store of getDocumentStores(storeName)) {
 		// apply the new date
 		store.updateValue(result.data, variables)
-	}
-}
-
-export class RequestContext implements FetchContext {
-	_ctx: FetchContext
-	continue: boolean
-
-	constructor(ctx: FetchContext) {
-		this._ctx = ctx
-		this.continue = true
-	}
-
-	error(statusCode: number, message: string | Error) {
-		console.log('calling error', statusCode, message)
-		this.continue = false
-		return this._ctx.error(statusCode, message)
-	}
-
-	redirect(statusCode: number, location: string) {
-		this.continue = false
-		return this._ctx.redirect(statusCode, location)
-	}
-
-	fetch(input: RequestInfo, init?: RequestInit) {
-		console.log('fetching', input, init)
-		return this._ctx.fetch(input, init)
 	}
 }

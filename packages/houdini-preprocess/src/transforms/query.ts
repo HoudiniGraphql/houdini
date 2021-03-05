@@ -390,15 +390,11 @@ export default async function queryProcessor(
 				AST.blockStatement([
 					AST.expressionStatement(
 						AST.callExpression(
-							AST.memberExpression(AST.thisExpression(), AST.identifier('error')),
+							AST.memberExpression(requestContext, AST.identifier('graphqlErrors')),
 							[
-								AST.numericLiteral(500),
 								AST.memberExpression(
-									AST.memberExpression(
-										AST.identifier(preloadKey),
-										AST.identifier('errors')
-									),
-									AST.literal(0)
+									AST.identifier(preloadKey),
+									AST.identifier('errors')
 								),
 							]
 						)
