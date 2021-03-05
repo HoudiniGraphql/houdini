@@ -1,6 +1,6 @@
 import { GraphQLTagResult } from './types'
 
-export * from './environment'
+export * from './network'
 export * from './runtime'
 export * from './types'
 

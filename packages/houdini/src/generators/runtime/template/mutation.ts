@@ -1,6 +1,6 @@
 // locals
-import { getDocumentStores, applyPatch, fetchQuery } from './runtime'
-import { FetchContext } from './environment'
+import { getDocumentStores, applyPatch } from './runtime'
+import { RequestContext, fetchQuery } from './network'
 import { Operation, GraphQLTagResult } from './types'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
@@ -32,10 +32,15 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 			try {
 				// we need to define a fetch context that plays well on the client without
 				// access to this.fetch (mutations can't get access to preload)
-				const mutationCtx: FetchContext = {
+				const mutationCtx = new RequestContext({
 					fetch: window.fetch.bind(window),
-					error: (code: number, message: string) => {
-						reject(new Error(message))
+					error: (code: number, e: string | Error) => {
+						// if we were given an error
+						if (e instanceof Error) {
+							reject(e)
+						} else {
+							reject(new Error(e))
+						}
 					},
 					redirect: (code: number, location: string) => {
 						// send the user to the new location
@@ -43,14 +48,20 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 
 						console.warn('dont know what to do with code just yet')
 					},
-				}
+				})
 
 				// grab the response from the server
-				const { data } = await fetchQuery(mutationCtx, { text, variables }, session)
+				const { data, errors } = await fetchQuery(mutationCtx, { text, variables }, session)
 
 				// we could have gotten a null response
+				if (errors) {
+					mutationCtx.graphqlErrors(errors)
+					return
+				}
 				if (!data) {
-					reject(new Error('Encountered error'))
+					mutationCtx.graphqlErrors([
+						new Error('Encountered empty data response in mutation payload'),
+					])
 					return
 				}
 

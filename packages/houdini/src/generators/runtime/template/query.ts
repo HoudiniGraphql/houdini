@@ -13,6 +13,14 @@ export default function query<_Query extends Operation<any, any>>(
 		throw new Error('getQuery can only take query operations')
 	}
 
+	// if there is no initial value
+	if (!document.initialValue) {
+		console.log('no initial value')
+		// we're done
+		return readable(null, () => {})
+	}
+	console.log('past!')
+
 	// wrap the result in a store we can use to keep this query up to date
 	const value = readable(
 		document.processResult(document.initialValue.data, document.variables),

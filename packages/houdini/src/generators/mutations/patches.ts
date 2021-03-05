@@ -126,7 +126,7 @@ export function patchesForSelectionSet(
 						}
 
 						// `key` points to an argument in the field marked connection, look there for type info
-						const { args } = rootType.getFields()[attributeName]
+						const { args } = rootType.getFields()[selection.name.value]
 
 						return Object.entries(mutations).map(
 							([

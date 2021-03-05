@@ -1,21 +1,5 @@
 // locals
-import { getEnvironment, FetchContext, FetchSession } from './environment'
 import type { Patch } from '../../../types'
-
-// fetchQuery is used by the preprocess-generated runtime to send an operation to the server
-export function fetchQuery(
-	ctx: FetchContext,
-	{
-		text,
-		variables,
-	}: {
-		text: string
-		variables: { [name: string]: unknown }
-	},
-	session?: FetchSession
-) {
-	return getEnvironment()?.sendRequest(ctx, { text, variables }, session)
-}
 
 // the dispatch table
 export type DocumentStore = {
@@ -459,12 +443,17 @@ function updateField(path: string[], target: Record, targetId: string, value: an
 	return updated
 }
 
-export function updateStoreData(storeName: string, data: any, variables: any) {
-	// TODO: this is definitely not what we want. the same query could show up
-	// in multiple places and get the same update
+export function updateStoreData(storeName: string, result: any, variables: any) {
+	if (!result) {
+		console.log('updating with null result')
+		return
+	}
+
 	// apply the new update to every store matching the name
+	// TODO: this might not be what we want. the same query could show up
+	// in multiple places and get the same update
 	for (const store of getDocumentStores(storeName)) {
 		// apply the new date
-		store.updateValue(data, variables)
+		store.updateValue(result.data, variables)
 	}
 }

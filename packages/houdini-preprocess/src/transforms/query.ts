@@ -11,7 +11,7 @@ import { Config } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
 import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
-const typeBuilders = recast.types.builders
+const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
 // stores can't be serialized in preload (understandably) so we're going to have to interact with the query document in
@@ -62,29 +62,20 @@ export default async function queryProcessor(
 			queries.push(tag)
 			// replace the graphql node with the object
 			node.replaceWith(
-				typeBuilders.objectExpression([
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('name'),
-						typeBuilders.stringLiteral(artifact.name)
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('kind'),
-						typeBuilders.stringLiteral(artifact.kind)
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('raw'),
-						typeBuilders.stringLiteral(artifact.raw)
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('initialValue'),
-						typeBuilders.identifier(
+				AST.objectExpression([
+					AST.objectProperty(AST.stringLiteral('name'), AST.stringLiteral(artifact.name)),
+					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
+					AST.objectProperty(AST.stringLiteral('raw'), AST.stringLiteral(artifact.raw)),
+					AST.objectProperty(
+						AST.stringLiteral('initialValue'),
+						AST.identifier(
 							preloadPayloadKey(
 								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 							)
 						)
 					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('processResult'),
+					AST.objectProperty(
+						AST.stringLiteral('processResult'),
 						selector({
 							config: doc.config,
 							artifact,
@@ -98,9 +89,9 @@ export default async function queryProcessor(
 							root: true,
 						})
 					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('variables'),
-						typeBuilders.identifier(
+					AST.objectProperty(
+						AST.stringLiteral('variables'),
+						AST.identifier(
 							variablesKey(
 								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 							)
@@ -125,7 +116,7 @@ export default async function queryProcessor(
 			start: 0,
 			end: 0,
 			// @ts-ignore
-			content: typeBuilders.program([]),
+			content: AST.program([]),
 		}
 	}
 
@@ -143,19 +134,17 @@ export default async function queryProcessor(
 	// if there isn't one, add something that can take it place.
 	// in this context, that means that there would be a return at the end of an object
 	if (!preloadDefinition) {
-		const preloadFn = typeBuilders.functionDeclaration(
-			typeBuilders.identifier('preload'),
-			[typeBuilders.identifier('page'), typeBuilders.identifier('session')],
+		const preloadFn = AST.functionDeclaration(
+			AST.identifier('preload'),
+			[AST.identifier('page'), AST.identifier('session')],
 			// return an object
-			typeBuilders.blockStatement([
-				typeBuilders.returnStatement(typeBuilders.objectExpression([])),
-			])
+			AST.blockStatement([AST.returnStatement(AST.objectExpression([]))])
 		)
 		// mark the function as async
 		preloadFn.async = true
 
 		// hold onto this new declaration
-		preloadDefinition = typeBuilders.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration
+		preloadDefinition = AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration
 
 		// add it to the module
 		doc.module.content.body.push(preloadDefinition)
@@ -181,13 +170,10 @@ export default async function queryProcessor(
 		doc.module.content.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
-			source: typeBuilders.literal('$houdini'),
+			source: AST.literal('$houdini'),
 			specifiers: [
 				// @ts-ignore
-				typeBuilders.importSpecifier(
-					typeBuilders.identifier('fetchQuery'),
-					typeBuilders.identifier('fetchQuery')
-				),
+				AST.importSpecifier(AST.identifier('fetchQuery'), AST.identifier('fetchQuery')),
 			],
 		})
 	}
@@ -200,7 +186,7 @@ export default async function queryProcessor(
 				(importSpecifier) =>
 					importSpecifier.type === 'ImportSpecifier' &&
 					importSpecifier.imported.type === 'Identifier' &&
-					importSpecifier.imported.name === 'fetchQuery' &&
+					importSpecifier.imported.name === 'updateStoreData' &&
 					importSpecifier.local.name === 'updateStoreData'
 			)
 	) as ImportDeclaration
@@ -209,12 +195,40 @@ export default async function queryProcessor(
 		doc.instance.content.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
-			source: typeBuilders.literal('$houdini'),
+			source: AST.literal('$houdini'),
 			specifiers: [
 				// @ts-ignore
-				typeBuilders.importSpecifier(
-					typeBuilders.identifier('updateStoreData'),
-					typeBuilders.identifier('updateStoreData')
+				AST.importSpecifier(
+					AST.identifier('updateStoreData'),
+					AST.identifier('updateStoreData')
+				),
+			],
+		})
+	}
+
+	let requestCtxImport = doc.module.content.body.find(
+		(statement) =>
+			statement.type === 'ImportDeclaration' &&
+			statement.source.value === '$houdini' &&
+			statement.specifiers.find(
+				(importSpecifier) =>
+					importSpecifier.type === 'ImportSpecifier' &&
+					importSpecifier.imported.type === 'Identifier' &&
+					importSpecifier.imported.name === 'RequestContext' &&
+					importSpecifier.local.name === 'RequestContext'
+			)
+	) as ImportDeclaration
+	// add the import if it doesn't exist, add it
+	if (!requestCtxImport) {
+		doc.module.content.body.unshift({
+			type: 'ImportDeclaration',
+			// @ts-ignore
+			source: AST.literal('$houdini'),
+			specifiers: [
+				// @ts-ignore
+				AST.importSpecifier(
+					AST.identifier('RequestContext'),
+					AST.identifier('RequestContext')
 				),
 			],
 		})
@@ -223,7 +237,7 @@ export default async function queryProcessor(
 	/// add the preloaded payload to the return statement
 
 	// find the return statement in the preload function
-	const returnStatementIndex = preloadFn.body.body.findIndex(
+	let returnStatementIndex = preloadFn.body.body.findIndex(
 		({ type }) => type === 'ReturnStatement'
 	)
 	const returnStatement = preloadFn.body.body[returnStatementIndex] as ReturnStatement
@@ -244,6 +258,32 @@ export default async function queryProcessor(
 		(expression) => expression.type !== 'ImportDeclaration'
 	)
 
+	//// we need to wrap up the preload's this in something that we can integrate with
+
+	// the name of the variable
+	const requestContext = AST.identifier('_houdini_context')
+
+	// TODO: look for a variable in the preload with a conflicting name
+
+	// intantiate the context variable and then thread it through instead of passing `this` directly
+	// then look to see if `this.error`, `this.redirect` were called before continuing onto the fetch
+	preloadFn.body.body.splice(
+		returnStatementIndex,
+		0,
+		// @ts-ignore
+		AST.variableDeclaration('const', [
+			AST.variableDeclarator(
+				requestContext,
+				AST.newExpression(AST.identifier('RequestContext'), [AST.thisExpression()])
+			),
+		])
+	)
+
+	// we just added one to the return index
+	returnStatementIndex++
+
+	// this happens for every document in the page, make sure we handle that correctly.
+
 	// every query document we ran into creates a local variable as well as a new key in the returned value of
 	// the preload function as well as a prop declaration in the instance script
 	for (const document of queries) {
@@ -259,15 +299,13 @@ export default async function queryProcessor(
 			propInsertIndex,
 			0,
 			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			typeBuilders.exportNamedDeclaration(
-				typeBuilders.variableDeclaration('let', [
-					typeBuilders.variableDeclarator(typeBuilders.identifier(preloadKey)),
-				])
+			AST.exportNamedDeclaration(
+				AST.variableDeclaration('let', [AST.variableDeclarator(AST.identifier(preloadKey))])
 			),
 			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			typeBuilders.exportNamedDeclaration(
-				typeBuilders.variableDeclaration('let', [
-					typeBuilders.variableDeclarator(typeBuilders.identifier(variableIdentifier)),
+			AST.exportNamedDeclaration(
+				AST.variableDeclaration('let', [
+					AST.variableDeclarator(AST.identifier(variableIdentifier)),
 				])
 			)
 		)
@@ -276,17 +314,14 @@ export default async function queryProcessor(
 		// will have a definition)
 		doc.instance.content.body.push(
 			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			typeBuilders.labeledStatement(
-				typeBuilders.identifier('$'),
-				typeBuilders.blockStatement([
-					typeBuilders.expressionStatement(
-						typeBuilders.callExpression(typeBuilders.identifier('updateStoreData'), [
-							typeBuilders.stringLiteral(document.artifact.name),
-							typeBuilders.memberExpression(
-								typeBuilders.identifier(preloadKey),
-								typeBuilders.identifier('data')
-							),
-							typeBuilders.identifier(variableIdentifier),
+			AST.labeledStatement(
+				AST.identifier('$'),
+				AST.blockStatement([
+					AST.expressionStatement(
+						AST.callExpression(AST.identifier('updateStoreData'), [
+							AST.stringLiteral(document.artifact.name),
+							AST.identifier(preloadKey),
+							AST.identifier(variableIdentifier),
 						])
 					),
 				])
@@ -299,64 +334,84 @@ export default async function queryProcessor(
 			0,
 			// @ts-ignore
 			// compute the query variables once
-			typeBuilders.variableDeclaration('const', [
-				typeBuilders.variableDeclarator(
-					typeBuilders.identifier(variableIdentifier),
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					AST.identifier(variableIdentifier),
 					operation.variableDefinitions && operation.variableDefinitions.length > 0
-						? typeBuilders.callExpression(
-								typeBuilders.memberExpression(
-									typeBuilders.identifier(
-										queryInputFunction(document.artifact.name)
-									),
-									typeBuilders.identifier('call')
+						? AST.callExpression(
+								AST.memberExpression(
+									AST.identifier(queryInputFunction(document.artifact.name)),
+									AST.identifier('call')
 								),
-								[
-									typeBuilders.identifier('this'),
-									typeBuilders.identifier('page'),
-									typeBuilders.identifier('session'),
-								]
+								[requestContext, AST.identifier('page'), AST.identifier('session')]
 						  )
-						: typeBuilders.objectExpression([])
+						: AST.objectExpression([])
 				),
 			]),
 
+			// if we ran into a problem computing the variables
+			AST.ifStatement(
+				AST.unaryExpression(
+					'!',
+					AST.memberExpression(requestContext, AST.identifier('continue'))
+				),
+				AST.blockStatement([AST.returnStatement(null)])
+			),
+
 			// @ts-ignore
-			typeBuilders.variableDeclaration('const', [
-				typeBuilders.variableDeclarator(
-					typeBuilders.identifier(preloadKey),
-					typeBuilders.awaitExpression(
-						typeBuilders.callExpression(typeBuilders.identifier('fetchQuery'), [
-							typeBuilders.identifier('this'),
-							typeBuilders.objectExpression([
-								typeBuilders.objectProperty(
-									typeBuilders.literal('text'),
-									typeBuilders.stringLiteral(document.artifact.raw)
+			// perform the fetch and save the value under {preloadKey}
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					AST.identifier(preloadKey),
+					AST.awaitExpression(
+						AST.callExpression(AST.identifier('fetchQuery'), [
+							requestContext,
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.literal('text'),
+									AST.stringLiteral(document.artifact.raw)
 								),
 								// grab the variables from the function
-								typeBuilders.objectProperty(
-									typeBuilders.literal('variables'),
-									typeBuilders.identifier(variableIdentifier)
+								AST.objectProperty(
+									AST.literal('variables'),
+									AST.identifier(variableIdentifier)
 								),
 							]),
-							typeBuilders.identifier('session'),
+							AST.identifier('session'),
 						])
 					)
 				),
 				,
-			])
+			]),
+
+			// we need to look for errors in the response
+			AST.ifStatement(
+				AST.memberExpression(AST.identifier(preloadKey), AST.identifier('errors')),
+				AST.blockStatement([
+					AST.expressionStatement(
+						AST.callExpression(
+							AST.memberExpression(requestContext, AST.identifier('graphqlErrors')),
+							[
+								AST.memberExpression(
+									AST.identifier(preloadKey),
+									AST.identifier('errors')
+								),
+							]
+						)
+					),
+					AST.returnStatement(null),
+				])
+			)
 		)
 
 		// add the field to the return value of preload
 		returnedValue.properties.push(
 			// @ts-ignore
-			typeBuilders.objectProperty(
-				typeBuilders.identifier(preloadKey),
-				typeBuilders.identifier(preloadKey)
-			),
+			AST.objectProperty(AST.identifier(preloadKey), AST.identifier(preloadKey)),
 			// @ts-ignore
-			typeBuilders.objectProperty(
-				typeBuilders.identifier(variableIdentifier),
-				typeBuilders.identifier(variableIdentifier)
+			AST.objectProperty(
+				AST.identifier(variableIdentifier),
+				AST.identifier(variableIdentifier)
 			)
 		)
 	}
