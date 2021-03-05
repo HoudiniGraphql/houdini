@@ -11,6 +11,8 @@ export type Session = any
 
 type Module<T> = Promise<{ default: T }>
 
+export type Maybe<T> = T | null
+
 export type TaggedGraphqlFragment = {
 	name: string
 	kind: 'HoudiniFragment'
