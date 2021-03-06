@@ -387,10 +387,300 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "last",
+		    "connectionName": "All_Users",
+		    "target": ["users"],
+		    "position": "last"
+		}];
+	`)
+	})
+
+	test('remove operation', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_remove
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "880cba22e81ec6142d1dce5f869911a0";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_remove
+		    }
+		  }
+		}
+
+		fragment All_Users_remove on User {
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "kind": "remove",
+		    "connectionName": "All_Users",
 		    "target": ["users"]
+		}];
+	`)
+	})
+
+	test('delete operation', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					deleteUser(id: "1234") { 
+						userID @User_delete
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "136c10c3710d03590c93fbaa6070b23d";
+
+		module.exports.raw = \`mutation A {
+		  deleteUser(id: "1234") {
+		    userID
+		  }
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "deleteUser": {
+		                "key": "deleteUsersomething_with_args",
+		                "type": "DeleteUserOutput"
+		            }
+		        },
+
+		        "DeleteUserOutput": {
+		            "userID": {
+		                "key": "userIDsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "deleteUser": {
+		        "type": "DeleteUserOutput",
+		        "key": "deleteUsersomething_with_args",
+
+		        "fields": {
+		            "userID": {
+		                "type": "ID",
+		                "key": "userIDsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["deleteUser", "userID"],
+		    "kind": "delete"
+		}];
+	`)
+	})
+
+	test('delete operation with condition', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					deleteUser(id: "1234") { 
+						userID @User_delete @when(argument: "stringValue", value: "foo")
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "e493f4442d18a3b9a2f0d7e17849afe3";
+
+		module.exports.raw = \`mutation A {
+		  deleteUser(id: "1234") {
+		    userID
+		  }
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "deleteUser": {
+		                "key": "deleteUsersomething_with_args",
+		                "type": "DeleteUserOutput"
+		            }
+		        },
+
+		        "DeleteUserOutput": {
+		            "userID": {
+		                "key": "userIDsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "deleteUser": {
+		        "type": "DeleteUserOutput",
+		        "key": "deleteUsersomething_with_args",
+
+		        "fields": {
+		            "userID": {
+		                "type": "ID",
+		                "key": "userIDsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["deleteUser", "userID"],
+		    "kind": "delete",
+
+		    "when": {
+		        "must": {
+		            "stringValue": "foo"
+		        }
+		    }
 		}];
 	`)
 	})
@@ -500,10 +790,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "first",
+		    "connectionName": "All_Users",
 		    "target": ["users"],
+		    "position": "first",
 
 		    "parentID": {
 		        "kind": "String",
@@ -618,10 +908,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "last",
+		    "connectionName": "All_Users",
 		    "target": ["users"],
+		    "position": "last",
 
 		    "parentID": {
 		        "kind": "String",
@@ -736,10 +1026,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "last",
+		    "connectionName": "All_Users",
 		    "target": ["users"],
+		    "position": "last",
 
 		    "parentID": {
 		        "kind": "String",
@@ -854,10 +1144,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "first",
+		    "connectionName": "All_Users",
 		    "target": ["users"],
+		    "position": "first",
 
 		    "when": {
 		        "must": {
@@ -973,10 +1263,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "last",
+		    "connectionName": "All_Users",
 		    "target": ["users"],
+		    "position": "last",
 
 		    "when": {
 		        "must": {
@@ -1092,10 +1382,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "last",
+		    "connectionName": "All_Users",
 		    "target": ["users"],
+		    "position": "last",
 
 		    "when": {
 		        "must": {
@@ -1211,10 +1501,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "first",
+		    "connectionName": "All_Users",
 		    "target": ["users"],
+		    "position": "first",
 
 		    "when": {
 		        "must_not": {
@@ -1330,10 +1620,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "last",
+		    "connectionName": "All_Users",
 		    "target": ["users"],
+		    "position": "last",
 
 		    "when": {
 		        "must_not": {
@@ -1449,10 +1739,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "last",
+		    "connectionName": "All_Users",
 		    "target": ["users"],
+		    "position": "last",
 
 		    "when": {
 		        "must_not": {

@@ -402,79 +402,37 @@ function operationList(
 					return
 				}
 
-				// get the operation information
-				const connectionName = config.connectionNameFromFragment(node.name.value)
-				const operationKind = config.connectionOperationFromFragment(node.name.value)
-				const info = operationInfo(config, node)
-				const path = pathFromAncestors(ancestors)
-
-				const operation = AST.objectExpression([
-					AST.objectProperty(
-						AST.literal('source'),
-						AST.arrayExpression(path.map(AST.stringLiteral))
-					),
-					AST.objectProperty(
-						AST.literal('connectionName'),
-						AST.stringLiteral(connectionName)
-					),
-					AST.objectProperty(AST.literal('kind'), AST.stringLiteral(operationKind)),
-					AST.objectProperty(AST.literal('position'), AST.stringLiteral(info.position)),
-					AST.objectProperty(
-						AST.literal('target'),
-						AST.arrayExpression(
-							connectionPaths[connectionName].map((p) => AST.stringLiteral(p))
-						)
-					),
-				])
-
-				// if there is a parent id
-				if (info.parentID) {
-					// add it to the object
-					operation.properties.push(
-						AST.objectProperty(
-							AST.literal('parentID'),
-							AST.objectExpression([
-								AST.objectProperty(
-									AST.literal('kind'),
-									AST.stringLiteral(info.parentID.kind)
-								),
-								AST.objectProperty(
-									AST.literal('value'),
-									AST.stringLiteral(info.parentID.value)
-								),
-							])
-						)
-					)
+				// add the operation object to the list
+				operations.elements.push(
+					operationObject({
+						connectionName: config.connectionNameFromFragment(node.name.value),
+						operationKind: config.connectionOperationFromFragment(node.name.value),
+						info: operationInfo(config, node),
+						path: pathFromAncestors(ancestors),
+						connectionPaths,
+					})
+				)
+			},
+		},
+		Directive: {
+			enter(node, _, __, ___, ancestors) {
+				// we only care about delete directives
+				if (!config.isDeleteDirective(node.name.value)) {
+					return
 				}
 
-				// if there is a conditional
-				if (info.when) {
-					// build up the when object
-					const when = AST.objectExpression([])
-
-					// if there is a must
-					if (info.when.must) {
-						when.properties.push(
-							AST.objectProperty(AST.literal('must'), filterAST(info.when.must))
-						)
-					}
-
-					// if there is a must_not
-					if (info.when.must_not) {
-						when.properties.push(
-							AST.objectProperty(
-								AST.literal('must_not'),
-								filterAST(info.when.must_not)
-							)
-						)
-					}
-
-					// add it to the object
-					operation.properties.push(AST.objectProperty(AST.literal('when'), when))
-				}
+				const parent = ancestors[ancestors.length - 1]
 
 				// add the operation object to the list
-				operations.elements.push(operation)
+				operations.elements.push(
+					operationObject({
+						connectionName: config.connectionNameFromDirective(node.name.value),
+						operationKind: 'delete',
+						info: operationInfo(config, parent as graphql.FieldNode),
+						path: pathFromAncestors(ancestors),
+						connectionPaths,
+					})
+				)
 			},
 		},
 	})
@@ -482,7 +440,95 @@ function operationList(
 	return operations
 }
 
-function operationInfo(config: Config, selection: graphql.SelectionNode) {
+function operationObject({
+	connectionPaths,
+	connectionName,
+	operationKind,
+	info,
+	path,
+}: {
+	connectionName: string
+	operationKind: string
+	path: string[]
+	info: OperationInfo
+	connectionPaths: { [connectionName: string]: string[] }
+}) {
+	const operation = AST.objectExpression([
+		AST.objectProperty(AST.literal('source'), AST.arrayExpression(path.map(AST.stringLiteral))),
+		AST.objectProperty(AST.literal('kind'), AST.stringLiteral(operationKind)),
+	])
+
+	// delete doesn't have a target
+	if (operationKind !== 'delete') {
+		operation.properties.push(
+			AST.objectProperty(AST.literal('connectionName'), AST.stringLiteral(connectionName)),
+			AST.objectProperty(
+				AST.literal('target'),
+				AST.arrayExpression(
+					connectionPaths[connectionName].map((p) => AST.stringLiteral(p))
+				)
+			)
+		)
+	}
+
+	// only add the position argument if we are inserting something
+	if (operationKind === 'insert') {
+		operation.properties.push(
+			AST.objectProperty(AST.literal('position'), AST.stringLiteral(info.position))
+		)
+	}
+
+	// if there is a parent id
+	if (info.parentID) {
+		// add it to the object
+		operation.properties.push(
+			AST.objectProperty(
+				AST.literal('parentID'),
+				AST.objectExpression([
+					AST.objectProperty(AST.literal('kind'), AST.stringLiteral(info.parentID.kind)),
+					AST.objectProperty(
+						AST.literal('value'),
+						AST.stringLiteral(info.parentID.value)
+					),
+				])
+			)
+		)
+	}
+
+	// if there is a conditional
+	if (info.when) {
+		// build up the when object
+		const when = AST.objectExpression([])
+
+		// if there is a must
+		if (info.when.must) {
+			when.properties.push(AST.objectProperty(AST.literal('must'), filterAST(info.when.must)))
+		}
+
+		// if there is a must_not
+		if (info.when.must_not) {
+			when.properties.push(
+				AST.objectProperty(AST.literal('must_not'), filterAST(info.when.must_not))
+			)
+		}
+
+		// add it to the object
+		operation.properties.push(AST.objectProperty(AST.literal('when'), when))
+	}
+
+	return operation
+}
+
+type OperationInfo = {
+	position: string
+	parentID?: {
+		value: string
+		kind: string
+	}
+	when?: ConnectionWhen
+}
+
+function operationInfo(config: Config, selection: graphql.SelectionNode): OperationInfo {
 	// look at the directives applies to the spread for meta data about the mutation
 	let parentID
 	let parentKind: 'Variable' | 'String' = 'String'
@@ -610,10 +656,12 @@ function operationInfo(config: Config, selection: graphql.SelectionNode) {
 	}
 
 	return {
-		parentID: parentID && {
-			value: parentID,
-			kind: parentKind,
-		},
+		parentID: parentID
+			? {
+					value: parentID,
+					kind: parentKind,
+			  }
+			: undefined,
 		position,
 		when: operationWhen,
 	}
