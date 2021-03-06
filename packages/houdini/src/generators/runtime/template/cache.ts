@@ -221,7 +221,9 @@ export class Cache {
 			// the value could be a list
 			else if (!this.isScalarLink(linkedType.type) && Array.isArray(value)) {
 				// build up the list of linked ids
-				const linkedIDs = []
+				const linkedIDs: string[] = []
+				// look up the current known link id
+				const oldIDs = record.linkedListIDs(linkedType.key)
 
 				// visit every entry in the list
 				for (const entry of value) {
@@ -240,8 +242,16 @@ export class Cache {
 					linkedIDs.push(linkedID)
 				}
 
-				// update the cached value
-				record.writeListLink(linkedType.key, linkedIDs)
+				// if there was a change in the list
+				if (JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)) {
+					// look for any records that we don't consider part of this link any more
+					for (const lostID of oldIDs.filter((id) => !linkedIDs.includes(id))) {
+						this.record(lostID).removeSubscribers(linkedType.key, ...subscribers)
+					}
+
+					// update the cached value
+					record.writeListLink(linkedType.key, linkedIDs)
+				}
 			}
 
 			// the value is neither an object or a list so its a scalar
@@ -312,6 +322,10 @@ class Record {
 
 	linkedRecordID(fieldName: string) {
 		return this.recordLinks[fieldName]
+	}
+
+	linkedListIDs(fieldName: string): string[] {
+		return this.listLinks[fieldName] || []
 	}
 
 	linkedList(fieldName: string): Record[] {

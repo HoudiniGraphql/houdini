@@ -316,6 +316,167 @@ describe('store', function () {
 		expect(cache.get(cache.id('User', { id: '1' })).getSubscribers('firstName')).toHaveLength(0)
 	})
 
+	test('root subscribe  linked list lost entry', function () {
+		// instantiate a cache
+		const cache = new Cache()
+
+		// start off associated with one object
+		cache.write(
+			response,
+			{
+				viewer: {
+					id: '1',
+					friends: [
+						{
+							id: '2',
+							firstName: 'jane',
+						},
+						{
+							id: '3',
+							firstName: 'mary',
+						},
+					],
+				},
+			},
+			{}
+		)
+
+		// a function to spy on that will play the role of set
+		const set = jest.fn()
+
+		// subscribe to the fields
+		// NOTE: this is wrong. don't know what the new serialization format looks like
+		cache.subscribe({
+			selection: {
+				rootType: 'Query',
+				fields: {
+					Query: {
+						viewer: { type: 'User', key: 'viewer' },
+					},
+					User: {
+						firstName: { type: 'String', key: 'firstName' },
+						favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+					},
+				},
+			},
+			set,
+		})
+
+		// somehow write a user to the cache with the same id, but a different name
+		cache.write(
+			response,
+			{
+				viewer: {
+					id: '1',
+					friends: [
+						{
+							id: '2',
+						},
+					],
+				},
+			},
+			{}
+		)
+
+		// make sure that set got called with the full response
+		expect(set).toHaveBeenCalledWith({
+			viewer: {
+				friends: [
+					{
+						firstName: 'jane',
+					},
+				],
+			},
+		})
+
+		// we shouldn't be subscribing to user 3 any more
+		expect(cache.get(cache.id('User', { id: '3' })).getSubscribers('firstName')).toHaveLength(0)
+	})
+
+	test('root subscribe  linked list reorder', function () {
+		// instantiate a cache
+		const cache = new Cache()
+
+		// start off associated with one object
+		cache.write(
+			response,
+			{
+				viewer: {
+					id: '1',
+					friends: [
+						{
+							id: '2',
+							firstName: 'jane',
+						},
+						{
+							id: '3',
+							firstName: 'mary',
+						},
+					],
+				},
+			},
+			{}
+		)
+
+		// a function to spy on that will play the role of set
+		const set = jest.fn()
+
+		// subscribe to the fields
+		// NOTE: this is wrong. don't know what the new serialization format looks like
+		cache.subscribe({
+			selection: {
+				rootType: 'Query',
+				fields: {
+					Query: {
+						viewer: { type: 'User', key: 'viewer' },
+					},
+					User: {
+						firstName: { type: 'String', key: 'firstName' },
+						favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+					},
+				},
+			},
+			set,
+		})
+
+		// somehow write a user to the cache with the same id, but a different name
+		cache.write(
+			response,
+			{
+				viewer: {
+					id: '1',
+					friends: [
+						{
+							id: '3',
+						},
+						{
+							id: '2',
+						},
+					],
+				},
+			},
+			{}
+		)
+
+		// make sure that set got called with the full response
+		expect(set).toHaveBeenCalledWith({
+			viewer: {
+				friends: [
+					{
+						firstName: 'mary',
+					},
+					{
+						firstName: 'jane',
+					},
+				],
+			},
+		})
+
+		// we shouldn't be subscribing to both users
+		expect(cache.get(cache.id('User', { id: '2' })).getSubscribers('firstName')).toHaveLength(1)
+		expect(cache.get(cache.id('User', { id: '3' })).getSubscribers('firstName')).toHaveLength(1)
+	})
+
 	test('unsubscribe', function () {
 		// instantiate a cache
 		const cache = new Cache()
@@ -363,4 +524,9 @@ describe('store', function () {
 		// make sure there is no more subscriber
 		expect(cache.get(cache.id('User', { id: '1' })).getSubscribers('firstName')).toHaveLength(0)
 	})
+
+	// atm when we remove subscribers from links we assume its the only reason that spec is associated
+	// with the field. that's not the case if the same record shows up two places in a query but is removed
+	// as a link in only one of them
+	test.todo("removing link doesn't unregister the same set everywhere")
 })
