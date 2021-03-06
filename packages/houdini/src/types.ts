@@ -1,7 +1,5 @@
 import * as graphql from 'graphql'
 export {
-	PatchAtom,
-	Patch,
 	ConnectionWhen,
 	TypeLinks,
 	SubscriptionSelection,

@@ -13,6 +13,7 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 import { moduleExport } from '../utils'
+import { ConnectionWhen, MutationOperation } from './runtime/template'
 
 const AST = recast.types.builders
 
@@ -148,6 +149,11 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					})
 				)
 			)
+
+			// mutation artifacts need to specify their operations
+			if (docKind === CompiledMutationKind) {
+				artifact.body.push(moduleExport('operations', operationList(config, operations[0])))
+			}
 
 			// write the result to the artifact path we're configured to write to
 			await fs.writeFile(config.artifactPath(document), recast.print(artifact).code)
@@ -335,4 +341,264 @@ function selection({
 function fieldKey(field: graphql.FieldNode): string {
 	const attributeName = field.alias?.value || field.name.value
 	return attributeName + 'something_with_args'
+}
+
+// return the list of operations that are part of a mutation
+function operationList(
+	config: Config,
+	definition: graphql.OperationDefinitionNode
+): namedTypes.ArrayExpression {
+	// buil up the list
+	const operations = AST.arrayExpression([])
+
+	// we need to look for three different things in the operation:
+	// - insert fragments
+	// - remove fragments
+	// - delete directives
+	//
+	// note: for now, we're going to ignore the possibility that fragments
+	// inside of the mutation could contain operations
+	graphql.visit(definition, {
+		FragmentSpread: {
+			enter(node, _, __, ___, ancestors) {
+				// if the fragment is not a connection operation, we don't care about it now
+				if (!config.isConnectionFragment(node.name.value)) {
+					return
+				}
+
+				// get the operation information
+				const connectionName = config.connectionNameFromFragment(node.name.value)
+				const operationKind = config.connectionOperationFromFragment(node.name.value)
+				const info = operationInfo(config, node)
+				const path = ancestors
+					.filter(
+						// @ts-ignore
+						(entry) => !Array.isArray(entry) && entry.kind === 'Field'
+					)
+					// @ts-ignore
+					.map((field) => field.name.value)
+
+				const operation = AST.objectExpression([
+					AST.objectProperty(
+						AST.literal('source'),
+						AST.arrayExpression(path.map(AST.stringLiteral))
+					),
+					AST.objectProperty(AST.literal('target'), AST.stringLiteral(connectionName)),
+					AST.objectProperty(AST.literal('kind'), AST.stringLiteral(operationKind)),
+					AST.objectProperty(AST.literal('position'), AST.stringLiteral(info.position)),
+				])
+
+				// if there is a parent id
+				if (info.parentID) {
+					// add it to the object
+					operation.properties.push(
+						AST.objectProperty(
+							AST.literal('parentID'),
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.literal('kind'),
+									AST.stringLiteral(info.parentID.kind)
+								),
+								AST.objectProperty(
+									AST.literal('value'),
+									AST.stringLiteral(info.parentID.value)
+								),
+							])
+						)
+					)
+				}
+
+				// if there is a conditional
+				if (info.when) {
+					// build up the when object
+					const when = AST.objectExpression([])
+
+					// if there is a must
+					if (info.when.must) {
+						when.properties.push(
+							AST.objectProperty(AST.literal('must'), filterAST(info.when.must))
+						)
+					}
+
+					// if there is a must_not
+					if (info.when.must_not) {
+						when.properties.push(
+							AST.objectProperty(
+								AST.literal('must_not'),
+								filterAST(info.when.must_not)
+							)
+						)
+					}
+
+					// add it to the object
+					operation.properties.push(AST.objectProperty(AST.literal('when'), when))
+				}
+
+				// add the operation object to the list
+				operations.elements.push(operation)
+			},
+		},
+	})
+
+	return operations
+}
+
+function operationInfo(config: Config, selection: graphql.SelectionNode) {
+	// look at the directives applies to the spread for meta data about the mutation
+	let parentID
+	let parentKind: 'Variable' | 'String' = 'String'
+
+	let position: MutationOperation['position'] = 'last'
+	let operationWhen: MutationOperation['when'] | undefined
+
+	const internalDirectives = selection.directives?.filter((directive) =>
+		config.isInternalDirective(directive)
+	)
+	if (internalDirectives && internalDirectives.length > 0) {
+		// is prepend applied?
+		const prepend = internalDirectives.find(
+			({ name }) => name.value === config.connectionPrependDirective
+		)
+		// is append applied?
+		const append = internalDirectives.find(
+			({ name }) => name.value === config.connectionAppendDirective
+		)
+		// is when applied?
+		const when = internalDirectives.find(({ name }) => name.value === 'when')
+		// is when_not applied?
+		const when_not = internalDirectives.find(({ name }) => name.value === 'when_not')
+		// look for the parentID directive
+		let parent = internalDirectives.find(
+			({ name }) => name.value === config.connectionParentDirective
+		)
+
+		// if both are applied, there's a problem
+		if (append && prepend) {
+			throw new Error('WRAP THIS IN A HOUDINI ERROR. you have both applied')
+		}
+		position = prepend ? 'first' : 'last'
+
+		// the parent ID can be provided a few ways, either as an argument to the prepend
+		// and append directives or with the parentID directive.
+
+		let parentIDArg = parent?.arguments?.find((argument) => argument.name.value === 'value')
+		// if there is no parent id argument, it could have been provided by one of the connection directives
+		if (!parentIDArg) {
+			parentIDArg = (append || prepend)?.arguments?.find(
+				({ name }) => name.value === config.connectionDirectiveParentIDArg
+			)
+		}
+
+		if (parentIDArg) {
+			// if the argument is a string
+			if (parentIDArg.value.kind === 'StringValue') {
+				// use its value
+				parentID = parentIDArg.value.value
+				parentKind = 'String'
+			} else if (parentIDArg.value.kind === 'Variable') {
+				parentKind = 'Variable'
+				parentID = parentIDArg.value.name.value
+			}
+		}
+
+		// look for a when arguments on the operation directives
+		const whenArg = (append || prepend)?.arguments?.find(({ name }) => name.value === 'when')
+		// look for a when_not condition on the operation
+		const whenNotArg = (append || prepend)?.arguments?.find(
+			({ name }) => name.value === 'when_not'
+		)
+
+		for (const [i, arg] of [whenArg, whenNotArg].entries()) {
+			// we may not have the argument
+			if (!arg || arg.value.kind !== 'ObjectValue') {
+				continue
+			}
+
+			//which are we looking at
+			const which = i ? 'must_not' : 'must'
+			// build up all of the values into a single object
+			const key = arg.value.fields.find(({ name, value }) => name.value === 'argument')?.value
+			const value = arg.value.fields.find(({ name }) => name.value === 'value')
+
+			// make sure we got a string for the key
+			if (key?.kind !== 'StringValue' || !value || value.value.kind !== 'StringValue') {
+				throw new Error('Key and Value must be strings')
+			}
+
+			// make sure we have a place to record the when condition
+			if (!operationWhen) {
+				operationWhen = {}
+			}
+
+			// the kind of `value` is always going to be a string because the directive
+			// can only take one type as its argument so we'll worry about parsing when
+			// generating the artifact
+			operationWhen[which] = {
+				[key.value]: value.value.value,
+			}
+		}
+
+		// look at the when and when_not directives
+		for (const [i, directive] of [when, when_not].entries()) {
+			// we may not have the directive applied
+			if (!directive) {
+				continue
+			}
+			//which are we looking at
+			const which = i ? 'must_not' : 'must'
+
+			// look for the argument field
+			const key = directive.arguments?.find(({ name }) => name.value === 'argument')
+			const value = directive.arguments?.find(({ name }) => name.value === 'value')
+
+			// make sure we got a string for the key
+			if (key?.value.kind !== 'StringValue' || !value || value.value.kind !== 'StringValue') {
+				throw new Error('Key and Value must be strings')
+			}
+
+			// make sure we have a place to record the when condition
+			if (!operationWhen) {
+				operationWhen = {}
+			}
+
+			// the kind of `value` is always going to be a string because the directive
+			// can only take one type as its argument so we'll worry about parsing when
+			// generating the patches
+			operationWhen[which] = {
+				[key.value.value]: value.value.value,
+			}
+		}
+	}
+
+	return {
+		parentID: parentID && {
+			value: parentID,
+			kind: parentKind,
+		},
+		position,
+		when: operationWhen,
+	}
+}
+
+function filterAST(filter: ConnectionWhen['must']): namedTypes.ObjectExpression {
+	if (!filter) {
+		return AST.objectExpression([])
+	}
+	// build up the object
+	return AST.objectExpression(
+		Object.entries(filter).map(([key, value]) => {
+			// figure out the right value
+			let literal = null
+			if (typeof value === 'string') {
+				literal = AST.stringLiteral(value)
+			} else if (typeof value === 'boolean') {
+				literal = AST.booleanLiteral(value)
+			} else if (typeof value === 'number') {
+				literal = AST.numericLiteral(value)
+			} else {
+				throw new Error('Could not figure out filter value')
+			}
+			return AST.objectProperty(AST.literal(key), literal)
+		})
+	)
 }

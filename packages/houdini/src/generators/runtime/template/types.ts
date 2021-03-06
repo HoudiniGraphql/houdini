@@ -28,10 +28,10 @@ export type TaggedGraphqlMutation = {
 	name: string
 	kind: 'HoudiniMutation'
 	raw: string
-	links: Module<() => { [queryName: string]: Module<Patch> }>
 	response: TypeLinks
 	selection: SubscriptionSelection
 	rootType: string
+	operations: MutationOperation[]
 }
 
 // the result of tagging an operation
@@ -56,37 +56,14 @@ export type ConnectionWhen = {
 	must_not?: Filter
 }
 
-// another intermediate type used when building up the mutation description
-export type PatchAtom = {
-	operation: 'add' | 'remove' | 'update' | 'delete'
-	mutationName: string
-	mutationPath: string[]
-	queryName: string
-	queryPath: string[]
-	// connection fields
+export type MutationOperation = {
+	source: string[]
+	kind: 'insert' | 'remove' | 'delete'
+	target: string
 	parentID?: {
-		kind: 'Variable' | 'String' | 'Root'
+		kind: string
 		value: string
 	}
+	position?: 'first' | 'last'
 	when?: ConnectionWhen
-	connectionName?: string
-	position?: 'start' | 'end'
-}
-
-// a description of an interaction between a mutation and a query
-export type Patch = {
-	operations?: {
-		[op in PatchAtom['operation']]?: {
-			parentID: {
-				kind: 'String' | 'Variable' | 'Root'
-				value: string
-			}
-			position: 'start' | 'end'
-			path: string[]
-			when?: ConnectionWhen
-			connectionName?: string
-		}[]
-	}
-	fields?: { [fieldName: string]: Array<string[]> }
-	edges?: { [path: string]: Patch }
 }

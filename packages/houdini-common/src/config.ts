@@ -235,6 +235,20 @@ export class Config {
 		return fragmentName.startsWith(connectionName)
 	}
 
+	// return 'insert' for All_Users_insert
+	connectionOperationFromFragment(fragmentName: string): 'insert' | 'remove' {
+		// check the name against the fragment patterns
+		if (this.isInsertFragment(fragmentName)) {
+			return 'insert'
+		} else if (this.isRemoveFragment(fragmentName)) {
+			return 'remove'
+		}
+
+		throw new Error(
+			'Could not determine connection operation from fragment name: ' + fragmentName
+		)
+	}
+
 	connectionNameFromDirective(directiveName: string): string {
 		try {
 			return this.connectionNameFromFragment(directiveName)

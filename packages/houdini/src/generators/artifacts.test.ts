@@ -176,3 +176,1280 @@ test('internal directives are scrubbed', async function () {
 		};
 	`)
 })
+
+describe('mutation artifacts', function () {
+	test('empty operation list', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation B',
+				`mutation B { 
+					addFriend { 
+						friend { 
+							firstName
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation B";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "0787170232c25410f1fb16804ac92fc2";
+
+		module.exports.raw = \`mutation B {
+		  addFriend {
+		    friend {
+		      firstName
+		    }
+		  }
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args",
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "key": "firstNamesomething_with_args"
+		                    }
+		                }
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [];
+	`)
+	})
+
+	test('insert operation', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "473d90402922a8cce8e90d53d1060222";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_insert
+		    }
+		  }
+		}
+
+		fragment All_Users_insert on User {
+		  firstName
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            },
+
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "target": "All_Users",
+		    "kind": "insert",
+		    "position": "last"
+		}];
+	`)
+	})
+
+	test('parentID - prepend', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @prepend(parentID: "1234")
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "668ff1dae6a853db970112b94cc7b3f6";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_insert
+		    }
+		  }
+		}
+
+		fragment All_Users_insert on User {
+		  firstName
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            },
+
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "target": "All_Users",
+		    "kind": "insert",
+		    "position": "first",
+
+		    "parentID": {
+		        "kind": "String",
+		        "value": "1234"
+		    }
+		}];
+	`)
+	})
+
+	test('parentID - append', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @append(parentID: "1234")
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "023533de87e89e1234f9e4f37f05cdc1";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_insert
+		    }
+		  }
+		}
+
+		fragment All_Users_insert on User {
+		  firstName
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            },
+
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "target": "All_Users",
+		    "kind": "insert",
+		    "position": "last",
+
+		    "parentID": {
+		        "kind": "String",
+		        "value": "1234"
+		    }
+		}];
+	`)
+	})
+
+	test('parentID - parentID directive', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @parentID(value: "1234")
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "65685926dbe59762e208efc8f29bf137";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_insert
+		    }
+		  }
+		}
+
+		fragment All_Users_insert on User {
+		  firstName
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            },
+
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "target": "All_Users",
+		    "kind": "insert",
+		    "position": "last",
+
+		    "parentID": {
+		        "kind": "String",
+		        "value": "1234"
+		    }
+		}];
+	`)
+	})
+
+	test('must - prepend', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @prepend(when: { argument: "boolValue", value: "true" })
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "5ced4c4d96cac1354214e620d431efbc";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_insert
+		    }
+		  }
+		}
+
+		fragment All_Users_insert on User {
+		  firstName
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            },
+
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "target": "All_Users",
+		    "kind": "insert",
+		    "position": "first",
+
+		    "when": {
+		        "must": {
+		            "boolValue": "true"
+		        }
+		    }
+		}];
+	`)
+	})
+
+	test('must - append', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @append(when: { argument: "boolValue", value: "true" })
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "75f855274f5456a4c8004caf01942c48";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_insert
+		    }
+		  }
+		}
+
+		fragment All_Users_insert on User {
+		  firstName
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            },
+
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "target": "All_Users",
+		    "kind": "insert",
+		    "position": "last",
+
+		    "when": {
+		        "must": {
+		            "boolValue": "true"
+		        }
+		    }
+		}];
+	`)
+	})
+
+	test('must - directive', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @when(argument: "boolValue", value: "true")
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "3c8dba5b58162f442b994f5b8ea4a86e";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_insert
+		    }
+		  }
+		}
+
+		fragment All_Users_insert on User {
+		  firstName
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            },
+
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "target": "All_Users",
+		    "kind": "insert",
+		    "position": "last",
+
+		    "when": {
+		        "must": {
+		            "boolValue": "true"
+		        }
+		    }
+		}];
+	`)
+	})
+
+	test('must_not - prepend', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @prepend(when_not: { argument: "boolValue", value: "true" })
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "855ecff81a12f90d28c79cd143e0e1b0";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_insert
+		    }
+		  }
+		}
+
+		fragment All_Users_insert on User {
+		  firstName
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            },
+
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "target": "All_Users",
+		    "kind": "insert",
+		    "position": "first",
+
+		    "when": {
+		        "must_not": {
+		            "boolValue": "true"
+		        }
+		    }
+		}];
+	`)
+	})
+
+	test('must_not - append', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @append(when_not: { argument: "boolValue", value: "true" })
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "56fe5c85d17523318a96c2d78c3db735";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_insert
+		    }
+		  }
+		}
+
+		fragment All_Users_insert on User {
+		  firstName
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            },
+
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "target": "All_Users",
+		    "kind": "insert",
+		    "position": "last",
+
+		    "when": {
+		        "must_not": {
+		            "boolValue": "true"
+		        }
+		    }
+		}];
+	`)
+	})
+
+	test('must_not - directive', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @when_not(argument: "boolValue", value: "true")
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Mutation A";
+		module.exports.kind = "HoudiniMutation";
+		module.exports.hash = "1a7aff185b471fe8e2af42b0b3919d0a";
+
+		module.exports.raw = \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_insert
+		    }
+		  }
+		}
+
+		fragment All_Users_insert on User {
+		  firstName
+		  id
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Mutation",
+
+		    fields: {
+		        "Mutation": {
+		            "addFriend": {
+		                "key": "addFriendsomething_with_args",
+		                "type": "AddFriendOutput"
+		            }
+		        },
+
+		        "AddFriendOutput": {
+		            "friend": {
+		                "key": "friendsomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            },
+
+		            "id": {
+		                "key": "idsomething_with_args",
+		                "type": "ID"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Mutation";
+
+		module.exports.selection = {
+		    "addFriend": {
+		        "type": "AddFriendOutput",
+		        "key": "addFriendsomething_with_args",
+
+		        "fields": {
+		            "friend": {
+		                "type": "User",
+		                "key": "friendsomething_with_args"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.operations = [{
+		    "source": ["addFriend", "friend"],
+		    "target": "All_Users",
+		    "kind": "insert",
+		    "position": "last",
+
+		    "when": {
+		        "must_not": {
+		            "boolValue": "true"
+		        }
+		    }
+		}];
+	`)
+	})
+})
