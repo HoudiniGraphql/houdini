@@ -2,7 +2,7 @@
 import { Cache } from './template/cache'
 
 // the type information
-const selectionInfo = {
+const response = {
 	rootType: 'Query',
 	fields: {
 		Query: {
@@ -31,7 +31,7 @@ describe('store', function () {
 				firstName: 'bob',
 			},
 		}
-		cache.write(selectionInfo, data, {})
+		cache.write(response, data, {})
 
 		// make sure we can get back what we wrote
 		expect(cache.get(cache.id('User', data.viewer)).fields).toEqual(data.viewer)
@@ -43,7 +43,7 @@ describe('store', function () {
 
 		// save the data
 		cache.write(
-			selectionInfo,
+			response,
 			{
 				viewer: {
 					id: '1',
@@ -54,7 +54,7 @@ describe('store', function () {
 		)
 
 		cache.write(
-			selectionInfo,
+			response,
 			{
 				viewer: {
 					id: '1',
@@ -78,7 +78,7 @@ describe('store', function () {
 
 		// save the data
 		cache.write(
-			selectionInfo,
+			response,
 			{
 				viewer: {
 					id: '1',
@@ -113,7 +113,7 @@ describe('store', function () {
 
 		// associate user2 with a new parent
 		cache.write(
-			selectionInfo,
+			response,
 			{
 				viewer: {
 					id: '2',
@@ -144,7 +144,7 @@ describe('store', function () {
 
 		// add some data to the cache
 		cache.write(
-			selectionInfo,
+			response,
 			{
 				viewer: {
 					id: '1',
@@ -187,7 +187,7 @@ describe('store', function () {
 
 		// add some data to the cache
 		cache.write(
-			selectionInfo,
+			response,
 			{
 				viewer: {
 					id: '1',
@@ -203,4 +203,8 @@ describe('store', function () {
 			cache.get(cache.id('User', { id: '1' })).fields['favoriteColors(where: "foo")']
 		).toEqual(['red', 'green', 'blue'])
 	})
+
+	test.todo('subscribe')
+
+	test.todo('unsubscribe')
 })

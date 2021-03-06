@@ -19,7 +19,7 @@ export type Maybe<T> = T | null
 export type TaggedGraphqlFragment = {
 	name: string
 	kind: 'HoudiniFragment'
-	applyMask: (root: any, variables: any) => any
+	selection: TypeLinks
 }
 
 // the result of tagging an operation
@@ -27,9 +27,9 @@ export type TaggedGraphqlMutation = {
 	name: string
 	kind: 'HoudiniMutation'
 	raw: string
-	processResult: (result: any) => any
 	links: Module<() => { [queryName: string]: Module<Patch> }>
-	selectionInfo: TypeLinks
+	response: TypeLinks
+	selection: TypeLinks
 }
 
 // the result of tagging an operation
@@ -37,10 +37,10 @@ export type TaggedGraphqlQuery = {
 	name: string
 	kind: 'HoudiniQuery'
 	raw: string
-	processResult: (result: any, variables: any) => any
 	initialValue: any
 	variables: { [key: string]: any }
-	selectionInfo: TypeLinks
+	response: TypeLinks
+	selection: TypeLinks
 }
 
 // the result of the template tag

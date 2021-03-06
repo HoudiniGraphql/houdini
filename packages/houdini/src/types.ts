@@ -7,6 +7,7 @@ type BaseCompiledDocument = {
 	name: string
 	raw: string
 	hash: string
+	selection: TypeLinks
 }
 
 export const CompiledFragmentKind = 'HoudiniFragment'
@@ -18,12 +19,12 @@ export type CompiledDocumentKind = 'HoudiniFragment' | 'HoudiniMutation' | 'Houd
 // the information that the compiler leaves behind after processing an operation
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
-	selectionInfo: TypeLinks
+	response: TypeLinks
 }
 
 export type MutationArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniMutation'
-	selectionInfo: TypeLinks
+	response: TypeLinks
 }
 
 // the information that the compiler leaves behind after processing a fragment

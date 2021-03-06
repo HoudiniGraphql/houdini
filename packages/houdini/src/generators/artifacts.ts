@@ -41,11 +41,11 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			// look for the operation
 			const operations = document.definitions.filter(
 				({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
-			)
+			) as graphql.OperationDefinitionNode[]
 			// there are no operations, so its a fragment
 			const fragments = document.definitions.filter(
 				({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
-			)
+			) as graphql.FragmentDefinitionNode[]
 
 			// if there are operations in the document
 			if (operations.length > 0) {
@@ -86,11 +86,60 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				),
 			])
 
+			let rootType: string | undefined = ''
+			let selectionSet: graphql.SelectionSetNode
+
 			// if we are generating the artifact for an operation
 			if (docKind !== 'HoudiniFragment') {
+				// find the operation
+				const operation = operations[0]
+
+				if (operation.operation === 'query') {
+					rootType = config.schema.getQueryType()?.name
+				} else if (operation.operation === 'mutation') {
+					rootType = config.schema.getMutationType()?.name
+				} else if (operation.operation === 'subscription') {
+					rootType = config.schema.getSubscriptionType()?.name
+				}
+				if (!rootType) {
+					throw new Error('Could not find root type for field map')
+				}
+
+				// use this selection set
+				selectionSet = operation.selectionSet
+
 				// add the field map to the artifact
-				artifact.body.push(moduleExport('selectionInfo', selectionInfo(config, document)))
+				artifact.body.push(
+					moduleExport(
+						'response',
+						response({
+							config,
+							document,
+							rootType,
+							selectionSet: operation.selectionSet,
+						})
+					)
+				)
 			}
+			// we are looking at a fragment so use its selection set and type for the subscribe index
+			else {
+				rootType = fragments[0].typeCondition.name.value
+				selectionSet = fragments[0].selectionSet
+			}
+
+			// add the selection information so we can subscribe to the store
+			artifact.body.push(
+				moduleExport(
+					'selection',
+					response({
+						config,
+						document,
+						rootType,
+						selectionSet: selectionSet,
+						includeFragments: false,
+					})
+				)
+			)
 
 			// write the result to the artifact path we're configured to write to
 			await fs.writeFile(config.artifactPath(document), recast.print(artifact).code)
@@ -103,30 +152,27 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 	)
 }
 
-function selectionInfo(config: Config, document: graphql.DocumentNode) {
-	// find the operation
-	const operation = document.definitions.find(
-		({ kind }) => kind === 'OperationDefinition'
-	) as graphql.OperationDefinitionNode
-	if (!operation) {
-		return AST.objectExpression([])
-	}
-
-	// figure out the root type
-	let rootType: string | undefined = ''
-	if (operation.operation === 'query') {
-		rootType = config.schema.getQueryType()?.name
-	} else if (operation.operation === 'mutation') {
-		rootType = config.schema.getMutationType()?.name
-	} else if (operation.operation === 'subscription') {
-		rootType = config.schema.getSubscriptionType()?.name
-	}
-	if (!rootType) {
-		throw new Error('Could not find root type for field map')
-	}
-
+function response({
+	config,
+	document,
+	rootType,
+	selectionSet,
+	includeFragments = true,
+}: {
+	config: Config
+	document: graphql.DocumentNode
+	rootType: string
+	selectionSet: graphql.SelectionSetNode
+	includeFragments?: boolean
+}) {
 	// build up the fields key in the document
-	const fields = buildselectionInfo(config, document, rootType, operation.selectionSet)
+	const fields = buildResponse({
+		config,
+		document,
+		rootType,
+		includeFragments,
+		selectionSet,
+	})
 
 	return AST.objectExpression([
 		AST.objectProperty(AST.identifier('rootType'), AST.stringLiteral(rootType)),
@@ -134,21 +180,29 @@ function selectionInfo(config: Config, document: graphql.DocumentNode) {
 	])
 }
 
-function buildselectionInfo(
-	config: Config,
-	document: graphql.DocumentNode,
-	parentType: string,
-	selectionSet: graphql.SelectionSetNode,
-	map: namedTypes.ObjectExpression = AST.objectExpression([])
-): namedTypes.ObjectExpression {
+function buildResponse({
+	config,
+	document,
+	rootType,
+	selectionSet,
+	includeFragments,
+	map = AST.objectExpression([]),
+}: {
+	config: Config
+	document: graphql.DocumentNode
+	rootType: string
+	selectionSet: graphql.SelectionSetNode
+	includeFragments: boolean
+	map?: namedTypes.ObjectExpression
+}): namedTypes.ObjectExpression {
 	// check if we have seen this type before
 	let typeField = map.properties.find((prop) => {
 		const objProp = prop as namedTypes.ObjectProperty
-		return objProp.key.type === 'Literal' && objProp.key.value === parentType
+		return objProp.key.type === 'Literal' && objProp.key.value === rootType
 	}) as namedTypes.ObjectProperty
 	// if it doesn't exist, we need to add the type to the root
 	if (!typeField) {
-		typeField = AST.objectProperty(AST.literal(parentType), AST.objectExpression([]))
+		typeField = AST.objectProperty(AST.literal(rootType), AST.objectExpression([]))
 		map.properties.push(typeField)
 	}
 
@@ -157,25 +211,33 @@ function buildselectionInfo(
 	// visit every selection
 	for (const selection of selectionSet.selections) {
 		// if we are looking at a fragment spread we need to keep walking down
-		if (selection.kind === 'FragmentSpread') {
+		if (includeFragments && selection.kind === 'FragmentSpread') {
 			// look up the fragment definition
 			const definition = document.definitions.find(
 				(defn) =>
 					defn.kind === 'FragmentDefinition' && defn.name.value === selection.name.value
 			) as graphql.FragmentDefinitionNode
 
-			buildselectionInfo(
+			buildResponse({
 				config,
 				document,
-				definition.typeCondition.name.value,
-				definition.selectionSet,
-				map
-			)
+				rootType: definition.typeCondition.name.value,
+				selectionSet: definition.selectionSet,
+				includeFragments,
+				map,
+			})
 		}
 		// if we're looking at an inline fragment, keep going
 		else if (selection.kind === 'InlineFragment') {
-			const fragmentType = selection.typeCondition?.name.value || parentType
-			buildselectionInfo(config, document, fragmentType, selection.selectionSet, map)
+			const fragmentType = selection.typeCondition?.name.value || rootType
+			buildResponse({
+				config,
+				document,
+				rootType: fragmentType,
+				selectionSet: selection.selectionSet,
+				map,
+				includeFragments,
+			})
 		}
 		// its a field
 		else if (selection.kind === 'Field') {
@@ -184,7 +246,7 @@ function buildselectionInfo(
 			const key = attributeName + 'something_with_args'
 
 			// look up the field
-			const type = config.schema.getType(parentType) as graphql.GraphQLObjectType
+			const type = config.schema.getType(rootType) as graphql.GraphQLObjectType
 			if (!type) {
 				throw new Error('Could not find type')
 			}
@@ -213,7 +275,14 @@ function buildselectionInfo(
 
 			// if the field has a selection set, then we need to include it
 			if (selection.selectionSet) {
-				buildselectionInfo(config, document, typeName, selection.selectionSet, map)
+				buildResponse({
+					config,
+					document,
+					rootType: typeName,
+					selectionSet: selection.selectionSet,
+					includeFragments,
+					map,
+				})
 			}
 		}
 	}

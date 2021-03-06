@@ -3,10 +3,11 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
 // locals
-import { selector, walkTaggedDocuments } from '../utils'
+import { selector, walkTaggedDocuments, selectionAST } from '../utils'
 import { TransformDocument } from '../types'
+import { FragmentArtifact } from 'houdini'
 
-const typeBuilders = recast.types.builders
+const AST = recast.types.builders
 
 // returns the expression that should replace the graphql
 export default async function fragmentProcesesor(
@@ -49,19 +50,13 @@ export default async function fragmentProcesesor(
 
 			// replace the node with an object
 			node.replaceWith(
-				typeBuilders.objectExpression([
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('name'),
-						typeBuilders.stringLiteral(artifact.name)
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('kind'),
-						typeBuilders.stringLiteral(artifact.kind)
-					),
+				AST.objectExpression([
+					AST.objectProperty(AST.stringLiteral('name'), AST.stringLiteral(artifact.name)),
+					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
 					// the primary requirement for a fragment is applyMask, a function that returns the requested
 					// data from the object. we're going to build this up as a function
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('applyMask'),
+					AST.objectProperty(
+						AST.stringLiteral('applyMask'),
 						selector({
 							config: doc.config,
 							artifact,
@@ -71,6 +66,10 @@ export default async function fragmentProcesesor(
 							root: true,
 							parsedDocument,
 						})
+					),
+					AST.objectProperty(
+						AST.literal('selection'),
+						selectionAST((artifact as FragmentArtifact).selection)
 					),
 				])
 			)

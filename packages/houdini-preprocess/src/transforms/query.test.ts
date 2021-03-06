@@ -85,7 +85,27 @@ describe('query preprocessor', function () {
 
 		    "variables": _TestQuery_Input,
 
-		    "selectionInfo": {
+		    "response": {
+		        "rootType": "Query",
+
+		        "fields": {
+		            "Query": {
+		                "viewer": {
+		                    "key": "viewer",
+		                    "type": "User"
+		                }
+		            },
+
+		            "User": {
+		                "id": {
+		                    "key": "id",
+		                    "type": "ID"
+		                }
+		            }
+		        }
+		    },
+
+		    "selection": {
 		        "rootType": "Query",
 
 		        "fields": {
@@ -195,7 +215,27 @@ describe('query preprocessor', function () {
 
 		    "variables": _TestQuery_Input,
 
-		    "selectionInfo": {
+		    "response": {
+		        "rootType": "Query",
+
+		        "fields": {
+		            "Query": {
+		                "viewer": {
+		                    "key": "viewer",
+		                    "type": "User"
+		                }
+		            },
+
+		            "User": {
+		                "id": {
+		                    "key": "id",
+		                    "type": "ID"
+		                }
+		            }
+		        }
+		    },
+
+		    "selection": {
 		        "rootType": "Query",
 
 		        "fields": {
@@ -271,7 +311,24 @@ async function preprocessorTest(content: string) {
 			kind: 'HoudiniQuery',
 			raw: query,
 			hash: hashDocument(parsedQuery),
-			selectionInfo: {
+			response: {
+				rootType: 'Query',
+				fields: {
+					Query: {
+						viewer: {
+							key: 'viewer',
+							type: 'User',
+						},
+					},
+					User: {
+						id: {
+							key: 'id',
+							type: 'ID',
+						},
+					},
+				},
+			},
+			selection: {
 				rootType: 'Query',
 				fields: {
 					Query: {

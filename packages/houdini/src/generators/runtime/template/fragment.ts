@@ -18,6 +18,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 
 	// @ts-ignore: .__variables is added by the selector and hidden from the user's world
 	const variables = getVariables()
+
 	// wrap the result in a store we can use to keep this query up to date
 	const value = readable(data, (set) => {
 		// build up the store object

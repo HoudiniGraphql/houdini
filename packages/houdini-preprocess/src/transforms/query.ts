@@ -11,7 +11,7 @@ import { Config } from 'houdini-common'
 import { QueryArtifact } from 'houdini'
 // locals
 import { TransformDocument } from '../types'
-import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument, selectionInfoAST } from '../utils'
+import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument, selectionAST } from '../utils'
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
@@ -100,8 +100,12 @@ export default async function queryProcessor(
 						)
 					),
 					AST.objectProperty(
-						AST.literal('selectionInfo'),
-						selectionInfoAST((artifact as QueryArtifact).selectionInfo)
+						AST.literal('response'),
+						selectionAST((artifact as QueryArtifact).response)
+					),
+					AST.objectProperty(
+						AST.literal('selection'),
+						selectionAST((artifact as QueryArtifact).selection)
 					),
 				])
 			)

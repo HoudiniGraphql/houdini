@@ -1,5 +1,6 @@
 // locals
 import type { Patch } from '../../../types'
+import { setVariables } from './context'
 
 // the dispatch table
 export type DocumentStore = {
@@ -448,6 +449,9 @@ export function updateStoreData(storeName: string, result: any, variables: any) 
 		console.log('updating with null result')
 		return
 	}
+
+	// keep the variables in sync
+	setVariables(variables)
 
 	// apply the new update to every store matching the name
 	// TODO: this might not be what we want. the same query could show up

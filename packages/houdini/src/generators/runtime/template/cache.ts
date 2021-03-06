@@ -35,7 +35,7 @@ export class Cache {
 		variables: {}
 	) {
 		// the record we are storing information about this object
-		const record = this._record(parentID)
+		const record = this.record(parentID)
 
 		// look at ever field in the data
 		for (const [field, value] of Object.entries(data)) {
@@ -63,7 +63,7 @@ export class Cache {
 			}
 
 			// the value could be a list
-			else if (!isScalarLink(linkedType.type) && Array.isArray(value)) {
+			else if (!this.isScalarLink(linkedType.type) && Array.isArray(value)) {
 				// build up the list of linked ids
 				const linkedIDs = []
 
@@ -96,7 +96,7 @@ export class Cache {
 	}
 
 	// updates the record specified by {id}
-	private _record(id: string): Record {
+	private record(id: string): Record {
 		// if we haven't seen the record before add an entry in the store
 		if (!this._data.has(id)) {
 			this._data.set(id, new Record(this))
@@ -104,6 +104,10 @@ export class Cache {
 
 		// write the field value
 		return this._data.get(id) as Record
+	}
+
+	private isScalarLink(type: string) {
+		return ['String', 'Boolean', 'Float', 'ID', 'Int'].includes(type)
 	}
 }
 
@@ -139,10 +143,6 @@ class Record {
 			.map((link) => this.cache.get(link))
 			.filter((record) => record !== null) as Record[]
 	}
-}
-
-function isScalarLink(type: string) {
-	return ['String', 'Boolean', 'Float', 'ID', 'Int'].includes(type)
 }
 
 type GraphQLValue =

@@ -32,7 +32,7 @@ test('generates an artifact for every document', async function () {
 	expect(files).toEqual(expect.arrayContaining(['TestQuery.cjs', 'TestFragment.cjs']))
 })
 
-test('adds kind, name, and raw, and selectionInfo', async function () {
+test('adds kind, name, and raw, response, and selection', async function () {
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -58,7 +58,20 @@ test('adds kind, name, and raw, and selectionInfo', async function () {
 		}
 		\`;
 
-		module.exports.selectionInfo = {
+		module.exports.response = {
+		    rootType: "Query",
+
+		    fields: {
+		        "Query": {
+		            "version": {
+		                "key": "versionsomething_with_args",
+		                "type": "Int"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.selection = {
 		    rootType: "Query",
 
 		    fields: {
@@ -91,6 +104,19 @@ test('adds kind, name, and raw, and selectionInfo', async function () {
 		  firstName
 		}
 		\`;
+
+		module.exports.selection = {
+		    rootType: "User",
+
+		    fields: {
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            }
+		        }
+		    }
+		};
 	`)
 })
 
@@ -128,7 +154,7 @@ test('internal directives are scrubbed', async function () {
 		}
 		\`;
 
-		module.exports.selectionInfo = {
+		module.exports.response = {
 		    rootType: "Query",
 
 		    fields: {
@@ -145,6 +171,21 @@ test('internal directives are scrubbed', async function () {
 		                "type": "String"
 		            }
 		        }
+		    }
+		};
+
+		module.exports.selection = {
+		    rootType: "Query",
+
+		    fields: {
+		        "Query": {
+		            "user": {
+		                "key": "usersomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {}
 		    }
 		};
 	`)

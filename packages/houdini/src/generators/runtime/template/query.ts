@@ -14,12 +14,6 @@ export default function query<_Query extends Operation<any, any>>(
 		throw new Error('getQuery can only take query operations')
 	}
 
-	// if there is no initial value
-	if (!document.initialValue) {
-		// we're done
-		return readable(null, () => {})
-	}
-
 	// emebed the variables in the components context
 	setVariables(document.variables)
 
@@ -28,7 +22,7 @@ export default function query<_Query extends Operation<any, any>>(
 		// when the component monuts
 		onMount(() => {
 			// once we've mounted
-			cache.write(document.selectionInfo, document.initialValue.data, document.variables)
+			cache.write(document.response, document.initialValue.data, document.variables)
 
 			console.log('updated cache')
 		})
