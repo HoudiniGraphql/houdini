@@ -254,6 +254,68 @@ describe('store', function () {
 		})
 	})
 
+	test('root subscribe  linked object changed', function () {
+		// instantiate a cache
+		const cache = new Cache()
+
+		// start off associated with one object
+		cache.write(
+			response,
+			{
+				viewer: {
+					id: '1',
+					firstName: 'bob',
+					favoriteColors: ['red', 'green', 'blue'],
+				},
+			},
+			{}
+		)
+
+		// a function to spy on that will play the role of set
+		const set = jest.fn()
+
+		// subscribe to the fields
+		cache.subscribe({
+			selection: {
+				rootType: 'Query',
+				fields: {
+					Query: {
+						viewer: { type: 'User', key: 'viewer' },
+					},
+					User: {
+						firstName: { type: 'String', key: 'firstName' },
+						favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+					},
+				},
+			},
+			set,
+		})
+
+		// somehow write a user to the cache with the same id, but a different name
+		cache.write(
+			response,
+			{
+				viewer: {
+					id: '2',
+					firstName: 'mary',
+				},
+			},
+			{}
+		)
+
+		// make sure that set got called with the full response
+		expect(set).toHaveBeenCalledWith({
+			viewer: {
+				firstName: 'mary',
+				// this is a sanity-check. the cache wasn't written with that value
+				favoriteColors: undefined,
+			},
+		})
+
+		// make sure we are no longer subscribing to user 1
+		expect(cache.get(cache.id('User', { id: '1' })).getSubscribers('firstName')).toHaveLength(0)
+	})
+
 	test('unsubscribe', function () {
 		// instantiate a cache
 		const cache = new Cache()

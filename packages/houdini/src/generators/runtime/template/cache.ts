@@ -141,7 +141,7 @@ export class Cache {
 	private removeSubscribers(rootRecord: Record, spec: SubscriptionSpec, fields: LinkInfo) {
 		for (const { type, key } of Object.values(fields)) {
 			// remove the subscriber to the field
-			rootRecord.removeSubscriber(key, spec)
+			rootRecord.removeSubscribers(key, spec)
 
 			// if the field points to a link, we need to subscribe to any fields of that
 			// linked record
@@ -188,15 +188,31 @@ export class Cache {
 				)
 			}
 
-			// if the field shows up in the type info, we know its a link
-			// otherwise we can treat it like a field
-			// only write the link if its an object, not a list
+			// the subscribers we need to register if we updated something
+			const subscribers = record.getSubscribers(linkedType.key)
+
+			// if the value is an object, we know it points to a linked record
 			if (value instanceof Object && !Array.isArray(value)) {
-				// figure out the id of the linked record
+				// look up the current known link id
+				const oldID = record.linkedRecordID(linkedType.key)
+
+				// figure out the id of the new linked record
 				const linkedID = this.id(linkedType.type, value)
 
-				// record the updated value
-				record.writeRecordLink(linkedType.key, linkedID)
+				// if we are now linked to a new object we need to record the new value
+				if (oldID !== linkedID) {
+					// record the updated value
+					record.writeRecordLink(linkedType.key, linkedID)
+
+					// if there was a record we replaced
+					if (oldID) {
+						// we need to remove any subscribers that we just added to the specs
+						this.record(oldID).removeSubscribers(linkedType.key, ...subscribers)
+					}
+
+					// add every subscriber to the list of specs to change
+					specs.push(...subscribers)
+				}
 
 				// update the linked fields too
 				this._write(linkedType.type, typeLinks, linkedID, value, variables, specs)
@@ -236,7 +252,7 @@ export class Cache {
 					record.writeField(linkedType.key, value)
 
 					// add every subscriber to the list of specs to change
-					specs.push(...record.getSubscribers(linkedType.key))
+					specs.push(...subscribers)
 				}
 			}
 		}
@@ -294,6 +310,10 @@ class Record {
 		return this.cache.get(this.recordLinks[fieldName])
 	}
 
+	linkedRecordID(fieldName: string) {
+		return this.recordLinks[fieldName]
+	}
+
 	linkedList(fieldName: string): Record[] {
 		return (this.listLinks[fieldName] || [])
 			.map((link) => this.cache.get(link))
@@ -308,10 +328,27 @@ class Record {
 		return this.subscribers[fieldName] || []
 	}
 
-	removeSubscriber(fieldName: string, target: SubscriptionSpec) {
-		this.subscribers[fieldName] = this.getSubscribers(fieldName).filter(
-			({ set }) => set !== target.set
+	removeSubscribers(fieldName: string, ...targets: SubscriptionSpec[]) {
+		this._removeSubscribers(targets.map(({ set }) => set))
+	}
+
+	_removeSubscribers(targets: SubscriptionSpec['set'][]) {
+		// clean up any subscribers that reference the set
+		for (const fieldName of Object.keys(this.subscribers)) {
+			this.subscribers[fieldName] = this.getSubscribers(fieldName).filter(
+				({ set }) => !targets.includes(set)
+			)
+		}
+
+		// build up a list of every record we know about
+		const linkedIDs = Object.keys(this.recordLinks).concat(
+			Object.keys(this.listLinks).flatMap((key) => this.listLinks[key])
 		)
+
+		// look at any links and do the same
+		for (const linkedRecordID of linkedIDs) {
+			this.cache.get(linkedRecordID)?._removeSubscribers(targets)
+		}
 	}
 }
 
