@@ -74,16 +74,6 @@ export class Config {
 		return path.join(this.rootDir, 'artifacts')
 	}
 
-	// the directory where the mutation handlers live
-	get patchDirectory() {
-		return path.join(this.rootDir, 'patches')
-	}
-
-	// the directory where mutation links live
-	get mutationLinksDirectory() {
-		return path.join(this.rootDir, 'links')
-	}
-
 	// the directory where artifact types live
 	get artifactTypeDirectory() {
 		return this.artifactDirectory
@@ -104,16 +94,6 @@ export class Config {
 
 	patchName({ query, mutation }: { query: string; mutation: string }) {
 		return `${mutation}_${query}`
-	}
-
-	// the location for the artifact for a patch
-	patchPath({ query, mutation }: { query: string; mutation: string }) {
-		return path.join(this.patchDirectory, `${this.patchName({ query, mutation })}.js`)
-	}
-
-	// the location for the links associated with the provided mutation
-	mutationLinksPath(mutationName: string): string {
-		return path.join(this.mutationLinksDirectory, `${mutationName}.js`)
 	}
 
 	// the location of the artifact generated corresponding to the provided documents
@@ -154,7 +134,6 @@ export class Config {
 
 	async createDirectories(): Promise<void> {
 		await Promise.all([
-			mkdirp(this.mutationLinksDirectory),
 			mkdirp(this.artifactDirectory),
 			mkdirp(this.artifactTypeDirectory),
 			mkdirp(this.runtimeDirectory),
