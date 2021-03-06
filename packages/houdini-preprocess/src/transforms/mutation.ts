@@ -6,7 +6,7 @@ import { MutationArtifact } from 'houdini'
 import path from 'path'
 // locals
 import { TransformDocument } from '../types'
-import { selector, walkTaggedDocuments, selectionAST } from '../utils'
+import { selector, walkTaggedDocuments, selectionAST, responseAST } from '../utils'
 const AST = recast.types.builders
 
 export default async function mutationProcessor(
@@ -72,7 +72,11 @@ export default async function mutationProcessor(
 					),
 					AST.objectProperty(
 						AST.literal('response'),
-						selectionAST((artifact as MutationArtifact).response)
+						responseAST((artifact as MutationArtifact).response)
+					),
+					AST.objectProperty(
+						AST.literal('rootType'),
+						AST.stringLiteral((artifact as MutationArtifact).rootType)
 					),
 					AST.objectProperty(
 						AST.literal('selection'),

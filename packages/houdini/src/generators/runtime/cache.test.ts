@@ -218,15 +218,20 @@ describe('store', function () {
 
 		// subscribe to the fields
 		cache.subscribe({
+			rootType: 'Query',
 			selection: {
-				rootType: 'Query',
-				fields: {
-					Query: {
-						viewer: { type: 'User', key: 'viewer' },
-					},
-					User: {
-						firstName: { type: 'String', key: 'firstName' },
-						favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+				viewer: {
+					type: 'User',
+					key: 'viewer',
+					fields: {
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+						favoriteColors: {
+							type: 'String',
+							key: 'favoriteColors(where: "foo")',
+						},
 					},
 				},
 			},
@@ -276,15 +281,20 @@ describe('store', function () {
 
 		// subscribe to the fields
 		cache.subscribe({
+			rootType: 'Query',
 			selection: {
-				rootType: 'Query',
-				fields: {
-					Query: {
-						viewer: { type: 'User', key: 'viewer' },
-					},
-					User: {
-						firstName: { type: 'String', key: 'firstName' },
-						favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+				viewer: {
+					type: 'User',
+					key: 'viewer',
+					fields: {
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+						favoriteColors: {
+							type: 'String',
+							key: 'favoriteColors(where: "foo")',
+						},
 					},
 				},
 			},
@@ -345,17 +355,21 @@ describe('store', function () {
 		const set = jest.fn()
 
 		// subscribe to the fields
-		// NOTE: this is wrong. don't know what the new serialization format looks like
 		cache.subscribe({
+			rootType: 'Query',
 			selection: {
-				rootType: 'Query',
-				fields: {
-					Query: {
-						viewer: { type: 'User', key: 'viewer' },
-					},
-					User: {
-						firstName: { type: 'String', key: 'firstName' },
-						favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+				viewer: {
+					type: 'User',
+					key: 'viewer',
+					fields: {
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+						favoriteColors: {
+							type: 'String',
+							key: 'favoriteColors(where: "foo")',
+						},
 					},
 				},
 			},
@@ -422,21 +436,27 @@ describe('store', function () {
 		const set = jest.fn()
 
 		// subscribe to the fields
-		// NOTE: this is wrong. don't know what the new serialization format looks like
 		cache.subscribe({
+			rootType: 'Query',
+			set,
 			selection: {
-				rootType: 'Query',
-				fields: {
-					Query: {
-						viewer: { type: 'User', key: 'viewer' },
-					},
-					User: {
-						firstName: { type: 'String', key: 'firstName' },
-						favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+				viewer: {
+					type: 'User',
+					key: 'viewer',
+					fields: {
+						friends: {
+							type: 'User',
+							key: 'friends',
+							fields: {
+								firstName: {
+									type: 'String',
+									key: 'firstName',
+								},
+							},
+						},
 					},
 				},
 			},
-			set,
 		})
 
 		// somehow write a user to the cache with the same id, but a different name
@@ -496,19 +516,23 @@ describe('store', function () {
 
 		// the spec we will register/unregister
 		const spec = {
+			rootType: 'Query',
 			selection: {
-				rootType: 'Query',
-				fields: {
-					Query: {
-						viewer: { type: 'User', key: 'viewer' },
-					},
-					User: {
-						firstName: { type: 'String', key: 'firstName' },
-						favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+				viewer: {
+					type: 'User',
+					key: 'viewer',
+					fields: {
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+						favoriteColors: {
+							type: 'String',
+							key: 'favoriteColors(where: "foo")',
+						},
 					},
 				},
 			},
-			// a function to spy on that will play the role of set
 			set: jest.fn(),
 		}
 

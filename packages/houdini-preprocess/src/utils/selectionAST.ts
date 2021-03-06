@@ -1,38 +1,30 @@
-import { TypeLinks } from 'houdini'
+import { SubscriptionSelection } from 'houdini'
 import * as recast from 'recast'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 
 const AST = recast.types.builders
 
-export default function selectionAST(links: TypeLinks): namedTypes.ObjectExpression {
-	return AST.objectExpression([
-		AST.objectProperty(AST.literal('rootType'), AST.stringLiteral(links.rootType)),
-		AST.objectProperty(
-			AST.literal('fields'),
-			AST.objectExpression(
-				Object.entries(links.fields).map(([typeName, links]) =>
-					AST.objectProperty(
-						AST.literal(typeName),
-						AST.objectExpression(
-							Object.entries(links).map(([fieldName, { key, type }]) =>
-								AST.objectProperty(
-									AST.literal(fieldName),
-									AST.objectExpression([
-										AST.objectProperty(
-											AST.literal('key'),
-											AST.stringLiteral(key)
-										),
-										AST.objectProperty(
-											AST.literal('type'),
-											AST.stringLiteral(type)
-										),
-									])
-								)
-							)
-						)
-					)
-				)
+export default function selectionAST(
+	selection: SubscriptionSelection
+): namedTypes.ObjectExpression {
+	const obj = AST.objectExpression([])
+	// copy every key into the obj
+	for (const [field, { type, key, fields: subselection }] of Object.entries(selection)) {
+		const fieldObj = AST.objectExpression([
+			AST.objectProperty(AST.literal('type'), AST.stringLiteral(type)),
+			AST.objectProperty(AST.literal('key'), AST.stringLiteral(key)),
+		])
+
+		// if there are fields under this one
+		if (subselection) {
+			fieldObj.properties.push(
+				AST.objectProperty(AST.literal('fields'), selectionAST(subselection))
 			)
-		),
-	])
+		}
+
+		// add the field object to the selection
+		obj.properties.push(AST.objectProperty(AST.literal(field), fieldObj))
+	}
+
+	return obj
 }

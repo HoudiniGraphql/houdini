@@ -105,21 +105,17 @@ describe('query preprocessor', function () {
 		        }
 		    },
 
+		    "rootType": "Query",
+
 		    "selection": {
-		        "rootType": "Query",
+		        "viewer": {
+		            "type": "User",
+		            "key": "viewer",
 
-		        "fields": {
-		            "Query": {
-		                "viewer": {
-		                    "key": "viewer",
-		                    "type": "User"
-		                }
-		            },
-
-		            "User": {
+		            "fields": {
 		                "id": {
-		                    "key": "id",
-		                    "type": "ID"
+		                    "type": "ID",
+		                    "key": "id"
 		                }
 		            }
 		        }
@@ -235,21 +231,17 @@ describe('query preprocessor', function () {
 		        }
 		    },
 
+		    "rootType": "Query",
+
 		    "selection": {
-		        "rootType": "Query",
+		        "viewer": {
+		            "type": "User",
+		            "key": "viewer",
 
-		        "fields": {
-		            "Query": {
-		                "viewer": {
-		                    "key": "viewer",
-		                    "type": "User"
-		                }
-		            },
-
-		            "User": {
+		            "fields": {
 		                "id": {
-		                    "key": "id",
-		                    "type": "ID"
+		                    "type": "ID",
+		                    "key": "id"
 		                }
 		            }
 		        }
@@ -328,16 +320,12 @@ async function preprocessorTest(content: string) {
 					},
 				},
 			},
+			rootType: 'Query',
 			selection: {
-				rootType: 'Query',
-				fields: {
-					Query: {
-						viewer: {
-							key: 'viewer',
-							type: 'User',
-						},
-					},
-					User: {
+				viewer: {
+					key: 'viewer',
+					type: 'User',
+					fields: {
 						id: {
 							key: 'id',
 							type: 'ID',

@@ -26,6 +26,7 @@ export default function query<_Query extends Operation<any, any>>(
 
 			// stay up to date
 			cache.subscribe({
+				rootType: document.rootType,
 				selection: document.selection,
 				set,
 			})
@@ -34,6 +35,7 @@ export default function query<_Query extends Operation<any, any>>(
 		// the function used to clean up the store
 		return () => {
 			cache.unsubscribe({
+				rootType: document.rootType,
 				selection: document.selection,
 				set,
 			})

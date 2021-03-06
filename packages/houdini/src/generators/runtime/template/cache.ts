@@ -17,18 +17,14 @@ export class Cache {
 
 		// compute new values for every spec that needs to be run
 		for (const spec of specs) {
-			// look up the fields of the parent
-			const parentFields = spec.selection.fields[spec.selection.rootType]
 			// find the root record
 			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
 			if (!rootRecord) {
 				throw new Error('Could not find root of subscription')
 			}
 
-			const result = this.getData(spec, rootRecord, parentFields)
-
 			// trigger the update
-			spec.set(result)
+			spec.set(this.getData(spec, rootRecord, spec.selection))
 		}
 	}
 
@@ -58,7 +54,7 @@ export class Cache {
 		}
 
 		// walk down the selection and register any subscribers
-		this.addSubscribers(rootRecord, spec, spec.selection.fields[spec.selection.rootType])
+		this.addSubscribers(rootRecord, spec, spec.selection)
 	}
 
 	unsubscribe(spec: SubscriptionSpec) {
@@ -69,18 +65,18 @@ export class Cache {
 		}
 
 		// walk down the selection and remove any subscribers from the list
-		this.removeSubscribers(rootRecord, spec, spec.selection.fields[spec.selection.rootType])
+		this.removeSubscribers(rootRecord, spec, spec.selection)
 	}
 
 	// walk down the spec
 	private getData(
 		spec: SubscriptionSpec,
 		parent: Record,
-		parentFields: LinkInfo
+		selection: SubscriptionSelection
 	): { [key: string]: GraphQLValue } {
 		const target: { [key: string]: GraphQLValue } = {}
 		// look at every field in the parentFields
-		for (const [attributeName, { type, key }] of Object.entries(parentFields)) {
+		for (const [attributeName, { type, key, fields }] of Object.entries(selection)) {
 			// if we are looking at a scalar
 			if (this.isScalarLink(type)) {
 				target[attributeName] = parent.getField(key)
@@ -90,20 +86,16 @@ export class Cache {
 			// if the link points to a record then we just have to add it to the one
 			const linkedRecord = parent.linkedRecord(key)
 			// if the field does point to a linked record
-			if (linkedRecord) {
-				target[attributeName] = this.getData(
-					spec,
-					linkedRecord,
-					spec.selection.fields[type]
-				)
+			if (linkedRecord && fields) {
+				target[attributeName] = this.getData(spec, linkedRecord, fields)
 				continue
 			}
 
 			// if the link points to a list
 			const linkedList = parent.linkedList(key)
-			if (linkedList) {
+			if (linkedList && fields) {
 				target[attributeName] = linkedList.map((linkedRecord) =>
-					this.getData(spec, linkedRecord, spec.selection.fields[type])
+					this.getData(spec, linkedRecord, fields)
 				)
 			}
 		}
@@ -111,8 +103,12 @@ export class Cache {
 		return target
 	}
 
-	private addSubscribers(rootRecord: Record, spec: SubscriptionSpec, fields: LinkInfo) {
-		for (const { type, key } of Object.values(fields)) {
+	private addSubscribers(
+		rootRecord: Record,
+		spec: SubscriptionSpec,
+		selection: SubscriptionSelection
+	) {
+		for (const { type, key, fields } of Object.values(selection)) {
 			// add the subscriber to the field
 			rootRecord.addSubscriber(key, spec)
 
@@ -127,23 +123,27 @@ export class Cache {
 				}
 
 				// if we still dont have anything to attach it to then there's no one to subscribe to
-				if (!children) {
+				if (!children || !fields) {
 					continue
 				}
 
 				// add the subscriber to every child
 				for (const child of children) {
-					this.addSubscribers(child, spec, spec.selection.fields[type])
+					this.addSubscribers(child, spec, fields)
 				}
 			}
 		}
 	}
-	private removeSubscribers(rootRecord: Record, spec: SubscriptionSpec, fields: LinkInfo) {
-		for (const { type, key } of Object.values(fields)) {
+	private removeSubscribers(
+		rootRecord: Record,
+		spec: SubscriptionSpec,
+		selection: SubscriptionSelection
+	) {
+		for (const { type, key, fields } of Object.values(selection)) {
 			// remove the subscriber to the field
 			rootRecord.removeSubscribers(key, spec)
 
-			// if the field points to a link, we need to subscribe to any fields of that
+			// if the field points to a link, we need to remove any subscribers on any fields of that
 			// linked record
 			if (!this.isScalarLink(type)) {
 				// if the link points to a record then we just have to remove it to the one
@@ -154,13 +154,13 @@ export class Cache {
 				}
 
 				// if we still dont have anything to attach it to then there's no one to subscribe to
-				if (!children) {
+				if (!children || !fields) {
 					continue
 				}
 
 				// remove the subscriber to every child
 				for (const child of children) {
-					this.removeSubscribers(child, spec, spec.selection.fields[type])
+					this.removeSubscribers(child, spec, fields)
 				}
 			}
 		}
@@ -381,8 +381,17 @@ export type TypeLinks = {
 	fields: { [typeName: string]: LinkInfo }
 }
 
+export type SubscriptionSelection = {
+	[field: string]: {
+		type: string
+		key: string
+		fields?: SubscriptionSelection
+	}
+}
+
 type SubscriptionSpec = {
-	selection: TypeLinks
+	rootType: string
+	selection: SubscriptionSelection
 	set: (data: any) => void
 	parentID?: string
 }

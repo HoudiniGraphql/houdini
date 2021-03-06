@@ -71,16 +71,12 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    }
 		};
 
-		module.exports.selection = {
-		    rootType: "Query",
+		module.exports.rootType = "Query";
 
-		    fields: {
-		        "Query": {
-		            "version": {
-		                "key": "versionsomething_with_args",
-		                "type": "Int"
-		            }
-		        }
+		module.exports.selection = {
+		    "version": {
+		        "type": "Int",
+		        "key": "versionsomething_with_args"
 		    }
 		};
 	`)
@@ -105,16 +101,12 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		}
 		\`;
 
-		module.exports.selection = {
-		    rootType: "User",
+		module.exports.rootType = "User";
 
-		    fields: {
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            }
-		        }
+		module.exports.selection = {
+		    "firstName": {
+		        "type": "String",
+		        "key": "firstNamesomething_with_args"
 		    }
 		};
 	`)
@@ -174,18 +166,12 @@ test('internal directives are scrubbed', async function () {
 		    }
 		};
 
+		module.exports.rootType = "Query";
+
 		module.exports.selection = {
-		    rootType: "Query",
-
-		    fields: {
-		        "Query": {
-		            "user": {
-		                "key": "usersomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {}
+		    "user": {
+		        "type": "User",
+		        "key": "usersomething_with_args"
 		    }
 		};
 	`)

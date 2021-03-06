@@ -29,6 +29,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 			if (parentID) {
 				// stay up to date
 				cache.subscribe({
+					rootType: fragment.rootType,
 					selection: fragment.selection,
 					set,
 					parentID,
@@ -41,6 +42,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 			// if we subscribed to something we'll need to clean up
 			if (parentID) {
 				cache.unsubscribe({
+					rootType: fragment.rootType,
 					parentID,
 					selection: fragment.selection,
 					set,

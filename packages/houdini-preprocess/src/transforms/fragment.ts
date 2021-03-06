@@ -68,6 +68,10 @@ export default async function fragmentProcesesor(
 						})
 					),
 					AST.objectProperty(
+						AST.literal('rootType'),
+						AST.stringLiteral((artifact as FragmentArtifact).rootType)
+					),
+					AST.objectProperty(
 						AST.literal('selection'),
 						selectionAST((artifact as FragmentArtifact).selection)
 					),

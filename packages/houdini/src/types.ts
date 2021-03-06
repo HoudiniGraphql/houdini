@@ -1,5 +1,11 @@
 import * as graphql from 'graphql'
-export { PatchAtom, Patch, ConnectionWhen, TypeLinks } from './generators/runtime/template/types'
+export {
+	PatchAtom,
+	Patch,
+	ConnectionWhen,
+	TypeLinks,
+	SubscriptionSelection,
+} from './generators/runtime/template/types'
 import { TypeLinks } from './generators/runtime/template/cache'
 
 // the compiled version of an operation
@@ -8,6 +14,7 @@ type BaseCompiledDocument = {
 	raw: string
 	hash: string
 	selection: TypeLinks
+	rootType: string
 }
 
 export const CompiledFragmentKind = 'HoudiniFragment'

@@ -112,12 +112,21 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				artifact.body.push(
 					moduleExport(
 						'response',
-						response({
-							config,
-							document,
-							rootType,
-							selectionSet: operation.selectionSet,
-						})
+						AST.objectExpression([
+							AST.objectProperty(
+								AST.identifier('rootType'),
+								AST.stringLiteral(rootType)
+							),
+							AST.objectProperty(
+								AST.identifier('fields'),
+								buildResponse({
+									config,
+									document,
+									rootType,
+									selectionSet,
+								})
+							),
+						])
 					)
 				)
 			}
@@ -129,14 +138,13 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 			// add the selection information so we can subscribe to the store
 			artifact.body.push(
+				moduleExport('rootType', AST.stringLiteral(rootType)),
 				moduleExport(
 					'selection',
-					response({
+					selection({
 						config,
-						document,
 						rootType,
 						selectionSet: selectionSet,
-						includeFragments: false,
 					})
 				)
 			)
@@ -152,47 +160,17 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 	)
 }
 
-function response({
-	config,
-	document,
-	rootType,
-	selectionSet,
-	includeFragments = true,
-}: {
-	config: Config
-	document: graphql.DocumentNode
-	rootType: string
-	selectionSet: graphql.SelectionSetNode
-	includeFragments?: boolean
-}) {
-	// build up the fields key in the document
-	const fields = buildResponse({
-		config,
-		document,
-		rootType,
-		includeFragments,
-		selectionSet,
-	})
-
-	return AST.objectExpression([
-		AST.objectProperty(AST.identifier('rootType'), AST.stringLiteral(rootType)),
-		AST.objectProperty(AST.identifier('fields'), fields),
-	])
-}
-
 function buildResponse({
 	config,
 	document,
 	rootType,
 	selectionSet,
-	includeFragments,
 	map = AST.objectExpression([]),
 }: {
 	config: Config
 	document: graphql.DocumentNode
 	rootType: string
 	selectionSet: graphql.SelectionSetNode
-	includeFragments: boolean
 	map?: namedTypes.ObjectExpression
 }): namedTypes.ObjectExpression {
 	// check if we have seen this type before
@@ -211,7 +189,7 @@ function buildResponse({
 	// visit every selection
 	for (const selection of selectionSet.selections) {
 		// if we are looking at a fragment spread we need to keep walking down
-		if (includeFragments && selection.kind === 'FragmentSpread') {
+		if (selection.kind === 'FragmentSpread') {
 			// look up the fragment definition
 			const definition = document.definitions.find(
 				(defn) =>
@@ -223,7 +201,6 @@ function buildResponse({
 				document,
 				rootType: definition.typeCondition.name.value,
 				selectionSet: definition.selectionSet,
-				includeFragments,
 				map,
 			})
 		}
@@ -236,14 +213,13 @@ function buildResponse({
 				rootType: fragmentType,
 				selectionSet: selection.selectionSet,
 				map,
-				includeFragments,
 			})
 		}
 		// its a field
 		else if (selection.kind === 'Field') {
 			// we need to generate a key
 			const attributeName = selection.alias?.value || selection.name.value
-			const key = attributeName + 'something_with_args'
+			const key = fieldKey(selection)
 
 			// look up the field
 			const type = config.schema.getType(rootType) as graphql.GraphQLObjectType
@@ -280,7 +256,6 @@ function buildResponse({
 					document,
 					rootType: typeName,
 					selectionSet: selection.selectionSet,
-					includeFragments,
 					map,
 				})
 			}
@@ -289,4 +264,75 @@ function buildResponse({
 
 	// return the accumulator
 	return map
+}
+
+function selection({
+	config,
+	rootType,
+	selectionSet,
+}: {
+	config: Config
+	rootType: string
+	selectionSet: graphql.SelectionSetNode
+}): namedTypes.ObjectExpression {
+	// we need to build up an object that contains every field in the selection
+	const object = AST.objectExpression([])
+
+	for (const field of selectionSet.selections) {
+		// ignore fragment spreads
+		if (field.kind === 'FragmentSpread') {
+			continue
+		}
+		// inline fragments should be merged with the parent
+		else if (field.kind === 'InlineFragment') {
+			const inlineFragment = selection({ config, rootType, selectionSet: field.selectionSet })
+			for (const property of inlineFragment.properties) {
+				object.properties.push(property)
+			}
+		}
+		// fields need their own entry
+		else if (field.kind === 'Field') {
+			// look up the field
+			const type = config.schema.getType(rootType) as graphql.GraphQLObjectType
+			if (!type) {
+				throw new Error('Could not find type')
+			}
+			const typeName = getRootType(type.getFields()[field.name.value].type).toString()
+
+			const attributeName = field.alias?.value || field.name.value
+			// the object holding data for this field
+			const fieldObj = AST.objectExpression([
+				AST.objectProperty(AST.literal('type'), AST.stringLiteral(typeName)),
+				AST.objectProperty(AST.literal('key'), AST.stringLiteral(fieldKey(field))),
+			])
+
+			// if there is a selection set, add it to the field object
+			if (
+				field.selectionSet &&
+				field.selectionSet.selections.filter(({ kind }) => kind !== 'FragmentSpread')
+					.length > 0
+			) {
+				fieldObj.properties.push(
+					AST.objectProperty(
+						AST.literal('fields'),
+						selection({
+							config,
+							rootType: typeName,
+							selectionSet: field.selectionSet,
+						})
+					)
+				)
+			}
+
+			object.properties.push(AST.objectProperty(AST.stringLiteral(attributeName), fieldObj))
+		}
+	}
+
+	return object
+}
+
+// returns the key for a specific field
+function fieldKey(field: graphql.FieldNode): string {
+	const attributeName = field.alias?.value || field.name.value
+	return attributeName + 'something_with_args'
 }

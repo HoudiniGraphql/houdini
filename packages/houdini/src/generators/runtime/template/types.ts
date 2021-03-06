@@ -1,5 +1,5 @@
-export { TypeLinks } from './cache'
-import { TypeLinks } from './cache'
+export { TypeLinks, SubscriptionSelection } from './cache'
+import { TypeLinks, SubscriptionSelection } from './cache'
 
 export type Fragment<_Result> = {
 	readonly shape?: _Result
@@ -19,7 +19,8 @@ export type Maybe<T> = T | null
 export type TaggedGraphqlFragment = {
 	name: string
 	kind: 'HoudiniFragment'
-	selection: TypeLinks
+	selection: SubscriptionSelection
+	rootType: string
 }
 
 // the result of tagging an operation
@@ -29,7 +30,8 @@ export type TaggedGraphqlMutation = {
 	raw: string
 	links: Module<() => { [queryName: string]: Module<Patch> }>
 	response: TypeLinks
-	selection: TypeLinks
+	selection: SubscriptionSelection
+	rootType: string
 }
 
 // the result of tagging an operation
@@ -40,7 +42,8 @@ export type TaggedGraphqlQuery = {
 	initialValue: any
 	variables: { [key: string]: any }
 	response: TypeLinks
-	selection: TypeLinks
+	selection: SubscriptionSelection
+	rootType: string
 }
 
 // the result of the template tag
