@@ -52,7 +52,7 @@ export class Cache {
 
 	subscribe(spec: SubscriptionSpec) {
 		// find the root record
-		let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
+		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
 		if (!rootRecord) {
 			throw new Error('Could not find root of subscription')
 		}
