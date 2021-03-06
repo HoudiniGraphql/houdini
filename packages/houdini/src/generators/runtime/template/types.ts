@@ -12,8 +12,6 @@ export type Operation<_Result, _Input> = {
 
 export type Session = any
 
-type Module<T> = Promise<{ default: T }>
-
 export type Maybe<T> = T | null
 
 export type TaggedGraphqlFragment = {
@@ -75,6 +73,7 @@ export type QueryArtifact = BaseCompiledDocument & {
 export type MutationArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniMutation'
 	response: TypeLinks
+	operations: MutationOperation[]
 }
 
 // the information that the compiler leaves behind after processing a fragment

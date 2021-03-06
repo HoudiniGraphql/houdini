@@ -3,7 +3,6 @@ import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
 import type { Fragment, GraphQLTagResult } from './types'
-import { getVariables } from './context'
 import cache from './cache'
 
 // fragment returns the requested data from the reference
@@ -16,12 +15,10 @@ export default function fragment<_Fragment extends Fragment<any>>(
 		throw new Error('getFragment can only take fragment documents')
 	}
 
-	const variables = getVariables()
-
 	// wrap the result in a store we can use to keep this query up to date
 	const value = readable(data, (set) => {
 		// @ts-ignore
-		const parentID = cache.id(fragment.selection.rootType, data)
+		const parentID = cache.id(fragment.artifact.rootType, data)
 
 		// when the component monuts
 		onMount(() => {
