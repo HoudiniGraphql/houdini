@@ -9,12 +9,35 @@ export class Cache {
 
 	// save the response
 	write({ rootType, fields }: TypeLinks, data: { [key: string]: GraphQLValue }, variables: {}) {
-		// recursively walk down the payload and update the store
-		this._write(rootType, fields, '_root_', data, variables)
+		const specs: SubscriptionSpec[] = []
+
+		// recursively walk down the payload and update the store. calls to update atomic fields
+		// will build up different specs of subscriptions that need to be run against the current state
+		this._write(rootType, fields, '_root_', data, variables, specs)
+
+		// compute new values for every spec that needs to be run
+		for (const spec of specs) {
+			// look up the fields of the parent
+			const parentFields = spec.selection.fields[spec.selection.rootType]
+			// find the root record
+			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
+			if (!rootRecord) {
+				throw new Error('Could not find root of subscription')
+			}
+
+			const result = this.getData(spec, rootRecord, parentFields)
+
+			// trigger the update
+			spec.set(result)
+		}
 	}
 
 	// look up the information for a specific record
 	get(id: string): Maybe<Record> {
+		if (!id) {
+			return null
+		}
+
 		return this._data.get(id) || null
 	}
 
@@ -27,12 +50,91 @@ export class Cache {
 		return type + ':' + (data.id || '_root_')
 	}
 
+	subscribe(spec: SubscriptionSpec) {
+		// find the root record
+		let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
+		if (!rootRecord) {
+			throw new Error('Could not find root of subscription')
+		}
+
+		// walk down the selection and register any subscribers
+		this.addSubscribers(rootRecord, spec, spec.selection.fields[spec.selection.rootType])
+	}
+
+	// walk down the spec
+	private getData(
+		spec: SubscriptionSpec,
+		parent: Record,
+		parentFields: LinkInfo
+	): { [key: string]: GraphQLValue } {
+		const target: { [key: string]: GraphQLValue } = {}
+		// look at every field in the parentFields
+		for (const [attributeName, { type, key }] of Object.entries(parentFields)) {
+			// if we are looking at a scalar
+			if (this.isScalarLink(type)) {
+				target[attributeName] = parent.getField(key)
+				continue
+			}
+
+			// if the link points to a record then we just have to add it to the one
+			const linkedRecord = parent.linkedRecord(key)
+			// if the field does point to a linked record
+			if (linkedRecord) {
+				target[attributeName] = this.getData(
+					spec,
+					linkedRecord,
+					spec.selection.fields[type]
+				)
+				continue
+			}
+
+			// if the link points to a list
+			const linkedList = parent.linkedList(key)
+			if (linkedList) {
+				target[attributeName] = linkedList.map((linkedRecord) =>
+					this.getData(spec, linkedRecord, spec.selection.fields[type])
+				)
+			}
+		}
+
+		return target
+	}
+
+	private addSubscribers(rootRecord: Record, spec: SubscriptionSpec, fields: LinkInfo) {
+		for (const { type, key } of Object.values(fields)) {
+			// add the subscriber to the field
+			rootRecord.addSubscriber(key, spec)
+
+			// if the field points to a link, we need to subscribe to any fields of that
+			// linked record
+			if (!this.isScalarLink(type)) {
+				// if the link points to a record then we just have to add it to the one
+				const linkedRecord = rootRecord.linkedRecord(key)
+				let children = linkedRecord ? [linkedRecord] : null
+				if (!children) {
+					children = rootRecord.linkedList(key)
+				}
+
+				// if we still dont have anything to attach it to then there's no one to subscribe to
+				if (!children) {
+					continue
+				}
+
+				// add the subscriber to every child
+				for (const child of children) {
+					this.addSubscribers(child, spec, spec.selection.fields[type])
+				}
+			}
+		}
+	}
+
 	private _write(
 		typeName: string,
 		typeLinks: TypeLinks['fields'],
 		parentID: string,
 		data: { [key: string]: GraphQLValue },
-		variables: {}
+		variables: {},
+		specs: SubscriptionSpec[]
 	) {
 		// the record we are storing information about this object
 		const record = this.record(parentID)
@@ -59,7 +161,7 @@ export class Cache {
 				record.writeRecordLink(linkedType.key, linkedID)
 
 				// update the linked fields too
-				this._write(linkedType.type, typeLinks, linkedID, value, variables)
+				this._write(linkedType.type, typeLinks, linkedID, value, variables, specs)
 			}
 
 			// the value could be a list
@@ -78,7 +180,7 @@ export class Cache {
 					const linkedID = this.id(linkedType.type, entry)
 
 					// update the linked fields too
-					this._write(linkedType.type, typeLinks, linkedID, entry, variables)
+					this._write(linkedType.type, typeLinks, linkedID, entry, variables, specs)
 
 					// add the id to the list
 					linkedIDs.push(linkedID)
@@ -90,9 +192,20 @@ export class Cache {
 
 			// the value is neither an object or a list so its a scalar
 			else {
-				record.writeField(linkedType.key, value)
+				// if the value is different
+				if (linkedType.key !== 'id' && value !== record.getField(linkedType.key)) {
+					// update the cached value
+					record.writeField(linkedType.key, value)
+
+					// add every subscriber to the list of specs to change
+					specs.push(...record.getSubscribers(linkedType.key))
+				}
 			}
 		}
+	}
+
+	root(): Record {
+		return this.record('_root_')
 	}
 
 	// updates the record specified by {id}
@@ -114,12 +227,17 @@ export class Cache {
 class Record {
 	fields: { [key: string]: GraphQLValue } = {}
 
+	private subscribers: { [key: string]: SubscriptionSpec[] } = {}
 	private recordLinks: { [key: string]: string } = {}
 	private listLinks: { [key: string]: string[] } = {}
 	private cache: Cache
 
 	constructor(cache: Cache) {
 		this.cache = cache
+	}
+
+	getField(fieldName: string): GraphQLValue {
+		return this.fields[fieldName]
 	}
 
 	writeField(fieldName: string, value: GraphQLValue) {
@@ -143,6 +261,14 @@ class Record {
 			.map((link) => this.cache.get(link))
 			.filter((record) => record !== null) as Record[]
 	}
+
+	addSubscriber(fieldName: string, spec: SubscriptionSpec) {
+		this.subscribers[fieldName] = this.getSubscribers(fieldName).concat(spec)
+	}
+
+	getSubscribers(fieldName: string): SubscriptionSpec[] {
+		return this.subscribers[fieldName] || []
+	}
 }
 
 type GraphQLValue =
@@ -158,6 +284,12 @@ type LinkInfo = { [fieldName: string]: { key: string; type: string } }
 export type TypeLinks = {
 	rootType: string
 	fields: { [typeName: string]: LinkInfo }
+}
+
+type SubscriptionSpec = {
+	selection: TypeLinks
+	set: (data: any) => void
+	parentID?: string
 }
 
 export default new Cache()

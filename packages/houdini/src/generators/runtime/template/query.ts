@@ -24,13 +24,15 @@ export default function query<_Query extends Operation<any, any>>(
 			// once we've mounted
 			cache.write(document.response, document.initialValue.data, document.variables)
 
-			console.log('updated cache')
+			// stay up to date
+			cache.subscribe({
+				selection: document.selection,
+				set,
+			})
 		})
 
 		// the function used to clean up the store
-		return () => {
-			console.log('unregister')
-		}
+		return () => {}
 	})
 
 	return value

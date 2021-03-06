@@ -34,7 +34,7 @@ describe('store', function () {
 		cache.write(response, data, {})
 
 		// make sure we can get back what we wrote
-		expect(cache.get(cache.id('User', data.viewer)).fields).toEqual(data.viewer)
+		expect(cache.get(cache.id('User', data.viewer)).fields).toEqual({ firstName: 'bob' })
 	})
 
 	test('partial update existing record', function () {
@@ -66,7 +66,6 @@ describe('store', function () {
 
 		// make sure we can get back what we wrote
 		expect(cache.get(cache.id('User', { id: '1' })).fields).toEqual({
-			id: '1',
 			firstName: 'bob',
 			lastName: 'geldof',
 		})
@@ -95,18 +94,15 @@ describe('store', function () {
 		// check user 1
 		const user1 = cache.get(cache.id('User', { id: '1' }))
 		expect(user1.fields).toEqual({
-			id: '1',
 			firstName: 'bob',
 		})
 		expect(user1.linkedRecord('parent').fields).toEqual({
-			id: '2',
 			firstName: 'jane',
 		})
 
 		// check user 2
 		const user2 = cache.get(cache.id('User', { id: '2' }))
 		expect(user2.fields).toEqual({
-			id: '2',
 			firstName: 'jane',
 		})
 		expect(user2.linkedRecord('parent')).toBeNull()
@@ -129,11 +125,9 @@ describe('store', function () {
 
 		// make sure we updated user 2
 		expect(user2.fields).toEqual({
-			id: '2',
 			firstName: 'jane-prime',
 		})
 		expect(user2.linkedRecord('parent').fields).toEqual({
-			id: '3',
 			firstName: 'mary',
 		})
 	})
@@ -171,11 +165,9 @@ describe('store', function () {
 			.map(({ fields }) => fields)
 		expect(friendData).toEqual([
 			{
-				id: '2',
 				firstName: 'jane',
 			},
 			{
-				id: '3',
 				firstName: 'mary',
 			},
 		])
@@ -204,7 +196,63 @@ describe('store', function () {
 		).toEqual(['red', 'green', 'blue'])
 	})
 
-	test.todo('subscribe')
+	test('root subscribe  field change', function () {
+		// instantiate a cache
+		const cache = new Cache()
+
+		// write some data
+		cache.write(
+			response,
+			{
+				viewer: {
+					id: '1',
+					firstName: 'bob',
+					favoriteColors: ['red', 'green', 'blue'],
+				},
+			},
+			{}
+		)
+
+		// a function to spy on that will play the role of set
+		const set = jest.fn()
+
+		// subscribe to the fields
+		cache.subscribe({
+			selection: {
+				rootType: 'Query',
+				fields: {
+					Query: {
+						viewer: { type: 'User', key: 'viewer' },
+					},
+					User: {
+						firstName: { type: 'String', key: 'firstName' },
+						favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+					},
+				},
+			},
+			set,
+		})
+
+		// somehow write a user to the cache with the same id, but a different name
+		cache.write(
+			response,
+			{
+				viewer: {
+					id: '1',
+					firstName: 'mary',
+				},
+			},
+			{}
+		)
+
+		// make sure that set got called with the full response
+		expect(set).toHaveBeenCalledWith({
+			viewer: {
+				firstName: 'mary',
+				favoriteColors: ['red', 'green', 'blue'],
+			},
+		})
+	})
 
 	test.todo('unsubscribe')
 })
