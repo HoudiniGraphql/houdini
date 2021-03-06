@@ -4,6 +4,7 @@ import { onMount } from 'svelte'
 // locals
 import { Operation, GraphQLTagResult } from './types'
 import cache from './cache'
+import { setVariables } from './context'
 
 export default function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -19,22 +20,24 @@ export default function query<_Query extends Operation<any, any>>(
 		return readable(null, () => {})
 	}
 
-	// wrap the result in a store we can use to keep this query up to date
-	const value = readable(
-		document.processResult(document.initialValue.data, document.variables),
-		(set) => {
-			// when the component monuts
-			onMount(() => {
-				// write the data we loaded to the cache
-				cache.write(document.responseInfo, document.initialValue.data)
-			})
+	// emebed the variables in the components context
+	setVariables(document.variables)
 
-			// the function used to clean up the store
-			return () => {
-				console.log('unregister')
-			}
+	// wrap the result in a store we can use to keep this query up to date
+	const value = readable(document.initialValue.data, (set) => {
+		// when the component monuts
+		onMount(() => {
+			// once we've mounted
+			cache.write(document.selectionInfo, document.initialValue.data, document.variables)
+
+			console.log('updated cache')
+		})
+
+		// the function used to clean up the store
+		return () => {
+			console.log('unregister')
 		}
-	)
+	})
 
 	return value
 }

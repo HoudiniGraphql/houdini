@@ -18,12 +18,12 @@ export type CompiledDocumentKind = 'HoudiniFragment' | 'HoudiniMutation' | 'Houd
 // the information that the compiler leaves behind after processing an operation
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
-	responseInfo: TypeLinks
+	selectionInfo: TypeLinks
 }
 
 export type MutationArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniMutation'
-	responseInfo: TypeLinks
+	selectionInfo: TypeLinks
 }
 
 // the information that the compiler leaves behind after processing a fragment

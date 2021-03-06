@@ -2,7 +2,7 @@
 import { Cache } from './template/cache'
 
 // the type information
-const responseInfo = {
+const selectionInfo = {
 	rootType: 'Query',
 	fields: {
 		Query: {
@@ -31,7 +31,7 @@ describe('store', function () {
 				firstName: 'bob',
 			},
 		}
-		cache.write(responseInfo, data)
+		cache.write(selectionInfo, data, {})
 
 		// make sure we can get back what we wrote
 		expect(cache.get(cache.id('User', data.viewer)).fields).toEqual(data.viewer)
@@ -42,19 +42,27 @@ describe('store', function () {
 		const cache = new Cache()
 
 		// save the data
-		cache.write(responseInfo, {
-			viewer: {
-				id: '1',
-				firstName: 'bob',
+		cache.write(
+			selectionInfo,
+			{
+				viewer: {
+					id: '1',
+					firstName: 'bob',
+				},
 			},
-		})
+			{}
+		)
 
-		cache.write(responseInfo, {
-			viewer: {
-				id: '1',
-				lastName: 'geldof',
+		cache.write(
+			selectionInfo,
+			{
+				viewer: {
+					id: '1',
+					lastName: 'geldof',
+				},
 			},
-		})
+			{}
+		)
 
 		// make sure we can get back what we wrote
 		expect(cache.get(cache.id('User', { id: '1' })).fields).toEqual({
@@ -69,16 +77,20 @@ describe('store', function () {
 		const cache = new Cache()
 
 		// save the data
-		cache.write(responseInfo, {
-			viewer: {
-				id: '1',
-				firstName: 'bob',
-				parent: {
-					id: '2',
-					firstName: 'jane',
+		cache.write(
+			selectionInfo,
+			{
+				viewer: {
+					id: '1',
+					firstName: 'bob',
+					parent: {
+						id: '2',
+						firstName: 'jane',
+					},
 				},
 			},
-		})
+			{}
+		)
 
 		// check user 1
 		const user1 = cache.get(cache.id('User', { id: '1' }))
@@ -100,16 +112,20 @@ describe('store', function () {
 		expect(user2.linkedRecord('parent')).toBeNull()
 
 		// associate user2 with a new parent
-		cache.write(responseInfo, {
-			viewer: {
-				id: '2',
-				firstName: 'jane-prime',
-				parent: {
-					id: '3',
-					firstName: 'mary',
+		cache.write(
+			selectionInfo,
+			{
+				viewer: {
+					id: '2',
+					firstName: 'jane-prime',
+					parent: {
+						id: '3',
+						firstName: 'mary',
+					},
 				},
 			},
-		})
+			{}
+		)
 
 		// make sure we updated user 2
 		expect(user2.fields).toEqual({
@@ -127,22 +143,26 @@ describe('store', function () {
 		const cache = new Cache()
 
 		// add some data to the cache
-		cache.write(responseInfo, {
-			viewer: {
-				id: '1',
-				firstName: 'bob',
-				friends: [
-					{
-						id: '2',
-						firstName: 'jane',
-					},
-					{
-						id: '3',
-						firstName: 'mary',
-					},
-				],
+		cache.write(
+			selectionInfo,
+			{
+				viewer: {
+					id: '1',
+					firstName: 'bob',
+					friends: [
+						{
+							id: '2',
+							firstName: 'jane',
+						},
+						{
+							id: '3',
+							firstName: 'mary',
+						},
+					],
+				},
 			},
-		})
+			{}
+		)
 
 		// make sure we can get the linked lists back
 		const friendData = cache
@@ -166,13 +186,17 @@ describe('store', function () {
 		const cache = new Cache()
 
 		// add some data to the cache
-		cache.write(responseInfo, {
-			viewer: {
-				id: '1',
-				firstName: 'bob',
-				favoriteColors: ['red', 'green', 'blue'],
+		cache.write(
+			selectionInfo,
+			{
+				viewer: {
+					id: '1',
+					firstName: 'bob',
+					favoriteColors: ['red', 'green', 'blue'],
+				},
 			},
-		})
+			{}
+		)
 
 		// look up the value
 		expect(

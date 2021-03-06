@@ -8,9 +8,9 @@ export class Cache {
 	_data: Map<string, Record> = new Map()
 
 	// save the response
-	write({ rootType, fields }: TypeLinks, data: { [key: string]: GraphQLValue }) {
+	write({ rootType, fields }: TypeLinks, data: { [key: string]: GraphQLValue }, variables: {}) {
 		// recursively walk down the payload and update the store
-		this._write(data, rootType, fields, '_root_')
+		this._write(rootType, fields, '_root_', data, variables)
 	}
 
 	// look up the information for a specific record
@@ -28,10 +28,11 @@ export class Cache {
 	}
 
 	private _write(
-		data: { [key: string]: GraphQLValue },
 		typeName: string,
 		typeLinks: TypeLinks['fields'],
-		parentID: string
+		parentID: string,
+		data: { [key: string]: GraphQLValue },
+		variables: {}
 	) {
 		// the record we are storing information about this object
 		const record = this._record(parentID)
@@ -58,7 +59,7 @@ export class Cache {
 				record.writeRecordLink(linkedType.key, linkedID)
 
 				// update the linked fields too
-				this._write(value, linkedType.type, typeLinks, linkedID)
+				this._write(linkedType.type, typeLinks, linkedID, value, variables)
 			}
 
 			// the value could be a list
@@ -77,7 +78,7 @@ export class Cache {
 					const linkedID = this.id(linkedType.type, entry)
 
 					// update the linked fields too
-					this._write(entry, linkedType.type, typeLinks, linkedID)
+					this._write(linkedType.type, typeLinks, linkedID, entry, variables)
 
 					// add the id to the list
 					linkedIDs.push(linkedID)

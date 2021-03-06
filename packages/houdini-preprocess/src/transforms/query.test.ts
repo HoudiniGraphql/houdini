@@ -85,7 +85,7 @@ describe('query preprocessor', function () {
 
 		    "variables": _TestQuery_Input,
 
-		    "responseInfo": {
+		    "selectionInfo": {
 		        "rootType": "Query",
 
 		        "fields": {
@@ -195,7 +195,7 @@ describe('query preprocessor', function () {
 
 		    "variables": _TestQuery_Input,
 
-		    "responseInfo": {
+		    "selectionInfo": {
 		        "rootType": "Query",
 
 		        "fields": {
@@ -271,7 +271,7 @@ async function preprocessorTest(content: string) {
 			kind: 'HoudiniQuery',
 			raw: query,
 			hash: hashDocument(parsedQuery),
-			responseInfo: {
+			selectionInfo: {
 				rootType: 'Query',
 				fields: {
 					Query: {

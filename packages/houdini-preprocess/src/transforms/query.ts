@@ -8,10 +8,10 @@ import {
 	ImportDeclaration,
 } from '@babel/types'
 import { Config } from 'houdini-common'
+import { QueryArtifact } from 'houdini'
 // locals
 import { TransformDocument } from '../types'
-import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument, responseInfoAST } from '../utils'
-import { QueryArtifact } from 'houdini'
+import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument, selectionInfoAST } from '../utils'
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
@@ -100,8 +100,8 @@ export default async function queryProcessor(
 						)
 					),
 					AST.objectProperty(
-						AST.literal('responseInfo'),
-						responseInfoAST((artifact as QueryArtifact).responseInfo)
+						AST.literal('selectionInfo'),
+						selectionInfoAST((artifact as QueryArtifact).selectionInfo)
 					),
 				])
 			)

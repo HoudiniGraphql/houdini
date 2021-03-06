@@ -89,7 +89,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			// if we are generating the artifact for an operation
 			if (docKind !== 'HoudiniFragment') {
 				// add the field map to the artifact
-				artifact.body.push(moduleExport('responseInfo', responseInfo(config, document)))
+				artifact.body.push(moduleExport('selectionInfo', selectionInfo(config, document)))
 			}
 
 			// write the result to the artifact path we're configured to write to
@@ -103,7 +103,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 	)
 }
 
-function responseInfo(config: Config, document: graphql.DocumentNode) {
+function selectionInfo(config: Config, document: graphql.DocumentNode) {
 	// find the operation
 	const operation = document.definitions.find(
 		({ kind }) => kind === 'OperationDefinition'
@@ -126,7 +126,7 @@ function responseInfo(config: Config, document: graphql.DocumentNode) {
 	}
 
 	// build up the fields key in the document
-	const fields = buildresponseInfo(config, document, rootType, operation.selectionSet)
+	const fields = buildselectionInfo(config, document, rootType, operation.selectionSet)
 
 	return AST.objectExpression([
 		AST.objectProperty(AST.identifier('rootType'), AST.stringLiteral(rootType)),
@@ -134,7 +134,7 @@ function responseInfo(config: Config, document: graphql.DocumentNode) {
 	])
 }
 
-function buildresponseInfo(
+function buildselectionInfo(
 	config: Config,
 	document: graphql.DocumentNode,
 	parentType: string,
@@ -164,7 +164,7 @@ function buildresponseInfo(
 					defn.kind === 'FragmentDefinition' && defn.name.value === selection.name.value
 			) as graphql.FragmentDefinitionNode
 
-			buildresponseInfo(
+			buildselectionInfo(
 				config,
 				document,
 				definition.typeCondition.name.value,
@@ -175,7 +175,7 @@ function buildresponseInfo(
 		// if we're looking at an inline fragment, keep going
 		else if (selection.kind === 'InlineFragment') {
 			const fragmentType = selection.typeCondition?.name.value || parentType
-			buildresponseInfo(config, document, fragmentType, selection.selectionSet, map)
+			buildselectionInfo(config, document, fragmentType, selection.selectionSet, map)
 		}
 		// its a field
 		else if (selection.kind === 'Field') {
@@ -213,7 +213,7 @@ function buildresponseInfo(
 
 			// if the field has a selection set, then we need to include it
 			if (selection.selectionSet) {
-				buildresponseInfo(config, document, typeName, selection.selectionSet, map)
+				buildselectionInfo(config, document, typeName, selection.selectionSet, map)
 			}
 		}
 	}

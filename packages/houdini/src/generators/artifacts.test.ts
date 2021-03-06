@@ -32,7 +32,7 @@ test('generates an artifact for every document', async function () {
 	expect(files).toEqual(expect.arrayContaining(['TestQuery.cjs', 'TestFragment.cjs']))
 })
 
-test('adds kind, name, and raw, and responseInfo', async function () {
+test('adds kind, name, and raw, and selectionInfo', async function () {
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -58,7 +58,7 @@ test('adds kind, name, and raw, and responseInfo', async function () {
 		}
 		\`;
 
-		module.exports.responseInfo = {
+		module.exports.selectionInfo = {
 		    rootType: "Query",
 
 		    fields: {
@@ -128,7 +128,7 @@ test('internal directives are scrubbed', async function () {
 		}
 		\`;
 
-		module.exports.responseInfo = {
+		module.exports.selectionInfo = {
 		    rootType: "Query",
 
 		    fields: {

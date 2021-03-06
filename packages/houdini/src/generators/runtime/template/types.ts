@@ -29,7 +29,7 @@ export type TaggedGraphqlMutation = {
 	raw: string
 	processResult: (result: any) => any
 	links: Module<() => { [queryName: string]: Module<Patch> }>
-	responseInfo: TypeLinks
+	selectionInfo: TypeLinks
 }
 
 // the result of tagging an operation
@@ -40,7 +40,7 @@ export type TaggedGraphqlQuery = {
 	processResult: (result: any, variables: any) => any
 	initialValue: any
 	variables: { [key: string]: any }
-	responseInfo: TypeLinks
+	selectionInfo: TypeLinks
 }
 
 // the result of the template tag

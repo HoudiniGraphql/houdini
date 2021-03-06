@@ -4,7 +4,7 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 
 const AST = recast.types.builders
 
-export default function responseInfoAST(links: TypeLinks): namedTypes.ObjectExpression {
+export default function selectionInfoAST(links: TypeLinks): namedTypes.ObjectExpression {
 	return AST.objectExpression([
 		AST.objectProperty(AST.literal('rootType'), AST.stringLiteral(links.rootType)),
 		AST.objectProperty(

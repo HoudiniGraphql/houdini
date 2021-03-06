@@ -2,11 +2,11 @@
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
+import { MutationArtifact } from 'houdini'
 import path from 'path'
 // locals
 import { TransformDocument } from '../types'
-import { selector, walkTaggedDocuments, responseInfoAST } from '../utils'
-import { MutationArtifact } from 'houdini'
+import { selector, walkTaggedDocuments, selectionInfoAST } from '../utils'
 const AST = recast.types.builders
 
 export default async function mutationProcessor(
@@ -71,8 +71,8 @@ export default async function mutationProcessor(
 						AST.callExpression(AST.identifier('import'), [AST.stringLiteral(linkPath)])
 					),
 					AST.objectProperty(
-						AST.literal('responseInfo'),
-						responseInfoAST((artifact as MutationArtifact).responseInfo)
+						AST.literal('selectionInfo'),
+						selectionInfoAST((artifact as MutationArtifact).selectionInfo)
 					),
 				])
 			)
