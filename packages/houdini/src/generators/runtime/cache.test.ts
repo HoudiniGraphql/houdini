@@ -301,13 +301,14 @@ describe('store', function () {
 			set,
 		})
 
-		// somehow write a user to the cache with the same id, but a different name
+		// somehow write a user to the cache with a different id
 		cache.write(
 			response,
 			{
 				viewer: {
 					id: '2',
 					firstName: 'mary',
+					// ignoring favoriteColors as a sanity check (should get undefined)
 				},
 			},
 			{}
@@ -362,13 +363,15 @@ describe('store', function () {
 					type: 'User',
 					key: 'viewer',
 					fields: {
-						firstName: {
-							type: 'String',
-							key: 'firstName',
-						},
-						favoriteColors: {
-							type: 'String',
-							key: 'favoriteColors(where: "foo")',
+						friends: {
+							type: 'User',
+							key: 'friends',
+							fields: {
+								firstName: {
+									type: 'String',
+									key: 'firstName',
+								},
+							},
 						},
 					},
 				},
@@ -376,7 +379,7 @@ describe('store', function () {
 			set,
 		})
 
-		// somehow write a user to the cache with the same id, but a different name
+		// somehow write a user to the cache with a new friends list
 		cache.write(
 			response,
 			{

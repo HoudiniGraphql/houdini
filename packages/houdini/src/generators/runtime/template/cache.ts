@@ -249,6 +249,9 @@ export class Cache {
 						this.record(lostID).removeSubscribers(linkedType.key, ...subscribers)
 					}
 
+					// add every subscriber to the list of specs to change
+					specs.push(...subscribers)
+
 					// update the cached value
 					record.writeListLink(linkedType.key, linkedIDs)
 				}
