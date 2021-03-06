@@ -18,7 +18,11 @@ program
 		// grab the config file
 		const config = await getConfig()
 
-		await compile(config)
+		try {
+			await compile(config)
+		} catch (e) {
+			console.error(e)
+		}
 	})
 
 // register the init command

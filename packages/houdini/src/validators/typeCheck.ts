@@ -3,7 +3,7 @@ import { Config, getTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument } from '../types'
-import { HoudiniError, HoudiniDocumentError, HoudiniErrorTodo } from '../error'
+import { HoudiniError, HoudiniErrorTodo } from '../error'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.
