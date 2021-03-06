@@ -1,6 +1,3 @@
-export { TypeLinks, SubscriptionSelection } from './cache'
-import { TypeLinks, SubscriptionSelection } from './cache'
-
 export type Fragment<_Result> = {
 	readonly shape?: _Result
 }
@@ -87,3 +84,27 @@ export const CompiledMutationKind = 'HoudiniMutation'
 export const CompiledQueryKind = 'HoudiniQuery'
 
 export type CompiledDocumentKind = 'HoudiniFragment' | 'HoudiniMutation' | 'HoudiniQuery'
+
+export type GraphQLValue =
+	| number
+	| string
+	| boolean
+	| null
+	| { [key: string]: GraphQLValue }
+	| GraphQLValue[]
+
+type LinkInfo = { [fieldName: string]: { key: string; type: string } }
+
+export type TypeLinks = {
+	rootType: string
+	fields: { [typeName: string]: LinkInfo }
+}
+
+export type SubscriptionSelection = {
+	[field: string]: {
+		type: string
+		key: string
+		connection?: string
+		fields?: SubscriptionSelection
+	}
+}

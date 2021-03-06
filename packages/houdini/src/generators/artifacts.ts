@@ -347,6 +347,21 @@ function selection({
 				AST.objectProperty(AST.literal('key'), AST.stringLiteral(fieldKey(field))),
 			])
 
+			// check if there is a connection directive tagging this field
+			const connectionDirective = field.directives?.find(
+				(directive) => directive.name.value === config.connectionDirective
+			)
+			// get the name of the connection
+			const nameArg = connectionDirective?.arguments?.find((arg) => arg.name.value === 'name')
+			if (nameArg && nameArg.value.kind === 'StringValue') {
+				fieldObj.properties.push(
+					AST.objectProperty(
+						AST.literal('connection'),
+						AST.stringLiteral(nameArg.value.value)
+					)
+				)
+			}
+
 			// if there is a selection set, add it to the field object
 			if (
 				field.selectionSet &&

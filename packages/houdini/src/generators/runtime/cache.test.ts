@@ -196,7 +196,7 @@ describe('store', function () {
 		).toEqual(['red', 'green', 'blue'])
 	})
 
-	test('root subscribe  field change', function () {
+	test('root subscribe - field change', function () {
 		// instantiate a cache
 		const cache = new Cache()
 
@@ -259,7 +259,7 @@ describe('store', function () {
 		})
 	})
 
-	test('root subscribe  linked object changed', function () {
+	test('root subscribe - linked object changed', function () {
 		// instantiate a cache
 		const cache = new Cache()
 
@@ -329,7 +329,7 @@ describe('store', function () {
 		)
 	})
 
-	test('root subscribe  linked list lost entry', function () {
+	test('root subscribe - linked list lost entry', function () {
 		// instantiate a cache
 		const cache = new Cache()
 
@@ -414,7 +414,7 @@ describe('store', function () {
 		)
 	})
 
-	test('root subscribe  linked list reorder', function () {
+	test('root subscribe - linked list reorder', function () {
 		// instantiate a cache
 		const cache = new Cache()
 

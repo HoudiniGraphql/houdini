@@ -1752,4 +1752,91 @@ describe('mutation artifacts', function () {
 		}];
 	`)
 	})
+
+	test('tracks connection name', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @prepend(parentID: "1234")
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery { 
+					users(stringValue: "foo") @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[1].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "TestQuery";
+		module.exports.kind = "HoudiniQuery";
+		module.exports.hash = "2e9999cf0a02b0af68f84249ec50a4cc";
+
+		module.exports.raw = \`query TestQuery {
+		  users(stringValue: "foo") {
+		    firstName
+		  }
+		}
+		\`;
+
+		module.exports.response = {
+		    rootType: "Query",
+
+		    fields: {
+		        "Query": {
+		            "users": {
+		                "key": "userssomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.rootType = "Query";
+
+		module.exports.selection = {
+		    "users": {
+		        "type": "User",
+		        "key": "userssomething_with_args",
+		        "connection": "All_Users",
+
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "key": "firstNamesomething_with_args"
+		            }
+		        }
+		    }
+		};
+	`)
+	})
 })

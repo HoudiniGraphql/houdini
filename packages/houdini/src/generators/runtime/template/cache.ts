@@ -1,5 +1,5 @@
 // local imports
-import { Maybe } from './types'
+import { Maybe, TypeLinks, GraphQLValue, SubscriptionSelection } from './types'
 
 // this file holds the implementation (and singleton) for the cache that drives
 // houdini queries
@@ -366,29 +366,6 @@ class Record {
 		for (const linkedRecordID of linkedIDs) {
 			this.cache.get(linkedRecordID)?._removeSubscribers(targets)
 		}
-	}
-}
-
-type GraphQLValue =
-	| number
-	| string
-	| boolean
-	| null
-	| { [key: string]: GraphQLValue }
-	| GraphQLValue[]
-
-type LinkInfo = { [fieldName: string]: { key: string; type: string } }
-
-export type TypeLinks = {
-	rootType: string
-	fields: { [typeName: string]: LinkInfo }
-}
-
-export type SubscriptionSelection = {
-	[field: string]: {
-		type: string
-		key: string
-		fields?: SubscriptionSelection
 	}
 }
 
