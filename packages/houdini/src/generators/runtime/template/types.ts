@@ -14,6 +14,35 @@ export type Session = any
 
 export type Maybe<T> = T | null
 
+// any compiled result
+export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifact
+
+export type QueryArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniQuery'
+	response: TypeLinks
+}
+
+export type MutationArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniMutation'
+	response: TypeLinks
+	operations: MutationOperation[]
+}
+
+export type FragmentArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniFragment'
+}
+
+type BaseCompiledDocument = {
+	name: string
+	raw: string
+	hash: string
+	selection: SubscriptionSelection
+	rootType: string
+}
+
+// the result of the template tag
+export type GraphQLTagResult = TaggedGraphqlQuery | TaggedGraphqlFragment | TaggedGraphqlMutation
+
 export type TaggedGraphqlFragment = {
 	kind: 'HoudiniFragment'
 	artifact: FragmentArtifact
@@ -33,9 +62,6 @@ export type TaggedGraphqlQuery = {
 	artifact: QueryArtifact
 }
 
-// the result of the template tag
-export type GraphQLTagResult = TaggedGraphqlQuery | TaggedGraphqlFragment | TaggedGraphqlMutation
-
 type Filter = { [key: string]: string | boolean | number }
 
 export type ConnectionWhen = {
@@ -54,35 +80,6 @@ export type MutationOperation = {
 	position?: 'first' | 'last'
 	when?: ConnectionWhen
 }
-
-// the compiled version of an operation
-type BaseCompiledDocument = {
-	name: string
-	raw: string
-	hash: string
-	selection: SubscriptionSelection
-	rootType: string
-}
-
-// the information that the compiler leaves behind after processing an operation
-export type QueryArtifact = BaseCompiledDocument & {
-	kind: 'HoudiniQuery'
-	response: TypeLinks
-}
-
-export type MutationArtifact = BaseCompiledDocument & {
-	kind: 'HoudiniMutation'
-	response: TypeLinks
-	operations: MutationOperation[]
-}
-
-// the information that the compiler leaves behind after processing a fragment
-export type FragmentArtifact = BaseCompiledDocument & {
-	kind: 'HoudiniFragment'
-}
-
-// any compiled result
-export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifact
 
 export const CompiledFragmentKind = 'HoudiniFragment'
 export const CompiledMutationKind = 'HoudiniMutation'
