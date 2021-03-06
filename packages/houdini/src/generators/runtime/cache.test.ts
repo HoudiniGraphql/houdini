@@ -1,8 +1,8 @@
 // locals
-import { Cache } from './template/store'
+import { Cache } from './template/cache'
 
 // the type information
-const schema = {
+const responseInfo = {
 	rootType: 'Query',
 	fields: {
 		Query: {
@@ -29,10 +29,9 @@ describe('store', function () {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
-				lastName: 'geldof',
 			},
 		}
-		cache.write(schema, data)
+		cache.write(responseInfo, data)
 
 		// make sure we can get back what we wrote
 		expect(cache.get(cache.id('User', data.viewer)).fields).toEqual(data.viewer)
@@ -43,14 +42,14 @@ describe('store', function () {
 		const cache = new Cache()
 
 		// save the data
-		cache.write(schema, {
+		cache.write(responseInfo, {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
 			},
 		})
 
-		cache.write(schema, {
+		cache.write(responseInfo, {
 			viewer: {
 				id: '1',
 				lastName: 'geldof',
@@ -70,7 +69,7 @@ describe('store', function () {
 		const cache = new Cache()
 
 		// save the data
-		cache.write(schema, {
+		cache.write(responseInfo, {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
@@ -101,7 +100,7 @@ describe('store', function () {
 		expect(user2.linkedRecord('parent')).toBeNull()
 
 		// associate user2 with a new parent
-		cache.write(schema, {
+		cache.write(responseInfo, {
 			viewer: {
 				id: '2',
 				firstName: 'jane-prime',
@@ -128,7 +127,7 @@ describe('store', function () {
 		const cache = new Cache()
 
 		// add some data to the cache
-		cache.write(schema, {
+		cache.write(responseInfo, {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
@@ -167,7 +166,7 @@ describe('store', function () {
 		const cache = new Cache()
 
 		// add some data to the cache
-		cache.write(schema, {
+		cache.write(responseInfo, {
 			viewer: {
 				id: '1',
 				firstName: 'bob',

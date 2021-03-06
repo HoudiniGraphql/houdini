@@ -154,7 +154,7 @@ type GraphQLValue =
 
 type LinkInfo = { [fieldName: string]: { key: string; type: string } }
 
-type TypeLinks = {
+export type TypeLinks = {
 	rootType: string
 	fields: { [typeName: string]: LinkInfo }
 }

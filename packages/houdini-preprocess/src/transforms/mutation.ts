@@ -5,8 +5,9 @@ import { Config } from 'houdini-common'
 import path from 'path'
 // locals
 import { TransformDocument } from '../types'
-import { selector, walkTaggedDocuments } from '../utils'
-const typeBuilders = recast.types.builders
+import { selector, walkTaggedDocuments, responseInfoAST } from '../utils'
+import { MutationArtifact } from 'houdini'
+const AST = recast.types.builders
 
 export default async function mutationProcessor(
 	config: Config,
@@ -47,21 +48,12 @@ export default async function mutationProcessor(
 
 			// replace the graphql node with the object
 			node.replaceWith(
-				typeBuilders.objectExpression([
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('name'),
-						typeBuilders.stringLiteral(artifact.name)
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('kind'),
-						typeBuilders.stringLiteral(artifact.kind)
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('raw'),
-						typeBuilders.stringLiteral(artifact.raw)
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('processResult'),
+				AST.objectExpression([
+					AST.objectProperty(AST.stringLiteral('name'), AST.stringLiteral(artifact.name)),
+					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
+					AST.objectProperty(AST.stringLiteral('raw'), AST.stringLiteral(artifact.raw)),
+					AST.objectProperty(
+						AST.stringLiteral('processResult'),
 						selector({
 							config: doc.config,
 							artifact,
@@ -74,11 +66,13 @@ export default async function mutationProcessor(
 							parsedDocument,
 						})
 					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('links'),
-						typeBuilders.callExpression(typeBuilders.identifier('import'), [
-							typeBuilders.stringLiteral(linkPath),
-						])
+					AST.objectProperty(
+						AST.stringLiteral('links'),
+						AST.callExpression(AST.identifier('import'), [AST.stringLiteral(linkPath)])
+					),
+					AST.objectProperty(
+						AST.literal('responseInfo'),
+						responseInfoAST((artifact as MutationArtifact).responseInfo)
 					),
 				])
 			)

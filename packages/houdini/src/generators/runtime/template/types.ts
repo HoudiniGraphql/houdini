@@ -1,3 +1,6 @@
+export { TypeLinks } from './cache'
+import { TypeLinks } from './cache'
+
 export type Fragment<_Result> = {
 	readonly shape?: _Result
 }
@@ -26,6 +29,7 @@ export type TaggedGraphqlMutation = {
 	raw: string
 	processResult: (result: any) => any
 	links: Module<() => { [queryName: string]: Module<Patch> }>
+	responseInfo: TypeLinks
 }
 
 // the result of tagging an operation
@@ -36,6 +40,7 @@ export type TaggedGraphqlQuery = {
 	processResult: (result: any, variables: any) => any
 	initialValue: any
 	variables: { [key: string]: any }
+	responseInfo: TypeLinks
 }
 
 // the result of the template tag

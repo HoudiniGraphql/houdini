@@ -32,7 +32,7 @@ test('generates an artifact for every document', async function () {
 	expect(files).toEqual(expect.arrayContaining(['TestQuery.cjs', 'TestFragment.cjs']))
 })
 
-test('adds kind, name, and raw', async function () {
+test('adds kind, name, and raw, and responseInfo', async function () {
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -57,6 +57,19 @@ test('adds kind, name, and raw', async function () {
 		  version
 		}
 		\`;
+
+		module.exports.responseInfo = {
+		    rootType: "Query",
+
+		    fields: {
+		        "Query": {
+		            "version": {
+		                "key": "versionsomething_with_args",
+		                "type": "Int"
+		            }
+		        }
+		    }
+		};
 	`)
 
 	const fragmentContents = await fs.readFile(
@@ -114,5 +127,25 @@ test('internal directives are scrubbed', async function () {
 		  firstName
 		}
 		\`;
+
+		module.exports.responseInfo = {
+		    rootType: "Query",
+
+		    fields: {
+		        "Query": {
+		            "user": {
+		                "key": "usersomething_with_args",
+		                "type": "User"
+		            }
+		        },
+
+		        "User": {
+		            "firstName": {
+		                "key": "firstNamesomething_with_args",
+		                "type": "String"
+		            }
+		        }
+		    }
+		};
 	`)
 })

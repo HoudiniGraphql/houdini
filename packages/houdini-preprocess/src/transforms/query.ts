@@ -10,7 +10,8 @@ import {
 import { Config } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
-import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
+import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument, responseInfoAST } from '../utils'
+import { QueryArtifact } from 'houdini'
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
@@ -60,7 +61,8 @@ export default async function queryProcessor(
 
 			// add the document to the list
 			queries.push(tag)
-			// replace the graphql node with the object
+
+			// we're going to replace the graphql tag with an object containing the information the runtime needs
 			node.replaceWith(
 				AST.objectExpression([
 					AST.objectProperty(AST.stringLiteral('name'), AST.stringLiteral(artifact.name)),
@@ -96,6 +98,10 @@ export default async function queryProcessor(
 								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 							)
 						)
+					),
+					AST.objectProperty(
+						AST.literal('responseInfo'),
+						responseInfoAST((artifact as QueryArtifact).responseInfo)
 					),
 				])
 			)

@@ -6,7 +6,7 @@ import queryProcessor from './query'
 import { hashDocument, testConfig } from 'houdini-common'
 import importArtifact from '../utils/importArtifact'
 import '../../../../jest.setup'
-import { DocumentArtifact } from 'houdini-compiler'
+import { DocumentArtifact } from 'houdini'
 // mock out the walker so that imports don't actually happen
 jest.mock('../utils/importArtifact')
 
@@ -83,7 +83,27 @@ describe('query preprocessor', function () {
 		        };
 		    },
 
-		    "variables": _TestQuery_Input
+		    "variables": _TestQuery_Input,
+
+		    "responseInfo": {
+		        "rootType": "Query",
+
+		        "fields": {
+		            "Query": {
+		                "viewer": {
+		                    "key": "viewer",
+		                    "type": "User"
+		                }
+		            },
+
+		            "User": {
+		                "id": {
+		                    "key": "id",
+		                    "type": "ID"
+		                }
+		            }
+		        }
+		    }
 		});
 
 		$:
@@ -173,7 +193,27 @@ describe('query preprocessor', function () {
 		        };
 		    },
 
-		    "variables": _TestQuery_Input
+		    "variables": _TestQuery_Input,
+
+		    "responseInfo": {
+		        "rootType": "Query",
+
+		        "fields": {
+		            "Query": {
+		                "viewer": {
+		                    "key": "viewer",
+		                    "type": "User"
+		                }
+		            },
+
+		            "User": {
+		                "id": {
+		                    "key": "id",
+		                    "type": "ID"
+		                }
+		            }
+		        }
+		    }
 		});
 
 		$:
@@ -231,6 +271,23 @@ async function preprocessorTest(content: string) {
 			kind: 'HoudiniQuery',
 			raw: query,
 			hash: hashDocument(parsedQuery),
+			responseInfo: {
+				rootType: 'Query',
+				fields: {
+					Query: {
+						viewer: {
+							key: 'viewer',
+							type: 'User',
+						},
+					},
+					User: {
+						id: {
+							key: 'id',
+							type: 'ID',
+						},
+					},
+				},
+			},
 		}
 	})
 

@@ -3,6 +3,7 @@ import path from 'path'
 import fs from 'fs/promises'
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
+import { graphql, getIntrospectionQuery } from 'graphql'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
 
@@ -32,7 +33,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 
 	// write the index file that exports the runtime
 	await fs.writeFile(path.join(config.rootDir, 'index.js'), recast.print(indexFile).code, 'utf-8')
-	// and the adapter to normalize sapper and sveltekit
+	// add the adapter to normalize sapper and sveltekit
 	await generateAdapter(config)
 }
 
