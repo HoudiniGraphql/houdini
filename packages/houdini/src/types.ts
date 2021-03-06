@@ -1,44 +1,5 @@
 import * as graphql from 'graphql'
-export {
-	ConnectionWhen,
-	TypeLinks,
-	SubscriptionSelection,
-} from './generators/runtime/template/types'
-import { TypeLinks, SubscriptionSelection } from './generators/runtime/template/cache'
-
-// the compiled version of an operation
-type BaseCompiledDocument = {
-	name: string
-	raw: string
-	hash: string
-	selection: SubscriptionSelection
-	rootType: string
-}
-
-export const CompiledFragmentKind = 'HoudiniFragment'
-export const CompiledMutationKind = 'HoudiniMutation'
-export const CompiledQueryKind = 'HoudiniQuery'
-
-export type CompiledDocumentKind = 'HoudiniFragment' | 'HoudiniMutation' | 'HoudiniQuery'
-
-// the information that the compiler leaves behind after processing an operation
-export type QueryArtifact = BaseCompiledDocument & {
-	kind: 'HoudiniQuery'
-	response: TypeLinks
-}
-
-export type MutationArtifact = BaseCompiledDocument & {
-	kind: 'HoudiniMutation'
-	response: TypeLinks
-}
-
-// the information that the compiler leaves behind after processing a fragment
-export type FragmentArtifact = BaseCompiledDocument & {
-	kind: 'HoudiniFragment'
-}
-
-// any compiled result
-export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifact
+export * from './generators/runtime/template/types'
 
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {

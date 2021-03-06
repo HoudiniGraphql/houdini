@@ -17,33 +17,22 @@ type Module<T> = Promise<{ default: T }>
 export type Maybe<T> = T | null
 
 export type TaggedGraphqlFragment = {
-	name: string
 	kind: 'HoudiniFragment'
-	selection: SubscriptionSelection
-	rootType: string
+	artifact: FragmentArtifact
 }
 
 // the result of tagging an operation
 export type TaggedGraphqlMutation = {
-	name: string
 	kind: 'HoudiniMutation'
-	raw: string
-	response: TypeLinks
-	selection: SubscriptionSelection
-	rootType: string
-	operations: MutationOperation[]
+	artifact: MutationArtifact
 }
 
 // the result of tagging an operation
 export type TaggedGraphqlQuery = {
-	name: string
 	kind: 'HoudiniQuery'
-	raw: string
 	initialValue: any
 	variables: { [key: string]: any }
-	response: TypeLinks
-	selection: SubscriptionSelection
-	rootType: string
+	artifact: QueryArtifact
 }
 
 // the result of the template tag
@@ -67,3 +56,37 @@ export type MutationOperation = {
 	position?: 'first' | 'last'
 	when?: ConnectionWhen
 }
+
+// the compiled version of an operation
+type BaseCompiledDocument = {
+	name: string
+	raw: string
+	hash: string
+	selection: SubscriptionSelection
+	rootType: string
+}
+
+// the information that the compiler leaves behind after processing an operation
+export type QueryArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniQuery'
+	response: TypeLinks
+}
+
+export type MutationArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniMutation'
+	response: TypeLinks
+}
+
+// the information that the compiler leaves behind after processing a fragment
+export type FragmentArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniFragment'
+}
+
+// any compiled result
+export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifact
+
+export const CompiledFragmentKind = 'HoudiniFragment'
+export const CompiledMutationKind = 'HoudiniMutation'
+export const CompiledQueryKind = 'HoudiniQuery'
+
+export type CompiledDocumentKind = 'HoudiniFragment' | 'HoudiniMutation' | 'HoudiniQuery'

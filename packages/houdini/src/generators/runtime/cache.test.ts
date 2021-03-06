@@ -34,7 +34,7 @@ describe('store', function () {
 		cache.write(response, data, {})
 
 		// make sure we can get back what we wrote
-		expect(cache.get(cache.id('User', data.viewer)).fields).toEqual({ firstName: 'bob' })
+		expect(cache.get(cache.id('User', data.viewer))?.fields).toEqual({ firstName: 'bob' })
 	})
 
 	test('partial update existing record', function () {
@@ -65,7 +65,7 @@ describe('store', function () {
 		)
 
 		// make sure we can get back what we wrote
-		expect(cache.get(cache.id('User', { id: '1' })).fields).toEqual({
+		expect(cache.get(cache.id('User', { id: '1' }))?.fields).toEqual({
 			firstName: 'bob',
 			lastName: 'geldof',
 		})
@@ -93,19 +93,19 @@ describe('store', function () {
 
 		// check user 1
 		const user1 = cache.get(cache.id('User', { id: '1' }))
-		expect(user1.fields).toEqual({
+		expect(user1?.fields).toEqual({
 			firstName: 'bob',
 		})
-		expect(user1.linkedRecord('parent').fields).toEqual({
+		expect(user1?.linkedRecord('parent')?.fields).toEqual({
 			firstName: 'jane',
 		})
 
 		// check user 2
 		const user2 = cache.get(cache.id('User', { id: '2' }))
-		expect(user2.fields).toEqual({
+		expect(user2?.fields).toEqual({
 			firstName: 'jane',
 		})
-		expect(user2.linkedRecord('parent')).toBeNull()
+		expect(user2?.linkedRecord('parent')).toBeNull()
 
 		// associate user2 with a new parent
 		cache.write(
@@ -124,10 +124,10 @@ describe('store', function () {
 		)
 
 		// make sure we updated user 2
-		expect(user2.fields).toEqual({
+		expect(user2?.fields).toEqual({
 			firstName: 'jane-prime',
 		})
-		expect(user2.linkedRecord('parent').fields).toEqual({
+		expect(user2?.linkedRecord('parent')?.fields).toEqual({
 			firstName: 'mary',
 		})
 	})
@@ -161,7 +161,7 @@ describe('store', function () {
 		// make sure we can get the linked lists back
 		const friendData = cache
 			.get(cache.id('User', { id: '1' }))
-			.linkedList('friends')
+			?.linkedList('friends')
 			.map(({ fields }) => fields)
 		expect(friendData).toEqual([
 			{
@@ -192,7 +192,7 @@ describe('store', function () {
 
 		// look up the value
 		expect(
-			cache.get(cache.id('User', { id: '1' })).fields['favoriteColors(where: "foo")']
+			cache.get(cache.id('User', { id: '1' }))?.fields['favoriteColors(where: "foo")']
 		).toEqual(['red', 'green', 'blue'])
 	})
 
@@ -324,7 +324,9 @@ describe('store', function () {
 		})
 
 		// make sure we are no longer subscribing to user 1
-		expect(cache.get(cache.id('User', { id: '1' })).getSubscribers('firstName')).toHaveLength(0)
+		expect(cache.get(cache.id('User', { id: '1' }))?.getSubscribers('firstName')).toHaveLength(
+			0
+		)
 	})
 
 	test('root subscribe  linked list lost entry', function () {
@@ -407,7 +409,9 @@ describe('store', function () {
 		})
 
 		// we shouldn't be subscribing to user 3 any more
-		expect(cache.get(cache.id('User', { id: '3' })).getSubscribers('firstName')).toHaveLength(0)
+		expect(cache.get(cache.id('User', { id: '3' }))?.getSubscribers('firstName')).toHaveLength(
+			0
+		)
 	})
 
 	test('root subscribe  linked list reorder', function () {
@@ -496,8 +500,12 @@ describe('store', function () {
 		})
 
 		// we shouldn't be subscribing to both users
-		expect(cache.get(cache.id('User', { id: '2' })).getSubscribers('firstName')).toHaveLength(1)
-		expect(cache.get(cache.id('User', { id: '3' })).getSubscribers('firstName')).toHaveLength(1)
+		expect(cache.get(cache.id('User', { id: '2' }))?.getSubscribers('firstName')).toHaveLength(
+			1
+		)
+		expect(cache.get(cache.id('User', { id: '3' }))?.getSubscribers('firstName')).toHaveLength(
+			1
+		)
 	})
 
 	test('unsubscribe', function () {
@@ -543,13 +551,17 @@ describe('store', function () {
 		cache.subscribe(spec)
 
 		// make sure we  registered the subscriber
-		expect(cache.get(cache.id('User', { id: '1' })).getSubscribers('firstName')).toHaveLength(1)
+		expect(cache.get(cache.id('User', { id: '1' }))?.getSubscribers('firstName')).toHaveLength(
+			1
+		)
 
 		// unsubscribe
 		cache.unsubscribe(spec)
 
 		// make sure there is no more subscriber
-		expect(cache.get(cache.id('User', { id: '1' })).getSubscribers('firstName')).toHaveLength(0)
+		expect(cache.get(cache.id('User', { id: '1' }))?.getSubscribers('firstName')).toHaveLength(
+			0
+		)
 	})
 
 	// atm when we remove subscribers from links we assume its the only reason that spec is associated

@@ -71,7 +71,11 @@ export class Config {
 
 	// the directory where we put all of the artifacts
 	get artifactDirectory() {
-		return path.join(this.rootDir, 'artifacts')
+		return path.join(this.rootDir, this.artifactDirectoryName)
+	}
+
+	private get artifactDirectoryName() {
+		return 'artifacts'
 	}
 
 	// the directory where artifact types live
@@ -100,6 +104,11 @@ export class Config {
 	artifactPath(document: graphql.DocumentNode): string {
 		// use the operation name for the artifact
 		return path.join(this.artifactDirectory, `${this.documentName(document)}.cjs`)
+	}
+
+	// the path that the runtime can use to import an artifact
+	artifactImportPath(name: string): string {
+		return `$houdini/${this.artifactDirectoryName}/${name}.cjs`
 	}
 
 	// a string identifier for the document (must be unique)

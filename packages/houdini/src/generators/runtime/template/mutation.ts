@@ -17,7 +17,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	}
 
 	// pull the query text out of the compiled artifact
-	const { raw: text } = document
+	const { raw: text } = document.artifact
 
 	// grab the sesion from the adapter
 	const session = getSession()
@@ -72,7 +72,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 			}
 
 			// update the cache with the mutation data
-			cache.write(document.response, result, variables)
+			cache.write(document.artifact.response, result, variables)
 			// wrap the result in a store we can use to keep this query up to date
 			resolve(result)
 		})

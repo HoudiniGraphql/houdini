@@ -19,15 +19,17 @@ export default function query<_Query extends Operation<any, any>>(
 
 	// wrap the result in a store we can use to keep this query up to date
 	const value = readable(document.initialValue.data, (set) => {
+		const { artifact } = document
+
 		// when the component mounts
 		onMount(() => {
 			// once we've mounted
-			cache.write(document.response, document.initialValue.data, document.variables)
+			cache.write(artifact.response, document.initialValue.data, document.variables)
 
 			// stay up to date
 			cache.subscribe({
-				rootType: document.rootType,
-				selection: document.selection,
+				rootType: artifact.rootType,
+				selection: artifact.selection,
 				set,
 			})
 		})
@@ -35,8 +37,8 @@ export default function query<_Query extends Operation<any, any>>(
 		// the function used to clean up the store
 		return () => {
 			cache.unsubscribe({
-				rootType: document.rootType,
-				selection: document.selection,
+				rootType: artifact.rootType,
+				selection: artifact.selection,
 				set,
 			})
 		}

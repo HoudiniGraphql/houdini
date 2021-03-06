@@ -2,11 +2,10 @@
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
-import { MutationArtifact } from 'houdini'
-import path from 'path'
 // locals
 import { TransformDocument } from '../types'
-import { selector, walkTaggedDocuments, selectionAST, responseAST } from '../utils'
+import { walkTaggedDocuments } from '../utils'
+import { artifactIdentifier } from './query'
 const AST = recast.types.builders
 
 export default async function mutationProcessor(
@@ -43,37 +42,23 @@ export default async function mutationProcessor(
 			// replace the graphql node with the object
 			node.replaceWith(
 				AST.objectExpression([
-					AST.objectProperty(AST.stringLiteral('name'), AST.stringLiteral(artifact.name)),
 					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-					AST.objectProperty(AST.stringLiteral('raw'), AST.stringLiteral(artifact.raw)),
 					AST.objectProperty(
-						AST.stringLiteral('processResult'),
-						selector({
-							config: doc.config,
-							artifact,
-							rootIdentifier: 'data',
-							rootType,
-							selectionSet: operation.selectionSet,
-							// grab values from the immediate response
-							pullValuesFromRef: false,
-							root: true,
-							parsedDocument,
-						})
-					),
-					AST.objectProperty(
-						AST.literal('response'),
-						responseAST((artifact as MutationArtifact).response)
-					),
-					AST.objectProperty(
-						AST.literal('rootType'),
-						AST.stringLiteral((artifact as MutationArtifact).rootType)
-					),
-					AST.objectProperty(
-						AST.literal('selection'),
-						selectionAST((artifact as MutationArtifact).selection)
+						AST.literal('artifact'),
+						AST.identifier(artifactIdentifier(artifact))
 					),
 				])
 			)
+
+			doc.instance?.content.body.unshift({
+				type: 'ImportDeclaration',
+				// @ts-ignore
+				source: AST.literal(config.artifactImportPath(artifact.name)),
+				specifiers: [
+					// @ts-ignore
+					AST.importDefaultSpecifier(AST.identifier(artifactIdentifier(artifact))),
+				],
+			})
 		},
 	})
 }

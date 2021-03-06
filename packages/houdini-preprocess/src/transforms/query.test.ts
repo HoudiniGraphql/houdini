@@ -60,66 +60,16 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery.cjs";
 		import { updateStoreData } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
 		const data = query({
-		    "name": "TestQuery",
-		    "kind": "HoudiniQuery",
-		    "raw": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		    "initialValue": _TestQuery,
-
-		    "processResult": (data, variables = {}) => {
-		        return {
-		            "__ref": data,
-		            "__variables": variables,
-
-		            "viewer": {
-		                "__ref": data.viewer,
-		                "__variables": variables,
-		                "id": data.viewer.id
-		            }
-		        };
-		    },
-
 		    "variables": _TestQuery_Input,
-
-		    "response": {
-		        "rootType": "Query",
-
-		        "fields": {
-		            "Query": {
-		                "viewer": {
-		                    "key": "viewer",
-		                    "type": "User"
-		                }
-		            },
-
-		            "User": {
-		                "id": {
-		                    "key": "id",
-		                    "type": "ID"
-		                }
-		            }
-		        }
-		    },
-
-		    "rootType": "Query",
-
-		    "selection": {
-		        "viewer": {
-		            "type": "User",
-		            "key": "viewer",
-
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "key": "id"
-		                }
-		            }
-		        }
-		    }
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
 		});
 
 		$:
@@ -186,66 +136,16 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery.cjs";
 		import { updateStoreData } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
 		const data = query({
-		    "name": "TestQuery",
-		    "kind": "HoudiniQuery",
-		    "raw": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		    "initialValue": _TestQuery,
-
-		    "processResult": (data, variables = {}) => {
-		        return {
-		            "__ref": data,
-		            "__variables": variables,
-
-		            "viewer": {
-		                "__ref": data.viewer,
-		                "__variables": variables,
-		                "id": data.viewer.id
-		            }
-		        };
-		    },
-
 		    "variables": _TestQuery_Input,
-
-		    "response": {
-		        "rootType": "Query",
-
-		        "fields": {
-		            "Query": {
-		                "viewer": {
-		                    "key": "viewer",
-		                    "type": "User"
-		                }
-		            },
-
-		            "User": {
-		                "id": {
-		                    "key": "id",
-		                    "type": "ID"
-		                }
-		            }
-		        }
-		    },
-
-		    "rootType": "Query",
-
-		    "selection": {
-		        "viewer": {
-		            "type": "User",
-		            "key": "viewer",
-
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "key": "id"
-		                }
-		            }
-		        }
-		    }
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
 		});
 
 		$:
