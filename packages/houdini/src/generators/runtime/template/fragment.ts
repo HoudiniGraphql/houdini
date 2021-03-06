@@ -23,7 +23,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 		// when the component monuts
 		onMount(() => {
 			// @ts-ignore
-			const parentID = data.id
+			const parentID = cache.id(fragment.selection.rootType, data)
 
 			// if there is an id we can anchor the cache off of
 			if (parentID) {
