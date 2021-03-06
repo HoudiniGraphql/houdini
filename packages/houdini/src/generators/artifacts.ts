@@ -20,6 +20,36 @@ const AST = recast.types.builders
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
 export default async function artifactGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
+	// before we generate the mutation artifacts, we need to figure out the path for each connection
+	// so that the mutations have their target
+	const connectionPaths: { [connectionName: string]: string[] } = {}
+
+	for (const doc of docs) {
+		graphql.visit(doc.document, {
+			// look for any field marked with a connection
+			Directive: {
+				enter(node, _, __, ___, ancestors) {
+					// we only care about connections
+					if (node.name.value !== config.connectionDirective) {
+						return
+					}
+
+					// get the name of the connection
+					const nameArg = node.arguments?.find(
+						(arg) => arg.name.value === config.connectionNameArg
+					)
+					if (!nameArg || nameArg.value.kind !== 'StringValue') {
+						throw new Error('could not find name arg in connection directive')
+					}
+
+					// save the path
+					connectionPaths[nameArg.value.value] = pathFromAncestors(ancestors)
+				},
+			},
+		})
+	}
+
+	// we have everything we need to generate the artifacts
 	await Promise.all(
 		docs.map(async ({ document, name, printed }) => {
 			// before we can print the document, we need to strip all references to internal directives
@@ -152,7 +182,12 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 			// mutation artifacts need to specify their operations
 			if (docKind === CompiledMutationKind) {
-				artifact.body.push(moduleExport('operations', operationList(config, operations[0])))
+				artifact.body.push(
+					moduleExport(
+						'operations',
+						operationList(config, connectionPaths, operations[0])
+					)
+				)
 			}
 
 			// write the result to the artifact path we're configured to write to
@@ -346,6 +381,7 @@ function fieldKey(field: graphql.FieldNode): string {
 // return the list of operations that are part of a mutation
 function operationList(
 	config: Config,
+	connectionPaths: { [connectionName: string]: string[] },
 	definition: graphql.OperationDefinitionNode
 ): namedTypes.ArrayExpression {
 	// buil up the list
@@ -370,22 +406,25 @@ function operationList(
 				const connectionName = config.connectionNameFromFragment(node.name.value)
 				const operationKind = config.connectionOperationFromFragment(node.name.value)
 				const info = operationInfo(config, node)
-				const path = ancestors
-					.filter(
-						// @ts-ignore
-						(entry) => !Array.isArray(entry) && entry.kind === 'Field'
-					)
-					// @ts-ignore
-					.map((field) => field.name.value)
+				const path = pathFromAncestors(ancestors)
 
 				const operation = AST.objectExpression([
 					AST.objectProperty(
 						AST.literal('source'),
 						AST.arrayExpression(path.map(AST.stringLiteral))
 					),
-					AST.objectProperty(AST.literal('target'), AST.stringLiteral(connectionName)),
+					AST.objectProperty(
+						AST.literal('connectionName'),
+						AST.stringLiteral(connectionName)
+					),
 					AST.objectProperty(AST.literal('kind'), AST.stringLiteral(operationKind)),
 					AST.objectProperty(AST.literal('position'), AST.stringLiteral(info.position)),
+					AST.objectProperty(
+						AST.literal('target'),
+						AST.arrayExpression(
+							connectionPaths[connectionName].map((p) => AST.stringLiteral(p))
+						)
+					),
 				])
 
 				// if there is a parent id
@@ -600,5 +639,18 @@ function filterAST(filter: ConnectionWhen['must']): namedTypes.ObjectExpression 
 			}
 			return AST.objectProperty(AST.literal(key), literal)
 		})
+	)
+}
+
+// TODO: find a way to reference the actual type for ancestors, using any as escape hatch
+function pathFromAncestors(ancestors: any): string[] {
+	return (
+		ancestors
+			.filter(
+				// @ts-ignore
+				(entry) => !Array.isArray(entry) && entry.kind === 'Field'
+			)
+			// @ts-ignore
+			.map((field) => field.name.value)
 	)
 }

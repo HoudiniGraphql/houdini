@@ -499,7 +499,7 @@ describe('store', function () {
 			},
 		})
 
-		// we shouldn't be subscribing to both users
+		// we should still be subscribing to both users
 		expect(cache.get(cache.id('User', { id: '2' }))?.getSubscribers('firstName')).toHaveLength(
 			1
 		)

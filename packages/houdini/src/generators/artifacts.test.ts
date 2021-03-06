@@ -387,9 +387,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "target": "All_Users",
+		    "connectionName": "All_Users",
 		    "kind": "insert",
-		    "position": "last"
+		    "position": "last",
+		    "target": ["users"]
 		}];
 	`)
 	})
@@ -499,9 +500,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "target": "All_Users",
+		    "connectionName": "All_Users",
 		    "kind": "insert",
 		    "position": "first",
+		    "target": ["users"],
 
 		    "parentID": {
 		        "kind": "String",
@@ -616,9 +618,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "target": "All_Users",
+		    "connectionName": "All_Users",
 		    "kind": "insert",
 		    "position": "last",
+		    "target": ["users"],
 
 		    "parentID": {
 		        "kind": "String",
@@ -733,9 +736,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "target": "All_Users",
+		    "connectionName": "All_Users",
 		    "kind": "insert",
 		    "position": "last",
+		    "target": ["users"],
 
 		    "parentID": {
 		        "kind": "String",
@@ -850,9 +854,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "target": "All_Users",
+		    "connectionName": "All_Users",
 		    "kind": "insert",
 		    "position": "first",
+		    "target": ["users"],
 
 		    "when": {
 		        "must": {
@@ -968,9 +973,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "target": "All_Users",
+		    "connectionName": "All_Users",
 		    "kind": "insert",
 		    "position": "last",
+		    "target": ["users"],
 
 		    "when": {
 		        "must": {
@@ -1086,9 +1092,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "target": "All_Users",
+		    "connectionName": "All_Users",
 		    "kind": "insert",
 		    "position": "last",
+		    "target": ["users"],
 
 		    "when": {
 		        "must": {
@@ -1204,9 +1211,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "target": "All_Users",
+		    "connectionName": "All_Users",
 		    "kind": "insert",
 		    "position": "first",
+		    "target": ["users"],
 
 		    "when": {
 		        "must_not": {
@@ -1322,9 +1330,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "target": "All_Users",
+		    "connectionName": "All_Users",
 		    "kind": "insert",
 		    "position": "last",
+		    "target": ["users"],
 
 		    "when": {
 		        "must_not": {
@@ -1440,9 +1449,10 @@ describe('mutation artifacts', function () {
 
 		module.exports.operations = [{
 		    "source": ["addFriend", "friend"],
-		    "target": "All_Users",
+		    "connectionName": "All_Users",
 		    "kind": "insert",
 		    "position": "last",
+		    "target": ["users"],
 
 		    "when": {
 		        "must_not": {

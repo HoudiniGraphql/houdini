@@ -45,8 +45,16 @@ export default async function typeCheck(
 						({ name }) => name.value === config.connectionNameArg
 					)
 
-					if (!nameArg || nameArg.value.kind !== 'StringValue') {
+					if (!nameArg) {
 						errors.push(new HoudiniErrorTodo('Could not find name arg'))
+						return
+					}
+					if (nameArg.value.kind !== 'StringValue') {
+						errors.push(
+							new HoudiniErrorTodo(
+								'Name arg must be a static string, it cannot be set to a variable.'
+							)
+						)
 						return
 					}
 

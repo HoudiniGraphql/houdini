@@ -70,9 +70,10 @@ export type ConnectionWhen = {
 }
 
 export type MutationOperation = {
-	source: string[]
 	kind: 'insert' | 'remove' | 'delete'
-	target: string
+	source: string[]
+	target: string[]
+	connectionName: string
 	parentID?: {
 		kind: string
 		value: string

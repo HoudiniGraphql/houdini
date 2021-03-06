@@ -236,7 +236,7 @@ export class Config {
 		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.removeFragmentSuffix)
 	}
 
-	isConnectionDirective(name: string): boolean {
+	isConnectionOperationDirective(name: string): boolean {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}
 
