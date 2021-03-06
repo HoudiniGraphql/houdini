@@ -254,5 +254,51 @@ describe('store', function () {
 		})
 	})
 
-	test.todo('unsubscribe')
+	test('unsubscribe', function () {
+		// instantiate a cache
+		const cache = new Cache()
+
+		// write some data
+		cache.write(
+			response,
+			{
+				viewer: {
+					id: '1',
+					firstName: 'bob',
+					favoriteColors: ['red', 'green', 'blue'],
+				},
+			},
+			{}
+		)
+
+		// the spec we will register/unregister
+		const spec = {
+			selection: {
+				rootType: 'Query',
+				fields: {
+					Query: {
+						viewer: { type: 'User', key: 'viewer' },
+					},
+					User: {
+						firstName: { type: 'String', key: 'firstName' },
+						favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+					},
+				},
+			},
+			// a function to spy on that will play the role of set
+			set: jest.fn(),
+		}
+
+		// subscribe to the fields
+		cache.subscribe(spec)
+
+		// make sure we  registered the subscriber
+		expect(cache.get(cache.id('User', { id: '1' })).getSubscribers('firstName')).toHaveLength(1)
+
+		// unsubscribe
+		cache.unsubscribe(spec)
+
+		// make sure there is no more subscriber
+		expect(cache.get(cache.id('User', { id: '1' })).getSubscribers('firstName')).toHaveLength(0)
+	})
 })

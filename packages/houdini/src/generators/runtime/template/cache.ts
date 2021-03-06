@@ -61,6 +61,17 @@ export class Cache {
 		this.addSubscribers(rootRecord, spec, spec.selection.fields[spec.selection.rootType])
 	}
 
+	unsubscribe(spec: SubscriptionSpec) {
+		// find the root record
+		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
+		if (!rootRecord) {
+			throw new Error('Could not find root of subscription')
+		}
+
+		// walk down the selection and remove any subscribers from the list
+		this.removeSubscribers(rootRecord, spec, spec.selection.fields[spec.selection.rootType])
+	}
+
 	// walk down the spec
 	private getData(
 		spec: SubscriptionSpec,
@@ -127,6 +138,33 @@ export class Cache {
 			}
 		}
 	}
+	private removeSubscribers(rootRecord: Record, spec: SubscriptionSpec, fields: LinkInfo) {
+		for (const { type, key } of Object.values(fields)) {
+			// remove the subscriber to the field
+			rootRecord.removeSubscriber(key, spec)
+
+			// if the field points to a link, we need to subscribe to any fields of that
+			// linked record
+			if (!this.isScalarLink(type)) {
+				// if the link points to a record then we just have to remove it to the one
+				const linkedRecord = rootRecord.linkedRecord(key)
+				let children = linkedRecord ? [linkedRecord] : null
+				if (!children) {
+					children = rootRecord.linkedList(key)
+				}
+
+				// if we still dont have anything to attach it to then there's no one to subscribe to
+				if (!children) {
+					continue
+				}
+
+				// remove the subscriber to every child
+				for (const child of children) {
+					this.removeSubscribers(child, spec, spec.selection.fields[type])
+				}
+			}
+		}
+	}
 
 	private _write(
 		typeName: string,
@@ -141,8 +179,8 @@ export class Cache {
 
 		// look at ever field in the data
 		for (const [field, value] of Object.entries(data)) {
+			// look up the field in our schema
 			const linkedType = typeLinks[typeName] && typeLinks[typeName][field]
-
 			// make sure we found the type info
 			if (!linkedType) {
 				throw new Error(
@@ -268,6 +306,12 @@ class Record {
 
 	getSubscribers(fieldName: string): SubscriptionSpec[] {
 		return this.subscribers[fieldName] || []
+	}
+
+	removeSubscriber(fieldName: string, target: SubscriptionSpec) {
+		this.subscribers[fieldName] = this.getSubscribers(fieldName).filter(
+			({ set }) => set !== target.set
+		)
 	}
 }
 

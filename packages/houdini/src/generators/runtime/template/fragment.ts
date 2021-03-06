@@ -20,11 +20,11 @@ export default function fragment<_Fragment extends Fragment<any>>(
 
 	// wrap the result in a store we can use to keep this query up to date
 	const value = readable(data, (set) => {
+		// @ts-ignore
+		const parentID = cache.id(fragment.selection.rootType, data)
+
 		// when the component monuts
 		onMount(() => {
-			// @ts-ignore
-			const parentID = cache.id(fragment.selection.rootType, data)
-
 			// if there is an id we can anchor the cache off of
 			if (parentID) {
 				// stay up to date
@@ -37,7 +37,16 @@ export default function fragment<_Fragment extends Fragment<any>>(
 		})
 
 		// the function used to clean up the store
-		return () => {}
+		return () => {
+			// if we subscribed to something we'll need to clean up
+			if (parentID) {
+				cache.unsubscribe({
+					parentID,
+					selection: fragment.selection,
+					set,
+				})
+			}
+		}
 	})
 
 	return value

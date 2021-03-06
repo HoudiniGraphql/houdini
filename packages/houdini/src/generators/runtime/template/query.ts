@@ -19,7 +19,7 @@ export default function query<_Query extends Operation<any, any>>(
 
 	// wrap the result in a store we can use to keep this query up to date
 	const value = readable(document.initialValue.data, (set) => {
-		// when the component monuts
+		// when the component mounts
 		onMount(() => {
 			// once we've mounted
 			cache.write(document.response, document.initialValue.data, document.variables)
@@ -32,7 +32,12 @@ export default function query<_Query extends Operation<any, any>>(
 		})
 
 		// the function used to clean up the store
-		return () => {}
+		return () => {
+			cache.unsubscribe({
+				selection: document.selection,
+				set,
+			})
+		}
 	})
 
 	return value
