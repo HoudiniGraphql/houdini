@@ -40,12 +40,6 @@ export default async function mutationProcessor(
 			// figure out the root type of the fragment
 			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 
-			// the path to the link file
-			const linkPath = path.relative(
-				path.join(process.cwd(), doc.filename, '..'),
-				config.mutationLinksPath(artifact.name)
-			)
-
 			// replace the graphql node with the object
 			node.replaceWith(
 				AST.objectExpression([
@@ -65,10 +59,6 @@ export default async function mutationProcessor(
 							root: true,
 							parsedDocument,
 						})
-					),
-					AST.objectProperty(
-						AST.stringLiteral('links'),
-						AST.callExpression(AST.identifier('import'), [AST.stringLiteral(linkPath)])
 					),
 					AST.objectProperty(
 						AST.literal('response'),

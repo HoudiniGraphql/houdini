@@ -4,14 +4,14 @@ export {
 	TypeLinks,
 	SubscriptionSelection,
 } from './generators/runtime/template/types'
-import { TypeLinks } from './generators/runtime/template/cache'
+import { TypeLinks, SubscriptionSelection } from './generators/runtime/template/cache'
 
 // the compiled version of an operation
 type BaseCompiledDocument = {
 	name: string
 	raw: string
 	hash: string
-	selection: TypeLinks
+	selection: SubscriptionSelection
 	rootType: string
 }
 

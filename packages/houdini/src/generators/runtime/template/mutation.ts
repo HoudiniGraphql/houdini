@@ -17,7 +17,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	}
 
 	// pull the query text out of the compiled artifact
-	const { raw: text, links: linkModule } = document
+	const { raw: text } = document
 
 	// grab the sesion from the adapter
 	const session = getSession()
