@@ -846,8 +846,7 @@ test('delete node', function () {
 		})
 	)
 
-	// the first time set was called, a new entry was added.
-	// the second time it's called, we get a new value for mary-prime
+	// we should have been updated with an empty list
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
 			friends: [],
