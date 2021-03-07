@@ -1162,7 +1162,7 @@ test('append operation', function () {
 						connection: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: 'User:1',
+							value: cache.id('User', '1'),
 						},
 					},
 				],
@@ -1183,7 +1183,7 @@ test('append operation', function () {
 	)
 
 	// make sure we just added to the connection
-	expect([...cache.connection('All_Users', 'User:1')]).toHaveLength(1)
+	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(1)
 })
 
 test('remove operation', function () {
@@ -1267,7 +1267,7 @@ test('remove operation', function () {
 						connection: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: 'User:1',
+							value: cache.id('User', '1'),
 						},
 					},
 				],
@@ -1288,7 +1288,7 @@ test('remove operation', function () {
 	)
 
 	// make sure we removed the element from the connection
-	expect([...cache.connection('All_Users', 'User:1')]).toHaveLength(0)
+	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
 })
 
 test('delete operation', function () {
@@ -1389,7 +1389,7 @@ test('delete operation', function () {
 	)
 
 	// make sure we removed the element from the connection
-	expect([...cache.connection('All_Users', 'User:1')]).toHaveLength(0)
+	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
 })
 
 // atm when we remove subscribers from links we assume its the only reason that spec is associated
@@ -1402,7 +1402,5 @@ test.todo('unsubscribe removes connection handlers')
 test.todo('nested linked record update')
 
 test.todo('nested linked list update')
-
-test.todo('insert connection under parentID')
 
 test.todo('caches fields with args')
