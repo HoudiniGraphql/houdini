@@ -632,7 +632,7 @@ test('insert in connection', function () {
 	})
 })
 
-test('subscribe to changes in nodes added to connections', function () {
+test('subscribe to new connection nodes', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
@@ -722,6 +722,72 @@ test('subscribe to changes in nodes added to connections', function () {
 			],
 		},
 	})
+})
+
+test('remove from connection', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	// start off associated with one object
+	cache.write(
+		response,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+		{}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection: {
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					friends: {
+						type: 'User',
+						key: 'friends',
+						connection: 'All_Users',
+						fields: {
+							firstName: {
+								type: 'String',
+								key: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+
+	// remove user 2 from the connection
+	cache.connection('All_Users').remove({
+		id: '2',
+	})
+
+	// the first time set was called, a new entry was added.
+	// the second time it's called, we get a new value for mary-prime
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			friends: [],
+		},
+	})
+
+	// make sure we aren't subscribing to user 2 any more
+	expect(cache.get(cache.id('User', { id: '2' }))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
 // atm when we remove subscribers from links we assume its the only reason that spec is associated

@@ -358,6 +358,27 @@ export class Cache {
 		}
 	}
 
+	unsubscribeRecord(
+		record: Record,
+		selection: SubscriptionSelection,
+		...subscribers: SubscriptionSpec[]
+	) {
+		// look at every field in the selection and add the subscribers
+		for (const { key, fields } of Object.values(selection)) {
+			// add the subscriber to the
+			record.removeSubscribers(...subscribers)
+
+			// if there are fields under this
+			if (fields) {
+				// figure out who else needs subscribers
+				const children = record.linkedList(key) || [record.linkedRecord(key)]
+				for (const linkedRecord of children) {
+					this.unsubscribeRecord(linkedRecord, fields, ...subscribers)
+				}
+			}
+		}
+	}
+
 	private isScalarLink(type: string) {
 		return ['String', 'Boolean', 'Float', 'ID', 'Int'].includes(type)
 	}
@@ -411,6 +432,10 @@ class Record {
 
 	addToLinkedList(fieldName: string, id: string) {
 		this.listLinks[fieldName].push(id)
+	}
+
+	removeFromLinkedList(fieldName: string, id: string) {
+		this.listLinks[fieldName] = this.listLinks[fieldName].filter((link) => link !== id)
 	}
 
 	addSubscriber(fieldName: string, ...specs: SubscriptionSpec[]) {
@@ -476,6 +501,7 @@ class ConnectionHandler {
 		this.cache = cache
 		this.selection = selection
 	}
+
 	append({ fields }: TypeLinks, data: {}, variables: {} = {}) {
 		// figure out the id of the type we are adding
 		const dataID = this.cache.id(this.connectionType, data)
@@ -497,13 +523,30 @@ class ConnectionHandler {
 		// get the list of specs that are subscribing to the connection
 		const subscribers = this.record.getSubscribers(this.key)
 
+		// notify the subscribers we care about
+		this.cache.notifySubscribers(subscribers)
+
 		// walk down the connection fields relative to the new record
 		// and make sure all of the connection's subscribers are listening
 		// to that object
 		this.cache.insertSubscribers(this.cache.record(dataID), this.selection, ...subscribers)
+	}
+
+	remove(data: {}, variables: {} = {}) {
+		// figure out the id of the type we are adding
+		const dataID = this.cache.id(this.connectionType, data)
+
+		// add the record we just created to the list
+		this.record.removeFromLinkedList(this.key, dataID)
+
+		// get the list of specs that are subscribing to the connection
+		const subscribers = this.record.getSubscribers(this.key)
 
 		// notify the subscribers we care about
 		this.cache.notifySubscribers(subscribers)
+
+		// disconnect the record we removed from the connection's subscribers
+		this.cache.unsubscribeRecord(this.cache.record(dataID), this.selection, ...subscribers)
 	}
 }
 
