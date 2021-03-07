@@ -11,7 +11,6 @@ export class Cache {
 
 	// save the response in the local store and notify any subscribers
 	write(
-		rootType: string,
 		selection: SubscriptionSelection,
 		data: { [key: string]: GraphQLValue },
 		variables: {},
@@ -21,7 +20,7 @@ export class Cache {
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
 		// will build up different specs of subscriptions that need to be run against the current state
-		this._write(rootType, selection, parentID, data, variables, specs)
+		this._write(selection, parentID, data, variables, specs)
 
 		// compute new values for every spec that needs to be run
 		this.notifySubscribers(specs)
@@ -245,7 +244,6 @@ export class Cache {
 	}
 
 	private _write(
-		typeName: string,
 		selection: SubscriptionSelection,
 		parentID: string,
 		data: { [key: string]: GraphQLValue },
@@ -269,9 +267,7 @@ export class Cache {
 			const { type: linkedType, key, fields } = selection[field]
 			// make sure we found the type info
 			if (!linkedType) {
-				throw new Error(
-					'could not find the field information for ' + typeName + '.' + field
-				)
+				throw new Error('could not find the field information for ' + field)
 			}
 
 			// the subscribers we need to register if we updated something
@@ -301,7 +297,7 @@ export class Cache {
 				}
 
 				// update the linked fields too
-				this._write(linkedType, fields, linkedID, value, variables, specs)
+				this._write(fields, linkedID, value, variables, specs)
 			}
 
 			// the value could be a list
@@ -325,7 +321,7 @@ export class Cache {
 					const linkedID = this.id(linkedType, entry)
 
 					// update the linked fields too
-					this._write(linkedType, fields, linkedID, entry, variables, specs)
+					this._write(fields, linkedID, entry, variables, specs)
 
 					// add the id to the list
 					linkedIDs.push(linkedID)
@@ -566,7 +562,7 @@ class ConnectionHandler {
 		const dataID = this.cache.id(this.connectionType, data)
 
 		// update the cache with the data we just found
-		this.cache.write(this.connectionType, selection, data, variables, dataID)
+		this.cache.write(selection, data, variables, dataID)
 
 		// add the record we just created to the list
 		this.record.addToLinkedList(this.key, dataID)

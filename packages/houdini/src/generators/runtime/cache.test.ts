@@ -14,7 +14,6 @@ test('save root object', function () {
 		},
 	}
 	cache.write(
-		'Query',
 		{
 			viewer: {
 				type: 'User',
@@ -48,7 +47,6 @@ test('partial update existing record', function () {
 
 	// save the data
 	cache.write(
-		'Query',
 		{
 			viewer: {
 				type: 'User',
@@ -75,7 +73,6 @@ test('partial update existing record', function () {
 	)
 
 	cache.write(
-		'Query',
 		{
 			viewer: {
 				type: 'User',
@@ -115,7 +112,6 @@ test('linked records with updates', function () {
 
 	// save the data
 	cache.write(
-		'Query',
 		{
 			viewer: {
 				type: 'User',
@@ -180,7 +176,6 @@ test('linked records with updates', function () {
 
 	// associate user2 with a new parent
 	cache.write(
-		'Query',
 		{
 			viewer: {
 				type: 'User',
@@ -241,7 +236,6 @@ test('linked lists', function () {
 
 	// add some data to the cache
 	cache.write(
-		'Query',
 		{
 			viewer: {
 				type: 'User',
@@ -314,7 +308,6 @@ test('list as value with args', function () {
 
 	// add some data to the cache
 	cache.write(
-		'Query',
 		{
 			viewer: {
 				type: 'User',
@@ -378,7 +371,6 @@ test('root subscribe - field change', function () {
 
 	// write some data
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -402,7 +394,6 @@ test('root subscribe - field change', function () {
 
 	// somehow write a user to the cache with the same id, but a different name
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -450,7 +441,6 @@ test('root subscribe - linked object changed', function () {
 
 	// start off associated with one object
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -474,7 +464,6 @@ test('root subscribe - linked object changed', function () {
 
 	// somehow write a user to the cache with a different id
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -533,7 +522,6 @@ test('root subscribe - linked list lost entry', function () {
 
 	// start off associated with one object
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -565,7 +553,6 @@ test('root subscribe - linked list lost entry', function () {
 
 	// somehow write a user to the cache with a new friends list
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -630,7 +617,6 @@ test('root subscribe - linked list reorder', function () {
 
 	// start off associated with one object
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -662,7 +648,6 @@ test('root subscribe - linked list reorder', function () {
 
 	// somehow write a user to the cache with the same id, but a different name
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -729,7 +714,6 @@ test('unsubscribe', function () {
 
 	// write some data
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -795,7 +779,6 @@ test('insert in connection', function () {
 
 	// start off associated with one object
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -882,7 +865,6 @@ test('subscribe to new connection nodes', function () {
 
 	// start off associated with one object
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -919,7 +901,6 @@ test('subscribe to new connection nodes', function () {
 
 	// update the user we just added
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -992,7 +973,6 @@ test('remove from connection', function () {
 
 	// start off associated with one object
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -1070,7 +1050,6 @@ test('delete node', function () {
 
 	// start off associated with one object
 	cache.write(
-		'Query',
 		selection,
 		{
 			viewer: {
@@ -1115,62 +1094,11 @@ test('delete node', function () {
 	expect(cache.get(cache.id('User', { id: '2' }))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
-test('insert operation', function () {
-	// instantiate a cache
-	const cache = new Cache()
+test.todo('insert operation')
 
-	const selection = {
-		viewer: {
-			type: 'User',
-			key: 'viewer',
-			fields: {
-				id: {
-					type: 'ID',
-					key: 'id',
-				},
-				friends: {
-					type: 'User',
-					key: 'friends',
-					fields: {
-						id: {
-							type: 'ID',
-							key: 'id',
-						},
-						firstName: {
-							type: 'String',
-							key: 'firstName',
-						},
-					},
-				},
-			},
-		},
-	}
+test.todo('remove operation')
 
-	// start off associated with one object
-	cache.write(
-		'Query',
-		selection,
-		{
-			viewer: {
-				id: '1',
-				friends: [],
-			},
-		},
-		{}
-	)
-
-	// a function to spy on that will play the role of set
-	const set = jest.fn()
-
-	// subscribe to the fields
-	cache.subscribe({
-		rootType: 'Query',
-		set,
-		selection: selection,
-	})
-
-	// write some more data
-})
+test.todo('delete operation')
 
 // atm when we remove subscribers from links we assume its the only reason that spec is associated
 // with the field. that's not the case if the same record shows up two places in a query but is removed

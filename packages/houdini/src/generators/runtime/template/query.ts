@@ -24,12 +24,7 @@ export default function query<_Query extends Operation<any, any>>(
 		// when the component mounts
 		onMount(() => {
 			// once we've mounted
-			cache.write(
-				artifact.rootType,
-				artifact.selection,
-				document.initialValue.data,
-				document.variables
-			)
+			cache.write(artifact.selection, document.initialValue.data, document.variables)
 
 			// stay up to date
 			cache.subscribe({
