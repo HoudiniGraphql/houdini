@@ -17,15 +17,15 @@ test('save root object', function () {
 		{
 			viewer: {
 				type: 'User',
-				key: 'viewer',
+				keyRaw: 'viewer',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 					firstName: {
 						type: 'String',
-						key: 'firstName',
+						keyRaw: 'firstName',
 					},
 				},
 			},
@@ -50,15 +50,15 @@ test('partial update existing record', function () {
 		{
 			viewer: {
 				type: 'User',
-				key: 'viewer',
+				keyRaw: 'viewer',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 					firstName: {
 						type: 'String',
-						key: 'firstName',
+						keyRaw: 'firstName',
 					},
 				},
 			},
@@ -76,15 +76,15 @@ test('partial update existing record', function () {
 		{
 			viewer: {
 				type: 'User',
-				key: 'viewer',
+				keyRaw: 'viewer',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 					lastName: {
 						type: 'String',
-						key: 'lastName',
+						keyRaw: 'lastName',
 					},
 				},
 			},
@@ -115,27 +115,27 @@ test('linked records with updates', function () {
 		{
 			viewer: {
 				type: 'User',
-				key: 'viewer',
+				keyRaw: 'viewer',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 					firstName: {
 						type: 'String',
-						key: 'firstName',
+						keyRaw: 'firstName',
 					},
 					parent: {
 						type: 'User',
-						key: 'parent',
+						keyRaw: 'parent',
 						fields: {
 							id: {
 								type: 'ID',
-								key: 'id',
+								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
-								key: 'firstName',
+								keyRaw: 'firstName',
 							},
 						},
 					},
@@ -179,27 +179,27 @@ test('linked records with updates', function () {
 		{
 			viewer: {
 				type: 'User',
-				key: 'viewer',
+				keyRaw: 'viewer',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 					firstName: {
 						type: 'String',
-						key: 'firstName',
+						keyRaw: 'firstName',
 					},
 					parent: {
 						type: 'User',
-						key: 'parent',
+						keyRaw: 'parent',
 						fields: {
 							id: {
 								type: 'ID',
-								key: 'id',
+								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
-								key: 'firstName',
+								keyRaw: 'firstName',
 							},
 						},
 					},
@@ -239,27 +239,27 @@ test('linked lists', function () {
 		{
 			viewer: {
 				type: 'User',
-				key: 'viewer',
+				keyRaw: 'viewer',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 					firstName: {
 						type: 'String',
-						key: 'firstName',
+						keyRaw: 'firstName',
 					},
 					friends: {
 						type: 'User',
-						key: 'friends',
+						keyRaw: 'friends',
 						fields: {
 							id: {
 								type: 'ID',
-								key: 'id',
+								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
-								key: 'firstName',
+								keyRaw: 'firstName',
 							},
 						},
 					},
@@ -311,19 +311,19 @@ test('list as value with args', function () {
 		{
 			viewer: {
 				type: 'User',
-				key: 'viewer',
+				keyRaw: 'viewer',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 					firstName: {
 						type: 'String',
-						key: 'firstName',
+						keyRaw: 'firstName',
 					},
 					favoriteColors: {
 						type: 'String',
-						key: 'favoriteColors(where: "foo")',
+						keyRaw: 'favoriteColors(where: "foo")',
 					},
 				},
 			},
@@ -353,19 +353,19 @@ test('root subscribe - field change', function () {
 	const selection = {
 		viewer: {
 			type: 'User',
-			key: 'viewer',
+			keyRaw: 'viewer',
 			fields: {
 				id: {
 					type: 'ID',
-					key: 'id',
+					keyRaw: 'id',
 				},
 				firstName: {
 					type: 'String',
-					key: 'firstName',
+					keyRaw: 'firstName',
 				},
 				favoriteColors: {
 					type: 'String',
-					key: 'favoriteColors',
+					keyRaw: 'favoriteColors',
 				},
 			},
 		},
@@ -423,19 +423,19 @@ test('root subscribe - linked object changed', function () {
 	const selection = {
 		viewer: {
 			type: 'User',
-			key: 'viewer',
+			keyRaw: 'viewer',
 			fields: {
 				id: {
 					type: 'ID',
-					key: 'id',
+					keyRaw: 'id',
 				},
 				firstName: {
 					type: 'String',
-					key: 'firstName',
+					keyRaw: 'firstName',
 				},
 				favoriteColors: {
 					type: 'String',
-					key: 'favoriteColors(where: "foo")',
+					keyRaw: 'favoriteColors(where: "foo")',
 				},
 			},
 		},
@@ -498,23 +498,23 @@ test('root subscribe - linked list lost entry', function () {
 	const selection = {
 		viewer: {
 			type: 'User',
-			key: 'viewer',
+			keyRaw: 'viewer',
 			fields: {
 				id: {
 					type: 'ID',
-					key: 'id',
+					keyRaw: 'id',
 				},
 				friends: {
 					type: 'User',
-					key: 'friends',
+					keyRaw: 'friends',
 					fields: {
 						id: {
 							type: 'ID',
-							key: 'id',
+							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
-							key: 'firstName',
+							keyRaw: 'firstName',
 						},
 					},
 				},
@@ -593,23 +593,23 @@ test('root subscribe - linked list reorder', function () {
 	const selection = {
 		viewer: {
 			type: 'User',
-			key: 'viewer',
+			keyRaw: 'viewer',
 			fields: {
 				id: {
 					type: 'ID',
-					key: 'id',
+					keyRaw: 'id',
 				},
 				friends: {
 					type: 'User',
-					key: 'friends',
+					keyRaw: 'friends',
 					fields: {
 						id: {
 							type: 'ID',
-							key: 'id',
+							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
-							key: 'firstName',
+							keyRaw: 'firstName',
 						},
 					},
 				},
@@ -696,19 +696,19 @@ test('unsubscribe', function () {
 	const selection = {
 		viewer: {
 			type: 'User',
-			key: 'viewer',
+			keyRaw: 'viewer',
 			fields: {
 				id: {
 					type: 'ID',
-					key: 'id',
+					keyRaw: 'id',
 				},
 				firstName: {
 					type: 'String',
-					key: 'firstName',
+					keyRaw: 'firstName',
 				},
 				favoriteColors: {
 					type: 'String',
-					key: 'favoriteColors(where: "foo")',
+					keyRaw: 'favoriteColors(where: "foo")',
 				},
 			},
 		},
@@ -754,24 +754,24 @@ test('insert in connection', function () {
 	const selection = {
 		viewer: {
 			type: 'User',
-			key: 'viewer',
+			keyRaw: 'viewer',
 			fields: {
 				id: {
 					type: 'ID',
-					key: 'id',
+					keyRaw: 'id',
 				},
 				friends: {
 					type: 'User',
-					key: 'friends',
+					keyRaw: 'friends',
 					connection: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
-							key: 'id',
+							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
-							key: 'firstName',
+							keyRaw: 'firstName',
 						},
 					},
 				},
@@ -808,7 +808,7 @@ test('insert in connection', function () {
 
 	// insert an element into the connection (no parent ID)
 	cache.connection('All_Users').append(
-		{ id: { type: 'ID', key: 'id' }, firstName: { type: 'String', key: 'firstName' } },
+		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
 		{
 			id: '3',
 			firstName: 'mary',
@@ -840,24 +840,24 @@ test('subscribe to new connection nodes', function () {
 	const selection = {
 		viewer: {
 			type: 'User',
-			key: 'viewer',
+			keyRaw: 'viewer',
 			fields: {
 				id: {
 					type: 'ID',
-					key: 'id',
+					keyRaw: 'id',
 				},
 				friends: {
 					type: 'User',
-					key: 'friends',
+					keyRaw: 'friends',
 					connection: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
-							key: 'id',
+							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
-							key: 'firstName',
+							keyRaw: 'firstName',
 						},
 					},
 				},
@@ -894,7 +894,7 @@ test('subscribe to new connection nodes', function () {
 
 	// insert an element into the connection (no parent ID)
 	cache.connection('All_Users').append(
-		{ id: { type: 'ID', key: 'id' }, firstName: { type: 'String', key: 'firstName' } },
+		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
 		{
 			id: '3',
 			firstName: 'mary',
@@ -948,24 +948,24 @@ test('remove from connection', function () {
 	const selection = {
 		viewer: {
 			type: 'User',
-			key: 'viewer',
+			keyRaw: 'viewer',
 			fields: {
 				id: {
 					type: 'ID',
-					key: 'id',
+					keyRaw: 'id',
 				},
 				friends: {
 					type: 'User',
-					key: 'friends',
+					keyRaw: 'friends',
 					connection: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
-							key: 'id',
+							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
-							key: 'firstName',
+							keyRaw: 'firstName',
 						},
 					},
 				},
@@ -1025,24 +1025,24 @@ test('delete node', function () {
 	const selection = {
 		viewer: {
 			type: 'User',
-			key: 'viewer',
+			keyRaw: 'viewer',
 			fields: {
 				id: {
 					type: 'ID',
-					key: 'id',
+					keyRaw: 'id',
 				},
 				friends: {
 					type: 'User',
-					key: 'friends',
+					keyRaw: 'friends',
 					connection: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
-							key: 'id',
+							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
-							key: 'firstName',
+							keyRaw: 'firstName',
 						},
 					},
 				},
@@ -1105,11 +1105,11 @@ test('append operation', function () {
 		{
 			viewer: {
 				type: 'User',
-				key: 'viewer',
+				keyRaw: 'viewer',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 				},
 			},
@@ -1129,16 +1129,16 @@ test('append operation', function () {
 			selection: {
 				friends: {
 					type: 'User',
-					key: 'friends',
+					keyRaw: 'friends',
 					connection: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
-							key: 'id',
+							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
-							key: 'firstName',
+							keyRaw: 'firstName',
 						},
 					},
 				},
@@ -1155,7 +1155,7 @@ test('append operation', function () {
 		{
 			newUser: {
 				type: 'User',
-				key: 'newUser',
+				keyRaw: 'newUser',
 				operations: [
 					{
 						action: 'insert',
@@ -1169,7 +1169,7 @@ test('append operation', function () {
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 				},
 			},
@@ -1195,23 +1195,23 @@ test('remove operation', function () {
 		{
 			viewer: {
 				type: 'User',
-				key: 'viewer',
+				keyRaw: 'viewer',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 					friends: {
 						type: 'User',
-						key: 'friends',
+						keyRaw: 'friends',
 						fields: {
 							id: {
 								type: 'ID',
-								key: 'id',
+								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
-								key: 'firstName',
+								keyRaw: 'firstName',
 							},
 						},
 					},
@@ -1234,16 +1234,16 @@ test('remove operation', function () {
 			selection: {
 				friends: {
 					type: 'User',
-					key: 'friends',
+					keyRaw: 'friends',
 					connection: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
-							key: 'id',
+							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
-							key: 'firstName',
+							keyRaw: 'firstName',
 						},
 					},
 				},
@@ -1260,7 +1260,7 @@ test('remove operation', function () {
 		{
 			newUser: {
 				type: 'User',
-				key: 'newUser',
+				keyRaw: 'newUser',
 				operations: [
 					{
 						action: 'remove',
@@ -1274,7 +1274,7 @@ test('remove operation', function () {
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 				},
 			},
@@ -1300,23 +1300,23 @@ test('delete operation', function () {
 		{
 			viewer: {
 				type: 'User',
-				key: 'viewer',
+				keyRaw: 'viewer',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 					},
 					friends: {
 						type: 'User',
-						key: 'friends',
+						keyRaw: 'friends',
 						fields: {
 							id: {
 								type: 'ID',
-								key: 'id',
+								keyRaw: 'id',
 							},
 							firstName: {
 								type: 'String',
-								key: 'firstName',
+								keyRaw: 'firstName',
 							},
 						},
 					},
@@ -1339,16 +1339,16 @@ test('delete operation', function () {
 			selection: {
 				friends: {
 					type: 'User',
-					key: 'friends',
+					keyRaw: 'friends',
 					connection: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
-							key: 'id',
+							keyRaw: 'id',
 						},
 						firstName: {
 							type: 'String',
-							key: 'firstName',
+							keyRaw: 'firstName',
 						},
 					},
 				},
@@ -1365,11 +1365,11 @@ test('delete operation', function () {
 		{
 			deleteUser: {
 				type: 'User',
-				key: 'deleteUser',
+				keyRaw: 'deleteUser',
 				fields: {
 					id: {
 						type: 'ID',
-						key: 'id',
+						keyRaw: 'id',
 						operations: [
 							{
 								action: 'delete',
@@ -1390,6 +1390,145 @@ test('delete operation', function () {
 
 	// make sure we removed the element from the connection
 	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+})
+
+test('variables in query and subscription', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends(filter: $filter)',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			selection,
+			set,
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// make sure we have a cached value for friends(filter: "foo")
+	expect(cache.connection('All_Users').key).toEqual('friends(filter: "foo")')
+
+	// somehow write a user to the cache with a new friends list
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+					},
+				],
+			},
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+			],
+		},
+	})
+
+	// we shouldn't be subscribing to user 3 any more
+	expect(cache.get(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(0)
+})
+
+describe('key evaluation', function () {
+	const table = [
+		{
+			title: 'string',
+			key: 'fieldName',
+			variables: {},
+			expected: 'fieldName',
+		},
+		{
+			title: 'variable',
+			key: 'fieldName(foo: $bar)',
+			variables: { bar: 'baz' },
+			expected: 'fieldName(foo: "baz")',
+		},
+		{
+			title: '$ in string',
+			key: 'fieldName(foo: "$bar")',
+			variables: { bar: 'baz' },
+			expected: 'fieldName(foo: "$bar")',
+		},
+	]
+
+	for (const row of table) {
+		test(row.title, function () {
+			const cache = new Cache()
+
+			expect(cache.evaluateKey(row.key, row.variables)).toEqual(row.expected)
+		})
+	}
 })
 
 test.todo('caches fields with args')

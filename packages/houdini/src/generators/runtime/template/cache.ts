@@ -23,7 +23,7 @@ export class Cache {
 		this._write(selection, parentID, data, variables, specs)
 
 		// compute new values for every spec that needs to be run
-		this.notifySubscribers(specs)
+		this.notifySubscribers(specs, variables)
 	}
 
 	// look up the information for a specific record
@@ -72,7 +72,7 @@ export class Cache {
 		}
 
 		// walk down the selection and remove any subscribers from the list
-		this.removeSubscribers(rootRecord, spec, spec.selection)
+		this.removeSubscribers(rootRecord, spec, spec.selection, variables)
 	}
 
 	// get the connection handler associated by name
@@ -99,17 +99,17 @@ export class Cache {
 			}
 
 			// trigger the update
-			spec.set(this.getData(spec, rootRecord, spec.selection))
+			spec.set(this.getData(spec, rootRecord, spec.selection, variables))
 		}
 	}
 
 	// remove the record from every connection we know of
-	delete(id: string) {
+	delete(id: string, variables: {} = {}) {
 		const record = this.record(id)
 		// visit every connection the record knows of
 		for (const { name, parentID } of record.connections) {
 			// remove the id from the connection
-			this.connection(name, parentID)?.removeID(id)
+			this.connection(name, parentID)?.removeID(id, variables)
 			record.removeConnectionReference({ name, parentID })
 		}
 	}
@@ -118,11 +118,14 @@ export class Cache {
 	private getData(
 		spec: SubscriptionSpec,
 		parent: Record,
-		selection: SubscriptionSelection
+		selection: SubscriptionSelection,
+		variables: {}
 	): { [key: string]: GraphQLValue } {
 		const target: { [key: string]: GraphQLValue } = {}
 		// look at every field in the parentFields
-		for (const [attributeName, { type, key, fields }] of Object.entries(selection)) {
+		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
+			const key = this.evaluateKey(keyRaw, variables)
+
 			// if we are looking at a scalar
 			if (this.isScalarLink(type)) {
 				target[attributeName] = parent.getField(key)
@@ -133,7 +136,7 @@ export class Cache {
 			const linkedRecord = parent.linkedRecord(key)
 			// if the field does point to a linked record
 			if (linkedRecord && fields) {
-				target[attributeName] = this.getData(spec, linkedRecord, fields)
+				target[attributeName] = this.getData(spec, linkedRecord, fields, variables)
 				continue
 			}
 
@@ -141,7 +144,7 @@ export class Cache {
 			const linkedList = parent.linkedList(key)
 			if (linkedList && fields) {
 				target[attributeName] = linkedList.map((linkedRecord) =>
-					this.getData(spec, linkedRecord, fields)
+					this.getData(spec, linkedRecord, fields, variables)
 				)
 			}
 		}
@@ -155,7 +158,9 @@ export class Cache {
 		selection: SubscriptionSelection,
 		variables: {}
 	) {
-		for (const { type, key, fields, connection } of Object.values(selection)) {
+		for (const { type, keyRaw, fields, connection } of Object.values(selection)) {
+			const key = this.evaluateKey(keyRaw, variables)
+
 			// add the subscriber to the field
 			rootRecord.addSubscriber(key, spec)
 
@@ -212,9 +217,13 @@ export class Cache {
 	private removeSubscribers(
 		rootRecord: Record,
 		spec: SubscriptionSpec,
-		selection: SubscriptionSelection
+		selection: SubscriptionSelection,
+		variables: {}
 	) {
-		for (const { type, key, fields, connection } of Object.values(selection)) {
+		for (const { type, keyRaw, fields, connection } of Object.values(selection)) {
+			// figure out the actual key
+			const key = this.evaluateKey(keyRaw, variables)
+
 			// remove the subscriber to the field
 			rootRecord.removeSubscribers(spec)
 
@@ -241,7 +250,7 @@ export class Cache {
 
 				// remove the subscriber to every child
 				for (const child of children) {
-					this.removeSubscribers(child, spec, fields)
+					this.removeSubscribers(child, spec, fields, variables)
 				}
 			}
 		}
@@ -268,7 +277,8 @@ export class Cache {
 				)
 			}
 			// look up the field in our schema
-			const { type: linkedType, key, fields, operations } = selection[field]
+			const { type: linkedType, keyRaw, fields, operations } = selection[field]
+			const key = this.evaluateKey(keyRaw, variables)
 			// make sure we found the type info
 			if (!linkedType) {
 				throw new Error('could not find the field information for ' + field)
@@ -399,7 +409,7 @@ export class Cache {
 					fields &&
 					operation.connection
 				) {
-					this.connection(operation.connection, parentID).remove(value)
+					this.connection(operation.connection, parentID).remove(value, variables)
 				}
 
 				// delete the operation if we have to
@@ -408,7 +418,7 @@ export class Cache {
 						throw new Error('Cannot delete a record with a non-string ID')
 					}
 
-					this.delete(this.id(operation.type, value))
+					this.delete(this.id(operation.type, value), variables)
 				}
 			}
 		}
@@ -432,10 +442,13 @@ export class Cache {
 	insertSubscribers(
 		record: Record,
 		selection: SubscriptionSelection,
+		variables: {},
 		...subscribers: SubscriptionSpec[]
 	) {
 		// look at every field in the selection and add the subscribers
-		for (const { key, fields } of Object.values(selection)) {
+		for (const { keyRaw, fields } of Object.values(selection)) {
+			const key = this.evaluateKey(keyRaw, variables)
+
 			// add the subscriber to the
 			record.addSubscriber(key, ...subscribers)
 
@@ -445,7 +458,7 @@ export class Cache {
 				// figure out who else needs subscribers
 				const children = linkedRecord ? [linkedRecord] : record.linkedList(key)
 				for (const linkedRecord of children) {
-					this.insertSubscribers(linkedRecord, fields, ...subscribers)
+					this.insertSubscribers(linkedRecord, fields, variables, ...subscribers)
 				}
 			}
 		}
@@ -454,10 +467,12 @@ export class Cache {
 	unsubscribeRecord(
 		record: Record,
 		selection: SubscriptionSelection,
+		variables: {},
 		...subscribers: SubscriptionSpec[]
 	) {
 		// look at every field in the selection and add the subscribers
-		for (const { key, fields } of Object.values(selection)) {
+		for (const { keyRaw, fields } of Object.values(selection)) {
+			const key = this.evaluateKey(keyRaw, variables)
 			// add the subscriber to the
 			record.removeSubscribers(...subscribers)
 
@@ -466,7 +481,7 @@ export class Cache {
 				// figure out who else needs subscribers
 				const children = record.linkedList(key) || [record.linkedRecord(key)]
 				for (const linkedRecord of children) {
-					this.unsubscribeRecord(linkedRecord, fields, ...subscribers)
+					this.unsubscribeRecord(linkedRecord, fields, variables, ...subscribers)
 				}
 			}
 		}
@@ -475,7 +490,68 @@ export class Cache {
 	private isScalarLink(type: string) {
 		return ['String', 'Boolean', 'Float', 'ID', 'Int'].includes(type)
 	}
+
+	evaluateKey(key: string, variables: { [key: string]: GraphQLValue } = {}): string {
+		// accumulate the evaluated key
+		let evaluated = ''
+		// acumulate a variable name that we're evulating
+		let varName = ''
+		// some state to track if we are "in" a string
+		let inString = false
+
+		for (const char of key) {
+			// if we are building up a variable
+			if (varName) {
+				// if we are looking at a valid variable character
+				if (varChars.includes(char)) {
+					// add it to the variable name
+					varName += char
+					continue
+				}
+				// we are at the end of a variable name so we
+				// need to clean up and add before continuing with the string
+
+				// look up the variable and add the result (varName starts with a $)
+				const value = variables[varName.slice(1)]
+
+				// make sure we could find that variable
+				if (typeof value === 'undefined') {
+					throw new Error(
+						`Could not find variable name '${varName}'. Needed to evaluate key: ${key}. ` +
+							`Was provided the following variables: ${JSON.stringify(variables)}`
+					)
+				}
+
+				evaluated += JSON.stringify(value)
+
+				// clear the variable name accumulator
+				varName = ''
+			}
+
+			// if we are looking at the start of a variable
+			if (char === '$' && !inString) {
+				// start the acumulator
+				varName = '$'
+
+				// move along
+				continue
+			}
+
+			// if we found a quote, invert the string state
+			if (char === '"') {
+				inString = !inString
+			}
+
+			// this isn't a special case, just add the letter to the value
+			evaluated += char
+		}
+
+		return evaluated
+	}
 }
+
+// the list of characters that make up a valid graphql variable name
+const varChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
 
 type Connection = {
 	name: string
@@ -590,9 +666,9 @@ class Record {
 }
 
 class ConnectionHandler {
-	private record: Record
-	private key: string
-	private connectionType: string
+	readonly record: Record
+	readonly key: string
+	readonly connectionType: string
 	private cache: Cache
 	private selection: SubscriptionSelection
 
@@ -635,10 +711,15 @@ class ConnectionHandler {
 		// walk down the connection fields relative to the new record
 		// and make sure all of the connection's subscribers are listening
 		// to that object
-		this.cache.insertSubscribers(this.cache.record(dataID), this.selection, ...subscribers)
+		this.cache.insertSubscribers(
+			this.cache.record(dataID),
+			this.selection,
+			variables,
+			...subscribers
+		)
 	}
 
-	removeID(id: string) {
+	removeID(id: string, variables: {} = {}) {
 		// add the record we just created to the list
 		this.record.removeFromLinkedList(this.key, id)
 
@@ -649,12 +730,17 @@ class ConnectionHandler {
 		this.cache.notifySubscribers(subscribers)
 
 		// disconnect record from any subscriptions associated with the connection
-		this.cache.unsubscribeRecord(this.cache.record(id), this.selection, ...subscribers)
+		this.cache.unsubscribeRecord(
+			this.cache.record(id),
+			this.selection,
+			variables,
+			...subscribers
+		)
 	}
 
-	remove(data: {}) {
+	remove(data: {}, variables: {} = {}) {
 		// figure out the id of the type we are adding
-		this.removeID(this.cache.id(this.connectionType, data))
+		this.removeID(this.cache.id(this.connectionType, data), variables)
 	}
 
 	// iterating over the connection handler should be the same as iterating over
@@ -664,15 +750,6 @@ class ConnectionHandler {
 			yield record
 		}
 	}
-}
-
-// we need to generate a static key that we can use to index this field in the cache.
-// this needs to be a unique-hash driven by the field's attribute and arguments
-// returns the key for a specific field
-function fieldKey(field: graphql.FieldNode): string {
-	// we're going to hash a field by creating a json
-	const attributeName = field.alias?.value || field.name.value
-	return attributeName + 'something_with_args'
 }
 
 type SubscriptionSpec = {
