@@ -1500,6 +1500,102 @@ test('variables in query and subscription', function () {
 	expect(cache.get(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
+test('changing variables clears subscribers', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends(filter: $filter)',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			selection,
+			set,
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// there should be a subscriber for the current value of `filter`
+	expect(cache.get(cache.id('User', '1')).getSubscribers('friends(filter: "foo")')).toHaveLength(
+		1
+	)
+
+	// subscribe to a different value
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			selection,
+			set,
+		},
+		{
+			filter: 'not-foo',
+		}
+	)
+
+	// make sure we have a subscriber for the new filter and none for the old
+	expect(
+		cache.get(cache.id('User', '1')).getSubscribers('friends(filter: "not-foo")')
+	).toHaveLength(1)
+	expect(cache.get(cache.id('User', '1')).getSubscribers('friends(filter: "foo")')).toHaveLength(
+		0
+	)
+})
+
 describe('key evaluation', function () {
 	const table = [
 		{
@@ -1530,8 +1626,6 @@ describe('key evaluation', function () {
 		})
 	}
 })
-
-test.todo('caches fields with args')
 
 // atm when we remove subscribers from links we assume its the only reason that spec is associated
 // with the field. that's not the case if the same record shows up two places in a query but is removed

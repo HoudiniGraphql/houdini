@@ -161,8 +161,12 @@ export class Cache {
 		for (const { type, keyRaw, fields, connection } of Object.values(selection)) {
 			const key = this.evaluateKey(keyRaw, variables)
 
+			// we might be replace a subscriber on rootRecord becuase we have new variables
+			// look at every version of the key and remove
+			rootRecord.removeAllSubscriptionVerions(keyRaw, spec)
+
 			// add the subscriber to the field
-			rootRecord.addSubscriber(key, spec)
+			rootRecord.addSubscriber(keyRaw, key, spec)
 
 			// if the field points to a link, we need to subscribe to any fields of that
 			// linked record
@@ -450,7 +454,7 @@ export class Cache {
 			const key = this.evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the
-			record.addSubscriber(key, ...subscribers)
+			record.addSubscriber(keyRaw, key, ...subscribers)
 
 			// if there are fields under this
 			if (fields) {
@@ -561,6 +565,7 @@ type Connection = {
 class Record {
 	fields: { [key: string]: GraphQLValue } = {}
 
+	private keyVersions: { [key: string]: Set<string> } = {}
 	private subscribers: { [key: string]: SubscriptionSpec[] } = {}
 	private recordLinks: { [key: string]: string } = {}
 	private listLinks: { [key: string]: string[] } = {}
@@ -618,13 +623,21 @@ class Record {
 		this.listLinks[fieldName] = (this.listLinks[fieldName] || []).filter((link) => link !== id)
 	}
 
-	addSubscriber(fieldName: string, ...specs: SubscriptionSpec[]) {
+	addSubscriber(rawKey: string, key: string, ...specs: SubscriptionSpec[]) {
+		// if this is the first time we've seen the raw key
+		if (!this.keyVersions[rawKey]) {
+			this.keyVersions[rawKey] = new Set()
+		}
+
+		// add this verson of the key if we need to
+		this.keyVersions[rawKey].add(key)
+
 		// the existing list
-		const existingSubscribers = (this.subscribers[fieldName] || []).map(({ set }) => set)
+		const existingSubscribers = (this.subscribers[key] || []).map(({ set }) => set)
 		// the list of new subscribers
 		const newSubscribers = specs.filter(({ set }) => !existingSubscribers.includes(set))
 
-		this.subscribers[fieldName] = this.getSubscribers(fieldName).concat(...newSubscribers)
+		this.subscribers[key] = this.getSubscribers(key).concat(...newSubscribers)
 	}
 
 	getSubscribers(fieldName: string): SubscriptionSpec[] {
@@ -643,6 +656,15 @@ class Record {
 		this.connections = this.connections.filter(
 			(conn) => !(conn.name === ref.name && conn.parentID === ref.parentID)
 		)
+	}
+
+	removeAllSubscriptionVerions(keyRaw: string, spec: SubscriptionSpec) {
+		// visit every version of the key we've seen and remove the spec from the list of subscribers
+		for (const version of this.keyVersions[keyRaw] || []) {
+			this.subscribers[version] = this.getSubscribers(version).filter(
+				({ set }) => set !== spec.set
+			)
+		}
 	}
 
 	_removeSubscribers(targets: SubscriptionSpec['set'][]) {
