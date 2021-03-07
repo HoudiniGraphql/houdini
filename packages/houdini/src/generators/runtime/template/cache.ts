@@ -1,5 +1,5 @@
 // local imports
-import { Maybe, TypeLinks, GraphQLValue, SubscriptionSelection, MutationOperation } from './types'
+import { Maybe, GraphQLValue, SubscriptionSelection } from './types'
 
 // this file holds the implementation (and singleton) for the cache that drives
 // houdini queries
@@ -36,12 +36,16 @@ export class Cache {
 	}
 
 	// returns the global id of the specified field (used to access the record in the cache)
-	id(type: string, data: { id?: string } | null) {
-		if (!data) {
-			throw new Error('Cannot compute id of null')
-		}
+	id(type: string, data: { id?: string } | null): string
+	// this is like id but it trusts the value used for the id and just joins it with the
+	// type to form the global id
+	id(type: string, id: string): string
+	id(type: string, data: any): string {
+		return type + ':' + (typeof data === 'string' ? data : data.id)
+	}
 
-		return type + ':' + (data.id || '_root_')
+	computeID(data: { [key: string]: GraphQLValue }) {
+		return data.id
 	}
 
 	// returns the list of fields required to compute the id for a type
@@ -78,7 +82,7 @@ export class Cache {
 		if (!handler) {
 			throw new Error(
 				`Cannot find connection with name: ${name} under parent: ${id}. ` +
-					'Is it possible that the query has not fired yet? '
+					'Is it possible that the query is not mounted?'
 			)
 		}
 
@@ -247,7 +251,7 @@ export class Cache {
 		selection: SubscriptionSelection,
 		parentID: string,
 		data: { [key: string]: GraphQLValue },
-		variables: {},
+		variables: { [key: string]: GraphQLValue },
 		specs: SubscriptionSpec[]
 	) {
 		// the record we are storing information about this object
@@ -264,7 +268,7 @@ export class Cache {
 				)
 			}
 			// look up the field in our schema
-			const { type: linkedType, key, fields } = selection[field]
+			const { type: linkedType, key, fields, operations } = selection[field]
 			// make sure we found the type info
 			if (!linkedType) {
 				throw new Error('could not find the field information for ' + field)
@@ -355,6 +359,56 @@ export class Cache {
 
 					// add every subscriber to the list of specs to change
 					specs.push(...subscribers)
+				}
+			}
+
+			// handle any operations relative to this node
+			for (const operation of operations || []) {
+				// turn the ID into something we can use
+				let parentID: string | undefined
+				if (operation.parentID) {
+					// if its a normal scalar we can use the value directly
+					if (operation.parentID.kind !== 'Variable') {
+						parentID = operation.parentID.value
+					} else {
+						const value = variables[operation.parentID.value]
+						if (typeof value !== 'string') {
+							throw new Error('parentID value must be a string')
+						}
+
+						parentID = value
+					}
+				}
+
+				// only insert an object into a connection if we're adding an object with fields
+				if (
+					operation.action === 'insert' &&
+					value instanceof Object &&
+					!Array.isArray(value) &&
+					fields &&
+					operation.connection
+				) {
+					this.connection(operation.connection, parentID).append(fields, value)
+				}
+
+				// only insert an object into a connection if we're adding an object with fields
+				else if (
+					operation.action === 'remove' &&
+					value instanceof Object &&
+					!Array.isArray(value) &&
+					fields &&
+					operation.connection
+				) {
+					this.connection(operation.connection, parentID).remove(value)
+				}
+
+				// delete the operation if we have to
+				else if (operation.action === 'delete' && operation.type) {
+					if (typeof value !== 'string') {
+						throw new Error('Cannot delete a record with a non-string ID')
+					}
+
+					this.delete(this.id(operation.type, value))
 				}
 			}
 		}
@@ -476,6 +530,11 @@ class Record {
 	}
 
 	addToLinkedList(fieldName: string, id: string) {
+		// this could be the first time we've seen the list
+		if (!this.listLinks[fieldName]) {
+			this.listLinks[fieldName] = []
+		}
+
 		this.listLinks[fieldName].push(id)
 	}
 
@@ -596,6 +655,14 @@ class ConnectionHandler {
 	remove(data: {}) {
 		// figure out the id of the type we are adding
 		this.removeID(this.cache.id(this.connectionType, data))
+	}
+
+	// iterating over the connection handler should be the same as iterating over
+	// the underlying linked list
+	*[Symbol.iterator]() {
+		for (let record of this.record.linkedList(this.key)) {
+			yield record
+		}
 	}
 }
 

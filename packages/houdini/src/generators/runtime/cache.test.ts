@@ -99,7 +99,7 @@ test('partial update existing record', function () {
 	)
 
 	// make sure we can get back what we wrote
-	expect(cache.get(cache.id('User', { id: '1' }))?.fields).toEqual({
+	expect(cache.get(cache.id('User', '1'))?.fields).toEqual({
 		id: '1',
 		firstName: 'bob',
 		lastName: 'geldof',
@@ -156,7 +156,7 @@ test('linked records with updates', function () {
 	)
 
 	// check user 1
-	const user1 = cache.get(cache.id('User', { id: '1' }))
+	const user1 = cache.get(cache.id('User', '1'))
 	expect(user1?.fields).toEqual({
 		id: '1',
 		firstName: 'bob',
@@ -167,7 +167,7 @@ test('linked records with updates', function () {
 	})
 
 	// check user 2
-	const user2 = cache.get(cache.id('User', { id: '2' }))
+	const user2 = cache.get(cache.id('User', '2'))
 	expect(user2?.fields).toEqual({
 		id: '2',
 		firstName: 'jane',
@@ -287,7 +287,7 @@ test('linked lists', function () {
 
 	// make sure we can get the linked lists back
 	const friendData = cache
-		.get(cache.id('User', { id: '1' }))
+		.get(cache.id('User', '1'))
 		?.linkedList('friends')
 		.map(({ fields }) => fields)
 	expect(friendData).toEqual([
@@ -339,9 +339,11 @@ test('list as value with args', function () {
 	)
 
 	// look up the value
-	expect(
-		cache.get(cache.id('User', { id: '1' }))?.fields['favoriteColors(where: "foo")']
-	).toEqual(['red', 'green', 'blue'])
+	expect(cache.get(cache.id('User', '1'))?.fields['favoriteColors(where: "foo")']).toEqual([
+		'red',
+		'green',
+		'blue',
+	])
 })
 
 test('root subscribe - field change', function () {
@@ -486,7 +488,7 @@ test('root subscribe - linked object changed', function () {
 	})
 
 	// make sure we are no longer subscribing to user 1
-	expect(cache.get(cache.id('User', { id: '1' }))?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.get(cache.id('User', '1'))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
 test('root subscribe - linked list lost entry', function () {
@@ -581,7 +583,7 @@ test('root subscribe - linked list lost entry', function () {
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache.get(cache.id('User', { id: '3' }))?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.get(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
 test('root subscribe - linked list reorder', function () {
@@ -683,8 +685,8 @@ test('root subscribe - linked list reorder', function () {
 	})
 
 	// we should still be subscribing to both users
-	expect(cache.get(cache.id('User', { id: '2' }))?.getSubscribers('firstName')).toHaveLength(1)
-	expect(cache.get(cache.id('User', { id: '3' }))?.getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.get(cache.id('User', '2'))?.getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.get(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(1)
 })
 
 test('unsubscribe', function () {
@@ -736,13 +738,13 @@ test('unsubscribe', function () {
 	cache.subscribe(spec)
 
 	// make sure we  registered the subscriber
-	expect(cache.get(cache.id('User', { id: '1' }))?.getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.get(cache.id('User', '1'))?.getSubscribers('firstName')).toHaveLength(1)
 
 	// unsubscribe
 	cache.unsubscribe(spec)
 
 	// make sure there is no more subscriber
-	expect(cache.get(cache.id('User', { id: '1' }))?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.get(cache.id('User', '1'))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
 test('insert in connection', function () {
@@ -1013,7 +1015,7 @@ test('remove from connection', function () {
 	})
 
 	// make sure we aren't subscribing to user 2 any more
-	expect(cache.get(cache.id('User', { id: '2' }))?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.get(cache.id('User', '2'))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
 test('delete node', function () {
@@ -1091,14 +1093,304 @@ test('delete node', function () {
 	})
 
 	// make sure we aren't subscribing to user 2 any more
-	expect(cache.get(cache.id('User', { id: '2' }))?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.get(cache.id('User', '2'))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
-test.todo('insert operation')
+test('append operation', function () {
+	// instantiate a cache
+	const cache = new Cache()
 
-test.todo('remove operation')
+	// create a connection we will add to
+	cache.write(
+		{
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+				},
+			},
+		},
+		{
+			viewer: {
+				id: '1',
+			},
+		},
+		{}
+	)
 
-test.todo('delete operation')
+	// subscribe to the data to register the connection
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					key: 'friends',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							key: 'id',
+						},
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache.id('User', '1'),
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be added to the connection
+	cache.write(
+		{
+			newUser: {
+				type: 'User',
+				key: 'newUser',
+				operations: [
+					{
+						action: 'insert',
+						connection: 'All_Users',
+						parentID: {
+							kind: 'String',
+							value: 'User:1',
+						},
+					},
+				],
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+				},
+			},
+		},
+		{
+			newUser: {
+				id: '3',
+			},
+		},
+		{}
+	)
+
+	// make sure we just added to the connection
+	expect([...cache.connection('All_Users', 'User:1')]).toHaveLength(1)
+})
+
+test('remove operation', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	// create a connection we will add to
+	cache.write(
+		{
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+					friends: {
+						type: 'User',
+						key: 'friends',
+						fields: {
+							id: {
+								type: 'ID',
+								key: 'id',
+							},
+							firstName: {
+								type: 'String',
+								key: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			viewer: {
+				id: '1',
+				friends: [{ id: '2', firstName: 'jane' }],
+			},
+		},
+		{}
+	)
+
+	// subscribe to the data to register the connection
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					key: 'friends',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							key: 'id',
+						},
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache.id('User', '1'),
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be added to the connection
+	cache.write(
+		{
+			newUser: {
+				type: 'User',
+				key: 'newUser',
+				operations: [
+					{
+						action: 'remove',
+						connection: 'All_Users',
+						parentID: {
+							kind: 'String',
+							value: 'User:1',
+						},
+					},
+				],
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+				},
+			},
+		},
+		{
+			newUser: {
+				id: '2',
+			},
+		},
+		{}
+	)
+
+	// make sure we removed the element from the connection
+	expect([...cache.connection('All_Users', 'User:1')]).toHaveLength(0)
+})
+
+test('delete operation', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	// create a connection we will add to
+	cache.write(
+		{
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+					friends: {
+						type: 'User',
+						key: 'friends',
+						fields: {
+							id: {
+								type: 'ID',
+								key: 'id',
+							},
+							firstName: {
+								type: 'String',
+								key: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			viewer: {
+				id: '1',
+				friends: [{ id: '2', firstName: 'jane' }],
+			},
+		},
+		{}
+	)
+
+	// subscribe to the data to register the connection
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					key: 'friends',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							key: 'id',
+						},
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache.id('User', '1'),
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be added to the connection
+	cache.write(
+		{
+			deleteUser: {
+				type: 'User',
+				key: 'deleteUser',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+						operations: [
+							{
+								action: 'delete',
+								type: 'User',
+							},
+						],
+					},
+				},
+			},
+		},
+		{
+			deleteUser: {
+				id: '2',
+			},
+		},
+		{}
+	)
+
+	// make sure we removed the element from the connection
+	expect([...cache.connection('All_Users', 'User:1')]).toHaveLength(0)
+})
 
 // atm when we remove subscribers from links we assume its the only reason that spec is associated
 // with the field. that's not the case if the same record shows up two places in a query but is removed

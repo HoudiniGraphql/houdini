@@ -439,6 +439,7 @@ function operationsByPath(
 							config,
 							ancestors[ancestors.length - 1] as graphql.FieldNode
 						),
+						type: config.connectionNameFromDirective(node.name.value),
 					})
 				)
 			},
@@ -452,10 +453,12 @@ function operationObject({
 	connectionName,
 	operationKind,
 	info,
+	type,
 }: {
 	connectionName: string
 	operationKind: string
 	info: OperationInfo
+	type?: string
 }) {
 	const operation = AST.objectExpression([
 		AST.objectProperty(AST.literal('action'), AST.stringLiteral(operationKind)),
@@ -466,6 +469,11 @@ function operationObject({
 		operation.properties.push(
 			AST.objectProperty(AST.literal('connection'), AST.stringLiteral(connectionName))
 		)
+	}
+
+	// add the target type to delete operations
+	if (operationKind === 'delete' && type) {
+		operation.properties.push(AST.objectProperty(AST.literal('type'), AST.stringLiteral(type)))
 	}
 
 	// only add the position argument if we are inserting something

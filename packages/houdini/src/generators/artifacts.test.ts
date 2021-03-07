@@ -435,7 +435,8 @@ describe('mutation artifacts', function () {
 		                "key": "userIDsomething_with_args",
 
 		                "operations": [{
-		                    "action": "delete"
+		                    "action": "delete",
+		                    "type": "User"
 		                }]
 		            }
 		        }
@@ -504,6 +505,7 @@ describe('mutation artifacts', function () {
 
 		                "operations": [{
 		                    "action": "delete",
+		                    "type": "User",
 
 		                    "when": {
 		                        "must": {

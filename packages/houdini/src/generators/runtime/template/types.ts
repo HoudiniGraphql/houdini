@@ -66,7 +66,8 @@ export type ConnectionWhen = {
 
 export type MutationOperation = {
 	action: 'insert' | 'remove' | 'delete'
-	connection: string
+	connection?: string
+	type?: string
 	parentID?: {
 		kind: string
 		value: string
@@ -88,13 +89,6 @@ export type GraphQLValue =
 	| null
 	| { [key: string]: GraphQLValue }
 	| GraphQLValue[]
-
-type LinkInfo = { [fieldName: string]: { key: string; type: string } }
-
-export type TypeLinks = {
-	rootType: string
-	fields: { [typeName: string]: LinkInfo }
-}
 
 export type SubscriptionSelection = {
 	[field: string]: {
