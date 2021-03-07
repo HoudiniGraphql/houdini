@@ -58,19 +58,6 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		}
 		\`;
 
-		module.exports.response = {
-		    rootType: "Query",
-
-		    fields: {
-		        "Query": {
-		            "version": {
-		                "key": "versionsomething_with_args",
-		                "type": "Int"
-		            }
-		        }
-		    }
-		};
-
 		module.exports.rootType = "Query";
 
 		module.exports.selection = {
@@ -146,26 +133,6 @@ test('internal directives are scrubbed', async function () {
 		}
 		\`;
 
-		module.exports.response = {
-		    rootType: "Query",
-
-		    fields: {
-		        "Query": {
-		            "user": {
-		                "key": "usersomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            }
-		        }
-		    }
-		};
-
 		module.exports.rootType = "Query";
 
 		module.exports.selection = {
@@ -227,33 +194,6 @@ describe('mutation artifacts', function () {
 		  }
 		}
 		\`;
-
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            }
-		        }
-		    }
-		};
 
 		module.exports.rootType = "Mutation";
 
@@ -335,38 +275,6 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            },
-
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
-
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
@@ -445,33 +353,6 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
-
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
@@ -541,26 +422,6 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "deleteUser": {
-		                "key": "deleteUsersomething_with_args",
-		                "type": "DeleteUserOutput"
-		            }
-		        },
-
-		        "DeleteUserOutput": {
-		            "userID": {
-		                "key": "userIDsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
-
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
@@ -628,26 +489,6 @@ describe('mutation artifacts', function () {
 		  }
 		}
 		\`;
-
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "deleteUser": {
-		                "key": "deleteUsersomething_with_args",
-		                "type": "DeleteUserOutput"
-		            }
-		        },
-
-		        "DeleteUserOutput": {
-		            "userID": {
-		                "key": "userIDsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
 
 		module.exports.rootType = "Mutation";
 
@@ -731,38 +572,6 @@ describe('mutation artifacts', function () {
 		  id
 		}
 		\`;
-
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            },
-
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
 
 		module.exports.rootType = "Mutation";
 
@@ -848,38 +657,6 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            },
-
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
-
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
@@ -964,38 +741,6 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            },
-
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
-
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
@@ -1079,38 +824,6 @@ describe('mutation artifacts', function () {
 		  id
 		}
 		\`;
-
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            },
-
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
 
 		module.exports.rootType = "Mutation";
 
@@ -1197,38 +910,6 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            },
-
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
-
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
@@ -1313,38 +994,6 @@ describe('mutation artifacts', function () {
 		  id
 		}
 		\`;
-
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            },
-
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
 
 		module.exports.rootType = "Mutation";
 
@@ -1431,38 +1080,6 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            },
-
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
-
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
@@ -1547,38 +1164,6 @@ describe('mutation artifacts', function () {
 		  id
 		}
 		\`;
-
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            },
-
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
 
 		module.exports.rootType = "Mutation";
 
@@ -1665,38 +1250,6 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.response = {
-		    rootType: "Mutation",
-
-		    fields: {
-		        "Mutation": {
-		            "addFriend": {
-		                "key": "addFriendsomething_with_args",
-		                "type": "AddFriendOutput"
-		            }
-		        },
-
-		        "AddFriendOutput": {
-		            "friend": {
-		                "key": "friendsomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            },
-
-		            "id": {
-		                "key": "idsomething_with_args",
-		                "type": "ID"
-		            }
-		        }
-		    }
-		};
-
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
@@ -1774,26 +1327,6 @@ describe('mutation artifacts', function () {
 		  }
 		}
 		\`;
-
-		module.exports.response = {
-		    rootType: "Query",
-
-		    fields: {
-		        "Query": {
-		            "users": {
-		                "key": "userssomething_with_args",
-		                "type": "User"
-		            }
-		        },
-
-		        "User": {
-		            "firstName": {
-		                "key": "firstNamesomething_with_args",
-		                "type": "String"
-		            }
-		        }
-		    }
-		};
 
 		module.exports.rootType = "Query";
 

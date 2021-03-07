@@ -1,45 +1,6 @@
 // locals
 import { Cache } from './template/cache'
-import { MutationOperation } from './template/types'
-
-// the type information
-const response = {
-	rootType: 'Query',
-	fields: {
-		Query: {
-			viewer: { type: 'User', key: 'viewer' },
-		},
-		User: {
-			parent: { type: 'User', key: 'parent' },
-			friends: { type: 'User', key: 'friends' },
-			id: { type: 'String', key: 'id' },
-			firstName: { type: 'String', key: 'firstName' },
-			lastName: { type: 'String', key: 'lastName' },
-			favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
-		},
-	},
-}
-
-// a common selection for something with a connection
-const selectionFriends = {
-	viewer: {
-		type: 'User',
-		key: 'viewer',
-		fields: {
-			friends: {
-				type: 'User',
-				key: 'friends',
-				connection: 'All_Users',
-				fields: {
-					firstName: {
-						type: 'String',
-						key: 'firstName',
-					},
-				},
-			},
-		},
-	},
-}
+import { MutationOperation, SubscriptionSelection } from './template/types'
 
 test('save root object', function () {
 	// instantiate a cache we'll test against
@@ -52,7 +13,27 @@ test('save root object', function () {
 			firstName: 'bob',
 		},
 	}
-	cache.write(response, data, {})
+	cache.write(
+		'Query',
+		{
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+					firstName: {
+						type: 'String',
+						key: 'firstName',
+					},
+				},
+			},
+		},
+		data,
+		{}
+	)
 
 	// make sure we can get back what we wrote
 	expect(cache.get(cache.id('User', data.viewer))?.fields).toEqual({
@@ -67,7 +48,23 @@ test('partial update existing record', function () {
 
 	// save the data
 	cache.write(
-		response,
+		'Query',
+		{
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+					firstName: {
+						type: 'String',
+						key: 'firstName',
+					},
+				},
+			},
+		},
 		{
 			viewer: {
 				id: '1',
@@ -78,7 +75,23 @@ test('partial update existing record', function () {
 	)
 
 	cache.write(
-		response,
+		'Query',
+		{
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+					lastName: {
+						type: 'String',
+						key: 'lastName',
+					},
+				},
+			},
+		},
 		{
 			viewer: {
 				id: '1',
@@ -102,7 +115,37 @@ test('linked records with updates', function () {
 
 	// save the data
 	cache.write(
-		response,
+		'Query',
+		{
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+					firstName: {
+						type: 'String',
+						key: 'firstName',
+					},
+					parent: {
+						type: 'User',
+						key: 'parent',
+						fields: {
+							id: {
+								type: 'ID',
+								key: 'id',
+							},
+							firstName: {
+								type: 'String',
+								key: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
 		{
 			viewer: {
 				id: '1',
@@ -137,7 +180,37 @@ test('linked records with updates', function () {
 
 	// associate user2 with a new parent
 	cache.write(
-		response,
+		'Query',
+		{
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+					firstName: {
+						type: 'String',
+						key: 'firstName',
+					},
+					parent: {
+						type: 'User',
+						key: 'parent',
+						fields: {
+							id: {
+								type: 'ID',
+								key: 'id',
+							},
+							firstName: {
+								type: 'String',
+								key: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
 		{
 			viewer: {
 				id: '2',
@@ -168,7 +241,37 @@ test('linked lists', function () {
 
 	// add some data to the cache
 	cache.write(
-		response,
+		'Query',
+		{
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+					firstName: {
+						type: 'String',
+						key: 'firstName',
+					},
+					friends: {
+						type: 'User',
+						key: 'friends',
+						fields: {
+							id: {
+								type: 'ID',
+								key: 'id',
+							},
+							firstName: {
+								type: 'String',
+								key: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
 		{
 			viewer: {
 				id: '1',
@@ -211,7 +314,27 @@ test('list as value with args', function () {
 
 	// add some data to the cache
 	cache.write(
-		response,
+		'Query',
+		{
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						key: 'id',
+					},
+					firstName: {
+						type: 'String',
+						key: 'firstName',
+					},
+					favoriteColors: {
+						type: 'String',
+						key: 'favoriteColors(where: "foo")',
+					},
+				},
+			},
+		},
 		{
 			viewer: {
 				id: '1',
@@ -232,9 +355,31 @@ test('root subscribe - field change', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
+	const selection = {
+		viewer: {
+			type: 'User',
+			key: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					key: 'id',
+				},
+				firstName: {
+					type: 'String',
+					key: 'firstName',
+				},
+				favoriteColors: {
+					type: 'String',
+					key: 'favoriteColors',
+				},
+			},
+		},
+	}
+
 	// write some data
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -251,28 +396,14 @@ test('root subscribe - field change', function () {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		selection: {
-			viewer: {
-				type: 'User',
-				key: 'viewer',
-				fields: {
-					firstName: {
-						type: 'String',
-						key: 'firstName',
-					},
-					favoriteColors: {
-						type: 'String',
-						key: 'favoriteColors(where: "foo")',
-					},
-				},
-			},
-		},
+		selection,
 		set,
 	})
 
 	// somehow write a user to the cache with the same id, but a different name
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -287,6 +418,7 @@ test('root subscribe - field change', function () {
 		viewer: {
 			firstName: 'mary',
 			favoriteColors: ['red', 'green', 'blue'],
+			id: '1',
 		},
 	})
 })
@@ -295,9 +427,31 @@ test('root subscribe - linked object changed', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
+	const selection = {
+		viewer: {
+			type: 'User',
+			key: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					key: 'id',
+				},
+				firstName: {
+					type: 'String',
+					key: 'firstName',
+				},
+				favoriteColors: {
+					type: 'String',
+					key: 'favoriteColors(where: "foo")',
+				},
+			},
+		},
+	}
+
 	// start off associated with one object
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -314,28 +468,14 @@ test('root subscribe - linked object changed', function () {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		selection: {
-			viewer: {
-				type: 'User',
-				key: 'viewer',
-				fields: {
-					firstName: {
-						type: 'String',
-						key: 'firstName',
-					},
-					favoriteColors: {
-						type: 'String',
-						key: 'favoriteColors(where: "foo")',
-					},
-				},
-			},
-		},
+		selection,
 		set,
 	})
 
 	// somehow write a user to the cache with a different id
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '2',
@@ -352,6 +492,7 @@ test('root subscribe - linked object changed', function () {
 			firstName: 'mary',
 			// this is a sanity-check. the cache wasn't written with that value
 			favoriteColors: undefined,
+			id: '2',
 		},
 	})
 
@@ -363,9 +504,37 @@ test('root subscribe - linked list lost entry', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
+	const selection = {
+		viewer: {
+			type: 'User',
+			key: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					key: 'id',
+				},
+				friends: {
+					type: 'User',
+					key: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							key: 'id',
+						},
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
 	// start off associated with one object
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -390,30 +559,14 @@ test('root subscribe - linked list lost entry', function () {
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
-		selection: {
-			viewer: {
-				type: 'User',
-				key: 'viewer',
-				fields: {
-					friends: {
-						type: 'User',
-						key: 'friends',
-						fields: {
-							firstName: {
-								type: 'String',
-								key: 'firstName',
-							},
-						},
-					},
-				},
-			},
-		},
+		selection,
 		set,
 	})
 
 	// somehow write a user to the cache with a new friends list
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -430,9 +583,11 @@ test('root subscribe - linked list lost entry', function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
+			id: '1',
 			friends: [
 				{
 					firstName: 'jane',
+					id: '2',
 				},
 			],
 		},
@@ -446,9 +601,37 @@ test('root subscribe - linked list reorder', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
+	const selection = {
+		viewer: {
+			type: 'User',
+			key: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					key: 'id',
+				},
+				friends: {
+					type: 'User',
+					key: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							key: 'id',
+						},
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
 	// start off associated with one object
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -474,29 +657,13 @@ test('root subscribe - linked list reorder', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: {
-			viewer: {
-				type: 'User',
-				key: 'viewer',
-				fields: {
-					friends: {
-						type: 'User',
-						key: 'friends',
-						fields: {
-							firstName: {
-								type: 'String',
-								key: 'firstName',
-							},
-						},
-					},
-				},
-			},
-		},
+		selection,
 	})
 
 	// somehow write a user to the cache with the same id, but a different name
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -516,11 +683,14 @@ test('root subscribe - linked list reorder', function () {
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
+			id: '1',
 			friends: [
 				{
+					id: '3',
 					firstName: 'mary',
 				},
 				{
+					id: '2',
 					firstName: 'jane',
 				},
 			],
@@ -536,9 +706,31 @@ test('unsubscribe', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
+	const selection = {
+		viewer: {
+			type: 'User',
+			key: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					key: 'id',
+				},
+				firstName: {
+					type: 'String',
+					key: 'firstName',
+				},
+				favoriteColors: {
+					type: 'String',
+					key: 'favoriteColors(where: "foo")',
+				},
+			},
+		},
+	}
+
 	// write some data
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -552,22 +744,7 @@ test('unsubscribe', function () {
 	// the spec we will register/unregister
 	const spec = {
 		rootType: 'Query',
-		selection: {
-			viewer: {
-				type: 'User',
-				key: 'viewer',
-				fields: {
-					firstName: {
-						type: 'String',
-						key: 'firstName',
-					},
-					favoriteColors: {
-						type: 'String',
-						key: 'favoriteColors(where: "foo")',
-					},
-				},
-			},
-		},
+		selection,
 		set: jest.fn(),
 	}
 
@@ -588,9 +765,38 @@ test('insert in connection', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
+	const selection = {
+		viewer: {
+			type: 'User',
+			key: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					key: 'id',
+				},
+				friends: {
+					type: 'User',
+					key: 'friends',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							key: 'id',
+						},
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
 	// start off associated with one object
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -612,24 +818,30 @@ test('insert in connection', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selectionFriends,
+		selection,
 	})
 
 	// insert an element into the connection (no parent ID)
-	cache.connection('All_Users').append(response, {
-		id: '3',
-		firstName: 'mary',
-	})
+	cache.connection('All_Users').append(
+		{ id: { type: 'ID', key: 'id' }, firstName: { type: 'String', key: 'firstName' } },
+		{
+			id: '3',
+			firstName: 'mary',
+		}
+	)
 
 	// make sure we got the new value
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
+			id: '1',
 			friends: [
 				{
 					firstName: 'jane',
+					id: '2',
 				},
 				{
 					firstName: 'mary',
+					id: '3',
 				},
 			],
 		},
@@ -640,9 +852,38 @@ test('subscribe to new connection nodes', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
+	const selection = {
+		viewer: {
+			type: 'User',
+			key: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					key: 'id',
+				},
+				friends: {
+					type: 'User',
+					key: 'friends',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							key: 'id',
+						},
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
 	// start off associated with one object
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -664,18 +905,22 @@ test('subscribe to new connection nodes', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selectionFriends,
+		selection,
 	})
 
 	// insert an element into the connection (no parent ID)
-	cache.connection('All_Users').append(response, {
-		id: '3',
-		firstName: 'mary',
-	})
+	cache.connection('All_Users').append(
+		{ id: { type: 'ID', key: 'id' }, firstName: { type: 'String', key: 'firstName' } },
+		{
+			id: '3',
+			firstName: 'mary',
+		}
+	)
 
 	// update the user we just added
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -698,12 +943,15 @@ test('subscribe to new connection nodes', function () {
 	// the second time it's called, we get a new value for mary-prime
 	expect(set).toHaveBeenNthCalledWith(2, {
 		viewer: {
+			id: '1',
 			friends: [
 				{
 					firstName: 'jane',
+					id: '2',
 				},
 				{
 					firstName: 'mary-prime',
+					id: '3',
 				},
 			],
 		},
@@ -714,9 +962,38 @@ test('remove from connection', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
+	const selection = {
+		viewer: {
+			type: 'User',
+			key: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					key: 'id',
+				},
+				friends: {
+					type: 'User',
+					key: 'friends',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							key: 'id',
+						},
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
 	// start off associated with one object
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -738,7 +1015,7 @@ test('remove from connection', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selectionFriends,
+		selection: selection,
 	})
 
 	// remove user 2 from the connection
@@ -750,6 +1027,7 @@ test('remove from connection', function () {
 	// the second time it's called, we get a new value for mary-prime
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
+			id: '1',
 			friends: [],
 		},
 	})
@@ -762,9 +1040,38 @@ test('delete node', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
+	const selection = {
+		viewer: {
+			type: 'User',
+			key: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					key: 'id',
+				},
+				friends: {
+					type: 'User',
+					key: 'friends',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							key: 'id',
+						},
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
 	// start off associated with one object
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -786,7 +1093,7 @@ test('delete node', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selectionFriends,
+		selection,
 	})
 
 	// remove user 2 from the connection
@@ -799,6 +1106,7 @@ test('delete node', function () {
 	// we should have been updated with an empty list
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
+			id: '1',
 			friends: [],
 		},
 	})
@@ -811,9 +1119,37 @@ test('insert operation', function () {
 	// instantiate a cache
 	const cache = new Cache()
 
+	const selection = {
+		viewer: {
+			type: 'User',
+			key: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					key: 'id',
+				},
+				friends: {
+					type: 'User',
+					key: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							key: 'id',
+						},
+						firstName: {
+							type: 'String',
+							key: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
 	// start off associated with one object
 	cache.write(
-		response,
+		'Query',
+		selection,
 		{
 			viewer: {
 				id: '1',
@@ -830,25 +1166,10 @@ test('insert operation', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selectionFriends,
+		selection: selection,
 	})
 
-	// trigger the mutation
-	const data = { addUser: { id: '2', name: 'jane' } }
-	const mutation: MutationOperation = {
-		kind: 'insert',
-		source: ['addUser'],
-		connection: 'All_Users',
-	}
-	cache.do(data, mutation)
-
-	// make sure that we have an entry in user 1's friends
-	expect(
-		cache
-			.get(cache.id('User', { id: '1' }))
-			.linkedList('friends')
-			.map((friend) => friend.fields.id)
-	).toEqual(['2'])
+	// write some more data
 })
 
 // atm when we remove subscribers from links we assume its the only reason that spec is associated

@@ -131,28 +131,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 				// use this selection set
 				selectionSet = operation.selectionSet
-
-				// add the field map to the artifact
-				artifact.body.push(
-					moduleExport(
-						'response',
-						AST.objectExpression([
-							AST.objectProperty(
-								AST.identifier('rootType'),
-								AST.stringLiteral(rootType)
-							),
-							AST.objectProperty(
-								AST.identifier('fields'),
-								buildResponse({
-									config,
-									document,
-									rootType,
-									selectionSet,
-								})
-							),
-						])
-					)
-				)
 			}
 			// we are looking at a fragment so use its selection set and type for the subscribe index
 			else {

@@ -11,7 +11,8 @@ export class Cache {
 
 	// save the response in the local store and notify any subscribers
 	write(
-		{ rootType, fields }: TypeLinks,
+		rootType: string,
+		selection: SubscriptionSelection,
 		data: { [key: string]: GraphQLValue },
 		variables: {},
 		parentID = '_root_'
@@ -20,7 +21,7 @@ export class Cache {
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
 		// will build up different specs of subscriptions that need to be run against the current state
-		this._write(rootType, fields, parentID, data, variables, specs)
+		this._write(rootType, selection, parentID, data, variables, specs)
 
 		// compute new values for every spec that needs to be run
 		this.notifySubscribers(specs)
@@ -109,8 +110,6 @@ export class Cache {
 			record.removeConnectionReference({ name, parentID })
 		}
 	}
-
-	do(data: {}, ...operations: MutationOperation[]) {}
 
 	// walk down the spec
 	private getData(
@@ -247,7 +246,7 @@ export class Cache {
 
 	private _write(
 		typeName: string,
-		typeLinks: TypeLinks['fields'],
+		selection: SubscriptionSelection,
 		parentID: string,
 		data: { [key: string]: GraphQLValue },
 		variables: {},
@@ -258,8 +257,16 @@ export class Cache {
 
 		// look at ever field in the data
 		for (const [field, value] of Object.entries(data)) {
+			if (!selection[field]) {
+				throw new Error(
+					'Could not find field listing in selection for ' +
+						field +
+						' @ ' +
+						JSON.stringify(selection)
+				)
+			}
 			// look up the field in our schema
-			const linkedType = typeLinks[typeName] && typeLinks[typeName][field]
+			const { type: linkedType, key, fields } = selection[field]
 			// make sure we found the type info
 			if (!linkedType) {
 				throw new Error(
@@ -268,20 +275,20 @@ export class Cache {
 			}
 
 			// the subscribers we need to register if we updated something
-			const subscribers = record.getSubscribers(linkedType.key)
+			const subscribers = record.getSubscribers(key)
 
 			// if the value is an object, we know it points to a linked record
-			if (value instanceof Object && !Array.isArray(value)) {
+			if (value instanceof Object && !Array.isArray(value) && fields) {
 				// look up the current known link id
-				const oldID = record.linkedRecordID(linkedType.key)
+				const oldID = record.linkedRecordID(key)
 
 				// figure out the id of the new linked record
-				const linkedID = this.id(linkedType.type, value)
+				const linkedID = this.id(linkedType, value)
 
 				// if we are now linked to a new object we need to record the new value
 				if (oldID !== linkedID) {
 					// record the updated value
-					record.writeRecordLink(linkedType.key, linkedID)
+					record.writeRecordLink(key, linkedID)
 
 					// if there was a record we replaced
 					if (oldID) {
@@ -294,15 +301,15 @@ export class Cache {
 				}
 
 				// update the linked fields too
-				this._write(linkedType.type, typeLinks, linkedID, value, variables, specs)
+				this._write(linkedType, fields, linkedID, value, variables, specs)
 			}
 
 			// the value could be a list
-			else if (!this.isScalarLink(linkedType.type) && Array.isArray(value)) {
+			else if (!this.isScalarLink(linkedType) && Array.isArray(value) && fields) {
 				// build up the list of linked ids
 				const linkedIDs: string[] = []
 				// look up the current known link id
-				const oldIDs = record.linkedListIDs(linkedType.key)
+				const oldIDs = record.linkedListIDs(key)
 
 				// the ids that have been added since the last time
 				const newIDs: string[] = []
@@ -315,10 +322,10 @@ export class Cache {
 					}
 
 					// figure out the linked id
-					const linkedID = this.id(linkedType.type, entry)
+					const linkedID = this.id(linkedType, entry)
 
 					// update the linked fields too
-					this._write(linkedType.type, typeLinks, linkedID, entry, variables, specs)
+					this._write(linkedType, fields, linkedID, entry, variables, specs)
 
 					// add the id to the list
 					linkedIDs.push(linkedID)
@@ -339,16 +346,16 @@ export class Cache {
 					specs.push(...subscribers)
 
 					// update the cached value
-					record.writeListLink(linkedType.key, linkedIDs)
+					record.writeListLink(key, linkedIDs)
 				}
 			}
 
 			// the value is neither an object or a list so its a scalar
 			else {
 				// if the value is different
-				if (value !== record.getField(linkedType.key)) {
+				if (value !== record.getField(key)) {
 					// update the cached value
-					record.writeField(linkedType.key, value)
+					record.writeField(key, value)
 
 					// add every subscriber to the list of specs to change
 					specs.push(...subscribers)
@@ -554,20 +561,12 @@ class ConnectionHandler {
 		this.selection = selection
 	}
 
-	append({ fields }: TypeLinks, data: {}, variables: {} = {}) {
+	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
 		// figure out the id of the type we are adding
 		const dataID = this.cache.id(this.connectionType, data)
 
 		// update the cache with the data we just found
-		this.cache.write(
-			{
-				rootType: this.connectionType,
-				fields,
-			},
-			data,
-			variables,
-			dataID
-		)
+		this.cache.write(this.connectionType, selection, data, variables, dataID)
 
 		// add the record we just created to the list
 		this.record.addToLinkedList(this.key, dataID)

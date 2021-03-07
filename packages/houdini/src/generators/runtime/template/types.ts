@@ -16,12 +16,10 @@ export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifa
 
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
-	response: TypeLinks
 }
 
 export type MutationArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniMutation'
-	response: TypeLinks
 	operations: MutationOperation[]
 }
 
@@ -102,7 +100,7 @@ export type SubscriptionSelection = {
 	[field: string]: {
 		type: string
 		key: string
-		operations: MutationOperation[]
+		operations?: MutationOperation[]
 		connection?: string
 		fields?: SubscriptionSelection
 	}
