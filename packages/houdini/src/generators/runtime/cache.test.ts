@@ -790,11 +790,83 @@ test('remove from connection', function () {
 	expect(cache.get(cache.id('User', { id: '2' }))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
+test('delete node', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	// start off associated with one object
+	cache.write(
+		response,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+		{}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection: {
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					friends: {
+						type: 'User',
+						key: 'friends',
+						connection: 'All_Users',
+						fields: {
+							firstName: {
+								type: 'String',
+								key: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+
+	// remove user 2 from the connection
+	cache.delete(
+		cache.id('User', {
+			id: '2',
+		})
+	)
+
+	// the first time set was called, a new entry was added.
+	// the second time it's called, we get a new value for mary-prime
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			friends: [],
+		},
+	})
+
+	// make sure we aren't subscribing to user 2 any more
+	expect(cache.get(cache.id('User', { id: '2' }))).toBeNull()
+})
+
 // atm when we remove subscribers from links we assume its the only reason that spec is associated
 // with the field. that's not the case if the same record shows up two places in a query but is removed
 // as a link in only one of them (this also included connections)
 test.todo("removing link doesn't unregister the same set everywhere")
 
+test.todo('unsubscribe removes connection handlers')
+
 test.todo('nested linked record update')
 
 test.todo('nested linked list update')
+
+test.todo('insert connection under parentID')

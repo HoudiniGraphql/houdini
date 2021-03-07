@@ -1,5 +1,6 @@
 // local imports
 import { subscribe } from 'graphql'
+import { connections } from '../../../transforms'
 import { Maybe, TypeLinks, GraphQLValue, SubscriptionSelection } from './types'
 
 // this file holds the implementation (and singleton) for the cache that drives
@@ -8,7 +9,7 @@ export class Cache {
 	// the map from entity id to record
 	private _data: Map<string, Record> = new Map()
 	// associate connection names with the handler that wraps the list
-	private _connections: Map<string, ConnectionHandler> = new Map()
+	private _connections: Map<string, Map<string | undefined, ConnectionHandler>> = new Map()
 
 	// save the response in the local store and notify any subscribers
 	write(
@@ -50,20 +51,20 @@ export class Cache {
 		return [{ name: 'id', type: 'ID' }]
 	}
 
-	subscribe(spec: SubscriptionSpec) {
+	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
 		// find the root record
-		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
+		let rootRecord = spec.parentID ? this.record(this.parentID(spec, variables)) : this.root()
 		if (!rootRecord) {
 			throw new Error('Could not find root of subscription')
 		}
 
 		// walk down the selection and register any subscribers
-		this.addSubscribers(rootRecord, spec, spec.selection, spec.rootType)
+		this.addSubscribers(rootRecord, spec, spec.selection, spec.rootType, variables)
 	}
 
-	unsubscribe(spec: SubscriptionSpec) {
+	unsubscribe(spec: SubscriptionSpec, variables: {} = {}) {
 		// find the root record
-		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
+		let rootRecord = spec.parentID ? this.record(this.parentID(spec, variables)) : this.root()
 		if (!rootRecord) {
 			throw new Error('Could not find root of subscription')
 		}
@@ -73,23 +74,23 @@ export class Cache {
 	}
 
 	// get the connection handler associated by name
-	connection(name: string) {
+	connection(name: string, id?: string) {
 		// make sure that the handler exists
-		if (!this._connections.has(name)) {
+		if (!this._connections.has(name) || !this._connections.get(name)?.get(id)) {
 			throw new Error(
-				`Cannot find connection with name: ${name}.` +
-					'Is it possible that the query has not fired yet?'
+				`Cannot find connection with name: ${name} under parent: ${id}. ` +
+					'Is it possible that the query has not fired yet? '
 			)
 		}
 
 		// return the handler
-		return this._connections.get(name)
+		return this._connections.get(name)?.get(id)
 	}
 
-	notifySubscribers(specs: SubscriptionSpec[]) {
+	notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
 		for (const spec of specs) {
 			// find the root record
-			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
+			let rootRecord = spec.parentID ? this.get(this.parentID(spec, variables)) : this.root()
 			if (!rootRecord) {
 				throw new Error('Could not find root of subscription')
 			}
@@ -97,6 +98,25 @@ export class Cache {
 			// trigger the update
 			spec.set(this.getData(spec, rootRecord, spec.selection))
 		}
+	}
+
+	private parentID(spec: SubscriptionSpec, variables: { [key: string]: GraphQLValue }): string {
+		// if there isn't one
+		if (!spec.parentID) {
+			throw new Error('Could not find parent ID')
+		}
+		// if the parent ID is just a normal scalar
+		if (spec.parentID.kind !== 'Variable') {
+			return spec.parentID.value
+		}
+
+		// the value needs to be pulled from the variables
+		const value = variables[spec.parentID.value]
+		if (!value) {
+			throw new Error('Could not find parent ID')
+		}
+
+		return value.toString()
 	}
 
 	// walk down the spec
@@ -138,7 +158,8 @@ export class Cache {
 		rootRecord: Record,
 		spec: SubscriptionSpec,
 		selection: SubscriptionSelection,
-		parentType: string
+		parentType: string,
+		variables: {}
 	) {
 		for (const { type, key, fields, connection } of Object.values(selection)) {
 			// add the subscriber to the field
@@ -156,8 +177,14 @@ export class Cache {
 
 				// if this field is marked as a connection, register it
 				if (connection && fields) {
-					this._connections.set(
-						connection,
+					// if we haven't seen this connection before
+					if (!this._connections.has(connection)) {
+						this._connections.set(connection, new Map())
+					}
+
+					// if we haven't already seen this connection handler
+					this._connections.get(connection)?.set(
+						spec.parentID ? this.parentID(spec, variables) : undefined,
 						new ConnectionHandler({
 							cache: this,
 							record: rootRecord,
@@ -175,7 +202,7 @@ export class Cache {
 
 				// add the subscriber to every child
 				for (const child of children) {
-					this.addSubscribers(child, spec, fields, type)
+					this.addSubscribers(child, spec, fields, type, variables)
 				}
 			}
 		}
@@ -554,7 +581,10 @@ type SubscriptionSpec = {
 	rootType: string
 	selection: SubscriptionSelection
 	set: (data: any) => void
-	parentID?: string
+	parentID?: {
+		kind: 'String' | 'ID' | 'Variable'
+		value: string
+	}
 }
 
 export default new Cache()
