@@ -277,8 +277,6 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
-
-		module.exports.operations = [];
 	`)
 	})
 
@@ -379,19 +377,17 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last"
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "insert",
-		    "connection": "All_Users",
-		    "target": ["users"],
-		    "position": "last"
-		}];
 	`)
 	})
 
@@ -486,18 +482,16 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "remove",
+		                    "connection": "All_Users"
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "remove",
-		    "connection": "All_Users",
-		    "target": ["users"]
-		}];
 	`)
 	})
 
@@ -577,16 +571,15 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "userID": {
 		                "type": "ID",
-		                "key": "userIDsomething_with_args"
+		                "key": "userIDsomething_with_args",
+
+		                "operations": [{
+		                    "action": "delete"
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["deleteUser", "userID"],
-		    "kind": "delete"
-		}];
 	`)
 	})
 
@@ -666,22 +659,21 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "userID": {
 		                "type": "ID",
-		                "key": "userIDsomething_with_args"
+		                "key": "userIDsomething_with_args",
+
+		                "operations": [{
+		                    "action": "delete",
+
+		                    "when": {
+		                        "must": {
+		                            "stringValue": "foo"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["deleteUser", "userID"],
-		    "kind": "delete",
-
-		    "when": {
-		        "must": {
-		            "stringValue": "foo"
-		        }
-		    }
-		}];
 	`)
 	})
 
@@ -782,24 +774,22 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "first",
+
+		                    "parentID": {
+		                        "kind": "String",
+		                        "value": "1234"
+		                    }
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "insert",
-		    "connection": "All_Users",
-		    "target": ["users"],
-		    "position": "first",
-
-		    "parentID": {
-		        "kind": "String",
-		        "value": "1234"
-		    }
-		}];
 	`)
 	})
 
@@ -900,24 +890,22 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "parentID": {
+		                        "kind": "String",
+		                        "value": "1234"
+		                    }
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "insert",
-		    "connection": "All_Users",
-		    "target": ["users"],
-		    "position": "last",
-
-		    "parentID": {
-		        "kind": "String",
-		        "value": "1234"
-		    }
-		}];
 	`)
 	})
 
@@ -1018,24 +1006,22 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "parentID": {
+		                        "kind": "String",
+		                        "value": "1234"
+		                    }
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "insert",
-		    "connection": "All_Users",
-		    "target": ["users"],
-		    "position": "last",
-
-		    "parentID": {
-		        "kind": "String",
-		        "value": "1234"
-		    }
-		}];
 	`)
 	})
 
@@ -1136,25 +1122,23 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "first",
+
+		                    "when": {
+		                        "must": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "insert",
-		    "connection": "All_Users",
-		    "target": ["users"],
-		    "position": "first",
-
-		    "when": {
-		        "must": {
-		            "boolValue": "true"
-		        }
-		    }
-		}];
 	`)
 	})
 
@@ -1255,25 +1239,23 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "when": {
+		                        "must": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "insert",
-		    "connection": "All_Users",
-		    "target": ["users"],
-		    "position": "last",
-
-		    "when": {
-		        "must": {
-		            "boolValue": "true"
-		        }
-		    }
-		}];
 	`)
 	})
 
@@ -1374,25 +1356,23 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "when": {
+		                        "must": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "insert",
-		    "connection": "All_Users",
-		    "target": ["users"],
-		    "position": "last",
-
-		    "when": {
-		        "must": {
-		            "boolValue": "true"
-		        }
-		    }
-		}];
 	`)
 	})
 
@@ -1493,25 +1473,23 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "first",
+
+		                    "when": {
+		                        "must_not": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "insert",
-		    "connection": "All_Users",
-		    "target": ["users"],
-		    "position": "first",
-
-		    "when": {
-		        "must_not": {
-		            "boolValue": "true"
-		        }
-		    }
-		}];
 	`)
 	})
 
@@ -1612,25 +1590,23 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "when": {
+		                        "must_not": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "insert",
-		    "connection": "All_Users",
-		    "target": ["users"],
-		    "position": "last",
-
-		    "when": {
-		        "must_not": {
-		            "boolValue": "true"
-		        }
-		    }
-		}];
 	`)
 	})
 
@@ -1731,25 +1707,23 @@ describe('mutation artifacts', function () {
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args"
+		                "key": "friendsomething_with_args",
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "when": {
+		                        "must_not": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
 		};
-
-		module.exports.operations = [{
-		    "source": ["addFriend", "friend"],
-		    "kind": "insert",
-		    "connection": "All_Users",
-		    "target": ["users"],
-		    "position": "last",
-
-		    "when": {
-		        "must_not": {
-		            "boolValue": "true"
-		        }
-		    }
-		}];
 	`)
 	})
 

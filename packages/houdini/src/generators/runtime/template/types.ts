@@ -67,9 +67,7 @@ export type ConnectionWhen = {
 }
 
 export type MutationOperation = {
-	kind: 'insert' | 'remove' | 'delete'
-	source: string[]
-	target: string[]
+	action: 'insert' | 'remove' | 'delete'
 	connection: string
 	parentID?: {
 		kind: string
@@ -104,6 +102,7 @@ export type SubscriptionSelection = {
 	[field: string]: {
 		type: string
 		key: string
+		operations: MutationOperation[]
 		connection?: string
 		fields?: SubscriptionSelection
 	}

@@ -1,5 +1,6 @@
 // locals
 import { Cache } from './template/cache'
+import { MutationOperation } from './template/types'
 
 // the type information
 const response = {
@@ -15,6 +16,27 @@ const response = {
 			firstName: { type: 'String', key: 'firstName' },
 			lastName: { type: 'String', key: 'lastName' },
 			favoriteColors: { type: 'String', key: 'favoriteColors(where: "foo")' },
+		},
+	},
+}
+
+// a common selection for something with a connection
+const selectionFriends = {
+	viewer: {
+		type: 'User',
+		key: 'viewer',
+		fields: {
+			friends: {
+				type: 'User',
+				key: 'friends',
+				connection: 'All_Users',
+				fields: {
+					firstName: {
+						type: 'String',
+						key: 'firstName',
+					},
+				},
+			},
 		},
 	},
 }
@@ -590,25 +612,7 @@ test('insert in connection', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: {
-			viewer: {
-				type: 'User',
-				key: 'viewer',
-				fields: {
-					friends: {
-						type: 'User',
-						key: 'friends',
-						connection: 'All_Users',
-						fields: {
-							firstName: {
-								type: 'String',
-								key: 'firstName',
-							},
-						},
-					},
-				},
-			},
-		},
+		selection: selectionFriends,
 	})
 
 	// insert an element into the connection (no parent ID)
@@ -660,25 +664,7 @@ test('subscribe to new connection nodes', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: {
-			viewer: {
-				type: 'User',
-				key: 'viewer',
-				fields: {
-					friends: {
-						type: 'User',
-						key: 'friends',
-						connection: 'All_Users',
-						fields: {
-							firstName: {
-								type: 'String',
-								key: 'firstName',
-							},
-						},
-					},
-				},
-			},
-		},
+		selection: selectionFriends,
 	})
 
 	// insert an element into the connection (no parent ID)
@@ -752,25 +738,7 @@ test('remove from connection', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: {
-			viewer: {
-				type: 'User',
-				key: 'viewer',
-				fields: {
-					friends: {
-						type: 'User',
-						key: 'friends',
-						connection: 'All_Users',
-						fields: {
-							firstName: {
-								type: 'String',
-								key: 'firstName',
-							},
-						},
-					},
-				},
-			},
-		},
+		selection: selectionFriends,
 	})
 
 	// remove user 2 from the connection
@@ -818,25 +786,7 @@ test('delete node', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: {
-			viewer: {
-				type: 'User',
-				key: 'viewer',
-				fields: {
-					friends: {
-						type: 'User',
-						key: 'friends',
-						connection: 'All_Users',
-						fields: {
-							firstName: {
-								type: 'String',
-								key: 'firstName',
-							},
-						},
-					},
-				},
-			},
-		},
+		selection: selectionFriends,
 	})
 
 	// remove user 2 from the connection
@@ -857,6 +807,50 @@ test('delete node', function () {
 	expect(cache.get(cache.id('User', { id: '2' }))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
+test('insert operation', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	// start off associated with one object
+	cache.write(
+		response,
+		{
+			viewer: {
+				id: '1',
+				friends: [],
+			},
+		},
+		{}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection: selectionFriends,
+	})
+
+	// trigger the mutation
+	const data = { addUser: { id: '2', name: 'jane' } }
+	const mutation: MutationOperation = {
+		kind: 'insert',
+		source: ['addUser'],
+		connection: 'All_Users',
+	}
+	cache.do(data, mutation)
+
+	// make sure that we have an entry in user 1's friends
+	expect(
+		cache
+			.get(cache.id('User', { id: '1' }))
+			.linkedList('friends')
+			.map((friend) => friend.fields.id)
+	).toEqual(['2'])
+})
+
 // atm when we remove subscribers from links we assume its the only reason that spec is associated
 // with the field. that's not the case if the same record shows up two places in a query but is removed
 // as a link in only one of them (this also included connections)
@@ -869,3 +863,5 @@ test.todo('nested linked record update')
 test.todo('nested linked list update')
 
 test.todo('insert connection under parentID')
+
+test.todo('caches fields with args')

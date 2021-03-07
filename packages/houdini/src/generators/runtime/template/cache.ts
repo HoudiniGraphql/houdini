@@ -1,5 +1,5 @@
 // local imports
-import { Maybe, TypeLinks, GraphQLValue, SubscriptionSelection } from './types'
+import { Maybe, TypeLinks, GraphQLValue, SubscriptionSelection, MutationOperation } from './types'
 
 // this file holds the implementation (and singleton) for the cache that drives
 // houdini queries
@@ -110,6 +110,8 @@ export class Cache {
 		}
 	}
 
+	do(data: {}, ...operations: MutationOperation[]) {}
+
 	// walk down the spec
 	private getData(
 		spec: SubscriptionSpec,
@@ -204,6 +206,7 @@ export class Cache {
 			}
 		}
 	}
+
 	private removeSubscribers(
 		rootRecord: Record,
 		spec: SubscriptionSpec,
@@ -588,10 +591,10 @@ class ConnectionHandler {
 		// get the list of specs that are subscribing to the connection
 		const subscribers = this.record.getSubscribers(this.key)
 
-		// notify the subscribers we care about
+		// notify the subscribers about the change
 		this.cache.notifySubscribers(subscribers)
 
-		// disconnect the record we removed from the connection's subscribers
+		// disconnect record from any subscriptions associated with the connection
 		this.cache.unsubscribeRecord(this.cache.record(id), this.selection, ...subscribers)
 	}
 

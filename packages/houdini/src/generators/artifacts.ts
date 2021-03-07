@@ -20,10 +20,6 @@ const AST = recast.types.builders
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
 export default async function artifactGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
-	// before we generate the mutation artifacts, we need to figure out the path for each connection
-	// so that the mutations have their target
-	const connectionPaths: { [connectionName: string]: string[] } = {}
-
 	for (const doc of docs) {
 		graphql.visit(doc.document, {
 			// look for any field marked with a connection
@@ -41,9 +37,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					if (!nameArg || nameArg.value.kind !== 'StringValue') {
 						throw new Error('could not find name arg in connection directive')
 					}
-
-					// save the path
-					connectionPaths[nameArg.value.value] = pathFromAncestors(ancestors)
 				},
 			},
 		})
@@ -176,19 +169,10 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						config,
 						rootType,
 						selectionSet: selectionSet,
+						operations: operationsByPath(config, operations[0]),
 					})
 				)
 			)
-
-			// mutation artifacts need to specify their operations
-			if (docKind === CompiledMutationKind) {
-				artifact.body.push(
-					moduleExport(
-						'operations',
-						operationList(config, connectionPaths, operations[0])
-					)
-				)
-			}
 
 			// write the result to the artifact path we're configured to write to
 			await fs.writeFile(config.artifactPath(document), recast.print(artifact).code)
@@ -311,10 +295,14 @@ function selection({
 	config,
 	rootType,
 	selectionSet,
+	operations,
+	path = [],
 }: {
 	config: Config
 	rootType: string
 	selectionSet: graphql.SelectionSetNode
+	operations: { [path: string]: namedTypes.ArrayExpression }
+	path?: string[]
 }): namedTypes.ObjectExpression {
 	// we need to build up an object that contains every field in the selection
 	const object = AST.objectExpression([])
@@ -326,7 +314,13 @@ function selection({
 		}
 		// inline fragments should be merged with the parent
 		else if (field.kind === 'InlineFragment') {
-			const inlineFragment = selection({ config, rootType, selectionSet: field.selectionSet })
+			const inlineFragment = selection({
+				config,
+				rootType,
+				operations,
+				selectionSet: field.selectionSet,
+				path,
+			})
 			for (const property of inlineFragment.properties) {
 				object.properties.push(property)
 			}
@@ -341,11 +335,22 @@ function selection({
 			const typeName = getRootType(type.getFields()[field.name.value].type).toString()
 
 			const attributeName = field.alias?.value || field.name.value
+			// make sure we include the attribute in the path
+			const pathSoFar = path.concat(attributeName)
+
 			// the object holding data for this field
 			const fieldObj = AST.objectExpression([
 				AST.objectProperty(AST.literal('type'), AST.stringLiteral(typeName)),
 				AST.objectProperty(AST.literal('key'), AST.stringLiteral(fieldKey(field))),
 			])
+
+			// is there an operation for this field
+			const operationKey = pathSoFar.join(',')
+			if (operations[operationKey]) {
+				fieldObj.properties.push(
+					AST.objectProperty(AST.literal('operations'), operations[operationKey])
+				)
+			}
 
 			// check if there is a connection directive tagging this field
 			const connectionDirective = field.directives?.find(
@@ -375,6 +380,8 @@ function selection({
 							config,
 							rootType: typeName,
 							selectionSet: field.selectionSet,
+							operations,
+							path: pathSoFar,
 						})
 					)
 				)
@@ -394,13 +401,12 @@ function fieldKey(field: graphql.FieldNode): string {
 }
 
 // return the list of operations that are part of a mutation
-function operationList(
+function operationsByPath(
 	config: Config,
-	connectionPaths: { [connectionName: string]: string[] },
 	definition: graphql.OperationDefinitionNode
-): namedTypes.ArrayExpression {
-	// buil up the list
-	const operations = AST.arrayExpression([])
+): { [path: string]: namedTypes.ArrayExpression } {
+	// map the path in the response to the list of operations that treat it as the source
+	const pathOperatons: { [path: string]: namedTypes.ArrayExpression } = {}
 
 	// we need to look for three different things in the operation:
 	// - insert fragments
@@ -417,14 +423,18 @@ function operationList(
 					return
 				}
 
+				// if this is the first time we've seen this path give us a home
+				const path = ancestorKey(ancestors)
+				if (!pathOperatons[path]) {
+					pathOperatons[path] = AST.arrayExpression([])
+				}
+
 				// add the operation object to the list
-				operations.elements.push(
+				pathOperatons[path].elements.push(
 					operationObject({
 						connectionName: config.connectionNameFromFragment(node.name.value),
 						operationKind: config.connectionOperationFromFragment(node.name.value),
 						info: operationInfo(config, node),
-						path: pathFromAncestors(ancestors),
-						connectionPaths,
 					})
 				)
 			},
@@ -436,53 +446,47 @@ function operationList(
 					return
 				}
 
-				const parent = ancestors[ancestors.length - 1]
+				// if this is the first time we've seen this path give us a home
+				const path = ancestorKey(ancestors)
+				if (!pathOperatons[path]) {
+					pathOperatons[path] = AST.arrayExpression([])
+				}
 
 				// add the operation object to the list
-				operations.elements.push(
+				pathOperatons[path].elements.push(
 					operationObject({
 						connectionName: config.connectionNameFromDirective(node.name.value),
 						operationKind: 'delete',
-						info: operationInfo(config, parent as graphql.FieldNode),
-						path: pathFromAncestors(ancestors),
-						connectionPaths,
+						info: operationInfo(
+							config,
+							ancestors[ancestors.length - 1] as graphql.FieldNode
+						),
 					})
 				)
 			},
 		},
 	})
 
-	return operations
+	return pathOperatons
 }
 
 function operationObject({
-	connectionPaths,
 	connectionName,
 	operationKind,
 	info,
-	path,
 }: {
 	connectionName: string
 	operationKind: string
-	path: string[]
 	info: OperationInfo
-	connectionPaths: { [connectionName: string]: string[] }
 }) {
 	const operation = AST.objectExpression([
-		AST.objectProperty(AST.literal('source'), AST.arrayExpression(path.map(AST.stringLiteral))),
-		AST.objectProperty(AST.literal('kind'), AST.stringLiteral(operationKind)),
+		AST.objectProperty(AST.literal('action'), AST.stringLiteral(operationKind)),
 	])
 
 	// delete doesn't have a target
 	if (operationKind !== 'delete') {
 		operation.properties.push(
-			AST.objectProperty(AST.literal('connection'), AST.stringLiteral(connectionName)),
-			AST.objectProperty(
-				AST.literal('target'),
-				AST.arrayExpression(
-					connectionPaths[connectionName].map((p) => AST.stringLiteral(p))
-				)
-			)
+			AST.objectProperty(AST.literal('connection'), AST.stringLiteral(connectionName))
 		)
 	}
 
@@ -706,7 +710,7 @@ function filterAST(filter: ConnectionWhen['must']): namedTypes.ObjectExpression 
 }
 
 // TODO: find a way to reference the actual type for ancestors, using any as escape hatch
-function pathFromAncestors(ancestors: any): string[] {
+function ancestorKey(ancestors: any): string {
 	return (
 		ancestors
 			.filter(
@@ -715,5 +719,6 @@ function pathFromAncestors(ancestors: any): string[] {
 			)
 			// @ts-ignore
 			.map((field) => field.name.value)
+			.join(',')
 	)
 }
