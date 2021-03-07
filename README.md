@@ -11,7 +11,7 @@
   <br />
 </div>
 
-NOTE: Houdini is in the early phases of devlopment. Please feel free to create an issue or start a discussion if you run into problems. For more information on what's coming for this project, please visit the 
+NOTE: Houdini is in the early phases of devlopment. Please create an issue or start a discussion if you run into problems. For more information on what's coming for this project, you can visit the 
 [roadmap](https://github.com/AlecAivazis/houdini/projects/1).
  
 
