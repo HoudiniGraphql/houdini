@@ -1,6 +1,4 @@
 // local imports
-import { subscribe } from 'graphql'
-import { connections } from '../../../transforms'
 import { Maybe, TypeLinks, GraphQLValue, SubscriptionSelection } from './types'
 
 // this file holds the implementation (and singleton) for the cache that drives
@@ -59,7 +57,7 @@ export class Cache {
 		}
 
 		// walk down the selection and register any subscribers
-		this.addSubscribers(rootRecord, spec, spec.selection, spec.rootType, variables)
+		this.addSubscribers(rootRecord, spec, spec.selection, variables)
 	}
 
 	unsubscribe(spec: SubscriptionSpec, variables: {} = {}) {
@@ -74,9 +72,10 @@ export class Cache {
 	}
 
 	// get the connection handler associated by name
-	connection(name: string, id?: string) {
+	connection(name: string, id?: string): ConnectionHandler {
 		// make sure that the handler exists
-		if (!this._connections.has(name) || !this._connections.get(name)?.get(id)) {
+		const handler = this._connections.get(name)?.get(id)
+		if (!handler) {
 			throw new Error(
 				`Cannot find connection with name: ${name} under parent: ${id}. ` +
 					'Is it possible that the query has not fired yet? '
@@ -84,7 +83,7 @@ export class Cache {
 		}
 
 		// return the handler
-		return this._connections.get(name)?.get(id)
+		return handler
 	}
 
 	notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
@@ -97,6 +96,17 @@ export class Cache {
 
 			// trigger the update
 			spec.set(this.getData(spec, rootRecord, spec.selection))
+		}
+	}
+
+	// remove the record from every connection we know of
+	delete(id: string) {
+		const record = this.record(id)
+		// visit every connection the record knows of
+		for (const { name, parentID } of record.connections) {
+			// remove the id from the connection
+			this.connection(name, parentID)?.removeID(id)
+			record.removeConnectionReference({ name, parentID })
 		}
 	}
 
@@ -139,7 +149,6 @@ export class Cache {
 		rootRecord: Record,
 		spec: SubscriptionSpec,
 		selection: SubscriptionSelection,
-		parentType: string,
 		variables: {}
 	) {
 		for (const { type, key, fields, connection } of Object.values(selection)) {
@@ -151,10 +160,7 @@ export class Cache {
 			if (!this.isScalarLink(type)) {
 				// if the link points to a record then we just have to add it to the one
 				const linkedRecord = rootRecord.linkedRecord(key)
-				let children = linkedRecord ? [linkedRecord] : null
-				if (!children) {
-					children = rootRecord.linkedList(key)
-				}
+				let children = linkedRecord ? [linkedRecord] : rootRecord.linkedList(key)
 
 				// if this field is marked as a connection, register it
 				if (connection && fields) {
@@ -163,7 +169,7 @@ export class Cache {
 						this._connections.set(connection, new Map())
 					}
 
-					// if we haven't already seen this connection handler
+					// if we haven't already registered a handler to this connection in the cache
 					this._connections.get(connection)?.set(
 						spec.parentID ? spec.parentID : undefined,
 						new ConnectionHandler({
@@ -176,14 +182,24 @@ export class Cache {
 					)
 				}
 
-				// if we still dont have anything to attach it to then there's no one to subscribe to
+				// if we're not related to anything, we're done
 				if (!children || !fields) {
 					continue
 				}
 
 				// add the subscriber to every child
 				for (const child of children) {
-					this.addSubscribers(child, spec, fields, type, variables)
+					// the children of a connection need the reference back
+					if (connection) {
+						// add the connection reference to record
+						child.addConnectionReference({
+							name: connection,
+							parentID: spec.parentID,
+						})
+					}
+
+					// make sure the children update this subscription
+					this.addSubscribers(child, spec, fields, variables)
 				}
 			}
 		}
@@ -200,6 +216,10 @@ export class Cache {
 			// if this field is marked as a connection remove it from teh cache
 			if (connection) {
 				this._connections.delete(connection)
+				rootRecord.removeConnectionReference({
+					name: connection,
+					parentID: spec.parentID,
+				})
 			}
 
 			// if the field points to a link, we need to remove any subscribers on any fields of that
@@ -207,10 +227,7 @@ export class Cache {
 			if (!this.isScalarLink(type)) {
 				// if the link points to a record then we just have to remove it to the one
 				const linkedRecord = rootRecord.linkedRecord(key)
-				let children = linkedRecord ? [linkedRecord] : null
-				if (!children) {
-					children = rootRecord.linkedList(key)
-				}
+				let children = linkedRecord ? [linkedRecord] : rootRecord.linkedList(key)
 
 				// if we still dont have anything to attach it to then there's no one to subscribe to
 				if (!children || !fields) {
@@ -284,6 +301,9 @@ export class Cache {
 				// look up the current known link id
 				const oldIDs = record.linkedListIDs(linkedType.key)
 
+				// the ids that have been added since the last time
+				const newIDs: string[] = []
+
 				// visit every entry in the list
 				for (const entry of value) {
 					// this has to be an object for sanity sake (it can't be a link if its a scalar)
@@ -299,6 +319,10 @@ export class Cache {
 
 					// add the id to the list
 					linkedIDs.push(linkedID)
+					// hold onto the new ids
+					if (!oldIDs.includes(linkedID)) {
+						newIDs.push(linkedID)
+					}
 				}
 
 				// if there was a change in the list
@@ -357,8 +381,9 @@ export class Cache {
 
 			// if there are fields under this
 			if (fields) {
+				const linkedRecord = record.linkedRecord(key)
 				// figure out who else needs subscribers
-				const children = record.linkedList(key) || [record.linkedRecord(key)]
+				const children = linkedRecord ? [linkedRecord] : record.linkedList(key)
 				for (const linkedRecord of children) {
 					this.insertSubscribers(linkedRecord, fields, ...subscribers)
 				}
@@ -392,6 +417,11 @@ export class Cache {
 	}
 }
 
+type Connection = {
+	name: string
+	parentID: string | undefined
+}
+
 class Record {
 	fields: { [key: string]: GraphQLValue } = {}
 
@@ -399,6 +429,7 @@ class Record {
 	private recordLinks: { [key: string]: string } = {}
 	private listLinks: { [key: string]: string[] } = {}
 	private cache: Cache
+	connections: Connection[] = []
 
 	constructor(cache: Cache) {
 		this.cache = cache
@@ -443,7 +474,7 @@ class Record {
 	}
 
 	removeFromLinkedList(fieldName: string, id: string) {
-		this.listLinks[fieldName] = this.listLinks[fieldName].filter((link) => link !== id)
+		this.listLinks[fieldName] = (this.listLinks[fieldName] || []).filter((link) => link !== id)
 	}
 
 	addSubscriber(fieldName: string, ...specs: SubscriptionSpec[]) {
@@ -461,6 +492,16 @@ class Record {
 
 	removeSubscribers(...targets: SubscriptionSpec[]) {
 		this._removeSubscribers(targets.map(({ set }) => set))
+	}
+
+	addConnectionReference(ref: Connection) {
+		this.connections.push(ref)
+	}
+
+	removeConnectionReference(ref: Connection) {
+		this.connections = this.connections.filter(
+			(conn) => !(conn.name === ref.name && conn.parentID === ref.parentID)
+		)
 	}
 
 	_removeSubscribers(targets: SubscriptionSpec['set'][]) {
@@ -540,12 +581,9 @@ class ConnectionHandler {
 		this.cache.insertSubscribers(this.cache.record(dataID), this.selection, ...subscribers)
 	}
 
-	remove(data: {}, variables: {} = {}) {
-		// figure out the id of the type we are adding
-		const dataID = this.cache.id(this.connectionType, data)
-
+	removeID(id: string) {
 		// add the record we just created to the list
-		this.record.removeFromLinkedList(this.key, dataID)
+		this.record.removeFromLinkedList(this.key, id)
 
 		// get the list of specs that are subscribing to the connection
 		const subscribers = this.record.getSubscribers(this.key)
@@ -554,7 +592,12 @@ class ConnectionHandler {
 		this.cache.notifySubscribers(subscribers)
 
 		// disconnect the record we removed from the connection's subscribers
-		this.cache.unsubscribeRecord(this.cache.record(dataID), this.selection, ...subscribers)
+		this.cache.unsubscribeRecord(this.cache.record(id), this.selection, ...subscribers)
+	}
+
+	remove(data: {}) {
+		// figure out the id of the type we are adding
+		this.removeID(this.cache.id(this.connectionType, data))
 	}
 }
 

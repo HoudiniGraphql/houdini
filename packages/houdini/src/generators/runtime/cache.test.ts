@@ -855,7 +855,7 @@ test('delete node', function () {
 	})
 
 	// make sure we aren't subscribing to user 2 any more
-	expect(cache.get(cache.id('User', { id: '2' }))).toBeNull()
+	expect(cache.get(cache.id('User', { id: '2' }))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
 // atm when we remove subscribers from links we assume its the only reason that spec is associated
