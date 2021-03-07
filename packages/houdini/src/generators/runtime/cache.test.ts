@@ -1392,6 +1392,8 @@ test('delete operation', function () {
 	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
 })
 
+test.todo('caches fields with args')
+
 // atm when we remove subscribers from links we assume its the only reason that spec is associated
 // with the field. that's not the case if the same record shows up two places in a query but is removed
 // as a link in only one of them (this also included connections)
@@ -1402,5 +1404,3 @@ test.todo('unsubscribe removes connection handlers')
 test.todo('nested linked record update')
 
 test.todo('nested linked list update')
-
-test.todo('caches fields with args')

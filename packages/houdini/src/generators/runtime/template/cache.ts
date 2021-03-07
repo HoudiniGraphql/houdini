@@ -666,6 +666,15 @@ class ConnectionHandler {
 	}
 }
 
+// we need to generate a static key that we can use to index this field in the cache.
+// this needs to be a unique-hash driven by the field's attribute and arguments
+// returns the key for a specific field
+function fieldKey(field: graphql.FieldNode): string {
+	// we're going to hash a field by creating a json
+	const attributeName = field.alias?.value || field.name.value
+	return attributeName + 'something_with_args'
+}
+
 type SubscriptionSpec = {
 	rootType: string
 	selection: SubscriptionSelection

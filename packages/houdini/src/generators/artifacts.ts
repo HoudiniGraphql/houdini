@@ -13,7 +13,7 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 import { moduleExport } from '../utils'
-import { ConnectionWhen, MutationOperation } from './runtime/template'
+import { ConnectionWhen, GraphQLValue, MutationOperation } from './runtime/template'
 
 const AST = recast.types.builders
 
@@ -145,6 +145,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					'selection',
 					selection({
 						config,
+						printed,
 						rootType,
 						selectionSet: selectionSet,
 						operations: operationsByPath(config, operations[0]),
@@ -163,121 +164,17 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 	)
 }
 
-function buildResponse({
-	config,
-	document,
-	rootType,
-	selectionSet,
-	map = AST.objectExpression([]),
-}: {
-	config: Config
-	document: graphql.DocumentNode
-	rootType: string
-	selectionSet: graphql.SelectionSetNode
-	map?: namedTypes.ObjectExpression
-}): namedTypes.ObjectExpression {
-	// check if we have seen this type before
-	let typeField = map.properties.find((prop) => {
-		const objProp = prop as namedTypes.ObjectProperty
-		return objProp.key.type === 'Literal' && objProp.key.value === rootType
-	}) as namedTypes.ObjectProperty
-	// if it doesn't exist, we need to add the type to the root
-	if (!typeField) {
-		typeField = AST.objectProperty(AST.literal(rootType), AST.objectExpression([]))
-		map.properties.push(typeField)
-	}
-
-	const mapType = typeField.value as namedTypes.ObjectExpression
-
-	// visit every selection
-	for (const selection of selectionSet.selections) {
-		// if we are looking at a fragment spread we need to keep walking down
-		if (selection.kind === 'FragmentSpread') {
-			// look up the fragment definition
-			const definition = document.definitions.find(
-				(defn) =>
-					defn.kind === 'FragmentDefinition' && defn.name.value === selection.name.value
-			) as graphql.FragmentDefinitionNode
-
-			buildResponse({
-				config,
-				document,
-				rootType: definition.typeCondition.name.value,
-				selectionSet: definition.selectionSet,
-				map,
-			})
-		}
-		// if we're looking at an inline fragment, keep going
-		else if (selection.kind === 'InlineFragment') {
-			const fragmentType = selection.typeCondition?.name.value || rootType
-			buildResponse({
-				config,
-				document,
-				rootType: fragmentType,
-				selectionSet: selection.selectionSet,
-				map,
-			})
-		}
-		// its a field
-		else if (selection.kind === 'Field') {
-			// we need to generate a key
-			const attributeName = selection.alias?.value || selection.name.value
-			const key = fieldKey(selection)
-
-			// look up the field
-			const type = config.schema.getType(rootType) as graphql.GraphQLObjectType
-			if (!type) {
-				throw new Error('Could not find type')
-			}
-			const typeName = getRootType(type.getFields()[selection.name.value].type).toString()
-
-			// have we seen this attribute before, we'll get the same info we did last time
-			// since a valid graphql document can't have conflicts args on a field of the
-			// same {alias || name}
-			const existingField = mapType.properties.find(
-				(prop) =>
-					prop.type === 'ObjectProperty' &&
-					prop.key.type === 'Identifier' &&
-					prop.key.name === attributeName
-			)
-			if (!existingField) {
-				mapType.properties.push(
-					AST.objectProperty(
-						AST.literal(attributeName),
-						AST.objectExpression([
-							AST.objectProperty(AST.literal('key'), AST.stringLiteral(key)),
-							AST.objectProperty(AST.literal('type'), AST.stringLiteral(typeName)),
-						])
-					)
-				)
-			}
-
-			// if the field has a selection set, then we need to include it
-			if (selection.selectionSet) {
-				buildResponse({
-					config,
-					document,
-					rootType: typeName,
-					selectionSet: selection.selectionSet,
-					map,
-				})
-			}
-		}
-	}
-
-	// return the accumulator
-	return map
-}
-
 function selection({
 	config,
 	rootType,
 	selectionSet,
 	operations,
+	printed,
 	path = [],
 }: {
 	config: Config
 	rootType: string
+	printed: string
 	selectionSet: graphql.SelectionSetNode
 	operations: { [path: string]: namedTypes.ArrayExpression }
 	path?: string[]
@@ -298,6 +195,7 @@ function selection({
 				operations,
 				selectionSet: field.selectionSet,
 				path,
+				printed,
 			})
 			for (const property of inlineFragment.properties) {
 				object.properties.push(property)
@@ -319,7 +217,7 @@ function selection({
 			// the object holding data for this field
 			const fieldObj = AST.objectExpression([
 				AST.objectProperty(AST.literal('type'), AST.stringLiteral(typeName)),
-				AST.objectProperty(AST.literal('key'), AST.stringLiteral(fieldKey(field))),
+				AST.objectProperty(AST.literal('key'), AST.stringLiteral(fieldKey(printed, field))),
 			])
 
 			// is there an operation for this field
@@ -360,6 +258,7 @@ function selection({
 							selectionSet: field.selectionSet,
 							operations,
 							path: pathSoFar,
+							printed,
 						})
 					)
 				)
@@ -372,10 +271,35 @@ function selection({
 	return object
 }
 
+// we need to generate a static key that we can use to index this field in the cache.
+// this needs to be a unique-hash driven by the field's attribute and arguments
 // returns the key for a specific field
-function fieldKey(field: graphql.FieldNode): string {
+function fieldKey(printed: string, field: graphql.FieldNode): string {
+	// we're going to hash a field by creating a json object and adding it
+	// to the attribute name
 	const attributeName = field.alias?.value || field.name.value
-	return attributeName + 'something_with_args'
+
+	const argObj = (field.arguments || []).reduce<{ [key: string]: string }>((acc, arg) => {
+		// the query already contains
+		const start = arg.value.loc?.start
+		const end = arg.value.loc?.end
+
+		// if the argument is not in the query, life doesn't make sense
+		if (!start || !end) {
+			return acc
+		}
+
+		return {
+			...acc,
+			[arg.name.value]: printed.substring(start, end),
+		}
+	}, {})
+
+	return Object.values(argObj).length > 0
+		? `${attributeName}(${Object.entries(argObj)
+				.map((entries) => entries.join(': '))
+				.join(', ')})`
+		: attributeName
 }
 
 // return the list of operations that are part of a mutation

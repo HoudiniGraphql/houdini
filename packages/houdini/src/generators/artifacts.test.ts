@@ -63,7 +63,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		module.exports.selection = {
 		    "version": {
 		        "type": "Int",
-		        "key": "versionsomething_with_args"
+		        "key": "version"
 		    }
 		};
 	`)
@@ -93,7 +93,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		module.exports.selection = {
 		    "firstName": {
 		        "type": "String",
-		        "key": "firstNamesomething_with_args"
+		        "key": "firstName"
 		    }
 		};
 	`)
@@ -138,7 +138,7 @@ test('internal directives are scrubbed', async function () {
 		module.exports.selection = {
 		    "user": {
 		        "type": "User",
-		        "key": "usersomething_with_args"
+		        "key": "user"
 		    }
 		};
 	`)
@@ -200,17 +200,17 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
-		                        "key": "firstNamesomething_with_args"
+		                        "key": "firstName"
 		                    }
 		                }
 		            }
@@ -280,12 +280,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "insert",
@@ -358,12 +358,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "remove",
@@ -427,12 +427,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "deleteUser": {
 		        "type": "DeleteUserOutput",
-		        "key": "deleteUsersomething_with_args",
+		        "key": "deleteUser(id: \\"1234\\")",
 
 		        "fields": {
 		            "userID": {
 		                "type": "ID",
-		                "key": "userIDsomething_with_args",
+		                "key": "userID",
 
 		                "operations": [{
 		                    "action": "delete",
@@ -496,12 +496,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "deleteUser": {
 		        "type": "DeleteUserOutput",
-		        "key": "deleteUsersomething_with_args",
+		        "key": "deleteUser(id: \\"1234\\")",
 
 		        "fields": {
 		            "userID": {
 		                "type": "ID",
-		                "key": "userIDsomething_with_args",
+		                "key": "userID",
 
 		                "operations": [{
 		                    "action": "delete",
@@ -580,12 +580,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "insert",
@@ -664,12 +664,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "insert",
@@ -748,12 +748,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "insert",
@@ -832,12 +832,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "insert",
@@ -917,12 +917,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "insert",
@@ -1002,12 +1002,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "insert",
@@ -1087,12 +1087,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "insert",
@@ -1172,12 +1172,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "insert",
@@ -1257,12 +1257,12 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
-		        "key": "addFriendsomething_with_args",
+		        "key": "addFriend",
 
 		        "fields": {
 		            "friend": {
 		                "type": "User",
-		                "key": "friendsomething_with_args",
+		                "key": "friend",
 
 		                "operations": [{
 		                    "action": "insert",
@@ -1335,13 +1335,75 @@ describe('mutation artifacts', function () {
 		module.exports.selection = {
 		    "users": {
 		        "type": "User",
-		        "key": "userssomething_with_args",
+		        "key": "users(stringValue: \\"foo\\")",
 		        "connection": "All_Users",
 
 		        "fields": {
 		            "firstName": {
 		                "type": "String",
-		                "key": "firstNamesomething_with_args"
+		                "key": "firstName"
+		            }
+		        }
+		    }
+		};
+	`)
+	})
+
+	test('field args', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery($value: String!) { 
+					users(
+						stringValue: $value, 
+						boolValue: true, 
+						floatValue: 1.2,
+						intValue: 1,
+					) @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "TestQuery";
+		module.exports.kind = "HoudiniQuery";
+		module.exports.hash = "77e73a9f844dc87ec168c5255d4a7eb0";
+
+		module.exports.raw = \`query TestQuery($value: String!) {
+		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
+		    firstName
+		  }
+		}
+		\`;
+
+		module.exports.rootType = "Query";
+
+		module.exports.selection = {
+		    "users": {
+		        "type": "User",
+		        "key": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+		        "connection": "All_Users",
+
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "key": "firstName"
 		            }
 		        }
 		    }
