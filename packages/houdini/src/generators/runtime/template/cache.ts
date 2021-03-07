@@ -5,27 +5,25 @@ import { Maybe, TypeLinks, GraphQLValue, SubscriptionSelection } from './types'
 // houdini queries
 export class Cache {
 	// the map from entity id to record
-	_data: Map<string, Record> = new Map()
+	private _data: Map<string, Record> = new Map()
+	// associate connection names with the handler that wraps the list
+	private _connections: Map<string, ConnectionHandler> = new Map()
 
-	// save the response
-	write({ rootType, fields }: TypeLinks, data: { [key: string]: GraphQLValue }, variables: {}) {
+	// save the response in the local store and notify any subscribers
+	write(
+		{ rootType, fields }: TypeLinks,
+		data: { [key: string]: GraphQLValue },
+		variables: {},
+		parentID = '_root_'
+	) {
 		const specs: SubscriptionSpec[] = []
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
 		// will build up different specs of subscriptions that need to be run against the current state
-		this._write(rootType, fields, '_root_', data, variables, specs)
+		this._write(rootType, fields, parentID, data, variables, specs)
 
 		// compute new values for every spec that needs to be run
-		for (const spec of specs) {
-			// find the root record
-			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
-			if (!rootRecord) {
-				throw new Error('Could not find root of subscription')
-			}
-
-			// trigger the update
-			spec.set(this.getData(spec, rootRecord, spec.selection))
-		}
+		this.notifySubscribers(specs)
 	}
 
 	// look up the information for a specific record
@@ -46,6 +44,11 @@ export class Cache {
 		return type + ':' + (data.id || '_root_')
 	}
 
+	// returns the list of fields required to compute the id for a type
+	idFields(type: string) {
+		return [{ name: 'id', type: 'ID' }]
+	}
+
 	subscribe(spec: SubscriptionSpec) {
 		// find the root record
 		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
@@ -54,7 +57,7 @@ export class Cache {
 		}
 
 		// walk down the selection and register any subscribers
-		this.addSubscribers(rootRecord, spec, spec.selection)
+		this.addSubscribers(rootRecord, spec, spec.selection, spec.rootType)
 	}
 
 	unsubscribe(spec: SubscriptionSpec) {
@@ -66,6 +69,33 @@ export class Cache {
 
 		// walk down the selection and remove any subscribers from the list
 		this.removeSubscribers(rootRecord, spec, spec.selection)
+	}
+
+	// get the connection handler associated by name
+	connection(name: string) {
+		// make sure that the handler exists
+		if (!this._connections.has(name)) {
+			throw new Error(
+				`Cannot find connection with name: ${name}.` +
+					'Is it possible that the query has not fired yet?'
+			)
+		}
+
+		// return the handler
+		return this._connections.get(name)
+	}
+
+	notifySubscribers(specs: SubscriptionSpec[]) {
+		for (const spec of specs) {
+			// find the root record
+			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
+			if (!rootRecord) {
+				throw new Error('Could not find root of subscription')
+			}
+
+			// trigger the update
+			spec.set(this.getData(spec, rootRecord, spec.selection))
+		}
 	}
 
 	// walk down the spec
@@ -106,9 +136,10 @@ export class Cache {
 	private addSubscribers(
 		rootRecord: Record,
 		spec: SubscriptionSpec,
-		selection: SubscriptionSelection
+		selection: SubscriptionSelection,
+		parentType: string
 	) {
-		for (const { type, key, fields } of Object.values(selection)) {
+		for (const { type, key, fields, connection } of Object.values(selection)) {
 			// add the subscriber to the field
 			rootRecord.addSubscriber(key, spec)
 
@@ -122,6 +153,19 @@ export class Cache {
 					children = rootRecord.linkedList(key)
 				}
 
+				// if this field is marked as a connection, register it
+				if (connection) {
+					this._connections.set(
+						connection,
+						new ConnectionHandler({
+							cache: this,
+							record: rootRecord,
+							connectionType: type,
+							key,
+						})
+					)
+				}
+
 				// if we still dont have anything to attach it to then there's no one to subscribe to
 				if (!children || !fields) {
 					continue
@@ -129,7 +173,7 @@ export class Cache {
 
 				// add the subscriber to every child
 				for (const child of children) {
-					this.addSubscribers(child, spec, fields)
+					this.addSubscribers(child, spec, fields, type)
 				}
 			}
 		}
@@ -139,9 +183,14 @@ export class Cache {
 		spec: SubscriptionSpec,
 		selection: SubscriptionSelection
 	) {
-		for (const { type, key, fields } of Object.values(selection)) {
+		for (const { type, key, fields, connection } of Object.values(selection)) {
 			// remove the subscriber to the field
 			rootRecord.removeSubscribers(key, spec)
+
+			// if this field is marked as a connection remove it from teh cache
+			if (connection) {
+				this._connections.delete(connection)
+			}
 
 			// if the field points to a link, we need to remove any subscribers on any fields of that
 			// linked record
@@ -260,7 +309,7 @@ export class Cache {
 			// the value is neither an object or a list so its a scalar
 			else {
 				// if the value is different
-				if (linkedType.key !== 'id' && value !== record.getField(linkedType.key)) {
+				if (value !== record.getField(linkedType.key)) {
 					// update the cached value
 					record.writeField(linkedType.key, value)
 
@@ -275,8 +324,8 @@ export class Cache {
 		return this.record('_root_')
 	}
 
-	// updates the record specified by {id}
-	private record(id: string): Record {
+	// grab the record specified by {id}
+	record(id: string): Record {
 		// if we haven't seen the record before add an entry in the store
 		if (!this._data.has(id)) {
 			this._data.set(id, new Record(this))
@@ -337,6 +386,10 @@ class Record {
 			.filter((record) => record !== null) as Record[]
 	}
 
+	addToLinkedList(fieldName: string, id: string) {
+		this.listLinks[fieldName].push(id)
+	}
+
 	addSubscriber(fieldName: string, spec: SubscriptionSpec) {
 		this.subscribers[fieldName] = this.getSubscribers(fieldName).concat(spec)
 	}
@@ -366,6 +419,51 @@ class Record {
 		for (const linkedRecordID of linkedIDs) {
 			this.cache.get(linkedRecordID)?._removeSubscribers(targets)
 		}
+	}
+}
+
+class ConnectionHandler {
+	private record: Record
+	private key: string
+	private connectionType: string
+	private cache: Cache
+
+	constructor({
+		cache,
+		record,
+		key,
+		connectionType,
+	}: {
+		cache: Cache
+		record: Record
+		key: string
+		connectionType: string
+	}) {
+		this.record = record
+		this.key = key
+		this.connectionType = connectionType
+		this.cache = cache
+	}
+	append({ fields }: TypeLinks, data: {}, variables: {} = {}) {
+		// figure out the id of the type we are adding
+		const dataID = this.cache.id(this.connectionType, data)
+
+		// update the cache with the data we just found
+		this.cache.write(
+			{
+				rootType: this.connectionType,
+				fields,
+			},
+			data,
+			variables,
+			dataID
+		)
+
+		// add the record we just created to the list
+		this.record.addToLinkedList(this.key, dataID)
+
+		// notify the subscribers we care about
+		this.cache.notifySubscribers(this.record.getSubscribers(this.key))
 	}
 }
 

@@ -160,13 +160,20 @@ export default async function typeCheck(
 					parents.reverse()
 					const parentType = getTypeFromAncestors(config.schema, parents)
 
+					// if we have already seen the connection name there's a problem
+					const connectionName = nameArg.value.value
+					if (connections.includes(connectionName)) {
+						errors.push(new HoudiniErrorTodo('Connection names must be unique'))
+						return
+					}
+
 					// add the connection to the list
-					connections.push(nameArg.value.value)
+					connections.push(connectionName)
 					connectionTypes.push(parentType.name)
 
 					// if we still dont need a parent by now, add it to the list of free connections
 					if (!needsParent) {
-						freeConnections.push(nameArg.value.value)
+						freeConnections.push(connectionName)
 					}
 				},
 			},

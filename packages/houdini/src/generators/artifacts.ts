@@ -476,7 +476,7 @@ function operationObject({
 	// delete doesn't have a target
 	if (operationKind !== 'delete') {
 		operation.properties.push(
-			AST.objectProperty(AST.literal('connectionName'), AST.stringLiteral(connectionName)),
+			AST.objectProperty(AST.literal('connection'), AST.stringLiteral(connectionName)),
 			AST.objectProperty(
 				AST.literal('target'),
 				AST.arrayExpression(

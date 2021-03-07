@@ -70,7 +70,7 @@ export type MutationOperation = {
 	kind: 'insert' | 'remove' | 'delete'
 	source: string[]
 	target: string[]
-	connectionName: string
+	connection: string
 	parentID?: {
 		kind: string
 		value: string

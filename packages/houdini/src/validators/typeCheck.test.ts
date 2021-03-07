@@ -121,6 +121,45 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@connection name must be unique',
+		pass: false,
+		documents: [
+			`
+                query TestQuery1 {
+					user {
+						friends {
+							friends @connection(name: "Friends") {
+								id
+							}
+						}
+					}
+                }
+            `,
+			`
+				query TestQuery2 {
+					user {
+						friends {
+							friends @connection(name: "Friends") {
+								id
+							}
+						}
+					}
+				}
+            `,
+			`
+				query TestQuery2 {
+					user {
+						friends {
+							friends @connection(name: "Friends") {
+								id
+							}
+						}
+					}
+				}
+            `,
+		],
+	},
+	{
 		title: '@connection with parentID as variable on query',
 		pass: true,
 		documents: [
