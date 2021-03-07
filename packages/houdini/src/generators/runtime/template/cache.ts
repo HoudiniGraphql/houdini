@@ -53,7 +53,7 @@ export class Cache {
 
 	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
 		// find the root record
-		let rootRecord = spec.parentID ? this.record(this.parentID(spec, variables)) : this.root()
+		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
 		if (!rootRecord) {
 			throw new Error('Could not find root of subscription')
 		}
@@ -64,7 +64,7 @@ export class Cache {
 
 	unsubscribe(spec: SubscriptionSpec, variables: {} = {}) {
 		// find the root record
-		let rootRecord = spec.parentID ? this.record(this.parentID(spec, variables)) : this.root()
+		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
 		if (!rootRecord) {
 			throw new Error('Could not find root of subscription')
 		}
@@ -90,7 +90,7 @@ export class Cache {
 	notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
 		for (const spec of specs) {
 			// find the root record
-			let rootRecord = spec.parentID ? this.get(this.parentID(spec, variables)) : this.root()
+			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
 			if (!rootRecord) {
 				throw new Error('Could not find root of subscription')
 			}
@@ -98,25 +98,6 @@ export class Cache {
 			// trigger the update
 			spec.set(this.getData(spec, rootRecord, spec.selection))
 		}
-	}
-
-	private parentID(spec: SubscriptionSpec, variables: { [key: string]: GraphQLValue }): string {
-		// if there isn't one
-		if (!spec.parentID) {
-			throw new Error('Could not find parent ID')
-		}
-		// if the parent ID is just a normal scalar
-		if (spec.parentID.kind !== 'Variable') {
-			return spec.parentID.value
-		}
-
-		// the value needs to be pulled from the variables
-		const value = variables[spec.parentID.value]
-		if (!value) {
-			throw new Error('Could not find parent ID')
-		}
-
-		return value.toString()
 	}
 
 	// walk down the spec
@@ -184,7 +165,7 @@ export class Cache {
 
 					// if we haven't already seen this connection handler
 					this._connections.get(connection)?.set(
-						spec.parentID ? this.parentID(spec, variables) : undefined,
+						spec.parentID ? spec.parentID : undefined,
 						new ConnectionHandler({
 							cache: this,
 							record: rootRecord,
@@ -581,10 +562,7 @@ type SubscriptionSpec = {
 	rootType: string
 	selection: SubscriptionSelection
 	set: (data: any) => void
-	parentID?: {
-		kind: 'String' | 'ID' | 'Variable'
-		value: string
-	}
+	parentID?: string
 }
 
 export default new Cache()
