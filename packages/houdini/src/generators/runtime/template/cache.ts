@@ -1,4 +1,5 @@
 // local imports
+import { subscribe } from 'graphql'
 import { Maybe, TypeLinks, GraphQLValue, SubscriptionSelection } from './types'
 
 // this file holds the implementation (and singleton) for the cache that drives
@@ -154,7 +155,7 @@ export class Cache {
 				}
 
 				// if this field is marked as a connection, register it
-				if (connection) {
+				if (connection && fields) {
 					this._connections.set(
 						connection,
 						new ConnectionHandler({
@@ -162,6 +163,7 @@ export class Cache {
 							record: rootRecord,
 							connectionType: type,
 							key,
+							selection: fields,
 						})
 					)
 				}
@@ -185,7 +187,7 @@ export class Cache {
 	) {
 		for (const { type, key, fields, connection } of Object.values(selection)) {
 			// remove the subscriber to the field
-			rootRecord.removeSubscribers(key, spec)
+			rootRecord.removeSubscribers(spec)
 
 			// if this field is marked as a connection remove it from teh cache
 			if (connection) {
@@ -256,7 +258,7 @@ export class Cache {
 					// if there was a record we replaced
 					if (oldID) {
 						// we need to remove any subscribers that we just added to the specs
-						this.record(oldID).removeSubscribers(linkedType.key, ...subscribers)
+						this.record(oldID).removeSubscribers(...subscribers)
 					}
 
 					// add every subscriber to the list of specs to change
@@ -295,7 +297,7 @@ export class Cache {
 				if (JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)) {
 					// look for any records that we don't consider part of this link any more
 					for (const lostID of oldIDs.filter((id) => !linkedIDs.includes(id))) {
-						this.record(lostID).removeSubscribers(linkedType.key, ...subscribers)
+						this.record(lostID).removeSubscribers(...subscribers)
 					}
 
 					// add every subscriber to the list of specs to change
@@ -333,6 +335,27 @@ export class Cache {
 
 		// write the field value
 		return this._data.get(id) as Record
+	}
+
+	insertSubscribers(
+		record: Record,
+		selection: SubscriptionSelection,
+		...subscribers: SubscriptionSpec[]
+	) {
+		// look at every field in the selection and add the subscribers
+		for (const { key, fields } of Object.values(selection)) {
+			// add the subscriber to the
+			record.addSubscriber(key, ...subscribers)
+
+			// if there are fields under this
+			if (fields) {
+				// figure out who else needs subscribers
+				const children = record.linkedList(key) || [record.linkedRecord(key)]
+				for (const linkedRecord of children) {
+					this.insertSubscribers(linkedRecord, fields, ...subscribers)
+				}
+			}
+		}
 	}
 
 	private isScalarLink(type: string) {
@@ -390,15 +413,20 @@ class Record {
 		this.listLinks[fieldName].push(id)
 	}
 
-	addSubscriber(fieldName: string, spec: SubscriptionSpec) {
-		this.subscribers[fieldName] = this.getSubscribers(fieldName).concat(spec)
+	addSubscriber(fieldName: string, ...specs: SubscriptionSpec[]) {
+		// the existing list
+		const existingSubscribers = (this.subscribers[fieldName] || []).map(({ set }) => set)
+		// the list of new subscribers
+		const newSubscribers = specs.filter(({ set }) => !existingSubscribers.includes(set))
+
+		this.subscribers[fieldName] = this.getSubscribers(fieldName).concat(...newSubscribers)
 	}
 
 	getSubscribers(fieldName: string): SubscriptionSpec[] {
 		return this.subscribers[fieldName] || []
 	}
 
-	removeSubscribers(fieldName: string, ...targets: SubscriptionSpec[]) {
+	removeSubscribers(...targets: SubscriptionSpec[]) {
 		this._removeSubscribers(targets.map(({ set }) => set))
 	}
 
@@ -427,22 +455,26 @@ class ConnectionHandler {
 	private key: string
 	private connectionType: string
 	private cache: Cache
+	private selection: SubscriptionSelection
 
 	constructor({
 		cache,
 		record,
 		key,
 		connectionType,
+		selection,
 	}: {
 		cache: Cache
 		record: Record
 		key: string
 		connectionType: string
+		selection: SubscriptionSelection
 	}) {
 		this.record = record
 		this.key = key
 		this.connectionType = connectionType
 		this.cache = cache
+		this.selection = selection
 	}
 	append({ fields }: TypeLinks, data: {}, variables: {} = {}) {
 		// figure out the id of the type we are adding
@@ -462,8 +494,16 @@ class ConnectionHandler {
 		// add the record we just created to the list
 		this.record.addToLinkedList(this.key, dataID)
 
+		// get the list of specs that are subscribing to the connection
+		const subscribers = this.record.getSubscribers(this.key)
+
+		// walk down the connection fields relative to the new record
+		// and make sure all of the connection's subscribers are listening
+		// to that object
+		this.cache.insertSubscribers(this.cache.record(dataID), this.selection, ...subscribers)
+
 		// notify the subscribers we care about
-		this.cache.notifySubscribers(this.record.getSubscribers(this.key))
+		this.cache.notifySubscribers(subscribers)
 	}
 }
 

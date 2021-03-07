@@ -632,9 +632,103 @@ test('insert in connection', function () {
 	})
 })
 
-test.todo('subscribe to changes in nodes added to connections')
+test('subscribe to changes in nodes added to connections', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	// start off associated with one object
+	cache.write(
+		response,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+		{}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection: {
+			viewer: {
+				type: 'User',
+				key: 'viewer',
+				fields: {
+					friends: {
+						type: 'User',
+						key: 'friends',
+						connection: 'All_Users',
+						fields: {
+							firstName: {
+								type: 'String',
+								key: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+	})
+
+	// insert an element into the connection (no parent ID)
+	cache.connection('All_Users').append(response, {
+		id: '3',
+		firstName: 'mary',
+	})
+
+	// update the user we just added
+	cache.write(
+		response,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary-prime',
+					},
+				],
+			},
+		},
+		{}
+	)
+
+	// the first time set was called, a new entry was added.
+	// the second time it's called, we get a new value for mary-prime
+	expect(set).toHaveBeenNthCalledWith(2, {
+		viewer: {
+			friends: [
+				{
+					firstName: 'jane',
+				},
+				{
+					firstName: 'mary-prime',
+				},
+			],
+		},
+	})
+})
 
 // atm when we remove subscribers from links we assume its the only reason that spec is associated
 // with the field. that's not the case if the same record shows up two places in a query but is removed
 // as a link in only one of them (this also included connections)
 test.todo("removing link doesn't unregister the same set everywhere")
+
+test.todo('nested linked record update')
+
+test.todo('nested linked list update')
