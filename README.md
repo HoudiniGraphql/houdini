@@ -7,7 +7,13 @@
   <strong>
 	The disappearing GraphQL client built for Sapper and Sveltekit.
   </strong>
+  <br />
+  <br />
 </div>
+
+  <strong>
+	NOTE: Houdini is in the early phases of devlopment. If you run into problems, please create an issue or start a discussion.
+  </strong>
 
 ## ✨&nbsp;&nbsp;Features
 
