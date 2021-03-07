@@ -12,6 +12,7 @@
 </div>
 
 NOTE: Houdini is in the early phases of devlopment. If you run into problems, please create an issue or start a discussion.
+For more information on what's coming for this project, please visit the [roadmap](https://github.com/AlecAivazis/houdini/projects/1).
  
 
 ## ✨&nbsp;&nbsp;Features
