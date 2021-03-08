@@ -430,7 +430,6 @@ export class Cache {
 					fields &&
 					operation.connection
 				) {
-					console.log('removing from', operation.connection, operation.when)
 					this.connection(operation.connection, parentID)
 						.when(operation.when)
 						.remove(value, variables)
@@ -770,7 +769,6 @@ class ConnectionHandler {
 		variables: {} = {},
 		where: 'first' | 'last'
 	) {
-		console.log('comparing', this._when, this.filters)
 		// if there are conditions for this operation
 		if (!this.validateWhen()) {
 			return
