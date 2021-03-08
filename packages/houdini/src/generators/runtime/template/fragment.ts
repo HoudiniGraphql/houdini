@@ -9,7 +9,7 @@ import { getVariables } from './context'
 // fragment returns the requested data from the reference
 export default function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
-	data: _Fragment
+	initialValue: _Fragment
 ): Readable<_Fragment['shape']> {
 	// make sure we got a query document
 	if (fragment.artifact.kind !== 'HoudiniFragment') {
@@ -19,9 +19,9 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	const variables = getVariables()
 
 	// wrap the result in a store we can use to keep this query up to date
-	const value = readable(data, (set) => {
+	const value = readable(initialValue, (set) => {
 		// @ts-ignore
-		const parentID = cache.id(fragment.artifact.rootType, data)
+		const parentID = cache.id(fragment.artifact.rootType, initialValue)
 
 		// when the component monuts
 		onMount(() => {

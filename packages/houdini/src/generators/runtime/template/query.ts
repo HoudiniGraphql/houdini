@@ -33,7 +33,7 @@ export default function query<_Query extends Operation<any, any>>(
 			// build the subscription spec
 			subscriptionSpec = {
 				rootType: document.artifact.rootType,
-				selection: document.artifact.selection,
+				selection: document.artifact.response,
 				set,
 			}
 
@@ -50,7 +50,7 @@ export default function query<_Query extends Operation<any, any>>(
 			cache.unsubscribe(
 				{
 					rootType: document.artifact.rootType,
-					selection: document.artifact.selection,
+					selection: document.artifact.response,
 					set,
 				},
 				variables
