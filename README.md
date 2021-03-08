@@ -148,7 +148,7 @@ Grabbing data from your API is done with the `query` function:
     import { query, graphql, AllItems } from '$houdini'
 
     // load the items
-    const data = query<AllItems>(graphql`
+    const { data } = query<AllItems>(graphql`
         query AllItems {
             items {
                 id
@@ -177,7 +177,7 @@ documentation. Here is a modified example from the [demo](./example):
     import { query, graphql, AllItems } from '$houdini'
 
     // load the items
-    const data = query<AllItems>(graphql`
+    const { data } = query<AllItems>(graphql`
         query AllItems($completed: Boolean) {
             items(completed: $completed) {
                 id
@@ -278,7 +278,7 @@ that all necessary data has been asked for:
     import { query, graphql, AllUsers } from '$houdini'
     import { UserAvatar } from 'components'
 
-    const data = query<AllUsers>(graphql`
+    const { data } = query<AllUsers>(graphql`
         query AllUsers {
             users {
                 id

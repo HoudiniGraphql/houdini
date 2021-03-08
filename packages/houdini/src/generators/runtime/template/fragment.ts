@@ -4,6 +4,7 @@ import { onMount } from 'svelte'
 // locals
 import type { Fragment, GraphQLTagResult } from './types'
 import cache from './cache'
+import { getVariables } from './context'
 
 // fragment returns the requested data from the reference
 export default function fragment<_Fragment extends Fragment<any>>(
@@ -11,9 +12,11 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	data: _Fragment
 ): Readable<_Fragment['shape']> {
 	// make sure we got a query document
-	if (fragment.kind !== 'HoudiniFragment') {
+	if (fragment.artifact.kind !== 'HoudiniFragment') {
 		throw new Error('getFragment can only take fragment documents')
 	}
+
+	const variables = getVariables()
 
 	// wrap the result in a store we can use to keep this query up to date
 	const value = readable(data, (set) => {
@@ -25,12 +28,15 @@ export default function fragment<_Fragment extends Fragment<any>>(
 			// if there is an id we can anchor the cache off of
 			if (parentID) {
 				// stay up to date
-				cache.subscribe({
-					rootType: fragment.artifact.rootType,
-					selection: fragment.artifact.selection,
-					set,
-					parentID,
-				})
+				cache.subscribe(
+					{
+						rootType: fragment.artifact.rootType,
+						selection: fragment.artifact.selection,
+						set,
+						parentID,
+					},
+					variables
+				)
 			}
 		})
 
@@ -38,12 +44,15 @@ export default function fragment<_Fragment extends Fragment<any>>(
 		return () => {
 			// if we subscribed to something we'll need to clean up
 			if (parentID) {
-				cache.unsubscribe({
-					rootType: fragment.artifact.rootType,
-					parentID,
-					selection: fragment.artifact.selection,
-					set,
-				})
+				cache.unsubscribe(
+					{
+						rootType: fragment.artifact.rootType,
+						parentID,
+						selection: fragment.artifact.selection,
+						set,
+					},
+					variables
+				)
 			}
 		}
 	})

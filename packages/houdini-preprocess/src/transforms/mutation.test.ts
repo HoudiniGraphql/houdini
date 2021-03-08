@@ -84,23 +84,6 @@ async function preprocessorTest(content: string) {
 			kind: 'HoudiniMutation',
 			raw: query,
 			hash: hashDocument(parsedQuery),
-			response: {
-				rootType: 'Mutation',
-				fields: {
-					Mutation: {
-						addUser: {
-							key: 'addUser',
-							type: 'User',
-						},
-					},
-					User: {
-						id: {
-							key: 'id',
-							type: 'ID',
-						},
-					},
-				},
-			},
 			rootType: 'Mutation',
 			selection: {
 				addUser: {

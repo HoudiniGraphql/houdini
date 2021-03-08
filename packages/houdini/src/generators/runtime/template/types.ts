@@ -20,7 +20,6 @@ export type QueryArtifact = BaseCompiledDocument & {
 
 export type MutationArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniMutation'
-	operations: MutationOperation[]
 }
 
 export type FragmentArtifact = BaseCompiledDocument & {
@@ -98,4 +97,11 @@ export type SubscriptionSelection = {
 		connection?: string
 		fields?: SubscriptionSelection
 	}
+}
+
+export type SubscriptionSpec = {
+	rootType: string
+	selection: SubscriptionSelection
+	set: (data: any) => void
+	parentID?: string
 }

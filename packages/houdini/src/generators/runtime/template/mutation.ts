@@ -12,15 +12,16 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
-	if (document.kind !== 'HoudiniMutation') {
+	if (document.artifact.kind !== 'HoudiniMutation') {
 		throw new Error('getQuery can only take query operations')
 	}
 
 	// pull the query text out of the compiled artifact
-	const { raw: text, operations } = document.artifact
+	const { raw: text } = document.artifact
 
 	// grab the sesion from the adapter
 	const session = getSession()
+	const queryVariables = getVariables()
 
 	// return an async function that sends the mutation go the server
 	return (variables: _Mutation['input']) =>
@@ -72,7 +73,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 			}
 
 			// update the cache with the mutation data
-			cache.write(document.artifact.selection, result, variables)
+			cache.write(document.artifact.selection, result, queryVariables)
 			// wrap the result in a store we can use to keep this query up to date
 			resolve(result)
 		})

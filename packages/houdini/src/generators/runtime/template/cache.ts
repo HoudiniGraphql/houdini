@@ -1,5 +1,5 @@
 // local imports
-import { Maybe, GraphQLValue, SubscriptionSelection } from './types'
+import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from './types'
 
 // this file holds the implementation (and singleton) for the cache that drives
 // houdini queries
@@ -772,13 +772,6 @@ class ConnectionHandler {
 			yield record
 		}
 	}
-}
-
-type SubscriptionSpec = {
-	rootType: string
-	selection: SubscriptionSelection
-	set: (data: any) => void
-	parentID?: string
 }
 
 export default new Cache()

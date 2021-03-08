@@ -20,7 +20,7 @@ describe('query preprocessor', function () {
 	test('preload initial data', async function () {
 		const doc = await preprocessorTest(`
 			<script>
-				const data = query(graphql\`
+				const { data } = query(graphql\`
 					query TestQuery {
 						viewer {
 							id
@@ -65,11 +65,13 @@ describe('query preprocessor', function () {
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
-		const data = query({
-		    "initialValue": _TestQuery,
-		    "variables": _TestQuery_Input,
+		const {
+		    data
+		} = query({
+		    "artifact": _TestQueryArtifact,
 		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact
+		    "initialValue": _TestQuery,
+		    "variables": _TestQuery_Input
 		});
 
 		$:
@@ -90,7 +92,7 @@ describe('query preprocessor', function () {
 			</script>
 
 			<script>
-				const data = query(graphql\`
+				const { data } = query(graphql\`
 					query TestQuery($test: Boolean!) {
 						viewer {
 							id
@@ -137,20 +139,24 @@ describe('query preprocessor', function () {
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery.cjs";
-		import { updateStoreData } from "$houdini";
+		import { query, getQuery } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
-		const data = query({
+		let _TestQuery_handler = query({
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQueryArtifact
 		});
 
+		const {
+		    data
+		} = getQuery(_TestQuery_handler);
+
 		$:
 		{
-		    updateStoreData("TestQuery", _TestQuery, _TestQuery_Input);
+		    _TestQuery_handler.writeData(_TestQuery, _TestQuery_Input);
 		}
 	`)
 	})

@@ -9,6 +9,7 @@ import {
 } from '@babel/types'
 import { Config, Script } from 'houdini-common'
 import { DocumentArtifact } from 'houdini'
+import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
 import { TransformDocument } from '../types'
 import { walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
@@ -40,6 +41,8 @@ export default async function queryProcessor(
 	// note: we'll  replace the tags as we discover them with something the runtime library can use
 	const queries: EmbeddedGraphqlDocument[] = []
 
+	// we need to keep track of
+
 	// go to every graphql document
 	await walkTaggedDocuments(doc, doc.instance.content, {
 		// with only one definition defining a fragment
@@ -54,37 +57,24 @@ export default async function queryProcessor(
 		// we want to replace it with an object that the runtime can use
 		onTag(tag: EmbeddedGraphqlDocument) {
 			// pull out what we need
-			const { artifact, node } = tag
+			const { node, parsedDocument, parent } = tag
 
 			// add the document to the list
 			queries.push(tag)
 
-			// we're going to replace the graphql tag with an object containing the information the runtime needs
+			// we're going to hoist the actual query so we need to replace the graphql tag with
+			// a reference to the result
 			node.replaceWith(
-				AST.objectExpression([
-					AST.objectProperty(
-						AST.stringLiteral('initialValue'),
-						AST.identifier(
-							preloadPayloadKey(
-								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-							)
-						)
-					),
-					AST.objectProperty(
-						AST.stringLiteral('variables'),
-						AST.identifier(
-							variablesKey(
-								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-							)
-						)
-					),
-					AST.objectProperty(AST.literal('kind'), AST.stringLiteral(artifact.kind)),
-					AST.objectProperty(
-						AST.literal('artifact'),
-						AST.identifier(artifactIdentifier(artifact))
-					),
-				])
+				queryHandlerIdentifier(
+					parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+				)
 			)
+
+			// as well as change the name of query to something that will just pass the result through
+			const callParent = parent as namedTypes.CallExpression
+			if (callParent.type === 'CallExpression' && callParent.callee.type === 'Identifier') {
+				callParent.callee.name = 'getQuery'
+			}
 		},
 	})
 
@@ -335,31 +325,54 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 }
 
 function processInstance(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
-	let storeUpdateImport = script.content.body.find(
-		(statement) =>
-			statement.type === 'ImportDeclaration' &&
-			statement.source.value === '$houdini' &&
-			statement.specifiers.find(
-				(importSpecifier) =>
-					importSpecifier.type === 'ImportSpecifier' &&
-					importSpecifier.imported.type === 'Identifier' &&
-					importSpecifier.imported.name === 'updateStoreData' &&
-					importSpecifier.local.name === 'updateStoreData'
-			)
-	) as ImportDeclaration
-	// add the import if it doesn't exist, add it
-	if (!storeUpdateImport) {
+	// the things we need to import from the generate runtime
+	const toImport = []
+
+	// check if we need to import query and getQuery under names we can trust
+	if (
+		!script.content.body.find(
+			(statement) =>
+				statement.type === 'ImportDeclaration' &&
+				statement.source.value === '$houdini' &&
+				statement.specifiers.find(
+					(importSpecifier) =>
+						importSpecifier.type === 'ImportSpecifier' &&
+						importSpecifier.imported.type === 'Identifier' &&
+						importSpecifier.imported.name === 'query' &&
+						importSpecifier.local &&
+						importSpecifier.local.name === 'query'
+				)
+		)
+	) {
+		toImport.push('query')
+	}
+	if (
+		!script.content.body.find(
+			(statement) =>
+				statement.type === 'ImportDeclaration' &&
+				statement.source.value === '$houdini' &&
+				statement.specifiers.find(
+					(importSpecifier) =>
+						importSpecifier.type === 'ImportSpecifier' &&
+						importSpecifier.imported.type === 'Identifier' &&
+						importSpecifier.imported.name === 'getQuery' &&
+						importSpecifier.local &&
+						importSpecifier.local.name === 'getQuery'
+				)
+		)
+	) {
+		toImport.push('getQuery')
+	}
+
+	if (toImport.length > 0) {
 		script.content.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
 			source: AST.literal('$houdini'),
-			specifiers: [
-				// @ts-ignore
-				AST.importSpecifier(
-					AST.identifier('updateStoreData'),
-					AST.identifier('updateStoreData')
-				),
-			],
+			// @ts-ignore
+			specifiers: toImport.map((target) =>
+				AST.importSpecifier(AST.identifier(target), AST.identifier(target))
+			),
 		})
 	}
 
@@ -395,6 +408,8 @@ function processInstance(config: Config, script: Script, queries: EmbeddedGraphq
 		// the identifier for the query variables
 		const variableIdentifier = variablesKey(operation)
 
+		const { artifact, parsedDocument } = document
+
 		// prop declarations needs to be added to the top of the document
 		script.content.body.splice(
 			propInsertIndex,
@@ -408,7 +423,42 @@ function processInstance(config: Config, script: Script, queries: EmbeddedGraphq
 				AST.variableDeclaration('let', [
 					AST.variableDeclarator(AST.identifier(variableIdentifier)),
 				])
-			)
+			),
+			AST.variableDeclaration('let', [
+				AST.variableDeclarator(
+					queryHandlerIdentifier(operation),
+					AST.callExpression(AST.identifier('query'), [
+						AST.objectExpression([
+							AST.objectProperty(
+								AST.stringLiteral('initialValue'),
+								AST.identifier(
+									preloadPayloadKey(
+										parsedDocument
+											.definitions[0] as graphql.OperationDefinitionNode
+									)
+								)
+							),
+							AST.objectProperty(
+								AST.stringLiteral('variables'),
+								AST.identifier(
+									variablesKey(
+										parsedDocument
+											.definitions[0] as graphql.OperationDefinitionNode
+									)
+								)
+							),
+							AST.objectProperty(
+								AST.literal('kind'),
+								AST.stringLiteral(artifact.kind)
+							),
+							AST.objectProperty(
+								AST.literal('artifact'),
+								AST.identifier(artifactIdentifier(artifact))
+							),
+						]),
+					])
+				),
+			])
 		)
 
 		// reactive statements to synchronize state with query updates need to be at the bottom (where everything
@@ -419,11 +469,13 @@ function processInstance(config: Config, script: Script, queries: EmbeddedGraphq
 				AST.identifier('$'),
 				AST.blockStatement([
 					AST.expressionStatement(
-						AST.callExpression(AST.identifier('updateStoreData'), [
-							AST.stringLiteral(document.artifact.name),
-							AST.identifier(preloadKey),
-							AST.identifier(variableIdentifier),
-						])
+						AST.callExpression(
+							AST.memberExpression(
+								queryHandlerIdentifier(operation),
+								AST.identifier('writeData')
+							),
+							[AST.identifier(preloadKey), AST.identifier(variableIdentifier)]
+						)
 					),
 				])
 			)
@@ -433,6 +485,10 @@ function processInstance(config: Config, script: Script, queries: EmbeddedGraphq
 
 function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
 	return `_${operation.name?.value}`
+}
+
+function queryHandlerIdentifier(operation: graphql.OperationDefinitionNode): namedTypes.Identifier {
+	return AST.identifier(`_${operation.name?.value}_handler`)
 }
 
 function variablesKey(operation: graphql.OperationDefinitionNode): string {

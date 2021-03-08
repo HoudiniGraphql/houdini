@@ -36,9 +36,6 @@ export default async function mutationProcessor(
 		},
 		// we want to replace it with an object that the runtime can use
 		onTag({ artifact, parsedDocument, node }) {
-			// figure out the root type of the fragment
-			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-
 			// replace the graphql node with the object
 			node.replaceWith(
 				AST.objectExpression([
