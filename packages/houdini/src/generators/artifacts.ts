@@ -39,6 +39,9 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				if (!nameArg || nameArg.value.kind !== 'StringValue') {
 					throw new Error('could not find name arg in connection directive')
 				}
+
+				// the delete directive is an interesting one since there isn't a specific
+				// connection. use something that points to deleting an instance of the type
 				const connectionName = nameArg.value.value
 
 				let field = ancestors[ancestors.length - 1] as graphql.FieldNode
@@ -63,17 +66,25 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				const parentType = getTypeFromAncestors(config.schema, [
 					...parents.slice(1),
 				]) as graphql.GraphQLObjectType
-				const typeField = parentType.getFields()[field.name.value]
-				if (!typeField) {
+				const parentField = parentType.getFields()[field.name.value]
+				if (!parentField) {
 					throw new Error('Could not find field information when computing filters')
 				}
+				const fieldType = getRootType(parentField.type).toString()
+
 				// look at every arg on the connection to figure out the valid filters
-				filterTypes[connectionName] = typeField.args.reduce((prev, arg) => {
+				filterTypes[connectionName] = parentField.args.reduce((prev, arg) => {
 					return {
 						...prev,
-						[arg.name]: arg.type.toString(),
+						[arg.name]: getRootType(arg.type).toString(),
 					}
 				}, {})
+
+				// every field with the connection type adds to the delete filters
+				filterTypes[`${fieldType}_delete`] = {
+					...filterTypes[`${fieldType}_delete`],
+					...filterTypes[connectionName],
+				}
 			},
 		})
 	}
@@ -660,7 +671,7 @@ function operationsByPath(
 			pathOperatons[path].elements.push(
 				operationObject({
 					config,
-					connectionName: config.connectionNameFromDirective(node.name.value),
+					connectionName: `${node.name.value}`,
 					operationKind: 'delete',
 					info: operationInfo(
 						config,
@@ -941,7 +952,7 @@ function filterAST(
 			} else if (type === 'Int') {
 				literal = AST.numericLiteral(parseInt(value as string, 10))
 			} else {
-				throw new Error('Could not figure out filter value')
+				throw new Error('Could not figure out filter value with type: ' + type)
 			}
 			return AST.objectProperty(AST.literal(key), literal)
 		})
