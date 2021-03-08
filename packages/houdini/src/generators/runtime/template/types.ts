@@ -97,6 +97,12 @@ export type SubscriptionSelection = {
 		keyRaw: string
 		operations?: MutationOperation[]
 		connection?: string
+		filters?: {
+			[key: string]: {
+				kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
+				value: string
+			}
+		}
 		fields?: SubscriptionSelection
 	}
 }
@@ -106,4 +112,5 @@ export type SubscriptionSpec = {
 	selection: SubscriptionSelection
 	set: (data: any) => void
 	parentID?: string
+	// i dont know what to call this
 }

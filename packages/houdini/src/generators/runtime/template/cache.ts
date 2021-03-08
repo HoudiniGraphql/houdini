@@ -1,5 +1,11 @@
 // local imports
-import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from './types'
+import {
+	Maybe,
+	GraphQLValue,
+	SubscriptionSelection,
+	SubscriptionSpec,
+	ConnectionWhen,
+} from './types'
 
 // this file holds the implementation (and singleton) for the cache that drives
 // houdini queries
@@ -699,6 +705,7 @@ class ConnectionHandler {
 	readonly connectionType: string
 	private cache: Cache
 	private selection: SubscriptionSelection
+	private _when?: ConnectionWhen
 
 	constructor({
 		cache,
@@ -718,6 +725,12 @@ class ConnectionHandler {
 		this.connectionType = connectionType
 		this.cache = cache
 		this.selection = selection
+	}
+
+	// when applies a when condition to the connection and returns itself as a builder
+	when(when?: ConnectionWhen) {
+		this._when = when
+		return this
 	}
 
 	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {

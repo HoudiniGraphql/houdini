@@ -1802,6 +1802,139 @@ describe('mutation artifacts', function () {
 	`)
 	})
 
+	test('connection filters', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Mutation A',
+				`mutation A { 
+					addFriend { 
+						friend { 
+							...All_Users_insert @when_not(argument: "boolValue", value: "true")
+						}
+					} 
+				}`
+			),
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery($value: String!) { 
+					users(
+						stringValue: $value, 
+						boolValue: true, 
+						floatValue: 1.2,
+						intValue: 1,
+					) @connection(name: "All_Users") { 
+						firstName
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[1].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "TestQuery";
+		module.exports.kind = "HoudiniQuery";
+		module.exports.hash = "77e73a9f844dc87ec168c5255d4a7eb0";
+
+		module.exports.raw = \`query TestQuery($value: String!) {
+		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
+		    firstName
+		  }
+		}
+		\`;
+
+		module.exports.rootType = "Query";
+
+		module.exports.selection = {
+		    "users": {
+		        "type": "User",
+		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName"
+		            }
+		        },
+
+		        "connection": "All_Users",
+
+		        "filters": {
+		            "stringValue": {
+		                "kind": "Variable",
+		                "value": "value"
+		            },
+
+		            "boolValue": {
+		                "kind": "Boolean",
+		                "value": true
+		            },
+
+		            "floatValue": {
+		                "kind": "Float",
+		                "value": 1.2
+		            },
+
+		            "intValue": {
+		                "kind": "Int",
+		                "value": 1
+		            }
+		        }
+		    }
+		};
+
+		module.exports.response = {
+		    "users": {
+		        "type": "User",
+		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName"
+		            }
+		        },
+
+		        "connection": "All_Users",
+
+		        "filters": {
+		            "stringValue": {
+		                "kind": "Variable",
+		                "value": "value"
+		            },
+
+		            "boolValue": {
+		                "kind": "Boolean",
+		                "value": true
+		            },
+
+		            "floatValue": {
+		                "kind": "Float",
+		                "value": 1.2
+		            },
+
+		            "intValue": {
+		                "kind": "Int",
+		                "value": 1
+		            }
+		        }
+		    }
+		};
+	`)
+	})
+
 	test('must_not - directive', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(

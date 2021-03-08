@@ -281,22 +281,17 @@ function selection({
 				)
 			}
 
-			// check if there is a connection directive tagging this field
-			const connectionDirective = field.directives?.find(
-				(directive) => directive.name.value === config.connectionDirective
-			)
-			// get the name of the connection
-			const nameArg = connectionDirective?.arguments?.find((arg) => arg.name.value === 'name')
+			// get the name of the connection directive tagging this field
+			const nameArg = field.directives
+				?.find((directive) => directive.name.value === config.connectionDirective)
+				?.arguments?.find((arg) => arg.name.value === 'name')
+			let connection
 			if (nameArg && nameArg.value.kind === 'StringValue') {
+				connection = nameArg.value.value
 				fieldObj.properties.push(
-					AST.objectProperty(
-						AST.literal('connection'),
-						AST.stringLiteral(nameArg.value.value)
-					)
+					AST.objectProperty(AST.literal('connection'), AST.stringLiteral(connection))
 				)
 			}
-
-			// if there is a selection set, add it to the field object
 
 			// only add the field object if there are properties in it
 			if (field.selectionSet) {
@@ -313,6 +308,57 @@ function selection({
 				fieldObj.properties.push(AST.objectProperty(AST.literal('fields'), selectionObj))
 			}
 
+			// any arguments on the connection field can act as a filter
+			if (field.arguments?.length && connection) {
+				fieldObj.properties.push(
+					AST.objectProperty(
+						AST.stringLiteral('filters'),
+						AST.objectExpression(
+							(field.arguments || []).flatMap((arg) => {
+								// figure out the value to use
+								let value
+								let kind
+
+								if (arg.value.kind === graphql.Kind.INT) {
+									value = AST.literal(parseInt(arg.value.value, 10))
+									kind = 'Int'
+								} else if (arg.value.kind === graphql.Kind.FLOAT) {
+									value = AST.literal(parseFloat(arg.value.value))
+									kind = 'Float'
+								} else if (arg.value.kind === graphql.Kind.BOOLEAN) {
+									value = AST.booleanLiteral(arg.value.value)
+									kind = 'Boolean'
+								} else if (arg.value.kind === graphql.Kind.VARIABLE) {
+									value = AST.stringLiteral(arg.value.name.value)
+									kind = 'Variable'
+								} else if (arg.value.kind === graphql.Kind.STRING) {
+									value = AST.stringLiteral(arg.value.value)
+									kind = 'String'
+								}
+
+								if (!value || !kind) {
+									return []
+								}
+
+								return [
+									AST.objectProperty(
+										AST.stringLiteral(arg.name.value),
+										AST.objectExpression([
+											AST.objectProperty(
+												AST.literal('kind'),
+												AST.stringLiteral(kind)
+											),
+											AST.objectProperty(AST.literal('value'), value),
+										])
+									),
+								]
+							})
+						)
+					)
+				)
+			}
+
+			// add the field data we computed
 			object.properties.push(AST.objectProperty(AST.stringLiteral(attributeName), fieldObj))
 		}
 	}
@@ -401,14 +447,21 @@ function mergeSelections(
 			)
 			.filter(Boolean)
 
+		const filters = properties
+			.map((property) =>
+				(property.value as namedTypes.ObjectExpression).properties.find(
+					(prop) =>
+						prop.type === 'ObjectProperty' &&
+						prop.key.type === 'StringLiteral' &&
+						prop.key.value === 'filters'
+				)
+			)
+			.filter(Boolean)[0] as namedTypes.ObjectProperty
+
 		// look at the first one in the list to check type
 		const typeProperty = types[0]
 		const key = keys[0]
 		const connection = connections[0]
-
-		if (attributeName === 'friend') {
-			operations
-		}
 
 		// if the type is a scalar just add the first one and move on
 		if (config.isSelectionScalar(typeProperty)) {
@@ -416,6 +469,9 @@ function mergeSelections(
 			continue
 		}
 
+		if (attributeName === 'users') {
+			operations
+		}
 		const fields = properties
 			.map<namedTypes.ObjectExpression>(
 				(property) =>
@@ -457,6 +513,10 @@ function mergeSelections(
 						AST.arrayExpression(operations.reduce((prev, acc) => prev.concat(acc), []))
 					)
 				)
+			}
+
+			if (filters) {
+				fieldObj.properties.push(filters)
 			}
 
 			obj.properties.push(AST.objectProperty(AST.literal(attributeName), fieldObj))
