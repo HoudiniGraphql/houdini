@@ -1194,7 +1194,7 @@ describe('mutation artifacts', function () {
 				`mutation A { 
 					addFriend { 
 						friend { 
-							...All_Users_insert @prepend(when: { argument: "boolValue", value: "true" })
+							...All_Users_insert @prepend(when: { argument: "stringValue", value: "foo" })
 						}
 					} 
 				}`
@@ -1226,7 +1226,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "5ced4c4d96cac1354214e620d431efbc";
+		module.exports.hash = "16befb94c3605e5a1caf9bc45cf39f6a";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1261,7 +1261,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must": {
-		                            "boolValue": "true"
+		                            "stringValue": "foo"
 		                        }
 		                    }
 		                }]
@@ -1299,7 +1299,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must": {
-		                            "boolValue": "true"
+		                            "stringValue": "foo"
 		                        }
 		                    }
 		                }]
@@ -1317,7 +1317,7 @@ describe('mutation artifacts', function () {
 				`mutation A { 
 					addFriend { 
 						friend { 
-							...All_Users_insert @append(when: { argument: "boolValue", value: "true" })
+							...All_Users_insert @append(when: { argument: "stringValue", value: "true" })
 						}
 					} 
 				}`
@@ -1349,7 +1349,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "75f855274f5456a4c8004caf01942c48";
+		module.exports.hash = "967f5eb183efaeed4e44a1800672536b";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1384,7 +1384,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must": {
-		                            "boolValue": "true"
+		                            "stringValue": "true"
 		                        }
 		                    }
 		                }]
@@ -1422,7 +1422,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must": {
-		                            "boolValue": "true"
+		                            "stringValue": "true"
 		                        }
 		                    }
 		                }]
@@ -1440,7 +1440,7 @@ describe('mutation artifacts', function () {
 				`mutation A { 
 					addFriend { 
 						friend { 
-							...All_Users_insert @when(argument: "boolValue", value: "true")
+							...All_Users_insert @when(argument: "stringValue", value: "true")
 						}
 					} 
 				}`
@@ -1472,7 +1472,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "3c8dba5b58162f442b994f5b8ea4a86e";
+		module.exports.hash = "61da1ee5cf830dbce08aaffaa7280dc9";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1507,7 +1507,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must": {
-		                            "boolValue": "true"
+		                            "stringValue": "true"
 		                        }
 		                    }
 		                }]
@@ -1545,7 +1545,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must": {
-		                            "boolValue": "true"
+		                            "stringValue": "true"
 		                        }
 		                    }
 		                }]
@@ -1563,7 +1563,7 @@ describe('mutation artifacts', function () {
 				`mutation A { 
 					addFriend { 
 						friend { 
-							...All_Users_insert @prepend(when_not: { argument: "boolValue", value: "true" })
+							...All_Users_insert @prepend(when_not: { argument: "stringValue", value: "true" })
 						}
 					} 
 				}`
@@ -1595,7 +1595,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "855ecff81a12f90d28c79cd143e0e1b0";
+		module.exports.hash = "9c324138854a00e0b810323225026e8b";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1630,7 +1630,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must_not": {
-		                            "boolValue": "true"
+		                            "stringValue": "true"
 		                        }
 		                    }
 		                }]
@@ -1668,7 +1668,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must_not": {
-		                            "boolValue": "true"
+		                            "stringValue": "true"
 		                        }
 		                    }
 		                }]
@@ -1686,7 +1686,7 @@ describe('mutation artifacts', function () {
 				`mutation A { 
 					addFriend { 
 						friend { 
-							...All_Users_insert @append(when_not: { argument: "boolValue", value: "true" })
+							...All_Users_insert @append(when_not: { argument: "stringValue", value: "true" })
 						}
 					} 
 				}`
@@ -1718,7 +1718,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "56fe5c85d17523318a96c2d78c3db735";
+		module.exports.hash = "30737abe9a11ca05d4dd74a6e2ed9fde";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1753,7 +1753,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must_not": {
-		                            "boolValue": "true"
+		                            "stringValue": "true"
 		                        }
 		                    }
 		                }]
@@ -1791,7 +1791,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must_not": {
-		                            "boolValue": "true"
+		                            "stringValue": "true"
 		                        }
 		                    }
 		                }]
@@ -1950,7 +1950,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+					users(stringValue: "foo", boolValue:true) @connection(name: "All_Users") { 
 						firstName
 					} 
 				}`
@@ -2047,7 +2047,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must_not": {
-		                            "boolValue": "true"
+		                            "boolValue": true
 		                        }
 		                    }
 		                }]

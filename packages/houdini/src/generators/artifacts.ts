@@ -1,5 +1,5 @@
 // externals
-import { Config, getRootType, hashDocument } from 'houdini-common'
+import { Config, getRootType, hashDocument, getTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 import {
 	CompiledQueryKind,
@@ -13,13 +13,16 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 import { moduleExport } from '../utils'
-import { ConnectionWhen, GraphQLValue, MutationOperation } from './runtime/template'
+import { ConnectionWhen, MutationOperation } from './runtime/template'
 
 const AST = recast.types.builders
 
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
 export default async function artifactGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
+	// put together the type information for the filter for every connection
+	const filterTypes: FilterMap = {}
+
 	for (const doc of docs) {
 		graphql.visit(doc.document, {
 			// look for any field marked with a connection
@@ -35,6 +38,27 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				)
 				if (!nameArg || nameArg.value.kind !== 'StringValue') {
 					throw new Error('could not find name arg in connection directive')
+				}
+				const connectionName = nameArg.value.value
+
+				let field = ancestors[ancestors.length - 1] as graphql.FieldNode
+				let i = 1
+				while (Array.isArray(field)) {
+					i++
+					field = ancestors[ancestors.length - i] as graphql.FieldNode
+				}
+				if (field.kind !== 'Field') {
+					return
+				}
+
+				// look at every arg on the connection to figure out the valid filters
+				if (field.arguments) {
+					filterTypes[connectionName] = field.arguments.reduce((prev, arg) => {
+						return {
+							...prev,
+							[arg.name.value]: arg.value.kind.replace('Value', ''),
+						}
+					}, {})
 				}
 			},
 		})
@@ -144,7 +168,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						printed,
 						rootType,
 						selectionSet: selectionSet,
-						operations: operationsByPath(config, operations[0]),
+						operations: operationsByPath(config, operations[0], filterTypes),
 						includeFragments: false,
 						document,
 					})
@@ -161,7 +185,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 							printed,
 							rootType,
 							selectionSet: selectionSet,
-							operations: operationsByPath(config, operations[0]),
+							operations: operationsByPath(config, operations[0], filterTypes),
 							includeFragments: true,
 							document,
 						})
@@ -559,7 +583,8 @@ function fieldKey(printed: string, field: graphql.FieldNode): string {
 // return the list of operations that are part of a mutation
 function operationsByPath(
 	config: Config,
-	definition: graphql.OperationDefinitionNode
+	definition: graphql.OperationDefinitionNode,
+	filterTypes: FilterMap
 ): { [path: string]: namedTypes.ArrayExpression } {
 	// map the path in the response to the list of operations that treat it as the source
 	const pathOperatons: { [path: string]: namedTypes.ArrayExpression } = {}
@@ -584,12 +609,24 @@ function operationsByPath(
 				pathOperatons[path] = AST.arrayExpression([])
 			}
 
+			const parents = [...ancestors] as (
+				| graphql.FieldNode
+				| graphql.InlineFragmentNode
+				| graphql.FragmentDefinitionNode
+				| graphql.OperationDefinitionNode
+				| graphql.SelectionSetNode
+			)[]
+			parents.reverse()
+
 			// add the operation object to the list
 			pathOperatons[path].elements.push(
 				operationObject({
+					config,
 					connectionName: config.connectionNameFromFragment(node.name.value),
 					operationKind: config.connectionOperationFromFragment(node.name.value),
 					info: operationInfo(config, node),
+					type: getTypeFromAncestors(config.schema, parents).name,
+					filterTypes,
 				})
 			)
 		},
@@ -608,6 +645,7 @@ function operationsByPath(
 			// add the operation object to the list
 			pathOperatons[path].elements.push(
 				operationObject({
+					config,
 					connectionName: config.connectionNameFromDirective(node.name.value),
 					operationKind: 'delete',
 					info: operationInfo(
@@ -615,6 +653,7 @@ function operationsByPath(
 						ancestors[ancestors.length - 1] as graphql.FieldNode
 					),
 					type: config.connectionNameFromDirective(node.name.value),
+					filterTypes,
 				})
 			)
 		},
@@ -624,15 +663,19 @@ function operationsByPath(
 }
 
 function operationObject({
+	config,
 	connectionName,
 	operationKind,
 	info,
 	type,
+	filterTypes,
 }: {
+	config: Config
 	connectionName: string
 	operationKind: string
 	info: OperationInfo
-	type?: string
+	type: string
+	filterTypes: FilterMap
 }) {
 	const operation = AST.objectExpression([
 		AST.objectProperty(AST.literal('action'), AST.stringLiteral(operationKind)),
@@ -681,13 +724,21 @@ function operationObject({
 
 		// if there is a must
 		if (info.when.must) {
-			when.properties.push(AST.objectProperty(AST.literal('must'), filterAST(info.when.must)))
+			when.properties.push(
+				AST.objectProperty(
+					AST.literal('must'),
+					filterAST(filterTypes, connectionName, info.when.must)
+				)
+			)
 		}
 
 		// if there is a must_not
 		if (info.when.must_not) {
 			when.properties.push(
-				AST.objectProperty(AST.literal('must_not'), filterAST(info.when.must_not))
+				AST.objectProperty(
+					AST.literal('must_not'),
+					filterAST(filterTypes, connectionName, info.when.must_not)
+				)
 			)
 		}
 
@@ -846,21 +897,35 @@ function operationInfo(config: Config, selection: graphql.SelectionNode): Operat
 	}
 }
 
-function filterAST(filter: ConnectionWhen['must']): namedTypes.ObjectExpression {
+function filterAST(
+	filterTypes: FilterMap,
+	connectionName: string,
+	filter: ConnectionWhen['must']
+): namedTypes.ObjectExpression {
 	if (!filter) {
 		return AST.objectExpression([])
 	}
+
 	// build up the object
 	return AST.objectExpression(
 		Object.entries(filter).map(([key, value]) => {
-			// figure out the right value
-			let literal = null
-			if (typeof value === 'string') {
-				literal = AST.stringLiteral(value)
-			} else if (typeof value === 'boolean') {
-				literal = AST.booleanLiteral(value)
-			} else if (typeof value === 'number') {
-				literal = AST.numericLiteral(value)
+			// look up the key in the type map
+			const type = filterTypes[connectionName] && filterTypes[connectionName][key]
+			if (!type) {
+				throw new Error(
+					`It does not look like ${key} is a correct filter for connection ${connectionName}`
+				)
+			}
+
+			let literal
+			if (type === 'String') {
+				literal = AST.stringLiteral(value as string)
+			} else if (type === 'Boolean') {
+				literal = AST.booleanLiteral(value === 'true')
+			} else if (type === 'Float') {
+				literal = AST.numericLiteral(parseFloat(value as string))
+			} else if (type === 'Int') {
+				literal = AST.numericLiteral(parseInt(value as string, 10))
 			} else {
 				throw new Error('Could not figure out filter value')
 			}
@@ -881,4 +946,9 @@ function ancestorKey(ancestors: any): string {
 			.map((field) => field.name.value)
 			.join(',')
 	)
+}
+type FilterMap = {
+	[connectionName: string]: {
+		[filterName: string]: 'String' | 'Float' | 'Int' | 'Boolean'
+	}
 }
