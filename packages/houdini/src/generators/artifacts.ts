@@ -51,15 +51,29 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					return
 				}
 
-				// look at every arg on the connection to figure out the valid filters
-				if (field.arguments) {
-					filterTypes[connectionName] = field.arguments.reduce((prev, arg) => {
-						return {
-							...prev,
-							[arg.name.value]: arg.value.kind.replace('Value', ''),
-						}
-					}, {})
+				// we need to traverse the ancestors from child up
+				const parents = [...ancestors] as (
+					| graphql.OperationDefinitionNode
+					| graphql.FragmentDefinitionNode
+					| graphql.SelectionNode
+				)[]
+				parents.reverse()
+
+				// look up the parent's type so we can ask about the field marked as a connection
+				const parentType = getTypeFromAncestors(config.schema, [
+					...parents.slice(1),
+				]) as graphql.GraphQLObjectType
+				const typeField = parentType.getFields()[field.name.value]
+				if (!typeField) {
+					throw new Error('Could not find field information when computing filters')
 				}
+				// look at every arg on the connection to figure out the valid filters
+				filterTypes[connectionName] = typeField.args.reduce((prev, arg) => {
+					return {
+						...prev,
+						[arg.name]: arg.type.toString(),
+					}
+				}, {})
 			},
 		})
 	}
@@ -696,7 +710,7 @@ function operationObject({
 	// only add the position argument if we are inserting something
 	if (operationKind === 'insert') {
 		operation.properties.push(
-			AST.objectProperty(AST.literal('position'), AST.stringLiteral(info.position))
+			AST.objectProperty(AST.literal('position'), AST.stringLiteral(info.position || 'last'))
 		)
 	}
 
@@ -913,7 +927,7 @@ function filterAST(
 			const type = filterTypes[connectionName] && filterTypes[connectionName][key]
 			if (!type) {
 				throw new Error(
-					`It looks like ${key} is an incorrect filter for connection ${connectionName}`
+					`It looks like "${key}" is an invalid filter for connection ${connectionName}`
 				)
 			}
 
