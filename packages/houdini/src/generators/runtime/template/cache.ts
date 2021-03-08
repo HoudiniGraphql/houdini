@@ -402,7 +402,12 @@ export class Cache {
 					fields &&
 					operation.connection
 				) {
-					this.connection(operation.connection, parentID).append(fields, value)
+					this.connection(operation.connection, parentID).addToConnection(
+						fields,
+						value,
+						variables,
+						operation.position || 'last'
+					)
 				}
 
 				// only insert an object into a connection if we're adding an object with fields
@@ -602,13 +607,22 @@ class Record {
 			.filter((record) => record !== null) as Record[]
 	}
 
-	addToLinkedList(fieldName: string, id: string) {
+	appendLinkedList(fieldName: string, id: string) {
 		// this could be the first time we've seen the list
 		if (!this.listLinks[fieldName]) {
 			this.listLinks[fieldName] = []
 		}
 
 		this.listLinks[fieldName].push(id)
+	}
+
+	prependLinkedList(fieldName: string, id: string) {
+		// this could be the first time we've seen the list
+		if (!this.listLinks[fieldName]) {
+			this.listLinks[fieldName] = []
+		}
+
+		this.listLinks[fieldName].unshift(id)
 	}
 
 	removeFromLinkedList(fieldName: string, id: string) {
@@ -707,14 +721,32 @@ class ConnectionHandler {
 	}
 
 	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
+		return this.addToConnection(selection, data, variables, 'last')
+	}
+
+	prepend(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
+		return this.addToConnection(selection, data, variables, 'first')
+	}
+
+	addToConnection(
+		selection: SubscriptionSelection,
+		data: {},
+		variables: {} = {},
+		where: 'first' | 'last'
+	) {
 		// figure out the id of the type we are adding
 		const dataID = this.cache.id(this.connectionType, data)
 
 		// update the cache with the data we just found
 		this.cache.write(selection, data, variables, dataID)
 
-		// add the record we just created to the list
-		this.record.addToLinkedList(this.key, dataID)
+		if (where === 'first') {
+			// add the record we just created to the list
+			this.record.prependLinkedList(this.key, dataID)
+		} else {
+			// add the record we just created to the list
+			this.record.appendLinkedList(this.key, dataID)
+		}
 
 		// get the list of specs that are subscribing to the connection
 		const subscribers = this.record.getSubscribers(this.key)
