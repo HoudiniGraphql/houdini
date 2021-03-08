@@ -228,7 +228,11 @@ function selection({
 				document,
 			})
 			for (const property of fragmentFields.properties) {
-				object.properties.push(property)
+				object.properties.push(
+					...fragmentFields.properties.filter(
+						(prop) => prop.type === 'ObjectProperty' && prop.key
+					)
+				)
 			}
 		}
 		// inline fragments should be merged with the parent
@@ -293,33 +297,40 @@ function selection({
 			}
 
 			// if there is a selection set, add it to the field object
-			if (
-				field.selectionSet &&
-				field.selectionSet.selections.filter(({ kind }) => kind !== 'FragmentSpread')
-					.length > 0
-			) {
-				fieldObj.properties.push(
-					AST.objectProperty(
-						AST.literal('fields'),
-						selection({
-							config,
-							rootType: typeName,
-							selectionSet: field.selectionSet,
-							operations,
-							path: pathSoFar,
-							printed,
-							includeFragments,
-							document,
-						})
+
+			// only add the field object if there are properties in it
+			if (field.selectionSet) {
+				const selectionObj = selection({
+					config,
+					rootType: typeName,
+					selectionSet: field.selectionSet,
+					operations,
+					path: pathSoFar,
+					printed,
+					includeFragments,
+					document,
+				})
+				if (selectionObj.properties.length > 0) {
+					fieldObj.properties.push(
+						AST.objectProperty(AST.literal('fields'), selectionObj)
 					)
-				)
+				}
 			}
 
 			object.properties.push(AST.objectProperty(AST.stringLiteral(attributeName), fieldObj))
 		}
 	}
 
-	return object
+	// build a unique set of fields
+	const fields = (object.properties as namedTypes.ObjectProperty[]).reduce(
+		(prev, property) => ({
+			...prev,
+			[(property.key as namedTypes.StringLiteral).value]: property,
+		}),
+		{}
+	)
+
+	return AST.objectExpression(Object.values(fields))
 }
 
 // we need to generate a static key that we can use to index this field in the cache.

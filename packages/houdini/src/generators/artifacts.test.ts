@@ -152,7 +152,81 @@ test('internal directives are scrubbed', async function () {
 		module.exports.response = {
 		    "user": {
 		        "type": "User",
-		        "keyRaw": "user"
+		        "keyRaw": "user",
+
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName"
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test('overlapping query and fragment selection', async function () {
+	// execute the generator
+	await runPipeline(config, [
+		mockCollectedDoc('Fragment', `fragment A on User { firstName }`),
+		mockCollectedDoc('TestQuery', `query TestQuery { user { firstName ...A @prepend } }`),
+	])
+
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "TestQuery";
+		module.exports.kind = "HoudiniQuery";
+		module.exports.hash = "3ec890e9ea3a5482628bdaf932551e3c";
+
+		module.exports.raw = \`query TestQuery {
+		  user {
+		    firstName
+		    ...A
+		  }
+		}
+
+		fragment A on User {
+		  firstName
+		}
+		\`;
+
+		module.exports.rootType = "Query";
+
+		module.exports.selection = {
+		    "user": {
+		        "type": "User",
+		        "keyRaw": "user",
+
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName"
+		            }
+		        }
+		    }
+		};
+
+		module.exports.response = {
+		    "user": {
+		        "type": "User",
+		        "keyRaw": "user",
+
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName"
+		            }
+		        }
 		    }
 		};
 	`)
@@ -346,7 +420,19 @@ describe('mutation artifacts', function () {
 		                    "action": "insert",
 		                    "connection": "All_Users",
 		                    "position": "last"
-		                }]
+		                }],
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
@@ -442,7 +528,14 @@ describe('mutation artifacts', function () {
 		                "operations": [{
 		                    "action": "remove",
 		                    "connection": "All_Users"
-		                }]
+		                }],
+
+		                "fields": {
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
@@ -739,7 +832,19 @@ describe('mutation artifacts', function () {
 		                        "kind": "String",
 		                        "value": "1234"
 		                    }
-		                }]
+		                }],
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
@@ -848,7 +953,19 @@ describe('mutation artifacts', function () {
 		                        "kind": "String",
 		                        "value": "1234"
 		                    }
-		                }]
+		                }],
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
@@ -957,7 +1074,19 @@ describe('mutation artifacts', function () {
 		                        "kind": "String",
 		                        "value": "1234"
 		                    }
-		                }]
+		                }],
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
@@ -1068,7 +1197,19 @@ describe('mutation artifacts', function () {
 		                            "boolValue": "true"
 		                        }
 		                    }
-		                }]
+		                }],
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
@@ -1179,7 +1320,19 @@ describe('mutation artifacts', function () {
 		                            "boolValue": "true"
 		                        }
 		                    }
-		                }]
+		                }],
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
@@ -1290,7 +1443,19 @@ describe('mutation artifacts', function () {
 		                            "boolValue": "true"
 		                        }
 		                    }
-		                }]
+		                }],
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
@@ -1401,7 +1566,19 @@ describe('mutation artifacts', function () {
 		                            "boolValue": "true"
 		                        }
 		                    }
-		                }]
+		                }],
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
@@ -1512,7 +1689,19 @@ describe('mutation artifacts', function () {
 		                            "boolValue": "true"
 		                        }
 		                    }
-		                }]
+		                }],
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
@@ -1623,7 +1812,19 @@ describe('mutation artifacts', function () {
 		                            "boolValue": "true"
 		                        }
 		                    }
-		                }]
+		                }],
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
 		            }
 		        }
 		    }
