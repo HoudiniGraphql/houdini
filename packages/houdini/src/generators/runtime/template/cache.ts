@@ -542,8 +542,6 @@ export class Cache {
 			evaluated += char
 		}
 
-		console.log('evaluating key', key, 'with variables', variables, 'got', evaluated)
-
 		return evaluated
 	}
 }

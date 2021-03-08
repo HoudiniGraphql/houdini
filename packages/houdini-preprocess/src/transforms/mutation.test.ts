@@ -34,7 +34,7 @@ describe('mutation preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import _TestMutationArtifact from "$houdini/artifacts/TestMutation.cjs";
+		import _TestMutationArtifact from "$houdini/artifacts/TestMutation";
 		import { mutation } from "$houdini";
 
 		const data = mutation({

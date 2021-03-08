@@ -60,23 +60,25 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import _TestQueryArtifact from "$houdini/artifacts/TestQuery.cjs";
-		import { updateStoreData } from "$houdini";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import { query, getQuery } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
+		let _TestQuery_handler = query({
+		    "initialValue": _TestQuery,
+		    "variables": _TestQuery_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
+		});
+
 		const {
 		    data
-		} = query({
-		    "artifact": _TestQueryArtifact,
-		    "kind": "HoudiniQuery",
-		    "initialValue": _TestQuery,
-		    "variables": _TestQuery_Input
-		});
+		} = getQuery(_TestQuery_handler);
 
 		$:
 		{
-		    updateStoreData("TestQuery", _TestQuery, _TestQuery_Input);
+		    _TestQuery_handler.writeData(_TestQuery, _TestQuery_Input);
 		}
 	`)
 	})
@@ -138,7 +140,7 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import _TestQueryArtifact from "$houdini/artifacts/TestQuery.cjs";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { query, getQuery } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
@@ -210,17 +212,12 @@ async function preprocessorTest(content: string) {
 			raw: query,
 			hash: hashDocument(parsedQuery),
 			response: {
-				rootType: 'Query',
-				fields: {
-					Query: {
-						viewer: {
-							key: 'viewer',
-							type: 'User',
-						},
-					},
-					User: {
+				viewer: {
+					keyRaw: 'viewer',
+					type: 'User',
+					fields: {
 						id: {
-							key: 'id',
+							keyRaw: 'id',
 							type: 'ID',
 						},
 					},
@@ -229,11 +226,11 @@ async function preprocessorTest(content: string) {
 			rootType: 'Query',
 			selection: {
 				viewer: {
-					key: 'viewer',
+					keyRaw: 'viewer',
 					type: 'User',
 					fields: {
 						id: {
-							key: 'id',
+							keyRaw: 'id',
 							type: 'ID',
 						},
 					},

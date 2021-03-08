@@ -219,7 +219,7 @@ function selection({
 
 			const fragmentFields = selection({
 				config,
-				rootType,
+				rootType: fragmentDefinition.typeCondition.name.value,
 				operations,
 				selectionSet: fragmentDefinition.selectionSet,
 				path,

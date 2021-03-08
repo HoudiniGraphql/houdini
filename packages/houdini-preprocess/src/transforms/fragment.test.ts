@@ -32,7 +32,7 @@ describe('fragment preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import _TestFragmentArtifact from "$houdini/artifacts/TestFragment.cjs";
+		import _TestFragmentArtifact from "$houdini/artifacts/TestFragment";
 		let reference;
 
 		const data = fragment({

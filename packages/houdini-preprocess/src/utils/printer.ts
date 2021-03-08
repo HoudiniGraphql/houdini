@@ -10,18 +10,6 @@ import LocalFastPath from './fastPath.js'
 // want to use the prettier plugin to format the html bits of a
 // svelte document
 
-function processSvelteContent(content: string) {
-	// parse the contents
-	const parsed = svelte.parse(content)
-
-	console.log('instance')
-	console.log(content.substring(parsed.instance.start, parsed.instance.end))
-	console.log('module')
-	console.log(content.substring(parsed.module.start, parsed.module.end))
-
-	// console.log(printSvelteDocument(content, parsed))
-}
-
 export function printSvelteDocument(originalText: string, parsed: SvelteAst): string {
 	// wrap the result in a fast path so we can play by prettier's rules
 	const path = new LocalFastPath({ ...parsed, __isRoot: true })

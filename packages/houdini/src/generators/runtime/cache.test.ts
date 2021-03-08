@@ -1618,7 +1618,7 @@ describe('key evaluation', function () {
 		},
 		{
 			title: 'undefined variable',
-			key: 'fieldName(foo: "$bar")',
+			key: 'fieldName(foo: $bar)',
 			variables: {},
 			expected: 'fieldName(foo: undefined)',
 		},
