@@ -430,6 +430,7 @@ export class Cache {
 					fields &&
 					operation.connection
 				) {
+					console.log('removing from', operation.connection, operation.when)
 					this.connection(operation.connection, parentID)
 						.when(operation.when)
 						.remove(value, variables)
@@ -769,33 +770,10 @@ class ConnectionHandler {
 		variables: {} = {},
 		where: 'first' | 'last'
 	) {
+		console.log('comparing', this._when, this.filters)
 		// if there are conditions for this operation
-		if (this._when) {
-			// we only NEED there to be target filters for must's
-			const targets = this.filters
-			let ok = true
-
-			// check must's first
-			if (this._when.must && targets) {
-				ok = Object.entries(this._when.must).reduce<boolean>(
-					(prev, [key, value]) => Boolean(prev && targets[key] == value),
-					ok
-				)
-			}
-			// if there are no targets, nothing could be true that can we compare against
-			if (this._when.must_not) {
-				ok =
-					!targets ||
-					Object.entries(this._when.must_not).reduce<boolean>(
-						(prev, [key, value]) => Boolean(prev && targets[key] != value),
-						ok
-					)
-			}
-
-			// if we didn't satisfy everything we needed to
-			if (!ok) {
-				return
-			}
+		if (!this.validateWhen()) {
+			return
 		}
 
 		// figure out the id of the type we are adding
@@ -830,6 +808,11 @@ class ConnectionHandler {
 	}
 
 	removeID(id: string, variables: {} = {}) {
+		// if there are conditions for this operation
+		if (!this.validateWhen()) {
+			return
+		}
+
 		// add the record we just created to the list
 		this.record.removeFromLinkedList(this.key, id)
 
@@ -851,6 +834,34 @@ class ConnectionHandler {
 	remove(data: {}, variables: {} = {}) {
 		// figure out the id of the type we are adding
 		this.removeID(this.cache.id(this.connectionType, data), variables)
+	}
+
+	private validateWhen() {
+		let ok = true
+		// if there are conditions for this operation
+		if (this._when) {
+			// we only NEED there to be target filters for must's
+			const targets = this.filters
+
+			// check must's first
+			if (this._when.must && targets) {
+				ok = Object.entries(this._when.must).reduce<boolean>(
+					(prev, [key, value]) => Boolean(prev && targets[key] == value),
+					ok
+				)
+			}
+			// if there are no targets, nothing could be true that can we compare against
+			if (this._when.must_not) {
+				ok =
+					!targets ||
+					Object.entries(this._when.must_not).reduce<boolean>(
+						(prev, [key, value]) => Boolean(prev && targets[key] != value),
+						ok
+					)
+			}
+		}
+
+		return ok
 	}
 
 	// iterating over the connection handler should be the same as iterating over
