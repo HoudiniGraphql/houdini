@@ -141,6 +141,10 @@ export class Config {
 		throw new Error('Could not generate artifact name for document: ' + graphql.print(document))
 	}
 
+	isSelectionScalar(type: string) {
+		return ['String', 'ID', 'Float', 'Int', 'Boolean'].includes(type)
+	}
+
 	async createDirectories(): Promise<void> {
 		await Promise.all([
 			mkdirp(this.artifactDirectory),

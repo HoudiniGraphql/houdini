@@ -310,27 +310,161 @@ function selection({
 					includeFragments,
 					document,
 				})
-				if (selectionObj.properties.length > 0) {
-					fieldObj.properties.push(
-						AST.objectProperty(AST.literal('fields'), selectionObj)
-					)
-				}
+				fieldObj.properties.push(AST.objectProperty(AST.literal('fields'), selectionObj))
 			}
 
 			object.properties.push(AST.objectProperty(AST.stringLiteral(attributeName), fieldObj))
 		}
 	}
 
-	// build a unique set of fields
-	const fields = (object.properties as namedTypes.ObjectProperty[]).reduce(
-		(prev, property) => ({
-			...prev,
-			[(property.key as namedTypes.StringLiteral).value]: property,
-		}),
-		{}
-	)
+	return mergeSelections(config, object.properties as namedTypes.ObjectProperty[])
+}
 
-	return AST.objectExpression(Object.values(fields))
+// different fragments can provide different selections of the same field
+// we need to merge them into one single selection
+function mergeSelections(
+	config: Config,
+	selections: namedTypes.ObjectProperty[]
+): namedTypes.ObjectExpression {
+	// we need to group together every field in the selection by its name
+	const fields = selections.reduce<{
+		[key: string]: namedTypes.ObjectProperty[]
+	}>((prev, property) => {
+		// the key
+		const key = (property.key as namedTypes.StringLiteral).value
+		return {
+			...prev,
+			[key]: (prev[key] || []).concat(property),
+		}
+	}, {})
+
+	// build up an object
+	const obj = AST.objectExpression([])
+
+	// visit every set of properties
+	for (const [attributeName, properties] of Object.entries(fields)) {
+		// the type and key name should all be the same
+		const types = properties.map<string>(
+			(property) =>
+				(property.value as namedTypes.ObjectExpression).properties.find(
+					(prop) =>
+						prop.type === 'ObjectProperty' &&
+						prop.key.type === 'Literal' &&
+						prop.key.value === 'type'
+					// @ts-ignore
+				)?.value.value
+		)
+		if (new Set(types).size !== 1) {
+			throw new Error(
+				'Encountered multiple types at the same field. Found ' +
+					JSON.stringify([...new Set(types)])
+			)
+		}
+		const keys = properties.map<string>(
+			(property) =>
+				(property.value as namedTypes.ObjectExpression).properties.find(
+					(prop) =>
+						prop.type === 'ObjectProperty' &&
+						prop.key.type === 'Literal' &&
+						prop.key.value === 'keyRaw'
+					// @ts-ignore
+				)?.value.value
+		)
+		if (new Set(keys).size !== 1) {
+			throw new Error(
+				'Encountered multiple keys at the same field. Found ' +
+					JSON.stringify([...new Set(keys)])
+			)
+		}
+		const connections = properties
+			.map(
+				(property) =>
+					(property.value as namedTypes.ObjectExpression).properties.find(
+						(prop) =>
+							prop.type === 'ObjectProperty' &&
+							prop.key.type === 'Literal' &&
+							prop.key.value === 'connection'
+						// @ts-ignore
+					)?.value.value
+			)
+			.filter(Boolean)
+		const operations = properties
+			.flatMap<namedTypes.ArrayExpression['elements']>(
+				(property) =>
+					(property.value as namedTypes.ObjectExpression).properties.find(
+						(prop) =>
+							prop.type === 'ObjectProperty' &&
+							prop.key.type === 'Literal' &&
+							prop.key.value === 'operations'
+						// @ts-ignore
+					)?.value.elements
+			)
+			.filter(Boolean)
+
+		// look at the first one in the list to check type
+		const typeProperty = types[0]
+		const key = keys[0]
+		const connection = connections[0]
+
+		if (attributeName === 'friend') {
+			operations
+		}
+
+		// if the type is a scalar just add the first one and move on
+		if (config.isSelectionScalar(typeProperty)) {
+			obj.properties.push(properties[0])
+			continue
+		}
+
+		const fields = properties
+			.map<namedTypes.ObjectExpression>(
+				(property) =>
+					(property.value as namedTypes.ObjectExpression).properties.find(
+						(prop) =>
+							prop.type === 'ObjectProperty' &&
+							prop.key.type === 'Literal' &&
+							prop.key.value === 'fields'
+						// @ts-ignore
+					)?.value
+			)
+			.flatMap((obj) => obj && obj.properties)
+			.filter(Boolean)
+
+		if (fields) {
+			const fieldObj = AST.objectExpression([
+				AST.objectProperty(AST.literal('type'), AST.stringLiteral(typeProperty)),
+				AST.objectProperty(AST.literal('keyRaw'), AST.stringLiteral(key)),
+			])
+
+			// perform the merge
+			const merged = mergeSelections(config, fields as namedTypes.ObjectProperty[])
+			if (merged.properties.length > 0) {
+				fieldObj.properties.push(AST.objectProperty(AST.literal('fields'), merged))
+			}
+
+			// add the connection field if its present
+			if (connection) {
+				fieldObj.properties.push(
+					AST.objectProperty(AST.literal('connection'), AST.stringLiteral(connection))
+				)
+			}
+
+			// if there are any operations
+			if (operations.length > 0) {
+				fieldObj.properties.push(
+					AST.objectProperty(
+						AST.literal('operations'),
+						AST.arrayExpression(operations.reduce((prev, acc) => prev.concat(acc), []))
+					)
+				)
+			}
+
+			obj.properties.push(AST.objectProperty(AST.literal(attributeName), fieldObj))
+		}
+	}
+
+	// we're done
+	return obj
 }
 
 // we need to generate a static key that we can use to index this field in the cache.

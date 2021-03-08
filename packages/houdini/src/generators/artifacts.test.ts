@@ -232,6 +232,99 @@ test('overlapping query and fragment selection', async function () {
 	`)
 })
 
+test('overlapping query and fragment nested selection', async function () {
+	// execute the generator
+	await runPipeline(config, [
+		mockCollectedDoc('Fragment', `fragment A on User { friends { id } }`),
+		mockCollectedDoc(
+			'TestQuery',
+			`query TestQuery { user { friends { firstName } ...A @prepend } }`
+		),
+	])
+
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "TestQuery";
+		module.exports.kind = "HoudiniQuery";
+		module.exports.hash = "d99668cf016f0e99335dce103bd6ccfd";
+
+		module.exports.raw = \`query TestQuery {
+		  user {
+		    friends {
+		      firstName
+		    }
+		    ...A
+		  }
+		}
+
+		fragment A on User {
+		  friends {
+		    id
+		  }
+		}
+		\`;
+
+		module.exports.rootType = "Query";
+
+		module.exports.selection = {
+		    "user": {
+		        "type": "User",
+		        "keyRaw": "user",
+
+		        "fields": {
+		            "friends": {
+		                "type": "User",
+		                "keyRaw": "friends",
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    }
+		                }
+		            }
+		        }
+		    }
+		};
+
+		module.exports.response = {
+		    "user": {
+		        "type": "User",
+		        "keyRaw": "user",
+
+		        "fields": {
+		            "friends": {
+		                "type": "User",
+		                "keyRaw": "friends",
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    },
+
+		                    "id": {
+		                        "type": "ID",
+		                        "keyRaw": "id"
+		                    }
+		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
 		const mutationDocs = [
@@ -416,12 +509,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last"
-		                }],
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -432,7 +519,13 @@ describe('mutation artifacts', function () {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last"
+		                }]
 		            }
 		        }
 		    }
@@ -525,17 +618,17 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "remove",
-		                    "connection": "All_Users"
-		                }],
-
 		                "fields": {
 		                    "id": {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "remove",
+		                    "connection": "All_Users"
+		                }]
 		            }
 		        }
 		    }
@@ -823,17 +916,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "first",
-
-		                    "parentID": {
-		                        "kind": "String",
-		                        "value": "1234"
-		                    }
-		                }],
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -844,7 +926,18 @@ describe('mutation artifacts', function () {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "first",
+
+		                    "parentID": {
+		                        "kind": "String",
+		                        "value": "1234"
+		                    }
+		                }]
 		            }
 		        }
 		    }
@@ -944,17 +1037,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "parentID": {
-		                        "kind": "String",
-		                        "value": "1234"
-		                    }
-		                }],
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -965,7 +1047,18 @@ describe('mutation artifacts', function () {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "parentID": {
+		                        "kind": "String",
+		                        "value": "1234"
+		                    }
+		                }]
 		            }
 		        }
 		    }
@@ -1065,17 +1158,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "parentID": {
-		                        "kind": "String",
-		                        "value": "1234"
-		                    }
-		                }],
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1086,7 +1168,18 @@ describe('mutation artifacts', function () {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "parentID": {
+		                        "kind": "String",
+		                        "value": "1234"
+		                    }
+		                }]
 		            }
 		        }
 		    }
@@ -1187,18 +1280,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "first",
-
-		                    "when": {
-		                        "must": {
-		                            "boolValue": "true"
-		                        }
-		                    }
-		                }],
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1209,7 +1290,19 @@ describe('mutation artifacts', function () {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "first",
+
+		                    "when": {
+		                        "must": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
@@ -1310,18 +1403,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must": {
-		                            "boolValue": "true"
-		                        }
-		                    }
-		                }],
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1332,7 +1413,19 @@ describe('mutation artifacts', function () {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "when": {
+		                        "must": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
@@ -1433,18 +1526,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must": {
-		                            "boolValue": "true"
-		                        }
-		                    }
-		                }],
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1455,7 +1536,19 @@ describe('mutation artifacts', function () {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "when": {
+		                        "must": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
@@ -1556,18 +1649,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "first",
-
-		                    "when": {
-		                        "must_not": {
-		                            "boolValue": "true"
-		                        }
-		                    }
-		                }],
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1578,7 +1659,19 @@ describe('mutation artifacts', function () {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "first",
+
+		                    "when": {
+		                        "must_not": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
@@ -1679,18 +1772,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must_not": {
-		                            "boolValue": "true"
-		                        }
-		                    }
-		                }],
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1701,7 +1782,19 @@ describe('mutation artifacts', function () {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "when": {
+		                        "must_not": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
@@ -1802,18 +1895,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must_not": {
-		                            "boolValue": "true"
-		                        }
-		                    }
-		                }],
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1824,7 +1905,19 @@ describe('mutation artifacts', function () {
 		                        "type": "ID",
 		                        "keyRaw": "id"
 		                    }
-		                }
+		                },
+
+		                "operations": [{
+		                    "action": "insert",
+		                    "connection": "All_Users",
+		                    "position": "last",
+
+		                    "when": {
+		                        "must_not": {
+		                            "boolValue": "true"
+		                        }
+		                    }
+		                }]
 		            }
 		        }
 		    }
@@ -1886,14 +1979,15 @@ describe('mutation artifacts', function () {
 		    "users": {
 		        "type": "User",
 		        "keyRaw": "users(stringValue: \\"foo\\")",
-		        "connection": "All_Users",
 
 		        "fields": {
 		            "firstName": {
 		                "type": "String",
 		                "keyRaw": "firstName"
 		            }
-		        }
+		        },
+
+		        "connection": "All_Users"
 		    }
 		};
 
@@ -1901,14 +1995,15 @@ describe('mutation artifacts', function () {
 		    "users": {
 		        "type": "User",
 		        "keyRaw": "users(stringValue: \\"foo\\")",
-		        "connection": "All_Users",
 
 		        "fields": {
 		            "firstName": {
 		                "type": "String",
 		                "keyRaw": "firstName"
 		            }
-		        }
+		        },
+
+		        "connection": "All_Users"
 		    }
 		};
 	`)
@@ -1963,14 +2058,15 @@ describe('mutation artifacts', function () {
 		    "users": {
 		        "type": "User",
 		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
-		        "connection": "All_Users",
 
 		        "fields": {
 		            "firstName": {
 		                "type": "String",
 		                "keyRaw": "firstName"
 		            }
-		        }
+		        },
+
+		        "connection": "All_Users"
 		    }
 		};
 
@@ -1978,14 +2074,15 @@ describe('mutation artifacts', function () {
 		    "users": {
 		        "type": "User",
 		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
-		        "connection": "All_Users",
 
 		        "fields": {
 		            "firstName": {
 		                "type": "String",
 		                "keyRaw": "firstName"
 		            }
-		        }
+		        },
+
+		        "connection": "All_Users"
 		    }
 		};
 	`)
