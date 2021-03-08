@@ -20,8 +20,8 @@ export default function query<_Query extends Operation<any, any>>(
 	// dry the reference to the initial value
 	const initialValue = document.initialValue.data
 
-	// pull out what we need from the compiler
-	const { artifact } = document
+	// the last known variables
+	let variables = document.variables
 
 	// pull out the writer for internal use
 	let subscriptionSpec: SubscriptionSpec | null = null
@@ -32,16 +32,16 @@ export default function query<_Query extends Operation<any, any>>(
 		onMount(() => {
 			// build the subscription spec
 			subscriptionSpec = {
-				rootType: artifact.rootType,
-				selection: artifact.selection,
+				rootType: document.artifact.rootType,
+				selection: document.artifact.selection,
 				set,
 			}
 
 			// once we've mounted
-			cache.write(artifact.selection, initialValue, document.variables)
+			cache.write(document.artifact.response, initialValue, variables)
 
 			// stay up to date
-			cache.subscribe(subscriptionSpec, document.variables)
+			cache.subscribe(subscriptionSpec, variables)
 		})
 
 		// the function used to clean up the store
@@ -49,11 +49,11 @@ export default function query<_Query extends Operation<any, any>>(
 			subscriptionSpec = null
 			cache.unsubscribe(
 				{
-					rootType: artifact.rootType,
-					selection: artifact.selection,
+					rootType: document.artifact.rootType,
+					selection: document.artifact.selection,
 					set,
 				},
-				document.variables
+				variables
 			)
 		}
 	})
@@ -61,14 +61,17 @@ export default function query<_Query extends Operation<any, any>>(
 	return {
 		data,
 		// used primarily by the preprocessor to keep
-		writeData(data: _Query['result'], variables: _Query['input']) {
+		writeData(newData: _Query['result'], newVariables: _Query['input']) {
+			// hold onto the new variables
+			variables = newVariables
+
 			// write the data we received
-			cache.write(artifact.selection, data, variables)
+			cache.write(document.artifact.response, newData.data, newVariables)
 
 			// if we are still subscribing to the store
 			if (subscriptionSpec) {
 				// stay up to date
-				cache.subscribe(subscriptionSpec, variables)
+				cache.subscribe(subscriptionSpec, newVariables)
 			}
 		},
 	}

@@ -86,7 +86,11 @@ export default async function walkTaggedDocuments(
 						parent,
 					}
 				} catch (e) {
-					throw new Error('Looks like you need to run the houdini compiler for ' + name)
+					throw new Error(
+						`Looks like you need to run the houdini compiler for ${name}.` +
+							` Ecountered error: ` +
+							e.message
+					)
 				}
 				// check if the artifact points to a different query than what the template tag is wrapping
 				if (doc.config.verifyHash && tag.artifact.hash !== hashDocument(tagContent)) {

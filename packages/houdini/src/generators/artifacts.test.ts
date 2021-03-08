@@ -29,7 +29,7 @@ test('generates an artifact for every document', async function () {
 	const files = await fs.readdir(config.artifactDirectory)
 
 	// and they have the right names
-	expect(files).toEqual(expect.arrayContaining(['TestQuery.cjs', 'TestFragment.cjs']))
+	expect(files).toEqual(expect.arrayContaining(['TestQuery.js', 'TestFragment.js']))
 })
 
 test('adds kind, name, and raw, response, and selection', async function () {
@@ -49,18 +49,18 @@ test('adds kind, name, and raw, response, and selection', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "41ec892821ed25278cbbaf2c4d434205";
+		export const name = "TestQuery";
+		export const kind = "HoudiniQuery";
+		export const hash = "41ec892821ed25278cbbaf2c4d434205";
 
-		module.exports.raw = \`query TestQuery {
+		export const raw = \`query TestQuery {
 		  version
 		}
 		\`;
 
-		module.exports.rootType = "Query";
+		export const rootType = "Query";
 
-		module.exports.selection = {
+		export const selection = {
 		    "version": {
 		        "type": "Int",
 		        "key": "version"
@@ -79,18 +79,18 @@ test('adds kind, name, and raw, response, and selection', async function () {
 	}).program
 	// and verify their content
 	expect(parsedFragment).toMatchInlineSnapshot(`
-		module.exports.name = "TestFragment";
-		module.exports.kind = "HoudiniFragment";
-		module.exports.hash = "a77288e39dcdadb70e4010b543c89c6a";
+		export const name = "TestFragment";
+		export const kind = "HoudiniFragment";
+		export const hash = "a77288e39dcdadb70e4010b543c89c6a";
 
-		module.exports.raw = \`fragment TestFragment on User {
+		export const raw = \`fragment TestFragment on User {
 		  firstName
 		}
 		\`;
 
-		module.exports.rootType = "User";
+		export const rootType = "User";
 
-		module.exports.selection = {
+		export const selection = {
 		    "firstName": {
 		        "type": "String",
 		        "key": "firstName"
@@ -118,11 +118,11 @@ test('internal directives are scrubbed', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "f4887b164296c8e6be4c4461520a7f99";
+		export const name = "TestQuery";
+		export const kind = "HoudiniQuery";
+		export const hash = "f4887b164296c8e6be4c4461520a7f99";
 
-		module.exports.raw = \`query TestQuery {
+		export const raw = \`query TestQuery {
 		  user {
 		    ...A
 		  }
@@ -133,9 +133,9 @@ test('internal directives are scrubbed', async function () {
 		}
 		\`;
 
-		module.exports.rootType = "Query";
+		export const rootType = "Query";
 
-		module.exports.selection = {
+		export const selection = {
 		    "user": {
 		        "type": "User",
 		        "key": "user"
@@ -182,11 +182,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation B";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "0787170232c25410f1fb16804ac92fc2";
+		export const name = "Mutation B";
+		export const kind = "HoudiniMutation";
+		export const hash = "0787170232c25410f1fb16804ac92fc2";
 
-		module.exports.raw = \`mutation B {
+		export const raw = \`mutation B {
 		  addFriend {
 		    friend {
 		      firstName
@@ -195,9 +195,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -257,11 +257,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "473d90402922a8cce8e90d53d1060222";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "473d90402922a8cce8e90d53d1060222";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -275,9 +275,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -336,11 +336,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "880cba22e81ec6142d1dce5f869911a0";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "880cba22e81ec6142d1dce5f869911a0";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_remove
@@ -353,9 +353,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -411,20 +411,20 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "136c10c3710d03590c93fbaa6070b23d";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "136c10c3710d03590c93fbaa6070b23d";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  deleteUser(id: "1234") {
 		    userID
 		  }
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "deleteUser": {
 		        "type": "DeleteUserOutput",
 		        "key": "deleteUser(id: \\"1234\\")",
@@ -480,20 +480,20 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "e493f4442d18a3b9a2f0d7e17849afe3";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "e493f4442d18a3b9a2f0d7e17849afe3";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  deleteUser(id: "1234") {
 		    userID
 		  }
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "deleteUser": {
 		        "type": "DeleteUserOutput",
 		        "key": "deleteUser(id: \\"1234\\")",
@@ -557,11 +557,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "668ff1dae6a853db970112b94cc7b3f6";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "668ff1dae6a853db970112b94cc7b3f6";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -575,9 +575,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -641,11 +641,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "023533de87e89e1234f9e4f37f05cdc1";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "023533de87e89e1234f9e4f37f05cdc1";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -659,9 +659,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -725,11 +725,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "65685926dbe59762e208efc8f29bf137";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "65685926dbe59762e208efc8f29bf137";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -743,9 +743,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -809,11 +809,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "5ced4c4d96cac1354214e620d431efbc";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "5ced4c4d96cac1354214e620d431efbc";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -827,9 +827,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -894,11 +894,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "75f855274f5456a4c8004caf01942c48";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "75f855274f5456a4c8004caf01942c48";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -912,9 +912,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -979,11 +979,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "3c8dba5b58162f442b994f5b8ea4a86e";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "3c8dba5b58162f442b994f5b8ea4a86e";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -997,9 +997,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -1064,11 +1064,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "855ecff81a12f90d28c79cd143e0e1b0";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "855ecff81a12f90d28c79cd143e0e1b0";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -1082,9 +1082,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -1149,11 +1149,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "56fe5c85d17523318a96c2d78c3db735";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "56fe5c85d17523318a96c2d78c3db735";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -1167,9 +1167,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -1234,11 +1234,11 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "1a7aff185b471fe8e2af42b0b3919d0a";
+		export const name = "Mutation A";
+		export const kind = "HoudiniMutation";
+		export const hash = "1a7aff185b471fe8e2af42b0b3919d0a";
 
-		module.exports.raw = \`mutation A {
+		export const raw = \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -1252,9 +1252,9 @@ describe('mutation artifacts', function () {
 		}
 		\`;
 
-		module.exports.rootType = "Mutation";
+		export const rootType = "Mutation";
 
-		module.exports.selection = {
+		export const selection = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "key": "addFriend",
@@ -1319,20 +1319,20 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "2e9999cf0a02b0af68f84249ec50a4cc";
+		export const name = "TestQuery";
+		export const kind = "HoudiniQuery";
+		export const hash = "2e9999cf0a02b0af68f84249ec50a4cc";
 
-		module.exports.raw = \`query TestQuery {
+		export const raw = \`query TestQuery {
 		  users(stringValue: "foo") {
 		    firstName
 		  }
 		}
 		\`;
 
-		module.exports.rootType = "Query";
+		export const rootType = "Query";
 
-		module.exports.selection = {
+		export const selection = {
 		    "users": {
 		        "type": "User",
 		        "key": "users(stringValue: \\"foo\\")",
@@ -1381,20 +1381,20 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "77e73a9f844dc87ec168c5255d4a7eb0";
+		export const name = "TestQuery";
+		export const kind = "HoudiniQuery";
+		export const hash = "77e73a9f844dc87ec168c5255d4a7eb0";
 
-		module.exports.raw = \`query TestQuery($value: String!) {
+		export const raw = \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
 		  }
 		}
 		\`;
 
-		module.exports.rootType = "Query";
+		export const rootType = "Query";
 
-		module.exports.selection = {
+		export const selection = {
 		    "users": {
 		        "type": "User",
 		        "key": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",

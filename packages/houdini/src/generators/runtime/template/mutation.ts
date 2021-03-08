@@ -12,7 +12,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
-	if (document.artifact.kind !== 'HoudiniMutation') {
+	if (document.kind !== 'HoudiniMutation') {
 		throw new Error('getQuery can only take query operations')
 	}
 
@@ -73,7 +73,8 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 			}
 
 			// update the cache with the mutation data
-			cache.write(document.artifact.selection, result, queryVariables)
+			cache.write(document.artifact.response, result, queryVariables)
+
 			// wrap the result in a store we can use to keep this query up to date
 			resolve(result)
 		})

@@ -149,9 +149,29 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						rootType,
 						selectionSet: selectionSet,
 						operations: operationsByPath(config, operations[0]),
+						includeFragments: false,
+						document,
 					})
 				)
 			)
+
+			// add the full response payload for mutations and queries
+			if (docKind !== 'HoudiniFragment') {
+				artifact.body.push(
+					moduleExport(
+						'response',
+						selection({
+							config,
+							printed,
+							rootType,
+							selectionSet: selectionSet,
+							operations: operationsByPath(config, operations[0]),
+							includeFragments: true,
+							document,
+						})
+					)
+				)
+			}
 
 			// write the result to the artifact path we're configured to write to
 			await fs.writeFile(config.artifactPath(document), recast.print(artifact).code)
@@ -171,6 +191,8 @@ function selection({
 	operations,
 	printed,
 	path = [],
+	includeFragments,
+	document,
 }: {
 	config: Config
 	rootType: string
@@ -178,14 +200,36 @@ function selection({
 	selectionSet: graphql.SelectionSetNode
 	operations: { [path: string]: namedTypes.ArrayExpression }
 	path?: string[]
+	includeFragments: boolean
+	document: graphql.DocumentNode
 }): namedTypes.ObjectExpression {
 	// we need to build up an object that contains every field in the selection
 	const object = AST.objectExpression([])
 
 	for (const field of selectionSet.selections) {
 		// ignore fragment spreads
-		if (field.kind === 'FragmentSpread') {
-			continue
+		if (field.kind === 'FragmentSpread' && includeFragments) {
+			// look up the fragment definition
+			const fragmentDefinition = document.definitions.find(
+				(defn) => defn.kind === 'FragmentDefinition' && defn.name.value === field.name.value
+			) as graphql.FragmentDefinitionNode
+			if (!fragmentDefinition) {
+				throw new Error('Could not find definition for fragment ' + field.name.value)
+			}
+
+			const fragmentFields = selection({
+				config,
+				rootType,
+				operations,
+				selectionSet: fragmentDefinition.selectionSet,
+				path,
+				printed,
+				includeFragments,
+				document,
+			})
+			for (const property of fragmentFields.properties) {
+				object.properties.push(property)
+			}
 		}
 		// inline fragments should be merged with the parent
 		else if (field.kind === 'InlineFragment') {
@@ -196,6 +240,8 @@ function selection({
 				selectionSet: field.selectionSet,
 				path,
 				printed,
+				includeFragments,
+				document,
 			})
 			for (const property of inlineFragment.properties) {
 				object.properties.push(property)
@@ -217,7 +263,10 @@ function selection({
 			// the object holding data for this field
 			const fieldObj = AST.objectExpression([
 				AST.objectProperty(AST.literal('type'), AST.stringLiteral(typeName)),
-				AST.objectProperty(AST.literal('key'), AST.stringLiteral(fieldKey(printed, field))),
+				AST.objectProperty(
+					AST.literal('keyRaw'),
+					AST.stringLiteral(fieldKey(printed, field))
+				),
 			])
 
 			// is there an operation for this field
@@ -259,6 +308,8 @@ function selection({
 							operations,
 							path: pathSoFar,
 							printed,
+							includeFragments,
+							document,
 						})
 					)
 				)

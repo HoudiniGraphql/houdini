@@ -518,15 +518,7 @@ export class Cache {
 				// look up the variable and add the result (varName starts with a $)
 				const value = variables[varName.slice(1)]
 
-				// make sure we could find that variable
-				if (typeof value === 'undefined') {
-					throw new Error(
-						`Could not find variable name '${varName}'. Needed to evaluate key: ${key}. ` +
-							`Was provided the following variables: ${JSON.stringify(variables)}`
-					)
-				}
-
-				evaluated += JSON.stringify(value)
+				evaluated += value ? JSON.stringify(value) : 'undefined'
 
 				// clear the variable name accumulator
 				varName = ''
@@ -549,6 +541,8 @@ export class Cache {
 			// this isn't a special case, just add the letter to the value
 			evaluated += char
 		}
+
+		console.log('evaluating key', key, 'with variables', variables, 'got', evaluated)
 
 		return evaluated
 	}
@@ -774,4 +768,11 @@ class ConnectionHandler {
 	}
 }
 
-export default new Cache()
+const localCache = new Cache()
+
+if (global.window) {
+	// @ts-ignore
+	window.cache = localCache
+}
+
+export default localCache

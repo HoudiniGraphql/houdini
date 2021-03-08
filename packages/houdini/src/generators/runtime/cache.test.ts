@@ -1616,6 +1616,12 @@ describe('key evaluation', function () {
 			variables: { bar: 'baz' },
 			expected: 'fieldName(foo: "$bar")',
 		},
+		{
+			title: 'undefined variable',
+			key: 'fieldName(foo: "$bar")',
+			variables: {},
+			expected: 'fieldName(foo: undefined)',
+		},
 	]
 
 	for (const row of table) {
