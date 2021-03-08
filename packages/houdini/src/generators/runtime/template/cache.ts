@@ -199,17 +199,9 @@ export class Cache {
 							selection: fields,
 							filters: Object.entries(filters || {}).reduce(
 								(acc, [key, { kind, value }]) => {
-									// we need to deference any variables
-									const realValue = kind !== 'Variable' ? value : variables[value]
-									if (!realValue) {
-										throw new Error(
-											'Could not find value for variable ' + value
-										)
-									}
-
 									return {
 										...acc,
-										[key]: realValue,
+										[key]: kind !== 'Variable' ? value : variables[value],
 									}
 								},
 								{}

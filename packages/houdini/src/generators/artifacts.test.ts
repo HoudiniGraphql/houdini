@@ -2009,7 +2009,7 @@ describe('mutation artifacts', function () {
 
 		                    "when": {
 		                        "must_not": {
-		                            "boolValue": "true"
+		                            "boolValue": true
 		                        }
 		                    }
 		                }]

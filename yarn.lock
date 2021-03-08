@@ -6988,19 +6988,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"graphql@npm:15.x.x, graphql@npm:^15.3.0, graphql@npm:^15.5.0":
+  version: 15.5.0
+  resolution: "graphql@npm:15.5.0"
+  checksum: 789cdcb069a3e00592e779002217a6bc5fd09efad63ee8c4190c4b3ea96c89010e74f085fb1cba876a0bb0e324e01df2eddb84d79dca90a28e582bc425fef9ef
+  languageName: node
+  linkType: hard
+
 "graphql@npm:^14.0.0":
   version: 14.7.0
   resolution: "graphql@npm:14.7.0"
   dependencies:
     iterall: ^1.2.2
   checksum: 3b7d50f98f5c66db36327d6dd331367c6da166d701b5bad669664e8602a180ee50dcb5ae3e1f9874e7fa59c1217f50a52a922fc77b5a1e04276426e67815b0ed
-  languageName: node
-  linkType: hard
-
-"graphql@npm:^15.3.0, graphql@npm:^15.5.0":
-  version: 15.5.0
-  resolution: "graphql@npm:15.5.0"
-  checksum: 789cdcb069a3e00592e779002217a6bc5fd09efad63ee8c4190c4b3ea96c89010e74f085fb1cba876a0bb0e324e01df2eddb84d79dca90a28e582bc425fef9ef
   languageName: node
   linkType: hard
 
@@ -7232,7 +7232,7 @@ __metadata:
     "@types/mock-fs": ^4.13.0
     babel-jest: ^26.6.3
     global: ^4.4.0
-    graphql: ^15.5.0
+    graphql: 15.x.x
     jest: ^25.0.0
     lerna: ^3.22.1
     mock-fs: ^4.13.0

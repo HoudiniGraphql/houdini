@@ -23,21 +23,19 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 	for (const doc of docs) {
 		graphql.visit(doc.document, {
 			// look for any field marked with a connection
-			Directive: {
-				enter(node, _, __, ___, ancestors) {
-					// we only care about connections
-					if (node.name.value !== config.connectionDirective) {
-						return
-					}
+			Directive(node, _, __, ___, ancestors) {
+				// we only care about connections
+				if (node.name.value !== config.connectionDirective) {
+					return
+				}
 
-					// get the name of the connection
-					const nameArg = node.arguments?.find(
-						(arg) => arg.name.value === config.connectionNameArg
-					)
-					if (!nameArg || nameArg.value.kind !== 'StringValue') {
-						throw new Error('could not find name arg in connection directive')
-					}
-				},
+				// get the name of the connection
+				const nameArg = node.arguments?.find(
+					(arg) => arg.name.value === config.connectionNameArg
+				)
+				if (!nameArg || nameArg.value.kind !== 'StringValue') {
+					throw new Error('could not find name arg in connection directive')
+				}
 			},
 		})
 	}
@@ -48,13 +46,11 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			// before we can print the document, we need to strip all references to internal directives
 			const rawString = graphql.print(
 				graphql.visit(document, {
-					Directive: {
-						enter(node) {
-							// if the directive is one of the internal ones, remove it
-							if (config.isInternalDirective(node)) {
-								return null
-							}
-						},
+					Directive(node) {
+						// if the directive is one of the internal ones, remove it
+						if (config.isInternalDirective(node)) {
+							return null
+						}
 					},
 				})
 			)
@@ -319,6 +315,8 @@ function selection({
 								let value
 								let kind
 
+								// the value of the arg is always going to be a
+
 								if (arg.value.kind === graphql.Kind.INT) {
 									value = AST.literal(parseInt(arg.value.value, 10))
 									kind = 'Int'
@@ -574,55 +572,51 @@ function operationsByPath(
 	// note: for now, we're going to ignore the possibility that fragments
 	// inside of the mutation could contain operations
 	graphql.visit(definition, {
-		FragmentSpread: {
-			enter(node, _, __, ___, ancestors) {
-				// if the fragment is not a connection operation, we don't care about it now
-				if (!config.isConnectionFragment(node.name.value)) {
-					return
-				}
+		FragmentSpread(node, _, __, ___, ancestors) {
+			// if the fragment is not a connection operation, we don't care about it now
+			if (!config.isConnectionFragment(node.name.value)) {
+				return
+			}
 
-				// if this is the first time we've seen this path give us a home
-				const path = ancestorKey(ancestors)
-				if (!pathOperatons[path]) {
-					pathOperatons[path] = AST.arrayExpression([])
-				}
+			// if this is the first time we've seen this path give us a home
+			const path = ancestorKey(ancestors)
+			if (!pathOperatons[path]) {
+				pathOperatons[path] = AST.arrayExpression([])
+			}
 
-				// add the operation object to the list
-				pathOperatons[path].elements.push(
-					operationObject({
-						connectionName: config.connectionNameFromFragment(node.name.value),
-						operationKind: config.connectionOperationFromFragment(node.name.value),
-						info: operationInfo(config, node),
-					})
-				)
-			},
+			// add the operation object to the list
+			pathOperatons[path].elements.push(
+				operationObject({
+					connectionName: config.connectionNameFromFragment(node.name.value),
+					operationKind: config.connectionOperationFromFragment(node.name.value),
+					info: operationInfo(config, node),
+				})
+			)
 		},
-		Directive: {
-			enter(node, _, __, ___, ancestors) {
-				// we only care about delete directives
-				if (!config.isDeleteDirective(node.name.value)) {
-					return
-				}
+		Directive(node, _, __, ___, ancestors) {
+			// we only care about delete directives
+			if (!config.isDeleteDirective(node.name.value)) {
+				return
+			}
 
-				// if this is the first time we've seen this path give us a home
-				const path = ancestorKey(ancestors)
-				if (!pathOperatons[path]) {
-					pathOperatons[path] = AST.arrayExpression([])
-				}
+			// if this is the first time we've seen this path give us a home
+			const path = ancestorKey(ancestors)
+			if (!pathOperatons[path]) {
+				pathOperatons[path] = AST.arrayExpression([])
+			}
 
-				// add the operation object to the list
-				pathOperatons[path].elements.push(
-					operationObject({
-						connectionName: config.connectionNameFromDirective(node.name.value),
-						operationKind: 'delete',
-						info: operationInfo(
-							config,
-							ancestors[ancestors.length - 1] as graphql.FieldNode
-						),
-						type: config.connectionNameFromDirective(node.name.value),
-					})
-				)
-			},
+			// add the operation object to the list
+			pathOperatons[path].elements.push(
+				operationObject({
+					connectionName: config.connectionNameFromDirective(node.name.value),
+					operationKind: 'delete',
+					info: operationInfo(
+						config,
+						ancestors[ancestors.length - 1] as graphql.FieldNode
+					),
+					type: config.connectionNameFromDirective(node.name.value),
+				})
+			)
 		},
 	})
 
