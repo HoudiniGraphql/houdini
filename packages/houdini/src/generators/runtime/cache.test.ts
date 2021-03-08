@@ -1636,6 +1636,209 @@ test('append operation', function () {
 	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(1)
 })
 
+test('append when operation', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	// create a connection we will add to
+	cache.write(
+		{
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+				},
+			},
+		},
+		{
+			viewer: {
+				id: '1',
+			},
+		},
+		{}
+	)
+
+	// subscribe to the data to register the connection
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					connection: 'All_Users',
+					filters: {
+						value: {
+							kind: 'String',
+							value: 'foo',
+						},
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache.id('User', '1'),
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be added to the connection
+	cache.write(
+		{
+			newUser: {
+				type: 'User',
+				keyRaw: 'newUser',
+				operations: [
+					{
+						action: 'insert',
+						connection: 'All_Users',
+						parentID: {
+							kind: 'String',
+							value: cache.id('User', '1'),
+						},
+						when: {
+							must: {
+								value: 'not-foo',
+							},
+						},
+					},
+				],
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+				},
+			},
+		},
+		{
+			newUser: {
+				id: '3',
+			},
+		},
+		{}
+	)
+
+	// make sure we just added to the connection
+	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+})
+
+test('prepend when operation', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	// create a connection we will add to
+	cache.write(
+		{
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+				},
+			},
+		},
+		{
+			viewer: {
+				id: '1',
+			},
+		},
+		{}
+	)
+
+	// subscribe to the data to register the connection
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					connection: 'All_Users',
+					filters: {
+						value: {
+							kind: 'String',
+							value: 'foo',
+						},
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache.id('User', '1'),
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be added to the connection
+	cache.write(
+		{
+			newUser: {
+				type: 'User',
+				keyRaw: 'newUser',
+				operations: [
+					{
+						action: 'insert',
+						connection: 'All_Users',
+						parentID: {
+							kind: 'String',
+							value: cache.id('User', '1'),
+						},
+						position: 'first',
+						when: {
+							must: {
+								value: 'not-foo',
+							},
+						},
+					},
+				],
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+				},
+			},
+		},
+		{
+			newUser: {
+				id: '3',
+			},
+		},
+		{}
+	)
+
+	// make sure we just added to the connection
+	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+})
+
 test('prepend operation', function () {
 	// instantiate a cache
 	const cache = new Cache()

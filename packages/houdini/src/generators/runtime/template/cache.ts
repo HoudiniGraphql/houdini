@@ -425,12 +425,9 @@ export class Cache {
 					fields &&
 					operation.connection
 				) {
-					this.connection(operation.connection, parentID).addToConnection(
-						fields,
-						value,
-						variables,
-						operation.position || 'last'
-					)
+					this.connection(operation.connection, parentID)
+						.when(operation.when)
+						.addToConnection(fields, value, variables, operation.position || 'last')
 				}
 
 				// only insert an object into a connection if we're adding an object with fields
@@ -441,7 +438,9 @@ export class Cache {
 					fields &&
 					operation.connection
 				) {
-					this.connection(operation.connection, parentID).remove(value, variables)
+					this.connection(operation.connection, parentID)
+						.when(operation.when)
+						.remove(value, variables)
 				}
 
 				// delete the operation if we have to
