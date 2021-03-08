@@ -913,7 +913,7 @@ function filterAST(
 			const type = filterTypes[connectionName] && filterTypes[connectionName][key]
 			if (!type) {
 				throw new Error(
-					`It does not look like ${key} is a correct filter for connection ${connectionName}`
+					`It looks like ${key} is an incorrect filter for connection ${connectionName}`
 				)
 			}
 
