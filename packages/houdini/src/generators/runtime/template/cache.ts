@@ -162,9 +162,9 @@ export class Cache {
 		rootRecord: Record,
 		spec: SubscriptionSpec,
 		selection: SubscriptionSelection,
-		variables: {}
+		variables: { [key: string]: GraphQLValue }
 	) {
-		for (const { type, keyRaw, fields, connection } of Object.values(selection)) {
+		for (const { type, keyRaw, fields, connection, filters } of Object.values(selection)) {
 			const key = this.evaluateKey(keyRaw, variables)
 
 			// we might be replace a subscriber on rootRecord becuase we have new variables
@@ -197,6 +197,23 @@ export class Cache {
 							connectionType: type,
 							key,
 							selection: fields,
+							filters: Object.entries(filters || {}).reduce(
+								(acc, [key, { kind, value }]) => {
+									// we need to deference any variables
+									const realValue = kind !== 'Variable' ? value : variables[value]
+									if (!realValue) {
+										throw new Error(
+											'Could not find value for variable ' + value
+										)
+									}
+
+									return {
+										...acc,
+										[key]: realValue,
+									}
+								},
+								{}
+							),
 						})
 					)
 				}
@@ -706,6 +723,7 @@ class ConnectionHandler {
 	private cache: Cache
 	private selection: SubscriptionSelection
 	private _when?: ConnectionWhen
+	private filters?: { [key: string]: number | boolean | string }
 
 	constructor({
 		cache,
@@ -713,24 +731,37 @@ class ConnectionHandler {
 		key,
 		connectionType,
 		selection,
+		when,
+		filters,
 	}: {
 		cache: Cache
 		record: Record
 		key: string
 		connectionType: string
 		selection: SubscriptionSelection
+		when?: ConnectionWhen
+		filters?: ConnectionHandler['filters']
 	}) {
 		this.record = record
 		this.key = key
 		this.connectionType = connectionType
 		this.cache = cache
 		this.selection = selection
+		this._when = when
+		this.filters = filters
 	}
 
-	// when applies a when condition to the connection and returns itself as a builder
-	when(when?: ConnectionWhen) {
-		this._when = when
-		return this
+	// when applies a when condition to a new connection pointing to the same spot
+	when(when?: ConnectionWhen): ConnectionHandler {
+		return new ConnectionHandler({
+			cache: this.cache,
+			record: this.record,
+			key: this.key,
+			connectionType: this.connectionType,
+			selection: this.selection,
+			when,
+			filters: this.filters,
+		})
 	}
 
 	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
@@ -747,6 +778,35 @@ class ConnectionHandler {
 		variables: {} = {},
 		where: 'first' | 'last'
 	) {
+		// if there are conditions for this operation
+		if (this._when) {
+			// we only NEED there to be target filters for must's
+			const targets = this.filters
+			let ok = true
+
+			// check must's first
+			if (this._when.must && targets) {
+				ok = Object.entries(this._when.must).reduce<boolean>(
+					(prev, [key, value]) => Boolean(prev && targets[key] == value),
+					ok
+				)
+			}
+			// if there are no targets, nothing could be true that can we compare against
+			if (this._when.must_not) {
+				ok =
+					!targets ||
+					Object.entries(this._when.must_not).reduce<boolean>(
+						(prev, [key, value]) => Boolean(prev && targets[key] != value),
+						ok
+					)
+			}
+
+			// if we didn't satisfy everything we needed to
+			if (!ok) {
+				return
+			}
+		}
+
 		// figure out the id of the type we are adding
 		const dataID = this.cache.id(this.connectionType, data)
 

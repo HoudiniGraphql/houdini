@@ -919,6 +919,370 @@ test('prepend in connection', function () {
 	})
 })
 
+test('connection filter - must_not positive', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					connection: 'All_Users',
+					filters: {
+						foo: {
+							kind: 'String',
+							value: 'bar',
+						},
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+		{}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// insert an element into the connection (no parent ID)
+	cache
+		.connection('All_Users')
+		.when({ must_not: { foo: 'not-bar' } })
+		.prepend(
+			{
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+			{
+				id: '3',
+				firstName: 'mary',
+			}
+		)
+
+	// make sure we got the new value
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'mary',
+					id: '3',
+				},
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+			],
+		},
+	})
+})
+
+test('connection filter - must_not negative', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					connection: 'All_Users',
+					filters: {
+						foo: {
+							kind: 'String',
+							value: 'bar',
+						},
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+		{}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// insert an element into the connection (no parent ID)
+	cache
+		.connection('All_Users')
+		.when({ must_not: { foo: 'bar' } })
+		.prepend(
+			{
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+			{
+				id: '3',
+				firstName: 'mary',
+			}
+		)
+
+	// make sure we got the new value
+	expect(set).not.toHaveBeenCalled()
+})
+
+test('connection filter - must positive', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					connection: 'All_Users',
+					filters: {
+						foo: {
+							kind: 'String',
+							value: 'bar',
+						},
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+		{}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// insert an element into the connection (no parent ID)
+	cache
+		.connection('All_Users')
+		.when({ must: { foo: 'bar' } })
+		.prepend(
+			{
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+			{
+				id: '3',
+				firstName: 'mary',
+			}
+		)
+
+	// make sure we got the new value
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'mary',
+					id: '3',
+				},
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+			],
+		},
+	})
+})
+
+test('connection filter - must negative', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					connection: 'All_Users',
+					filters: {
+						foo: {
+							kind: 'String',
+							value: 'bar',
+						},
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+		{}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// insert an element into the connection (no parent ID)
+	cache
+		.connection('All_Users')
+		.when({ must: { foo: 'not-bar' } })
+		.prepend(
+			{
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+			{
+				id: '3',
+				firstName: 'mary',
+			}
+		)
+
+	// make sure we got the new value
+	expect(set).not.toHaveBeenCalled()
+})
+
 test('subscribe to new connection nodes', function () {
 	// instantiate a cache
 	const cache = new Cache()

@@ -2120,7 +2120,14 @@ describe('mutation artifacts', function () {
 		            }
 		        },
 
-		        "connection": "All_Users"
+		        "connection": "All_Users",
+
+		        "filters": {
+		            "stringValue": {
+		                "kind": "String",
+		                "value": "foo"
+		            }
+		        }
 		    }
 		};
 
@@ -2136,7 +2143,14 @@ describe('mutation artifacts', function () {
 		            }
 		        },
 
-		        "connection": "All_Users"
+		        "connection": "All_Users",
+
+		        "filters": {
+		            "stringValue": {
+		                "kind": "String",
+		                "value": "foo"
+		            }
+		        }
 		    }
 		};
 	`)
@@ -2199,7 +2213,29 @@ describe('mutation artifacts', function () {
 		            }
 		        },
 
-		        "connection": "All_Users"
+		        "connection": "All_Users",
+
+		        "filters": {
+		            "stringValue": {
+		                "kind": "Variable",
+		                "value": "value"
+		            },
+
+		            "boolValue": {
+		                "kind": "Boolean",
+		                "value": true
+		            },
+
+		            "floatValue": {
+		                "kind": "Float",
+		                "value": 1.2
+		            },
+
+		            "intValue": {
+		                "kind": "Int",
+		                "value": 1
+		            }
+		        }
 		    }
 		};
 
@@ -2215,7 +2251,29 @@ describe('mutation artifacts', function () {
 		            }
 		        },
 
-		        "connection": "All_Users"
+		        "connection": "All_Users",
+
+		        "filters": {
+		            "stringValue": {
+		                "kind": "Variable",
+		                "value": "value"
+		            },
+
+		            "boolValue": {
+		                "kind": "Boolean",
+		                "value": true
+		            },
+
+		            "floatValue": {
+		                "kind": "Float",
+		                "value": 1.2
+		            },
+
+		            "intValue": {
+		                "kind": "Int",
+		                "value": 1
+		            }
+		        }
 		    }
 		};
 	`)
