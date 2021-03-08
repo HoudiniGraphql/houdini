@@ -329,7 +329,7 @@ const validateConnections = ({
 					const directiveName = node.name.value
 
 					// if the directive is not a connection directive
-					if (!config.isConnectionDirective(directiveName)) {
+					if (!config.isConnectionOperationDirective(directiveName)) {
 						return
 					}
 

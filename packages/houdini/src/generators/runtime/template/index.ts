@@ -1,7 +1,6 @@
 import { GraphQLTagResult } from './types'
 
 export * from './network'
-export * from './runtime'
 export * from './types'
 
 export { default as query } from './query'
