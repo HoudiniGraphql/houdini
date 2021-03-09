@@ -1,5 +1,4 @@
 // locals
-import { getContext } from 'svelte'
 import { RequestContext, fetchQuery } from './network'
 import { Operation, GraphQLTagResult } from './types'
 import cache from './cache'
@@ -23,12 +22,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	// grab the sesion from the adapter
 	const session = getSession()
 
-	let variables
 	const queryVariables = getVariables()
-	$: {
-		variables = queryVariables
-		console.log('updating mutation variables', getContext('variables'))
-	}
 
 	// return an async function that sends the mutation go the server
 	return (variables: _Mutation['input']) =>
@@ -80,8 +74,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 			}
 
 			// update the cache with the mutation data
-			console.log('writing mutation with variables', queryVariables)
-			cache.write(document.artifact.response, result, queryVariables)
+			cache.write(document.artifact.response, result, queryVariables())
 
 			// wrap the result in a store we can use to keep this query up to date
 			resolve(result)

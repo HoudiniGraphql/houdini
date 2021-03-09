@@ -1,5 +1,5 @@
 // externals
-import { readable, Readable } from 'svelte/store'
+import { readable, Readable, writable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
 import { Operation, GraphQLTagResult, SubscriptionSpec } from './types'
@@ -13,15 +13,13 @@ export default function query<_Query extends Operation<any, any>>(
 	if (document.kind !== 'HoudiniQuery') {
 		throw new Error('getQuery can only take query operations')
 	}
+	let variables = document.variables
 
 	// emebed the variables in the components context
-	setVariables(document.variables)
+	setVariables(() => variables)
 
 	// dry the reference to the initial value
 	const initialValue = document.initialValue.data
-
-	// the last known variables
-	let variables = document.variables
 
 	// pull out the writer for internal use
 	let subscriptionSpec: SubscriptionSpec | null = null
@@ -62,18 +60,15 @@ export default function query<_Query extends Operation<any, any>>(
 		data,
 		// used primarily by the preprocessor to keep
 		writeData(newData: _Query['result'], newVariables: _Query['input']) {
+			variables = newVariables || {}
+
 			// make sure we list to the new data
 			if (subscriptionSpec) {
-				console.log('updating subscription', subscriptionSpec, newVariables)
-				cache.subscribe(subscriptionSpec, newVariables)
+				cache.subscribe(subscriptionSpec, variables)
 			}
-			// hold onto the new variables
-			variables = newVariables
-
-			setVariables(newVariables)
 
 			// write the data we received
-			cache.write(document.artifact.response, newData.data, newVariables)
+			cache.write(document.artifact.response, newData.data, variables)
 		},
 	}
 }

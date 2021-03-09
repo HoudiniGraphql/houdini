@@ -16,19 +16,15 @@ export default function fragment<_Fragment extends Fragment<any>>(
 		throw new Error('getFragment can only take fragment documents')
 	}
 
-	// @ts-ignore
-	const parentID = cache.id(fragment.artifact.rootType, initialValue)
-
-	let variables: {} | undefined
 	let subscriptionSpec: SubscriptionSpec | undefined
+
 	const queryVariables = getVariables()
-	$: {
-		variables = queryVariables
-		console.log('new fragment variables', parentID, queryVariables)
-	}
 
 	// wrap the result in a store we can use to keep this query up to date
 	const value = readable(initialValue, (set) => {
+		// @ts-ignore
+		const parentID = cache.id(fragment.artifact.rootType, initialValue)
+
 		subscriptionSpec = {
 			rootType: fragment.artifact.rootType,
 			selection: fragment.artifact.selection,
@@ -41,7 +37,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 			// if there is an id we can anchor the cache off of
 			if (parentID && subscriptionSpec) {
 				// stay up to date
-				cache.subscribe(subscriptionSpec, variables)
+				cache.subscribe(subscriptionSpec, queryVariables())
 			}
 		})
 
@@ -56,7 +52,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 						selection: fragment.artifact.selection,
 						set,
 					},
-					variables
+					queryVariables()
 				)
 			}
 		}
