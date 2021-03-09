@@ -120,10 +120,9 @@ export class Cache {
 	// remove the record from every connection we know of
 	delete(id: string, variables: {} = {}) {
 		const record = this.record(id)
-		// visit every connection the record knows of
+		// visit every connection the record knows of and clean up
 		for (const { name, parentID } of record.connections) {
-			// remove the id from the connection
-			this.connection(name, parentID)?.removeID(id, variables)
+			this.connection(name, parentID).removeID(id, variables)
 			record.removeConnectionReference({ name, parentID })
 		}
 	}
@@ -206,6 +205,8 @@ export class Cache {
 					this._connections.get(connection)?.set(
 						spec.parentID ? spec.parentID : undefined,
 						new ConnectionHandler({
+							name: connection,
+							parentID: spec.parentID,
 							cache: this,
 							record: rootRecord,
 							connectionType: type,
@@ -758,8 +759,11 @@ class ConnectionHandler {
 	private selection: SubscriptionSelection
 	private _when?: ConnectionWhen
 	private filters?: { [key: string]: number | boolean | string }
+	name: string
+	parentID: SubscriptionSpec['parentID']
 
 	constructor({
+		name,
 		cache,
 		record,
 		key,
@@ -767,7 +771,9 @@ class ConnectionHandler {
 		selection,
 		when,
 		filters,
+		parentID,
 	}: {
+		name: string
 		cache: Cache
 		record: Record
 		key: string
@@ -775,6 +781,7 @@ class ConnectionHandler {
 		selection: SubscriptionSelection
 		when?: ConnectionWhen
 		filters?: ConnectionHandler['filters']
+		parentID?: SubscriptionSpec['parentID']
 	}) {
 		this.record = record
 		this.key = key
@@ -783,6 +790,8 @@ class ConnectionHandler {
 		this.selection = selection
 		this._when = when
 		this.filters = filters
+		this.name = name
+		this.parentID = parentID
 	}
 
 	// when applies a when condition to a new connection pointing to the same spot
@@ -795,6 +804,8 @@ class ConnectionHandler {
 			selection: this.selection,
 			when,
 			filters: this.filters,
+			parentID: this.parentID,
+			name: this.name,
 		})
 	}
 
@@ -836,15 +847,19 @@ class ConnectionHandler {
 		// notify the subscribers we care about
 		this.cache.notifySubscribers(subscribers, variables)
 
+		// look up the new record in the cache
+		const newRecord = this.cache.record(dataID)
+
+		// add the connection reference
+		newRecord.addConnectionReference({
+			parentID: this.parentID,
+			name: this.name,
+		})
+
 		// walk down the connection fields relative to the new record
 		// and make sure all of the connection's subscribers are listening
 		// to that object
-		this.cache.insertSubscribers(
-			this.cache.record(dataID),
-			this.selection,
-			variables,
-			...subscribers
-		)
+		this.cache.insertSubscribers(newRecord, this.selection, variables, ...subscribers)
 	}
 
 	removeID(id: string, variables: {} = {}) {

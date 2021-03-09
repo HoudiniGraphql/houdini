@@ -2500,6 +2500,8 @@ describe('key evaluation', function () {
 // as a link in only one of them (this also included connections)
 test.todo("removing link doesn't unregister the same set everywhere")
 
+test.todo('inserting node creates back reference to connection')
+
 test.todo('unsubscribe removes connection handlers')
 
 test.todo('nested linked record update')
