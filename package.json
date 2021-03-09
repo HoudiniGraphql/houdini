@@ -1,6 +1,6 @@
 {
 	"name": "houdini-monorepo",
-	"description": "The disappearing graphql client built for sapper",
+	"description": "The disappearing graphql client for sapper",
 	"workspaces": [
 		"example",
 		"packages/*"
