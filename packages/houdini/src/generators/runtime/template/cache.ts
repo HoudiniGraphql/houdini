@@ -22,14 +22,14 @@ export class Cache {
 	write(
 		selection: SubscriptionSelection,
 		data: { [key: string]: GraphQLValue },
-		variables: {},
+		variables: {} = {},
 		parentID?: string
 	) {
 		const specs: SubscriptionSpec[] = []
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
 		// will build up different specs of subscriptions that need to be run against the current state
-		this._write(selection, parentID, data, variables, specs)
+		this._write(parentID, selection, parentID, data, variables, specs)
 
 		// compute new values for every spec that needs to be run
 		this.notifySubscribers(specs, variables)
@@ -117,7 +117,7 @@ export class Cache {
 		}
 	}
 
-	// remove the record from every connection we know of
+	// remove the record from every connection we know of and the cache itself
 	delete(id: string, variables: {} = {}) {
 		const record = this.record(id)
 		// visit every connection the record knows of and clean up
@@ -125,6 +125,9 @@ export class Cache {
 			this.connection(name, parentID).removeID(id, variables)
 			record.removeConnectionReference({ name, parentID })
 		}
+
+		// remove the entry from the cache
+		this._data.delete(id)
 	}
 
 	// walk down the spec
@@ -291,14 +294,15 @@ export class Cache {
 	}
 
 	private _write(
-		selection: SubscriptionSelection,
 		parentID: string | undefined,
+		selection: SubscriptionSelection,
+		recordID: string | undefined,
 		data: { [key: string]: GraphQLValue },
 		variables: { [key: string]: GraphQLValue },
 		specs: SubscriptionSpec[]
 	) {
 		// the record we are storing information about this object
-		const record = this.record(parentID)
+		const record = this.record(recordID)
 
 		// look at ever field in the data
 		for (const [field, value] of Object.entries(data)) {
@@ -345,7 +349,7 @@ export class Cache {
 				}
 
 				// update the linked fields too
-				this._write(fields, linkedID, value, variables, specs)
+				this._write(parentID, fields, linkedID, value, variables, specs)
 			}
 
 			// the value could be a list
@@ -369,7 +373,7 @@ export class Cache {
 					const linkedID = this.id(linkedType, entry)
 
 					// update the linked fields too
-					this._write(fields, linkedID, entry, variables, specs)
+					this._write(parentID, fields, linkedID, entry, variables, specs)
 
 					// add the id to the list
 					linkedIDs.push(linkedID)
@@ -382,8 +386,6 @@ export class Cache {
 								parentID,
 								name: connection,
 							})
-						} else {
-							console.log('no connection')
 						}
 					}
 				}

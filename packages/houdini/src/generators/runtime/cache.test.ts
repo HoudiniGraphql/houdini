@@ -1542,8 +1542,8 @@ test('delete node', function () {
 		},
 	})
 
-	// make sure we aren't subscribing to user 2 any more
-	expect(cache.get(cache.id('User', '2'))?.getSubscribers('firstName')).toHaveLength(0)
+	// make sure its empty now
+	expect(cache.get('User:2')).toBeNull()
 })
 
 test('append operation', function () {
