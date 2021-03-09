@@ -58,7 +58,8 @@ export default function query<_Query extends Operation<any, any>>(
 
 	return {
 		data,
-		// used primarily by the preprocessor to keep
+		// used primarily by the preprocessor to keep local state in sync with
+		// the data given by preload
 		writeData(newData: _Query['result'], newVariables: _Query['input']) {
 			variables = newVariables || {}
 
