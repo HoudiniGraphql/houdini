@@ -2156,6 +2156,8 @@ test('delete operation', function () {
 
 	// make sure we removed the element from the connection
 	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+
+	expect(cache.get('User:2')).toBeNull()
 })
 
 test('variables in query and subscription', function () {

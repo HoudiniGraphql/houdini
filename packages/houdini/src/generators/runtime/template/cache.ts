@@ -75,9 +75,10 @@ export class Cache {
 
 	unsubscribe(spec: SubscriptionSpec, variables: {} = {}) {
 		// find the root record
-		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
+		let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
+		// if there's no root, there's nothing to unsubscribe from
 		if (!rootRecord) {
-			throw new Error('Could not find root of subscription')
+			return
 		}
 
 		// remove any references to the spec in variable set
@@ -118,16 +119,19 @@ export class Cache {
 	}
 
 	// remove the record from every connection we know of and the cache itself
-	delete(id: string, variables: {} = {}) {
+	delete(id: string, variables: {} = {}): boolean {
 		const record = this.record(id)
-		// visit every connection the record knows of and clean up
+
 		for (const { name, parentID } of record.connections) {
-			this.connection(name, parentID).removeID(id, variables)
-			record.removeConnectionReference({ name, parentID })
+			// look up the connection
+			const connection = this.connection(name, parentID)
+
+			// remove the entity from the connection
+			connection.removeID(id, variables)
 		}
 
 		// remove the entry from the cache
-		this._data.delete(id)
+		return this._data.delete(id)
 	}
 
 	// walk down the spec
