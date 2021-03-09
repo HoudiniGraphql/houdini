@@ -1,4 +1,5 @@
 // local imports
+import { version } from 'graphql'
 import {
 	Maybe,
 	GraphQLValue,
@@ -269,7 +270,7 @@ export class Cache {
 			const key = this.evaluateKey(keyRaw, variables)
 
 			// remove the subscriber to the field
-			rootRecord.removeSubscribers(spec)
+			rootRecord.forgetSubscribers(spec)
 
 			// if this field is marked as a connection remove it from teh cache
 			if (connection) {
@@ -348,7 +349,7 @@ export class Cache {
 					// if there was a record we replaced
 					if (oldID) {
 						// we need to remove any subscribers that we just added to the specs
-						this.record(oldID).removeSubscribers(...subscribers)
+						this.record(oldID).forgetSubscribers(...subscribers)
 					}
 
 					// add every subscriber to the list of specs to change
@@ -431,7 +432,7 @@ export class Cache {
 				}
 
 				for (const [id, subscribers] of Object.entries(oldSubscribers)) {
-					this.record(id).removeSubscribers(...subscribers)
+					this.record(id).forgetSubscribers(...subscribers)
 				}
 
 				// if there was a change in the list
@@ -549,24 +550,24 @@ export class Cache {
 		}
 	}
 
-	unsubscribeRecord(
+	unsubscribeSelection(
 		record: Record,
 		selection: SubscriptionSelection,
 		variables: {},
-		...subscribers: SubscriptionSpec[]
+		...subscribers: SubscriptionSpec['set'][]
 	) {
 		// look at every field in the selection and add the subscribers
 		for (const { keyRaw, fields } of Object.values(selection)) {
 			const key = this.evaluateKey(keyRaw, variables)
 			// add the subscriber to the
-			record.removeSubscribers(...subscribers)
+			record.removeSubscribers([key], subscribers)
 
 			// if there are fields under this
 			if (fields) {
 				// figure out who else needs subscribers
 				const children = record.linkedList(key) || [record.linkedRecord(key)]
 				for (const linkedRecord of children) {
-					this.unsubscribeRecord(linkedRecord, fields, variables, ...subscribers)
+					this.unsubscribeSelection(linkedRecord, fields, variables, ...subscribers)
 				}
 			}
 		}
@@ -643,6 +644,9 @@ class Record {
 	private recordLinks: { [key: string]: string } = {}
 	private listLinks: { [key: string]: string[] } = {}
 	private cache: Cache
+	private referenceCounts: {
+		[fieldName: string]: Map<SubscriptionSpec['set'], number>
+	} = {}
 	connections: Connection[] = []
 
 	constructor(cache: Cache) {
@@ -724,18 +728,30 @@ class Record {
 		const newSubscribers = specs.filter(({ set }) => !existingSubscribers.includes(set))
 
 		this.subscribers[key] = this.getSubscribers(key).concat(...newSubscribers)
+
+		// if this is the first time we've seen this key
+		if (!this.referenceCounts[key]) {
+			this.referenceCounts[key] = new Map()
+		}
+		const counts = this.referenceCounts[key]
+
+		// increment the reference count for every subscriber
+		for (const spec of specs) {
+			// we're going to increment the current value by one
+			counts.set(spec.set, (counts.get(spec.set) || 0) + 1)
+		}
 	}
 
 	getSubscribers(fieldName: string): SubscriptionSpec[] {
 		return this.subscribers[fieldName] || []
 	}
 
-	removeAllSubscribers() {
-		return this.removeSubscribers(...this.allSubscribers())
+	forgetSubscribers(...targets: SubscriptionSpec[]) {
+		this.forgetSubscribers_walk(targets.map(({ set }) => set))
 	}
 
-	removeSubscribers(...targets: SubscriptionSpec[]) {
-		this._removeSubscribers(targets.map(({ set }) => set))
+	removeAllSubscribers() {
+		this.forgetSubscribers(...this.allSubscribers())
 	}
 
 	addConnectionReference(ref: Connection) {
@@ -750,29 +766,58 @@ class Record {
 
 	removeAllSubscriptionVerions(keyRaw: string, spec: SubscriptionSpec) {
 		// visit every version of the key we've seen and remove the spec from the list of subscribers
-		for (const version of this.keyVersions[keyRaw] || []) {
-			this.subscribers[version] = this.getSubscribers(version).filter(
-				({ set }) => set !== spec.set
-			)
+		const versions = this.keyVersions[keyRaw]
+		// if there are no known versons, we're done
+		if (!versions) {
+			return
 		}
+
+		this.removeSubscribers([...this.keyVersions[keyRaw]], [spec.set])
 	}
 
-	_removeSubscribers(targets: SubscriptionSpec['set'][]) {
+	private forgetSubscribers_walk(targets: SubscriptionSpec['set'][]) {
 		// clean up any subscribers that reference the set
-		for (const fieldName of Object.keys(this.subscribers)) {
-			this.subscribers[fieldName] = this.getSubscribers(fieldName).filter(
-				({ set }) => !targets.includes(set)
-			)
-		}
+		this.removeSubscribers(Object.keys(this.subscribers), targets)
 
-		// build up a list of every record we know about
+		// walk down to every record we know about
 		const linkedIDs = Object.keys(this.recordLinks).concat(
 			Object.keys(this.listLinks).flatMap((key) => this.listLinks[key])
 		)
-
-		// look at any links and do the same
 		for (const linkedRecordID of linkedIDs) {
-			this.cache.get(linkedRecordID)?._removeSubscribers(targets)
+			this.cache.get(linkedRecordID)?.forgetSubscribers_walk(targets)
+		}
+	}
+
+	removeSubscribers(fields: string[], sets: SubscriptionSpec['set'][]) {
+		// clean up any subscribers that reference the set
+		for (const fieldName of fields) {
+			// build up a list of the sets we actually need to remove after
+			// checking reference counts
+			let targets: SubscriptionSpec['set'][] = []
+
+			for (const set of sets) {
+				// if we dont know this field/set combo, there's nothing to do (probably a bug somewhere)
+				if (!this.referenceCounts[fieldName]?.has(set)) {
+					continue
+				}
+				const counts = this.referenceCounts[fieldName]
+				const newVal = (counts.get(set) || 0) - 1
+
+				// decrement the reference of every field
+				counts.set(set, newVal)
+
+				// if that was the last reference we knew of
+				if (newVal <= 0) {
+					targets.push(set)
+					// remove the count too
+					counts.delete(set)
+				}
+			}
+
+			// we do need to remove the set from the list
+			this.subscribers[fieldName] = this.getSubscribers(fieldName).filter(
+				({ set }) => !targets.includes(set)
+			)
 		}
 	}
 }
@@ -904,11 +949,11 @@ class ConnectionHandler {
 		this.cache.notifySubscribers(subscribers, variables)
 
 		// disconnect record from any subscriptions associated with the connection
-		this.cache.unsubscribeRecord(
+		this.cache.unsubscribeSelection(
 			this.cache.record(id),
 			this.selection,
 			variables,
-			...subscribers
+			...subscribers.map(({ set }) => set)
 		)
 	}
 

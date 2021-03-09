@@ -2525,6 +2525,87 @@ test('subscribing to new connection with stale data (must use variablesChanged)'
 	)
 })
 
+test('same record twice in a query survives one unsubscribe (reference counting)', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '1',
+						firstName: 'bob',
+					},
+				],
+			},
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			selection,
+			set,
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// make sure there is a subscriber for the user's first name
+	expect(cache.get('User:1').getSubscribers('firstName')).toHaveLength(1)
+
+	// remove the user from the connection
+	cache.connection('All_Users').remove({ id: '1' })
+
+	// we should still be subscribing to the user's first name
+	expect(cache.get('User:1').getSubscribers('firstName')).toHaveLength(1)
+})
+
 describe('key evaluation', function () {
 	const table = [
 		{
@@ -2561,15 +2642,6 @@ describe('key evaluation', function () {
 		})
 	}
 })
-
-// atm when we remove subscribers from links we assume its the only reason that spec is associated
-// with the field. that's not the case if the same record shows up two places in a query but is removed
-// as a link in only one of them (this also included connections)
-test.todo("removing link doesn't unregister the same set everywhere")
-
-test.todo(
-	'the same as above but taking into account a node being deleted in the middle as the way to unsubscribe'
-)
 
 test.todo('inserting node creates back reference to connection')
 
