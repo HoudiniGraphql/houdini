@@ -194,29 +194,13 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						rootType,
 						selectionSet: selectionSet,
 						operations: operationsByPath(config, operations[0], filterTypes),
-						includeFragments: false,
+						// do not include used fragments if we are rendering the selection
+						// for a fragment document
+						includeFragments: docKind !== 'HoudiniFragment',
 						document,
 					})
 				)
 			)
-
-			// add the full response payload for mutations and queries
-			if (docKind !== 'HoudiniFragment') {
-				artifact.body.push(
-					moduleExport(
-						'response',
-						selection({
-							config,
-							printed,
-							rootType,
-							selectionSet: selectionSet,
-							operations: operationsByPath(config, operations[0], filterTypes),
-							includeFragments: true,
-							document,
-						})
-					)
-				)
-			}
 
 			// write the result to the artifact path we're configured to write to
 			await fs.writeFile(config.artifactPath(document), recast.print(artifact).code)

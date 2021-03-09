@@ -211,18 +211,6 @@ async function preprocessorTest(content: string) {
 			kind: 'HoudiniQuery',
 			raw: query,
 			hash: hashDocument(parsedQuery),
-			response: {
-				viewer: {
-					keyRaw: 'viewer',
-					type: 'User',
-					fields: {
-						id: {
-							keyRaw: 'id',
-							type: 'ID',
-						},
-					},
-				},
-			},
 			rootType: 'Query',
 			selection: {
 				viewer: {

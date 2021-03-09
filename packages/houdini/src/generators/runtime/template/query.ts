@@ -31,12 +31,12 @@ export default function query<_Query extends Operation<any, any>>(
 			// build the subscription spec
 			subscriptionSpec = {
 				rootType: document.artifact.rootType,
-				selection: document.artifact.response,
+				selection: document.artifact.selection,
 				set,
 			}
 
 			// once we've mounted
-			cache.write(document.artifact.response, initialValue, variables)
+			cache.write(document.artifact.selection, initialValue, variables)
 
 			// stay up to date
 			cache.subscribe(subscriptionSpec, variables)
@@ -48,7 +48,7 @@ export default function query<_Query extends Operation<any, any>>(
 			cache.unsubscribe(
 				{
 					rootType: document.artifact.rootType,
-					selection: document.artifact.response,
+					selection: document.artifact.selection,
 					set,
 				},
 				variables
@@ -68,7 +68,7 @@ export default function query<_Query extends Operation<any, any>>(
 			}
 
 			// write the data we received
-			cache.write(document.artifact.response, newData.data, variables)
+			cache.write(document.artifact.selection, newData.data, variables)
 		},
 	}
 }

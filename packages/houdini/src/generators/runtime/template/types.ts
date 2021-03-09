@@ -16,12 +16,10 @@ export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifa
 
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
-	response: SubscriptionSelection
 }
 
 export type MutationArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniMutation'
-	response: SubscriptionSelection
 }
 
 export type FragmentArtifact = BaseCompiledDocument & {

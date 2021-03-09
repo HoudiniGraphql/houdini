@@ -66,13 +66,6 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		        "keyRaw": "version"
 		    }
 		};
-
-		module.exports.response = {
-		    "version": {
-		        "type": "Int",
-		        "keyRaw": "version"
-		    }
-		};
 	`)
 
 	const fragmentContents = await fs.readFile(
@@ -145,13 +138,6 @@ test('internal directives are scrubbed', async function () {
 		module.exports.selection = {
 		    "user": {
 		        "type": "User",
-		        "keyRaw": "user"
-		    }
-		};
-
-		module.exports.response = {
-		    "user": {
-		        "type": "User",
 		        "keyRaw": "user",
 
 		        "fields": {
@@ -215,20 +201,6 @@ test('overlapping query and fragment selection', async function () {
 		        }
 		    }
 		};
-
-		module.exports.response = {
-		    "user": {
-		        "type": "User",
-		        "keyRaw": "user",
-
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
-		            }
-		        }
-		    }
-		};
 	`)
 })
 
@@ -277,27 +249,6 @@ test('overlapping query and fragment nested selection', async function () {
 		module.exports.rootType = "Query";
 
 		module.exports.selection = {
-		    "user": {
-		        "type": "User",
-		        "keyRaw": "user",
-
-		        "fields": {
-		            "friends": {
-		                "type": "User",
-		                "keyRaw": "friends",
-
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
 		    "user": {
 		        "type": "User",
 		        "keyRaw": "user",
@@ -398,27 +349,6 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
-
-		module.exports.response = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
 	`)
 	})
 
@@ -480,26 +410,6 @@ describe('mutation artifacts', function () {
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last"
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "keyRaw": "addFriend",
@@ -599,25 +509,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "remove",
-		                    "connection": "All_Users"
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
 		                "fields": {
 		                    "id": {
 		                        "type": "ID",
@@ -685,25 +576,6 @@ describe('mutation artifacts', function () {
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
-		    "deleteUser": {
-		        "type": "DeleteUserOutput",
-		        "keyRaw": "deleteUser(id: \\"1234\\")",
-
-		        "fields": {
-		            "userID": {
-		                "type": "ID",
-		                "keyRaw": "userID",
-
-		                "operations": [{
-		                    "action": "delete",
-		                    "type": "User"
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
 		    "deleteUser": {
 		        "type": "DeleteUserOutput",
 		        "keyRaw": "deleteUser(id: \\"1234\\")",
@@ -796,31 +668,6 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
-
-		module.exports.response = {
-		    "deleteUser": {
-		        "type": "DeleteUserOutput",
-		        "keyRaw": "deleteUser(id: \\"1234\\")",
-
-		        "fields": {
-		            "userID": {
-		                "type": "ID",
-		                "keyRaw": "userID",
-
-		                "operations": [{
-		                    "action": "delete",
-		                    "type": "User",
-
-		                    "when": {
-		                        "must": {
-		                            "stringValue": "foo"
-		                        }
-		                    }
-		                }]
-		            }
-		        }
-		    }
-		};
 	`)
 	})
 
@@ -882,31 +729,6 @@ describe('mutation artifacts', function () {
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "first",
-
-		                    "parentID": {
-		                        "kind": "String",
-		                        "value": "1234"
-		                    }
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "keyRaw": "addFriend",
@@ -1012,31 +834,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "parentID": {
-		                        "kind": "String",
-		                        "value": "1234"
-		                    }
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1133,31 +930,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "parentID": {
-		                        "kind": "String",
-		                        "value": "1234"
-		                    }
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1245,32 +1017,6 @@ describe('mutation artifacts', function () {
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "first",
-
-		                    "when": {
-		                        "must": {
-		                            "stringValue": "foo"
-		                        }
-		                    }
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "keyRaw": "addFriend",
@@ -1377,32 +1123,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must": {
-		                            "stringValue": "true"
-		                        }
-		                    }
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1491,32 +1211,6 @@ describe('mutation artifacts', function () {
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must": {
-		                            "stringValue": "true"
-		                        }
-		                    }
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "keyRaw": "addFriend",
@@ -1623,32 +1317,6 @@ describe('mutation artifacts', function () {
 		                "type": "User",
 		                "keyRaw": "friend",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "first",
-
-		                    "when": {
-		                        "must_not": {
-		                            "stringValue": "true"
-		                        }
-		                    }
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
 		                "fields": {
 		                    "firstName": {
 		                        "type": "String",
@@ -1737,32 +1405,6 @@ describe('mutation artifacts', function () {
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must_not": {
-		                            "stringValue": "true"
-		                        }
-		                    }
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "keyRaw": "addFriend",
@@ -1894,44 +1536,6 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
-
-		module.exports.response = {
-		    "users": {
-		        "type": "User",
-		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
-
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
-		            }
-		        },
-
-		        "connection": "All_Users",
-
-		        "filters": {
-		            "stringValue": {
-		                "kind": "Variable",
-		                "value": "value"
-		            },
-
-		            "boolValue": {
-		                "kind": "Boolean",
-		                "value": true
-		            },
-
-		            "floatValue": {
-		                "kind": "Float",
-		                "value": 1.2
-		            },
-
-		            "intValue": {
-		                "kind": "Int",
-		                "value": 1
-		            }
-		        }
-		    }
-		};
 	`)
 	})
 
@@ -1993,32 +1597,6 @@ describe('mutation artifacts', function () {
 		module.exports.rootType = "Mutation";
 
 		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
-
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
-
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must_not": {
-		                            "boolValue": true
-		                        }
-		                    }
-		                }]
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
 		    "addFriend": {
 		        "type": "AddFriendOutput",
 		        "keyRaw": "addFriend",
@@ -2130,29 +1708,6 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
-
-		module.exports.response = {
-		    "users": {
-		        "type": "User",
-		        "keyRaw": "users(stringValue: \\"foo\\")",
-
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
-		            }
-		        },
-
-		        "connection": "All_Users",
-
-		        "filters": {
-		            "stringValue": {
-		                "kind": "String",
-		                "value": "foo"
-		            }
-		        }
-		    }
-		};
 	`)
 	})
 
@@ -2202,44 +1757,6 @@ describe('mutation artifacts', function () {
 		module.exports.rootType = "Query";
 
 		module.exports.selection = {
-		    "users": {
-		        "type": "User",
-		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
-
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
-		            }
-		        },
-
-		        "connection": "All_Users",
-
-		        "filters": {
-		            "stringValue": {
-		                "kind": "Variable",
-		                "value": "value"
-		            },
-
-		            "boolValue": {
-		                "kind": "Boolean",
-		                "value": true
-		            },
-
-		            "floatValue": {
-		                "kind": "Float",
-		                "value": 1.2
-		            },
-
-		            "intValue": {
-		                "kind": "Int",
-		                "value": 1
-		            }
-		        }
-		    }
-		};
-
-		module.exports.response = {
 		    "users": {
 		        "type": "User",
 		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
