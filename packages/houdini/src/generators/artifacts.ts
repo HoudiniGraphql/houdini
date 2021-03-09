@@ -567,7 +567,8 @@ function fieldKey(printed: string, field: graphql.FieldNode): string {
 	const attributeName = field.alias?.value || field.name.value
 
 	const argObj = (field.arguments || []).reduce<{ [key: string]: string }>((acc, arg) => {
-		// the query already contains
+		// the query already contains a serialized version of the argument so just pull it out of the
+		// document string
 		const start = arg.value.loc?.start
 		const end = arg.value.loc?.end
 
@@ -838,7 +839,7 @@ function operationInfo(config: Config, selection: graphql.SelectionNode): Operat
 				continue
 			}
 
-			//which are we looking at
+			// which are we looking at
 			const which = i ? 'must_not' : 'must'
 			// build up all of the values into a single object
 			const key = arg.value.fields.find(({ name, value }) => name.value === 'argument')?.value
@@ -868,7 +869,7 @@ function operationInfo(config: Config, selection: graphql.SelectionNode): Operat
 			if (!directive) {
 				continue
 			}
-			//which are we looking at
+			// which are we looking at
 			const which = i ? 'must_not' : 'must'
 
 			// look for the argument field
