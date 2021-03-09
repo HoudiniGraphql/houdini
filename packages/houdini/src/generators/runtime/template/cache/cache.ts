@@ -1,7 +1,7 @@
 // local imports
 import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../types'
 import { Record } from './record'
-import { ConnectionHandler } from './connection'
+import { ConnectionHandler, CacheAdapter } from './connection'
 
 // this class implements the cache that drives houdini queries
 export class Cache {
@@ -119,6 +119,29 @@ export class Cache {
 		return this._data.delete(id)
 	}
 
+	// grab the record specified by {id}
+	record(id: string | undefined): Record {
+		// if we haven't seen the record before add an entry in the store
+		if (!this._data.has(id)) {
+			this._data.set(id, new Record(this))
+		}
+
+		// write the field value
+		return this._data.get(id) as Record
+	}
+
+	get adapter(): CacheAdapter {
+		return {
+			notifySubscribers: this.notifySubscribers.bind(this),
+			insertSubscribers: this.insertSubscribers.bind(this),
+			unsubscribeSelection: this.unsubscribeSelection.bind(this),
+		}
+	}
+
+	private root(): Record {
+		return this.record(undefined)
+	}
+
 	// walk down the spec
 	private getData(
 		spec: SubscriptionSpec,
@@ -213,6 +236,7 @@ export class Cache {
 								},
 								{}
 							),
+							adapter: this.adapter,
 						})
 					)
 				}
@@ -495,22 +519,7 @@ export class Cache {
 		return ['String', 'Boolean', 'Float', 'ID', 'Int'].includes(type)
 	}
 
-	root(): Record {
-		return this.record(undefined)
-	}
-
-	// grab the record specified by {id}
-	record(id: string | undefined): Record {
-		// if we haven't seen the record before add an entry in the store
-		if (!this._data.has(id)) {
-			this._data.set(id, new Record(this))
-		}
-
-		// write the field value
-		return this._data.get(id) as Record
-	}
-
-	notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
+	private notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
 		for (const spec of specs) {
 			// find the root record
 			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
@@ -523,7 +532,7 @@ export class Cache {
 		}
 	}
 
-	insertSubscribers(
+	private insertSubscribers(
 		record: Record,
 		selection: SubscriptionSelection,
 		variables: {},
@@ -548,7 +557,7 @@ export class Cache {
 		}
 	}
 
-	unsubscribeSelection(
+	private unsubscribeSelection(
 		record: Record,
 		selection: SubscriptionSelection,
 		variables: {},
@@ -570,7 +579,8 @@ export class Cache {
 			}
 		}
 	}
-	evaluateKey(key: string, variables: { [key: string]: GraphQLValue } = {}): string {
+
+	private evaluateKey(key: string, variables: { [key: string]: GraphQLValue } = {}): string {
 		// accumulate the evaluated key
 		let evaluated = ''
 		// acumulate a variable name that we're evulating

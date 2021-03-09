@@ -3,6 +3,25 @@ import { SubscriptionSelection, ConnectionWhen, SubscriptionSpec } from '../type
 import { Cache } from './cache'
 import { Record } from './record'
 
+// in order to keep some methods on the class out of the public API
+// we'll ask it for an "adapter" which will hold the references we
+// need to use for the handler's methods
+export type CacheAdapter = {
+	notifySubscribers: (specs: SubscriptionSpec[], variables: {}) => void
+	unsubscribeSelection: (
+		record: Record,
+		selection: SubscriptionSelection,
+		variables: {},
+		...subscribers: SubscriptionSpec['set'][]
+	) => void
+	insertSubscribers: (
+		record: Record,
+		selection: SubscriptionSelection,
+		variables: {},
+		...subscribers: SubscriptionSpec[]
+	) => void
+}
+
 export class ConnectionHandler {
 	readonly record: Record
 	readonly key: string
@@ -13,6 +32,7 @@ export class ConnectionHandler {
 	private filters?: { [key: string]: number | boolean | string }
 	name: string
 	parentID: SubscriptionSpec['parentID']
+	adapter: CacheAdapter
 
 	constructor({
 		name,
@@ -24,6 +44,7 @@ export class ConnectionHandler {
 		when,
 		filters,
 		parentID,
+		adapter,
 	}: {
 		name: string
 		cache: Cache
@@ -34,6 +55,7 @@ export class ConnectionHandler {
 		when?: ConnectionWhen
 		filters?: ConnectionHandler['filters']
 		parentID?: SubscriptionSpec['parentID']
+		adapter: CacheAdapter
 	}) {
 		this.record = record
 		this.key = key
@@ -44,6 +66,7 @@ export class ConnectionHandler {
 		this.filters = filters
 		this.name = name
 		this.parentID = parentID
+		this.adapter = adapter
 	}
 
 	// when applies a when condition to a new connection pointing to the same spot
@@ -58,6 +81,7 @@ export class ConnectionHandler {
 			filters: this.filters,
 			parentID: this.parentID,
 			name: this.name,
+			adapter: this.adapter,
 		})
 	}
 
@@ -97,7 +121,7 @@ export class ConnectionHandler {
 		const subscribers = this.record.getSubscribers(this.key)
 
 		// notify the subscribers we care about
-		this.cache.notifySubscribers(subscribers, variables)
+		this.adapter.notifySubscribers(subscribers, variables)
 
 		// look up the new record in the cache
 		const newRecord = this.cache.record(dataID)
@@ -111,7 +135,7 @@ export class ConnectionHandler {
 		// walk down the connection fields relative to the new record
 		// and make sure all of the connection's subscribers are listening
 		// to that object
-		this.cache.insertSubscribers(newRecord, this.selection, variables, ...subscribers)
+		this.adapter.insertSubscribers(newRecord, this.selection, variables, ...subscribers)
 	}
 
 	removeID(id: string, variables: {} = {}) {
@@ -127,10 +151,10 @@ export class ConnectionHandler {
 		const subscribers = this.record.getSubscribers(this.key)
 
 		// notify the subscribers about the change
-		this.cache.notifySubscribers(subscribers, variables)
+		this.adapter.notifySubscribers(subscribers, variables)
 
 		// disconnect record from any subscriptions associated with the connection
-		this.cache.unsubscribeSelection(
+		this.adapter.unsubscribeSelection(
 			this.cache.record(id),
 			this.selection,
 			variables,
