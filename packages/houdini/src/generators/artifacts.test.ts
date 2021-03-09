@@ -99,6 +99,92 @@ test('adds kind, name, and raw, response, and selection', async function () {
 	`)
 })
 
+test('selection includes fragments', async function () {
+	// the documents to test
+	const selectionDocs: CollectedGraphQLDocument[] = [
+		mockCollectedDoc('TestQuery', `query TestQuery { user { ...TestFragment } }`),
+		mockCollectedDoc('TestFragment', `fragment TestFragment on User { firstName }`),
+	]
+
+	// execute the generator
+	await runPipeline(config, selectionDocs)
+
+	//
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(selectionDocs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "TestQuery";
+		module.exports.kind = "HoudiniQuery";
+		module.exports.hash = "8662e6b2267b8667e81533ecbb73dd23";
+
+		module.exports.raw = \`query TestQuery {
+		  user {
+		    ...TestFragment
+		  }
+		}
+
+		fragment TestFragment on User {
+		  firstName
+		}
+		\`;
+
+		module.exports.rootType = "Query";
+
+		module.exports.selection = {
+		    "user": {
+		        "type": "User",
+		        "keyRaw": "user",
+
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName"
+		            }
+		        }
+		    }
+		};
+	`)
+
+	const fragmentContents = await fs.readFile(
+		path.join(config.artifactPath(docs[1].document)),
+		'utf-8'
+	)
+	expect(fragmentContents).toBeTruthy()
+	// parse the contents
+	const parsedFragment: ProgramKind = recast.parse(fragmentContents, {
+		parser: typeScriptParser,
+	}).program
+	// and verify their content
+	expect(parsedFragment).toMatchInlineSnapshot(`
+		module.exports.name = "TestFragment";
+		module.exports.kind = "HoudiniFragment";
+		module.exports.hash = "a77288e39dcdadb70e4010b543c89c6a";
+
+		module.exports.raw = \`fragment TestFragment on User {
+		  firstName
+		}
+		\`;
+
+		module.exports.rootType = "User";
+
+		module.exports.selection = {
+		    "firstName": {
+		        "type": "String",
+		        "keyRaw": "firstName"
+		    }
+		};
+	`)
+})
+
 test('internal directives are scrubbed', async function () {
 	// execute the generator
 	await runPipeline(config, [
