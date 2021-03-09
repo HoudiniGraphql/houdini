@@ -1,15 +1,9 @@
 // local imports
-import { version } from 'graphql'
-import {
-	Maybe,
-	GraphQLValue,
-	SubscriptionSelection,
-	SubscriptionSpec,
-	ConnectionWhen,
-} from './types'
+import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../types'
+import { Record } from './record'
+import { ConnectionHandler } from './connection'
 
-// this file holds the implementation (and singleton) for the cache that drives
-// houdini queries
+// this class implements the cache that drives houdini queries
 export class Cache {
 	// the map from entity id to record
 	private _data: Map<string | undefined, Record> = new Map()
@@ -51,7 +45,7 @@ export class Cache {
 	// type to form the global id
 	id(type: string, id: string): string
 	id(type: string, data: any): string {
-		return type + ':' + (typeof data === 'string' ? data : data.id)
+		return type + ':' + (typeof data === 'string' ? data : this.computeID(data))
 	}
 
 	computeID(data: { [key: string]: GraphQLValue }) {
@@ -104,19 +98,6 @@ export class Cache {
 
 		// return the handler
 		return handler
-	}
-
-	notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
-		for (const spec of specs) {
-			// find the root record
-			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
-			if (!rootRecord) {
-				throw new Error('Could not find root of subscription')
-			}
-
-			// trigger the update
-			spec.set(this.getData(spec, rootRecord, spec.selection, variables))
-		}
 	}
 
 	// remove the record from every connection we know of and the cache itself
@@ -510,6 +491,10 @@ export class Cache {
 		}
 	}
 
+	private isScalarLink(type: string) {
+		return ['String', 'Boolean', 'Float', 'ID', 'Int'].includes(type)
+	}
+
 	root(): Record {
 		return this.record(undefined)
 	}
@@ -523,6 +508,19 @@ export class Cache {
 
 		// write the field value
 		return this._data.get(id) as Record
+	}
+
+	notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
+		for (const spec of specs) {
+			// find the root record
+			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
+			if (!rootRecord) {
+				throw new Error('Could not find root of subscription')
+			}
+
+			// trigger the update
+			spec.set(this.getData(spec, rootRecord, spec.selection, variables))
+		}
 	}
 
 	insertSubscribers(
@@ -572,11 +570,6 @@ export class Cache {
 			}
 		}
 	}
-
-	private isScalarLink(type: string) {
-		return ['String', 'Boolean', 'Float', 'ID', 'Int'].includes(type)
-	}
-
 	evaluateKey(key: string, variables: { [key: string]: GraphQLValue } = {}): string {
 		// accumulate the evaluated key
 		let evaluated = ''
@@ -630,382 +623,3 @@ export class Cache {
 
 // the list of characters that make up a valid graphql variable name
 const varChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
-
-type Connection = {
-	name: string
-	parentID: string | undefined
-}
-
-class Record {
-	fields: { [key: string]: GraphQLValue } = {}
-
-	keyVersions: { [key: string]: Set<string> } = {}
-	private subscribers: { [key: string]: SubscriptionSpec[] } = {}
-	private recordLinks: { [key: string]: string } = {}
-	private listLinks: { [key: string]: string[] } = {}
-	private cache: Cache
-	private referenceCounts: {
-		[fieldName: string]: Map<SubscriptionSpec['set'], number>
-	} = {}
-	connections: Connection[] = []
-
-	constructor(cache: Cache) {
-		this.cache = cache
-	}
-
-	allSubscribers() {
-		return Object.values(this.subscribers).flatMap((subscribers) => subscribers)
-	}
-
-	getField(fieldName: string): GraphQLValue {
-		return this.fields[fieldName]
-	}
-
-	writeField(fieldName: string, value: GraphQLValue) {
-		this.fields[fieldName] = value
-	}
-
-	writeRecordLink(fieldName: string, value: string) {
-		this.recordLinks[fieldName] = value
-	}
-
-	writeListLink(fieldName: string, value: string[]) {
-		this.listLinks[fieldName] = value
-	}
-
-	linkedRecord(fieldName: string) {
-		return this.cache.get(this.recordLinks[fieldName])
-	}
-
-	linkedRecordID(fieldName: string) {
-		return this.recordLinks[fieldName]
-	}
-
-	linkedListIDs(fieldName: string): string[] {
-		return this.listLinks[fieldName] || []
-	}
-
-	linkedList(fieldName: string): Record[] {
-		return (this.listLinks[fieldName] || [])
-			.map((link) => this.cache.get(link))
-			.filter((record) => record !== null) as Record[]
-	}
-
-	appendLinkedList(fieldName: string, id: string) {
-		// this could be the first time we've seen the list
-		if (!this.listLinks[fieldName]) {
-			this.listLinks[fieldName] = []
-		}
-
-		this.listLinks[fieldName].push(id)
-	}
-
-	prependLinkedList(fieldName: string, id: string) {
-		// this could be the first time we've seen the list
-		if (!this.listLinks[fieldName]) {
-			this.listLinks[fieldName] = []
-		}
-
-		this.listLinks[fieldName].unshift(id)
-	}
-
-	removeFromLinkedList(fieldName: string, id: string) {
-		this.listLinks[fieldName] = (this.listLinks[fieldName] || []).filter((link) => link !== id)
-	}
-
-	addSubscriber(rawKey: string, key: string, ...specs: SubscriptionSpec[]) {
-		// if this is the first time we've seen the raw key
-		if (!this.keyVersions[rawKey]) {
-			this.keyVersions[rawKey] = new Set()
-		}
-
-		// add this verson of the key if we need to
-		this.keyVersions[rawKey].add(key)
-
-		// the existing list
-		const existingSubscribers = (this.subscribers[key] || []).map(({ set }) => set)
-		// the list of new subscribers
-		const newSubscribers = specs.filter(({ set }) => !existingSubscribers.includes(set))
-
-		this.subscribers[key] = this.getSubscribers(key).concat(...newSubscribers)
-
-		// if this is the first time we've seen this key
-		if (!this.referenceCounts[key]) {
-			this.referenceCounts[key] = new Map()
-		}
-		const counts = this.referenceCounts[key]
-
-		// increment the reference count for every subscriber
-		for (const spec of specs) {
-			// we're going to increment the current value by one
-			counts.set(spec.set, (counts.get(spec.set) || 0) + 1)
-		}
-	}
-
-	getSubscribers(fieldName: string): SubscriptionSpec[] {
-		return this.subscribers[fieldName] || []
-	}
-
-	forgetSubscribers(...targets: SubscriptionSpec[]) {
-		this.forgetSubscribers_walk(targets.map(({ set }) => set))
-	}
-
-	removeAllSubscribers() {
-		this.forgetSubscribers(...this.allSubscribers())
-	}
-
-	addConnectionReference(ref: Connection) {
-		this.connections.push(ref)
-	}
-
-	removeConnectionReference(ref: Connection) {
-		this.connections = this.connections.filter(
-			(conn) => !(conn.name === ref.name && conn.parentID === ref.parentID)
-		)
-	}
-
-	removeAllSubscriptionVerions(keyRaw: string, spec: SubscriptionSpec) {
-		// visit every version of the key we've seen and remove the spec from the list of subscribers
-		const versions = this.keyVersions[keyRaw]
-		// if there are no known versons, we're done
-		if (!versions) {
-			return
-		}
-
-		this.removeSubscribers([...this.keyVersions[keyRaw]], [spec.set])
-	}
-
-	private forgetSubscribers_walk(targets: SubscriptionSpec['set'][]) {
-		// clean up any subscribers that reference the set
-		this.removeSubscribers(Object.keys(this.subscribers), targets)
-
-		// walk down to every record we know about
-		const linkedIDs = Object.keys(this.recordLinks).concat(
-			Object.keys(this.listLinks).flatMap((key) => this.listLinks[key])
-		)
-		for (const linkedRecordID of linkedIDs) {
-			this.cache.get(linkedRecordID)?.forgetSubscribers_walk(targets)
-		}
-	}
-
-	removeSubscribers(fields: string[], sets: SubscriptionSpec['set'][]) {
-		// clean up any subscribers that reference the set
-		for (const fieldName of fields) {
-			// build up a list of the sets we actually need to remove after
-			// checking reference counts
-			let targets: SubscriptionSpec['set'][] = []
-
-			for (const set of sets) {
-				// if we dont know this field/set combo, there's nothing to do (probably a bug somewhere)
-				if (!this.referenceCounts[fieldName]?.has(set)) {
-					continue
-				}
-				const counts = this.referenceCounts[fieldName]
-				const newVal = (counts.get(set) || 0) - 1
-
-				// decrement the reference of every field
-				counts.set(set, newVal)
-
-				// if that was the last reference we knew of
-				if (newVal <= 0) {
-					targets.push(set)
-					// remove the count too
-					counts.delete(set)
-				}
-			}
-
-			// we do need to remove the set from the list
-			this.subscribers[fieldName] = this.getSubscribers(fieldName).filter(
-				({ set }) => !targets.includes(set)
-			)
-		}
-	}
-}
-
-class ConnectionHandler {
-	readonly record: Record
-	readonly key: string
-	readonly connectionType: string
-	private cache: Cache
-	selection: SubscriptionSelection
-	private _when?: ConnectionWhen
-	private filters?: { [key: string]: number | boolean | string }
-	name: string
-	parentID: SubscriptionSpec['parentID']
-
-	constructor({
-		name,
-		cache,
-		record,
-		key,
-		connectionType,
-		selection,
-		when,
-		filters,
-		parentID,
-	}: {
-		name: string
-		cache: Cache
-		record: Record
-		key: string
-		connectionType: string
-		selection: SubscriptionSelection
-		when?: ConnectionWhen
-		filters?: ConnectionHandler['filters']
-		parentID?: SubscriptionSpec['parentID']
-	}) {
-		this.record = record
-		this.key = key
-		this.connectionType = connectionType
-		this.cache = cache
-		this.selection = selection
-		this._when = when
-		this.filters = filters
-		this.name = name
-		this.parentID = parentID
-	}
-
-	// when applies a when condition to a new connection pointing to the same spot
-	when(when?: ConnectionWhen): ConnectionHandler {
-		return new ConnectionHandler({
-			cache: this.cache,
-			record: this.record,
-			key: this.key,
-			connectionType: this.connectionType,
-			selection: this.selection,
-			when,
-			filters: this.filters,
-			parentID: this.parentID,
-			name: this.name,
-		})
-	}
-
-	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
-		return this.addToConnection(selection, data, variables, 'last')
-	}
-
-	prepend(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
-		return this.addToConnection(selection, data, variables, 'first')
-	}
-
-	addToConnection(
-		selection: SubscriptionSelection,
-		data: {},
-		variables: {} = {},
-		where: 'first' | 'last'
-	) {
-		// if there are conditions for this operation
-		if (!this.validateWhen()) {
-			return
-		}
-		// figure out the id of the type we are adding
-		const dataID = this.cache.id(this.connectionType, data)
-
-		// update the cache with the data we just found
-		this.cache.write(selection, data, variables, dataID)
-
-		if (where === 'first') {
-			// add the record we just created to the list
-			this.record.prependLinkedList(this.key, dataID)
-		} else {
-			// add the record we just created to the list
-			this.record.appendLinkedList(this.key, dataID)
-		}
-
-		// get the list of specs that are subscribing to the connection
-		const subscribers = this.record.getSubscribers(this.key)
-
-		// notify the subscribers we care about
-		this.cache.notifySubscribers(subscribers, variables)
-
-		// look up the new record in the cache
-		const newRecord = this.cache.record(dataID)
-
-		// add the connection reference
-		newRecord.addConnectionReference({
-			parentID: this.parentID,
-			name: this.name,
-		})
-
-		// walk down the connection fields relative to the new record
-		// and make sure all of the connection's subscribers are listening
-		// to that object
-		this.cache.insertSubscribers(newRecord, this.selection, variables, ...subscribers)
-	}
-
-	removeID(id: string, variables: {} = {}) {
-		// if there are conditions for this operation
-		if (!this.validateWhen()) {
-			return
-		}
-
-		// add the record we just created to the list
-		this.record.removeFromLinkedList(this.key, id)
-
-		// get the list of specs that are subscribing to the connection
-		const subscribers = this.record.getSubscribers(this.key)
-
-		// notify the subscribers about the change
-		this.cache.notifySubscribers(subscribers, variables)
-
-		// disconnect record from any subscriptions associated with the connection
-		this.cache.unsubscribeSelection(
-			this.cache.record(id),
-			this.selection,
-			variables,
-			...subscribers.map(({ set }) => set)
-		)
-	}
-
-	remove(data: {}, variables: {} = {}) {
-		// figure out the id of the type we are adding
-		this.removeID(this.cache.id(this.connectionType, data), variables)
-	}
-
-	private validateWhen() {
-		// if this when doesn't apply, we should look at others to see if we should update those behind the scenes
-
-		let ok = true
-		// if there are conditions for this operation
-		if (this._when) {
-			// we only NEED there to be target filters for must's
-			const targets = this.filters
-
-			// check must's first
-			if (this._when.must && targets) {
-				ok = Object.entries(this._when.must).reduce<boolean>(
-					(prev, [key, value]) => Boolean(prev && targets[key] == value),
-					ok
-				)
-			}
-			// if there are no targets, nothing could be true that can we compare against
-			if (this._when.must_not) {
-				ok =
-					!targets ||
-					Object.entries(this._when.must_not).reduce<boolean>(
-						(prev, [key, value]) => Boolean(prev && targets[key] != value),
-						ok
-					)
-			}
-		}
-
-		return ok
-	}
-
-	// iterating over the connection handler should be the same as iterating over
-	// the underlying linked list
-	*[Symbol.iterator]() {
-		for (let record of this.record.linkedList(this.key)) {
-			yield record
-		}
-	}
-}
-
-const localCache = new Cache()
-
-if (global.window) {
-	// @ts-ignore
-	window.cache = localCache
-}
-
-export default localCache

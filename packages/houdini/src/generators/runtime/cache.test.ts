@@ -1,6 +1,6 @@
 // locals
-import { Cache } from './template/cache'
-import { MutationOperation, SubscriptionSelection } from './template/types'
+import { Cache } from './template/cache/cache'
+import { SubscriptionSelection } from './template/types'
 
 test('save root object', function () {
 	// instantiate a cache we'll test against
