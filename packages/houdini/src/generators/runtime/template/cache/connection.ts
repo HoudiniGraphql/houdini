@@ -8,11 +8,11 @@ export class ConnectionHandler {
 	readonly key: string
 	readonly connectionType: string
 	private cache: Cache
-	selection: SubscriptionSelection
+	readonly selection: SubscriptionSelection
 	private _when?: ConnectionWhen
 	private filters?: { [key: string]: number | boolean | string }
-	name: string
-	parentID: SubscriptionSpec['parentID']
+	readonly name: string
+	readonly parentID: SubscriptionSpec['parentID']
 
 	constructor({
 		name,
