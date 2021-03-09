@@ -104,15 +104,13 @@ export class Cache {
 		return handler
 	}
 
-	notifySubscribers(specs: SubscriptionSpec[], variables: {}) {
+	notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
 		for (const spec of specs) {
 			// find the root record
 			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
 			if (!rootRecord) {
 				throw new Error('Could not find root of subscription')
 			}
-
-			console.log('retrieved data', this.getData(spec, rootRecord, spec.selection, variables))
 
 			// trigger the update
 			spec.set(this.getData(spec, rootRecord, spec.selection, variables))
@@ -404,7 +402,7 @@ export class Cache {
 				}
 
 				// remove any subscribers we dont can't about
-				for (const [lostID] of oldIDs.filter((id) => !linkedIDs.includes(id))) {
+				for (const lostID of oldIDs.filter((id) => !linkedIDs.includes(id))) {
 					for (const sub of subscribers) {
 						if (!oldSubscribers[lostID]) {
 							oldSubscribers[lostID] = new Set()
@@ -818,7 +816,6 @@ class ConnectionHandler {
 		if (!this.validateWhen()) {
 			return
 		}
-		console.log('inserting in', this.key)
 		// figure out the id of the type we are adding
 		const dataID = this.cache.id(this.connectionType, data)
 
@@ -832,8 +829,6 @@ class ConnectionHandler {
 			// add the record we just created to the list
 			this.record.appendLinkedList(this.key, dataID)
 		}
-
-		console.log(this.record.linkedList(this.key))
 
 		// get the list of specs that are subscribing to the connection
 		const subscribers = this.record.getSubscribers(this.key)
@@ -889,8 +884,6 @@ class ConnectionHandler {
 		if (this._when) {
 			// we only NEED there to be target filters for must's
 			const targets = this.filters
-
-			console.log('comparing', this._when, this.filters)
 
 			// check must's first
 			if (this._when.must && targets) {
