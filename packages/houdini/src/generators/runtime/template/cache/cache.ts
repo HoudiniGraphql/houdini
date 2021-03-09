@@ -113,7 +113,7 @@ export class Cache {
 		return this._data.get(id) as Record
 	}
 
-	get proxy(): CacheProxy {
+	get internal(): CacheProxy {
 		return {
 			notifySubscribers: this.notifySubscribers.bind(this),
 			insertSubscribers: this.insertSubscribers.bind(this),

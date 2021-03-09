@@ -47,7 +47,7 @@ export class Record {
 	}
 
 	linkedRecord(fieldName: string) {
-		return this.cache.proxy.getRecord(this.recordLinks[fieldName])
+		return this.cache.internal.getRecord(this.recordLinks[fieldName])
 	}
 
 	linkedRecordID(fieldName: string) {
@@ -60,7 +60,7 @@ export class Record {
 
 	linkedList(fieldName: string): Record[] {
 		return (this.listLinks[fieldName] || [])
-			.map((link) => this.cache.proxy.getRecord(link))
+			.map((link) => this.cache.internal.getRecord(link))
 			.filter((record) => record !== null) as Record[]
 	}
 
@@ -157,7 +157,7 @@ export class Record {
 			Object.keys(this.listLinks).flatMap((key) => this.listLinks[key])
 		)
 		for (const linkedRecordID of linkedIDs) {
-			this.cache.proxy.getRecord(linkedRecordID)?.forgetSubscribers_walk(targets)
+			this.cache.internal.getRecord(linkedRecordID)?.forgetSubscribers_walk(targets)
 		}
 	}
 

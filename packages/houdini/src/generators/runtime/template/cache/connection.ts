@@ -97,10 +97,10 @@ export class ConnectionHandler {
 		const subscribers = this.record.getSubscribers(this.key)
 
 		// notify the subscribers we care about
-		this.cache.proxy.notifySubscribers(subscribers, variables)
+		this.cache.internal.notifySubscribers(subscribers, variables)
 
 		// look up the new record in the cache
-		const newRecord = this.cache.proxy.record(dataID)
+		const newRecord = this.cache.internal.record(dataID)
 
 		// add the connection reference
 		newRecord.addConnectionReference({
@@ -111,7 +111,7 @@ export class ConnectionHandler {
 		// walk down the connection fields relative to the new record
 		// and make sure all of the connection's subscribers are listening
 		// to that object
-		this.cache.proxy.insertSubscribers(newRecord, this.selection, variables, ...subscribers)
+		this.cache.internal.insertSubscribers(newRecord, this.selection, variables, ...subscribers)
 	}
 
 	removeID(id: string, variables: {} = {}) {
@@ -127,11 +127,11 @@ export class ConnectionHandler {
 		const subscribers = this.record.getSubscribers(this.key)
 
 		// notify the subscribers about the change
-		this.cache.proxy.notifySubscribers(subscribers, variables)
+		this.cache.internal.notifySubscribers(subscribers, variables)
 
 		// disconnect record from any subscriptions associated with the connection
-		this.cache.proxy.unsubscribeSelection(
-			this.cache.proxy.record(id),
+		this.cache.internal.unsubscribeSelection(
+			this.cache.internal.record(id),
 			this.selection,
 			variables,
 			...subscribers.map(({ set }) => set)
