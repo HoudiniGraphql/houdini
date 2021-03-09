@@ -2268,6 +2268,71 @@ test('variables in query and subscription', function () {
 	expect(cache.get(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(0)
 })
 
+test('deleting a node removes nested subscriptions', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					connection: 'All_Users',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write(selection, {
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					id: '2',
+					firstName: 'jane',
+				},
+			],
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// sanity check
+	expect(cache.get('User:2').getSubscribers('firstName')).toHaveLength(1)
+
+	// delete the parent
+	cache.delete('User:1')
+
+	// sanity check
+	expect(cache.get('User:2').getSubscribers('firstName')).toHaveLength(0)
+})
+
 test('changing variables clears subscribers', function () {
 	// instantiate a cache
 	const cache = new Cache()
@@ -2501,6 +2566,10 @@ describe('key evaluation', function () {
 // with the field. that's not the case if the same record shows up two places in a query but is removed
 // as a link in only one of them (this also included connections)
 test.todo("removing link doesn't unregister the same set everywhere")
+
+test.todo(
+	'the same as above but taking into account a node being deleted in the middle as the way to unsubscribe'
+)
 
 test.todo('inserting node creates back reference to connection')
 

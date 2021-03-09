@@ -122,6 +122,9 @@ export class Cache {
 	delete(id: string, variables: {} = {}): boolean {
 		const record = this.record(id)
 
+		// remove any related subscriptions
+		record.removeAllSubscribers()
+
 		for (const { name, parentID } of record.connections) {
 			// look up the connection
 			const connection = this.connection(name, parentID)
@@ -646,6 +649,10 @@ class Record {
 		this.cache = cache
 	}
 
+	allSubscribers() {
+		return Object.values(this.subscribers).flatMap((subscribers) => subscribers)
+	}
+
 	getField(fieldName: string): GraphQLValue {
 		return this.fields[fieldName]
 	}
@@ -723,6 +730,10 @@ class Record {
 		return this.subscribers[fieldName] || []
 	}
 
+	removeAllSubscribers() {
+		return this.removeSubscribers(...this.allSubscribers())
+	}
+
 	removeSubscribers(...targets: SubscriptionSpec[]) {
 		this._removeSubscribers(targets.map(({ set }) => set))
 	}
@@ -771,7 +782,7 @@ class ConnectionHandler {
 	readonly key: string
 	readonly connectionType: string
 	private cache: Cache
-	private selection: SubscriptionSelection
+	selection: SubscriptionSelection
 	private _when?: ConnectionWhen
 	private filters?: { [key: string]: number | boolean | string }
 	name: string
