@@ -1,7 +1,8 @@
 // locals
-import { getDocumentStores, applyPatch } from './runtime'
 import { RequestContext, fetchQuery } from './network'
 import { Operation, GraphQLTagResult } from './types'
+import cache from './cache'
+import { getVariables } from './context'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
 
@@ -16,10 +17,12 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	}
 
 	// pull the query text out of the compiled artifact
-	const { raw: text, links: linkModule } = document
+	const { raw: text } = document.artifact
 
 	// grab the sesion from the adapter
 	const session = getSession()
+
+	const queryVariables = getVariables()
 
 	// return an async function that sends the mutation go the server
 	return (variables: _Mutation['input']) =>
@@ -64,37 +67,16 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 					])
 					return
 				}
-
-				// update the result
 				result = data
-
-				// we need to update any that this mutation touches
-				// wait for the link module to load
-				linkModule.then(({ default: links }) => {
-					// every entry in the link could point to a store that needs to update
-					// we can process them in parallel since there is no shared data
-					Promise.all(
-						Object.entries(links()).map(async ([documentName, patchModule]) => {
-							// wait for the patch to load
-							const { default: patch } = await patchModule
-							// apply the changes to any stores that have registered themselves
-							for (const {
-								currentValue,
-								updateValue,
-								variables,
-							} of getDocumentStores(documentName)) {
-								// apply the patch
-								applyPatch(patch, updateValue, currentValue, data, variables)
-							}
-						})
-					)
-				})
 			} catch (e) {
 				reject(e)
 				return
 			}
 
+			// update the cache with the mutation data
+			cache.write(document.artifact.selection, result, queryVariables())
+
 			// wrap the result in a store we can use to keep this query up to date
-			resolve(document.processResult(result))
+			resolve(result)
 		})
 }

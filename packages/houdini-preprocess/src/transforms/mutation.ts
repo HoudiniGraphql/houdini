@@ -2,11 +2,11 @@
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
-import path from 'path'
 // locals
 import { TransformDocument } from '../types'
-import { selector, walkTaggedDocuments } from '../utils'
-const typeBuilders = recast.types.builders
+import { walkTaggedDocuments } from '../utils'
+import { artifactIdentifier } from './query'
+const AST = recast.types.builders
 
 export default async function mutationProcessor(
 	config: Config,
@@ -36,52 +36,26 @@ export default async function mutationProcessor(
 		},
 		// we want to replace it with an object that the runtime can use
 		onTag({ artifact, parsedDocument, node }) {
-			// figure out the root type of the fragment
-			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-
-			// the path to the link file
-			const linkPath = path.relative(
-				path.join(process.cwd(), doc.filename, '..'),
-				config.mutationLinksPath(artifact.name)
-			)
-
 			// replace the graphql node with the object
 			node.replaceWith(
-				typeBuilders.objectExpression([
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('name'),
-						typeBuilders.stringLiteral(artifact.name)
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('kind'),
-						typeBuilders.stringLiteral(artifact.kind)
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('raw'),
-						typeBuilders.stringLiteral(artifact.raw)
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('processResult'),
-						selector({
-							config: doc.config,
-							artifact,
-							rootIdentifier: 'data',
-							rootType,
-							selectionSet: operation.selectionSet,
-							// grab values from the immediate response
-							pullValuesFromRef: false,
-							root: true,
-							parsedDocument,
-						})
-					),
-					typeBuilders.objectProperty(
-						typeBuilders.stringLiteral('links'),
-						typeBuilders.callExpression(typeBuilders.identifier('import'), [
-							typeBuilders.stringLiteral(linkPath),
-						])
+				AST.objectExpression([
+					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
+					AST.objectProperty(
+						AST.literal('artifact'),
+						AST.identifier(artifactIdentifier(artifact))
 					),
 				])
 			)
+
+			doc.instance?.content.body.unshift({
+				type: 'ImportDeclaration',
+				// @ts-ignore
+				source: AST.literal(config.artifactImportPath(artifact.name)),
+				specifiers: [
+					// @ts-ignore
+					AST.importDefaultSpecifier(AST.identifier(artifactIdentifier(artifact))),
+				],
+			})
 		},
 	})
 }

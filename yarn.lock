@@ -6988,19 +6988,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"graphql@npm:15.x.x, graphql@npm:^15.3.0, graphql@npm:^15.5.0":
+  version: 15.5.0
+  resolution: "graphql@npm:15.5.0"
+  checksum: 789cdcb069a3e00592e779002217a6bc5fd09efad63ee8c4190c4b3ea96c89010e74f085fb1cba876a0bb0e324e01df2eddb84d79dca90a28e582bc425fef9ef
+  languageName: node
+  linkType: hard
+
 "graphql@npm:^14.0.0":
   version: 14.7.0
   resolution: "graphql@npm:14.7.0"
   dependencies:
     iterall: ^1.2.2
   checksum: 3b7d50f98f5c66db36327d6dd331367c6da166d701b5bad669664e8602a180ee50dcb5ae3e1f9874e7fa59c1217f50a52a922fc77b5a1e04276426e67815b0ed
-  languageName: node
-  linkType: hard
-
-"graphql@npm:^15.3.0, graphql@npm:^15.5.0":
-  version: 15.5.0
-  resolution: "graphql@npm:15.5.0"
-  checksum: 789cdcb069a3e00592e779002217a6bc5fd09efad63ee8c4190c4b3ea96c89010e74f085fb1cba876a0bb0e324e01df2eddb84d79dca90a28e582bc425fef9ef
   languageName: node
   linkType: hard
 
@@ -7163,7 +7163,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.0.15, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.1.3, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
@@ -7172,8 +7172,6 @@ __metadata:
     typescript: ^4.1.5
   peerDependencies:
     graphql: ^15.x
-  bin:
-    houdini-common: build/main.js
   languageName: unknown
   linkType: soft
 
@@ -7207,8 +7205,8 @@ __metadata:
     graphql: ^14.0.0
     graphql-relay: ^0.6.0
     graphql-tag: ^2.11.0
-    houdini: ^0.0.15
-    houdini-preprocess: ^0.0.15
+    houdini: ^0.1.12
+    houdini-preprocess: ^0.1.12
     lodash: ^4.17.20
     polka: next
     rollup: ^2.3.4
@@ -7234,7 +7232,7 @@ __metadata:
     "@types/mock-fs": ^4.13.0
     babel-jest: ^26.6.3
     global: ^4.4.0
-    graphql: ^15.5.0
+    graphql: 15.x.x
     jest: ^25.0.0
     lerna: ^3.22.1
     mock-fs: ^4.13.0
@@ -7246,7 +7244,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.0.15, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.1.12, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -7259,8 +7257,8 @@ __metadata:
     babel-jest: ^26.6.3
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
-    houdini: ^0.0.15
-    houdini-common: ^0.0.15
+    houdini: ^0.1.12
+    houdini-common: ^0.1.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -7271,7 +7269,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.0.15, houdini@workspace:packages/houdini":
+"houdini@^0.1.12, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
@@ -7289,12 +7287,13 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.0.15
+    houdini-common: ^0.1.3
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
     node-fetch: ^2.6.1
     recast: ^0.20.4
+    svelte: ^3.34.0
     typescript: ^4.0.0
   bin:
     houdini: build/main.js
@@ -12897,6 +12896,13 @@ resolve@1.1.7:
   version: 3.32.2
   resolution: "svelte@npm:3.32.2"
   checksum: 33c0223409ea24f848ccda9559f01b1594be082637b89858f9872904e4f409e35eea041362d12d7769b670fa1a88672b4cda74f451e525e9b6a3e5d936639ea0
+  languageName: node
+  linkType: hard
+
+"svelte@npm:^3.34.0":
+  version: 3.35.0
+  resolution: "svelte@npm:3.35.0"
+  checksum: de6041dee98f82e0bfc44ba010d5f03f7bdcd4c9fc2647f5627d619bed3d3683bd28d0422c83907ac9a92e86fe96763e2340bb0d83ea23478d2ca3237eed3da8
   languageName: node
   linkType: hard
 

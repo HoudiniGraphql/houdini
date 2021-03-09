@@ -31,7 +31,7 @@
 				item {
 					id
 					completed
-					...All_Items_remove @when(argument: "completed", value: "false")
+					...Filtered_Items_remove @when(argument: "completed", value: "false")
 				}
 			}
 		}
@@ -42,7 +42,7 @@
 				item {
 					id
 					completed
-					...All_Items_remove @when(argument: "completed", value: "true")
+					...Filtered_Items_remove @when(argument: "completed", value: "true")
 				}
 			}
 		}

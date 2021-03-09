@@ -1,10 +1,9 @@
 import { GraphQLTagResult } from './types'
 
 export * from './network'
-export * from './runtime'
 export * from './types'
 
-export { default as query } from './query'
+export { default as query, getQuery } from './query'
 export { default as mutation } from './mutation'
 export { default as fragment } from './fragment'
 

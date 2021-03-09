@@ -21,10 +21,9 @@ beforeEach(() => {
 	mockFs({
 		[path.relative(process.cwd(), config.rootDir)]: {
 			[path.relative(config.rootDir, config.artifactDirectory)]: {},
-			[path.relative(config.rootDir, config.patchDirectory)]: {},
 			[path.relative(config.rootDir, config.runtimeDirectory)]: {},
 		},
-		[`packages/houdini/src/generators/runtime/template`]: {}
+		[`packages/houdini/src/generators/runtime/template`]: {},
 	})
 })
 

@@ -71,17 +71,11 @@ export class Config {
 
 	// the directory where we put all of the artifacts
 	get artifactDirectory() {
-		return path.join(this.rootDir, 'artifacts')
+		return path.join(this.rootDir, this.artifactDirectoryName)
 	}
 
-	// the directory where the mutation handlers live
-	get patchDirectory() {
-		return path.join(this.rootDir, 'patches')
-	}
-
-	// the directory where mutation links live
-	get mutationLinksDirectory() {
-		return path.join(this.rootDir, 'links')
+	private get artifactDirectoryName() {
+		return 'artifacts'
 	}
 
 	// the directory where artifact types live
@@ -106,20 +100,15 @@ export class Config {
 		return `${mutation}_${query}`
 	}
 
-	// the location for the artifact for a patch
-	patchPath({ query, mutation }: { query: string; mutation: string }) {
-		return path.join(this.patchDirectory, `${this.patchName({ query, mutation })}.js`)
-	}
-
-	// the location for the links associated with the provided mutation
-	mutationLinksPath(mutationName: string): string {
-		return path.join(this.mutationLinksDirectory, `${mutationName}.js`)
-	}
-
 	// the location of the artifact generated corresponding to the provided documents
 	artifactPath(document: graphql.DocumentNode): string {
 		// use the operation name for the artifact
-		return path.join(this.artifactDirectory, `${this.documentName(document)}.cjs`)
+		return path.join(this.artifactDirectory, `${this.documentName(document)}.js`)
+	}
+
+	// the path that the runtime can use to import an artifact
+	artifactImportPath(name: string): string {
+		return `$houdini/${this.artifactDirectoryName}/${name}`
 	}
 
 	// a string identifier for the document (must be unique)
@@ -152,9 +141,12 @@ export class Config {
 		throw new Error('Could not generate artifact name for document: ' + graphql.print(document))
 	}
 
+	isSelectionScalar(type: string) {
+		return ['String', 'ID', 'Float', 'Int', 'Boolean'].includes(type)
+	}
+
 	async createDirectories(): Promise<void> {
 		await Promise.all([
-			mkdirp(this.mutationLinksDirectory),
 			mkdirp(this.artifactDirectory),
 			mkdirp(this.artifactTypeDirectory),
 			mkdirp(this.runtimeDirectory),
@@ -248,12 +240,26 @@ export class Config {
 		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.removeFragmentSuffix)
 	}
 
-	isConnectionDirective(name: string): boolean {
+	isConnectionOperationDirective(name: string): boolean {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}
 
 	isFragmentForConnection(connectionName: string, fragmentName: string) {
 		return fragmentName.startsWith(connectionName)
+	}
+
+	// return 'insert' for All_Users_insert
+	connectionOperationFromFragment(fragmentName: string): 'insert' | 'remove' {
+		// check the name against the fragment patterns
+		if (this.isInsertFragment(fragmentName)) {
+			return 'insert'
+		} else if (this.isRemoveFragment(fragmentName)) {
+			return 'remove'
+		}
+
+		throw new Error(
+			'Could not determine connection operation from fragment name: ' + fragmentName
+		)
 	}
 
 	connectionNameFromDirective(directiveName: string): string {

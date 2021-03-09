@@ -16,13 +16,11 @@ export default async function noIDAlias(
 
 	for (const { filename, document } of docs) {
 		graphql.visit(document, {
-			Field: {
-				enter(node) {
-					// if there is an alias on the node
-					if (node.alias?.value === 'id') {
-						errors.push({ message: 'Encountered field with alias id in ' + filename })
-					}
-				},
+			Field(node) {
+				// if there is an alias on the node
+				if (node.alias?.value === 'id') {
+					errors.push({ message: 'Encountered field with alias id in ' + filename })
+				}
 			},
 		})
 	}

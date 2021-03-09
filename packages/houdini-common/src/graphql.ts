@@ -9,11 +9,11 @@ export function selectionTypeInfo(
 ): { field: graphql.GraphQLField<any, any>; type: graphql.GraphQLNamedType } {
 	// the field we are looking at
 	const selectionName = (selection as graphql.FieldNode).name.value
-	const fieldMap = graphql.isNonNullType(rootType)
+	const response = graphql.isNonNullType(rootType)
 		? rootType.ofType.getFields()
 		: rootType.getFields()
 
-	const field = fieldMap[selectionName]
+	const field = response[selectionName]
 
 	if (!field) {
 		throw new Error(

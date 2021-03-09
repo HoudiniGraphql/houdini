@@ -45,6 +45,8 @@ const typeDefs = gql`
 	}
 `
 
+id = 3
+
 // example data
 let items = [
 	{ id: '1', text: 'Taste JavaScript' },
@@ -100,7 +102,8 @@ const resolvers = {
 			}
 		},
 		addItem(_, { input: { text } }) {
-			const item = { text, completed: false, id: (items.length + 1).toString() }
+			const item = { text, completed: false, id: (parseInt(id, 10) + 1).toString() }
+			id++
 			items.unshift(item)
 			return { item, error: null }
 		},

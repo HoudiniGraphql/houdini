@@ -24,7 +24,7 @@
 	import { derived } from 'svelte/store'
 
 	// load the items
-	const data = query<AllItems>(graphql`
+	const { data } = query<AllItems>(graphql`
 		query AllItems($completed: Boolean) {
 			filteredItems: items(completed: $completed) @connection(name: "Filtered_Items") {
 				id

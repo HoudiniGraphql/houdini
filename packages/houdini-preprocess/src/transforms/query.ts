@@ -7,10 +7,12 @@ import {
 	ReturnStatement,
 	ImportDeclaration,
 } from '@babel/types'
-import { Config } from 'houdini-common'
+import { Config, Script } from 'houdini-common'
+import { DocumentArtifact } from 'houdini'
+import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
 import { TransformDocument } from '../types'
-import { selector, walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
+import { walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
@@ -39,6 +41,8 @@ export default async function queryProcessor(
 	// note: we'll  replace the tags as we discover them with something the runtime library can use
 	const queries: EmbeddedGraphqlDocument[] = []
 
+	// we need to keep track of
+
 	// go to every graphql document
 	await walkTaggedDocuments(doc, doc.instance.content, {
 		// with only one definition defining a fragment
@@ -53,52 +57,24 @@ export default async function queryProcessor(
 		// we want to replace it with an object that the runtime can use
 		onTag(tag: EmbeddedGraphqlDocument) {
 			// pull out what we need
-			const { artifact, parsedDocument, node } = tag
-
-			// figure out the root type of the fragment
-			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+			const { node, parsedDocument, parent } = tag
 
 			// add the document to the list
 			queries.push(tag)
-			// replace the graphql node with the object
+
+			// we're going to hoist the actual query so we need to replace the graphql tag with
+			// a reference to the result
 			node.replaceWith(
-				AST.objectExpression([
-					AST.objectProperty(AST.stringLiteral('name'), AST.stringLiteral(artifact.name)),
-					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-					AST.objectProperty(AST.stringLiteral('raw'), AST.stringLiteral(artifact.raw)),
-					AST.objectProperty(
-						AST.stringLiteral('initialValue'),
-						AST.identifier(
-							preloadPayloadKey(
-								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-							)
-						)
-					),
-					AST.objectProperty(
-						AST.stringLiteral('processResult'),
-						selector({
-							config: doc.config,
-							artifact,
-							parsedDocument,
-							rootIdentifier: 'data',
-							rootType,
-							selectionSet: operation.selectionSet,
-							// grab values from the immediate response
-							pullValuesFromRef: false,
-							// make sure we can pass in variables
-							root: true,
-						})
-					),
-					AST.objectProperty(
-						AST.stringLiteral('variables'),
-						AST.identifier(
-							variablesKey(
-								tag.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-							)
-						)
-					),
-				])
+				queryHandlerIdentifier(
+					parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+				)
 			)
+
+			// as well as change the name of query to something that will just pass the result through
+			const callParent = parent as namedTypes.CallExpression
+			if (callParent.type === 'CallExpression' && callParent.callee.type === 'Identifier') {
+				callParent.callee.name = 'getQuery'
+			}
 		},
 	})
 
@@ -124,8 +100,13 @@ export default async function queryProcessor(
 		throw new Error('type script!!')
 	}
 
+	processModule(config, doc.module, queries)
+	processInstance(config, doc.instance, queries)
+}
+
+function processModule(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
 	// look for a preload definition
-	let preloadDefinition = doc.module.content.body.find(
+	let preloadDefinition = script.content.body.find(
 		(expression) =>
 			expression.type === 'ExportNamedDeclaration' &&
 			expression.declaration?.type === 'FunctionDeclaration' &&
@@ -147,13 +128,13 @@ export default async function queryProcessor(
 		preloadDefinition = AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration
 
 		// add it to the module
-		doc.module.content.body.push(preloadDefinition)
+		script.content.body.push(preloadDefinition)
 	}
 	const preloadFn = preloadDefinition.declaration as FunctionDeclaration
 
 	/// add the imports if they're  not there
 
-	let fetchQueryImport = doc.module.content.body.find(
+	let fetchQueryImport = script.content.body.find(
 		(statement) =>
 			statement.type === 'ImportDeclaration' &&
 			statement.source.value === 'houdini' &&
@@ -167,7 +148,7 @@ export default async function queryProcessor(
 	) as ImportDeclaration
 	// add the import if it doesn't exist, add it
 	if (!fetchQueryImport) {
-		doc.module.content.body.unshift({
+		script.content.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
 			source: AST.literal('$houdini'),
@@ -178,35 +159,7 @@ export default async function queryProcessor(
 		})
 	}
 
-	let storeUpdateImport = doc.instance.content.body.find(
-		(statement) =>
-			statement.type === 'ImportDeclaration' &&
-			statement.source.value === '$houdini' &&
-			statement.specifiers.find(
-				(importSpecifier) =>
-					importSpecifier.type === 'ImportSpecifier' &&
-					importSpecifier.imported.type === 'Identifier' &&
-					importSpecifier.imported.name === 'updateStoreData' &&
-					importSpecifier.local.name === 'updateStoreData'
-			)
-	) as ImportDeclaration
-	// add the import if it doesn't exist, add it
-	if (!storeUpdateImport) {
-		doc.instance.content.body.unshift({
-			type: 'ImportDeclaration',
-			// @ts-ignore
-			source: AST.literal('$houdini'),
-			specifiers: [
-				// @ts-ignore
-				AST.importSpecifier(
-					AST.identifier('updateStoreData'),
-					AST.identifier('updateStoreData')
-				),
-			],
-		})
-	}
-
-	let requestCtxImport = doc.module.content.body.find(
+	let requestCtxImport = script.content.body.find(
 		(statement) =>
 			statement.type === 'ImportDeclaration' &&
 			statement.source.value === '$houdini' &&
@@ -220,7 +173,7 @@ export default async function queryProcessor(
 	) as ImportDeclaration
 	// add the import if it doesn't exist, add it
 	if (!requestCtxImport) {
-		doc.module.content.body.unshift({
+		script.content.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
 			source: AST.literal('$houdini'),
@@ -250,14 +203,6 @@ export default async function queryProcessor(
 		throw new Error('Could not find return statement to hoist query into')
 	}
 	const returnedValue = returnStatement.argument
-
-	// add props to the component for every query while we're here
-
-	// find the first non import statement
-	const propInsertIndex = doc.instance.content.body.findIndex(
-		(expression) => expression.type !== 'ImportDeclaration'
-	)
-
 	//// we need to wrap up the preload's this in something that we can integrate with
 
 	// the name of the variable
@@ -282,10 +227,6 @@ export default async function queryProcessor(
 	// we just added one to the return index
 	returnStatementIndex++
 
-	// this happens for every document in the page, make sure we handle that correctly.
-
-	// every query document we ran into creates a local variable as well as a new key in the returned value of
-	// the preload function as well as a prop declaration in the instance script
 	for (const document of queries) {
 		const operation = document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 		// figure out the local variable that holds the result
@@ -293,40 +234,6 @@ export default async function queryProcessor(
 
 		// the identifier for the query variables
 		const variableIdentifier = variablesKey(operation)
-
-		// prop declarations needs to be added to the top of the document
-		doc.instance.content.body.splice(
-			propInsertIndex,
-			0,
-			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [AST.variableDeclarator(AST.identifier(preloadKey))])
-			),
-			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [
-					AST.variableDeclarator(AST.identifier(variableIdentifier)),
-				])
-			)
-		)
-
-		// reactive statements to synchronize state with query updates need to be at the bottom (where everything
-		// will have a definition)
-		doc.instance.content.body.push(
-			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			AST.labeledStatement(
-				AST.identifier('$'),
-				AST.blockStatement([
-					AST.expressionStatement(
-						AST.callExpression(AST.identifier('updateStoreData'), [
-							AST.stringLiteral(document.artifact.name),
-							AST.identifier(preloadKey),
-							AST.identifier(variableIdentifier),
-						])
-					),
-				])
-			)
-		)
 
 		// add a local variable right before the return statement
 		preloadFn.body.body.splice(
@@ -417,14 +324,181 @@ export default async function queryProcessor(
 	}
 }
 
-export function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
+function processInstance(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
+	// the things we need to import from the generate runtime
+	const toImport = []
+
+	// check if we need to import query and getQuery under names we can trust
+	if (
+		!script.content.body.find(
+			(statement) =>
+				statement.type === 'ImportDeclaration' &&
+				statement.source.value === '$houdini' &&
+				statement.specifiers.find(
+					(importSpecifier) =>
+						importSpecifier.type === 'ImportSpecifier' &&
+						importSpecifier.imported.type === 'Identifier' &&
+						importSpecifier.imported.name === 'query' &&
+						importSpecifier.local &&
+						importSpecifier.local.name === 'query'
+				)
+		)
+	) {
+		toImport.push('query')
+	}
+	if (
+		!script.content.body.find(
+			(statement) =>
+				statement.type === 'ImportDeclaration' &&
+				statement.source.value === '$houdini' &&
+				statement.specifiers.find(
+					(importSpecifier) =>
+						importSpecifier.type === 'ImportSpecifier' &&
+						importSpecifier.imported.type === 'Identifier' &&
+						importSpecifier.imported.name === 'getQuery' &&
+						importSpecifier.local &&
+						importSpecifier.local.name === 'getQuery'
+				)
+		)
+	) {
+		toImport.push('getQuery')
+	}
+
+	if (toImport.length > 0) {
+		script.content.body.unshift({
+			type: 'ImportDeclaration',
+			// @ts-ignore
+			source: AST.literal('$houdini'),
+			// @ts-ignore
+			specifiers: toImport.map((target) =>
+				AST.importSpecifier(AST.identifier(target), AST.identifier(target))
+			),
+		})
+	}
+
+	// every document will need to be imported
+	for (const document of queries) {
+		script.content.body.unshift({
+			type: 'ImportDeclaration',
+			// @ts-ignore
+			source: AST.literal(config.artifactImportPath(document.artifact.name)),
+			specifiers: [
+				// @ts-ignore
+				AST.importDefaultSpecifier(AST.identifier(artifactIdentifier(document.artifact))),
+			],
+		})
+	}
+
+	// add props to the component for every query while we're here
+
+	// find the first non import statement
+	const propInsertIndex = script.content.body.findIndex(
+		(expression) => expression.type !== 'ImportDeclaration'
+	)
+
+	// this happens for every document in the page, make sure we handle that correctly.
+
+	// every query document we ran into creates a local variable as well as a new key in the returned value of
+	// the preload function as well as a prop declaration in the instance script
+	for (const document of queries) {
+		const operation = document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+		// figure out the local variable that holds the result
+		const preloadKey = preloadPayloadKey(operation)
+
+		// the identifier for the query variables
+		const variableIdentifier = variablesKey(operation)
+
+		const { artifact, parsedDocument } = document
+
+		// prop declarations needs to be added to the top of the document
+		script.content.body.splice(
+			propInsertIndex,
+			0,
+			// @ts-ignore: babel's ast does something weird with comments, we won't use em
+			AST.exportNamedDeclaration(
+				AST.variableDeclaration('let', [AST.variableDeclarator(AST.identifier(preloadKey))])
+			),
+			// @ts-ignore: babel's ast does something weird with comments, we won't use em
+			AST.exportNamedDeclaration(
+				AST.variableDeclaration('let', [
+					AST.variableDeclarator(AST.identifier(variableIdentifier)),
+				])
+			),
+			AST.variableDeclaration('let', [
+				AST.variableDeclarator(
+					queryHandlerIdentifier(operation),
+					AST.callExpression(AST.identifier('query'), [
+						AST.objectExpression([
+							AST.objectProperty(
+								AST.stringLiteral('initialValue'),
+								AST.identifier(
+									preloadPayloadKey(
+										parsedDocument
+											.definitions[0] as graphql.OperationDefinitionNode
+									)
+								)
+							),
+							AST.objectProperty(
+								AST.stringLiteral('variables'),
+								AST.identifier(
+									variablesKey(
+										parsedDocument
+											.definitions[0] as graphql.OperationDefinitionNode
+									)
+								)
+							),
+							AST.objectProperty(
+								AST.literal('kind'),
+								AST.stringLiteral(artifact.kind)
+							),
+							AST.objectProperty(
+								AST.literal('artifact'),
+								AST.identifier(artifactIdentifier(artifact))
+							),
+						]),
+					])
+				),
+			])
+		)
+
+		// reactive statements to synchronize state with query updates need to be at the bottom (where everything
+		// will have a definition)
+		script.content.body.push(
+			// @ts-ignore: babel's ast does something weird with comments, we won't use em
+			AST.labeledStatement(
+				AST.identifier('$'),
+				AST.blockStatement([
+					AST.expressionStatement(
+						AST.callExpression(
+							AST.memberExpression(
+								queryHandlerIdentifier(operation),
+								AST.identifier('writeData')
+							),
+							[AST.identifier(preloadKey), AST.identifier(variableIdentifier)]
+						)
+					),
+				])
+			)
+		)
+	}
+}
+
+function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
 	return `_${operation.name?.value}`
 }
 
-export function variablesKey(operation: graphql.OperationDefinitionNode): string {
+function queryHandlerIdentifier(operation: graphql.OperationDefinitionNode): namedTypes.Identifier {
+	return AST.identifier(`_${operation.name?.value}_handler`)
+}
+
+function variablesKey(operation: graphql.OperationDefinitionNode): string {
 	return `_${operation.name?.value}_Input`
 }
 
-export function queryInputFunction(name: string) {
+function queryInputFunction(name: string) {
 	return `${name}Variables`
+}
+
+export function artifactIdentifier(artifact: DocumentArtifact) {
+	return `_${artifact.name}Artifact`
 }

@@ -9,35 +9,52 @@ export type Operation<_Result, _Input> = {
 
 export type Session = any
 
-type Module<T> = Promise<{ default: T }>
+export type Maybe<T> = T | null
 
-export type TaggedGraphqlFragment = {
-	name: string
-	kind: 'HoudiniFragment'
-	applyMask: (root: any, variables: any) => any
-}
+// any compiled result
+export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifact
 
-// the result of tagging an operation
-export type TaggedGraphqlMutation = {
-	name: string
-	kind: 'HoudiniMutation'
-	raw: string
-	processResult: (result: any) => any
-	links: Module<() => { [queryName: string]: Module<Patch> }>
-}
-
-// the result of tagging an operation
-export type TaggedGraphqlQuery = {
-	name: string
+export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
+}
+
+export type MutationArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniMutation'
+}
+
+export type FragmentArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniFragment'
+}
+
+type BaseCompiledDocument = {
+	name: string
 	raw: string
-	processResult: (result: any, variables: any) => any
-	initialValue: any
-	variables: { [key: string]: any }
+	hash: string
+	selection: SubscriptionSelection
+	rootType: string
 }
 
 // the result of the template tag
 export type GraphQLTagResult = TaggedGraphqlQuery | TaggedGraphqlFragment | TaggedGraphqlMutation
+
+export type TaggedGraphqlFragment = {
+	kind: 'HoudiniFragment'
+	artifact: FragmentArtifact
+}
+
+// the result of tagging an operation
+export type TaggedGraphqlMutation = {
+	kind: 'HoudiniMutation'
+	artifact: MutationArtifact
+}
+
+// the result of tagging an operation
+export type TaggedGraphqlQuery = {
+	kind: 'HoudiniQuery'
+	initialValue: any
+	variables: { [key: string]: any }
+	artifact: QueryArtifact
+}
 
 type Filter = { [key: string]: string | boolean | number }
 
@@ -46,37 +63,51 @@ export type ConnectionWhen = {
 	must_not?: Filter
 }
 
-// another intermediate type used when building up the mutation description
-export type PatchAtom = {
-	operation: 'add' | 'remove' | 'update' | 'delete'
-	mutationName: string
-	mutationPath: string[]
-	queryName: string
-	queryPath: string[]
-	// connection fields
+export type MutationOperation = {
+	action: 'insert' | 'remove' | 'delete'
+	connection?: string
+	type?: string
 	parentID?: {
-		kind: 'Variable' | 'String' | 'Root'
+		kind: string
 		value: string
 	}
+	position?: 'first' | 'last'
 	when?: ConnectionWhen
-	connectionName?: string
-	position?: 'start' | 'end'
 }
 
-// a description of an interaction between a mutation and a query
-export type Patch = {
-	operations?: {
-		[op in PatchAtom['operation']]?: {
-			parentID: {
-				kind: 'String' | 'Variable' | 'Root'
+export const CompiledFragmentKind = 'HoudiniFragment'
+export const CompiledMutationKind = 'HoudiniMutation'
+export const CompiledQueryKind = 'HoudiniQuery'
+
+export type CompiledDocumentKind = 'HoudiniFragment' | 'HoudiniMutation' | 'HoudiniQuery'
+
+export type GraphQLValue =
+	| number
+	| string
+	| boolean
+	| null
+	| { [key: string]: GraphQLValue }
+	| GraphQLValue[]
+
+export type SubscriptionSelection = {
+	[field: string]: {
+		type: string
+		keyRaw: string
+		operations?: MutationOperation[]
+		connection?: string
+		filters?: {
+			[key: string]: {
+				kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
 				value: string
 			}
-			position: 'start' | 'end'
-			path: string[]
-			when?: ConnectionWhen
-			connectionName?: string
-		}[]
+		}
+		fields?: SubscriptionSelection
 	}
-	fields?: { [fieldName: string]: Array<string[]> }
-	edges?: { [path: string]: Patch }
+}
+
+export type SubscriptionSpec = {
+	rootType: string
+	selection: SubscriptionSelection
+	set: (data: any) => void
+	parentID?: string
 }

@@ -24,83 +24,79 @@ export default async function addConnectionFragments(
 	// look at every document
 	for (const { document, filename, printed } of documents) {
 		graphql.visit(document, {
-			Directive: {
-				enter(node, key, parent, path, ancestors) {
-					// if we found a @connection applied
-					if (node.name.value === 'connection') {
-						// look up the name passed to the directive
-						const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
+			Directive(node, key, parent, path, ancestors) {
+				// if we found a @connection applied
+				if (node.name.value === 'connection') {
+					// look up the name passed to the directive
+					const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
 
-						// if we need to use an error relative to this node
-						let erorr = {
+					// if we need to use an error relative to this node
+					let erorr = {
+						...new graphql.GraphQLError(
+							'',
+							node,
+							new graphql.Source(printed),
+							node.loc ? [node.loc.start, node.loc.end] : null,
+							path
+						),
+						filepath: filename,
+					}
+
+					// if there is no name argument
+					if (!nameArg) {
+						erorr.message = '@connection must have a name argument'
+						errors.push(erorr)
+						return
+					}
+
+					// make sure it was a string
+					if (nameArg.value.kind !== 'StringValue') {
+						erorr.message = '@connection name must be a string'
+						errors.push(erorr)
+						return
+					}
+
+					// if we've already seen this connection
+					if (connections[nameArg.value.value]) {
+						erorr.message = '@connection name must be unique'
+						errors.push(erorr)
+					}
+
+					// we need to traverse the ancestors from child up
+					const parents = [...ancestors] as (
+						| graphql.OperationDefinitionNode
+						| graphql.FragmentDefinitionNode
+						| graphql.SelectionNode
+					)[]
+					parents.reverse()
+
+					const type = getTypeFromAncestors(config.schema, [...parents])
+
+					// look up the parent's type
+					const parentType = getTypeFromAncestors(config.schema, [...parents.slice(1)])
+
+					// if id is not a valid field on the parent, we won't be able to add or remove
+					// from this connection if it doesn't fall under root
+					if (
+						!(parentType instanceof graphql.GraphQLObjectType) ||
+						(parentType.name !== config.schema.getQueryType()?.name &&
+							!parentType.getFields().id)
+					) {
+						throw {
 							...new graphql.GraphQLError(
-								'',
-								node,
-								new graphql.Source(printed),
-								node.loc ? [node.loc.start, node.loc.end] : null,
-								path
+								'Can only use a connection field on fragment on a type with id'
 							),
 							filepath: filename,
 						}
-
-						// if there is no name argument
-						if (!nameArg) {
-							erorr.message = '@connection must have a name argument'
-							errors.push(erorr)
-							return
-						}
-
-						// make sure it was a string
-						if (nameArg.value.kind !== 'StringValue') {
-							erorr.message = '@connection name must be a string'
-							errors.push(erorr)
-							return
-						}
-
-						// if we've already seen this connection
-						if (connections[nameArg.value.value]) {
-							erorr.message = '@connection name must be unique'
-							errors.push(erorr)
-						}
-
-						// we need to traverse the ancestors from child up
-						const parents = [...ancestors] as (
-							| graphql.OperationDefinitionNode
-							| graphql.FragmentDefinitionNode
-							| graphql.SelectionNode
-						)[]
-						parents.reverse()
-
-						const type = getTypeFromAncestors(config.schema, [...parents])
-
-						// look up the parent's type
-						const parentType = getTypeFromAncestors(config.schema, [
-							...parents.slice(1),
-						])
-
-						// if id is not a valid field on the parent, we won't be able to add or remove
-						// from this connection if it doesn't fall under root
-						if (
-							!(parentType instanceof graphql.GraphQLObjectType) ||
-							(parentType.name !== config.schema.getQueryType()?.name &&
-								!parentType.getFields().id)
-						) {
-							throw {
-								...new graphql.GraphQLError(
-									'Can only use a connection field on fragment on a type with id'
-								),
-								filepath: filename,
-							}
-						}
-
-						// add the target of the directive to the list
-						connections[nameArg.value.value] = {
-							field: ancestors[ancestors.length - 1] as graphql.FieldNode,
-							type,
-							filename,
-						}
 					}
-				},
+
+					// add the target of the directive to the list
+					connections[nameArg.value.value] = {
+						field: ancestors[ancestors.length - 1] as graphql.FieldNode,
+						type,
+						filename,
+					}
+				}
 			},
 		})
 	}
