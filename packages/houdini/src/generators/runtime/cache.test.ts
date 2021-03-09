@@ -2033,7 +2033,7 @@ test('remove operation', function () {
 	)
 
 	// write some data to a different location with a new user
-	// that should be added to the connection
+	// that should be removed from the operation
 	cache.write(
 		{
 			newUser: {

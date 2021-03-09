@@ -2,6 +2,7 @@
 import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../types'
 import { Record } from './record'
 import { ConnectionHandler } from './connection'
+
 // this class implements the cache that drives houdini queries
 export class Cache {
 	// the map from entity id to record
