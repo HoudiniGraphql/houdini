@@ -11,7 +11,7 @@ import {
 // houdini queries
 export class Cache {
 	// the map from entity id to record
-	private _data: Map<string, Record> = new Map()
+	private _data: Map<string | undefined, Record> = new Map()
 	// associate connection names with the handler that wraps the list
 	private _connections: Map<string, Map<string | undefined, ConnectionHandler>> = new Map()
 
@@ -23,7 +23,7 @@ export class Cache {
 		selection: SubscriptionSelection,
 		data: { [key: string]: GraphQLValue },
 		variables: {},
-		parentID = '_root_'
+		parentID?: string
 	) {
 		const specs: SubscriptionSpec[] = []
 
@@ -292,7 +292,7 @@ export class Cache {
 
 	private _write(
 		selection: SubscriptionSelection,
-		parentID: string,
+		parentID: string | undefined,
 		data: { [key: string]: GraphQLValue },
 		variables: { [key: string]: GraphQLValue },
 		specs: SubscriptionSpec[]
@@ -311,7 +311,7 @@ export class Cache {
 				)
 			}
 			// look up the field in our schema
-			const { type: linkedType, keyRaw, fields, operations } = selection[field]
+			const { type: linkedType, keyRaw, fields, operations, connection } = selection[field]
 			const key = this.evaluateKey(keyRaw, variables)
 			// make sure we found the type info
 			if (!linkedType) {
@@ -376,6 +376,15 @@ export class Cache {
 					// hold onto the new ids
 					if (!oldIDs.includes(linkedID)) {
 						newIDs.push(linkedID)
+
+						if (connection) {
+							this.record(linkedID).addConnectionReference({
+								parentID,
+								name: connection,
+							})
+						} else {
+							console.log('no connection')
+						}
 					}
 				}
 
@@ -492,11 +501,11 @@ export class Cache {
 	}
 
 	root(): Record {
-		return this.record('_root_')
+		return this.record(undefined)
 	}
 
 	// grab the record specified by {id}
-	record(id: string): Record {
+	record(id: string | undefined): Record {
 		// if we haven't seen the record before add an entry in the store
 		if (!this._data.has(id)) {
 			this._data.set(id, new Record(this))
