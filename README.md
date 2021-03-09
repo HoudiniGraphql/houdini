@@ -5,15 +5,15 @@
   <br />
 
   <strong>
-	The disappearing GraphQL client built for Sapper and Sveltekit.
+	The disappearing GraphQL client for Sapper.
   </strong>
 </div>
 
 ## ✨&nbsp;&nbsp;Features
 
 -   Composable and colocated data requirements for your components
--   Document caching with declarative updates
--   Sapper/Sveltekit ready
+-   Normalized cache with declarative updates
+-   Sapper ready. Sveltekit support once it stabilizes.
 -   Generated types
 -   Customizable error handling (coming soon)
 
@@ -27,21 +27,20 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Example](#example)
 1. [Installation](#installation)
 1. [Configuring Your Application](#configuring-your-application)
-   1.  [Sveltekit](#sveltekit) 
-3. [Running the Compiler](#running-the-compiler)
-4. [Fetching Data](#fetching-data)
+1. [Running the Compiler](#running-the-compiler)
+1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
     1. [What about preload?](#what-about-preload)
-5. [Fragments](#fragments)
-6. [Mutations](#mutations)
+1. [Fragments](#fragments)
+1. [Mutations](#mutations)
     1. [Updating fields](#updating-fields)
     1. [Connections](#connections)
         1. [Insert](#inserting-a-record)
         1. [Remove](#removing-a-record)
         1. [Delete](#deleting-a-record)
         1. [Conditionals](#conditionals)
-7. [Authentication](#authentication)
-8. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
+1. [Authentication](#authentication)
+1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
 
 ## 🕹️&nbsp;&nbsp;Example
 
@@ -62,7 +61,7 @@ npm install --save-dev houdini houdini-preprocess
 
 ## 🔧&nbsp;&nbsp;Configuring Your Application
 
-Adding houdini to an existing sapper/sveltekit project can easily be done with the provided command-line tool.
+Adding houdini to an existing sapper project can easily be done with the provided command-line tool.
 If you don't already have an existing app, visit [this link](https://sapper.svelte.dev/docs#Getting_started)
 for help setting one up. Once you have a project and want to add houdini, execute the following command:
 
@@ -71,7 +70,7 @@ npx houdini init
 ```
 
 This will create a few necessary files, as well as pull down a json representation of
-your API's schema. Next, add the preprocessor to your sapper/sveltekit setup. Don't
+your API's schema. Next, add the preprocessor to your sapper setup. Don't
 forget to add it to both the client and the server configurations!
 
 ```typescript
@@ -99,33 +98,7 @@ import env from './environment'
 setEnvironment(env)
 ```
 
-### Sveltekit
 
-Supporting Sveltekit takes a few extra configuration values. First, we add the following field 
-to the `houdini.config.cjs` file:
-
-```javascript
-{
-    // ...
-    mode: 'kit',
-}
-
-```
-
-And finally, we need to define a mount in the snowpack config:
-
-```javascript
-{
-	mount: {
-        // ...
-		'.houdini': '/_houdini'
-	},
-	alias: {
-        // ...
-		$houdini: './.houdini'
-	}
-}
-```
 
 ## <img src="./.github/assets/cylon.gif" height="28px" />&nbsp;&nbsp;Running the Compiler
 
