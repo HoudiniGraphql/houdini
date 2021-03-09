@@ -104,13 +104,15 @@ export class Cache {
 		return handler
 	}
 
-	notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
+	notifySubscribers(specs: SubscriptionSpec[], variables: {}) {
 		for (const spec of specs) {
 			// find the root record
 			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
 			if (!rootRecord) {
 				throw new Error('Could not find root of subscription')
 			}
+
+			console.log('retrieved data', this.getData(spec, rootRecord, spec.selection, variables))
 
 			// trigger the update
 			spec.set(this.getData(spec, rootRecord, spec.selection, variables))
@@ -399,26 +401,6 @@ export class Cache {
 					}
 
 					this.lastKnownVariables.set(subscriber.set, variables)
-
-					// this.lastKnownVariables.set(subscriber.set, variables)
-					// console.log({ variablesChanged })
-					// // if the variables changed, we need to remove subscribers from the old records
-					// if (variablesChanged) {
-					// 	// we need to remove the subscribers from the old list
-					// 	console.log('variables changed')
-					// 	for (const version of record.keyVersions[keyRaw]) {
-					// 		console.log(version, record.getSubscribers(version))
-					// 	}
-					// 	for (const id of oldIDs) {
-					// 		if (!oldSubscribers[id]) {
-					// 			oldSubscribers[id] = new Set()
-					// 		}
-
-					// 		for (const sub of subscribers) {
-					// 			oldSubscribers[id].add(sub)
-					// 		}
-					// 	}
-					// }
 				}
 
 				// remove any subscribers we dont can't about
@@ -836,7 +818,7 @@ class ConnectionHandler {
 		if (!this.validateWhen()) {
 			return
 		}
-
+		console.log('inserting in', this.key)
 		// figure out the id of the type we are adding
 		const dataID = this.cache.id(this.connectionType, data)
 
@@ -851,11 +833,13 @@ class ConnectionHandler {
 			this.record.appendLinkedList(this.key, dataID)
 		}
 
+		console.log(this.record.linkedList(this.key))
+
 		// get the list of specs that are subscribing to the connection
 		const subscribers = this.record.getSubscribers(this.key)
 
 		// notify the subscribers we care about
-		this.cache.notifySubscribers(subscribers)
+		this.cache.notifySubscribers(subscribers, variables)
 
 		// walk down the connection fields relative to the new record
 		// and make sure all of the connection's subscribers are listening
@@ -881,7 +865,7 @@ class ConnectionHandler {
 		const subscribers = this.record.getSubscribers(this.key)
 
 		// notify the subscribers about the change
-		this.cache.notifySubscribers(subscribers)
+		this.cache.notifySubscribers(subscribers, variables)
 
 		// disconnect record from any subscriptions associated with the connection
 		this.cache.unsubscribeRecord(
@@ -905,6 +889,8 @@ class ConnectionHandler {
 		if (this._when) {
 			// we only NEED there to be target filters for must's
 			const targets = this.filters
+
+			console.log('comparing', this._when, this.filters)
 
 			// check must's first
 			if (this._when.must && targets) {
