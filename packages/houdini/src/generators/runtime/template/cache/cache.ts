@@ -29,15 +29,6 @@ export class Cache {
 		this.notifySubscribers(specs, variables)
 	}
 
-	// look up the information for a specific record
-	get(id: string): Maybe<Record> {
-		if (!id) {
-			return null
-		}
-
-		return this._data.get(id) || null
-	}
-
 	// returns the global id of the specified field (used to access the record in the cache)
 	id(type: string, data: { id?: string } | null): string
 	// this is like id but it trusts the value used for the id and just joins it with the
@@ -60,7 +51,7 @@ export class Cache {
 
 	unsubscribe(spec: SubscriptionSpec, variables: {} = {}) {
 		// find the root record
-		let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
+		let rootRecord = spec.parentID ? this.getRecord(spec.parentID) : this.root()
 		// if there's no root, there's nothing to unsubscribe from
 		if (!rootRecord) {
 			return
@@ -122,13 +113,14 @@ export class Cache {
 		return this._data.get(id) as Record
 	}
 
-	get adapter(): CacheAdapter {
+	get proxy(): CacheProxy {
 		return {
 			notifySubscribers: this.notifySubscribers.bind(this),
 			insertSubscribers: this.insertSubscribers.bind(this),
 			unsubscribeSelection: this.unsubscribeSelection.bind(this),
 			evaluateKey: this.evaluateKey.bind(this),
 			record: this.record.bind(this),
+			getRecord: this.getRecord.bind(this),
 		}
 	}
 
@@ -234,7 +226,6 @@ export class Cache {
 								},
 								{}
 							),
-							adapter: this.adapter,
 						})
 					)
 				}
@@ -513,6 +504,15 @@ export class Cache {
 		}
 	}
 
+	// look up the information for a specific record
+	private getRecord(id: string): Maybe<Record> {
+		if (!id) {
+			return null
+		}
+
+		return this._data.get(id) || null
+	}
+
 	private isScalarLink(type: string) {
 		return ['String', 'Boolean', 'Float', 'ID', 'Int'].includes(type)
 	}
@@ -520,7 +520,7 @@ export class Cache {
 	private notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
 		for (const spec of specs) {
 			// find the root record
-			let rootRecord = spec.parentID ? this.get(spec.parentID) : this.root()
+			let rootRecord = spec.parentID ? this.getRecord(spec.parentID) : this.root()
 			if (!rootRecord) {
 				throw new Error('Could not find root of subscription')
 			}
@@ -632,13 +632,13 @@ export class Cache {
 // the list of characters that make up a valid graphql variable name
 const varChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
 
-// in order to keep some methods on the class out of the public API
-// we'll ask it for an "adapter" which will hold the references we
-// need to use for the handler's methods
-export type CacheAdapter = {
+// in order to keep some methods on the class out of the public API we'll wrap some of the low-level or heavily caveated
+// functions in a "proxy"
+export type CacheProxy = {
 	record: Cache['record']
 	notifySubscribers: Cache['notifySubscribers']
 	unsubscribeSelection: Cache['unsubscribeSelection']
 	insertSubscribers: Cache['insertSubscribers']
 	evaluateKey: Cache['evaluateKey']
+	getRecord: Cache['getRecord']
 }

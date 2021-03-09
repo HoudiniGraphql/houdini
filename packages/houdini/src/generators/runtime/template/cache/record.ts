@@ -7,6 +7,8 @@ type Connection = {
 	parentID: string | undefined
 }
 
+// for the most part, this is a very low-level/dumb class that is meant to track state related
+// to a specific entity in the cached graph.
 export class Record {
 	fields: { [key: string]: GraphQLValue } = {}
 
@@ -45,7 +47,7 @@ export class Record {
 	}
 
 	linkedRecord(fieldName: string) {
-		return this.cache.get(this.recordLinks[fieldName])
+		return this.cache.proxy.getRecord(this.recordLinks[fieldName])
 	}
 
 	linkedRecordID(fieldName: string) {
@@ -58,7 +60,7 @@ export class Record {
 
 	linkedList(fieldName: string): Record[] {
 		return (this.listLinks[fieldName] || [])
-			.map((link) => this.cache.get(link))
+			.map((link) => this.cache.proxy.getRecord(link))
 			.filter((record) => record !== null) as Record[]
 	}
 
@@ -155,7 +157,7 @@ export class Record {
 			Object.keys(this.listLinks).flatMap((key) => this.listLinks[key])
 		)
 		for (const linkedRecordID of linkedIDs) {
-			this.cache.get(linkedRecordID)?.forgetSubscribers_walk(targets)
+			this.cache.proxy.getRecord(linkedRecordID)?.forgetSubscribers_walk(targets)
 		}
 	}
 

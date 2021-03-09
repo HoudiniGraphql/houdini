@@ -35,7 +35,7 @@ test('save root object', function () {
 	)
 
 	// make sure we can get back what we wrote
-	expect(cache.get(cache.id('User', data.viewer))?.fields).toEqual({
+	expect(cache.proxy.getRecord(cache.id('User', data.viewer))?.fields).toEqual({
 		id: '1',
 		firstName: 'bob',
 	})
@@ -99,7 +99,7 @@ test('partial update existing record', function () {
 	)
 
 	// make sure we can get back what we wrote
-	expect(cache.get(cache.id('User', '1'))?.fields).toEqual({
+	expect(cache.proxy.getRecord(cache.id('User', '1'))?.fields).toEqual({
 		id: '1',
 		firstName: 'bob',
 		lastName: 'geldof',
@@ -156,7 +156,7 @@ test('linked records with updates', function () {
 	)
 
 	// check user 1
-	const user1 = cache.get(cache.id('User', '1'))
+	const user1 = cache.proxy.getRecord(cache.id('User', '1'))
 	expect(user1?.fields).toEqual({
 		id: '1',
 		firstName: 'bob',
@@ -167,7 +167,7 @@ test('linked records with updates', function () {
 	})
 
 	// check user 2
-	const user2 = cache.get(cache.id('User', '2'))
+	const user2 = cache.proxy.getRecord(cache.id('User', '2'))
 	expect(user2?.fields).toEqual({
 		id: '2',
 		firstName: 'jane',
@@ -286,8 +286,8 @@ test('linked lists', function () {
 	)
 
 	// make sure we can get the linked lists back
-	const friendData = cache
-		.get(cache.id('User', '1'))
+	const friendData = cache.proxy
+		.getRecord(cache.id('User', '1'))
 		?.linkedList('friends')
 		.map(({ fields }) => fields)
 	expect(friendData).toEqual([
@@ -339,11 +339,9 @@ test('list as value with args', function () {
 	)
 
 	// look up the value
-	expect(cache.get(cache.id('User', '1'))?.fields['favoriteColors(where: "foo")']).toEqual([
-		'red',
-		'green',
-		'blue',
-	])
+	expect(
+		cache.proxy.getRecord(cache.id('User', '1'))?.fields['favoriteColors(where: "foo")']
+	).toEqual(['red', 'green', 'blue'])
 })
 
 test('root subscribe - field change', function () {
@@ -488,7 +486,9 @@ test('root subscribe - linked object changed', function () {
 	})
 
 	// make sure we are no longer subscribing to user 1
-	expect(cache.get(cache.id('User', '1'))?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.proxy.getRecord(cache.id('User', '1'))?.getSubscribers('firstName')).toHaveLength(
+		0
+	)
 })
 
 test('root subscribe - linked list lost entry', function () {
@@ -583,7 +583,9 @@ test('root subscribe - linked list lost entry', function () {
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache.get(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.proxy.getRecord(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(
+		0
+	)
 })
 
 test('root subscribe - linked list reorder', function () {
@@ -685,8 +687,12 @@ test('root subscribe - linked list reorder', function () {
 	})
 
 	// we should still be subscribing to both users
-	expect(cache.get(cache.id('User', '2'))?.getSubscribers('firstName')).toHaveLength(1)
-	expect(cache.get(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.proxy.getRecord(cache.id('User', '2'))?.getSubscribers('firstName')).toHaveLength(
+		1
+	)
+	expect(cache.proxy.getRecord(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(
+		1
+	)
 })
 
 test('unsubscribe', function () {
@@ -738,13 +744,17 @@ test('unsubscribe', function () {
 	cache.subscribe(spec)
 
 	// make sure we  registered the subscriber
-	expect(cache.get(cache.id('User', '1'))?.getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.proxy.getRecord(cache.id('User', '1'))?.getSubscribers('firstName')).toHaveLength(
+		1
+	)
 
 	// unsubscribe
 	cache.unsubscribe(spec)
 
 	// make sure there is no more subscriber
-	expect(cache.get(cache.id('User', '1'))?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.proxy.getRecord(cache.id('User', '1'))?.getSubscribers('firstName')).toHaveLength(
+		0
+	)
 })
 
 test('append in connection', function () {
@@ -1465,7 +1475,9 @@ test('remove from connection', function () {
 	})
 
 	// make sure we aren't subscribing to user 2 any more
-	expect(cache.get(cache.id('User', '2'))?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.proxy.getRecord(cache.id('User', '2'))?.getSubscribers('firstName')).toHaveLength(
+		0
+	)
 })
 
 test('delete node', function () {
@@ -1543,7 +1555,7 @@ test('delete node', function () {
 	})
 
 	// make sure its empty now
-	expect(cache.get('User:2')).toBeNull()
+	expect(cache.proxy.getRecord('User:2')).toBeNull()
 })
 
 test('append operation', function () {
@@ -2157,7 +2169,7 @@ test('delete operation', function () {
 	// make sure we removed the element from the connection
 	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
 
-	expect(cache.get('User:2')).toBeNull()
+	expect(cache.proxy.getRecord('User:2')).toBeNull()
 })
 
 test('variables in query and subscription', function () {
@@ -2265,7 +2277,9 @@ test('variables in query and subscription', function () {
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(cache.get(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.proxy.getRecord(cache.id('User', '3'))?.getSubscribers('firstName')).toHaveLength(
+		0
+	)
 })
 
 test('deleting a node removes nested subscriptions', function () {
@@ -2324,13 +2338,13 @@ test('deleting a node removes nested subscriptions', function () {
 	})
 
 	// sanity check
-	expect(cache.get('User:2').getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.proxy.getRecord('User:2').getSubscribers('firstName')).toHaveLength(1)
 
 	// delete the parent
 	cache.delete('User:1')
 
 	// sanity check
-	expect(cache.get('User:2').getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.proxy.getRecord('User:2').getSubscribers('firstName')).toHaveLength(0)
 })
 
 test('changing variables clears subscribers', function () {
@@ -2404,9 +2418,9 @@ test('changing variables clears subscribers', function () {
 	)
 
 	// there should be a subscriber for the current value of `filter`
-	expect(cache.get(cache.id('User', '1')).getSubscribers('friends(filter: "foo")')).toHaveLength(
-		1
-	)
+	expect(
+		cache.proxy.getRecord(cache.id('User', '1')).getSubscribers('friends(filter: "foo")')
+	).toHaveLength(1)
 
 	// subscribe to a different value
 	cache.subscribe(
@@ -2422,11 +2436,11 @@ test('changing variables clears subscribers', function () {
 
 	// make sure we have a subscriber for the new filter and none for the old
 	expect(
-		cache.get(cache.id('User', '1')).getSubscribers('friends(filter: "not-foo")')
+		cache.proxy.getRecord(cache.id('User', '1')).getSubscribers('friends(filter: "not-foo")')
 	).toHaveLength(1)
-	expect(cache.get(cache.id('User', '1')).getSubscribers('friends(filter: "foo")')).toHaveLength(
-		0
-	)
+	expect(
+		cache.proxy.getRecord(cache.id('User', '1')).getSubscribers('friends(filter: "foo")')
+	).toHaveLength(0)
 })
 
 test('subscribing to new connection with stale data (must use variablesChanged)', function () {
@@ -2500,9 +2514,9 @@ test('subscribing to new connection with stale data (must use variablesChanged)'
 	)
 
 	// there should be a subscriber for the current value of `filter`
-	expect(cache.get(cache.id('User', '1')).getSubscribers('friends(filter: "foo")')).toHaveLength(
-		1
-	)
+	expect(
+		cache.proxy.getRecord(cache.id('User', '1')).getSubscribers('friends(filter: "foo")')
+	).toHaveLength(1)
 
 	// subscribe to a different value
 	cache.subscribe(
@@ -2518,11 +2532,11 @@ test('subscribing to new connection with stale data (must use variablesChanged)'
 
 	// make sure we have a subscriber for the new filter and none for the old
 	expect(
-		cache.get(cache.id('User', '1')).getSubscribers('friends(filter: "not-foo")')
+		cache.proxy.getRecord(cache.id('User', '1')).getSubscribers('friends(filter: "not-foo")')
 	).toHaveLength(1)
-	expect(cache.get(cache.id('User', '1')).getSubscribers('friends(filter: "foo")')).toHaveLength(
-		0
-	)
+	expect(
+		cache.proxy.getRecord(cache.id('User', '1')).getSubscribers('friends(filter: "foo")')
+	).toHaveLength(0)
 })
 
 test('same record twice in a query survives one unsubscribe (reference counting)', function () {
@@ -2597,13 +2611,13 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 	)
 
 	// make sure there is a subscriber for the user's first name
-	expect(cache.get('User:1').getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.proxy.getRecord('User:1').getSubscribers('firstName')).toHaveLength(1)
 
 	// remove the user from the connection
 	cache.connection('All_Users').remove({ id: '1' })
 
 	// we should still be subscribing to the user's first name
-	expect(cache.get('User:1').getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.proxy.getRecord('User:1').getSubscribers('firstName')).toHaveLength(1)
 })
 
 describe('key evaluation', function () {
@@ -2638,7 +2652,7 @@ describe('key evaluation', function () {
 		test(row.title, function () {
 			const cache = new Cache()
 
-			expect(cache.adapter.evaluateKey(row.key, row.variables)).toEqual(row.expected)
+			expect(cache.proxy.evaluateKey(row.key, row.variables)).toEqual(row.expected)
 		})
 	}
 })
