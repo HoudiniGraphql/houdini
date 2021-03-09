@@ -112,5 +112,4 @@ export type SubscriptionSpec = {
 	selection: SubscriptionSelection
 	set: (data: any) => void
 	parentID?: string
-	// i dont know what to call this
 }

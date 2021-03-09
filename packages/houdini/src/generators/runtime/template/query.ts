@@ -62,17 +62,18 @@ export default function query<_Query extends Operation<any, any>>(
 		data,
 		// used primarily by the preprocessor to keep
 		writeData(newData: _Query['result'], newVariables: _Query['input']) {
+			// make sure we list to the new data
+			if (subscriptionSpec) {
+				console.log('updating subscription', subscriptionSpec, newVariables)
+				cache.subscribe(subscriptionSpec, newVariables)
+			}
 			// hold onto the new variables
 			variables = newVariables
 
+			setVariables(newVariables)
+
 			// write the data we received
 			cache.write(document.artifact.response, newData.data, newVariables)
-
-			// if we are still subscribing to the store
-			if (subscriptionSpec) {
-				// stay up to date
-				cache.subscribe(subscriptionSpec, newVariables)
-			}
 		},
 	}
 }

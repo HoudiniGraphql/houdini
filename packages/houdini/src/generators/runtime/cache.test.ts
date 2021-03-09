@@ -2409,3 +2409,5 @@ test.todo('unsubscribe removes connection handlers')
 test.todo('nested linked record update')
 
 test.todo('nested linked list update')
+
+test.todo('subscribing to new connection with stale data (must use variablesChanged)')

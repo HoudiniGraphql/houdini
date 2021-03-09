@@ -15,6 +15,9 @@ export class Cache {
 	// associate connection names with the handler that wraps the list
 	private _connections: Map<string, Map<string | undefined, ConnectionHandler>> = new Map()
 
+	// we need to keep track of the variables used the last time a query was triggered
+	private lastKnownVariables: Map<SubscriptionSpec['set'], {}> = new Map()
+
 	// save the response in the local store and notify any subscribers
 	write(
 		selection: SubscriptionSelection,
@@ -75,6 +78,11 @@ export class Cache {
 		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
 		if (!rootRecord) {
 			throw new Error('Could not find root of subscription')
+		}
+
+		// remove any references to the spec in variable set
+		if (this.lastKnownVariables.has(spec.set)) {
+			this.lastKnownVariables.delete(spec.set)
 		}
 
 		// walk down the selection and remove any subscribers from the list
@@ -169,7 +177,13 @@ export class Cache {
 
 			// we might be replace a subscriber on rootRecord becuase we have new variables
 			// look at every version of the key and remove
-			rootRecord.removeAllSubscriptionVerions(keyRaw, spec)
+			const oldVariables = this.lastKnownVariables.get(spec.set)
+			if (
+				keyRaw.includes('$') &&
+				JSON.stringify(variables) !== JSON.stringify(oldVariables)
+			) {
+				rootRecord.removeAllSubscriptionVerions(keyRaw, spec)
+			}
 
 			// add the subscriber to the field
 			rootRecord.addSubscriber(keyRaw, key, spec)
@@ -338,7 +352,7 @@ export class Cache {
 				// build up the list of linked ids
 				const linkedIDs: string[] = []
 				// look up the current known link id
-				const oldIDs = record.linkedListIDs(key)
+				const oldIDs = record.linkedListIDs(this.evaluateKey(key, variables))
 
 				// the ids that have been added since the last time
 				const newIDs: string[] = []
@@ -364,16 +378,65 @@ export class Cache {
 					}
 				}
 
-				// if there was a change in the list
-				if (JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)) {
-					// look for any records that we don't consider part of this link any more
-					for (const lostID of oldIDs.filter((id) => !linkedIDs.includes(id))) {
-						this.record(lostID).removeSubscribers(...subscribers)
+				// we have to notify the subscribers if a few things happen:
+				// either the data changed (ie we got new content for the same connection)
+				// or we got content for a new connection which could already be known. If we just look at
+				// wether the IDs are the same, situations where we have old data that
+				// is still valid would not be triggered
+				const contentChanged = JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)
+
+				let oldSubscribers: { [key: string]: Set<SubscriptionSpec> } = {}
+
+				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
+				for (const subscriber of subscribers) {
+					const variablesChanged =
+						JSON.stringify(this.lastKnownVariables.get(subscriber.set) || {}) !==
+						JSON.stringify(variables)
+
+					// if either are true, add the subscriber to the list
+					if (contentChanged || variablesChanged) {
+						specs.push(subscriber)
 					}
 
-					// add every subscriber to the list of specs to change
-					specs.push(...subscribers)
+					this.lastKnownVariables.set(subscriber.set, variables)
 
+					// this.lastKnownVariables.set(subscriber.set, variables)
+					// console.log({ variablesChanged })
+					// // if the variables changed, we need to remove subscribers from the old records
+					// if (variablesChanged) {
+					// 	// we need to remove the subscribers from the old list
+					// 	console.log('variables changed')
+					// 	for (const version of record.keyVersions[keyRaw]) {
+					// 		console.log(version, record.getSubscribers(version))
+					// 	}
+					// 	for (const id of oldIDs) {
+					// 		if (!oldSubscribers[id]) {
+					// 			oldSubscribers[id] = new Set()
+					// 		}
+
+					// 		for (const sub of subscribers) {
+					// 			oldSubscribers[id].add(sub)
+					// 		}
+					// 	}
+					// }
+				}
+
+				// remove any subscribers we dont can't about
+				for (const [lostID] of oldIDs.filter((id) => !linkedIDs.includes(id))) {
+					for (const sub of subscribers) {
+						if (!oldSubscribers[lostID]) {
+							oldSubscribers[lostID] = new Set()
+						}
+						oldSubscribers[lostID].add(sub)
+					}
+				}
+
+				for (const [id, subscribers] of Object.entries(oldSubscribers)) {
+					this.record(id).removeSubscribers(...subscribers)
+				}
+
+				// if there was a change in the list
+				if (contentChanged) {
 					// update the cached value
 					record.writeListLink(key, linkedIDs)
 				}
@@ -537,7 +600,7 @@ export class Cache {
 				// look up the variable and add the result (varName starts with a $)
 				const value = variables[varName.slice(1)]
 
-				evaluated += value ? JSON.stringify(value) : 'undefined'
+				evaluated += typeof value !== 'undefined' ? JSON.stringify(value) : 'undefined'
 
 				// clear the variable name accumulator
 				varName = ''
@@ -576,7 +639,7 @@ type Connection = {
 class Record {
 	fields: { [key: string]: GraphQLValue } = {}
 
-	private keyVersions: { [key: string]: Set<string> } = {}
+	keyVersions: { [key: string]: Set<string> } = {}
 	private subscribers: { [key: string]: SubscriptionSpec[] } = {}
 	private recordLinks: { [key: string]: string } = {}
 	private listLinks: { [key: string]: string[] } = {}
@@ -835,6 +898,8 @@ class ConnectionHandler {
 	}
 
 	private validateWhen() {
+		// if this when doesn't apply, we should look at others to see if we should update those behind the scenes
+
 		let ok = true
 		// if there are conditions for this operation
 		if (this._when) {
