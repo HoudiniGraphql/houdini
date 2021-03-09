@@ -39,11 +39,9 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				if (!nameArg || nameArg.value.kind !== 'StringValue') {
 					throw new Error('could not find name arg in connection directive')
 				}
-
-				// the delete directive is an interesting one since there isn't a specific
-				// connection. use something that points to deleting an instance of the type
 				const connectionName = nameArg.value.value
 
+				// look up the actual field in the acestor list so we can get type info
 				let field = ancestors[ancestors.length - 1] as graphql.FieldNode
 				let i = 1
 				while (Array.isArray(field)) {
@@ -80,6 +78,8 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					}
 				}, {})
 
+				// the delete directive is an interesting one since there isn't a specific
+				// connection. use something that points to deleting an instance of the type
 				// every field with the connection type adds to the delete filters
 				filterTypes[`${fieldType}_delete`] = {
 					...filterTypes[`${fieldType}_delete`],
