@@ -2638,7 +2638,7 @@ describe('key evaluation', function () {
 		test(row.title, function () {
 			const cache = new Cache()
 
-			expect(cache.evaluateKey(row.key, row.variables)).toEqual(row.expected)
+			expect(cache.adapter.evaluateKey(row.key, row.variables)).toEqual(row.expected)
 		})
 	}
 })

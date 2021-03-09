@@ -1,26 +1,7 @@
 // local imports
 import { SubscriptionSelection, ConnectionWhen, SubscriptionSpec } from '../types'
-import { Cache } from './cache'
+import { Cache, CacheAdapter } from './cache'
 import { Record } from './record'
-
-// in order to keep some methods on the class out of the public API
-// we'll ask it for an "adapter" which will hold the references we
-// need to use for the handler's methods
-export type CacheAdapter = {
-	notifySubscribers: (specs: SubscriptionSpec[], variables: {}) => void
-	unsubscribeSelection: (
-		record: Record,
-		selection: SubscriptionSelection,
-		variables: {},
-		...subscribers: SubscriptionSpec['set'][]
-	) => void
-	insertSubscribers: (
-		record: Record,
-		selection: SubscriptionSelection,
-		variables: {},
-		...subscribers: SubscriptionSpec[]
-	) => void
-}
 
 export class ConnectionHandler {
 	readonly record: Record
@@ -124,7 +105,7 @@ export class ConnectionHandler {
 		this.adapter.notifySubscribers(subscribers, variables)
 
 		// look up the new record in the cache
-		const newRecord = this.cache.record(dataID)
+		const newRecord = this.adapter.record(dataID)
 
 		// add the connection reference
 		newRecord.addConnectionReference({
@@ -155,7 +136,7 @@ export class ConnectionHandler {
 
 		// disconnect record from any subscriptions associated with the connection
 		this.adapter.unsubscribeSelection(
-			this.cache.record(id),
+			this.adapter.record(id),
 			this.selection,
 			variables,
 			...subscribers.map(({ set }) => set)

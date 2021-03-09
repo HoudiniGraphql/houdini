@@ -1,8 +1,7 @@
 // local imports
 import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../types'
 import { Record } from './record'
-import { ConnectionHandler, CacheAdapter } from './connection'
-
+import { ConnectionHandler } from './connection'
 // this class implements the cache that drives houdini queries
 export class Cache {
 	// the map from entity id to record
@@ -46,15 +45,6 @@ export class Cache {
 	id(type: string, id: string): string
 	id(type: string, data: any): string {
 		return type + ':' + (typeof data === 'string' ? data : this.computeID(data))
-	}
-
-	computeID(data: { [key: string]: GraphQLValue }) {
-		return data.id
-	}
-
-	// returns the list of fields required to compute the id for a type
-	idFields(type: string) {
-		return [{ name: 'id', type: 'ID' }]
 	}
 
 	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
@@ -119,8 +109,10 @@ export class Cache {
 		return this._data.delete(id)
 	}
 
-	// grab the record specified by {id}
-	record(id: string | undefined): Record {
+	// grab the record specified by {id}.
+	// note: this is hidden behind the adapter because it will make entries in the
+	// cache that might not play by the correct garbage keeping rules. "advanved users only"
+	private record(id: string | undefined): Record {
 		// if we haven't seen the record before add an entry in the store
 		if (!this._data.has(id)) {
 			this._data.set(id, new Record(this))
@@ -135,7 +127,13 @@ export class Cache {
 			notifySubscribers: this.notifySubscribers.bind(this),
 			insertSubscribers: this.insertSubscribers.bind(this),
 			unsubscribeSelection: this.unsubscribeSelection.bind(this),
+			evaluateKey: this.evaluateKey.bind(this),
+			record: this.record.bind(this),
 		}
+	}
+
+	private computeID(data: { [key: string]: GraphQLValue }) {
+		return data.id
 	}
 
 	private root(): Record {
@@ -633,3 +631,14 @@ export class Cache {
 
 // the list of characters that make up a valid graphql variable name
 const varChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
+
+// in order to keep some methods on the class out of the public API
+// we'll ask it for an "adapter" which will hold the references we
+// need to use for the handler's methods
+export type CacheAdapter = {
+	record: Cache['record']
+	notifySubscribers: Cache['notifySubscribers']
+	unsubscribeSelection: Cache['unsubscribeSelection']
+	insertSubscribers: Cache['insertSubscribers']
+	evaluateKey: Cache['evaluateKey']
+}
