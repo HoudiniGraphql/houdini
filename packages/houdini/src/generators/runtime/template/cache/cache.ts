@@ -380,16 +380,16 @@ export class Cache {
 				// the ids that have been added since the last time
 				const newIDs: string[] = []
 
-				// figure out if this is an embedded list or a linked one by looking for any fields marked as
-				// required to compute the entity's id
-				const embedded =
-					this.idFields(linkedType)?.filter(
-						(field) =>
-							typeof (value[0] as { [key: string]: any })[field] === 'undefined'
-					).length > 0
-
 				// visit every entry in the list
 				for (const [i, entry] of value.entries()) {
+					// figure out if this is an embedded list or a linked one by looking for any fields marked as
+					// required to compute the entity's id
+					const embedded =
+						this.idFields(linkedType)?.filter(
+							(field) =>
+								typeof (entry as { [key: string]: any })[field] === 'undefined'
+						).length > 0
+
 					// this has to be an object for sanity sake (it can't be a link if its a scalar)
 					if (!(entry instanceof Object) || Array.isArray(entry)) {
 						throw new Error('Encountered link to non objects')
