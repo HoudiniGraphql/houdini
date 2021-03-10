@@ -400,7 +400,7 @@ export class Cache {
 					// build up an
 					const linkedID = !embedded
 						? this.id(linkedType, entry)
-						: `${parentID}.${field}[${i}]`
+						: `${parentID}.${keyRaw}[${i}]`
 
 					// update the linked fields too
 					this._write(rootID, recordID, fields, linkedID, entry, variables, specs)
