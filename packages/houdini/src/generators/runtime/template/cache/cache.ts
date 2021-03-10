@@ -316,12 +316,13 @@ export class Cache {
 
 		// look at ever field in the data
 		for (const [field, value] of Object.entries(data)) {
-			if (!selection[field]) {
+			if (!selection || !selection[field]) {
 				throw new Error(
 					'Could not find field listing in selection for ' +
 						field +
 						' @ ' +
-						JSON.stringify(selection)
+						JSON.stringify(selection) +
+						''
 				)
 			}
 			// look up the field in our schema

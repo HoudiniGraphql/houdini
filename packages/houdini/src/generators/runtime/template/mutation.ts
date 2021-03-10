@@ -74,7 +74,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 			}
 
 			// update the cache with the mutation data
-			cache.write(document.artifact.selection, result, queryVariables())
+			cache.write(document.artifact.selection, result, queryVariables)
 
 			// wrap the result in a store we can use to keep this query up to date
 			resolve(result)

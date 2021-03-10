@@ -6,6 +6,7 @@ import { Config } from 'houdini-common'
 import { graphql, getIntrospectionQuery } from 'graphql'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
+import mkdirp from 'mkdirp'
 
 const AST = recast.types.builders
 
@@ -20,12 +21,27 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	const templates = await fs.readdir(templateDir)
 
 	// look at every file in the template directory
-	for (const filepath of templates) {
+	for (const filepath of templates.filter((file) => file !== 'cache')) {
 		// read the file contents
 		const contents = await fs.readFile(path.join(templateDir, filepath), 'utf-8')
 
 		// and write them to the target
 		await fs.writeFile(path.join(config.runtimeDirectory, filepath), contents, 'utf-8')
+	}
+
+	// copy the cache directory
+	const cacheDir = path.join(config.runtimeDirectory, 'cache')
+	await mkdirp(cacheDir)
+	const cacheSrc = path.join(templateDir, 'cache')
+	const cacheContents = await fs.readdir(cacheSrc)
+
+	// look at every file in the template directory
+	for (const filepath of cacheContents) {
+		// read the file contents
+		const contents = await fs.readFile(path.join(cacheSrc, filepath), 'utf-8')
+
+		// and write them to the target
+		await fs.writeFile(path.join(cacheDir, filepath), contents, 'utf-8')
 	}
 
 	// build up the index file that should just export from the runtime
