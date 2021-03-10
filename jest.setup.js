@@ -23,7 +23,7 @@ beforeEach(() => {
 			[path.relative(config.rootDir, config.artifactDirectory)]: {},
 			[path.relative(config.rootDir, config.runtimeDirectory)]: {},
 		},
-		[`packages/houdini/src/generators/runtime/template`]: {},
+		[`packages/houdini/src/generators/runtime/template/cache`]: {},
 	})
 })
 
