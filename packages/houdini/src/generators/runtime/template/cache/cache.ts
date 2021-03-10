@@ -41,6 +41,10 @@ export class Cache {
 		return type + ':' + (typeof data === 'string' ? data : this.computeID(data))
 	}
 
+	idFields(type: string): string[] {
+		return ['id']
+	}
+
 	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
 		// find the root record
 		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
@@ -299,10 +303,10 @@ export class Cache {
 	}
 
 	private _write(
-		rootID: string,
-		parentID: string,
+		rootID: string, // the ID that anchors any connections
+		parentID: string, // the ID that can be used to build up the key for embedded data
 		selection: SubscriptionSelection,
-		recordID: string,
+		recordID: string, // the ID of the record that we are updating in cache
 		data: { [key: string]: GraphQLValue },
 		variables: { [key: string]: GraphQLValue },
 		specs: SubscriptionSpec[]
@@ -336,8 +340,15 @@ export class Cache {
 				// look up the current known link id
 				const oldID = record.linkedRecordID(key)
 
+				// figure out if this is an embedded list or a linked one by looking for any fields marked as
+				// required to compute the entity's id
+				const embedded =
+					this.idFields(linkedType)?.filter(
+						(field) => typeof value[field] === 'undefined'
+					).length > 0
+
 				// figure out the id of the new linked record
-				const linkedID = this.id(linkedType, value)
+				const linkedID = !embedded ? this.id(linkedType, value) : `${parentID}.${field}`
 
 				// if we are now linked to a new object we need to record the new value
 				if (oldID !== linkedID) {
@@ -368,15 +379,25 @@ export class Cache {
 				// the ids that have been added since the last time
 				const newIDs: string[] = []
 
+				// figure out if this is an embedded list or a linked one by looking for any fields marked as
+				// required to compute the entity's id
+				const embedded =
+					this.idFields(linkedType)?.filter(
+						(field) =>
+							typeof (value[0] as { [key: string]: any })[field] === 'undefined'
+					).length > 0
+
 				// visit every entry in the list
-				for (const entry of value) {
+				for (const [i, entry] of value.entries()) {
 					// this has to be an object for sanity sake (it can't be a link if its a scalar)
 					if (!(entry instanceof Object) || Array.isArray(entry)) {
 						throw new Error('Encountered link to non objects')
 					}
 
-					// figure out the linked id
-					const linkedID = this.id(linkedType, entry)
+					// build up an
+					const linkedID = !embedded
+						? this.id(linkedType, entry)
+						: `${parentID}.${field}[${i}]`
 
 					// update the linked fields too
 					this._write(rootID, recordID, fields, linkedID, entry, variables, specs)

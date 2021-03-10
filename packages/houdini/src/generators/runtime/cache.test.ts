@@ -2636,21 +2636,23 @@ test('embedded references', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					edges: {
-						type: 'UserEdge',
-						keyRaw: 'edges',
-						fields: {
-							node: {
-								type: 'User',
-								keyRaw: 'node',
-								fields: {
-									id: {
-										type: 'ID',
-										keyRaw: 'id',
-									},
-									firstName: {
-										type: 'String',
-										keyRaw: 'firstName',
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'User',
+									keyRaw: 'node',
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
 									},
 								},
 							},
