@@ -341,7 +341,7 @@ export class Cache {
 				// look up the current known link id
 				const oldID = record.linkedRecordID(key)
 
-				// figure out if this is an embedded list or a linked one by looking for any fields marked as
+				// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
 				// required to compute the entity's id
 				const embedded =
 					this.idFields(linkedType)?.filter(
@@ -349,7 +349,7 @@ export class Cache {
 					).length > 0
 
 				// figure out the id of the new linked record
-				const linkedID = !embedded ? this.id(linkedType, value) : `${parentID}.${keyRaw}`
+				const linkedID = !embedded ? this.id(linkedType, value) : `${parentID}.${key}`
 
 				// if we are now linked to a new object we need to record the new value
 				if (oldID !== linkedID) {
@@ -380,7 +380,7 @@ export class Cache {
 				// the ids that have been added since the last time
 				const newIDs: string[] = []
 
-				// figure out if this is an embedded list or a linked one by looking for any fields marked as
+				// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
 				// required to compute the entity's id in the first non-null value we can find
 				const embedded =
 					value.length > 0 &&
@@ -400,7 +400,7 @@ export class Cache {
 					// build up an
 					const linkedID = !embedded
 						? this.id(linkedType, entry)
-						: `${parentID}.${keyRaw}[${i}]`
+						: `${parentID}.${key}[${i}]`
 
 					// update the linked fields too
 					this._write(rootID, recordID, fields, linkedID, entry, variables, specs)
