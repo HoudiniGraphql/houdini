@@ -8,7 +8,7 @@ export class Cache {
 	// the map from entity id to record
 	private _data: Map<string | undefined, Record> = new Map()
 	// associate connection names with the handler that wraps the list
-	private _connections: Map<string, Map<string | undefined, ConnectionHandler>> = new Map()
+	private _connections: Map<string, Map<string, ConnectionHandler>> = new Map()
 
 	// we need to keep track of the variables used the last time a query was triggered
 	private lastKnownVariables: Map<SubscriptionSpec['set'], {}> = new Map()
@@ -18,13 +18,15 @@ export class Cache {
 		selection: SubscriptionSelection,
 		data: { [key: string]: GraphQLValue },
 		variables: {} = {},
-		parentID?: string
+		id?: string
 	) {
 		const specs: SubscriptionSpec[] = []
 
+		const parentID = id || rootID
+
 		// recursively walk down the payload and update the store. calls to update atomic fields
 		// will build up different specs of subscriptions that need to be run against the current state
-		this._write(parentID, selection, parentID, data, variables, specs)
+		this._write(parentID, parentID, selection, parentID, data, variables, specs)
 
 		// compute new values for every spec that needs to be run
 		this.notifySubscribers(specs, variables)
@@ -37,6 +39,10 @@ export class Cache {
 	id(type: string, id: string): string
 	id(type: string, data: any): string {
 		return type + ':' + (typeof data === 'string' ? data : this.computeID(data))
+	}
+
+	idFields(type: string): string[] {
+		return ['id']
 	}
 
 	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
@@ -70,7 +76,7 @@ export class Cache {
 	// get the connection handler associated by name
 	connection(name: string, id?: string): ConnectionHandler {
 		// make sure that the handler exists
-		const handler = this._connections.get(name)?.get(id)
+		const handler = this._connections.get(name)?.get(id || rootID)
 		if (!handler) {
 			throw new Error(
 				`Cannot find connection with name: ${name} under parent: ${id}. ` +
@@ -130,7 +136,7 @@ export class Cache {
 	}
 
 	private root(): Record {
-		return this.record(undefined)
+		return this.record(rootID)
 	}
 
 	// walk down the spec
@@ -209,7 +215,7 @@ export class Cache {
 
 					// if we haven't already registered a handler to this connection in the cache
 					this._connections.get(connection)?.set(
-						spec.parentID ? spec.parentID : undefined,
+						spec.parentID || rootID,
 						new ConnectionHandler({
 							name: connection,
 							parentID: spec.parentID,
@@ -297,9 +303,10 @@ export class Cache {
 	}
 
 	private _write(
-		parentID: string | undefined,
+		rootID: string, // the ID that anchors any connections
+		parentID: string, // the ID that can be used to build up the key for embedded data
 		selection: SubscriptionSelection,
-		recordID: string | undefined,
+		recordID: string, // the ID of the record that we are updating in cache
 		data: { [key: string]: GraphQLValue },
 		variables: { [key: string]: GraphQLValue },
 		specs: SubscriptionSpec[]
@@ -333,8 +340,15 @@ export class Cache {
 				// look up the current known link id
 				const oldID = record.linkedRecordID(key)
 
+				// figure out if this is an embedded list or a linked one by looking for any fields marked as
+				// required to compute the entity's id
+				const embedded =
+					this.idFields(linkedType)?.filter(
+						(field) => typeof value[field] === 'undefined'
+					).length > 0
+
 				// figure out the id of the new linked record
-				const linkedID = this.id(linkedType, value)
+				const linkedID = !embedded ? this.id(linkedType, value) : `${parentID}.${field}`
 
 				// if we are now linked to a new object we need to record the new value
 				if (oldID !== linkedID) {
@@ -352,7 +366,7 @@ export class Cache {
 				}
 
 				// update the linked fields too
-				this._write(parentID, fields, linkedID, value, variables, specs)
+				this._write(rootID, recordID, fields, linkedID, value, variables, specs)
 			}
 
 			// the value could be a list
@@ -365,18 +379,28 @@ export class Cache {
 				// the ids that have been added since the last time
 				const newIDs: string[] = []
 
+				// figure out if this is an embedded list or a linked one by looking for any fields marked as
+				// required to compute the entity's id
+				const embedded =
+					this.idFields(linkedType)?.filter(
+						(field) =>
+							typeof (value[0] as { [key: string]: any })[field] === 'undefined'
+					).length > 0
+
 				// visit every entry in the list
-				for (const entry of value) {
+				for (const [i, entry] of value.entries()) {
 					// this has to be an object for sanity sake (it can't be a link if its a scalar)
 					if (!(entry instanceof Object) || Array.isArray(entry)) {
 						throw new Error('Encountered link to non objects')
 					}
 
-					// figure out the linked id
-					const linkedID = this.id(linkedType, entry)
+					// build up an
+					const linkedID = !embedded
+						? this.id(linkedType, entry)
+						: `${parentID}.${field}[${i}]`
 
 					// update the linked fields too
-					this._write(parentID, fields, linkedID, entry, variables, specs)
+					this._write(rootID, recordID, fields, linkedID, entry, variables, specs)
 
 					// add the id to the list
 					linkedIDs.push(linkedID)
@@ -386,7 +410,7 @@ export class Cache {
 
 						if (connection) {
 							this.record(linkedID).addConnectionReference({
-								parentID,
+								parentID: rootID,
 								name: connection,
 							})
 						}
@@ -643,3 +667,6 @@ export type CacheProxy = {
 	evaluateKey: Cache['evaluateKey']
 	getRecord: Cache['getRecord']
 }
+
+// id that we should use to refer to things in root
+const rootID = '_ROOT_'

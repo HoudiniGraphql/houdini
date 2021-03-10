@@ -2620,6 +2620,137 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 	expect(cache.internal.getRecord('User:1').getSubscribers('firstName')).toHaveLength(1)
 })
 
+test('embedded references', function () {
+	// instantiate a cache
+	const cache = new Cache()
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'User',
+									keyRaw: 'node',
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write an embedded list of embedded objects holding references to an object
+	cache.write(selection, {
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							id: '2',
+							firstName: 'jane',
+						},
+					},
+					{
+						node: {
+							id: '3',
+							firstName: 'mary',
+						},
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			selection,
+			set,
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// update one of the embedded references
+	cache.write(
+		{
+			user: {
+				type: 'User',
+				keyRaw: 'user',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					firstName: {
+						type: 'String',
+						keyRaw: 'firstName',
+					},
+				},
+			},
+		},
+		{
+			user: {
+				id: '2',
+				firstName: 'not-jane',
+			},
+		}
+	)
+
+	// make sure we got the updated data
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							id: '2',
+							firstName: 'not-jane',
+						},
+					},
+					{
+						node: {
+							id: '3',
+							firstName: 'mary',
+						},
+					},
+				],
+			},
+		},
+	})
+})
+
 describe('key evaluation', function () {
 	const table = [
 		{
