@@ -78,8 +78,13 @@ export type MutationOperation = {
 export const CompiledFragmentKind = 'HoudiniFragment'
 export const CompiledMutationKind = 'HoudiniMutation'
 export const CompiledQueryKind = 'HoudiniQuery'
+export const CompiledSubscriptionKind = 'HoudiniSubscription'
 
-export type CompiledDocumentKind = 'HoudiniFragment' | 'HoudiniMutation' | 'HoudiniQuery'
+export type CompiledDocumentKind =
+	| 'HoudiniFragment'
+	| 'HoudiniMutation'
+	| 'HoudiniQuery'
+	| 'HoudiniSubscription'
 
 export type GraphQLValue =
 	| number

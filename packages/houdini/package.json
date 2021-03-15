@@ -30,6 +30,7 @@
 		"estree-walker": "^2.0.2",
 		"glob": "^7.1.6",
 		"graphql": "^15.5.0",
+		"graphql-ws": "^4.2.1",
 		"houdini-common": "^0.3.0",
 		"inquirer": "^7.3.3",
 		"mkdirp": "^1.0.4",

@@ -6988,19 +6988,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"graphql-ws@npm:^4.2.1":
+  version: 4.2.1
+  resolution: "graphql-ws@npm:4.2.1"
+  peerDependencies:
+    graphql: ">=0.11 <=15"
+  checksum: 1c2fc948fd44291b98a4800f21277c54f2dc702bdceabce0dd1e5b2dcc7a21756eac8f5cea4d1f47e5f8aad681f30c8ec9bb59eb900f0999cc63ee1840fbc536
+  languageName: node
+  linkType: hard
+
 "graphql@npm:15.x.x, graphql@npm:^15.3.0, graphql@npm:^15.5.0":
   version: 15.5.0
   resolution: "graphql@npm:15.5.0"
   checksum: 789cdcb069a3e00592e779002217a6bc5fd09efad63ee8c4190c4b3ea96c89010e74f085fb1cba876a0bb0e324e01df2eddb84d79dca90a28e582bc425fef9ef
-  languageName: node
-  linkType: hard
-
-"graphql@npm:^14.0.0":
-  version: 14.7.0
-  resolution: "graphql@npm:14.7.0"
-  dependencies:
-    iterall: ^1.2.2
-  checksum: 3b7d50f98f5c66db36327d6dd331367c6da166d701b5bad669664e8602a180ee50dcb5ae3e1f9874e7fa59c1217f50a52a922fc77b5a1e04276426e67815b0ed
   languageName: node
   linkType: hard
 
@@ -7163,7 +7163,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.1.3, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.3.0, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
@@ -7202,11 +7202,11 @@ __metadata:
     apollo-server-express: ^2.19.2
     compression: ^1.7.1
     cross-fetch: ^3.0.6
-    graphql: ^14.0.0
+    graphql: ^15.5.0
     graphql-relay: ^0.6.0
     graphql-tag: ^2.11.0
-    houdini: ^0.1.12
-    houdini-preprocess: ^0.1.12
+    houdini: ^0.3.4
+    houdini-preprocess: ^0.3.4
     lodash: ^4.17.20
     polka: next
     rollup: ^2.3.4
@@ -7244,7 +7244,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.1.12, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.3.4, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -7257,8 +7257,8 @@ __metadata:
     babel-jest: ^26.6.3
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
-    houdini: ^0.1.12
-    houdini-common: ^0.1.3
+    houdini: ^0.3.4
+    houdini-common: ^0.3.0
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -7269,7 +7269,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.1.12, houdini@workspace:packages/houdini":
+"houdini@^0.3.4, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
@@ -7287,7 +7287,8 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.1.3
+    graphql-ws: ^4.2.1
+    houdini-common: ^0.3.0
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
@@ -8142,7 +8143,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iterall@npm:^1.1.3, iterall@npm:^1.2.1, iterall@npm:^1.2.2, iterall@npm:^1.3.0":
+"iterall@npm:^1.1.3, iterall@npm:^1.2.1, iterall@npm:^1.3.0":
   version: 1.3.0
   resolution: "iterall@npm:1.3.0"
   checksum: 25ae2d07cf97fc35d43fa7af814839689416b83d3ade0fec97a62c58b7b9fad5ff89dd0ede99f2d67cae2697ffa6987f0ab10876f40ae6466e802609a05b1006

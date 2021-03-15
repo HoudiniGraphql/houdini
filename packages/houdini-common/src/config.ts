@@ -323,6 +323,14 @@ export function testConfig(config: {} = {}) {
 				deleteCat: DeleteCatOutput!
 			}
 
+			type Subscription { 
+				newUser: NewUserResult!
+			}
+
+			type NewUserResult { 
+				user: User!
+			}
+
 			type AddFriendOutput {
 				friend: User
 			}
