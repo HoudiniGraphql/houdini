@@ -14,10 +14,12 @@
 		"apollo-server": "^2.19.2",
 		"compression": "^1.7.1",
 		"cross-fetch": "^3.0.6",
+		"express": "^4.17.1",
 		"graphql-relay": "^0.6.0",
 		"graphql-tag": "^2.11.0",
 		"polka": "next",
-		"sirv": "^1.0.0"
+		"sirv": "^1.0.0",
+		"ws": "^7.4.4"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.0.0",

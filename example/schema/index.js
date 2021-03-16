@@ -25,6 +25,10 @@ const typeDefs = gql`
 		deleteItem(item: ID!): DeleteIemOutput!
 	}
 
+	type Subscription {
+		itemUpdate(id: ID!): ItemUpdate!
+	}
+
 	input AddItemInput {
 		text: String!
 	}
@@ -42,6 +46,10 @@ const typeDefs = gql`
 	type DeleteIemOutput {
 		error: Error
 		itemID: ID
+	}
+
+	type ItemUpdate {
+		item: TodoItem!
 	}
 `
 
@@ -110,6 +118,9 @@ const resolvers = {
 	},
 	TodoItem: {
 		completed: ({ completed }) => Boolean(completed),
+	},
+	Subscription: {
+		itemUpdate: (_, { id }) => {},
 	},
 }
 

@@ -3,10 +3,11 @@ import path from 'path'
 import fs from 'fs/promises'
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
-import { graphql, getIntrospectionQuery } from 'graphql'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
 import mkdirp from 'mkdirp'
+import generateAdapter from './adapter'
+import generateEnvironment from './environment'
 
 const AST = recast.types.builders
 
@@ -50,38 +51,5 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	// write the index file that exports the runtime
 	await fs.writeFile(path.join(config.rootDir, 'index.js'), recast.print(indexFile).code, 'utf-8')
 	// add the adapter to normalize sapper and sveltekit
-	await generateAdapter(config)
+	await Promise.all([generateAdapter(config), generateEnvironment(config, docs)])
 }
-
-async function generateAdapter(config: Config) {
-	// the location of the adapter
-	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.mjs')
-
-	// figure out the correct content
-	const content = config.mode === 'kit' ? kitAdapter() : sapperAdapter()
-
-	// write the index file that exports the runtime
-	await fs.writeFile(adapterLocation, content, 'utf-8')
-}
-
-const kitAdapter = () => `import stores from '$app/stores'
-import navigation from '$app/navigation'
-
-export function getSession() {
-    return stores.session
-}
-
-export function goTo(location, options) {
-	navigation.goTo(location, options)
-`
-
-const sapperAdapter = () => `import { stores } from '@sapper/app'
-
-export function getSession() {
-    return stores().session
-}
-
-export function goTo(location, options) {
-    goTo(location, options)
-}
-`

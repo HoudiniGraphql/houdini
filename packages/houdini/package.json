@@ -31,6 +31,7 @@
 		"glob": "^7.1.6",
 		"graphql": "^15.5.0",
 		"graphql-ws": "^4.2.1",
+		"handlebars": "^4.7.7",
 		"houdini-common": "^0.3.0",
 		"inquirer": "^7.3.3",
 		"mkdirp": "^1.0.4",

@@ -1,3 +1,6 @@
+// @ts-ignore: this file doesn't  exist yet
+import { Environment } from './environment'
+
 type FetchParams = {
 	text: string
 	variables: { [key: string]: any }
@@ -43,22 +46,6 @@ export async function fetchQuery(
 	}
 
 	return await environment.sendRequest(ctx, { text, variables }, session)
-}
-
-export class Environment {
-	private handler: RequestHandler
-
-	constructor(networkFn: RequestHandler) {
-		this.handler = networkFn
-	}
-
-	sendRequest(
-		ctx: FetchContext,
-		params: FetchParams,
-		session?: FetchSession
-	): Promise<RequestPayload> {
-		return this.handler.call(ctx, params, session)
-	}
 }
 
 let currentEnv: Environment | null = null
