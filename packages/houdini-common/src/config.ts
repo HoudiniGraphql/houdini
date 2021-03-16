@@ -10,7 +10,6 @@ export type ConfigFile = {
 	schema?: string
 	quiet?: boolean
 	verifyHash?: boolean
-	mode?: 'sapper' | 'kit'
 }
 
 // a place to hold conventions and magic strings
