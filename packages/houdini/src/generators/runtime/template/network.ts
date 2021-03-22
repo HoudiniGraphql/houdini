@@ -1,7 +1,7 @@
 // @ts-ignore: this file doesn't  exist yet
 import { Environment } from './environment'
 
-type FetchParams = {
+export type FetchParams = {
 	text: string
 	variables: { [key: string]: any }
 }
@@ -20,7 +20,7 @@ type GraphQLError = {
 
 type RequestPayload = { data: any; errors?: Error[] }
 
-type RequestHandler = (
+export type RequestHandler = (
 	this: FetchContext,
 	params: FetchParams,
 	session?: FetchSession

@@ -5,9 +5,9 @@ import * as recast from 'recast'
 import { Config } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
-import mkdirp from 'mkdirp'
 import generateAdapter from './adapter'
 import generateEnvironment from './environment'
+import { recursiveCopy, compile } from './utils'
 
 const AST = recast.types.builders
 
@@ -18,38 +18,20 @@ const AST = recast.types.builders
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// all of the runtime source code is available at the directory locations at ./templates
-	const templateDir = path.resolve(__dirname, 'template')
-	const templates = await fs.readdir(templateDir)
+	const source = path.resolve(__dirname, 'template')
 
-	// look at every file in the template directory
-	for (const filepath of templates.filter((file) => file !== 'cache')) {
-		// read the file contents
-		const contents = await fs.readFile(path.join(templateDir, filepath), 'utf-8')
+	// copy the compiled source code to the target directory
+	await recursiveCopy(source, config.runtimeDirectory)
 
-		// and write them to the target
-		await fs.writeFile(path.join(config.runtimeDirectory, filepath), contents, 'utf-8')
-	}
-
-	// copy the cache directory
-	const cacheDir = path.join(config.runtimeDirectory, 'cache')
-	await mkdirp(cacheDir)
-	const cacheSrc = path.join(templateDir, 'cache')
-	const cacheContents = await fs.readdir(cacheSrc)
-
-	// look at every file in the template directory
-	for (const filepath of cacheContents) {
-		// read the file contents
-		const contents = await fs.readFile(path.join(cacheSrc, filepath), 'utf-8')
-
-		// and write them to the target
-		await fs.writeFile(path.join(cacheDir, filepath), contents, 'utf-8')
-	}
+	// now that the pre-compiled stuff in in place, we can put in the dynamic content
+	// so that it can type check against what is there
+	await Promise.all([generateAdapter(config), generateEnvironment(config, docs)])
+	// run the typescript compiler
+	compile([path.join(config.runtimeDirectory, 'environment.ts')])
 
 	// build up the index file that should just export from the runtime
 	const indexFile = AST.program([AST.exportAllDeclaration(AST.literal('./runtime'), null)])
 
 	// write the index file that exports the runtime
 	await fs.writeFile(path.join(config.rootDir, 'index.js'), recast.print(indexFile).code, 'utf-8')
-	// add the adapter to normalize sapper and sveltekit
-	await Promise.all([generateAdapter(config), generateEnvironment(config, docs)])
 }

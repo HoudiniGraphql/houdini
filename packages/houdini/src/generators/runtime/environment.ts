@@ -14,7 +14,6 @@ export default async function generateEnvironment(
 	// the contents of the environment file depends on wether we have
 	// subscriptions present or not
 	let subscriptions = false
-
 	for (const { document } of docs) {
 		graphql.visit(document, {
 			OperationDefinition(node) {
@@ -31,33 +30,33 @@ export default async function generateEnvironment(
 		}
 	}
 
-	// the location of the adapter
-	const fileLocation = path.join(config.runtimeDirectory, 'environment.mjs')
+	// render the template
+	const content = environmentTemplate({ subscriptions })
 
-	const content = environmentTemplate({
-		subscriptions,
-	})
-
-	// write the index file that exports the runtime
-	await fs.writeFile(fileLocation, content, 'utf-8')
+	// copy the typescript source to the target
+	await fs.writeFile(path.join(config.runtimeDirectory, 'environment.ts'), content, 'utf-8')
 }
 
 const environmentTemplate = compileTemplate(`
 {{#if subscriptions}}
+// @ts-ignore
 import { Client } from 'graphql-ws'
 {{/if}}
 
+import { RequestHandler, FetchContext, FetchParams,  FetchSession } from './network'
+
 export class Environment {
 	private handler: RequestHandler
+
 	{{#if subscriptions}}
 	socketClient: Client
-
+	
+	// this project uses subscriptions so make sure one is passed when constructing an environment
 	constructor(networkFn: RequestHandler, socketClient: Client) {
 		this.handler = networkFn
 		this.socketClient = socketClient
 	}	
 	{{else}}
-	
 	constructor(networkFn: RequestHandler) {
 		this.handler = networkFn
 	}	
@@ -67,7 +66,8 @@ export class Environment {
 		ctx: FetchContext,
 		params: FetchParams,
 		session?: FetchSession
-	): Promise<RequestPayload> {
+	) {
+		// @ts-ignore
 		return this.handler.call(ctx, params, session)
 	}
 }

@@ -32,37 +32,54 @@ test('subscription constructor', async function () {
 	// execute the generator
 	await runPipeline(config, docs)
 
+	const files = await fs.readdir(config.runtimeDirectory)
+	process.stdout.write(JSON.stringify(files) + '\n')
+
 	// load the contents of the file
-	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'environment.mjs'),
-		'utf-8'
-	)
-	expect(fileContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery = recast.parse(fileContents, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
-		import { Client } from 'graphql-ws'
-
-		export class Environment {
-			private handler: RequestHandler
-			socketClient: Client
-
-			constructor(networkFn: RequestHandler, socketClient: Client) {
-				this.handler = networkFn
-				this.socketClient = socketClient
-			}	
-
-			sendRequest(
-				ctx: FetchContext,
-				params: FetchParams,
-				session?: FetchSession
-			): Promise<RequestPayload> {
-				return this.handler.call(ctx, params, session)
-			}
+	const contents = recast.parse(
+		await fs.readFile(path.join(config.runtimeDirectory, 'environment.js'), 'utf-8'),
+		{
+			parser: typeScriptParser,
 		}
+	).program
+	// verify contents
+	expect(contents).toMatchInlineSnapshot(`
+		"use strict";
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.Environment = void 0;
+		var Environment = /** @class */ (function () {
+		    // this project uses subscriptions so make sure one is passed when constructing an environment
+		    function Environment(networkFn, socketClient) {
+		        this.handler = networkFn;
+		        this.socketClient = socketClient;
+		    }
+		    Environment.prototype.sendRequest = function (ctx, params, session) {
+		        // @ts-ignore
+		        return this.handler.call(ctx, params, session);
+		    };
+		    return Environment;
+		}());
+		exports.Environment = Environment;
+	`)
+
+	// load the contents of the typedefs
+	const typedefs = recast.parse(
+		await fs.readFile(path.join(config.runtimeDirectory, 'environment.d.ts'), 'utf-8'),
+		{
+			parser: typeScriptParser,
+		}
+	).program
+	// verify typedefs
+	expect(typedefs).toMatchInlineSnapshot(`
+		import { Client } from 'graphql-ws';
+		import { RequestHandler, FetchContext, FetchParams, FetchSession } from './network';
+		export declare class Environment {
+		    private handler;
+		    socketClient: Client;
+		    constructor(networkFn: RequestHandler, socketClient: Client);
+		    sendRequest(ctx: FetchContext, params: FetchParams, session?: FetchSession): any;
+		}
+		//# sourceMappingURL=environment.d.ts.map
 	`)
 })
 
@@ -77,31 +94,45 @@ test('constructor without subscriptions', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'environment.mjs'),
-		'utf-8'
-	)
-	expect(fileContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery = recast.parse(fileContents, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
-		export class Environment {
-			private handler: RequestHandler
-			
-			constructor(networkFn: RequestHandler) {
-				this.handler = networkFn
-			}	
-
-			sendRequest(
-				ctx: FetchContext,
-				params: FetchParams,
-				session?: FetchSession
-			): Promise<RequestPayload> {
-				return this.handler.call(ctx, params, session)
-			}
+	const contents = recast.parse(
+		await fs.readFile(path.join(config.runtimeDirectory, 'environment.js'), 'utf-8'),
+		{
+			parser: typeScriptParser,
 		}
+	).program
+	// verify contents
+	expect(contents).toMatchInlineSnapshot(`
+		"use strict";
+		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.Environment = void 0;
+		var Environment = /** @class */ (function () {
+		    function Environment(networkFn) {
+		        this.handler = networkFn;
+		    }
+		    Environment.prototype.sendRequest = function (ctx, params, session) {
+		        // @ts-ignore
+		        return this.handler.call(ctx, params, session);
+		    };
+		    return Environment;
+		}());
+		exports.Environment = Environment;
+	`)
+
+	// load the contents of the typedefs
+	const typedefs = recast.parse(
+		await fs.readFile(path.join(config.runtimeDirectory, 'environment.d.ts'), 'utf-8'),
+		{
+			parser: typeScriptParser,
+		}
+	).program
+	// verify typedefs
+	expect(typedefs).toMatchInlineSnapshot(`
+		import { RequestHandler, FetchContext, FetchParams, FetchSession } from './network';
+		export declare class Environment {
+		    private handler;
+		    constructor(networkFn: RequestHandler);
+		    sendRequest(ctx: FetchContext, params: FetchParams, session?: FetchSession): any;
+		}
+		//# sourceMappingURL=environment.d.ts.map
 	`)
 })

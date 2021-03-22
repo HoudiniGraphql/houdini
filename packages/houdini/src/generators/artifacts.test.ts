@@ -1,7 +1,6 @@
 // external imports
 import path from 'path'
 import { testConfig } from 'houdini-common'
-import * as graphql from 'graphql'
 import fs from 'fs/promises'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
