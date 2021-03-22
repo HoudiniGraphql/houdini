@@ -26,6 +26,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	// now that the pre-compiled stuff in in place, we can put in the dynamic content
 	// so that it can type check against what is there
 	await Promise.all([generateAdapter(config), generateEnvironment(config, docs)])
+
 	// run the typescript compiler
 	compile([path.join(config.runtimeDirectory, 'environment.ts')])
 

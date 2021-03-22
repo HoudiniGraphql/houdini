@@ -39,7 +39,7 @@ export default async function generateEnvironment(
 
 const environmentTemplate = compileTemplate(`
 {{#if subscriptions}}
-// @ts-ignore
+// @ts-ignore: i give up. the in-memory compiler can't find this module but it 
 import { Client } from 'graphql-ws'
 {{/if}}
 
