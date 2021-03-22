@@ -12,7 +12,11 @@ export type Session = any
 export type Maybe<T> = T | null
 
 // any compiled result
-export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifact
+export type DocumentArtifact =
+	| FragmentArtifact
+	| QueryArtifact
+	| MutationArtifact
+	| SubscriptionArtifact
 
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
@@ -24,6 +28,10 @@ export type MutationArtifact = BaseCompiledDocument & {
 
 export type FragmentArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniFragment'
+}
+
+export type SubscriptionArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniSubscription'
 }
 
 type BaseCompiledDocument = {

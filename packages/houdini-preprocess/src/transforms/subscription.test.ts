@@ -2,7 +2,7 @@
 import * as svelte from 'svelte/compiler'
 import * as graphql from 'graphql'
 // local imports
-import fragmentProcessor from './fragment'
+import subscriptionProcessor from './subscription'
 import { hashDocument, testConfig } from 'houdini-common'
 import importArtifact from '../utils/importArtifact'
 import '../../../../jest.setup'
@@ -16,15 +16,17 @@ beforeEach(() => {
 	importArtifact.mockClear()
 })
 
-describe('fragment preprocessor', function () {
+describe('subscription preprocessor', function () {
 	test('happy path', async function () {
 		const doc = await preprocessorTest(`
 			<script>
-                let reference
-
-				const data = fragment(graphql\`
-                    fragment TestFragment on User { 
-                        id
+				const data = subscription(graphql\`
+                    subscription Testsubscription { 
+                        newUser { 
+                            user { 
+                                id
+                            }
+                        }
                     }
 				\`, reference)
 			</script>
@@ -32,25 +34,17 @@ describe('fragment preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import _TestFragmentArtifact from "$houdini/artifacts/TestFragment";
-		let reference;
+		import _TestSubscriptionArtifact from "$houdini/artifacts/TestSubscription";
 
-		const data = fragment({
-		    "kind": "HoudiniFragment",
-		    "artifact": _TestFragmentArtifact
+		const data = subscription({
+		    "kind": "HoudiniSubscription",
+		    "artifact": _TestSubscriptionArtifact
 		}, reference);
 	`)
 	})
 })
 
 async function preprocessorTest(content: string) {
-	const schema = `
-		type User {
-			id: ID!
-		}
-        
-	`
-
 	// parse the document
 	const parsed = svelte.parse(content)
 
@@ -61,7 +55,7 @@ async function preprocessorTest(content: string) {
 	const parsedQuery = graphql.parse(query)
 
 	// build up the document we'll pass to the processor
-	const config = testConfig({ schema, verifyHash: false })
+	const config = testConfig({ verifyHash: false })
 
 	const doc = {
 		instance: parsed.instance,
@@ -75,8 +69,8 @@ async function preprocessorTest(content: string) {
 	// mock the import statement
 	importArtifact.mockImplementation(function (): DocumentArtifact {
 		return {
-			name: 'TestFragment',
-			kind: 'HoudiniFragment',
+			name: 'TestSubscription',
+			kind: 'HoudiniSubscription',
 			raw: query,
 			hash: hashDocument(parsedQuery),
 			rootType: 'User',
@@ -88,7 +82,7 @@ async function preprocessorTest(content: string) {
 
 	// @ts-ignore
 	// run the source through the processor
-	await fragmentProcessor(config, doc)
+	await subscriptionProcessor(config, doc)
 
 	// invoke the test
 	return doc

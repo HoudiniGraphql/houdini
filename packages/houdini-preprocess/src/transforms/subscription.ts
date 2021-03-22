@@ -10,11 +10,11 @@ import { artifactIdentifier } from './query'
 const AST = recast.types.builders
 
 // returns the expression that should replace the graphql
-export default async function fragmentProcesesor(
+export default async function subscriptionProcesesor(
 	config: Config,
 	doc: TransformDocument
 ): Promise<void> {
-	// we need to find any graphql documents in the instance script containing fragments
+	// we need to find any graphql documents in the instance script containing subscriptions
 	// and replace them with an object expression that has the keys that the runtime expects
 
 	// if there is no instance script, we dont about care this file
@@ -24,12 +24,13 @@ export default async function fragmentProcesesor(
 
 	// go to every graphql document
 	await walkTaggedDocuments(doc, doc.instance.content, {
-		// with only one definition defining a fragment
+		// with only one definition defining asubscription
 		// note: the tags that satisfy this predicate will be added to the watch list
 		where(tag: graphql.DocumentNode) {
 			return (
 				tag.definitions.length === 1 &&
-				tag.definitions[0].kind === graphql.Kind.FRAGMENT_DEFINITION
+				tag.definitions[0].kind === graphql.Kind.OPERATION_DEFINITION &&
+				tag.definitions[0].operation === 'subscription'
 			)
 		},
 		// we want to replace it with an object that the runtime can use
