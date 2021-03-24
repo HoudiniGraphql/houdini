@@ -86,3 +86,8 @@ export class RequestContext implements FetchContext {
 		return
 	}
 }
+
+export type SubscriptionHandler = (
+	query: string,
+	handlers: { next: (data: {}) => void; error: (data: {}) => void; complete: () => void }
+) => void

@@ -32,9 +32,6 @@ test('subscription constructor', async function () {
 	// execute the generator
 	await runPipeline(config, docs)
 
-	const files = await fs.readdir(config.runtimeDirectory)
-	process.stdout.write(JSON.stringify(files) + '\n')
-
 	// load the contents of the file
 	const contents = recast.parse(
 		await fs.readFile(path.join(config.runtimeDirectory, 'environment.js'), 'utf-8'),
@@ -49,13 +46,13 @@ test('subscription constructor', async function () {
 		exports.Environment = void 0;
 		var Environment = /** @class */ (function () {
 		    // this project uses subscriptions so make sure one is passed when constructing an environment
-		    function Environment(networkFn, socketClient) {
-		        this.handler = networkFn;
-		        this.socketClient = socketClient;
+		    function Environment(networkFn, subscriptionHandler) {
+		        this.fetch = networkFn;
+		        this.subscription = subscriptionHandler;
 		    }
 		    Environment.prototype.sendRequest = function (ctx, params, session) {
 		        // @ts-ignore
-		        return this.handler.call(ctx, params, session);
+		        return this.fetch.call(ctx, params, session);
 		    };
 		    return Environment;
 		}());
@@ -71,12 +68,12 @@ test('subscription constructor', async function () {
 	).program
 	// verify typedefs
 	expect(typedefs).toMatchInlineSnapshot(`
-		import { Client } from 'graphql-ws';
+		import { SubscriptionHandler } from './network';
 		import { RequestHandler, FetchContext, FetchParams, FetchSession } from './network';
 		export declare class Environment {
-		    private handler;
-		    socketClient: Client;
-		    constructor(networkFn: RequestHandler, socketClient: Client);
+		    private fetch;
+		    subscription: SubscriptionHandler;
+		    constructor(networkFn: RequestHandler, subscriptionHandler: SubscriptionHandler);
 		    sendRequest(ctx: FetchContext, params: FetchParams, session?: FetchSession): any;
 		}
 		//# sourceMappingURL=environment.d.ts.map
@@ -107,11 +104,11 @@ test('constructor without subscriptions', async function () {
 		exports.Environment = void 0;
 		var Environment = /** @class */ (function () {
 		    function Environment(networkFn) {
-		        this.handler = networkFn;
+		        this.fetch = networkFn;
 		    }
 		    Environment.prototype.sendRequest = function (ctx, params, session) {
 		        // @ts-ignore
-		        return this.handler.call(ctx, params, session);
+		        return this.fetch.call(ctx, params, session);
 		    };
 		    return Environment;
 		}());
@@ -129,7 +126,7 @@ test('constructor without subscriptions', async function () {
 	expect(typedefs).toMatchInlineSnapshot(`
 		import { RequestHandler, FetchContext, FetchParams, FetchSession } from './network';
 		export declare class Environment {
-		    private handler;
+		    private fetch;
 		    constructor(networkFn: RequestHandler);
 		    sendRequest(ctx: FetchContext, params: FetchParams, session?: FetchSession): any;
 		}

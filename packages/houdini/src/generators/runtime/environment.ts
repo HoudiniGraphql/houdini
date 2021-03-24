@@ -39,26 +39,25 @@ export default async function generateEnvironment(
 
 const environmentTemplate = compileTemplate(`
 {{#if subscriptions}}
-// @ts-ignore: i give up. the in-memory compiler can't find this module but it 
-import { Client } from 'graphql-ws'
+import { SubscriptionHandler } from './network'
 {{/if}}
 
 import { RequestHandler, FetchContext, FetchParams,  FetchSession } from './network'
 
 export class Environment {
-	private handler: RequestHandler
+	private fetch: RequestHandler
 
 	{{#if subscriptions}}
-	socketClient: Client
+	subscription: SubscriptionHandler
 	
 	// this project uses subscriptions so make sure one is passed when constructing an environment
-	constructor(networkFn: RequestHandler, socketClient: Client) {
-		this.handler = networkFn
-		this.socketClient = socketClient
+	constructor(networkFn: RequestHandler, subscriptionHandler: SubscriptionHandler) {
+		this.fetch = networkFn
+		this.subscription = subscriptionHandler
 	}	
 	{{else}}
 	constructor(networkFn: RequestHandler) {
-		this.handler = networkFn
+		this.fetch = networkFn
 	}	
 	{{/if}}
 
@@ -68,7 +67,7 @@ export class Environment {
 		session?: FetchSession
 	) {
 		// @ts-ignore
-		return this.handler.call(ctx, params, session)
+		return this.fetch.call(ctx, params, session)
 	}
 }
 `)

@@ -43,7 +43,11 @@ type BaseCompiledDocument = {
 }
 
 // the result of the template tag
-export type GraphQLTagResult = TaggedGraphqlQuery | TaggedGraphqlFragment | TaggedGraphqlMutation
+export type GraphQLTagResult =
+	| TaggedGraphqlQuery
+	| TaggedGraphqlFragment
+	| TaggedGraphqlMutation
+	| TaggedGraphqlSubscription
 
 export type TaggedGraphqlFragment = {
 	kind: 'HoudiniFragment'
@@ -54,6 +58,12 @@ export type TaggedGraphqlFragment = {
 export type TaggedGraphqlMutation = {
 	kind: 'HoudiniMutation'
 	artifact: MutationArtifact
+}
+
+// the result of tagging an operation
+export type TaggedGraphqlSubscription = {
+	kind: 'HoudiniSubscription'
+	artifact: SubscriptionArtifact
 }
 
 // the result of tagging an operation

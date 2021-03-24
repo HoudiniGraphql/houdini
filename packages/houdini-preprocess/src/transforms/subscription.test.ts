@@ -28,7 +28,7 @@ describe('subscription preprocessor', function () {
                             }
                         }
                     }
-				\`, reference)
+				\`, variables)
 			</script>
 		`)
 
@@ -39,7 +39,7 @@ describe('subscription preprocessor', function () {
 		const data = subscription({
 		    "kind": "HoudiniSubscription",
 		    "artifact": _TestSubscriptionArtifact
-		}, reference);
+		}, variables);
 	`)
 	})
 })

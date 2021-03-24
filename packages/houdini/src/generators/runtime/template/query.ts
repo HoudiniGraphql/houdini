@@ -11,7 +11,7 @@ export default function query<_Query extends Operation<any, any>>(
 ): QueryResponse<Readable<_Query['result']>, _Query['input']> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniQuery') {
-		throw new Error('getQuery can only take query operations')
+		throw new Error('query() must be passed a query document')
 	}
 	let variables = document.variables
 
