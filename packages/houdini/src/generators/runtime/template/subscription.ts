@@ -1,7 +1,8 @@
 // externals
-import { Operation, GraphQLTagResult } from './types'
 import { readable, Readable } from 'svelte/store'
+import { onMount } from 'svelte'
 // locals
+import { Operation, GraphQLTagResult } from './types'
 import { getEnvironment } from './network'
 import cache from './cache'
 
@@ -29,17 +30,24 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 
 	// the primary function of a subscription is to keep the cache
 	// up to date with the response
-	env.subscription(text, {
-		next(data: _Subscription['result']) {
-			// update the cache with the result
-			cache.write(selection, data, variables)
-		},
-		error(data: _Subscription['result']) {},
-		complete() {},
-	})
 
 	// we need a place to hold the results that the client can use
-	const store = readable(null, () => {})
+	const store = readable(null, (set) => {
+		// the websocket connection only exists on the client
+		onMount(() => {
+			env.subscription(text, {
+				next(data: _Subscription['result']) {
+					// update the cache with the result
+					cache.write(selection, data, variables)
+
+					// update the local store
+					set(data)
+				},
+				error(data: _Subscription['result']) {},
+				complete() {},
+			})
+		})
+	})
 
 	return store
 }
