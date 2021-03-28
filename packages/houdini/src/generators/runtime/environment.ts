@@ -39,21 +39,21 @@ export default async function generateEnvironment(
 
 const environmentTemplate = compileTemplate(`
 {{#if subscriptions}}
-import { SubscriptionHandler } from './network'
+import type { SubscriptionHandler } from './network'
 {{/if}}
 
-import { RequestHandler, FetchContext, FetchParams,  FetchSession } from './network'
+import type { RequestHandler, FetchContext, FetchParams,  FetchSession } from './network'
 
 export class Environment {
 	private fetch: RequestHandler
 
 	{{#if subscriptions}}
-	subscription: SubscriptionHandler
+	socket: SubscriptionHandler | null
 	
 	// this project uses subscriptions so make sure one is passed when constructing an environment
-	constructor(networkFn: RequestHandler, subscriptionHandler: SubscriptionHandler) {
+	constructor(networkFn: RequestHandler, subscriptionHandler: SubscriptionHandler | null) {
 		this.fetch = networkFn
-		this.subscription = subscriptionHandler
+		this.socket = subscriptionHandler
 	}	
 	{{else}}
 	constructor(networkFn: RequestHandler) {

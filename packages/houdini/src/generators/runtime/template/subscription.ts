@@ -7,11 +7,11 @@ import { getEnvironment } from './network'
 import cache from './cache'
 
 // subscription holds open a live connection to the server. it returns a store
-// containing the requested data as well as updates the cache when new data
-// is encountered
+// containing the requested data. Houdini will also update the cache with any
+// information that it encounters in the reponse.
 export default function subscription<_Subscription extends Operation<any, any>>(
 	document: GraphQLTagResult,
-	variables: _Subscription['input']
+	variables?: _Subscription['input']
 ): Readable<_Subscription['result']> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniSubscription') {
@@ -24,6 +24,13 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 	if (!env) {
 		throw new Error('Could not find network environment')
 	}
+	// we need to make sure that the user provided a socket connection
+	if (!env.socket) {
+		throw new Error(
+			'The current environment is not configured to handle subscriptions. Make sure you ' +
+				'passed a client to its constructor.'
+		)
+	}
 
 	// pull the query text out of the compiled artifact
 	const { raw: text, selection } = document.artifact
@@ -35,17 +42,25 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 	const store = readable(null, (set) => {
 		// the websocket connection only exists on the client
 		onMount(() => {
-			env.subscription(text, {
-				next(data: _Subscription['result']) {
-					// update the cache with the result
-					cache.write(selection, data, variables)
+			// make typescript happy
+			if (!env.socket) {
+				return
+			}
 
-					// update the local store
-					set(data)
-				},
-				error(data: _Subscription['result']) {},
-				complete() {},
-			})
+			env.socket.subscribe(
+				{ query: text },
+				{
+					next(data: _Subscription['result']) {
+						// update the cache with the result
+						cache.write(selection, data, variables)
+
+						// update the local store
+						set(data)
+					},
+					error(data: _Subscription['result']) {},
+					complete() {},
+				}
+			)
 		})
 	})
 

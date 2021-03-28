@@ -3,6 +3,7 @@ import { RequestContext, fetchQuery } from './network'
 import { Operation, GraphQLTagResult } from './types'
 import cache from './cache'
 import { getVariables } from './context'
+
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
 

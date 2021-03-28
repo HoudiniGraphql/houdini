@@ -20,10 +20,11 @@ async function fetchQuery({ text, variables = {} }) {
 }
 
 // this client is used to handle any socket connections that are made to the server
+// since websockets only exist on the client, set to null on the server
 const socketClient = (process as any).browser
 	? createClient({
 			url: 'ws://localhost:4000',
-	  }).subscribe
+	  })
 	: null
 
 export default new Environment(fetchQuery, socketClient)

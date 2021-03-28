@@ -1,5 +1,4 @@
-// @ts-ignore: this file doesn't  exist yet
-import { Environment } from './environment'
+import type { Environment } from './environment'
 
 export type FetchParams = {
 	text: string
@@ -87,7 +86,9 @@ export class RequestContext implements FetchContext {
 	}
 }
 
-export type SubscriptionHandler = (
-	query: string,
-	handlers: { next: (data: {}) => void; error: (data: {}) => void; complete: () => void }
-) => void
+export type SubscriptionHandler = {
+	subscribe: (
+		payload: { query: string },
+		handlers: { next: (data: {}) => void; error: (data: {}) => void; complete: () => void }
+	) => () => void
+}
