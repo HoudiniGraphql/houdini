@@ -176,7 +176,11 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					rootType = config.schema.getSubscriptionType()?.name
 				}
 				if (!rootType) {
-					throw new Error('Could not find root type for field map')
+					throw new Error(
+						'could not find root type for operation: ' +
+							operation.operation +
+							'. Maybe you need to re-run the introspection query?'
+					)
 				}
 
 				// use this selection set

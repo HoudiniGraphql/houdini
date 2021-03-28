@@ -3,6 +3,7 @@
 		fragment,
 		mutation,
 		graphql,
+		subscription,
 		ItemEntry_item,
 		CompleteItem,
 		UncompleteItem,
@@ -51,6 +52,19 @@
 		mutation DeleteItem($id: ID!) {
 			deleteItem(item: $id) {
 				itemID @TodoItem_delete
+			}
+		}
+	`)
+
+	// make sure the todo items stay up to date
+	subscription(graphql`
+		subscription ItemUpdate($id: ID!) {
+			itemUpdate(id: $id) {
+				item {
+					id
+					completed
+					text
+				}
 			}
 		}
 	`)

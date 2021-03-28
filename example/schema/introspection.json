@@ -6,42 +6,42 @@
 		"mutationType": {
 			"name": "Mutation"
 		},
-		"subscriptionType": null,
+		"subscriptionType": {
+			"name": "Subscription"
+		},
 		"types": [
 			{
 				"kind": "OBJECT",
-				"name": "Query",
+				"name": "Error",
 				"description": null,
 				"fields": [
 					{
-						"name": "items",
+						"name": "message",
 						"description": null,
-						"args": [
-							{
-								"name": "completed",
-								"description": null,
-								"type": {
-									"kind": "SCALAR",
-									"name": "Boolean",
-									"ofType": null
-								},
-								"defaultValue": null
-							}
-						],
+						"args": [],
 						"type": {
 							"kind": "NON_NULL",
 							"name": null,
 							"ofType": {
-								"kind": "LIST",
-								"name": null,
-								"ofType": {
-									"kind": "NON_NULL",
-									"name": null,
-									"ofType": {
-										"kind": "OBJECT",
-										"name": "TodoItem"
-									}
-								}
+								"kind": "SCALAR",
+								"name": "String",
+								"ofType": null
+							}
+						},
+						"isDeprecated": false,
+						"deprecationReason": null
+					},
+					{
+						"name": "code",
+						"description": null,
+						"args": [],
+						"type": {
+							"kind": "NON_NULL",
+							"name": null,
+							"ofType": {
+								"kind": "SCALAR",
+								"name": "String",
+								"ofType": null
 							}
 						},
 						"isDeprecated": false,
@@ -55,8 +55,8 @@
 			},
 			{
 				"kind": "SCALAR",
-				"name": "Boolean",
-				"description": "The `Boolean` scalar type represents `true` or `false`.",
+				"name": "String",
+				"description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
 				"fields": null,
 				"inputFields": null,
 				"interfaces": null,
@@ -134,11 +134,56 @@
 			},
 			{
 				"kind": "SCALAR",
-				"name": "String",
-				"description": "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.",
+				"name": "Boolean",
+				"description": "The `Boolean` scalar type represents `true` or `false`.",
 				"fields": null,
 				"inputFields": null,
 				"interfaces": null,
+				"enumValues": null,
+				"possibleTypes": null
+			},
+			{
+				"kind": "OBJECT",
+				"name": "Query",
+				"description": null,
+				"fields": [
+					{
+						"name": "items",
+						"description": null,
+						"args": [
+							{
+								"name": "completed",
+								"description": null,
+								"type": {
+									"kind": "SCALAR",
+									"name": "Boolean",
+									"ofType": null
+								},
+								"defaultValue": null
+							}
+						],
+						"type": {
+							"kind": "NON_NULL",
+							"name": null,
+							"ofType": {
+								"kind": "LIST",
+								"name": null,
+								"ofType": {
+									"kind": "NON_NULL",
+									"name": null,
+									"ofType": {
+										"kind": "OBJECT",
+										"name": "TodoItem"
+									}
+								}
+							}
+						},
+						"isDeprecated": false,
+						"deprecationReason": null
+					}
+				],
+				"inputFields": null,
+				"interfaces": [],
 				"enumValues": null,
 				"possibleTypes": null
 			},
@@ -279,70 +324,34 @@
 			},
 			{
 				"kind": "OBJECT",
-				"name": "UpdateItemOutput",
+				"name": "Subscription",
 				"description": null,
 				"fields": [
 					{
-						"name": "error",
+						"name": "itemUpdate",
 						"description": null,
-						"args": [],
-						"type": {
-							"kind": "OBJECT",
-							"name": "Error",
-							"ofType": null
-						},
-						"isDeprecated": false,
-						"deprecationReason": null
-					},
-					{
-						"name": "item",
-						"description": null,
-						"args": [],
-						"type": {
-							"kind": "OBJECT",
-							"name": "TodoItem",
-							"ofType": null
-						},
-						"isDeprecated": false,
-						"deprecationReason": null
-					}
-				],
-				"inputFields": null,
-				"interfaces": [],
-				"enumValues": null,
-				"possibleTypes": null
-			},
-			{
-				"kind": "OBJECT",
-				"name": "Error",
-				"description": null,
-				"fields": [
-					{
-						"name": "message",
-						"description": null,
-						"args": [],
-						"type": {
-							"kind": "NON_NULL",
-							"name": null,
-							"ofType": {
-								"kind": "SCALAR",
-								"name": "String",
-								"ofType": null
+						"args": [
+							{
+								"name": "id",
+								"description": null,
+								"type": {
+									"kind": "NON_NULL",
+									"name": null,
+									"ofType": {
+										"kind": "SCALAR",
+										"name": "ID",
+										"ofType": null
+									}
+								},
+								"defaultValue": null
 							}
-						},
-						"isDeprecated": false,
-						"deprecationReason": null
-					},
-					{
-						"name": "code",
-						"description": null,
-						"args": [],
+						],
 						"type": {
 							"kind": "NON_NULL",
 							"name": null,
 							"ofType": {
-								"kind": "SCALAR",
-								"name": "String",
+								"kind": "OBJECT",
+								"name": "ItemUpdate",
 								"ofType": null
 							}
 						},
@@ -417,6 +426,41 @@
 			},
 			{
 				"kind": "OBJECT",
+				"name": "UpdateItemOutput",
+				"description": null,
+				"fields": [
+					{
+						"name": "error",
+						"description": null,
+						"args": [],
+						"type": {
+							"kind": "OBJECT",
+							"name": "Error",
+							"ofType": null
+						},
+						"isDeprecated": false,
+						"deprecationReason": null
+					},
+					{
+						"name": "item",
+						"description": null,
+						"args": [],
+						"type": {
+							"kind": "OBJECT",
+							"name": "TodoItem",
+							"ofType": null
+						},
+						"isDeprecated": false,
+						"deprecationReason": null
+					}
+				],
+				"inputFields": null,
+				"interfaces": [],
+				"enumValues": null,
+				"possibleTypes": null
+			},
+			{
+				"kind": "OBJECT",
 				"name": "DeleteIemOutput",
 				"description": null,
 				"fields": [
@@ -452,9 +496,48 @@
 			},
 			{
 				"kind": "OBJECT",
+				"name": "ItemUpdate",
+				"description": null,
+				"fields": [
+					{
+						"name": "item",
+						"description": null,
+						"args": [],
+						"type": {
+							"kind": "NON_NULL",
+							"name": null,
+							"ofType": {
+								"kind": "OBJECT",
+								"name": "TodoItem",
+								"ofType": null
+							}
+						},
+						"isDeprecated": false,
+						"deprecationReason": null
+					}
+				],
+				"inputFields": null,
+				"interfaces": [],
+				"enumValues": null,
+				"possibleTypes": null
+			},
+			{
+				"kind": "OBJECT",
 				"name": "__Schema",
 				"description": "A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations.",
 				"fields": [
+					{
+						"name": "description",
+						"description": null,
+						"args": [],
+						"type": {
+							"kind": "SCALAR",
+							"name": "String",
+							"ofType": null
+						},
+						"isDeprecated": false,
+						"deprecationReason": null
+					},
 					{
 						"name": "types",
 						"description": "A list of all types supported by this server.",
@@ -550,7 +633,7 @@
 			{
 				"kind": "OBJECT",
 				"name": "__Type",
-				"description": "The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.\n\nDepending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.",
+				"description": "The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.\n\nDepending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name, description and optional `specifiedByUrl`, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.",
 				"fields": [
 					{
 						"name": "kind",
@@ -582,6 +665,18 @@
 					},
 					{
 						"name": "description",
+						"description": null,
+						"args": [],
+						"type": {
+							"kind": "SCALAR",
+							"name": "String",
+							"ofType": null
+						},
+						"isDeprecated": false,
+						"deprecationReason": null
+					},
+					{
+						"name": "specifiedByUrl",
 						"description": null,
 						"args": [],
 						"type": {
@@ -697,7 +792,18 @@
 					{
 						"name": "inputFields",
 						"description": null,
-						"args": [],
+						"args": [
+							{
+								"name": "includeDeprecated",
+								"description": null,
+								"type": {
+									"kind": "SCALAR",
+									"name": "Boolean",
+									"ofType": null
+								},
+								"defaultValue": "false"
+							}
+						],
 						"type": {
 							"kind": "LIST",
 							"name": null,
@@ -754,7 +860,7 @@
 					},
 					{
 						"name": "INTERFACE",
-						"description": "Indicates this type is an interface. `fields` and `possibleTypes` are valid fields.",
+						"description": "Indicates this type is an interface. `fields`, `interfaces`, and `possibleTypes` are valid fields.",
 						"isDeprecated": false,
 						"deprecationReason": null
 					},
@@ -827,7 +933,18 @@
 					{
 						"name": "args",
 						"description": null,
-						"args": [],
+						"args": [
+							{
+								"name": "includeDeprecated",
+								"description": null,
+								"type": {
+									"kind": "SCALAR",
+									"name": "Boolean",
+									"ofType": null
+								},
+								"defaultValue": "false"
+							}
+						],
 						"type": {
 							"kind": "NON_NULL",
 							"name": null,
@@ -957,6 +1074,34 @@
 						},
 						"isDeprecated": false,
 						"deprecationReason": null
+					},
+					{
+						"name": "isDeprecated",
+						"description": null,
+						"args": [],
+						"type": {
+							"kind": "NON_NULL",
+							"name": null,
+							"ofType": {
+								"kind": "SCALAR",
+								"name": "Boolean",
+								"ofType": null
+							}
+						},
+						"isDeprecated": false,
+						"deprecationReason": null
+					},
+					{
+						"name": "deprecationReason",
+						"description": null,
+						"args": [],
+						"type": {
+							"kind": "SCALAR",
+							"name": "String",
+							"ofType": null
+						},
+						"isDeprecated": false,
+						"deprecationReason": null
 					}
 				],
 				"inputFields": null,
@@ -1060,6 +1205,22 @@
 							"kind": "SCALAR",
 							"name": "String",
 							"ofType": null
+						},
+						"isDeprecated": false,
+						"deprecationReason": null
+					},
+					{
+						"name": "isRepeatable",
+						"description": null,
+						"args": [],
+						"type": {
+							"kind": "NON_NULL",
+							"name": null,
+							"ofType": {
+								"kind": "SCALAR",
+								"name": "Boolean",
+								"ofType": null
+							}
 						},
 						"isDeprecated": false,
 						"deprecationReason": null
@@ -1244,27 +1405,6 @@
 		],
 		"directives": [
 			{
-				"name": "skip",
-				"description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
-				"args": [
-					{
-						"name": "if",
-						"description": "Skipped when true.",
-						"type": {
-							"kind": "NON_NULL",
-							"name": null,
-							"ofType": {
-								"kind": "SCALAR",
-								"name": "Boolean",
-								"ofType": null
-							}
-						},
-						"defaultValue": null
-					}
-				],
-				"locations": ["FIELD", "FRAGMENT_SPREAD", "INLINE_FRAGMENT"]
-			},
-			{
 				"name": "include",
 				"description": "Directs the executor to include this field or fragment only when the `if` argument is true.",
 				"args": [
@@ -1286,12 +1426,33 @@
 				"locations": ["FIELD", "FRAGMENT_SPREAD", "INLINE_FRAGMENT"]
 			},
 			{
+				"name": "skip",
+				"description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
+				"args": [
+					{
+						"name": "if",
+						"description": "Skipped when true.",
+						"type": {
+							"kind": "NON_NULL",
+							"name": null,
+							"ofType": {
+								"kind": "SCALAR",
+								"name": "Boolean",
+								"ofType": null
+							}
+						},
+						"defaultValue": null
+					}
+				],
+				"locations": ["FIELD", "FRAGMENT_SPREAD", "INLINE_FRAGMENT"]
+			},
+			{
 				"name": "deprecated",
 				"description": "Marks an element of a GraphQL schema as no longer supported.",
 				"args": [
 					{
 						"name": "reason",
-						"description": "Explains why this element was deprecated, usually also including a suggestion for how to access supported similar data. Formatted using the Markdown syntax (as specified by [CommonMark](https://commonmark.org/).",
+						"description": "Explains why this element was deprecated, usually also including a suggestion for how to access supported similar data. Formatted using the Markdown syntax, as specified by [CommonMark](https://commonmark.org/).",
 						"type": {
 							"kind": "SCALAR",
 							"name": "String",
@@ -1300,7 +1461,33 @@
 						"defaultValue": "\"No longer supported\""
 					}
 				],
-				"locations": ["FIELD_DEFINITION", "ENUM_VALUE"]
+				"locations": [
+					"FIELD_DEFINITION",
+					"ARGUMENT_DEFINITION",
+					"INPUT_FIELD_DEFINITION",
+					"ENUM_VALUE"
+				]
+			},
+			{
+				"name": "specifiedBy",
+				"description": "Exposes a URL that specifies the behaviour of this scalar.",
+				"args": [
+					{
+						"name": "url",
+						"description": "The URL that specifies the behaviour of this scalar.",
+						"type": {
+							"kind": "NON_NULL",
+							"name": null,
+							"ofType": {
+								"kind": "SCALAR",
+								"name": "String",
+								"ofType": null
+							}
+						},
+						"defaultValue": null
+					}
+				],
+				"locations": ["SCALAR"]
 			}
 		]
 	}
