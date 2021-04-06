@@ -1,3 +1,4 @@
+// @ts-ignore: file doesn't exist yet
 import type { Environment } from './environment'
 
 export type FetchParams = {

@@ -1,6 +1,6 @@
 // externals
-import { readable, Readable } from 'svelte/store'
-import { onMount } from 'svelte'
+import { Readable, writable } from 'svelte/store'
+import { onMount, onDestroy } from 'svelte'
 // locals
 import { Operation, GraphQLTagResult } from './types'
 import { getEnvironment } from './network'
@@ -8,7 +8,7 @@ import cache from './cache'
 
 // subscription holds open a live connection to the server. it returns a store
 // containing the requested data. Houdini will also update the cache with any
-// information that it encounters in the reponse.
+// information that it encounters in the response.
 export default function subscription<_Subscription extends Operation<any, any>>(
 	document: GraphQLTagResult,
 	variables?: _Subscription['input']
@@ -24,45 +24,51 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 	if (!env) {
 		throw new Error('Could not find network environment')
 	}
-	// we need to make sure that the user provided a socket connection
-	if (!env.socket) {
-		throw new Error(
-			'The current environment is not configured to handle subscriptions. Make sure you ' +
-				'passed a client to its constructor.'
-		)
-	}
 
 	// pull the query text out of the compiled artifact
 	const { raw: text, selection } = document.artifact
 
 	// the primary function of a subscription is to keep the cache
 	// up to date with the response
-
 	// we need a place to hold the results that the client can use
-	const store = readable(null, (set) => {
-		// the websocket connection only exists on the client
-		onMount(() => {
-			// make typescript happy
-			if (!env.socket) {
-				return
-			}
+	const store = writable(null)
 
-			env.socket.subscribe(
-				{ query: text },
-				{
-					next(data: _Subscription['result']) {
-						// update the cache with the result
-						cache.write(selection, data, variables)
+	// the function to call that unregisters the subscription
+	let unsubscribe: () => void
 
-						// update the local store
-						set(data)
-					},
-					error(data: _Subscription['result']) {},
-					complete() {},
-				}
+	// the websocket connection only exists on the client
+	onMount(() => {
+		// we need to make sure that the user provided a socket connection
+		if (!env.socket) {
+			throw new Error(
+				'The current environment is not configured to handle subscriptions. Make sure you ' +
+					'passed a client to its constructor.'
 			)
-		})
+		}
+
+		// start listening for updates from the server
+		unsubscribe = env.socket.subscribe(
+			{ query: text },
+			{
+				next(data: _Subscription['result']) {
+					// update the cache with the result
+					cache.write(selection, data, variables)
+
+					// update the local store
+					store.set(data)
+				},
+				error(data: _Subscription['result']) {},
+				complete() {},
+			}
+		)
 	})
 
-	return store
+	onDestroy(() => {
+		// if we have a subscription going
+		if (unsubscribe) {
+			unsubscribe()
+		}
+	})
+
+	return { subscribe: store.subscribe }
 }

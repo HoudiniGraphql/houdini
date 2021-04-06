@@ -120,7 +120,9 @@ const resolvers = {
 		completed: ({ completed }) => Boolean(completed),
 	},
 	Subscription: {
-		itemUpdate: (_, { id }) => {},
+		itemUpdate: (_, { id }) => {
+			console.log('open socket')
+		},
 	},
 }
 
