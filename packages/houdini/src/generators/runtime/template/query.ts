@@ -9,11 +9,11 @@ import { setVariables } from './context'
 export default function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): QueryResponse<Readable<_Query['result']>, _Query['input']> {
-	console.log('query called')
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniQuery') {
 		throw new Error('query() must be passed a query document')
 	}
+
 	let variables = document.variables
 
 	// embed the variables in the components context
@@ -34,8 +34,6 @@ export default function query<_Query extends Operation<any, any>>(
 
 	// when the component mounts
 	onMount(() => {
-		console.log('query mount')
-
 		// once we've mounted
 		cache.write(document.artifact.selection, initialValue, variables)
 
