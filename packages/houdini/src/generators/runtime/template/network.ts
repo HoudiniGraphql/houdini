@@ -89,7 +89,11 @@ export class RequestContext implements FetchContext {
 
 export type SubscriptionHandler = {
 	subscribe: (
-		payload: { query: string },
-		handlers: { next: (data: {}) => void; error: (data: {}) => void; complete: () => void }
+		payload: { query: string; variables?: {} },
+		handlers: {
+			next: (payload: { data: {}; errors: { message: string }[] }) => void
+			error: (data: {}) => void
+			complete: () => void
+		}
 	) => () => void
 }

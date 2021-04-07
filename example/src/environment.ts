@@ -23,7 +23,7 @@ async function fetchQuery({ text, variables = {} }) {
 // since websockets only exist on the client, set to null on the server
 const socketClient = (process as any).browser
 	? createClient({
-			url: 'ws://localhost:4000',
+			url: 'ws://localhost:4000/graphql',
 	  })
 	: null
 

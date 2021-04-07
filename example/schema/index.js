@@ -1,6 +1,8 @@
 const { makeExecutableSchema } = require('@graphql-tools/schema')
 const gql = require('graphql-tag')
-const { find, filter } = require('lodash')
+const { PubSub, withFilter } = require('apollo-server')
+
+const pubsub = new PubSub()
 
 const typeDefs = gql`
 	type Error {
@@ -83,6 +85,9 @@ const resolvers = {
 			// update the completed value
 			item.completed = true
 
+			// notify any subscribers
+			pubsub.publish('ITEM_UPDATE', { item })
+
 			return {
 				error: null,
 				item,
@@ -94,6 +99,9 @@ const resolvers = {
 
 			// update the completed value
 			item.completed = false
+
+			// notify any subscribers
+			pubsub.publish('ITEM_UPDATE', { item })
 
 			return {
 				error: null,
@@ -120,9 +128,12 @@ const resolvers = {
 		completed: ({ completed }) => Boolean(completed),
 	},
 	Subscription: {
-		itemUpdate: (_, { id }) => {
-			console.log('open socket')
-		},
+		itemUpdate: withFilter(
+			() => pubsub.asyncIterator('ITEM_UPDATE'),
+			(payload, variables) => {
+				return payload.item.id === variables.id
+			}
+		),
 	},
 }
 

@@ -12,15 +12,7 @@ const dev = NODE_ENV === 'development'
 setEnvironment(env)
 
 polka() // You can also use Express
-	.use(
-		compression({ threshold: 0 }),
-		sirv('static', { dev }),
-		sapper.middleware({
-			session: (req, res) => ({
-				apiURL: 'https://rickandmortyapi.com/graphql',
-			}),
-		})
-	)
+	.use(compression({ threshold: 0 }), sirv('static', { dev }), sapper.middleware())
 	.listen(PORT, (err) => {
 		if (err) console.log('error', err)
 	})

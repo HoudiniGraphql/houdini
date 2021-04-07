@@ -48,9 +48,20 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 
 		// start listening for updates from the server
 		unsubscribe = env.socket.subscribe(
-			{ query: text },
+			{ query: text, variables },
 			{
-				next(data: _Subscription['result']) {
+				next({
+					data,
+					errors,
+				}: {
+					data: _Subscription['result']
+					errors: { message: string }[]
+				}) {
+					// make sure there were no errors
+					if (errors) {
+						throw errors
+					}
+
 					// update the cache with the result
 					cache.write(selection, data, variables)
 
