@@ -31,7 +31,7 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 	// the primary function of a subscription is to keep the cache
 	// up to date with the response
 	// we need a place to hold the results that the client can use
-	const store = writable(null)
+	const store = writable<_Subscription['result'] | null>(null)
 
 	// the function to call that unregisters the subscription
 	let unsubscribe: () => void
@@ -50,13 +50,7 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 		unsubscribe = env.socket.subscribe(
 			{ query: text, variables },
 			{
-				next({
-					data,
-					errors,
-				}: {
-					data?: _Subscription['result']
-					errors?: readonly { message: string }[]
-				}) {
+				next({ data, errors }) {
 					// make sure there were no errors
 					if (errors) {
 						throw errors
