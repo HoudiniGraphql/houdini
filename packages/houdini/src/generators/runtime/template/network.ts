@@ -88,7 +88,7 @@ export type SubscriptionHandler = {
 	subscribe: (
 		payload: { query: string; variables?: {} },
 		handlers: {
-			next: (payload: { data: {}; errors: { message: string }[] }) => void
+			next: (payload: { data?: {}; errors?: readonly { message: string }[] }) => void
 			error: (data: {}) => void
 			complete: () => void
 		}

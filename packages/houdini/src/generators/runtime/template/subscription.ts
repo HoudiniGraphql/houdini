@@ -54,19 +54,22 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 					data,
 					errors,
 				}: {
-					data: _Subscription['result']
-					errors: { message: string }[]
+					data?: _Subscription['result']
+					errors?: readonly { message: string }[]
 				}) {
 					// make sure there were no errors
 					if (errors) {
 						throw errors
 					}
 
-					// update the cache with the result
-					cache.write(selection, data, variables)
+					// if we got a result
+					if (data) {
+						// update the cache with the result
+						cache.write(selection, data, variables)
 
-					// update the local store
-					store.set(data)
+						// update the local store
+						store.set(data)
+					}
 				},
 				error(data: _Subscription['result']) {},
 				complete() {},
