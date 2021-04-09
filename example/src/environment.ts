@@ -34,12 +34,7 @@ if ((process as any).browser) {
 	socketClient = {
 		subscribe(payload, handlers) {
 			// send the request
-			const { unsubscribe } = client
-				.request({
-					query: payload.query,
-					variables: payload.variables,
-				})
-				.subscribe(handlers)
+			const { unsubscribe } = client.request(payload).subscribe(handlers)
 
 			// return the function to unsubscribe
 			return unsubscribe
