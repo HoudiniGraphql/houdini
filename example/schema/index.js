@@ -4,7 +4,7 @@ const { PubSub, withFilter } = require('apollo-server')
 
 const pubsub = new PubSub()
 
-const typeDefs = gql`
+module.exports.typeDefs = gql`
 	type Error {
 		message: String!
 		code: String!
@@ -63,7 +63,7 @@ let items = [
 	{ id: '2', text: 'Buy a unicorn' },
 ]
 
-const resolvers = {
+module.exports.resolvers = {
 	Query: {
 		items: (_, { completed } = {}) => {
 			// if completed is undefined there is no filter
@@ -86,7 +86,7 @@ const resolvers = {
 			item.completed = true
 
 			// notify any subscribers
-			pubsub.publish('ITEM_UPDATE', { item })
+			pubsub.publish('ITEM_UPDATE', { itemUpdate: { item } })
 
 			return {
 				error: null,
@@ -101,7 +101,7 @@ const resolvers = {
 			item.completed = false
 
 			// notify any subscribers
-			pubsub.publish('ITEM_UPDATE', { item })
+			pubsub.publish('ITEM_UPDATE', { itemUpdate: { item } })
 
 			return {
 				error: null,
@@ -128,16 +128,13 @@ const resolvers = {
 		completed: ({ completed }) => Boolean(completed),
 	},
 	Subscription: {
-		itemUpdate: withFilter(
-			() => pubsub.asyncIterator('ITEM_UPDATE'),
-			(payload, variables) => {
-				return payload.item.id === variables.id
-			}
-		),
+		itemUpdate: {
+			subscribe: withFilter(
+				() => pubsub.asyncIterator('ITEM_UPDATE'),
+				(payload, variables) => {
+					return payload.itemUpdate.item.id === variables.id
+				}
+			),
+		},
 	},
 }
-
-module.exports = makeExecutableSchema({
-	typeDefs,
-	resolvers,
-})
