@@ -9,11 +9,17 @@ import fs from 'fs/promises'
 export default async (_path: string | undefined) => {
 	// we need to collect some information from the user before we
 	// can continue
-	let { url } = await inquirer.prompt([
+	let { url, mode } = await inquirer.prompt([
 		{
 			name: 'url',
 			type: 'input',
 			message: 'Please enter the URL for your api with its protocol.',
+		},
+		{
+			name: 'mode',
+			type: 'input',
+			message: 'Are you using Sapper or Sveltekit?',
+			choices: ['sapper', 'kit'],
 		},
 	])
 
@@ -54,7 +60,7 @@ export default async (_path: string | undefined) => {
 	}
 
 	// write the config file
-	await fs.writeFile(configPath, configFile(schemaPath))
+	await fs.writeFile(configPath, configFile(schemaPath, mode))
 	// write the environment file
 	await fs.writeFile(environmentPath, networkFile(url))
 
@@ -64,7 +70,7 @@ export default async (_path: string | undefined) => {
 const networkFile = (url: string) => `import { Environment } from '$houdini'
 
 export default new Environment(async function ({ text, variables = {} }) {
-	// send the request to the ricky and morty api
+	// send the request to the api
 	const result = await this.fetch('${url}', {
 		method: 'POST',
 		headers: {
@@ -81,10 +87,11 @@ export default new Environment(async function ({ text, variables = {} }) {
 })
 `
 
-const configFile = (schemaPath: string) => `const path = require('path')
+const configFile = (schemaPath: string, mode: string) => `const path = require('path')
 
 module.exports = {
 	schemaPath: path.resolve('${schemaPath}'),
 	sourceGlob: 'src/{routes,components}/*.svelte',
+	mode: '${mode}',
 }
 `

@@ -10,6 +10,7 @@ export type ConfigFile = {
 	schema?: string
 	quiet?: boolean
 	verifyHash?: boolean
+	mode?: 'kit' | 'sapper'
 }
 
 // a place to hold conventions and magic strings
@@ -28,6 +29,7 @@ export class Config {
 		quiet = false,
 		verifyHash,
 		filepath,
+		mode = 'sapper',
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -53,7 +55,10 @@ export class Config {
 		// src/node_modules so that we can access @sapper/app and interact
 		// with the application stores directly
 		const rootDir = path.dirname(filepath)
-		this.rootDir = path.join(rootDir, 'src', 'node_modules', '$houdini')
+		this.rootDir =
+			mode === 'sapper'
+				? path.join(rootDir, 'src', 'node_modules', '$houdini')
+				: path.join(rootDir, '$houdini')
 	}
 
 	/*
