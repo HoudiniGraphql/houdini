@@ -12,7 +12,9 @@ import cache from './cache'
 export default function subscription<_Subscription extends Operation<any, any>>(
 	document: GraphQLTagResult,
 	variables?: _Subscription['input']
-): Readable<_Subscription['result']> {
+): {
+	data: Readable<_Subscription['result']>
+} {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniSubscription') {
 		throw new Error('subscription() must be passed a subscription document')
@@ -78,5 +80,5 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 		}
 	})
 
-	return { subscribe: store.subscribe }
+	return { data: { subscribe: store.subscribe } }
 }
