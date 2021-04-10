@@ -34,7 +34,7 @@ export default function query<_Query extends Operation<any, any>>(
 
 	// when the component mounts
 	onMount(() => {
-		// once we've mounted
+		// update the cache with the data that we just ran into
 		cache.write(document.artifact.selection, initialValue, variables)
 
 		// stay up to date
@@ -57,6 +57,7 @@ export default function query<_Query extends Operation<any, any>>(
 	})
 
 	return {
+		// the store should be read-only from the caller's perspective
 		data: { subscribe: store.subscribe },
 		// used primarily by the preprocessor to keep local state in sync with
 		// the data given by preload
