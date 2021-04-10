@@ -48,6 +48,9 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
         1. [Delete](#deleting-a-record)
         1. [Conditionals](#conditionals)
 1. [Subscriptions](#subscriptions)
+    1. [Configuring the WebSocket client](#configuring-the-websocket-client)
+    1.  [Using graphql-ws](#configuring-the-websocket-client)
+    1. [Using subscriptions-transport-ws](#using-subscriptions-transport-ws)
 1. [Authentication](#authentication)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
 
@@ -454,8 +457,7 @@ Here is an example from the demo todo list:
 	// get the information we need about the item
 	const data = fragment(/* ... */)
 
-	// since we're just using subscriptions to stay up to date, 
-    // we don't care about the return value 
+	// since we're just using subscriptions to stay up to date, we don't care about the return value
 	subscription(
 		graphql`
 			subscription ItemUpdate($id: ID!) {
