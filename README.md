@@ -437,9 +437,12 @@ mutation NewItem($input: AddItemInput!) {
 
 Subscriptions in houdini are handled with the `subscription` function exported by your runtime. This function 
 takes a tagged document, and returns a store with the most recent value returned by the server. Keep in mind
-that houdini will keep the cache (and any subscribing components) up to date as new data is encountered.
+that houdini will keep the cache (and any subscribing components) up to date as new data is encountered. 
 
-Here is an example from the demo todo list: 
+It's worth mentioning that you can use the same fragments described in the [mutation section](#mutations)
+in order to update houdini's cache with the response from a subscription.
+
+Here is an example of a simple subscription from the example application included in this repo: 
 
 ```svelte
 <script lang="ts">
