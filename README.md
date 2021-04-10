@@ -49,7 +49,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
         1. [Conditionals](#conditionals)
 1. [Subscriptions](#subscriptions)
     1. [Configuring the WebSocket client](#configuring-the-websocket-client)
-    1.  [Using graphql-ws](#configuring-the-websocket-client)
+    1. [Using graphql-ws](#using-graphql-ws)
     1. [Using subscriptions-transport-ws](#using-subscriptions-transport-ws)
 1. [Authentication](#authentication)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
@@ -497,6 +497,8 @@ Houdini can work with any websocket client as long as you can provide an object 
 the `SubscriptionHandler` interface as the second argument to the Environment's constructor. Keep in mind
 that WebSocket connections only exist between the browser and your API, therefor you must remember to 
 pass `null` when configuring your environment on the rendering server. 
+
+#### Using `graphql-ws`
 
 If your API supports the [`graphql-ws`](https://github.com/enisdenjo/graphql-ws) protocol, you can create a 
 client and pass it directly: 
