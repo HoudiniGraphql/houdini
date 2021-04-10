@@ -5,7 +5,7 @@
   <br />
 
   <strong>
-	The disappearing GraphQL client for Sapper.
+    The disappearing GraphQL client for Sapper.
   </strong>
   <br />
   <br />
@@ -443,51 +443,51 @@ Here is an example from the demo todo list:
 
 ```svelte
 <script lang="ts">
-	import {
-		fragment,
-		mutation,
-		graphql,
-		subscription,
+    import {
+        fragment,
+        mutation,
+        graphql,
+        subscription,
         ItemEntry_item,
-	} from '$houdini'
+    } from '$houdini'
 
-	// the reference we're passed from our parents
-	export let item: ItemEntry_item
+    // the reference we're passed from our parents
+    export let item: ItemEntry_item
 
-	// get the information we need about the item
-	const data = fragment(/* ... */)
+    // get the information we need about the item
+    const data = fragment(/* ... */)
 
-	// since we're just using subscriptions to stay up to date, we don't care about the return value
-	subscription(
-		graphql`
-			subscription ItemUpdate($id: ID!) {
-				itemUpdate(id: $id) {
-					item {
-						id
-						completed
-						text
-					}
-				}
-			}
-		`,
-		{
-			id: $data.id,
-		}
-	)
+    // since we're just using subscriptions to stay up to date, we don't care about the return value
+    subscription(
+        graphql`
+            subscription ItemUpdate($id: ID!) {
+                itemUpdate(id: $id) {
+                    item {
+                        id
+                        completed
+                        text
+                    }
+                }
+            }
+        `,
+        {
+            id: $data.id,
+        }
+    )
 </script>
 
 <li class:completed={$data.completed}>
-	<div class="view">
-		<input
-			name={$data.text}
-			class="toggle"
-			type="checkbox"
-			checked={$data.completed}
-			on:click={handleClick}
-		/>
-		<label for={$data.text}>{$data.text}</label>
-		<button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
-	</div>
+    <div class="view">
+        <input
+            name={$data.text}
+            class="toggle"
+            type="checkbox"
+            checked={$data.completed}
+            on:click={handleClick}
+        />
+        <label for={$data.text}>{$data.text}</label>
+        <button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
+    </div>
 </li>
 ```
 
@@ -509,10 +509,10 @@ client and pass it directly:
 import { createClient } from 'graphql-ws'
 
 let socketClient = (process as any).browser
-	? new createClient({
-			url: 'ws://api.url',
-	  })
-	: null
+    ? new createClient({
+            url: 'ws://api.url',
+      })
+    : null
 
 export default new Environment(fetchQuery, socketClient)
 ```
@@ -531,21 +531,21 @@ import { SubscriptionClient } from 'subscriptions-transport-ws'
 
 let socketClient: SubscriptionHandler | null = null
 if ((process as any).browser) {
-	// instantiate the transport client
-	const client = new SubscriptionClient('ws://api.url', {
-		reconnect: true,
-	})
+    // instantiate the transport client
+    const client = new SubscriptionClient('ws://api.url', {
+        reconnect: true,
+    })
 
-	// wrap the client in something houdini can use
-	socketClient = {
-		subscribe(payload, handlers) {
-			// send the request
-			const { unsubscribe } = client.request(payload).subscribe(handlers)
+    // wrap the client in something houdini can use
+    socketClient = {
+        subscribe(payload, handlers) {
+            // send the request
+            const { unsubscribe } = client.request(payload).subscribe(handlers)
 
-			// return the function to unsubscribe
-			return unsubscribe
-		},
-	}
+            // return the function to unsubscribe
+            return unsubscribe
+        },
+    }
 }
 
 export default new Environment(fetchQuery, socketClient)
