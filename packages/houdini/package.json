@@ -1,6 +1,6 @@
 {
 	"name": "houdini",
-	"version": "0.3.4",
+	"version": "0.4.0",
 	"description": "",
 	"scripts": {
 		"build": "tsc",
@@ -30,7 +30,7 @@
 		"estree-walker": "^2.0.2",
 		"glob": "^7.1.6",
 		"graphql": "^15.5.0",
-		"houdini-common": "^0.3.0",
+		"houdini-common": "^0.4.0",
 		"inquirer": "^7.3.3",
 		"mkdirp": "^1.0.4",
 		"node-fetch": "^2.6.1",
