@@ -23,6 +23,7 @@ If you are interested in helping out, please reach out to @AlecAivazis on the Sv
 -   Normalized cache with declarative updates
 -   Sapper ready. Sveltekit support once it stabilizes.
 -   Generated types
+-   Subscriptions
 -   Customizable error handling (coming soon)
 
 At its core, houdini seeks to enable a high quality developer experience
