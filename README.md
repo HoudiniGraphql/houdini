@@ -118,7 +118,7 @@ setEnvironment(env)
 ### Sveltekit
 
 We also need to define an alias so that vite can import your runtime. Add the following
-values to your `svelte.config.js`
+values to your `svelte.config.js`:
 
 ```typescript
 module.exports = {
@@ -133,6 +133,9 @@ module.exports = {
     }
 }
 ```
+
+And finally, we need to configure our application to use the generated network layer. To do
+this, 
 
 ## <img src="./.github/assets/cylon.gif" height="28px" />&nbsp;&nbsp;Running the Compiler
 
