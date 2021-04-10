@@ -21,7 +21,7 @@ async function fetchQuery({ text, variables = {} }) {
 	return await result.json()
 }
 
-// this client is used to handle any socket connections that are made to the server
+// this client is used to handle any socket connections that are made to the api
 // since websockets only exist on the client, set to null on the server
 let socketClient: SubscriptionHandler | null = null
 if ((process as any).browser) {

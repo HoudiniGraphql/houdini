@@ -11,8 +11,8 @@
   <br />
 </div>
 
-NOTE: Houdini is in the early phases of devlopment. Please create an issue or start a discussion if you run into problems. For more information on what's coming for this project, you can visit the 
-[roadmap](https://github.com/AlecAivazis/houdini/projects/1). 
+NOTE: Houdini is in the early phases of development. Please create an issue or start a discussion if you run into problems. For more information on what's coming for this project, you can visit the 
+[roadmap](https://github.com/AlecAivazis/houdini/projects/1).
 
 If you are interested in helping out, please reach out to @AlecAivazis on the Svelte discord. There's lots to do regardless of how deep you might want to dive 🙂
  
@@ -47,6 +47,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
         1. [Remove](#removing-a-record)
         1. [Delete](#deleting-a-record)
         1. [Conditionals](#conditionals)
+1. [Subscriptions](#subscriptions)
 1. [Authentication](#authentication)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
 
@@ -427,6 +428,123 @@ mutation NewItem($input: AddItemInput!) {
         ...All_Items_insert @when_not(argument: "completed", value: "true")
     }
 }
+```
+
+## 🧾&nbsp;&nbsp;Subscriptions
+
+Subscriptions in houdini are handled with the `subscription` function exported by your runtime. This function 
+takes a tagged document, and returns a store with the most recent value returned by the server. Keep in mind
+that houdini will keep the cache (and any subscribing components) up to date as new data is encountered.
+
+Here is an example from the demo todo list: 
+
+```svelte
+<script lang="ts">
+	import {
+		fragment,
+		mutation,
+		graphql,
+		subscription,
+        ItemEntry_item,
+	} from '$houdini'
+
+	// the reference we're passed from our parents
+	export let item: ItemEntry_item
+
+	// get the information we need about the item
+	const data = fragment(/* ... */)
+
+	// since we're just using subscriptions to stay up to date, 
+    // we don't care about the return value 
+	subscription(
+		graphql`
+			subscription ItemUpdate($id: ID!) {
+				itemUpdate(id: $id) {
+					item {
+						id
+						completed
+						text
+					}
+				}
+			}
+		`,
+		{
+			id: $data.id,
+		}
+	)
+</script>
+
+<li class:completed={$data.completed}>
+	<div class="view">
+		<input
+			name={$data.text}
+			class="toggle"
+			type="checkbox"
+			checked={$data.completed}
+			on:click={handleClick}
+		/>
+		<label for={$data.text}>{$data.text}</label>
+		<button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
+	</div>
+</li>
+```
+
+### Configuring the WebSocket client
+
+Houdini can work with any websocket client as long as you can provide an object that satisfies
+the `SubscriptionHandler` interface as the second argument to the Environment's constructor. Keep in mind
+that WebSocket connections only exist between the browser and your API, therefor you must remember to 
+pass `null` when configuring your environment on the rendering server. 
+
+If your API supports the [`graphql-ws`](https://github.com/enisdenjo/graphql-ws) protocol, you can create a 
+client and pass it directly: 
+
+```typescript
+// environment.ts
+
+import { createClient } from 'graphql-ws'
+
+let socketClient = (process as any).browser
+	? new createClient({
+			url: 'ws://api.url',
+	  })
+	: null
+
+export default new Environment(fetchQuery, socketClient)
+```
+
+
+#### Using `subscriptions-transport-ws`
+
+If you are using the deprecated `subscriptions-transport-ws` library and associated protocol, 
+you will have to slightly modify the above block:
+
+
+```typescript
+// environment.ts
+
+import { SubscriptionClient } from 'subscriptions-transport-ws'
+
+let socketClient: SubscriptionHandler | null = null
+if ((process as any).browser) {
+	// instantiate the transport client
+	const client = new SubscriptionClient('ws://api.url', {
+		reconnect: true,
+	})
+
+	// wrap the client in something houdini can use
+	socketClient = {
+		subscribe(payload, handlers) {
+			// send the request
+			const { unsubscribe } = client.request(payload).subscribe(handlers)
+
+			// return the function to unsubscribe
+			return unsubscribe
+		},
+	}
+}
+
+export default new Environment(fetchQuery, socketClient)
 ```
 
 ## 🔐&nbsp;&nbsp;Authentication
