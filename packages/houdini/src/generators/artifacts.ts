@@ -6,6 +6,7 @@ import {
 	CompiledFragmentKind,
 	CompiledMutationKind,
 	CompiledDocumentKind,
+	CompiledSubscriptionKind,
 } from '../types'
 import * as recast from 'recast'
 import fs from 'fs/promises'
@@ -79,10 +80,11 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				}, {})
 
 				// the delete directive is an interesting one since there isn't a specific
-				// connection. use something that points to deleting an instance of the type
-				// every field with the connection type adds to the delete filters
+				// connection. we need to use something that points to deleting an instance of
+				// the type as a key
 				filterTypes[`${fieldType}_delete`] = {
 					...filterTypes[`${fieldType}_delete`],
+					// every field with the connection type adds to the delete filters
 					...filterTypes[connectionName],
 				}
 			},
@@ -117,17 +119,20 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			) as graphql.FragmentDefinitionNode[]
 
 			// if there are operations in the document
-			if (operations.length > 0) {
+			if (operations.length > 0 && operations[0].kind === 'OperationDefinition') {
+				const { operation } = operations[0]
+
 				// figure out if its a query
-				if (
-					operations[0].kind === graphql.Kind.OPERATION_DEFINITION &&
-					operations[0].operation === 'query'
-				) {
+				if (operation === 'query') {
 					docKind = CompiledQueryKind
 				}
 				// or a mutation
-				else {
+				else if (operation === 'mutation') {
 					docKind = CompiledMutationKind
+				}
+				// or a subscription
+				else if (operation === 'subscription') {
+					docKind = CompiledSubscriptionKind
 				}
 			}
 			// if there are operations in the document
@@ -171,7 +176,11 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					rootType = config.schema.getSubscriptionType()?.name
 				}
 				if (!rootType) {
-					throw new Error('Could not find root type for field map')
+					throw new Error(
+						'could not find root type for operation: ' +
+							operation.operation +
+							'. Maybe you need to re-run the introspection query?'
+					)
 				}
 
 				// use this selection set

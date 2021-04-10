@@ -3,10 +3,10 @@ import path from 'path'
 import fs from 'fs/promises'
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
-import { graphql, getIntrospectionQuery } from 'graphql'
+import * as ts from 'typescript'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
-import mkdirp from 'mkdirp'
+import generateAdapter from './adapter'
 
 const AST = recast.types.builders
 
@@ -17,71 +17,94 @@ const AST = recast.types.builders
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// all of the runtime source code is available at the directory locations at ./templates
-	const templateDir = path.resolve(__dirname, 'template')
-	const templates = await fs.readdir(templateDir)
+	const source = path.resolve(__dirname, 'template')
 
-	// look at every file in the template directory
-	for (const filepath of templates.filter((file) => file !== 'cache')) {
-		// read the file contents
-		const contents = await fs.readFile(path.join(templateDir, filepath), 'utf-8')
+	// copy the compiled source code to the target directory
+	await recursiveCopy(source, config.runtimeDirectory)
 
-		// and write them to the target
-		await fs.writeFile(path.join(config.runtimeDirectory, filepath), contents, 'utf-8')
-	}
-
-	// copy the cache directory
-	const cacheDir = path.join(config.runtimeDirectory, 'cache')
-	await mkdirp(cacheDir)
-	const cacheSrc = path.join(templateDir, 'cache')
-	const cacheContents = await fs.readdir(cacheSrc)
-
-	// look at every file in the template directory
-	for (const filepath of cacheContents) {
-		// read the file contents
-		const contents = await fs.readFile(path.join(cacheSrc, filepath), 'utf-8')
-
-		// and write them to the target
-		await fs.writeFile(path.join(cacheDir, filepath), contents, 'utf-8')
-	}
+	// now that the pre-compiled stuff in in place, we can put in the dynamic content
+	// so that it can type check against what is there
+	await generateAdapter(config)
 
 	// build up the index file that should just export from the runtime
 	const indexFile = AST.program([AST.exportAllDeclaration(AST.literal('./runtime'), null)])
 
 	// write the index file that exports the runtime
 	await fs.writeFile(path.join(config.rootDir, 'index.js'), recast.print(indexFile).code, 'utf-8')
-	// add the adapter to normalize sapper and sveltekit
-	await generateAdapter(config)
 }
 
-async function generateAdapter(config: Config) {
-	// the location of the adapter
-	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.mjs')
+async function recursiveCopy(source: string, target: string, notRoot?: boolean) {
+	// if the folder containing the target doesn't exist, then we need to create it
+	let parentDir = path.join(target, path.basename(source))
+	// if we are at the root, then go up one
+	if (!notRoot) {
+		parentDir = path.join(parentDir, '..')
+	}
+	try {
+		await fs.access(parentDir)
+		// the parent directory does not exist
+	} catch (e) {
+		await fs.mkdir(parentDir)
+	}
 
-	// figure out the correct content
-	const content = config.mode === 'kit' ? kitAdapter() : sapperAdapter()
+	// check if we are copying a directory
+	if ((await fs.stat(source)).isDirectory()) {
+		// look in the contents of the source directory
+		await Promise.all(
+			(await fs.readdir(source)).map(async (child) => {
+				// figure out the full path of the source
+				const childPath = path.join(source, child)
 
-	// write the index file that exports the runtime
-	await fs.writeFile(adapterLocation, content, 'utf-8')
+				// if the child is a directory
+				if ((await fs.lstat(childPath)).isDirectory()) {
+					// keep walking down
+					await recursiveCopy(childPath, parentDir, true)
+				}
+				// the child is a file, copy it to the parent directory
+				else {
+					const targetPath = path.join(parentDir, child)
+
+					await fs.writeFile(targetPath, await fs.readFile(childPath, 'utf-8'))
+				}
+			})
+		)
+	}
 }
 
-const kitAdapter = () => `import stores from '$app/stores'
-import navigation from '$app/navigation'
+function compile(fileNames: string[]) {
+	const options: ts.CompilerOptions = {
+		...ts.getDefaultCompilerOptions(),
+		allowJs: true,
+		declaration: true,
+		lib: ['es2015', 'dom'],
+		strict: true,
+		esModuleInterop: true,
+		declarationMap: true,
+		skipLibCheck: true,
+		downlevelIteration: true,
+		target: ts.ScriptTarget.ES5,
+		moduleResolution: ts.ModuleResolutionKind.NodeJs,
+	}
 
-export function getSession() {
-    return stores.session
+	// prepare and emit the files
+	const program = ts.createProgram(fileNames, options)
+	const emitResult = program.emit()
+
+	// catch any diagnostic errors
+	for (const diagnostic of ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics)) {
+		if (diagnostic.file) {
+			let { line, character } = ts.getLineAndCharacterOfPosition(
+				diagnostic.file,
+				diagnostic.start!
+			)
+			let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
+			throw new Error(
+				`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
+			)
+		} else {
+			// throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))
+		}
+	}
+
+	return
 }
-
-export function goTo(location, options) {
-	navigation.goTo(location, options)
-`
-
-const sapperAdapter = () => `import { stores } from '@sapper/app'
-
-export function getSession() {
-    return stores().session
-}
-
-export function goTo(location, options) {
-    goTo(location, options)
-}
-`

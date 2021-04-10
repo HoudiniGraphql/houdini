@@ -23,7 +23,11 @@ beforeEach(() => {
 			[path.relative(config.rootDir, config.artifactDirectory)]: {},
 			[path.relative(config.rootDir, config.runtimeDirectory)]: {},
 		},
-		[`packages/houdini/src/generators/runtime/template/cache`]: {},
+		// the runtime generator copies files relative to __dirname. we need our tests
+		// to point to the same filestructure that
+		[`packages/houdini/src/generators/runtime/template`]: mockFs.load(
+			path.resolve(__dirname, 'packages/houdini/build/generators/runtime/template')
+		),
 	})
 })
 

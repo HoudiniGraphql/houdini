@@ -12,7 +12,11 @@ export type Session = any
 export type Maybe<T> = T | null
 
 // any compiled result
-export type DocumentArtifact = FragmentArtifact | QueryArtifact | MutationArtifact
+export type DocumentArtifact =
+	| FragmentArtifact
+	| QueryArtifact
+	| MutationArtifact
+	| SubscriptionArtifact
 
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
@@ -26,6 +30,10 @@ export type FragmentArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniFragment'
 }
 
+export type SubscriptionArtifact = BaseCompiledDocument & {
+	kind: 'HoudiniSubscription'
+}
+
 type BaseCompiledDocument = {
 	name: string
 	raw: string
@@ -35,7 +43,11 @@ type BaseCompiledDocument = {
 }
 
 // the result of the template tag
-export type GraphQLTagResult = TaggedGraphqlQuery | TaggedGraphqlFragment | TaggedGraphqlMutation
+export type GraphQLTagResult =
+	| TaggedGraphqlQuery
+	| TaggedGraphqlFragment
+	| TaggedGraphqlMutation
+	| TaggedGraphqlSubscription
 
 export type TaggedGraphqlFragment = {
 	kind: 'HoudiniFragment'
@@ -46,6 +58,12 @@ export type TaggedGraphqlFragment = {
 export type TaggedGraphqlMutation = {
 	kind: 'HoudiniMutation'
 	artifact: MutationArtifact
+}
+
+// the result of tagging an operation
+export type TaggedGraphqlSubscription = {
+	kind: 'HoudiniSubscription'
+	artifact: SubscriptionArtifact
 }
 
 // the result of tagging an operation
@@ -78,8 +96,13 @@ export type MutationOperation = {
 export const CompiledFragmentKind = 'HoudiniFragment'
 export const CompiledMutationKind = 'HoudiniMutation'
 export const CompiledQueryKind = 'HoudiniQuery'
+export const CompiledSubscriptionKind = 'HoudiniSubscription'
 
-export type CompiledDocumentKind = 'HoudiniFragment' | 'HoudiniMutation' | 'HoudiniQuery'
+export type CompiledDocumentKind =
+	| 'HoudiniFragment'
+	| 'HoudiniMutation'
+	| 'HoudiniQuery'
+	| 'HoudiniSubscription'
 
 export type GraphQLValue =
 	| number

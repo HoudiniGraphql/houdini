@@ -1,7 +1,6 @@
 // external imports
 import path from 'path'
 import { testConfig } from 'houdini-common'
-import * as graphql from 'graphql'
 import fs from 'fs/promises'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
@@ -1875,6 +1874,75 @@ describe('mutation artifacts', function () {
 		            "intValue": {
 		                "kind": "Int",
 		                "value": 1
+		            }
+		        }
+		    }
+		};
+	`)
+	})
+})
+
+describe('subscription artifacts', function () {
+	test('happy path', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'Subscription B',
+				`subscription B { 
+					newUser { 
+						user { 
+							firstName
+						}
+					} 
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports.name = "Subscription B";
+		module.exports.kind = "HoudiniSubscription";
+		module.exports.hash = "777827f529328e6cce93636ec5cb3390";
+
+		module.exports.raw = \`subscription B {
+		  newUser {
+		    user {
+		      firstName
+		    }
+		  }
+		}
+		\`;
+
+		module.exports.rootType = "Subscription";
+
+		module.exports.selection = {
+		    "newUser": {
+		        "type": "NewUserResult",
+		        "keyRaw": "newUser",
+
+		        "fields": {
+		            "user": {
+		                "type": "User",
+		                "keyRaw": "user",
+
+		                "fields": {
+		                    "firstName": {
+		                        "type": "String",
+		                        "keyRaw": "firstName"
+		                    }
+		                }
 		            }
 		        }
 		    }

@@ -94,6 +94,8 @@ export default async function walkTaggedDocuments(
 				}
 				// check if the artifact points to a different query than what the template tag is wrapping
 				if (doc.config.verifyHash && tag.artifact.hash !== hashDocument(tagContent)) {
+					console.log('artifact hash', tag.artifact.hash, tag.artifact.raw)
+					console.log('document hash', hashDocument(tagContent), tagContent)
 					throw new Error(
 						'Looks like the contents of ' +
 							tag.artifact.name +

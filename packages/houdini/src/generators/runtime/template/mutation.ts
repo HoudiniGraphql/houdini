@@ -3,6 +3,7 @@ import { RequestContext, fetchQuery } from './network'
 import { Operation, GraphQLTagResult } from './types'
 import cache from './cache'
 import { getVariables } from './context'
+
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
 
@@ -13,7 +14,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniMutation') {
-		throw new Error('getQuery can only take query operations')
+		throw new Error('mutation() must be passed a mutation document')
 	}
 
 	// pull the query text out of the compiled artifact

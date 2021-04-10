@@ -1,8 +1,10 @@
 const { makeExecutableSchema } = require('@graphql-tools/schema')
 const gql = require('graphql-tag')
-const { find, filter } = require('lodash')
+const { PubSub, withFilter } = require('apollo-server')
 
-const typeDefs = gql`
+const pubsub = new PubSub()
+
+module.exports.typeDefs = gql`
 	type Error {
 		message: String!
 		code: String!
@@ -25,6 +27,10 @@ const typeDefs = gql`
 		deleteItem(item: ID!): DeleteIemOutput!
 	}
 
+	type Subscription {
+		itemUpdate(id: ID!): ItemUpdate!
+	}
+
 	input AddItemInput {
 		text: String!
 	}
@@ -43,6 +49,10 @@ const typeDefs = gql`
 		error: Error
 		itemID: ID
 	}
+
+	type ItemUpdate {
+		item: TodoItem!
+	}
 `
 
 id = 3
@@ -53,7 +63,7 @@ let items = [
 	{ id: '2', text: 'Buy a unicorn' },
 ]
 
-const resolvers = {
+module.exports.resolvers = {
 	Query: {
 		items: (_, { completed } = {}) => {
 			// if completed is undefined there is no filter
@@ -75,6 +85,9 @@ const resolvers = {
 			// update the completed value
 			item.completed = true
 
+			// notify any subscribers
+			pubsub.publish('ITEM_UPDATE', { itemUpdate: { item } })
+
 			return {
 				error: null,
 				item,
@@ -86,6 +99,9 @@ const resolvers = {
 
 			// update the completed value
 			item.completed = false
+
+			// notify any subscribers
+			pubsub.publish('ITEM_UPDATE', { itemUpdate: { item } })
 
 			return {
 				error: null,
@@ -111,9 +127,14 @@ const resolvers = {
 	TodoItem: {
 		completed: ({ completed }) => Boolean(completed),
 	},
+	Subscription: {
+		itemUpdate: {
+			subscribe: withFilter(
+				() => pubsub.asyncIterator('ITEM_UPDATE'),
+				(payload, variables) => {
+					return payload.itemUpdate.item.id === variables.id
+				}
+			),
+		},
+	},
 }
-
-module.exports = makeExecutableSchema({
-	typeDefs,
-	resolvers,
-})

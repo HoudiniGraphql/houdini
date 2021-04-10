@@ -1,4 +1,39 @@
-type FetchParams = {
+export class Environment {
+	private fetch: RequestHandler
+	socket: SubscriptionHandler | null | undefined
+
+	constructor(networkFn: RequestHandler, subscriptionHandler?: SubscriptionHandler | null) {
+		this.fetch = networkFn
+		this.socket = subscriptionHandler
+	}
+
+	sendRequest(ctx: FetchContext, params: FetchParams, session?: FetchSession) {
+		return this.fetch.call(ctx, params, session)
+	}
+}
+
+let currentEnv: Environment | null = null
+
+export function setEnvironment(env: Environment) {
+	currentEnv = env
+}
+
+export function getEnvironment(): Environment | null {
+	return currentEnv
+}
+
+export type SubscriptionHandler = {
+	subscribe: (
+		payload: { query: string; variables?: {} },
+		handlers: {
+			next: (payload: { data?: {}; errors?: readonly { message: string }[] }) => void
+			error: (data: {}) => void
+			complete: () => void
+		}
+	) => () => void
+}
+
+export type FetchParams = {
 	text: string
 	variables: { [key: string]: any }
 }
@@ -17,7 +52,7 @@ type GraphQLError = {
 
 type RequestPayload = { data: any; errors?: Error[] }
 
-type RequestHandler = (
+export type RequestHandler = (
 	this: FetchContext,
 	params: FetchParams,
 	session?: FetchSession
@@ -43,32 +78,6 @@ export async function fetchQuery(
 	}
 
 	return await environment.sendRequest(ctx, { text, variables }, session)
-}
-
-export class Environment {
-	private handler: RequestHandler
-
-	constructor(networkFn: RequestHandler) {
-		this.handler = networkFn
-	}
-
-	sendRequest(
-		ctx: FetchContext,
-		params: FetchParams,
-		session?: FetchSession
-	): Promise<RequestPayload> {
-		return this.handler.call(ctx, params, session)
-	}
-}
-
-let currentEnv: Environment | null = null
-
-export function setEnvironment(env: Environment) {
-	currentEnv = env
-}
-
-export function getEnvironment(): Environment | null {
-	return currentEnv
 }
 
 export class RequestContext implements FetchContext {

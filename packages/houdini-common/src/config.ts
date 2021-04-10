@@ -10,7 +10,6 @@ export type ConfigFile = {
 	schema?: string
 	quiet?: boolean
 	verifyHash?: boolean
-	mode?: 'sapper' | 'kit'
 }
 
 // a place to hold conventions and magic strings
@@ -21,7 +20,6 @@ export class Config {
 	sourceGlob: string
 	quiet: boolean
 	verifyHash: boolean
-	mode: string
 
 	constructor({
 		schema,
@@ -30,7 +28,6 @@ export class Config {
 		quiet = false,
 		verifyHash,
 		filepath,
-		mode = 'sapper',
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -51,16 +48,12 @@ export class Config {
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
 		this.verifyHash = typeof verifyHash === 'undefined' ? true : verifyHash
-		this.mode = mode
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
 		// with the application stores directly
 		const rootDir = path.dirname(filepath)
-		this.rootDir =
-			mode === 'sapper'
-				? path.join(rootDir, 'src', 'node_modules', '$houdini')
-				: path.join(rootDir, '.houdini')
+		this.rootDir = path.join(rootDir, 'src', 'node_modules', '$houdini')
 	}
 
 	/*
@@ -321,6 +314,14 @@ export function testConfig(config: {} = {}) {
 				deleteUser(id: ID!): DeleteUserOutput!
 				catMutation: CatMutationOutput!
 				deleteCat: DeleteCatOutput!
+			}
+
+			type Subscription { 
+				newUser: NewUserResult!
+			}
+
+			type NewUserResult { 
+				user: User!
 			}
 
 			type AddFriendOutput {
