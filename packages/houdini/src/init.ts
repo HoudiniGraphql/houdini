@@ -91,7 +91,7 @@ const configFile = (schemaPath: string, mode: string) => `const path = require('
 
 module.exports = {
 	schemaPath: path.resolve('${schemaPath}'),
-	sourceGlob: 'src/{routes,components}/*.svelte',
+	sourceGlob: 'src/${mode === 'sapper' ? '{routes,components}' : '**'}/*.svelte',
 	mode: '${mode}',
 }
 `

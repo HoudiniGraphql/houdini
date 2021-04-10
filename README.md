@@ -36,6 +36,8 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Example](#example)
 1. [Installation](#installation)
 1. [Configuring Your Application](#configuring-your-application)
+    1. [Sapper](#sapper)
+    1. [Sveltekit](#sveltekit)
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
@@ -99,8 +101,10 @@ import houdini from 'houdini-preprocess'
 }
 ```
 
-With that in place, the only thing left is to configure your client and server environments
-to use the generated starting point for your network layer:
+### Sapper
+
+With that in place, the only thing left to configure your Sapper application is 
+to connect your client and server to the generate network layer: 
 
 ```typescript
 // in both src/client.js and src/server.js
@@ -111,7 +115,24 @@ import env from './environment'
 setEnvironment(env)
 ```
 
+### Sveltekit
 
+We also need to define an alias so that vite can import your runtime. Add the following
+values to your `svelte.config.js`
+
+```typescript
+module.exports = {
+    kit: {
+        vite: {
+            resolve: {
+                alias: {
+                    $houdini: path.resolve(__dirname, '$houdini')
+                }
+            }
+        }
+    }
+}
+```
 
 ## <img src="./.github/assets/cylon.gif" height="28px" />&nbsp;&nbsp;Running the Compiler
 
