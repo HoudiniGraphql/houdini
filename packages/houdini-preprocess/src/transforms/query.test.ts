@@ -32,15 +32,14 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module.content).toMatchInlineSnapshot(`
-		import { RequestContext } from "$houdini";
-		import { fetchQuery } from "$houdini";
+		import { fetchQuery, RequestContext } from "$houdini";
 
-		export async function preload(page, session) {
-		    const _houdini_context = new RequestContext(this);
+		export async function load(context) {
+		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
 		    if (!_houdini_context.continue) {
-		        return;
+		        return _houdini_context.returnValue;
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
@@ -50,18 +49,20 @@ describe('query preprocessor', function () {
 
 		    if (_TestQuery.errors) {
 		        _houdini_context.graphqlErrors(_TestQuery.errors);
-		        return;
+		        return _houdini_context.returnValue;
 		    }
 
 		    return {
-		        _TestQuery: _TestQuery,
-		        _TestQuery_Input: _TestQuery_Input
+		        props: {
+		            _TestQuery: _TestQuery,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
 		    };
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import { query, getQuery } from "$houdini";
+		import { getQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
@@ -106,8 +107,7 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module.content).toMatchInlineSnapshot(`
-		import { RequestContext } from "$houdini";
-		import { fetchQuery } from "$houdini";
+		import { fetchQuery, RequestContext } from "$houdini";
 
 		export function TestQueryVariables(page) {
 		    return {
@@ -115,12 +115,12 @@ describe('query preprocessor', function () {
 		    };
 		}
 
-		export async function preload(page, session) {
-		    const _houdini_context = new RequestContext(this);
-		    const _TestQuery_Input = TestQueryVariables.call(_houdini_context, page, session);
+		export async function load(context) {
+		    const _houdini_context = new RequestContext(context);
+		    const _TestQuery_Input = _houdini_context.computeInput("sapper", TestQueryVariables);
 
 		    if (!_houdini_context.continue) {
-		        return;
+		        return _houdini_context.returnValue;
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
@@ -130,18 +130,92 @@ describe('query preprocessor', function () {
 
 		    if (_TestQuery.errors) {
 		        _houdini_context.graphqlErrors(_TestQuery.errors);
-		        return;
+		        return _houdini_context.returnValue;
 		    }
 
 		    return {
-		        _TestQuery: _TestQuery,
-		        _TestQuery_Input: _TestQuery_Input
+		        props: {
+		            _TestQuery: _TestQuery,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
 		    };
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import { query, getQuery } from "$houdini";
+		import { getQuery, query } from "$houdini";
+		export let _TestQuery;
+		export let _TestQuery_Input;
+
+		let _TestQuery_handler = query({
+		    "initialValue": _TestQuery,
+		    "variables": _TestQuery_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
+		});
+
+		const {
+		    data
+		} = getQuery(_TestQuery_handler);
+
+		$:
+		{
+		    _TestQuery_handler.writeData(_TestQuery, _TestQuery_Input);
+		}
+	`)
+	})
+
+	test('sveltekit', async function () {
+		const doc = await preprocessorTest(
+			`
+			<script>
+				const { data } = query(graphql\`
+					query TestQuery {
+						viewer {
+							id
+						}
+					}
+				\`)
+			</script>
+		`,
+			{
+				mode: 'kit',
+			}
+		)
+
+		// make sure we added the right stuff
+		expect(doc.module.content).toMatchInlineSnapshot(`
+		import { fetchQuery, RequestContext } from "$houdini";
+
+		export async function load(context) {
+		    const _houdini_context = new RequestContext(context);
+		    const _TestQuery_Input = {};
+
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery = await fetchQuery(_houdini_context, {
+		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		              "variables": _TestQuery_Input
+		          }, session);
+
+		    if (_TestQuery.errors) {
+		        _houdini_context.graphqlErrors(_TestQuery.errors);
+		        return _houdini_context.returnValue;
+		    }
+
+		    return {
+		        props: {
+		            _TestQuery: _TestQuery,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
+		    };
+		}
+	`)
+		expect(doc.instance.content).toMatchInlineSnapshot(`
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import { getQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
@@ -172,7 +246,7 @@ describe('query preprocessor', function () {
 	test.todo('fails if arguments in preload are not page and params')
 })
 
-async function preprocessorTest(content: string) {
+async function preprocessorTest(content: string, cfg?: {}) {
 	const schema = `
 		type User {
 			id: ID!
@@ -193,7 +267,7 @@ async function preprocessorTest(content: string) {
 	const parsedQuery = graphql.parse(query)
 
 	// build up the document we'll pass to the processor
-	const config = testConfig({ schema, verifyHash: false })
+	const config = testConfig({ schema, verifyHash: false, ...cfg })
 
 	const doc = {
 		instance: parsed.instance,

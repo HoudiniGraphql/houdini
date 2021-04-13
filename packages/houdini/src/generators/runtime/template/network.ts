@@ -39,9 +39,15 @@ export type FetchParams = {
 }
 
 export type FetchContext = {
-	fetch: typeof window.fetch
-	error: (code: number, mesage: string | Error) => void
-	redirect: (statusCode: number, location: string) => void
+	page: {
+		host: string
+		path: string
+		params: Record<string, string | string[]>
+		query: URLSearchParams
+	}
+	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
+	session: any
+	context: Record<string, any>
 }
 
 export type FetchSession = any
@@ -80,31 +86,50 @@ export async function fetchQuery(
 	return await environment.sendRequest(ctx, { text, variables }, session)
 }
 
-export class RequestContext implements FetchContext {
-	_ctx: FetchContext
-	continue: boolean
+export class RequestContext {
+	private context: FetchContext
+	continue: boolean = true
+	returnValue: {} = {}
 
 	constructor(ctx: FetchContext) {
-		this._ctx = ctx
-		this.continue = true
+		this.context = ctx
 	}
 
-	error(statusCode: number, message: string | Error) {
+	error(status: number, message: string | Error) {
 		this.continue = false
-		return this._ctx.error(statusCode, message)
+		this.returnValue = {
+			error: message,
+			status,
+		}
 	}
 
-	redirect(statusCode: number, location: string) {
+	redirect(status: number, location: string) {
 		this.continue = false
-		return this._ctx.redirect(statusCode, location)
+		this.returnValue = {
+			redirect: location,
+			status,
+		}
 	}
 
 	fetch(input: RequestInfo, init?: RequestInit) {
-		return this._ctx.fetch(input, init)
+		return this.context.fetch(input, init)
 	}
 
 	graphqlErrors(errors: GraphQLError[]) {
-		this._ctx.error(500, errors.map(({ message }) => message).join('\n'))
-		return
+		return this.error(500, errors.map(({ message }) => message).join('\n'))
+	}
+
+	// compute the inputs for an operation should reflect the framework's conventions.
+	// in sapper, this means preparing a `this` for the function. for kit, we can just pass
+	// the context
+	computeInput(mode: 'sapper' | 'kit', func: (value: any) => any) {
+		// if we are in kit mode, just pass the context directly
+		if (mode === 'kit') {
+			return func(this.context)
+		}
+
+		// we are in sapper mode, so we need to prepare the function context
+		// and pass page and session
+		return func.call(this, [this.context.page, this.context.session])
 	}
 }

@@ -21,10 +21,9 @@ If you are interested in helping out, please reach out to @AlecAivazis on the Sv
 
 -   Composable and colocated data requirements for your components
 -   Normalized cache with declarative updates
--   Sapper ready. Sveltekit support once it stabilizes.
 -   Generated types
 -   Subscriptions
--   Customizable error handling (coming soon)
+-   Support for Sapper and Sveltekit's public beta
 
 At its core, houdini seeks to enable a high quality developer experience
 without compromising bundle size. Like Svelte, houdini shifts what is
@@ -86,7 +85,7 @@ npx houdini init
 
 This will create a few necessary files, as well as pull down a json representation of
 your API's schema. Next, add the preprocessor to your sapper setup. Don't
-forget to add it to both the client and the server configurations!
+forget to add it to both the client and the server configurations if you're using sapper.
 
 ```typescript
 import houdini from 'houdini-preprocess'
