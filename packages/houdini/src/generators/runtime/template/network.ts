@@ -135,7 +135,7 @@ export function convertKitPayload(
 }
 
 export class RequestContext {
-	private context: FetchContext
+	context: FetchContext
 	continue: boolean = true
 	returnValue: {} = {}
 
@@ -170,7 +170,12 @@ export class RequestContext {
 	// compute the inputs for an operation should reflect the framework's conventions.
 	// in sapper, this means preparing a `this` for the function. for kit, we can just pass
 	// the context
-	computeInput(mode: 'sapper' | 'kit', func: (value: any) => any) {
+	computeInput(mode: 'kit', func: (ctx: FetchContext) => {}): {}
+	computeInput(
+		mode: 'sapper',
+		func: (page: FetchContext['page'], session: FetchContext['session']) => {}
+	): {}
+	computeInput(mode: 'sapper' | 'kit', func: any): {} {
 		// if we are in kit mode, just pass the context directly
 		if (mode === 'kit') {
 			return func(this.context)
@@ -178,6 +183,6 @@ export class RequestContext {
 
 		// we are in sapper mode, so we need to prepare the function context
 		// and pass page and session
-		return func.call(this, [this.context.page, this.context.session])
+		return func.call(this, this.context.page, this.context.session)
 	}
 }

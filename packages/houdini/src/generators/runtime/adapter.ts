@@ -14,18 +14,18 @@ export default async function generateAdapter(config: Config) {
 	await fs.writeFile(adapterLocation, adapter, 'utf-8')
 }
 
-const sapperAdapter = `import { stores, goTo } from '@sapper/app'
+const sapperAdapter = `import { stores, goto as go} from '@sapper/app'
 
 export function getSession() {
     return stores().session
 }
 
 export function goTo(location, options) {
-    goTo(location, options)
+    go(location, options)
 }
 `
 
-const sveltekitAdapter = `import { goTo } from '$app/navigation'
+const sveltekitAdapter = `import { goto as go } from '$app/navigation'
 import { session } from '$app/stores'
 
 export function getSession() {
@@ -33,6 +33,6 @@ export function getSession() {
 }
 
 export function goTo(location, options) {
-    goTo(location, options)
+    go(location, options)
 }
 `

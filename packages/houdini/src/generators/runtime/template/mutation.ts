@@ -36,36 +36,28 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 			try {
 				// we need to define a fetch context that plays well on the client without
 				// access to this.fetch (mutations can't get access to preload)
-				const mutationCtx = new RequestContext({
+				const mutationCtx = {
 					fetch: window.fetch.bind(window),
-					error: (code: number, e: string | Error) => {
-						// if we were given an error
-						if (e instanceof Error) {
-							reject(e)
-						} else {
-							reject(new Error(e))
-						}
+					session,
+					context: {},
+					page: {
+						host: '',
+						path: '',
+						params: {},
+						query: new URLSearchParams(),
 					},
-					redirect: (code: number, location: string) => {
-						// send the user to the new location
-						goTo(location)
-
-						console.warn('dont know what to do with code just yet')
-					},
-				})
+				}
 
 				// grab the response from the server
 				const { data, errors } = await fetchQuery(mutationCtx, { text, variables }, session)
 
 				// we could have gotten a null response
 				if (errors) {
-					mutationCtx.graphqlErrors(errors)
+					reject(errors)
 					return
 				}
 				if (!data) {
-					mutationCtx.graphqlErrors([
-						new Error('Encountered empty data response in mutation payload'),
-					])
+					reject([new Error('Encountered empty data response in mutation payload')])
 					return
 				}
 				result = data
