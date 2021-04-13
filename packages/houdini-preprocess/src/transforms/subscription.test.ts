@@ -21,7 +21,7 @@ describe('subscription preprocessor', function () {
 		const doc = await preprocessorTest(`
 			<script>
 				const data = subscription(graphql\`
-                    subscription Testsubscription { 
+                    subscription TestSubscription { 
                         newUser { 
                             user { 
                                 id
