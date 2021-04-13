@@ -102,16 +102,13 @@ export async function convertKitPayload(
 	page: FetchContext['page'],
 	session: FetchContext['session']
 ) {
-	// build up the fetch context we can pass the kit loader
-	const fetchContext: FetchContext = {
+	// invoke the loader
+	const result = await loader({
 		page,
 		session,
 		context,
 		fetch: context.fetch,
-	}
-
-	// invoke the loader
-	const result = await loader(fetchContext)
+	})
 
 	// if the response contains an error
 	if (result.error) {
