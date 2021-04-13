@@ -96,9 +96,9 @@ export async function fetchQuery(
 }
 
 // convertKitPayload is responsible for taking the result of kit's load
-export function convertKitPayload(
+export async function convertKitPayload(
 	context: RequestContext,
-	loader: (ctx: FetchContext) => KitLoadResponse,
+	loader: (ctx: FetchContext) => Promise<KitLoadResponse>,
 	page: FetchContext['page'],
 	session: FetchContext['session']
 ) {
@@ -111,7 +111,7 @@ export function convertKitPayload(
 	}
 
 	// invoke the loader
-	const result = loader(fetchContext)
+	const result = await loader(fetchContext)
 
 	// if the response contains an error
 	if (result.error) {
@@ -164,6 +164,7 @@ export class RequestContext {
 	}
 
 	graphqlErrors(errors: GraphQLError[]) {
+		console.log('registering graphql errors')
 		return this.error(500, errors.map(({ message }) => message).join('\n'))
 	}
 

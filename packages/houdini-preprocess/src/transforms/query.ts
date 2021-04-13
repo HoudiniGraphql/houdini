@@ -440,8 +440,6 @@ function addSapperPreload(config: Config, body: Statement[]) {
 			),
 		])
 	)
-	// mark the function as async
-	preloadFn.async = true
 
 	// export the function from the module
 	body.push(AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration)

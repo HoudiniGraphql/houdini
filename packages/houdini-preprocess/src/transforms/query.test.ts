@@ -61,7 +61,7 @@ describe('query preprocessor', function () {
 		    };
 		}
 
-		export async function preload(page, session) {
+		export function preload(page, session) {
 		    return convertKitPayload(this, load, page, session);
 		}
 	`)
@@ -147,7 +147,7 @@ describe('query preprocessor', function () {
 		    };
 		}
 
-		export async function preload(page, session) {
+		export function preload(page, session) {
 		    return convertKitPayload(this, load, page, session);
 		}
 	`)
