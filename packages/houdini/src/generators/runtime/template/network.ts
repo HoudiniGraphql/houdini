@@ -50,6 +50,15 @@ export type FetchContext = {
 	context: Record<string, any>
 }
 
+export type KitLoadResponse = {
+	status?: number
+	error?: Error
+	redirect?: string
+	props?: Record<string, any>
+	context?: Record<string, any>
+	maxage?: number
+}
+
 export type FetchSession = any
 
 type GraphQLError = {
@@ -84,6 +93,45 @@ export async function fetchQuery(
 	}
 
 	return await environment.sendRequest(ctx, { text, variables }, session)
+}
+
+// convertKitPayload is responsible for taking the result of kit's load
+export function convertKitPayload(
+	context: RequestContext,
+	loader: (ctx: FetchContext) => KitLoadResponse,
+	page: FetchContext['page'],
+	session: FetchContext['session']
+) {
+	// build up the fetch context we can pass the kit loader
+	const fetchContext: FetchContext = {
+		page,
+		session,
+		context,
+		fetch: context.fetch,
+	}
+
+	// invoke the loader
+	const result = loader(fetchContext)
+
+	// if the response contains an error
+	if (result.error) {
+		// 500 - internal server error
+		context.error(result.status || 500, result.error)
+		return
+	}
+	// if the response contains a redirect
+	if (result.redirect) {
+		// 307 - temporary redirect
+		context.redirect(result.status || 307, result.redirect)
+		return
+	}
+	// the response contains data!
+	if (result.props) {
+		return result.props
+	}
+
+	// we shouldn't get here
+	throw new Error('Could not handle response from loader: ' + JSON.stringify(result))
 }
 
 export class RequestContext {

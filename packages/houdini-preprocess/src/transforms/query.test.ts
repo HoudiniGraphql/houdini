@@ -32,6 +32,7 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module.content).toMatchInlineSnapshot(`
+		import { convertKitPayload } from "$houdini";
 		import { fetchQuery, RequestContext } from "$houdini";
 
 		export async function load(context) {
@@ -45,7 +46,7 @@ describe('query preprocessor', function () {
 		    const _TestQuery = await fetchQuery(_houdini_context, {
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		              "variables": _TestQuery_Input
-		          }, session);
+		          }, context.session);
 
 		    if (_TestQuery.errors) {
 		        _houdini_context.graphqlErrors(_TestQuery.errors);
@@ -58,6 +59,10 @@ describe('query preprocessor', function () {
 		            _TestQuery_Input: _TestQuery_Input
 		        }
 		    };
+		}
+
+		export async function preload(page, session) {
+		    return convertKitPayload(this, load, page, session);
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
@@ -107,6 +112,7 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module.content).toMatchInlineSnapshot(`
+		import { convertKitPayload } from "$houdini";
 		import { fetchQuery, RequestContext } from "$houdini";
 
 		export function TestQueryVariables(page) {
@@ -126,7 +132,7 @@ describe('query preprocessor', function () {
 		    const _TestQuery = await fetchQuery(_houdini_context, {
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		              "variables": _TestQuery_Input
-		          }, session);
+		          }, context.session);
 
 		    if (_TestQuery.errors) {
 		        _houdini_context.graphqlErrors(_TestQuery.errors);
@@ -139,6 +145,10 @@ describe('query preprocessor', function () {
 		            _TestQuery_Input: _TestQuery_Input
 		        }
 		    };
+		}
+
+		export async function preload(page, session) {
+		    return convertKitPayload(this, load, page, session);
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
@@ -198,7 +208,7 @@ describe('query preprocessor', function () {
 		    const _TestQuery = await fetchQuery(_houdini_context, {
 		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
 		              "variables": _TestQuery_Input
-		          }, session);
+		          }, context.session);
 
 		    if (_TestQuery.errors) {
 		        _houdini_context.graphqlErrors(_TestQuery.errors);

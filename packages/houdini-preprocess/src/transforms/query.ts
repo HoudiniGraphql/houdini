@@ -108,13 +108,16 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	// in order to reduce complexity in this code generation, we are going to build
 	// the load function for sveltekit and then wrap it up for sapper if we need to
 
-	/// add the imports if they're  not there
+	/// add the imports if they're not there
 	ensureImports(config, script.content.body, 'fetchQuery', 'RequestContext')
 
 	// add the kit preload function
-	addKitLoader(config, script.content.body, queries)
+	addKitLoad(config, script.content.body, queries)
 
-	/// add the preloaded payload to the return statement
+	// if we are processing this file for sapper, we need to add the actual preload function
+	if (config.mode === 'sapper') {
+		addSapperPreload(config, script.content.body)
+	}
 }
 
 function processInstance(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
@@ -228,23 +231,20 @@ function processInstance(config: Config, script: Script, queries: EmbeddedGraphq
 	}
 }
 
-function addKitLoader(config: Config, body: Statement[], queries: EmbeddedGraphqlDocument[]) {
-	// in sveltekit, the name of the preload is load
-	const fnName = 'load'
-
+function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlDocument[]) {
 	// look for a preload definition
 	let preloadDefinition = body.find(
 		(expression) =>
 			expression.type === 'ExportNamedDeclaration' &&
 			expression.declaration?.type === 'FunctionDeclaration' &&
-			expression.declaration?.id?.name === fnName
+			expression.declaration?.id?.name === 'load'
 	) as ExportNamedDeclaration
 	// if there isn't one, add it
 	if (preloadDefinition) {
 		throw new Error('Cannot have a query where there is already a load() defined')
 	}
 	const preloadFn = AST.functionDeclaration(
-		AST.identifier(fnName),
+		AST.identifier('load'),
 		[AST.identifier('context')],
 		// return an object
 		AST.blockStatement([AST.returnStatement(AST.objectExpression([]))])
@@ -363,7 +363,10 @@ function addKitLoader(config: Config, body: Statement[], queries: EmbeddedGraphq
 									AST.identifier(variableIdentifier)
 								),
 							]),
-							AST.identifier('session'),
+							AST.memberExpression(
+								AST.identifier('context'),
+								AST.identifier('session')
+							),
 						])
 					)
 				),
@@ -403,6 +406,45 @@ function addKitLoader(config: Config, body: Statement[], queries: EmbeddedGraphq
 			)
 		)
 	}
+}
+
+function addSapperPreload(config: Config, body: Statement[]) {
+	// make sure we have the utility that will do the conversion
+	ensureImports(config, body, 'convertKitPayload')
+
+	// look for a preload definition
+	let preloadDefinition = body.find(
+		(expression) =>
+			expression.type === 'ExportNamedDeclaration' &&
+			expression.declaration?.type === 'FunctionDeclaration' &&
+			expression.declaration?.id?.name === 'preload'
+	) as ExportNamedDeclaration
+	// if there isn't one, add it
+	if (preloadDefinition) {
+		throw new Error('Cannot have a query where there is already a preload() defined')
+	}
+
+	// define the preload function
+	const preloadFn = AST.functionDeclaration(
+		AST.identifier('preload'),
+		[AST.identifier('page'), AST.identifier('session')],
+		// all we need to do is invoke the utility
+		AST.blockStatement([
+			AST.returnStatement(
+				AST.callExpression(AST.identifier('convertKitPayload'), [
+					AST.thisExpression(),
+					AST.identifier('load'),
+					AST.identifier('page'),
+					AST.identifier('session'),
+				])
+			),
+		])
+	)
+	// mark the function as async
+	preloadFn.async = true
+
+	// export the function from the module
+	body.push(AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration)
 }
 
 function ensureImports(config: Config, body: Statement[], ...identifiers: string[]) {
