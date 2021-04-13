@@ -23,7 +23,7 @@ If you are interested in helping out, please reach out to @AlecAivazis on the Sv
 -   Normalized cache with declarative updates
 -   Generated types
 -   Subscriptions
--   Support for Sapper and Sveltekit's public beta
+-   Support for Sapper and SvelteKit's public beta
 
 At its core, houdini seeks to enable a high quality developer experience
 without compromising bundle size. Like Svelte, houdini shifts what is
@@ -36,7 +36,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Installation](#installation)
 1. [Configuring Your Application](#configuring-your-application)
     1. [Sapper](#sapper)
-    1. [Sveltekit](#sveltekit)
+    1. [SvelteKit](#sveltekit)
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
@@ -114,7 +114,7 @@ import env from './environment'
 setEnvironment(env)
 ```
 
-### Sveltekit
+### SvelteKit
 
 We also need to define an alias so that vite can import your runtime. Add the following
 values to your `svelte.config.js`:
@@ -175,9 +175,10 @@ Grabbing data from your API is done with the `query` function:
 ### Query variables and page data
 
 At the moment, query variables are declared as a function in the module context of your component.
-This function must be named after your query and takes the same `page` and `session` arguments
-that are given to the `preload` function described in the [Sapper](https://sapper.svelte.dev/docs#Pages)
-documentation. Here is a modified example from the [demo](./example):
+This function must be named after your query and in a sapper application, it takes the same arguments
+that are passed to the `preload` function described in the [Sapper](https://sapper.svelte.dev/docs#Pages)
+documentation. In a SvelteKit project, this function takes the same arguments passed to the `load` function
+described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. Here is a modified example from the [demo](./example):
 
 ```svelte
 // src/routes/[filter].svelte

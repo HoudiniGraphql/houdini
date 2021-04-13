@@ -13,12 +13,12 @@ export default async (_path: string | undefined) => {
 		{
 			name: 'url',
 			type: 'input',
-			message: 'Please enter the URL for your api with its protocol.',
+			message: 'Please enter the URL for your api, including its protocol.',
 		},
 		{
 			name: 'mode',
 			type: 'input',
-			message: 'Are you using Sapper or Sveltekit?',
+			message: 'Are you using Sapper or SvelteKit?',
 			choices: ['sapper', 'kit'],
 		},
 	])
