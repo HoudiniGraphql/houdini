@@ -116,8 +116,8 @@ setEnvironment(env)
 
 ### SvelteKit
 
-We also need to define an alias so that vite can import your runtime. Add the following
-values to your `svelte.config.js`:
+We need to define an alias so that your codebase can import the generated runtime. Add the following
+values to `svelte.config.js`:
 
 ```typescript
 module.exports = {
@@ -134,7 +134,16 @@ module.exports = {
 ```
 
 And finally, we need to configure our application to use the generated network layer. To do
-this, 
+this, add the following block of code to `src/routes/$layout.svelte`:
+
+```typescript
+import { setEnvironment } from '$houdini'
+import environment from '../environment'
+
+setEnvironment(environment)
+```
+
+You might need to generate your runtime in order to fix typescript errors. 
 
 ## <img src="./.github/assets/cylon.gif" height="28px" />&nbsp;&nbsp;Running the Compiler
 
