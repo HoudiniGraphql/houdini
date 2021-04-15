@@ -6,7 +6,7 @@ import { OperationDefinitionNode } from 'graphql/language'
 import { BaseNode } from 'estree'
 import { Program } from '@babel/types'
 import { DocumentArtifact } from 'houdini'
-import { hashDocument } from 'houdini-common'
+import { Config, hashDocument } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
 import importArtifact from './importArtifact'
@@ -28,6 +28,7 @@ type GraphqlTagWalker = {
 
 // yield the tagged graphql documents contained within the provided AST
 export default async function walkTaggedDocuments(
+	config: Config,
 	doc: TransformDocument,
 	parsedScript: Program,
 	walker: GraphqlTagWalker
@@ -76,7 +77,7 @@ export default async function walkTaggedDocuments(
 					// collect the information we care about
 					tag = {
 						parsedDocument: parsedTag,
-						artifact: await importArtifact(documentPath),
+						artifact: await importArtifact(config, documentPath),
 						node: {
 							...node,
 							...this,

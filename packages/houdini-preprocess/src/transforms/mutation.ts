@@ -24,7 +24,7 @@ export default async function mutationProcessor(
 	}
 
 	// go to every graphql document
-	await walkTaggedDocuments(doc, doc.instance.content, {
+	await walkTaggedDocuments(config, doc, doc.instance.content, {
 		// with only one definition defining a fragment
 		// note: the tags that satisfy this predicate will be added to the watch list
 		where(graphqlDoc: graphql.DocumentNode) {

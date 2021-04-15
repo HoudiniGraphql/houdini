@@ -20,3 +20,5 @@ __tests__
 __sapper__
 /example/src/node_modules/@sapper/
 yarn-error.log
+
+example-kite/.svelte/*

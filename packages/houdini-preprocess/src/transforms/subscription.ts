@@ -23,8 +23,8 @@ export default async function subscriptionProcesesor(
 	}
 
 	// go to every graphql document
-	await walkTaggedDocuments(doc, doc.instance.content, {
-		// with only one definition defining asubscription
+	await walkTaggedDocuments(config, doc, doc.instance.content, {
+		// with only one definition defining a subscription
 		// note: the tags that satisfy this predicate will be added to the watch list
 		where(tag: graphql.DocumentNode) {
 			return (

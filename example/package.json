@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "sapper dev",
 		"generate": "houdini generate",
-		"api": "node api.js"
+		"api": "node api.cjs"
 	},
 	"dependencies": {
 		"@graphql-tools/wrap": "^7.0.5",
