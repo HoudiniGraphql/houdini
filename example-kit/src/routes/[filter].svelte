@@ -20,7 +20,7 @@
 <script lang="ts">
 	import { query, graphql, mutation, AllItems, AddItem } from '$houdini';
 	import ItemEntry from '$lib/ItemEntry.svelte';
-	import { stores } from '@sapper/app';
+	import { page } from '$app/stores';
 	import { derived } from 'svelte/store';
 
 	// load the items
@@ -60,7 +60,7 @@
 	);
 
 	// figure out the current page
-	const currentPage = derived(stores().page, ($page) => {
+	const currentPage = derived(page, ($page) => {
 		if ($page.path.includes('active')) {
 			return 'active';
 		} else if ($page.path.includes('completed')) {
