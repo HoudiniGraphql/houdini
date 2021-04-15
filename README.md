@@ -137,10 +137,12 @@ And finally, we need to configure our application to use the generated network l
 this, add the following block of code to `src/routes/$layout.svelte`:
 
 ```typescript
-import { setEnvironment } from '$houdini'
-import environment from '../environment'
+<script>
+	import env from '../environment';
+	import { setEnvironment } from '$houdini';
 
-setEnvironment(environment)
+	setEnvironment(env);
+</script>
 ```
 
 You might need to generate your runtime in order to fix typescript errors. 
