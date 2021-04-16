@@ -148,10 +148,11 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			// generate a hash of the document that we can use to detect changes
 			// start building up the artifact
 			const artifact = AST.program([
-				moduleExport('name', AST.stringLiteral(name)),
-				moduleExport('kind', AST.stringLiteral(docKind)),
-				moduleExport('hash', AST.stringLiteral(hashDocument(printed))),
+				moduleExport(config, 'name', AST.stringLiteral(name)),
+				moduleExport(config, 'kind', AST.stringLiteral(docKind)),
+				moduleExport(config, 'hash', AST.stringLiteral(hashDocument(printed))),
 				moduleExport(
+					config,
 					'raw',
 					AST.templateLiteral(
 						[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
@@ -194,8 +195,9 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 			// add the selection information so we can subscribe to the store
 			artifact.body.push(
-				moduleExport('rootType', AST.stringLiteral(rootType)),
+				moduleExport(config, 'rootType', AST.stringLiteral(rootType)),
 				moduleExport(
+					config,
 					'selection',
 					selection({
 						config,
