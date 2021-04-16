@@ -9,5 +9,11 @@ export function moduleExport(key: string, value: ExpressionKind) {
 		target = AST.memberExpression(target, AST.identifier(key))
 	}
 
-	return AST.expressionStatement(AST.assignmentExpression('=', target, value))
+	return key === 'default'
+		? AST.exportDefaultDeclaration(value)
+		: AST.exportNamedDeclaration(
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(AST.identifier(key), value),
+				])
+		  )
 }

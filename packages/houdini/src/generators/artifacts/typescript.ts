@@ -1,82 +1,20 @@
 // externals
 import { Config, selectionTypeInfo, isScalarType, isObjectType, isListType } from 'houdini-common'
 import * as recast from 'recast'
-import fs from 'fs/promises'
 import * as graphql from 'graphql'
-import { TSTypeKind, StatementKind, TSPropertySignatureKind } from 'ast-types/gen/kinds'
-import path from 'path'
-// locals
-import { CollectedGraphQLDocument } from '../types'
+import { TSTypeKind, StatementKind } from 'ast-types/gen/kinds'
 
 const AST = recast.types.builders
 
 const fragmentKey = '$fragments'
 
-// typescriptGenerator generates typescript definitions for the artifacts
-export default async function typescriptGenerator(
-	config: Config,
-	docs: CollectedGraphQLDocument[]
-) {
-	// build up a list of paths we have types in (to export from index.d.ts)
-	const typePaths: string[] = []
-
-	// every document needs a generated type
-	await Promise.all(
-		// the generated types depend solely on user-provided information
-		// so we need to use the original document that we haven't mutated
-		// as part of the compiler
-		docs.map(async ({ originalDocument, name, printed }) => {
-			// the place to put the artifact's type definition
-			const typeDefPath = config.artifactTypePath(originalDocument)
-
-			// build up the program
-			const program = AST.program([])
-
-			// if there's an operation definition
-			if (originalDocument.definitions.find((def) => def.kind === 'OperationDefinition')) {
-				// treat it as an operation document
-				await generateOperationTypeDefs(config, program.body, originalDocument.definitions)
-			} else {
-				// treat it as a fragment document
-				await generateFragmentTypeDefs(config, program.body, originalDocument.definitions)
-			}
-
-			// write the file contents
-			await fs.writeFile(typeDefPath, recast.print(program).code, 'utf-8')
-
-			typePaths.push(typeDefPath)
-		})
-	)
-
-	// now that we have every type generated, create an index file in the runtime root that exports the types
-	const typeIndex = AST.program(
-		typePaths
-			.map((typePath) => {
-				return AST.exportAllDeclaration(
-					AST.literal(
-						'./' +
-							path
-								.relative(path.resolve(config.typeIndexPath, '..'), typePath)
-								// remove the .d.ts from the end of the path
-								.replace(/\.[^/.]+\.[^/.]+$/, '')
-					),
-					null
-				)
-			})
-			.concat([AST.exportAllDeclaration(AST.literal('./runtime'), null)])
-	)
-
-	// write the contents
-	await fs.writeFile(config.typeIndexPath, recast.print(typeIndex).code, 'utf-8')
-}
-
-async function generateOperationTypeDefs(
+export async function addOperationTypeDefs(
 	config: Config,
 	body: StatementKind[],
 	definitions: readonly graphql.DefinitionNode[]
 ) {
 	// handle any fragment definitions
-	await generateFragmentTypeDefs(
+	await addFragmentTypeDefs(
 		config,
 		body,
 		definitions.filter(({ kind }) => kind === 'FragmentDefinition')
@@ -258,13 +196,11 @@ const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTy
 		}
 	}
 
-	return result
-
 	// return the property describing the variable
 	return result
 }
 
-async function generateFragmentTypeDefs(
+export async function addFragmentTypeDefs(
 	config: Config,
 	body: StatementKind[],
 	definitions: readonly graphql.DefinitionNode[]

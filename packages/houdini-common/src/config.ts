@@ -104,10 +104,7 @@ export class Config {
 	artifactPath(document: graphql.DocumentNode): string {
 		// use the operation name for the artifact
 		// make sure to mark artifacts as .cjs in sveltekit
-		return path.join(
-			this.artifactDirectory,
-			this.documentName(document) + (this.mode === 'kit' ? '.cjs' : '.js')
-		)
+		return path.join(this.artifactDirectory, this.documentName(document) + '.ts')
 	}
 
 	// the path that the runtime can use to import an artifact

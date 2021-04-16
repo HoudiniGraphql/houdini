@@ -16,8 +16,18 @@ const AST = recast.types.builders
 // and sapper's internal @sapper/app
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
-	// all of the runtime source code is available at the directory locations at ./templates
-	const source = path.resolve(__dirname, 'template')
+	// we want to copy the typescript source code for the templates and then compile the files according
+	// to the requirements of the platform
+	const source = path.resolve(
+		__dirname,
+		'..',
+		'..',
+		'..',
+		'src',
+		'generators',
+		'runtime',
+		'template'
+	)
 
 	// copy the compiled source code to the target directory
 	await recursiveCopy(source, config.runtimeDirectory)

@@ -7,9 +7,9 @@ import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
 import '../../../../jest.setup'
-import { runPipeline } from '../compile'
-import { CollectedGraphQLDocument } from '../types'
-import { mockCollectedDoc } from '../testUtils'
+import { runPipeline } from '../../compile'
+import { CollectedGraphQLDocument } from '../../types'
+import { mockCollectedDoc } from '../../testUtils'
 
 // the config to use in tests
 const config = testConfig()
