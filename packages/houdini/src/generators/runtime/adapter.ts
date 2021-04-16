@@ -5,7 +5,7 @@ import { Config } from 'houdini-common'
 
 export default async function generateAdapter(config: Config) {
 	// the location of the adapter
-	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.ts')
+	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.mjs')
 
 	// figure out which adapter we need to lay down
 	const adapter = config.mode === 'sapper' ? sapperAdapter : sveltekitAdapter

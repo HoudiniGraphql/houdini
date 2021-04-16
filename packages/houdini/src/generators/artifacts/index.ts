@@ -13,7 +13,6 @@ import * as recast from 'recast'
 import fs from 'fs/promises'
 // locals
 import { moduleExport } from '../../utils'
-import { addFragmentTypeDefs, addOperationTypeDefs } from './typescript'
 import selection from './selection'
 import { operationsByPath, FilterMap } from './operations'
 
@@ -211,13 +210,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					})
 				)
 			)
-
-			// add the typescript definitions to this file
-			if (docKind === 'HoudiniFragment') {
-				await addFragmentTypeDefs(config, artifact.body, originalDocument.definitions)
-			} else {
-				await addOperationTypeDefs(config, artifact.body, originalDocument.definitions)
-			}
 
 			// write the result to the artifact path we're configured to write to
 			await fs.writeFile(config.artifactPath(document), recast.print(artifact).code)

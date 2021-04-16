@@ -1,20 +1,83 @@
 // externals
 import { Config, selectionTypeInfo, isScalarType, isObjectType, isListType } from 'houdini-common'
 import * as recast from 'recast'
+import fs from 'fs/promises'
 import * as graphql from 'graphql'
-import { TSTypeKind, StatementKind } from 'ast-types/gen/kinds'
+import { TSTypeKind, StatementKind, TSPropertySignatureKind } from 'ast-types/gen/kinds'
+import path from 'path'
+import * as ts from 'typescript'
+// locals
+import { CollectedGraphQLDocument } from '../types'
 
 const AST = recast.types.builders
 
 const fragmentKey = '$fragments'
 
-export async function addOperationTypeDefs(
+// typescriptGenerator generates typescript definitions for the artifacts
+export default async function typescriptGenerator(
+	config: Config,
+	docs: CollectedGraphQLDocument[]
+) {
+	// build up a list of paths we have types in (to export from index.d.ts)
+	const typePaths: string[] = []
+
+	// every document needs a generated type
+	await Promise.all(
+		// the generated types depend solely on user-provided information
+		// so we need to use the original document that we haven't mutated
+		// as part of the compiler
+		docs.map(async ({ originalDocument, name, printed }) => {
+			// the place to put the artifact's type definition
+			const typeDefPath = config.artifactTypePath(originalDocument)
+
+			// build up the program
+			const program = AST.program([])
+
+			// if there's an operation definition
+			if (originalDocument.definitions.find((def) => def.kind === 'OperationDefinition')) {
+				// treat it as an operation document
+				await generateOperationTypeDefs(config, program.body, originalDocument.definitions)
+			} else {
+				// treat it as a fragment document
+				await generateFragmentTypeDefs(config, program.body, originalDocument.definitions)
+			}
+
+			// write the file contents
+			await fs.writeFile(typeDefPath, recast.print(program).code, 'utf-8')
+
+			typePaths.push(typeDefPath)
+		})
+	)
+
+	// now that we have every type generated, create an index file in the runtime root that exports the types
+	const typeIndex = AST.program(
+		typePaths
+			.map((typePath) => {
+				return AST.exportAllDeclaration(
+					AST.literal(
+						'./' +
+							path
+								.relative(path.resolve(config.typeIndexPath, '..'), typePath)
+								// remove the .d.ts from the end of the path
+								.replace(/\.[^/.]+\.[^/.]+$/, '')
+					),
+					null
+				)
+			})
+			.concat([AST.exportAllDeclaration(AST.literal('./runtime'), null)])
+	)
+
+	// write the contents
+	await fs.writeFile(config.typeIndexPath, recast.print(typeIndex).code, 'utf-8')
+}
+
+async function generateOperationTypeDefs(
 	config: Config,
 	body: StatementKind[],
 	definitions: readonly graphql.DefinitionNode[]
 ) {
 	// handle any fragment definitions
-	await addFragmentTypeDefs(
+	await generateFragmentTypeDefs(
 		config,
 		body,
 		definitions.filter(({ kind }) => kind === 'FragmentDefinition')
@@ -196,11 +259,13 @@ const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTy
 		}
 	}
 
+	return result
+
 	// return the property describing the variable
 	return result
 }
 
-export async function addFragmentTypeDefs(
+async function generateFragmentTypeDefs(
 	config: Config,
 	body: StatementKind[],
 	definitions: readonly graphql.DefinitionNode[]
@@ -436,4 +501,39 @@ function scalarPropertyValue(target: graphql.GraphQLNamedType): TSTypeKind {
 			throw new Error('Could not convert scalar type: ' + target.toString())
 		}
 	}
+}
+
+function compile(config: Config, fileNames: string[]) {
+	const options: ts.CompilerOptions = {
+		declaration: true,
+		lib: ['es2019'],
+		esModuleInterop: true,
+		downlevelIteration: true,
+		target: ts.ScriptTarget.ES5,
+		moduleResolution: ts.ModuleResolutionKind.NodeJs,
+		sourceMap: false,
+		module: ts.ModuleKind.ES2015,
+	}
+
+	// prepare and emit the files
+	const program = ts.createProgram(fileNames, options)
+	const emitResult = program.emit()
+
+	// catch any diagnostic errors
+	for (const diagnostic of ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics)) {
+		if (diagnostic.file) {
+			let { line, character } = ts.getLineAndCharacterOfPosition(
+				diagnostic.file,
+				diagnostic.start!
+			)
+			let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
+			throw new Error(
+				`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
+			)
+		} else {
+			throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))
+		}
+	}
+
+	return
 }

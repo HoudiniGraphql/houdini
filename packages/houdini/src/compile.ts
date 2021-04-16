@@ -39,8 +39,8 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 			validators.noIDAlias,
 			transforms.composeQueries,
 			generators.artifacts,
-			generators.typescript,
 			generators.runtime,
+			generators.typescript,
 		],
 		docs
 	)
