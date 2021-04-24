@@ -1,1 +1,2 @@
-export { default as walkTaggedDocuments, EmbeddedGraphqlDocument } from './walkTaggedDocuments'
+export { default as walkTaggedDocuments } from './walkTaggedDocuments'
+export type { EmbeddedGraphqlDocument } from './walkTaggedDocuments'

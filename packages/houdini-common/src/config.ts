@@ -104,7 +104,7 @@ export class Config {
 	artifactPath(document: graphql.DocumentNode): string {
 		// use the operation name for the artifact
 		// make sure to mark artifacts as .cjs in sveltekit
-		return path.join(this.artifactDirectory, this.documentName(document) + '.ts')
+		return path.join(this.artifactDirectory, this.documentName(document) + '.js')
 	}
 
 	// the path that the runtime can use to import an artifact
@@ -324,11 +324,11 @@ export function testConfig(config: {} = {}) {
 				deleteCat: DeleteCatOutput!
 			}
 
-			type Subscription { 
+			type Subscription {
 				newUser: NewUserResult!
 			}
 
-			type NewUserResult { 
+			type NewUserResult {
 				user: User!
 			}
 

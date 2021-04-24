@@ -6,7 +6,7 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
-import '../../../../jest.setup'
+import '../../../../../jest.setup'
 import { runPipeline } from '../../compile'
 import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
@@ -366,20 +366,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation B',
-				`mutation B { 
-					addFriend { 
-						friend { 
+				`mutation B {
+					addFriend {
+						friend {
 							firstName
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -401,7 +401,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation B";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "0787170232c25410f1fb16804ac92fc2";
+		module.exports.hash = "e9f6440182fec6d7a6d505710f13786e";
 
 		module.exports.raw = \`mutation B {
 		  addFriend {
@@ -441,20 +441,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -476,7 +476,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "473d90402922a8cce8e90d53d1060222";
+		module.exports.hash = "8b0662945dc40367f151352db91956d9";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -532,20 +532,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_remove
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -567,7 +567,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "880cba22e81ec6142d1dce5f869911a0";
+		module.exports.hash = "1c16742ee77c99369985c0eb3977bb51";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -616,18 +616,18 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					deleteUser(id: "1234") { 
+				`mutation A {
+					deleteUser(id: "1234") {
 						userID @User_delete
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -649,7 +649,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "136c10c3710d03590c93fbaa6070b23d";
+		module.exports.hash = "93b6b6a347ea5d70f4a0eec5aa3bcad6";
 
 		module.exports.raw = \`mutation A {
 		  deleteUser(id: "1234") {
@@ -685,18 +685,18 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					deleteUser(id: "1234") { 
+				`mutation A {
+					deleteUser(id: "1234") {
 						userID @User_delete @when(argument: "stringValue", value: "foo")
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -718,7 +718,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "e493f4442d18a3b9a2f0d7e17849afe3";
+		module.exports.hash = "7c841bbbbd206c7c2e40bc683b173294";
 
 		module.exports.raw = \`mutation A {
 		  deleteUser(id: "1234") {
@@ -760,20 +760,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @prepend(parentID: "1234")
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -795,7 +795,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "668ff1dae6a853db970112b94cc7b3f6";
+		module.exports.hash = "661e8ea6aef15a9dc54d9a75e6e7b181";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -856,20 +856,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @append(parentID: "1234")
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -891,7 +891,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "023533de87e89e1234f9e4f37f05cdc1";
+		module.exports.hash = "542ad5bd1546c881cd681f11f00681b9";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -952,20 +952,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @parentID(value: "1234")
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -987,7 +987,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "65685926dbe59762e208efc8f29bf137";
+		module.exports.hash = "86320c3ec367b754e394444499e08955";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1048,20 +1048,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @prepend(when: { argument: "stringValue", value: "foo" })
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -1083,7 +1083,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "16befb94c3605e5a1caf9bc45cf39f6a";
+		module.exports.hash = "aca7e0bd918f4c47a73b6e7f58f550cc";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1145,20 +1145,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @append(when: { argument: "stringValue", value: "true" })
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -1180,7 +1180,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "967f5eb183efaeed4e44a1800672536b";
+		module.exports.hash = "bbb139f4dbff5e14ac8fbf686c5f0361";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1242,20 +1242,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @when(argument: "stringValue", value: "true")
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -1277,7 +1277,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "61da1ee5cf830dbce08aaffaa7280dc9";
+		module.exports.hash = "b143d50e839463c0ec641cadd67f2c5b";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1339,20 +1339,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @prepend(when_not: { argument: "stringValue", value: "true" })
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -1374,7 +1374,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "9c324138854a00e0b810323225026e8b";
+		module.exports.hash = "d99dd22eb6d5cabf74c839e786ad6017";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1436,20 +1436,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @append(when_not: { argument: "stringValue", value: "true" })
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -1471,7 +1471,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "30737abe9a11ca05d4dd74a6e2ed9fde";
+		module.exports.hash = "a85f3dd007201c1cf851405358b13505";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1533,25 +1533,25 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @when_not(argument: "boolValue", value: "true")
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery($value: String!) { 
+				`query TestQuery($value: String!) {
 					users(
-						stringValue: $value, 
-						boolValue: true, 
+						stringValue: $value,
+						boolValue: true,
 						floatValue: 1.2,
 						intValue: 1,
-					) @connection(name: "All_Users") { 
+					) @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -1573,7 +1573,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "TestQuery";
 		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "77e73a9f844dc87ec168c5255d4a7eb0";
+		module.exports.hash = "24f50fa3efd06490701180759984ddbb";
 
 		module.exports.raw = \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -1628,20 +1628,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @when_not(argument: "boolValue", value: "true")
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo", boolValue:true) @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo", boolValue:true) @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -1663,7 +1663,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Mutation A";
 		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "1a7aff185b471fe8e2af42b0b3919d0a";
+		module.exports.hash = "7bcbb707250eccabf4fecb1b8976889c";
 
 		module.exports.raw = \`mutation A {
 		  addFriend {
@@ -1725,20 +1725,20 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
-				`mutation A { 
-					addFriend { 
-						friend { 
+				`mutation A {
+					addFriend {
+						friend {
 							...All_Users_insert @prepend(parentID: "1234")
 						}
-					} 
+					}
 				}`
 			),
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery { 
-					users(stringValue: "foo") @connection(name: "All_Users") { 
+				`query TestQuery {
+					users(stringValue: "foo") @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -1760,7 +1760,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "TestQuery";
 		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "2e9999cf0a02b0af68f84249ec50a4cc";
+		module.exports.hash = "214e4de1395c8620738a3c53619e73bd";
 
 		module.exports.raw = \`query TestQuery {
 		  users(stringValue: "foo") {
@@ -1800,15 +1800,15 @@ describe('mutation artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'TestQuery',
-				`query TestQuery($value: String!) { 
+				`query TestQuery($value: String!) {
 					users(
-						stringValue: $value, 
-						boolValue: true, 
+						stringValue: $value,
+						boolValue: true,
 						floatValue: 1.2,
 						intValue: 1,
-					) @connection(name: "All_Users") { 
+					) @connection(name: "All_Users") {
 						firstName
-					} 
+					}
 				}`
 			),
 		]
@@ -1830,7 +1830,7 @@ describe('mutation artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "TestQuery";
 		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "77e73a9f844dc87ec168c5255d4a7eb0";
+		module.exports.hash = "24f50fa3efd06490701180759984ddbb";
 
 		module.exports.raw = \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -1880,6 +1880,93 @@ describe('mutation artifacts', function () {
 		};
 	`)
 	})
+
+	test('sveltekit', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				'TestQuery',
+				`query TestQuery($value: String!) {
+					users(
+						stringValue: $value,
+						boolValue: true,
+						floatValue: 1.2,
+						intValue: 1,
+					) @connection(name: "All_Users") {
+						firstName
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		config.mode = 'kit'
+		await runPipeline(config, mutationDocs)
+		config.mode = 'sapper'
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		export const name = "TestQuery";
+		export const kind = "HoudiniQuery";
+		export const hash = "24f50fa3efd06490701180759984ddbb";
+
+		export const raw = \`query TestQuery($value: String!) {
+		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
+		    firstName
+		  }
+		}
+		\`;
+
+		export const rootType = "Query";
+
+		export const selection = {
+		    "users": {
+		        "type": "User",
+		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+
+		        "fields": {
+		            "firstName": {
+		                "type": "String",
+		                "keyRaw": "firstName"
+		            }
+		        },
+
+		        "connection": "All_Users",
+
+		        "filters": {
+		            "stringValue": {
+		                "kind": "Variable",
+		                "value": "value"
+		            },
+
+		            "boolValue": {
+		                "kind": "Boolean",
+		                "value": true
+		            },
+
+		            "floatValue": {
+		                "kind": "Float",
+		                "value": 1.2
+		            },
+
+		            "intValue": {
+		                "kind": "Int",
+		                "value": 1
+		            }
+		        }
+		    }
+		};
+	`)
+	})
 })
 
 describe('subscription artifacts', function () {
@@ -1887,12 +1974,12 @@ describe('subscription artifacts', function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Subscription B',
-				`subscription B { 
-					newUser { 
-						user { 
+				`subscription B {
+					newUser {
+						user {
 							firstName
 						}
-					} 
+					}
 				}`
 			),
 		]
@@ -1914,7 +2001,7 @@ describe('subscription artifacts', function () {
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports.name = "Subscription B";
 		module.exports.kind = "HoudiniSubscription";
-		module.exports.hash = "777827f529328e6cce93636ec5cb3390";
+		module.exports.hash = "5b9fd19fce6b2a025d3d7e4a1b2a61c0";
 
 		module.exports.raw = \`subscription B {
 		  newUser {

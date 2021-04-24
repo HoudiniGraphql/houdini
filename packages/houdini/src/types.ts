@@ -1,4 +1,4 @@
-import * as graphql from 'graphql'
+import type * as graphql from 'graphql'
 export * from './generators/runtime/template/types'
 
 // the result of collecting documents from source code

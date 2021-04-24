@@ -1,6 +1,6 @@
 import { parse as parseJS } from '@babel/parser'
 // locals
-import { Maybe, Script } from './types'
+import type { Maybe, Script } from './types'
 
 const scriptStart = '<script'
 const scriptEnd = '</script>'
