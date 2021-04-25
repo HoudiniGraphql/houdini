@@ -1,5 +1,5 @@
 import type * as graphql from 'graphql'
-export * from './generators/runtime/template/types'
+export * from '../runtime/types'
 
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {
