@@ -7869,7 +7869,7 @@ __metadata:
     svelte: ^3.34.0
     typescript: ^4.0.0
   bin:
-    houdini: build/main.js
+    houdini: build/cmd/main.js
   languageName: unknown
   linkType: soft
 

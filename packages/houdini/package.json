@@ -9,8 +9,8 @@
 		"build": "npm run build:package && npm run build:runtime:sapper && npm run build:runtime:kit",
 		"prepare": "npm run build"
 	},
-	"main": "build/index.js",
-	"bin": "build/main.js",
+	"main": "build/cmd/index.js",
+	"bin": "build/cmd/main.js",
 	"keywords": [],
 	"author": "",
 	"license": "ISC",

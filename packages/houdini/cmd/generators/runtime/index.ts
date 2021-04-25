@@ -22,6 +22,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		'..',
 		'..',
 		'..',
+		'..',
 		'build',
 		config.mode === 'kit' ? 'runtime-kit' : 'runtime-sapper'
 	)
