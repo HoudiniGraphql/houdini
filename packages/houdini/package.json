@@ -3,7 +3,10 @@
 	"version": "0.4.1",
 	"description": "",
 	"scripts": {
-		"build": "tsc",
+		"build:runtime:sapper": "tsc --p runtime.sapper.json",
+		"build:runtime:kit": "tsc --p runtime.kit.json",
+		"build:package": "tsc",
+		"build": "npm run build:package && npm run build:runtime:sapper && npm run build:runtime:kit",
 		"prepare": "npm run build"
 	},
 	"main": "build/index.js",

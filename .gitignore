@@ -23,3 +23,5 @@ yarn-error.log
 
 example-kit/.svelte/*
 example-kit/$houdini/*
+
+packages/houdini/runtime-kit/*

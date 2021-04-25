@@ -17,7 +17,14 @@ const AST = recast.types.builders
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// we want to copy the typescript source code for the templates and then compile the files according
 	// to the requirements of the platform
-	const source = path.resolve(__dirname, '..', '..', '..', 'runtime')
+	const source = path.resolve(
+		__dirname,
+		'..',
+		'..',
+		'..',
+		'build',
+		config.mode === 'kit' ? 'runtime-kit' : 'runtime-sapper'
+	)
 
 	// copy the compiled source code to the target directory
 	await recursiveCopy(source, config.runtimeDirectory)

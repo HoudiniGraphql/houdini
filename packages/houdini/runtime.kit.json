@@ -1,0 +1,25 @@
+{
+
+	"extends": "../../tsconfig",
+	"include": ["runtime/**/*"],
+	"exclude": ["node_modules", "**/*.test.ts"],
+	"paths": {
+		"houdini-common": ["../houdini-common"]
+	},
+	"compilerOptions": {
+		"outDir": "build/runtime-kit",
+		"moduleResolution": "node",
+		"module": "es2020",
+		"lib": ["es2020", "dom"],
+		"target": "es2019",
+		"isolatedModules": true,
+		"resolveJsonModule": true,
+		"sourceMap": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"baseUrl": ".",
+		"allowJs": true,
+		"checkJs": true
+	}
+}

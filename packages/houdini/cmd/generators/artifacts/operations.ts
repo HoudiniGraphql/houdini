@@ -1,7 +1,7 @@
 // externals
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { Config, getTypeFromAncestors } from 'houdini-common'
-import { ConnectionWhen, MutationOperation } from '../runtime/template'
+import { ConnectionWhen, MutationOperation } from '../../../runtime'
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 
