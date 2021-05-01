@@ -14,7 +14,7 @@ export default async function generateAdapter(config: Config) {
 	await fs.writeFile(adapterLocation, adapter, 'utf-8')
 }
 
-const sapperAdapter = `import { stores, goto as go} from '@sapper/app'
+const sapperAdapter = `import { stores, goto as go } from '@sapper/app'
 
 export function getSession() {
     return stores().session

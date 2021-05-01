@@ -1,7 +1,8 @@
 {
 	"extends": "../../tsconfig",
 	"compilerOptions": {
-		"outDir": "build/runtime-sapper"
+		"outDir": "build/runtime-sapper",
+		"sourceMap": false,
 	},
 	"include": ["runtime/**/*"],
 	"exclude": ["node_modules", "**/*.test.ts"],

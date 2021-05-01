@@ -96,10 +96,6 @@ export class Config {
 		return path.join(this.artifactTypeDirectory, `${this.documentName(document)}.d.ts`)
 	}
 
-	patchName({ query, mutation }: { query: string; mutation: string }) {
-		return `${mutation}_${query}`
-	}
-
 	// the location of the artifact generated corresponding to the provided documents
 	artifactPath(document: graphql.DocumentNode): string {
 		// use the operation name for the artifact

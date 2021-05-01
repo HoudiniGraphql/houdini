@@ -1,6 +1,5 @@
 {
 
-	"extends": "../../tsconfig",
 	"include": ["runtime/**/*"],
 	"exclude": ["node_modules", "**/*.test.ts"],
 	"paths": {
@@ -14,7 +13,8 @@
 		"target": "es2019",
 		"isolatedModules": true,
 		"resolveJsonModule": true,
-		"sourceMap": true,
+		"sourceMap": false,
+		"declaration": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,

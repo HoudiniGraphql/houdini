@@ -9,12 +9,12 @@ async function fetchQuery({ text, variables = {} }) {
 	const result = await this.fetch('http://' + API_URL, {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/json',
+			'Content-Type': 'application/json'
 		},
 		body: JSON.stringify({
 			query: text,
-			variables,
-		}),
+			variables
+		})
 	})
 
 	// parse the result as json
@@ -27,7 +27,7 @@ let socketClient: SubscriptionHandler | null = null
 if ((process as any).browser) {
 	// instantiate the transport client
 	const client = new SubscriptionClient('ws://' + API_URL, {
-		reconnect: true,
+		reconnect: true
 	})
 
 	// wrap the client in something houdini can use
@@ -38,7 +38,7 @@ if ((process as any).browser) {
 
 			// return the function to unsubscribe
 			return unsubscribe
-		},
+		}
 	}
 }
 
