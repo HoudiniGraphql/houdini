@@ -1,6 +1,6 @@
 // locals
-import { Cache } from './cache/cache'
-import { SubscriptionSelection } from './types'
+import { Cache } from './cache'
+import { SubscriptionSelection } from '../types'
 
 test('save root object', function () {
 	// instantiate a cache we'll test against

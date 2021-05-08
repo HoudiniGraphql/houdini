@@ -5,8 +5,8 @@
 	"scripts": {
 		"build:runtime:sapper": "tsc --p tsconfig.runtime.sapper.json",
 		"build:runtime:kit": "tsc --p tsconfig.runtime.kit.json",
-		"build:package": "tsc",
-		"build": "npm run build:package && npm run build:runtime:sapper && npm run build:runtime:kit",
+		"build:cmd": "tsc",
+		"build": "npm run build:cmd && npm run build:runtime:sapper && npm run build:runtime:kit",
 		"prepare": "npm run build"
 	},
 	"main": "build/cmd/index.js",
