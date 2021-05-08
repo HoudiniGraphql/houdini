@@ -12,9 +12,11 @@ const AST = recast.types.builders
 // the runtime generator is responsible for generating a majority of the runtime that the client will use.
 // this includes things like query, fragment, mutation, etc. They are generated here instead of
 // imported from npm so that they can be pushed through the bundler in order to use package aliases
-// and sapper's internal @sapper/app
+// and things like sapper's internal @sapper/app or sveltekit's $app/navigation
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
+	// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
+	// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
 	const relative = process.env.TEST ? '../../..' : '../../../..'
 
 	// we want to copy the typescript source code for the templates and then compile the files according
