@@ -15,7 +15,6 @@ import {
 import { Config } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
-import importArtifact from './importArtifact'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
@@ -95,33 +94,21 @@ export default async function walkTaggedDocuments(
 				// make sure we watch the compiled fragment
 				doc.dependencies.push(documentPath)
 
-				let tag
-				try {
-					// collect the information we care about
-					tag = {
-						parsedDocument: parsedTag,
-						node: {
-							...node,
-							...this,
-							remove: this.remove,
-							replaceWith: this.replace,
-						},
-						artifact: {
-							name,
-							kind,
-						},
-						parent,
-					}
-				} catch (e) {
-					throw new Error(
-						`Looks like you need to run the houdini compiler for ${name}.` +
-							` Encountered error: ` +
-							e.message
-					)
-				}
-
 				// invoker the walker's callback with the right context
-				await walker.onTag(tag)
+				await walker.onTag({
+					parsedDocument: parsedTag,
+					node: {
+						...node,
+						...this,
+						remove: this.remove,
+						replaceWith: this.replace,
+					},
+					artifact: {
+						name,
+						kind,
+					},
+					parent,
+				})
 			}
 		},
 	})
