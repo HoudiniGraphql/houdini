@@ -1,8 +1,8 @@
-const sveltePreprocess = require('svelte-preprocess');
-const node = require('@sveltejs/adapter-node');
-const pkg = require('./package.json');
-const houdini = require('houdini-preprocess');
-const path = require('path');
+const sveltePreprocess = require('svelte-preprocess')
+const node = require('@sveltejs/adapter-node')
+const pkg = require('./package.json')
+const houdini = require('houdini-preprocess')
+const path = require('path')
 
 /** @type {import('@sveltejs/kit').Config} */
 module.exports = {
@@ -20,9 +20,6 @@ module.exports = {
 		target: '#svelte',
 
 		vite: {
-			ssr: {
-				noExternal: Object.keys(pkg.dependencies || {})
-			},
 			resolve: {
 				alias: {
 					$houdini: path.resolve(__dirname, '$houdini')
@@ -30,4 +27,4 @@ module.exports = {
 			}
 		}
 	}
-};
+}

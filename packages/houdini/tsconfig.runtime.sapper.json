@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"outDir": "build/runtime-sapper",
 		"sourceMap": false,
+		"module": "commonjs"
 	},
 	"include": ["runtime/**/*"],
 	"exclude": ["node_modules", "**/*.test.ts"],

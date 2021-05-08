@@ -1,27 +1,28 @@
 <script context="module" lang="ts">
 	export function AllItemsVariables(page) {
+		return {}
+
 		// if there is no filter assigned, dont enforce one in the query
 		if (!page.params.filter || page.params.filter === 'all') {
-			return {};
 		}
 
 		// make sure we recognize the value
 		if (!['active', 'completed', 'all'].includes(page.params.filter)) {
-			this.error(400, "filter must be one of 'active' or 'completed'");
-			return;
+			this.error(400, "filter must be one of 'active' or 'completed'")
+			return
 		}
 
 		return {
 			completed: page.params.filter === 'completed'
-		};
+		}
 	}
 </script>
 
 <script lang="ts">
-	import { query, graphql, mutation, AllItems, AddItem } from '$houdini';
-	import ItemEntry from '$lib/ItemEntry.svelte';
-	import { page } from '$app/stores';
-	import { derived } from 'svelte/store';
+	import { query, graphql, mutation, AllItems, AddItem } from '$houdini'
+	import ItemEntry from '$lib/ItemEntry.svelte'
+	import { page } from '$app/stores'
+	import { derived } from 'svelte/store'
 
 	// load the items
 	const { data } = query<AllItems>(graphql`
@@ -36,7 +37,7 @@
 				completed
 			}
 		}
-	`);
+	`)
 
 	// state and handler for the new item input
 	const addItem = mutation<AddItem>(graphql`
@@ -48,34 +49,34 @@
 				}
 			}
 		}
-	`);
+	`)
 
-	const numberOfItems = derived(data, ($data) => $data.allItems.length);
+	const numberOfItems = derived(data, ($data) => $data.allItems.length)
 	const itemsLeft = derived(
 		data,
 		($data) => $data.allItems.filter((item) => !item.completed).length
-	);
+	)
 	const hasCompleted = derived(data, ($data) =>
 		Boolean($data.allItems.find((item) => item.completed))
-	);
+	)
 
 	// figure out the current page
 	const currentPage = derived(page, ($page) => {
 		if ($page.path.includes('active')) {
-			return 'active';
+			return 'active'
 		} else if ($page.path.includes('completed')) {
-			return 'completed';
+			return 'completed'
 		}
-		return 'all';
-	});
+		return 'all'
+	})
 
-	let inputValue = '';
+	let inputValue = ''
 	async function onBlur() {
 		// trigger the mutation
-		await addItem({ input: { text: inputValue } });
+		await addItem({ input: { text: inputValue } })
 
 		// clear the input
-		inputValue = '';
+		inputValue = ''
 	}
 </script>
 

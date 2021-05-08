@@ -34,6 +34,7 @@ describe('query preprocessor', function () {
 		expect(doc.module.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
 		import { fetchQuery, RequestContext } from "$houdini";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
@@ -44,7 +45,7 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
-		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		              "text": _TestQueryArtifact.raw,
 		              "variables": _TestQuery_Input
 		          }, context.session);
 
@@ -66,7 +67,6 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { getQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
@@ -114,6 +114,7 @@ describe('query preprocessor', function () {
 		expect(doc.module.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
 		import { fetchQuery, RequestContext } from "$houdini";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export function TestQueryVariables(page) {
 		    return {
@@ -130,7 +131,7 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
-		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery($test: Boolean!) {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		              "text": _TestQueryArtifact.raw,
 		              "variables": _TestQuery_Input
 		          }, context.session);
 
@@ -152,7 +153,6 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { getQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
@@ -196,6 +196,7 @@ describe('query preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.module.content).toMatchInlineSnapshot(`
 		import { fetchQuery, RequestContext } from "$houdini";
+		import * as _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
@@ -206,7 +207,7 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
-		              "text": "\\n\\t\\t\\t\\t\\tquery TestQuery {\\n\\t\\t\\t\\t\\t\\tviewer {\\n\\t\\t\\t\\t\\t\\t\\tid\\n\\t\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t\\t}\\n\\t\\t\\t\\t",
+		              "text": _TestQueryArtifact.raw,
 		              "variables": _TestQuery_Input
 		          }, context.session);
 
@@ -224,7 +225,6 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { getQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;

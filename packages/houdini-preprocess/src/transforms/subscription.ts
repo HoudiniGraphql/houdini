@@ -46,6 +46,10 @@ export default async function subscriptionProcesesor(
 				])
 			)
 
+			// the kind of import depends on the mode
+			const importStatement =
+				config.mode === 'sapper' ? AST.importDefaultSpecifier : AST.importNamespaceSpecifier
+
 			// add an import to the body pointing to the artifact
 			doc.instance?.content.body.unshift({
 				type: 'ImportDeclaration',
@@ -53,7 +57,7 @@ export default async function subscriptionProcesesor(
 				source: AST.literal(config.artifactImportPath(artifact.name)),
 				specifiers: [
 					// @ts-ignore
-					AST.importDefaultSpecifier(AST.identifier(artifactVariable)),
+					importStatement(AST.identifier(artifactVariable)),
 				],
 			})
 		},

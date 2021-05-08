@@ -15,14 +15,13 @@ const AST = recast.types.builders
 // and sapper's internal @sapper/app
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
+	const relative = process.env.TEST ? '../../..' : '../../../..'
+
 	// we want to copy the typescript source code for the templates and then compile the files according
 	// to the requirements of the platform
 	const source = path.resolve(
 		__dirname,
-		'..',
-		'..',
-		'..',
-		'..',
+		relative,
 		'build',
 		config.mode === 'kit' ? 'runtime-kit' : 'runtime-sapper'
 	)
@@ -40,7 +39,6 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	// write the index file that exports the runtime
 	await fs.writeFile(path.join(config.rootDir, 'index.js'), recast.print(indexFile).code, 'utf-8')
 }
-
 async function recursiveCopy(source: string, target: string, notRoot?: boolean) {
 	// if the folder containing the target doesn't exist, then we need to create it
 	let parentDir = path.join(target, path.basename(source))

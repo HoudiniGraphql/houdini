@@ -8,6 +8,6 @@
 		"downlevelIteration": true,
 		"target": "es5",
 		"sourceMap": false,
-		"declaration": true,
+		"declaration": true
 	}
 }

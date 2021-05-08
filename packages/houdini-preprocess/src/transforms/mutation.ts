@@ -47,13 +47,17 @@ export default async function mutationProcessor(
 				])
 			)
 
+			// the kind of import depends on the mode
+			const importStatement =
+				config.mode === 'sapper' ? AST.importDefaultSpecifier : AST.importNamespaceSpecifier
+
 			doc.instance?.content.body.unshift({
 				type: 'ImportDeclaration',
 				// @ts-ignore
 				source: AST.literal(config.artifactImportPath(artifact.name)),
 				specifiers: [
 					// @ts-ignore
-					AST.importDefaultSpecifier(AST.identifier(artifactIdentifier(artifact))),
+					importStatement(AST.identifier(artifactIdentifier(artifact))),
 				],
 			})
 		},

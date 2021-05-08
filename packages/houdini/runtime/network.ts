@@ -161,7 +161,7 @@ export class RequestContext {
 	}
 
 	graphqlErrors(errors: GraphQLError[]) {
-		console.log('registering graphql errors')
+		console.log('registering graphql errors', errors)
 		return this.error(500, errors.map(({ message }) => message).join('\n'))
 	}
 

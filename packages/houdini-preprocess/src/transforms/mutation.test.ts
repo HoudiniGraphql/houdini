@@ -34,12 +34,12 @@ describe('mutation preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import _TestMutationArtifact from "$houdini/artifacts/TestMutation";
+		import _AddUserArtifact from "$houdini/artifacts/AddUser";
 		import { mutation } from "$houdini";
 
 		const data = mutation({
 		    "kind": "HoudiniMutation",
-		    "artifact": _TestMutationArtifact
+		    "artifact": _AddUserArtifact
 		});
 	`)
 	})

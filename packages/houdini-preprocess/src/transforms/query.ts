@@ -108,6 +108,23 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	// in order to reduce complexity in this code generation, we are going to build
 	// the load function for sveltekit and then wrap it up for sapper if we need to
 
+	// every document will need to be imported
+	for (const document of queries) {
+		// the kind of import depends on the mode
+		const importStatement =
+			config.mode === 'sapper' ? AST.importDefaultSpecifier : AST.importNamespaceSpecifier
+
+		script.content.body.unshift({
+			type: 'ImportDeclaration',
+			// @ts-ignore
+			source: AST.literal(config.artifactImportPath(document.artifact.name)),
+			specifiers: [
+				// @ts-ignore
+				importStatement(AST.identifier(artifactIdentifier(document.artifact))),
+			],
+		})
+	}
+
 	/// add the imports if they're not there
 	ensureImports(config, script.content.body, 'fetchQuery', 'RequestContext')
 
@@ -123,19 +140,6 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 function processInstance(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
 	// make sure we have the imports we need
 	ensureImports(config, script.content.body, 'getQuery', 'query')
-
-	// every document will need to be imported
-	for (const document of queries) {
-		script.content.body.unshift({
-			type: 'ImportDeclaration',
-			// @ts-ignore
-			source: AST.literal(config.artifactImportPath(document.artifact.name)),
-			specifiers: [
-				// @ts-ignore
-				AST.importDefaultSpecifier(AST.identifier(artifactIdentifier(document.artifact))),
-			],
-		})
-	}
 
 	// add props to the component for every query while we're here
 
@@ -355,7 +359,10 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 							AST.objectExpression([
 								AST.objectProperty(
 									AST.literal('text'),
-									AST.stringLiteral(document.artifact.raw)
+									AST.memberExpression(
+										AST.identifier(artifactIdentifier(document.artifact)),
+										AST.identifier('raw')
+									)
 								),
 								// grab the variables from the function
 								AST.objectProperty(
@@ -492,6 +499,6 @@ function queryInputFunction(name: string) {
 	return `${name}Variables`
 }
 
-export function artifactIdentifier(artifact: DocumentArtifact) {
+export function artifactIdentifier(artifact: { name: string }) {
 	return `_${artifact.name}Artifact`
 }
