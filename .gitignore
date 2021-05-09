@@ -1,8 +1,6 @@
 .DS_Store
 node_modules
-packages/example/src/node_modules/@sapper/
 yarn-error.log
-__sapper__/
 .vscode
 
 build
@@ -21,8 +19,3 @@ __tests__
 __sapper__
 /example/src/node_modules/@sapper/
 yarn-error.log
-
-example-kit/.svelte/*
-example-kit/$houdini/*
-
-packages/houdini/runtime-kit/*
