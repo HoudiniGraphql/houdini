@@ -1,5 +1,4 @@
 {
-
 	"include": ["runtime/**/*"],
 	"exclude": ["node_modules", "**/*.test.ts"],
 	"paths": {

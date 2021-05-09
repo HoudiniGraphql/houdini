@@ -1,8 +1,8 @@
 <script>
-	import env from '../environment';
-	import { setEnvironment } from '$houdini';
+	import env from '../environment'
+	import { setEnvironment } from '$houdini'
 
-	setEnvironment(env);
+	setEnvironment(env)
 </script>
 
 <svelte:head>

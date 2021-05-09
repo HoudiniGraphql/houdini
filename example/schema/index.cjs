@@ -1,8 +1,8 @@
-const { makeExecutableSchema } = require('@graphql-tools/schema');
-const gql = require('graphql-tag');
-const { PubSub, withFilter } = require('apollo-server');
+const { makeExecutableSchema } = require('@graphql-tools/schema')
+const gql = require('graphql-tag')
+const { PubSub, withFilter } = require('apollo-server')
 
-const pubsub = new PubSub();
+const pubsub = new PubSub()
 
 module.exports.typeDefs = gql`
 	type Error {
@@ -53,75 +53,75 @@ module.exports.typeDefs = gql`
 	type ItemUpdate {
 		item: TodoItem!
 	}
-`;
+`
 
-id = 3;
+id = 3
 
 // example data
 let items = [
 	{ id: '1', text: 'Taste JavaScript' },
 	{ id: '2', text: 'Buy a unicorn' }
-];
+]
 
 module.exports.resolvers = {
 	Query: {
 		items: (_, { completed } = {}) => {
 			// if completed is undefined there is no filter
 			if (typeof completed === 'undefined') {
-				return items;
+				return items
 			}
 
-			return items.filter((item) => Boolean(item.completed) === Boolean(completed));
+			return items.filter((item) => Boolean(item.completed) === Boolean(completed))
 		}
 	},
 	Mutation: {
 		checkItem(_, { item: targetID, ...rest }) {
 			// grab the item in question
-			const item = items.find(({ id }) => id === targetID);
+			const item = items.find(({ id }) => id === targetID)
 			if (!item) {
-				throw new Error('Could not find item');
+				throw new Error('Could not find item')
 			}
 
 			// update the completed value
-			item.completed = true;
+			item.completed = true
 
 			// notify any subscribers
-			pubsub.publish('ITEM_UPDATE', { itemUpdate: { item } });
+			pubsub.publish('ITEM_UPDATE', { itemUpdate: { item } })
 
 			return {
 				error: null,
 				item
-			};
+			}
 		},
 		uncheckItem(_, { item: targetID }) {
 			// grab the item in question
-			const item = items.find(({ id }) => id === targetID);
+			const item = items.find(({ id }) => id === targetID)
 
 			// update the completed value
-			item.completed = false;
+			item.completed = false
 
 			// notify any subscribers
-			pubsub.publish('ITEM_UPDATE', { itemUpdate: { item } });
+			pubsub.publish('ITEM_UPDATE', { itemUpdate: { item } })
 
 			return {
 				error: null,
 				item
-			};
+			}
 		},
 		deleteItem(_, { item: targetID }) {
 			// filter out the item with the matching id
-			items = items.filter(({ id }) => id !== targetID);
+			items = items.filter(({ id }) => id !== targetID)
 
 			return {
 				error: null,
 				itemID: targetID
-			};
+			}
 		},
 		addItem(_, { input: { text } }) {
-			const item = { text, completed: false, id: (parseInt(id, 10) + 1).toString() };
-			id++;
-			items.unshift(item);
-			return { item, error: null };
+			const item = { text, completed: false, id: (parseInt(id, 10) + 1).toString() }
+			id++
+			items.unshift(item)
+			return { item, error: null }
 		}
 	},
 	TodoItem: {
@@ -132,9 +132,9 @@ module.exports.resolvers = {
 			subscribe: withFilter(
 				() => pubsub.asyncIterator('ITEM_UPDATE'),
 				(payload, variables) => {
-					return payload.itemUpdate.item.id === variables.id;
+					return payload.itemUpdate.item.id === variables.id
 				}
 			)
 		}
 	}
-};
+}

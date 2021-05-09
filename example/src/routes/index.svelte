@@ -7,6 +7,6 @@
 		return {
 			redirect: 'all',
 			status: 302
-		};
+		}
 	}
 </script>

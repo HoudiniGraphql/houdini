@@ -7,7 +7,7 @@
 		ItemEntry_item,
 		CompleteItem,
 		UncompleteItem,
-		DeleteItem,
+		DeleteItem
 	} from '$houdini'
 
 	// the reference we're passed from our parents
@@ -70,7 +70,7 @@
 			}
 		`,
 		{
-			id: $data.id,
+			id: $data.id
 		}
 	)
 
