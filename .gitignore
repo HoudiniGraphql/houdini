@@ -7,7 +7,7 @@ __sapper__/
 
 build
 bin
-/example/generated
+/example/$houdini
 
 .yarn/*
 !.yarn/releases
