@@ -12,8 +12,8 @@ const AST = recast.types.builders
 // every document in the application should be re-exported from the root. this allows the user to balance
 // code-splitting concerns with the "cleanliness" of importing from a single location
 export default async function writeIndexFile(config: Config, docs: CollectedGraphQLDocument[]) {
-	// build up the index file that should just export from the runtime
-	const body: StatementKind[] = [AST.exportAllDeclaration(AST.literal('./runtime'), null)]
+	// build up the index file that at least exports the runtime
+	const body = [AST.exportAllDeclaration(AST.literal('./runtime'), null)]
 
 	// write the index file that exports the runtime
 	await fs.writeFile(

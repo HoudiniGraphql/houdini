@@ -1,8 +1,7 @@
 <script context="module" lang="ts">
-	export function AllItemsVariables(page) {
+	export function AllItemsVariables({ page }) {
 		// if there is no filter assigned, dont enforce one in the query
 		if (!page.params.filter || page.params.filter === 'all') {
-			return {}
 		}
 
 		// make sure we recognize the value
@@ -12,15 +11,15 @@
 		}
 
 		return {
-			completed: page.params.filter === 'completed',
+			completed: page.params.filter === 'completed'
 		}
 	}
 </script>
 
 <script lang="ts">
 	import { query, graphql, mutation, AllItems, AddItem } from '$houdini'
-	import ItemEntry from '../components/ItemEntry.svelte'
-	import { stores } from '@sapper/app'
+	import ItemEntry from '$lib/ItemEntry.svelte'
+	import { page } from '$app/stores'
 	import { derived } from 'svelte/store'
 
 	// load the items
@@ -43,8 +42,7 @@
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
 				item {
-					...Filtered_Items_insert
-						@prepend(when_not: { argument: "completed", value: "true" })
+					...Filtered_Items_insert @prepend(when_not: { argument: "completed", value: "true" })
 					...All_Items_insert
 				}
 			}
@@ -61,7 +59,7 @@
 	)
 
 	// figure out the current page
-	const currentPage = derived(stores().page, ($page) => {
+	const currentPage = derived(page, ($page) => {
 		if ($page.path.includes('active')) {
 			return 'active'
 		} else if ($page.path.includes('completed')) {
