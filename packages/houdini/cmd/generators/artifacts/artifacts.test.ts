@@ -42,8 +42,8 @@ test('generates an artifact for every document', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		export {};
-		export {};
+		export { default as TestQuery} from './TestQuery'
+		export { default as TestFragment} from './TestFragment'
 	`)
 })
 

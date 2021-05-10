@@ -9,15 +9,13 @@ import { CollectedGraphQLDocument } from '../../types'
 const AST = recast.types.builders
 
 export default async function writeIndexFile(config: Config, docs: CollectedGraphQLDocument[]) {
-	// we want to export every artifact from the index file
-	const file = AST.program([
-		AST.exportNamedDeclaration(
-			null,
-			[AST.exportSpecifier(AST.identifier('foo'), AST.identifier('default'))],
-			AST.literal('./foo')
-		),
-	])
+	// we want to export every artifact from the index file. I struggled for a long time to figure
+	// out how to use the AST builder so for now, just build up the string
+	const body = docs.reduce(
+		(content, doc) => content + `\n export { default as ${doc.name}} from './${doc.name}'`,
+		''
+	)
 
 	// write the result to the artifact path we're configured to write to
-	await fs.writeFile(path.join(config.artifactDirectory, 'index.js'), recast.print(file).code)
+	await fs.writeFile(path.join(config.artifactDirectory, 'index.js'), body, 'utf-8')
 }
