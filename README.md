@@ -137,7 +137,7 @@ And finally, we need to configure our application to use the generated network l
 this, add the following block of code to `src/routes/$layout.svelte`:
 
 ```typescript
-<script>
+<script context="module">
 	import env from '../environment';
 	import { setEnvironment } from '$houdini';
 
