@@ -15,12 +15,12 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 	const body = AST.program([
 		// build up the index file that at least exports the runtime
 		AST.exportAllDeclaration(
-			AST.literal(path.relative(config.rootDir, config.runtimeDirectory)),
+			AST.literal('./' + path.relative(config.rootDir, config.runtimeDirectory)),
 			null
 		),
 		// every artifact we generated be exported from the index file
 		AST.exportAllDeclaration(
-			AST.literal(path.relative(config.rootDir, config.artifactDirectory)),
+			AST.literal('./' + path.relative(config.rootDir, config.artifactDirectory)),
 			null
 		),
 	])

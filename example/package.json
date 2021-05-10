@@ -28,5 +28,9 @@
 		"typescript": "^4.0.0",
 		"vite": "^2.1.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"apollo-server": "^2.24.0",
+		"subscriptions-transport-ws": "^0.9.18"
+	}
 }
