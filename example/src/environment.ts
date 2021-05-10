@@ -24,7 +24,7 @@ async function fetchQuery({ text, variables = {} }) {
 // this client is used to handle any socket connections that are made to the api
 // since websockets only exist on the client, set to null on the server
 let socketClient: SubscriptionHandler | null = null
-if ((process as any).browser) {
+if (typeof window !== 'undefined') {
 	// instantiate the transport client
 	const client = new SubscriptionClient('ws://' + API_URL, {
 		reconnect: true
