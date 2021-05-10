@@ -3,9 +3,8 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
 // locals
-import { walkTaggedDocuments } from '../utils'
+import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils'
 import { TransformDocument } from '../types'
-import { artifactIdentifier } from './query'
 
 const AST = recast.types.builders
 
@@ -45,20 +44,8 @@ export default async function fragmentProcesesor(
 				])
 			)
 
-			// the kind of import depends on the mode
-			const importStatement =
-				config.mode === 'sapper' ? AST.importDefaultSpecifier : AST.importNamespaceSpecifier
-
 			// add an import to the body pointing to the artifact
-			doc.instance?.content.body.unshift({
-				type: 'ImportDeclaration',
-				// @ts-ignore
-				source: AST.literal(config.artifactImportPath(artifact.name)),
-				specifiers: [
-					// @ts-ignore
-					importStatement(AST.identifier(artifactVariable)),
-				],
-			})
+			doc.instance?.content.body.unshift(artifactImport(config, artifact))
 		},
 	})
 }

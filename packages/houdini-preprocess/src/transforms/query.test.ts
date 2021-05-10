@@ -187,7 +187,7 @@ describe('query preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.module.content).toMatchInlineSnapshot(`
 		import { fetchQuery, RequestContext } from "$houdini";
-		import * as _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);

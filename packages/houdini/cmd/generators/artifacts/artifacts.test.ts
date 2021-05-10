@@ -29,13 +29,28 @@ test('generates an artifact for every document', async function () {
 
 	// and they have the right names
 	expect(files).toEqual(expect.arrayContaining(['TestQuery.js', 'TestFragment.js']))
+
+	// open up the index file
+	const queryContents = await fs.readFile(
+		path.join(config.artifactDirectory, 'index.js'),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		export {};
+		export {};
+	`)
 })
 
 test('adds kind, name, and raw, response, and selection', async function () {
 	// execute the generator
 	await runPipeline(config, docs)
 
-	//
 	// load the contents of the file
 	const queryContents = await fs.readFile(
 		path.join(config.artifactPath(docs[0].document)),
@@ -48,21 +63,23 @@ test('adds kind, name, and raw, response, and selection', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "41ec892821ed25278cbbaf2c4d434205";
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "41ec892821ed25278cbbaf2c4d434205",
 
-		module.exports.raw = \`query TestQuery {
+		    raw: \`query TestQuery {
 		  version
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Query";
+		    rootType: "Query",
 
-		module.exports.selection = {
-		    "version": {
-		        "type": "Int",
-		        "keyRaw": "version"
+		    selection: {
+		        "version": {
+		            "type": "Int",
+		            "keyRaw": "version"
+		        }
 		    }
 		};
 	`)
@@ -78,21 +95,23 @@ test('adds kind, name, and raw, response, and selection', async function () {
 	}).program
 	// and verify their content
 	expect(parsedFragment).toMatchInlineSnapshot(`
-		module.exports.name = "TestFragment";
-		module.exports.kind = "HoudiniFragment";
-		module.exports.hash = "a77288e39dcdadb70e4010b543c89c6a";
+		module.exports = {
+		    name: "TestFragment",
+		    kind: "HoudiniFragment",
+		    hash: "a77288e39dcdadb70e4010b543c89c6a",
 
-		module.exports.raw = \`fragment TestFragment on User {
+		    raw: \`fragment TestFragment on User {
 		  firstName
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "User";
+		    rootType: "User",
 
-		module.exports.selection = {
-		    "firstName": {
-		        "type": "String",
-		        "keyRaw": "firstName"
+		    selection: {
+		        "firstName": {
+		            "type": "String",
+		            "keyRaw": "firstName"
+		        }
 		    }
 		};
 	`)
@@ -121,11 +140,12 @@ test('selection includes fragments', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "8662e6b2267b8667e81533ecbb73dd23";
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "8662e6b2267b8667e81533ecbb73dd23",
 
-		module.exports.raw = \`query TestQuery {
+		    raw: \`query TestQuery {
 		  user {
 		    ...TestFragment
 		  }
@@ -134,19 +154,20 @@ test('selection includes fragments', async function () {
 		fragment TestFragment on User {
 		  firstName
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Query";
+		    rootType: "Query",
 
-		module.exports.selection = {
-		    "user": {
-		        "type": "User",
-		        "keyRaw": "user",
+		    selection: {
+		        "user": {
+		            "type": "User",
+		            "keyRaw": "user",
 
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
+		            "fields": {
+		                "firstName": {
+		                    "type": "String",
+		                    "keyRaw": "firstName"
+		                }
 		            }
 		        }
 		    }
@@ -164,21 +185,23 @@ test('selection includes fragments', async function () {
 	}).program
 	// and verify their content
 	expect(parsedFragment).toMatchInlineSnapshot(`
-		module.exports.name = "TestFragment";
-		module.exports.kind = "HoudiniFragment";
-		module.exports.hash = "a77288e39dcdadb70e4010b543c89c6a";
+		module.exports = {
+		    name: "TestFragment",
+		    kind: "HoudiniFragment",
+		    hash: "a77288e39dcdadb70e4010b543c89c6a",
 
-		module.exports.raw = \`fragment TestFragment on User {
+		    raw: \`fragment TestFragment on User {
 		  firstName
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "User";
+		    rootType: "User",
 
-		module.exports.selection = {
-		    "firstName": {
-		        "type": "String",
-		        "keyRaw": "firstName"
+		    selection: {
+		        "firstName": {
+		            "type": "String",
+		            "keyRaw": "firstName"
+		        }
 		    }
 		};
 	`)
@@ -203,11 +226,12 @@ test('internal directives are scrubbed', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "f4887b164296c8e6be4c4461520a7f99";
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "f4887b164296c8e6be4c4461520a7f99",
 
-		module.exports.raw = \`query TestQuery {
+		    raw: \`query TestQuery {
 		  user {
 		    ...A
 		  }
@@ -216,19 +240,20 @@ test('internal directives are scrubbed', async function () {
 		fragment A on User {
 		  firstName
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Query";
+		    rootType: "Query",
 
-		module.exports.selection = {
-		    "user": {
-		        "type": "User",
-		        "keyRaw": "user",
+		    selection: {
+		        "user": {
+		            "type": "User",
+		            "keyRaw": "user",
 
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
+		            "fields": {
+		                "firstName": {
+		                    "type": "String",
+		                    "keyRaw": "firstName"
+		                }
 		            }
 		        }
 		    }
@@ -255,11 +280,12 @@ test('overlapping query and fragment selection', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "3ec890e9ea3a5482628bdaf932551e3c";
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "3ec890e9ea3a5482628bdaf932551e3c",
 
-		module.exports.raw = \`query TestQuery {
+		    raw: \`query TestQuery {
 		  user {
 		    firstName
 		    ...A
@@ -269,19 +295,20 @@ test('overlapping query and fragment selection', async function () {
 		fragment A on User {
 		  firstName
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Query";
+		    rootType: "Query",
 
-		module.exports.selection = {
-		    "user": {
-		        "type": "User",
-		        "keyRaw": "user",
+		    selection: {
+		        "user": {
+		            "type": "User",
+		            "keyRaw": "user",
 
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
+		            "fields": {
+		                "firstName": {
+		                    "type": "String",
+		                    "keyRaw": "firstName"
+		                }
 		            }
 		        }
 		    }
@@ -311,11 +338,12 @@ test('overlapping query and fragment nested selection', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "d99668cf016f0e99335dce103bd6ccfd";
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "d99668cf016f0e99335dce103bd6ccfd",
 
-		module.exports.raw = \`query TestQuery {
+		    raw: \`query TestQuery {
 		  user {
 		    friends {
 		      firstName
@@ -329,29 +357,30 @@ test('overlapping query and fragment nested selection', async function () {
 		    id
 		  }
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Query";
+		    rootType: "Query",
 
-		module.exports.selection = {
-		    "user": {
-		        "type": "User",
-		        "keyRaw": "user",
+		    selection: {
+		        "user": {
+		            "type": "User",
+		            "keyRaw": "user",
 
-		        "fields": {
-		            "friends": {
-		                "type": "User",
-		                "keyRaw": "friends",
+		            "fields": {
+		                "friends": {
+		                    "type": "User",
+		                    "keyRaw": "friends",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
-		                    },
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    }
 		                }
 		            }
@@ -399,35 +428,37 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation B";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "e9f6440182fec6d7a6d505710f13786e";
+		module.exports = {
+		    name: "Mutation B",
+		    kind: "HoudiniMutation",
+		    hash: "e9f6440182fec6d7a6d505710f13786e",
 
-		module.exports.raw = \`mutation B {
+		    raw: \`mutation B {
 		  addFriend {
 		    friend {
 		      firstName
 		    }
 		  }
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        }
 		                    }
 		                }
 		            }
@@ -474,11 +505,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "8b0662945dc40367f151352db91956d9";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "8b0662945dc40367f151352db91956d9",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -490,37 +522,38 @@ describe('mutation artifacts', function () {
 		  firstName
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
-
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last"
-		                }]
+		                    "operations": [{
+		                        "action": "insert",
+		                        "connection": "All_Users",
+		                        "position": "last"
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -565,11 +598,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "1c16742ee77c99369985c0eb3977bb51";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "1c16742ee77c99369985c0eb3977bb51",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_remove
@@ -580,31 +614,32 @@ describe('mutation artifacts', function () {
 		fragment All_Users_remove on User {
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
+		                    "fields": {
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
+		                    },
 
-		                "operations": [{
-		                    "action": "remove",
-		                    "connection": "All_Users"
-		                }]
+		                    "operations": [{
+		                        "action": "remove",
+		                        "connection": "All_Users"
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -647,33 +682,35 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "93b6b6a347ea5d70f4a0eec5aa3bcad6";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "93b6b6a347ea5d70f4a0eec5aa3bcad6",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  deleteUser(id: "1234") {
 		    userID
 		  }
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "deleteUser": {
-		        "type": "DeleteUserOutput",
-		        "keyRaw": "deleteUser(id: \\"1234\\")",
+		    selection: {
+		        "deleteUser": {
+		            "type": "DeleteUserOutput",
+		            "keyRaw": "deleteUser(id: \\"1234\\")",
 
-		        "fields": {
-		            "userID": {
-		                "type": "ID",
-		                "keyRaw": "userID",
+		            "fields": {
+		                "userID": {
+		                    "type": "ID",
+		                    "keyRaw": "userID",
 
-		                "operations": [{
-		                    "action": "delete",
-		                    "type": "User"
-		                }]
+		                    "operations": [{
+		                        "action": "delete",
+		                        "type": "User"
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -716,39 +753,41 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "7c841bbbbd206c7c2e40bc683b173294";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "7c841bbbbd206c7c2e40bc683b173294",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  deleteUser(id: "1234") {
 		    userID
 		  }
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "deleteUser": {
-		        "type": "DeleteUserOutput",
-		        "keyRaw": "deleteUser(id: \\"1234\\")",
+		    selection: {
+		        "deleteUser": {
+		            "type": "DeleteUserOutput",
+		            "keyRaw": "deleteUser(id: \\"1234\\")",
 
-		        "fields": {
-		            "userID": {
-		                "type": "ID",
-		                "keyRaw": "userID",
+		            "fields": {
+		                "userID": {
+		                    "type": "ID",
+		                    "keyRaw": "userID",
 
-		                "operations": [{
-		                    "action": "delete",
-		                    "type": "User",
+		                    "operations": [{
+		                        "action": "delete",
+		                        "type": "User",
 
-		                    "when": {
-		                        "must": {
-		                            "stringValue": "foo"
+		                        "when": {
+		                            "must": {
+		                                "stringValue": "foo"
+		                            }
 		                        }
-		                    }
-		                }]
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -793,11 +832,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "661e8ea6aef15a9dc54d9a75e6e7b181";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "661e8ea6aef15a9dc54d9a75e6e7b181",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -809,42 +849,43 @@ describe('mutation artifacts', function () {
 		  firstName
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
+		                    "operations": [{
+		                        "action": "insert",
+		                        "connection": "All_Users",
+		                        "position": "first",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "first",
-
-		                    "parentID": {
-		                        "kind": "String",
-		                        "value": "1234"
-		                    }
-		                }]
+		                        "parentID": {
+		                            "kind": "String",
+		                            "value": "1234"
+		                        }
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -889,11 +930,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "542ad5bd1546c881cd681f11f00681b9";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "542ad5bd1546c881cd681f11f00681b9",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -905,42 +947,43 @@ describe('mutation artifacts', function () {
 		  firstName
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
+		                    "operations": [{
+		                        "action": "insert",
+		                        "connection": "All_Users",
+		                        "position": "last",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "parentID": {
-		                        "kind": "String",
-		                        "value": "1234"
-		                    }
-		                }]
+		                        "parentID": {
+		                            "kind": "String",
+		                            "value": "1234"
+		                        }
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -985,11 +1028,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "86320c3ec367b754e394444499e08955";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "86320c3ec367b754e394444499e08955",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -1001,42 +1045,43 @@ describe('mutation artifacts', function () {
 		  firstName
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
+		                    "operations": [{
+		                        "action": "insert",
+		                        "connection": "All_Users",
+		                        "position": "last",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "parentID": {
-		                        "kind": "String",
-		                        "value": "1234"
-		                    }
-		                }]
+		                        "parentID": {
+		                            "kind": "String",
+		                            "value": "1234"
+		                        }
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -1081,11 +1126,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "aca7e0bd918f4c47a73b6e7f58f550cc";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "aca7e0bd918f4c47a73b6e7f58f550cc",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -1097,43 +1143,44 @@ describe('mutation artifacts', function () {
 		  firstName
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
+		                    "operations": [{
+		                        "action": "insert",
+		                        "connection": "All_Users",
+		                        "position": "first",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "first",
-
-		                    "when": {
-		                        "must": {
-		                            "stringValue": "foo"
+		                        "when": {
+		                            "must": {
+		                                "stringValue": "foo"
+		                            }
 		                        }
-		                    }
-		                }]
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -1178,11 +1225,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "bbb139f4dbff5e14ac8fbf686c5f0361";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "bbb139f4dbff5e14ac8fbf686c5f0361",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -1194,43 +1242,44 @@ describe('mutation artifacts', function () {
 		  firstName
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
+		                    "operations": [{
+		                        "action": "insert",
+		                        "connection": "All_Users",
+		                        "position": "last",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must": {
-		                            "stringValue": "true"
+		                        "when": {
+		                            "must": {
+		                                "stringValue": "true"
+		                            }
 		                        }
-		                    }
-		                }]
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -1275,11 +1324,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "b143d50e839463c0ec641cadd67f2c5b";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "b143d50e839463c0ec641cadd67f2c5b",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -1291,43 +1341,44 @@ describe('mutation artifacts', function () {
 		  firstName
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
+		                    "operations": [{
+		                        "action": "insert",
+		                        "connection": "All_Users",
+		                        "position": "last",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must": {
-		                            "stringValue": "true"
+		                        "when": {
+		                            "must": {
+		                                "stringValue": "true"
+		                            }
 		                        }
-		                    }
-		                }]
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -1372,11 +1423,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "d99dd22eb6d5cabf74c839e786ad6017";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "d99dd22eb6d5cabf74c839e786ad6017",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -1388,43 +1440,44 @@ describe('mutation artifacts', function () {
 		  firstName
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
+		                    "operations": [{
+		                        "action": "insert",
+		                        "connection": "All_Users",
+		                        "position": "first",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "first",
-
-		                    "when": {
-		                        "must_not": {
-		                            "stringValue": "true"
+		                        "when": {
+		                            "must_not": {
+		                                "stringValue": "true"
+		                            }
 		                        }
-		                    }
-		                }]
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -1469,11 +1522,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "a85f3dd007201c1cf851405358b13505";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "a85f3dd007201c1cf851405358b13505",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -1485,43 +1539,44 @@ describe('mutation artifacts', function () {
 		  firstName
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
+		                    "operations": [{
+		                        "action": "insert",
+		                        "connection": "All_Users",
+		                        "position": "last",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must_not": {
-		                            "stringValue": "true"
+		                        "when": {
+		                            "must_not": {
+		                                "stringValue": "true"
+		                            }
 		                        }
-		                    }
-		                }]
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -1571,52 +1626,54 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "24f50fa3efd06490701180759984ddbb";
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "24f50fa3efd06490701180759984ddbb",
 
-		module.exports.raw = \`query TestQuery($value: String!) {
+		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
 		  }
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Query";
+		    rootType: "Query",
 
-		module.exports.selection = {
-		    "users": {
-		        "type": "User",
-		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+		    selection: {
+		        "users": {
+		            "type": "User",
+		            "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
 
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
-		            }
-		        },
-
-		        "connection": "All_Users",
-
-		        "filters": {
-		            "stringValue": {
-		                "kind": "Variable",
-		                "value": "value"
+		            "fields": {
+		                "firstName": {
+		                    "type": "String",
+		                    "keyRaw": "firstName"
+		                }
 		            },
 
-		            "boolValue": {
-		                "kind": "Boolean",
-		                "value": true
-		            },
+		            "connection": "All_Users",
 
-		            "floatValue": {
-		                "kind": "Float",
-		                "value": 1.2
-		            },
+		            "filters": {
+		                "stringValue": {
+		                    "kind": "Variable",
+		                    "value": "value"
+		                },
 
-		            "intValue": {
-		                "kind": "Int",
-		                "value": 1
+		                "boolValue": {
+		                    "kind": "Boolean",
+		                    "value": true
+		                },
+
+		                "floatValue": {
+		                    "kind": "Float",
+		                    "value": 1.2
+		                },
+
+		                "intValue": {
+		                    "kind": "Int",
+		                    "value": 1
+		                }
 		            }
 		        }
 		    }
@@ -1661,11 +1718,12 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Mutation A";
-		module.exports.kind = "HoudiniMutation";
-		module.exports.hash = "7bcbb707250eccabf4fecb1b8976889c";
+		module.exports = {
+		    name: "Mutation A",
+		    kind: "HoudiniMutation",
+		    hash: "7bcbb707250eccabf4fecb1b8976889c",
 
-		module.exports.raw = \`mutation A {
+		    raw: \`mutation A {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
@@ -1677,43 +1735,44 @@ describe('mutation artifacts', function () {
 		  firstName
 		  id
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Mutation";
+		    rootType: "Mutation",
 
-		module.exports.selection = {
-		    "addFriend": {
-		        "type": "AddFriendOutput",
-		        "keyRaw": "addFriend",
+		    selection: {
+		        "addFriend": {
+		            "type": "AddFriendOutput",
+		            "keyRaw": "addFriend",
 
-		        "fields": {
-		            "friend": {
-		                "type": "User",
-		                "keyRaw": "friend",
+		            "fields": {
+		                "friend": {
+		                    "type": "User",
+		                    "keyRaw": "friend",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
+		                        }
 		                    },
 
-		                    "id": {
-		                        "type": "ID",
-		                        "keyRaw": "id"
-		                    }
-		                },
+		                    "operations": [{
+		                        "action": "insert",
+		                        "connection": "All_Users",
+		                        "position": "last",
 
-		                "operations": [{
-		                    "action": "insert",
-		                    "connection": "All_Users",
-		                    "position": "last",
-
-		                    "when": {
-		                        "must_not": {
-		                            "boolValue": true
+		                        "when": {
+		                            "must_not": {
+		                                "boolValue": true
+		                            }
 		                        }
-		                    }
-		                }]
+		                    }]
+		                }
 		            }
 		        }
 		    }
@@ -1758,37 +1817,39 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "214e4de1395c8620738a3c53619e73bd";
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "214e4de1395c8620738a3c53619e73bd",
 
-		module.exports.raw = \`query TestQuery {
+		    raw: \`query TestQuery {
 		  users(stringValue: "foo") {
 		    firstName
 		  }
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Query";
+		    rootType: "Query",
 
-		module.exports.selection = {
-		    "users": {
-		        "type": "User",
-		        "keyRaw": "users(stringValue: \\"foo\\")",
+		    selection: {
+		        "users": {
+		            "type": "User",
+		            "keyRaw": "users(stringValue: \\"foo\\")",
 
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
-		            }
-		        },
+		            "fields": {
+		                "firstName": {
+		                    "type": "String",
+		                    "keyRaw": "firstName"
+		                }
+		            },
 
-		        "connection": "All_Users",
+		            "connection": "All_Users",
 
-		        "filters": {
-		            "stringValue": {
-		                "kind": "String",
-		                "value": "foo"
+		            "filters": {
+		                "stringValue": {
+		                    "kind": "String",
+		                    "value": "foo"
+		                }
 		            }
 		        }
 		    }
@@ -1828,52 +1889,54 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "TestQuery";
-		module.exports.kind = "HoudiniQuery";
-		module.exports.hash = "24f50fa3efd06490701180759984ddbb";
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "24f50fa3efd06490701180759984ddbb",
 
-		module.exports.raw = \`query TestQuery($value: String!) {
+		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
 		  }
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Query";
+		    rootType: "Query",
 
-		module.exports.selection = {
-		    "users": {
-		        "type": "User",
-		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+		    selection: {
+		        "users": {
+		            "type": "User",
+		            "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
 
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
-		            }
-		        },
-
-		        "connection": "All_Users",
-
-		        "filters": {
-		            "stringValue": {
-		                "kind": "Variable",
-		                "value": "value"
+		            "fields": {
+		                "firstName": {
+		                    "type": "String",
+		                    "keyRaw": "firstName"
+		                }
 		            },
 
-		            "boolValue": {
-		                "kind": "Boolean",
-		                "value": true
-		            },
+		            "connection": "All_Users",
 
-		            "floatValue": {
-		                "kind": "Float",
-		                "value": 1.2
-		            },
+		            "filters": {
+		                "stringValue": {
+		                    "kind": "Variable",
+		                    "value": "value"
+		                },
 
-		            "intValue": {
-		                "kind": "Int",
-		                "value": 1
+		                "boolValue": {
+		                    "kind": "Boolean",
+		                    "value": true
+		                },
+
+		                "floatValue": {
+		                    "kind": "Float",
+		                    "value": 1.2
+		                },
+
+		                "intValue": {
+		                    "kind": "Int",
+		                    "value": 1
+		                }
 		            }
 		        }
 		    }
@@ -1915,52 +1978,54 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		export const name = "TestQuery";
-		export const kind = "HoudiniQuery";
-		export const hash = "24f50fa3efd06490701180759984ddbb";
+		export default {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "24f50fa3efd06490701180759984ddbb",
 
-		export const raw = \`query TestQuery($value: String!) {
+		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
 		  }
 		}
-		\`;
+		\`,
 
-		export const rootType = "Query";
+		    rootType: "Query",
 
-		export const selection = {
-		    "users": {
-		        "type": "User",
-		        "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+		    selection: {
+		        "users": {
+		            "type": "User",
+		            "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
 
-		        "fields": {
-		            "firstName": {
-		                "type": "String",
-		                "keyRaw": "firstName"
-		            }
-		        },
-
-		        "connection": "All_Users",
-
-		        "filters": {
-		            "stringValue": {
-		                "kind": "Variable",
-		                "value": "value"
+		            "fields": {
+		                "firstName": {
+		                    "type": "String",
+		                    "keyRaw": "firstName"
+		                }
 		            },
 
-		            "boolValue": {
-		                "kind": "Boolean",
-		                "value": true
-		            },
+		            "connection": "All_Users",
 
-		            "floatValue": {
-		                "kind": "Float",
-		                "value": 1.2
-		            },
+		            "filters": {
+		                "stringValue": {
+		                    "kind": "Variable",
+		                    "value": "value"
+		                },
 
-		            "intValue": {
-		                "kind": "Int",
-		                "value": 1
+		                "boolValue": {
+		                    "kind": "Boolean",
+		                    "value": true
+		                },
+
+		                "floatValue": {
+		                    "kind": "Float",
+		                    "value": 1.2
+		                },
+
+		                "intValue": {
+		                    "kind": "Int",
+		                    "value": 1
+		                }
 		            }
 		        }
 		    }
@@ -1999,35 +2064,37 @@ describe('subscription artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports.name = "Subscription B";
-		module.exports.kind = "HoudiniSubscription";
-		module.exports.hash = "5b9fd19fce6b2a025d3d7e4a1b2a61c0";
+		module.exports = {
+		    name: "Subscription B",
+		    kind: "HoudiniSubscription",
+		    hash: "5b9fd19fce6b2a025d3d7e4a1b2a61c0",
 
-		module.exports.raw = \`subscription B {
+		    raw: \`subscription B {
 		  newUser {
 		    user {
 		      firstName
 		    }
 		  }
 		}
-		\`;
+		\`,
 
-		module.exports.rootType = "Subscription";
+		    rootType: "Subscription",
 
-		module.exports.selection = {
-		    "newUser": {
-		        "type": "NewUserResult",
-		        "keyRaw": "newUser",
+		    selection: {
+		        "newUser": {
+		            "type": "NewUserResult",
+		            "keyRaw": "newUser",
 
-		        "fields": {
-		            "user": {
-		                "type": "User",
-		                "keyRaw": "user",
+		            "fields": {
+		                "user": {
+		                    "type": "User",
+		                    "keyRaw": "user",
 
-		                "fields": {
-		                    "firstName": {
-		                        "type": "String",
-		                        "keyRaw": "firstName"
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        }
 		                    }
 		                }
 		            }

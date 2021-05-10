@@ -4,8 +4,7 @@ import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
-import { walkTaggedDocuments } from '../utils'
-import { artifactIdentifier } from './query'
+import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils'
 const AST = recast.types.builders
 
 export default async function mutationProcessor(
@@ -35,7 +34,7 @@ export default async function mutationProcessor(
 			)
 		},
 		// we want to replace it with an object that the runtime can use
-		onTag({ artifact, parsedDocument, node }) {
+		onTag({ artifact, node }) {
 			// replace the graphql node with the object
 			node.replaceWith(
 				AST.objectExpression([
@@ -47,19 +46,7 @@ export default async function mutationProcessor(
 				])
 			)
 
-			// the kind of import depends on the mode
-			const importStatement =
-				config.mode === 'sapper' ? AST.importDefaultSpecifier : AST.importNamespaceSpecifier
-
-			doc.instance?.content.body.unshift({
-				type: 'ImportDeclaration',
-				// @ts-ignore
-				source: AST.literal(config.artifactImportPath(artifact.name)),
-				specifiers: [
-					// @ts-ignore
-					importStatement(AST.identifier(artifactIdentifier(artifact))),
-				],
-			})
+			doc.instance?.content.body.unshift(artifactImport(config, artifact))
 		},
 	})
 }

@@ -1,14 +1,18 @@
 // externals
 import * as recast from 'recast'
 import * as graphql from 'graphql'
-import { ExportNamedDeclaration, ReturnStatement, Statement, ObjectProperty } from '@babel/types'
+import { ExportNamedDeclaration, ReturnStatement, Statement } from '@babel/types'
 import { Config, Script } from 'houdini-common'
-import { DocumentArtifact } from 'houdini'
 import { namedTypes } from 'ast-types/gen/namedTypes'
+import { ObjectExpressionKind } from 'ast-types/gen/kinds'
 // locals
 import { TransformDocument } from '../types'
-import { walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
-import { ObjectExpressionKind } from 'ast-types/gen/kinds'
+import {
+	walkTaggedDocuments,
+	EmbeddedGraphqlDocument,
+	artifactImport,
+	artifactIdentifier,
+} from '../utils'
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
@@ -110,19 +114,7 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 
 	// every document will need to be imported
 	for (const document of queries) {
-		// the kind of import depends on the mode
-		const importStatement =
-			config.mode === 'sapper' ? AST.importDefaultSpecifier : AST.importNamespaceSpecifier
-
-		script.content.body.unshift({
-			type: 'ImportDeclaration',
-			// @ts-ignore
-			source: AST.literal(config.artifactImportPath(document.artifact.name)),
-			specifiers: [
-				// @ts-ignore
-				importStatement(AST.identifier(artifactIdentifier(document.artifact))),
-			],
-		})
+		script.content.body.unshift(artifactImport(config, document.artifact))
 	}
 
 	/// add the imports if they're not there
@@ -497,8 +489,4 @@ function variablesKey(operation: graphql.OperationDefinitionNode): string {
 
 function queryInputFunction(name: string) {
 	return `${name}Variables`
-}
-
-export function artifactIdentifier(artifact: { name: string }) {
-	return `_${artifact.name}Artifact`
 }

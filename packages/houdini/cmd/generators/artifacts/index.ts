@@ -15,6 +15,7 @@ import fs from 'fs/promises'
 import { moduleExport } from '../../utils'
 import selection from './selection'
 import { operationsByPath, FilterMap } from './operations'
+import writeIndexFile from './indexFile'
 
 const AST = recast.types.builders
 
@@ -93,133 +94,143 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 	// we have everything we need to generate the artifacts
 	await Promise.all(
-		docs.map(async ({ document, name, printed, originalDocument }) => {
-			// before we can print the document, we need to strip all references to internal directives
-			const rawString = graphql.print(
-				graphql.visit(document, {
-					Directive(node) {
-						// if the directive is one of the internal ones, remove it
-						if (config.isInternalDirective(node)) {
-							return null
-						}
-					},
-				})
-			)
-
-			// figure out the document kind
-			let docKind: CompiledDocumentKind | null = null
-
-			// look for the operation
-			const operations = document.definitions.filter(
-				({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
-			) as graphql.OperationDefinitionNode[]
-			// there are no operations, so its a fragment
-			const fragments = document.definitions.filter(
-				({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
-			) as graphql.FragmentDefinitionNode[]
-
-			// if there are operations in the document
-			if (operations.length > 0 && operations[0].kind === 'OperationDefinition') {
-				const { operation } = operations[0]
-
-				// figure out if its a query
-				if (operation === 'query') {
-					docKind = CompiledQueryKind
-				}
-				// or a mutation
-				else if (operation === 'mutation') {
-					docKind = CompiledMutationKind
-				}
-				// or a subscription
-				else if (operation === 'subscription') {
-					docKind = CompiledSubscriptionKind
-				}
-			}
-			// if there are operations in the document
-			else if (fragments.length > 0) {
-				docKind = CompiledFragmentKind
-			}
-
-			// if we couldn't figure out the kind
-			if (!docKind) {
-				throw new Error('Could not figure out what kind of document we were given')
-			}
-
-			// generate a hash of the document that we can use to detect changes
-			// start building up the artifact
-			const artifact = AST.program([
-				moduleExport(config, 'name', AST.stringLiteral(name)),
-				moduleExport(config, 'kind', AST.stringLiteral(docKind)),
-				moduleExport(config, 'hash', AST.stringLiteral(hashDocument(printed))),
-				moduleExport(
-					config,
-					'raw',
-					AST.templateLiteral(
-						[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
-						[]
-					)
-				),
-			])
-
-			let rootType: string | undefined = ''
-			let selectionSet: graphql.SelectionSetNode
-
-			// if we are generating the artifact for an operation
-			if (docKind !== 'HoudiniFragment') {
-				// find the operation
-				const operation = operations[0]
-
-				if (operation.operation === 'query') {
-					rootType = config.schema.getQueryType()?.name
-				} else if (operation.operation === 'mutation') {
-					rootType = config.schema.getMutationType()?.name
-				} else if (operation.operation === 'subscription') {
-					rootType = config.schema.getSubscriptionType()?.name
-				}
-				if (!rootType) {
-					throw new Error(
-						'could not find root type for operation: ' +
-							operation.operation +
-							'. Maybe you need to re-run the introspection query?'
-					)
-				}
-
-				// use this selection set
-				selectionSet = operation.selectionSet
-			}
-			// we are looking at a fragment so use its selection set and type for the subscribe index
-			else {
-				rootType = fragments[0].typeCondition.name.value
-				selectionSet = fragments[0].selectionSet
-			}
-
-			// add the selection information so we can subscribe to the store
-			artifact.body.push(
-				moduleExport(config, 'rootType', AST.stringLiteral(rootType)),
-				moduleExport(
-					config,
-					'selection',
-					selection({
-						config,
-						printed,
-						rootType,
-						selectionSet: selectionSet,
-						operations: operationsByPath(config, operations[0], filterTypes),
-						// do not include used fragments if we are rendering the selection
-						// for a fragment document
-						includeFragments: docKind !== 'HoudiniFragment',
-						document,
+		[
+			// generate the index file
+			writeIndexFile(config, docs),
+		].concat(
+			// and an artifact for every document
+			docs.map(async ({ document, name, printed, originalDocument }) => {
+				// before we can print the document, we need to strip all references to internal directives
+				const rawString = graphql.print(
+					graphql.visit(document, {
+						Directive(node) {
+							// if the directive is one of the internal ones, remove it
+							if (config.isInternalDirective(node)) {
+								return null
+							}
+						},
 					})
 				)
-			)
 
-			// write the result to the artifact path we're configured to write to
-			await fs.writeFile(config.artifactPath(document), recast.print(artifact).code)
+				// figure out the document kind
+				let docKind: CompiledDocumentKind | null = null
 
-			// log the file location to confirm
-			if (!config.quiet) {
-				console.log(name)
-			}
-		})
+				// look for the operation
+				const operations = document.definitions.filter(
+					({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
+				) as graphql.OperationDefinitionNode[]
+				// there are no operations, so its a fragment
+				const fragments = document.definitions.filter(
+					({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
+				) as graphql.FragmentDefinitionNode[]
+
+				// if there are operations in the document
+				if (operations.length > 0 && operations[0].kind === 'OperationDefinition') {
+					const { operation } = operations[0]
+
+					// figure out if its a query
+					if (operation === 'query') {
+						docKind = CompiledQueryKind
+					}
+					// or a mutation
+					else if (operation === 'mutation') {
+						docKind = CompiledMutationKind
+					}
+					// or a subscription
+					else if (operation === 'subscription') {
+						docKind = CompiledSubscriptionKind
+					}
+				}
+				// if there are operations in the document
+				else if (fragments.length > 0) {
+					docKind = CompiledFragmentKind
+				}
+
+				// if we couldn't figure out the kind
+				if (!docKind) {
+					throw new Error('Could not figure out what kind of document we were given')
+				}
+
+				// generate a hash of the document that we can use to detect changes
+				// start building up the artifact
+				const artifact = AST.objectExpression([
+					AST.objectProperty(AST.identifier('name'), AST.stringLiteral(name)),
+					AST.objectProperty(AST.identifier('kind'), AST.stringLiteral(docKind)),
+					AST.objectProperty(
+						AST.identifier('hash'),
+						AST.stringLiteral(hashDocument(printed))
+					),
+					AST.objectProperty(
+						AST.identifier('raw'),
+						AST.templateLiteral(
+							[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
+							[]
+						)
+					),
+				])
+
+				let rootType: string | undefined = ''
+				let selectionSet: graphql.SelectionSetNode
+
+				// if we are generating the artifact for an operation
+				if (docKind !== 'HoudiniFragment') {
+					// find the operation
+					const operation = operations[0]
+
+					if (operation.operation === 'query') {
+						rootType = config.schema.getQueryType()?.name
+					} else if (operation.operation === 'mutation') {
+						rootType = config.schema.getMutationType()?.name
+					} else if (operation.operation === 'subscription') {
+						rootType = config.schema.getSubscriptionType()?.name
+					}
+					if (!rootType) {
+						throw new Error(
+							'could not find root type for operation: ' +
+								operation.operation +
+								'. Maybe you need to re-run the introspection query?'
+						)
+					}
+
+					// use this selection set
+					selectionSet = operation.selectionSet
+				}
+				// we are looking at a fragment so use its selection set and type for the subscribe index
+				else {
+					rootType = fragments[0].typeCondition.name.value
+					selectionSet = fragments[0].selectionSet
+				}
+
+				// add the selection information so we can subscribe to the store
+				artifact.properties.push(
+					AST.objectProperty(AST.identifier('rootType'), AST.stringLiteral(rootType)),
+					AST.objectProperty(
+						AST.identifier('selection'),
+						selection({
+							config,
+							printed,
+							rootType,
+							selectionSet: selectionSet,
+							operations: operationsByPath(config, operations[0], filterTypes),
+							// do not include used fragments if we are rendering the selection
+							// for a fragment document
+							includeFragments: docKind !== 'HoudiniFragment',
+							document,
+						})
+					)
+				)
+
+				// the artifact should be the default export of the file
+				const file = AST.program([moduleExport(config, 'default', artifact)])
+
+				// write the result to the artifact path we're configured to write to
+				await fs.writeFile(config.artifactPath(document), recast.print(file).code)
+
+				// log the file location to confirm
+				if (!config.quiet) {
+					console.log(name)
+				}
+			})
+		)
 	)
 }
