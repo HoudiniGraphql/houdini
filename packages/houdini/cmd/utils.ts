@@ -4,10 +4,6 @@ import { Config } from 'houdini-common'
 
 const AST = recast.types.builders
 
-// vite is happpy with the export format if I take the lib/module/etc config
-// and copy it into the payload used to compile on the fly, should be able
-// to guide what the exports look like from there
-
 export function moduleExport(config: Config, key: string, value: ExpressionKind) {
 	// module exports in sapper should be common js
 	if (config.mode === 'sapper') {
