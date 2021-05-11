@@ -157,7 +157,10 @@ export class RequestContext {
 	}
 
 	fetch(input: RequestInfo, init?: RequestInit) {
-		return this.context.fetch(input, init)
+		// make sure to bind the window object to the fetch in a browser
+		const fetch = typeof window !== 'undefined' ? this.context.fetch : this.context.fetch
+
+		return fetch(input, init)
 	}
 
 	graphqlErrors(errors: GraphQLError[]) {
