@@ -158,7 +158,8 @@ export class RequestContext {
 
 	fetch(input: RequestInfo, init?: RequestInit) {
 		// make sure to bind the window object to the fetch in a browser
-		const fetch = typeof window !== 'undefined' ? this.context.fetch : this.context.fetch
+		const fetch =
+			typeof window !== 'undefined' ? this.context.fetch.bind(window) : this.context.fetch
 
 		return fetch(input, init)
 	}
@@ -179,7 +180,7 @@ export class RequestContext {
 	computeInput(mode: 'sapper' | 'kit', func: any): {} {
 		// if we are in kit mode, just pass the context directly
 		if (mode === 'kit') {
-			return func(this.context)
+			return func.call(this, this.context)
 		}
 
 		// we are in sapper mode, so we need to prepare the function context

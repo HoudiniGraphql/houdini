@@ -189,7 +189,9 @@ At the moment, query variables are declared as a function in the module context 
 This function must be named after your query and in a sapper application, it takes the same arguments
 that are passed to the `preload` function described in the [Sapper](https://sapper.svelte.dev/docs#Pages)
 documentation. In a SvelteKit project, this function takes the same arguments passed to the `load` function
-described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. Here is a modified example from the [demo](./example):
+described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. Regardless of the framework, you can call 
+`this.error` and `this.redirect` in order to change the behavior of the response. Here is a modified example from 
+the [demo](./example):
 
 ```svelte
 // src/routes/[filter].svelte
@@ -214,8 +216,7 @@ described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. Here is 
     export function AllItemsVariables(page): AllItems$input {
         // make sure we recognize the value
         if (!['active', 'completed'].includes(page.params.filter)) {
-            this.error(400, "filter must be one of 'active' or 'completed'")
-            return
+            return this.error(400, "filter must be one of 'active' or 'completed'")
         }
 
         return {
