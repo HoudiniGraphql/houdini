@@ -120,7 +120,7 @@ We need to define an alias so that your codebase can import the generated runtim
 values to `svelte.config.js`:
 
 ```typescript
-module.exports = {
+{
     kit: {
         vite: {
             resolve: {
