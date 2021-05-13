@@ -2,11 +2,11 @@
 import * as recast from 'recast'
 import { runPipeline, Config, Transform, getConfig, parseFile } from 'houdini-common'
 // locals
-import defaultTransforms from './transforms'
-import * as types from './types'
+import defaultTransforms from './transforms/index.js'
+import * as types from './types.js'
 
 // export some types for others to consume
-export * from './types'
+export * from './types.js'
 
 // the main entry point for the preprocessor
 export default function houdiniPreprocessor() {

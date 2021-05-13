@@ -6,7 +6,7 @@ import path from 'path'
 export default {
 	// Consult https://github.com/sveltejs/svelte-preprocess
 	// for more information about preprocessors
-	preprocess: [preprocess(), houdini.default()],
+	preprocess: [preprocess(), houdini()],
 
 	kit: {
 		// hydrate the <div id="svelte"> element in src/app.html

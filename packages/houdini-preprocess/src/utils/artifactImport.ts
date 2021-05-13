@@ -1,7 +1,7 @@
 import { Config } from 'houdini-common'
 import * as recast from 'recast'
-import { artifactIdentifier } from '.'
 import { Statement } from '@babel/types'
+import { artifactIdentifier } from './index.js'
 
 const AST = recast.types.builders
 

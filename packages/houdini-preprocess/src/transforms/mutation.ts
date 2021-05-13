@@ -3,8 +3,8 @@ import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
 // locals
-import { TransformDocument } from '../types'
-import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils'
+import { TransformDocument } from '../types.js'
+import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils/index.js'
 const AST = recast.types.builders
 
 export default async function mutationProcessor(

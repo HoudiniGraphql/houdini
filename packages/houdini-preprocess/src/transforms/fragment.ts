@@ -3,8 +3,8 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
 // locals
-import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils'
-import { TransformDocument } from '../types'
+import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils/index.js'
+import { TransformDocument } from '../types.js'
 
 const AST = recast.types.builders
 

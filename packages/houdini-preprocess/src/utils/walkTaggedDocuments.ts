@@ -13,7 +13,7 @@ import {
 } from 'houdini'
 import { Config } from 'houdini-common'
 // locals
-import { TransformDocument } from '../types'
+import { TransformDocument } from '../types.js'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
