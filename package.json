@@ -3,7 +3,6 @@
 	"description": "The disappearing graphql client for sapper",
 	"workspaces": [
 		"example",
-		"example-kit",
 		"packages/*"
 	],
 	"scripts": {
