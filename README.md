@@ -125,7 +125,7 @@ values to `svelte.config.js`:
         vite: {
             resolve: {
                 alias: {
-                    $houdini: path.resolve(__dirname, '$houdini')
+                    $houdini: path.resolve('.', '$houdini')
                 }
             }
         }
