@@ -1,11 +1,9 @@
 // external imports
 import * as svelte from 'svelte/compiler'
-import * as graphql from 'graphql'
 // local imports
 import subscriptionProcessor from './subscription'
-import { hashDocument, testConfig } from 'houdini-common'
+import { testConfig } from 'houdini-common'
 import '../../../../jest.setup'
-import { DocumentArtifact } from 'houdini'
 
 describe('subscription preprocessor', function () {
 	test('happy path', async function () {

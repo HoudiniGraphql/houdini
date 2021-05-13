@@ -2,7 +2,6 @@
 import * as graphql from 'graphql'
 import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
-import { OperationDefinitionNode } from 'graphql/language'
 import { BaseNode } from 'estree'
 import { Program } from '@babel/types'
 import {

@@ -1,11 +1,9 @@
 // external imports
 import * as svelte from 'svelte/compiler'
-import * as graphql from 'graphql'
 // local imports
 import queryProcessor from './query'
-import { hashDocument, testConfig } from 'houdini-common'
+import { testConfig } from 'houdini-common'
 import '../../../../jest.setup'
-import { DocumentArtifact } from 'houdini'
 
 describe('query preprocessor', function () {
 	test('preload initial data', async function () {

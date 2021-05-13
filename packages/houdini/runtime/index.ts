@@ -12,8 +12,5 @@ export { default as subscription } from './subscription'
 // this function needs to return the same value as what the preprocessor leaves behind for type consistency
 export function graphql(str: TemplateStringsArray): GraphQLTagResult {
 	// if this is executed, the preprocessor is not enabled
-	throw new Error(
-		"Looks like you don't have the preprocessor enabled. Encountered it at runtime wrapping: \n " +
-			str[0]
-	)
+	throw new Error("Looks like you don't have the preprocessor enabled.")
 }

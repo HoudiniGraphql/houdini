@@ -2,11 +2,13 @@ import preprocess from 'svelte-preprocess'
 import houdini from 'houdini-preprocess'
 import path from 'path'
 
+console.log(houdini)
+
 /** @type {import('@sveltejs/kit').Config} */
 export default {
 	// Consult https://github.com/sveltejs/svelte-preprocess
 	// for more information about preprocessors
-	preprocess: [preprocess(), houdini.default()],
+	preprocess: [preprocess(), houdini()],
 
 	kit: {
 		// hydrate the <div id="svelte"> element in src/app.html
