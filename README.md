@@ -134,7 +134,7 @@ module.exports = {
 ```
 
 And finally, we need to configure our application to use the generated network layer. To do
-this, add the following block of code to `src/routes/$layout.svelte`:
+this, add the following block of code to `src/routes/__layout.svelte`:
 
 ```typescript
 <script context="module">

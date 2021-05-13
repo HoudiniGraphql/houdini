@@ -16,6 +16,7 @@ bin
 .pnp.*
 __tests__
 
-__sapper__
-/example/src/node_modules/@sapper/
+example/.svelte-kit
+example/functions
+
 yarn-error.log
