@@ -29,7 +29,7 @@ export default async (_path: string | undefined) => {
 	// the source directory
 	const sourceDir = path.join(targetPath, 'src')
 	// the config file path
-	const configPath = path.join(targetPath, 'houdini.config.cjs')
+	const configPath = path.join(targetPath, 'houdini.config.js')
 	// where we put the environment
 	const environmentPath = path.join(sourceDir, 'environment.js')
 
@@ -87,11 +87,23 @@ export default new Environment(async function ({ text, variables = {} }) {
 })
 `
 
-const configFile = (schemaPath: string, mode: string) => `const path = require('path')
+const configFile = (schemaPath: string, mode: string) =>
+	mode === 'kit'
+		? // SvelteKit default config
+		  `import path from 'path'
+
+export default {
+	schemaPath: path.resolve('${schemaPath}'),
+	sourceGlob: 'src/**/*.svelte',
+	mode: 'kit',
+}
+`
+		: // sapper default config
+		  `const path = require('path')
 
 module.exports = {
 	schemaPath: path.resolve('${schemaPath}'),
-	sourceGlob: 'src/${mode === 'sapper' ? '{routes,components}' : '**'}/*.svelte',
-	mode: '${mode}',
+	sourceGlob: 'src/{routes,components}/*.svelte',
+	mode: 'sapper',
 }
 `
