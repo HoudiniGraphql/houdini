@@ -78,7 +78,7 @@ export default async function applyTransforms(
 		}
 	}
 
-	// if we still dont have any javascript on this page
+	// if we still don't have any javascript on this page
 	if (!result.module || !result.instance) {
 		// ignore it
 		return {

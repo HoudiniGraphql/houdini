@@ -2,10 +2,18 @@
 	"name": "houdini-common",
 	"version": "0.4.0",
 	"description": "",
-	"main": "build/index.js",
+	"main": "build/cjs/index.js",
+	"module": "build/esm/index.js",
+	"exports": {
+		".": {
+			"import": "./build/esm/index.js",
+			"require": "./build/cjs/index.js"
+		}
+	},
 	"scripts": {
-		"build": "tsc",
-		"prepare": "npm run build"
+		"build": "npm run build:esm && npm run build:cjs && ../houdini-preprocess/typeModules.sh",
+		"build:esm": "TARGET=esm rollup --config ./rollup.config.js",
+		"build:cjs": "TARGET=cjs rollup --config ./rollup.config.js"
 	},
 	"keywords": [],
 	"author": "",
@@ -13,7 +21,8 @@
 	"gitHead": "5c8d7507e445cdfb5db7e31ce724a9be9672452c",
 	"dependencies": {
 		"@babel/parser": "^7.13.4",
-		"mkdirp": "^1.0.4"
+		"mkdirp": "^1.0.4",
+		"rollup-plugin-typescript2": "^0.30.0"
 	},
 	"peerDependencies": {
 		"graphql": "^15.x"

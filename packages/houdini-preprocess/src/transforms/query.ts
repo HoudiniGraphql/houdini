@@ -78,7 +78,7 @@ export default async function queryProcessor(
 		},
 	})
 
-	// if there are no queries dont do anything
+	// if there are no queries don't do anything
 	if (queries.length === 0) {
 		return
 	}

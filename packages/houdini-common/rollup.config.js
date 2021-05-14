@@ -10,10 +10,8 @@ export default {
 	output: {
 		dir: process.env.TARGET === 'esm' ? 'build/esm' : 'build/cjs',
 		format: process.env.TARGET === 'esm' ? 'esm' : 'cjs',
-		exports: process.env.TARGET === 'cjs' ? 'default' : undefined,
+		exports: 'named',
 	},
-	// don't worry about bundling the other houdini packages along with preprocess
-	external: ['houdini-common', 'houdini'],
 	plugins: [
 		typescript({
 			declarationDir: process.env.TARGET === 'esm' ? 'build/esm' : 'build/cjs',

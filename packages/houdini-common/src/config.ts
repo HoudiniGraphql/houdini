@@ -363,8 +363,10 @@ export async function getConfig(): Promise<Config> {
 	}
 
 	// load the config file
-	const configPath = path.join(process.cwd(), 'houdini.config.cjs')
+	const configPath = path.join(process.cwd(), 'houdini.config.js')
 	const config = await import(configPath)
+
+	console.log('found config: ', config)
 
 	// add the filepath
 	return new Config({
