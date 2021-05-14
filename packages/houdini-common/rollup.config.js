@@ -12,6 +12,7 @@ export default {
 		format: process.env.TARGET === 'esm' ? 'esm' : 'cjs',
 		exports: 'named',
 	},
+	external: ['graphql'],
 	plugins: [
 		typescript({
 			declarationDir: process.env.TARGET === 'esm' ? 'build/esm' : 'build/cjs',
