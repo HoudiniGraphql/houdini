@@ -19,7 +19,8 @@ export default async (_path: string | undefined) => {
 			name: 'mode',
 			type: 'input',
 			message: 'Are you using Sapper or SvelteKit?',
-			choices: ['sapper', 'kit'],
+			choices: ['Sapper', 'SvelteKit'],
+			transformer: (ans: string) => (ans === 'Sapper' ? 'sapper' : 'kit'),
 		},
 	])
 
