@@ -1,7 +1,7 @@
-const path = require('path')
+import path from 'path'
 
-module.exports = {
+export default {
 	schemaPath: path.resolve('./schema/introspection.json'),
 	sourceGlob: 'src/**/*.svelte',
-	mode: 'kit'
+	mode: 'kit',
 }
