@@ -547,8 +547,10 @@ client and pass it directly:
 // environment.ts
 
 import { createClient } from 'graphql-ws'
+import { browser } from '$app/env'
 
-let socketClient = (process as any).browser
+// in sapper, this would be something like `(process as any).browser`
+let socketClient = browser
     ? new createClient({
             url: 'ws://api.url',
       })
@@ -568,9 +570,10 @@ you will have to slightly modify the above block:
 // environment.ts
 
 import { SubscriptionClient } from 'subscriptions-transport-ws'
+import { browser } from '$app/env'
 
 let socketClient: SubscriptionHandler | null = null
-if ((process as any).browser) {
+if (browser) {
     // instantiate the transport client
     const client = new SubscriptionClient('ws://api.url', {
         reconnect: true,
