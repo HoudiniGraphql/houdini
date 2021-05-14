@@ -1,8 +1,8 @@
 // external imports
+import { testConfig } from 'houdini-common'
 import * as svelte from 'svelte/compiler'
 // local imports
 import queryProcessor from './query'
-import { testConfig } from 'houdini-common'
 import '../../../../jest.setup'
 
 describe('query preprocessor', function () {

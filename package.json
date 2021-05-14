@@ -6,8 +6,8 @@
 		"packages/*"
 	],
 	"scripts": {
-		"tests": "jest",
-		"tests:watch": "jest  --watch",
+		"tests": "node --experimental-vm-modules node_modules/.bin/jest",
+		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
 		"build": "yarn workspace houdini-common run build && yarn workspace houdini run build && yarn workspace houdini-preprocess run build ",
 		"clean": "rm -rf packages/*/build"
 	},

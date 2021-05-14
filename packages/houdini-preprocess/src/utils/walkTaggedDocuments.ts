@@ -4,6 +4,7 @@ import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
 import { BaseNode } from 'estree'
 import { Program } from '@babel/types'
+import { Config } from 'houdini-common'
 import {
 	CompiledDocumentKind,
 	CompiledFragmentKind,
@@ -11,9 +12,8 @@ import {
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
 } from 'houdini'
-import { Config } from 'houdini-common'
 // locals
-import { TransformDocument } from '../types.js'
+import { TransformDocument } from '../types'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode

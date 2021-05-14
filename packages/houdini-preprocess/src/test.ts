@@ -2,7 +2,7 @@
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
 // local imports
-import { applyTransforms } from '.'
+import applyTransforms from './transforms'
 import * as types from './types'
 
 const typeBuilders = recast.types.builders

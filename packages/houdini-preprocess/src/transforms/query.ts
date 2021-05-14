@@ -6,13 +6,13 @@ import { Config, Script } from 'houdini-common'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { ObjectExpressionKind } from 'ast-types/gen/kinds'
 // locals
-import { TransformDocument } from '../types.js'
+import { TransformDocument } from '../types'
 import {
 	walkTaggedDocuments,
 	EmbeddedGraphqlDocument,
 	artifactImport,
 	artifactIdentifier,
-} from '../utils/index.js'
+} from '../utils'
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.

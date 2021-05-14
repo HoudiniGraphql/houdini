@@ -3,13 +3,13 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
 // locals
-import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils/index.js'
-import { TransformDocument } from '../types.js'
+import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils'
+import { TransformDocument } from '../types'
 
 const AST = recast.types.builders
 
 // returns the expression that should replace the graphql
-export default async function fragmentProcesesor(
+export default async function fragmentProcessor(
 	config: Config,
 	doc: TransformDocument
 ): Promise<void> {

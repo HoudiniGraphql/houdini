@@ -1,9 +1,9 @@
 {
 	"extends": "../../tsconfig",
-	"include": ["src/**/*"],
+	"include": ["src/index.ts"],
 	"exclude": ["node_modules", "src/test.ts", "**/*.test.ts"],
 	"paths": {
-		"houdini-compiler": ["../packages/houdini-compiler"]
+		"houdini": ["../houdini/cmd"]
 	},
 	"compilerOptions": {
 		"moduleResolution": "node"

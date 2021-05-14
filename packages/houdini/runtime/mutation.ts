@@ -1,5 +1,5 @@
 // locals
-import { RequestContext, fetchQuery } from './network'
+import { fetchQuery } from './network'
 import { Operation, GraphQLTagResult } from './types'
 import cache from './cache'
 import { getVariables } from './context'
