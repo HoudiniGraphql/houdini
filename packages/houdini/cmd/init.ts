@@ -9,20 +9,22 @@ import fs from 'fs/promises'
 export default async (_path: string | undefined) => {
 	// we need to collect some information from the user before we
 	// can continue
-	let { url, mode } = await inquirer.prompt([
+	let { url, framework } = await inquirer.prompt([
 		{
 			name: 'url',
 			type: 'input',
 			message: 'Please enter the URL for your api, including its protocol.',
 		},
 		{
-			name: 'mode',
-			type: 'input',
+			name: 'framework',
+			type: 'list',
 			message: 'Are you using Sapper or SvelteKit?',
 			choices: ['Sapper', 'SvelteKit'],
-			transformer: (ans: string) => (ans === 'Sapper' ? 'sapper' : 'kit'),
 		},
 	])
+
+	// convert the selected framework the mode
+	const mode = framework === 'Sapper' ? 'sapper' : 'kit'
 
 	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
