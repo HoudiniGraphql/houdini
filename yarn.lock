@@ -2886,20 +2886,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-typescript@npm:^8.2.1":
-  version: 8.2.1
-  resolution: "@rollup/plugin-typescript@npm:8.2.1"
-  dependencies:
-    "@rollup/pluginutils": ^3.1.0
-    resolve: ^1.17.0
-  peerDependencies:
-    rollup: ^2.14.0
-    tslib: "*"
-    typescript: ">=3.7.0"
-  checksum: 87f0a8308c734ee4f0e2c3bba4df5ac9965ae6f2ee8d77fd4ea2056030eff2882c51a3b056c06ca0ecc4f2d356885cbbc80cac366d40595d7dd7b89b0f38bfba
-  languageName: node
-  linkType: hard
-
 "@rollup/pluginutils@npm:^3.1.0":
   version: 3.1.0
   resolution: "@rollup/pluginutils@npm:3.1.0"
@@ -5971,10 +5957,11 @@ __metadata:
   dependencies:
     "@sveltejs/kit": 1.0.0-next.107
     apollo-server: ^2.24.0
+    graphql: 15.5.0
     houdini: ^0.4.1
     houdini-preprocess: ^0.4.1
     subscriptions-transport-ws: ^0.9.18
-    svelte: ^3.34.0
+    svelte: ^3.38.2
     svelte-preprocess: ^4.0.0
     tslib: ^2.0.0
     typescript: ^4.0.0
@@ -6828,7 +6815,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:15.x.x, graphql@npm:^15.5.0":
+"graphql@npm:15.5.0, graphql@npm:^15.5.0":
   version: 15.5.0
   resolution: "graphql@npm:15.5.0"
   checksum: 789cdcb069a3e00592e779002217a6bc5fd09efad63ee8c4190c4b3ea96c89010e74f085fb1cba876a0bb0e324e01df2eddb84d79dca90a28e582bc425fef9ef
@@ -7012,8 +6999,9 @@ __metadata:
   dependencies:
     "@babel/parser": ^7.13.4
     mkdirp: ^1.0.4
+    rollup: ^2.47.0
     rollup-plugin-typescript2: ^0.30.0
-    typescript: ^4.1.5
+    typescript: "*"
   peerDependencies:
     graphql: ^15.x
   languageName: unknown
@@ -7028,12 +7016,11 @@ __metadata:
     "@rollup/plugin-alias": ^3.1.2
     "@rollup/plugin-commonjs": ^19.0.0
     "@rollup/plugin-node-resolve": ^13.0.0
-    "@rollup/plugin-typescript": ^8.2.1
     "@types/jest": ^26.0.20
     "@types/mock-fs": ^4.13.0
     babel-jest: ^26.6.3
     global: ^4.4.0
-    graphql: 15.x.x
+    graphql: 15.5.0
     jest: ^25.0.0
     lerna: ^3.22.1
     mock-fs: ^4.13.0
@@ -7043,7 +7030,7 @@ __metadata:
     rollup-plugin-typescript2: ^0.30.0
     ts-ast-serializer: ^1.0.1
     ts-node: ^9.1.1
-    typescript: ^3.9.5
+    typescript: ^c3.9.5
   languageName: unknown
   linkType: soft
 
@@ -7060,6 +7047,7 @@ __metadata:
     babel-jest: ^26.6.3
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
+    graphql: 15.5.0
     houdini: ^0.4.1
     houdini-common: ^0.4.0
     jest: ^26.6.3
@@ -12652,6 +12640,13 @@ resolve@1.1.7:
   languageName: node
   linkType: hard
 
+"svelte@npm:^3.38.2":
+  version: 3.38.2
+  resolution: "svelte@npm:3.38.2"
+  checksum: e415be40336418f331e3531dfb842ac8298e4fb698702d60e4b7cad3975720e6965c281e435fcc4b94e2abca12121dd71274b23406bfe2aa203beeb8b533e5aa
+  languageName: node
+  linkType: hard
+
 "symbol-observable@npm:^1.0.4":
   version: 1.2.0
   resolution: "symbol-observable@npm:1.2.0"
@@ -13116,63 +13111,23 @@ resolve@1.1.7:
   languageName: node
   linkType: hard
 
-typescript@^3.9.5:
-  version: 3.9.7
-  resolution: "typescript@npm:3.9.7"
+"typescript@npm:3.9.5":
+  version: 3.9.5
+  resolution: "typescript@npm:3.9.5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10848a9c35fd8c70a8792b8bd9485317534bcd58768793d3b7d9c7486e9fd30cf345f83fa2a324e0bf6088bc8a4d8d061d58fda38b18c2ff187cf01fbbff6267
+  checksum: 15618435493667083eb43dc7b36c4d3dd47fd9e9c8a14f0ac4019bbf6124b6cc518b6ed506400913db1bf50831207ee8201b5d827680076930b562923f4f18a0
   languageName: node
   linkType: hard
 
-typescript@^4.0.0:
-  version: 4.1.3
-  resolution: "typescript@npm:4.1.3"
+"typescript@patch:typescript@npm%3A3.9.5#builtin<compat/typescript>":
+  version: 3.9.5
+  resolution: "typescript@patch:typescript@npm%3A3.9.5#builtin<compat/typescript>::version=3.9.5&hash=cc6730"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 4f7ab1506ea22c7a1c313ec5b4285e93ce08d709ad6086d02d3096adb399ca339972ee56d1e578213c51dd0fb7b0fad50283c2d3c39642405644458ae29774f8
-  languageName: node
-  linkType: hard
-
-typescript@^4.1.5:
-  version: 4.1.5
-  resolution: "typescript@npm:4.1.5"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 29157c84426ac94ce97aac836264f303a26bd9fb30865650229e3406a36ca2e89735ef4b8878075ba1b95fa4d3ff9810057b64888700c28e20b4034a6db4da83
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^3.9.5#builtin<compat/typescript>":
-  version: 3.9.7
-  resolution: "typescript@patch:typescript@npm%3A3.9.7#builtin<compat/typescript>::version=3.9.7&hash=cc6730"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: f0d3d9c987860c7c458229ab6dd7e3d322405db36b70abccba610b5efd9f9451e4e67a3fc7983c0d3741033c1f1a8d7aa859a1510caa8f20fad762fc39648bfa
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^4.0.0#builtin<compat/typescript>":
-  version: 4.1.3
-  resolution: "typescript@patch:typescript@npm%3A4.1.3#builtin<compat/typescript>::version=4.1.3&hash=cc6730"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 017af992148346e671d5b83b041773825888e9c94db8d2b9472cdbb6d6f0ee85927817473121524d319f8be6ffe5a6904d27ff6ef21356d2274fcadd52e17938
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^4.1.5#builtin<compat/typescript>":
-  version: 4.1.5
-  resolution: "typescript@patch:typescript@npm%3A4.1.5#builtin<compat/typescript>::version=4.1.5&hash=cc6730"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 58cc7786be0f8485c124944883b1384287532e4867ec37f1fb5cb2811dbc10f7a9decccad89097f924043285f3515bfd8223c61dbb4f88af00b2d8dc2ef73207
+  checksum: 452cdd20d801630727433a990652c1e65f5eb5586383dda60f178b4fbda5c7951256f9aa31327c73722af9b1b664e3a53d724aabfd8a68866e9b1631818f004c
   languageName: node
   linkType: hard
 

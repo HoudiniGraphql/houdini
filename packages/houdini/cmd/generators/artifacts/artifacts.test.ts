@@ -29,22 +29,6 @@ test('generates an artifact for every document', async function () {
 
 	// and they have the right names
 	expect(files).toEqual(expect.arrayContaining(['TestQuery.js', 'TestFragment.js']))
-
-	// open up the index file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactDirectory, 'index.js'),
-		'utf-8'
-	)
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
-		export { default as TestQuery} from './TestQuery'
-		export { default as TestFragment} from './TestFragment'
-	`)
 })
 
 test('adds kind, name, and raw, response, and selection', async function () {
