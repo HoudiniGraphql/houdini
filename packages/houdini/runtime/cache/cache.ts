@@ -109,7 +109,7 @@ export class Cache {
 
 	// grab the record specified by {id}.
 	// note: this is hidden behind the adapter because it will make entries in the
-	// cache that might not play by the correct garbage keeping rules. "advanved users only"
+	// cache that might not play by the correct garbage keeping rules. "advanced users only"
 	private record(id: string | undefined): Record {
 		// if we haven't seen the record before add an entry in the store
 		if (!this._data.has(id)) {
@@ -186,14 +186,14 @@ export class Cache {
 		for (const { type, keyRaw, fields, connection, filters } of Object.values(selection)) {
 			const key = this.evaluateKey(keyRaw, variables)
 
-			// we might be replace a subscriber on rootRecord becuase we have new variables
+			// we might be replace a subscriber on rootRecord because we have new variables
 			// look at every version of the key and remove
 			const oldVariables = this.lastKnownVariables.get(spec.set)
 			if (
 				keyRaw.includes('$') &&
 				JSON.stringify(variables) !== JSON.stringify(oldVariables)
 			) {
-				rootRecord.removeAllSubscriptionVerions(keyRaw, spec)
+				rootRecord.removeAllSubscriptionVersions(keyRaw, spec)
 			}
 
 			// add the subscriber to the field
@@ -289,7 +289,7 @@ export class Cache {
 				const linkedRecord = rootRecord.linkedRecord(key)
 				let children = linkedRecord ? [linkedRecord] : rootRecord.linkedList(key)
 
-				// if we still dont have anything to attach it to then there's no one to subscribe to
+				// if we still don't have anything to attach it to then there's no one to subscribe to
 				if (!children || !fields) {
 					continue
 				}
@@ -443,7 +443,7 @@ export class Cache {
 					this.lastKnownVariables.set(subscriber.set, variables)
 				}
 
-				// remove any subscribers we dont can't about
+				// remove any subscribers we don't can't about
 				for (const lostID of oldIDs.filter((id) => !linkedIDs.includes(id))) {
 					for (const sub of subscribers) {
 						if (!oldSubscribers[lostID]) {
@@ -609,7 +609,7 @@ export class Cache {
 	private evaluateKey(key: string, variables: { [key: string]: GraphQLValue } = {}): string {
 		// accumulate the evaluated key
 		let evaluated = ''
-		// acumulate a variable name that we're evulating
+		// accumulate a variable name that we're evaluating
 		let varName = ''
 		// some state to track if we are "in" a string
 		let inString = false
@@ -637,7 +637,7 @@ export class Cache {
 
 			// if we are looking at the start of a variable
 			if (char === '$' && !inString) {
-				// start the acumulator
+				// start the accumulator
 				varName = '$'
 
 				// move along

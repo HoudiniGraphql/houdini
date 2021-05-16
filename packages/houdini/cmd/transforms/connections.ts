@@ -31,7 +31,7 @@ export default async function addConnectionFragments(
 					const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
 
 					// if we need to use an error relative to this node
-					let erorr = {
+					let error = {
 						...new graphql.GraphQLError(
 							'',
 							node,
@@ -44,22 +44,22 @@ export default async function addConnectionFragments(
 
 					// if there is no name argument
 					if (!nameArg) {
-						erorr.message = '@connection must have a name argument'
-						errors.push(erorr)
+						error.message = '@connection must have a name argument'
+						errors.push(error)
 						return
 					}
 
 					// make sure it was a string
 					if (nameArg.value.kind !== 'StringValue') {
-						erorr.message = '@connection name must be a string'
-						errors.push(erorr)
+						error.message = '@connection name must be a string'
+						errors.push(error)
 						return
 					}
 
 					// if we've already seen this connection
 					if (connections[nameArg.value.value]) {
-						erorr.message = '@connection name must be unique'
-						errors.push(erorr)
+						error.message = '@connection name must be unique'
+						errors.push(error)
 					}
 
 					// we need to traverse the ancestors from child up
@@ -120,7 +120,7 @@ export default async function addConnectionFragments(
 		).values(),
 	].filter(Boolean)
 
-	// if there are no documents, we dont have anything to do
+	// if there are no documents, we don't have anything to do
 	if (documents.length === 0) {
 		return
 	}
@@ -191,7 +191,7 @@ export default async function addConnectionFragments(
 								},
 							},
 						},
-						// add a dfragment to remove from the specific connection
+						// add a fragment to remove from the specific connection
 						{
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
 							name: {

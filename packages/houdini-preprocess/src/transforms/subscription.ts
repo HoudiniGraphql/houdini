@@ -16,7 +16,7 @@ export default async function subscriptionProcessor(
 	// we need to find any graphql documents in the instance script containing subscriptions
 	// and replace them with an object expression that has the keys that the runtime expects
 
-	// if there is no instance script, we dont about care this file
+	// if there is no instance script, we don't about care this file
 	if (!doc.instance) {
 		return
 	}

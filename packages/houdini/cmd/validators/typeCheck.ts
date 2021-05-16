@@ -140,7 +140,7 @@ export default async function typeCheck(
 					}
 
 					// @ts-ignore
-					// look at the next entry for a list or someting else that would make us
+					// look at the next entry for a list or something else that would make us
 					// require a parent ID
 					rootType = rootType?.getFields()[parent.name.value].type
 				}
@@ -166,7 +166,7 @@ export default async function typeCheck(
 				connections.push(connectionName)
 				connectionTypes.push(parentType.name)
 
-				// if we still dont need a parent by now, add it to the list of free connections
+				// if we still don't need a parent by now, add it to the list of free connections
 				if (!needsParent) {
 					freeConnections.push(connectionName)
 				}
@@ -183,14 +183,14 @@ export default async function typeCheck(
 					// fragments are defined on their own so unused fragments are a fact of life
 					graphql.NoUnusedFragmentsRule,
 					// query documents don't contain the fragments they use so we can't enforce
-					// that we know every fragment. this is replaced with a more appopriate version
+					// that we know every fragment. this is replaced with a more appropriate version
 					// down below
 					graphql.KnownFragmentNamesRule,
-					// some of the documents (ie the injected ones) will contain directive defintions
+					// some of the documents (ie the injected ones) will contain directive definitions
 					// and therefor not be explicitly executable
 					graphql.ExecutableDefinitionsRule,
 					// connection include directives that aren't defined by the schema. this
-					// is replaced with a more appopriate version down below
+					// is replaced with a more appropriate version down below
 					graphql.KnownDirectivesRule,
 				].includes(rule)
 		)
@@ -242,7 +242,7 @@ const validateConnections = ({
 		return {
 			// if we run into a fragment spread
 			FragmentSpread(node) {
-				// if the fragment is not a connection fragment dont do the normal processing
+				// if the fragment is not a connection fragment don't do the normal processing
 				if (!config.isConnectionFragment(node.name.value)) {
 					// make sure its a defined fragment
 					if (!fragments.includes(node.name.value)) {
@@ -289,7 +289,7 @@ const validateConnections = ({
 						name.value
 					),
 				])
-				// if ther is no directive
+				// if there is no directive
 				if (!directive) {
 					ctx.reportError(
 						new graphql.GraphQLError(
@@ -322,7 +322,7 @@ const validateConnections = ({
 					return
 				}
 
-				// if the directive points to a type we dont recognize as the target of a connection
+				// if the directive points to a type we don't recognize as the target of a connection
 				if (!connectionTypes.includes(config.connectionNameFromDirective(directiveName))) {
 					ctx.reportError(
 						new graphql.GraphQLError(

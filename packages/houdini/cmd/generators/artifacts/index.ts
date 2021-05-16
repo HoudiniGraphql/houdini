@@ -43,7 +43,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				}
 				const connectionName = nameArg.value.value
 
-				// look up the actual field in the acestor list so we can get type info
+				// look up the actual field in the ancestor list so we can get type info
 				let field = ancestors[ancestors.length - 1] as graphql.FieldNode
 				let i = 1
 				while (Array.isArray(field)) {

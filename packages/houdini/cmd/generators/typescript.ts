@@ -274,7 +274,7 @@ async function generateFragmentTypeDefs(
 	for (const definition of definitions) {
 		// if its not a fragment definition
 		if (definition.kind !== 'FragmentDefinition') {
-			// we dont know what to do
+			// we don't know what to do
 			continue
 		}
 

@@ -137,7 +137,7 @@ export class Record {
 		)
 	}
 
-	removeAllSubscriptionVerions(keyRaw: string, spec: SubscriptionSpec) {
+	removeAllSubscriptionVersions(keyRaw: string, spec: SubscriptionSpec) {
 		// visit every version of the key we've seen and remove the spec from the list of subscribers
 		const versions = this.keyVersions[keyRaw]
 		// if there are no known versons, we're done

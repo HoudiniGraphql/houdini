@@ -1,7 +1,5 @@
-// external imports
-import * as graphql from 'graphql'
-import { HoudiniError } from 'houdini-common'
 // locals
+import { HoudiniError } from '../error'
 import { pipelineTest } from '../testUtils'
 import '../../../../jest.setup'
 import { CollectedGraphQLDocument } from '../types'

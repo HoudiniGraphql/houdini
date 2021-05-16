@@ -14,7 +14,7 @@ export function operationsByPath(
 	filterTypes: FilterMap
 ): { [path: string]: namedTypes.ArrayExpression } {
 	// map the path in the response to the list of operations that treat it as the source
-	const pathOperatons: { [path: string]: namedTypes.ArrayExpression } = {}
+	const pathOperations: { [path: string]: namedTypes.ArrayExpression } = {}
 
 	// we need to look for three different things in the operation:
 	// - insert fragments
@@ -32,8 +32,8 @@ export function operationsByPath(
 
 			// if this is the first time we've seen this path give us a home
 			const path = ancestorKey(ancestors)
-			if (!pathOperatons[path]) {
-				pathOperatons[path] = AST.arrayExpression([])
+			if (!pathOperations[path]) {
+				pathOperations[path] = AST.arrayExpression([])
 			}
 
 			const parents = [...ancestors] as (
@@ -46,7 +46,7 @@ export function operationsByPath(
 			parents.reverse()
 
 			// add the operation object to the list
-			pathOperatons[path].elements.push(
+			pathOperations[path].elements.push(
 				operationObject({
 					config,
 					connectionName: config.connectionNameFromFragment(node.name.value),
@@ -65,12 +65,12 @@ export function operationsByPath(
 
 			// if this is the first time we've seen this path give us a home
 			const path = ancestorKey(ancestors)
-			if (!pathOperatons[path]) {
-				pathOperatons[path] = AST.arrayExpression([])
+			if (!pathOperations[path]) {
+				pathOperations[path] = AST.arrayExpression([])
 			}
 
 			// add the operation object to the list
-			pathOperatons[path].elements.push(
+			pathOperations[path].elements.push(
 				operationObject({
 					config,
 					connectionName: `${node.name.value}`,
@@ -86,7 +86,7 @@ export function operationsByPath(
 		},
 	})
 
-	return pathOperatons
+	return pathOperations
 }
 
 function operationObject({

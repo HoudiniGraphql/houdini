@@ -2,7 +2,7 @@
 import graphql from 'graphql'
 
 // we need to generate a static key that we can use to index this field in the cache.
-// this needs to be a unique-hash driven by the field's attribute and arguments
+// this needs to be a unique hash driven by the field's attribute and arguments
 // returns the key for a specific field
 export default function fieldKey(printed: string, field: graphql.FieldNode): string {
 	// we're going to hash a field by creating a json object and adding it

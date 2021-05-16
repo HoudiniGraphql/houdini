@@ -35,7 +35,7 @@ export default async function includeFragmentDefinitions(
 				{}
 			)
 
-			// add any defintions we found in this document
+			// add any definitions we found in this document
 			return {
 				...acc,
 				...definitions,
@@ -51,7 +51,7 @@ export default async function includeFragmentDefinitions(
 			({ kind }) => kind === GraphqlKinds.OPERATION_DEFINITION
 		) as graphql.OperationDefinitionNode
 
-		// if there isn't one we dont care about this document
+		// if there isn't one we don't care about this document
 		if (!operation) {
 			continue
 		}
@@ -138,7 +138,7 @@ export function flattenFragments(
 			throw new Error('Could not find definition for fragment ' + nextFragment)
 		}
 
-		// add this framgnets dependents to the pile
+		// add this fragments dependents to the pile
 		remaining.push(...targetFragment.requiredFragments)
 	}
 

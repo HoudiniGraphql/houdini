@@ -79,7 +79,7 @@ export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 		return getRootType((type as graphql.GraphQLList<any>).ofType)
 	}
 
-	// we've unwrapped everythings
+	// we've unwrapped everything
 	return type
 }
 

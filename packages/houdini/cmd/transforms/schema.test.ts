@@ -4,7 +4,7 @@ import { pipelineTest } from '../testUtils'
 
 describe('schema transform', function () {
 	// we'll test the schema additions by pushing some documents through
-	// and make sure they dont error
+	// and make sure they don't error
 	const table = [
 		{
 			title: 'connection directive',
