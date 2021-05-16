@@ -5,8 +5,6 @@ yarn-error.log
 
 build
 bin
-/example/$houdini
-/example/.svelte
 
 .yarn/*
 !.yarn/releases
@@ -18,5 +16,6 @@ __tests__
 
 example/.svelte-kit
 example/functions
+example/$houdini
 
 yarn-error.log
