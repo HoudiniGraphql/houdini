@@ -7,8 +7,7 @@
 
 		// make sure we recognize the value
 		if (!['active', 'completed', 'all'].includes(page.params.filter)) {
-			this.error(400, "filter must be one of 'active' or 'completed'")
-			return
+			return this.error(400, "filter must be one of 'active' or 'completed'")
 		}
 
 		return {
