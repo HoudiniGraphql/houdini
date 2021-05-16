@@ -92,7 +92,7 @@ test('partial update existing record', function () {
 		{
 			viewer: {
 				id: '1',
-				lastName: 'geldof',
+				lastName: 'barker',
 			},
 		},
 		{}
@@ -102,7 +102,7 @@ test('partial update existing record', function () {
 	expect(cache.internal.getRecord(cache.id('User', '1'))?.fields).toEqual({
 		id: '1',
 		firstName: 'bob',
-		lastName: 'geldof',
+		lastName: 'barker',
 	})
 })
 

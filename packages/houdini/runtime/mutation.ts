@@ -20,7 +20,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	// pull the query text out of the compiled artifact
 	const { raw: text } = document.artifact
 
-	// grab the sesion from the adapter
+	// grab the session from the adapter
 	const session = getSession()
 
 	const queryVariables = getVariables()

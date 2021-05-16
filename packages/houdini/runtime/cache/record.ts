@@ -92,7 +92,7 @@ export class Record {
 			this.keyVersions[rawKey] = new Set()
 		}
 
-		// add this verson of the key if we need to
+		// add this version of the key if we need to
 		this.keyVersions[rawKey].add(key)
 
 		// the existing list
@@ -140,7 +140,7 @@ export class Record {
 	removeAllSubscriptionVersions(keyRaw: string, spec: SubscriptionSpec) {
 		// visit every version of the key we've seen and remove the spec from the list of subscribers
 		const versions = this.keyVersions[keyRaw]
-		// if there are no known versons, we're done
+		// if there are no known versions, we're done
 		if (!versions) {
 			return
 		}

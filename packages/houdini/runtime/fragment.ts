@@ -33,7 +33,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 			parentID,
 		}
 
-		// when the component monuts
+		// when the component mounts
 		onMount(() => {
 			// if there is an id we can anchor the cache off of
 			if (parentID && subscriptionSpec) {
