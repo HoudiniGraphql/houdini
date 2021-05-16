@@ -4,8 +4,11 @@ on:
         inputs:
             bump:
                 description: 'The kind of version bump. One of: patch, minor, major'
-                required: true
+                required: false
                 default: 'patch'
+            distTag:
+                description: 'Publish the package under the specified dist-tag'
+                required: false
 
 env:
     CI: true
@@ -55,8 +58,12 @@ jobs:
                   elif [ "${{ github.event.inputs.bump }}" = "patch" ] ; then
                     BUMP=patch
                     BUMP_EMOJI=🔧
+                  elif [ "${{ github.event.inputs.distTag }}" != "" ] ; then
+                    DIST_TAG=${{ github.event.inputs.distTag }}
+                    BUMP_EMOJI=🔧
                   fi
                   echo "BUMP=${BUMP}" >> $GITHUB_ENV
+                  echo "DIST_TAG=${DIST_TAG}" >> $GITHUB_ENV
                   echo "BUMP_EMOJI=${BUMP_EMOJI}" >> $GITHUB_ENV
 
             - name: Authenticate With Registry
@@ -70,7 +77,11 @@ jobs:
 
             - name: Publish
               run: |
-                  yarn lerna publish ${BUMP} --yes --message "$BUMP_EMOJI %s"
+                  if [ "$DIST_TAG" != ""] ; then 
+                    yarn lerna publish --dist-tag ${DIS_TAG} --yes"
+                  else
+                    yarn lerna publish ${BUMP} --yes --message "$BUMP_EMOJI %s"
+                  fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
