@@ -60,7 +60,6 @@ jobs:
                     BUMP_EMOJI=🔧
                   elif [ "${{ github.event.inputs.distTag }}" != "" ] ; then
                     DIST_TAG=${{ github.event.inputs.distTag }}
-                    BUMP_EMOJI=🔧
                   fi
                   echo "BUMP=${BUMP}" >> $GITHUB_ENV
                   echo "DIST_TAG=${DIST_TAG}" >> $GITHUB_ENV
