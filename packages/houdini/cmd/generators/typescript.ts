@@ -5,7 +5,6 @@ import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { TSTypeKind, StatementKind, TSPropertySignatureKind } from 'ast-types/gen/kinds'
 import path from 'path'
-import * as ts from 'typescript'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 
@@ -501,39 +500,4 @@ function scalarPropertyValue(target: graphql.GraphQLNamedType): TSTypeKind {
 			throw new Error('Could not convert scalar type: ' + target.toString())
 		}
 	}
-}
-
-function compile(config: Config, fileNames: string[]) {
-	const options: ts.CompilerOptions = {
-		declaration: true,
-		lib: ['es2019'],
-		esModuleInterop: true,
-		downlevelIteration: true,
-		target: ts.ScriptTarget.ES5,
-		moduleResolution: ts.ModuleResolutionKind.NodeJs,
-		sourceMap: false,
-		module: ts.ModuleKind.ES2015,
-	}
-
-	// prepare and emit the files
-	const program = ts.createProgram(fileNames, options)
-	const emitResult = program.emit()
-
-	// catch any diagnostic errors
-	for (const diagnostic of ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics)) {
-		if (diagnostic.file) {
-			let { line, character } = ts.getLineAndCharacterOfPosition(
-				diagnostic.file,
-				diagnostic.start!
-			)
-			let message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
-			throw new Error(
-				`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`
-			)
-		} else {
-			throw new Error(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))
-		}
-	}
-
-	return
 }
