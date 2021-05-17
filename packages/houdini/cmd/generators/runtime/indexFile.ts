@@ -16,17 +16,9 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 	const runtimeDir = './' + path.relative(config.rootDir, config.runtimeDirectory)
 	const artifactDir = './' + path.relative(config.rootDir, config.artifactDirectory)
 
-	// if we are rendering an index file for sapper we need to compile it for commonjs
 	let body = ''
-	if (config.mode === 'sapper') {
-		body = `${cjsIndexFilePreamble}
-
-${exportStarFrom(runtimeDir)}
-${exportStarFrom(artifactDir)}
-`
-	}
 	// otherwise just use esm statements as the final result
-	else {
+	if (config.mode === 'kit') {
 		body = recast.print(
 			AST.program([
 				// build up the index file that at least exports the runtime
@@ -35,6 +27,14 @@ ${exportStarFrom(artifactDir)}
 				AST.exportAllDeclaration(AST.literal(artifactDir), null),
 			])
 		).code
+	}
+	// if we are rendering an index file for sapper we need to compile it for commonjs
+	else {
+		body = `${cjsIndexFilePreamble}
+
+${exportStarFrom(runtimeDir)}
+${exportStarFrom(artifactDir)}
+`
 	}
 
 	// write the index file that exports the runtime
