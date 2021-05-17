@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"outDir": "build"
 	},
-	"include": ["cmd/**/*"],
+	"include": ["cmd/**/*", "runtime/**/*"],
 	"exclude": ["node_modules", "**/*.test.ts"],
 	"paths": {
 		"houdini-common": ["../houdini-common"]

@@ -3,10 +3,11 @@
 	"version": "0.5.1-kit.5",
 	"description": "",
 	"scripts": {
-		"build:runtime": "npm run build:runtime:cjs && npm run build:runtime:esm && ./writeAdapters.sh",
+		"build:runtime": "npm run build:runtime:cjs && npm run build:runtime:esm",
 		"build:runtime:cjs": "tsc --p tsconfig.runtime.cjs.json",
 		"build:runtime:esm": "tsc --p tsconfig.runtime.esm.json",
-		"build:cmd": "TARGET=esm WHICH=cmd rollup --config ./rollup.config.js && sed -i '#!/usr/bin/env node' build/cmd.js && cp build/cmd.js build/cmd/index.js && ./typeModule.sh",
+		"build:cmd": "TARGET=esm WHICH=cmd rollup --config ./rollup.config.js && sed -i '#!/usr/bin/env node' build/cmd.js && ./typeModule.sh",
+		"build:cmd:tsc": "tsc --p tsconfig.json",
 		"build": "npm run build:runtime && npm run build:cmd",
 		"prepare": "npm run build"
 	},

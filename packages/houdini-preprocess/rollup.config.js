@@ -13,7 +13,7 @@ export default {
 		exports: process.env.TARGET === 'cjs' ? 'default' : undefined,
 	},
 	// don't worry about bundling the other houdini packages along with preprocess
-	external: ['houdini-common', 'houdini', 'graphql'],
+	external: ['houdini-common', 'graphql'],
 	plugins: [
 		typescript({
 			declarationDir: process.env.TARGET === 'esm' ? 'build/esm' : 'build/cjs',
