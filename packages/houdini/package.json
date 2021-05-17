@@ -11,7 +11,7 @@
 		"prepare": "npm run build"
 	},
 	"main": "build/cmd/index.js",
-	"bin": "node build/cmd.js",
+	"bin": "build/cmd.js",
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
