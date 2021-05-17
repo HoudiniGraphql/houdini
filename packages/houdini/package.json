@@ -37,7 +37,7 @@
 		"estree-walker": "^2.0.2",
 		"glob": "^7.1.6",
 		"graphql": "^15.5.0",
-		"houdini-common": "^0.5.0",
+		"houdini-common": "^0.5.1-kit.1",
 		"inquirer": "^7.3.3",
 		"mkdirp": "^1.0.4",
 		"node-fetch": "^2.6.1",
