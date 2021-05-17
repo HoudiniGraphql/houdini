@@ -4,7 +4,6 @@
 	"paths": {},
 	"compilerOptions": {
 		"moduleResolution": "node",
-		"module": "es2020",
-		"declaration": false
+		"module": "es2020"
 	}
 }

@@ -3,7 +3,7 @@
 	"exclude": ["node_modules", "src/test.ts", "**/*.test.ts"],
 	"paths": {
 		"houdini": ["../houdini/cmd"],
-		"houdini-common": ["../houdini-common"]
+		"houdini-common": ["../houdini-common", "src"]
 	},
 	"compilerOptions": {
 		"moduleResolution": "node"
