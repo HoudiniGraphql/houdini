@@ -2,18 +2,25 @@
 import * as graphql from 'graphql'
 import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
-import { OperationDefinitionNode } from 'graphql/language'
 import { BaseNode } from 'estree'
 import { Program } from '@babel/types'
-import { DocumentArtifact } from 'houdini'
-import { hashDocument } from 'houdini-common'
+import { Config } from 'houdini-common'
+import {
+	CompiledDocumentKind,
+	CompiledFragmentKind,
+	CompiledMutationKind,
+	CompiledQueryKind,
+	CompiledSubscriptionKind,
+} from 'houdini'
 // locals
 import { TransformDocument } from '../types'
-import importArtifact from './importArtifact'
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
-	artifact: DocumentArtifact
+	artifact: {
+		name: string
+		kind: CompiledDocumentKind
+	}
 	node: BaseNode & {
 		remove: () => void
 		replaceWith: (node: BaseNode) => void
@@ -28,6 +35,7 @@ type GraphqlTagWalker = {
 
 // yield the tagged graphql documents contained within the provided AST
 export default async function walkTaggedDocuments(
+	config: Config,
 	doc: TransformDocument,
 	parsedScript: Program,
 	walker: GraphqlTagWalker
@@ -59,10 +67,24 @@ export default async function walkTaggedDocuments(
 				}
 
 				// pull out the name of the thing
-				const operation = parsedTag.definitions[0] as OperationDefinitionNode
-				const name = operation.name?.value
+				const definition = parsedTag.definitions[0] as
+					| graphql.OperationDefinitionNode
+					| graphql.FragmentDefinitionNode
+				const name = definition.name?.value
 				if (!name) {
-					throw new Error('Could not find operation name')
+					throw new Error('Could not find definition name')
+				}
+				let kind: CompiledDocumentKind
+				if (definition.kind === 'FragmentDefinition') {
+					kind = CompiledFragmentKind
+				} else {
+					if (definition.operation === 'query') {
+						kind = CompiledQueryKind
+					} else if (definition.operation === 'mutation') {
+						kind = CompiledMutationKind
+					} else {
+						kind = CompiledSubscriptionKind
+					}
 				}
 
 				// the location for the document artifact
@@ -71,40 +93,21 @@ export default async function walkTaggedDocuments(
 				// make sure we watch the compiled fragment
 				doc.dependencies.push(documentPath)
 
-				let tag
-				try {
-					// collect the information we care about
-					tag = {
-						parsedDocument: parsedTag,
-						artifact: await importArtifact(documentPath),
-						node: {
-							...node,
-							...this,
-							remove: this.remove,
-							replaceWith: this.replace,
-						},
-						parent,
-					}
-				} catch (e) {
-					throw new Error(
-						`Looks like you need to run the houdini compiler for ${name}.` +
-							` Ecountered error: ` +
-							e.message
-					)
-				}
-				// check if the artifact points to a different query than what the template tag is wrapping
-				if (doc.config.verifyHash && tag.artifact.hash !== hashDocument(tagContent)) {
-					console.log('artifact hash', tag.artifact.hash, tag.artifact.raw)
-					console.log('document hash', hashDocument(tagContent), tagContent)
-					throw new Error(
-						'Looks like the contents of ' +
-							tag.artifact.name +
-							' has changed. Please regenerate your runtime.'
-					)
-				}
-
 				// invoker the walker's callback with the right context
-				await walker.onTag(tag)
+				await walker.onTag({
+					parsedDocument: parsedTag,
+					node: {
+						...node,
+						...this,
+						remove: this.remove,
+						replaceWith: this.replace,
+					},
+					artifact: {
+						name,
+						kind,
+					},
+					parent,
+				})
 			}
 		},
 	})

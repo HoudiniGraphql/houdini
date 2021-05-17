@@ -3,27 +3,26 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
 // locals
-import { walkTaggedDocuments } from '../utils'
+import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils'
 import { TransformDocument } from '../types'
-import { artifactIdentifier } from './query'
 
 const AST = recast.types.builders
 
 // returns the expression that should replace the graphql
-export default async function fragmentProcesesor(
+export default async function fragmentProcessor(
 	config: Config,
 	doc: TransformDocument
 ): Promise<void> {
 	// we need to find any graphql documents in the instance script containing fragments
 	// and replace them with an object expression that has the keys that the runtime expects
 
-	// if there is no instance script, we dont about care this file
+	// if there is no instance script, we don't about care this file
 	if (!doc.instance) {
 		return
 	}
 
 	// go to every graphql document
-	await walkTaggedDocuments(doc, doc.instance.content, {
+	await walkTaggedDocuments(config, doc, doc.instance.content, {
 		// with only one definition defining a fragment
 		// note: the tags that satisfy this predicate will be added to the watch list
 		where(tag: graphql.DocumentNode) {
@@ -46,15 +45,7 @@ export default async function fragmentProcesesor(
 			)
 
 			// add an import to the body pointing to the artifact
-			doc.instance?.content.body.unshift({
-				type: 'ImportDeclaration',
-				// @ts-ignore
-				source: AST.literal(config.artifactImportPath(artifact.name)),
-				specifiers: [
-					// @ts-ignore
-					AST.importDefaultSpecifier(AST.identifier(artifactVariable)),
-				],
-			})
+			doc.instance?.content.body.unshift(artifactImport(config, artifact))
 		},
 	})
 }

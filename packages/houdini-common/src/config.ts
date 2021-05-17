@@ -10,6 +10,7 @@ export type ConfigFile = {
 	schema?: string
 	quiet?: boolean
 	verifyHash?: boolean
+	mode?: 'kit' | 'sapper'
 }
 
 // a place to hold conventions and magic strings
@@ -20,6 +21,7 @@ export class Config {
 	sourceGlob: string
 	quiet: boolean
 	verifyHash: boolean
+	mode: string = 'sapper'
 
 	constructor({
 		schema,
@@ -28,6 +30,7 @@ export class Config {
 		quiet = false,
 		verifyHash,
 		filepath,
+		mode = 'sapper',
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -48,12 +51,16 @@ export class Config {
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
 		this.verifyHash = typeof verifyHash === 'undefined' ? true : verifyHash
+		this.mode = mode
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
 		// with the application stores directly
 		const rootDir = path.dirname(filepath)
-		this.rootDir = path.join(rootDir, 'src', 'node_modules', '$houdini')
+		this.rootDir =
+			mode === 'sapper'
+				? path.join(rootDir, 'src', 'node_modules', '$houdini')
+				: path.join(rootDir, '$houdini')
 	}
 
 	/*
@@ -89,14 +96,11 @@ export class Config {
 		return path.join(this.artifactTypeDirectory, `${this.documentName(document)}.d.ts`)
 	}
 
-	patchName({ query, mutation }: { query: string; mutation: string }) {
-		return `${mutation}_${query}`
-	}
-
 	// the location of the artifact generated corresponding to the provided documents
 	artifactPath(document: graphql.DocumentNode): string {
 		// use the operation name for the artifact
-		return path.join(this.artifactDirectory, `${this.documentName(document)}.js`)
+		// make sure to mark artifacts as .js in sveltekit
+		return path.join(this.artifactDirectory, this.documentName(document) + '.js')
 	}
 
 	// the path that the runtime can use to import an artifact
@@ -316,11 +320,11 @@ export function testConfig(config: {} = {}) {
 				deleteCat: DeleteCatOutput!
 			}
 
-			type Subscription { 
+			type Subscription {
 				newUser: NewUserResult!
 			}
 
-			type NewUserResult { 
+			type NewUserResult {
 				user: User!
 			}
 
@@ -359,12 +363,16 @@ export async function getConfig(): Promise<Config> {
 	}
 
 	// load the config file
-	const configPath = path.join(process.cwd(), 'houdini.config.cjs')
-	const config = await import(configPath)
+	const configPath = path.join(process.cwd(), 'houdini.config.js')
+	const imported = await import(configPath)
 
-	// add the filepath
-	return new Config({
+	// if this is wrapped in a default, use it
+	const config = imported.default || imported
+
+	// add the filepath and save the result
+	_config = new Config({
 		...config,
 		filepath: configPath,
 	})
+	return _config
 }

@@ -2,6 +2,7 @@
 const { defaults } = require('jest-config')
 
 module.exports = {
+	...defaults,
 	projects: ['<rootDir>/packages/*'],
 	moduleFileExtensions: [...defaults.moduleFileExtensions, 'ts'],
 	snapshotSerializers: ['ts-ast-serializer'],

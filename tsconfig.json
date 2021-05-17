@@ -3,10 +3,11 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"lib": ["esnext", "dom"],
-		"declaration": true,
 		"declarationMap": true,
 		"skipLibCheck": true,
 		"downlevelIteration": true,
-		"target": "es5"
+		"target": "es5",
+		"sourceMap": false,
+		"declaration": true
 	}
 }

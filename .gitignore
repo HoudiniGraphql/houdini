@@ -1,13 +1,10 @@
 .DS_Store
 node_modules
-packages/example/src/node_modules/@sapper/
 yarn-error.log
-__sapper__/
 .vscode
 
 build
 bin
-/example/generated
 
 .yarn/*
 !.yarn/releases
@@ -17,6 +14,8 @@ bin
 .pnp.*
 __tests__
 
-__sapper__
-/example/src/node_modules/@sapper/
+example/.svelte-kit
+example/functions
+example/$houdini
+
 yarn-error.log

@@ -4,8 +4,7 @@ import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
-import { walkTaggedDocuments } from '../utils'
-import { artifactIdentifier } from './query'
+import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils/index'
 const AST = recast.types.builders
 
 export default async function mutationProcessor(
@@ -24,7 +23,7 @@ export default async function mutationProcessor(
 	}
 
 	// go to every graphql document
-	await walkTaggedDocuments(doc, doc.instance.content, {
+	await walkTaggedDocuments(config, doc, doc.instance.content, {
 		// with only one definition defining a fragment
 		// note: the tags that satisfy this predicate will be added to the watch list
 		where(graphqlDoc: graphql.DocumentNode) {
@@ -35,7 +34,7 @@ export default async function mutationProcessor(
 			)
 		},
 		// we want to replace it with an object that the runtime can use
-		onTag({ artifact, parsedDocument, node }) {
+		onTag({ artifact, node }) {
 			// replace the graphql node with the object
 			node.replaceWith(
 				AST.objectExpression([
@@ -47,15 +46,7 @@ export default async function mutationProcessor(
 				])
 			)
 
-			doc.instance?.content.body.unshift({
-				type: 'ImportDeclaration',
-				// @ts-ignore
-				source: AST.literal(config.artifactImportPath(artifact.name)),
-				specifiers: [
-					// @ts-ignore
-					AST.importDefaultSpecifier(AST.identifier(artifactIdentifier(artifact))),
-				],
-			})
+			doc.instance?.content.body.unshift(artifactImport(config, artifact))
 		},
 	})
 }

@@ -1,5 +1,6 @@
 import { Environment, SubscriptionHandler } from '$houdini'
 import { SubscriptionClient } from 'subscriptions-transport-ws'
+import { browser } from '$app/env'
 
 const API_URL = 'localhost:4000/graphql'
 
@@ -24,7 +25,7 @@ async function fetchQuery({ text, variables = {} }) {
 // this client is used to handle any socket connections that are made to the api
 // since websockets only exist on the client, set to null on the server
 let socketClient: SubscriptionHandler | null = null
-if ((process as any).browser) {
+if (browser) {
 	// instantiate the transport client
 	const client = new SubscriptionClient('ws://' + API_URL, {
 		reconnect: true,

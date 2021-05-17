@@ -1,5 +1,5 @@
 // locals
-import { Config } from './config'
+import type { Config } from './config'
 
 // transforms are functions that takes the collected documents. some will mutate
 // the document definition, some check the definition for errors (undefined fields, etc)

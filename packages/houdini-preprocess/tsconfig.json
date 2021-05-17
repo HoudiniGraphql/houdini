@@ -1,11 +1,11 @@
 {
 	"extends": "../../tsconfig",
-	"compilerOptions": {
-		"outDir": "build"
-	},
-	"include": ["src/**/*"],
 	"exclude": ["node_modules", "src/test.ts", "**/*.test.ts"],
 	"paths": {
-		"houdini-compiler": ["../packages/houdini-compiler"]
+		"houdini": ["../houdini/cmd"],
+		"houdini-common": ["../houdini-common"]
+	},
+	"compilerOptions": {
+		"moduleResolution": "node"
 	}
 }

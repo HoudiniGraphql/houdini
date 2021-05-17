@@ -5,7 +5,7 @@
   <br />
 
   <strong>
-    The disappearing GraphQL client for Sapper.
+    The disappearing GraphQL client for Sapper and SvelteKit.
   </strong>
   <br />
   <br />
@@ -21,10 +21,9 @@ If you are interested in helping out, please reach out to @AlecAivazis on the Sv
 
 -   Composable and colocated data requirements for your components
 -   Normalized cache with declarative updates
--   Sapper ready. Sveltekit support once it stabilizes.
 -   Generated types
 -   Subscriptions
--   Customizable error handling (coming soon)
+-   Support for Sapper and SvelteKit's public beta
 
 At its core, houdini seeks to enable a high quality developer experience
 without compromising bundle size. Like Svelte, houdini shifts what is
@@ -36,6 +35,8 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Example](#example)
 1. [Installation](#installation)
 1. [Configuring Your Application](#configuring-your-application)
+    1. [Sapper](#sapper)
+    1. [SvelteKit](#sveltekit)
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
@@ -84,7 +85,7 @@ npx houdini init
 
 This will create a few necessary files, as well as pull down a json representation of
 your API's schema. Next, add the preprocessor to your sapper setup. Don't
-forget to add it to both the client and the server configurations!
+forget to add it to both the client and the server configurations if you're using sapper.
 
 ```typescript
 import houdini from 'houdini-preprocess'
@@ -99,8 +100,10 @@ import houdini from 'houdini-preprocess'
 }
 ```
 
-With that in place, the only thing left is to configure your client and server environments
-to use the generated starting point for your network layer:
+### Sapper
+
+With that in place, the only thing left to configure your Sapper application is 
+to connect your client and server to the generate network layer: 
 
 ```typescript
 // in both src/client.js and src/server.js
@@ -111,7 +114,38 @@ import env from './environment'
 setEnvironment(env)
 ```
 
+### SvelteKit
 
+We need to define an alias so that your codebase can import the generated runtime. Add the following
+values to `svelte.config.js`:
+
+```typescript
+{
+    kit: {
+        vite: {
+            resolve: {
+                alias: {
+                    $houdini: path.resolve('.', '$houdini')
+                }
+            }
+        }
+    }
+}
+```
+
+And finally, we need to configure our application to use the generated network layer. To do
+this, add the following block of code to `src/routes/__layout.svelte`:
+
+```typescript
+<script context="module">
+	import env from '../environment';
+	import { setEnvironment } from '$houdini';
+
+	setEnvironment(env);
+</script>
+```
+
+You might need to generate your runtime in order to fix typescript errors. 
 
 ## <img src="./.github/assets/cylon.gif" height="28px" />&nbsp;&nbsp;Running the Compiler
 
@@ -152,9 +186,12 @@ Grabbing data from your API is done with the `query` function:
 ### Query variables and page data
 
 At the moment, query variables are declared as a function in the module context of your component.
-This function must be named after your query and takes the same `page` and `session` arguments
-that are given to the `preload` function described in the [Sapper](https://sapper.svelte.dev/docs#Pages)
-documentation. Here is a modified example from the [demo](./example):
+This function must be named after your query and in a sapper application, it takes the same arguments
+that are passed to the `preload` function described in the [Sapper](https://sapper.svelte.dev/docs#Pages)
+documentation. In a SvelteKit project, this function takes the same arguments passed to the `load` function
+described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. Regardless of the framework, you can return  
+the value from `this.error` and `this.redirect` in order to change the behavior of the response. Here is a 
+modified example from the [demo](./example):
 
 ```svelte
 // src/routes/[filter].svelte
@@ -179,8 +216,7 @@ documentation. Here is a modified example from the [demo](./example):
     export function AllItemsVariables(page): AllItems$input {
         // make sure we recognize the value
         if (!['active', 'completed'].includes(page.params.filter)) {
-            this.error(400, "filter must be one of 'active' or 'completed'")
-            return
+            return this.error(400, "filter must be one of 'active' or 'completed'")
         }
 
         return {
@@ -197,7 +233,7 @@ documentation. Here is a modified example from the [demo](./example):
 ### What about `preload`?
 
 Don't worry - that's where the preprocessor comes in. One of its responsibilities is moving the actual
-fetch into a `preload`. You can think of the block at the top of this section as equivalent to:
+fetch into a `preload`. You can think of the block at the top of this section as equivalent to the following Sapper code:
 
 ```svelte
 <script context="module">
@@ -511,8 +547,10 @@ client and pass it directly:
 // environment.ts
 
 import { createClient } from 'graphql-ws'
+import { browser } from '$app/env'
 
-let socketClient = (process as any).browser
+// in sapper, this would be something like `(process as any).browser`
+let socketClient = browser
     ? new createClient({
             url: 'ws://api.url',
       })
@@ -532,9 +570,10 @@ you will have to slightly modify the above block:
 // environment.ts
 
 import { SubscriptionClient } from 'subscriptions-transport-ws'
+import { browser } from '$app/env'
 
 let socketClient: SubscriptionHandler | null = null
-if ((process as any).browser) {
+if (browser) {
     // instantiate the transport client
     const client = new SubscriptionClient('ws://api.url', {
         reconnect: true,
