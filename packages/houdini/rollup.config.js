@@ -37,6 +37,6 @@ export default {
 			declarationDir: process.env.TARGET === 'esm' ? 'build/cmd-esm' : 'build/cjs',
 		}),
 		commonjs(),
-		nodeResolve(),
+		nodeResolve({ preferBuiltins: true }),
 	],
 }
