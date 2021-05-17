@@ -2,8 +2,13 @@
 import path from 'path'
 import fs from 'fs/promises'
 import { Config } from 'houdini-common'
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
+
+// @ts-ignore
+const currentDir = __dirname || dirname(fileURLToPath(import.meta.url))
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
@@ -13,7 +18,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	// we want to copy the typescript source code for the templates and then compile the files according
 	// to the requirements of the platform
 	const source = path.resolve(
-		__dirname,
+		currentDir,
 		relative,
 		'build',
 		config.mode === 'kit' ? 'runtime-esm' : 'runtime-cjs'

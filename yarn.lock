@@ -7004,6 +7004,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"houdini-common@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "houdini-common@npm:0.4.0"
+  dependencies:
+    "@babel/parser": ^7.13.4
+    mkdirp: ^1.0.4
+  peerDependencies:
+    graphql: ^15.x
+  checksum: 1885d2d34a13c3d16aba265f968a842382b225fe6ad94a95b121fdcfcfb20603becff429e96d4eff7bdd0c9092c5c9bb9a0e904e33b0cf80bec4e1829c64d83b
+  languageName: node
+  linkType: hard
+
 "houdini-common@npm:^0.5.0":
   version: 0.5.0
   resolution: "houdini-common@npm:0.5.0"
@@ -7087,7 +7099,7 @@ __metadata:
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
     graphql: 15.5.0
-    houdini: ^0.5.1-kit.0
+    houdini: ^0.5.1-kit.2
     houdini-common: ^0.5.0
     jest: ^26.6.3
     mkdirp: ^1.0.4
@@ -7099,7 +7111,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.4.1, houdini@workspace:packages/houdini":
+"houdini@^0.5.1-kit.2, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
@@ -7130,13 +7142,13 @@ __metadata:
     svelte: ^3.34.0
     typescript: ^4.0.0
   bin:
-    houdini: node build/cmd/main.js
+    houdini: build/cmd.js
   languageName: unknown
   linkType: soft
 
-"houdini@npm:^0.5.1-kit.0":
-  version: 0.5.1-kit.0
-  resolution: "houdini@npm:0.5.1-kit.0"
+"houdini@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "houdini@npm:0.4.1"
   dependencies:
     "@graphql-tools/merge": ^6.2.7
     "@types/inquirer": ^7.3.1
@@ -7145,15 +7157,15 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.5.0
+    houdini-common: ^0.4.0
     inquirer: ^7.3.3
     mkdirp: ^1.0.4
     node-fetch: ^2.6.1
     recast: ^0.20.4
     svelte: ^3.34.0
   bin:
-    houdini: build/cmd/main.js
-  checksum: 01d7a06f082657e1a6f75be5b0f8795fafeec438805e9f2134bcc569a7af2373709cc0b7717f50d089fd0b259e4d8a953462d2f3e7b58f31ec2d57d9ef16aae2
+    houdini: build/main.js
+  checksum: f5797c811a921b2360cd0efc9c012a246484d206b060deba071e2a8cec9f85c6d033b73ea7a6aa2748d2d1e8eb193e33252910dbc065c9411faec91b2c2243a0
   languageName: node
   linkType: hard
 
