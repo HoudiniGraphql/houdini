@@ -8,7 +8,7 @@ import { CollectedGraphQLDocument } from '../../types'
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
 	// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
-	const relative = process.env.TEST ? '../../..' : '../../../..'
+	const relative = process.env.TEST ? '../../..' : './'
 
 	// we want to copy the typescript source code for the templates and then compile the files according
 	// to the requirements of the platform
@@ -16,7 +16,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		__dirname,
 		relative,
 		'build',
-		config.mode === 'kit' ? 'runtime-kit' : 'runtime-sapper'
+		config.mode === 'kit' ? 'runtime-esm' : 'runtime-cjs'
 	)
 
 	// copy the compiled source code to the target directory

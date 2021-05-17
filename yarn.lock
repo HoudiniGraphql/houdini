@@ -2870,6 +2870,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rollup/plugin-json@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "@rollup/plugin-json@npm:4.1.0"
+  dependencies:
+    "@rollup/pluginutils": ^3.0.8
+  peerDependencies:
+    rollup: ^1.20.0 || ^2.0.0
+  checksum: 07bc6bc83d07aefd35278e4e1a125e65210061b3dcab50c0f01273c54f43a60a3e01c1a0fed451e35d592ef1cbc8288ec8148a6229cf8cca9cdbf11a6d2d7d1c
+  languageName: node
+  linkType: hard
+
 "@rollup/plugin-node-resolve@npm:^13.0.0":
   version: 13.0.0
   resolution: "@rollup/plugin-node-resolve@npm:13.0.0"
@@ -2886,7 +2897,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/pluginutils@npm:^3.1.0":
+"@rollup/pluginutils@npm:^3.0.8, @rollup/pluginutils@npm:^3.1.0":
   version: 3.1.0
   resolution: "@rollup/pluginutils@npm:3.1.0"
   dependencies:
@@ -6993,7 +7004,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.4.0, houdini-common@workspace:packages/houdini-common":
+"houdini-common@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "houdini-common@npm:0.5.0"
+  dependencies:
+    "@babel/parser": ^7.13.4
+    mkdirp: ^1.0.4
+  peerDependencies:
+    graphql: ^15.x
+  checksum: 98fb2c998a8d303ac0d0b64617d782a8a674792a08fbe3590f16dd506d92ea8c1c95cf10f0fc180da24b87ae1100d4eee929842a7c487eaeedbc7a699d85e396
+  languageName: node
+  linkType: hard
+
+"houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
@@ -7034,7 +7057,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.4.1, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "houdini-preprocess@npm:0.4.1"
+  dependencies:
+    "@types/mkdirp": ^1.0.1
+    babylon: ^7.0.0-beta.47
+    estree-walker: ^2.0.2
+    mkdirp: ^1.0.4
+    prettier: "*"
+    prettier-plugin-svelte: ^2.1.1
+    recast: ^0.20.4
+    svelte: ^3.17.3
+  checksum: 0f41d7d82add642cc695c66e36fd6d1f4db86a7ffa2e43f54d7f2e3840ae4c00f6ba977e4442373ff2a6387c8597334eac39a5fa3a3947a8c34f03ed514596b3
+  languageName: node
+  linkType: hard
+
+"houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -7048,8 +7087,8 @@ __metadata:
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
     graphql: 15.5.0
-    houdini: ^0.4.1
-    houdini-common: ^0.4.0
+    houdini: ^0.5.1-kit.0
+    houdini-common: ^0.5.0
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -7068,6 +7107,7 @@ __metadata:
     "@babel/preset-env": ^7.12.11
     "@babel/preset-typescript": ^7.12.7
     "@graphql-tools/merge": ^6.2.7
+    "@rollup/plugin-json": ^4.1.0
     "@types/estree": ^0.0.47
     "@types/glob": ^7.1.3
     "@types/inquirer": ^7.3.1
@@ -7080,18 +7120,42 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.4.0
+    houdini-common: ^0.5.0
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
     node-fetch: ^2.6.1
     recast: ^0.20.4
+    rollup-plugin-preserve-shebangs: ^0.2.0
     svelte: ^3.34.0
     typescript: ^4.0.0
   bin:
-    houdini: build/cmd/main.js
+    houdini: node build/cmd/main.js
   languageName: unknown
   linkType: soft
+
+"houdini@npm:^0.5.1-kit.0":
+  version: 0.5.1-kit.0
+  resolution: "houdini@npm:0.5.1-kit.0"
+  dependencies:
+    "@graphql-tools/merge": ^6.2.7
+    "@types/inquirer": ^7.3.1
+    babylon: ^7.0.0-beta.47
+    commander: ^7.1.0
+    estree-walker: ^2.0.2
+    glob: ^7.1.6
+    graphql: ^15.5.0
+    houdini-common: ^0.5.0
+    inquirer: ^7.3.3
+    mkdirp: ^1.0.4
+    node-fetch: ^2.6.1
+    recast: ^0.20.4
+    svelte: ^3.34.0
+  bin:
+    houdini: build/cmd/main.js
+  checksum: 01d7a06f082657e1a6f75be5b0f8795fafeec438805e9f2134bcc569a7af2373709cc0b7717f50d089fd0b259e4d8a953462d2f3e7b58f31ec2d57d9ef16aae2
+  languageName: node
+  linkType: hard
 
 "html-encoding-sniffer@npm:^1.0.2":
   version: 1.0.2
@@ -11621,6 +11685,17 @@ resolve@1.1.7:
   bin:
     rimraf: bin.js
   checksum: f0de3e445581e64a8a077af476cc30708e659f5779ec2ca2a161556d0792aa318a685923798ae22055b4ecd02b9aff444ef619578f7af53cf8e0e248031e3dee
+  languageName: node
+  linkType: hard
+
+"rollup-plugin-preserve-shebangs@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "rollup-plugin-preserve-shebangs@npm:0.2.0"
+  dependencies:
+    magic-string: ^0.25.7
+  peerDependencies:
+    rollup: "*"
+  checksum: d7d5e983532fccb95969861eec73677c1de4f7cdd18a65cca57abcee6f359c7b349443c31a9a8c88c6aecdeaf1e2e2d3859d6f188771768ec37ba4037cf6353f
   languageName: node
   linkType: hard
 
