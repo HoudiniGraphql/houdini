@@ -3,7 +3,7 @@ import * as svelte from 'svelte/compiler'
 // local imports
 import mutationProcessor from './mutation'
 import { testConfig } from 'houdini-common'
-import '../../../../jest.setup.cjs'
+import '../../../../jest.setup'
 
 describe('mutation preprocessor', function () {
 	test('happy path', async function () {

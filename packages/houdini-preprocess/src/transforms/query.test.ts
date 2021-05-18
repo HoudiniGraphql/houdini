@@ -3,7 +3,7 @@ import { testConfig } from 'houdini-common'
 import * as svelte from 'svelte/compiler'
 // local imports
 import queryProcessor from './query'
-import '../../../../jest.setup.cjs'
+import '../../../../jest.setup'
 
 describe('query preprocessor', function () {
 	test('preload initial data', async function () {

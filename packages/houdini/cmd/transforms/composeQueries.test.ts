@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 // locals
 import { pipelineTest } from '../testUtils'
 import { CollectedGraphQLDocument } from '../types'
-import '../../../../jest.setup.cjs'
+import '../../../../jest.setup'
 
 const start = [
 	`

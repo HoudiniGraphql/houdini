@@ -1,5 +1,5 @@
 // local imports
-import '../../../../jest.setup.cjs'
+import '../../../../jest.setup'
 import { pipelineTest } from '../testUtils'
 
 describe('schema transform', function () {

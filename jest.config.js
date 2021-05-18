@@ -3,5 +3,5 @@ export default {
 	projects: ['<rootDir>/packages/*'],
 	moduleFileExtensions: ['js', 'ts'],
 	snapshotSerializers: ['ts-ast-serializer'],
-	setupFilesAfterEnv: ['./jest.setup.cjs'],
+	setupFilesAfterEnv: ['./jest.setup.js'],
 }
