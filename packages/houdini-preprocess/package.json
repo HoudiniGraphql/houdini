@@ -1,6 +1,6 @@
 {
 	"name": "houdini-preprocess",
-	"version": "0.5.1-kit.6",
+	"version": "0.5.1-kit.7",
 	"description": "",
 	"main": "build/cjs/index.js",
 	"module": "build/esm/index.js",
@@ -35,8 +35,8 @@
 		"babylon": "^7.0.0-beta.47",
 		"estree-walker": "^2.0.2",
 		"graphql": "15.5.0",
-		"houdini": "^0.5.1-kit.6",
-		"houdini-common": "^0.5.1-kit.1",
+		"houdini": "^0.5.1-kit.7",
+		"houdini-common": "^0.5.1-kit.7",
 		"mkdirp": "^1.0.4",
 		"prettier": "*",
 		"prettier-plugin-svelte": "^2.1.1",
