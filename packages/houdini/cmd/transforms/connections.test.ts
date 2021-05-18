@@ -2,7 +2,7 @@
 import { testConfig } from 'houdini-common'
 import * as graphql from 'graphql'
 // local imports
-import '../../../../jest.setup'
+import '../../../../jest.setup.cjs'
 import { runPipeline } from '../compile'
 import { mockCollectedDoc } from '../testUtils'
 

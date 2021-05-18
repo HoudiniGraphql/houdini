@@ -6,7 +6,7 @@ import fs from 'fs/promises'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
-import '../../../../jest.setup'
+import '../../../../jest.setup.cjs'
 import { runPipeline } from '../compile'
 import { mockCollectedDoc } from '../testUtils'
 

@@ -1,10 +1,7 @@
-// jest.config.js
-const { defaults } = require('jest-config')
-
-module.exports = {
-	...defaults,
+export default {
+	preset: 'ts-jest',
 	projects: ['<rootDir>/packages/*'],
-	moduleFileExtensions: [...defaults.moduleFileExtensions, 'ts'],
+	moduleFileExtensions: ['js', 'ts'],
 	snapshotSerializers: ['ts-ast-serializer'],
-	setupFilesAfterEnv: ['./jest.setup.js'],
+	setupFilesAfterEnv: ['./jest.setup.cjs'],
 }

@@ -6,7 +6,7 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
-import '../../../../../jest.setup'
+import '../../../../../jest.setup.cjs'
 import { runPipeline } from '../../compile'
 import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'

@@ -1,7 +1,7 @@
 // locals
 import { HoudiniError } from '../error'
 import { pipelineTest } from '../testUtils'
-import '../../../../jest.setup'
+import '../../../../jest.setup.cjs'
 import { CollectedGraphQLDocument } from '../types'
 
 const table: Row[] = [

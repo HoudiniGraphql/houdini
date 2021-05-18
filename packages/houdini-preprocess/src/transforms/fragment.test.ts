@@ -3,7 +3,7 @@ import * as svelte from 'svelte/compiler'
 // local imports
 import fragmentProcessor from './fragment'
 import { testConfig } from 'houdini-common'
-import '../../../../jest.setup'
+import '../../../../jest.setup.cjs'
 
 describe('fragment preprocessor', function () {
 	test('happy path', async function () {

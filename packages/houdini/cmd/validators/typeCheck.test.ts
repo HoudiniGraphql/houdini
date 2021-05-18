@@ -1,6 +1,6 @@
 // locals
 import { pipelineTest } from '../testUtils'
-import '../../../../jest.setup'
+import '../../../../jest.setup.cjs'
 import { CollectedGraphQLDocument } from '../types'
 import { HoudiniError } from '../error'
 

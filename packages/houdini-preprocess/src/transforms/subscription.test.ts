@@ -3,7 +3,7 @@ import * as svelte from 'svelte/compiler'
 // local imports
 import subscriptionProcessor from './subscription'
 import { testConfig } from 'houdini-common'
-import '../../../../jest.setup'
+import '../../../../jest.setup.cjs'
 
 describe('subscription preprocessor', function () {
 	test('happy path', async function () {
