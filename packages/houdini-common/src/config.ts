@@ -2,6 +2,7 @@ import * as graphql from 'graphql'
 import fs from 'fs'
 import path from 'path'
 import mkdirp from 'mkdirp'
+import os from 'os'
 
 // the values we can take in from the config file
 export type ConfigFile = {
@@ -364,7 +365,15 @@ export async function getConfig(): Promise<Config> {
 
 	// load the config file
 	const configPath = path.join(process.cwd(), 'houdini.config.js')
-	const imported = await import(configPath)
+
+	// on windows, we need to prepend the right protocol before we
+	// can import from an absolute path
+	let importPath = configPath
+	if (os.platform() === 'win32') {
+		importPath = 'file:///' + importPath
+	}
+
+	const imported = await import(importPath)
 
 	// if this is wrapped in a default, use it
 	const config = imported.default || imported
