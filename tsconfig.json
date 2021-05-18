@@ -3,7 +3,6 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"lib": ["esnext", "dom"],
-		"declarationMap": true,
 		"skipLibCheck": true,
 		"downlevelIteration": true,
 		"target": "es5",

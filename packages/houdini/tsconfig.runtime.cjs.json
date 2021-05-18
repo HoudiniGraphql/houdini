@@ -1,7 +1,7 @@
 {
 	"extends": "../../tsconfig",
 	"compilerOptions": {
-		"outDir": "build/runtime-sapper",
+		"outDir": "build/runtime-cjs",
 		"sourceMap": false,
 		"module": "commonjs"
 	},

@@ -27,11 +27,11 @@ beforeEach(() => {
 		},
 		// the runtime generator copies files relative to __dirname. we need our tests
 		// to point to the same filestructure that will exist
-		[`packages/houdini/build/runtime-kit`]: mockFs.load(
-			path.resolve(__dirname, 'packages', 'houdini', 'build', 'runtime-kit')
+		[`packages/houdini/build/runtime-esm`]: mockFs.load(
+			path.resolve(__dirname, 'packages', 'houdini', 'build', 'runtime-esm')
 		),
-		[`packages/houdini/build/runtime-sapper`]: mockFs.load(
-			path.resolve(__dirname, 'packages', 'houdini', 'build', 'runtime-sapper')
+		[`packages/houdini/build/runtime-cjs`]: mockFs.load(
+			path.resolve(__dirname, 'packages', 'houdini', 'build', 'runtime-cjs')
 		),
 	})
 })

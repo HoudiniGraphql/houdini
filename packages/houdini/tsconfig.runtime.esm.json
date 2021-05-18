@@ -5,7 +5,7 @@
 		"houdini-common": ["../houdini-common"]
 	},
 	"compilerOptions": {
-		"outDir": "build/runtime-kit",
+		"outDir": "build/runtime-esm",
 		"moduleResolution": "node",
 		"module": "es2020",
 		"lib": ["es2020", "dom"],
