@@ -2,7 +2,7 @@
 import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
-import type { Fragment, GraphQLTagResult, SubscriptionSpec } from './types'
+import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
 import cache from './cache'
 import { getVariables } from './context'
 
@@ -15,10 +15,10 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	if (fragment.kind !== 'HoudiniFragment') {
 		throw new Error('getFragment can only take fragment documents')
 	}
-
-	// @ts-ignore: typing esm/cjs interop is hard
 	// we might get the the artifact nested under default
-	const artifact = fragment.artifact.default || fragment.artifact
+	const artifact: FragmentArtifact =
+		// @ts-ignore: typing esm/cjs interop is hard
+		fragment.artifact.default || fragment.artifact
 
 	let subscriptionSpec: SubscriptionSpec | undefined
 

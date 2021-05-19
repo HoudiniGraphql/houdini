@@ -1,8 +1,8 @@
 // externals
-import { readable, Readable, writable } from 'svelte/store'
+import { Readable, writable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
 // locals
-import { Operation, GraphQLTagResult, SubscriptionSpec } from './types'
+import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
 import cache from './cache'
 import { setVariables } from './context'
 
@@ -25,9 +25,10 @@ export default function query<_Query extends Operation<any, any>>(
 	// define the store we will hold the data
 	const store = writable(initialValue)
 
-	// @ts-ignore: typing esm/cjs interop is hard
 	// we might get the the artifact nested under default
-	const artifact = document.artifact.default || document.artifact
+	const artifact: QueryArtifact =
+		// @ts-ignore: typing esm/cjs interop is hard
+		document.artifact.default || document.artifact
 
 	// pull out the writer for internal use
 	let subscriptionSpec: SubscriptionSpec | null = {

@@ -71,7 +71,7 @@ export type TaggedGraphqlQuery = {
 	kind: 'HoudiniQuery'
 	initialValue: any
 	variables: { [key: string]: any }
-	artifact: QueryArtifact | { default: QueryArtifact }
+	artifact: QueryArtifact
 }
 
 type Filter = { [key: string]: string | boolean | number }

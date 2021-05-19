@@ -1,6 +1,6 @@
 // locals
 import { fetchQuery } from './network'
-import { Operation, GraphQLTagResult } from './types'
+import { Operation, GraphQLTagResult, MutationArtifact } from './types'
 import cache from './cache'
 import { getVariables } from './context'
 
@@ -17,9 +17,10 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 		throw new Error('mutation() must be passed a mutation document')
 	}
 
-	// @ts-ignore: typing esm/cjs interop is hard
 	// we might get the the artifact nested under default
-	const artifact = document.artifact.default || document.artifact
+	const artifact: MutationArtifact =
+		// @ts-ignore: typing esm/cjs interop is hard
+		document.artifact.default || document.artifact
 
 	// pull the query text out of the compiled artifact
 	const { raw: text } = artifact

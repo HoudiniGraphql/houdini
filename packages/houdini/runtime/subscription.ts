@@ -2,7 +2,7 @@
 import { Readable, writable } from 'svelte/store'
 import { onMount, onDestroy } from 'svelte'
 // locals
-import { Operation, GraphQLTagResult } from './types'
+import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
 import { getEnvironment } from './network'
 import cache from './cache'
 
@@ -20,9 +20,10 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 		throw new Error('subscription() must be passed a subscription document')
 	}
 
-	// @ts-ignore: typing esm/cjs interop is hard
 	// we might get the the artifact nested under default
-	const artifact = document.artifact.default || document.artifact
+	const artifact: SubscriptionArtifact =
+		// @ts-ignore: typing esm/cjs interop is hard
+		document.artifact.default || document.artifact
 
 	// pull out the current environment
 	const env = getEnvironment()
