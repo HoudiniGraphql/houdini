@@ -12,9 +12,13 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment
 ): Readable<_Fragment['shape']> {
 	// make sure we got a query document
-	if (fragment.artifact.kind !== 'HoudiniFragment') {
+	if (fragment.kind !== 'HoudiniFragment') {
 		throw new Error('getFragment can only take fragment documents')
 	}
+
+	// @ts-ignore: typing esm/cjs interop is hard
+	// we might get the the artifact nested under default
+	const artifact = fragment.artifact.default || fragment.artifact
 
 	let subscriptionSpec: SubscriptionSpec | undefined
 
@@ -24,11 +28,11 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	const value = readable(initialValue, (set) => {
 		// @ts-ignore: isn't properly typed yet to know if initialValue has
 		// what it needs to compute the id
-		const parentID = cache.id(fragment.artifact.rootType, initialValue)
+		const parentID = cache.id(artifact.rootType, initialValue)
 
 		subscriptionSpec = {
-			rootType: fragment.artifact.rootType,
-			selection: fragment.artifact.selection,
+			rootType: artifact.rootType,
+			selection: artifact.selection,
 			set,
 			parentID,
 		}
@@ -48,9 +52,9 @@ export default function fragment<_Fragment extends Fragment<any>>(
 			if (parentID) {
 				cache.unsubscribe(
 					{
-						rootType: fragment.artifact.rootType,
+						rootType: artifact.rootType,
 						parentID,
-						selection: fragment.artifact.selection,
+						selection: artifact.selection,
 						set,
 					},
 					queryVariables()
