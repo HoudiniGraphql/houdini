@@ -183,6 +183,11 @@ Grabbing data from your API is done with the `query` function:
 {/each}
 ```
 
+Please note that since `query` desugars into a `load` function (see [below](#what-about-preload)) you 
+can only use it inside of a page or layout. This will be addressed soon. Until then, you will need
+to only use `query` inside of components defined under `/src/routes`.
+
+
 ### Query variables and page data
 
 At the moment, query variables are declared as a function in the module context of your component.

@@ -2,7 +2,7 @@
 import { Readable, writable } from 'svelte/store'
 import { onMount, onDestroy } from 'svelte'
 // locals
-import { Operation, GraphQLTagResult } from './types'
+import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
 import { getEnvironment } from './network'
 import cache from './cache'
 
@@ -20,6 +20,11 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 		throw new Error('subscription() must be passed a subscription document')
 	}
 
+	// we might get the the artifact nested under default
+	const artifact: SubscriptionArtifact =
+		// @ts-ignore: typing esm/cjs interop is hard
+		document.artifact.default || document.artifact
+
 	// pull out the current environment
 	const env = getEnvironment()
 	// if there isn't one, yell loudly
@@ -28,7 +33,7 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 	}
 
 	// pull the query text out of the compiled artifact
-	const { raw: text, selection } = document.artifact
+	const { raw: text, selection } = artifact
 
 	// the primary function of a subscription is to keep the cache
 	// up to date with the response

@@ -1,6 +1,6 @@
 // locals
 import { fetchQuery } from './network'
-import { Operation, GraphQLTagResult } from './types'
+import { Operation, GraphQLTagResult, MutationArtifact } from './types'
 import cache from './cache'
 import { getVariables } from './context'
 
@@ -17,8 +17,13 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 		throw new Error('mutation() must be passed a mutation document')
 	}
 
+	// we might get the the artifact nested under default
+	const artifact: MutationArtifact =
+		// @ts-ignore: typing esm/cjs interop is hard
+		document.artifact.default || document.artifact
+
 	// pull the query text out of the compiled artifact
-	const { raw: text } = document.artifact
+	const { raw: text } = artifact
 
 	// grab the session from the adapter
 	const session = getSession()
@@ -67,7 +72,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 			}
 
 			// update the cache with the mutation data
-			cache.write(document.artifact.selection, result, queryVariables())
+			cache.write(artifact.selection, result, queryVariables())
 
 			// wrap the result in a store we can use to keep this query up to date
 			resolve(result)
