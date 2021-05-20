@@ -40,7 +40,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
-    1. [What about preload?](#what-about-preload)
+    1. [What about load?](#what-about-load)
 1. [Fragments](#fragments)
 1. [Mutations](#mutations)
     1. [Updating fields](#updating-fields)
@@ -183,7 +183,7 @@ Grabbing data from your API is done with the `query` function:
 {/each}
 ```
 
-Please note that since `query` desugars into a `load` function (see [below](#what-about-preload)) you 
+Please note that since `query` desugars into a `load` function (see [below](#what-about-load)) you 
 can only use it inside of a page or layout. This will be addressed soon. Until then, you will need
 to only use `query` inside of components defined under `/src/routes`.
 
@@ -235,14 +235,14 @@ modified example from the [demo](./example):
 {/each}
 ```
 
-### What about `preload`?
+### What about `load`?
 
 Don't worry - that's where the preprocessor comes in. One of its responsibilities is moving the actual
-fetch into a `preload`. You can think of the block at the top of this section as equivalent to the following Sapper code:
+fetch into a `load`. You can think of the block at the top of this section as equivalent to:
 
 ```svelte
 <script context="module">
-    export async function preload() {
+    export async function load() {
             return {
                 _data: await this.fetch({
                     text: `
