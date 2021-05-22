@@ -6,7 +6,7 @@ const AST = recast.types.builders
 
 export default function moduleExport(config: Config, key: string, value: ExpressionKind) {
 	// module exports in sapper should be common js
-	if (config.mode === 'sapper') {
+	if (config.module === 'commonjs') {
 		// the thing to assign
 		let target = AST.memberExpression(AST.identifier('module'), AST.identifier('exports'))
 		if (key !== 'default') {

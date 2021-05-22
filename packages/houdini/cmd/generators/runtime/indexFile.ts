@@ -18,7 +18,7 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 
 	// if we are rendering an index file for sapper we need to compile it for commonjs
 	let body = ''
-	if (config.mode === 'sapper') {
+	if (config.module === 'commonjs') {
 		body = `${cjsIndexFilePreamble}
 
 ${exportStarFrom(runtimeDir)}

@@ -1946,9 +1946,7 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		config.mode = 'kit'
-		await runPipeline(config, mutationDocs)
-		config.mode = 'sapper'
+		await runPipeline(testConfig({ mode: 'kit' }), mutationDocs)
 
 		// load the contents of the file
 		const queryContents = await fs.readFile(

@@ -9,7 +9,7 @@ import fs from 'fs/promises'
 export default async (_path: string | undefined) => {
 	// we need to collect some information from the user before we
 	// can continue
-	let { url, framework } = await inquirer.prompt([
+	let answers = await inquirer.prompt([
 		{
 			name: 'url',
 			type: 'input',
@@ -18,13 +18,32 @@ export default async (_path: string | undefined) => {
 		{
 			name: 'framework',
 			type: 'list',
-			message: 'Are you using Sapper or SvelteKit?',
-			choices: ['Sapper', 'SvelteKit'],
+			message: 'Are you using Sapper, SvelteKit, or just Svelte?',
+			choices: ['Svelte', 'Sapper', 'SvelteKit'],
+		},
+		{
+			name: 'module',
+			type: 'list',
+			message: 'What kind of modules do you want to be generated?',
+			choices: ['CommonJS', 'ES Modules'],
+			when: ({ framework }) => framework === 'Svelte',
 		},
 	])
 
 	// convert the selected framework the mode
-	const mode = framework === 'Sapper' ? 'sapper' : 'kit'
+	const framework = {
+		Svelte: 'svelte',
+		Sapper: 'sapper',
+		SvelteKit: 'kit',
+	}[answers.framework as 'Svelte' | 'Sapper' | 'SvelteKit']
+
+	// figure out the right module
+	const module =
+		answers.module ||
+		{
+			kit: 'esm',
+			sapper: 'commonjs',
+		}[framework]
 
 	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
@@ -40,7 +59,7 @@ export default async (_path: string | undefined) => {
 	const schemaPath = './schema.json'
 
 	// send the request
-	const resp = await fetch(url, {
+	const resp = await fetch(answers.url, {
 		method: 'POST',
 		body: JSON.stringify({
 			query: getIntrospectionQuery(),
@@ -63,9 +82,9 @@ export default async (_path: string | undefined) => {
 	}
 
 	// write the config file
-	await fs.writeFile(configPath, configFile(schemaPath, mode))
+	await fs.writeFile(configPath, configFile(schemaPath, framework, module))
 	// write the environment file
-	await fs.writeFile(environmentPath, networkFile(url))
+	await fs.writeFile(environmentPath, networkFile(answers.url))
 
 	console.log('Welcome to houdini!')
 }
@@ -90,15 +109,16 @@ export default new Environment(async function ({ text, variables = {} }) {
 })
 `
 
-const configFile = (schemaPath: string, mode: string) =>
-	mode === 'kit'
+const configFile = (schemaPath: string, framework: string, module: string) =>
+	module === 'esm'
 		? // SvelteKit default config
 		  `import path from 'path'
 
 export default {
 	schemaPath: path.resolve('${schemaPath}'),
 	sourceGlob: 'src/**/*.svelte',
-	mode: 'kit',
+	module: '${module}',
+	framework: '${framework}',
 }
 `
 		: // sapper default config
@@ -107,6 +127,7 @@ export default {
 module.exports = {
 	schemaPath: path.resolve('${schemaPath}'),
 	sourceGlob: 'src/{routes,components}/*.svelte',
-	mode: 'sapper',
+	module: '${module}',
+	framework: '${framework}',
 }
 `

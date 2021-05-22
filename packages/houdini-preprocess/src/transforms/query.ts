@@ -124,7 +124,7 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	addKitLoad(config, script.content.body, queries)
 
 	// if we are processing this file for sapper, we need to add the actual preload function
-	if (config.mode === 'sapper') {
+	if (config.framework === 'sapper') {
 		addSapperPreload(config, script.content.body)
 	}
 }
@@ -319,7 +319,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 									AST.identifier('computeInput')
 								),
 								[
-									AST.stringLiteral(config.mode),
+									AST.stringLiteral(config.framework),
 									AST.identifier(queryInputFunction(document.artifact.name)),
 								]
 						  )

@@ -11,6 +11,9 @@ export type ConfigFile = {
 	schema?: string
 	quiet?: boolean
 	verifyHash?: boolean
+	// an old config file could specify mode instead of framework and module specifically
+	framework?: 'kit' | 'sapper' | 'svelte'
+	module?: 'esm' | 'commonjs'
 	mode?: 'kit' | 'sapper'
 }
 
@@ -22,16 +25,19 @@ export class Config {
 	sourceGlob: string
 	quiet: boolean
 	verifyHash: boolean
-	mode: string = 'sapper'
+	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
+	module: 'commonjs' | 'esm' = 'commonjs'
 
 	constructor({
 		schema,
 		schemaPath,
 		sourceGlob,
 		quiet = false,
-		verifyHash,
+		verifyHash = true,
 		filepath,
-		mode = 'sapper',
+		framework = 'sapper',
+		module = 'commonjs',
+		mode,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -47,19 +53,38 @@ export class Config {
 			)
 		}
 
+		// if we were given a mode instead of framework/module
+		if (mode) {
+			// warn the user
+			console.warn('Encountered deprecated config value: mode')
+			console.warn(
+				'This parameter will be removed in a future version. Please update your config with the following values:'
+			)
+			if (mode === 'sapper') {
+				console.warn(JSON.stringify({ framework: 'sapper', module: 'commonjs' }))
+				framework = 'sapper'
+				module = 'commonjs'
+			} else {
+				console.warn(JSON.stringify({ framework: 'kit', module: 'esm' }))
+				framework = 'kit'
+				module = 'esm'
+			}
+		}
+
 		// save the values we were given
 		this.filepath = filepath
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
-		this.verifyHash = typeof verifyHash === 'undefined' ? true : verifyHash
-		this.mode = mode
+		this.verifyHash = verifyHash
+		this.framework = framework
+		this.module = module
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
 		// with the application stores directly
 		const rootDir = path.dirname(filepath)
 		this.rootDir =
-			mode === 'sapper'
+			framework === 'sapper'
 				? path.join(rootDir, 'src', 'node_modules', '$houdini')
 				: path.join(rootDir, '$houdini')
 	}
@@ -349,6 +374,8 @@ export function testConfig(config: {} = {}) {
 				cat: Cat
 			}
 		`,
+		framework: 'sapper',
+		module: 'commonjs',
 		quiet: true,
 		...config,
 	})

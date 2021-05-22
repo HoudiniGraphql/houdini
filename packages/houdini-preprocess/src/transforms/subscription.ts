@@ -47,7 +47,9 @@ export default async function subscriptionProcessor(
 
 			// the kind of import depends on the mode
 			const importStatement =
-				config.mode === 'sapper' ? AST.importDefaultSpecifier : AST.importNamespaceSpecifier
+				config.module === 'commonjs'
+					? AST.importDefaultSpecifier
+					: AST.importNamespaceSpecifier
 
 			// add an import to the body pointing to the artifact
 			doc.instance?.content.body.unshift({
