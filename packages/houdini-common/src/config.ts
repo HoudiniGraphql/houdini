@@ -305,6 +305,37 @@ export class Config {
 		throw new Error('Could not find connection name from fragment: ' + fragmentName)
 	}
 }
+// a place to store the current configuration
+let _config: Config
+
+// get the project's current configuration
+export async function getConfig(): Promise<Config> {
+	if (_config) {
+		return _config
+	}
+
+	// load the config file
+	const configPath = path.join(process.cwd(), 'houdini.config.js')
+
+	// on windows, we need to prepend the right protocol before we
+	// can import from an absolute path
+	let importPath = configPath
+	if (os.platform() === 'win32') {
+		importPath = 'file:///' + importPath
+	}
+
+	const imported = await import(importPath)
+
+	// if this is wrapped in a default, use it
+	const config = imported.default || imported
+
+	// add the filepath and save the result
+	_config = new Config({
+		...config,
+		filepath: configPath,
+	})
+	return _config
+}
 
 export function testConfig(config: {} = {}) {
 	return new Config({
@@ -379,36 +410,4 @@ export function testConfig(config: {} = {}) {
 		quiet: true,
 		...config,
 	})
-}
-
-// a place to store the current configuration
-let _config: Config
-
-// get the project's current configuration
-export async function getConfig(): Promise<Config> {
-	if (_config) {
-		return _config
-	}
-
-	// load the config file
-	const configPath = path.join(process.cwd(), 'houdini.config.js')
-
-	// on windows, we need to prepend the right protocol before we
-	// can import from an absolute path
-	let importPath = configPath
-	if (os.platform() === 'win32') {
-		importPath = 'file:///' + importPath
-	}
-
-	const imported = await import(importPath)
-
-	// if this is wrapped in a default, use it
-	const config = imported.default || imported
-
-	// add the filepath and save the result
-	_config = new Config({
-		...config,
-		filepath: configPath,
-	})
-	return _config
 }
