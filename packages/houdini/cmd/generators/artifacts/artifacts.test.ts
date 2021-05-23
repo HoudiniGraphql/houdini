@@ -376,6 +376,8 @@ test('overlapping query and fragment nested selection', async function () {
 
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
+		const cfg = testConfig({ mode: 'kit' })
+
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation B',
@@ -398,11 +400,11 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(config, mutationDocs)
+		await runPipeline(cfg, mutationDocs)
 
 		// load the contents of the file
 		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
+			path.join(cfg.artifactPath(mutationDocs[0].document)),
 			'utf-8'
 		)
 		expect(queryContents).toBeTruthy()
@@ -412,7 +414,7 @@ describe('mutation artifacts', function () {
 		}).program
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports = {
+		export default {
 		    name: "Mutation B",
 		    kind: "HoudiniMutation",
 		    hash: "e9f6440182fec6d7a6d505710f13786e",
@@ -1929,6 +1931,8 @@ describe('mutation artifacts', function () {
 	})
 
 	test('sveltekit', async function () {
+		const cfg = testConfig({ mode: 'kit' })
+
 		const mutationDocs = [
 			mockCollectedDoc(
 				'TestQuery',
@@ -1946,11 +1950,11 @@ describe('mutation artifacts', function () {
 		]
 
 		// execute the generator
-		await runPipeline(testConfig({ mode: 'kit' }), mutationDocs)
+		await runPipeline(cfg, mutationDocs)
 
 		// load the contents of the file
 		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
+			path.join(cfg.artifactPath(mutationDocs[0].document)),
 			'utf-8'
 		)
 		expect(queryContents).toBeTruthy()

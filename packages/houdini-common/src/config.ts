@@ -11,7 +11,7 @@ export type ConfigFile = {
 	schema?: string
 	quiet?: boolean
 	verifyHash?: boolean
-	// an old config file could specify mode instead of framework and module specifically
+	// an old config file could specify mode instead of framework and module
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
 	mode?: 'kit' | 'sapper'
@@ -55,17 +55,23 @@ export class Config {
 
 		// if we were given a mode instead of framework/module
 		if (mode) {
-			// warn the user
-			console.warn('Encountered deprecated config value: mode')
-			console.warn(
-				'This parameter will be removed in a future version. Please update your config with the following values:'
-			)
+			if (!quiet) {
+				// warn the user
+				console.warn('Encountered deprecated config value: mode')
+				console.warn(
+					'This parameter will be removed in a future version. Please update your config with the following values:'
+				)
+			}
 			if (mode === 'sapper') {
-				console.warn(JSON.stringify({ framework: 'sapper', module: 'commonjs' }))
+				if (!quiet) {
+					console.warn(JSON.stringify({ framework: 'sapper', module: 'commonjs' }))
+				}
 				framework = 'sapper'
 				module = 'commonjs'
 			} else {
-				console.warn(JSON.stringify({ framework: 'kit', module: 'esm' }))
+				if (!quiet) {
+					console.warn(JSON.stringify({ framework: 'kit', module: 'esm' }))
+				}
 				framework = 'kit'
 				module = 'esm'
 			}
@@ -405,8 +411,7 @@ export function testConfig(config: {} = {}) {
 				cat: Cat
 			}
 		`,
-		framework: 'sapper',
-		module: 'commonjs',
+		mode: 'sapper',
 		quiet: true,
 		...config,
 	})
