@@ -1,62 +1,48 @@
-type User {
-	id: ID!
-	firstName: String!
-	friends: [User!]!
-	believesIn: [Ghost!]!
-	cats: [Cat!]!
+type Error {
+	message: String!
+	code: String!
 }
 
-type Ghost {
-	name: String!
-	believers: [User!]!
-	friends: [Ghost!]!
-}
-
-type Cat {
+type TodoItem {
 	id: ID!
-	name: String
+	text: String!
+	completed: Boolean!
 }
 
 type Query {
-	user: User!
-	version: Int!
-	ghost: Ghost!
-	users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
+	items(completed: Boolean): [TodoItem!]!
 }
 
 type Mutation {
-	updateUser: User!
-	addFriend: AddFriendOutput!
-	believeIn: BelieveInOutput!
-	deleteUser(id: ID!): DeleteUserOutput!
-	catMutation: CatMutationOutput!
-	deleteCat: DeleteCatOutput!
+	checkItem(item: ID!): UpdateItemOutput!
+	uncheckItem(item: ID!): UpdateItemOutput!
+	addItem(input: AddItemInput!): AddItemOutput!
+	deleteItem(item: ID!): DeleteIemOutput!
 }
 
 type Subscription {
-	newUser: NewUserResult!
+	itemUpdate(id: ID!): ItemUpdate!
 }
 
-type NewUserResult {
-	user: User!
+input AddItemInput {
+	text: String!
 }
 
-type AddFriendOutput {
-	friend: User
+type AddItemOutput {
+	error: Error
+	item: TodoItem
 }
 
-type BelieveInOutput {
-	ghost: Ghost
+type UpdateItemOutput {
+	error: Error
+	item: TodoItem
 }
 
-type DeleteUserOutput {
-	userID: ID
+type DeleteIemOutput {
+	error: Error
+	itemID: ID
 }
 
-type DeleteCatOutput {
-	catID: ID
-}
-
-type CatMutationOutput {
-	cat: Cat
+type ItemUpdate {
+	item: TodoItem!
 }
