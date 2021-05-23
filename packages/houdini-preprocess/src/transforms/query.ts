@@ -117,8 +117,8 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 		script.content.body.unshift(artifactImport(config, document.artifact))
 	}
 
-	/// add the imports if they're not there
-	ensureImports(config, script.content.body, 'fetchQuery', 'RequestContext')
+	// add the imports if they're not there
+	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext'])
 
 	// add the kit preload function
 	addKitLoad(config, script.content.body, queries)
@@ -131,7 +131,7 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 
 function processInstance(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
 	// make sure we have the imports we need
-	ensureImports(config, script.content.body, 'getQuery', 'query')
+	ensureImports(config, script.content.body, ['getQuery', 'query'])
 
 	// add props to the component for every query while we're here
 
@@ -409,7 +409,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 
 function addSapperPreload(config: Config, body: Statement[]) {
 	// make sure we have the utility that will do the conversion
-	ensureImports(config, body, 'convertKitPayload')
+	ensureImports(config, body, ['convertKitPayload'])
 
 	// look for a preload definition
 	let preloadDefinition = body.find(
@@ -444,7 +444,7 @@ function addSapperPreload(config: Config, body: Statement[]) {
 	body.push(AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration)
 }
 
-function ensureImports(config: Config, body: Statement[], ...identifiers: string[]) {
+function ensureImports(config: Config, body: Statement[], identifiers: string[]) {
 	const toImport = identifiers.filter(
 		(identifier) =>
 			!body.find(
