@@ -1,0 +1,62 @@
+type User {
+	id: ID!
+	firstName: String!
+	friends: [User!]!
+	believesIn: [Ghost!]!
+	cats: [Cat!]!
+}
+
+type Ghost {
+	name: String!
+	believers: [User!]!
+	friends: [Ghost!]!
+}
+
+type Cat {
+	id: ID!
+	name: String
+}
+
+type Query {
+	user: User!
+	version: Int!
+	ghost: Ghost!
+	users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
+}
+
+type Mutation {
+	updateUser: User!
+	addFriend: AddFriendOutput!
+	believeIn: BelieveInOutput!
+	deleteUser(id: ID!): DeleteUserOutput!
+	catMutation: CatMutationOutput!
+	deleteCat: DeleteCatOutput!
+}
+
+type Subscription {
+	newUser: NewUserResult!
+}
+
+type NewUserResult {
+	user: User!
+}
+
+type AddFriendOutput {
+	friend: User
+}
+
+type BelieveInOutput {
+	ghost: Ghost
+}
+
+type DeleteUserOutput {
+	userID: ID
+}
+
+type DeleteCatOutput {
+	catID: ID
+}
+
+type CatMutationOutput {
+	cat: Cat
+}
