@@ -1,7 +1,7 @@
 import path from 'path'
 import inquirer from 'inquirer'
 import fs from 'fs/promises'
-import { getSchema } from './utils/getSchema'
+import { writeSchema } from './utils/writeSchema'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
@@ -35,10 +35,10 @@ export default async (_path: string | undefined) => {
 	// where we put the environment
 	const environmentPath = path.join(sourceDir, 'environment.js')
 
-	const schemaPath = './schema.json';
+	const schemaPath = './schema.json'
 
 	// Get the schema from the url and write it to file
-	await getSchema(url, path.join(targetPath, schemaPath));
+	await writeSchema(url, path.join(targetPath, schemaPath))
 	// write the config file
 	await fs.writeFile(configPath, configFile(schemaPath, mode, url))
 	// write the environment file

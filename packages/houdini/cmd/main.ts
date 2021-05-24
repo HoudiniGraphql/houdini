@@ -7,7 +7,7 @@ import path from 'path'
 // local imports
 import compile from './compile'
 import init from './init'
-import { getSchema } from './utils/getSchema'
+import { writeSchema } from './utils/writeSchema'
 
 // build up the cli
 const program = new Command()
@@ -16,7 +16,7 @@ const program = new Command()
 program
 	.command('generate')
 	.description('generate the application runtime')
-	.option('-p|--pull-schema', 'Pull the latest schema before generating')
+	.option('-p, --pull-schema', 'pull the latest schema before generating')
 	.action(async (args: { pullSchema: boolean } = { pullSchema: false }) => {
 		// grab the config file
 		const config = await getConfig()
@@ -32,12 +32,10 @@ program
 				}
 				// The target path -> current working directory by default. Should we allow passing custom paths?
 				const targetPath = process.cwd()
-				// Get the schema
-				await getSchema(
+				// Write the schema
+				await writeSchema(
 					config.apiUrl,
-					config.schemaPath
-						? config.schemaPath
-						: path.resolve(targetPath, 'schema.json')
+					config.schemaPath ? config.schemaPath : path.resolve(targetPath, 'schema.json')
 				)
 			}
 			await compile(config)
