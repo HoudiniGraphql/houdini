@@ -1,8 +1,7 @@
 import path from 'path'
 import inquirer from 'inquirer'
-import fetch from 'node-fetch'
-import { getIntrospectionQuery } from 'graphql'
 import fs from 'fs/promises'
+import { writeSchema } from './utils/writeSchema'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
@@ -36,34 +35,12 @@ export default async (_path: string | undefined) => {
 	// where we put the environment
 	const environmentPath = path.join(sourceDir, 'environment.js')
 
-	// where we'll put it
 	const schemaPath = './schema.json'
 
-	// send the request
-	const resp = await fetch(url, {
-		method: 'POST',
-		body: JSON.stringify({
-			query: getIntrospectionQuery(),
-		}),
-		headers: { 'Content-Type': 'application/json' },
-	})
-	const content = await resp.text()
-
-	try {
-		// write the schema file
-		await fs.writeFile(
-			path.resolve(path.join(targetPath, schemaPath)),
-			JSON.stringify(JSON.parse(content).data),
-			'utf-8'
-		)
-	} catch (e) {
-		console.log('encountered error parsing response as json: ' + e.message)
-		console.log('full body: ' + content)
-		return
-	}
-
+	// Get the schema from the url and write it to file
+	await writeSchema(url, path.join(targetPath, schemaPath))
 	// write the config file
-	await fs.writeFile(configPath, configFile(schemaPath, mode))
+	await fs.writeFile(configPath, configFile(schemaPath, mode, url))
 	// write the environment file
 	await fs.writeFile(environmentPath, networkFile(url))
 
@@ -90,7 +67,7 @@ export default new Environment(async function ({ text, variables = {} }) {
 })
 `
 
-const configFile = (schemaPath: string, mode: string) =>
+const configFile = (schemaPath: string, mode: string, url: string) =>
 	mode === 'kit'
 		? // SvelteKit default config
 		  `import path from 'path'
@@ -99,6 +76,7 @@ export default {
 	schemaPath: path.resolve('${schemaPath}'),
 	sourceGlob: 'src/**/*.svelte',
 	mode: 'kit',
+	apiUrl: '${url}',
 }
 `
 		: // sapper default config
@@ -108,5 +86,6 @@ module.exports = {
 	schemaPath: path.resolve('${schemaPath}'),
 	sourceGlob: 'src/{routes,components}/*.svelte',
 	mode: 'sapper',
+	apiUrl: '${url}',
 }
 `
