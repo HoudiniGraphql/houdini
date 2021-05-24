@@ -11,6 +11,7 @@ export type ConfigFile = {
 	schema?: string
 	quiet?: boolean
 	verifyHash?: boolean
+	apiUrl?: string
 	// an old config file could specify mode instead of framework and module
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
@@ -22,6 +23,8 @@ export class Config {
 	filepath: string
 	rootDir: string
 	schema: graphql.GraphQLSchema
+	apiUrl?: string
+	schemaPath?: string
 	sourceGlob: string
 	quiet: boolean
 	verifyHash: boolean
@@ -32,6 +35,7 @@ export class Config {
 		schema,
 		schemaPath,
 		sourceGlob,
+		apiUrl,
 		quiet = false,
 		verifyHash = true,
 		filepath,
@@ -47,6 +51,8 @@ export class Config {
 		// if we're given a schema string
 		if (schema) {
 			this.schema = graphql.buildSchema(schema)
+		} else if (schemaPath!.endsWith('gql') || schemaPath!.endsWith('graphql')) {
+			this.schema = graphql.buildSchema(fs.readFileSync(schemaPath as string, 'utf-8'))
 		} else {
 			this.schema = graphql.buildClientSchema(
 				JSON.parse(fs.readFileSync(schemaPath as string, 'utf-8'))
@@ -78,6 +84,8 @@ export class Config {
 		}
 
 		// save the values we were given
+		this.schemaPath = schemaPath
+		this.apiUrl = apiUrl
 		this.filepath = filepath
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet

@@ -1,9 +1,11 @@
 import path from 'path'
 import inquirer from 'inquirer'
-import fetch from 'node-fetch'
-import { getIntrospectionQuery } from 'graphql'
 import fs from 'fs/promises'
+<<<<<<< HEAD
 import { Config } from 'houdini-common'
+=======
+import { writeSchema } from './utils/writeSchema'
+>>>>>>> main
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
@@ -59,9 +61,9 @@ export default async (_path: string | undefined) => {
 	// where we put the environment
 	const environmentPath = path.join(sourceDir, 'environment.js')
 
-	// where we'll put it
 	const schemaPath = './schema.json'
 
+<<<<<<< HEAD
 	// send the request
 	const resp = await fetch(answers.url, {
 		method: 'POST',
@@ -87,6 +89,12 @@ export default async (_path: string | undefined) => {
 
 	// write the config file
 	await fs.writeFile(configPath, configFile(schemaPath, framework, module))
+=======
+	// Get the schema from the url and write it to file
+	await writeSchema(url, path.join(targetPath, schemaPath))
+	// write the config file
+	await fs.writeFile(configPath, configFile(schemaPath, mode, url))
+>>>>>>> main
 	// write the environment file
 	await fs.writeFile(environmentPath, networkFile(answers.url))
 
@@ -113,6 +121,7 @@ export default new Environment(async function ({ text, variables = {} }) {
 })
 `
 
+<<<<<<< HEAD
 const configFile = (schemaPath: string, framework: string, module: string) => {
 	// the actual config contents
 	const configObj = `{
@@ -127,10 +136,32 @@ const configFile = (schemaPath: string, framework: string, module: string) => {
 		  `import path from 'path'
 
 export default ${configObj}
+=======
+const configFile = (schemaPath: string, mode: string, url: string) =>
+	mode === 'kit'
+		? // SvelteKit default config
+		  `import path from 'path'
+
+export default {
+	schemaPath: path.resolve('${schemaPath}'),
+	sourceGlob: 'src/**/*.svelte',
+	mode: 'kit',
+	apiUrl: '${url}',
+}
+>>>>>>> main
 `
 		: // sapper default config
 		  `const path = require('path')
 
+<<<<<<< HEAD
 module.exports = ${configObj}
+=======
+module.exports = {
+	schemaPath: path.resolve('${schemaPath}'),
+	sourceGlob: 'src/{routes,components}/*.svelte',
+	mode: 'sapper',
+	apiUrl: '${url}',
+}
+>>>>>>> main
 `
 }

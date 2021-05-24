@@ -1,0 +1,48 @@
+type Error {
+	message: String!
+	code: String!
+}
+
+type TodoItem {
+	id: ID!
+	text: String!
+	completed: Boolean!
+}
+
+type Query {
+	items(completed: Boolean): [TodoItem!]!
+}
+
+type Mutation {
+	checkItem(item: ID!): UpdateItemOutput!
+	uncheckItem(item: ID!): UpdateItemOutput!
+	addItem(input: AddItemInput!): AddItemOutput!
+	deleteItem(item: ID!): DeleteIemOutput!
+}
+
+type Subscription {
+	itemUpdate(id: ID!): ItemUpdate!
+}
+
+input AddItemInput {
+	text: String!
+}
+
+type AddItemOutput {
+	error: Error
+	item: TodoItem
+}
+
+type UpdateItemOutput {
+	error: Error
+	item: TodoItem
+}
+
+type DeleteIemOutput {
+	error: Error
+	itemID: ID
+}
+
+type ItemUpdate {
+	item: TodoItem!
+}
