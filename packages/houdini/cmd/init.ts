@@ -20,24 +20,25 @@ export default async (_path: string | undefined) => {
 			name: 'framework',
 			type: 'list',
 			message: 'Are you using Sapper, SvelteKit, or just Svelte?',
-			choices: ['Svelte', 'Sapper', 'SvelteKit'],
+			choices: [
+				{ value: 'svelte', name: 'Svelte' },
+				{ value: 'sapper', name: 'Sapper' },
+				{ value: 'kit', name: 'SvelteKit' },
+			],
 		},
 		{
 			name: 'module',
 			type: 'list',
 			message: 'What kind of modules do you want to be generated?',
-			choices: ['CommonJS', 'ES Modules'],
-			when: ({ framework }) => framework === 'Svelte',
+			when: ({ framework }) => framework === 'svelte',
+			choices: [
+				{ value: 'commonjs', name: 'CommonJS' },
+				{ value: 'esm', name: 'ES Modules' },
+			],
 		},
 	])
 
-	// convert the selected framework the mode
-	let framework = answers.framework.toLowerCase()
-	if (framework === 'sveltekit') {
-		framework = 'kit'
-	}
-
-	// figure out the right module
+	// if the user didn't choose a module type, figure it out from the framework choice
 	let module: Config['module'] = answers.module
 	switch (answers.framework) {
 		case 'kit':
@@ -45,6 +46,8 @@ export default async (_path: string | undefined) => {
 		case 'sapper':
 			module = 'commonjs'
 	}
+	// dry up the framework choice
+	const { framework } = answers
 
 	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
@@ -110,25 +113,24 @@ export default new Environment(async function ({ text, variables = {} }) {
 })
 `
 
-const configFile = (schemaPath: string, framework: string, module: string) =>
-	module === 'esm'
+const configFile = (schemaPath: string, framework: string, module: string) => {
+	// the actual config contents
+	const configObj = `{
+		schemaPath: path.resolve('${schemaPath}'),
+		sourceGlob: 'src/**/*.svelte',
+		module: '${module}',
+		framework: '${framework}',
+	}`
+
+	return module === 'esm'
 		? // SvelteKit default config
 		  `import path from 'path'
 
-export default {
-	schemaPath: path.resolve('${schemaPath}'),
-	sourceGlob: 'src/**/*.svelte',
-	module: '${module}',
-	framework: '${framework}',
-}
+export default ${configObj}
 `
 		: // sapper default config
 		  `const path = require('path')
 
-module.exports = {
-	schemaPath: path.resolve('${schemaPath}'),
-	sourceGlob: 'src/{routes,components}/*.svelte',
-	module: '${module}',
-	framework: '${framework}',
-}
+module.exports = ${configObj}
 `
+}
