@@ -13,9 +13,9 @@ export type ConfigFile = {
 	verifyHash?: boolean
 	apiUrl?: string
 	// an old config file could specify mode instead of framework and module
+	mode?: 'kit' | 'sapper'
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
-	mode?: 'kit' | 'sapper'
 }
 
 // a place to hold conventions and magic strings
