@@ -3,6 +3,7 @@ import inquirer from 'inquirer'
 import fetch from 'node-fetch'
 import { getIntrospectionQuery } from 'graphql'
 import fs from 'fs/promises'
+import { Config } from 'houdini-common'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
@@ -31,19 +32,19 @@ export default async (_path: string | undefined) => {
 	])
 
 	// convert the selected framework the mode
-	const framework = {
-		Svelte: 'svelte',
-		Sapper: 'sapper',
-		SvelteKit: 'kit',
-	}[answers.framework as 'Svelte' | 'Sapper' | 'SvelteKit']
+	let framework = answers.framework.toLowerCase()
+	if (framework === 'sveltekit') {
+		framework = 'kit'
+	}
 
 	// figure out the right module
-	const module =
-		answers.module ||
-		{
-			kit: 'esm',
-			sapper: 'commonjs',
-		}[framework]
+	let module: Config['module'] = answers.module
+	switch (answers.framework) {
+		case 'kit':
+			module = 'esm'
+		case 'sapper':
+			module = 'commonjs'
+	}
 
 	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
