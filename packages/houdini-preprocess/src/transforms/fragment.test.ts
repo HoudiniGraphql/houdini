@@ -1,8 +1,6 @@
-// external imports
-import * as svelte from 'svelte/compiler'
 // local imports
 import fragmentProcessor from './fragment'
-import { testConfig } from 'houdini-common'
+import { preprocessorTest } from '../utils'
 import '../../../../jest.setup'
 
 describe('fragment preprocessor', function () {
@@ -20,7 +18,7 @@ describe('fragment preprocessor', function () {
 		`)
 
 		// make sure we added the right stuff
-		expect(doc.instance.content).toMatchInlineSnapshot(`
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import _TestFragmentArtifact from "$houdini/artifacts/TestFragment";
 		let reference;
 
@@ -31,33 +29,3 @@ describe('fragment preprocessor', function () {
 	`)
 	})
 })
-
-async function preprocessorTest(content: string) {
-	const schema = `
-		type User {
-			id: ID!
-		}
-        
-	`
-
-	// parse the document
-	const parsed = svelte.parse(content)
-
-	// build up the document we'll pass to the processor
-	const config = testConfig({ schema, verifyHash: false })
-
-	const doc = {
-		instance: parsed.instance,
-		module: parsed.module,
-		config,
-		dependencies: [],
-		filename: 'base.svelte',
-	}
-
-	// @ts-ignore
-	// run the source through the processor
-	await fragmentProcessor(config, doc)
-
-	// invoke the test
-	return doc
-}

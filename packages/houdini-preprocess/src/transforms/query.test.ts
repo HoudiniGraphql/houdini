@@ -1,9 +1,6 @@
-// external imports
-import { testConfig } from 'houdini-common'
-import * as svelte from 'svelte/compiler'
 // local imports
-import queryProcessor from './query'
 import '../../../../jest.setup'
+import { preprocessorTest } from '../utils'
 
 describe('query preprocessor', function () {
 	test('preload initial data', async function () {
@@ -20,7 +17,7 @@ describe('query preprocessor', function () {
 		`)
 
 		// make sure we added the right stuff
-		expect(doc.module.content).toMatchInlineSnapshot(`
+		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
 		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -34,9 +31,9 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
-		              "text": _TestQueryArtifact.raw,
-		              "variables": _TestQuery_Input
-		          }, context.session);
+		        "text": _TestQueryArtifact.raw,
+		        "variables": _TestQuery_Input
+		    }, context.session);
 
 		    if (_TestQuery.errors) {
 		        _houdini_context.graphqlErrors(_TestQuery.errors);
@@ -55,7 +52,7 @@ describe('query preprocessor', function () {
 		    return convertKitPayload(this, load, page, session);
 		}
 	`)
-		expect(doc.instance.content).toMatchInlineSnapshot(`
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
@@ -100,7 +97,7 @@ describe('query preprocessor', function () {
 		`)
 
 		// make sure we added the right stuff
-		expect(doc.module.content).toMatchInlineSnapshot(`
+		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
 		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -120,9 +117,9 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
-		              "text": _TestQueryArtifact.raw,
-		              "variables": _TestQuery_Input
-		          }, context.session);
+		        "text": _TestQueryArtifact.raw,
+		        "variables": _TestQuery_Input
+		    }, context.session);
 
 		    if (_TestQuery.errors) {
 		        _houdini_context.graphqlErrors(_TestQuery.errors);
@@ -141,7 +138,7 @@ describe('query preprocessor', function () {
 		    return convertKitPayload(this, load, page, session);
 		}
 	`)
-		expect(doc.instance.content).toMatchInlineSnapshot(`
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
@@ -183,7 +180,7 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module.content).toMatchInlineSnapshot(`
+		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
@@ -196,9 +193,9 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
-		              "text": _TestQueryArtifact.raw,
-		              "variables": _TestQuery_Input
-		          }, context.session);
+		        "text": _TestQueryArtifact.raw,
+		        "variables": _TestQuery_Input
+		    }, context.session);
 
 		    if (_TestQuery.errors) {
 		        _houdini_context.graphqlErrors(_TestQuery.errors);
@@ -213,7 +210,7 @@ describe('query preprocessor', function () {
 		    };
 		}
 	`)
-		expect(doc.instance.content).toMatchInlineSnapshot(`
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
@@ -244,36 +241,3 @@ describe('query preprocessor', function () {
 
 	test.todo('fails if arguments in preload are not page and params')
 })
-
-async function preprocessorTest(content: string, cfg?: {}) {
-	const schema = `
-		type User {
-			id: ID!
-		}
-
-		type Query {
-			viewer: User!
-		}
-	`
-
-	// parse the document
-	const parsed = svelte.parse(content)
-
-	// build up the document we'll pass to the processor
-	const config = testConfig({ schema, verifyHash: false, ...cfg })
-
-	const doc = {
-		instance: parsed.instance,
-		module: parsed.module,
-		config,
-		dependencies: [],
-		filename: 'base.svelte',
-	}
-
-	// @ts-ignore
-	// run the source through the processor
-	await queryProcessor(config, doc)
-
-	// invoke the test
-	return doc
-}

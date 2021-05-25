@@ -18,9 +18,9 @@ export default async (_path: string | undefined) => {
 		{
 			name: 'framework',
 			type: 'list',
-			message: 'Are you using Sapper, SvelteKit, or just Svelte?',
+			message: 'Are you using Sapper or SvelteKit?',
 			choices: [
-				{ value: 'svelte', name: 'Svelte' },
+				{ value: 'svelte', name: 'No' },
 				{ value: 'sapper', name: 'Sapper' },
 				{ value: 'kit', name: 'SvelteKit' },
 			],

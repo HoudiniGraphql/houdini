@@ -1,9 +1,6 @@
-// external imports
-import * as svelte from 'svelte/compiler'
 // local imports
-import subscriptionProcessor from './subscription'
-import { testConfig } from 'houdini-common'
 import '../../../../jest.setup'
+import { preprocessorTest } from '../utils'
 
 describe('subscription preprocessor', function () {
 	test('happy path', async function () {
@@ -22,7 +19,7 @@ describe('subscription preprocessor', function () {
 		`)
 
 		// make sure we added the right stuff
-		expect(doc.instance.content).toMatchInlineSnapshot(`
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import _TestSubscriptionArtifact from "$houdini/artifacts/TestSubscription";
 
 		const data = subscription({
@@ -32,26 +29,3 @@ describe('subscription preprocessor', function () {
 	`)
 	})
 })
-
-async function preprocessorTest(content: string) {
-	// parse the document
-	const parsed = svelte.parse(content)
-
-	// build up the document we'll pass to the processor
-	const config = testConfig({ verifyHash: false })
-
-	const doc = {
-		instance: parsed.instance,
-		module: parsed.module,
-		config,
-		dependencies: [],
-		filename: 'base.svelte',
-	}
-
-	// @ts-ignore
-	// run the source through the processor
-	await subscriptionProcessor(config, doc)
-
-	// invoke the test
-	return doc
-}
