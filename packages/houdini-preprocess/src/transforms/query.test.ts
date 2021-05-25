@@ -35,8 +35,8 @@ describe('query preprocessor', function () {
 		        "variables": _TestQuery_Input
 		    }, context.session);
 
-		    if (_TestQuery.errors) {
-		        _houdini_context.graphqlErrors(_TestQuery.errors);
+		    if (!_TestQuery.data) {
+		        _houdini_context.graphqlErrors(_TestQuery);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -121,8 +121,8 @@ describe('query preprocessor', function () {
 		        "variables": _TestQuery_Input
 		    }, context.session);
 
-		    if (_TestQuery.errors) {
-		        _houdini_context.graphqlErrors(_TestQuery.errors);
+		    if (!_TestQuery.data) {
+		        _houdini_context.graphqlErrors(_TestQuery);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -197,8 +197,8 @@ describe('query preprocessor', function () {
 		        "variables": _TestQuery_Input
 		    }, context.session);
 
-		    if (_TestQuery.errors) {
-		        _houdini_context.graphqlErrors(_TestQuery.errors);
+		    if (!_TestQuery.data) {
+		        _houdini_context.graphqlErrors(_TestQuery);
 		        return _houdini_context.returnValue;
 		    }
 
