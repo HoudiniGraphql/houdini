@@ -18,10 +18,6 @@ export default async function preprocessorTest(content: string, cfg?: {}) {
             addUser: User 
         }
 	`
-
-	// parse the document
-	const parsed = svelte.parse(content)
-
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema, verifyHash: false, ...cfg })
 
