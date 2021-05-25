@@ -374,17 +374,15 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 
 			// we need to look for errors in the response
 			AST.ifStatement(
-				AST.memberExpression(AST.identifier(preloadKey), AST.identifier('errors')),
+				AST.unaryExpression(
+					'!',
+					AST.memberExpression(AST.identifier(preloadKey), AST.identifier('data'))
+				),
 				AST.blockStatement([
 					AST.expressionStatement(
 						AST.callExpression(
 							AST.memberExpression(requestContext, AST.identifier('graphqlErrors')),
-							[
-								AST.memberExpression(
-									AST.identifier(preloadKey),
-									AST.identifier('errors')
-								),
-							]
+							[AST.identifier(preloadKey)]
 						)
 					),
 					AST.returnStatement(

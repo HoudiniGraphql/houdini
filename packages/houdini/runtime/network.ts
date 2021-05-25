@@ -164,9 +164,14 @@ export class RequestContext {
 		return fetch(input, init)
 	}
 
-	graphqlErrors(errors: GraphQLError[]) {
-		console.log('registering graphql errors', errors)
-		return this.error(500, errors.map(({ message }) => message).join('\n'))
+	graphqlErrors(payload: { errors?: GraphQLError[] }) {
+		// if we have a list of errors
+		if (payload.errors) {
+			console.log('registering graphql errors', payload.errors)
+			return this.error(500, payload.errors.map(({ message }) => message).join('\n'))
+		}
+
+		return this.error(500, 'Encountered invalid response: ' + JSON.stringify(payload))
 	}
 
 	// compute the inputs for an operation should reflect the framework's conventions.
