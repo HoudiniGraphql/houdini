@@ -75,8 +75,8 @@ npm install --save-dev houdini houdini-preprocess
 
 ## 🔧&nbsp;&nbsp;Configuring Your Application
 
-Adding houdini to an existing sapper project can easily be done with the provided command-line tool.
-If you don't already have an existing app, visit [this link](https://sapper.svelte.dev/docs#Getting_started)
+Adding houdini to an existing project can easily be done with the provided command-line tool.
+If you don't already have an existing app, visit [this link](https://kit.svelte.dev/docs)
 for help setting one up. Once you have a project and want to add houdini, execute the following command:
 
 ```sh
