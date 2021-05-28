@@ -11,7 +11,7 @@ export class Cache {
 	private _connections: Map<string, Map<string, ConnectionHandler>> = new Map()
 
 	// we need to keep track of the variables used the last time a query was triggered
-	private lastKnownVariables: Map<SubscriptionSpec['set'], {}> = new Map()
+	private _lastKnownVariables: Map<SubscriptionSpec['set'], {}> = new Map()
 
 	// save the response in the local store and notify any subscribers
 	write(
@@ -65,8 +65,8 @@ export class Cache {
 		}
 
 		// remove any references to the spec in variable set
-		if (this.lastKnownVariables.has(spec.set)) {
-			this.lastKnownVariables.delete(spec.set)
+		if (this._lastKnownVariables.has(spec.set)) {
+			this._lastKnownVariables.delete(spec.set)
 		}
 
 		// walk down the selection and remove any subscribers from the list
@@ -188,7 +188,7 @@ export class Cache {
 
 			// we might be replace a subscriber on rootRecord because we have new variables
 			// look at every version of the key and remove
-			const oldVariables = this.lastKnownVariables.get(spec.set)
+			const oldVariables = this._lastKnownVariables.get(spec.set)
 			if (
 				keyRaw.includes('$') &&
 				JSON.stringify(variables) !== JSON.stringify(oldVariables)
@@ -432,7 +432,7 @@ export class Cache {
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				for (const subscriber of subscribers) {
 					const variablesChanged =
-						JSON.stringify(this.lastKnownVariables.get(subscriber.set) || {}) !==
+						JSON.stringify(this._lastKnownVariables.get(subscriber.set) || {}) !==
 						JSON.stringify(variables)
 
 					// if either are true, add the subscriber to the list
@@ -440,7 +440,7 @@ export class Cache {
 						specs.push(subscriber)
 					}
 
-					this.lastKnownVariables.set(subscriber.set, variables)
+					this._lastKnownVariables.set(subscriber.set, variables)
 				}
 
 				// remove any subscribers we don't can't about
