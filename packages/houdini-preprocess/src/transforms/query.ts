@@ -5,6 +5,7 @@ import { ExportNamedDeclaration, ReturnStatement, Statement } from '@babel/types
 import { Config, Script } from 'houdini-common'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { ObjectExpressionKind } from 'ast-types/gen/kinds'
+import path from 'path'
 // locals
 import { TransformDocument } from '../types'
 import {
@@ -30,6 +31,11 @@ export default async function queryProcessor(
 	if (!doc.instance) {
 		return
 	}
+
+	// how we preprocess a query depends on wether its a route/layout component
+	const isRoute =
+		config.framework !== 'svelte' &&
+		doc.filename.startsWith(path.join(config.projectRoot, 'src', 'routes'))
 
 	// figure out the root type
 	const rootType = doc.config.schema.getQueryType()
@@ -100,11 +106,16 @@ export default async function queryProcessor(
 		throw new Error('type script!!')
 	}
 
-	processModule(config, doc.module, queries)
-	processInstance(config, doc.instance, queries)
+	processModule(config, isRoute, doc.module, queries)
+	processInstance(config, isRoute, doc.instance, queries)
 }
 
-function processModule(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
+function processModule(
+	config: Config,
+	isRoute: boolean,
+	script: Script,
+	queries: EmbeddedGraphqlDocument[]
+) {
 	// the main thing we are responsible for here is to add the module bits of the
 	// hoisted query. this means doing the actual fetch, checking errors, and returning
 	// the props to the rendered components.
@@ -129,7 +140,12 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	}
 }
 
-function processInstance(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
+function processInstance(
+	config: Config,
+	isRoute: boolean,
+	script: Script,
+	queries: EmbeddedGraphqlDocument[]
+) {
 	// make sure we have the imports we need
 	ensureImports(config, script.content.body, ['getQuery', 'query'])
 

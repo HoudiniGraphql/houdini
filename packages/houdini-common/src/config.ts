@@ -22,6 +22,7 @@ export type ConfigFile = {
 export class Config {
 	filepath: string
 	rootDir: string
+	projectRoot: string
 	schema: graphql.GraphQLSchema
 	apiUrl?: string
 	schemaPath?: string
@@ -92,15 +93,15 @@ export class Config {
 		this.verifyHash = verifyHash
 		this.framework = framework
 		this.module = module
+		this.projectRoot = path.dirname(filepath)
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
 		// with the application stores directly
-		const rootDir = path.dirname(filepath)
 		this.rootDir =
 			framework === 'sapper'
-				? path.join(rootDir, 'src', 'node_modules', '$houdini')
-				: path.join(rootDir, '$houdini')
+				? path.join(this.projectRoot, 'src', 'node_modules', '$houdini')
+				: path.join(this.projectRoot, '$houdini')
 	}
 
 	/*
