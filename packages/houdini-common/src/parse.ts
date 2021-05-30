@@ -107,9 +107,13 @@ function findAttributes(content: string, start: number): [{ [key: string]: any }
 			.map((pair) => {
 				// attributes are defined with an equal
 				const [key, value] = pair.split('=')
+
+				// JSON.parse accepts double quotes only, not single quote
+				const safeValue = value.replace(/'/g, '"')
+
 				return {
 					key: key[0] === '"' ? JSON.parse(key) : key,
-					value: JSON.parse(value),
+					value: JSON.parse(safeValue),
 				}
 			})
 			.reduce<{ [key: string]: any }>(
