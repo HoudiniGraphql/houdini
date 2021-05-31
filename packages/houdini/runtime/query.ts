@@ -103,7 +103,8 @@ export default function query<_Query extends Operation<any, any>>(
 
 				const res = await fetchQuery(fetchCtx, {
 					text,
-					variables: newVariables || {},
+					// Pass the new Variables or the initial ones
+					variables: newVariables || variables,
 				})
 
 				// we could have gotten a null response
