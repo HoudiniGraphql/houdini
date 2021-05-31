@@ -17,7 +17,7 @@
 </script>
 
 <script lang="ts">
-	import { query, graphql, mutation, AllItems, AddItem } from '$houdini'
+	import { query, graphql, mutation, subscription, AllItems, AddItem } from '$houdini'
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { page } from '$app/stores'
 	import { derived } from 'svelte/store'
@@ -44,6 +44,17 @@
 				item {
 					...Filtered_Items_insert @prepend(when_not: { argument: "completed", value: "true" })
 					...All_Items_insert
+				}
+			}
+		}
+	`)
+
+	subscription(graphql`
+		subscription NewItem { 
+			newItem { 
+				item { 
+					...All_Items_insert
+					...Filtered_Items_insert
 				}
 			}
 		}
