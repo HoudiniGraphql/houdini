@@ -1,3 +1,5 @@
+// externals
+import { get } from 'svelte/store'
 // locals
 import { fetchQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact } from './types'
@@ -26,7 +28,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	const { raw: text } = artifact
 
 	// grab the session from the adapter
-	const session = getSession()
+	const sessionStore = getSession()
 
 	const queryVariables = getVariables()
 
@@ -35,6 +37,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 		// we want the mutation to throw an error if the network layer invokes this.error
 		new Promise(async (resolve, reject) => {
 			let result
+			const session = get(sessionStore)
 
 			// since we have a promise that's wrapping async/await we need a giant try/catch that will
 			// reject the promise

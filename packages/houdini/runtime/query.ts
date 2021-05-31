@@ -1,5 +1,5 @@
 // externals
-import { Readable, writable } from 'svelte/store'
+import { get, Readable, writable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
 // locals
 import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
@@ -65,6 +65,8 @@ export default function query<_Query extends Operation<any, any>>(
 		)
 	})
 
+	const sessionStore = getSession()
+
 	function writeData(newData: _Query['result'], newVariables: _Query['input']) {
 		variables = newVariables || {}
 
@@ -80,12 +82,10 @@ export default function query<_Query extends Operation<any, any>>(
 	function refetch(newVariables?: _Query['input']) {
 		return new Promise<any>(async (resolve, reject) => {
 			let result
+			const session = get(sessionStore)
 			// since we have a promise that's wrapping async/await we need a giant try/catch that will
 			// reject the promise
 			try {
-				// grab the session from the adapter
-				const session = getSession()
-
 				const fetchCtx = {
 					fetch: window.fetch.bind(window),
 					session,
@@ -101,15 +101,19 @@ export default function query<_Query extends Operation<any, any>>(
 				// pull the query text out of the compiled artifact
 				const { raw: text } = artifact
 
-				const res = await fetchQuery(fetchCtx, {
-					text,
-					// Pass the new Variables or the initial ones
-					variables: newVariables || variables,
-				})
+				const res = await fetchQuery(
+					fetchCtx,
+					{
+						text,
+						// Pass the new Variables or the initial ones
+						variables: newVariables || variables,
+					},
+					session
+				)
 
 				// we could have gotten a null response
 				if (res.errors) {
-					reject(res.errors);
+					reject(res.errors)
 					return
 				}
 				if (!res.data) {
@@ -143,9 +147,7 @@ export default function query<_Query extends Operation<any, any>>(
 type QueryResponse<_Data, _Input, _Result> = {
 	data: _Data
 	writeData: (data: _Data, variables: _Input) => void
-	refetch: (
-		newVariables?: _Input
-	) => Promise<void>
+	refetch: (newVariables?: _Input) => Promise<void>
 }
 
 // we need something we can replace the call to query that the user invokes
