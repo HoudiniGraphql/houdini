@@ -59,17 +59,6 @@
 		}
 	`)
 
-	subscription(graphql`
-		subscription NewItem { 
-			newItem { 
-				item { 
-					...All_Items_insert
-					...Filtered_Items_insert
-				}
-			}
-		}
-	`)
-
 	const numberOfItems = derived(data, ($data) => $data.allItems.length)
 	const itemsLeft = derived(
 		data,
