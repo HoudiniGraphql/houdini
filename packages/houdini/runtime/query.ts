@@ -5,10 +5,14 @@ import { onDestroy, onMount } from 'svelte'
 import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
 import cache from './cache'
 import { setVariables } from './context'
+import { fetchQuery } from './network'
+
+// @ts-ignore: this file will get generated and does not exist in the source code
+import { getSession } from './adapter.mjs'
 
 export default function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
-): QueryResponse<Readable<_Query['result']>, _Query['input']> {
+): QueryResponse<Readable<_Query['result']>, _Query['input'], _Query['result']> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniQuery') {
 		throw new Error('query() must be passed a query document')
@@ -61,30 +65,86 @@ export default function query<_Query extends Operation<any, any>>(
 		)
 	})
 
+	function writeData(newData: _Query['result'], newVariables: _Query['input']) {
+		variables = newVariables || {}
+
+		// make sure we list to the new data
+		if (subscriptionSpec) {
+			cache.subscribe(subscriptionSpec, variables)
+		}
+
+		// write the data we received
+		cache.write(artifact.selection, newData.data, variables)
+	}
+
+	function refetch(newVariables?: _Query['input']) {
+		return new Promise<any>(async (resolve, reject) => {
+			let result
+			// since we have a promise that's wrapping async/await we need a giant try/catch that will
+			// reject the promise
+			try {
+				// grab the session from the adapter
+				const session = getSession()
+
+				const fetchCtx = {
+					fetch: window.fetch.bind(window),
+					session,
+					context: {},
+					page: {
+						host: '',
+						path: '',
+						params: {},
+						query: new URLSearchParams(),
+					},
+				}
+
+				// pull the query text out of the compiled artifact
+				const { raw: text } = artifact
+
+				const res = await fetchQuery(fetchCtx, {
+					text,
+					variables: newVariables || {},
+				})
+
+				// we could have gotten a null response
+				if (res.errors) {
+					reject(res.errors);
+					return
+				}
+				if (!res.data) {
+					reject([new Error('Encountered empty data response in query payload')])
+					return
+				}
+				result = res
+			} catch (e) {
+				reject(e)
+				return
+			}
+
+			writeData(result, newVariables)
+
+			resolve(undefined)
+		})
+	}
+
 	return {
 		// the store should be read-only from the caller's perspective
 		data: { subscribe: store.subscribe },
 		// used primarily by the preprocessor to keep local state in sync with
 		// the data given by preload
-		writeData(newData: _Query['result'], newVariables: _Query['input']) {
-			variables = newVariables || {}
-
-			// make sure we list to the new data
-			if (subscriptionSpec) {
-				cache.subscribe(subscriptionSpec, variables)
-			}
-
-			// write the data we received
-			cache.write(artifact.selection, newData.data, variables)
-		},
+		writeData,
+		refetch,
 	}
 }
 
 // we need to wrap the response from a query in something that we can
 // use as a proxy to the query for refetches, writing to the cache, etc
-type QueryResponse<_Data, _Input> = {
+type QueryResponse<_Data, _Input, _Result> = {
 	data: _Data
 	writeData: (data: _Data, variables: _Input) => void
+	refetch: (
+		newVariables?: _Input
+	) => Promise<void>
 }
 
 // we need something we can replace the call to query that the user invokes

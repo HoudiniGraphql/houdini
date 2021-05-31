@@ -11,9 +11,10 @@
 		}
 
 		return {
-			completed: page.params.filter === 'completed'
+			completed: page.params.filter === 'completed',
 		}
 	}
+
 </script>
 
 <script lang="ts">
@@ -23,7 +24,7 @@
 	import { derived } from 'svelte/store'
 
 	// load the items
-	const { data } = query<AllItems>(graphql`
+	const { data, refetch } = query<AllItems>(graphql`
 		query AllItems($completed: Boolean) {
 			filteredItems: items(completed: $completed) @connection(name: "Filtered_Items") {
 				id
@@ -41,7 +42,7 @@
 	const addItem = mutation<AddItem>(graphql`
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
-				error { 
+				error {
 					message
 				}
 			}
@@ -49,11 +50,12 @@
 	`)
 
 	subscription(graphql`
-		subscription NewItem { 
-			newItem { 
-				item { 
+		subscription NewItem {
+			newItem {
+				item {
 					...All_Items_insert
-					...Filtered_Items_insert  @prepend(when_not: { argument: "completed", value: "true" })
+					...Filtered_Items_insert
+						@prepend(when_not: { argument: "completed", value: "true" })
 				}
 			}
 		}
@@ -83,9 +85,16 @@
 		// trigger the mutation
 		await addItem({ input: { text: inputValue } })
 
+		try {
+			await refetch({ completed: $page.path.includes('completed') })
+		} catch (error) {
+			console.log(error)
+		}
+
 		// clear the input
 		inputValue = ''
 	}
+
 </script>
 
 <header class="header">
