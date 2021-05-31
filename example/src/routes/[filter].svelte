@@ -41,9 +41,19 @@
 	const addItem = mutation<AddItem>(graphql`
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
-				item {
-					...Filtered_Items_insert @prepend(when_not: { argument: "completed", value: "true" })
+				error { 
+					message
+				}
+			}
+		}
+	`)
+
+	subscription(graphql`
+		subscription NewItem { 
+			newItem { 
+				item { 
 					...All_Items_insert
+					...Filtered_Items_insert  @prepend(when_not: { argument: "completed", value: "true" })
 				}
 			}
 		}
