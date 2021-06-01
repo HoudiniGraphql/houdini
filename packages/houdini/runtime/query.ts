@@ -82,6 +82,8 @@ export default function query<_Query extends Operation<any, any>>(
 	return {
 		// the store should be read-only from the caller's perspective
 		data: { subscribe: store.subscribe },
+		// the refetch function can be used to refetch queries possibly with new variables/arguments
+		// It returns the data and updates the cache.
 		async refetch(newVariables?: _Query['input']) {
 			try {
 				const result = await executeQuery(artifact, newVariables || variables, sessionStore)

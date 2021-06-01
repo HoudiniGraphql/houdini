@@ -1,7 +1,5 @@
-// externals
-import { get } from 'svelte/store'
 // locals
-import { executeQuery, fetchQuery } from './network'
+import { executeQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact } from './types'
 import cache from './cache'
 import { getVariables } from './context'
