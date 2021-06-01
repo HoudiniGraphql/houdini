@@ -34,7 +34,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 
 			cache.write(artifact.selection, result.data, queryVariables())
 
-			return result
+			return result.data;
 		} catch (error) {
 			throw error
 		}
