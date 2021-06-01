@@ -85,11 +85,11 @@
 		// trigger the mutation
 		await addItem({ input: { text: inputValue } })
 
-		try {
-			await refetch({ completed: $page.path.includes('completed') })
-		} catch (error) {
-			console.log(error)
-		}
+		// try {
+		// 	await refetch()
+		// } catch (error) {
+		// 	console.log(error)
+		// }
 
 		// clear the input
 		inputValue = ''

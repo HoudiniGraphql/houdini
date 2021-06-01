@@ -1,7 +1,7 @@
 // externals
 import { get } from 'svelte/store'
 // locals
-import { fetchQuery } from './network'
+import { executeQuery, fetchQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact } from './types'
 import cache from './cache'
 import { getVariables } from './context'
@@ -24,60 +24,21 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 		// @ts-ignore: typing esm/cjs interop is hard
 		document.artifact.default || document.artifact
 
-	// pull the query text out of the compiled artifact
-	const { raw: text } = artifact
-
 	// grab the session from the adapter
 	const sessionStore = getSession()
 
 	const queryVariables = getVariables()
 
 	// return an async function that sends the mutation go the server
-	return (variables: _Mutation['input']) =>
-		// we want the mutation to throw an error if the network layer invokes this.error
-		new Promise(async (resolve, reject) => {
-			let result
-			const session = get(sessionStore)
+	return async (variables: _Mutation['input']) => {
+		try {
+			const result = await executeQuery(artifact, variables, sessionStore)
 
-			// since we have a promise that's wrapping async/await we need a giant try/catch that will
-			// reject the promise
-			try {
-				// we need to define a fetch context that plays well on the client without
-				// access to this.fetch (mutations can't get access to preload)
-				const mutationCtx = {
-					fetch: window.fetch.bind(window),
-					session,
-					context: {},
-					page: {
-						host: '',
-						path: '',
-						params: {},
-						query: new URLSearchParams(),
-					},
-				}
+			cache.write(artifact.selection, result.data, queryVariables())
 
-				// grab the response from the server
-				const { data, errors } = await fetchQuery(mutationCtx, { text, variables }, session)
-
-				// we could have gotten a null response
-				if (errors) {
-					reject(errors)
-					return
-				}
-				if (!data) {
-					reject([new Error('Encountered empty data response in mutation payload')])
-					return
-				}
-				result = data
-			} catch (e) {
-				reject(e)
-				return
-			}
-
-			// update the cache with the mutation data
-			cache.write(artifact.selection, result, queryVariables())
-
-			// wrap the result in a store we can use to keep this query up to date
-			resolve(result)
-		})
+			return result
+		} catch (error) {
+			throw error
+		}
+	}
 }
