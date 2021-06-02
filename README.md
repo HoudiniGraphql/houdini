@@ -159,6 +159,11 @@ npx houdini generate
 
 The generated runtime can be accessed by importing `$houdini` anywhere in your application.
 
+If you have updated your schema on the server, you can pull down the most recent schema by using `--pull-schema` or `-p` like this
+```sh
+npx houdini generate --pull-schema
+```
+
 ## 🚀&nbsp;&nbsp;Fetching Data
 
 Grabbing data from your API is done with the `query` function:
