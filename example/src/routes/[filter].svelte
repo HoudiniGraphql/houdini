@@ -24,7 +24,7 @@
 	import { derived } from 'svelte/store'
 
 	// load the items
-	const { data, refetch } = query<AllItems>(graphql`
+	const { data } = query<AllItems>(graphql`
 		query AllItems($completed: Boolean) {
 			filteredItems: items(completed: $completed) @connection(name: "Filtered_Items") {
 				id
@@ -84,12 +84,6 @@
 	async function onBlur() {
 		// trigger the mutation
 		await addItem({ input: { text: inputValue } })
-
-		// try {
-		// 	await refetch()
-		// } catch (error) {
-		// 	console.log(error)
-		// }
 
 		// clear the input
 		inputValue = ''
