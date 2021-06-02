@@ -86,9 +86,18 @@ export default function query<_Query extends Operation<any, any>>(
 		// It returns the data and updates the cache.
 		async refetch(newVariables?: _Query['input']) {
 			try {
-				const result = await executeQuery(artifact, newVariables || variables, sessionStore)
-				writeData(result, newVariables || variables)
-				return result.data;
+				// Use the initial/previous variables
+				let variableBag = variables
+				// If new variables are set spread the new variables over the previous ones.
+				if (newVariables) {
+					variableBag = { ...variableBag, ...newVariables }
+				}
+				// Execute the query
+				const result = await executeQuery(artifact, variableBag, sessionStore)
+				// Write the data to the cache
+				writeData(result, variableBag)
+				// Return the data
+				return result.data
 			} catch (error) {
 				throw error
 			}
