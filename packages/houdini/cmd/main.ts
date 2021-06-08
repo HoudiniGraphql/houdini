@@ -4,6 +4,7 @@
 import { getConfig } from 'houdini-common'
 import { Command } from 'commander'
 import path from 'path'
+import * as graphql from 'graphql'
 // local imports
 import compile from './compile'
 import init from './init'
@@ -33,10 +34,12 @@ program
 				// The target path -> current working directory by default. Should we allow passing custom paths?
 				const targetPath = process.cwd()
 				// Write the schema
-				await writeSchema(
+				const schema = await writeSchema(
 					config.apiUrl,
 					config.schemaPath ? config.schemaPath : path.resolve(targetPath, 'schema.json')
 				)
+				// Set the newly written schema into the config
+				config.schema = schema;
 			}
 			await compile(config)
 		} catch (e) {
