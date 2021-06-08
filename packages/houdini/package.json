@@ -7,7 +7,7 @@
 		"build:runtime:cjs": "tsc --p tsconfig.runtime.cjs.json",
 		"build:runtime:esm": "tsc --p tsconfig.runtime.esm.json",
 		"build:cmd": "npm run build:cmd:main && npm run build:cmd:tsc",
-		"build:cmd:main": "TARGET=esm WHICH=cmd rollup --config ./rollup.config.js && sed -i '#!/usr/bin/env node' build/cmd.js && ./typeModule.sh",
+		"build:cmd:main": "TARGET=esm WHICH=cmd rollup --config ./rollup.config.js && ./typeModule.sh",
 		"build:cmd:tsc": "tsc --p tsconfig.json",
 		"build": "npm run build:runtime && npm run build:cmd",
 		"prepare": "npm run build"

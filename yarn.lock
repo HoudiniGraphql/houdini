@@ -5665,12 +5665,12 @@ __metadata:
     "@sveltejs/kit": 1.0.0-next.107
     apollo-server: ^2.24.0
     graphql: 15.5.0
-    houdini: ^0.5.1-kit.8
-    houdini-preprocess: ^0.5.1-kit.8
+    houdini: ^0.5.3
+    houdini-preprocess: ^0.5.3
     subscriptions-transport-ws: ^0.9.18
     svelte: ^3.38.2
     svelte-preprocess: ^4.0.0
-    tslib: ^2.0.0
+    tslib: ^2.2.0
     typescript: ^4.0.0
   languageName: unknown
   linkType: soft
@@ -6668,7 +6668,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.5.1-kit.8, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.5.3, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
@@ -6711,7 +6711,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.5.1-kit.8, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.5.3, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -6725,8 +6725,8 @@ __metadata:
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
     graphql: 15.5.0
-    houdini: ^0.5.1-kit.8
-    houdini-common: ^0.5.1-kit.8
+    houdini: ^0.5.3
+    houdini-common: ^0.5.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -6737,7 +6737,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.5.1-kit.8, houdini@workspace:packages/houdini":
+"houdini@^0.5.3, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
@@ -6758,7 +6758,7 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.5.1-kit.8
+    houdini-common: ^0.5.3
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
@@ -12187,7 +12187,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.0, tslib@npm:^2.1.0, tslib@npm:^2.2.0":
+"tslib@npm:^2.1.0, tslib@npm:^2.2.0":
   version: 2.2.0
   resolution: "tslib@npm:2.2.0"
   checksum: 2d35468c470410871c5246e43f12dcb6d0fc363b617c176f26443b9530e5c5ee8448966892a42956168d8f495da7865bda33dfe82c26c91991e28999974a618f

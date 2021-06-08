@@ -1,3 +1,8 @@
+// externals
+import { get, Readable } from 'svelte/store'
+// locals
+import { MutationArtifact, QueryArtifact } from './types'
+
 export class Environment {
 	private fetch: RequestHandler
 	socket: SubscriptionHandler | null | undefined
@@ -65,13 +70,81 @@ type GraphQLError = {
 	message: string
 }
 
-type RequestPayload = { data: any; errors?: Error[] }
+export type RequestPayload = { data: any; errors?: Error[] }
+
+type RequestResult =
+	| RequestPayload
+	| {
+			data: {}
+			errors: {
+				message: string
+			}[]
+	  }
 
 export type RequestHandler = (
 	this: FetchContext,
 	params: FetchParams,
 	session?: FetchSession
 ) => Promise<RequestPayload>
+
+// This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
+// It is mainly used for mutations, refetch and possible other client side operations in the future.
+export function executeQuery(
+	artifact: QueryArtifact | MutationArtifact,
+	variables: { [key: string]: unknown },
+	sessionStore: Readable<any>
+): Promise<RequestResult> {
+	return new Promise<RequestResult>(async (resolve, reject) => {
+		let result: RequestResult
+		// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
+		// Maybe there can be a better solution and subscribing only once?
+		const session = get(sessionStore)
+		// since we have a promise that's wrapping async/await we need a giant try/catch that will
+		// reject the promise
+		try {
+			// Simulate the fetch/load context
+			const fetchCtx = {
+				fetch: window.fetch.bind(window),
+				session,
+				context: {},
+				page: {
+					host: '',
+					path: '',
+					params: {},
+					query: new URLSearchParams(),
+				},
+			}
+
+			// pull the query text out of the compiled artifact
+			const { raw: text } = artifact
+
+			const res = await fetchQuery(
+				fetchCtx,
+				{
+					text,
+					variables,
+				},
+				session
+			)
+
+			// we could have gotten a null response
+			if (res.errors) {
+				reject(res.errors)
+				return
+			}
+			if (!res.data) {
+				reject([new Error('Encountered empty data response in payload')])
+				return
+			}
+			result = res
+		} catch (e) {
+			reject(e)
+			return
+		}
+		// resolve the result of fetchQuery
+		resolve(result)
+	})
+}
 
 // fetchQuery is used by the preprocess-generated runtime to send an operation to the server
 export async function fetchQuery(

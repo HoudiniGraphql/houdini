@@ -11,9 +11,10 @@
 		}
 
 		return {
-			completed: page.params.filter === 'completed'
+			completed: page.params.filter === 'completed',
 		}
 	}
+
 </script>
 
 <script lang="ts">
@@ -41,7 +42,7 @@
 	const addItem = mutation<AddItem>(graphql`
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
-				error { 
+				error {
 					message
 				}
 			}
@@ -49,11 +50,12 @@
 	`)
 
 	subscription(graphql`
-		subscription NewItem { 
-			newItem { 
-				item { 
+		subscription NewItem {
+			newItem {
+				item {
 					...All_Items_insert
-					...Filtered_Items_insert  @prepend(when_not: { argument: "completed", value: "true" })
+					...Filtered_Items_insert
+						@prepend(when_not: { argument: "completed", value: "true" })
 				}
 			}
 		}
@@ -86,6 +88,7 @@
 		// clear the input
 		inputValue = ''
 	}
+
 </script>
 
 <header class="header">

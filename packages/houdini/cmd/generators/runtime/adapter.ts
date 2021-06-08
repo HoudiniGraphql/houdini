@@ -26,10 +26,10 @@ export function goTo(location, options) {
 `
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
-import { session } from '$app/stores'
+import { getStores } from '$app/stores'
 
 export function getSession() {
-    return session
+    return getStores().session
 }
 
 export function goTo(location, options) {
