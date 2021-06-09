@@ -24,6 +24,19 @@ export default async (_path: string | undefined) => {
 			name: 'schemaPath',
 			type: 'input',
 			default: './schema.json',
+			validate: (input: string) => {
+				const validExtensions = ['json', 'gql', 'graphql'];
+
+				const extension = input.split('.').pop()
+				if (!extension) {
+					return 'Please provide a valid schema path.'
+				}
+				if (!validExtensions.includes(extension)) {
+					return 'The provided schema path should be of type ' + validExtensions.join('|')
+				}
+
+				return true
+			},
 			message:
 				'Enter the path where the schema should be written to. Valid file extensions are (.json/.gql/.graphql)',
 		},
