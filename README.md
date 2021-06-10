@@ -40,6 +40,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
+    1. [Refetching Data](#refetching-data)
     1. [What about load?](#what-about-load)
 1. [Fragments](#fragments)
 1. [Mutations](#mutations)
@@ -238,6 +239,33 @@ modified example from the [demo](./example):
 {#each $data.items as item}
     <div>{item.text}</div>
 {/each}
+```
+
+### Refetching Data
+
+Refetching data is done with the `refetch` function provided from the result of a query:
+
+```svelte
+
+<script lang="ts">
+    import { query, graphql, AllItems } from '$houdini'
+
+    // load the items
+    const { refetch } = query<AllItems>(graphql`
+        query AllItems($completed: Boolean) {
+            items(completed: $completed) {
+                id
+                text
+            }
+        }
+    `)
+    
+    let completed = true
+    
+    $: refetch({ completed })
+</script>
+
+<input type=checkbox bind:checked={completed}>
 ```
 
 ### What about `load`?
