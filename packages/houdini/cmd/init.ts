@@ -23,9 +23,9 @@ export default async (_path: string | undefined) => {
 		{
 			name: 'schemaPath',
 			type: 'input',
-			default: './schema.json',
+			default: './schema.graphql',
 			validate: (input: string) => {
-				const validExtensions = ['json', 'gql', 'graphql'];
+				const validExtensions = ['json', 'gql', 'graphql']
 
 				const extension = input.split('.').pop()
 				if (!extension) {
