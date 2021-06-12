@@ -238,7 +238,7 @@ describe('query preprocessor', function () {
 	`)
 	})
 
-	test('non-route page', async function () {
+	test('non-route page - no variables', async function () {
 		const doc = await preprocessorTest(
 			`
 			<script>
@@ -287,7 +287,103 @@ describe('query preprocessor', function () {
 	`)
 	})
 
-	test.todo('bar svelte component in route filepath')
+	test('non-route page - with variables', async function () {
+		const doc = await preprocessorTest(
+			`
+			<script>
+				const { data } = query(graphql\`
+					query TestQuery($test: String!) {
+						users(stringValue: $test) {
+							id
+						}
+					}
+				\`)
+			</script>
+		`,
+			{
+				mode: 'kit',
+				route: false,
+			}
+		)
+
+		// make sure we added the right stuff
+		expect(doc.module?.content).toMatchInlineSnapshot(``)
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		export let _TestQuery;
+		export let _TestQuery_Input;
+
+		let _TestQuery_handler = query({
+		    "initialValue": _TestQuery,
+		    "variables": _TestQuery_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
+		});
+
+		const {
+		    data
+		} = componentQuery({
+		    queryHandler: _TestQuery_handler,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: TestQueryVariables,
+		    getProps: () => $$props
+		});
+
+		$:
+		{
+		    _TestQuery_handler.writeData(_TestQuery, _TestQuery_Input);
+		}
+	`)
+	})
+
+	test('bare svelte component in route filepath', async function () {
+		const doc = await preprocessorTest(
+			`
+			<script>
+				const { data } = query(graphql\`
+					query TestQuery {
+						viewer {
+							id
+						}
+					}
+				\`)
+			</script>
+		`,
+			{
+				framework: 'svelte',
+				route: true,
+			}
+		)
+
+		// make sure we added the right stuff
+		expect(doc.module?.content).toMatchInlineSnapshot(``)
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		export let _TestQuery;
+		export let _TestQuery_Input;
+
+		let _TestQuery_handler = query({
+		    "initialValue": _TestQuery,
+		    "variables": _TestQuery_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
+		});
+
+		const {
+		    data
+		} = componentQuery({
+		    queryHandler: _TestQuery_handler,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: null,
+		    getProps: () => $$props
+		});
+
+		$:
+		{
+		    _TestQuery_handler.writeData(_TestQuery, _TestQuery_Input);
+		}
+	`)
+	})
 
 	test.todo('fails if variable function is not present')
 

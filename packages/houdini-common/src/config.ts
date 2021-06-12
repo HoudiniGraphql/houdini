@@ -352,7 +352,7 @@ export async function getConfig(): Promise<Config> {
 	return _config
 }
 
-export function testConfig(config: {} = {}) {
+export function testConfig(config: Partial<ConfigFile> = {}) {
 	return new Config({
 		filepath: path.join(process.cwd(), 'config.cjs'),
 		sourceGlob: '123',
@@ -420,8 +420,12 @@ export function testConfig(config: {} = {}) {
 				cat: Cat
 			}
 		`,
-		mode: 'sapper',
+		framework: 'sapper',
 		quiet: true,
 		...config,
 	})
+}
+
+type Partial<T> = {
+	[P in keyof T]?: T[P]
 }

@@ -151,7 +151,7 @@ export const componentQuery = <_Data, _Input>({
 	// we need our own store to track loading state (the handler's isn't meaningful)
 	const loading = writable(true)
 	// a store to track the error state
-	const error = writable(null)
+	const error = writable<Error | null>(null)
 
 	// a component should fire the query and then write the result to the store
 	$: {
