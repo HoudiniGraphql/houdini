@@ -1,48 +1,59 @@
-type Error {
-	message: String!
-	code: String!
-}
-
-type TodoItem {
-	id: ID!
-	text: String!
-	completed: Boolean!
-}
-
-type Query {
-	items(completed: Boolean): [TodoItem!]!
-}
-
-type Mutation {
-	checkItem(item: ID!): UpdateItemOutput!
-	uncheckItem(item: ID!): UpdateItemOutput!
-	addItem(input: AddItemInput!): AddItemOutput!
-	deleteItem(item: ID!): DeleteIemOutput!
-}
-
-type Subscription {
-	itemUpdate(id: ID!): ItemUpdate!
-}
+directive @cacheControl(maxAge: Int, scope: CacheControlScope) on FIELD_DEFINITION | INTERFACE | OBJECT
 
 input AddItemInput {
-	text: String!
+  text: String!
 }
 
 type AddItemOutput {
-	error: Error
-	item: TodoItem
+  error: Error
+  item: TodoItem
 }
 
-type UpdateItemOutput {
-	error: Error
-	item: TodoItem
+enum CacheControlScope {
+  PRIVATE
+  PUBLIC
 }
 
 type DeleteIemOutput {
-	error: Error
-	itemID: ID
+  error: Error
+  itemID: ID
+}
+
+type Error {
+  code: String!
+  message: String!
 }
 
 type ItemUpdate {
-	item: TodoItem!
+  item: TodoItem!
 }
+
+type Mutation {
+  addItem(input: AddItemInput!): AddItemOutput!
+  checkItem(item: ID!): UpdateItemOutput!
+  deleteItem(item: ID!): DeleteIemOutput!
+  uncheckItem(item: ID!): UpdateItemOutput!
+}
+
+type Query {
+  items(completed: Boolean): [TodoItem!]!
+}
+
+type Subscription {
+  itemUpdate(id: ID!): ItemUpdate!
+  newItem: ItemUpdate!
+}
+
+type TodoItem {
+  completed: Boolean!
+  id: ID!
+  text: String!
+}
+
+type UpdateItemOutput {
+  error: Error
+  item: TodoItem
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload

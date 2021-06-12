@@ -1,4 +1,5 @@
 import { parse as parseJS } from '@babel/parser'
+import * as recast from 'recast'
 // locals
 import type { Maybe, Script } from './types'
 
@@ -107,9 +108,11 @@ function findAttributes(content: string, start: number): [{ [key: string]: any }
 			.map((pair) => {
 				// attributes are defined with an equal
 				const [key, value] = pair.split('=')
+
 				return {
 					key: key[0] === '"' ? JSON.parse(key) : key,
-					value: JSON.parse(value),
+					// JSON.parse accepts double quotes only, not single quote
+					value: JSON.parse(value.replace(/'/g, '"')),
 				}
 			})
 			.reduce<{ [key: string]: any }>(

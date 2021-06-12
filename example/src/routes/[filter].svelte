@@ -11,13 +11,14 @@
 		}
 
 		return {
-			completed: page.params.filter === 'completed'
+			completed: page.params.filter === 'completed',
 		}
 	}
+
 </script>
 
 <script lang="ts">
-	import { query, graphql, mutation, AllItems, AddItem } from '$houdini'
+	import { query, graphql, mutation, subscription, AllItems, AddItem } from '$houdini'
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { page } from '$app/stores'
 	import { derived } from 'svelte/store'
@@ -41,9 +42,20 @@
 	const addItem = mutation<AddItem>(graphql`
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
+				error {
+					message
+				}
+			}
+		}
+	`)
+
+	subscription(graphql`
+		subscription NewItem {
+			newItem {
 				item {
-					...Filtered_Items_insert @prepend(when_not: { argument: "completed", value: "true" })
 					...All_Items_insert
+					...Filtered_Items_insert
+						@prepend(when_not: { argument: "completed", value: "true" })
 				}
 			}
 		}
@@ -76,6 +88,7 @@
 		// clear the input
 		inputValue = ''
 	}
+
 </script>
 
 <header class="header">

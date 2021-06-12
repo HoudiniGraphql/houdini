@@ -5,10 +5,14 @@ import { onDestroy, onMount } from 'svelte'
 import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
 import cache from './cache'
 import { setVariables } from './context'
+import { executeQuery } from './network'
+
+// @ts-ignore: this file will get generated and does not exist in the source code
+import { getSession } from './adapter.mjs'
 
 export default function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
-): QueryResponse<Readable<_Query['result']>, _Query['input']> {
+): QueryResponse<_Query['result'], _Query['input']> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniQuery') {
 		throw new Error('query() must be passed a query document')
@@ -64,30 +68,55 @@ export default function query<_Query extends Operation<any, any>>(
 		)
 	})
 
+	const sessionStore = getSession()
+
+	function writeData(newData: _Query['result'], newVariables: _Query['input']) {
+		variables = newVariables || {}
+
+		// make sure we list to the new data
+		if (subscriptionSpec) {
+			cache.subscribe(subscriptionSpec, variables)
+		}
+
+		// write the data we received
+		cache.write(artifact.selection, newData.data, variables)
+	}
+
 	return {
 		// the store should be read-only from the caller's perspective
 		data: { subscribe: store.subscribe },
+		// the refetch function can be used to refetch queries possibly with new variables/arguments
+		async refetch(newVariables?: _Query['input']) {
+			try {
+				// Use the initial/previous variables
+				let variableBag = variables
+
+				// If new variables are set spread the new variables over the previous ones.
+				if (newVariables) {
+					variableBag = { ...variableBag, ...newVariables }
+				}
+
+				// Execute the query
+				const result = await executeQuery(artifact, variableBag, sessionStore)
+
+				// Write the data to the cache
+				writeData(result, variableBag)
+			} catch (error) {
+				throw error
+			}
+		},
 		// used primarily by the preprocessor to keep local state in sync with
 		// the data given by preload
-		writeData(newData: _Query['result'], newVariables: _Query['input']) {
-			variables = newVariables || {}
-
-			// make sure we list to the new data
-			if (subscriptionSpec) {
-				cache.subscribe(subscriptionSpec, variables)
-			}
-
-			// write the data we received
-			cache.write(artifact.selection, newData.data, variables)
-		},
+		writeData,
 	}
 }
 
 // we need to wrap the response from a query in something that we can
 // use as a proxy to the query for refetches, writing to the cache, etc
 type QueryResponse<_Data, _Input> = {
-	data: _Data
+	data: Readable<_Data>
 	writeData: (data: _Data, variables: _Input) => void
+	refetch: (newVariables?: _Input) => Promise<void>
 }
 
 // we need something to dress up the result of `query` to be used for a route.

@@ -40,6 +40,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
+    1. [Refetching Data](#refetching-data)
     1. [What about load?](#what-about-load)
 1. [Fragments](#fragments)
 1. [Mutations](#mutations)
@@ -75,8 +76,8 @@ npm install --save-dev houdini houdini-preprocess
 
 ## 🔧&nbsp;&nbsp;Configuring Your Application
 
-Adding houdini to an existing sapper project can easily be done with the provided command-line tool.
-If you don't already have an existing app, visit [this link](https://sapper.svelte.dev/docs#Getting_started)
+Adding houdini to an existing project can easily be done with the provided command-line tool.
+If you don't already have an existing app, visit [this link](https://kit.svelte.dev/docs)
 for help setting one up. Once you have a project and want to add houdini, execute the following command:
 
 ```sh
@@ -159,6 +160,11 @@ npx houdini generate
 
 The generated runtime can be accessed by importing `$houdini` anywhere in your application.
 
+If you have updated your schema on the server, you can pull down the most recent schema before generating your runtime by using `--pull-schema` or `-p`:
+```sh
+npx houdini generate --pull-schema
+```
+
 ## 🚀&nbsp;&nbsp;Fetching Data
 
 Grabbing data from your API is done with the `query` function:
@@ -233,6 +239,33 @@ modified example from the [demo](./example):
 {#each $data.items as item}
     <div>{item.text}</div>
 {/each}
+```
+
+### Refetching Data
+
+Refetching data is done with the `refetch` function provided from the result of a query:
+
+```svelte
+
+<script lang="ts">
+    import { query, graphql, AllItems } from '$houdini'
+
+    // load the items
+    const { refetch } = query<AllItems>(graphql`
+        query AllItems($completed: Boolean) {
+            items(completed: $completed) {
+                id
+                text
+            }
+        }
+    `)
+    
+    let completed = true
+    
+    $: refetch({ completed })
+</script>
+
+<input type=checkbox bind:checked={completed}>
 ```
 
 ### What about `load`?

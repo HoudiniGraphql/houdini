@@ -29,6 +29,7 @@ module.exports.typeDefs = gql`
 
 	type Subscription {
 		itemUpdate(id: ID!): ItemUpdate!
+		newItem: ItemUpdate!
 	}
 
 	input AddItemInput {
@@ -60,7 +61,7 @@ id = 3
 // example data
 let items = [
 	{ id: '1', text: 'Taste JavaScript' },
-	{ id: '2', text: 'Buy a unicorn' }
+	{ id: '2', text: 'Buy a unicorn' },
 ]
 
 module.exports.resolvers = {
@@ -72,7 +73,7 @@ module.exports.resolvers = {
 			}
 
 			return items.filter((item) => Boolean(item.completed) === Boolean(completed))
-		}
+		},
 	},
 	Mutation: {
 		checkItem(_, { item: targetID, ...rest }) {
@@ -90,7 +91,7 @@ module.exports.resolvers = {
 
 			return {
 				error: null,
-				item
+				item,
 			}
 		},
 		uncheckItem(_, { item: targetID }) {
@@ -105,7 +106,7 @@ module.exports.resolvers = {
 
 			return {
 				error: null,
-				item
+				item,
 			}
 		},
 		deleteItem(_, { item: targetID }) {
@@ -114,18 +115,22 @@ module.exports.resolvers = {
 
 			return {
 				error: null,
-				itemID: targetID
+				itemID: targetID,
 			}
 		},
 		addItem(_, { input: { text } }) {
 			const item = { text, completed: false, id: (parseInt(id, 10) + 1).toString() }
 			id++
 			items.unshift(item)
+
+			// notify any subscribers
+			pubsub.publish('NEW_ITEM', { newItem: { item } })
+
 			return { item, error: null }
-		}
+		},
 	},
 	TodoItem: {
-		completed: ({ completed }) => Boolean(completed)
+		completed: ({ completed }) => Boolean(completed),
 	},
 	Subscription: {
 		itemUpdate: {
@@ -134,7 +139,10 @@ module.exports.resolvers = {
 				(payload, variables) => {
 					return payload.itemUpdate.item.id === variables.id
 				}
-			)
-		}
-	}
+			),
+		},
+		newItem: {
+			subscribe: () => pubsub.asyncIterator('NEW_ITEM'),
+		},
+	},
 }
