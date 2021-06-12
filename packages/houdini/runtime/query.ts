@@ -1,5 +1,5 @@
 // externals
-import { Readable, writable } from 'svelte/store'
+import { Readable, writable, readable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
 // locals
 import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
@@ -17,6 +17,9 @@ export default function query<_Query extends Operation<any, any>>(
 	if (document.kind !== 'HoudiniQuery') {
 		throw new Error('query() must be passed a query document')
 	}
+
+	// a query is never 'loading'
+	const loading = writable(false)
 
 	let variables = document.variables
 
@@ -108,6 +111,8 @@ export default function query<_Query extends Operation<any, any>>(
 		// used primarily by the preprocessor to keep local state in sync with
 		// the data given by preload
 		writeData,
+		loading: { subscribe: loading.subscribe },
+		error: readable(null, () => {}),
 	}
 }
 
@@ -117,14 +122,19 @@ type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
 	writeData: (data: _Data, variables: _Input) => void
 	refetch: (newVariables?: _Input) => Promise<void>
+	loading: Readable<boolean>
+	error: Readable<Error | null>
 }
 
 // we need something to dress up the result of `query` to be used for a route.
 export const routeQuery = <_Data, _Input>(
 	queryResult: QueryResponse<_Data, _Input>
+	// the query handler doesn't need any extra treatment for a route
 ): QueryResponse<_Data, _Input> => queryResult
 
-export const componentQuery = <_Data, _Input>({
+// component queries are implemented as wrappers over the normal query that fire the
+// appropriate network request and then write the result to the underlying store
+export const componentQuery = <_Data, _Input extends { [key: string]: any }>({
 	artifact,
 	queryHandler,
 	variableFunction,
@@ -138,8 +148,36 @@ export const componentQuery = <_Data, _Input>({
 	// pull out the function we'll use to update the store after we've fired it
 	const { writeData } = queryHandler
 
-	// a component should fire the query when it mounts and then write the result to the store
+	// we need our own store to track loading state (the handler's isn't meaningful)
+	const loading = writable(true)
+
+	const error = writable(null)
+
+	// a component should fire the query and then writes the result to the store
+	$: {
+		// set the loading state
+		loading.set(true)
+
+		// compute the variables for the request
+		const variables = variableFunction({ props: getProps() })
+
+		// fire the query
+		executeQuery(artifact, variables, getSession())
+			.then((result) => {
+				// update the store with the new result
+				writeData(result.data, variables)
+				// we're not loading anything any more
+				loading.set(false)
+			})
+			.catch((err) => {
+				error.set(err.message ? err : new Error(err))
+			})
+	}
 
 	// return the handler to the user
-	return queryHandler
+	return {
+		...queryHandler,
+		loading: { subscribe: loading.subscribe },
+		error: { subscribe: error.subscribe },
+	}
 }

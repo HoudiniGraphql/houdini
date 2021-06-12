@@ -91,7 +91,7 @@ export type RequestHandler = (
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
 export async function executeQuery(
 	artifact: QueryArtifact | MutationArtifact,
-	variables: { [key: string]: unknown },
+	variables: { [key: string]: any },
 	sessionStore: Readable<any>
 ): Promise<RequestResult> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
