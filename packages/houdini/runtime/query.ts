@@ -134,7 +134,7 @@ export const routeQuery = <_Data, _Input>(
 
 // component queries are implemented as wrappers over the normal query that fire the
 // appropriate network request and then write the result to the underlying store
-export const componentQuery = <_Data, _Input extends { [key: string]: any }>({
+export const componentQuery = <_Data, _Input>({
 	artifact,
 	queryHandler,
 	variableFunction,
@@ -142,7 +142,7 @@ export const componentQuery = <_Data, _Input extends { [key: string]: any }>({
 }: {
 	artifact: QueryArtifact
 	queryHandler: QueryResponse<_Data, _Input>
-	variableFunction: (...args: any[]) => _Input
+	variableFunction: ((...args: any[]) => _Input) | null
 	getProps: () => any
 }): QueryResponse<_Data, _Input> => {
 	// pull out the function we'll use to update the store after we've fired it
@@ -153,13 +153,13 @@ export const componentQuery = <_Data, _Input extends { [key: string]: any }>({
 	// a store to track the error state
 	const error = writable(null)
 
-	// a component should fire the query and then writes the result to the store
+	// a component should fire the query and then write the result to the store
 	$: {
 		// set the loading state
 		loading.set(true)
 
 		// compute the variables for the request
-		const variables = variableFunction({ props: getProps() })
+		const variables = (variableFunction?.({ props: getProps() }) || {}) as _Input
 
 		// fire the query
 		executeQuery(artifact, variables, getSession())
