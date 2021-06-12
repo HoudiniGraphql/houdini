@@ -20,7 +20,7 @@ export default function query<_Query extends Operation<any, any>>(
 	setVariables(() => variables)
 
 	// dry the reference to the initial value
-	const initialValue = document.initialValue.data
+	const initialValue = document.initialValue?.data
 
 	// define the store we will hold the data
 	const store = writable(initialValue)
@@ -39,8 +39,11 @@ export default function query<_Query extends Operation<any, any>>(
 
 	// when the component mounts
 	onMount(() => {
-		// update the cache with the data that we just ran into
-		cache.write(artifact.selection, initialValue, variables)
+		// if we were given data on mount
+		if (initialValue) {
+			// update the cache with the data that we just ran into
+			cache.write(artifact.selection, initialValue, variables)
+		}
 
 		// stay up to date
 		if (subscriptionSpec) {
@@ -87,6 +90,27 @@ type QueryResponse<_Data, _Input> = {
 	writeData: (data: _Data, variables: _Input) => void
 }
 
-// we need something we can replace the call to query that the user invokes
-// it justs needs to pass through since we'll give it a reference to a hoisted query
-export const getQuery = <T>(arg: T): T => arg
+// we need something to dress up the result of `query` to be used for a route.
+export const routeQuery = <_Data, _Input>(
+	queryResult: QueryResponse<_Data, _Input>
+): QueryResponse<_Data, _Input> => queryResult
+
+export const componentQuery = <_Data, _Input>({
+	artifact,
+	queryHandler,
+	variableFunction,
+	getProps,
+}: {
+	artifact: QueryArtifact
+	queryHandler: QueryResponse<_Data, _Input>
+	variableFunction: (...args: any[]) => _Input
+	getProps: () => any
+}): QueryResponse<_Data, _Input> => {
+	// pull out the function we'll use to update the store after we've fired it
+	const { writeData } = queryHandler
+
+	// a component should fire the query when it mounts and then write the result to the store
+
+	// return the handler to the user
+	return queryHandler
+}

@@ -1,12 +1,13 @@
 // external imports
 import * as svelte from 'svelte/compiler'
+import path from 'path'
 // local imports
 import { testConfig, ConfigFile } from 'houdini-common'
 import runTransforms from '../transforms'
 
 export default async function preprocessorTest(
 	content: string,
-	{ filename = 'base.svelte', ...cfg }: { filename?: string } & Partial<ConfigFile> = {}
+	{ route, ...cfg }: { route: boolean } & Partial<ConfigFile> = { route: true }
 ) {
 	const schema = `
 		type User {
@@ -26,7 +27,9 @@ export default async function preprocessorTest(
 
 	const doc = {
 		content,
-		filename,
+		filename: route
+			? path.join(config.projectRoot, 'src', 'routes', 'component.svelte')
+			: path.join(config.projectRoot, 'src', 'lib', 'component.svelte'),
 	}
 
 	// run the source through the processor

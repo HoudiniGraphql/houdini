@@ -3,8 +3,9 @@ import '../../../../jest.setup'
 import { preprocessorTest } from '../utils'
 
 describe('query preprocessor', function () {
-	test('preload initial data', async function () {
-		const doc = await preprocessorTest(`
+	test('route - preload initial data', async function () {
+		const doc = await preprocessorTest(
+			`
 			<script>
 				const { data } = query(graphql\`
 					query TestQuery {
@@ -14,7 +15,8 @@ describe('query preprocessor', function () {
 					}
 				\`)
 			</script>
-		`)
+		`
+		)
 
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
@@ -53,7 +55,7 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { getQuery, query } from "$houdini";
+		import { routeQuery, componentQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
@@ -66,7 +68,7 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = getQuery(_TestQuery_handler);
+		} = routeQuery(_TestQuery_handler);
 
 		$:
 		{
@@ -76,7 +78,8 @@ describe('query preprocessor', function () {
 	})
 
 	test('preload initial data with variables', async function () {
-		const doc = await preprocessorTest(`
+		const doc = await preprocessorTest(
+			`
 			<script context="module">
 				export function TestQueryVariables(page) {
 					return {
@@ -94,7 +97,8 @@ describe('query preprocessor', function () {
 					}
 				\`)
 			</script>
-		`)
+		`
+		)
 
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
@@ -139,7 +143,7 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { getQuery, query } from "$houdini";
+		import { routeQuery, componentQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
@@ -152,7 +156,7 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = getQuery(_TestQuery_handler);
+		} = routeQuery(_TestQuery_handler);
 
 		$:
 		{
@@ -176,6 +180,7 @@ describe('query preprocessor', function () {
 		`,
 			{
 				mode: 'kit',
+				route: true,
 			}
 		)
 
@@ -211,7 +216,7 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { getQuery, query } from "$houdini";
+		import { routeQuery, componentQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
@@ -224,7 +229,7 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = getQuery(_TestQuery_handler);
+		} = routeQuery(_TestQuery_handler);
 
 		$:
 		{
@@ -248,43 +253,14 @@ describe('query preprocessor', function () {
 		`,
 			{
 				mode: 'kit',
-				filename: 'src/lib/component.svelte',
+				route: false,
 			}
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(`
-		import { fetchQuery, RequestContext } from "$houdini";
-		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-
-		export async function load(context) {
-		    const _houdini_context = new RequestContext(context);
-		    const _TestQuery_Input = {};
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
-		    const _TestQuery = await fetchQuery(_houdini_context, {
-		        "text": _TestQueryArtifact.raw,
-		        "variables": _TestQuery_Input
-		    }, context.session);
-
-		    if (!_TestQuery.data) {
-		        _houdini_context.graphqlErrors(_TestQuery);
-		        return _houdini_context.returnValue;
-		    }
-
-		    return {
-		        props: {
-		            _TestQuery: _TestQuery,
-		            _TestQuery_Input: _TestQuery_Input
-		        }
-		    };
-		}
-	`)
+		expect(doc.module?.content).toMatchInlineSnapshot(``)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { getQuery, query } from "$houdini";
+		import { routeQuery, componentQuery, query } from "$houdini";
 		export let _TestQuery;
 		export let _TestQuery_Input;
 
@@ -297,7 +273,12 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = getQuery(_TestQuery_handler);
+		} = componentQuery({
+		    queryHandler: _TestQuery_handler,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: null,
+		    getProps: () => $$props
+		});
 
 		$:
 		{

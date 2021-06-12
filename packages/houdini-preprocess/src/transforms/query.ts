@@ -13,6 +13,7 @@ import {
 	EmbeddedGraphqlDocument,
 	artifactImport,
 	artifactIdentifier,
+	ensureImports,
 } from '../utils'
 const AST = recast.types.builders
 
@@ -63,23 +64,47 @@ export default async function queryProcessor(
 		// we want to replace it with an object that the runtime can use
 		onTag(tag: EmbeddedGraphqlDocument) {
 			// pull out what we need
-			const { node, parsedDocument, parent } = tag
+			const { node, parsedDocument, parent, artifact } = tag
 
 			// add the document to the list
 			queries.push(tag)
 
-			// we're going to hoist the actual query so we need to replace the graphql tag with
-			// a reference to the result
+			// dry up some values
+			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+			const handlerIdentifier = queryHandlerIdentifier(operation)
+
+			// the "actual" value of a template tag depends on wether its a route or component
 			node.replaceWith(
-				queryHandlerIdentifier(
-					parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-				)
+				isRoute
+					? // a route query just needs the handler
+					  handlerIdentifier
+					: // a non-route needs a little more information than the handler to fetch
+					  // the query on mount
+					  AST.objectExpression([
+							AST.objectProperty(AST.identifier('queryHandler'), handlerIdentifier),
+							AST.objectProperty(
+								AST.identifier('artifact'),
+								AST.identifier(artifactIdentifier(artifact))
+							),
+							AST.objectProperty(
+								AST.identifier('variableFunction'),
+								operation.variableDefinitions &&
+									operation.variableDefinitions.length > 0
+									? AST.identifier(queryInputFunction(artifact.name))
+									: AST.nullLiteral()
+							),
+							AST.objectProperty(
+								AST.identifier('getProps'),
+								AST.arrowFunctionExpression([], AST.identifier('$$props'))
+							),
+					  ])
 			)
 
-			// as well as change the name of query to something that will just pass the result through
+			// we also need to wrap the template tag in a function that knows how to convert the query
+			// handler into a value that's useful for the operation context (route vs component)
 			const callParent = parent as namedTypes.CallExpression
 			if (callParent.type === 'CallExpression' && callParent.callee.type === 'Identifier') {
-				callParent.callee.name = 'getQuery'
+				callParent.callee.name = isRoute ? 'routeQuery' : 'componentQuery'
 			}
 		},
 	})
@@ -106,16 +131,15 @@ export default async function queryProcessor(
 		throw new Error('type script!!')
 	}
 
-	processModule(config, isRoute, doc.module, queries)
-	processInstance(config, isRoute, doc.instance, queries)
+	// if we are procesing a route, use those processors
+	if (isRoute) {
+		processModule(config, doc.module, queries)
+	} else {
+	}
+	processInstance(config, doc.instance, queries)
 }
 
-function processModule(
-	config: Config,
-	isRoute: boolean,
-	script: Script,
-	queries: EmbeddedGraphqlDocument[]
-) {
+function processModule(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
 	// the main thing we are responsible for here is to add the module bits of the
 	// hoisted query. this means doing the actual fetch, checking errors, and returning
 	// the props to the rendered components.
@@ -140,14 +164,9 @@ function processModule(
 	}
 }
 
-function processInstance(
-	config: Config,
-	isRoute: boolean,
-	script: Script,
-	queries: EmbeddedGraphqlDocument[]
-) {
+function processInstance(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
 	// make sure we have the imports we need
-	ensureImports(config, script.content.body, ['getQuery', 'query'])
+	ensureImports(config, script.content.body, ['routeQuery', 'componentQuery', 'query'])
 
 	// add props to the component for every query while we're here
 
@@ -456,37 +475,6 @@ function addSapperPreload(config: Config, body: Statement[]) {
 
 	// export the function from the module
 	body.push(AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration)
-}
-
-function ensureImports(config: Config, body: Statement[], identifiers: string[]) {
-	const toImport = identifiers.filter(
-		(identifier) =>
-			!body.find(
-				(statement) =>
-					statement.type === 'ImportDeclaration' &&
-					statement.source.value === '$houdini' &&
-					statement.specifiers.find(
-						(importSpecifier) =>
-							importSpecifier.type === 'ImportSpecifier' &&
-							importSpecifier.imported.type === 'Identifier' &&
-							importSpecifier.imported.name === identifier &&
-							importSpecifier.local.name === identifier
-					)
-			)
-	)
-
-	// add the import if it doesn't exist, add it
-	if (toImport.length > 0) {
-		body.unshift({
-			type: 'ImportDeclaration',
-			// @ts-ignore
-			source: AST.stringLiteral('$houdini'),
-			// @ts-ignore
-			specifiers: toImport.map((identifier) =>
-				AST.importSpecifier(AST.identifier(identifier), AST.identifier(identifier))
-			),
-		})
-	}
 }
 
 function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
