@@ -8,7 +8,7 @@ import { writeSchema } from './utils/writeSchema'
 export default async (_path: string | undefined) => {
 	// we need to collect some information from the user before we
 	// can continue
-	let { url, framework } = await inquirer.prompt([
+	let { url, framework, schemaPath } = await inquirer.prompt([
 		{
 			name: 'url',
 			type: 'input',
@@ -19,6 +19,26 @@ export default async (_path: string | undefined) => {
 			type: 'list',
 			message: 'Are you using Sapper or SvelteKit?',
 			choices: ['Sapper', 'SvelteKit'],
+		},
+		{
+			name: 'schemaPath',
+			type: 'input',
+			default: './schema.graphql',
+			validate: (input: string) => {
+				const validExtensions = ['json', 'gql', 'graphql']
+
+				const extension = input.split('.').pop()
+				if (!extension) {
+					return 'Please provide a valid schema path.'
+				}
+				if (!validExtensions.includes(extension)) {
+					return 'The provided schema path should be of type ' + validExtensions.join('|')
+				}
+
+				return true
+			},
+			message:
+				'Enter the path where the schema should be written to. Valid file extensions are (.json/.gql/.graphql)',
 		},
 	])
 
@@ -34,8 +54,6 @@ export default async (_path: string | undefined) => {
 	const configPath = path.join(targetPath, 'houdini.config.js')
 	// where we put the environment
 	const environmentPath = path.join(sourceDir, 'environment.js')
-
-	const schemaPath = './schema.json'
 
 	// Get the schema from the url and write it to file
 	await writeSchema(url, path.join(targetPath, schemaPath))
