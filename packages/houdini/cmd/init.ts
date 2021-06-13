@@ -35,6 +35,26 @@ export default async (_path: string | undefined) => {
 				{ value: 'esm', name: 'ES Modules' },
 			],
 		},
+		{
+			name: 'schemaPath',
+			type: 'input',
+			default: './schema.graphql',
+			validate: (input: string) => {
+				const validExtensions = ['json', 'gql', 'graphql']
+
+				const extension = input.split('.').pop()
+				if (!extension) {
+					return 'Please provide a valid schema path.'
+				}
+				if (!validExtensions.includes(extension)) {
+					return 'The provided schema path should be of type ' + validExtensions.join('|')
+				}
+
+				return true
+			},
+			message:
+				'Where should the schema be written to? Valid file extensions are .json, .gql, or .graphql',
+		},
 	])
 
 	// if the user didn't choose a module type, figure it out from the framework choice
@@ -58,14 +78,20 @@ export default async (_path: string | undefined) => {
 	// where we put the environment
 	const environmentPath = path.join(sourceDir, 'environment.js')
 
-	const schemaPath = './schema.json'
-
 	await Promise.all([
 		// Get the schema from the url and write it to file
-		writeSchema(answers.url, path.join(targetPath, schemaPath)),
+		writeSchema(answers.url, path.join(targetPath, answers.schemaPath)),
 
 		// write the config file
-		fs.writeFile(configPath, configFile({ schemaPath, framework, module, url: answers.url })),
+		fs.writeFile(
+			configPath,
+			configFile({
+				schemaPath: answers.schemaPath,
+				framework,
+				module,
+				url: answers.url,
+			})
+		),
 
 		// write the environment file
 		fs.writeFile(environmentPath, networkFile(answers.url)),
