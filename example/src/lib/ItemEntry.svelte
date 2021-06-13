@@ -2,7 +2,6 @@
 	import {
 		fragment,
 		mutation,
-		query,
 		graphql,
 		subscription,
 		ItemEntry_item,
