@@ -10,7 +10,6 @@ export type ConfigFile = {
 	schemaPath?: string
 	schema?: string
 	quiet?: boolean
-	verifyHash?: boolean
 	apiUrl?: string
 	// an old config file could specify mode instead of framework and module
 	mode?: 'kit' | 'sapper'
@@ -28,7 +27,6 @@ export class Config {
 	schemaPath?: string
 	sourceGlob: string
 	quiet: boolean
-	verifyHash: boolean
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
 	module: 'commonjs' | 'esm' = 'commonjs'
 
@@ -38,7 +36,6 @@ export class Config {
 		sourceGlob,
 		apiUrl,
 		quiet = false,
-		verifyHash = true,
 		filepath,
 		framework = 'sapper',
 		module = 'commonjs',
@@ -90,7 +87,6 @@ export class Config {
 		this.filepath = filepath
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
-		this.verifyHash = verifyHash
 		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(filepath)
