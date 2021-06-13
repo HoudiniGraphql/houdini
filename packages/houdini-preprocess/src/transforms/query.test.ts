@@ -56,8 +56,8 @@ describe('query preprocessor', function () {
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery;
-		export let _TestQuery_Input;
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
 		    "initialValue": _TestQuery,
@@ -144,8 +144,8 @@ describe('query preprocessor', function () {
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery;
-		export let _TestQuery_Input;
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
 		    "initialValue": _TestQuery,
@@ -217,8 +217,8 @@ describe('query preprocessor', function () {
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery;
-		export let _TestQuery_Input;
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
 		    "initialValue": _TestQuery,
@@ -261,8 +261,9 @@ describe('query preprocessor', function () {
 		expect(doc.module?.content).toMatchInlineSnapshot(``)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery;
-		export let _TestQuery_Input;
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
 		    "initialValue": _TestQuery,
@@ -279,11 +280,6 @@ describe('query preprocessor', function () {
 		    variableFunction: null,
 		    getProps: () => $$props
 		});
-
-		$:
-		{
-		    _TestQuery_handler.writeData(_TestQuery, _TestQuery_Input);
-		}
 	`)
 	})
 
@@ -310,8 +306,9 @@ describe('query preprocessor', function () {
 		expect(doc.module?.content).toMatchInlineSnapshot(``)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery;
-		export let _TestQuery_Input;
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
 		    "initialValue": _TestQuery,
@@ -328,11 +325,6 @@ describe('query preprocessor', function () {
 		    variableFunction: TestQueryVariables,
 		    getProps: () => $$props
 		});
-
-		$:
-		{
-		    _TestQuery_handler.writeData(_TestQuery, _TestQuery_Input);
-		}
 	`)
 	})
 
@@ -359,8 +351,9 @@ describe('query preprocessor', function () {
 		expect(doc.module?.content).toMatchInlineSnapshot(``)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery;
-		export let _TestQuery_Input;
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
 		    "initialValue": _TestQuery,
@@ -377,11 +370,6 @@ describe('query preprocessor', function () {
 		    variableFunction: null,
 		    getProps: () => $$props
 		});
-
-		$:
-		{
-		    _TestQuery_handler.writeData(_TestQuery, _TestQuery_Input);
-		}
 	`)
 	})
 

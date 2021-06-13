@@ -531,7 +531,7 @@ export class Cache {
 			}
 
 			// trigger the update
-			spec.set(this.getData(spec, rootRecord, spec.selection, spec.variables()))
+			spec.set(this.getData(spec, rootRecord, spec.selection, spec.variables?.()))
 		}
 	}
 
