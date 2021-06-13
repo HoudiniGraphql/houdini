@@ -310,6 +310,7 @@ export class Cache {
 			// look up the field in our schema
 			const { type: linkedType, keyRaw, fields, operations, connection } = selection[field]
 			const key = this.evaluateKey(keyRaw, variables)
+
 			// make sure we found the type info
 			if (!linkedType) {
 				throw new Error('could not find the field information for ' + field)
@@ -419,7 +420,7 @@ export class Cache {
 					}
 				}
 
-				// remove any subscribers we don't can't about
+				// remove any subscribers we don't care about
 				for (const lostID of oldIDs.filter((id) => !linkedIDs.includes(id))) {
 					for (const sub of subscribers) {
 						if (!oldSubscribers[lostID]) {
@@ -530,7 +531,7 @@ export class Cache {
 			}
 
 			// trigger the update
-			spec.set(this.getData(spec, rootRecord, spec.selection, variables))
+			spec.set(this.getData(spec, rootRecord, spec.selection, spec.variables()))
 		}
 	}
 

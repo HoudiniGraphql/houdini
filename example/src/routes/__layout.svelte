@@ -3,13 +3,6 @@
 	import { setEnvironment } from '$houdini'
 
 	setEnvironment(env)
-
-	// import cache from '$houdini/runtime/cache'
-	// import { browser } from '$app/env';
-	// if (browser) {
-	// 	// @ts-ignore
-	// 	window.cache = cache
-	// }
 </script>
 
 <svelte:head>

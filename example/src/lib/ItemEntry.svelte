@@ -10,7 +10,6 @@
 		UncompleteItem,
 		DeleteItem
 	} from '$houdini'
-import { loop_guard } from 'svelte/internal';
 
 	// the reference we're passed from our parents
 	export let item: ItemEntry_item

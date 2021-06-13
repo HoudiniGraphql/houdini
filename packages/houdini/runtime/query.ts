@@ -41,6 +41,7 @@ export default function query<_Query extends Operation<any, any>>(
 	let subscriptionSpec: SubscriptionSpec | null = {
 		rootType: artifact.rootType,
 		selection: artifact.selection,
+		variables: () => variables,
 		set: store.set,
 	}
 
@@ -66,6 +67,7 @@ export default function query<_Query extends Operation<any, any>>(
 				rootType: artifact.rootType,
 				selection: artifact.selection,
 				set: store.set,
+				variables: () => variables,
 			},
 			variables
 		)
