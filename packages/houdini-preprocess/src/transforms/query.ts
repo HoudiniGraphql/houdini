@@ -135,8 +135,13 @@ export default async function queryProcessor(
 	if (isRoute) {
 		processModule(config, doc.module, queries)
 	} else {
+		// we need to make sure to import all of the artifacts in the instance script
+		// every document will need to be imported
+		for (const document of queries) {
+			doc.instance.content.body.unshift(artifactImport(config, document.artifact))
+		}
 	}
-	processInstance(config, doc.instance, queries)
+	processInstance(config, isRoute, doc.instance, queries)
 }
 
 function processModule(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
@@ -164,7 +169,12 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	}
 }
 
-function processInstance(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
+function processInstance(
+	config: Config,
+	isRoute: boolean,
+	script: Script,
+	queries: EmbeddedGraphqlDocument[]
+) {
 	// make sure we have the imports we need
 	ensureImports(config, script.content.body, ['routeQuery', 'componentQuery', 'query'])
 
@@ -195,12 +205,17 @@ function processInstance(config: Config, script: Script, queries: EmbeddedGraphq
 			0,
 			// @ts-ignore: babel's ast does something weird with comments, we won't use em
 			AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [AST.variableDeclarator(AST.identifier(preloadKey))])
+				AST.variableDeclaration('let', [
+					AST.variableDeclarator(AST.identifier(preloadKey), AST.identifier('undefined')),
+				])
 			),
 			// @ts-ignore: babel's ast does something weird with comments, we won't use em
 			AST.exportNamedDeclaration(
 				AST.variableDeclaration('let', [
-					AST.variableDeclarator(AST.identifier(variableIdentifier)),
+					AST.variableDeclarator(
+						AST.identifier(variableIdentifier),
+						AST.identifier('undefined')
+					),
 				])
 			),
 			AST.variableDeclaration('let', [
@@ -242,23 +257,25 @@ function processInstance(config: Config, script: Script, queries: EmbeddedGraphq
 
 		// reactive statements to synchronize state with query updates need to be at the bottom (where everything
 		// will have a definition)
-		script.content.body.push(
-			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			AST.labeledStatement(
-				AST.identifier('$'),
-				AST.blockStatement([
-					AST.expressionStatement(
-						AST.callExpression(
-							AST.memberExpression(
-								queryHandlerIdentifier(operation),
-								AST.identifier('writeData')
-							),
-							[AST.identifier(preloadKey), AST.identifier(variableIdentifier)]
-						)
-					),
-				])
+		if (isRoute) {
+			script.content.body.push(
+				// @ts-ignore: babel's ast does something weird with comments, we won't use em
+				AST.labeledStatement(
+					AST.identifier('$'),
+					AST.blockStatement([
+						AST.expressionStatement(
+							AST.callExpression(
+								AST.memberExpression(
+									queryHandlerIdentifier(operation),
+									AST.identifier('writeData')
+								),
+								[AST.identifier(preloadKey), AST.identifier(variableIdentifier)]
+							)
+						),
+					])
+				)
 			)
-		)
+		}
 	}
 }
 

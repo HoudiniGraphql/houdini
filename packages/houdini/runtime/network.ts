@@ -4,15 +4,15 @@ import { get, Readable } from 'svelte/store'
 import { MutationArtifact, QueryArtifact } from './types'
 
 export class Environment {
-	private fetch: RequestHandler
+	private fetch: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
 
-	constructor(networkFn: RequestHandler, subscriptionHandler?: SubscriptionHandler | null) {
+	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
 		this.fetch = networkFn
 		this.socket = subscriptionHandler
 	}
 
-	sendRequest(ctx: FetchContext, params: FetchParams, session?: FetchSession) {
+	sendRequest<_Data>(ctx: FetchContext, params: FetchParams, session?: FetchSession) {
 		return this.fetch.call(ctx, params, session)
 	}
 }
@@ -70,30 +70,26 @@ type GraphQLError = {
 	message: string
 }
 
-export type RequestPayload = { data: any; errors?: Error[] }
+export type RequestPayload<_Data> = {
+	data: _Data
+	errors: {
+		message: string
+	}[]
+}
 
-type RequestResult =
-	| RequestPayload
-	| {
-			data: {}
-			errors: {
-				message: string
-			}[]
-	  }
-
-export type RequestHandler = (
+export type RequestHandler<_Data> = (
 	this: FetchContext,
 	params: FetchParams,
 	session?: FetchSession
-) => Promise<RequestPayload>
+) => Promise<RequestPayload<_Data>>
 
 // This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
-export async function executeQuery(
+export async function executeQuery<_Data>(
 	artifact: QueryArtifact | MutationArtifact,
 	variables: { [key: string]: any },
 	sessionStore: Readable<any>
-): Promise<RequestResult> {
+): Promise<RequestPayload<_Data>> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?
 	const session = get(sessionStore)
@@ -114,7 +110,7 @@ export async function executeQuery(
 	// pull the query text out of the compiled artifact
 	const { raw: text } = artifact
 
-	const res = await fetchQuery(
+	const res = await fetchQuery<_Data>(
 		fetchCtx,
 		{
 			text,
@@ -135,7 +131,7 @@ export async function executeQuery(
 }
 
 // fetchQuery is used by the preprocess-generated runtime to send an operation to the server
-export async function fetchQuery(
+export async function fetchQuery<_Data>(
 	ctx: FetchContext,
 	{
 		text,
@@ -153,7 +149,7 @@ export async function fetchQuery(
 		return { data: {}, errors: [{ message: 'could not find houdini environment' }] }
 	}
 
-	return await environment.sendRequest(ctx, { text, variables }, session)
+	return await environment.sendRequest<_Data>(ctx, { text, variables }, session)
 }
 
 // convertKitPayload is responsible for taking the result of kit's load

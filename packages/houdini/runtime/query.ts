@@ -5,7 +5,7 @@ import { onDestroy, onMount } from 'svelte'
 import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
 import cache from './cache'
 import { setVariables } from './context'
-import { executeQuery } from './network'
+import { executeQuery, RequestPayload } from './network'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
@@ -50,11 +50,11 @@ export default function query<_Query extends Operation<any, any>>(
 		if (initialValue) {
 			// update the cache with the data that we just ran into
 			cache.write(artifact.selection, initialValue, variables)
-		}
 
-		// stay up to date
-		if (subscriptionSpec) {
-			cache.subscribe(subscriptionSpec, variables)
+			// stay up to date
+			if (subscriptionSpec) {
+				cache.subscribe(subscriptionSpec, variables)
+			}
 		}
 	})
 
@@ -73,13 +73,18 @@ export default function query<_Query extends Operation<any, any>>(
 
 	const sessionStore = getSession()
 
-	function writeData(newData: _Query['result'], newVariables: _Query['input']) {
+	function writeData(newData: RequestPayload<_Query['result']>, newVariables: _Query['input']) {
 		variables = newVariables || {}
 
 		// make sure we list to the new data
 		if (subscriptionSpec) {
 			cache.subscribe(subscriptionSpec, variables)
 		}
+
+		// update the local store
+		store.set(newData.data)
+
+		console.log(variables)
 
 		// write the data we received
 		cache.write(artifact.selection, newData.data, variables)
@@ -120,7 +125,7 @@ export default function query<_Query extends Operation<any, any>>(
 // use as a proxy to the query for refetches, writing to the cache, etc
 type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
-	writeData: (data: _Data, variables: _Input) => void
+	writeData: (data: RequestPayload<_Data>, variables: _Input) => void
 	refetch: (newVariables?: _Input) => Promise<void>
 	loading: Readable<boolean>
 	error: Readable<Error | null>
@@ -162,15 +167,16 @@ export const componentQuery = <_Data, _Input>({
 		const variables = (variableFunction?.({ props: getProps() }) || {}) as _Input
 
 		// fire the query
-		executeQuery(artifact, variables, getSession())
+		executeQuery<_Data>(artifact, variables, getSession())
 			.then((result) => {
 				// update the store with the new result
-				writeData(result.data, variables)
-				// we're not loading anything any more
-				loading.set(false)
+				writeData(result, variables)
 			})
 			.catch((err) => {
 				error.set(err.message ? err : new Error(err))
+			})
+			.finally(() => {
+				loading.set(false)
 			})
 	}
 
