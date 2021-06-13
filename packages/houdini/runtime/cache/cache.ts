@@ -10,9 +10,6 @@ export class Cache {
 	// associate connection names with the handler that wraps the list
 	private _connections: Map<string, Map<string, ConnectionHandler>> = new Map()
 
-	// we need to keep track of the variables used the last time a query was triggered
-	private _lastKnownVariables: Map<SubscriptionSpec['set'], {}> = new Map()
-
 	// save the response in the local store and notify any subscribers
 	write(
 		selection: SubscriptionSelection,
@@ -62,11 +59,6 @@ export class Cache {
 		// if there's no root, there's nothing to unsubscribe from
 		if (!rootRecord) {
 			return
-		}
-
-		// remove any references to the spec in variable set
-		if (this._lastKnownVariables.has(spec.set)) {
-			this._lastKnownVariables.delete(spec.set)
 		}
 
 		// walk down the selection and remove any subscribers from the list
@@ -185,16 +177,6 @@ export class Cache {
 	) {
 		for (const { type, keyRaw, fields, connection, filters } of Object.values(selection)) {
 			const key = this.evaluateKey(keyRaw, variables)
-
-			// we might be replace a subscriber on rootRecord because we have new variables
-			// look at every version of the key and remove
-			const oldVariables = this._lastKnownVariables.get(spec.set)
-			if (
-				keyRaw.includes('$') &&
-				JSON.stringify(variables) !== JSON.stringify(oldVariables)
-			) {
-				rootRecord.removeAllSubscriptionVersions(keyRaw, spec)
-			}
 
 			// add the subscriber to the field
 			rootRecord.addSubscriber(keyRaw, key, spec)
@@ -431,16 +413,10 @@ export class Cache {
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				for (const subscriber of subscribers) {
-					const variablesChanged =
-						JSON.stringify(this._lastKnownVariables.get(subscriber.set) || {}) !==
-						JSON.stringify(variables)
-
 					// if either are true, add the subscriber to the list
-					if (contentChanged || variablesChanged) {
+					if (contentChanged) {
 						specs.push(subscriber)
 					}
-
-					this._lastKnownVariables.set(subscriber.set, variables)
 				}
 
 				// remove any subscribers we don't can't about

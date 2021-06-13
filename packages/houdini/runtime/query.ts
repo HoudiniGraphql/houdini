@@ -1,6 +1,7 @@
 // externals
 import { Readable, writable, readable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
+import deepEqual from 'deep-equal'
 // locals
 import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
 import cache from './cache'
@@ -74,17 +75,18 @@ export default function query<_Query extends Operation<any, any>>(
 	const sessionStore = getSession()
 
 	function writeData(newData: RequestPayload<_Query['result']>, newVariables: _Query['input']) {
-		variables = newVariables || {}
-
-		// make sure we list to the new data
-		if (subscriptionSpec) {
-			cache.subscribe(subscriptionSpec, variables)
+		// if the variables changed we need to unsubscribe from the old fields and
+		// listen to the new ones
+		if (subscriptionSpec && !deepEqual(variables, newVariables)) {
+			cache.unsubscribe(subscriptionSpec, variables)
+			cache.subscribe(subscriptionSpec, newVariables)
 		}
+
+		// save the new variables
+		variables = newVariables || {}
 
 		// update the local store
 		store.set(newData.data)
-
-		console.log(variables)
 
 		// write the data we received
 		cache.write(artifact.selection, newData.data, variables)
