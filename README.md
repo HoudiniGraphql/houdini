@@ -37,6 +37,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Configuring Your Application](#configuring-your-application)
     1. [Sapper](#sapper)
     1. [SvelteKit](#sveltekit)
+    1. [Svelte](#svelte)
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
@@ -165,6 +166,13 @@ If you have updated your schema on the server, you can pull down the most recent
 ```sh
 npx houdini generate --pull-schema
 ```
+
+### Svelte
+
+If you are working on an application that isn't using SvelteKit or Sapper, you have to configure the
+compiler and preprocessor to generate the correct logic by setting the `framework` field in your 
+config file to `"svelte"`. You should also use this setting if you are building a SvelteKit application
+in SPA mode.
 
 ## 🚀&nbsp;&nbsp;Fetching Data
 
