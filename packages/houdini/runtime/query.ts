@@ -161,13 +161,14 @@ export const componentQuery = <_Data, _Input>({
 	// a store to track the error state
 	const error = writable<Error | null>(null)
 
+	// compute the variables for the request
+	let variables: _Input
+	$: variables = (variableFunction?.({ props: getProps() }) || {}) as _Input
+
 	// a component should fire the query and then write the result to the store
 	$: {
 		// set the loading state
 		loading.set(true)
-
-		// compute the variables for the request
-		const variables = (variableFunction?.({ props: getProps() }) || {}) as _Input
 
 		// fire the query
 		executeQuery<_Data>(artifact, variables, getSession())
