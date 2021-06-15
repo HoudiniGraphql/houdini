@@ -40,6 +40,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
+    1. [Loading State](#loading-state)
     1. [Refetching Data](#refetching-data)
     1. [What about load?](#what-about-load)
 1. [Fragments](#fragments)
@@ -189,11 +190,6 @@ Grabbing data from your API is done with the `query` function:
 {/each}
 ```
 
-Please note that since `query` desugars into a `load` function (see [below](#what-about-load)) you 
-can only use it inside of a page or layout. This will be addressed soon. Until then, you will need
-to only use `query` inside of components defined under `/src/routes`.
-
-
 ### Query variables and page data
 
 At the moment, query variables are declared as a function in the module context of your component.
@@ -239,6 +235,52 @@ modified example from the [demo](./example):
 {#each $data.items as item}
     <div>{item.text}</div>
 {/each}
+```
+
+### Loading State
+
+The methods used for tracking the loading state of your queries changes depending
+on the context of your component. For queries that live in routes (ie, in 
+`/src/routes/...`), the actual query happens in a `load` function as described
+in [What about load?](#what-about-load). Because of this, the best way to track 
+if your query is loading is to use the 
+[navigating store](https://kit.svelte.dev/docs#modules-$app-stores) exported from `$app/stores`:
+
+```svelte
+// src/routes/index.svelte
+
+<script>
+    import { query } from '$houdini'
+    import { navigating } from '$app/stores'
+
+    const { data } = query(...)
+</script>
+
+{#if $navigating} 
+    loading...
+{:else}
+    data is loaded!
+{/if}
+```
+
+However, since queries inside of non-route components (ie, ones that are not defined in `/src/routes/...`)
+do not get hoisted to a `load` function, the recommended practice to is use the store returned from
+the result of query:
+
+```svelte
+// src/components/MyComponent.svelte
+
+<script>
+    import { query } from '$houdini'
+
+    const { data, loading } = query(...)
+</script>
+
+{#if $loading} 
+    loading...
+{:else}
+    data is loaded!
+{/if}
 ```
 
 ### Refetching Data
