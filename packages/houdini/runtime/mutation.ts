@@ -30,11 +30,15 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 	// return an async function that sends the mutation go the server
 	return async (variables: _Mutation['input']) => {
 		try {
-			const result = await executeQuery(artifact, variables, sessionStore)
+			const result = await executeQuery<_Mutation['result']>(
+				artifact,
+				variables,
+				sessionStore
+			)
 
 			cache.write(artifact.selection, result.data, queryVariables())
 
-			return result.data;
+			return result.data
 		} catch (error) {
 			throw error
 		}

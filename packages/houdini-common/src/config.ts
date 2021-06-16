@@ -10,22 +10,25 @@ export type ConfigFile = {
 	schemaPath?: string
 	schema?: string
 	quiet?: boolean
-	verifyHash?: boolean
 	apiUrl?: string
+	// an old config file could specify mode instead of framework and module
 	mode?: 'kit' | 'sapper'
+	framework?: 'kit' | 'sapper' | 'svelte'
+	module?: 'esm' | 'commonjs'
 }
 
 // a place to hold conventions and magic strings
 export class Config {
 	filepath: string
 	rootDir: string
+	projectRoot: string
 	schema: graphql.GraphQLSchema
 	apiUrl?: string
 	schemaPath?: string
 	sourceGlob: string
 	quiet: boolean
-	verifyHash: boolean
-	mode: string = 'sapper'
+	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
+	module: 'commonjs' | 'esm' = 'commonjs'
 
 	constructor({
 		schema,
@@ -33,9 +36,10 @@ export class Config {
 		sourceGlob,
 		apiUrl,
 		quiet = false,
-		verifyHash,
 		filepath,
-		mode = 'sapper',
+		framework = 'sapper',
+		module = 'commonjs',
+		mode,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -53,23 +57,47 @@ export class Config {
 			)
 		}
 
+		// if we were given a mode instead of framework/module
+		if (mode) {
+			if (!quiet) {
+				// warn the user
+				console.warn('Encountered deprecated config value: mode')
+				console.warn(
+					'This parameter will be removed in a future version. Please update your config with the following values:'
+				)
+			}
+			if (mode === 'sapper') {
+				if (!quiet) {
+					console.warn(JSON.stringify({ framework: 'sapper', module: 'commonjs' }))
+				}
+				framework = 'sapper'
+				module = 'commonjs'
+			} else {
+				if (!quiet) {
+					console.warn(JSON.stringify({ framework: 'kit', module: 'esm' }))
+				}
+				framework = 'kit'
+				module = 'esm'
+			}
+		}
+
 		// save the values we were given
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
 		this.filepath = filepath
 		this.sourceGlob = sourceGlob
 		this.quiet = quiet
-		this.verifyHash = typeof verifyHash === 'undefined' ? true : verifyHash
-		this.mode = mode
+		this.framework = framework
+		this.module = module
+		this.projectRoot = path.dirname(filepath)
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
 		// with the application stores directly
-		const rootDir = path.dirname(filepath)
 		this.rootDir =
-			mode === 'sapper'
-				? path.join(rootDir, 'src', 'node_modules', '$houdini')
-				: path.join(rootDir, '$houdini')
+			framework === 'sapper'
+				? path.join(this.projectRoot, 'src', 'node_modules', '$houdini')
+				: path.join(this.projectRoot, '$houdini')
 	}
 
 	/*
@@ -288,8 +316,39 @@ export class Config {
 		throw new Error('Could not find connection name from fragment: ' + fragmentName)
 	}
 }
+// a place to store the current configuration
+let _config: Config
 
-export function testConfig(config: {} = {}) {
+// get the project's current configuration
+export async function getConfig(): Promise<Config> {
+	if (_config) {
+		return _config
+	}
+
+	// load the config file
+	const configPath = path.join(process.cwd(), 'houdini.config.js')
+
+	// on windows, we need to prepend the right protocol before we
+	// can import from an absolute path
+	let importPath = configPath
+	if (os.platform() === 'win32') {
+		importPath = 'file:///' + importPath
+	}
+
+	const imported = await import(importPath)
+
+	// if this is wrapped in a default, use it
+	const config = imported.default || imported
+
+	// add the filepath and save the result
+	_config = new Config({
+		...config,
+		filepath: configPath,
+	})
+	return _config
+}
+
+export function testConfig(config: Partial<ConfigFile> = {}) {
 	return new Config({
 		filepath: path.join(process.cwd(), 'config.cjs'),
 		sourceGlob: '123',
@@ -357,39 +416,12 @@ export function testConfig(config: {} = {}) {
 				cat: Cat
 			}
 		`,
+		framework: 'sapper',
 		quiet: true,
 		...config,
 	})
 }
 
-// a place to store the current configuration
-let _config: Config
-
-// get the project's current configuration
-export async function getConfig(): Promise<Config> {
-	if (_config) {
-		return _config
-	}
-
-	// load the config file
-	const configPath = path.join(process.cwd(), 'houdini.config.js')
-
-	// on windows, we need to prepend the right protocol before we
-	// can import from an absolute path
-	let importPath = configPath
-	if (os.platform() === 'win32') {
-		importPath = 'file:///' + importPath
-	}
-
-	const imported = await import(importPath)
-
-	// if this is wrapped in a default, use it
-	const config = imported.default || imported
-
-	// add the filepath and save the result
-	_config = new Config({
-		...config,
-		filepath: configPath,
-	})
-	return _config
+type Partial<T> = {
+	[P in keyof T]?: T[P]
 }

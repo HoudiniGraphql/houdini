@@ -1,6 +1,7 @@
 import path from 'path'
 import inquirer from 'inquirer'
 import fs from 'fs/promises'
+import { Config } from 'houdini-common'
 import { writeSchema } from './utils/writeSchema'
 
 // the init command is responsible for scaffolding a few files
@@ -8,7 +9,7 @@ import { writeSchema } from './utils/writeSchema'
 export default async (_path: string | undefined) => {
 	// we need to collect some information from the user before we
 	// can continue
-	let { url, framework, schemaPath } = await inquirer.prompt([
+	let answers = await inquirer.prompt([
 		{
 			name: 'url',
 			type: 'input',
@@ -18,7 +19,21 @@ export default async (_path: string | undefined) => {
 			name: 'framework',
 			type: 'list',
 			message: 'Are you using Sapper or SvelteKit?',
-			choices: ['Sapper', 'SvelteKit'],
+			choices: [
+				{ value: 'svelte', name: 'No' },
+				{ value: 'sapper', name: 'Sapper' },
+				{ value: 'kit', name: 'SvelteKit' },
+			],
+		},
+		{
+			name: 'module',
+			type: 'list',
+			message: 'What kind of modules do you want to be generated?',
+			when: ({ framework }) => framework === 'svelte',
+			choices: [
+				{ value: 'commonjs', name: 'CommonJS' },
+				{ value: 'esm', name: 'ES Modules' },
+			],
 		},
 		{
 			name: 'schemaPath',
@@ -38,12 +53,20 @@ export default async (_path: string | undefined) => {
 				return true
 			},
 			message:
-				'Enter the path where the schema should be written to. Valid file extensions are (.json/.gql/.graphql)',
+				'Where should the schema be written to? Valid file extensions are .json, .gql, or .graphql',
 		},
 	])
 
-	// convert the selected framework the mode
-	const mode = framework === 'Sapper' ? 'sapper' : 'kit'
+	// if the user didn't choose a module type, figure it out from the framework choice
+	let module: Config['module'] = answers.module
+	switch (answers.framework) {
+		case 'kit':
+			module = 'esm'
+		case 'sapper':
+			module = 'commonjs'
+	}
+	// dry up the framework choice
+	const { framework } = answers
 
 	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
@@ -55,12 +78,24 @@ export default async (_path: string | undefined) => {
 	// where we put the environment
 	const environmentPath = path.join(sourceDir, 'environment.js')
 
-	// Get the schema from the url and write it to file
-	await writeSchema(url, path.join(targetPath, schemaPath))
-	// write the config file
-	await fs.writeFile(configPath, configFile(schemaPath, mode, url))
-	// write the environment file
-	await fs.writeFile(environmentPath, networkFile(url))
+	await Promise.all([
+		// Get the schema from the url and write it to file
+		writeSchema(answers.url, path.join(targetPath, answers.schemaPath)),
+
+		// write the config file
+		fs.writeFile(
+			configPath,
+			configFile({
+				schemaPath: answers.schemaPath,
+				framework,
+				module,
+				url: answers.url,
+			})
+		),
+
+		// write the environment file
+		fs.writeFile(environmentPath, networkFile(answers.url)),
+	])
 
 	console.log('Welcome to houdini!')
 }
@@ -85,25 +120,35 @@ export default new Environment(async function ({ text, variables = {} }) {
 })
 `
 
-const configFile = (schemaPath: string, mode: string, url: string) =>
-	mode === 'kit'
+const configFile = ({
+	schemaPath,
+	framework,
+	module,
+	url,
+}: {
+	schemaPath: string
+	framework: string
+	module: string
+	url: string
+}) => {
+	// the actual config contents
+	const configObj = `{
+		schemaPath: path.resolve('${schemaPath}'),
+		sourceGlob: 'src/**/*.svelte',
+		module: '${module}',
+		framework: '${framework}',
+		apiUrl: '${url}'
+	}`
+
+	return module === 'esm'
 		? // SvelteKit default config
 		  `import path from 'path'
 
-export default {
-	schemaPath: path.resolve('${schemaPath}'),
-	sourceGlob: 'src/**/*.svelte',
-	mode: 'kit',
-	apiUrl: '${url}',
-}
+export default ${configObj}
 `
 		: // sapper default config
 		  `const path = require('path')
 
-module.exports = {
-	schemaPath: path.resolve('${schemaPath}'),
-	sourceGlob: 'src/{routes,components}/*.svelte',
-	mode: 'sapper',
-	apiUrl: '${url}',
-}
+module.exports = ${configObj}
 `
+}

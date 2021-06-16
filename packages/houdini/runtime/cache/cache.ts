@@ -10,9 +10,6 @@ export class Cache {
 	// associate connection names with the handler that wraps the list
 	private _connections: Map<string, Map<string, ConnectionHandler>> = new Map()
 
-	// we need to keep track of the variables used the last time a query was triggered
-	private lastKnownVariables: Map<SubscriptionSpec['set'], {}> = new Map()
-
 	// save the response in the local store and notify any subscribers
 	write(
 		selection: SubscriptionSelection,
@@ -62,11 +59,6 @@ export class Cache {
 		// if there's no root, there's nothing to unsubscribe from
 		if (!rootRecord) {
 			return
-		}
-
-		// remove any references to the spec in variable set
-		if (this.lastKnownVariables.has(spec.set)) {
-			this.lastKnownVariables.delete(spec.set)
 		}
 
 		// walk down the selection and remove any subscribers from the list
@@ -185,16 +177,6 @@ export class Cache {
 	) {
 		for (const { type, keyRaw, fields, connection, filters } of Object.values(selection)) {
 			const key = this.evaluateKey(keyRaw, variables)
-
-			// we might be replace a subscriber on rootRecord because we have new variables
-			// look at every version of the key and remove
-			const oldVariables = this.lastKnownVariables.get(spec.set)
-			if (
-				keyRaw.includes('$') &&
-				JSON.stringify(variables) !== JSON.stringify(oldVariables)
-			) {
-				rootRecord.removeAllSubscriptionVersions(keyRaw, spec)
-			}
 
 			// add the subscriber to the field
 			rootRecord.addSubscriber(keyRaw, key, spec)
@@ -328,6 +310,7 @@ export class Cache {
 			// look up the field in our schema
 			const { type: linkedType, keyRaw, fields, operations, connection } = selection[field]
 			const key = this.evaluateKey(keyRaw, variables)
+
 			// make sure we found the type info
 			if (!linkedType) {
 				throw new Error('could not find the field information for ' + field)
@@ -431,19 +414,13 @@ export class Cache {
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				for (const subscriber of subscribers) {
-					const variablesChanged =
-						JSON.stringify(this.lastKnownVariables.get(subscriber.set) || {}) !==
-						JSON.stringify(variables)
-
 					// if either are true, add the subscriber to the list
-					if (contentChanged || variablesChanged) {
+					if (contentChanged) {
 						specs.push(subscriber)
 					}
-
-					this.lastKnownVariables.set(subscriber.set, variables)
 				}
 
-				// remove any subscribers we don't can't about
+				// remove any subscribers we don't care about
 				for (const lostID of oldIDs.filter((id) => !linkedIDs.includes(id))) {
 					for (const sub of subscribers) {
 						if (!oldSubscribers[lostID]) {
@@ -554,7 +531,7 @@ export class Cache {
 			}
 
 			// trigger the update
-			spec.set(this.getData(spec, rootRecord, spec.selection, variables))
+			spec.set(this.getData(spec, rootRecord, spec.selection, spec.variables?.()))
 		}
 	}
 

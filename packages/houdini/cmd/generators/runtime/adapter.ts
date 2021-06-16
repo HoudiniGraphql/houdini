@@ -8,7 +8,7 @@ export default async function generateAdapter(config: Config) {
 	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.mjs')
 
 	// figure out which adapter we need to lay down
-	const adapter = config.mode === 'sapper' ? sapperAdapter : sveltekitAdapter
+	const adapter = config.framework === 'sapper' ? sapperAdapter : sveltekitAdapter
 
 	// write the index file that exports the runtime
 	await fs.writeFile(adapterLocation, adapter, 'utf-8')

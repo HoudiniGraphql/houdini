@@ -1,13 +1,11 @@
-// external imports
-import { testConfig } from 'houdini-common'
-import * as svelte from 'svelte/compiler'
 // local imports
-import queryProcessor from './query'
 import '../../../../jest.setup'
+import { preprocessorTest } from '../utils'
 
 describe('query preprocessor', function () {
-	test('preload initial data', async function () {
-		const doc = await preprocessorTest(`
+	test('route - preload initial data', async function () {
+		const doc = await preprocessorTest(
+			`
 			<script>
 				const { data } = query(graphql\`
 					query TestQuery {
@@ -17,10 +15,11 @@ describe('query preprocessor', function () {
 					}
 				\`)
 			</script>
-		`)
+		`
+		)
 
 		// make sure we added the right stuff
-		expect(doc.module.content).toMatchInlineSnapshot(`
+		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
 		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -34,9 +33,9 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
-		              "text": _TestQueryArtifact.raw,
-		              "variables": _TestQuery_Input
-		          }, context.session);
+		        "text": _TestQueryArtifact.raw,
+		        "variables": _TestQuery_Input
+		    }, context.session);
 
 		    if (!_TestQuery.data) {
 		        _houdini_context.graphqlErrors(_TestQuery);
@@ -55,10 +54,10 @@ describe('query preprocessor', function () {
 		    return convertKitPayload(this, load, page, session);
 		}
 	`)
-		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import { getQuery, query } from "$houdini";
-		export let _TestQuery;
-		export let _TestQuery_Input;
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
 		    "initialValue": _TestQuery,
@@ -69,7 +68,7 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = getQuery(_TestQuery_handler);
+		} = routeQuery(_TestQuery_handler);
 
 		$:
 		{
@@ -79,7 +78,8 @@ describe('query preprocessor', function () {
 	})
 
 	test('preload initial data with variables', async function () {
-		const doc = await preprocessorTest(`
+		const doc = await preprocessorTest(
+			`
 			<script context="module">
 				export function TestQueryVariables(page) {
 					return {
@@ -97,10 +97,11 @@ describe('query preprocessor', function () {
 					}
 				\`)
 			</script>
-		`)
+		`
+		)
 
 		// make sure we added the right stuff
-		expect(doc.module.content).toMatchInlineSnapshot(`
+		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
 		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -120,9 +121,9 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
-		              "text": _TestQueryArtifact.raw,
-		              "variables": _TestQuery_Input
-		          }, context.session);
+		        "text": _TestQueryArtifact.raw,
+		        "variables": _TestQuery_Input
+		    }, context.session);
 
 		    if (!_TestQuery.data) {
 		        _houdini_context.graphqlErrors(_TestQuery);
@@ -141,10 +142,10 @@ describe('query preprocessor', function () {
 		    return convertKitPayload(this, load, page, session);
 		}
 	`)
-		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import { getQuery, query } from "$houdini";
-		export let _TestQuery;
-		export let _TestQuery_Input;
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
 		    "initialValue": _TestQuery,
@@ -155,7 +156,7 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = getQuery(_TestQuery_handler);
+		} = routeQuery(_TestQuery_handler);
 
 		$:
 		{
@@ -179,11 +180,12 @@ describe('query preprocessor', function () {
 		`,
 			{
 				mode: 'kit',
+				route: true,
 			}
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module.content).toMatchInlineSnapshot(`
+		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
@@ -196,9 +198,9 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
-		              "text": _TestQueryArtifact.raw,
-		              "variables": _TestQuery_Input
-		          }, context.session);
+		        "text": _TestQueryArtifact.raw,
+		        "variables": _TestQuery_Input
+		    }, context.session);
 
 		    if (!_TestQuery.data) {
 		        _houdini_context.graphqlErrors(_TestQuery);
@@ -213,10 +215,10 @@ describe('query preprocessor', function () {
 		    };
 		}
 	`)
-		expect(doc.instance.content).toMatchInlineSnapshot(`
-		import { getQuery, query } from "$houdini";
-		export let _TestQuery;
-		export let _TestQuery_Input;
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
 		    "initialValue": _TestQuery,
@@ -227,7 +229,7 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = getQuery(_TestQuery_handler);
+		} = routeQuery(_TestQuery_handler);
 
 		$:
 		{
@@ -236,44 +238,142 @@ describe('query preprocessor', function () {
 	`)
 	})
 
+	test('non-route page - no variables', async function () {
+		const doc = await preprocessorTest(
+			`
+			<script>
+				const { data } = query(graphql\`
+					query TestQuery {
+						viewer {
+							id
+						}
+					}
+				\`)
+			</script>
+		`,
+			{
+				mode: 'kit',
+				route: false,
+			}
+		)
+
+		// make sure we added the right stuff
+		expect(doc.module?.content).toMatchInlineSnapshot(``)
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
+
+		let _TestQuery_handler = query({
+		    "initialValue": _TestQuery,
+		    "variables": _TestQuery_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
+		});
+
+		const {
+		    data
+		} = componentQuery({
+		    queryHandler: _TestQuery_handler,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: null,
+		    getProps: () => $$props
+		});
+	`)
+	})
+
+	test('non-route page - with variables', async function () {
+		const doc = await preprocessorTest(
+			`
+			<script>
+				const { data } = query(graphql\`
+					query TestQuery($test: String!) {
+						users(stringValue: $test) {
+							id
+						}
+					}
+				\`)
+			</script>
+		`,
+			{
+				mode: 'kit',
+				route: false,
+			}
+		)
+
+		// make sure we added the right stuff
+		expect(doc.module?.content).toMatchInlineSnapshot(``)
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
+
+		let _TestQuery_handler = query({
+		    "initialValue": _TestQuery,
+		    "variables": _TestQuery_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
+		});
+
+		const {
+		    data
+		} = componentQuery({
+		    queryHandler: _TestQuery_handler,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: TestQueryVariables,
+		    getProps: () => $$props
+		});
+	`)
+	})
+
+	test('bare svelte component in route filepath', async function () {
+		const doc = await preprocessorTest(
+			`
+			<script>
+				const { data } = query(graphql\`
+					query TestQuery {
+						viewer {
+							id
+						}
+					}
+				\`)
+			</script>
+		`,
+			{
+				framework: 'svelte',
+				route: true,
+			}
+		)
+
+		// make sure we added the right stuff
+		expect(doc.module?.content).toMatchInlineSnapshot(``)
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
+
+		let _TestQuery_handler = query({
+		    "initialValue": _TestQuery,
+		    "variables": _TestQuery_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
+		});
+
+		const {
+		    data
+		} = componentQuery({
+		    queryHandler: _TestQuery_handler,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: null,
+		    getProps: () => $$props
+		});
+	`)
+	})
+
 	test.todo('fails if variable function is not present')
 
 	test.todo('adds arguments to an empty preload')
-
-	test.todo('adds second argument to preload with only one argument')
-
-	test.todo('fails if arguments in preload are not page and params')
 })
-
-async function preprocessorTest(content: string, cfg?: {}) {
-	const schema = `
-		type User {
-			id: ID!
-		}
-
-		type Query {
-			viewer: User!
-		}
-	`
-
-	// parse the document
-	const parsed = svelte.parse(content)
-
-	// build up the document we'll pass to the processor
-	const config = testConfig({ schema, verifyHash: false, ...cfg })
-
-	const doc = {
-		instance: parsed.instance,
-		module: parsed.module,
-		config,
-		dependencies: [],
-		filename: 'base.svelte',
-	}
-
-	// @ts-ignore
-	// run the source through the processor
-	await queryProcessor(config, doc)
-
-	// invoke the test
-	return doc
-}

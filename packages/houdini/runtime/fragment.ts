@@ -35,6 +35,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 			selection: artifact.selection,
 			set,
 			parentID,
+			variables: queryVariables,
 		}
 
 		// when the component mounts
@@ -56,6 +57,7 @@ export default function fragment<_Fragment extends Fragment<any>>(
 						parentID,
 						selection: artifact.selection,
 						set,
+						variables: queryVariables,
 					},
 					queryVariables()
 				)

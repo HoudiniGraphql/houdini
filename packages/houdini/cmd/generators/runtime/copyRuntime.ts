@@ -21,7 +21,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		currentDir,
 		relative,
 		'build',
-		config.mode === 'kit' ? 'runtime-esm' : 'runtime-cjs'
+		config.module === 'esm' ? 'runtime-esm' : 'runtime-cjs'
 	)
 
 	// copy the compiled source code to the target directory

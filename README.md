@@ -37,9 +37,11 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Configuring Your Application](#configuring-your-application)
     1. [Sapper](#sapper)
     1. [SvelteKit](#sveltekit)
+    1. [Svelte](#svelte)
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
+    1. [Loading State](#loading-state)
     1. [Refetching Data](#refetching-data)
     1. [What about load?](#what-about-load)
 1. [Fragments](#fragments)
@@ -165,6 +167,13 @@ If you have updated your schema on the server, you can pull down the most recent
 npx houdini generate --pull-schema
 ```
 
+### Svelte
+
+If you are working on an application that isn't using SvelteKit or Sapper, you have to configure the
+compiler and preprocessor to generate the correct logic by setting the `framework` field in your 
+config file to `"svelte"`. You should also use this setting if you are building a SvelteKit application
+in SPA mode.
+
 ## 🚀&nbsp;&nbsp;Fetching Data
 
 Grabbing data from your API is done with the `query` function:
@@ -188,11 +197,6 @@ Grabbing data from your API is done with the `query` function:
     <div>{item.text}</div>
 {/each}
 ```
-
-Please note that since `query` desugars into a `load` function (see [below](#what-about-load)) you 
-can only use it inside of a page or layout. This will be addressed soon. Until then, you will need
-to only use `query` inside of components defined under `/src/routes`.
-
 
 ### Query variables and page data
 
@@ -239,6 +243,52 @@ modified example from the [demo](./example):
 {#each $data.items as item}
     <div>{item.text}</div>
 {/each}
+```
+
+### Loading State
+
+The methods used for tracking the loading state of your queries changes depending
+on the context of your component. For queries that live in routes (ie, in 
+`/src/routes/...`), the actual query happens in a `load` function as described
+in [What about load?](#what-about-load). Because of this, the best way to track 
+if your query is loading is to use the 
+[navigating store](https://kit.svelte.dev/docs#modules-$app-stores) exported from `$app/stores`:
+
+```svelte
+// src/routes/index.svelte
+
+<script>
+    import { query } from '$houdini'
+    import { navigating } from '$app/stores'
+
+    const { data } = query(...)
+</script>
+
+{#if $navigating} 
+    loading...
+{:else}
+    data is loaded!
+{/if}
+```
+
+However, since queries inside of non-route components (ie, ones that are not defined in `/src/routes/...`)
+do not get hoisted to a `load` function, the recommended practice to is use the store returned from
+the result of query:
+
+```svelte
+// src/components/MyComponent.svelte
+
+<script>
+    import { query } from '$houdini'
+
+    const { data, loading } = query(...)
+</script>
+
+{#if $loading} 
+    loading...
+{:else}
+    data is loaded!
+{/if}
 ```
 
 ### Refetching Data

@@ -5,6 +5,7 @@ import { ExportNamedDeclaration, ReturnStatement, Statement } from '@babel/types
 import { Config, Script } from 'houdini-common'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { ObjectExpressionKind } from 'ast-types/gen/kinds'
+import path from 'path'
 // locals
 import { TransformDocument } from '../types'
 import {
@@ -12,6 +13,7 @@ import {
 	EmbeddedGraphqlDocument,
 	artifactImport,
 	artifactIdentifier,
+	ensureImports,
 } from '../utils'
 const AST = recast.types.builders
 
@@ -30,6 +32,11 @@ export default async function queryProcessor(
 	if (!doc.instance) {
 		return
 	}
+
+	// how we preprocess a query depends on wether its a route/layout component
+	const isRoute =
+		config.framework !== 'svelte' &&
+		doc.filename.startsWith(path.join(config.projectRoot, 'src', 'routes'))
 
 	// figure out the root type
 	const rootType = doc.config.schema.getQueryType()
@@ -57,23 +64,47 @@ export default async function queryProcessor(
 		// we want to replace it with an object that the runtime can use
 		onTag(tag: EmbeddedGraphqlDocument) {
 			// pull out what we need
-			const { node, parsedDocument, parent } = tag
+			const { node, parsedDocument, parent, artifact } = tag
 
 			// add the document to the list
 			queries.push(tag)
 
-			// we're going to hoist the actual query so we need to replace the graphql tag with
-			// a reference to the result
+			// dry up some values
+			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+			const handlerIdentifier = queryHandlerIdentifier(operation)
+
+			// the "actual" value of a template tag depends on wether its a route or component
 			node.replaceWith(
-				queryHandlerIdentifier(
-					parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-				)
+				isRoute
+					? // a route query just needs the handler
+					  handlerIdentifier
+					: // a non-route needs a little more information than the handler to fetch
+					  // the query on mount
+					  AST.objectExpression([
+							AST.objectProperty(AST.identifier('queryHandler'), handlerIdentifier),
+							AST.objectProperty(
+								AST.identifier('artifact'),
+								AST.identifier(artifactIdentifier(artifact))
+							),
+							AST.objectProperty(
+								AST.identifier('variableFunction'),
+								operation.variableDefinitions &&
+									operation.variableDefinitions.length > 0
+									? AST.identifier(queryInputFunction(artifact.name))
+									: AST.nullLiteral()
+							),
+							AST.objectProperty(
+								AST.identifier('getProps'),
+								AST.arrowFunctionExpression([], AST.identifier('$$props'))
+							),
+					  ])
 			)
 
-			// as well as change the name of query to something that will just pass the result through
+			// we also need to wrap the template tag in a function that knows how to convert the query
+			// handler into a value that's useful for the operation context (route vs component)
 			const callParent = parent as namedTypes.CallExpression
 			if (callParent.type === 'CallExpression' && callParent.callee.type === 'Identifier') {
-				callParent.callee.name = 'getQuery'
+				callParent.callee.name = isRoute ? 'routeQuery' : 'componentQuery'
 			}
 		},
 	})
@@ -100,8 +131,17 @@ export default async function queryProcessor(
 		throw new Error('type script!!')
 	}
 
-	processModule(config, doc.module, queries)
-	processInstance(config, doc.instance, queries)
+	// if we are procesing a route, use those processors
+	if (isRoute) {
+		processModule(config, doc.module, queries)
+	} else {
+		// we need to make sure to import all of the artifacts in the instance script
+		// every document will need to be imported
+		for (const document of queries) {
+			doc.instance.content.body.unshift(artifactImport(config, document.artifact))
+		}
+	}
+	processInstance(config, isRoute, doc.instance, queries)
 }
 
 function processModule(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
@@ -117,21 +157,26 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 		script.content.body.unshift(artifactImport(config, document.artifact))
 	}
 
-	/// add the imports if they're not there
-	ensureImports(config, script.content.body, 'fetchQuery', 'RequestContext')
+	// add the imports if they're not there
+	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext'])
 
 	// add the kit preload function
 	addKitLoad(config, script.content.body, queries)
 
 	// if we are processing this file for sapper, we need to add the actual preload function
-	if (config.mode === 'sapper') {
+	if (config.framework === 'sapper') {
 		addSapperPreload(config, script.content.body)
 	}
 }
 
-function processInstance(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
+function processInstance(
+	config: Config,
+	isRoute: boolean,
+	script: Script,
+	queries: EmbeddedGraphqlDocument[]
+) {
 	// make sure we have the imports we need
-	ensureImports(config, script.content.body, 'getQuery', 'query')
+	ensureImports(config, script.content.body, ['routeQuery', 'componentQuery', 'query'])
 
 	// add props to the component for every query while we're here
 
@@ -160,12 +205,17 @@ function processInstance(config: Config, script: Script, queries: EmbeddedGraphq
 			0,
 			// @ts-ignore: babel's ast does something weird with comments, we won't use em
 			AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [AST.variableDeclarator(AST.identifier(preloadKey))])
+				AST.variableDeclaration('let', [
+					AST.variableDeclarator(AST.identifier(preloadKey), AST.identifier('undefined')),
+				])
 			),
 			// @ts-ignore: babel's ast does something weird with comments, we won't use em
 			AST.exportNamedDeclaration(
 				AST.variableDeclaration('let', [
-					AST.variableDeclarator(AST.identifier(variableIdentifier)),
+					AST.variableDeclarator(
+						AST.identifier(variableIdentifier),
+						AST.identifier('undefined')
+					),
 				])
 			),
 			AST.variableDeclaration('let', [
@@ -207,23 +257,25 @@ function processInstance(config: Config, script: Script, queries: EmbeddedGraphq
 
 		// reactive statements to synchronize state with query updates need to be at the bottom (where everything
 		// will have a definition)
-		script.content.body.push(
-			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			AST.labeledStatement(
-				AST.identifier('$'),
-				AST.blockStatement([
-					AST.expressionStatement(
-						AST.callExpression(
-							AST.memberExpression(
-								queryHandlerIdentifier(operation),
-								AST.identifier('writeData')
-							),
-							[AST.identifier(preloadKey), AST.identifier(variableIdentifier)]
-						)
-					),
-				])
+		if (isRoute) {
+			script.content.body.push(
+				// @ts-ignore: babel's ast does something weird with comments, we won't use em
+				AST.labeledStatement(
+					AST.identifier('$'),
+					AST.blockStatement([
+						AST.expressionStatement(
+							AST.callExpression(
+								AST.memberExpression(
+									queryHandlerIdentifier(operation),
+									AST.identifier('writeData')
+								),
+								[AST.identifier(preloadKey), AST.identifier(variableIdentifier)]
+							)
+						),
+					])
+				)
 			)
-		)
+		}
 	}
 }
 
@@ -319,7 +371,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 									AST.identifier('computeInput')
 								),
 								[
-									AST.stringLiteral(config.mode),
+									AST.stringLiteral(config.framework),
 									AST.identifier(queryInputFunction(document.artifact.name)),
 								]
 						  )
@@ -407,7 +459,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 
 function addSapperPreload(config: Config, body: Statement[]) {
 	// make sure we have the utility that will do the conversion
-	ensureImports(config, body, 'convertKitPayload')
+	ensureImports(config, body, ['convertKitPayload'])
 
 	// look for a preload definition
 	let preloadDefinition = body.find(
@@ -440,37 +492,6 @@ function addSapperPreload(config: Config, body: Statement[]) {
 
 	// export the function from the module
 	body.push(AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration)
-}
-
-function ensureImports(config: Config, body: Statement[], ...identifiers: string[]) {
-	const toImport = identifiers.filter(
-		(identifier) =>
-			!body.find(
-				(statement) =>
-					statement.type === 'ImportDeclaration' &&
-					statement.source.value === '$houdini' &&
-					statement.specifiers.find(
-						(importSpecifier) =>
-							importSpecifier.type === 'ImportSpecifier' &&
-							importSpecifier.imported.type === 'Identifier' &&
-							importSpecifier.imported.name === identifier &&
-							importSpecifier.local.name === identifier
-					)
-			)
-	)
-
-	// add the import if it doesn't exist, add it
-	if (toImport.length > 0) {
-		body.unshift({
-			type: 'ImportDeclaration',
-			// @ts-ignore
-			source: AST.stringLiteral('$houdini'),
-			// @ts-ignore
-			specifiers: toImport.map((identifier) =>
-				AST.importSpecifier(AST.identifier(identifier), AST.identifier(identifier))
-			),
-		})
-	}
 }
 
 function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
