@@ -1,7 +1,7 @@
 // external imports
 import path from 'path'
-import fs from 'fs/promises'
 import { Config } from 'houdini-common'
+import { writeFile } from '../../utils'
 
 export default async function generateAdapter(config: Config) {
 	// the location of the adapter
@@ -11,7 +11,7 @@ export default async function generateAdapter(config: Config) {
 	const adapter = config.framework === 'sapper' ? sapperAdapter : sveltekitAdapter
 
 	// write the index file that exports the runtime
-	await fs.writeFile(adapterLocation, adapter, 'utf-8')
+	await writeFile(adapterLocation, adapter)
 }
 
 const sapperAdapter = `import { stores, goto as go } from '@sapper/app'

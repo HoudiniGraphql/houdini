@@ -1,11 +1,10 @@
 // externals
 import { Config } from 'houdini-common'
 import * as recast from 'recast'
-import fs from 'fs/promises'
 import path from 'path'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
-import { cjsIndexFilePreamble, exportDefaultFrom } from '../../utils'
+import { cjsIndexFilePreamble, exportDefaultFrom, writeFile } from '../../utils'
 
 const AST = recast.types.builders
 
@@ -24,5 +23,5 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 			  )
 
 	// write the result to the artifact path we're configured to write to
-	await fs.writeFile(path.join(config.artifactDirectory, 'index.js'), body, 'utf-8')
+	await writeFile(path.join(config.artifactDirectory, 'index.js'), body)
 }

@@ -39,7 +39,7 @@ program
 					config.schemaPath ? config.schemaPath : path.resolve(targetPath, 'schema.json')
 				)
 				// Set the newly written schema into the config
-				config.schema = schema;
+				config.schema = schema
 			}
 			await compile(config)
 		} catch (e) {
