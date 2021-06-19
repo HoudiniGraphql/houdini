@@ -1,8 +1,7 @@
 // locals
 import { pipelineTest } from '../testUtils'
 import '../../../../jest.setup'
-import { CollectedGraphQLDocument } from '../types'
-import { HoudiniError } from '../error'
+import { CollectedGraphQLDocument, HoudiniError } from '../types'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure
 // errors are caught __before__ we get to the generation stage. This means that our failure tests
@@ -309,14 +308,14 @@ const table: Row[] = [
 		documents: [
 			`
 				query Foo {
-					user { 
+					user {
 						...UserFragment
 					}
 				}
 			`,
 			`
 				query Foo2 {
-					user { 
+					user {
 						...UserFragment
 					}
 				}
@@ -331,14 +330,14 @@ const table: Row[] = [
 		documents: [
 			`
 				mutation Foo {
-					addFriend { 
+					addFriend {
 						...UserFragment_insert @parentID(value: "2")
 					}
 				}
 			`,
 			`
 				mutation Bar {
-					addFriend { 
+					addFriend {
 						...UserFragment_insert @parentID(value: "2")
 					}
 				}
@@ -362,7 +361,7 @@ const table: Row[] = [
 			`,
 			`
 				mutation Bar {
-					deleteUser(id: "2") { 
+					deleteUser(id: "2") {
 						userID @Cat_delete
 					}
 				}
@@ -377,14 +376,14 @@ const table: Row[] = [
 		documents: [
 			`
 				mutation Foo {
-					deleteUser(id: "2") { 
+					deleteUser(id: "2") {
 						userID @Foo_delete
 					}
 				}
 			`,
 			`
 				mutation Bar {
-					deleteUser(id: "2") { 
+					deleteUser(id: "2") {
 						userID @Foo_delete
 					}
 				}

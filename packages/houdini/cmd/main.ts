@@ -4,9 +4,8 @@
 import { getConfig } from 'houdini-common'
 import { Command } from 'commander'
 import path from 'path'
-import * as graphql from 'graphql'
 // local imports
-import compile from './compile'
+import generate from './generate'
 import init from './init'
 import { writeSchema } from './utils/writeSchema'
 
@@ -41,7 +40,7 @@ program
 				// Set the newly written schema into the config
 				config.schema = schema
 			}
-			await compile(config)
+			await generate(config)
 		} catch (e) {
 			console.error(e)
 		}

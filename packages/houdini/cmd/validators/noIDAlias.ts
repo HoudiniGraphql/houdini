@@ -1,9 +1,8 @@
 // externals
 import { Config } from 'houdini-common'
-import { HoudiniInfoError } from '../error'
 import * as graphql from 'graphql'
 // locals
-import { CollectedGraphQLDocument } from '../types'
+import { CollectedGraphQLDocument, HoudiniInfoError } from '../types'
 
 // noIDAlias verifies that the user did not alias any field as id which would conflict
 //with the runtime's cache invalidation strategy

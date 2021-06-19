@@ -7,7 +7,7 @@ import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
 import '../../../../../jest.setup'
-import { runPipeline } from '../../compile'
+import { runPipeline } from '../../generate'
 import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
 

@@ -1,10 +1,8 @@
 // externals
 import { Config, getTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
-import KnownArgumentNamesRule from 'graphql/validation/rules/KnownArgumentNamesRule'
 // locals
-import { CollectedGraphQLDocument } from '../types'
-import { HoudiniError, HoudiniErrorTodo } from '../error'
+import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.
@@ -177,7 +175,7 @@ export default async function typeCheck(
 	// build up the list of rules we'll apply to every document
 	const rules = [...graphql.specifiedRules]
 		.filter(
-			// remove the rules that conflict with our
+			// remove rules that conflict with houdini
 			(rule) =>
 				![
 					// fragments are defined on their own so unused fragments are a fact of life
