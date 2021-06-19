@@ -5,13 +5,6 @@
 This document should hopefully provide some guidance for working on the project including
 a general introduction to the internal architecture and the relevant files/directories.
 
-## Table of Contents
-
-1. [General Introduction](#general-introduction)
-    1. [Local Development](#local-development)
-1. [The Compiler](#the-compiler)
-1. [The Proprocessor](#the-preprocessor)
-
 ## General Introduction
 
 At a high level, houdini is broken up into two parts: a command-line tool and a preprocessor. The
