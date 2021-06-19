@@ -55,6 +55,8 @@ the connection mutation API takes advantage of fragments that are defined by loo
 the `@connection` directive (which is also part of houdini's internal schema). These extra bits are added to the
 project schema in the [schema transform](./packages/houdini/cmd/transforms/schema.ts) and are
 [removed from the document](./packages/houdini/cmd/generators/artifacts/index.ts#108-110) before generating the artifacts.
+Note that the connection fragments are currently defined in a [separate transform](./packages/houdini/cmd/transforms/connections.ts)
+that looks at every document in a project and adds the required fragments to the pile.
 
 ### Connection Operations
 
