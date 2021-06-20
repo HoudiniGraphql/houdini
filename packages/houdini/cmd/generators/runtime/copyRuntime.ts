@@ -6,6 +6,7 @@ import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
+import { writeFile } from '../../utils'
 
 // @ts-ignore
 const currentDir = global.__dirname || dirname(fileURLToPath(import.meta.url))
@@ -59,7 +60,7 @@ async function recursiveCopy(source: string, target: string, notRoot?: boolean) 
 				else {
 					const targetPath = path.join(parentDir, child)
 
-					await fs.writeFile(targetPath, await fs.readFile(childPath, 'utf-8'))
+					await writeFile(targetPath, await fs.readFile(childPath, 'utf-8'))
 				}
 			})
 		)

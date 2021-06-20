@@ -12,7 +12,7 @@ import {
 import * as recast from 'recast'
 import fs from 'fs/promises'
 // locals
-import { moduleExport } from '../../utils'
+import { moduleExport, writeFile } from '../../utils'
 import selection from './selection'
 import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
@@ -224,7 +224,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				const file = AST.program([moduleExport(config, 'default', artifact)])
 
 				// write the result to the artifact path we're configured to write to
-				await fs.writeFile(config.artifactPath(document), recast.print(file).code)
+				await writeFile(config.artifactPath(document), recast.print(file).code)
 
 				// log the file location to confirm
 				if (!config.quiet) {

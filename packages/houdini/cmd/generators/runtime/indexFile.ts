@@ -1,11 +1,10 @@
 // externals
 import { Config } from 'houdini-common'
 import * as recast from 'recast'
-import fs from 'fs/promises'
 import path from 'path'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
-import { cjsIndexFilePreamble, exportStarFrom } from '../../utils'
+import { cjsIndexFilePreamble, exportStarFrom, writeFile } from '../../utils'
 
 const AST = recast.types.builders
 
@@ -38,5 +37,5 @@ ${exportStarFrom(artifactDir)}
 	}
 
 	// write the index file that exports the runtime
-	await fs.writeFile(path.join(config.rootDir, 'index.js'), body, 'utf-8')
+	await writeFile(path.join(config.rootDir, 'index.js'), body)
 }

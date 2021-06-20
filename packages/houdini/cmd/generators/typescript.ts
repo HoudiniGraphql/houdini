@@ -7,6 +7,7 @@ import { TSTypeKind, StatementKind, TSPropertySignatureKind } from 'ast-types/ge
 import path from 'path'
 // locals
 import { CollectedGraphQLDocument } from '../types'
+import { writeFile } from '../utils'
 
 const AST = recast.types.builders
 
@@ -42,7 +43,7 @@ export default async function typescriptGenerator(
 			}
 
 			// write the file contents
-			await fs.writeFile(typeDefPath, recast.print(program).code, 'utf-8')
+			await writeFile(typeDefPath, recast.print(program).code)
 
 			typePaths.push(typeDefPath)
 		})
@@ -67,7 +68,7 @@ export default async function typescriptGenerator(
 	)
 
 	// write the contents
-	await fs.writeFile(config.typeIndexPath, recast.print(typeIndex).code, 'utf-8')
+	await writeFile(config.typeIndexPath, recast.print(typeIndex).code)
 }
 
 async function generateOperationTypeDefs(
