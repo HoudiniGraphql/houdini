@@ -3,7 +3,7 @@
 🎉🎉 First off, thanks for the interest in contributing to Houdini! 🎉🎉
 
 This document should hopefully provide some guidance for working on the project including
-some tips for local development as well as a general introduction to the internal architecture
+some tips for local development as well as an introduction to the internal architecture
 and the relevant files/directories.
 
 ## Local Development
@@ -34,17 +34,17 @@ command is defined in [packages/houdini/cmd/generate.ts](./packages/houdini/cmd/
 [pipeline](./packages/houdini/cmd/generate.ts#L34) of tasks that operate on the strings found in a project.
 These tasks fall into three categories:
 
--   **Validators** are defined in [this directory](./packages/houdini/cmd/validators) and ensure that
+-   **Validators** are defined in [packages/houdini/cmd/validators](./packages/houdini/cmd/validators) and ensure that
     assumptions made by the rest of the tasks are true. For example, the
     [uniqueNames validator](./packages/houdini/cmd/validators/uniqueNames.ts) makes sure that every document
     has a unique name so that the preprocessor can reliably import the correct artifact.
--   **Transforms** are defined [here](./packages/houdini/cmd/transforms) and
+-   **Transforms** are defined in [packages/houdini/cmd/transforms](./packages/houdini/cmd/transforms) and
     change the actual documents that the user provides. For example, the
     [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) is responsible for adding
     any fragments that a query uses so they can be included in the network request sent to the server.
--   **Generators** are defined [here](./packages/houdini/cmd/generators) and write things to disk. For example, the
-    [typescript generator](./packages/houdini/cmd/generators/typescript.ts) creates type definitions for every
-    document in a project.
+-   **Generators** are defined in [packages/houdini/cmd/generators](./packages/houdini/cmd/generators)
+    and write things to disk. For example, the [typescript generator](./packages/houdini/cmd/generators/typescript.ts)
+    creates type definitions for every document in a project.
 
 ### Internal GraphQL schema
 
@@ -77,3 +77,9 @@ For a more detailed look into what actually happens with each document type, you
 [snapshot tests](./packages/houdini-preprocess/src/transforms) for the corresponding function.
 
 ## The Runtime
+
+The actual runtime used by houdini is defined in [packages/houdini/runtime](./packages/houdini/runtime) and is comprised of the
+functions used by the user (ie, `query`, `fragment`, `mutation`, etc), a network layer that handles the actual requests
+sent to the server, and a caching layer used to orchestrate data across the application.
+
+### The Cache
