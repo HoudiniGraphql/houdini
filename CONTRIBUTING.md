@@ -27,10 +27,12 @@ between what the user types and the houdini runtime.
 ## The `generate` Command
 
 The `generate` command is the core of the command-line tool and is ultimately responsible for generating
-the artifacts that describe every document in a project. It's defined in the
-[generate.ts](./packages/houdini/cmd/generate.ts) file and is implemented as a
-[pipeline](./packages/houdini/cmd/generate.ts#L34-L44) of tasks that operate on the strings found in a project
-tagged with `graphql`. These tasks fall into three categories:
+the artifacts that describe every document in a project (identified as strings tagged with `graphql`).
+These artifacts not only save the runtime from parsing the user's documents but also enable core features
+such as compiling fragments and queries into a single string that can be sent to the API. The `generate`
+command is defined in [packages/houdini/cmd/generate.ts](./packages/houdini/cmd/generate.ts) and is implemented as a
+[pipeline](./packages/houdini/cmd/generate.ts#L34) of tasks that operate on the strings found in a project.
+These tasks fall into three categories:
 
 -   **Validators** are defined in [this directory](./packages/houdini/cmd/validators) and ensure that
     assumptions made by the rest of the tasks are true. For example, the
@@ -48,11 +50,11 @@ tagged with `graphql`. These tasks fall into three categories:
 
 There are a number of features which rely on things that aren't defined in the project's schema.
 Most these additions are added in the [schema transform](./packages/houdini/cmd/transforms/schema.ts) and are eventually
-removed from the document to prevent the server from encountering anything unknown.
-The fragments used for connection mutations are currently generated in a
-[separate transform](./packages/houdini/cmd/transforms/connections.ts) that looks for every field marked as a
-connection and adds the appropriate fragments to the pile. Since these fragments definitions are passed along to the server
-as part of the [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) they don't need to be removed
+removed from the document to prevent the server from encountering anything unknown. The fragments used for
+connection mutations are currently generated in a [separate transform](./packages/houdini/cmd/transforms/connections.ts)
+that looks for every field marked as a connection and adds the appropriate fragments to the pile. Since these fragments
+definitions are passed along to the server as part of the
+[composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) they don't need to be removed
 and are used to make sure the server returns the data needed for the operation. Wether they are removed or not,
 these additions provide the various generators with the necessary meta data to encode the correct behavior in the final artifact.
 
@@ -67,5 +69,11 @@ on parsing and "understanding" what the user wants when they provide a specific 
 are used, see the [runtime section](#the-runtime).
 
 ## The Preprocessor
+
+The preprocessor is defined in [packages/houdini-preprocess/src/index.ts](./packages/houdini-preprocess/src/index.ts)
+as a pipeline that looks at every string tagged with `graphql` and mutates it into something the runtime can use.
+For most situations this means adding an import to the relevant artifact and passing it to the runtime (queries are a big exception).
+For a more detailed look into what actually happens with each document type, you should look at the
+[snapshot tests](./packages/houdini-preprocess/src/transforms) for the corresponding function.
 
 ## The Runtime
