@@ -46,7 +46,7 @@ These tasks fall into three categories:
     and write things to disk. For example, the [typescript generator](./packages/houdini/cmd/generators/typescript.ts)
     creates type definitions for every document in a project.
 
-### Internal GraphQL schema
+### Internal GraphQL Schema
 
 There are a number of features which rely on things that aren't defined in the project's schema.
 Most these additions are added in the [schema transform](./packages/houdini/cmd/transforms/schema.ts) and are eventually
@@ -55,31 +55,31 @@ connection mutations are currently generated in a [separate transform](./package
 that looks for every field marked as a connection and adds the appropriate fragments to the pile. Since these fragments
 definitions are passed along to the server as part of the
 [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) they don't need to be removed
-and are used to make sure the server returns the data needed for the operation. Wether they are removed or not,
-these additions provide the various generators with the necessary meta data to encode the correct behavior in the final artifact.
+and are used to make sure the server returns the data needed for the operation. Whether they are removed from
+the final query or not, the [artifact generator](./packages/houdini/cmd/generators/artifact/index.ts) uses their existence
+to encode additional data in the document's artifact to tell the runtime how to handle the information provided by the server.
 
 ### Document Artifacts
 
 It's helpful to keep in mind the shape of the artifacts that the `generate` command produces. Rather than outlining
 them in this document (which would likely go stale quickly) I recommend looking at the
 [artifact snapshot tests](packages/houdini/cmd/generators/artifacts/artifacts.test.ts) to see what is generated in various
-situations. At high level, the `raw` field is used when sending actual queries
-to the server and the `selection` field is structured to save the runtime from wasting cycles (and bundle size)
-on parsing and "understanding" what the user wants when they provide a specific query. For more information about how these
-are used, see the [runtime section](#the-runtime).
+situations. At high level, the `raw` field is used when sending actual queries to the server and the `selection`
+field is structured to save the runtime from wasting cycles (and bundle size) on parsing and "understanding" what the
+user wants when they use a specific document. For more information about how these are used, see the [cache section](#the-cache).
 
 ## The Preprocessor
 
 The preprocessor is defined in [packages/houdini-preprocess/src/index.ts](./packages/houdini-preprocess/src/index.ts)
 as a pipeline that looks at every string tagged with `graphql` and mutates it into something the runtime can use.
-For most situations this means adding an import to the relevant artifact and passing it to the runtime (queries are a big exception).
-For a more detailed look into what actually happens with each document type, you should look at the
-[snapshot tests](./packages/houdini-preprocess/src/transforms) for the corresponding function.
+For most situations this means adding an import to file for the relevant artifact and passing it to the
+runtime (queries are a big exception). For a more detailed look into what actually happens with each document type,
+you should look at the [snapshot tests](./packages/houdini-preprocess/src/transforms) for the corresponding function.
 
 ## The Runtime
 
 The actual runtime used by houdini is defined in [packages/houdini/runtime](./packages/houdini/runtime) and is comprised of the
-functions used by the user (ie, `query`, `fragment`, `mutation`, etc), a network layer that handles the actual requests
+functions used in the user's components (ie, `query`, `fragment`, `mutation`, etc), a network layer that handles the actual requests
 sent to the server, and a caching layer used to orchestrate data across the application.
 
 ### The Cache
