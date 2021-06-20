@@ -16,12 +16,6 @@ export default async function mutationProcessor(
 		return
 	}
 
-	// figure out the root type
-	const rootType = doc.config.schema.getMutationType()
-	if (!rootType) {
-		throw new Error('Could not find operation type')
-	}
-
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
 		// with only one definition defining a fragment
