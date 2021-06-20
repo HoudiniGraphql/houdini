@@ -56,12 +56,13 @@ that looks for every field marked as a connection and adds the appropriate fragm
 definitions are passed along to the server as part of the
 [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) they don't need to be removed
 and are used to make sure the server returns the data needed for the operation. Whether they are removed from
-the final query or not, the [artifact generator](./packages/houdini/cmd/generators/artifact/index.ts) uses their existence
-to encode additional data in the document's artifact to tell the runtime how to handle the information provided by the server.
+the final query or not, the [artifact generator](./packages/houdini/cmd/generators/artifact/index.ts) looks for these
+internal schema elements to encode additional data in the document's artifact to tell the runtime how to
+handle the information provided by the server.
 
 ### Document Artifacts
 
-It's helpful to keep in mind the shape of the artifacts that the `generate` command produces. Rather than outlining
+It's sometimes helpful to look at the shape of the artifacts that the `generate` command produces. Rather than outlining
 them in this document (which would likely go stale quickly) I recommend looking at the
 [artifact snapshot tests](packages/houdini/cmd/generators/artifacts/artifacts.test.ts) to see what is generated in various
 situations. At high level, the `raw` field is used when sending actual queries to the server and the `selection`
