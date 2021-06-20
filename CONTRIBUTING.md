@@ -51,14 +51,13 @@ These tasks fall into three categories:
 There are a number of features which rely on things that aren't defined in the project's schema.
 Most these additions are added in the [schema transform](./packages/houdini/cmd/transforms/schema.ts) and are eventually
 removed from the document to prevent the server from encountering anything unknown. The fragments used for
-connection mutations are currently generated in a [separate transform](./packages/houdini/cmd/transforms/connections.ts)
-that looks for every field marked as a connection and adds the appropriate fragments to the pile. Since these fragments
-definitions are passed along to the server as part of the
+connection mutations are currently generated in a [separate transform](./packages/houdini/cmd/transforms/connections.ts).
+Since these fragments definitions are passed along to the server as part of the
 [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) they don't need to be removed
 and are used to make sure the server returns the data needed for the operation. Whether they are removed from
 the final query or not, the [artifact generator](./packages/houdini/cmd/generators/artifact/index.ts) looks for these
-internal schema elements to encode additional data in the document's artifact to tell the runtime how to
-handle the information provided by the server.
+internal schema elements to encode additional information in the document's artifact that tells the runtime how to
+handle the response from the server.
 
 ### Document Artifacts
 
