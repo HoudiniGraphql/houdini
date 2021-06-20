@@ -6,6 +6,15 @@ This document should hopefully provide some guidance for working on the project 
 some tips for local development as well as a general introduction to the internal architecture
 and the relevant files/directories.
 
+## Local Development
+
+The quickest way to test and develop new features is by using the [example project](./example).
+Starting with `yarn && yarn build` at the root of the repository will handle the details
+of linking everything up. Once yarn is done, run `yarn generate && yarn dev` inside of the example
+directory to start the development server. You will also need to start the example app's api with
+`yarn api` (in a separate terminal, also inside the example directory). After all of this, you
+should be able to visit `localhost:3000` in a web browser and see a working todo list.
+
 ## General Introduction
 
 At a high level, houdini is broken up into two parts: a [command-line tool](./packages/houdini/cmd)
@@ -15,26 +24,13 @@ generating the associated artifacts that the runtime needs to do its job. The pr
 handles optimizing the user's code for their specific platform and "connects the dots"
 between what the user types and the houdini runtime.
 
-### Local Development
-
-<!--
-    this section doesn't "flow" well from the section above. should it come before the
-    description of the high level divide?
--->
-
-The quickest way to test and develop new features is by using the [example project](./example).
-Starting with `yarn && yarn build` at the root of the repository will handle the details
-of linking everything up. Once yarn is done, run `yarn generate && yarn dev` inside of the example
-directory to start the development server. You will also need to start the example app's api with
-`yarn api` (in a separate terminal, also inside the example directory). After all of this, you
-should be able to visit `localhost:3000` in a web browser and see a working todo list.
-
 ## The `generate` Command
 
 The `generate` command is the core of the command-line tool and is ultimately responsible for generating
-the artifacts that describe each document in a project. It's defined in the
+the artifacts that describe every document in a project. It's defined in the
 [generate.ts](./packages/houdini/cmd/generate.ts) file and is implemented as a
-[pipeline](./packages/houdini/cmd/generate.ts#L34-L44) of tasks that break down into three categories:
+[pipeline](./packages/houdini/cmd/generate.ts#L34-L44) of tasks that operate on the strings found in a project
+tagged with `graphql`. These tasks fall into three categories:
 
 -   **Validators** are defined in [this directory](./packages/houdini/cmd/validators) and ensure that
     assumptions made by the rest of the tasks are true. For example, the
@@ -50,15 +46,25 @@ the artifacts that describe each document in a project. It's defined in the
 
 ### Internal GraphQL schema
 
-There are a number of features of houdini which rely on bits that aren't defined in the project's schema. For example,
-the connection mutation API takes advantage of fragments that are defined by looking at which fields are tagged with
-the `@connection` directive (which is also part of houdini's internal schema). These extra bits are added to the
-project schema in the [schema transform](./packages/houdini/cmd/transforms/schema.ts) and are
-[removed from the document](./packages/houdini/cmd/generators/artifacts/index.ts#108-110) before generating the artifacts.
-Note that the connection fragments are currently defined in a [separate transform](./packages/houdini/cmd/transforms/connections.ts)
-that looks at every document in a project and adds the required fragments to the pile.
+There are a number of features which rely on things that aren't defined in the project's schema.
+Most these additions are added in the [schema transform](./packages/houdini/cmd/transforms/schema.ts) and are eventually
+removed from the document to prevent the server from encountering anything unknown.
+The fragments used for connection mutations are currently generated in a
+[separate transform](./packages/houdini/cmd/transforms/connections.ts) that looks for every field marked as a
+connection and adds the appropriate fragments to the pile. Since these fragments definitions are passed along to the server
+as part of the [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) they don't need to be removed
+and are used to make sure the server returns the data needed for the operation. Wether they are removed or not,
+these additions provide the various generators with the necessary meta data to encode the correct behavior in the final artifact.
 
-### Connection Operations
+### Document Artifacts
+
+It's helpful to keep in mind the shape of the artifacts that the `generate` command produces. Rather than outlining
+them in this document (which would likely go stale quickly) I recommend looking at the
+[artifact snapshot tests](packages/houdini/cmd/generators/artifacts/artifacts.test.ts) to see what is generated in various
+situations. At high level, the `raw` field is used when sending actual queries
+to the server and the `selection` field is structured to save the runtime from wasting cycles (and bundle size)
+on parsing and "understanding" what the user wants when they provide a specific query. For more information about how these
+are used, see the [runtime section](#the-runtime).
 
 ## The Preprocessor
 
