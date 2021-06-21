@@ -35,14 +35,14 @@ describe('parser tests', () => {
 	test('happy path - only instance', () => {
 		// parse the string
 		const result = parseFile(`
-            <script context="module">
+            <script>
                 console.log('module')
             </script>
         `)
 
-		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("module");`)
 
-		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
 	})
 
 	test('single quotes', () => {
@@ -69,5 +69,20 @@ describe('parser tests', () => {
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 
 		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+	})
+
+	test('nested script block', () => {
+		// parse the string
+		const result = parseFile(`
+            <div>
+				<script>
+					console.log('non-svelte script block')
+				</script>
+            </div>
+        `)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
 	})
 })
