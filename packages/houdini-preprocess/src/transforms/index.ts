@@ -164,12 +164,12 @@ function replaceTagContent(
 		greaterThanIndex++
 	}
 	// if we didn't find it
-	if (greaterThanIndex === start) {
+	if (greaterThanIndex === end) {
 		throw new Error('Could not find the end of the tag open')
 	}
 
 	// {end} points to the > of the closing tag
-	let lessThanIndex = end
+	let lessThanIndex = end + 1
 	while (lessThanIndex > greaterThanIndex) {
 		// if we found the < we can stop looking
 		if (source[lessThanIndex] === '<') {
@@ -179,7 +179,7 @@ function replaceTagContent(
 		lessThanIndex--
 	}
 	// if we didn't find it
-	if (lessThanIndex === end) {
+	if (lessThanIndex === greaterThanIndex) {
 		throw new Error('Could not find the start of the tag close')
 	}
 
