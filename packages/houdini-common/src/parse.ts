@@ -25,25 +25,20 @@ export function parseFile(str: string): ParsedSvelteFile {
 		module: null,
 	}
 
-	if (instance?.content) {
-		result.instance = {
-			content: parseJS(instance.content, {
-				plugins: ['typescript'],
-				sourceType: 'module',
-			}).program,
-			start: instance.start,
-			end: instance.end!,
+	// parse both of the scripts
+	for (const [i, script] of [instance, module].entries()) {
+		// figure out which we're parsing
+		if (!script || !script.content) {
+			continue
 		}
-	}
 
-	if (module?.content) {
-		result.module = {
-			content: parseJS(module.content, {
+		result[i === 0 ? 'instance' : 'module'] = {
+			content: parseJS(script.content, {
 				plugins: ['typescript'],
 				sourceType: 'module',
 			}).program,
-			start: module.start,
-			end: module.end!,
+			start: script.start,
+			end: script.end!,
 		}
 	}
 
@@ -99,7 +94,11 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 				const innerElement = stack.pop()
 				const tagName = tag.substr(1)
 				if (!innerElement || innerElement.tag !== parseTag(tagName).tag) {
-					throw new Error('Encountered unexpected closing tag ' + tagName)
+					throw new Error(
+						`Encountered unexpected closing tag ${parseTag(tagName).tag}, expected ${
+							innerElement?.tag
+						}.`
+					)
 				}
 
 				//  the index is the end of the tag
@@ -112,13 +111,22 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 					const end = innerElement.end
 
 					// get the content of the script
-					innerElement.content = str.slice(start, end).trim()
+					const content = str.slice(start, end).trim()
+
+					// dry the result
+					const script = {
+						start,
+						end,
+						content,
+						tag: innerElement.tag,
+						attributes: innerElement.attributes,
+					}
 
 					// if we are looking at the module context
 					if (innerElement.attributes.context === 'module') {
-						module = innerElement
+						module = script
 					} else {
-						instance = innerElement
+						instance = script
 					}
 				}
 
@@ -173,7 +181,7 @@ const parseTag = (str: string) => {
 		)
 
 	return {
-		tag: tagName,
+		tag: tagName.trim(),
 		attributes,
 	}
 }
