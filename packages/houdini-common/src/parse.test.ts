@@ -113,4 +113,45 @@ describe('parser tests', () => {
 		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
 		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
 	})
+
+	test("logic in script doesn't break things", () => {
+		// parse the string
+		const result = parseFile(`
+            <script context='module'>
+				if (1<2) {
+					console.log('hello')
+				}
+            </script>
+        `)
+
+		expect(result.instance?.content).toMatchInlineSnapshot()
+		expect(result.instance?.start).toMatchInlineSnapshot()
+		expect(result.instance?.end).toMatchInlineSnapshot()
+
+		expect(result.module?.content).toMatchInlineSnapshot()
+		expect(result.module?.start).toMatchInlineSnapshot()
+		expect(result.module?.end).toMatchInlineSnapshot()
+	})
+
+	test("logic in template doesn't break things", () => {
+		// parse the string
+		const result = parseFile(`
+            <script context='module'>
+				console.log('hello')
+            </script>
+			{#if foo < 2}
+				<div>
+					hello
+				</div>
+			{/if}
+        `)
+
+		expect(result.instance?.content).toMatchInlineSnapshot()
+		expect(result.instance?.start).toMatchInlineSnapshot()
+		expect(result.instance?.end).toMatchInlineSnapshot()
+
+		expect(result.module?.content).toMatchInlineSnapshot()
+		expect(result.module?.start).toMatchInlineSnapshot()
+		expect(result.module?.end).toMatchInlineSnapshot()
+	})
 })
