@@ -193,12 +193,12 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 				attributes,
 				start: index,
 				// pop() increments index so we really started 1 before where we think we did
-				startOfTag: index - tag.length - 1 - 1,
+				startOfTag: index - 1 - tag.length - 1,
 			})
 		}
 
 		// if we ran into the start or finish of a logic block
-		if (['{#', '{/', '{:', '{{'].includes(content.substr(0, '{#'.length))) {
+		if (['{#', '{/', '{:'].includes(content.substr(0, '{#'.length))) {
 			// ignore the entire block
 			takeUntilIgnoringNested('}', '{')
 		}
