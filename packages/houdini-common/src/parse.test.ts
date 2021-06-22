@@ -193,6 +193,29 @@ describe('parser tests', () => {
 		expect(result.module?.end).toMatchInlineSnapshot(`84`)
 	})
 
+	test('comments', () => {
+		// parse the string
+		const result = parseFile(`
+            <!-- <script context='module'> -->
+			<script>
+				console.log('hello')
+            </script>
+			{#if foo < 2}
+				<div>
+					hello
+				</div>
+			{/if}
+        `)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("hello");`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`51`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`105`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
+	})
+
 	test("else in template doesn't break things", () => {
 		// parse the string
 		const result = parseFile(`

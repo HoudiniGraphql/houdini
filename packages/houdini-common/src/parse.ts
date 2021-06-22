@@ -69,13 +69,17 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 	const takeTil = (char: string) => {
 		let head = pop()
 		let acc = head
-		while (head !== char && content.length > 0) {
+		let tail = ''
+
+		// consume characters from content until we get something matching our target
+		while (tail !== char && content.length > 0) {
 			head = pop()
 			acc += head
+			tail = acc.substr(acc.length - char.length)
 		}
 
 		// if the last character is not what we were looking for
-		if (acc[acc.length - 1] !== char) {
+		if (tail !== char) {
 			throw new Error('Could not find ' + char)
 		}
 
@@ -110,6 +114,12 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 	}
 
 	while (content.length > 0) {
+		// if we found a commend
+		if (content.substr(0, '<!--'.length) === '<!--') {
+			// consume the string until we are at the end of the comment
+			takeTil('-->')
+		}
+
 		// pull out the head of the string
 		const head = pop()
 
