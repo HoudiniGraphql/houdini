@@ -23,7 +23,7 @@ export default async function applyTransforms(
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
 	// and then join them back together
-	const scripts = parseFile(doc.content)
+	const scripts = await parseFile(doc.content)
 
 	// wrap everything up in an object we'll thread through the transforms
 	const result: types.TransformDocument = {

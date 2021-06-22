@@ -1,9 +1,8 @@
 import { parse as parseJS } from '@babel/parser'
-import { Script as SvelteScript } from 'svelte/types/compiler/interfaces'
 // locals
 import type { Maybe, Script } from './types'
 
-import { parse } from 'svelte/compiler'
+import { parse, preprocess } from 'svelte/compiler'
 
 const scriptEnd = '</script>'
 
@@ -12,11 +11,10 @@ type ParsedSvelteFile = {
 	module: Maybe<Script>
 }
 
-export function parseFile(content: string): ParsedSvelteFile {
+export async function parseFile(content: string): Promise<ParsedSvelteFile> {
 	// the starting object
 	const doc: ParsedSvelteFile = { instance: null, module: null }
 
-	// use the svelte parser to pull out the module and instance blocks (avoid issues with scripts nested in weird places)
 	const parsed = parse(content)
 
 	// find the content bounds for both contexts

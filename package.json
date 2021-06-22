@@ -37,6 +37,7 @@
 	},
 	"private": true,
 	"dependencies": {
+		"@microsoft/typescript-etw": "^0.1.0",
 		"@types/mock-fs": "^4.13.0",
 		"global": "^4.4.0",
 		"remove": "^0.1.5",

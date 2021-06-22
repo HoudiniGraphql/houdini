@@ -21,8 +21,10 @@
 	"gitHead": "5c8d7507e445cdfb5db7e31ce724a9be9672452c",
 	"dependencies": {
 		"@babel/parser": "^7.13.4",
+		"@microsoft/typescript-etw": "^0.1.0",
 		"mkdirp": "^1.0.4",
-		"svelte": "3.34.0"
+		"svelte": "3.34.0",
+		"svelte-preprocess": "^4.7.3"
 	},
 	"peerDependencies": {
 		"graphql": "^15.x"

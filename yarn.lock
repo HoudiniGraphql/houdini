@@ -2430,6 +2430,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@microsoft/typescript-etw@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@microsoft/typescript-etw@npm:0.1.0"
+  dependencies:
+    node-gyp: latest
+  checksum: a5ef15846a92473b07428ca6d73f617e616e353a0c9340bc2800c6fa9e8b9689eaf82b0431f082d872d5f61d02d349f472d4a8b0f9afc12d7c19e56210056755
+  languageName: node
+  linkType: hard
+
 "@mrmlnc/readdir-enhanced@npm:^2.2.1":
   version: 2.2.1
   resolution: "@mrmlnc/readdir-enhanced@npm:2.2.1"
@@ -5665,8 +5674,8 @@ __metadata:
     "@sveltejs/kit": 1.0.0-next.107
     apollo-server: ^2.24.0
     graphql: 15.5.0
-    houdini: ^0.6.2
-    houdini-preprocess: ^0.6.2
+    houdini: ^0.7.1
+    houdini-preprocess: ^0.7.1
     subscriptions-transport-ws: ^0.9.18
     svelte: ^3.38.2
     svelte-preprocess: ^4.0.0
@@ -6668,14 +6677,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.6.0, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.7.0, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
     "@babel/parser": ^7.13.4
+    "@microsoft/typescript-etw": ^0.1.0
     mkdirp: ^1.0.4
     rollup: ^2.47.0
     rollup-plugin-typescript2: ^0.30.0
+    svelte: 3.34.0
+    svelte-preprocess: ^4.7.3
     typescript: "*"
   peerDependencies:
     graphql: ^15.x
@@ -6688,6 +6700,7 @@ __metadata:
   dependencies:
     "@babel/core": ^7.12.10
     "@babel/preset-env": ^7.12.11
+    "@microsoft/typescript-etw": ^0.1.0
     "@rollup/plugin-alias": ^3.1.2
     "@rollup/plugin-commonjs": ^19.0.0
     "@rollup/plugin-node-resolve": ^13.0.0
@@ -6711,7 +6724,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.6.2, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.7.1, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -6725,8 +6738,8 @@ __metadata:
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
     graphql: 15.5.0
-    houdini: ^0.6.2
-    houdini-common: ^0.6.0
+    houdini: ^0.7.1
+    houdini-common: ^0.7.0
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -6737,7 +6750,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.6.2, houdini@workspace:packages/houdini":
+"houdini@^0.7.1, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
@@ -6758,7 +6771,7 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.6.0
+    houdini-common: ^0.7.0
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
@@ -11783,6 +11796,60 @@ __metadata:
     typescript:
       optional: true
   checksum: 828c5d5232d78b65a05554174e4c38518e87002c6b4e7d71c7706c1248b8b78085aa793da23701bf8dc9189bc90e7ce87e4d23b30c904db0c9bb45f068cec863
+  languageName: node
+  linkType: hard
+
+"svelte-preprocess@npm:^4.7.3":
+  version: 4.7.3
+  resolution: "svelte-preprocess@npm:4.7.3"
+  dependencies:
+    "@types/pug": ^2.0.4
+    "@types/sass": ^1.16.0
+    detect-indent: ^6.0.0
+    strip-indent: ^3.0.0
+  peerDependencies:
+    "@babel/core": ^7.10.2
+    coffeescript: ^2.5.1
+    less: ^3.11.3
+    postcss: ^7 || ^8
+    postcss-load-config: ^2.1.0 || ^3.0.0
+    pug: ^3.0.0
+    sass: ^1.26.8
+    stylus: ^0.54.7
+    sugarss: ^2.0.0
+    svelte: ^3.23.0
+    typescript: ^3.9.5 || ^4.0.0
+  peerDependenciesMeta:
+    "@babel/core":
+      optional: true
+    coffeescript:
+      optional: true
+    less:
+      optional: true
+    node-sass:
+      optional: true
+    postcss:
+      optional: true
+    postcss-load-config:
+      optional: true
+    pug:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    typescript:
+      optional: true
+  checksum: 8862ba953f521df5cf31ac711e8971555adcd1a52b9d577bb157107da144d83cbccfa07f0d8c8d017837c7bf2f602fbbb39ee61932099ee467a48997399a3c10
+  languageName: node
+  linkType: hard
+
+"svelte@npm:3.34.0":
+  version: 3.34.0
+  resolution: "svelte@npm:3.34.0"
+  checksum: 116d8cb8a42228684d4e50b55fd349c7f04f81e1beb82144e5189354b14ca1fcd8c615960b34e8a39fe0c48a7cd876a6229637fe3e2db7b87ec12b756c1bb97f
   languageName: node
   linkType: hard
 
