@@ -241,4 +241,50 @@ describe('parser tests', () => {
 		expect(result.module?.start).toMatchInlineSnapshot(`13`)
 		expect(result.module?.end).toMatchInlineSnapshot(`84`)
 	})
+
+	test('expression in content', () => {
+		// parse the string
+		const result = parseFile(`
+            <script context='module'>
+				console.log('hello')
+            </script>
+			<div>
+				{hello}
+			</div>
+        `)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`console.log("hello");`)
+		expect(result.module?.start).toMatchInlineSnapshot(`13`)
+		expect(result.module?.end).toMatchInlineSnapshot(`84`)
+	})
+
+	test('expression attribute', () => {
+		// parse the string
+		const result = parseFile(`
+            <script context='module'>
+				console.log('hello')
+            </script>
+			{#if foo < 2}
+				<div>
+					hello
+				</div>
+			{:else if foo < 4}
+				<div attribute={{foo}}>
+					hello
+				</div>
+			{/if}
+        `)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`console.log("hello");`)
+		expect(result.module?.start).toMatchInlineSnapshot(`13`)
+		expect(result.module?.end).toMatchInlineSnapshot(`84`)
+	})
 })

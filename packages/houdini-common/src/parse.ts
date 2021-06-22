@@ -198,7 +198,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 		}
 
 		// if we ran into the start or finish of a logic block
-		if (['{#', '{/', '{:'].includes(content.substr(0, '{#'.length))) {
+		if (['{#', '{/', '{:', '{{'].includes(content.substr(0, '{#'.length))) {
 			// ignore the entire block
 			takeUntilIgnoringNested('}', '{')
 		}
@@ -214,32 +214,38 @@ const parseTag = (str: string) => {
 		endOfTagName = str.length - 1
 	}
 	const tagName = str.substr(0, endOfTagName + 1)
-	const attributes = str
-		.slice(endOfTagName + 1)
-		.trim()
-		.replace(/\n/g, ' ')
-		.split(/\s/)
-		.filter(Boolean)
-		.map((pair) => {
-			// attributes are defined with an equal
-			const [key, value] = pair.split('=')
+	const tag = tagName.trim()
 
-			return {
-				key: key[0] === '"' ? JSON.parse(key) : key,
-				// JSON.parse accepts double quotes only, not single quote
-				value: JSON.parse(value.replace(/'/g, '"')),
-			}
-		})
-		.reduce<{ [key: string]: any }>(
-			(acc, pair) => ({
-				...acc,
-				[pair.key]: pair.value,
-			}),
-			{}
-		)
+	// only compute the attributes for scripts
+	const attributes =
+		tag !== 'script'
+			? {}
+			: str
+					.slice(endOfTagName + 1)
+					.trim()
+					.replace(/\n/g, ' ')
+					.split(/\s/)
+					.filter(Boolean)
+					.map((pair) => {
+						// attributes are defined with an equal
+						const [key, value] = pair.split('=')
+
+						return {
+							key: key[0] === '"' ? JSON.parse(key) : key,
+							// JSON.parse accepts double quotes only, not single quote
+							value: JSON.parse(value.replace(/'/g, '"')),
+						}
+					})
+					.reduce<{ [key: string]: any }>(
+						(acc, pair) => ({
+							...acc,
+							[pair.key]: pair.value,
+						}),
+						{}
+					)
 
 	return {
-		tag: tagName.trim(),
+		tag,
 		attributes,
 	}
 }
