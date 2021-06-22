@@ -181,7 +181,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 		}
 
 		// if we ran into the start or finish of a logic block
-		if (['{#', '{/'].includes(content.substr(0, '{#'.length))) {
+		if (['{#', '{/', '{:'].includes(content.substr(0, '{#'.length))) {
 			// ignore the entire block
 			takeUntilIgnoringNested('}', '{')
 		}
