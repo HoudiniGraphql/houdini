@@ -2,7 +2,7 @@
 import type { Maybe, Script } from './types'
 import { parse as parseJS } from '@babel/parser'
 
-type ParsedSvelteFile = {
+export type ParsedSvelteFile = {
 	instance: Maybe<Script>
 	module: Maybe<Script>
 }
@@ -55,28 +55,34 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 	// we need to step through the document and find scripts that are at the root of the document
 	const stack = [] as StackElementWithStart[]
-	let index = 0
+	let index = -1
 
 	let module: StackElement | null = null
 	let instance: StackElement | null = null
 
 	const pop = () => {
-		index++
 		const head = content.slice(0, 1)
-		content = content.substr(1)
+		content = content.slice(1, content.length)
+		index++
 		return head
 	}
 
 	const takeTil = (char: string) => {
 		let head = pop()
 		let acc = head
-		let tail = ''
+		let tail = head
 
 		// consume characters from content until we get something matching our target
 		while (tail !== char && content.length > 0) {
 			head = pop()
 			acc += head
-			tail = acc.substr(acc.length - char.length)
+			tail = acc.substr(-char.length)
+			// if we ran into the start or finish of a logic block before we continue
+			if (head === '{') {
+				// ignore the entire block
+				takeUntilIgnoringNested('}', '{')
+				continue
+			}
 		}
 
 		// if the last character is not what we were looking for
@@ -115,14 +121,15 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 	}
 
 	while (content.length > 0) {
-		// if we found a commend
-		if (content.substr(0, '<!--'.length) === '<!--') {
+		const head = pop()
+
+		// if we found a comment
+		if (head + content.substr(0, '!--'.length) === '<!--') {
 			// consume the string until we are at the end of the comment
 			takeTil('-->')
+			// we're done
+			continue
 		}
-
-		// pull out the head of the string
-		const head = pop()
 
 		// if the character indicates the start or end of a tag
 		if (head === '<') {
@@ -166,7 +173,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 					// dry the result
 					const script = {
 						start: innerElement.startOfTag,
-						end: innerElement.end + tag.length,
+						end: innerElement.end + tag.length + 1,
 						content,
 						tag: innerElement.tag,
 						attributes: innerElement.attributes,
@@ -192,15 +199,19 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 				tag: tagName,
 				attributes,
 				start: index,
-				// pop() increments index so we really started 1 before where we think we did
-				startOfTag: index - 1 - tag.length - 1,
+				// pop increments by one, so if we are starting the tag here, we're one ahead
+				startOfTag: index - tag.length - 1,
 			})
+			// we're done processing the string
+			continue
 		}
 
 		// if we ran into the start or finish of a logic block
-		if (['{#', '{/', '{:'].includes(content.substr(0, '{#'.length))) {
+		if (head === '{') {
 			// ignore the entire block
 			takeUntilIgnoringNested('}', '{')
+			// keep processing the rest of the string
+			continue
 		}
 	}
 
