@@ -15,6 +15,8 @@ type StackElement = {
 	content?: string
 }
 
+type StackElementWithStart = StackElement & { startOfTag: number }
+
 export function parseFile(str: string): ParsedSvelteFile {
 	// look for the instance and module scripts
 	const { instance, module } = parse(str)
@@ -50,7 +52,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 	let content = str
 
 	// we need to step through the document and find scripts that are at the root of the document
-	const stack = [] as StackElement[]
+	const stack = [] as StackElementWithStart[]
 	let index = 0
 
 	let module: StackElement | null = null
@@ -115,8 +117,8 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 					// dry the result
 					const script = {
-						start,
-						end,
+						start: innerElement.startOfTag,
+						end: innerElement.end + tag.length + 1,
 						content,
 						tag: innerElement.tag,
 						attributes: innerElement.attributes,
@@ -142,6 +144,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 				tag: tagName,
 				attributes,
 				start: index,
+				startOfTag: index - tag.length - 1,
 			})
 		}
 	}
