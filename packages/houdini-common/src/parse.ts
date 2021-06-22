@@ -7,16 +7,6 @@ type ParsedSvelteFile = {
 	module: Maybe<Script>
 }
 
-type StackElement = {
-	tag: string
-	attributes: { [key: string]: string }
-	start: number
-	end?: number
-	content?: string
-}
-
-type StackElementWithStart = StackElement & { startOfTag: number }
-
 export function parseFile(str: string): ParsedSvelteFile {
 	// look for the instance and module scripts
 	const { instance, module } = parse(str)
@@ -40,6 +30,7 @@ export function parseFile(str: string): ParsedSvelteFile {
 				sourceType: 'module',
 			}).program,
 			start: script.start,
+			// end has to exist to get this far
 			end: script.end!,
 		}
 	}
@@ -47,6 +38,16 @@ export function parseFile(str: string): ParsedSvelteFile {
 	// we're done here
 	return result
 }
+
+type StackElement = {
+	tag: string
+	attributes: { [key: string]: string }
+	start: number
+	end?: number
+	content?: string
+}
+
+type StackElementWithStart = StackElement & { startOfTag: number }
 
 function parse(str: string): { instance: StackElement | null; module: StackElement | null } {
 	// offset the script by one so the iterator can start at index 0 pointing at the first element
@@ -164,7 +165,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 					// dry the result
 					const script = {
-						start: innerElement.startOfTag - 1,
+						start: innerElement.startOfTag,
 						end: innerElement.end + tag.length,
 						content,
 						tag: innerElement.tag,
@@ -191,7 +192,8 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 				tag: tagName,
 				attributes,
 				start: index,
-				startOfTag: index - tag.length - 1,
+				// pop() increments index so we really started 1 before where we think we did
+				startOfTag: index - tag.length - 1 - 1,
 			})
 		}
 
