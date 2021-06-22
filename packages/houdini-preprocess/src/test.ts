@@ -46,7 +46,7 @@ describe('preprocessor can replace content', function () {
 		</div>`)
 	})
 
-	test('update instance content', async function () {
+	test('update module content', async function () {
 		// the source
 		const content = `
         <script context="module">
@@ -203,8 +203,7 @@ describe('preprocessor can replace content', function () {
 	test('add module', async function () {
 		// the source
 		const content = `
-        <script>
-		</script>
+        <script></script>
 		<div>
 		helllo
 		</div>

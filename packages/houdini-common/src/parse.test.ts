@@ -23,6 +23,21 @@ describe('parser tests', () => {
 		expect(result.module?.end).toMatchInlineSnapshot(`97`)
 	})
 
+	test('happy path - start on first character', () => {
+		// parse the string
+		const result = parseFile(`<script context="module">
+                console.log('module')
+            </script>`)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.module?.start).toMatchInlineSnapshot(`0`)
+		expect(result.module?.end).toMatchInlineSnapshot(`84`)
+	})
+
 	test('happy path - only module', () => {
 		// parse the string
 		const result = parseFile(`
@@ -108,6 +123,25 @@ describe('parser tests', () => {
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
+	})
+
+	test('script next to html', () => {
+		// parse the string
+		const result = parseFile(`
+			<script>
+				console.log('script')
+			</script>
+	        <div>
+	        </div>
+	    `)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("script");`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`4`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`50`)
 
 		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
