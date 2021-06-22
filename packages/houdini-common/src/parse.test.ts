@@ -15,8 +15,12 @@ describe('parser tests', () => {
         `)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("instance");`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`112`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`181`)
 
 		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.module?.start).toMatchInlineSnapshot(`13`)
+		expect(result.module?.end).toMatchInlineSnapshot(`97`)
 	})
 
 	test('happy path - only module', () => {
@@ -28,21 +32,29 @@ describe('parser tests', () => {
         `)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
 
 		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.module?.start).toMatchInlineSnapshot(`13`)
+		expect(result.module?.end).toMatchInlineSnapshot(`97`)
 	})
 
 	test('happy path - only instance', () => {
 		// parse the string
 		const result = parseFile(`
-            <script context="module">
+            <script>
                 console.log('module')
             </script>
         `)
 
-		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`13`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`80`)
 
-		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
 	})
 
 	test('single quotes', () => {
@@ -54,20 +66,51 @@ describe('parser tests', () => {
         `)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
 
 		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.module?.start).toMatchInlineSnapshot(`13`)
+		expect(result.module?.end).toMatchInlineSnapshot(`97`)
 	})
 
 	test('happy path - typescript', () => {
 		// parse the string
 		const result = parseFile(`
             <script context="module" lang="ts">
-                console.log('module')
+				type Foo = { hello: string}
             </script>
         `)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
 
-		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.module?.content).toMatchInlineSnapshot(`
+		type Foo = {
+		    hello: string
+		};
+	`)
+		expect(result.module?.start).toMatchInlineSnapshot(`13`)
+		expect(result.module?.end).toMatchInlineSnapshot(`101`)
+	})
+
+	test('nested script block', () => {
+		// parse the string
+		const result = parseFile(`
+	        <div>
+				<script>
+					console.log('inner')
+				</script>
+	        </div>
+	    `)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
 	})
 })
