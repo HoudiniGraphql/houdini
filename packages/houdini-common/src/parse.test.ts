@@ -159,7 +159,7 @@ describe('parser tests', () => {
 		expect(result.module?.end).toMatchInlineSnapshot(`84`)
 	})
 
-	test("logic in template doesn't break things", () => {
+	test("else in template doesn't break things", () => {
 		// parse the string
 		const result = parseFile(`
             <script context='module'>
