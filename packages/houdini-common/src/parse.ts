@@ -81,12 +81,44 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 		return acc
 	}
 
+	const takeUntilIgnoringNested = (finish: string, start: string) => {
+		// we need to count instances of `start` that we run into to find the one that closes the one we found
+		let count = 1
+		// the last character we saw
+		let head = ''
+		// keep eating until we found the closing `finish`
+		while (count > 0 && content.length > 0) {
+			// consume one character from the string
+			head = pop()
+
+			if (head === start) {
+				count++
+			} else if (head === finish) {
+				count--
+			}
+		}
+
+		// if the last character we saw was not the finishing character, there was a problem
+		if (head !== finish) {
+			throw new Error(`Did not encounter matching ${finish}`)
+		}
+	}
+
 	while (content.length > 0) {
 		// pull out the head of the string
 		const head = pop()
 
 		// if the character indicates the start or end of a tag
 		if (head === '<') {
+			// if we are inside of a script tag, we should just ignore what we found unless its a closing tag
+			if (
+				stack.length > 0 &&
+				stack[stack.length - 1].tag === 'script' &&
+				content.substr(0, '</script'.length) !== '</script'
+			) {
+				continue
+			}
+
 			// collect everything until the closing >
 			let tag = takeTil('>').slice(0, -1).trim()
 
@@ -146,6 +178,12 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 				start: index,
 				startOfTag: index - tag.length - 1,
 			})
+		}
+
+		// if we ran into the start or finish of a logic block
+		if (['{#', '{/'].includes(content.substr(0, '{#'.length))) {
+			// ignore the entire block
+			takeUntilIgnoringNested('}', '{')
 		}
 	}
 
