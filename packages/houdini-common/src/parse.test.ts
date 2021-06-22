@@ -124,13 +124,17 @@ describe('parser tests', () => {
             </script>
         `)
 
-		expect(result.instance?.content).toMatchInlineSnapshot()
-		expect(result.instance?.start).toMatchInlineSnapshot()
-		expect(result.instance?.end).toMatchInlineSnapshot()
+		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
 
-		expect(result.module?.content).toMatchInlineSnapshot()
-		expect(result.module?.start).toMatchInlineSnapshot()
-		expect(result.module?.end).toMatchInlineSnapshot()
+		expect(result.module?.content).toMatchInlineSnapshot(`
+		if (1 < 2) {
+		    console.log("hello");
+		}
+	`)
+		expect(result.module?.start).toMatchInlineSnapshot(`13`)
+		expect(result.module?.end).toMatchInlineSnapshot(`106`)
 	})
 
 	test("logic in template doesn't break things", () => {
@@ -146,12 +150,12 @@ describe('parser tests', () => {
 			{/if}
         `)
 
-		expect(result.instance?.content).toMatchInlineSnapshot()
-		expect(result.instance?.start).toMatchInlineSnapshot()
-		expect(result.instance?.end).toMatchInlineSnapshot()
+		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
 
-		expect(result.module?.content).toMatchInlineSnapshot()
-		expect(result.module?.start).toMatchInlineSnapshot()
-		expect(result.module?.end).toMatchInlineSnapshot()
+		expect(result.module?.content).toMatchInlineSnapshot(`console.log("hello");`)
+		expect(result.module?.start).toMatchInlineSnapshot(`13`)
+		expect(result.module?.end).toMatchInlineSnapshot(`84`)
 	})
 })
