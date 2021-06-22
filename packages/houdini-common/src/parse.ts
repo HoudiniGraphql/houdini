@@ -30,12 +30,12 @@ export function parseFile(str: string): ParsedSvelteFile {
 	// parse both of the scripts
 	for (const [i, script] of [instance, module].entries()) {
 		// figure out which we're parsing
-		if (!script || !script.content) {
+		if (!script) {
 			continue
 		}
 
 		result[i === 0 ? 'instance' : 'module'] = {
-			content: parseJS(script.content, {
+			content: parseJS(script.content || '', {
 				plugins: ['typescript'],
 				sourceType: 'module',
 			}).program,
@@ -49,6 +49,7 @@ export function parseFile(str: string): ParsedSvelteFile {
 }
 
 function parse(str: string): { instance: StackElement | null; module: StackElement | null } {
+	// offset the script by one so the iterator can start at index 0 pointing at the first element
 	let content = str
 
 	// we need to step through the document and find scripts that are at the root of the document
@@ -60,7 +61,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 	const pop = () => {
 		index++
-		const head = content.slice(1, 2)
+		const head = content.slice(0, 1)
 		content = content.substr(1)
 		return head
 	}
@@ -86,6 +87,10 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 		let count = 1
 		// the last character we saw
 		let head = ''
+
+		// we know that the head matches so eat it and keep looking
+		head = pop()
+
 		// keep eating until we found the closing `finish`
 		while (count > 0 && content.length > 0) {
 			// consume one character from the string
@@ -100,7 +105,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 		// if the last character we saw was not the finishing character, there was a problem
 		if (head !== finish) {
-			throw new Error(`Did not encounter matching ${finish}`)
+			throw new Error(`Did not encounter matching ${finish}.`)
 		}
 	}
 
@@ -114,7 +119,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 			if (
 				stack.length > 0 &&
 				stack[stack.length - 1].tag === 'script' &&
-				content.substr(0, '</script'.length) !== '</script'
+				content.substr(0, '/script'.length) !== '/script'
 			) {
 				continue
 			}
@@ -145,12 +150,12 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 					const end = innerElement.end
 
 					// get the content of the script
-					const content = str.slice(start, end).trim()
+					const content = str.slice(start, end - 1).trim()
 
 					// dry the result
 					const script = {
-						start: innerElement.startOfTag,
-						end: innerElement.end + tag.length + 1,
+						start: innerElement.startOfTag - 1,
+						end: innerElement.end + tag.length,
 						content,
 						tag: innerElement.tag,
 						attributes: innerElement.attributes,
