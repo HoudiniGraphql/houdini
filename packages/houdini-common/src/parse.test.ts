@@ -1,5 +1,5 @@
 import { parseFile } from './parse'
-import '../../../jest.setup'
+// import '../../../jest.setup'
 
 describe('parser tests', () => {
 	test('happy path - separate module and instance script', async () => {
@@ -14,13 +14,13 @@ describe('parser tests', () => {
             </script>
         `)
 
-		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("instance");`)
+		expect(result.instance?.content).toMatchInlineSnapshot(`"console.log('instance')"`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`112`)
-		expect(result.instance?.end).toMatchInlineSnapshot(`181`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`182`)
 
-		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.module?.content).toMatchInlineSnapshot(`"console.log('module')"`)
 		expect(result.module?.start).toMatchInlineSnapshot(`13`)
-		expect(result.module?.end).toMatchInlineSnapshot(`97`)
+		expect(result.module?.end).toMatchInlineSnapshot(`98`)
 	})
 
 	test('happy path - only module', async () => {
@@ -35,9 +35,9 @@ describe('parser tests', () => {
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
 
-		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.module?.content).toMatchInlineSnapshot(`"console.log('module')"`)
 		expect(result.module?.start).toMatchInlineSnapshot(`13`)
-		expect(result.module?.end).toMatchInlineSnapshot(`97`)
+		expect(result.module?.end).toMatchInlineSnapshot(`98`)
 	})
 
 	test('happy path - only instance', async () => {
@@ -48,9 +48,9 @@ describe('parser tests', () => {
             </script>
         `)
 
-		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.instance?.content).toMatchInlineSnapshot(`"console.log('module')"`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`13`)
-		expect(result.instance?.end).toMatchInlineSnapshot(`80`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`81`)
 
 		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
@@ -69,9 +69,9 @@ describe('parser tests', () => {
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
 
-		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
+		expect(result.module?.content).toMatchInlineSnapshot(`"console.log('module')"`)
 		expect(result.module?.start).toMatchInlineSnapshot(`13`)
-		expect(result.module?.end).toMatchInlineSnapshot(`97`)
+		expect(result.module?.end).toMatchInlineSnapshot(`98`)
 	})
 
 	test('happy path - typescript', async () => {
@@ -79,6 +79,7 @@ describe('parser tests', () => {
 		const result = await parseFile(`
             <script context="module" lang="ts">
 				type Foo = { hello: string}
+				console.log("module");
             </script>
         `)
 
@@ -86,9 +87,12 @@ describe('parser tests', () => {
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
 
-		expect(result.module?.content).toMatchInlineSnapshot(``)
+		expect(result.module?.content).toMatchInlineSnapshot(`
+"\\"use strict\\";
+console.log(\\"module\\");"
+`)
 		expect(result.module?.start).toMatchInlineSnapshot(`13`)
-		expect(result.module?.end).toMatchInlineSnapshot(`56`)
+		expect(result.module?.end).toMatchInlineSnapshot(`129`)
 	})
 
 	test('nested script block', async () => {
