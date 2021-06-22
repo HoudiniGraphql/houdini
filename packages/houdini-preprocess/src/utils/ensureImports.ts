@@ -1,11 +1,15 @@
 // externals
 import * as recast from 'recast'
-import { Statement } from '@babel/types'
+import { Directive, Statement, ModuleDeclaration } from 'estree'
 import { Config } from 'houdini-common'
 // locals
 const AST = recast.types.builders
 
-export default function ensureImports(config: Config, body: Statement[], identifiers: string[]) {
+export default function ensureImports(
+	config: Config,
+	body: (Directive | Statement | ModuleDeclaration)[],
+	identifiers: string[]
+) {
 	const toImport = identifiers.filter(
 		(identifier) =>
 			!body.find(

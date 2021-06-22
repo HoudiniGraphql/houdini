@@ -65,10 +65,13 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			// we need to look for multiple script tags to support sveltekit
 			const scripts = [parsedFile.instance, parsedFile.module]
 				.map((script) => (script ? script.content : null))
-				.filter(Boolean) as Program[]
+				.filter(Boolean)
 
 			await Promise.all(
 				scripts.map(async (jsContent) => {
+					if (!jsContent) {
+						return
+					}
 					// @ts-ignore
 					// look for any template tag literals in the script body
 					svelte.walk(jsContent, {

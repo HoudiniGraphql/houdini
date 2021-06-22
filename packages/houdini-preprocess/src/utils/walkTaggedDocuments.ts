@@ -2,8 +2,7 @@
 import * as graphql from 'graphql'
 import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
-import { BaseNode } from 'estree'
-import { Program } from '@babel/types'
+import { BaseNode, Program } from 'estree'
 import { Config } from 'houdini-common'
 import {
 	CompiledDocumentKind,

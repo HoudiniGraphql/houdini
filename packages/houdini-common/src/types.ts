@@ -1,9 +1,5 @@
-import type { Program } from '@babel/types'
+import { Script as SvelteScript } from 'svelte/types/compiler/interfaces'
 
 export type Maybe<T> = T | null | undefined
 
-export type Script = {
-	content: Program
-	start: number
-	end: number
-}
+export type Script = SvelteScript

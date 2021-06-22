@@ -1,11 +1,14 @@
 import { Config } from 'houdini-common'
 import * as recast from 'recast'
-import { Statement } from '@babel/types'
+import { ImportDeclaration } from 'estree'
 import artifactIdentifier from './artifactIdentifier'
 
 const AST = recast.types.builders
 
-export default function artifactImport(config: Config, { name }: { name: string }): Statement {
+export default function artifactImport(
+	config: Config,
+	{ name }: { name: string }
+): ImportDeclaration {
 	// the kind of import depends on the mode
 	const importStatement = AST.importDefaultSpecifier
 

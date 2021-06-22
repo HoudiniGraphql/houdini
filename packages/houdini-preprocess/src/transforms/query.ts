@@ -1,7 +1,13 @@
 // externals
 import * as recast from 'recast'
 import * as graphql from 'graphql'
-import { ExportNamedDeclaration, ReturnStatement, Statement } from '@babel/types'
+import {
+	ExportNamedDeclaration,
+	ReturnStatement,
+	Directive,
+	Statement,
+	ModuleDeclaration,
+} from 'estree'
 import { Config, Script } from 'houdini-common'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { ObjectExpressionKind } from 'ast-types/gen/kinds'
@@ -15,6 +21,7 @@ import {
 	artifactIdentifier,
 	ensureImports,
 } from '../utils'
+
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
@@ -279,7 +286,11 @@ function processInstance(
 	}
 }
 
-function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlDocument[]) {
+function addKitLoad(
+	config: Config,
+	body: (Directive | Statement | ModuleDeclaration)[],
+	queries: EmbeddedGraphqlDocument[]
+) {
 	// look for a preload definition
 	let preloadDefinition = body.find(
 		(expression) =>
@@ -457,7 +468,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 	}
 }
 
-function addSapperPreload(config: Config, body: Statement[]) {
+function addSapperPreload(config: Config, body: (Directive | Statement | ModuleDeclaration)[]) {
 	// make sure we have the utility that will do the conversion
 	ensureImports(config, body, ['convertKitPayload'])
 
