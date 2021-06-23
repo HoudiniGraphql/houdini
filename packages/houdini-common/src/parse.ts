@@ -194,14 +194,18 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 			// look at the rest of the
 			const { tag: tagName, attributes } = parseTag(tag)
 
-			// add the tagname to the stack
-			stack.push({
-				tag: tagName,
-				attributes,
-				start: index,
-				// pop increments by one, so if we are starting the tag here, we're one ahead
-				startOfTag: index - tag.length - 1,
-			})
+			// if the last character is a / then we have a self closing tag, nothing goes on the stack
+			if (tag.slice(-1) !== '/') {
+				// add the tagname to the stack
+				stack.push({
+					tag: tagName,
+					attributes,
+					start: index,
+					// pop increments by one, so if we are starting the tag here, we're one ahead
+					startOfTag: index - tag.length - 1,
+				})
+			}
+
 			// we're done processing the string
 			continue
 		}
