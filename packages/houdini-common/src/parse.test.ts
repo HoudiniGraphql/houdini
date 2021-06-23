@@ -230,6 +230,30 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
+	test('self-closing tags', () => {
+		const doc = `
+			<svelte:head>
+				<link />
+			</svelte:head>
+			<script>
+				console.log('hello')
+			</script>
+		`
+
+		// parse the string
+		const result = parseFile(doc)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("hello");`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`52`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`97`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
+
+		checkScriptBounds(doc, result)
+	})
+
 	test('comments', () => {
 		const doc = `
 			<!-- <script context='module'> -->
