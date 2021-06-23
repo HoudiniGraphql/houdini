@@ -201,7 +201,6 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 					tag: tagName,
 					attributes,
 					start: index,
-					// pop increments by one, so if we are starting the tag here, we're one ahead
 					startOfTag: index - tag.length - 1,
 				})
 			}
