@@ -13,7 +13,8 @@
 	"scripts": {
 		"build": "npm run build:esm && npm run build:cjs && ../houdini-preprocess/typeModules.sh",
 		"build:esm": "TARGET=esm rollup --config ./rollup.config.js",
-		"build:cjs": "TARGET=cjs rollup --config ./rollup.config.js"
+		"build:cjs": "TARGET=cjs rollup --config ./rollup.config.js",
+		"prepare": "npm run build"
 	},
 	"keywords": [],
 	"author": "",
