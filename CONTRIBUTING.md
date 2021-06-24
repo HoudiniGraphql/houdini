@@ -108,3 +108,7 @@ With these two things, the cache walks down the provided selection and embeds a 
 function alongside the field values for a given object. When data is written to the cache, houdini looks
 at the values being updated, captures every `set` function that must be called, and invokes the function with
 an object matching the entire corresponding selection.
+
+For a good general introduction to normalized caching for GraphQL queries, check out the
+[urql page on Normalized Caching](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/)
+which gives a very good overview of the task, even if some of the actual implementation details differ from houdini's.
