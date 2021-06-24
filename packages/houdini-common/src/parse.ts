@@ -7,9 +7,27 @@ export type ParsedSvelteFile = {
 	module: Maybe<Script>
 }
 
-export function parseFile(str: string): ParsedSvelteFile {
+export type ParserOpts = {
+	filename?: string
+}
+
+export function parseFile(str: string, opts?: ParserOpts): ParsedSvelteFile {
 	// look for the instance and module scripts
-	const { instance, module } = parse(str)
+	let instance: StackElement | null
+	let module: StackElement | null
+	try {
+		const result = parse(str)
+		instance = result.instance
+		module = result.module
+	} catch (e) {
+		// do we have a filename
+		const filename = opts?.filename || 'testFile'
+		// get the error message
+		const message = (e as Error).message || e
+
+		// bubble the error up
+		throw new Error(`Encountered error while parsing ${filename}: ${message}`)
+	}
 
 	// build up the result
 	const result: ParsedSvelteFile = {
@@ -87,7 +105,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 		// if the last character is not what we were looking for
 		if (tail !== char) {
-			throw new Error('Could not find ' + char)
+			throw new Error('could not find ' + char)
 		}
 
 		return acc
@@ -116,7 +134,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 		// if the last character we saw was not the finishing character, there was a problem
 		if (head !== finish) {
-			throw new Error(`Did not encounter matching ${finish}.`)
+			throw new Error(`did not encounter matching ${finish}.`)
 		}
 	}
 
@@ -152,7 +170,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 				const tagName = tag.substr(1)
 				if (!innerElement || innerElement.tag !== parseTag(tagName).tag) {
 					throw new Error(
-						`Encountered unexpected closing tag ${parseTag(tagName).tag}, expected ${
+						`unexpected closing tag ${parseTag(tagName).tag}, expected ${
 							innerElement?.tag
 						}.`
 					)

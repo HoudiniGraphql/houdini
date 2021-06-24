@@ -60,7 +60,9 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			const contents = await fs.readFile(filePath, 'utf-8')
 
 			// parse the contents
-			const parsedFile = parseFile(contents)
+			const parsedFile = parseFile(contents, {
+				filename: filePath,
+			})
 
 			// we need to look for multiple script tags to support sveltekit
 			const scripts = [parsedFile.instance, parsedFile.module]
