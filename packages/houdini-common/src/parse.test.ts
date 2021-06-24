@@ -453,9 +453,7 @@ describe('parser tests', () => {
 								/>
 							</svg>
 						</button>
-						<div
-							class="h-32 w-64 bg-gray-50 dark:bg-gray-800 mt-1 shadow rounded-md"
-						/>
+						<div class="h-32 w-64 bg-gray-50 dark:bg-gray-800 mt-1 shadow rounded-md" />
 					</Menu>
 					<Menu>
 						<button
