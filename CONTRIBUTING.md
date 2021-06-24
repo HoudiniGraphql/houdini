@@ -95,7 +95,9 @@ In response, the cache walks down the result and stores the value of every field
 encounters in an object mapping the entity's id to the set of field values. This data is
 stored in a normal form which means that references to other entities are not stored like scalar values
 but are instead stored as references to other entries in the same map. This gives us a single
-place where updates can be applied, without worrying about where that information is used.
+place where updates can be applied, without worrying about where that information is used. While walking
+down the provided selection, the cache looks for information embedded by the artifact generator to perform
+additional tasks like updating a connection.
 
 While writing data is an important part of the interaction with the cache, the real "meat" is in the
 subscription architecture which keeps the store returned by `query` (or `fragment`) up to date as values are changed.
