@@ -138,6 +138,15 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 	while (content.length > 0) {
 		const head = pop()
 
+		// if we are inside of a script tag, we should just ignore what we found unless its a closing tag
+		if (
+			stack.length > 0 &&
+			stack[stack.length - 1].tag === 'script' &&
+			content.substr(0, '/script'.length) !== '/script'
+		) {
+			continue
+		}
+
 		// if we found a comment
 		if (head + content.substr(0, '!--'.length) === '<!--') {
 			// consume the string until we are at the end of the comment
@@ -148,15 +157,6 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 		// if the character indicates the start or end of a tag
 		if (head === '<') {
-			// if we are inside of a script tag, we should just ignore what we found unless its a closing tag
-			if (
-				stack.length > 0 &&
-				stack[stack.length - 1].tag === 'script' &&
-				content.substr(0, '/script'.length) !== '/script'
-			) {
-				continue
-			}
-
 			// collect everything until the closing >
 			let tag = takeTil('>').slice(0, -1).trim()
 
