@@ -405,6 +405,28 @@ describe('parser tests', () => {
 
 		checkScriptBounds(doc, result)
 	})
+
+	test('empty object in script', () => {
+		const doc = `<script lang="ts">
+		const example = object({});
+	</script>
+	 
+	<div>hello</div>
+	`
+
+		// parse the string
+		const result = parseFile(doc)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`const example = object({});`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`0`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`58`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
+
+		checkScriptBounds(doc, result)
+	})
 })
 
 function checkScriptBounds(doc: string, result?: ParsedSvelteFile | null | undefined) {

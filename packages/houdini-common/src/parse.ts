@@ -117,9 +117,6 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 		// the last character we saw
 		let head = ''
 
-		// we know that the head matches so eat it and keep looking
-		head = pop()
-
 		// keep eating until we found the closing `finish`
 		while (count > 0 && content.length > 0) {
 			// consume one character from the string
