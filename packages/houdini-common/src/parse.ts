@@ -214,6 +214,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 			// if the last character is a / then we have a self closing tag, nothing goes on the stack
 			if (tag.slice(-1) !== '/') {
+				console.log({ tagName })
 				// add the tagname to the stack
 				stack.push({
 					tag: tagName,
@@ -241,7 +242,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 const parseTag = (str: string) => {
 	// the first characters before a space gives us the name of the tag
-	let endOfTagName = str.indexOf(' ')
+	let endOfTagName = str.match(/\s/)?.index || -1
 	if (endOfTagName === -1) {
 		endOfTagName = str.length - 1
 	}
