@@ -214,7 +214,6 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 			// if the last character is a / then we have a self closing tag, nothing goes on the stack
 			if (tag.slice(-1) !== '/') {
-				console.log({ tagName })
 				// add the tagname to the stack
 				stack.push({
 					tag: tagName,
