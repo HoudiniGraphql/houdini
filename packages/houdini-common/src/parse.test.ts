@@ -427,6 +427,25 @@ describe('parser tests', () => {
 
 		checkScriptBounds(doc, result)
 	})
+
+	test('empty expression', () => {
+		const doc = `
+	<div foo={}>hello</div>
+	`
+
+		// parse the string
+		const result = parseFile(doc)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
+
+		checkScriptBounds(doc, result)
+	})
 })
 
 function checkScriptBounds(doc: string, result?: ParsedSvelteFile | null | undefined) {
