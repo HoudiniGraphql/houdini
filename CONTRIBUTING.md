@@ -83,3 +83,26 @@ functions used in the user's components (ie, `query`, `fragment`, `mutation`, et
 sent to the server, and a caching layer used to orchestrate data across the application.
 
 ### The Cache
+
+As with most of this guide, the most reliable place to get an understanding for how
+the cache's internals work is the [test suite](./packages/houdini/runtime/cache/cache.test.ts).
+However, here is a brief explanation of the overall architecture so you can orient yourself:
+
+Houdini's cache is built on top of two core interactions: writing data and
+subscribing to a given selection. In order for a value to be written to the cache,
+it must be given the the data along with schema information for the payload.
+In response, the cache walks down the result and stores the value of every field that it
+encounters in an object mapping the entity's id to the set of field values. This data is
+stored in a normal form which means that references to other entities are not stored like scalar values
+but are instead stored as references to other entries in the same map. This gives us a single
+place where updates can be applied, without worrying about where that information is used.
+
+While writing data is an important part of the interaction with the cache, the real "meat" is in the
+subscription architecture which keeps the store returned by `query` (or `fragment`) up to date as values are changed.
+Just like when writing data, the cache must be given an object that describes the full selection of data that
+the store would like, however it also needs a function to call when the data has changed. In practice,
+this function is just the `set` corresponding to the writable store powering a given `query` or `fragment`.
+With these two things, the cache walks down the provided selection and embeds a reference to the `set`
+function alongside the field values for a given object. When data is written to the cache, houdini looks
+at the values being updated, captures every `set` function that must be called, and invokes the function with
+an object matching the entire corresponding selection.
