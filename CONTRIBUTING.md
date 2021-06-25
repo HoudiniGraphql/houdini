@@ -21,6 +21,7 @@ Keeping documentation up to date is as important as _any_ bug fix or new feature
 1. [The Runtime](#the-runtime)
 1. [The Cache](#the-cache)
 1. [Piecing It All Together](#piecing-it-all-together)
+    1. [An Example: List Operations](#an-example-list-operations)
 
 ## Local Development
 
