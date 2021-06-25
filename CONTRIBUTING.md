@@ -6,6 +6,18 @@ This document should hopefully provide some guidance for working on the project 
 some tips for local development as well as an introduction to the internal architecture
 and the relevant files/directories.
 
+## Table of Contents
+
+1. [Local Development](#local-development)
+1. [General Introduction](#general-introduction)
+1. [The `generate` Command](#the-generate-command)
+    1. [Internal GraphQL Schema](#internal-graphql-schema)
+    1. [Document Artifacts](#document-artifacts)
+1. [The Preprocess](#the-preprocessor)
+1. [The Runtime](#the-runtime)
+1. [The Cache](#the-cache)
+1. [How to Build a Feature](#how-to-build-a-feature)
+
 ## Local Development
 
 The quickest way to test and develop new features is by using the [example project](./example).
@@ -120,6 +132,9 @@ If you made it this far in the guide, you're awesome (even if you just skipped a
 probably want to go back and read the other sections first. When setting out to build a new
 feature, you should start by asking yourself a few questions:
 
+1. How will the developer use the feature? There are really two sides to this - there is the documents that the user types
+   and the returned value from the associated function. Features usually involve both but it's helpful to get a
+   good idea for the general API before anything else.
 1. Does the feature appear in the graphql documents that a developer will use? If so, you will need to think of a way
    to persist what the user types in the generated artifacts. Remember that the cache will walk down the selection field
    when writing values to the cache and can look for special keys in order to perform arbitrary logic when dealing
@@ -136,5 +151,5 @@ feature, you should start by asking yourself a few questions:
    easier to reason about.
 
 Remember, an end-to-end feature for houdini will likely touch the artifact generator as well as the runtime (at the very least).
-It's easy to get lost in how all of the pieces fit together. If you want something to look through to understand the full picture,
-the list operation fragments are a good example.
+It's easy to get lost in how all of the pieces fit together. If you are looking for an example to follow from start to finish,
+the support for list operations is a good example.
