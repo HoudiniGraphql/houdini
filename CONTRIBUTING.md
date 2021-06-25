@@ -175,7 +175,7 @@ query AllUsersQuery {
 }
 ```
 
-With that in place, the user can then use a set of fragments in mutations that can mutate the list. For example:
+... and then they use a a set of fragments in mutations that can mutate the list:
 
 ```graphql
 mutation AddUserMutation {
