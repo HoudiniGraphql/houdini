@@ -141,7 +141,7 @@ If you made it this far in the guide, you're awesome - even if you just skipped 
 time to start thinking about adding a feature to the codebase, you should start by asking yourself a few questions:
 
 1. Does the feature appear in the graphql documents that a developer will use? If so, you will need to think of a way
-   to persist what the user types in the generated artifacts. Remember that the cache will walk down the selection field
+   to persist what the user types in the generated artifacts. Remember that the runtime will walk down the selection field
    when writing values to the cache and can look for special keys in order to perform arbitrary logic when dealing
    with a server's response. Once you have the information persisted in the artifact, all that's left is figuring out
    how the runtime will handle what's there.
