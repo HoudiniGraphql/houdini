@@ -6,6 +6,10 @@ This document should hopefully provide some guidance for working on the project 
 some tips for local development as well as an introduction to the internal architecture
 and the relevant files/directories.
 
+**Note**: this document contains links to files and sometimes specific lines of code which could easily be invalidated
+with future work. If you run into a link that's broken or doesn't look right, please open a PR that fixes it.
+Keeping documentation up to date is as important as _any_ bug fix or new feature.
+
 ## Table of Contents
 
 1. [Local Development](#local-development)
@@ -16,7 +20,7 @@ and the relevant files/directories.
 1. [The Preprocess](#the-preprocessor)
 1. [The Runtime](#the-runtime)
 1. [The Cache](#the-cache)
-1. [How to Build a Feature](#how-to-build-a-feature)
+1. [Piecing It All Together](#piecing-it-all-together)
 
 ## Local Development
 
@@ -73,8 +77,11 @@ handle the response from the server.
 
 ### Document Artifacts
 
-It's sometimes helpful to look at the shape of the artifacts that the `generate` command produces. Rather than outlining
-them in this document (which would likely go stale quickly) I recommend looking at the
+It's sometimes helpful to look at the shape of the artifacts that the `generate` command produces. The logic for constructing these artifacts is done by generating a javascript abstract syntax tree and printing
+it before writing the result to disk. The [Online AST Explorer](https://astexplorer.net/) is incredibly useful for figuring out
+the right objects to leave behind that will result in the desired code.
+
+Rather than outlining every field contained in an artifact (which would likely go stale quickly) I recommend looking at the
 [artifact snapshot tests](packages/houdini/cmd/generators/artifacts/artifacts.test.ts) to see what is generated in various
 situations. At high level, the `raw` field is used when sending actual queries to the server and the `selection`
 field is structured to save the runtime from wasting cycles (and bundle size) on parsing and "understanding" what the
@@ -125,7 +132,7 @@ For a good general introduction to normalized caching for GraphQL queries, check
 [urql page on Normalized Caching](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/)
 which gives a very good overview of the task, even if some of the actual implementation details differ from houdini's.
 
-## How to Build a Feature
+## Piecing It All Together
 
 If you made it this far in the guide, you're awesome (even if you just skipped ahead). If you
 **did** just skip ahead, this section isn't going to spend much time explaining things so you
@@ -140,16 +147,69 @@ feature, you should start by asking yourself a few questions:
    when writing values to the cache and can look for special keys in order to perform arbitrary logic when dealing
    with a server's response. Once you have the information persisted in the artifact, all that's left is figuring out
    how the runtime will handle what's there.
-1. Are there are any necessary validation steps? They don't just have to protect the user but can also provide guarantees for
+1. Are there are any validation steps? They don't just have to protect the user but can also provide guarantees for
    the runtime that save you having to check a bunch of stuff when processing a server's response.
 1. Can svelte provide any kind of help to the runtime? One of the benefits of the way houdini is organized is that the generated
    runtime looks like any other code in a user's codebase. This means things like reactive statements and life-cycle functions
    work out of the box.
 1. Can the feature be implemented as a layer over what the cache already supports? Caching in general is a famously tricky problem
    so it would be nice to avoid adding a lot of complexity if we can. It's useful to think of the cache as a "live"
-   source of truth - if you can build your feature on top of the subscribe and write abstractions, it will likely be a lot
+   source of truth - if you can build your feature on top of the subscribe and write capabilities, it will likely be a lot
    easier to reason about.
 
 Remember, an end-to-end feature for houdini will likely touch the artifact generator as well as the runtime (at the very least).
-It's easy to get lost in how all of the pieces fit together. If you are looking for an example to follow from start to finish,
-the support for list operations is a good example.
+It's easy to get lost in how all of the pieces fit together. In order to help make things more clear, the implementation for list
+operations will be outlined in the following section.
+
+### An Example: List Operations
+
+This section will contain links to exact lines of code in order to walk you through how the list operations are implemented and will
+likely fall out of line with the actual codebase. If you encounter an incorrect link, **please** open a PR to fix it.
+
+There are two parts to this feature. First, a user marks a particular field as a valid target for operations:
+
+```graphql
+query AllUsersQuery {
+	users @connection(name: "All_Users") {
+		id
+		firstName
+	}
+}
+```
+
+With that in place, the user can then use a set of fragments in mutations that can mutate the list. For example:
+
+```graphql
+mutation AddUserMutation {
+	addUser(firstName: "Alec") {
+		...All_Users_insert
+	}
+}
+```
+
+The compile-time steps for this feature can be broken down into the following steps:
+
+1. Add the `connection` directive to the projects schema. As mentioned earlier, this is done in the
+   [schema transform](./packages/houdini/cmd/transforms/schema.ts#L29).
+1. Define the operation fragment somewhere that the [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts)
+   can pick it up to include in the mutation query when its sent to the server. This happens in the
+   [connection transform](./packages/houdini/cmd/transforms/connections.ts).
+1. When generating the artifacts for the query,
+   [remove any references to the `@connection` directive](./packages/houdini/cmd/generators/artifacts/index.ts#L107-L110) and
+   [leave behind a label](./packages/houdini/cmd/generators/artifacts/selection.ts#L329-L331) identifying the field as
+   the "All_Users" connection. For a better idea of how this label is embedded in the artifact, look at the
+   [connection filters test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L1993).
+1. When generating the artifact for the mutation, look for
+   [any fragment spreads that are list operations](./packages/houdini/cmd/generators/artifacts/operations.ts#L27) and
+   and [embed the list of operations](./packages/houdini/cmd/generators/artifacts/selection.ts#L335-L342) in the selection
+   object for the mutation. For a better picture for how this looks in the final artifact, look at the
+   [insert operation test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L537-L541).
+
+With the information embedded in the artifacts, all that's left is to teach the runtime how to handle the server's response which
+is broken down into two parts.
+
+1. When the cache encounters a request to [subscribe to a field marked as a connection](./packages/houdini/runtime/cache/cache.ts#L192),
+   it [saves a handler to that connection](./packages/houdini/runtime/cache/cache.ts#L199-L219) in an internal Map.
+1. When writing data, if the cache [encounters a field with a list of operations](./packages/houdini/runtime/cache/cache.ts#L457)
+   embedded in the selection object, it [inserts the result](./packages/houdini/runtime/cache/cache.ts#L482-L484) to connection
+   using the handler it stored in step one.
