@@ -150,10 +150,6 @@ time to start thinking about adding a feature to the codebase, you should start 
 1. Can svelte provide any kind of help to the runtime? One of the benefits of generating the entire runtime is that the
    final code looks like any other code in a user's project. This means things like reactive statements and life-cycle functions
    work out of the box.
-1. Can the feature be implemented as a layer over what the cache already supports? Caching in general is a famously tricky problem
-   so it would be nice to avoid adding a lot of complexity if we can. It's useful to think of the cache as a "live"
-   source of truth - if you can build your feature on top of the subscribe and write capabilities, it will likely be a lot
-   easier to reason about.
 
 Remember, an end-to-end feature for houdini will likely touch the artifact generator as well as the runtime (at the very least).
 It's easy to get lost in how all of the pieces fit together. In order to help make things more clear, the implementation for list
