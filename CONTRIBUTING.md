@@ -198,7 +198,7 @@ The steps for updating the `generate` function to support this feature can be br
    [connection filters test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L1993).
 1. When generating the artifact for the mutation, look for
    [any fragment spreads that are list operations](./packages/houdini/cmd/generators/artifacts/operations.ts#L27) and
-   and [embed the list of operations](./packages/houdini/cmd/generators/artifacts/selection.ts#L335-L342) in the selection
+   and [embed the set of operations](./packages/houdini/cmd/generators/artifacts/selection.ts#L335-L342) in the selection
    object for the mutation. For a better picture for how this looks in the final artifact, look at the
    [insert operation test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L537-L541).
 
