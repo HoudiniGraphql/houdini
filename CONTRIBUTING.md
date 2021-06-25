@@ -184,7 +184,7 @@ mutation AddUserMutation {
 }
 ```
 
-The compile-time steps for this feature can be broken down into the following steps:
+The steps for updating the `generate` function to support this feature can be broken down into the following:
 
 1. Add the `connection` directive to the projects schema. As mentioned earlier, this is done in the
    [schema transform](./packages/houdini/cmd/transforms/schema.ts#L29).
