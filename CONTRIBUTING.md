@@ -112,3 +112,29 @@ an object matching the entire corresponding selection.
 For a good general introduction to normalized caching for GraphQL queries, check out the
 [urql page on Normalized Caching](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/)
 which gives a very good overview of the task, even if some of the actual implementation details differ from houdini's.
+
+## How to Build a Feature
+
+If you made it this far in the guide, you're awesome (even if you just skipped ahead). If you
+**did** just skip ahead, this section isn't going to spend much time explaining things so you
+probably want to go back and read the other sections first. When setting out to build a new
+feature, you should start by asking yourself a few questions:
+
+1. Does the feature appear in the graphql documents that a developer will use? If so, you will need to think of a way
+   to persist what the user types in the generated artifacts. Remember that the cache will walk down the selection field
+   when writing values to the cache and can look for special keys in order to perform arbitrary logic when dealing
+   with a server's response. Once you have the information persisted in the artifact, all that's left is figuring out
+   how the runtime will handle what's there.
+1. Are there are any necessary validation steps? They don't just have to protect the user but can also provide guarantees for
+   the runtime that save you having to check a bunch of stuff when processing a server's response.
+1. Can svelte provide any kind of help to the runtime? One of the benefits of the way houdini is organized is that the generated
+   runtime looks like any other code in a user's codebase. This means things like reactive statements and life-cycle functions
+   work out of the box.
+1. Can the feature be implemented as a layer over what the cache already supports? Caching in general is a famously tricky problem
+   so it would be nice to avoid adding a lot of complexity if we can. It's useful to think of the cache as a "live"
+   source of truth - if you can build your feature on top of the subscribe and write abstractions, it will likely be a lot
+   easier to reason about.
+
+Remember, an end-to-end feature for houdini will likely touch the artifact generator as well as the runtime (at the very least).
+It's easy to get lost in how all of the pieces fit together. If you want something to look through to understand the full picture,
+the list operation fragments are a good example.
