@@ -107,7 +107,7 @@ sent to the server, and a caching layer used to orchestrate data across the appl
 ### The Cache
 
 As with most of this guide, the most reliable place to get an understanding for how
-the cache's internals work is the [test suite](./packages/houdini/runtime/cache/cache.test.ts).
+the cache's internals are organized is the [test suite](./packages/houdini/runtime/cache/cache.test.ts).
 However, here is a brief explanation of the overall architecture so you can orient yourself:
 
 Houdini's cache is built on top of two core interactions: writing data and
