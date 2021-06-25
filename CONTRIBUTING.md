@@ -130,7 +130,7 @@ function alongside the field values for a given object. When data is written to 
 at the values being updated, captures every `set` function that must be called, and invokes the function with
 an object matching the entire corresponding selection.
 
-For a good general introduction to normalized caching for GraphQL queries, check out the
+For a general introduction to normalized caching for GraphQL queries, check out the
 [urql page on Normalized Caching](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/)
 which gives a very good overview of the task, even if some of the actual implementation details differ from houdini's.
 
@@ -146,8 +146,8 @@ time to start thinking about adding a feature to the codebase, you should start 
    how the runtime will handle what's there.
 1. Are there are any validation steps? They don't just have to protect the user but can also provide guarantees for
    the runtime that save you having to check a bunch of stuff when processing a server's response.
-1. Can svelte provide any kind of help to the runtime? One of the benefits of the way houdini is organized is that the generated
-   runtime looks like any other code in a user's codebase. This means things like reactive statements and life-cycle functions
+1. Can svelte provide any kind of help to the runtime? One of the benefits of generating the entire runtime is that the
+   final code looks like any other code in a user's project. This means things like reactive statements and life-cycle functions
    work out of the box.
 1. Can the feature be implemented as a layer over what the cache already supports? Caching in general is a famously tricky problem
    so it would be nice to avoid adding a lot of complexity if we can. It's useful to think of the cache as a "live"
