@@ -17,7 +17,7 @@ Keeping documentation up to date is as important as _any_ bug fix or new feature
 1. [The `generate` Command](#the-generate-command)
     1. [Internal GraphQL Schema](#internal-graphql-schema)
     1. [Document Artifacts](#document-artifacts)
-1. [The Preprocess](#the-preprocessor)
+1. [The Preprocessor](#the-preprocessor)
 1. [The Runtime](#the-runtime)
 1. [The Cache](#the-cache)
 1. [Piecing It All Together](#piecing-it-all-together)
