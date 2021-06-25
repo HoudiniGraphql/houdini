@@ -136,10 +136,8 @@ which gives a very good overview of the task, even if some of the actual impleme
 
 ## Piecing It All Together
 
-If you made it this far in the guide, you're awesome (even if you just skipped ahead). If you
-**did** just skip ahead, this section isn't going to spend much time explaining things so you
-probably want to go back and read the other sections first. When setting out to build a new
-feature, you should start by asking yourself a few questions:
+If you made it this far in the guide, you're awesome - even if you just skipped ahead. Either way, when it's
+time to start thinking about adding a feature to the codebase, you should start by asking yourself a few questions:
 
 1. Does the feature appear in the graphql documents that a developer will use? If so, you will need to think of a way
    to persist what the user types in the generated artifacts. Remember that the cache will walk down the selection field
