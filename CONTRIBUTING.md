@@ -206,7 +206,7 @@ With the information embedded in the artifacts, all that's left is to teach the 
 is broken down into two parts:
 
 1. When the cache encounters a request to [subscribe to a field marked as a connection](./packages/houdini/runtime/cache/cache.ts#L192),
-   it [saves a handler to that connection](./packages/houdini/runtime/cache/cache.ts#L199-L219) in an internal Map.
+   it [saves a handler to that connection](./packages/houdini/runtime/cache/cache.ts#L199-L219) in an internal Map under the provided name.
 1. When writing data, if the cache [encounters a field with a list of operations](./packages/houdini/runtime/cache/cache.ts#L457)
-   embedded in the selection object, it [inserts the result](./packages/houdini/runtime/cache/cache.ts#L482-L484) to connection
+   embedded in the selection object, it [inserts the result](./packages/houdini/runtime/cache/cache.ts#L482-L484) in the connection
    using the handler it stored in step one.
