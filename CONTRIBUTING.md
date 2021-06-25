@@ -139,9 +139,6 @@ If you made it this far in the guide, you're awesome (even if you just skipped a
 probably want to go back and read the other sections first. When setting out to build a new
 feature, you should start by asking yourself a few questions:
 
-1. How will the developer use the feature? There are really two sides to this - there is the documents that the user types
-   and the returned value from the associated function. Features usually involve both but it's helpful to get a
-   good idea for the general API before anything else.
 1. Does the feature appear in the graphql documents that a developer will use? If so, you will need to think of a way
    to persist what the user types in the generated artifacts. Remember that the cache will walk down the selection field
    when writing values to the cache and can look for special keys in order to perform arbitrary logic when dealing
