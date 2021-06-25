@@ -77,11 +77,13 @@ handle the response from the server.
 
 ### Document Artifacts
 
-It's sometimes helpful to look at the shape of the artifacts that the `generate` command produces. The logic for constructing these artifacts is done by generating a javascript abstract syntax tree and printing
-it before writing the result to disk. The [Online AST Explorer](https://astexplorer.net/) is incredibly useful for figuring out
+The logic for constructing the document artifacts is done by generating a javascript abstract syntax tree and printing
+it before writing the result to disk. This is done using the awesome [recast](https://github.com/benjamn/recast) library
+but can still be tricky to get right. The [Online AST Explorer](https://astexplorer.net/) is incredibly useful for figuring out
 the right objects to leave behind that will result in the desired code.
 
-Rather than outlining every field contained in an artifact (which would likely go stale quickly) I recommend looking at the
+It's sometimes helpful to look at the shape of the artifacts that the `generate` command produces. Rather than
+outlining every field contained in an artifact (which would likely go stale quickly) I recommend looking at the
 [artifact snapshot tests](packages/houdini/cmd/generators/artifacts/artifacts.test.ts) to see what is generated in various
 situations. At high level, the `raw` field is used when sending actual queries to the server and the `selection`
 field is structured to save the runtime from wasting cycles (and bundle size) on parsing and "understanding" what the
