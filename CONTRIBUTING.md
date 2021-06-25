@@ -203,7 +203,7 @@ The compile-time steps for this feature can be broken down into the following st
    [insert operation test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L537-L541).
 
 With the information embedded in the artifacts, all that's left is to teach the runtime how to handle the server's response which
-is broken down into two parts.
+is broken down into two parts:
 
 1. When the cache encounters a request to [subscribe to a field marked as a connection](./packages/houdini/runtime/cache/cache.ts#L192),
    it [saves a handler to that connection](./packages/houdini/runtime/cache/cache.ts#L199-L219) in an internal Map.
