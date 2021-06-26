@@ -2,9 +2,8 @@
 import * as graphql from 'graphql'
 import { testConfig } from 'houdini-common'
 // locals
-import { CollectedGraphQLDocument } from './types'
-import { runPipeline } from './compile'
-import { HoudiniError } from './error'
+import { CollectedGraphQLDocument, HoudiniError } from './types'
+import { runPipeline } from './generate'
 
 export function pipelineTest(
 	title: string,

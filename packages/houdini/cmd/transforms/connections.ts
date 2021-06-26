@@ -2,8 +2,7 @@
 import { Config, getTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
-import { CollectedGraphQLDocument } from '../types'
-import { HoudiniError, HoudiniErrorTodo } from '../error'
+import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 
 // addConnectionFragments adds fragments for the fields tagged with @connection
 export default async function addConnectionFragments(

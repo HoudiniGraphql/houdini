@@ -1,8 +1,7 @@
 // externals
 import { Config } from 'houdini-common'
-import { HoudiniInfoError } from '../error'
 // locals
-import { CollectedGraphQLDocument } from '../types'
+import { CollectedGraphQLDocument, HoudiniInfoError } from '../types'
 
 // uniqueDocumentNames verifies that the documents all have unique names
 export default async function uniqueDocumentNames(

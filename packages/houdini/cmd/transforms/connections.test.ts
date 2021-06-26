@@ -3,7 +3,7 @@ import { testConfig } from 'houdini-common'
 import * as graphql from 'graphql'
 // local imports
 import '../../../../jest.setup'
-import { runPipeline } from '../compile'
+import { runPipeline } from '../generate'
 import { mockCollectedDoc } from '../testUtils'
 
 test('insert fragments on query selection set', async function () {
