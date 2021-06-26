@@ -145,7 +145,7 @@ time to start thinking about adding a feature to the codebase, you should start 
    when writing values to the cache and can look for special keys in order to perform arbitrary logic when dealing
    with a server's response. Once you have the information persisted in the artifact, all that's left is figuring out
    how the runtime will handle what's there.
-1. Are there are any validation steps? They not there just to protect the user, but can also provide guarantees for
+1. Are there are any validation steps? They're not there just to protect the user. They can also provide guarantees for
    the runtime that save you having to check a bunch of stuff when processing a server's response.
 1. Can svelte provide any kind of help to the runtime? One of the benefits of generating the entire runtime is that the
    final code looks like any other code in a user's project. This means things like reactive statements and life-cycle functions
