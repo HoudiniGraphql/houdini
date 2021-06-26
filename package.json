@@ -10,7 +10,9 @@
 		"tests": "node --experimental-vm-modules node_modules/.bin/jest",
 		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
 		"build": "yarn workspace houdini-common run build && yarn workspace houdini run build && yarn workspace houdini-preprocess run build ",
-		"clean": "rm -rf packages/*/build"
+		"clean": "rm -rf packages/*/build",
+		"format": "prettier -w \"packages/**/*.ts\"",
+		"prepare": "husky install"
 	},
 	"resolutions": {
 		"typescript": "3.9.5"
@@ -25,6 +27,7 @@
 		"babel-jest": "^26.6.3",
 		"babel-plugin-transform-import-meta": "^2.0.0",
 		"graphql": "15.5.0",
+		"husky": "^6.0.0",
 		"jest": "^26.6.3",
 		"lerna": "^3.22.1",
 		"mock-fs": "^4.13.0",

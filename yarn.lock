@@ -5665,8 +5665,8 @@ __metadata:
     "@sveltejs/kit": 1.0.0-next.107
     apollo-server: ^2.24.0
     graphql: 15.5.0
-    houdini: ^0.6.2
-    houdini-preprocess: ^0.6.2
+    houdini: ^0.7.1
+    houdini-preprocess: ^0.7.1
     subscriptions-transport-ws: ^0.9.18
     svelte: ^3.38.2
     svelte-preprocess: ^4.0.0
@@ -6668,7 +6668,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.6.0, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.7.0, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
@@ -6697,6 +6697,7 @@ __metadata:
     babel-plugin-transform-import-meta: ^2.0.0
     global: ^4.4.0
     graphql: 15.5.0
+    husky: ^6.0.0
     jest: ^26.6.3
     lerna: ^3.22.1
     mock-fs: ^4.13.0
@@ -6711,7 +6712,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.6.2, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.7.1, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -6725,8 +6726,8 @@ __metadata:
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
     graphql: 15.5.0
-    houdini: ^0.6.2
-    houdini-common: ^0.6.0
+    houdini: ^0.7.1
+    houdini-common: ^0.7.0
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -6737,7 +6738,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.6.2, houdini@workspace:packages/houdini":
+"houdini@^0.7.1, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
@@ -6758,7 +6759,7 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.6.0
+    houdini-common: ^0.7.0
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
@@ -6878,6 +6879,15 @@ __metadata:
   dependencies:
     ms: ^2.0.0
   checksum: 4a08769434132a229a6153e77c869a9fe7132dc003d90119d54958e7b75feb65a3c4eca19fb18921568878ac455b6f399013279ad33248d94bd61a25def1fdda
+  languageName: node
+  linkType: hard
+
+"husky@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "husky@npm:6.0.0"
+  bin:
+    husky: lib/bin.js
+  checksum: 61e1f7f53f3c969d361c2a1d4ed8018b9447406ea6cd644a2526d18b76877d135001d8cbd48a1d201fc1614d96995e691ecd2b82a8d8513a6b4a313da1188ccd
   languageName: node
   linkType: hard
 
