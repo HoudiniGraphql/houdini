@@ -11,7 +11,9 @@
 		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
 		"build": "yarn workspace houdini-common run build && yarn workspace houdini run build && yarn workspace houdini-preprocess run build ",
 		"clean": "rm -rf packages/*/build",
-		"format": "prettier -w \"packages/**/*.ts\"",
+		"format": "prettier \"packages/**/*.ts\"",
+		"format:write": "npm run format -- -w",
+		"format:check": "npm run format -- --check",
 		"prepare": "husky install"
 	},
 	"resolutions": {
