@@ -36,7 +36,7 @@ should be able to visit `localhost:3000` in a web browser and see a working todo
 
 At a high level, houdini is broken up into two parts: a [command-line tool](./packages/houdini/cmd)
 and a [preprocessor](./packages/houdini-preprocess). The command-line tool is responsible for a
-variety of tasks including scaffolding a new project, validating a project's documents, and
+variety of tasks, including scaffolding a new project, validating a project's documents, and
 generating the associated artifacts that the runtime needs to do its job. The preprocessor
 handles optimizing the user's code for their specific platform and "connects the dots"
 between what the user types and the houdini runtime.
@@ -56,7 +56,7 @@ These tasks fall into three categories:
     [uniqueNames validator](./packages/houdini/cmd/validators/uniqueNames.ts) makes sure that every document
     has a unique name so that the preprocessor can reliably import the correct artifact.
 -   **Transforms** are defined in [packages/houdini/cmd/transforms](./packages/houdini/cmd/transforms) and
-    change the actual documents that the user provides. For example, the
+    modify the actual documents that the user provides. For example, the
     [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) is responsible for adding
     any fragments that a query uses so they can be included in the network request sent to the server.
 -   **Generators** are defined in [packages/houdini/cmd/generators](./packages/houdini/cmd/generators)
@@ -65,8 +65,8 @@ These tasks fall into three categories:
 
 ### Internal GraphQL Schema
 
-There are a number of features which rely on things that aren't defined in the project's schema.
-Most these additions are added in the [schema transform](./packages/houdini/cmd/transforms/schema.ts) and are eventually
+There are a number of features that rely on things that aren't defined in the project's schema.
+Most of these are added temporarily by the [schema transform](./packages/houdini/cmd/transforms/schema.ts), and eventually
 removed from the document to prevent the server from encountering anything unknown. The fragments used for
 connection mutations are currently generated in a [separate transform](./packages/houdini/cmd/transforms/connections.ts).
 Since the operation fragments are passed along to the server as part of the
@@ -78,7 +78,7 @@ handle the response from the server.
 
 ### Document Artifacts
 
-The logic for constructing the document artifacts is done by generating a javascript abstract syntax tree and printing
+The logic for constructing the document artifacts is done by generating a javascript abstract syntax tree (AST) and printing
 it before writing the result to disk. This is done using the awesome [recast](https://github.com/benjamn/recast) library
 but can still be tricky to get right. The [Online AST Explorer](https://astexplorer.net/) is incredibly useful for figuring out
 the right objects to leave behind that will result in the desired code.
@@ -86,7 +86,7 @@ the right objects to leave behind that will result in the desired code.
 It's sometimes helpful to look at the shape of the artifacts that the `generate` command produces. Rather than
 outlining every field contained in an artifact (which would likely go stale quickly) I recommend looking at the
 [artifact snapshot tests](packages/houdini/cmd/generators/artifacts/artifacts.test.ts) to see what is generated in various
-situations. At high level, the `raw` field is used when sending actual queries to the server and the `selection`
+situations. At a high level, the `raw` field is used when sending actual queries to the server and the `selection`
 field is structured to save the runtime from wasting cycles (and bundle size) on parsing and "understanding" what the
 user wants when they use a specific document. For more information about how these are used, see the [cache section](#the-cache).
 
@@ -106,7 +106,7 @@ sent to the server, and a caching layer used to orchestrate data across the appl
 
 ### The Cache
 
-As with most of this guide, the most reliable place to get an understanding for how
+As with most of this guide, the most reliable place to get an understanding of how
 the cache's internals are organized is the [test suite](./packages/houdini/runtime/cache/cache.test.ts).
 However, here is a brief explanation of the overall architecture so you can orient yourself:
 
@@ -115,7 +115,7 @@ subscribing to a given selection. In order for a value to be written to the cach
 it must be given the the data along with schema information for the payload.
 In response, the cache walks down the result and stores the value of every field that it
 encounters in an object mapping the entity's id to the set of field values. This data is
-stored in a normal form which means that references to other entities are not stored like scalar values
+stored in normal form, which means that references to other entities are not stored like scalar values
 but are instead stored as references to other entries in the same map. This gives us a single
 place where updates can be applied, without worrying about where that information is used. While walking
 down the provided selection, the cache looks for information embedded by the artifact generator to perform
@@ -124,7 +124,7 @@ additional tasks like updating a connection.
 While writing data is an important part of the interaction with the cache, the real "meat" is in the
 subscription architecture which keeps the store returned by `query` (or `fragment`) up to date as values are changed.
 Just like when writing data, the cache must be given an object that describes the full selection of data that
-the store would like, however it also needs a function to call when the data has changed. In practice,
+the store would like. However, it also needs a function to call when the data has changed. In practice,
 this function is just the `set` corresponding to the writable store powering a given `query` or `fragment`.
 With these two things, the cache walks down the provided selection and embeds a reference to the `set`
 function alongside the field values for a given object. When data is written to the cache, houdini looks
@@ -132,7 +132,7 @@ at the values being updated, captures every `set` function that must be called, 
 an object matching the entire corresponding selection.
 
 For a general introduction to normalized caching for GraphQL queries, check out the
-[urql page on Normalized Caching](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/)
+[urql page on Normalized Caching](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/),
 which gives a very good overview of the task, even if some of the actual implementation details differ from houdini's.
 
 ## Piecing It All Together
@@ -145,7 +145,7 @@ time to start thinking about adding a feature to the codebase, you should start 
    when writing values to the cache and can look for special keys in order to perform arbitrary logic when dealing
    with a server's response. Once you have the information persisted in the artifact, all that's left is figuring out
    how the runtime will handle what's there.
-1. Are there are any validation steps? They don't just have to protect the user but can also provide guarantees for
+1. Are there are any validation steps? They not there just to protect the user, but can also provide guarantees for
    the runtime that save you having to check a bunch of stuff when processing a server's response.
 1. Can svelte provide any kind of help to the runtime? One of the benefits of generating the entire runtime is that the
    final code looks like any other code in a user's project. This means things like reactive statements and life-cycle functions
@@ -171,7 +171,7 @@ query AllUsersQuery {
 }
 ```
 
-... and then they use a a set of fragments in mutations that can mutate the list:
+... and then use a set of fragments in mutations that can mutate the list:
 
 ```graphql
 mutation AddUserMutation {
@@ -199,7 +199,7 @@ The steps for updating the `generate` function to support this feature can be br
    object for the mutation. For a better picture for how this looks in the final artifact, look at the
    [insert operation test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L537-L541).
 
-With the information embedded in the artifacts, all that's left is to teach the runtime how to handle the server's response which
+With the information embedded in the artifacts, all that's left is to teach the runtime how to handle the server's response; this
 is broken down into two parts:
 
 1. When the cache encounters a request to [subscribe to a field marked as a connection](./packages/houdini/runtime/cache/cache.ts#L192),
