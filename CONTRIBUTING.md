@@ -36,8 +36,8 @@ should be able to visit `localhost:3000` in a web browser and see a working todo
 
 At a high level, houdini is broken up into two parts: a [command-line tool](./packages/houdini/cmd)
 and a [preprocessor](./packages/houdini-preprocess). The command-line tool is responsible for a
-variety of tasks, including scaffolding a new project, validating a project's documents, and
-generating the associated artifacts that the runtime needs to do its job. The preprocessor
+variety of tasks, including scaffolding a new project, validating graphql documents, and
+generating the runtime and artifacts for the application. The preprocessor
 handles optimizing the user's code for their specific platform and "connects the dots"
 between what the user types and the houdini runtime.
 
@@ -58,7 +58,7 @@ These tasks fall into three categories:
 -   **Transforms** are defined in [packages/houdini/cmd/transforms](./packages/houdini/cmd/transforms) and
     modify the actual documents that the user provides. For example, the
     [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) is responsible for adding
-    any fragments that a query uses so they can be included in the network request sent to the server.
+    any definitions for fragments used by an operation so they can be included in the network request.
 -   **Generators** are defined in [packages/houdini/cmd/generators](./packages/houdini/cmd/generators)
     and write things to disk. For example, the [typescript generator](./packages/houdini/cmd/generators/typescript.ts)
     creates type definitions for every document in a project.
@@ -66,8 +66,8 @@ These tasks fall into three categories:
 ### Internal GraphQL Schema
 
 There are a number of features that rely on things that aren't defined in the project's schema.
-Most of these are added temporarily by the [schema transform](./packages/houdini/cmd/transforms/schema.ts), and eventually
-removed from the document to prevent the server from encountering anything unknown. The fragments used for
+Most of these are added temporarily by the [schema transform](./packages/houdini/cmd/transforms/schema.ts), and
+are eventually removed from the document to prevent the server from encountering anything unknown. The fragments used for
 connection mutations are currently generated in a [separate transform](./packages/houdini/cmd/transforms/connections.ts).
 Since the operation fragments are passed along to the server as part of the
 [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) they don't need to be removed
@@ -171,7 +171,7 @@ query AllUsersQuery {
 }
 ```
 
-... and then use a set of fragments in mutations that can mutate the list:
+... and then uses a fragment in the mutations to update the list:
 
 ```graphql
 mutation AddUserMutation {
@@ -195,7 +195,7 @@ The steps for updating the `generate` function to support this feature can be br
    [connection filters test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L1993).
 1. When generating the artifact for the mutation, look for
    [any fragment spreads that are list operations](./packages/houdini/cmd/generators/artifacts/operations.ts#L27) and
-   and [embed the set of operations](./packages/houdini/cmd/generators/artifacts/selection.ts#L335-L342) in the selection
+   and [embed them](./packages/houdini/cmd/generators/artifacts/selection.ts#L335-L342) in the selection
    object for the mutation. For a better picture for how this looks in the final artifact, look at the
    [insert operation test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L537-L541).
 
