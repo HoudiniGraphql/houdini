@@ -1,5 +1,6 @@
 {
 	"name": "houdini-monorepo",
+	"private": true,
 	"description": "The disappearing graphql client for sapper",
 	"workspaces": [
 		"example",
@@ -14,7 +15,7 @@
 		"format": "prettier \"packages/**/*.ts\"",
 		"format:write": "npm run format -- -w",
 		"format:check": "npm run format -- --check",
-		"prepare": "husky install"
+		"postinstall": "husky install"
 	},
 	"resolutions": {
 		"typescript": "3.9.5"
@@ -41,7 +42,6 @@
 		"ts-node": "^9.1.1",
 		"typescript": "^4.2.4"
 	},
-	"private": true,
 	"dependencies": {
 		"@types/mock-fs": "^4.13.0",
 		"global": "^4.4.0",
