@@ -1,127 +1,303 @@
-import { parse as parseJS } from '@babel/parser'
-import * as recast from 'recast'
 // locals
 import type { Maybe, Script } from './types'
+import { parse as parseJS } from '@babel/parser'
 
-const scriptStart = '<script'
-const scriptEnd = '</script>'
-
-type ParsedSvelteFile = {
+export type ParsedSvelteFile = {
 	instance: Maybe<Script>
 	module: Maybe<Script>
 }
 
-export function parseFile(content: string): ParsedSvelteFile {
-	// the starting object
-	const doc: ParsedSvelteFile = { instance: null, module: null }
+export type ParserOpts = {
+	filename?: string
+}
 
-	// we need to look for the starts of script tags
-	const { starts, ends }: { starts: number[]; ends: number[] } = content
-		.split('')
-		.reduce<{ starts: number[]; ends: number[] }>(
-			(acc, _, index) => {
-				// if the index represents the start of a script
-				if (content.substr(index, scriptStart.length) == scriptStart) {
-					return {
-						...acc,
-						starts: acc.starts.concat(index),
-					}
-				}
-				// if the index represents the end of a script
-				if (content.substr(index, scriptEnd.length) == scriptEnd) {
-					return {
-						...acc,
-						ends: acc.ends.concat(index + scriptEnd.length - 1),
-					}
-				}
+type ParserError = { message: string; lineNumber: number }
 
-				// keep looking
-				return acc
-			},
-			{ starts: [], ends: [] }
+export function parseFile(str: string, opts?: ParserOpts): ParsedSvelteFile {
+	// look for the instance and module scripts
+	let instance: StackElement | null
+	let module: StackElement | null
+	try {
+		const result = parse(str)
+		instance = result.instance
+		module = result.module
+	} catch (e) {
+		// pull the message and line number out of the erro
+		const { message, lineNumber } = e as ParserError
+
+		// do we have a filename
+		const filename = opts?.filename || 'testFile'
+
+		// bubble the error up
+		throw new Error(
+			`Encountered error${
+				lineNumber ? ` on line ${lineNumber}` : ''
+			} while parsing ${filename}: ${message}`
 		)
+	}
 
-	// sort the indices and zip them together to create the pairs we need
-	starts.sort((a, b) => (a > b ? 1 : -1))
-	ends.sort((a, b) => (a > b ? 1 : -1))
-	const tags = starts.map((value, index) => ({ start: value, end: ends[index] }))
+	// build up the result
+	const result: ParsedSvelteFile = {
+		instance: null,
+		module: null,
+	}
 
-	// look at every script tag we found
-	for (const { start, end } of tags) {
-		// figure out the attributes of the tag
-		const [attributes, endOfAttributes] = findAttributes(content, start)
-		const startOfContent = endOfAttributes + 1
-		// the file contents live between the end of the tag and the start of the closing tag
-		const scriptEndIndex = end - startOfContent - scriptEnd.length
-		const scriptContents = content.substr(startOfContent, scriptEndIndex).trim()
+	// parse both of the scripts
+	for (const [i, script] of [instance, module].entries()) {
+		// figure out which we're parsing
+		if (!script) {
+			continue
+		}
 
-		// parse the script contents
-		const script = {
-			content: parseJS(scriptContents, {
+		result[i === 0 ? 'instance' : 'module'] = {
+			content: parseJS(script.content || '', {
 				plugins: ['typescript'],
 				sourceType: 'module',
 			}).program,
-			start,
-			end: end,
-		}
-
-		// if we are looking at the module
-		if (attributes.context === 'module') {
-			doc.module = script
-		} else {
-			doc.instance = script
+			start: script.start,
+			// end has to exist to get this far
+			end: script.end!,
 		}
 	}
 
-	return doc
+	// we're done here
+	return result
 }
 
-function findAttributes(content: string, start: number): [{ [key: string]: any }, number] {
-	// start points to the beginning of a string, we want everything between the first space and the first > that we encounter
-	let attributeString = ''
-	let endIndex = start
-	let found = false
+type StackElement = {
+	tag: string
+	attributes: { [key: string]: string }
+	start: number
+	end?: number
+	content?: string
+}
 
-	for (let index = start + scriptStart.length; index < content.length; index++) {
-		// if we are looking at the >
-		if (content[index] === '>') {
-			found = true
-			endIndex = index + 1
-			// we're done
-			break
+type StackElementWithStart = StackElement & { startOfTag: number }
+
+function parse(str: string): { instance: StackElement | null; module: StackElement | null } {
+	// offset the script by one so the iterator can start at index 0 pointing at the first element
+	let content = str
+
+	// we need to step through the document and find scripts that are at the root of the document
+	const stack = [] as StackElementWithStart[]
+	let index = -1
+
+	let module: StackElement | null = null
+	let instance: StackElement | null = null
+
+	// count the number of lines
+	let lineNumber = 1
+
+	const ErrorWithLineNumber = (message: string) => {
+		return {
+			message,
+			lineNumber,
+		}
+	}
+
+	const pop = () => {
+		const head = content.slice(0, 1)
+		content = content.slice(1, content.length)
+		index++
+
+		// if we found a newline, increment the line count
+		if (head === '\n') {
+			lineNumber++
 		}
 
-		// we didn't find the close so keep eating
-		attributeString += content[index]
-	}
-	if (!found) {
-		throw new Error('Did not find end of script tag')
+		return head
 	}
 
-	// the attribute string follows a form of {key}={value} separated by arbitrary whitespace
-	return [
-		attributeString
-			.trim()
-			.replace(/\n/g, ' ')
-			.split(/\s/)
-			.filter(Boolean)
-			.map((pair) => {
-				// attributes are defined with an equal
-				const [key, value] = pair.split('=')
+	const takeTil = (char: string) => {
+		let head = pop()
+		let acc = head
+		let tail = head
 
-				return {
-					key: key[0] === '"' ? JSON.parse(key) : key,
-					// JSON.parse accepts double quotes only, not single quote
-					value: JSON.parse(value.replace(/'/g, '"')),
+		// consume characters from content until we get something matching our target
+		while (tail !== char && content.length > 0) {
+			head = pop()
+			acc += head
+			tail = acc.substr(-char.length)
+			// if we ran into the start or finish of a logic block before we continue
+			if (head === '{') {
+				// ignore the entire block
+				takeUntilIgnoringNested('}', '{')
+				continue
+			}
+		}
+
+		// if the last character is not what we were looking for
+		if (tail !== char) {
+			throw ErrorWithLineNumber('could not find ' + char)
+		}
+
+		return acc
+	}
+
+	const takeUntilIgnoringNested = (finish: string, start: string) => {
+		// we need to count instances of `start` that we run into to find the one that closes the one we found
+		let count = 1
+		// the last character we saw
+		let head = ''
+
+		// keep eating until we found the closing `finish`
+		while (count > 0 && content.length > 0) {
+			// consume one character from the string
+			head = pop()
+
+			if (head === start) {
+				count++
+			} else if (head === finish) {
+				count--
+			}
+		}
+
+		// if the last character we saw was not the finishing character, there was a problem
+		if (head !== finish) {
+			throw ErrorWithLineNumber(`did not encounter matching ${finish}.`)
+		}
+	}
+
+	while (content.length > 0) {
+		const head = pop()
+
+		// if we are inside of a script tag, we should just ignore what we found unless its a closing tag
+		if (
+			stack.length > 0 &&
+			stack[stack.length - 1].tag === 'script' &&
+			content.substr(0, '/script'.length) !== '/script'
+		) {
+			continue
+		}
+
+		// if we found a comment
+		if (head + content.substr(0, '!--'.length) === '<!--') {
+			// consume the string until we are at the end of the comment
+			takeTil('-->')
+			// we're done
+			continue
+		}
+
+		// if the character indicates the start or end of a tag
+		if (head === '<') {
+			// collect everything until the closing >
+			let tag = takeTil('>').slice(0, -1).trim()
+
+			// if the first character denotes we're actually closing a tag
+			if (tag[0] === '/') {
+				// remove the last element from the stack
+				const innerElement = stack.pop()
+				const tagName = tag.substr(1)
+				if (!innerElement || innerElement.tag !== parseTag(tagName).tag) {
+					throw ErrorWithLineNumber(
+						`unexpected closing tag ${parseTag(tagName).tag}, expected ${
+							innerElement?.tag
+						}.`
+					)
 				}
-			})
-			.reduce<{ [key: string]: any }>(
-				(acc, pair) => ({
-					...acc,
-					[pair.key]: pair.value,
-				}),
-				{}
-			),
-		endIndex,
-	]
+
+				//  the index is the end of the tag
+				innerElement.end = index - innerElement.tag.length - 2
+
+				// if we ended a script that's at the top of the stack
+				if (innerElement.tag === 'script' && stack.length === 0) {
+					// dry the bounds
+					const start = innerElement.start + 1
+					const end = innerElement.end
+
+					// get the content of the script
+					const content = str.slice(start, end - 1).trim()
+
+					// dry the result
+					const script = {
+						start: innerElement.startOfTag,
+						end: innerElement.end + tag.length + 1,
+						content,
+						tag: innerElement.tag,
+						attributes: innerElement.attributes,
+					}
+
+					// if we are looking at the module context
+					if (innerElement.attributes.context === 'module') {
+						module = script
+					} else {
+						instance = script
+					}
+				}
+
+				// keep moving
+				continue
+			}
+
+			// look at the rest of the
+			const { tag: tagName, attributes } = parseTag(tag)
+
+			// if the last character is a / then we have a self closing tag, nothing goes on the stack
+			if (tag.slice(-1) !== '/') {
+				// add the tagname to the stack
+				stack.push({
+					tag: tagName,
+					attributes,
+					start: index,
+					startOfTag: index - tag.length - 1,
+				})
+			}
+
+			// we're done processing the string
+			continue
+		}
+
+		// if we ran into the start or finish of a logic block
+		if (head === '{') {
+			// ignore the entire block
+			takeUntilIgnoringNested('}', '{')
+			// keep processing the rest of the string
+			continue
+		}
+	}
+
+	return { instance, module }
+}
+
+const parseTag = (str: string) => {
+	// the first characters before a space gives us the name of the tag
+	let endOfTagName = str.match(/\s/)?.index || -1
+	if (endOfTagName === -1) {
+		endOfTagName = str.length - 1
+	}
+	const tagName = str.substr(0, endOfTagName + 1)
+	const tag = tagName.trim()
+
+	// only compute the attributes for scripts
+	const attributes =
+		tag !== 'script'
+			? {}
+			: str
+					.slice(endOfTagName + 1)
+					.trim()
+					.replace(/\n/g, ' ')
+					.split(/\s/)
+					.filter(Boolean)
+					.map((pair) => {
+						// attributes are defined with an equal
+						const [key, value] = pair.split('=')
+
+						return {
+							key: key[0] === '"' ? JSON.parse(key) : key,
+							// JSON.parse accepts double quotes only, not single quote
+							value: JSON.parse(value.replace(/'/g, '"')),
+						}
+					})
+					.reduce<{ [key: string]: any }>(
+						(acc, pair) => ({
+							...acc,
+							[pair.key]: pair.value,
+						}),
+						{}
+					)
+
+	return {
+		tag,
+		attributes,
+	}
 }
