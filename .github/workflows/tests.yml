@@ -13,6 +13,31 @@ on:
             - main
 
 jobs:
+    format:
+        name: Formatting
+        runs-on: ubuntu-latest
+
+    tests:
+        name: Tests
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Use Node.js 15.x
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 15.x
+
+            - name: Checkout source
+              uses: actions/checkout@master
+              with:
+                  ref: ${{ github.ref }}
+
+            - name: Install dependencies
+              run: yarn install
+
+            - name: Check prettier
+              run: yarn format:check
+
     tests:
         name: Tests
         runs-on: ubuntu-latest
@@ -33,9 +58,6 @@ jobs:
 
             - name: Build packages
               run: yarn build
-
-            - name: Check formatting
-              run: yarn format:check
 
             - name: Tests
               run: yarn tests

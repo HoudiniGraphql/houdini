@@ -6697,7 +6697,6 @@ __metadata:
     babel-plugin-transform-import-meta: ^2.0.0
     global: ^4.4.0
     graphql: 15.5.0
-    husky: ^6.0.0
     jest: ^26.6.3
     lerna: ^3.22.1
     mock-fs: ^4.13.0
@@ -6879,15 +6878,6 @@ __metadata:
   dependencies:
     ms: ^2.0.0
   checksum: 4a08769434132a229a6153e77c869a9fe7132dc003d90119d54958e7b75feb65a3c4eca19fb18921568878ac455b6f399013279ad33248d94bd61a25def1fdda
-  languageName: node
-  linkType: hard
-
-"husky@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "husky@npm:6.0.0"
-  bin:
-    husky: lib/bin.js
-  checksum: 61e1f7f53f3c969d361c2a1d4ed8018b9447406ea6cd644a2526d18b76877d135001d8cbd48a1d201fc1614d96995e691ecd2b82a8d8513a6b4a313da1188ccd
   languageName: node
   linkType: hard
 
