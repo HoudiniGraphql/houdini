@@ -11,6 +11,8 @@ export type ParserOpts = {
 	filename?: string
 }
 
+type ParserError = { message: string; lineNumber: number }
+
 export function parseFile(str: string, opts?: ParserOpts): ParsedSvelteFile {
 	// look for the instance and module scripts
 	let instance: StackElement | null
@@ -20,13 +22,18 @@ export function parseFile(str: string, opts?: ParserOpts): ParsedSvelteFile {
 		instance = result.instance
 		module = result.module
 	} catch (e) {
+		// pull the message and line number out of the erro
+		const { message, lineNumber } = e as ParserError
+
 		// do we have a filename
 		const filename = opts?.filename || 'testFile'
-		// get the error message
-		const message = (e as Error).message || e
 
 		// bubble the error up
-		throw new Error(`Encountered error while parsing ${filename}: ${message}`)
+		throw new Error(
+			`Encountered error${
+				lineNumber ? ` on line ${lineNumber}` : ''
+			} while parsing ${filename}: ${message}`
+		)
 	}
 
 	// build up the result
@@ -78,10 +85,26 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 	let module: StackElement | null = null
 	let instance: StackElement | null = null
 
+	// count the number of lines
+	let lineNumber = 1
+
+	const ErrorWithLineNumber = (message: string) => {
+		return {
+			message,
+			lineNumber,
+		}
+	}
+
 	const pop = () => {
 		const head = content.slice(0, 1)
 		content = content.slice(1, content.length)
 		index++
+
+		// if we found a newline, increment the line count
+		if (head === '\n') {
+			lineNumber++
+		}
+
 		return head
 	}
 
@@ -105,7 +128,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 		// if the last character is not what we were looking for
 		if (tail !== char) {
-			throw new Error('could not find ' + char)
+			throw ErrorWithLineNumber('could not find ' + char)
 		}
 
 		return acc
@@ -131,7 +154,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 
 		// if the last character we saw was not the finishing character, there was a problem
 		if (head !== finish) {
-			throw new Error(`did not encounter matching ${finish}.`)
+			throw ErrorWithLineNumber(`did not encounter matching ${finish}.`)
 		}
 	}
 
@@ -166,7 +189,7 @@ function parse(str: string): { instance: StackElement | null; module: StackEleme
 				const innerElement = stack.pop()
 				const tagName = tag.substr(1)
 				if (!innerElement || innerElement.tag !== parseTag(tagName).tag) {
-					throw new Error(
+					throw ErrorWithLineNumber(
 						`unexpected closing tag ${parseTag(tagName).tag}, expected ${
 							innerElement?.tag
 						}.`

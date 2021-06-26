@@ -341,8 +341,8 @@ describe('parser tests', () => {
 					hello
 				</div>
 			{:else if foo < 4}
-				<!-- 
-					the crazy <div is to trick the parser into thinking there's 
+				<!--
+					the crazy <div is to trick the parser into thinking there's
 					a new tag inside of an expression
 				-->
 				<div attribute={foo > && <div 2} foo>
@@ -364,8 +364,8 @@ describe('parser tests', () => {
 		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
 
 		expect(result.module?.content).toMatchInlineSnapshot(`console.log("hello");`)
-		expect(result.module?.start).toMatchInlineSnapshot(`306`)
-		expect(result.module?.end).toMatchInlineSnapshot(`368`)
+		expect(result.module?.start).toMatchInlineSnapshot(`304`)
+		expect(result.module?.end).toMatchInlineSnapshot(`366`)
 
 		checkScriptBounds(doc, result)
 	})
@@ -374,11 +374,11 @@ describe('parser tests', () => {
 		const doc = `<script lang="ts">
 			console.log('hello')
 		</script>
-		
+
 		<header
 			class="sticky flex items-center justify-between h-16 top-0 inset-x-0 max-w-7xl px-2 xl:px-0 mx-auto"
 		>
-			
+
 			<svg
 			class="w-6 h-6"
 			fill="none"
@@ -410,7 +410,7 @@ describe('parser tests', () => {
 		const doc = `<script lang="ts">
 		const example = object({});
 	</script>
-	 
+
 	<div>hello</div>
 	`
 
@@ -445,6 +445,20 @@ describe('parser tests', () => {
 		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
 
 		checkScriptBounds(doc, result)
+	})
+
+	test('error messages include line number', () => {
+		try {
+			// parse the string
+			parseFile(`
+				<div`)
+
+			fail('no error thrown')
+		} catch (e) {
+			const message = (e as Error).message
+
+			expect(message).toContain('line 2')
+		}
 	})
 })
 
