@@ -17,10 +17,6 @@ jobs:
         name: Formatting
         runs-on: ubuntu-latest
 
-    tests:
-        name: Tests
-        runs-on: ubuntu-latest
-
         steps:
             - name: Use Node.js 15.x
               uses: actions/setup-node@v1
