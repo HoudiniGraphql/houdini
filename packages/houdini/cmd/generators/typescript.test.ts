@@ -14,12 +14,25 @@ import { mockCollectedDoc } from '../testUtils'
 const config = testConfig({
 	schema: `
 		type Query {
-			user(id: ID, filter: UserFilter): User
+			user(id: ID, filter: UserFilter, filterList: [UserFilter!]): User
 			users: [User]
+		}
+
+		type Mutation { 
+			doThing(
+				filter: UserFilter, 
+				id: ID!
+				firstName: String!
+				admin: Boolean
+				age: Int
+				weight: Float
+			): User
 		}
 
 		input UserFilter {
 			middle: NestedUserFilter
+			listRequired: [String!]!
+			nonNullList: [String]
 		}
 
 		input NestedUserFilter {
@@ -286,6 +299,67 @@ describe('typescript', function () {
 
 		export type Query$input = {
 		    id: string
+		};
+	`)
+	})
+
+	test('mutation with input list', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(
+			'TestFragment',
+			`mutation Mutation(
+				$filter: UserFilter, 
+				$id: ID!
+				$firstName: String!
+				$admin: Boolean
+				$age: Int
+				$weight: Float
+			) { doThing(
+				filter: $filter, 
+				id:$id
+				firstName:$firstName
+				admin:$admin
+				age:$age
+				weight:$weight
+			) { 
+				firstName 
+			  } 
+			}`
+		)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": Query$input,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly user: {
+		        readonly firstName: string
+		    } | null
+		};
+
+		export type Query$input = {
+		    filterList: ({
+		        middle: {
+		            id: string,
+		            firstName: string,
+		            admin: boolean | null | undefined,
+		            age: number | null | undefined,
+		            weight: number | null | undefined
+		        } | null | undefined
+		    })[]
 		};
 	`)
 	})
