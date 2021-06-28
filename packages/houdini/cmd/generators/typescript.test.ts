@@ -32,7 +32,7 @@ const config = testConfig({
 		input UserFilter {
 			middle: NestedUserFilter
 			listRequired: [String!]!
-			nonNullList: [String]
+			nullList: [String]
 		}
 
 		input NestedUserFilter {
@@ -339,27 +339,34 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": Query$input,
-		    readonly "result": Query$result
+		export type Mutation = {
+		    readonly "input": Mutation$input,
+		    readonly "result": Mutation$result
 		};
 
-		export type Query$result = {
-		    readonly user: {
+		export type Mutation$result = {
+		    readonly doThing: {
 		        readonly firstName: string
 		    } | null
 		};
 
-		export type Query$input = {
-		    filterList: ({
+		export type Mutation$input = {
+		    filter: {
 		        middle: {
 		            id: string,
 		            firstName: string,
 		            admin: boolean | null | undefined,
 		            age: number | null | undefined,
 		            weight: number | null | undefined
-		        } | null | undefined
-		    })[]
+		        } | null | undefined,
+		        listRequired: (string)[],
+		        nullList: (string | null | undefined)[] | null | undefined
+		    } | null | undefined,
+		    id: string,
+		    firstName: string,
+		    admin: boolean | null | undefined,
+		    age: number | null | undefined,
+		    weight: number | null | undefined
 		};
 	`)
 	})
@@ -402,7 +409,9 @@ describe('typescript', function () {
 		            admin: boolean | null | undefined,
 		            age: number | null | undefined,
 		            weight: number | null | undefined
-		        } | null | undefined
+		        } | null | undefined,
+		        listRequired: (string)[],
+		        nullList: (string | null | undefined)[] | null | undefined
 		    }
 		};
 	`)
