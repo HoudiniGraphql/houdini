@@ -14,12 +14,26 @@ import { mockCollectedDoc } from '../testUtils'
 const config = testConfig({
 	schema: `
 		type Query {
-			user(id: ID, filter: UserFilter): User
+			user(id: ID, filter: UserFilter, filterList: [UserFilter!]): User
 			users: [User]
+		}
+
+		type Mutation { 
+			doThing(
+				filter: UserFilter, 
+				list: [UserFilter!]!,
+				id: ID!
+				firstName: String!
+				admin: Boolean
+				age: Int
+				weight: Float
+			): User
 		}
 
 		input UserFilter {
 			middle: NestedUserFilter
+			listRequired: [String!]!
+			nullList: [String]
 		}
 
 		input NestedUserFilter {
@@ -290,6 +304,87 @@ describe('typescript', function () {
 	`)
 	})
 
+	test('mutation with input list', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(
+			'TestFragment',
+			`mutation Mutation(
+				$filter: UserFilter, 
+				$filterList: [UserFilter!]!, 
+				$id: ID!
+				$firstName: String!
+				$admin: Boolean
+				$age: Int
+				$weight: Float
+			) { doThing(
+				filter: $filter, 
+				list: $filterList, 
+				id:$id
+				firstName:$firstName
+				admin:$admin
+				age:$age
+				weight:$weight
+			) { 
+				firstName 
+			  } 
+			}`
+		)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Mutation = {
+		    readonly "input": Mutation$input,
+		    readonly "result": Mutation$result
+		};
+
+		export type Mutation$result = {
+		    readonly doThing: {
+		        readonly firstName: string
+		    } | null
+		};
+
+		export type Mutation$input = {
+		    filter: {
+		        middle: {
+		            id: string,
+		            firstName: string,
+		            admin: boolean | null | undefined,
+		            age: number | null | undefined,
+		            weight: number | null | undefined
+		        } | null | undefined,
+		        listRequired: (string)[],
+		        nullList: (string | null | undefined)[] | null | undefined
+		    } | null | undefined,
+		    filterList: ({
+		        middle: {
+		            id: string,
+		            firstName: string,
+		            admin: boolean | null | undefined,
+		            age: number | null | undefined,
+		            weight: number | null | undefined
+		        } | null | undefined,
+		        listRequired: (string)[],
+		        nullList: (string | null | undefined)[] | null | undefined
+		    })[],
+		    id: string,
+		    firstName: string,
+		    admin: boolean | null | undefined,
+		    age: number | null | undefined,
+		    weight: number | null | undefined
+		};
+	`)
+	})
+
 	test('nested input objects', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
@@ -328,7 +423,9 @@ describe('typescript', function () {
 		            admin: boolean | null | undefined,
 		            age: number | null | undefined,
 		            weight: number | null | undefined
-		        } | null | undefined
+		        } | null | undefined,
+		        listRequired: (string)[],
+		        nullList: (string | null | undefined)[] | null | undefined
 		    }
 		};
 	`)

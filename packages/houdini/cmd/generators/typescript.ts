@@ -192,6 +192,11 @@ const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTy
 		type = type.type
 		list = true
 	}
+	if (type instanceof graphql.GraphQLList) {
+		list = true
+		// @ts-ignore
+		type = type.ofType
+	}
 	let innerNonNull = false
 	if (type.kind === 'NonNullType') {
 		type = type.type
@@ -259,9 +264,6 @@ const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTy
 		}
 	}
 
-	return result
-
-	// return the property describing the variable
 	return result
 }
 
