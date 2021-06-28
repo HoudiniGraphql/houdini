@@ -21,6 +21,7 @@ const config = testConfig({
 		type Mutation { 
 			doThing(
 				filter: UserFilter, 
+				list: [UserFilter!]!,
 				id: ID!
 				firstName: String!
 				admin: Boolean
@@ -309,6 +310,7 @@ describe('typescript', function () {
 			'TestFragment',
 			`mutation Mutation(
 				$filter: UserFilter, 
+				$filterList: [UserFilter!]!, 
 				$id: ID!
 				$firstName: String!
 				$admin: Boolean
@@ -316,6 +318,7 @@ describe('typescript', function () {
 				$weight: Float
 			) { doThing(
 				filter: $filter, 
+				list: $filterList, 
 				id:$id
 				firstName:$firstName
 				admin:$admin
@@ -362,6 +365,17 @@ describe('typescript', function () {
 		        listRequired: (string)[],
 		        nullList: (string | null | undefined)[] | null | undefined
 		    } | null | undefined,
+		    filterList: ({
+		        middle: {
+		            id: string,
+		            firstName: string,
+		            admin: boolean | null | undefined,
+		            age: number | null | undefined,
+		            weight: number | null | undefined
+		        } | null | undefined,
+		        listRequired: (string)[],
+		        nullList: (string | null | undefined)[] | null | undefined
+		    })[],
 		    id: string,
 		    firstName: string,
 		    admin: boolean | null | undefined,
