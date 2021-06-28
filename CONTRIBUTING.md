@@ -171,7 +171,7 @@ query AllUsersQuery {
 }
 ```
 
-... and then uses a fragment in the mutations to update the list:
+... and then uses a fragment in the mutation to update the list:
 
 ```graphql
 mutation AddUserMutation {
