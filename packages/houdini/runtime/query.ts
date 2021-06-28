@@ -8,7 +8,7 @@ import { setVariables } from './context'
 import { executeQuery, RequestPayload } from './network'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession } from './adapter.mjs'
+import { getSession, goTo } from './adapter.mjs'
 
 export default function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -163,25 +163,54 @@ export const componentQuery = <_Data, _Input>({
 
 	// compute the variables for the request
 	let variables: _Input
-	$: variables = (variableFunction?.({ props: getProps() }) || {}) as _Input
+	let variableError: ErrorWithCode | null = null
+
+	// the function invoked by `this.error` inside of the variable function
+	const setVariableError = (code: number, msg: string) => {
+		// create an error
+		variableError = new Error(msg) as ErrorWithCode
+		variableError.code = code
+		// return no variables to assign
+		return null
+	}
+
+	// the context to invoke the variable function with
+	const variableContext = {
+		redirect: goTo,
+		error: setVariableError,
+	}
+
+	$: {
+		// clear any previous variable error
+		variableError = null
+		// compute the new variables
+		variables = variableFunction?.call(variableContext, { props: getProps() }) as _Input
+	}
 
 	// a component should fire the query and then write the result to the store
 	$: {
-		// set the loading state
-		loading.set(true)
+		// if there was an error while computing variables
+		if (variableError) {
+			error.set(variableError)
+		}
+		// there was no error while computing the variables
+		else {
+			// set the loading state
+			loading.set(true)
 
-		// fire the query
-		executeQuery<_Data>(artifact, variables, getSession())
-			.then((result) => {
-				// update the store with the new result
-				writeData(result, variables)
-			})
-			.catch((err) => {
-				error.set(err.message ? err : new Error(err))
-			})
-			.finally(() => {
-				loading.set(false)
-			})
+			// fire the query
+			executeQuery<_Data>(artifact, variables || {}, getSession())
+				.then((result) => {
+					// update the store with the new result
+					writeData(result, variables)
+				})
+				.catch((err) => {
+					error.set(err.message ? err : new Error(err))
+				})
+				.finally(() => {
+					loading.set(false)
+				})
+		}
 	}
 
 	// return the handler to the user
@@ -191,3 +220,5 @@ export const componentQuery = <_Data, _Input>({
 		error: { subscribe: error.subscribe },
 	}
 }
+
+type ErrorWithCode = Error & { code: number }

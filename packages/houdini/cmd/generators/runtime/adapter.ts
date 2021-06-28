@@ -8,7 +8,11 @@ export default async function generateAdapter(config: Config) {
 	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.mjs')
 
 	// figure out which adapter we need to lay down
-	const adapter = config.framework === 'sapper' ? sapperAdapter : sveltekitAdapter
+	const adapter = {
+		sapper: sapperAdapter,
+		kit: sveltekitAdapter,
+		svelte: svelteAdapter,
+	}[config.framework]
 
 	// write the index file that exports the runtime
 	await writeFile(adapterLocation, adapter)
@@ -34,5 +38,15 @@ export function getSession() {
 
 export function goTo(location, options) {
     go(location, options)
+}
+`
+
+const svelteAdapter = `
+export function getSession() {
+	return {}
+}
+
+export function goTo(location, options) {
+	window.location = location
 }
 `
