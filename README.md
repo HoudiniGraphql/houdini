@@ -184,6 +184,10 @@ If you are working on an application that isn't using SvelteKit or Sapper, you h
 compiler and preprocessor to generate the correct logic by setting the `framework` field in your
 config file to `"svelte"`. 
 
+Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the 
+redirect as it will update your browsers `location` attribute, causing a hard transition to that url. Instead, you should
+use `this.error` to return an error and handle the redirect in a way that's appropriate for your application.
+
 ## 🚀&nbsp;&nbsp;Fetching Data
 
 Grabbing data from your API is done with the `query` function:
