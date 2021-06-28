@@ -15,6 +15,7 @@ export type ConfigFile = {
 	mode?: 'kit' | 'sapper'
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
+	static?: boolean
 }
 
 // a place to hold conventions and magic strings
@@ -27,6 +28,7 @@ export class Config {
 	schemaPath?: string
 	sourceGlob: string
 	quiet: boolean
+	static?: boolean
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
 	module: 'commonjs' | 'esm' = 'commonjs'
 
@@ -39,6 +41,7 @@ export class Config {
 		filepath,
 		framework = 'sapper',
 		module = 'commonjs',
+		static: staticSite,
 		mode,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
@@ -90,6 +93,7 @@ export class Config {
 		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(filepath)
+		this.static = staticSite
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact

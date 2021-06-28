@@ -174,12 +174,15 @@ If you have updated your schema on the server, you can pull down the most recent
 npx houdini generate --pull-schema
 ```
 
+**Note**: If you are building your application with 
+[`adapter-static`](https://github.com/sveltejs/kit/tree/master/packages/adapter-static) (or any other adapter that turns
+your application into a static site), you will need to set the `static` value in your config file to `true`. 
+
 ### Svelte
 
 If you are working on an application that isn't using SvelteKit or Sapper, you have to configure the
 compiler and preprocessor to generate the correct logic by setting the `framework` field in your
-config file to `"svelte"`. You should also use this setting if you are building a SvelteKit application
-in SPA mode.
+config file to `"svelte"`. 
 
 ## 🚀&nbsp;&nbsp;Fetching Data
 

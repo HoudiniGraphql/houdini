@@ -238,6 +238,54 @@ describe('query preprocessor', function () {
 	`)
 	})
 
+	test('svelte kit with static set', async function () {
+		const doc = await preprocessorTest(
+			`
+			<script>
+				const { data } = query(graphql\`
+					query TestQuery {
+						viewer {
+							id
+						}
+					}
+				\`)
+			</script>
+		`,
+			{
+				mode: 'kit',
+				// if we are in a route but static is set to true, we need to treat the file like a
+				// svelte component
+				route: true,
+				static: true,
+			}
+		)
+
+		// make sure we added the right stuff
+		expect(doc.module?.content).toMatchInlineSnapshot(``)
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
+
+		let _TestQuery_handler = query({
+		    "initialValue": _TestQuery,
+		    "variables": _TestQuery_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
+		});
+
+		const {
+		    data
+		} = componentQuery({
+		    queryHandler: _TestQuery_handler,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: null,
+		    getProps: () => $$props
+		});
+	`)
+	})
+
 	test('non-route page - no variables', async function () {
 		const doc = await preprocessorTest(
 			`

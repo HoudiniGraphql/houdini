@@ -36,6 +36,7 @@ export default async function queryProcessor(
 	// how we preprocess a query depends on wether its a route/layout component
 	const isRoute =
 		config.framework !== 'svelte' &&
+		!config.static &&
 		doc.filename.startsWith(path.join(config.projectRoot, 'src', 'routes'))
 
 	// figure out the root type
