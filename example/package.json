@@ -1,7 +1,7 @@
 {
 	"name": "example-kit",
 	"private": true,
-	"version": "0.8.2",
+	"version": "0.8.3",
 	"scripts": {
 		"dev": "svelte-kit dev",
 		"build": "svelte-kit build",
@@ -12,8 +12,8 @@
 	"devDependencies": {
 		"@sveltejs/kit": "1.0.0-next.107",
 		"graphql": "15.5.0",
-		"houdini": "^0.8.2",
-		"houdini-preprocess": "^0.8.2",
+		"houdini": "^0.8.3",
+		"houdini-preprocess": "^0.8.3",
 		"svelte": "^3.38.2",
 		"svelte-preprocess": "^4.0.0",
 		"tslib": "^2.2.0",
