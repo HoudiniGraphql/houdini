@@ -4,7 +4,7 @@ import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { promisify } from 'util'
-import { Config, runPipeline as run, parseFile } from 'houdini-common'
+import { Config, runPipeline as run, parseFile, ParsedSvelteFile } from 'houdini-common'
 import { Program } from '@babel/types'
 // locals
 import { CollectedGraphQLDocument } from './types'
@@ -59,10 +59,21 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			// read the file
 			const contents = await fs.readFile(filePath, 'utf-8')
 
-			// parse the contents
-			const parsedFile = parseFile(contents, {
-				filename: filePath,
-			})
+			let parsedFile: ParsedSvelteFile
+			try {
+				parsedFile = parseFile(contents, {
+					filename: filePath,
+				})
+			} catch (e) {
+				const err = e as Error
+
+				// add the filepath to the error message
+				const newError = new Error(`Encountered error parsing ${filePath}: ` + err.message)
+				newError.stack = err.stack
+
+				// bubble the new error up
+				throw newError
+			}
 
 			// we need to look for multiple script tags to support sveltekit
 			const scripts = [parsedFile.instance, parsedFile.module]
