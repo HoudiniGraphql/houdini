@@ -69,7 +69,6 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 
 				// add the filepath to the error message
 				const newError = new Error(`Encountered error parsing ${filePath}: ` + err.message)
-				newError.stack = err.stack
 
 				// bubble the new error up
 				throw newError
