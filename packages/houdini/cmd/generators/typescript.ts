@@ -7,7 +7,7 @@ import { TSTypeKind, StatementKind, TSPropertySignatureKind } from 'ast-types/ge
 import path from 'path'
 // locals
 import { CollectedGraphQLDocument } from '../types'
-import { writeFile } from '../utils'
+import { writeFile, unwrapType } from '../utils'
 
 const AST = recast.types.builders
 
@@ -149,7 +149,17 @@ async function generateOperationTypeDefs(
 		)
 
 		// if there are variables in this query
-		if (hasInputs) {
+		if (
+			hasInputs &&
+			definition.variableDefinitions &&
+			definition.variableDefinitions.length > 0
+		) {
+			// we need to pull out any of the input types as separate definitions to avoid recursive typedefs
+			const visitedTypes = new Set<string>()
+			for (const variableDefinition of definition.variableDefinitions) {
+				addReferencedInputTypes(config, body, visitedTypes, variableDefinition.type)
+			}
+
 			// merge all of the variables into a single object
 			body.push(
 				AST.exportNamedDeclaration(
@@ -161,7 +171,7 @@ async function generateOperationTypeDefs(
 									// add a property describing the variable to the root object
 									AST.tsPropertySignature(
 										AST.identifier(definition.variable.name.value),
-										AST.tsTypeAnnotation(inputType(config, definition))
+										AST.tsTypeAnnotation(tsTypeReference(config, definition))
 									)
 							)
 						)
@@ -172,46 +182,77 @@ async function generateOperationTypeDefs(
 	}
 }
 
+// add any object types found in the input
+function addReferencedInputTypes(
+	config: Config,
+	body: StatementKind[],
+	visitedTypes: Set<string>,
+	rootType: graphql.TypeNode
+) {
+	// try to find the name of the type
+	const { type } = unwrapType(config, rootType)
+
+	// if we are looking at a scalar
+	if (graphql.isScalarType(type)) {
+		// we're done
+		return
+	}
+
+	// if we have already processed this type, dont do anything
+	if (visitedTypes.has(type.name)) {
+		return
+	}
+
+	// if we ran into a union
+	if (graphql.isUnionType(type)) {
+		// we don't support them yet
+		throw new Error('Unions are not supported yet. Sorry!')
+	}
+
+	// track that we are processing the type
+	visitedTypes.add(type.name)
+
+	// if we ran into an enum, add its definition to the file
+	if (graphql.isEnumType(type)) {
+		body.push(
+			AST.tsEnumDeclaration(
+				AST.identifier(type.name),
+				type
+					.getValues()
+					.map((value) =>
+						AST.tsEnumMember(AST.identifier(value.name), AST.stringLiteral(value.name))
+					)
+			)
+		)
+		return
+	}
+
+	// we found an object type so build up the list of fields (and walk down any object fields)
+	const members: TSPropertySignatureKind[] = []
+
+	for (const field of Object.values(type.getFields())) {
+		// walk down the referenced fields and build stuff back up
+		addReferencedInputTypes(config, body, visitedTypes, field.type)
+
+		members.push(
+			AST.tsPropertySignature(
+				AST.identifier(field.name),
+				AST.tsTypeAnnotation(tsTypeReference(config, field))
+			)
+		)
+	}
+
+	// add the type def to the body
+	body.push(AST.tsTypeAliasDeclaration(AST.identifier(type.name), AST.tsTypeLiteral(members)))
+}
+
 // return the property
-const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTypeKind => {
-	let type = definition.type
+const tsTypeReference = (config: Config, definition: { type: graphql.TypeNode }): TSTypeKind => {
+	const { type, nullable: nonNull, nonNull: innerNonNull, list } = unwrapType(
+		config,
+		definition.type
+	)
 
-	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
-	let nonNull = false
-	if (type.kind === 'NonNullType') {
-		type = type.type
-		nonNull = true
-	}
-	if (type instanceof graphql.GraphQLNonNull) {
-		nonNull = true
-		// @ts-ignore
-		type = type.ofType
-	}
-	let list = false
-	if (type.kind === 'ListType') {
-		type = type.type
-		list = true
-	}
-	if (type instanceof graphql.GraphQLList) {
-		list = true
-		// @ts-ignore
-		type = type.ofType
-	}
-	let innerNonNull = false
-	if (type.kind === 'NonNullType') {
-		type = type.type
-		innerNonNull = true
-	}
-	if (type instanceof graphql.GraphQLNonNull) {
-		innerNonNull = true
-		// @ts-ignore
-		type = type.ofType
-	}
-
-	// make typescript happy
-	if (type.kind !== 'NamedType' && !graphql.isNamedType(type) && !graphql.isScalarType(type)) {
-		throw new Error('Too many wrappers: ' + type.kind)
-	}
 	const namedTypeNode = type as graphql.NamedTypeNode | graphql.GraphQLScalarType
 
 	// now that we have the name of the input type, lets look it up in the schema
@@ -233,15 +274,7 @@ const inputType = (config: Config, definition: { type: graphql.TypeNode }): TSTy
 	// we're looking at an object
 	else {
 		// the fields of the object end up as properties in the type literal
-		result = AST.tsTypeLiteral(
-			Object.values(definitionType.getFields()).map((field) => {
-				return AST.tsPropertySignature(
-					AST.identifier(field.name),
-					// @ts-ignore
-					AST.tsTypeAnnotation(inputType(config, field))
-				)
-			})
-		)
+		result = AST.tsTypeReference(AST.identifier(definitionType.name))
 	}
 
 	// if we are wrapping a list
@@ -346,22 +379,8 @@ function tsType(
 	allowReadonly: boolean
 ): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
-	let type: graphql.GraphQLNullableType = rootType
-	let nonNull = false
-	if (type instanceof graphql.GraphQLNonNull) {
-		type = type.ofType
-		nonNull = true
-	}
-	let list = false
-	if (type instanceof graphql.GraphQLList) {
-		type = type.ofType
-		list = true
-	}
-	let innerNonNull = false
-	if (type instanceof graphql.GraphQLNonNull) {
-		type = type.ofType
-		innerNonNull = true
-	}
+	const { type, list, nullable: nonNull, nonNull: innerNonNull } = unwrapType(config, rootType)
+
 	let result: TSTypeKind
 	// if we are looking at a scalar field
 	if (isScalarType(type)) {
