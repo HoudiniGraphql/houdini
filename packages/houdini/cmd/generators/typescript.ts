@@ -150,6 +150,11 @@ async function generateOperationTypeDefs(
 
 		// if there are variables in this query
 		if (hasInputs) {
+			// we need to pull out any of the input types as separate definitions to avoid recursive typedefs
+			for (const variableDefinition of definition.variableDefinitions) {
+				addReferencedInputTypes(config, body, variableDefinition.type)
+			}
+
 			// merge all of the variables into a single object
 			body.push(
 				AST.exportNamedDeclaration(
@@ -170,6 +175,17 @@ async function generateOperationTypeDefs(
 			)
 		}
 	}
+}
+
+// add any object types found in the input
+function addReferencedInputTypes(
+	config: Config,
+	body: StatementKind[],
+	type: graphql.TypeNode | graphql.NamedTypeNode,
+	visitedTypes: Record<string, boolean> = {}
+) {
+	// try to find the name of the type
+	const name = type.kind === 'NamedType' ? type.name.value : ''
 }
 
 // return the property
