@@ -149,7 +149,7 @@ async function generateOperationTypeDefs(
 		)
 
 		// if there are variables in this query
-		if (hasInputs) {
+		if (hasInputs && definition.variableDefinitions.length > 0) {
 			// we need to pull out any of the input types as separate definitions to avoid recursive typedefs
 			const visitedTypes = new Set<string>()
 			for (const variableDefinition of definition.variableDefinitions) {
