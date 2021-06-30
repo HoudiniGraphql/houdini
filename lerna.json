@@ -1,5 +1,5 @@
 {
-	"packages": ["packages/*", "example"],
+	"packages": ["packages/houdini-common", "houdini", "houdini-preprocess", "example"],
 	"version": "0.8.2",
 	"npmClient": "yarn"
 }
