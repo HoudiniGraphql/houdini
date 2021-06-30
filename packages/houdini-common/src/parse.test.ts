@@ -5,7 +5,7 @@ import '../../../jest.setup'
 import { parseFile, ParsedSvelteFile } from './parse'
 
 describe('parser tests', () => {
-	test('happy path - separate module and instance script', () => {
+	test('happy path - separate module and instance script', async () => {
 		const doc = `
 		<script context="module">
 			console.log('module')
@@ -17,7 +17,7 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("instance");`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`69`)
@@ -30,12 +30,12 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('happy path - start on first character', () => {
+	test('happy path - start on first character', async () => {
 		const doc = `<script context="module">
 				console.log('module')
 			</script>`
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
@@ -48,14 +48,14 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('happy path - only module', () => {
+	test('happy path - only module', async () => {
 		const doc = `
 			<script context="module">
 				console.log('module')
 			</script>
 		`
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
@@ -68,14 +68,14 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('happy path - only instance', () => {
+	test('happy path - only instance', async () => {
 		const doc = `
 			<script>
 				console.log('module')
 			</script>
 		`
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("module");`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`4`)
@@ -88,14 +88,14 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('single quotes', () => {
+	test('single quotes', async () => {
 		const doc = `
 			<script context='module'>
 				console.log('module')
 			</script>
 		`
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
@@ -108,14 +108,14 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('happy path - typescript', () => {
+	test('happy path - typescript', async () => {
 		const doc = `
 			<script context="module" lang="ts">
 				type Foo = { hello: string}
 			</script>
 		`
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
@@ -132,7 +132,7 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('nested script block', () => {
+	test('nested script block', async () => {
 		const doc = `
 			<div>
 				<script>
@@ -142,7 +142,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
@@ -155,7 +155,7 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('script next to html', () => {
+	test('script next to html', async () => {
 		const doc = `
 			<script>
 				console.log('script')
@@ -165,7 +165,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("script");`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`4`)
@@ -178,7 +178,7 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test("logic in script doesn't break things", () => {
+	test("logic in script doesn't break things", async () => {
 		const doc = `
 			<script context='module'>
 				if (1<2) {
@@ -187,7 +187,7 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
@@ -204,7 +204,7 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test("logic in template doesn't break things", () => {
+	test("logic in template doesn't break things", async () => {
 		const doc = `
 			<script context='module'>
 				console.log('hello')
@@ -217,7 +217,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
@@ -230,7 +230,7 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('self-closing tags', () => {
+	test('self-closing tags', async () => {
 		const doc = `
 			<svelte:head>
 				<link />
@@ -241,7 +241,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("hello");`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`52`)
@@ -254,7 +254,7 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('comments', () => {
+	test('comments', async () => {
 		const doc = `
 			<!-- <script context='module'> -->
 			<script>
@@ -268,7 +268,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("hello");`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`42`)
@@ -281,7 +281,7 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test("else in template doesn't break things", () => {
+	test("else in template doesn't break things", async () => {
 		const doc = `
 			<script context='module'>
 				console.log('hello')
@@ -298,7 +298,7 @@ describe('parser tests', () => {
 		`
 
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
@@ -311,7 +311,7 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('expression in content', () => {
+	test('expression in content', async () => {
 		const doc = `
 			<script context='module'>
 				console.log('hello')
@@ -321,7 +321,7 @@ describe('parser tests', () => {
 			</div>
 		`
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
@@ -334,7 +334,7 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('expression attribute', () => {
+	test('expression attribute', async () => {
 		const doc = `
 			{#if foo < 2}
 				<div>
@@ -345,7 +345,7 @@ describe('parser tests', () => {
 					the crazy <div is to trick the parser into thinking there's
 					a new tag inside of an expression
 				-->
-				<div attribute={foo > && <div 2} foo>
+				<div attribute={foo > 2 && div < 2} foo>
 					hello
 					<div>
 						inner
@@ -357,20 +357,20 @@ describe('parser tests', () => {
 			</script>
 		`
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
 		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
 
 		expect(result.module?.content).toMatchInlineSnapshot(`console.log("hello");`)
-		expect(result.module?.start).toMatchInlineSnapshot(`304`)
-		expect(result.module?.end).toMatchInlineSnapshot(`366`)
+		expect(result.module?.start).toMatchInlineSnapshot(`307`)
+		expect(result.module?.end).toMatchInlineSnapshot(`369`)
 
 		checkScriptBounds(doc, result)
 	})
 
-	test('tabs to end tags', () => {
+	test('tabs to end tags', async () => {
 		const doc = `<script lang="ts">
 			console.log('hello')
 		</script>
@@ -393,7 +393,7 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`console.log("hello");`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`0`)
@@ -406,7 +406,7 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
-	test('empty object in script', () => {
+	test('empty object in script', async () => {
 		const doc = `<script lang="ts">
 		const example = object({});
 	</script>
@@ -415,7 +415,7 @@ describe('parser tests', () => {
 	`
 
 		// parse the string
-		const result = parseFile(doc)
+		const result = await parseFile(doc)
 
 		expect(result.instance?.content).toMatchInlineSnapshot(`const example = object({});`)
 		expect(result.instance?.start).toMatchInlineSnapshot(`0`)
@@ -426,39 +426,6 @@ describe('parser tests', () => {
 		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
 
 		checkScriptBounds(doc, result)
-	})
-
-	test('empty expression', () => {
-		const doc = `
-	<div foo={}>hello</div>
-	`
-
-		// parse the string
-		const result = parseFile(doc)
-
-		expect(result.instance?.content).toMatchInlineSnapshot(`undefined`)
-		expect(result.instance?.start).toMatchInlineSnapshot(`undefined`)
-		expect(result.instance?.end).toMatchInlineSnapshot(`undefined`)
-
-		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
-		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
-		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
-
-		checkScriptBounds(doc, result)
-	})
-
-	test('error messages include line number', () => {
-		try {
-			// parse the string
-			parseFile(`
-				<div`)
-
-			fail('no error thrown')
-		} catch (e) {
-			const message = (e as Error).message
-
-			expect(message).toContain('line 2')
-		}
 	})
 })
 

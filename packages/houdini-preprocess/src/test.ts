@@ -109,7 +109,7 @@ describe('preprocessor can replace content', function () {
 	test('parses typescript', async function () {
 		// the source
 		const content = `
-        <script "lang"="ts">
+        <script lang="ts">
 			type Foo = { hello: string }
 		</script>
 `
@@ -123,9 +123,11 @@ describe('preprocessor can replace content', function () {
 		const result = await applyTransforms(config, { content, filename: 'test' }, [])
 
 		// make sure we got the result back
-		expect(result.code.trim()).toBe(`<script "lang"="ts">type Foo = {
-    hello: string
-};</script>`)
+		expect(result.code.trim()).toMatchInlineSnapshot(`
+		"<script lang=\\"ts\\">type Foo = {
+		    hello: string
+		};</script>"
+	`)
 	})
 
 	test('modify both at the same time (module above instance)', async function () {
