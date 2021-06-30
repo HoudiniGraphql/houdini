@@ -40,7 +40,6 @@ jobs:
             - name: Install and Build
               run: |
                   yarn install
-                  yarn build
                   git checkout yarn.lock
 
             - name: Set Bump
