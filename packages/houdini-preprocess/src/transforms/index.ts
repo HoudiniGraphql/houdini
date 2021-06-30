@@ -1,6 +1,6 @@
 // externals
 import * as recast from 'recast'
-import { runPipeline, Config, Transform, parseFile } from 'houdini-common'
+import { runPipeline, Config, Transform, parseFile, findScriptInnerBounds } from 'houdini-common'
 // locals
 import * as types from '../types'
 import fragmentProcessor from './fragment'
@@ -23,9 +23,7 @@ export default async function applyTransforms(
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
 	// and then join them back together
-	const scripts = parseFile(doc.content, {
-		filename: doc.filename,
-	})
+	const scripts = await parseFile(doc.content)
 
 	// wrap everything up in an object we'll thread through the transforms
 	const result: types.TransformDocument = {
@@ -153,40 +151,10 @@ function replaceTagContent(
 		return `<script${attrs}>${insert}</script>${source}`
 	}
 
-	// {start} points to the < of the opening tag, we want to find the >
-	let greaterThanIndex = start
-	// keep looking until the end
-	while (greaterThanIndex < end) {
-		// if we found the > we can stop looking
-		if (source[greaterThanIndex] === '>') {
-			break
-		}
-
-		// keep looking
-		greaterThanIndex++
-	}
-	// if we didn't find it
-	if (greaterThanIndex === start) {
-		throw new Error('Could not find the end of the tag open')
-	}
-
-	// {end} points to the > of the closing tag
-	let lessThanIndex = end
-	while (lessThanIndex > greaterThanIndex) {
-		// if we found the < we can stop looking
-		if (source[lessThanIndex] === '<') {
-			break
-		}
-		// keep looking
-		lessThanIndex--
-	}
-	// if we didn't find it
-	if (lessThanIndex === end) {
-		throw new Error('Could not find the start of the tag close')
-	}
+	const [greaterThanIndex, lessThanIndex] = findScriptInnerBounds({ start, end, text: source })
 
 	// replace the content between the closing of the open and open of the close
-	return replaceBetween(source, greaterThanIndex + 1, lessThanIndex, insert)
+	return replaceBetween(source, greaterThanIndex, lessThanIndex, insert)
 }
 
 // replaceSubstring replaces the substring string between the indices with the provided new value

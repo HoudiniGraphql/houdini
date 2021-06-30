@@ -61,9 +61,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 
 			let parsedFile: ParsedSvelteFile
 			try {
-				parsedFile = parseFile(contents, {
-					filename: filePath,
-				})
+				parsedFile = await parseFile(contents)
 			} catch (e) {
 				const err = e as Error
 
