@@ -13,6 +13,10 @@ import { mockCollectedDoc } from '../testUtils'
 // the config to use in tests
 const config = testConfig({
 	schema: `
+		enum MyEnum { 
+			Hello
+		}
+
 		type Query {
 			user(id: ID, filter: UserFilter, filterList: [UserFilter!]): User
 			users: [User]
@@ -34,6 +38,8 @@ const config = testConfig({
 			middle: NestedUserFilter
 			listRequired: [String!]!
 			nullList: [String]
+			recursive: UserFilter
+			enum: MyEnum
 		}
 
 		input NestedUserFilter {
@@ -353,29 +359,29 @@ describe('typescript', function () {
 		    } | null
 		};
 
+		type NestedUserFilter = {
+		    id: string,
+		    firstName: string,
+		    admin: boolean | null | undefined,
+		    age: number | null | undefined,
+		    weight: number | null | undefined
+		};
+
+		enum MyEnum {
+		    Hello = "Hello"
+		}
+
+		type UserFilter = {
+		    middle: NestedUserFilter | null | undefined,
+		    listRequired: (string)[],
+		    nullList: (string | null | undefined)[] | null | undefined,
+		    recursive: UserFilter | null | undefined,
+		    enum: MyEnum | null | undefined
+		};
+
 		export type Mutation$input = {
-		    filter: {
-		        middle: {
-		            id: string,
-		            firstName: string,
-		            admin: boolean | null | undefined,
-		            age: number | null | undefined,
-		            weight: number | null | undefined
-		        } | null | undefined,
-		        listRequired: (string)[],
-		        nullList: (string | null | undefined)[] | null | undefined
-		    } | null | undefined,
-		    filterList: ({
-		        middle: {
-		            id: string,
-		            firstName: string,
-		            admin: boolean | null | undefined,
-		            age: number | null | undefined,
-		            weight: number | null | undefined
-		        } | null | undefined,
-		        listRequired: (string)[],
-		        nullList: (string | null | undefined)[] | null | undefined
-		    })[],
+		    filter: UserFilter | null | undefined,
+		    filterList: (UserFilter)[],
 		    id: string,
 		    firstName: string,
 		    admin: boolean | null | undefined,
@@ -415,18 +421,28 @@ describe('typescript', function () {
 		    } | null
 		};
 
+		type NestedUserFilter = {
+		    id: string,
+		    firstName: string,
+		    admin: boolean | null | undefined,
+		    age: number | null | undefined,
+		    weight: number | null | undefined
+		};
+
+		enum MyEnum {
+		    Hello = "Hello"
+		}
+
+		type UserFilter = {
+		    middle: NestedUserFilter | null | undefined,
+		    listRequired: (string)[],
+		    nullList: (string | null | undefined)[] | null | undefined,
+		    recursive: UserFilter | null | undefined,
+		    enum: MyEnum | null | undefined
+		};
+
 		export type Query$input = {
-		    filter: {
-		        middle: {
-		            id: string,
-		            firstName: string,
-		            admin: boolean | null | undefined,
-		            age: number | null | undefined,
-		            weight: number | null | undefined
-		        } | null | undefined,
-		        listRequired: (string)[],
-		        nullList: (string | null | undefined)[] | null | undefined
-		    }
+		    filter: UserFilter
 		};
 	`)
 	})
