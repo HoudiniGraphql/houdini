@@ -2597,7 +2597,7 @@ describe('key evaluation', function () {
 	}
 })
 
-test('writing interface objects', function () {
+test('writing abstract objects', function () {
 	// instantiate a cache we'll test against
 	const cache = new Cache()
 
@@ -2643,7 +2643,7 @@ test('writing interface objects', function () {
 	})
 })
 
-test('writing interface lists', function () {
+test('writing abstract lists', function () {
 	// instantiate a cache we'll test against
 	const cache = new Cache()
 
