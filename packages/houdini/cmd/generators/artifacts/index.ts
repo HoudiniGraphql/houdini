@@ -54,17 +54,9 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					return
 				}
 
-				// we need to traverse the ancestors from child up
-				const parents = [...ancestors] as (
-					| graphql.OperationDefinitionNode
-					| graphql.FragmentDefinitionNode
-					| graphql.SelectionNode
-				)[]
-				parents.reverse()
-
 				// look up the parent's type so we can ask about the field marked as a connection
 				const parentType = getTypeFromAncestors(config.schema, [
-					...parents.slice(1),
+					...ancestors.slice(0, -1),
 				]) as graphql.GraphQLObjectType
 				const parentField = parentType.getFields()[field.name.value]
 				if (!parentField) {

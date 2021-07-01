@@ -36,15 +36,6 @@ export function operationsByPath(
 				pathOperations[path] = AST.arrayExpression([])
 			}
 
-			const parents = [...ancestors] as (
-				| graphql.FieldNode
-				| graphql.InlineFragmentNode
-				| graphql.FragmentDefinitionNode
-				| graphql.OperationDefinitionNode
-				| graphql.SelectionSetNode
-			)[]
-			parents.reverse()
-
 			// add the operation object to the list
 			pathOperations[path].elements.push(
 				operationObject({
@@ -52,7 +43,7 @@ export function operationsByPath(
 					connectionName: config.connectionNameFromFragment(node.name.value),
 					operationKind: config.connectionOperationFromFragment(node.name.value),
 					info: operationInfo(config, node),
-					type: getTypeFromAncestors(config.schema, parents).name,
+					type: getTypeFromAncestors(config.schema, ancestors).name,
 					filterTypes,
 				})
 			)

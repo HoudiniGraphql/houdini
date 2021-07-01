@@ -361,6 +361,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
+				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
 				cats: [Cat!]!
 			}
@@ -380,6 +381,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				user: User!
 				version: Int!
 				ghost: Ghost!
+				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 			}
 

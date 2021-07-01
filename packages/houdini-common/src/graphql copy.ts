@@ -93,41 +93,32 @@ export function hashDocument(document: string | graphql.DocumentNode): string {
 
 export function getTypeFromAncestors(
 	schema: graphql.GraphQLSchema,
-	ancestors: (
-		| graphql.OperationDefinitionNode
-		| graphql.FragmentDefinitionNode
-		| graphql.SelectionNode
-		| graphql.SelectionSetNode
-	)[]
-) {
-	const parents = [...ancestors] as (
-		| graphql.OperationDefinitionNode
-		| graphql.FragmentDefinitionNode
-		| graphql.SelectionNode
-	)[]
+	ancestors: readonly any[]
+): graphql.GraphQLNamedType {
+	// we need to traverse the ancestors from child up
+	const parents = [...ancestors]
+
 	parents.reverse()
+
+	console.log({ parents })
 
 	return walkAncestors(schema, parents)
 }
 
 function walkAncestors(
 	schema: graphql.GraphQLSchema,
-	ancestors: (
-		| graphql.OperationDefinitionNode
-		| graphql.FragmentDefinitionNode
-		| graphql.SelectionNode
-		| graphql.SelectionSetNode
-	)[]
+	ancestors: graphql.ASTNode[]
 ): graphql.GraphQLNamedType {
 	// get the front node
 	let head = ancestors.shift()
 	// if it was a list, skip it
 	if (Array.isArray(head)) {
-		return walkAncestors(schema, ancestors)
+		return getTypeFromAncestors(schema, ancestors)
 	}
 
+	console.log(JSON.stringify(head))
 	if (!head) {
-		throw new Error('Could not figure out type of field where directive is applied')
+		throw new Error('Could not figure out type of field: ' + JSON.stringify(head))
 	}
 
 	// if we are at the top of the definition stack
@@ -164,7 +155,7 @@ function walkAncestors(
 	}
 
 	// grab our parent type
-	const parent = walkAncestors(schema, ancestors)
+	const parent = getTypeFromAncestors(schema, ancestors)
 
 	// if the parent type is not an object type, we have a problem
 	if (!(parent instanceof graphql.GraphQLObjectType)) {
@@ -177,10 +168,16 @@ function walkAncestors(
 		return parent
 	}
 
+	// @ts-ignore
+	if (!head.name) {
+		throw new Error('Could not find type name: ' + head)
+	}
+	const { name } = head as graphql.NamedTypeNode
+
 	// we are looking at a field so we can just access the field map of the parent type
-	const field = parent.getFields()[head.name.value]
+	const field = parent.getFields()[name.value]
 	if (!field) {
-		throw new Error(`Could not find definition of ${head.name.value} in ${parent.toString()}`)
+		throw new Error(`Could not find definition of ${name.value} in ${parent.toString()}`)
 	}
 
 	return getRootType(field.type) as graphql.GraphQLNamedType
