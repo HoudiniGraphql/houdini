@@ -157,7 +157,6 @@ function walkAncestors(
 
 	// if the parent type is not an object type, we have a problem
 	if (!(parent instanceof graphql.GraphQLObjectType)) {
-		console.log(parent)
 		throw new Error('parent type was not an object')
 	}
 
