@@ -6,7 +6,7 @@ import '../../../../jest.setup'
 import { runPipeline } from '../generate'
 import { mockCollectedDoc } from '../testUtils'
 
-test('adds __typename on query selection set', async function () {
+test('adds __typename on interface selection sets under query', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'Friends',
@@ -45,7 +45,7 @@ test('adds __typename on query selection set', async function () {
 	`)
 })
 
-test('adds __typename on object selection set', async function () {
+test('adds __typename on interface selection sets under an object', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'Friends',
