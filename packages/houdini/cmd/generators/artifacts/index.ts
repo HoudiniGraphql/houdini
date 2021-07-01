@@ -194,23 +194,23 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				}
 
 				// add the selection information so we can subscribe to the store
-				// artifact.properties.push(
-				// 	AST.objectProperty(AST.identifier('rootType'), AST.stringLiteral(rootType)),
-				// 	AST.objectProperty(
-				// 		AST.identifier('selection'),
-				// 		selection({
-				// 			config,
-				// 			printed,
-				// 			rootType,
-				// 			selectionSet: selectionSet,
-				// 			operations: operationsByPath(config, operations[0], filterTypes),
-				// 			// do not include used fragments if we are rendering the selection
-				// 			// for a fragment document
-				// 			includeFragments: docKind !== 'HoudiniFragment',
-				// 			document,
-				// 		})
-				// 	)
-				// )
+				artifact.properties.push(
+					AST.objectProperty(AST.identifier('rootType'), AST.stringLiteral(rootType)),
+					AST.objectProperty(
+						AST.identifier('selection'),
+						selection({
+							config,
+							printed,
+							rootType,
+							selectionSet: selectionSet,
+							operations: operationsByPath(config, operations[0], filterTypes),
+							// do not include used fragments if we are rendering the selection
+							// for a fragment document
+							includeFragments: docKind !== 'HoudiniFragment',
+							document,
+						})
+					)
+				)
 
 				// the artifact should be the default export of the file
 				const file = AST.program([moduleExport(config, 'default', artifact)])

@@ -63,7 +63,7 @@ export default function selection({
 		else if (field.kind === 'InlineFragment') {
 			const inlineFragment = selection({
 				config,
-				rootType,
+				rootType: field.typeCondition?.name.value || rootType,
 				operations,
 				selectionSet: field.selectionSet,
 				path,
@@ -82,9 +82,17 @@ export default function selection({
 			if (!type) {
 				throw new Error('Could not find type')
 			}
-			const typeName = getRootType(type.getFields()[field.name.value].type).toString()
 
 			const attributeName = field.alias?.value || field.name.value
+			// if we are looking at __typename, its a string (not defined in the schema)
+			let fieldType: graphql.GraphQLType
+			if (field.name.value === '__typename') {
+				fieldType = config.schema.getType('String')!
+			} else {
+				fieldType = getRootType(type.getFields()[field.name.value].type)
+			}
+			const typeName = fieldType.toString()
+
 			// make sure we include the attribute in the path
 			const pathSoFar = path.concat(attributeName)
 
@@ -181,6 +189,12 @@ export default function selection({
 							})
 						)
 					)
+				)
+			}
+			// if we are looking at an interface
+			if (graphql.isInterfaceType(fieldType)) {
+				fieldObj.properties.push(
+					AST.objectProperty(AST.stringLiteral('interface'), AST.booleanLiteral(true))
 				)
 			}
 
@@ -284,10 +298,24 @@ function mergeSelections(
 			)
 			.filter(Boolean)[0] as namedTypes.ObjectProperty
 
+		const interfaceFlags = properties
+			.map(
+				(property) =>
+					(property.value as namedTypes.ObjectExpression).properties.find(
+						(prop) =>
+							prop.type === 'ObjectProperty' &&
+							prop.key.type === 'StringLiteral' &&
+							prop.key.value === 'interface'
+						// @ts-ignore
+					)?.value.value
+			)
+			.filter(Boolean)
+
 		// look at the first one in the list to check type
 		const typeProperty = types[0]
 		const key = keys[0]
 		const connection = connections[0]
+		const interfaceFlag = interfaceFlags[0]
 
 		// if the type is a scalar just add the first one and move on
 		if (config.isSelectionScalar(typeProperty)) {
@@ -295,9 +323,6 @@ function mergeSelections(
 			continue
 		}
 
-		if (attributeName === 'users') {
-			operations
-		}
 		const fields = properties
 			.map<namedTypes.ObjectExpression>(
 				(property) =>
@@ -328,6 +353,13 @@ function mergeSelections(
 			if (connection) {
 				fieldObj.properties.push(
 					AST.objectProperty(AST.literal('connection'), AST.stringLiteral(connection))
+				)
+			}
+
+			// if its marked as a connection
+			if (interfaceFlag) {
+				fieldObj.properties.push(
+					AST.objectProperty(AST.literal('interface'), AST.booleanLiteral(interfaceFlag))
 				)
 			}
 

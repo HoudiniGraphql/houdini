@@ -376,6 +376,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 			type Cat implements Friend {
 				id: ID!
 				name: String!
+				owner: User!
 			}
 
 			type Query {
