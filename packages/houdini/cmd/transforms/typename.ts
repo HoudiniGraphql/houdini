@@ -28,7 +28,7 @@ export default async function addTypename(
 				// look up the field in the parent
 				const fieldType = unwrapType(config, field.type).type
 				// if we are looking at an interface
-				if (graphql.isInterfaceType(fieldType)) {
+				if (graphql.isInterfaceType(fieldType) || graphql.isUnionType(fieldType)) {
 					// add the __typename selection to the field's selection set
 					return {
 						...node,

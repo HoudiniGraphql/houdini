@@ -27,6 +27,7 @@ type Query {
     ghost: Ghost!
     friends: [Friend]
     users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
+    entities: [Entity!]!
 }
 
 interface Friend { 
@@ -78,12 +79,13 @@ console.log(
 		schema,
 		graphql.parse(`
             query { 
-                friends {
+                entities {
+                    __typename
                     ... on Cat { 
-                        differentValue
+                        id
                     }
                     ... on Ghost { 
-                        differentValue
+                        name
                     }
                 }
             }

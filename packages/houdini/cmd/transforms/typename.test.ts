@@ -89,3 +89,42 @@ test('adds __typename on interface selection sets under an object', async functi
 		"
 	`)
 })
+
+test('adds __typename on unions', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'Friends',
+			`
+				query Friends {
+					entities {
+                        ... on Cat { 
+                            id
+                        }
+                        ... on Ghost { 
+                            name
+                        }
+					}
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
+		"query Friends {
+		  entities {
+		    ... on Cat {
+		      id
+		    }
+		    ... on Ghost {
+		      name
+		    }
+		    __typename
+		  }
+		}
+		"
+	`)
+})

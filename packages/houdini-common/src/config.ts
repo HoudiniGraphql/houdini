@@ -385,6 +385,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				ghost: Ghost!
 				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
+				entities: [Entity!]!
 			}
 
 			interface Friend { 

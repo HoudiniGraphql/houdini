@@ -150,8 +150,8 @@ function walkAncestors(
 		return wrapper
 	}
 
-	// if we found an interface then our parent is the answer
-	if (graphql.isInterfaceType(parent)) {
+	// if we found an interface or union then our parent is the answer
+	if (graphql.isInterfaceType(parent) || graphql.isUnionType(parent)) {
 		return parent
 	}
 

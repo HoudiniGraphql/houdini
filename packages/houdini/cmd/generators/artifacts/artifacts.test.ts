@@ -474,6 +474,106 @@ test('selections with interfaces', async function () {
 	`)
 })
 
+test('selections with unions', async function () {
+	const cfg = testConfig({ mode: 'kit' })
+	const mutationDocs = [
+		mockCollectedDoc(
+			'TestQuery',
+			`query Friends {
+					entities {
+                        ... on Cat { 
+                            id
+							owner { 
+								firstName
+							}
+                        }
+                        ... on Ghost { 
+                            name
+                        }
+					}
+				}`
+		),
+	]
+
+	// execute the generator
+	await runPipeline(cfg, mutationDocs)
+
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(cfg.artifactPath(mutationDocs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		export default {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "10e08a60f9ef70535a9e0a8629409297",
+
+		    raw: \`query Friends {
+		  entities {
+		    ... on Cat {
+		      id
+		      owner {
+		        firstName
+		      }
+		    }
+		    ... on Ghost {
+		      name
+		    }
+		    __typename
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        "entities": {
+		            "type": "Entity",
+		            "keyRaw": "entities",
+
+		            "fields": {
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
+		                },
+
+		                "owner": {
+		                    "type": "User",
+		                    "keyRaw": "owner",
+
+		                    "fields": {
+		                        "firstName": {
+		                            "type": "String",
+		                            "keyRaw": "firstName"
+		                        }
+		                    }
+		                },
+
+		                "name": {
+		                    "type": "String",
+		                    "keyRaw": "name"
+		                },
+
+		                "__typename": {
+		                    "type": "String",
+		                    "keyRaw": "__typename"
+		                }
+		            },
+
+		            "generic": true
+		        }
+		    }
+		};
+	`)
+})
+
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
 		const cfg = testConfig({ mode: 'kit' })

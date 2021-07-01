@@ -192,7 +192,7 @@ export default function selection({
 				)
 			}
 			// if we are looking at an interface
-			if (graphql.isInterfaceType(fieldType)) {
+			if (graphql.isInterfaceType(fieldType) || graphql.isUnionType(fieldType)) {
 				fieldObj.properties.push(
 					AST.objectProperty(AST.stringLiteral('generic'), AST.booleanLiteral(true))
 				)

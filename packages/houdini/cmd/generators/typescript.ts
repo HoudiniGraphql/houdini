@@ -22,6 +22,7 @@ export default async function typescriptGenerator(
 	config: Config,
 	docs: CollectedGraphQLDocument[]
 ) {
+	return
 	// build up a list of paths we have types in (to export from index.d.ts)
 	const typePaths: string[] = []
 
