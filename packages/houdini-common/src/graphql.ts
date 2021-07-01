@@ -39,35 +39,6 @@ export function selectionTypeInfo(
 	return { field, type: selectionType }
 }
 
-// return if the type is a list or not
-export function isListType(type: graphql.GraphQLType): boolean {
-	// if the type is non-null, unwrap and check again
-	if (graphql.isNonNullType(type)) {
-		return isListType((type as graphql.GraphQLNonNull<any>).ofType)
-	}
-
-	return graphql.isListType(type)
-}
-
-// return if the type is a scalar or not
-export function isScalarType(type: graphql.GraphQLType): boolean {
-	// if the type is non-null, unwrap and check again
-	if (graphql.isNonNullType(type)) {
-		return isScalarType((type as graphql.GraphQLNonNull<any>).ofType)
-	}
-
-	return graphql.isScalarType(type)
-}
-
-export function isObjectType(type: graphql.GraphQLType): boolean {
-	// if the type is non-null, unwrap and check again
-	if (graphql.isNonNullType(type)) {
-		return isObjectType((type as graphql.GraphQLNonNull<any>).ofType)
-	}
-
-	return graphql.isObjectType(type)
-}
-
 export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	// if the type is non-null, unwrap and go again
 	if (graphql.isNonNullType(type)) {

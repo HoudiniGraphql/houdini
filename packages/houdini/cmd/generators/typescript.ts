@@ -1,9 +1,13 @@
 // externals
-import { Config, selectionTypeInfo, isScalarType, isObjectType, isListType } from 'houdini-common'
+import { Config, selectionTypeInfo } from 'houdini-common'
 import * as recast from 'recast'
-import fs from 'fs/promises'
 import * as graphql from 'graphql'
-import { TSTypeKind, StatementKind, TSPropertySignatureKind } from 'ast-types/gen/kinds'
+import {
+	TSTypeKind,
+	StatementKind,
+	TSPropertySignatureKind,
+	TSTypeLiteralKind,
+} from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
 import { CollectedGraphQLDocument } from '../types'
@@ -26,7 +30,7 @@ export default async function typescriptGenerator(
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(async ({ originalDocument, name, printed }) => {
+		docs.map(async ({ originalDocument }) => {
 			// the place to put the artifact's type definition
 			const typeDefPath = config.artifactTypePath(originalDocument)
 
@@ -269,52 +273,37 @@ function addReferencedInputTypes(
 
 // return the property
 const tsTypeReference = (config: Config, definition: { type: graphql.TypeNode }): TSTypeKind => {
-	const { type, nullable: nonNull, nonNull: innerNonNull, list } = unwrapType(
-		config,
-		definition.type
-	)
-
-	const namedTypeNode = type as graphql.NamedTypeNode | graphql.GraphQLScalarType
-
-	// now that we have the name of the input type, lets look it up in the schema
-	const definitionTypeName =
-		typeof namedTypeNode.name === 'string' ? namedTypeNode.name : namedTypeNode.name.value
-	const definitionType = config.schema.getType(
-		definitionTypeName
-	) as graphql.GraphQLInputObjectType
-	if (!definitionType) {
-		throw new Error('Could not find definition of type')
-	}
+	const { type, nullable, nonNull, list } = unwrapType(config, definition.type)
 
 	// convert the inner type
 	let result
 	// if we're looking at a scalar
-	if (graphql.isScalarType(definitionType)) {
-		result = scalarPropertyValue(definitionType)
+	if (graphql.isScalarType(type)) {
+		result = scalarPropertyValue(type)
 	}
 	// we're looking at an object
 	else {
 		// the fields of the object end up as properties in the type literal
-		result = AST.tsTypeReference(AST.identifier(definitionType.name))
+		result = AST.tsTypeReference(AST.identifier(type.name))
 	}
 
 	// if we are wrapping a list
 	if (list) {
 		// if we do not have an inner non-null, wrap it
-		if (!innerNonNull) {
-			result = nullable(result, true)
+		if (!nonNull) {
+			result = nullableField(result, true)
 		}
 		// wrap it in the list
 		result = AST.tsArrayType(AST.tsParenthesizedType(result))
 
 		// if we do not have an outer null
-		if (!nonNull) {
-			result = nullable(result, true)
+		if (!nullable) {
+			result = nullableField(result, true)
 		}
 	} else {
 		// if we aren't marked as non-null
-		if (!innerNonNull && !nonNull) {
-			result = nullable(result, true)
+		if (!nonNull && !nullable) {
+			result = nullableField(result, true)
 		}
 	}
 
@@ -412,18 +401,18 @@ function tsType({
 }: {
 	config: Config
 	rootType: graphql.GraphQLNamedType
-	selections: graphql.SelectionNode[] | undefined
+	selections: readonly graphql.SelectionNode[] | undefined
 	root: boolean
 	allowReadonly: boolean
 	body: StatementKind[]
 	visitedTypes: Set<string>
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
-	const { type, list, nullable: nonNull, nonNull: innerNonNull } = unwrapType(config, rootType)
+	const { type, list, nullable, nonNull } = unwrapType(config, rootType)
 
 	let result: TSTypeKind
 	// if we are looking at a scalar field
-	if (isScalarType(type)) {
+	if (graphql.isScalarType(type)) {
 		result = scalarPropertyValue(type as graphql.GraphQLNamedType)
 	}
 	// we could have encountered an enum
@@ -440,7 +429,7 @@ function tsType({
 		result = AST.tsTypeReference(AST.identifier(type.name))
 	}
 	// if we are looking at an object
-	else if (isObjectType(type)) {
+	else if (graphql.isObjectType(type)) {
 		const rootObj = type as graphql.GraphQLObjectType<any, any>
 
 		result = AST.tsTypeLiteral([
@@ -503,6 +492,104 @@ function tsType({
 			)
 		}
 	}
+	// if we are looking at an interface
+	else if (graphql.isInterfaceType(type) && selections && selections.length > 0) {
+		// before we can begin, we need to sort the selection set for this field for
+		// fields defined on the interface as well as subtypes of the interface
+		const inlineFragments: graphql.InlineFragmentNode[] = []
+		// the rest of the selection can be a single type in the union
+		const selectedFields: graphql.SelectionNode[] = []
+
+		for (const selection of selections) {
+			// if we found an inline fragment then we have a sub-condition on the fragment
+			if (selection.kind === 'InlineFragment') {
+				inlineFragments.push(selection)
+			} else {
+				selectedFields.push(selection)
+			}
+		}
+		// we want to build up a union of the possible options, discriminated by the
+		// value of __typename
+		const options: TSTypeKind[] = inlineFragments.flatMap(
+			(fragment: graphql.InlineFragmentNode) => {
+				// look up the type pointed by the type condition
+				if (!fragment.typeCondition) {
+					return []
+				}
+				const typeName = fragment.typeCondition.name.value
+				const fragmentRootType = config.schema.getType(typeName)
+				if (!fragmentRootType) {
+					return []
+				}
+
+				// generate the type for the inline fragment
+				const fragmentType = tsType({
+					config,
+					rootType: fragmentRootType,
+					selections: fragment.selectionSet.selections,
+					allowReadonly,
+					visitedTypes,
+					root,
+					body,
+				})
+
+				// we need to handle __typename in the generated type. this means removing
+				// it if it was declared by tsType and adding the right value
+				let objectType = fragmentType
+				// if we got a nullable field, we need to point at the type def
+				if (fragmentType.type === 'TSUnionType') {
+					for (const inner of fragmentType.types) {
+						if (inner.type === 'TSTypeLiteral') {
+							objectType = inner
+						}
+					}
+				}
+
+				if (objectType.type === 'TSTypeLiteral') {
+					const existingTypenameIndex = objectType.members.findIndex(
+						(member) =>
+							member.type === 'TSPropertySignature' &&
+							member.key.type === 'Identifier' &&
+							member.key.name === '__typename'
+					)
+					if (existingTypenameIndex !== -1) {
+						objectType.members.splice(existingTypenameIndex, 1)
+					}
+
+					// add __typename to the list
+					objectType.members.push(
+						AST.tsPropertySignature(
+							AST.identifier('__typename'),
+							AST.tsTypeAnnotation(AST.tsLiteralType(AST.stringLiteral(typeName)))
+						)
+					)
+				}
+
+				// we're done massaging the type
+				return [fragmentType]
+			}
+		)
+
+		// before we can generate the final type, we need to sort the selections into
+		result = AST.tsUnionType(options)
+
+		// if there are selections outside of subtypes, generate them as a single type
+		if (selectedFields.length > 0) {
+			const restType = tsType({
+				config,
+				rootType: type,
+				selections: selectedFields,
+				allowReadonly,
+				visitedTypes,
+				root,
+				body,
+			})
+
+			// we need to add the rest of the selection as an intersection since
+			// it applies to every type
+			result = AST.tsIntersectionType([result, restType])
+		}
+	}
 	// we shouldn't get here
 	else {
 		throw Error('Could not convert selection to typescript')
@@ -511,20 +598,20 @@ function tsType({
 	// if we are wrapping a list
 	if (list) {
 		// if we do not have an inner non-null, wrap it
-		if (!innerNonNull) {
-			result = nullable(result)
+		if (!nonNull) {
+			result = nullableField(result)
 		}
 		// wrap it in the list
 		result = AST.tsArrayType(AST.tsParenthesizedType(result))
 
 		// if we do not have an outer null
-		if (!nonNull) {
-			result = nullable(result)
+		if (!nullable) {
+			result = nullableField(result)
 		}
 	} else {
 		// if we aren't marked as non-null
-		if (!innerNonNull && !root && !nonNull) {
-			result = nullable(result)
+		if (!nonNull && !root && !nullable) {
+			result = nullableField(result)
 		}
 	}
 
@@ -541,7 +628,7 @@ function readonlyProperty(
 	return prop
 }
 
-function nullable(inner: TSTypeKind, input = false) {
+function nullableField(inner: TSTypeKind, input = false) {
 	// the members of the union
 	const members = [inner, AST.tsNullKeyword()]
 	if (input) {

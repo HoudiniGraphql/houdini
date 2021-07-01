@@ -20,6 +20,7 @@ const config = testConfig({
 		type Query {
 			user(id: ID, filter: UserFilter, filterList: [UserFilter!], enumArg: MyEnum): User
 			users: [User]
+			nodes: [Node!]!
 		}
 
 		type Mutation { 
@@ -50,7 +51,16 @@ const config = testConfig({
 			weight: Float
 		}
 
-		type User {
+		interface Node {
+			id: ID!
+		}
+
+		type Cat implements Node { 
+			id: ID!
+
+		}
+
+		type User implements Node {
 			id: ID!
 
 			firstName: String!
@@ -515,9 +525,60 @@ describe('typescript', function () {
 	`)
 	})
 
-	test.todo('inline fragments')
+	test('interfaces', async function () {
+		// the document to test
+		const query = mockCollectedDoc(
+			'Query',
+			`
+			query Query { 
+				nodes { 
+					... on User { 
+						id
+					}
+					... on Cat { 
+						id
+					}
+				} 
+			}
+		`
+		)
 
-	test.todo('interface')
+		// execute the generator
+		await runPipeline(config, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly nodes: ({
+		        readonly id: string,
+		        __typename: "User"
+		    } | null | {
+		        readonly id: string,
+		        __typename: "Cat"
+		    } | null)[]
+		};
+	`)
+	})
+
+	test.todo('intersecting interfaces')
+
+	test.todo('fragments on intersection')
+
+	test.todo('intersections with __typename in subselection')
+
+	test.todo('inline fragments')
 
 	test.todo('union')
 })
