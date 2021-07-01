@@ -22,7 +22,6 @@ export default async function typescriptGenerator(
 	config: Config,
 	docs: CollectedGraphQLDocument[]
 ) {
-	return
 	// build up a list of paths we have types in (to export from index.d.ts)
 	const typePaths: string[] = []
 
@@ -494,7 +493,11 @@ function tsType({
 		}
 	}
 	// if we are looking at an interface
-	else if (graphql.isInterfaceType(type) && selections && selections.length > 0) {
+	else if (
+		(graphql.isUnionType(type) || graphql.isInterfaceType(type)) &&
+		selections &&
+		selections.length > 0
+	) {
 		// before we can begin, we need to sort the selection set for this field for
 		// fields defined on the interface as well as subtypes of the interface
 		const inlineFragments: graphql.InlineFragmentNode[] = []

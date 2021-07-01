@@ -21,6 +21,7 @@ const config = testConfig({
 			user(id: ID, filter: UserFilter, filterList: [UserFilter!], enumArg: MyEnum): User
 			users: [User]
 			nodes: [Node!]!
+			entities: [Entity!]!
 		}
 
 		type Mutation { 
@@ -59,6 +60,8 @@ const config = testConfig({
 			id: ID!
 
 		}
+
+		union Entity = User | Cat
 
 		type User implements Node {
 			id: ID!
@@ -562,6 +565,53 @@ describe('typescript', function () {
 
 		export type Query$result = {
 		    readonly nodes: ({
+		        readonly id: string,
+		        readonly __typename: "User"
+		    } | null | {
+		        readonly id: string,
+		        readonly __typename: "Cat"
+		    } | null)[]
+		};
+	`)
+	})
+
+	test('unions', async function () {
+		// the document to test
+		const query = mockCollectedDoc(
+			'Query',
+			`
+			query Query { 
+				entities { 
+					... on User { 
+						id
+					}
+					... on Cat { 
+						id
+					}
+				} 
+			}
+		`
+		)
+
+		// execute the generator
+		await runPipeline(config, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly entities: ({
 		        readonly id: string,
 		        readonly __typename: "User"
 		    } | null | {
