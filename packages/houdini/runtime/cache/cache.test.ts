@@ -2339,13 +2339,13 @@ test('deleting a node removes nested subscriptions', function () {
 	})
 
 	// sanity check
-	expect(cache.internal.getRecord('User:2').getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.internal.getRecord('User:2')?.getSubscribers('firstName')).toHaveLength(1)
 
 	// delete the parent
 	cache.delete('User:1')
 
 	// sanity check
-	expect(cache.internal.getRecord('User:2').getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.internal.getRecord('User:2')?.getSubscribers('firstName')).toHaveLength(0)
 })
 
 test('same record twice in a query survives one unsubscribe (reference counting)', function () {
@@ -2420,13 +2420,13 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 	)
 
 	// make sure there is a subscriber for the user's first name
-	expect(cache.internal.getRecord('User:1').getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.internal.getRecord('User:1')?.getSubscribers('firstName')).toHaveLength(1)
 
 	// remove the user from the connection
 	cache.connection('All_Users').remove({ id: '1' })
 
 	// we should still be subscribing to the user's first name
-	expect(cache.internal.getRecord('User:1').getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.internal.getRecord('User:1')?.getSubscribers('firstName')).toHaveLength(1)
 })
 
 test('embedded references', function () {

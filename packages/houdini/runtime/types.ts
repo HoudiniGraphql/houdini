@@ -111,6 +111,7 @@ export type GraphQLValue =
 	| null
 	| { [key: string]: GraphQLValue }
 	| GraphQLValue[]
+	| undefined
 
 export type SubscriptionSelection = {
 	[field: string]: {
