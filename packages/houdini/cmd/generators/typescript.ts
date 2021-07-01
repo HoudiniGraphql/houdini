@@ -558,9 +558,12 @@ function tsType({
 
 					// add __typename to the list
 					objectType.members.push(
-						AST.tsPropertySignature(
-							AST.identifier('__typename'),
-							AST.tsTypeAnnotation(AST.tsLiteralType(AST.stringLiteral(typeName)))
+						readonlyProperty(
+							AST.tsPropertySignature(
+								AST.identifier('__typename'),
+								AST.tsTypeAnnotation(AST.tsLiteralType(AST.stringLiteral(typeName)))
+							),
+							allowReadonly
 						)
 					)
 				}

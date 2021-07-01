@@ -563,10 +563,10 @@ describe('typescript', function () {
 		export type Query$result = {
 		    readonly nodes: ({
 		        readonly id: string,
-		        __typename: "User"
+		        readonly __typename: "User"
 		    } | null | {
 		        readonly id: string,
-		        __typename: "Cat"
+		        readonly __typename: "Cat"
 		    } | null)[]
 		};
 	`)
