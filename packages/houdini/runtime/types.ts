@@ -126,7 +126,7 @@ export type SubscriptionSelection = {
 			}
 		}
 		fields?: SubscriptionSelection
-		interface?: boolean
+		generic?: boolean
 	}
 }
 

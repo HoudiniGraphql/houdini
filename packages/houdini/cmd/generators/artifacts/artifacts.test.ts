@@ -467,7 +467,7 @@ test('selections with interfaces', async function () {
 		                }
 		            },
 
-		            "interface": true
+		            "generic": true
 		        }
 		    }
 		};
