@@ -59,11 +59,10 @@ export default async (_path: string | undefined) => {
 
 	// if the user didn't choose a module type, figure it out from the framework choice
 	let module: Config['module'] = answers.module
-	switch (answers.framework) {
-		case 'kit':
-			module = 'esm'
-		case 'sapper':
-			module = 'commonjs'
+	if (answers.framework === 'kit') {
+		module = 'esm'
+	} else if (answers.framework === 'sapper') {
+		module = 'commonjs'
 	}
 	// dry up the framework choice
 	const { framework } = answers
