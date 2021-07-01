@@ -368,6 +368,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 
 			type Ghost implements Friend {
 				name: String!
+				aka: String!
 				believers: [User!]!
 				friends: [Ghost!]!
 			}

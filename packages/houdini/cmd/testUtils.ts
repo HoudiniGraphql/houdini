@@ -28,7 +28,7 @@ export function pipelineTest(
 		})
 
 		// we need to trap if we didn't fail
-		let error = null
+		let error: HoudiniError[] = []
 
 		try {
 			// apply the transforms
@@ -38,17 +38,18 @@ export function pipelineTest(
 			if (shouldPass) {
 				throw e
 			}
-			error = e
+			error = e as HoudiniError[]
 		}
 
 		// if we shouldn't pass but we did, we failed the test
-		if (!shouldPass && !error) {
+		if (!shouldPass && error.length === 0) {
 			fail('did not fail test')
 			return
 		}
 
 		// run the rest of the test
 		if (testBody) {
+			// @ts-ignore
 			// invoke the test body with the error instead of the documents
 			testBody(shouldPass ? docs : error)
 		}

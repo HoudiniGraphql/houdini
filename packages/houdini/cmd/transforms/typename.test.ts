@@ -6,7 +6,7 @@ import '../../../../jest.setup'
 import { runPipeline } from '../generate'
 import { mockCollectedDoc } from '../testUtils'
 
-test('adds __typename__ on query selection set', async function () {
+test('adds __typename on query selection set', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'Friends',
@@ -32,20 +32,20 @@ test('adds __typename__ on query selection set', async function () {
 	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
 		"query Friends {
 		  friends {
-		    __typename
 		    ... on Cat {
 		      id
 		    }
 		    ... on Ghost {
 		      name
 		    }
+		    __typename
 		  }
 		}
 		"
 	`)
 })
 
-test('adds __typename__ on object selection set', async function () {
+test('adds __typename on object selection set', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'Friends',
@@ -58,6 +58,7 @@ test('adds __typename__ on object selection set', async function () {
                             }
                             ... on Ghost { 
                                 name
+                                aka
                             }
                         }
                     }
@@ -74,13 +75,14 @@ test('adds __typename__ on object selection set', async function () {
 		"query Friends {
 		  users(stringValue: \\"hello\\") {
 		    friendsInterface {
-		      __typename
 		      ... on Cat {
 		        id
 		      }
 		      ... on Ghost {
 		        name
+		        aka
 		      }
+		      __typename
 		    }
 		  }
 		}

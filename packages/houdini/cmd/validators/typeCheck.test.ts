@@ -418,7 +418,7 @@ for (const { title, pass, documents } of table) {
 			documents,
 			pass,
 			pass
-				? null
+				? undefined
 				: function (e: HoudiniError | HoudiniError[]) {
 						expect(e).toHaveLength(2)
 				  }

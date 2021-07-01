@@ -1,6 +1,6 @@
 // externals
 import { namedTypes } from 'ast-types/gen/namedTypes'
-import { Config, getTypeFromAncestors } from 'houdini-common'
+import { Config, parentTypeFromAncestors } from 'houdini-common'
 import { ConnectionWhen, MutationOperation } from '../../../runtime'
 import * as recast from 'recast'
 import * as graphql from 'graphql'
@@ -43,7 +43,7 @@ export function operationsByPath(
 					connectionName: config.connectionNameFromFragment(node.name.value),
 					operationKind: config.connectionOperationFromFragment(node.name.value),
 					info: operationInfo(config, node),
-					type: getTypeFromAncestors(config.schema, ancestors).name,
+					type: parentTypeFromAncestors(config.schema, ancestors).name,
 					filterTypes,
 				})
 			)

@@ -1,5 +1,5 @@
 // externals
-import { Config, getTypeFromAncestors } from 'houdini-common'
+import { Config, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
@@ -61,10 +61,10 @@ export default async function addConnectionFragments(
 						errors.push(error)
 					}
 
-					const type = getTypeFromAncestors(config.schema, ancestors)
+					const type = parentTypeFromAncestors(config.schema, ancestors)
 
 					// look up the parent's type
-					const parentType = getTypeFromAncestors(config.schema, ancestors.slice(1))
+					const parentType = parentTypeFromAncestors(config.schema, ancestors.slice(1))
 
 					// if id is not a valid field on the parent, we won't be able to add or remove
 					// from this connection if it doesn't fall under root

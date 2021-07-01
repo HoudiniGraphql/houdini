@@ -91,7 +91,7 @@ export function hashDocument(document: string | graphql.DocumentNode): string {
 	return crypto.createHash('md5').update(docString).digest('hex')
 }
 
-export function getTypeFromAncestors(
+export function parentTypeFromAncestors(
 	schema: graphql.GraphQLSchema,
 	ancestors: readonly any[]
 ): graphql.GraphQLNamedType {
@@ -113,7 +113,7 @@ function walkAncestors(
 	let head = ancestors.shift()
 	// if it was a list, skip it
 	if (Array.isArray(head)) {
-		return getTypeFromAncestors(schema, ancestors)
+		return parentTypeFromAncestors(schema, ancestors)
 	}
 
 	console.log(JSON.stringify(head))
@@ -155,7 +155,7 @@ function walkAncestors(
 	}
 
 	// grab our parent type
-	const parent = getTypeFromAncestors(schema, ancestors)
+	const parent = parentTypeFromAncestors(schema, ancestors)
 
 	// if the parent type is not an object type, we have a problem
 	if (!(parent instanceof graphql.GraphQLObjectType)) {
