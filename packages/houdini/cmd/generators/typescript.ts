@@ -430,6 +430,11 @@ function tsType({
 	else if (graphql.isEnumType(type)) {
 		// have we seen the enum before
 		if (!visitedTypes.has(type.name)) {
+			// add the enum declaration to the body
+			body.push(enumDeclaration(type))
+
+			// register that we've visited the type already
+			visitedTypes.add(type.name)
 		}
 
 		result = AST.tsTypeReference(AST.identifier(type.name))
@@ -572,4 +577,15 @@ function scalarPropertyValue(target: graphql.GraphQLNamedType): TSTypeKind {
 			throw new Error('Could not convert scalar type: ' + target.toString())
 		}
 	}
+}
+
+function enumDeclaration(type: graphql.GraphQLEnumType) {
+	return AST.tsEnumDeclaration(
+		AST.identifier(type.name),
+		type
+			.getValues()
+			.map((value) =>
+				AST.tsEnumMember(AST.identifier(value.name), AST.stringLiteral(value.name))
+			)
+	)
 }
