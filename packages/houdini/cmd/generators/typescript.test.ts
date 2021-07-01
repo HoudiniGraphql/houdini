@@ -57,6 +57,7 @@ const config = testConfig({
 			nickname: String
 			parent: User
 			friends: [User]
+			enumValue: MyEnum
 
 			admin: Boolean
 			age: Int
@@ -70,7 +71,7 @@ describe('typescript', function () {
 		// the document to test
 		const doc = mockCollectedDoc(
 			'TestFragment',
-			`fragment TestFragment on User { firstName nickname }`
+			`fragment TestFragment on User { firstName nickname enumValue }`
 		)
 
 		// execute the generator

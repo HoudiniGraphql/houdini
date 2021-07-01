@@ -33,13 +33,26 @@ export default async function typescriptGenerator(
 			// build up the program
 			const program = AST.program([])
 
+			// if we have to define any types along the way, make sure we only do it once
+			const visitedTypes = new Set<string>()
+
 			// if there's an operation definition
 			if (originalDocument.definitions.find((def) => def.kind === 'OperationDefinition')) {
 				// treat it as an operation document
-				await generateOperationTypeDefs(config, program.body, originalDocument.definitions)
+				await generateOperationTypeDefs(
+					config,
+					program.body,
+					originalDocument.definitions,
+					visitedTypes
+				)
 			} else {
 				// treat it as a fragment document
-				await generateFragmentTypeDefs(config, program.body, originalDocument.definitions)
+				await generateFragmentTypeDefs(
+					config,
+					program.body,
+					originalDocument.definitions,
+					visitedTypes
+				)
 			}
 
 			// write the file contents
@@ -74,13 +87,15 @@ export default async function typescriptGenerator(
 async function generateOperationTypeDefs(
 	config: Config,
 	body: StatementKind[],
-	definitions: readonly graphql.DefinitionNode[]
+	definitions: readonly graphql.DefinitionNode[],
+	visitedTypes: Set<string>
 ) {
 	// handle any fragment definitions
 	await generateFragmentTypeDefs(
 		config,
 		body,
-		definitions.filter(({ kind }) => kind === 'FragmentDefinition')
+		definitions.filter(({ kind }) => kind === 'FragmentDefinition'),
+		visitedTypes
 	)
 
 	// every definition will contribute something to the typedef
@@ -143,7 +158,15 @@ async function generateOperationTypeDefs(
 			AST.exportNamedDeclaration(
 				AST.tsTypeAliasDeclaration(
 					AST.identifier(shapeTypeName),
-					tsType(config, type, [...definition.selectionSet.selections], true, true)
+					tsType({
+						config,
+						rootType: type,
+						selections: [...definition.selectionSet.selections],
+						root: true,
+						allowReadonly: true,
+						visitedTypes,
+						body,
+					})
 				)
 			)
 		)
@@ -154,8 +177,6 @@ async function generateOperationTypeDefs(
 			definition.variableDefinitions &&
 			definition.variableDefinitions.length > 0
 		) {
-			// we need to pull out any of the input types as separate definitions to avoid recursive typedefs
-			const visitedTypes = new Set<string>()
 			for (const variableDefinition of definition.variableDefinitions) {
 				addReferencedInputTypes(config, body, visitedTypes, variableDefinition.type)
 			}
@@ -303,7 +324,8 @@ const tsTypeReference = (config: Config, definition: { type: graphql.TypeNode })
 async function generateFragmentTypeDefs(
 	config: Config,
 	body: StatementKind[],
-	definitions: readonly graphql.DefinitionNode[]
+	definitions: readonly graphql.DefinitionNode[],
+	visitedTypes: Set<string>
 ) {
 	// every definition will contribute the same thing to the typedefs
 	for (const definition of definitions) {
@@ -364,20 +386,38 @@ async function generateFragmentTypeDefs(
 			AST.exportNamedDeclaration(
 				AST.tsTypeAliasDeclaration(
 					AST.identifier(shapeTypeName),
-					tsType(config, type, [...definition.selectionSet.selections], true, true)
+					tsType({
+						config,
+						rootType: type,
+						selections: [...definition.selectionSet.selections],
+						root: true,
+						allowReadonly: true,
+						body,
+						visitedTypes,
+					})
 				)
 			)
 		)
 	}
 }
 
-function tsType(
-	config: Config,
-	rootType: graphql.GraphQLNamedType,
-	selections: graphql.SelectionNode[] | undefined,
-	root: boolean,
+function tsType({
+	config,
+	rootType,
+	selections,
+	root,
+	allowReadonly,
+	body,
+	visitedTypes,
+}: {
+	config: Config
+	rootType: graphql.GraphQLNamedType
+	selections: graphql.SelectionNode[] | undefined
+	root: boolean
 	allowReadonly: boolean
-): TSTypeKind {
+	body: StatementKind[]
+	visitedTypes: Set<string>
+}): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	const { type, list, nullable: nonNull, nonNull: innerNonNull } = unwrapType(config, rootType)
 
@@ -385,6 +425,14 @@ function tsType(
 	// if we are looking at a scalar field
 	if (isScalarType(type)) {
 		result = scalarPropertyValue(type as graphql.GraphQLNamedType)
+	}
+	// we could have encountered an enum
+	else if (graphql.isEnumType(type)) {
+		// have we seen the enum before
+		if (!visitedTypes.has(type.name)) {
+		}
+
+		result = AST.tsTypeReference(AST.identifier(type.name))
 	}
 	// if we are looking at an object
 	else if (isObjectType(type)) {
@@ -402,13 +450,15 @@ function tsType(
 				const attributeName = selection.alias?.value || selection.name.value
 
 				// figure out the corresponding typescript type
-				let attributeType = tsType(
+				let attributeType = tsType({
 					config,
-					field.type as graphql.GraphQLNamedType,
-					selection.selectionSet?.selections as graphql.SelectionNode[],
-					false,
-					allowReadonly
-				)
+					rootType: field.type as graphql.GraphQLNamedType,
+					selections: selection.selectionSet?.selections as graphql.SelectionNode[],
+					root: false,
+					allowReadonly,
+					visitedTypes,
+					body,
+				})
 
 				// we're done
 				return readonlyProperty(
