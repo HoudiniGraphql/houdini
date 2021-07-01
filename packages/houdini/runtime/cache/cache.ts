@@ -314,7 +314,7 @@ export class Cache {
 				fields,
 				operations,
 				connection,
-				generic: isGeneric,
+				abstract: isAbstract,
 			} = selection[field]
 			const key = this.evaluateKey(keyRaw, variables)
 
@@ -329,7 +329,7 @@ export class Cache {
 			// if the value is an object, we know it points to a linked record
 			if (value instanceof Object && !Array.isArray(value) && fields) {
 				// if we ran into an interface
-				if (isGeneric) {
+				if (isAbstract) {
 					// make sure we have a __typename field
 					if (!value.__typename) {
 						throw new Error(
@@ -401,7 +401,7 @@ export class Cache {
 					}
 					let innerType = linkedType
 					// if we ran into an interface
-					if (isGeneric) {
+					if (isAbstract) {
 						// make sure we have a __typename field
 						if (!entry.__typename) {
 							throw new Error(

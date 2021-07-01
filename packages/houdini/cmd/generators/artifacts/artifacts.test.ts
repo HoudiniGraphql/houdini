@@ -467,7 +467,7 @@ test('selections with interfaces', async function () {
 		                }
 		            },
 
-		            "generic": true
+		            "abstract": true
 		        }
 		    }
 		};
@@ -567,7 +567,7 @@ test('selections with unions', async function () {
 		                }
 		            },
 
-		            "generic": true
+		            "abstract": true
 		        }
 		    }
 		};

@@ -2613,7 +2613,7 @@ test('writing interface objects', function () {
 		{
 			viewer: {
 				type: 'Node',
-				generic: true,
+				abstract: true,
 				keyRaw: 'viewer',
 				fields: {
 					__typename: {
@@ -2666,7 +2666,7 @@ test('writing interface lists', function () {
 		{
 			nodes: {
 				type: 'Node',
-				generic: true,
+				abstract: true,
 				keyRaw: 'nodes',
 				fields: {
 					__typename: {

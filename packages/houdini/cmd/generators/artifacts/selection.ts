@@ -194,7 +194,7 @@ export default function selection({
 			// if we are looking at an interface
 			if (graphql.isInterfaceType(fieldType) || graphql.isUnionType(fieldType)) {
 				fieldObj.properties.push(
-					AST.objectProperty(AST.stringLiteral('generic'), AST.booleanLiteral(true))
+					AST.objectProperty(AST.stringLiteral('abstract'), AST.booleanLiteral(true))
 				)
 			}
 
@@ -298,14 +298,14 @@ function mergeSelections(
 			)
 			.filter(Boolean)[0] as namedTypes.ObjectProperty
 
-		const genericFlags = properties
+		const abstractFlags = properties
 			.map(
 				(property) =>
 					(property.value as namedTypes.ObjectExpression).properties.find(
 						(prop) =>
 							prop.type === 'ObjectProperty' &&
 							prop.key.type === 'StringLiteral' &&
-							prop.key.value === 'generic'
+							prop.key.value === 'abstract'
 						// @ts-ignore
 					)?.value.value
 			)
@@ -315,7 +315,7 @@ function mergeSelections(
 		const typeProperty = types[0]
 		const key = keys[0]
 		const connection = connections[0]
-		const genericFlag = genericFlags[0]
+		const abstractFlag = abstractFlags[0]
 
 		// if the type is a scalar just add the first one and move on
 		if (config.isSelectionScalar(typeProperty)) {
@@ -357,9 +357,9 @@ function mergeSelections(
 			}
 
 			// if its marked as a connection
-			if (genericFlag) {
+			if (abstractFlag) {
 				fieldObj.properties.push(
-					AST.objectProperty(AST.literal('generic'), AST.booleanLiteral(genericFlag))
+					AST.objectProperty(AST.literal('abstract'), AST.booleanLiteral(abstractFlag))
 				)
 			}
 

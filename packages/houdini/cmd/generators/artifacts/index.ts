@@ -10,7 +10,6 @@ import {
 	CollectedGraphQLDocument,
 } from '../../types'
 import * as recast from 'recast'
-import fs from 'fs/promises'
 // locals
 import { moduleExport, writeFile } from '../../utils'
 import selection from './selection'
