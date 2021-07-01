@@ -18,7 +18,7 @@ const config = testConfig({
 		}
 
 		type Query {
-			user(id: ID, filter: UserFilter, filterList: [UserFilter!]): User
+			user(id: ID, filter: UserFilter, filterList: [UserFilter!], enumArg: MyEnum): User
 			users: [User]
 		}
 
@@ -86,6 +86,10 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+		enum MyEnum {
+		    Hello = "Hello"
+		}
+
 		export type TestFragment = {
 		    readonly "shape"?: TestFragment$data,
 		    readonly "$fragments": {
@@ -95,7 +99,8 @@ describe('typescript', function () {
 
 		export type TestFragment$data = {
 		    readonly firstName: string,
-		    readonly nickname: string | null
+		    readonly nickname: string | null,
+		    readonly enumValue: MyEnum | null
 		};
 	`)
 	})
@@ -279,7 +284,7 @@ describe('typescript', function () {
 		// the document to test
 		const doc = mockCollectedDoc(
 			'TestFragment',
-			`query Query($id: ID!) { user(id: $id) { firstName } }`
+			`query Query($id: ID!, $enum: MyEnum) { user(id: $id, enumArg: $enum ) { firstName } }`
 		)
 
 		// execute the generator
@@ -305,8 +310,13 @@ describe('typescript', function () {
 		    } | null
 		};
 
+		enum MyEnum {
+		    Hello = "Hello"
+		}
+
 		export type Query$input = {
-		    id: string
+		    id: string,
+		    enum: MyEnum | null | undefined
 		};
 	`)
 	})
