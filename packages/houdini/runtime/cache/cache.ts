@@ -308,7 +308,14 @@ export class Cache {
 				)
 			}
 			// look up the field in our schema
-			const { type: linkedType, keyRaw, fields, operations, connection } = selection[field]
+			let {
+				type: linkedType,
+				keyRaw,
+				fields,
+				operations,
+				connection,
+				interface: isInterface,
+			} = selection[field]
 			const key = this.evaluateKey(keyRaw, variables)
 
 			// make sure we found the type info
@@ -321,10 +328,23 @@ export class Cache {
 
 			// if the value is an object, we know it points to a linked record
 			if (value instanceof Object && !Array.isArray(value) && fields) {
+				// if we ran into an interface
+				if (isInterface) {
+					// make sure we have a __typename field
+					if (!value.__typename) {
+						throw new Error(
+							'Encountered interface type without __typename in the payload'
+						)
+					}
+
+					// we need to look at the __typename field in the response for the type
+					linkedType = value.__typename as string
+				}
+
 				// look up the current known link id
 				const oldID = record.linkedRecordID(key)
 
-				// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
+				// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
 				// required to compute the entity's id
 				const embedded =
 					this.idFields(linkedType)?.filter(
@@ -379,10 +399,23 @@ export class Cache {
 					if (!(entry instanceof Object) || Array.isArray(entry)) {
 						throw new Error('Encountered link to non objects')
 					}
+					let innerType = linkedType
+					// if we ran into an interface
+					if (isInterface) {
+						// make sure we have a __typename field
+						if (!entry.__typename) {
+							throw new Error(
+								'Encountered interface type without __typename in the payload'
+							)
+						}
+
+						// we need to look at the __typename field in the response for the type
+						innerType = entry.__typename as string
+					}
 
 					// build up an
 					const linkedID = !embedded
-						? this.id(linkedType, entry)
+						? this.id(innerType, entry)
 						: `${parentID}.${key}[${i}]`
 
 					// update the linked fields too

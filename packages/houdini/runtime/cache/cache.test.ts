@@ -2597,6 +2597,105 @@ describe('key evaluation', function () {
 	}
 })
 
+test('writing interface objects', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache()
+
+	// save the data
+	const data = {
+		viewer: {
+			__typename: 'User',
+			id: '1',
+			firstName: 'bob',
+		},
+	}
+	cache.write(
+		{
+			viewer: {
+				type: 'Node',
+				interface: true,
+				keyRaw: 'viewer',
+				fields: {
+					__typename: {
+						type: 'String',
+						keyRaw: '__typename',
+					},
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					firstName: {
+						type: 'String',
+						keyRaw: 'firstName',
+					},
+				},
+			},
+		},
+		data,
+		{}
+	)
+
+	// make sure we can get back what we wrote
+	expect(cache.internal.getRecord(cache.id('User', data.viewer))?.fields).toEqual({
+		__typename: 'User',
+		id: '1',
+		firstName: 'bob',
+	})
+})
+
+test('writing interface lists', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache()
+
+	// save the data
+	const data = {
+		nodes: [
+			{
+				__typename: 'User',
+				id: '1',
+				firstName: 'bob',
+			},
+			{
+				__typename: 'User',
+				id: '2',
+				firstName: 'bob',
+			},
+		],
+	}
+	cache.write(
+		{
+			nodes: {
+				type: 'Node',
+				interface: true,
+				keyRaw: 'nodes',
+				fields: {
+					__typename: {
+						type: 'String',
+						keyRaw: '__typename',
+					},
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					firstName: {
+						type: 'String',
+						keyRaw: 'firstName',
+					},
+				},
+			},
+		},
+		data,
+		{}
+	)
+
+	// make sure we can get back what we wrote
+	expect(cache.internal.getRecord(cache.id('User', data.nodes[0]))?.fields).toEqual({
+		__typename: 'User',
+		id: '1',
+		firstName: 'bob',
+	})
+})
+
 test.todo('inserting node creates back reference to connection')
 
 test.todo('unsubscribe removes connection handlers')
