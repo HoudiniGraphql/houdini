@@ -15,6 +15,7 @@ import { moduleExport, writeFile } from '../../utils'
 import selection from './selection'
 import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
+import { inputObject } from './inputs'
 
 const AST = recast.types.builders
 
@@ -210,6 +211,15 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						})
 					)
 				)
+
+				// if there are inputs to the operation
+				const inputs = operations[0]?.variableDefinitions
+				// add the input type definition to the artifact
+				if (inputs && inputs.length > 0) {
+					artifact.properties.push(
+						AST.objectProperty(AST.identifier('input'), inputObject(config, inputs))
+					)
+				}
 
 				// the artifact should be the default export of the file
 				const file = AST.program([moduleExport(config, 'default', artifact)])

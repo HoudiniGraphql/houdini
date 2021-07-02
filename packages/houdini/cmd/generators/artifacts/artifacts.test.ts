@@ -1862,6 +1862,14 @@ describe('mutation artifacts', function () {
 		                }
 		            }
 		        }
+		    },
+
+		    input: {
+		        "fields": {
+		            "value": "String"
+		        },
+
+		        "types": {}
 		    }
 		};
 	`)
@@ -2125,6 +2133,14 @@ describe('mutation artifacts', function () {
 		                }
 		            }
 		        }
+		    },
+
+		    input: {
+		        "fields": {
+		            "value": "String"
+		        },
+
+		        "types": {}
 		    }
 		};
 	`)
@@ -2214,6 +2230,14 @@ describe('mutation artifacts', function () {
 		                }
 		            }
 		        }
+		    },
+
+		    input: {
+		        "fields": {
+		            "value": "String"
+		        },
+
+		        "types": {}
 		    }
 		};
 	`)
@@ -2289,6 +2313,134 @@ test('custom scalar shows up in artifact', async function () {
 		                    "type": "DateTime",
 		                    "keyRaw": "createdAt"
 		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test('operation inputs', async function () {
+	// the config to use in tests
+	const localConfig = testConfig({
+		schema: `
+		enum MyEnum { 
+			Hello
+		}
+		
+		input UserFilter {
+			middle: NestedUserFilter
+			listRequired: [String!]!
+			nullList: [String]
+			recursive: UserFilter
+			enum: MyEnum
+		}
+
+		input NestedUserFilter {
+			id: ID!
+			firstName: String!
+			admin: Boolean
+			age: Int
+			weight: Float
+		}
+
+		type User { 
+			id: ID!
+		}
+
+		type Query {
+			user(id: ID, filter: UserFilter, filterList: [UserFilter!], enumArg: MyEnum): User
+		}
+	`,
+	})
+
+	// execute the generator
+	await runPipeline(localConfig, [
+		mockCollectedDoc(
+			'TestQuery',
+			`
+			query TestQuery(
+				$id: ID, 
+				$filter: UserFilter, 
+				$filterList: [UserFilter!], 
+				$enumArg: MyEnum
+			) { 
+				user(
+					id: $id,
+					filter: $filter,
+					filterList: $filterList,
+					enumArg: $enumArg,
+				) {
+					id 
+				} 
+			}
+			`
+		),
+	])
+
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "d8d2089cd5e3dd8793db526f8cdb3be2",
+
+		    raw: \`query TestQuery($id: ID, $filter: UserFilter, $filterList: [UserFilter!], $enumArg: MyEnum) {
+		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
+		    id
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        "user": {
+		            "type": "User",
+		            "keyRaw": "user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg)",
+
+		            "fields": {
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
+		                }
+		            }
+		        }
+		    },
+
+		    input: {
+		        "fields": {
+		            "id": "ID",
+		            "filter": "UserFilter",
+		            "filterList": "UserFilter",
+		            "enumArg": "MyEnum"
+		        },
+
+		        "types": {
+		            "NestedUserFilter": {
+		                "id": "ID",
+		                "firstName": "String",
+		                "admin": "Boolean",
+		                "age": "Int",
+		                "weight": "Float"
+		            },
+
+		            "UserFilter": {
+		                "middle": "NestedUserFilter",
+		                "listRequired": "String",
+		                "nullList": "String",
+		                "recursive": "UserFilter",
+		                "enum": "MyEnum"
 		            }
 		        }
 		    }
