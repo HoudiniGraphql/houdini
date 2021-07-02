@@ -6,9 +6,9 @@ import fs from 'fs/promises'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
-import '../../../../jest.setup'
-import { runPipeline } from '../generate'
-import { mockCollectedDoc } from '../testUtils'
+import '../../../../../jest.setup'
+import { runPipeline } from '../../generate'
+import { mockCollectedDoc } from '../../testUtils'
 
 // the config to use in tests
 const config = testConfig({
