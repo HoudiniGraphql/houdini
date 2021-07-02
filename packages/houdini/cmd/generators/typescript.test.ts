@@ -56,9 +56,14 @@ const config = testConfig({
 			id: ID!
 		}
 
-		type Cat implements Node { 
+		type Cat implements Node & Animal { 
 			id: ID!
+			kitty: Boolean!
+			isAnimal: Boolean!
+		}
 
+		interface Animal { 
+			isAnimal: Boolean!
 		}
 
 		union Entity = User | Cat
@@ -564,13 +569,13 @@ describe('typescript', function () {
 		};
 
 		export type Query$result = {
-		    readonly nodes: ({
+		    readonly nodes: ({} & (({
 		        readonly id: string,
 		        readonly __typename: "User"
-		    } | null | {
+		    } | null) | ({
 		        readonly id: string,
 		        readonly __typename: "Cat"
-		    } | null)[]
+		    } | null)))[]
 		};
 	`)
 	})
@@ -611,20 +616,120 @@ describe('typescript', function () {
 		};
 
 		export type Query$result = {
-		    readonly entities: ({
+		    readonly entities: ({} & (({
 		        readonly id: string,
 		        readonly __typename: "User"
-		    } | null | {
+		    } | null) | ({
 		        readonly id: string,
 		        readonly __typename: "Cat"
-		    } | null)[]
+		    } | null)))[]
 		};
 	`)
 	})
 
-	test.todo('intersecting interfaces')
+	test('discriminated interface', async function () {
+		// the document to test
+		const query = mockCollectedDoc(
+			'Query',
+			`
+			query Query { 
+				nodes { 
+					id
+					... on User { 
+						firstName
+					}
+					... on Cat { 
+						kitty
+					}
+				} 
+			}
+		`
+		)
 
-	test.todo('fragments on intersection')
+		// execute the generator
+		await runPipeline(config, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly nodes: ({
+		        readonly id: string
+		    } & (({
+		        readonly firstName: string,
+		        readonly __typename: "User"
+		    } | null) | ({
+		        readonly kitty: boolean,
+		        readonly __typename: "Cat"
+		    } | null)))[]
+		};
+	`)
+	})
+
+	test('intersecting interface', async function () {
+		// the document to test
+		const query = mockCollectedDoc(
+			'Query',
+			`
+			query Query { 
+				entities { 
+					... on Animal { 
+						isAnimal
+					}
+					... on User { 
+						firstName
+					}
+					... on Cat { 
+						kitty
+					}
+				} 
+			}
+		`
+		)
+
+		// execute the generator
+		await runPipeline(config, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly entities: ({} & (({
+		        readonly firstName: string,
+		        readonly __typename: "User"
+		    } | null) | ({
+		        readonly kitty: boolean,
+		        readonly __typename: "Cat"
+		    } | null & {
+		        readonly isAnimal: boolean
+		    } | null)))[]
+		};
+	`)
+	})
+
+	test.todo('fragments on interfaces')
 
 	test.todo('intersections with __typename in subselection')
 

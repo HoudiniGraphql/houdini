@@ -428,13 +428,29 @@ function tsType({
 
 		result = AST.tsTypeReference(AST.identifier(type.name))
 	}
-	// if we are looking at an object
-	else if (graphql.isObjectType(type)) {
+	// if we are looking at something with a selection set
+	else if (selections && selections?.length > 0) {
 		const rootObj = type as graphql.GraphQLObjectType<any, any>
 
+		// before we can begin, we need to sort the selection set for this field for
+		// fields defined on the interface as well as subtypes of the interface
+		const inlineFragments: graphql.InlineFragmentNode[] = []
+		// the rest of the selection can be a single type in the union
+		const selectedFields: graphql.SelectionNode[] = []
+
+		for (const selection of selections) {
+			// if we found an inline fragment then we have a sub-condition on the fragment
+			if (selection.kind === 'InlineFragment') {
+				inlineFragments.push(selection)
+			} else {
+				selectedFields.push(selection)
+			}
+		}
+
+		// turn the set of selected fields into their own type
 		result = AST.tsTypeLiteral([
 			// every field gets an entry in the object
-			...((selections || []).filter(
+			...((selectedFields || []).filter(
 				(field) => field.kind === 'Field'
 			) as graphql.FieldNode[]).map((selection) => {
 				// grab the type info for the selection
@@ -491,110 +507,129 @@ function tsType({
 				)
 			)
 		}
-	}
-	// if we are looking at an interface
-	else if (
-		(graphql.isUnionType(type) || graphql.isInterfaceType(type)) &&
-		selections &&
-		selections.length > 0
-	) {
-		// before we can begin, we need to sort the selection set for this field for
-		// fields defined on the interface as well as subtypes of the interface
-		const inlineFragments: graphql.InlineFragmentNode[] = []
-		// the rest of the selection can be a single type in the union
-		const selectedFields: graphql.SelectionNode[] = []
 
-		for (const selection of selections) {
-			// if we found an inline fragment then we have a sub-condition on the fragment
-			if (selection.kind === 'InlineFragment') {
-				inlineFragments.push(selection)
-			} else {
-				selectedFields.push(selection)
+		// if we are mixing in inline fragments, we need to a union of the possible options,
+		// discriminated by the value of __typename
+		const inlineFragmentSelections: {
+			type: graphql.GraphQLNamedType
+			tsType: TSTypeKind
+		}[] = inlineFragments.flatMap((fragment: graphql.InlineFragmentNode) => {
+			// look up the type pointed by the type condition
+			if (!fragment.typeCondition) {
+				return []
 			}
-		}
-		// we want to build up a union of the possible options, discriminated by the
-		// value of __typename
-		const options: TSTypeKind[] = inlineFragments.flatMap(
-			(fragment: graphql.InlineFragmentNode) => {
-				// look up the type pointed by the type condition
-				if (!fragment.typeCondition) {
-					return []
-				}
-				const typeName = fragment.typeCondition.name.value
-				const fragmentRootType = config.schema.getType(typeName)
-				if (!fragmentRootType) {
-					return []
-				}
-
-				// generate the type for the inline fragment
-				const fragmentType = tsType({
-					config,
-					rootType: fragmentRootType,
-					selections: fragment.selectionSet.selections,
-					allowReadonly,
-					visitedTypes,
-					root,
-					body,
-				})
-
-				// we need to handle __typename in the generated type. this means removing
-				// it if it was declared by tsType and adding the right value
-				let objectType = fragmentType
-				// if we got a nullable field, we need to point at the type def
-				if (fragmentType.type === 'TSUnionType') {
-					for (const inner of fragmentType.types) {
-						if (inner.type === 'TSTypeLiteral') {
-							objectType = inner
-						}
-					}
-				}
-
-				if (objectType.type === 'TSTypeLiteral') {
-					const existingTypenameIndex = objectType.members.findIndex(
-						(member) =>
-							member.type === 'TSPropertySignature' &&
-							member.key.type === 'Identifier' &&
-							member.key.name === '__typename'
-					)
-					if (existingTypenameIndex !== -1) {
-						objectType.members.splice(existingTypenameIndex, 1)
-					}
-
-					// add __typename to the list
-					objectType.members.push(
-						readonlyProperty(
-							AST.tsPropertySignature(
-								AST.identifier('__typename'),
-								AST.tsTypeAnnotation(AST.tsLiteralType(AST.stringLiteral(typeName)))
-							),
-							allowReadonly
-						)
-					)
-				}
-
-				// we're done massaging the type
-				return [fragmentType]
+			const typeName = fragment.typeCondition.name.value
+			const fragmentRootType = config.schema.getType(typeName)
+			if (!fragmentRootType) {
+				return []
 			}
-		)
 
-		// before we can generate the final type, we need to sort the selections into
-		result = AST.tsUnionType(options)
-
-		// if there are selections outside of subtypes, generate them as a single type
-		if (selectedFields.length > 0) {
-			const restType = tsType({
+			// generate the type for the inline fragment
+			const fragmentType = tsType({
 				config,
-				rootType: type,
-				selections: selectedFields,
+				rootType: fragmentRootType,
+				selections: fragment.selectionSet.selections,
 				allowReadonly,
 				visitedTypes,
 				root,
 				body,
 			})
 
-			// we need to add the rest of the selection as an intersection since
-			// it applies to every type
-			result = AST.tsIntersectionType([result, restType])
+			// we need to handle __typename in the generated type. this means removing
+			// it if it was declared by tsType and adding the right value
+			let objectType = fragmentType
+			// if we got a nullable field, we need to point at the type def
+			if (fragmentType.type === 'TSUnionType') {
+				for (const inner of fragmentType.types) {
+					if (inner.type === 'TSTypeLiteral') {
+						objectType = inner
+					}
+				}
+			}
+
+			if (
+				objectType.type === 'TSTypeLiteral' &&
+				!graphql.isInterfaceType(fragmentRootType) &&
+				!graphql.isUnionType(fragmentRootType)
+			) {
+				const existingTypenameIndex = objectType.members.findIndex(
+					(member) =>
+						member.type === 'TSPropertySignature' &&
+						member.key.type === 'Identifier' &&
+						member.key.name === '__typename'
+				)
+				if (existingTypenameIndex !== -1) {
+					objectType.members.splice(existingTypenameIndex, 1)
+				}
+
+				// add __typename to the list
+				objectType.members.push(
+					readonlyProperty(
+						AST.tsPropertySignature(
+							AST.identifier('__typename'),
+							AST.tsTypeAnnotation(AST.tsLiteralType(AST.stringLiteral(typeName)))
+						),
+						allowReadonly
+					)
+				)
+			}
+
+			// we're done massaging the type
+			return [{ type: fragmentRootType, tsType: fragmentType }]
+		})
+		if (inlineFragmentSelections.length > 0) {
+			// these fragments could refer to types, unions, or interfaces
+			// only mix the relevant ones
+			const interfaceFragments = inlineFragmentSelections.filter(({ type }) =>
+				graphql.isInterfaceType(type)
+			)
+			const unionFragments = inlineFragmentSelections.filter(({ type }) =>
+				graphql.isUnionType(type)
+			)
+			const concreteFragments = inlineFragmentSelections.filter(({ type }) => {
+				// look up the type in the schema
+				return !graphql.isUnionType(type) && !graphql.isInterfaceType(type)
+			})
+
+			// build up the discriminated type
+			const selectionTypes = concreteFragments.map(({ type, tsType }) => {
+				// the selection for a concrete type is really the intersection of itself
+				// with every abstract type it implements. go over every fragment belonging
+				// to an abstract type and check if this type implements it.
+				return AST.tsParenthesizedType(
+					AST.tsIntersectionType(
+						[tsType]
+							// include the interface fragment if the concrete type implements it
+							.concat(
+								interfaceFragments
+									.filter(({ type: abstractType }) =>
+										config.schema
+											.getImplementations(
+												abstractType as graphql.GraphQLInterfaceType
+											)
+											.objects.map(({ name }) => name)
+											.includes(type.name)
+									)
+									.map(({ tsType }) => tsType)
+							)
+							// include the union fragment if the concrete type is a member
+							.concat(
+								unionFragments
+									.filter(({ type }) => {
+										console.log(type)
+										return true
+									})
+									.map(({ tsType }) => tsType)
+							)
+					)
+				)
+			})
+
+			// build up the list of fragment types
+			result = AST.tsIntersectionType([
+				result,
+				AST.tsParenthesizedType(AST.tsUnionType(selectionTypes)),
+			])
 		}
 	}
 	// we shouldn't get here
