@@ -1,7 +1,7 @@
 // externals
 import { get, Readable } from 'svelte/store'
 // locals
-import { MutationArtifact, QueryArtifact } from './types'
+import { JSONValue, MutationArtifact, QueryArtifact, SubscriptionArtifact } from './types'
 
 export class Environment {
 	private fetch: RequestHandler<any>
@@ -234,19 +234,30 @@ export class RequestContext {
 	// compute the inputs for an operation should reflect the framework's conventions.
 	// in sapper, this means preparing a `this` for the function. for kit, we can just pass
 	// the context
-	computeInput(mode: 'kit', func: (ctx: FetchContext) => {}): {}
-	computeInput(
-		mode: 'sapper',
-		func: (page: FetchContext['page'], session: FetchContext['session']) => {}
-	): {}
-	computeInput(mode: 'sapper' | 'kit', func: any): {} {
+
+	computeInput({
+		mode,
+		variableFunction,
+		artifact,
+	}: {
+		mode: 'kit' | 'sapper'
+		variableFunction: SapperLoad | KitLoad
+		artifact: QueryArtifact
+	}) {
 		// if we are in kit mode, just pass the context directly
 		if (mode === 'kit') {
-			return func.call(this, this.context)
+			return (variableFunction as KitLoad).call(this, this.context)
 		}
 
 		// we are in sapper mode, so we need to prepare the function context
 		// and pass page and session
-		return func.call(this, this.context.page, this.context.session)
+		return (variableFunction as SapperLoad).call(this, this.context.page, this.context.session)
 	}
 }
+
+type SapperLoad = (
+	page: FetchContext['page'],
+	session: FetchContext['session']
+) => Record<string, JSONValue>
+
+type KitLoad = (ctx: FetchContext) => Record<string, JSONValue>

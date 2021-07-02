@@ -114,7 +114,12 @@ describe('query preprocessor', function () {
 
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
-		    const _TestQuery_Input = _houdini_context.computeInput("sapper", TestQueryVariables);
+
+		    const _TestQuery_Input = _houdini_context.computeInput({
+		        "mode": "sapper",
+		        "variableFunction": TestQueryVariables,
+		        "artifact": _TestQueryArtifact
+		    });
 
 		    if (!_houdini_context.continue) {
 		        return _houdini_context.returnValue;

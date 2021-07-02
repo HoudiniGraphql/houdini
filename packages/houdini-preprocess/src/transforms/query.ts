@@ -372,8 +372,22 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 									AST.identifier('computeInput')
 								),
 								[
-									AST.stringLiteral(config.framework),
-									AST.identifier(queryInputFunction(document.artifact.name)),
+									AST.objectExpression([
+										AST.objectProperty(
+											AST.literal('mode'),
+											AST.stringLiteral(config.framework)
+										),
+										AST.objectProperty(
+											AST.literal('variableFunction'),
+											AST.identifier(
+												queryInputFunction(document.artifact.name)
+											)
+										),
+										AST.objectProperty(
+											AST.literal('artifact'),
+											AST.identifier(artifactIdentifier(document.artifact))
+										),
+									]),
 								]
 						  )
 						: AST.objectExpression([])
