@@ -3,6 +3,7 @@ import { get, Readable } from 'svelte/store'
 import type { Config } from 'houdini-common'
 // locals
 import { MutationArtifact, QueryArtifact, SubscriptionArtifact } from './types'
+import { marshalInputs } from './scalars'
 
 export class Environment {
 	private fetch: RequestHandler<any>
@@ -247,14 +248,20 @@ export class RequestContext {
 		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
 		config: Config
 	}) {
-		// if we are in kit mode, just pass the context directly
-		if (mode === 'kit') {
-			return (variableFunction as KitLoad).call(this, this.context)
-		}
+		// call the variable function to match the framework
+		let input =
+			mode === 'kit'
+				? // in kit just pass the context directly
+				  (variableFunction as KitLoad).call(this, this.context)
+				: // we are in sapper mode, so we need to prepare the function context
+				  (variableFunction as SapperLoad).call(
+						this,
+						this.context.page,
+						this.context.session
+				  )
 
-		// we are in sapper mode, so we need to prepare the function context
 		// and pass page and session
-		return (variableFunction as SapperLoad).call(this, this.context.page, this.context.session)
+		return marshalInputs({ artifact, config, input })
 	}
 }
 

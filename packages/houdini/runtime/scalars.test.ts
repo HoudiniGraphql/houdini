@@ -15,15 +15,19 @@ test('computing inputs marshals custom scalars', function () {
 		schema: `
             scalar DateTime
             
-            input NestedDates { 
+            input NestedDate { 
                 date: DateTime!
-                nested: NestedDates!
+                nested: NestedDate!
             }
 
             type TodoItem { 
                 text: String!
                 createdAt: DateTime! 
             }	
+
+			type Query { 
+				users(date: NestedDate): String
+			}
         `,
 		scalars: {
 			DateTime: {
@@ -49,6 +53,17 @@ test('computing inputs marshals custom scalars', function () {
 		raw: 'does not matter',
 		selection: {},
 		rootType: 'Query',
+		input: {
+			fields: {
+				date: 'NestedDate',
+			},
+			types: {
+				NestedDate: {
+					date: 'Date',
+					nested: 'NestedDate',
+				},
+			},
+		},
 	}
 
 	// some dates to check against
