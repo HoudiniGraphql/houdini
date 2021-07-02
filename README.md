@@ -39,6 +39,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Sapper](#sapper)
     1. [SvelteKit](#sveltekit)
     1. [Svelte](#svelte)
+1. [Config File](#config-file)
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
@@ -187,6 +188,13 @@ config file to `"svelte"`.
 Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the 
 redirect as it will update your browsers `location` attribute, causing a hard transition to that url. Instead, you should
 use `this.error` to return an error and handle the redirect in a way that's appropriate for your application.
+
+## 📄&nbsp;Config File
+
+All configuration for your houdini application is defined in a single file that is imported by both the runtime and the 
+command-line tool. Because of this, you must make sure that any imports and logic are resolvable in both environments. 
+This means that if you rely on `process.env` or other node-specifics you will have to use a 
+[plugin](https://www.npmjs.com/package/vite-plugin-replace) to replace the expression with something that can run in the browser. 
 
 ## 🚀&nbsp;&nbsp;Fetching Data
 
