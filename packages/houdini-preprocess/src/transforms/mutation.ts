@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
-import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils/index'
+import { walkTaggedDocuments, artifactImport, artifactIdentifier, ensureImports } from '../utils'
 const AST = recast.types.builders
 
 export default async function mutationProcessor(
@@ -15,6 +15,9 @@ export default async function mutationProcessor(
 	if (!doc.instance) {
 		return
 	}
+
+	// make sure we import the config
+	ensureImports(config, doc.instance.content.body, ['houdiniConfig'])
 
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
@@ -36,6 +39,10 @@ export default async function mutationProcessor(
 					AST.objectProperty(
 						AST.literal('artifact'),
 						AST.identifier(artifactIdentifier(artifact))
+					),
+					AST.objectProperty(
+						AST.stringLiteral('config'),
+						AST.identifier('houdiniConfig')
 					),
 				])
 			)

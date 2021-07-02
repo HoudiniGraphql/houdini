@@ -141,6 +141,8 @@ export default async function queryProcessor(
 		for (const document of queries) {
 			doc.instance.content.body.unshift(artifactImport(config, document.artifact))
 		}
+		// add the imports if they're not there
+		ensureImports(config, doc.instance.content.body, ['houdiniConfig'])
 	}
 	processInstance(config, isRoute, doc.instance, queries)
 }
@@ -224,6 +226,10 @@ function processInstance(
 					queryHandlerIdentifier(operation),
 					AST.callExpression(AST.identifier('query'), [
 						AST.objectExpression([
+							AST.objectProperty(
+								AST.stringLiteral('config'),
+								AST.identifier('houdiniConfig')
+							),
 							AST.objectProperty(
 								AST.stringLiteral('initialValue'),
 								AST.identifier(

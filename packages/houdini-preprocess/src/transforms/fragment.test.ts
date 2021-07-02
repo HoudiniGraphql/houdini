@@ -20,11 +20,13 @@ describe('fragment preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import _TestFragmentArtifact from "$houdini/artifacts/TestFragment";
+		import { houdiniConfig } from "$houdini";
 		let reference;
 
 		const data = fragment({
 		    "kind": "HoudiniFragment",
-		    "artifact": _TestFragmentArtifact
+		    "artifact": _TestFragmentArtifact,
+		    "config": houdiniConfig
 		}, reference);
 	`)
 	})
