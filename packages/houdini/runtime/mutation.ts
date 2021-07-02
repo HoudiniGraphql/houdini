@@ -3,9 +3,10 @@ import { executeQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact } from './types'
 import cache from './cache'
 import { getVariables } from './context'
+import { marshalInputs } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession, goTo } from './adapter.mjs'
+import { getSession } from './adapter.mjs'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
@@ -32,7 +33,11 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 		try {
 			const result = await executeQuery<_Mutation['result']>(
 				artifact,
-				variables,
+				marshalInputs({
+					input: variables,
+					artifact: document.artifact,
+					config: document.config,
+				}),
 				sessionStore
 			)
 

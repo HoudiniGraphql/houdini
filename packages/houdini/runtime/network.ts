@@ -236,7 +236,6 @@ export class RequestContext {
 	// compute the inputs for an operation should reflect the framework's conventions.
 	// in sapper, this means preparing a `this` for the function. for kit, we can just pass
 	// the context
-
 	computeInput({
 		config,
 		mode,

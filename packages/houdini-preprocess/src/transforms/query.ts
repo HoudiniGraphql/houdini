@@ -84,6 +84,10 @@ export default async function queryProcessor(
 					  AST.objectExpression([
 							AST.objectProperty(AST.identifier('queryHandler'), handlerIdentifier),
 							AST.objectProperty(
+								AST.identifier('config'),
+								AST.identifier('houdiniConfig')
+							),
+							AST.objectProperty(
 								AST.identifier('artifact'),
 								AST.identifier(artifactIdentifier(artifact))
 							),

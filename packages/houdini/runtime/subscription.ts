@@ -5,6 +5,7 @@ import { onMount, onDestroy } from 'svelte'
 import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
 import { getEnvironment } from './network'
 import cache from './cache'
+import { marshalInputs } from './scalars'
 
 // subscription holds open a live connection to the server. it returns a store
 // containing the requested data. Houdini will also update the cache with any
@@ -43,6 +44,13 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 	// the function to call that unregisters the subscription
 	let unsubscribe: () => void
 
+	let marshaledVariables = {}
+	$: marshaledVariables = marshalInputs({
+		input: variables || {},
+		config: document.config,
+		artifact: document.artifact,
+	})
+
 	// the websocket connection only exists on the client
 	onMount(() => {
 		// we need to make sure that the user provided a socket connection
@@ -55,7 +63,10 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 
 		// start listening for updates from the server
 		unsubscribe = env.socket.subscribe(
-			{ query: text, variables },
+			{
+				query: text,
+				variables: marshaledVariables,
+			},
 			{
 				next({ data, errors }) {
 					// make sure there were no errors
@@ -66,7 +77,7 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 					// if we got a result
 					if (data) {
 						// update the cache with the result
-						cache.write(selection, data, variables)
+						cache.write(selection, data, marshaledVariables)
 
 						// update the local store
 						store.set(data)

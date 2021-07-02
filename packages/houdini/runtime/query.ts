@@ -1,11 +1,13 @@
 // externals
 import { Readable, writable, readable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
+import type { Config } from 'houdini-common'
 // locals
 import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
 import cache from './cache'
 import { setVariables } from './context'
 import { executeQuery, RequestPayload } from './network'
+import { marshalInputs } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
@@ -21,6 +23,7 @@ export default function query<_Query extends Operation<any, any>>(
 	// a query is never 'loading'
 	const loading = writable(false)
 
+	// this payload has already been marshaled
 	let variables = document.variables
 
 	// embed the variables in the components context
@@ -143,11 +146,13 @@ export const routeQuery = <_Data, _Input>(
 // component queries are implemented as wrappers over the normal query that fire the
 // appropriate network request and then write the result to the underlying store
 export const componentQuery = <_Data, _Input>({
+	config,
 	artifact,
 	queryHandler,
 	variableFunction,
 	getProps,
 }: {
+	config: Config
 	artifact: QueryArtifact
 	queryHandler: QueryResponse<_Data, _Input>
 	variableFunction: ((...args: any[]) => _Input) | null
@@ -184,7 +189,11 @@ export const componentQuery = <_Data, _Input>({
 		// clear any previous variable error
 		variableError = null
 		// compute the new variables
-		variables = variableFunction?.call(variableContext, { props: getProps() }) as _Input
+		variables = marshalInputs({
+			artifact,
+			config,
+			input: variableFunction?.call(variableContext, { props: getProps() }) || {},
+		}) as _Input
 	}
 
 	// a component should fire the query and then write the result to the store

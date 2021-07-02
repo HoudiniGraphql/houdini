@@ -293,6 +293,7 @@ describe('query preprocessor', function () {
 		    data
 		} = componentQuery({
 		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: null,
 		    getProps: () => $$props
@@ -340,6 +341,7 @@ describe('query preprocessor', function () {
 		    data
 		} = componentQuery({
 		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: null,
 		    getProps: () => $$props
@@ -387,6 +389,7 @@ describe('query preprocessor', function () {
 		    data
 		} = componentQuery({
 		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: TestQueryVariables,
 		    getProps: () => $$props
@@ -434,6 +437,7 @@ describe('query preprocessor', function () {
 		    data
 		} = componentQuery({
 		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: null,
 		    getProps: () => $$props
