@@ -2220,6 +2220,82 @@ describe('mutation artifacts', function () {
 	})
 })
 
+test('custom scalar shows up in artifact', async function () {
+	// define a config with a custom scalar
+	const localConfig = testConfig({
+		schema: `
+			scalar DateTime
+			type TodoItem { 
+				text: String!
+				createdAt: DateTime! 
+			}	
+			type Query { 
+				allItems: [TodoItem!]!
+			}
+		`,
+		scalars: {
+			DateTime: {
+				type: 'Date',
+				unmarshal(val: number): Date {
+					const date = new Date(0)
+					date.setMilliseconds(val)
+					return date
+				},
+				marshal(date: Date): number {
+					return date.getTime()
+				},
+			},
+		},
+	})
+
+	// execute the generator
+	await runPipeline(localConfig, [
+		mockCollectedDoc('TestQuery', `query TestQuery { allItems { createdAt } }`),
+	])
+
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "3490b051bd7d2704ccc8810deef2a742",
+
+		    raw: \`query TestQuery {
+		  allItems {
+		    createdAt
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        "allItems": {
+		            "type": "TodoItem",
+		            "keyRaw": "allItems",
+
+		            "fields": {
+		                "createdAt": {
+		                    "type": "DateTime",
+		                    "keyRaw": "createdAt"
+		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
 describe('subscription artifacts', function () {
 	test('happy path', async function () {
 		const mutationDocs = [

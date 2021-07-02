@@ -735,6 +735,131 @@ describe('typescript', function () {
 	`)
 	})
 
+	test('fragment with custom scalars', async function () {
+		// define a config with a custom scalar
+		const localConfig = testConfig({
+			schema: `
+		scalar DateTime
+		
+		type TodoItem { 
+			text: String!
+			createdAt: DateTime! 
+		}	
+		
+		type Query { 
+			allItems: [TodoItem!]!
+		}
+	`,
+			scalars: {
+				DateTime: {
+					type: 'Date',
+					unmarshal(val: number): Date {
+						const date = new Date(0)
+						date.setMilliseconds(val)
+
+						return date
+					},
+					marshal(date: Date): number {
+						return date.getTime()
+					},
+				},
+			},
+		})
+
+		// the document to test
+		const query = mockCollectedDoc('Query', `query Query { allItems { createdAt } }`)
+
+		// execute the generator
+		await runPipeline(localConfig, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly allItems: ({
+		        readonly createdAt: Date
+		    })[]
+		};
+	`)
+	})
+
+	test('input with custom scalars', async function () {
+		// define a config with a custom scalar
+		const localConfig = testConfig({
+			schema: `
+		scalar DateTime
+		
+		type TodoItem { 
+			text: String!
+			createdAt: DateTime! 
+		}	
+		
+		type Query { 
+			allItems(createdAt: DateTime): [TodoItem!]!
+		}
+	`,
+			scalars: {
+				DateTime: {
+					type: 'Date',
+					unmarshal(val: number): Date {
+						const date = new Date(0)
+						date.setMilliseconds(val)
+
+						return date
+					},
+					marshal(date: Date): number {
+						return date.getTime()
+					},
+				},
+			},
+		})
+
+		// the document to test
+		const query = mockCollectedDoc(
+			'Query',
+			`query Query($date: DateTime!) { allItems(createdAt: $date) { createdAt } }`
+		)
+
+		// execute the generator
+		await runPipeline(localConfig, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": Query$input,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly allItems: ({
+		        readonly createdAt: Date
+		    })[]
+		};
+
+		export type Query$input = {
+		    date: Date
+		};
+	`)
+	})
+
 	test.todo('fragments on interfaces')
 
 	test.todo('intersections with __typename in subselection')
