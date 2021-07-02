@@ -21,7 +21,6 @@ describe('subscription preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import _TestSubscriptionArtifact from "$houdini/artifacts/TestSubscription";
-		import { houdiniConfig } from "$houdini";
 
 		const data = subscription({
 		    "kind": "HoudiniSubscription",

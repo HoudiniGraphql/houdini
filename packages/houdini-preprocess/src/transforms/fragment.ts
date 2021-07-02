@@ -21,8 +21,20 @@ export default async function fragmentProcessor(
 		return
 	}
 
-	// make sure we import the config
-	ensureImports(config, doc.instance.content.body, ['houdiniConfig'])
+	// make sure there is a module script
+	if (!doc.module) {
+		doc.module = {
+			start: 0,
+			end: 0,
+			// @ts-ignore
+			content: AST.program([]),
+		}
+	}
+	if (!doc.module) {
+		throw new Error('type script!!')
+	}
+	// add the imports if they're not there
+	ensureImports(config, doc.module.content.body, ['houdiniConfig'])
 
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {

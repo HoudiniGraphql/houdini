@@ -136,6 +136,9 @@ export default async function queryProcessor(
 		throw new Error('type script!!')
 	}
 
+	// add the imports if they're not there
+	ensureImports(config, doc.module.content.body, ['houdiniConfig'])
+
 	// if we are procesing a route, use those processors
 	if (isRoute) {
 		processModule(config, doc.module, queries)
@@ -145,8 +148,6 @@ export default async function queryProcessor(
 		for (const document of queries) {
 			doc.instance.content.body.unshift(artifactImport(config, document.artifact))
 		}
-		// add the imports if they're not there
-		ensureImports(config, doc.instance.content.body, ['houdiniConfig'])
 	}
 	processInstance(config, isRoute, doc.instance, queries)
 }
@@ -165,7 +166,7 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	}
 
 	// add the imports if they're not there
-	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext', 'houdiniConfig'])
+	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext'])
 
 	// add the kit preload function
 	addKitLoad(config, script.content.body, queries)

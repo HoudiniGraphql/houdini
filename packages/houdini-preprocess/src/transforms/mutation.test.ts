@@ -21,7 +21,6 @@ describe('mutation preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import _AddUserArtifact from "$houdini/artifacts/AddUser";
-		import { houdiniConfig } from "$houdini";
 		import { mutation } from "$houdini";
 
 		const data = mutation({
