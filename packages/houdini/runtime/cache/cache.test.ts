@@ -2339,13 +2339,13 @@ test('deleting a node removes nested subscriptions', function () {
 	})
 
 	// sanity check
-	expect(cache.internal.getRecord('User:2').getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.internal.getRecord('User:2')?.getSubscribers('firstName')).toHaveLength(1)
 
 	// delete the parent
 	cache.delete('User:1')
 
 	// sanity check
-	expect(cache.internal.getRecord('User:2').getSubscribers('firstName')).toHaveLength(0)
+	expect(cache.internal.getRecord('User:2')?.getSubscribers('firstName')).toHaveLength(0)
 })
 
 test('same record twice in a query survives one unsubscribe (reference counting)', function () {
@@ -2420,13 +2420,13 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 	)
 
 	// make sure there is a subscriber for the user's first name
-	expect(cache.internal.getRecord('User:1').getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.internal.getRecord('User:1')?.getSubscribers('firstName')).toHaveLength(1)
 
 	// remove the user from the connection
 	cache.connection('All_Users').remove({ id: '1' })
 
 	// we should still be subscribing to the user's first name
-	expect(cache.internal.getRecord('User:1').getSubscribers('firstName')).toHaveLength(1)
+	expect(cache.internal.getRecord('User:1')?.getSubscribers('firstName')).toHaveLength(1)
 })
 
 test('embedded references', function () {
@@ -2595,6 +2595,105 @@ describe('key evaluation', function () {
 			expect(cache.internal.evaluateKey(row.key, row.variables)).toEqual(row.expected)
 		})
 	}
+})
+
+test('writing abstract objects', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache()
+
+	// save the data
+	const data = {
+		viewer: {
+			__typename: 'User',
+			id: '1',
+			firstName: 'bob',
+		},
+	}
+	cache.write(
+		{
+			viewer: {
+				type: 'Node',
+				abstract: true,
+				keyRaw: 'viewer',
+				fields: {
+					__typename: {
+						type: 'String',
+						keyRaw: '__typename',
+					},
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					firstName: {
+						type: 'String',
+						keyRaw: 'firstName',
+					},
+				},
+			},
+		},
+		data,
+		{}
+	)
+
+	// make sure we can get back what we wrote
+	expect(cache.internal.getRecord(cache.id('User', data.viewer))?.fields).toEqual({
+		__typename: 'User',
+		id: '1',
+		firstName: 'bob',
+	})
+})
+
+test('writing abstract lists', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache()
+
+	// save the data
+	const data = {
+		nodes: [
+			{
+				__typename: 'User',
+				id: '1',
+				firstName: 'bob',
+			},
+			{
+				__typename: 'User',
+				id: '2',
+				firstName: 'bob',
+			},
+		],
+	}
+	cache.write(
+		{
+			nodes: {
+				type: 'Node',
+				abstract: true,
+				keyRaw: 'nodes',
+				fields: {
+					__typename: {
+						type: 'String',
+						keyRaw: '__typename',
+					},
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					firstName: {
+						type: 'String',
+						keyRaw: 'firstName',
+					},
+				},
+			},
+		},
+		data,
+		{}
+	)
+
+	// make sure we can get back what we wrote
+	expect(cache.internal.getRecord(cache.id('User', data.nodes[0]))?.fields).toEqual({
+		__typename: 'User',
+		id: '1',
+		firstName: 'bob',
+	})
 })
 
 test.todo('inserting node creates back reference to connection')

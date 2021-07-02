@@ -19,3 +19,5 @@ example/functions
 example/$houdini
 
 yarn-error.log
+
+/playground.js

@@ -1,5 +1,5 @@
 // externals
-import { Config, getRootType, hashDocument, getTypeFromAncestors } from 'houdini-common'
+import { Config, getRootType, hashDocument, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 import {
 	CompiledQueryKind,
@@ -10,7 +10,6 @@ import {
 	CollectedGraphQLDocument,
 } from '../../types'
 import * as recast from 'recast'
-import fs from 'fs/promises'
 // locals
 import { moduleExport, writeFile } from '../../utils'
 import selection from './selection'
@@ -54,17 +53,9 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					return
 				}
 
-				// we need to traverse the ancestors from child up
-				const parents = [...ancestors] as (
-					| graphql.OperationDefinitionNode
-					| graphql.FragmentDefinitionNode
-					| graphql.SelectionNode
-				)[]
-				parents.reverse()
-
 				// look up the parent's type so we can ask about the field marked as a connection
-				const parentType = getTypeFromAncestors(config.schema, [
-					...parents.slice(1),
+				const parentType = parentTypeFromAncestors(config.schema, [
+					...ancestors.slice(0, -1),
 				]) as graphql.GraphQLObjectType
 				const parentField = parentType.getFields()[field.name.value]
 				if (!parentField) {

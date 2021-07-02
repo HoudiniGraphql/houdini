@@ -60,7 +60,7 @@ These tasks fall into three categories:
     [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) is responsible for adding
     any definitions for fragments used by an operation so they can be included in the network request.
 -   **Generators** are defined in [packages/houdini/cmd/generators](./packages/houdini/cmd/generators)
-    and write things to disk. For example, the [typescript generator](./packages/houdini/cmd/generators/typescript.ts)
+    and write things to disk. For example, the [typescript generator](./packages/houdini/cmd/generators/typescript/index.ts)
     creates type definitions for every document in a project.
 
 ### Internal GraphQL Schema

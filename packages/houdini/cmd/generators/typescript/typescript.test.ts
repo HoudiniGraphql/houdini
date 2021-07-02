@@ -6,9 +6,9 @@ import fs from 'fs/promises'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
-import '../../../../jest.setup'
-import { runPipeline } from '../generate'
-import { mockCollectedDoc } from '../testUtils'
+import '../../../../../jest.setup'
+import { runPipeline } from '../../generate'
+import { mockCollectedDoc } from '../../testUtils'
 
 // the config to use in tests
 const config = testConfig({
@@ -18,8 +18,10 @@ const config = testConfig({
 		}
 
 		type Query {
-			user(id: ID, filter: UserFilter, filterList: [UserFilter!]): User
+			user(id: ID, filter: UserFilter, filterList: [UserFilter!], enumArg: MyEnum): User
 			users: [User]
+			nodes: [Node!]!
+			entities: [Entity]
 		}
 
 		type Mutation { 
@@ -50,13 +52,36 @@ const config = testConfig({
 			weight: Float
 		}
 
-		type User {
+		interface Node {
+			id: ID!
+		}
+
+		type Cat implements Node & Animal { 
+			id: ID!
+			kitty: Boolean!
+			isAnimal: Boolean!
+		}
+
+		interface Animal { 
+			isAnimal: Boolean!
+		}
+
+		union Entity = User | Cat
+
+		union AnotherEntity = User | Ghost
+
+		type Ghost { 
+			aka: String!
+		}
+
+		type User implements Node {
 			id: ID!
 
 			firstName: String!
 			nickname: String
 			parent: User
 			friends: [User]
+			enumValue: MyEnum
 
 			admin: Boolean
 			age: Int
@@ -70,7 +95,7 @@ describe('typescript', function () {
 		// the document to test
 		const doc = mockCollectedDoc(
 			'TestFragment',
-			`fragment TestFragment on User { firstName nickname }`
+			`fragment TestFragment on User { firstName nickname enumValue }`
 		)
 
 		// execute the generator
@@ -85,6 +110,10 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+		enum MyEnum {
+		    Hello = "Hello"
+		}
+
 		export type TestFragment = {
 		    readonly "shape"?: TestFragment$data,
 		    readonly "$fragments": {
@@ -94,7 +123,8 @@ describe('typescript', function () {
 
 		export type TestFragment$data = {
 		    readonly firstName: string,
-		    readonly nickname: string | null
+		    readonly nickname: string | null,
+		    readonly enumValue: MyEnum | null
 		};
 	`)
 	})
@@ -278,7 +308,7 @@ describe('typescript', function () {
 		// the document to test
 		const doc = mockCollectedDoc(
 			'TestFragment',
-			`query Query($id: ID!) { user(id: $id) { firstName } }`
+			`query Query($id: ID!, $enum: MyEnum) { user(id: $id, enumArg: $enum ) { firstName } }`
 		)
 
 		// execute the generator
@@ -304,8 +334,13 @@ describe('typescript', function () {
 		    } | null
 		};
 
+		enum MyEnum {
+		    Hello = "Hello"
+		}
+
 		export type Query$input = {
-		    id: string
+		    id: string,
+		    enum: MyEnum | null | undefined
 		};
 	`)
 	})
@@ -504,9 +539,207 @@ describe('typescript', function () {
 	`)
 	})
 
-	test.todo('inline fragments')
+	test('interfaces', async function () {
+		// the document to test
+		const query = mockCollectedDoc(
+			'Query',
+			`
+			query Query { 
+				nodes { 
+					... on User { 
+						id
+					}
+					... on Cat { 
+						id
+					}
+				} 
+			}
+		`
+		)
 
-	test.todo('interface')
+		// execute the generator
+		await runPipeline(config, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly nodes: ({} & (({
+		        readonly id: string,
+		        readonly __typename: "User"
+		    }) | ({
+		        readonly id: string,
+		        readonly __typename: "Cat"
+		    })))[]
+		};
+	`)
+	})
+
+	test('unions', async function () {
+		// the document to test
+		const query = mockCollectedDoc(
+			'Query',
+			`
+			query Query { 
+				entities { 
+					... on User { 
+						id
+					}
+					... on Cat { 
+						id
+					}
+				} 
+			}
+		`
+		)
+
+		// execute the generator
+		await runPipeline(config, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly entities: ({} & (({
+		        readonly id: string,
+		        readonly __typename: "User"
+		    }) | ({
+		        readonly id: string,
+		        readonly __typename: "Cat"
+		    })) | null)[] | null
+		};
+	`)
+	})
+
+	test('discriminated interface', async function () {
+		// the document to test
+		const query = mockCollectedDoc(
+			'Query',
+			`
+			query Query { 
+				nodes { 
+					id
+					... on User { 
+						firstName
+					}
+					... on Cat { 
+						kitty
+					}
+				} 
+			}
+		`
+		)
+
+		// execute the generator
+		await runPipeline(config, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly nodes: ({
+		        readonly id: string
+		    } & (({
+		        readonly firstName: string,
+		        readonly __typename: "User"
+		    }) | ({
+		        readonly kitty: boolean,
+		        readonly __typename: "Cat"
+		    })))[]
+		};
+	`)
+	})
+
+	test('intersecting interface', async function () {
+		// the document to test
+		const query = mockCollectedDoc(
+			'Query',
+			`
+			query Query { 
+				entities { 
+					... on Animal { 
+						isAnimal
+					}
+					... on User { 
+						firstName
+					}
+					... on Cat { 
+						kitty
+					}
+				} 
+			}
+		`
+		)
+
+		// execute the generator
+		await runPipeline(config, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly entities: ({} & (({
+		        readonly firstName: string,
+		        readonly __typename: "User"
+		    }) | ({
+		        readonly kitty: boolean,
+		        readonly __typename: "Cat"
+		    } & {
+		        readonly isAnimal: boolean
+		    })) | null)[] | null
+		};
+	`)
+	})
+
+	test.todo('fragments on interfaces')
+
+	test.todo('intersections with __typename in subselection')
+
+	test.todo('inline fragments')
 
 	test.todo('union')
 })

@@ -361,27 +361,38 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
+				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
 				cats: [Cat!]!
 			}
 
-			type Ghost {
+			type Ghost implements Friend {
 				name: String!
+				aka: String!
 				believers: [User!]!
 				friends: [Ghost!]!
 			}
 
-			type Cat {
+			type Cat implements Friend {
 				id: ID!
-				name: String
+				name: String!
+				owner: User!
 			}
 
 			type Query {
 				user: User!
 				version: Int!
 				ghost: Ghost!
+				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
+				entities: [Entity!]!
 			}
+
+			interface Friend { 
+				name: String!
+			}
+
+			union Entity = User | Cat | Ghost
 
 			type Mutation {
 				updateUser: User!

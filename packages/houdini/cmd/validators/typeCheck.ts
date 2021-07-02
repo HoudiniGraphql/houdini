@@ -1,5 +1,5 @@
 // externals
-import { Config, getTypeFromAncestors } from 'houdini-common'
+import { Config, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
@@ -143,15 +143,7 @@ export default async function typeCheck(
 					rootType = rootType?.getFields()[parent.name.value].type
 				}
 
-				parents = [...ancestors] as (
-					| graphql.FieldNode
-					| graphql.InlineFragmentNode
-					| graphql.FragmentDefinitionNode
-					| graphql.OperationDefinitionNode
-					| graphql.SelectionSetNode
-				)[]
-				parents.reverse()
-				const parentType = getTypeFromAncestors(config.schema, parents)
+				const parentType = parentTypeFromAncestors(config.schema, ancestors)
 
 				// if we have already seen the connection name there's a problem
 				const connectionName = nameArg.value.value
