@@ -29,7 +29,7 @@ export default {
 		format: TARGET === 'esm' ? 'esm' : 'cjs',
 		exports: 'named',
 	},
-	external: ['graphql', './adapter.mjs'],
+	external: ['graphql', './adapter.mjs', '$houdini'],
 	plugins: [
 		preserveShebangs(),
 		json(),
