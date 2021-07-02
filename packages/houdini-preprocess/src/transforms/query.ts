@@ -139,7 +139,7 @@ export default async function queryProcessor(
 	// add the imports if they're not there
 	ensureImports(config, doc.module.content.body, ['houdiniConfig'])
 
-	// if we are procesing a route, use those processors
+	// if we are processing a route, use those processors
 	if (isRoute) {
 		processModule(config, doc.module, queries)
 	} else {

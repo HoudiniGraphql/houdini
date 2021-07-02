@@ -27,6 +27,23 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 
 	// copy the compiled source code to the target directory
 	await recursiveCopy(source, config.runtimeDirectory)
+
+	// the path from the cache's index file to the config file
+	const cacheIndex = path.join(config.runtimeDirectory, 'cache', 'index.js')
+	const relativePath = path.relative(cacheIndex, config.filepath).slice('../'.length)
+
+	// read the cache file
+	const cacheIndexContents = await fs.readFile(cacheIndex, 'utf-8')
+
+	// define the local variable that the runtime uses to thread the config to the cache constructor
+	const newContents =
+		(config.module === 'esm'
+			? `import config from "${relativePath}"\n`
+			: `var config = require('${relativePath}');`) +
+		cacheIndexContents.replace('"use strict";', '')
+
+	// write the new cache index
+	await writeFile(cacheIndex, newContents)
 }
 
 async function recursiveCopy(source: string, target: string, notRoot?: boolean) {
