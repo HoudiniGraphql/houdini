@@ -137,3 +137,11 @@ export type SubscriptionSpec = {
 	parentID?: string
 	variables?: () => any
 }
+
+export type JSONValue =
+	| string
+	| number
+	| boolean
+	| null
+	| JSONValue[]
+	| { [key: string]: JSONValue }
