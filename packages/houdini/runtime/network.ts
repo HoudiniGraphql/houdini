@@ -1,5 +1,6 @@
 // externals
 import { get, Readable } from 'svelte/store'
+import type { Config } from 'houdini-common'
 // locals
 import { JSONValue, MutationArtifact, QueryArtifact, SubscriptionArtifact } from './types'
 
@@ -236,6 +237,7 @@ export class RequestContext {
 	// the context
 
 	computeInput({
+		config,
 		mode,
 		variableFunction,
 		artifact,
@@ -243,6 +245,7 @@ export class RequestContext {
 		mode: 'kit' | 'sapper'
 		variableFunction: SapperLoad | KitLoad
 		artifact: QueryArtifact
+		config: Config
 	}) {
 		// if we are in kit mode, just pass the context directly
 		if (mode === 'kit') {

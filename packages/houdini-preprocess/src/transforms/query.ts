@@ -159,7 +159,7 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	}
 
 	// add the imports if they're not there
-	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext'])
+	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext', 'houdiniConfig'])
 
 	// add the kit preload function
 	addKitLoad(config, script.content.body, queries)
@@ -373,6 +373,10 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 								),
 								[
 									AST.objectExpression([
+										AST.objectProperty(
+											AST.literal('config'),
+											AST.identifier('houdiniConfig')
+										),
 										AST.objectProperty(
 											AST.literal('mode'),
 											AST.stringLiteral(config.framework)

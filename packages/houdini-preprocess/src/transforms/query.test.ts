@@ -21,7 +21,7 @@ describe('query preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
-		import { fetchQuery, RequestContext } from "$houdini";
+		import { fetchQuery, RequestContext, houdiniConfig } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function load(context) {
@@ -103,7 +103,7 @@ describe('query preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
-		import { fetchQuery, RequestContext } from "$houdini";
+		import { fetchQuery, RequestContext, houdiniConfig } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export function TestQueryVariables(page) {
@@ -116,6 +116,7 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 
 		    const _TestQuery_Input = _houdini_context.computeInput({
+		        "config": houdiniConfig,
 		        "mode": "sapper",
 		        "variableFunction": TestQueryVariables,
 		        "artifact": _TestQueryArtifact
@@ -191,7 +192,7 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
-		import { fetchQuery, RequestContext } from "$houdini";
+		import { fetchQuery, RequestContext, houdiniConfig } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 
 		export async function load(context) {

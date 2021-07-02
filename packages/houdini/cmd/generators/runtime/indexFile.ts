@@ -18,7 +18,7 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 	if (config.module === 'commonjs') {
 		body = `${cjsIndexFilePreamble}
 
-${exportDefaultFrom(configPath, 'config')}
+${exportDefaultFrom(configPath, 'houdiniConfig')}
 
 ${exportStarFrom(runtimeDir)}
 ${exportStarFrom(artifactDir)}
@@ -27,7 +27,7 @@ ${exportStarFrom(artifactDir)}
 	// otherwise just use esm statements as the final result
 	else {
 		body = `
-export {default as config } from "${configPath}"
+export {default as houdiniConfig } from "${configPath}"
 export * from "${runtimeDir}"
 export * from "${artifactDir}"
 `
