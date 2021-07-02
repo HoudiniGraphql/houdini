@@ -1,12 +1,9 @@
 // externals
 import { Config } from 'houdini-common'
-import * as recast from 'recast'
 import path from 'path'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
-import { cjsIndexFilePreamble, exportStarFrom, writeFile } from '../../utils'
-
-const AST = recast.types.builders
+import { cjsIndexFilePreamble, exportStarFrom, exportDefaultFrom, writeFile } from '../../utils'
 
 // every document in the application should be re-exported from the root. this allows the user to balance
 // code-splitting concerns with the "cleanliness" of importing from a single location
@@ -14,11 +11,14 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 	// the directories we want to export
 	const runtimeDir = './' + path.relative(config.rootDir, config.runtimeDirectory)
 	const artifactDir = './' + path.relative(config.rootDir, config.artifactDirectory)
+	const configPath = path.relative(config.rootDir, config.filepath)
 
 	// if we are rendering an index file for sapper we need to compile it for commonjs
 	let body = ''
 	if (config.module === 'commonjs') {
 		body = `${cjsIndexFilePreamble}
+
+${exportDefaultFrom(configPath, 'config')}
 
 ${exportStarFrom(runtimeDir)}
 ${exportStarFrom(artifactDir)}
@@ -26,14 +26,11 @@ ${exportStarFrom(artifactDir)}
 	}
 	// otherwise just use esm statements as the final result
 	else {
-		body = recast.print(
-			AST.program([
-				// build up the index file that at least exports the runtime
-				AST.exportAllDeclaration(AST.literal(runtimeDir), null),
-				// every artifact we generated be exported from the index file
-				AST.exportAllDeclaration(AST.literal(artifactDir), null),
-			])
-		).code
+		body = `
+export {default as config } from "${configPath}"
+export * from "${runtimeDir}"
+export * from "${artifactDir}"
+`
 	}
 
 	// write the index file that exports the runtime

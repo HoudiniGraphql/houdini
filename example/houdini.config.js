@@ -1,7 +1,5 @@
-import path from 'path'
-
 export default {
-	schemaPath: path.resolve('./schema/schema.gql'),
+	schemaPath: './schema/schema.gql',
 	sourceGlob: 'src/**/*.svelte',
 	framework: 'kit',
 	module: 'esm',

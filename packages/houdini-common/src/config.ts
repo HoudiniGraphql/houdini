@@ -11,12 +11,24 @@ export type ConfigFile = {
 	schema?: string
 	quiet?: boolean
 	apiUrl?: string
+	static?: boolean
+	scalars?: ScalarMap
 	// an old config file could specify mode instead of framework and module
 	mode?: 'kit' | 'sapper'
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
-	static?: boolean
 }
+
+export type ScalarSpec = {
+	// the type to use at runtime
+	type: string
+	// the function to call that serializes the type for the API
+	marshal: (val: any) => any
+	// the function to call that turns the API's response into _ClientType
+	unmarshal: (val: any) => any
+}
+
+type ScalarMap = { [typeName: string]: ScalarSpec }
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -29,6 +41,7 @@ export class Config {
 	sourceGlob: string
 	quiet: boolean
 	static?: boolean
+	scalars?: ScalarMap
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
 	module: 'commonjs' | 'esm' = 'commonjs'
 
@@ -43,6 +56,7 @@ export class Config {
 		module = 'commonjs',
 		static: staticSite,
 		mode,
+		scalars,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -52,12 +66,40 @@ export class Config {
 		// if we're given a schema string
 		if (schema) {
 			this.schema = graphql.buildSchema(schema)
-		} else if (schemaPath!.endsWith('gql') || schemaPath!.endsWith('graphql')) {
-			this.schema = graphql.buildSchema(fs.readFileSync(schemaPath as string, 'utf-8'))
 		} else {
-			this.schema = graphql.buildClientSchema(
-				JSON.parse(fs.readFileSync(schemaPath as string, 'utf-8'))
-			)
+			// we know schemaPath isn't null
+			schemaPath = schemaPath!
+			// if the schema is not a relative path, the config file is out of date
+			if (path.isAbsolute(schemaPath)) {
+				// compute the new value for schema
+				const relPath = path.relative(process.cwd(), schemaPath)
+
+				// build up an error with no stack trace so the message isn't so noisy
+				const error = new Error(
+					"Invalid config value: 'schemaPath' must now be passed as a relative directory. Please change " +
+						`its value to "./${relPath}" and remove the path import.`
+				)
+				error.stack = ''
+
+				// don't let anything continue
+				throw error
+			}
+
+			// interpret the schema path as relative to cwd
+			const localSchemaPath = path.resolve(process.cwd(), schemaPath)
+
+			// if the schema points to an sdl file
+			if (localSchemaPath.endsWith('gql') || localSchemaPath.endsWith('graphql')) {
+				this.schema = graphql.buildSchema(
+					fs.readFileSync(localSchemaPath as string, 'utf-8')
+				)
+			}
+			// the schema must point to a json blob with the inspection data
+			else {
+				this.schema = graphql.buildClientSchema(
+					JSON.parse(fs.readFileSync(localSchemaPath as string, 'utf-8'))
+				)
+			}
 		}
 
 		// if we were given a mode instead of framework/module
@@ -66,7 +108,8 @@ export class Config {
 				// warn the user
 				console.warn('Encountered deprecated config value: mode')
 				console.warn(
-					'This parameter will be removed in a future version. Please update your config with the following values:'
+					'This parameter will be removed in a future version. Please update your config with the ' +
+						'following values:'
 				)
 			}
 			if (mode === 'sapper') {
@@ -94,6 +137,7 @@ export class Config {
 		this.module = module
 		this.projectRoot = path.dirname(filepath)
 		this.static = staticSite
+		this.scalars = scalars
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact

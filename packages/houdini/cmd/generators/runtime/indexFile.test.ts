@@ -47,6 +47,9 @@ test('runtime index file - sapper', async function () {
 		};
 		Object.defineProperty(exports, "__esModule", { value: true });
 
+		var config = require("../../../config.cjs");
+		Object.defineProperty(exports, "config", { enumerable: true, get: function () { return __importDefault(config).default; } });
+
 		__exportStar(require("./runtime"), exports);
 		__exportStar(require("./artifacts"), exports);
 	`)
@@ -69,7 +72,8 @@ test('runtime index file - kit', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		export * from "./runtime";
-		export * from "./artifacts";
+		export {default as config } from "../config.cjs"
+		export * from "./runtime"
+		export * from "./artifacts"
 	`)
 })
