@@ -70,7 +70,7 @@ jobs:
 
             - name: Publish
               run: |
-                  yarn lerna publish ${BUMP} --yes --message "$BUMP_EMOJI %s --ignore-scripts"
+                  yarn lerna publish ${BUMP} --yes --message "$BUMP_EMOJI %s" --ignore-scripts
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
