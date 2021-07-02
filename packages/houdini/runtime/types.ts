@@ -40,6 +40,10 @@ type BaseCompiledDocument = {
 	hash: string
 	selection: SubscriptionSelection
 	rootType: string
+	input?: {
+		fields: Record<string, string>
+		types: Record<string, Record<string, string>>
+	}
 }
 
 // the result of the template tag
@@ -137,11 +141,3 @@ export type SubscriptionSpec = {
 	parentID?: string
 	variables?: () => any
 }
-
-export type JSONValue =
-	| string
-	| number
-	| boolean
-	| null
-	| JSONValue[]
-	| { [key: string]: JSONValue }

@@ -2,7 +2,7 @@
 import { get, Readable } from 'svelte/store'
 import type { Config } from 'houdini-common'
 // locals
-import { JSONValue, MutationArtifact, QueryArtifact, SubscriptionArtifact } from './types'
+import { MutationArtifact, QueryArtifact, SubscriptionArtifact } from './types'
 
 export class Environment {
 	private fetch: RequestHandler<any>
@@ -244,7 +244,7 @@ export class RequestContext {
 	}: {
 		mode: 'kit' | 'sapper'
 		variableFunction: SapperLoad | KitLoad
-		artifact: QueryArtifact
+		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
 		config: Config
 	}) {
 		// if we are in kit mode, just pass the context directly
@@ -261,6 +261,6 @@ export class RequestContext {
 type SapperLoad = (
 	page: FetchContext['page'],
 	session: FetchContext['session']
-) => Record<string, JSONValue>
+) => Record<string, any>
 
-type KitLoad = (ctx: FetchContext) => Record<string, JSONValue>
+type KitLoad = (ctx: FetchContext) => Record<string, any>
