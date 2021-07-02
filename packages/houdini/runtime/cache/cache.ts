@@ -1,3 +1,5 @@
+// external imports
+import type { Config } from 'houdini-common'
 // local imports
 import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../types'
 import { Record } from './record'
@@ -5,6 +7,11 @@ import { ConnectionHandler } from './connection'
 
 // this class implements the cache that drives houdini queries
 export class Cache {
+	_config: Config
+	constructor(config: Config) {
+		this._config = config
+	}
+
 	// the map from entity id to record
 	private _data: Map<string | undefined, Record> = new Map()
 	// associate connection names with the handler that wraps the list
