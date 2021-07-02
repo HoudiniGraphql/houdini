@@ -592,7 +592,7 @@ function tsType({
 			})
 
 			// build up the discriminated type
-			const selectionTypes = concreteFragments.map(({ type, tsType }) => {
+			let selectionTypes = concreteFragments.map(({ type, tsType }) => {
 				// the selection for a concrete type is really the intersection of itself
 				// with every abstract type it implements. go over every fragment belonging
 				// to an abstract type and check if this type implements it.
@@ -621,6 +621,19 @@ function tsType({
 									})
 									.map(({ tsType }) => tsType)
 							)
+							// remove any inner nullability flags
+							.flatMap((type) => {
+								// if we are looking at a union we might have nulls in there
+								if (type.type === 'TSUnionType') {
+									return type.types.filter(
+										(innerType) =>
+											innerType.type !== 'TSNullKeyword' &&
+											innerType.type !== 'TSUndefinedKeyword'
+									)
+								}
+
+								return type
+							})
 					)
 				)
 			})
@@ -630,6 +643,7 @@ function tsType({
 				result,
 				AST.tsParenthesizedType(AST.tsUnionType(selectionTypes)),
 			])
+			// if we're supposed to leave a nullable type behind
 		}
 	}
 	// we shouldn't get here

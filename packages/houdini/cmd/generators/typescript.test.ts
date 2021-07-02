@@ -21,7 +21,7 @@ const config = testConfig({
 			user(id: ID, filter: UserFilter, filterList: [UserFilter!], enumArg: MyEnum): User
 			users: [User]
 			nodes: [Node!]!
-			entities: [Entity!]!
+			entities: [Entity]
 		}
 
 		type Mutation { 
@@ -67,6 +67,12 @@ const config = testConfig({
 		}
 
 		union Entity = User | Cat
+
+		union AnotherEntity = User | Ghost
+
+		type Ghost { 
+			aka: String!
+		}
 
 		type User implements Node {
 			id: ID!
@@ -572,10 +578,10 @@ describe('typescript', function () {
 		    readonly nodes: ({} & (({
 		        readonly id: string,
 		        readonly __typename: "User"
-		    } | null) | ({
+		    }) | ({
 		        readonly id: string,
 		        readonly __typename: "Cat"
-		    } | null)))[]
+		    })))[]
 		};
 	`)
 	})
@@ -619,10 +625,10 @@ describe('typescript', function () {
 		    readonly entities: ({} & (({
 		        readonly id: string,
 		        readonly __typename: "User"
-		    } | null) | ({
+		    }) | ({
 		        readonly id: string,
 		        readonly __typename: "Cat"
-		    } | null)))[]
+		    })) | null)[] | null
 		};
 	`)
 	})
@@ -669,10 +675,10 @@ describe('typescript', function () {
 		    } & (({
 		        readonly firstName: string,
 		        readonly __typename: "User"
-		    } | null) | ({
+		    }) | ({
 		        readonly kitty: boolean,
 		        readonly __typename: "Cat"
-		    } | null)))[]
+		    })))[]
 		};
 	`)
 	})
@@ -719,12 +725,12 @@ describe('typescript', function () {
 		    readonly entities: ({} & (({
 		        readonly firstName: string,
 		        readonly __typename: "User"
-		    } | null) | ({
+		    }) | ({
 		        readonly kitty: boolean,
 		        readonly __typename: "Cat"
-		    } | null & {
+		    } & {
 		        readonly isAnimal: boolean
-		    } | null)))[]
+		    })) | null)[] | null
 		};
 	`)
 	})
