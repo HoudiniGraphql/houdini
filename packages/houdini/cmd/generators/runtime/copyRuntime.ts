@@ -11,6 +11,13 @@ import { writeFile } from '../../utils'
 // @ts-ignore
 const currentDir = global.__dirname || dirname(fileURLToPath(import.meta.url))
 
+// TODO: find a better way of handling this. The runtime needs to be able to import the config file
+// 		 to support features like custom scalars. In order to pull this off, this generator
+//       copies the compiled runtime and then manually adds an import to the config file.
+//       The runtime index file already exports the config file but for some reason vite
+//       can't find the exported value when it comes from inside. It has no problem
+//       finding the config reference exported from $houdini from the preprocessor 🤷
+
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
 	// under /src so we need to figure out how far up to go to find the appropriately compiled runtime

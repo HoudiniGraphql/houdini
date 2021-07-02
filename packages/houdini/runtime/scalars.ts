@@ -12,6 +12,6 @@ export function marshalInputs({
 	config: Config
 	input: {}
 }) {
-	console.log(artifact.input)
+	console.log(config, artifact.input)
 	return input
 }
