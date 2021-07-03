@@ -33,34 +33,40 @@ export function marshalInputs<T>({
 
 	// if we are looking at a list
 	if (Array.isArray(input)) {
-		return input.map((val) => marshalInputs({ artifact, config, input: val, rootType }))
-	}
+		for (const val of input) {
+			marshalInputs({ artifact, config, input: val, rootType })
+		}
+	} else {
+		let inputMap = input as { [key: string]: unknown }
 
-	// we're looking at an object, build it up from the current input
-	return Object.fromEntries(
-		Object.entries(input as {}).map(([fieldName, value]) => {
+		// we're looking at an object, look at every key to anything to be marshaled
+		for (const [fieldName, value] of Object.entries(input as {})) {
 			// look up the type for the field
 			const type = fields[fieldName]
 			// if we don't have type information for this field, just use it directly
 			// it's most likely a non-custom scalars or enums
 			if (!type) {
-				return [fieldName, value]
+				continue
 			}
 
 			// is the type something that requires marshaling
 			if (config.scalars?.[type]?.marshal) {
-				return [fieldName, config.scalars[type].marshal(value)]
+				inputMap[fieldName] = config.scalars[type].marshal(value)
+				continue
 			}
 
 			// if the type doesn't require marshaling and isn't a referenced type
 			if (isScalar(config, type)) {
-				return [fieldName, value]
+				continue
 			}
 
 			// we ran into an object type that should be referenced by the artifact
-			return [fieldName, marshalInputs({ artifact, config, input: value, rootType: type })]
-		})
-	)
+			marshalInputs({ artifact, config, input: value, rootType: type })
+		}
+	}
+
+	// we're done marshaling content
+	return input as {}
 }
 
 export function unmarshalSelection(
@@ -75,42 +81,44 @@ export function unmarshalSelection(
 	// if we are looking at a list
 	if (Array.isArray(data)) {
 		// unmarshal every entry in the list
-		return data.map((val) => unmarshalSelection(config, selection, val))
+		for (const val of data) {
+			unmarshalSelection(config, selection, val)
+		}
 	}
+	// we are looking at an object
+	else {
+		const dataMap = data as { [key: string]: unknown }
 
-	// we're looking at an object, build it up from the current input
-	return Object.fromEntries(
-		Object.entries(data as {}).map(([fieldName, value]) => {
+		for (const [fieldName, value] of Object.entries(dataMap)) {
 			// look up the type for the field
 			const { type, fields } = selection[fieldName]
 			// if we don't have type information for this field, just use it directly
 			// it's most likely a non-custom scalars or enums
 			if (!type) {
-				return [fieldName, value]
+				continue
 			}
 
 			// is the type something that requires marshaling
 			if (config.scalars?.[type]?.marshal) {
-				return [fieldName, config.scalars[type].unmarshal(value)]
+				dataMap[fieldName] = config.scalars[type].unmarshal(value)
+				continue
 			}
 
 			// if the type doesn't require marshaling and isn't a referenced type
 			// if the type is a scalar that doesn't require marshaling
 			if (isScalar(config, type)) {
-				return [fieldName, value]
+				continue
 			}
 
+			// if there is a subselectoin
 			if (fields) {
-				return [
-					fieldName,
-					// unmarshalSelection({ artifact, config, input: value, rootType: type }),
-					unmarshalSelection(config, fields, value),
-				]
+				// walk down
+				unmarshalSelection(config, fields, value)
 			}
+		}
+	}
 
-			return []
-		})
-	)
+	return data as {}
 }
 
 // we can't use config.isScalar because that would require bundling in houdini-common
