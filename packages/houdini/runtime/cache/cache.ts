@@ -4,6 +4,7 @@ import type { Config } from 'houdini-common'
 import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../types'
 import { Record } from './record'
 import { ConnectionHandler } from './connection'
+import { isScalar } from '../scalars'
 
 // this class implements the cache that drives houdini queries
 export class Cache {
@@ -156,7 +157,7 @@ export class Cache {
 			const linkedList = parent.linkedList(key)
 
 			// if we are looking at a scalar
-			if (this.isScalarLink(type)) {
+			if (isScalar(this._config, type)) {
 				// look up the primitive value
 				const val = parent.getField(key)
 
@@ -207,7 +208,7 @@ export class Cache {
 
 			// if the field points to a link, we need to subscribe to any fields of that
 			// linked record
-			if (!this.isScalarLink(type)) {
+			if (!isScalar(this._config, type)) {
 				// if the link points to a record then we just have to add it to the one
 				const linkedRecord = rootRecord.linkedRecord(key)
 				let children = linkedRecord ? [linkedRecord] : rootRecord.linkedList(key)
@@ -290,7 +291,7 @@ export class Cache {
 
 			// if the field points to a link, we need to remove any subscribers on any fields of that
 			// linked record
-			if (!this.isScalarLink(type)) {
+			if (!isScalar(this._config, type)) {
 				// if the link points to a record then we just have to remove it to the one
 				const linkedRecord = rootRecord.linkedRecord(key)
 				let children = linkedRecord ? [linkedRecord] : rootRecord.linkedList(key)
@@ -398,7 +399,7 @@ export class Cache {
 			}
 
 			// the value could be a list
-			else if (!this.isScalarLink(linkedType) && Array.isArray(value) && fields) {
+			else if (!isScalar(this._config, linkedType) && Array.isArray(value) && fields) {
 				// build up the list of linked ids
 				const linkedIDs: string[] = []
 				// look up the current known link id
@@ -573,12 +574,6 @@ export class Cache {
 		}
 
 		return this._data.get(id) || null
-	}
-
-	private isScalarLink(type: string) {
-		return ['String', 'Boolean', 'Float', 'ID', 'Int']
-			.concat(Object.keys(this._config.scalars || {}))
-			.includes(type)
 	}
 
 	private notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {

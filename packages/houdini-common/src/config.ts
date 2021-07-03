@@ -224,7 +224,9 @@ export class Config {
 	}
 
 	isSelectionScalar(type: string) {
-		return ['String', 'ID', 'Float', 'Int', 'Boolean'].includes(type)
+		return ['String', 'Boolean', 'Float', 'ID', 'Int']
+			.concat(Object.keys(this.scalars || {}))
+			.includes(type)
 	}
 
 	async createDirectories(): Promise<void> {

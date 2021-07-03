@@ -5,7 +5,7 @@ import { onMount, onDestroy } from 'svelte'
 import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
 import { getEnvironment } from './network'
 import cache from './cache'
-import { marshalInputs } from './scalars'
+import { marshalInputs, unmarshalSelection } from './scalars'
 
 // subscription holds open a live connection to the server. it returns a store
 // containing the requested data. Houdini will also update the cache with any
@@ -80,7 +80,9 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 						cache.write(selection, data, marshaledVariables)
 
 						// update the local store
-						store.set(data)
+						store.set(
+							unmarshalSelection(document.config, document.artifact.selection, data)
+						)
 					}
 				},
 				error(data: _Subscription['result']) {},

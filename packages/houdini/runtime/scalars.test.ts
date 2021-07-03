@@ -1,73 +1,106 @@
 import { testConfig } from 'houdini-common'
 import { RequestContext } from './network'
+import { unmarshalSelection } from './scalars'
 import { QueryArtifact } from './types'
 
-describe('marshal inputs', function () {
-	// a mock request context
-	const ctx = new RequestContext({
-		page: { host: '', path: '', params: null, query: null },
-		context: null,
-		session: null,
-		fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,
-	})
+// a mock request context
+const ctx = new RequestContext({
+	page: { host: '', path: '', params: null, query: null },
+	context: null,
+	session: null,
+	fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,
+})
 
-	const localConfig = testConfig({
-		schema: `
-            scalar DateTime
-            
-            input NestedDate { 
-				name: String
-                date: DateTime!
-                nested: NestedDate!
-            }
+const config = testConfig({
+	schema: `
+		scalar DateTime
+		
+		input NestedDate { 
+			name: String
+			date: DateTime!
+			nested: NestedDate!
+		}
 
-            type TodoItem { 
-                text: String!
-                createdAt: DateTime! 
-            }	
+		type TodoItem { 
+			text: String!
+			createdAt: DateTime! 
+			creator: User!
+		}	
 
-			type Query { 
-				users(date: NestedDate, booleanValue: Boolean): String
-			}
-        `,
-		scalars: {
-			DateTime: {
-				type: 'Date',
-				unmarshal(val: number): Date {
-					const date = new Date(0)
-					date.setMilliseconds(val)
+		type User { 
+			firstName: String!
+		}
 
-					return date
-				},
-				marshal(date: Date): number {
-					return date.getTime()
-				},
+		type Query { 
+			items(date: NestedDate, booleanValue: Boolean): [TodoItem!]!
+			item: TodoItem
+			rootBool: Boolean!
+		}
+	`,
+	scalars: {
+		DateTime: {
+			type: 'Date',
+			unmarshal(val: number): Date {
+				const date = new Date(val)
+				return date
+			},
+			marshal(date: Date): number {
+				return date.getTime()
 			},
 		},
-	})
+	},
+})
 
-	// the test artifact
-	const artifact: QueryArtifact = {
-		name: 'AllItems',
-		kind: 'HoudiniQuery',
-		hash: 'hash',
-		raw: 'does not matter',
-		selection: {},
-		rootType: 'Query',
-		input: {
+// the test artifact
+const artifact: QueryArtifact = {
+	name: 'AllItems',
+	kind: 'HoudiniQuery',
+	hash: 'hash',
+	raw: 'does not matter',
+	selection: {
+		items: {
+			type: 'TodoItem',
+			keyRaw: 'allItems',
+
 			fields: {
-				date: 'NestedDate',
-				booleanValue: 'Boolean',
-			},
-			types: {
-				NestedDate: {
-					date: 'DateTime',
-					nested: 'NestedDate',
+				createdAt: {
+					type: 'DateTime',
+					keyRaw: 'createdAt',
+				},
+				creator: {
+					type: 'User',
+					keyRaw: 'creator',
+
+					fields: {
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+
+					connection: 'All_Items',
 				},
 			},
-		},
-	}
 
+			connection: 'All_Items',
+		},
+	},
+	rootType: 'Query',
+	input: {
+		fields: {
+			date: 'NestedDate',
+			booleanValue: 'Boolean',
+		},
+		types: {
+			NestedDate: {
+				date: 'DateTime',
+				nested: 'NestedDate',
+			},
+		},
+	},
+}
+
+describe('marshal inputs', function () {
 	test('lists of objects', function () {
 		// some dates to check against
 		const date1 = new Date(0)
@@ -76,7 +109,7 @@ describe('marshal inputs', function () {
 
 		// compute the inputs
 		const inputs = ctx.computeInput({
-			config: localConfig,
+			config,
 			mode: 'kit',
 			artifact,
 			variableFunction() {
@@ -115,7 +148,7 @@ describe('marshal inputs', function () {
 	test('root fields', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
-			config: localConfig,
+			config,
 			mode: 'kit',
 			artifact,
 			variableFunction() {
@@ -134,7 +167,7 @@ describe('marshal inputs', function () {
 	test('non-custom scalar fields of objects', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
-			config: localConfig,
+			config,
 			mode: 'kit',
 			artifact,
 			variableFunction() {
@@ -157,7 +190,7 @@ describe('marshal inputs', function () {
 	test('non-custom scalar fields of lists', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
-			config: localConfig,
+			config,
 			mode: 'kit',
 			artifact,
 			variableFunction() {
@@ -178,6 +211,102 @@ describe('marshal inputs', function () {
 					name: 'hello',
 				},
 			],
+		})
+	})
+})
+
+describe('unmarshal selection', function () {
+	test('list of objects', function () {
+		// the date to compare against
+		const date = new Date()
+
+		const data = {
+			items: [
+				{
+					createdAt: date.getTime(),
+					creator: {
+						firstName: 'John',
+					},
+				},
+			],
+		}
+
+		expect(unmarshalSelection(config, artifact.selection, data)).toEqual({
+			items: [
+				{
+					createdAt: date,
+					creator: {
+						firstName: 'John',
+					},
+				},
+			],
+		})
+	})
+
+	test('nested objects', function () {
+		// the date to compare against
+		const date = new Date()
+
+		const data = {
+			item: {
+				createdAt: date.getTime(),
+				creator: {
+					firstName: 'John',
+				},
+			},
+		}
+
+		const selection = {
+			item: {
+				type: 'TodoItem',
+				keyRaw: 'item',
+
+				fields: {
+					createdAt: {
+						type: 'DateTime',
+						keyRaw: 'createdAt',
+					},
+					creator: {
+						type: 'User',
+						keyRaw: 'creator',
+
+						fields: {
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
+
+						connection: 'All_Items',
+					},
+				},
+			},
+		}
+
+		expect(unmarshalSelection(config, selection, data)).toEqual({
+			item: {
+				createdAt: date,
+				creator: {
+					firstName: 'John',
+				},
+			},
+		})
+	})
+
+	test('fields on root', function () {
+		const data = {
+			rootBool: true,
+		}
+
+		const selection = {
+			rootBool: {
+				type: 'Boolean',
+				keyRaw: 'rootBool',
+			},
+		}
+
+		expect(unmarshalSelection(config, selection, data)).toEqual({
+			rootBool: true,
 		})
 	})
 })

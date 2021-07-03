@@ -3,7 +3,7 @@ import { executeQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact } from './types'
 import cache from './cache'
 import { getVariables } from './context'
-import { marshalInputs } from './scalars'
+import { marshalInputs, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
@@ -43,7 +43,8 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 
 			cache.write(artifact.selection, result.data, queryVariables())
 
-			return result.data
+			// unmarshal any scalars on the body
+			return unmarshalSelection(document.config, document.artifact.selection, result.data)
 		} catch (error) {
 			throw error
 		}

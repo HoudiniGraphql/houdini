@@ -7,7 +7,7 @@ import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './
 import cache from './cache'
 import { setVariables } from './context'
 import { executeQuery, RequestPayload } from './network'
-import { marshalInputs } from './scalars'
+import { marshalInputs, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
@@ -33,7 +33,9 @@ export default function query<_Query extends Operation<any, any>>(
 	const initialValue = document.initialValue?.data
 
 	// define the store we will hold the data
-	const store = writable(initialValue)
+	const store = writable(
+		unmarshalSelection(document.config, document.artifact.selection, initialValue)
+	)
 
 	// we might get the the artifact nested under default
 	const artifact: QueryArtifact =

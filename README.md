@@ -722,10 +722,7 @@ export default {
 			type: 'Date',
 			// turn the api's response into that type
 			unmarshal(val) {
-				const date = new Date(0)
-				date.setMilliseconds(val)
-
-				return date
+				return new Date(val)
 			},
 			// turn the value into something the API can use
 			marshal(date) {

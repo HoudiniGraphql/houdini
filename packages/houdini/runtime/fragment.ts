@@ -5,6 +5,7 @@ import { onMount } from 'svelte'
 import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
 import cache from './cache'
 import { getVariables } from './context'
+import { unmarshalSelection } from './scalars'
 
 // fragment returns the requested data from the reference
 export default function fragment<_Fragment extends Fragment<any>>(
@@ -24,11 +25,18 @@ export default function fragment<_Fragment extends Fragment<any>>(
 
 	const queryVariables = getVariables()
 
+	// unmarshal the selection
+	const unmarshaledValue = unmarshalSelection(
+		fragment.config,
+		fragment.artifact.selection,
+		initialValue
+	)
+
 	// wrap the result in a store we can use to keep this query up to date
-	const value = readable(initialValue, (set) => {
+	const value = readable(unmarshaledValue, (set) => {
 		// @ts-ignore: isn't properly typed yet to know if initialValue has
 		// what it needs to compute the id
-		const parentID = cache.id(artifact.rootType, initialValue)
+		const parentID = cache.id(artifact.rootType, unmarshaledValue)
 
 		subscriptionSpec = {
 			rootType: artifact.rootType,
