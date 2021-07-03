@@ -3,7 +3,7 @@ import type { Config } from 'houdini-common'
 // locals
 import { MutationArtifact, QueryArtifact, SubscriptionArtifact } from './types'
 
-export function marshalInputs({
+export function marshalInputs<T>({
 	artifact,
 	config,
 	input,
@@ -13,10 +13,10 @@ export function marshalInputs({
 	config: Config
 	input: unknown
 	rootType: string
-}) {
+}): {} {
 	// if there are no inputs in the object, nothing to do
 	if (!artifact.input) {
-		return input
+		return input as {}
 	}
 
 	// the object containing the relevant fields
@@ -47,6 +47,4 @@ export function marshalInputs({
 			return [fieldName, marshalInputs({ artifact, config, input: value, rootType: type })]
 		})
 	)
-
-	return input
 }
