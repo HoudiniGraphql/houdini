@@ -20,6 +20,7 @@
 				id
 				text
 				completed
+				createdAt
 			}
 		`,
 		item
@@ -65,6 +66,7 @@
 						id
 						completed
 						text
+						createdAt
 					}
 				}
 			}
@@ -88,8 +90,26 @@
 	}
 </script>
 
+<style>
+	.timestamp { 
+		font-size: 14px;
+		margin-top: 4px;
+		margin-right: 50px;
+	}
+
+	.destroy, input {
+		cursor: pointer;
+	}
+
+	.row {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+	}
+</style>
+
 <li class:completed={$data.completed}>
-	<div class="view">
+	<div class="view" >
 		<input
 			name={$data.text}
 			class="toggle"
@@ -97,7 +117,12 @@
 			checked={$data.completed}
 			on:click={handleClick}
 		/>
-		<label for={$data.text}>{$data.text}</label>
+		<label for={$data.text} class="row">
+			{$data.text} 
+			<span class="timestamp">
+				{$data.createdAt.toLocaleDateString("en-US")}
+			</span>
+		</label>
 		<button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
 	</div>
 </li>
