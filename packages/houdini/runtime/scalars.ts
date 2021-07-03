@@ -38,9 +38,14 @@ export function marshalInputs<T>({
 				return [fieldName, value]
 			}
 
-			// is the type something that requires marshals
+			// is the type something that requires marshaling
 			if (config.scalars?.[type]?.marshal) {
 				return [fieldName, config.scalars[type].marshal(value)]
+			}
+
+			// if the type doesn't require marshaling and isn't a referenced type
+			if (!artifact.input?.types[type]) {
+				return [fieldName, value]
 			}
 
 			// we ran into an object type that should be referenced by the artifact

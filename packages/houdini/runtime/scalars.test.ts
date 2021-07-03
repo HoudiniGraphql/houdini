@@ -27,7 +27,7 @@ describe('marshal inputs', function () {
             }	
 
 			type Query { 
-				users(date: NestedDate): String
+				users(date: NestedDate, booleanValue: Boolean): String
 			}
         `,
 		scalars: {
@@ -57,6 +57,7 @@ describe('marshal inputs', function () {
 		input: {
 			fields: {
 				date: 'NestedDate',
+				booleanValue: 'Boolean',
 			},
 			types: {
 				NestedDate: {
@@ -111,7 +112,49 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('non-custom scalars', function () {
+	test('root fields', function () {
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config: localConfig,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					booleanValue: true,
+				}
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			booleanValue: true,
+		})
+	})
+
+	test('non-custom scalar fields of objects', function () {
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config: localConfig,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					date: {
+						name: 'hello',
+					},
+				}
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			date: {
+				name: 'hello',
+			},
+		})
+	})
+
+	test('non-custom scalar fields of lists', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config: localConfig,
