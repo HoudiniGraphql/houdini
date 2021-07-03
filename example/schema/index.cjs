@@ -1,10 +1,12 @@
-const { makeExecutableSchema } = require('@graphql-tools/schema')
 const gql = require('graphql-tag')
 const { PubSub, withFilter } = require('apollo-server')
+const { GraphQLScalarType, Kind } = require('graphql')
 
 const pubsub = new PubSub()
 
 module.exports.typeDefs = gql`
+	scalar DateTime
+
 	type Error {
 		message: String!
 		code: String!
@@ -14,6 +16,7 @@ module.exports.typeDefs = gql`
 		id: ID!
 		text: String!
 		completed: Boolean!
+		createdAt: DateTime!
 	}
 
 	type Query {
@@ -60,8 +63,8 @@ id = 3
 
 // example data
 let items = [
-	{ id: '1', text: 'Taste JavaScript' },
-	{ id: '2', text: 'Buy a unicorn' },
+	{ id: '1', text: 'Taste JavaScript', createdAt: new Date() },
+	{ id: '2', text: 'Buy a unicorn', createdAt: new Date() },
 ]
 
 module.exports.resolvers = {
@@ -119,7 +122,12 @@ module.exports.resolvers = {
 			}
 		},
 		addItem(_, { input: { text } }) {
-			const item = { text, completed: false, id: (parseInt(id, 10) + 1).toString() }
+			const item = {
+				text,
+				completed: false,
+				id: (parseInt(id, 10) + 1).toString(),
+				createdAt: new Date(),
+			}
 			id++
 			items.unshift(item)
 
@@ -145,4 +153,20 @@ module.exports.resolvers = {
 			subscribe: () => pubsub.asyncIterator('NEW_ITEM'),
 		},
 	},
+	DateTime: new GraphQLScalarType({
+		name: 'DateTime',
+		description: 'Date custom scalar type',
+		serialize(value) {
+			return value.getTime()
+		},
+		parseValue(value) {
+			return new Date(value)
+		},
+		parseLiteral(ast) {
+			if (ast.kind === Kind.INT) {
+				return new Date(parseInt(ast.value, 10))
+			}
+			return null
+		},
+	}),
 }

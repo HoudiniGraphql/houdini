@@ -20,10 +20,13 @@
 				id
 				text
 				completed
+				createdAt
 			}
 		`,
 		item
 	)
+
+	console.log($data.createdAt)
 
 	// create the functions we'll invoke to check, uncheck, and delete the item
 	const completeItem = mutation<CompleteItem>(graphql`
