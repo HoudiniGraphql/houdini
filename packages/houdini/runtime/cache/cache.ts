@@ -164,10 +164,13 @@ export class Cache {
 				if (this._config.scalars?.[type]?.unmarshal) {
 					// pass the primitive value to the unmarshal function
 					target[attributeName] = this._config.scalars[type].unmarshal(val)
-				} else {
+				}
+				// the field does not have an unmarshal function
+				else {
 					target[attributeName] = val
 				}
 
+				// we're done
 				continue
 			}
 			// the field could be an object
@@ -180,6 +183,10 @@ export class Cache {
 				target[attributeName] = linkedList.map((linkedRecord) =>
 					this.getData(linkedRecord, fields, variables)
 				)
+			}
+			// we don't recognize the field type
+			else {
+				throw new Error('Encountered unknown type: ' + type)
 			}
 		}
 

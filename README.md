@@ -58,6 +58,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Configuring the WebSocket client](#configuring-the-websocket-client)
     1. [Using graphql-ws](#using-graphql-ws)
     1. [Using subscriptions-transport-ws](#using-subscriptions-transport-ws)
+1. [Custom Scalars](#custom-scalars)
 1. [Authentication](#authentication)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
 
@@ -704,9 +705,41 @@ if (browser) {
 export default new Environment(fetchQuery, socketClient)
 ```
 
+## ⚖️&nbsp;Custom Scalars
+
+Configuring your runtime to handle custom scalars is done under the `scalars` key in your config:
+
+```javascript
+// houdini.config.js
+
+export default {
+	// ...
+
+	scalars: {
+		// the name of the scalar we are configuring
+		DateTime: {
+			// the corresponding typescript type 
+			type: 'Date',
+			// turn the api's response into that type
+			unmarshal(val) {
+				const date = new Date(0)
+				date.setMilliseconds(val)
+
+				return date
+			},
+			// turn the value into something the API can use
+			marshal(date) {
+				return date.getTime()
+			},
+		},
+	},
+}
+```
+
+
 ## 🔐&nbsp;&nbsp;Authentication
 
-houdini defers to Sapper's sessions for authentication. Assuming that the session has been populated
+houdini defers to SvelteKit's sessions for authentication. Assuming that the session has been populated
 somehow, you can access it through the second argument in the environment definition:
 
 ```typescript
