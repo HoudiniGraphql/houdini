@@ -1,11 +1,13 @@
 // externals
 import { Readable, writable, readable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
+import type { Config } from 'houdini-common'
 // locals
 import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
 import cache from './cache'
 import { setVariables } from './context'
 import { executeQuery, RequestPayload } from './network'
+import { marshalInputs, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
@@ -18,9 +20,17 @@ export default function query<_Query extends Operation<any, any>>(
 		throw new Error('query() must be passed a query document')
 	}
 
+	// we might get re-exported values nested under default
+
+	// @ts-ignore: typing esm/cjs interop is hard
+	const artifact: QueryArtifact = document.artifact.default || document.artifact
+	// @ts-ignore: typing esm/cjs interop is hard
+	const config: Config = document.config.default || document.config
+
 	// a query is never 'loading'
 	const loading = writable(false)
 
+	// this payload has already been marshaled
 	let variables = document.variables
 
 	// embed the variables in the components context
@@ -30,12 +40,7 @@ export default function query<_Query extends Operation<any, any>>(
 	const initialValue = document.initialValue?.data
 
 	// define the store we will hold the data
-	const store = writable(initialValue)
-
-	// we might get the the artifact nested under default
-	const artifact: QueryArtifact =
-		// @ts-ignore: typing esm/cjs interop is hard
-		document.artifact.default || document.artifact
+	const store = writable(unmarshalSelection(config, artifact.selection, initialValue))
 
 	// pull out the writer for internal use
 	let subscriptionSpec: SubscriptionSpec | null = {
@@ -87,7 +92,7 @@ export default function query<_Query extends Operation<any, any>>(
 		variables = newVariables || {}
 
 		// update the local store
-		store.set(newData.data)
+		store.set(unmarshalSelection(config, artifact.selection, newData.data))
 
 		// write the data we received
 		cache.write(artifact.selection, newData.data, variables)
@@ -143,11 +148,13 @@ export const routeQuery = <_Data, _Input>(
 // component queries are implemented as wrappers over the normal query that fire the
 // appropriate network request and then write the result to the underlying store
 export const componentQuery = <_Data, _Input>({
+	config,
 	artifact,
 	queryHandler,
 	variableFunction,
 	getProps,
 }: {
+	config: Config
 	artifact: QueryArtifact
 	queryHandler: QueryResponse<_Data, _Input>
 	variableFunction: ((...args: any[]) => _Input) | null
@@ -184,7 +191,11 @@ export const componentQuery = <_Data, _Input>({
 		// clear any previous variable error
 		variableError = null
 		// compute the new variables
-		variables = variableFunction?.call(variableContext, { props: getProps() }) as _Input
+		variables = marshalInputs({
+			artifact,
+			config,
+			input: variableFunction?.call(variableContext, { props: getProps() }) || {},
+		}) as _Input
 	}
 
 	// a component should fire the query and then write the result to the store

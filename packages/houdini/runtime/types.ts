@@ -1,3 +1,5 @@
+import type { Config } from 'houdini-common'
+
 export type Fragment<_Result> = {
 	readonly shape?: _Result
 }
@@ -40,6 +42,10 @@ type BaseCompiledDocument = {
 	hash: string
 	selection: SubscriptionSelection
 	rootType: string
+	input?: {
+		fields: Record<string, string>
+		types: Record<string, Record<string, string>>
+	}
 }
 
 // the result of the template tag
@@ -52,18 +58,21 @@ export type GraphQLTagResult =
 export type TaggedGraphqlFragment = {
 	kind: 'HoudiniFragment'
 	artifact: FragmentArtifact
+	config: Config
 }
 
 // the result of tagging an operation
 export type TaggedGraphqlMutation = {
 	kind: 'HoudiniMutation'
 	artifact: MutationArtifact
+	config: Config
 }
 
 // the result of tagging an operation
 export type TaggedGraphqlSubscription = {
 	kind: 'HoudiniSubscription'
 	artifact: SubscriptionArtifact
+	config: Config
 }
 
 // the result of tagging an operation
@@ -72,6 +81,7 @@ export type TaggedGraphqlQuery = {
 	initialValue: any
 	variables: { [key: string]: any }
 	artifact: QueryArtifact
+	config: Config
 }
 
 type Filter = { [key: string]: string | boolean | number }

@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
 // locals
-import { walkTaggedDocuments, artifactIdentifier } from '../utils/index'
+import { walkTaggedDocuments, artifactIdentifier, ensureImports } from '../utils'
 import { TransformDocument } from '../types'
 
 const AST = recast.types.builders
@@ -42,6 +42,7 @@ export default async function subscriptionProcessor(
 				AST.objectExpression([
 					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
 					AST.objectProperty(AST.literal('artifact'), AST.identifier(artifactVariable)),
+					AST.objectProperty(AST.literal('config'), AST.identifier('houdiniConfig')),
 				])
 			)
 

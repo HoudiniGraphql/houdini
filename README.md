@@ -39,6 +39,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Sapper](#sapper)
     1. [SvelteKit](#sveltekit)
     1. [Svelte](#svelte)
+1. [Config File](#config-file)
 1. [Running the Compiler](#running-the-compiler)
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
@@ -57,6 +58,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Configuring the WebSocket client](#configuring-the-websocket-client)
     1. [Using graphql-ws](#using-graphql-ws)
     1. [Using subscriptions-transport-ws](#using-subscriptions-transport-ws)
+1. [Custom Scalars](#custom-scalars)
 1. [Authentication](#authentication)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
 
@@ -187,6 +189,13 @@ config file to `"svelte"`.
 Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the 
 redirect as it will update your browsers `location` attribute, causing a hard transition to that url. Instead, you should
 use `this.error` to return an error and handle the redirect in a way that's appropriate for your application.
+
+## 📄&nbsp;Config File
+
+All configuration for your houdini application is defined in a single file that is imported by both the runtime and the 
+command-line tool. Because of this, you must make sure that any imports and logic are resolvable in both environments. 
+This means that if you rely on `process.env` or other node-specifics you will have to use a 
+[plugin](https://www.npmjs.com/package/vite-plugin-replace) to replace the expression with something that can run in the browser. 
 
 ## 🚀&nbsp;&nbsp;Fetching Data
 
@@ -696,9 +705,37 @@ if (browser) {
 export default new Environment(fetchQuery, socketClient)
 ```
 
+## ⚖️&nbsp;Custom Scalars
+
+Configuring your runtime to handle custom scalars is done under the `scalars` key in your config:
+
+```javascript
+// houdini.config.js
+
+export default {
+	// ...
+
+	scalars: {
+		// the name of the scalar we are configuring
+		DateTime: {
+			// the corresponding typescript type 
+			type: 'Date',
+			// turn the api's response into that type
+			unmarshal(val) {
+				return new Date(val)
+			},
+			// turn the value into something the API can use
+			marshal(date) {
+				return date.getTime()
+			},
+		},
+	},
+}
+```
+
 ## 🔐&nbsp;&nbsp;Authentication
 
-houdini defers to Sapper's sessions for authentication. Assuming that the session has been populated
+houdini defers to SvelteKit's sessions for authentication. Assuming that the session has been populated
 somehow, you can access it through the second argument in the environment definition:
 
 ```typescript

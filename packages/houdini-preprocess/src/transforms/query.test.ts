@@ -23,6 +23,7 @@ describe('query preprocessor', function () {
 		import { convertKitPayload } from "$houdini";
 		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import { houdiniConfig } from "$houdini";
 
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
@@ -60,6 +61,7 @@ describe('query preprocessor', function () {
 		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
+		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
@@ -105,6 +107,7 @@ describe('query preprocessor', function () {
 		import { convertKitPayload } from "$houdini";
 		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import { houdiniConfig } from "$houdini";
 
 		export function TestQueryVariables(page) {
 		    return {
@@ -114,7 +117,13 @@ describe('query preprocessor', function () {
 
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
-		    const _TestQuery_Input = _houdini_context.computeInput("sapper", TestQueryVariables);
+
+		    const _TestQuery_Input = _houdini_context.computeInput({
+		        "config": houdiniConfig,
+		        "mode": "sapper",
+		        "variableFunction": TestQueryVariables,
+		        "artifact": _TestQueryArtifact
+		    });
 
 		    if (!_houdini_context.continue) {
 		        return _houdini_context.returnValue;
@@ -148,6 +157,7 @@ describe('query preprocessor', function () {
 		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
+		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
@@ -188,6 +198,7 @@ describe('query preprocessor', function () {
 		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import { houdiniConfig } from "$houdini";
 
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
@@ -221,6 +232,7 @@ describe('query preprocessor', function () {
 		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
+		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
@@ -261,7 +273,9 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(``)
+		expect(doc.module?.content).toMatchInlineSnapshot(
+			`import { houdiniConfig } from "$houdini";`
+		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -269,6 +283,7 @@ describe('query preprocessor', function () {
 		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
+		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
@@ -279,6 +294,7 @@ describe('query preprocessor', function () {
 		    data
 		} = componentQuery({
 		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: null,
 		    getProps: () => $$props
@@ -306,7 +322,9 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(``)
+		expect(doc.module?.content).toMatchInlineSnapshot(
+			`import { houdiniConfig } from "$houdini";`
+		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -314,6 +332,7 @@ describe('query preprocessor', function () {
 		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
+		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
@@ -324,6 +343,7 @@ describe('query preprocessor', function () {
 		    data
 		} = componentQuery({
 		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: null,
 		    getProps: () => $$props
@@ -351,7 +371,9 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(``)
+		expect(doc.module?.content).toMatchInlineSnapshot(
+			`import { houdiniConfig } from "$houdini";`
+		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -359,6 +381,7 @@ describe('query preprocessor', function () {
 		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
+		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
@@ -369,6 +392,7 @@ describe('query preprocessor', function () {
 		    data
 		} = componentQuery({
 		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: TestQueryVariables,
 		    getProps: () => $$props
@@ -396,7 +420,9 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(``)
+		expect(doc.module?.content).toMatchInlineSnapshot(
+			`import { houdiniConfig } from "$houdini";`
+		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -404,6 +430,7 @@ describe('query preprocessor', function () {
 		export let _TestQuery_Input = undefined;
 
 		let _TestQuery_handler = query({
+		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
@@ -414,6 +441,7 @@ describe('query preprocessor', function () {
 		    data
 		} = componentQuery({
 		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: null,
 		    getProps: () => $$props

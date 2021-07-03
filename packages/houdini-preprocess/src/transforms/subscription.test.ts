@@ -24,7 +24,8 @@ describe('subscription preprocessor', function () {
 
 		const data = subscription({
 		    "kind": "HoudiniSubscription",
-		    "artifact": _TestSubscriptionArtifact
+		    "artifact": _TestSubscriptionArtifact,
+		    "config": houdiniConfig
 		}, variables);
 	`)
 	})

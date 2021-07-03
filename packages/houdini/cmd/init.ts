@@ -132,7 +132,7 @@ const configFile = ({
 }) => {
 	// the actual config contents
 	const configObj = `{
-		schemaPath: path.resolve('${schemaPath}'),
+		schemaPath: '${schemaPath}',
 		sourceGlob: 'src/**/*.svelte',
 		module: '${module}',
 		framework: '${framework}',
@@ -141,13 +141,9 @@ const configFile = ({
 
 	return module === 'esm'
 		? // SvelteKit default config
-		  `import path from 'path'
-
-export default ${configObj}
+		  `export default ${configObj}
 `
 		: // sapper default config
-		  `const path = require('path')
-
-module.exports = ${configObj}
+		  `module.exports = ${configObj}
 `
 }

@@ -1,10 +1,18 @@
+// external imports
+import type { Config } from 'houdini-common'
 // local imports
 import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../types'
 import { Record } from './record'
 import { ConnectionHandler } from './connection'
+import { isScalar } from '../scalars'
 
 // this class implements the cache that drives houdini queries
 export class Cache {
+	_config: Config
+	constructor(config: Config) {
+		this._config = config
+	}
+
 	// the map from entity id to record
 	private _data: Map<string | undefined, Record> = new Map()
 	// associate connection names with the handler that wraps the list
@@ -120,6 +128,7 @@ export class Cache {
 			evaluateKey: this.evaluateKey.bind(this),
 			record: this.record.bind(this),
 			getRecord: this.getRecord.bind(this),
+			getData: this.getData.bind(this),
 		}
 	}
 
@@ -133,7 +142,6 @@ export class Cache {
 
 	// walk down the spec
 	private getData(
-		spec: SubscriptionSpec,
 		parent: Record,
 		selection: SubscriptionSelection,
 		variables: {}
@@ -143,26 +151,43 @@ export class Cache {
 		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
 			const key = this.evaluateKey(keyRaw, variables)
 
-			// if we are looking at a scalar
-			if (this.isScalarLink(type)) {
-				target[attributeName] = parent.getField(key)
-				continue
-			}
-
 			// if the link points to a record then we just have to add it to the one
 			const linkedRecord = parent.linkedRecord(key)
-			// if the field does point to a linked record
-			if (linkedRecord && fields) {
-				target[attributeName] = this.getData(spec, linkedRecord, fields, variables)
-				continue
-			}
-
 			// if the link points to a list
 			const linkedList = parent.linkedList(key)
-			if (linkedList && fields) {
+
+			// if we are looking at a scalar
+			if (isScalar(this._config, type)) {
+				// look up the primitive value
+				const val = parent.getField(key)
+
+				// is the type a custom scalar with a specified unmarshal function
+				if (this._config.scalars?.[type]?.unmarshal) {
+					// pass the primitive value to the unmarshal function
+					target[attributeName] = this._config.scalars[type].unmarshal(val)
+				}
+				// the field does not have an unmarshal function
+				else {
+					target[attributeName] = val
+				}
+
+				// we're done
+				continue
+			}
+			// the field could be an object
+			else if (linkedRecord && fields) {
+				target[attributeName] = this.getData(linkedRecord, fields, variables)
+				continue
+			}
+			// the field could be a list
+			else if (linkedList && fields) {
 				target[attributeName] = linkedList.map((linkedRecord) =>
-					this.getData(spec, linkedRecord, fields, variables)
+					this.getData(linkedRecord, fields, variables)
 				)
+			}
+			// we don't recognize the field type
+			else {
+				throw new Error('Encountered unknown type: ' + type)
 			}
 		}
 
@@ -183,7 +208,7 @@ export class Cache {
 
 			// if the field points to a link, we need to subscribe to any fields of that
 			// linked record
-			if (!this.isScalarLink(type)) {
+			if (!isScalar(this._config, type)) {
 				// if the link points to a record then we just have to add it to the one
 				const linkedRecord = rootRecord.linkedRecord(key)
 				let children = linkedRecord ? [linkedRecord] : rootRecord.linkedList(key)
@@ -266,7 +291,7 @@ export class Cache {
 
 			// if the field points to a link, we need to remove any subscribers on any fields of that
 			// linked record
-			if (!this.isScalarLink(type)) {
+			if (!isScalar(this._config, type)) {
 				// if the link points to a record then we just have to remove it to the one
 				const linkedRecord = rootRecord.linkedRecord(key)
 				let children = linkedRecord ? [linkedRecord] : rootRecord.linkedList(key)
@@ -374,7 +399,7 @@ export class Cache {
 			}
 
 			// the value could be a list
-			else if (!this.isScalarLink(linkedType) && Array.isArray(value) && fields) {
+			else if (!isScalar(this._config, linkedType) && Array.isArray(value) && fields) {
 				// build up the list of linked ids
 				const linkedIDs: string[] = []
 				// look up the current known link id
@@ -551,10 +576,6 @@ export class Cache {
 		return this._data.get(id) || null
 	}
 
-	private isScalarLink(type: string) {
-		return ['String', 'Boolean', 'Float', 'ID', 'Int'].includes(type)
-	}
-
 	private notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
 		for (const spec of specs) {
 			// find the root record
@@ -564,7 +585,7 @@ export class Cache {
 			}
 
 			// trigger the update
-			spec.set(this.getData(spec, rootRecord, spec.selection, spec.variables?.()))
+			spec.set(this.getData(rootRecord, spec.selection, spec.variables?.()))
 		}
 	}
 
@@ -679,7 +700,8 @@ export type CacheProxy = {
 	insertSubscribers: Cache['insertSubscribers']
 	evaluateKey: Cache['evaluateKey']
 	getRecord: Cache['getRecord']
+	getData: Cache['getData']
 }
 
 // id that we should use to refer to things in root
-const rootID = '_ROOT_'
+export const rootID = '_ROOT_'

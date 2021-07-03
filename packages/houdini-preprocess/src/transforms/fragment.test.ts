@@ -1,5 +1,4 @@
 // local imports
-import fragmentProcessor from './fragment'
 import { preprocessorTest } from '../utils'
 import '../../../../jest.setup'
 
@@ -24,7 +23,8 @@ describe('fragment preprocessor', function () {
 
 		const data = fragment({
 		    "kind": "HoudiniFragment",
-		    "artifact": _TestFragmentArtifact
+		    "artifact": _TestFragmentArtifact,
+		    "config": houdiniConfig
 		}, reference);
 	`)
 	})

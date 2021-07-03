@@ -66,9 +66,6 @@
 		data,
 		($data) => $data.allItems.filter((item) => !item.completed).length
 	)
-	const hasCompleted = derived(data, ($data) =>
-		Boolean($data.allItems.find((item) => item.completed))
-	)
 
 	// figure out the current page
 	const currentPage = derived(page, ($page) => {
@@ -82,11 +79,13 @@
 
 	let inputValue = ''
 	async function onBlur() {
-		// trigger the mutation
-		await addItem({ input: { text: inputValue } })
+		if (inputValue) {
+			// trigger the mutation
+			await addItem({ input: { text: inputValue } })
 
-		// clear the input
-		inputValue = ''
+			// clear the input
+			inputValue = ''
+		}
 	}
 
 </script>
@@ -126,8 +125,5 @@
 				<a class:selected={$currentPage === 'completed'} href="/completed">Completed</a>
 			</li>
 		</ul>
-		{#if $hasCompleted}
-			<button class="clear-completed">Clear completed</button>
-		{/if}
 	</footer>
 {/if}

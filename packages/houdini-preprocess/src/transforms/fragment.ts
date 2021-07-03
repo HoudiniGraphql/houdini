@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Config } from 'houdini-common'
 // locals
-import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils'
+import { walkTaggedDocuments, artifactImport, artifactIdentifier, ensureImports } from '../utils'
 import { TransformDocument } from '../types'
 
 const AST = recast.types.builders
@@ -20,7 +20,6 @@ export default async function fragmentProcessor(
 	if (!doc.instance) {
 		return
 	}
-
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
 		// with only one definition defining a fragment
@@ -31,7 +30,7 @@ export default async function fragmentProcessor(
 				tag.definitions[0].kind === graphql.Kind.FRAGMENT_DEFINITION
 			)
 		},
-		// we want to replace it with an object that the runtime can use
+		// if we found a tag we want to replace it with an object that the runtime can use
 		async onTag({ artifact, node }) {
 			// the local identifier for the artifact
 			const artifactVariable = artifactIdentifier(artifact)
@@ -41,6 +40,7 @@ export default async function fragmentProcessor(
 				AST.objectExpression([
 					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
 					AST.objectProperty(AST.literal('artifact'), AST.identifier(artifactVariable)),
+					AST.objectProperty(AST.literal('config'), AST.identifier('houdiniConfig')),
 				])
 			)
 

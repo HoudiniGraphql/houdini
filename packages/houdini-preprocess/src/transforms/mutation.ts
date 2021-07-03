@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
 // locals
 import { TransformDocument } from '../types'
-import { walkTaggedDocuments, artifactImport, artifactIdentifier } from '../utils/index'
+import { walkTaggedDocuments, artifactImport, artifactIdentifier, ensureImports } from '../utils'
 const AST = recast.types.builders
 
 export default async function mutationProcessor(
@@ -27,7 +27,8 @@ export default async function mutationProcessor(
 				graphqlDoc.definitions[0].operation === 'mutation'
 			)
 		},
-		// we want to replace it with an object that the runtime can use
+		// if we found a tag in the document we want to replace it with an object
+		// that the runtime can use
 		onTag({ artifact, node }) {
 			// replace the graphql node with the object
 			node.replaceWith(
@@ -36,6 +37,10 @@ export default async function mutationProcessor(
 					AST.objectProperty(
 						AST.literal('artifact'),
 						AST.identifier(artifactIdentifier(artifact))
+					),
+					AST.objectProperty(
+						AST.stringLiteral('config'),
+						AST.identifier('houdiniConfig')
 					),
 				])
 			)

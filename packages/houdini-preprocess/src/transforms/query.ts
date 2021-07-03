@@ -84,6 +84,10 @@ export default async function queryProcessor(
 					  AST.objectExpression([
 							AST.objectProperty(AST.identifier('queryHandler'), handlerIdentifier),
 							AST.objectProperty(
+								AST.identifier('config'),
+								AST.identifier('houdiniConfig')
+							),
+							AST.objectProperty(
 								AST.identifier('artifact'),
 								AST.identifier(artifactIdentifier(artifact))
 							),
@@ -128,13 +132,9 @@ export default async function queryProcessor(
 		}
 	}
 
-	if (!doc.module) {
-		throw new Error('type script!!')
-	}
-
-	// if we are procesing a route, use those processors
+	// if we are processing a route, use those processors
 	if (isRoute) {
-		processModule(config, doc.module, queries)
+		processModule(config, doc.module!, queries)
 	} else {
 		// we need to make sure to import all of the artifacts in the instance script
 		// every document will need to be imported
@@ -224,6 +224,10 @@ function processInstance(
 					queryHandlerIdentifier(operation),
 					AST.callExpression(AST.identifier('query'), [
 						AST.objectExpression([
+							AST.objectProperty(
+								AST.stringLiteral('config'),
+								AST.identifier('houdiniConfig')
+							),
 							AST.objectProperty(
 								AST.stringLiteral('initialValue'),
 								AST.identifier(
@@ -372,8 +376,26 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 									AST.identifier('computeInput')
 								),
 								[
-									AST.stringLiteral(config.framework),
-									AST.identifier(queryInputFunction(document.artifact.name)),
+									AST.objectExpression([
+										AST.objectProperty(
+											AST.literal('config'),
+											AST.identifier('houdiniConfig')
+										),
+										AST.objectProperty(
+											AST.literal('mode'),
+											AST.stringLiteral(config.framework)
+										),
+										AST.objectProperty(
+											AST.literal('variableFunction'),
+											AST.identifier(
+												queryInputFunction(document.artifact.name)
+											)
+										),
+										AST.objectProperty(
+											AST.literal('artifact'),
+											AST.identifier(artifactIdentifier(document.artifact))
+										),
+									]),
 								]
 						  )
 						: AST.objectExpression([])

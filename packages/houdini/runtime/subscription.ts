@@ -1,10 +1,12 @@
 // externals
 import { Readable, writable } from 'svelte/store'
 import { onMount, onDestroy } from 'svelte'
+import type { Config } from 'houdini-common'
 // locals
 import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
 import { getEnvironment } from './network'
 import cache from './cache'
+import { marshalInputs, unmarshalSelection } from './scalars'
 
 // subscription holds open a live connection to the server. it returns a store
 // containing the requested data. Houdini will also update the cache with any
@@ -20,10 +22,12 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 		throw new Error('subscription() must be passed a subscription document')
 	}
 
-	// we might get the the artifact nested under default
-	const artifact: SubscriptionArtifact =
-		// @ts-ignore: typing esm/cjs interop is hard
-		document.artifact.default || document.artifact
+	// we might get re-exported values nested under default
+
+	// @ts-ignore: typing esm/cjs interop is hard
+	const artifact: SubscriptionArtifact = document.artifact.default || document.artifact
+	// @ts-ignore: typing esm/cjs interop is hard
+	const config: Config = document.config.default || document.config
 
 	// pull out the current environment
 	const env = getEnvironment()
@@ -43,6 +47,13 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 	// the function to call that unregisters the subscription
 	let unsubscribe: () => void
 
+	let marshaledVariables = {}
+	$: marshaledVariables = marshalInputs({
+		input: variables || {},
+		config: config,
+		artifact: document.artifact,
+	}) as _Subscription['input']
+
 	// the websocket connection only exists on the client
 	onMount(() => {
 		// we need to make sure that the user provided a socket connection
@@ -55,7 +66,10 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 
 		// start listening for updates from the server
 		unsubscribe = env.socket.subscribe(
-			{ query: text, variables },
+			{
+				query: text,
+				variables: marshaledVariables,
+			},
 			{
 				next({ data, errors }) {
 					// make sure there were no errors
@@ -66,10 +80,10 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 					// if we got a result
 					if (data) {
 						// update the cache with the result
-						cache.write(selection, data, variables)
+						cache.write(selection, data, marshaledVariables)
 
 						// update the local store
-						store.set(data)
+						store.set(unmarshalSelection(config, artifact.selection, data))
 					}
 				},
 				error(data: _Subscription['result']) {},

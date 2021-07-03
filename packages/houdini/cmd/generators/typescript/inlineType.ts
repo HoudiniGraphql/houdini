@@ -34,7 +34,7 @@ export function inlineType({
 	let result: TSTypeKind
 	// if we are looking at a scalar field
 	if (graphql.isScalarType(type)) {
-		result = scalarPropertyValue(type as graphql.GraphQLNamedType)
+		result = scalarPropertyValue(config, type as graphql.GraphQLNamedType)
 	}
 	// we could have encountered an enum
 	else if (graphql.isEnumType(type)) {

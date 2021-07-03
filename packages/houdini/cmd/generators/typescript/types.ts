@@ -2,6 +2,7 @@
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { TSTypeKind } from 'ast-types/gen/kinds'
+import { Config } from 'houdini-common'
 
 const AST = recast.types.builders
 
@@ -25,7 +26,7 @@ export function nullableField(inner: TSTypeKind, input = false) {
 	return AST.tsUnionType(members)
 }
 
-export function scalarPropertyValue(target: graphql.GraphQLNamedType): TSTypeKind {
+export function scalarPropertyValue(config: Config, target: graphql.GraphQLNamedType): TSTypeKind {
 	switch (target.name) {
 		case 'String': {
 			return AST.tsStringKeyword()
@@ -45,7 +46,12 @@ export function scalarPropertyValue(target: graphql.GraphQLNamedType): TSTypeKin
 		default: {
 			// if we're looking at a non-null type
 			if (graphql.isNonNullType(target)) {
-				return scalarPropertyValue(target.ofType)
+				return scalarPropertyValue(config, target.ofType)
+			}
+
+			// the type could be a custom scalar we know about
+			if (config.scalars?.[target.name]) {
+				return AST.tsTypeReference(AST.identifier(config.scalars?.[target.name].type))
 			}
 
 			throw new Error('Could not convert scalar type: ' + target.toString())

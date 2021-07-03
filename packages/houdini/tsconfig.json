@@ -4,7 +4,7 @@
 		"outDir": "build"
 	},
 	"include": ["cmd/**/*", "runtime/**/*"],
-	"exclude": ["node_modules", "**/*.test.ts"],
+	"exclude": ["node_modules", "**/*.test.ts", "*/build/**/*"],
 	"paths": {
 		"houdini-common": ["../houdini-common", "src"]
 	}

@@ -1,7 +1,9 @@
 // externals
 import { get, Readable } from 'svelte/store'
+import type { Config } from 'houdini-common'
 // locals
-import { MutationArtifact, QueryArtifact } from './types'
+import { MutationArtifact, QueryArtifact, SubscriptionArtifact } from './types'
+import { marshalInputs } from './scalars'
 
 export class Environment {
 	private fetch: RequestHandler<any>
@@ -234,19 +236,37 @@ export class RequestContext {
 	// compute the inputs for an operation should reflect the framework's conventions.
 	// in sapper, this means preparing a `this` for the function. for kit, we can just pass
 	// the context
-	computeInput(mode: 'kit', func: (ctx: FetchContext) => {}): {}
-	computeInput(
-		mode: 'sapper',
-		func: (page: FetchContext['page'], session: FetchContext['session']) => {}
-	): {}
-	computeInput(mode: 'sapper' | 'kit', func: any): {} {
-		// if we are in kit mode, just pass the context directly
-		if (mode === 'kit') {
-			return func.call(this, this.context)
-		}
+	computeInput({
+		config,
+		mode,
+		variableFunction,
+		artifact,
+	}: {
+		mode: 'kit' | 'sapper'
+		variableFunction: SapperLoad | KitLoad
+		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
+		config: Config
+	}) {
+		// call the variable function to match the framework
+		let input =
+			mode === 'kit'
+				? // in kit just pass the context directly
+				  (variableFunction as KitLoad).call(this, this.context)
+				: // we are in sapper mode, so we need to prepare the function context
+				  (variableFunction as SapperLoad).call(
+						this,
+						this.context.page,
+						this.context.session
+				  )
 
-		// we are in sapper mode, so we need to prepare the function context
 		// and pass page and session
-		return func.call(this, this.context.page, this.context.session)
+		return marshalInputs({ artifact, config, input })
 	}
 }
+
+type SapperLoad = (
+	page: FetchContext['page'],
+	session: FetchContext['session']
+) => Record<string, any>
+
+type KitLoad = (ctx: FetchContext) => Record<string, any>

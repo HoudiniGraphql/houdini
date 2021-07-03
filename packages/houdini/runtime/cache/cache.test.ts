@@ -1,10 +1,26 @@
+// external imports
+import { testConfig } from 'houdini-common'
 // locals
-import { Cache } from './cache'
+import { Cache, rootID } from './cache'
 import { SubscriptionSelection } from '../types'
+
+const config = testConfig({
+	scalars: {
+		DateTime: {
+			type: 'Date',
+			marshal(val: Date) {
+				return val.getTime()
+			},
+			unmarshal(val: number) {
+				return new Date(val)
+			},
+		},
+	},
+})
 
 test('save root object', function () {
 	// instantiate a cache we'll test against
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// save the data
 	const data = {
@@ -43,7 +59,7 @@ test('save root object', function () {
 
 test('partial update existing record', function () {
 	// instantiate a cache we'll test against
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// save the data
 	cache.write(
@@ -108,7 +124,7 @@ test('partial update existing record', function () {
 
 test('linked records with updates', function () {
 	// instantiate a cache we'll test against
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// save the data
 	cache.write(
@@ -232,7 +248,7 @@ test('linked records with updates', function () {
 
 test('linked lists', function () {
 	// instantiate the cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// add some data to the cache
 	cache.write(
@@ -304,7 +320,7 @@ test('linked lists', function () {
 
 test('list as value with args', function () {
 	// instantiate the cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// add some data to the cache
 	cache.write(
@@ -346,7 +362,7 @@ test('list as value with args', function () {
 
 test('root subscribe - field change', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -416,7 +432,7 @@ test('root subscribe - field change', function () {
 
 test('root subscribe - linked object changed', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -493,7 +509,7 @@ test('root subscribe - linked object changed', function () {
 
 test('root subscribe - linked list lost entry', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -590,7 +606,7 @@ test('root subscribe - linked list lost entry', function () {
 
 test('root subscribe - linked list reorder', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -697,7 +713,7 @@ test('root subscribe - linked list reorder', function () {
 
 test('unsubscribe', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -759,7 +775,7 @@ test('unsubscribe', function () {
 
 test('append in connection', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -845,7 +861,7 @@ test('append in connection', function () {
 
 test('prepend in connection', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -931,7 +947,7 @@ test('prepend in connection', function () {
 
 test('connection filter - must_not positive', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		viewer: {
@@ -1029,7 +1045,7 @@ test('connection filter - must_not positive', function () {
 
 test('connection filter - must_not negative', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		viewer: {
@@ -1113,7 +1129,7 @@ test('connection filter - must_not negative', function () {
 
 test('connection filter - must positive', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		viewer: {
@@ -1211,7 +1227,7 @@ test('connection filter - must positive', function () {
 
 test('connection filter - must negative', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection: SubscriptionSelection = {
 		viewer: {
@@ -1295,7 +1311,7 @@ test('connection filter - must negative', function () {
 
 test('subscribe to new connection nodes', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -1403,7 +1419,7 @@ test('subscribe to new connection nodes', function () {
 
 test('remove from connection', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -1482,7 +1498,7 @@ test('remove from connection', function () {
 
 test('delete node', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -1560,7 +1576,7 @@ test('delete node', function () {
 
 test('append operation', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// create a connection we will add to
 	cache.write(
@@ -1650,7 +1666,7 @@ test('append operation', function () {
 
 test('append when operation', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// create a connection we will add to
 	cache.write(
@@ -1751,7 +1767,7 @@ test('append when operation', function () {
 
 test('prepend when operation', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// create a connection we will add to
 	cache.write(
@@ -1853,7 +1869,7 @@ test('prepend when operation', function () {
 
 test('prepend operation', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// create a connection we will add to
 	cache.write(
@@ -1966,7 +1982,7 @@ test('prepend operation', function () {
 
 test('remove operation', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// create a connection we will add to
 	cache.write(
@@ -2071,7 +2087,7 @@ test('remove operation', function () {
 
 test('delete operation', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// create a connection we will add to
 	cache.write(
@@ -2174,7 +2190,7 @@ test('delete operation', function () {
 
 test('variables in query and subscription', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -2285,7 +2301,7 @@ test('variables in query and subscription', function () {
 
 test('deleting a node removes nested subscriptions', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -2350,7 +2366,7 @@ test('deleting a node removes nested subscriptions', function () {
 
 test('same record twice in a query survives one unsubscribe (reference counting)', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -2431,7 +2447,7 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 
 test('embedded references', function () {
 	// instantiate a cache
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	const selection = {
 		viewer: {
@@ -2590,7 +2606,7 @@ describe('key evaluation', function () {
 
 	for (const row of table) {
 		test(row.title, function () {
-			const cache = new Cache()
+			const cache = new Cache(config)
 
 			expect(cache.internal.evaluateKey(row.key, row.variables)).toEqual(row.expected)
 		})
@@ -2599,7 +2615,7 @@ describe('key evaluation', function () {
 
 test('writing abstract objects', function () {
 	// instantiate a cache we'll test against
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// save the data
 	const data = {
@@ -2645,7 +2661,7 @@ test('writing abstract objects', function () {
 
 test('writing abstract lists', function () {
 	// instantiate a cache we'll test against
-	const cache = new Cache()
+	const cache = new Cache(config)
 
 	// save the data
 	const data = {
@@ -2693,6 +2709,48 @@ test('writing abstract lists', function () {
 		__typename: 'User',
 		id: '1',
 		firstName: 'bob',
+	})
+})
+
+test('extracting data with custom scalars unmarshals the value', () => {
+	// instantiate a cache we'll test against
+	const cache = new Cache(config)
+
+	// the selection we are gonna write
+	const selection = {
+		node: {
+			type: 'Node',
+			keyRaw: 'node',
+			fields: {
+				date: {
+					type: 'DateTime',
+					keyRaw: 'date',
+				},
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+			},
+		},
+	}
+
+	// save the data
+	const data = {
+		node: {
+			id: '1',
+			date: new Date().getTime(),
+		},
+	}
+
+	// write the data to cache
+	cache.write(selection, data, {})
+
+	// pull the data out of the cache
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		node: {
+			id: '1',
+			date: new Date(data.node.date),
+		},
 	})
 })
 

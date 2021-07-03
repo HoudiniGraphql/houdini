@@ -47,6 +47,9 @@ test('runtime index file - sapper', async function () {
 		};
 		Object.defineProperty(exports, "__esModule", { value: true });
 
+		var houdiniConfig = require("../../../config.cjs");
+		Object.defineProperty(exports, "houdiniConfig", { enumerable: true, get: function () { return __importDefault(houdiniConfig).default; } });
+
 		__exportStar(require("./runtime"), exports);
 		__exportStar(require("./artifacts"), exports);
 	`)
@@ -57,9 +60,6 @@ test('runtime index file - kit', async function () {
 	// execute the generator
 	await runPipeline(config, docs)
 
-	// look up the files in the artifact directory
-	const files = await fs.readdir(config.artifactDirectory)
-
 	// open up the index file
 	const queryContents = await fs.readFile(path.join(config.rootDir, 'index.js'), 'utf-8')
 	expect(queryContents).toBeTruthy()
@@ -69,7 +69,8 @@ test('runtime index file - kit', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		export * from "./runtime";
-		export * from "./artifacts";
+		export {default as houdiniConfig } from "../config.cjs"
+		export * from "./runtime"
+		export * from "./artifacts"
 	`)
 })

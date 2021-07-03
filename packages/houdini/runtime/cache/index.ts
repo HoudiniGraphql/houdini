@@ -1,3 +1,4 @@
 import { Cache } from './cache'
 
-export default new Cache()
+// @ts-ignore: config will be defined by the generator
+export default new Cache(config)

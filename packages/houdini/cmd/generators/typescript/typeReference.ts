@@ -20,7 +20,7 @@ export function tsTypeReference(
 	let result
 	// if we're looking at a scalar
 	if (graphql.isScalarType(type)) {
-		result = scalarPropertyValue(type)
+		result = scalarPropertyValue(config, type)
 	}
 	// we're looking at an object
 	else {

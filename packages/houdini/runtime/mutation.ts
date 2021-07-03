@@ -1,11 +1,14 @@
+// externals
+import type { Config } from 'houdini-common'
 // locals
 import { executeQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact } from './types'
 import cache from './cache'
 import { getVariables } from './context'
+import { marshalInputs, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession, goTo } from './adapter.mjs'
+import { getSession } from './adapter.mjs'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
@@ -17,10 +20,12 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 		throw new Error('mutation() must be passed a mutation document')
 	}
 
-	// we might get the the artifact nested under default
-	const artifact: MutationArtifact =
-		// @ts-ignore: typing esm/cjs interop is hard
-		document.artifact.default || document.artifact
+	// we might get re-exported values nested under default
+
+	// @ts-ignore: typing esm/cjs interop is hard
+	const artifact: MutationArtifact = document.artifact.default || document.artifact
+	// @ts-ignore: typing esm/cjs interop is hard
+	const config: Config = document.config.default || document.config
 
 	// grab the session from the adapter
 	const sessionStore = getSession()
@@ -32,13 +37,18 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 		try {
 			const result = await executeQuery<_Mutation['result']>(
 				artifact,
-				variables,
+				marshalInputs({
+					input: variables,
+					artifact: document.artifact,
+					config: config,
+				}) as _Mutation['input'],
 				sessionStore
 			)
 
 			cache.write(artifact.selection, result.data, queryVariables())
 
-			return result.data
+			// unmarshal any scalars on the body
+			return unmarshalSelection(config, artifact.selection, result.data)
 		} catch (error) {
 			throw error
 		}

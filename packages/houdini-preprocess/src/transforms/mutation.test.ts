@@ -25,7 +25,8 @@ describe('mutation preprocessor', function () {
 
 		const data = mutation({
 		    "kind": "HoudiniMutation",
-		    "artifact": _AddUserArtifact
+		    "artifact": _AddUserArtifact,
+		    "config": houdiniConfig
 		});
 	`)
 	})

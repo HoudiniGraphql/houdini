@@ -4,7 +4,7 @@ import { Config } from 'houdini-common'
 
 const AST = recast.types.builders
 
-export default function moduleExport(config: Config, key: string, value: ExpressionKind) {
+export function moduleExport(config: Config, key: string, value: ExpressionKind) {
 	// module exports in sapper should be common js
 	if (config.module === 'commonjs') {
 		// the thing to assign
