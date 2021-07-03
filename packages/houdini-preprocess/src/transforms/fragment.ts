@@ -20,22 +20,6 @@ export default async function fragmentProcessor(
 	if (!doc.instance) {
 		return
 	}
-
-	// make sure there is a module script
-	if (!doc.module) {
-		doc.module = {
-			start: 0,
-			end: 0,
-			// @ts-ignore
-			content: AST.program([]),
-		}
-	}
-	if (!doc.module) {
-		throw new Error('type script!!')
-	}
-	// add the imports if they're not there
-	ensureImports(config, doc.module.content.body, ['houdiniConfig'])
-
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
 		// with only one definition defining a fragment
@@ -46,7 +30,7 @@ export default async function fragmentProcessor(
 				tag.definitions[0].kind === graphql.Kind.FRAGMENT_DEFINITION
 			)
 		},
-		// we want to replace it with an object that the runtime can use
+		// if we found a tag we want to replace it with an object that the runtime can use
 		async onTag({ artifact, node }) {
 			// the local identifier for the artifact
 			const artifactVariable = artifactIdentifier(artifact)

@@ -12,8 +12,12 @@ import {
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
 } from 'houdini'
+import * as recast from 'recast'
 // locals
 import { TransformDocument } from '../types'
+import { ensureImports } from '../utils'
+
+const AST = recast.types.builders
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
@@ -92,6 +96,22 @@ export default async function walkTaggedDocuments(
 
 				// make sure we watch the compiled fragment
 				doc.dependencies.push(documentPath)
+
+				// if there is a query in the document, we want to add an import to the module script
+				// doing it here ensures that we don't import the config since we can guarantee
+				// that the import only ends up in the module script
+
+				// make sure there is a module script
+				if (!doc.module) {
+					doc.module = {
+						start: 0,
+						end: 0,
+						// @ts-ignore
+						content: AST.program([]),
+					}
+				}
+				// add the imports if they're not there
+				ensureImports(config, doc.module!.content.body, ['houdiniConfig'])
 
 				// invoker the walker's callback with the right context
 				await walker.onTag({

@@ -132,16 +132,9 @@ export default async function queryProcessor(
 		}
 	}
 
-	if (!doc.module) {
-		throw new Error('type script!!')
-	}
-
-	// add the imports if they're not there
-	ensureImports(config, doc.module.content.body, ['houdiniConfig'])
-
 	// if we are processing a route, use those processors
 	if (isRoute) {
-		processModule(config, doc.module, queries)
+		processModule(config, doc.module!, queries)
 	} else {
 		// we need to make sure to import all of the artifacts in the instance script
 		// every document will need to be imported

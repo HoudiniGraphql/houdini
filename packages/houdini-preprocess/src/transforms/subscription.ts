@@ -21,12 +21,6 @@ export default async function subscriptionProcessor(
 		return
 	}
 
-	if (!doc.module) {
-		throw new Error('type script!!')
-	}
-	// add the imports if they're not there
-	ensureImports(config, doc.module.content.body, ['houdiniConfig'])
-
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
 		// with only one definition defining a subscription
