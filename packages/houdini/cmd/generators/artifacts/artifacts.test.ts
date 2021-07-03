@@ -2261,9 +2261,7 @@ test('custom scalar shows up in artifact', async function () {
 			DateTime: {
 				type: 'Date',
 				unmarshal(val: number): Date {
-					const date = new Date(0)
-					date.setMilliseconds(val)
-					return date
+					return new Date(val)
 				},
 				marshal(date: Date): number {
 					return date.getTime()
