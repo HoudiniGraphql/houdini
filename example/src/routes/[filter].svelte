@@ -82,11 +82,13 @@
 
 	let inputValue = ''
 	async function onBlur() {
-		// trigger the mutation
-		await addItem({ input: { text: inputValue } })
+		if (inputValue) {
+			// trigger the mutation
+			await addItem({ input: { text: inputValue } })
 
-		// clear the input
-		inputValue = ''
+			// clear the input
+			inputValue = ''
+		}
 	}
 
 </script>
