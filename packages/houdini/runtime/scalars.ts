@@ -18,7 +18,11 @@ export function marshalInputs<T>({
 	config: Config
 	input: unknown
 	rootType?: string
-}): {} {
+}): {} | null | undefined {
+	if (input === null || typeof input === 'undefined') {
+		return input
+	}
+
 	// if there are no inputs in the object, nothing to do
 	if (!artifact.input) {
 		return input as {}
@@ -63,7 +67,11 @@ export function unmarshalSelection(
 	config: Config,
 	selection: SubscriptionSelection,
 	data: unknown
-): {} {
+): {} | null | undefined {
+	if (data === null || typeof data === 'undefined') {
+		return data
+	}
+
 	// if we are looking at a list
 	if (Array.isArray(data)) {
 		// unmarshal every entry in the list

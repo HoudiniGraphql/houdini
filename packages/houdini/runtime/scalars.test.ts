@@ -213,6 +213,44 @@ describe('marshal inputs', function () {
 			],
 		})
 	})
+
+	test('null', function () {
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					date: null,
+				}
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			date: null,
+		})
+	})
+
+	test('undefined', function () {
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					date: undefined,
+				}
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			date: undefined,
+		})
+	})
 })
 
 describe('unmarshal selection', function () {
@@ -240,6 +278,54 @@ describe('unmarshal selection', function () {
 					},
 				},
 			],
+		})
+	})
+
+	test('undefined', function () {
+		const data = {
+			item: undefined,
+		}
+
+		const selection = {
+			item: {
+				type: 'TodoItem',
+				keyRaw: 'item',
+
+				fields: {
+					createdAt: {
+						type: 'DateTime',
+						keyRaw: 'createdAt',
+					},
+				},
+			},
+		}
+
+		expect(unmarshalSelection(config, selection, data)).toEqual({
+			item: undefined,
+		})
+	})
+
+	test('null', function () {
+		const data = {
+			item: null,
+		}
+
+		const selection = {
+			item: {
+				type: 'TodoItem',
+				keyRaw: 'item',
+
+				fields: {
+					createdAt: {
+						type: 'DateTime',
+						keyRaw: 'createdAt',
+					},
+				},
+			},
+		}
+
+		expect(unmarshalSelection(config, selection, data)).toEqual({
+			item: null,
 		})
 	})
 
