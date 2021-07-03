@@ -12,7 +12,7 @@ export function marshalInputs<T>({
 	artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
 	config: Config
 	input: unknown
-	rootType: string
+	rootType?: string
 }): {} {
 	// if there are no inputs in the object, nothing to do
 	if (!artifact.input) {
