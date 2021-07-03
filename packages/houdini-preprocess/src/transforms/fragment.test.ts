@@ -1,5 +1,4 @@
 // local imports
-import fragmentProcessor from './fragment'
 import { preprocessorTest } from '../utils'
 import '../../../../jest.setup'
 

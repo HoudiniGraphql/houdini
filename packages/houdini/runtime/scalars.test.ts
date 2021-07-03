@@ -2,7 +2,7 @@ import { testConfig } from 'houdini-common'
 import { RequestContext } from './network'
 import { QueryArtifact } from './types'
 
-test('computing inputs marshals custom scalars', function () {
+describe('marshal inputs', function () {
 	// a mock request context
 	const ctx = new RequestContext({
 		page: { host: '', path: '', params: null, query: null },
@@ -16,6 +16,7 @@ test('computing inputs marshals custom scalars', function () {
             scalar DateTime
             
             input NestedDate { 
+				name: String
                 date: DateTime!
                 nested: NestedDate!
             }
@@ -59,52 +60,81 @@ test('computing inputs marshals custom scalars', function () {
 			},
 			types: {
 				NestedDate: {
-					date: 'Date',
+					date: 'DateTime',
 					nested: 'NestedDate',
 				},
 			},
 		},
 	}
 
-	// some dates to check against
-	const date1 = new Date(0)
-	const date2 = new Date(1)
-	const date3 = new Date(2)
+	test('lists of objects', function () {
+		// some dates to check against
+		const date1 = new Date(0)
+		const date2 = new Date(1)
+		const date3 = new Date(2)
 
-	// compute the inputs
-	const inputs = ctx.computeInput({
-		config: localConfig,
-		mode: 'kit',
-		artifact,
-		variableFunction() {
-			return {
-				date: [
-					{
-						date: date1,
-						nested: {
-							date: date2,
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config: localConfig,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					date: [
+						{
+							date: date1,
 							nested: {
-								date: date3,
+								date: date2,
+								nested: {
+									date: date3,
+								},
 							},
 						},
-					},
-				],
-			}
-		},
-	})
+					],
+				}
+			},
+		})
 
-	// make sure we got the expected value
-	expect(inputs).toEqual({
-		date: [
-			{
-				date: date1.getTime(),
-				nested: {
-					date: date2.getTime(),
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			date: [
+				{
+					date: date1.getTime(),
 					nested: {
-						date: date3.getTime(),
+						date: date2.getTime(),
+						nested: {
+							date: date3.getTime(),
+						},
 					},
 				},
+			],
+		})
+	})
+
+	test('non-custom scalars', function () {
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config: localConfig,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					date: [
+						{
+							name: 'hello',
+						},
+					],
+				}
 			},
-		],
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			date: [
+				{
+					name: 'hello',
+				},
+			],
+		})
 	})
 })
