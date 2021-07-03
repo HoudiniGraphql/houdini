@@ -20,7 +20,6 @@
 				id
 				text
 				completed
-				createdAt
 			}
 		`,
 		item

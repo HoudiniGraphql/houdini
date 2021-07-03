@@ -1,3 +1,5 @@
+// externals
+import type { Config } from 'houdini-common'
 // locals
 import { executeQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact } from './types'
@@ -18,10 +20,12 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 		throw new Error('mutation() must be passed a mutation document')
 	}
 
-	// we might get the the artifact nested under default
-	const artifact: MutationArtifact =
-		// @ts-ignore: typing esm/cjs interop is hard
-		document.artifact.default || document.artifact
+	// we might get re-exported values nested under default
+
+	// @ts-ignore: typing esm/cjs interop is hard
+	const artifact: MutationArtifact = document.artifact.default || document.artifact
+	// @ts-ignore: typing esm/cjs interop is hard
+	const config: Config = document.config.default || document.config
 
 	// grab the session from the adapter
 	const sessionStore = getSession()
@@ -36,7 +40,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 				marshalInputs({
 					input: variables,
 					artifact: document.artifact,
-					config: document.config,
+					config: config,
 				}),
 				sessionStore
 			)
@@ -44,7 +48,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 			cache.write(artifact.selection, result.data, queryVariables())
 
 			// unmarshal any scalars on the body
-			return unmarshalSelection(document.config, document.artifact.selection, result.data)
+			return unmarshalSelection(config, artifact.selection, result.data)
 		} catch (error) {
 			throw error
 		}

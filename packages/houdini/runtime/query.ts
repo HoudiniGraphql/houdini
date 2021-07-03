@@ -20,6 +20,13 @@ export default function query<_Query extends Operation<any, any>>(
 		throw new Error('query() must be passed a query document')
 	}
 
+	// we might get re-exported values nested under default
+
+	// @ts-ignore: typing esm/cjs interop is hard
+	const artifact: QueryArtifact = document.artifact.default || document.artifact
+	// @ts-ignore: typing esm/cjs interop is hard
+	const config: Config = document.config.default || document.config
+
 	// a query is never 'loading'
 	const loading = writable(false)
 
@@ -33,14 +40,7 @@ export default function query<_Query extends Operation<any, any>>(
 	const initialValue = document.initialValue?.data
 
 	// define the store we will hold the data
-	const store = writable(
-		unmarshalSelection(document.config, document.artifact.selection, initialValue)
-	)
-
-	// we might get the the artifact nested under default
-	const artifact: QueryArtifact =
-		// @ts-ignore: typing esm/cjs interop is hard
-		document.artifact.default || document.artifact
+	const store = writable(unmarshalSelection(config, artifact.selection, initialValue))
 
 	// pull out the writer for internal use
 	let subscriptionSpec: SubscriptionSpec | null = {
@@ -92,7 +92,7 @@ export default function query<_Query extends Operation<any, any>>(
 		variables = newVariables || {}
 
 		// update the local store
-		store.set(newData.data)
+		store.set(unmarshalSelection(config, artifact.selection, newData.data))
 
 		// write the data we received
 		cache.write(artifact.selection, newData.data, variables)

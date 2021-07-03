@@ -1,6 +1,7 @@
 // externals
 import { Readable, writable } from 'svelte/store'
 import { onMount, onDestroy } from 'svelte'
+import type { Config } from 'houdini-common'
 // locals
 import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
 import { getEnvironment } from './network'
@@ -21,10 +22,12 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 		throw new Error('subscription() must be passed a subscription document')
 	}
 
-	// we might get the the artifact nested under default
-	const artifact: SubscriptionArtifact =
-		// @ts-ignore: typing esm/cjs interop is hard
-		document.artifact.default || document.artifact
+	// we might get re-exported values nested under default
+
+	// @ts-ignore: typing esm/cjs interop is hard
+	const artifact: SubscriptionArtifact = document.artifact.default || document.artifact
+	// @ts-ignore: typing esm/cjs interop is hard
+	const config: Config = document.config.default || document.config
 
 	// pull out the current environment
 	const env = getEnvironment()
@@ -47,7 +50,7 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 	let marshaledVariables = {}
 	$: marshaledVariables = marshalInputs({
 		input: variables || {},
-		config: document.config,
+		config: config,
 		artifact: document.artifact,
 	})
 
@@ -80,9 +83,7 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 						cache.write(selection, data, marshaledVariables)
 
 						// update the local store
-						store.set(
-							unmarshalSelection(document.config, document.artifact.selection, data)
-						)
+						store.set(unmarshalSelection(config, artifact.selection, data))
 					}
 				},
 				error(data: _Subscription['result']) {},
