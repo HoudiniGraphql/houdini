@@ -41,7 +41,7 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 					input: variables,
 					artifact: document.artifact,
 					config: config,
-				}),
+				}) as _Mutation['input'],
 				sessionStore
 			)
 

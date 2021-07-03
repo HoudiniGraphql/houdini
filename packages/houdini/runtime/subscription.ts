@@ -52,7 +52,7 @@ export default function subscription<_Subscription extends Operation<any, any>>(
 		input: variables || {},
 		config: config,
 		artifact: document.artifact,
-	})
+	}) as _Subscription['input']
 
 	// the websocket connection only exists on the client
 	onMount(() => {
