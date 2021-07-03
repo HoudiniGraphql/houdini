@@ -736,7 +736,6 @@ export default {
 }
 ```
 
-
 ## 🔐&nbsp;&nbsp;Authentication
 
 houdini defers to SvelteKit's sessions for authentication. Assuming that the session has been populated
