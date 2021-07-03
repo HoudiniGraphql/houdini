@@ -127,6 +127,7 @@ export class Cache {
 			evaluateKey: this.evaluateKey.bind(this),
 			record: this.record.bind(this),
 			getRecord: this.getRecord.bind(this),
+			getData: this.getData.bind(this),
 		}
 	}
 
@@ -140,7 +141,6 @@ export class Cache {
 
 	// walk down the spec
 	private getData(
-		spec: SubscriptionSpec,
 		parent: Record,
 		selection: SubscriptionSelection,
 		variables: {}
@@ -150,25 +150,35 @@ export class Cache {
 		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
 			const key = this.evaluateKey(keyRaw, variables)
 
-			// if we are looking at a scalar
-			if (this.isScalarLink(type)) {
-				target[attributeName] = parent.getField(key)
-				continue
-			}
-
 			// if the link points to a record then we just have to add it to the one
 			const linkedRecord = parent.linkedRecord(key)
-			// if the field does point to a linked record
-			if (linkedRecord && fields) {
-				target[attributeName] = this.getData(spec, linkedRecord, fields, variables)
-				continue
-			}
-
 			// if the link points to a list
 			const linkedList = parent.linkedList(key)
-			if (linkedList && fields) {
+
+			// if we are looking at a scalar
+			if (this.isScalarLink(type)) {
+				// look up the primitive value
+				const val = parent.getField(key)
+
+				// is the type a custom scalar with a specified unmarshal function
+				if (this._config.scalars?.[type]?.unmarshal) {
+					// pass the primitive value to the unmarshal function
+					target[attributeName] = this._config.scalars[type].unmarshal(val)
+				} else {
+					target[attributeName] = val
+				}
+
+				continue
+			}
+			// the field could be an object
+			else if (linkedRecord && fields) {
+				target[attributeName] = this.getData(linkedRecord, fields, variables)
+				continue
+			}
+			// the field could be a list
+			else if (linkedList && fields) {
 				target[attributeName] = linkedList.map((linkedRecord) =>
-					this.getData(spec, linkedRecord, fields, variables)
+					this.getData(linkedRecord, fields, variables)
 				)
 			}
 		}
@@ -559,7 +569,9 @@ export class Cache {
 	}
 
 	private isScalarLink(type: string) {
-		return ['String', 'Boolean', 'Float', 'ID', 'Int'].includes(type)
+		return ['String', 'Boolean', 'Float', 'ID', 'Int']
+			.concat(Object.keys(this._config.scalars || {}))
+			.includes(type)
 	}
 
 	private notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
@@ -571,7 +583,7 @@ export class Cache {
 			}
 
 			// trigger the update
-			spec.set(this.getData(spec, rootRecord, spec.selection, spec.variables?.()))
+			spec.set(this.getData(rootRecord, spec.selection, spec.variables?.()))
 		}
 	}
 
@@ -686,7 +698,8 @@ export type CacheProxy = {
 	insertSubscribers: Cache['insertSubscribers']
 	evaluateKey: Cache['evaluateKey']
 	getRecord: Cache['getRecord']
+	getData: Cache['getData']
 }
 
 // id that we should use to refer to things in root
-const rootID = '_ROOT_'
+export const rootID = '_ROOT_'
