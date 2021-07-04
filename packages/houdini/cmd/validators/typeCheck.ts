@@ -3,6 +3,7 @@ import { Config, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
+import { Visitor } from '@babel/core'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.
@@ -182,6 +183,9 @@ export default async function typeCheck(
 					// connection include directives that aren't defined by the schema. this
 					// is replaced with a more appropriate version down below
 					graphql.KnownDirectivesRule,
+					// a few directives such at @arguments and @with don't have static names. this is
+					// replaced with a more flexible version below
+					graphql.KnownArgumentNamesRule,
 				].includes(rule)
 		)
 		.concat(
@@ -192,7 +196,9 @@ export default async function typeCheck(
 				connections,
 				connectionTypes,
 				fragments,
-			})
+			}),
+			// this replaces KnownArgumentNamesRule
+			knownArguments(config)
 		)
 
 	for (const { filename, document: parsed, printed } of docs) {
@@ -213,6 +219,9 @@ export default async function typeCheck(
 	// we're done here
 	return
 }
+
+//
+
 // build up the custom rule that requires parentID on all connection directives
 // applied to connection fragment spreads whose name does not appear in `freeConnections`
 const validateConnections = ({
@@ -308,12 +317,24 @@ const validateConnections = ({
 				const directiveName = node.name.value
 
 				// if the directive is not a connection directive
-				if (!config.isConnectionOperationDirective(directiveName)) {
+				if (!config.isInternalDirective(node)) {
+					// look for the definition of the fragment
+					if (!config.schema.getDirective(directiveName)) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								'Encountered unknown directive: ' + directiveName
+							)
+						)
+					}
+
 					return
 				}
 
 				// if the directive points to a type we don't recognize as the target of a connection
-				if (!connectionTypes.includes(config.connectionNameFromDirective(directiveName))) {
+				if (
+					config.isConnectionOperationDirective(directiveName) &&
+					!connectionTypes.includes(config.connectionNameFromDirective(directiveName))
+				) {
 					ctx.reportError(
 						new graphql.GraphQLError(
 							'Encountered directive referencing unknown connection: ' + directiveName
@@ -324,3 +345,28 @@ const validateConnections = ({
 			},
 		}
 	}
+
+function knownArguments(config: Config) {
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		// grab the default known arguments validator
+		const nativeValidator = graphql.KnownArgumentNamesRule(ctx)
+
+		// keep the default arguments validator (it doesn't check directives)
+		return {
+			...nativeValidator,
+			Directive(directiveNode) {
+				// the name of the directive
+				const directiveName = directiveNode.name.value
+
+				// if the directive points to the arguments or with directive, we don't
+				// need the arguments to be defined
+				if ([config.argumentsDirective, config.withDirective].includes(directiveName)) {
+					return false
+				}
+
+				// otherwise use the default validator
+				return (nativeValidator as any).Directive(directiveNode)
+			},
+		}
+	}
+}

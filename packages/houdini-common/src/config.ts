@@ -279,6 +279,22 @@ export class Config {
 		return `_delete`
 	}
 
+	get whenDirective() {
+		return 'when'
+	}
+
+	get whenNotDirective() {
+		return this.whenDirective + '_not'
+	}
+
+	get argumentsDirective() {
+		return 'arguments'
+	}
+
+	get withDirective() {
+		return 'with'
+	}
+
 	isDeleteDirective(name: string) {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}
@@ -314,8 +330,10 @@ export class Config {
 				this.connectionPrependDirective,
 				this.connectionAppendDirective,
 				this.connectionDirectiveParentIDArg,
-				'when',
-				'when_not',
+				this.whenDirective,
+				this.whenNotDirective,
+				this.argumentsDirective,
+				this.withDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}

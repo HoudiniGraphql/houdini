@@ -323,6 +323,26 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: 'unknown directives',
+		pass: false,
+		documents: [
+			`
+				query Foo {
+					user {
+						firstName @foo
+					}
+				}
+			`,
+			`
+				query Foo2 {
+					user {
+						firstName @foo
+					}
+				}
+			`,
+		],
+	},
+	{
 		title: 'unknown connection fragments errors before generation',
 		pass: false,
 		// note: we pass parentID here to ensure we're not getting caught on the
