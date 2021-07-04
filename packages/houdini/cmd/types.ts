@@ -7,7 +7,6 @@ export type CollectedGraphQLDocument = {
 	name: string
 	document: graphql.DocumentNode
 	originalDocument: graphql.DocumentNode
-	printed: string
 }
 
 // an error pertaining to a specific graphql document

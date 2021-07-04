@@ -125,7 +125,6 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 									name: config.documentName(parsedDoc),
 									document: parsedDoc,
 									filename: filePath,
-									printed: printedDoc,
 									originalDocument: parsedDoc,
 								})
 							}

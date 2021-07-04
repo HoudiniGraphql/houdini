@@ -201,7 +201,7 @@ export default async function typeCheck(
 			knownArguments(config)
 		)
 
-	for (const { filename, document: parsed, printed } of docs) {
+	for (const { filename, document: parsed } of docs) {
 		// validate the document
 		for (const error of graphql.validate(config.schema, parsed, rules)) {
 			errors.push({
