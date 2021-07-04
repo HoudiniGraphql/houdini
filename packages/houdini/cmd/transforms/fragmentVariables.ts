@@ -65,9 +65,14 @@ export default async function fragmentVariables(
 	}
 
 	// once we've inline every fragment in every document add their definitions to the set of collected documents
-	documents[0].document = {
-		...documents[0].document,
-		definitions: [...documents[0].document.definitions, ...Object.values(generatedFragments)],
+	if (documents.length > 0) {
+		documents[0].document = {
+			...documents[0].document,
+			definitions: [
+				...documents[0].document.definitions,
+				...Object.values(generatedFragments),
+			],
+		}
 	}
 }
 
