@@ -1,15 +1,21 @@
 // external imports
-import graphql from 'graphql'
+import * as graphql from 'graphql'
 
 // we need to generate a static key that we can use to index this field in the cache.
 // this needs to be a unique hash driven by the field's attribute and arguments
 // returns the key for a specific field
-export default function fieldKey(printed: string, field: graphql.FieldNode): string {
+export default function fieldKey(field: graphql.FieldNode): string {
 	// we're going to hash a field by creating a json object and adding it
 	// to the attribute name
 	const attributeName = field.alias?.value || field.name.value
 
-	const argObj = (field.arguments || []).reduce<{ [key: string]: string }>((acc, arg) => {
+	// field might not have a location so print and re-parse before we look at serialized values
+	const printed = graphql.print(field)
+	const secondParse = (graphql.parse(`{${printed}}`)
+		.definitions[0] as graphql.OperationDefinitionNode).selectionSet
+		.selections[0] as graphql.FieldNode
+
+	const argObj = (secondParse.arguments || []).reduce<{ [key: string]: string }>((acc, arg) => {
 		// the query already contains a serialized version of the argument so just pull it out of the
 		// document string
 		const start = arg.value.loc?.start
@@ -22,7 +28,7 @@ export default function fieldKey(printed: string, field: graphql.FieldNode): str
 
 		return {
 			...acc,
-			[arg.name.value]: printed.substring(start, end),
+			[arg.name.value]: printed.substring(start - 1, end - 1),
 		}
 	}, {})
 

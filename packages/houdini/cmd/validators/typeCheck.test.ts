@@ -447,3 +447,9 @@ for (const { title, pass, documents } of table) {
 }
 
 test.todo('@connection on root list with no id fails')
+
+test.todo('missing fragment arguments')
+
+test.todo('invalid fragment argument')
+
+test.todo('operation arguments typecheck with fragment definition')

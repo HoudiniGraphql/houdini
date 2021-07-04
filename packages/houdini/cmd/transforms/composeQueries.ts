@@ -4,7 +4,7 @@ import { Config } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from '../types'
 
-type FragmentDependency = {
+export type FragmentDependency = {
 	definition: graphql.FragmentDefinitionNode
 	requiredFragments: string[]
 }
@@ -16,33 +16,7 @@ export default async function includeFragmentDefinitions(
 ): Promise<void> {
 	// we will need to add the same fragment definitions to multiple operations so lets compute
 	// a single mapping that we'll reference later from the list of documents
-	const fragments = documents.reduce<{ [name: string]: FragmentDependency }>(
-		(acc, { name, document }) => {
-			// look for any definitions in this document
-			const definitions = document.definitions.reduce(
-				(prev, definition) =>
-					definition.kind !== 'FragmentDefinition'
-						? prev
-						: {
-								...prev,
-								[definition.name.value]: {
-									definition,
-									requiredFragments: findRequiredFragments(
-										definition.selectionSet
-									),
-								},
-						  },
-				{}
-			)
-
-			// add any definitions we found in this document
-			return {
-				...acc,
-				...definitions,
-			}
-		},
-		{}
-	)
+	const fragments = collectFragments(config, documents)
 
 	// visit every document and add any fragment definitions that are missing
 	for (const [index, { name, document }] of documents.entries()) {
@@ -71,6 +45,31 @@ export default async function includeFragmentDefinitions(
 			],
 		}
 	}
+}
+
+export function collectFragments(config: Config, docs: CollectedGraphQLDocument[]) {
+	return docs.reduce<{ [name: string]: FragmentDependency }>((acc, { name, document }) => {
+		// look for any definitions in this document
+		const definitions = document.definitions.reduce(
+			(prev, definition) =>
+				definition.kind !== 'FragmentDefinition'
+					? prev
+					: {
+							...prev,
+							[definition.name.value]: {
+								definition,
+								requiredFragments: findRequiredFragments(definition.selectionSet),
+							},
+					  },
+			{}
+		)
+
+		// add any definitions we found in this document
+		return {
+			...acc,
+			...definitions,
+		}
+	}, {})
 }
 
 function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<string> {
