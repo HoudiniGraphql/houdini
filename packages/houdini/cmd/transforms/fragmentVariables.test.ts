@@ -422,6 +422,148 @@ test("default values don't overwrite unless explicitly passed", async function (
 	`)
 })
 
-test.todo('multiple with directives - no overlap')
+test('default arguments', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestQuery',
+			`
+				query AllUsers {
+                    ...QueryFragment
+				}
+			`
+		),
+		mockCollectedDoc(
+			'QueryFragment',
+			`
+				fragment QueryFragment on Query 
+                @arguments(name: {type: "String", defaultValue: "Hello"}, cool: {type: "Boolean", defaultValue: true}) {
+                    users(boolValue: $cool, stringValue: $name) { 
+						id
+					}
+				}
+			`
+		),
+	]
 
-test.todo('multiple with arguments - overlap')
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "9ccb20793686cffd16dcdb9ed2a0f9e4",
+
+		    raw: \`query AllUsers {
+		  ...QueryFragment
+		}
+
+		fragment QueryFragment on Query {
+		  users(boolValue: true, stringValue: "Hello") {
+		    id
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        "users": {
+		            "type": "User",
+		            "keyRaw": "users(boolValue: true, stringValue: \\"Hello\\")",
+
+		            "fields": {
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
+		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test('multiple with directives - no overlap', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestQuery',
+			`
+				query AllUsers {
+                    ...QueryFragment @with(name: "Goodbye") @with(cool: false)
+				}
+			`
+		),
+		mockCollectedDoc(
+			'QueryFragment',
+			`
+				fragment QueryFragment on Query 
+                @arguments(name: {type: "String", defaultValue: "Hello"}, cool: {type: "Boolean", defaultValue: true}) {
+                    users(boolValue: $cool, stringValue: $name) { 
+						id
+					}
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "fbd2cd30c634b3079212fbf37a1e3eca",
+
+		    raw: \`query AllUsers {
+		  ...QueryFragment_2prn0K
+		}
+
+		fragment QueryFragment_2prn0K on Query {
+		  users(boolValue: false, stringValue: "Goodbye") {
+		    id
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        "users": {
+		            "type": "User",
+		            "keyRaw": "users(boolValue: false, stringValue: \\"Goodbye\\")",
+
+		            "fields": {
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
+		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
