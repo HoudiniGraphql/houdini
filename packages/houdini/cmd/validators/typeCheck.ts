@@ -390,6 +390,65 @@ function fragmentArguments(
 
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		return {
+			Directive(node) {
+				// if we are not looking at the argument definition directive, ignore it
+				if (node.name.value !== config.argumentsDirective) {
+					return
+				}
+
+				// look at every argument
+				for (const arg of node.arguments || []) {
+					// the value must be an object
+					if (arg.value.kind !== 'ObjectValue') {
+						ctx.reportError(
+							new graphql.GraphQLError('values in @arguments must be an object')
+						)
+						return
+					}
+
+					// grab the type argument
+					const typeArg = arg.value.fields.find((field) => field.name.value === 'type')
+					const defaultValue = arg.value.fields.find(
+						(field) => field.name.value === 'defaultValue'
+					)
+
+					// if there is no type value
+					if (!typeArg) {
+						ctx.reportError(
+							new graphql.GraphQLError('missing type field for @arguments directive')
+						)
+						return
+					}
+
+					// make sure that the two types at least match
+					if (typeArg.value.kind !== graphql.Kind.STRING) {
+						ctx.reportError(
+							new graphql.GraphQLError('type field to @arguments must be a string')
+						)
+						return
+					}
+
+					// if there is no default value, we're done
+					if (!defaultValue) {
+						return
+					}
+
+					const defaultValueType = defaultValue.value.kind.substring(
+						0,
+						defaultValue.value.kind.length - 'Value'.length
+					)
+
+					// if the claimed type does not match the default value there's an error
+					if (typeArg.value.value !== defaultValueType) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								`Invalid default value provided for ${arg.name.value}. Expected ${typeArg.value.value}, found ${defaultValueType}`
+							)
+						)
+						return
+					}
+				}
+			},
 			FragmentSpread(targetFragment, _, __, ___, ancestors) {
 				// if we dont recognize the fragment, this validator should ignore it. someone else
 				// will handle the error message

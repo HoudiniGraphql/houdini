@@ -453,7 +453,7 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: 'typecheck applied fragment arguments',
+		title: 'applied fragment arguments',
 		pass: false,
 		documents: [
 			`
@@ -469,6 +469,22 @@ const table: Row[] = [
 			`
 				query Query2 { 
 					...Foo @with(name: true)
+				}
+			`,
+		],
+	},
+	{
+		title: 'fragment argument definition defaultValue',
+		pass: false,
+		documents: [
+			`
+				fragment Foo on Query @arguments(name: { type: "String", defaultValue: true}) {
+					users(stringValue: $name) { id }
+				}
+			`,
+			`
+				fragment Foo on Query @arguments(name: { type: "String", defaultValue: true}) {
+					users(stringValue: $name) { id }
 				}
 			`,
 		],
@@ -508,5 +524,3 @@ for (const { title, pass, documents, check } of table) {
 }
 
 test.todo('@connection on root list with no id fails')
-
-test.todo('operation arguments typecheck with fragment definition')
