@@ -336,6 +336,92 @@ test('inner fragment with intermediate default value', async function () {
 	`)
 })
 
+test("default values don't overwrite unless explicitly passed", async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestQuery',
+			`
+				query AllUsers {
+                    ...QueryFragment
+				}
+			`
+		),
+		mockCollectedDoc(
+			'QueryFragment',
+			`
+				fragment QueryFragment on Query 
+                @arguments(name: {type: "String", defaultValue: "Hello"}) {
+                    ...InnerFragment
+				}
+			`
+		),
+		mockCollectedDoc(
+			'InnerFragment',
+			`
+				fragment InnerFragment on Query 
+                @arguments(name: {type: "String", defaultValue: "Goodbye"}) {
+                    users(stringValue: $name) { 
+                        id
+                    }
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "9ccb20793686cffd16dcdb9ed2a0f9e4",
+
+		    raw: \`query AllUsers {
+		  ...QueryFragment
+		}
+
+		fragment QueryFragment on Query {
+		  ...InnerFragment
+		}
+
+		fragment InnerFragment on Query {
+		  users(stringValue: "Goodbye") {
+		    id
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        "users": {
+		            "type": "User",
+		            "keyRaw": "users(stringValue: \\"Goodbye\\")",
+
+		            "fields": {
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
+		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
 test.todo('multiple with directives - no overlap')
 
 test.todo('multiple with arguments - overlap')
