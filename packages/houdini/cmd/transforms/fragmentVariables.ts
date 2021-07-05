@@ -24,6 +24,7 @@ export default async function fragmentVariables(
 
 	// a map from generated fragment names to their definition
 	const generatedFragments: Record<string, graphql.FragmentDefinitionNode> = {}
+	const visitedFragments: Set<string> = new Set()
 
 	// start with the documents containing operations
 	for (const doc of documents) {
@@ -60,11 +61,13 @@ export default async function fragmentVariables(
 			fragments,
 			doc.document,
 			generatedFragments,
+			visitedFragments,
 			rootScope
 		)
 	}
 
-	// once we've inline every fragment in every document add their definitions to the set of collected documents
+	// once we've handled every fragment in every document we need to add any
+	// new fragment definitions to the list of collected docs so they can be picked up
 	if (documents.length > 0) {
 		documents[0].document = {
 			...documents[0].document,
@@ -83,11 +86,17 @@ function inlineFragmentArgs(
 	fragmentDefinitions: Record<string, FragmentDependency>,
 	document: graphql.ASTNode,
 	generatedFragments: Record<string, graphql.FragmentDefinitionNode> = {},
-	scope: ValueMap,
+	visitedFragments: Set<string>,
+	scope: ValueMap | undefined | null,
 	newName?: string
 ): any {
 	const result = graphql.visit(document, {
 		Variable(node) {
+			// if there is no scope
+			if (!scope) {
+				throw new Error(node.name.value + ' is not defined')
+			}
+
 			// look up the variable in the scope
 			const newValue = scope[node.name.value]
 
@@ -99,43 +108,86 @@ function inlineFragmentArgs(
 			return newValue
 		},
 		FragmentSpread(node) {
-			// does the fragment spread have the with directive
-			const withDirectives = node.directives?.filter(
-				(directive) => directive.name.value === config.withDirective
-			)
-
-			// if not, we just leave the reference how it is. even if it has arguments,
-			// we will leave behind a version with the default values in place
-			if (!withDirectives || withDirectives?.length === 0) {
-				return
-			}
+			// look at the fragment spread to see if there are any default arguments
+			// that haven't been overriden by with
+			const { definition } = fragmentDefinitions[node.name.value]
+			/// look up the default args
+			const defaultArgs = collectDefaultArgumentValues(config, definition)
 
 			// we have to apply arguments to the fragment definitions
-			const { args, hash } = collectWithArguments(withDirectives, scope)
+			let { args, hash } = collectWithArguments(config, node, scope)
 
 			// generate a fragment name based on the arguments passed
-			const newFragmentName = `${node.name.value}_${hash}`
+			const newFragmentName = `${node.name.value}${hash}`
 
-			// if we haven't seen this fragment before, go define it
-			if (!generatedFragments[newFragmentName]) {
-				generatedFragments[newFragmentName] = inlineFragmentArgs(
-					config,
-					fragmentDefinitions,
-					fragmentDefinitions[node.name.value].definition,
-					generatedFragments,
-					args,
-					newFragmentName
-				)
+			// if we haven't handled the referenced fragment
+			if (!visitedFragments.has(newFragmentName)) {
+				// we need to walk down the referenced fragment definition
+				visitedFragments.add(newFragmentName)
+
+				// if there are local arguments we need to treat it like a new fragment
+				if (args) {
+					// assign any default values to the scope
+					for (const [field, value] of Object.entries(defaultArgs || {})) {
+						if (!args[field]) {
+							args[field] = value
+						}
+					}
+
+					generatedFragments[newFragmentName] = inlineFragmentArgs(
+						config,
+						fragmentDefinitions,
+						fragmentDefinitions[node.name.value].definition,
+						generatedFragments,
+						visitedFragments,
+						args,
+						newFragmentName
+					)
+				}
+				// there are no local arguments to the fragment so we need to
+				// walk down the definition and apply any default args as well
+				// as look for internal fragment spreads for the referenced fragment
+				else {
+					// the document holding the fragment definition
+					const doc = fragmentDefinitions[node.name.value].document
+
+					// find the fragment definition in the document
+					const definitionIndex = doc.document.definitions.findIndex(
+						(definition) =>
+							definition.kind === 'FragmentDefinition' &&
+							definition.name.value === node.name.value
+					)
+
+					// remove the element from the list
+					const localDefinitions = [...doc.document.definitions]
+					localDefinitions.splice(definitionIndex)
+					localDefinitions.push(
+						(generatedFragments[newFragmentName] = inlineFragmentArgs(
+							config,
+							fragmentDefinitions,
+							fragmentDefinitions[node.name.value].definition,
+							generatedFragments,
+							visitedFragments,
+							defaultArgs,
+							''
+						))
+					)
+
+					doc.document = {
+						...doc.document,
+						definitions: localDefinitions,
+					}
+				}
+
+				// replace the fragment spread with one that references the generated fragment
+				return {
+					...node,
+					name: {
+						kind: 'Name',
+						value: newFragmentName,
+					},
+				} as graphql.FragmentSpreadNode
 			}
-
-			// replace the fragment spread with one that references the generated fragment
-			return {
-				...node,
-				name: {
-					kind: 'Name',
-					value: newFragmentName,
-				},
-			} as graphql.FragmentSpreadNode
 		},
 	})
 
@@ -150,13 +202,51 @@ function inlineFragmentArgs(
 
 	return result
 }
+
+function collectDefaultArgumentValues(
+	config: Config,
+	definition: graphql.FragmentDefinitionNode
+): ValueMap | null {
+	const directives = definition.directives?.filter(
+		(directive) => directive.name.value === config.argumentsDirective
+	)
+
+	if (!directives || directives.length === 0) {
+		return null
+	}
+
+	let result: ValueMap = {}
+	for (const arg of directives.flatMap((directive) => directive.arguments || [])) {
+		// look up the default value key
+		let argObject = arg.value as graphql.ObjectValueNode
+
+		// if there is no default value, dont consider this argument
+		const defaultValue = argObject.fields.find((field) => field.name.value === 'defaultValue')
+			?.value
+		if (!defaultValue) {
+			continue
+		}
+		result[arg.name.value] = defaultValue
+	}
+
+	return result
+}
+
 function collectWithArguments(
-	withDirectives: graphql.DirectiveNode[],
-	scope: ValueMap
-): { args: ValueMap; hash: string } {
+	config: Config,
+	node: graphql.FragmentSpreadNode,
+	scope: ValueMap | null = {}
+): { args: ValueMap | null; hash: string } {
+	const withDirectives = node.directives?.filter(
+		(directive) => directive.name.value === config.withDirective
+	)
+	if (!withDirectives || withDirectives.length === 0) {
+		return { args: null, hash: '' }
+	}
+
 	// build up the argument object to apply
-	const args: ValueMap = {}
-	const argsToHash: { [key: string]: { value: any; kind: string } } = scope
+	let args: ValueMap | null = {}
+	const argsToHash: { [key: string]: { value: any; kind: string } } | null = {}
 	for (const arg of withDirectives.flatMap((directive) => directive.arguments || [])) {
 		args[arg.name.value] = {
 			...arg.value,
@@ -168,7 +258,13 @@ function collectWithArguments(
 		}
 	}
 
-	return { args, hash: murmurHash(JSON.stringify(argsToHash)) }
+	return {
+		args: Object.keys(args).length > 0 ? args : null,
+		hash:
+			Object.keys(argsToHash || {}).length > 0
+				? '_' + murmurHash(JSON.stringify(argsToHash))
+				: '',
+	}
 }
 
 function serializeArg(node: graphql.ValueNode): any {

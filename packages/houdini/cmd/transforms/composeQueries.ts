@@ -7,6 +7,7 @@ import { CollectedGraphQLDocument } from '../types'
 export type FragmentDependency = {
 	definition: graphql.FragmentDefinitionNode
 	requiredFragments: string[]
+	document: CollectedGraphQLDocument
 }
 
 // includeFragmentDefinitions adds any referenced fragments to operations
@@ -47,10 +48,13 @@ export default async function includeFragmentDefinitions(
 	}
 }
 
-export function collectFragments(config: Config, docs: CollectedGraphQLDocument[]) {
-	return docs.reduce<{ [name: string]: FragmentDependency }>((acc, { name, document }) => {
+export function collectFragments(
+	config: Config,
+	docs: CollectedGraphQLDocument[]
+): Record<string, FragmentDependency> {
+	return docs.reduce<{ [name: string]: FragmentDependency }>((acc, doc) => {
 		// look for any definitions in this document
-		const definitions = document.definitions.reduce(
+		const definitions = doc.document.definitions.reduce(
 			(prev, definition) =>
 				definition.kind !== 'FragmentDefinition'
 					? prev
@@ -59,6 +63,7 @@ export function collectFragments(config: Config, docs: CollectedGraphQLDocument[
 							[definition.name.value]: {
 								definition,
 								requiredFragments: findRequiredFragments(definition.selectionSet),
+								document: doc,
 							},
 					  },
 			{}

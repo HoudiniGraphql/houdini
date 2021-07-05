@@ -96,7 +96,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 			'QueryFragment',
 			`
 				fragment QueryFragment on Query @arguments(name: {type: "String", defaultValue: "Hello"}) {
-                    users(stringValue: "Hello") { 
+                    users(stringValue: $name) { 
                         id
                     }
 				}
@@ -157,3 +157,5 @@ test("fragment arguments with default values don't rename the fragment", async f
 test.todo('multiple with directives - no overlap')
 
 test.todo('multiple with arguments - overlap')
+
+test.todo('overwrite default argument')
