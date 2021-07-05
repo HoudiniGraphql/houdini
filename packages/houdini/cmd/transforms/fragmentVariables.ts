@@ -94,7 +94,11 @@ function inlineFragmentArgs(
 		Variable(node) {
 			// if there is no scope
 			if (!scope) {
-				throw new Error(node.name.value + ' is not defined')
+				throw new Error(
+					node.name.value +
+						' is not defined in the current scope: ' +
+						JSON.stringify(scope)
+				)
 			}
 
 			// look up the variable in the scope
@@ -102,7 +106,7 @@ function inlineFragmentArgs(
 
 			// if we don't have a new value, it's a unknown variable
 			if (!newValue) {
-				throw new Error(node.name.value + ' is not defined')
+				throw new Error(node.name.value + ' has no value in the current scope')
 			}
 
 			return newValue
@@ -122,10 +126,13 @@ function inlineFragmentArgs(
 				// we need to walk down the referenced fragment definition
 				visitedFragments.add(newFragmentName)
 
+				// figure out the default arguments for the fragment
+				const defaultArguments = collectDefaultArgumentValues(config, definition)
+
 				// if there are local arguments we need to treat it like a new fragment
 				if (args) {
 					// assign any default values to the scope
-					for (const [field, value] of Object.entries(scope || {})) {
+					for (const [field, value] of Object.entries(defaultArguments || {})) {
 						if (!args[field]) {
 							args[field] = value
 						}
@@ -165,7 +172,7 @@ function inlineFragmentArgs(
 							fragmentDefinitions[node.name.value].definition,
 							generatedFragments,
 							visitedFragments,
-							collectDefaultArgumentValues(config, definition),
+							defaultArguments,
 							''
 						)
 					)
@@ -203,20 +210,43 @@ function inlineFragmentArgs(
 	return result
 }
 
-function collectDefaultArgumentValues(
+export function withArguments(
+	config: Config,
+	node: graphql.FragmentSpreadNode
+): graphql.ArgumentNode[] {
+	const withDirectives = node.directives?.filter(
+		(directive) => directive.name.value === config.withDirective
+	)
+	if (!withDirectives || withDirectives.length === 0) {
+		return []
+	}
+
+	// flatten all of the arguments passed to every @with
+	return withDirectives.flatMap((directive) => directive.arguments || [])
+}
+
+export function fragmentArguments(
 	config: Config,
 	definition: graphql.FragmentDefinitionNode
-): ValueMap | null {
+): graphql.ArgumentNode[] {
 	const directives = definition.directives?.filter(
 		(directive) => directive.name.value === config.argumentsDirective
 	)
 
 	if (!directives || directives.length === 0) {
-		return null
+		return []
 	}
 
 	let result: ValueMap = {}
-	for (const arg of directives.flatMap((directive) => directive.arguments || [])) {
+	return directives.flatMap((directive) => directive.arguments || [])
+}
+
+function collectDefaultArgumentValues(
+	config: Config,
+	definition: graphql.FragmentDefinitionNode
+): ValueMap | null {
+	let result: ValueMap = {}
+	for (const arg of fragmentArguments(config, definition)) {
 		// look up the default value key
 		let argObject = arg.value as graphql.ObjectValueNode
 
@@ -237,23 +267,15 @@ function collectWithArguments(
 	node: graphql.FragmentSpreadNode,
 	scope: ValueMap | null = {}
 ): { args: ValueMap | null; hash: string } {
-	const withDirectives = node.directives?.filter(
-		(directive) => directive.name.value === config.withDirective
-	)
-	if (!withDirectives || withDirectives.length === 0) {
-		return { args: null, hash: '' }
-	}
-
-	// flatten all of the arguments passed to every @with
-	const withArguments = withDirectives.flatMap((directive) => directive.arguments || [])
+	const withArgs = withArguments(config, node)
 	// if there aren't any
-	if (withArguments.length === 0) {
+	if (withArgs.length === 0) {
 		return { args: null, hash: '' }
 	}
 
 	// build up the argument object to apply
 	let args: ValueMap = {}
-	for (const arg of withArguments) {
+	for (const arg of withArgs) {
 		let value = arg.value
 		// if the argument is a variable, we need to look it up in score
 		if (value.kind === GraphqlKinds.VARIABLE) {

@@ -3,7 +3,11 @@ import { Config, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
-import { Visitor } from '@babel/core'
+import {
+	fragmentArguments as collectFragmentArguments,
+	withArguments,
+} from '../transforms/fragmentVariables'
+import { unwrapType } from '../utils'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.
@@ -23,13 +27,13 @@ export default async function typeCheck(
 	// keep track of every type in a connection so we can validate the directives too
 	const connectionTypes: string[] = []
 	// keep track of every fragment that's defined in the set
-	const fragments: string[] = []
+	const fragments: Record<string, graphql.FragmentDefinitionNode> = {}
 
 	// visit every document and build up the lists
 	for (const { document: parsed } of docs) {
 		graphql.visit(parsed, {
 			[graphql.Kind.FRAGMENT_DEFINITION](definition) {
-				fragments.push(definition.name.value)
+				fragments[definition.name.value] = definition
 			},
 			[graphql.Kind.DIRECTIVE](directive, _, parent, __, ancestors) {
 				// if the fragment is a connection fragment
@@ -198,7 +202,9 @@ export default async function typeCheck(
 				fragments,
 			}),
 			// this replaces KnownArgumentNamesRule
-			knownArguments(config)
+			knownDirectives(config),
+			// validate any fragment arguments
+			fragmentArguments(config, fragments)
 		)
 
 	for (const { filename, document: parsed } of docs) {
@@ -235,7 +241,7 @@ const validateConnections = ({
 	freeConnections: string[]
 	connections: string[]
 	connectionTypes: string[]
-	fragments: string[]
+	fragments: Record<string, graphql.FragmentDefinitionNode>
 }) =>
 	function verifyConnectionArtifacts(ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		return {
@@ -244,7 +250,7 @@ const validateConnections = ({
 				// if the fragment is not a connection fragment don't do the normal processing
 				if (!config.isConnectionFragment(node.name.value)) {
 					// make sure its a defined fragment
-					if (!fragments.includes(node.name.value)) {
+					if (!fragments[node.name.value]) {
 						ctx.reportError(
 							new graphql.GraphQLError(
 								'Encountered unknown fragment: ' + node.name.value
@@ -346,7 +352,7 @@ const validateConnections = ({
 		}
 	}
 
-function knownArguments(config: Config) {
+function knownDirectives(config: Config) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		// grab the default known arguments validator
 		const nativeValidator = graphql.KnownArgumentNamesRule(ctx)
@@ -366,6 +372,145 @@ function knownArguments(config: Config) {
 
 				// otherwise use the default validator
 				return (nativeValidator as any).Directive(directiveNode)
+			},
+		}
+	}
+}
+
+function fragmentArguments(
+	config: Config,
+	fragments: Record<string, graphql.FragmentDefinitionNode>
+) {
+	// map a fragment name to the list of required args
+	const requiredArgs: Record<string, string[]> = {}
+	// map fragment name to the list of all the args
+	const fragmentArgumentNames: Record<string, string[]> = {}
+	// map fragment names to the argument nodes
+	const fragmentArguments: Record<string, graphql.ArgumentNode[]> = {}
+
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		return {
+			FragmentSpread(targetFragment, _, __, ___, ancestors) {
+				// if we dont recognize the fragment, this validator should ignore it. someone else
+				// will handle the error message
+				if (!fragments[targetFragment.name.value]) {
+					return
+				}
+
+				// dry up the fragment name
+				const fragmentName = targetFragment.name.value
+
+				// if we haven't computed the required arguments for the fragment, do it now
+				if (!requiredArgs[fragmentName]) {
+					// look up the arguments for the fragment
+					const args = collectFragmentArguments(config, fragments[fragmentName])
+
+					fragmentArguments[fragmentName] = args
+					requiredArgs[fragmentName] = args
+						.filter(
+							(arg) =>
+								arg.value.kind === 'ObjectValue' &&
+								// any arg without a default value key in its body is required
+								!arg.value.fields.find(
+									(field) => field.name.value === 'defaultValue'
+								)
+						)
+						.map((arg) => arg.name.value)
+					fragmentArgumentNames[fragmentName] = args.map((arg) => arg.name.value)
+				}
+
+				// get the arguments applied through with
+				const appliedArguments: Record<string, graphql.ArgumentNode> = withArguments(
+					config,
+					targetFragment
+				).reduce(
+					(map, arg) => ({
+						...map,
+						[arg.name.value]: arg,
+					}),
+					{}
+				)
+				const appliedArgumentNames = Object.keys(appliedArguments)
+
+				// find the missing arguments
+				const missing = requiredArgs[fragmentName].filter(
+					(arg) => !appliedArgumentNames.includes(arg)
+				)
+
+				if (missing.length > 0) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							'The following arguments are missing from this fragment: ' +
+								JSON.stringify(missing)
+						)
+					)
+				}
+
+				// look for any args that we don't recognize
+				const unknown = appliedArgumentNames.filter(
+					(arg) => !fragmentArgumentNames[fragmentName].includes(arg)
+				)
+				if (unknown.length > 0) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							'Encountered unknown arguments: ' + JSON.stringify(unknown)
+						)
+					)
+				}
+				// every argument corresponds to one defined in the fragment
+				else {
+					// zip together the provided argument with the one in the fragment definition
+					const zipped: [
+						graphql.ArgumentNode,
+						graphql.ArgumentNode
+					][] = appliedArgumentNames.map((name) => [
+						appliedArguments[name],
+						fragmentArguments[fragmentName].find(
+							(arg) => arg.name.value === name
+						) as graphql.ArgumentNode,
+					])
+
+					for (const [applied, target] of zipped) {
+						// TODO: validate these types
+						// if the applied value is a variable, list, or object don't validate it
+						if (
+							applied.value.kind === graphql.Kind.VARIABLE ||
+							applied.value.kind === graphql.Kind.LIST ||
+							applied.value.kind === graphql.Kind.OBJECT
+						) {
+							continue
+						}
+
+						// the applied value isn't a variable
+						const appliedType = applied.value.kind.substring(
+							0,
+							applied.value.kind.length - 'Value'.length
+						)
+
+						// find the type argument
+						const typeField = (target.value as graphql.ObjectValueNode).fields.find(
+							(field) => field.name.value === 'type'
+						)?.value
+						if (typeField?.kind !== 'StringValue') {
+							ctx.reportError(
+								new graphql.GraphQLError(
+									'type field of @arguments must be a string'
+								)
+							)
+							return
+						}
+						const targetType = typeField.value
+
+						// if the two don't match up, its not a valid argument type
+						if (appliedType !== targetType) {
+							ctx.reportError(
+								new graphql.GraphQLError(
+									`Invalid argument type. Expected ${targetType}, found ${appliedType}`
+								)
+							)
+						}
+					}
+				}
 			},
 		}
 	}

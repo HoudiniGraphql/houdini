@@ -409,9 +409,69 @@ const table: Row[] = [
 				}
 			`,
 		],
-		check: function (e: HoudiniError | HoudiniError[]) {
-			expect(e).toHaveLength(2)
-		},
+	},
+	{
+		title: 'missing fragment arguments',
+		pass: false,
+		documents: [
+			`
+				fragment Foo on Query @arguments(name: { type: "String"}) {
+					users(stringValue: $name) { id }
+				}
+			`,
+			`
+				query Query1 { 
+					...Foo 
+				}
+			`,
+			`
+				query Query2 { 
+					...Foo
+				}
+			`,
+		],
+	},
+	{
+		title: 'invalid argument',
+		pass: false,
+		documents: [
+			`
+				fragment Foo on Query @arguments(name: { type: "String"}) {
+					users(stringValue: $name) { id }
+				}
+			`,
+			`
+				query Query1 { 
+					...Foo @with(bar: "blah", name: "bar")
+				}
+			`,
+			`
+				query Query2 { 
+					...Foo @with(any: true, name: "bar")
+				}
+			`,
+		],
+	},
+	{
+		title: 'typecheck applied fragment arguments',
+		pass: false,
+		documents: [
+			`
+				fragment Foo on Query @arguments(name: { type: "String"}) {
+					users(stringValue: $name) { id }
+				}
+			`,
+			`
+				query Query2 { 
+					...Foo @with(name: true)
+				}
+			`,
+			`
+				query Query2 { 
+					...Foo @with(name: true)
+				}
+			`,
+		],
 	},
 ]
 
@@ -430,7 +490,7 @@ type Row =
 	  }
 
 // run the tests
-for (const { title, pass, documents } of table) {
+for (const { title, pass, documents, check } of table) {
 	describe('type check', function () {
 		// run the pipeline over the documents
 		pipelineTest(
@@ -439,17 +499,14 @@ for (const { title, pass, documents } of table) {
 			pass,
 			pass
 				? undefined
-				: function (e: HoudiniError | HoudiniError[]) {
-						expect(e).toHaveLength(2)
-				  }
+				: check ||
+						function (e: HoudiniError | HoudiniError[]) {
+							expect(e).toHaveLength(2)
+						}
 		)
 	})
 }
 
 test.todo('@connection on root list with no id fails')
-
-test.todo('missing fragment arguments')
-
-test.todo('invalid fragment argument')
 
 test.todo('operation arguments typecheck with fragment definition')
