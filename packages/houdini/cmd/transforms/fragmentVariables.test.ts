@@ -209,14 +209,14 @@ test('thread query variables to inner fragments', async function () {
 		    hash: "62c01b64ba6efc0ba62c4a2354f5e386",
 
 		    raw: \`query AllUsers($name: String!) {
-		  ...QueryFragment_3nkHFU
+		  ...QueryFragment_VDHGm
 		}
 
-		fragment QueryFragment_3nkHFU on Query {
-		  ...InnerFragment_1W0ukG
+		fragment QueryFragment_VDHGm on Query {
+		  ...InnerFragment_VDHGm
 		}
 
-		fragment InnerFragment_1W0ukG on Query {
+		fragment InnerFragment_VDHGm on Query {
 		  users(stringValue: $name) {
 		    id
 		  }

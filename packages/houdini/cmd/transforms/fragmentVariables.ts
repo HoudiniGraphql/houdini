@@ -241,7 +241,6 @@ function collectWithArguments(
 		(directive) => directive.name.value === config.withDirective
 	)
 	if (!withDirectives || withDirectives.length === 0) {
-		console.log('no withs')
 		return { args: null, hash: '' }
 	}
 
