@@ -91,7 +91,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			writeIndexFile(config, docs),
 		].concat(
 			// and an artifact for every document
-			docs.map(async ({ document, name, printed, originalDocument }) => {
+			docs.map(async ({ document, name }) => {
 				// before we can print the document, we need to strip all references to internal directives
 				const rawString = graphql.print(
 					graphql.visit(document, {
@@ -149,10 +149,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					AST.objectProperty(AST.identifier('name'), AST.stringLiteral(name)),
 					AST.objectProperty(AST.identifier('kind'), AST.stringLiteral(docKind)),
 					AST.objectProperty(
-						AST.identifier('hash'),
-						AST.stringLiteral(hashDocument(printed))
-					),
-					AST.objectProperty(
 						AST.identifier('raw'),
 						AST.templateLiteral(
 							[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
@@ -200,7 +196,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						AST.identifier('selection'),
 						selection({
 							config,
-							printed,
 							rootType,
 							selectionSet: selectionSet,
 							operations: operationsByPath(config, operations[0], filterTypes),

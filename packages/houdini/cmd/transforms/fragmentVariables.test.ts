@@ -51,7 +51,6 @@ test('pass argument values to generated fragments', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "f597753fecc388a85e548e82ab27681b",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment_10b3uv
@@ -124,7 +123,6 @@ test("fragment arguments with default values don't rename the fragment", async f
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "9ccb20793686cffd16dcdb9ed2a0f9e4",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment
@@ -206,7 +204,6 @@ test('thread query variables to inner fragments', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "62c01b64ba6efc0ba62c4a2354f5e386",
 
 		    raw: \`query AllUsers($name: String!) {
 		  ...QueryFragment_VDHGm
@@ -300,7 +297,6 @@ test('inner fragment with intermediate default value', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "9ccb20793686cffd16dcdb9ed2a0f9e4",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment
@@ -386,7 +382,6 @@ test("default values don't overwrite unless explicitly passed", async function (
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "9ccb20793686cffd16dcdb9ed2a0f9e4",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment
@@ -463,7 +458,6 @@ test('default arguments', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "9ccb20793686cffd16dcdb9ed2a0f9e4",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment
@@ -536,7 +530,6 @@ test('multiple with directives - no overlap', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "fbd2cd30c634b3079212fbf37a1e3eca",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment_2prn0K

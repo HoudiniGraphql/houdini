@@ -21,7 +21,7 @@ export default async function addConnectionFragments(
 	const errors: HoudiniError[] = []
 
 	// look at every document
-	for (const { document, filename, printed } of documents) {
+	for (const { document, filename } of documents) {
 		graphql.visit(document, {
 			Directive(node, key, parent, path, ancestors) {
 				// if we found a @connection applied
@@ -34,7 +34,7 @@ export default async function addConnectionFragments(
 						...new graphql.GraphQLError(
 							'',
 							node,
-							new graphql.Source(printed),
+							new graphql.Source(''),
 							node.loc ? [node.loc.start, node.loc.end] : null,
 							path
 						),
