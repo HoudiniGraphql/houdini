@@ -202,7 +202,7 @@ export default async function typeCheck(
 				fragments,
 			}),
 			// this replaces KnownArgumentNamesRule
-			knownDirectives(config),
+			knownArguments(config),
 			// validate any fragment arguments
 			fragmentArguments(config, fragments)
 		)
@@ -352,7 +352,7 @@ const validateConnections = ({
 		}
 	}
 
-function knownDirectives(config: Config) {
+function knownArguments(config: Config) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		// grab the default known arguments validator
 		const nativeValidator = graphql.KnownArgumentNamesRule(ctx)
