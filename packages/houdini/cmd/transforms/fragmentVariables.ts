@@ -109,13 +109,10 @@ function inlineFragmentArgs(
 		},
 		FragmentSpread(node) {
 			// look at the fragment spread to see if there are any default arguments
-			// that haven't been overriden by with
+			// that haven't been overridden by with
 			const { definition } = fragmentDefinitions[node.name.value]
-			/// look up the default args
-			const defaultArgs = collectDefaultArgumentValues(config, definition)
-
 			// we have to apply arguments to the fragment definitions
-			let { args, hash } = collectWithArguments(config, node, defaultArgs)
+			let { args, hash } = collectWithArguments(config, node, scope)
 
 			// generate a fragment name based on the arguments passed
 			const newFragmentName = `${node.name.value}${hash}`
@@ -128,7 +125,7 @@ function inlineFragmentArgs(
 				// if there are local arguments we need to treat it like a new fragment
 				if (args) {
 					// assign any default values to the scope
-					for (const [field, value] of Object.entries(defaultArgs || {})) {
+					for (const [field, value] of Object.entries(scope || {})) {
 						if (!args[field]) {
 							args[field] = value
 						}
@@ -168,7 +165,7 @@ function inlineFragmentArgs(
 							fragmentDefinitions[node.name.value].definition,
 							generatedFragments,
 							visitedFragments,
-							defaultArgs,
+							collectDefaultArgumentValues(config, definition),
 							''
 						)
 					)
@@ -244,6 +241,7 @@ function collectWithArguments(
 		(directive) => directive.name.value === config.withDirective
 	)
 	if (!withDirectives || withDirectives.length === 0) {
+		console.log('no withs')
 		return { args: null, hash: '' }
 	}
 
@@ -257,8 +255,20 @@ function collectWithArguments(
 	// build up the argument object to apply
 	let args: ValueMap = {}
 	for (const arg of withArguments) {
+		let value = arg.value
+		// if the argument is a variable, we need to look it up in score
+		if (value.kind === GraphqlKinds.VARIABLE) {
+			// if we don't have a scope the variable isn't defined
+			if (!scope || !scope[value.name.value]) {
+				throw new Error('Encountered undefined variable: ' + value.name.value)
+			}
+
+			// use the value pulled from scope
+			value = scope[value.name.value]
+		}
+
 		args[arg.name.value] = {
-			...arg.value,
+			...value,
 			loc: undefined,
 		}
 	}

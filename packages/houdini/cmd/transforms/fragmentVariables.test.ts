@@ -23,7 +23,8 @@ test('pass argument values to generated fragments', async function () {
 		mockCollectedDoc(
 			'QueryFragment',
 			`
-				fragment QueryFragment on Query @arguments(name: {type: "String"} ) {
+				fragment QueryFragment on Query 
+                @arguments(name: {type: "String"} ) {
                     users(stringValue: $name) { 
                         id
                     }
@@ -95,7 +96,8 @@ test("fragment arguments with default values don't rename the fragment", async f
 		mockCollectedDoc(
 			'QueryFragment',
 			`
-				fragment QueryFragment on Query @arguments(name: {type: "String", defaultValue: "Hello"}) {
+				fragment QueryFragment on Query 
+                @arguments(name: {type: "String", defaultValue: "Hello"}) {
                     users(stringValue: $name) { 
                         id
                     }
@@ -167,7 +169,8 @@ test('thread query variables to inner fragments', async function () {
 		mockCollectedDoc(
 			'QueryFragment',
 			`
-				fragment QueryFragment on Query @arguments(name: {type: "String", defaultValue: "Hello"}) {
+				fragment QueryFragment on Query 
+                @arguments(name: {type: "String", defaultValue: "Hello"}) {
                     ...InnerFragment @with(name: $name)
 				}
 			`
@@ -175,7 +178,8 @@ test('thread query variables to inner fragments', async function () {
 		mockCollectedDoc(
 			'InnerFragment',
 			`
-				fragment InnerFragment on Query @arguments(name: {type: "String", defaultValue: "Hello"}) {
+				fragment InnerFragment on Query 
+                @arguments(name: {type: "String", defaultValue: "Hello"}) {
                     users(stringValue: $name) { 
                         id
                     }
@@ -259,7 +263,8 @@ test('inner fragment with intermediate default value', async function () {
 		mockCollectedDoc(
 			'QueryFragment',
 			`
-				fragment QueryFragment on Query @arguments(name: {type: "String", defaultValue: "Hello"}) {
+				fragment QueryFragment on Query 
+                @arguments(name: {type: "String", defaultValue: "Hello"}) {
                     ...InnerFragment @with(name: $name)
 				}
 			`
@@ -267,7 +272,8 @@ test('inner fragment with intermediate default value', async function () {
 		mockCollectedDoc(
 			'InnerFragment',
 			`
-				fragment InnerFragment on Query @arguments(name: {type: "String", defaultValue: "Goodbye"}) {
+				fragment InnerFragment on Query 
+                @arguments(name: {type: "String", defaultValue: "Goodbye"}) {
                     users(stringValue: $name) { 
                         id
                     }
@@ -301,11 +307,11 @@ test('inner fragment with intermediate default value', async function () {
 		}
 
 		fragment QueryFragment on Query {
-		  ...InnerFragment_1W0ukG
+		  ...InnerFragment_10b3uv
 		}
 
-		fragment InnerFragment_1W0ukG on Query {
-		  users(stringValue: $name) {
+		fragment InnerFragment_10b3uv on Query {
+		  users(stringValue: "Hello") {
 		    id
 		  }
 		}
@@ -333,5 +339,3 @@ test('inner fragment with intermediate default value', async function () {
 test.todo('multiple with directives - no overlap')
 
 test.todo('multiple with arguments - overlap')
-
-test.todo('overwrite default argument')
