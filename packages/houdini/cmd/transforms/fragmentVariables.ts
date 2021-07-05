@@ -115,7 +115,7 @@ function inlineFragmentArgs(
 			const defaultArgs = collectDefaultArgumentValues(config, definition)
 
 			// we have to apply arguments to the fragment definitions
-			let { args, hash } = collectWithArguments(config, node, scope)
+			let { args, hash } = collectWithArguments(config, node, defaultArgs)
 
 			// generate a fragment name based on the arguments passed
 			const newFragmentName = `${node.name.value}${hash}`
@@ -162,7 +162,7 @@ function inlineFragmentArgs(
 					const localDefinitions = [...doc.document.definitions]
 					localDefinitions.splice(definitionIndex)
 					localDefinitions.push(
-						(generatedFragments[newFragmentName] = inlineFragmentArgs(
+						inlineFragmentArgs(
 							config,
 							fragmentDefinitions,
 							fragmentDefinitions[node.name.value].definition,
@@ -170,7 +170,7 @@ function inlineFragmentArgs(
 							visitedFragments,
 							defaultArgs,
 							''
-						))
+						)
 					)
 
 					doc.document = {
@@ -179,14 +179,17 @@ function inlineFragmentArgs(
 					}
 				}
 
-				// replace the fragment spread with one that references the generated fragment
-				return {
-					...node,
-					name: {
-						kind: 'Name',
-						value: newFragmentName,
-					},
-				} as graphql.FragmentSpreadNode
+				// if we changed the name of the fragment
+				if (node.name.value !== newFragmentName) {
+					// replace the fragment spread with one that references the generated fragment
+					return {
+						...node,
+						name: {
+							kind: 'Name',
+							value: newFragmentName,
+						},
+					} as graphql.FragmentSpreadNode
+				}
 			}
 		},
 	})
@@ -244,46 +247,25 @@ function collectWithArguments(
 		return { args: null, hash: '' }
 	}
 
+	// flatten all of the arguments passed to every @with
+	const withArguments = withDirectives.flatMap((directive) => directive.arguments || [])
+	// if there aren't any
+	if (withArguments.length === 0) {
+		return { args: null, hash: '' }
+	}
+
 	// build up the argument object to apply
-	let args: ValueMap | null = {}
-	const argsToHash: { [key: string]: { value: any; kind: string } } | null = {}
-	for (const arg of withDirectives.flatMap((directive) => directive.arguments || [])) {
+	let args: ValueMap = {}
+	for (const arg of withArguments) {
 		args[arg.name.value] = {
 			...arg.value,
 			loc: undefined,
 		}
-		argsToHash[arg.name.value] = {
-			kind: arg.value.kind,
-			value: serializeArg(arg.value),
-		}
 	}
 
+	// return the args and the corresponding hash
 	return {
-		args: Object.keys(args).length > 0 ? args : null,
-		hash:
-			Object.keys(argsToHash || {}).length > 0
-				? '_' + murmurHash(JSON.stringify(argsToHash))
-				: '',
-	}
-}
-
-function serializeArg(node: graphql.ValueNode): any {
-	switch (node.kind) {
-		case GraphqlKinds.BOOLEAN:
-		case GraphqlKinds.FLOAT:
-		case GraphqlKinds.INT:
-		case GraphqlKinds.ENUM:
-		case GraphqlKinds.STRING:
-			return node.value.toString()
-		case GraphqlKinds.NULL:
-			return null
-		case GraphqlKinds.LIST:
-			return node.values.map(serializeArg)
-		case GraphqlKinds.OBJECT:
-			return Object.fromEntries(
-				Object.entries(node.fields).map(([key, { value }]) => [key, serializeArg(value)])
-			)
-		case GraphqlKinds.VARIABLE:
-			return node.name
+		args,
+		hash: '_' + murmurHash(JSON.stringify(args)),
 	}
 }
