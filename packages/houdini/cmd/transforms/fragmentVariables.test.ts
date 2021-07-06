@@ -270,8 +270,8 @@ test('inner fragment with intermediate default value', async function () {
 			'InnerFragment',
 			`
 				fragment InnerFragment on Query 
-                @arguments(name: {type: "String", defaultValue: "Goodbye"}) {
-                    users(stringValue: $name) { 
+                @arguments(name: {type: "String", defaultValue: "Goodbye"}, age: {type: "Int", defaultValue: 2}) {
+                    users(stringValue: $name, intValue: $age) { 
                         id
                     }
 				}
@@ -307,7 +307,7 @@ test('inner fragment with intermediate default value', async function () {
 		}
 
 		fragment InnerFragment_10b3uv on Query {
-		  users(stringValue: "Hello") {
+		  users(stringValue: "Hello", intValue: 2) {
 		    id
 		  }
 		}
@@ -318,7 +318,7 @@ test('inner fragment with intermediate default value', async function () {
 		    selection: {
 		        "users": {
 		            "type": "User",
-		            "keyRaw": "users(stringValue: \\"Hello\\")",
+		            "keyRaw": "users(stringValue: \\"Hello\\", intValue: 2)",
 
 		            "fields": {
 		                "id": {
