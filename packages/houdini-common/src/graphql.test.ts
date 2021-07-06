@@ -36,7 +36,7 @@ test('can find ancestor from type', function () {
 	expect(foundType).toEqual('User')
 })
 
-test('can find interface ancestor from type', function () {
+test('inline fragments', function () {
 	// define a schema we'll test against
 	const schema = graphql.buildSchema(`
         type User implements Node { 
@@ -77,82 +77,95 @@ test('can find interface ancestor from type', function () {
 	expect(foundType).toEqual('User')
 })
 
-test('interfaces on interfaces', function () {
+test('nested inline fragments', function () {
+	// define a schema we'll test against
+	const schema = graphql.buildSchema(`
+        type User implements Node { 
+            id: ID!
+            name: String!
+        }
+
+        interface Node { 
+            id: ID!
+        }
+
+        type Query { 
+            nodes: [Node!]!
+        }
+    `)
+
 	const doc = graphql.parse(`
-        query Friends {
-            me { 
-                goals { 
-                    family { 
-                        objective { 
-                            id
-                        }
+        query { 
+            nodes { 
+                ... on User { 
+                    ... on Node { 
+                        id
                     }
                 }
             }
         }
     `)
 
-	const schema = graphql.buildSchema(`
-        interface Goal {
-            id: Int
-            title: String
-            type: String
-        }
-
-        type GoalFamily {
-            objective: Objective
-        }
-
-        type Objective implements Goal & OkrGoal {
-            cachedPercentageComplete: Float
-            family: GoalFamily
-            id: Int
-            title: String
-            type: String
-        }
-
-        interface OkrGoal implements Goal {
-            cachedPercentageComplete: Float
-            family: GoalFamily
-            id: Int
-            title: String
-            type: String
-        }
-
-        type Query {
-            me: User
-        }
-
-        type User {
-            avatarURL: String
-            fullName: String
-            goals: [OkrGoal]
-            id: Int
-            position: String
-        }
-    `)
+	// we should
 	let foundType = ''
 
 	graphql.visit(doc, {
 		Field(node, key, parent, path, ancestors) {
-			if (node.name.value === 'objective') {
+			if (node.name.value === 'id') {
 				foundType = parentTypeFromAncestors(schema, ancestors).name
 			}
 		},
 	})
 
-	expect(foundType).toEqual('GoalFamily')
+	expect(foundType).toEqual('Node')
+})
+
+test('can find interface ancestor from type', function () {
+	// define a schema we'll test against
+	const schema = graphql.buildSchema(`
+        type User implements Node { 
+            id: ID!
+            name: String!
+        }
+
+        interface Node { 
+            id: ID!
+        }
+
+        type Query { 
+            nodes: [Node!]!
+        }
+    `)
+
+	const doc = graphql.parse(`
+        query { 
+            nodes { 
+                id
+            }
+        }
+    `)
+
+	// we should
+	let foundType = ''
+
+	graphql.visit(doc, {
+		Field(node, key, parent, path, ancestors) {
+			if (node.name.value === 'id') {
+				foundType = parentTypeFromAncestors(schema, ancestors).name
+			}
+		},
+	})
+
+	expect(foundType).toEqual('Node')
 })
 
 test('union ancestor', function () {
 	const doc = graphql.parse(`
         query Friends {
-            me { 
-                goals { 
-                    ... on TypeA {
-                        objective { 
-                            id
-                        }
+            types { 
+                ... on TypeA {
+                    objective { 
+                        id
                     }
                 }
             }
@@ -175,11 +188,7 @@ test('union ancestor', function () {
 
 
         type Query {
-            me: User
-        }
-
-        type User {
-            goals: [UnionType]
+            types: [UnionType]
         }
     `)
 	let foundType = ''
