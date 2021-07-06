@@ -172,7 +172,7 @@ export default async function addConnectionFragments(
 							selectionSet: selection,
 							name: {
 								kind: 'Name',
-								value: config.connectionInsertFragment(name),
+								value: config.listInsertFragment(name),
 							},
 							typeCondition: {
 								kind: 'NamedType',
@@ -187,7 +187,7 @@ export default async function addConnectionFragments(
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
 							name: {
 								kind: 'Name',
-								value: config.connectionRemoveFragment(name),
+								value: config.listRemoveFragment(name),
 							},
 							// deleting an entity just takes its id and the parent
 							selectionSet: {
@@ -219,7 +219,7 @@ export default async function addConnectionFragments(
 					kind: 'DirectiveDefinition',
 					name: {
 						kind: 'Name',
-						value: config.connectionDeleteDirective(typeName),
+						value: config.listDeleteDirective(typeName),
 					},
 					locations: [
 						// the delete directive must be applied to a field in the response

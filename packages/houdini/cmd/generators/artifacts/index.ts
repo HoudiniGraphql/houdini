@@ -22,24 +22,24 @@ const AST = recast.types.builders
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
 export default async function artifactGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
-	// put together the type information for the filter for every connection
+	// put together the type information for the filter for everylist
 	const filterTypes: FilterMap = {}
 
 	for (const doc of docs) {
 		graphql.visit(doc.document, {
-			// look for any field marked with a connection
+			// look for any field marked with alist
 			Directive(node, _, __, ___, ancestors) {
-				// we only care about connections
+				// we only care about lists
 				if (node.name.value !== config.listDirective) {
 					return
 				}
 
-				// get the name of the connection
+				// get the name of thelist
 				const nameArg = node.arguments?.find((arg) => arg.name.value === config.listNameArg)
 				if (!nameArg || nameArg.value.kind !== 'StringValue') {
-					throw new Error('could not find name arg in connection directive')
+					throw new Error('could not find name arg in list directive')
 				}
-				const connectionName = nameArg.value.value
+				const listName = nameArg.value.value
 
 				// look up the actual field in the ancestor list so we can get type info
 				let field = ancestors[ancestors.length - 1] as graphql.FieldNode
@@ -52,7 +52,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					return
 				}
 
-				// look up the parent's type so we can ask about the field marked as a connection
+				// look up the parent's type so we can ask about the field marked as alist
 				const parentType = parentTypeFromAncestors(config.schema, [
 					...ancestors.slice(0, -1),
 				]) as graphql.GraphQLObjectType
@@ -62,8 +62,8 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				}
 				const fieldType = getRootType(parentField.type).toString()
 
-				// look at every arg on the connection to figure out the valid filters
-				filterTypes[connectionName] = parentField.args.reduce((prev, arg) => {
+				// look at every arg on the list to figure out the valid filters
+				filterTypes[listName] = parentField.args.reduce((prev, arg) => {
 					return {
 						...prev,
 						[arg.name]: getRootType(arg.type).toString(),
@@ -71,12 +71,12 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				}, {})
 
 				// the delete directive is an interesting one since there isn't a specific
-				// connection. we need to use something that points to deleting an instance of
+				// list. we need to use something that points to deleting an instance of
 				// the type as a key
 				filterTypes[`${fieldType}_delete`] = {
 					...filterTypes[`${fieldType}_delete`],
-					// every field with the connection type adds to the delete filters
-					...filterTypes[connectionName],
+					// every field with the list type adds to the delete filters
+					...filterTypes[listName],
 				}
 			},
 		})

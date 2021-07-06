@@ -299,7 +299,7 @@ export class Config {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}
 
-	connectionDeleteDirective(name: string): string {
+	listDeleteDirective(name: string): string {
 		return name + this.deleteDirectiveSuffix
 	}
 
@@ -311,7 +311,7 @@ export class Config {
 		return name.endsWith(this.insertFragmentSuffix)
 	}
 
-	connectionInsertFragment(name: string): string {
+	listInsertFragment(name: string): string {
 		return name + this.insertFragmentSuffix
 	}
 
@@ -319,7 +319,7 @@ export class Config {
 		return name.endsWith(this.removeFragmentSuffix)
 	}
 
-	connectionRemoveFragment(name: string): string {
+	listRemoveFragment(name: string): string {
 		return name + this.removeFragmentSuffix
 	}
 
@@ -338,7 +338,7 @@ export class Config {
 		)
 	}
 
-	isConnectionFragment(name: string): boolean {
+	isListFragment(name: string): boolean {
 		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.removeFragmentSuffix)
 	}
 
@@ -346,12 +346,12 @@ export class Config {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}
 
-	isFragmentForConnection(connectionName: string, fragmentName: string) {
+	isFragmentForList(connectionName: string, fragmentName: string) {
 		return fragmentName.startsWith(connectionName)
 	}
 
 	// return 'insert' for All_Users_insert
-	connectionOperationFromFragment(fragmentName: string): 'insert' | 'remove' {
+	listOperationFromFragment(fragmentName: string): 'insert' | 'remove' {
 		// check the name against the fragment patterns
 		if (this.isInsertFragment(fragmentName)) {
 			return 'insert'
@@ -364,15 +364,15 @@ export class Config {
 		)
 	}
 
-	connectionNameFromDirective(directiveName: string): string {
+	listNameFromDirective(directiveName: string): string {
 		try {
-			return this.connectionNameFromFragment(directiveName)
+			return this.listNameFromFragment(directiveName)
 		} catch (e) {
 			throw new Error('Could not find connection name from directive: ' + directiveName)
 		}
 	}
 
-	connectionNameFromFragment(fragmentName: string): string {
+	listNameFromFragment(fragmentName: string): string {
 		// starting at the end of the fragment name going left, look for a _
 		for (let i = fragmentName.length - 1; i >= 0; i--) {
 			// if we hit a _

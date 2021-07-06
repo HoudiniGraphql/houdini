@@ -68,7 +68,7 @@ These tasks fall into three categories:
 There are a number of features that rely on things that aren't defined in the project's schema.
 Most of these are added temporarily by the [schema transform](./packages/houdini/cmd/transforms/schema.ts), and
 are eventually removed from the document to prevent the server from encountering anything unknown. The fragments used for
-connection mutations are currently generated in a [separate transform](./packages/houdini/cmd/transforms/connections.ts).
+list mutations are currently generated in a [separate transform](./packages/houdini/cmd/transforms/lists.ts).
 Since the operation fragments are passed along to the server as part of the
 [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts) they don't need to be removed
 and are used to make sure the server returns the data needed for the operation. Whether they are removed from
@@ -119,7 +119,7 @@ stored in normal form, which means that references to other entities are not sto
 but are instead stored as references to other entries in the same map. This gives us a single
 place where updates can be applied, without worrying about where that information is used. While walking
 down the provided selection, the cache looks for information embedded by the artifact generator to perform
-additional tasks like updating a connection.
+additional tasks like updating a list.
 
 While writing data is an important part of the interaction with the cache, the real "meat" is in the
 subscription architecture which keeps the store returned by `query` (or `fragment`) up to date as values are changed.
@@ -183,16 +183,16 @@ mutation AddUserMutation {
 
 The steps for updating the `generate` function to support this feature can be broken down into the following:
 
-1. Add the `connection` directive to the projects schema. As mentioned earlier, this is done in the
+1. Add the `list` directive to the projects schema. As mentioned earlier, this is done in the
    [schema transform](./packages/houdini/cmd/transforms/schema.ts#L29).
 1. Define the operation fragment somewhere that the [composeQueries transform](./packages/houdini/cmd/transforms/composeQueries.ts)
    can pick it up to include in the mutation query when its sent to the server. This happens in the
-   [connection transform](./packages/houdini/cmd/transforms/connections.ts).
+   [list transform](./packages/houdini/cmd/transforms/lists.ts).
 1. When generating the artifacts for the query,
    [remove any references to the `@list` directive](./packages/houdini/cmd/generators/artifacts/index.ts#L107-L110) and
    [leave behind a label](./packages/houdini/cmd/generators/artifacts/selection.ts#L329-L331) identifying the field as
-   the "All_Users" connection. For a better idea of how this label is embedded in the artifact, look at the
-   [connection filters test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L1993).
+   the "All_Users" list. For a better idea of how this label is embedded in the artifact, look at the
+   [list filters test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L1993).
 1. When generating the artifact for the mutation, look for
    [any fragment spreads that are list operations](./packages/houdini/cmd/generators/artifacts/operations.ts#L27) and
    and [embed them](./packages/houdini/cmd/generators/artifacts/selection.ts#L335-L342) in the selection
@@ -202,8 +202,8 @@ The steps for updating the `generate` function to support this feature can be br
 With the information embedded in the artifacts, all that's left is to teach the runtime how to handle the server's response; this
 is broken down into two parts:
 
-1. When the cache encounters a request to [subscribe to a field marked as a connection](./packages/houdini/runtime/cache/cache.ts#L192),
-   it [saves a handler to that connection](./packages/houdini/runtime/cache/cache.ts#L199-L219) in an internal Map under the provided name.
+1. When the cache encounters a request to [subscribe to a field marked as a list](./packages/houdini/runtime/cache/cache.ts#L192),
+   it [saves a handler to that list](./packages/houdini/runtime/cache/cache.ts#L199-L219) in an internal Map under the provided name.
 1. When writing data, if the cache [encounters a field with a list of operations](./packages/houdini/runtime/cache/cache.ts#L457)
-   embedded in the selection object, it [inserts the result](./packages/houdini/runtime/cache/cache.ts#L482-L484) in the connection
+   embedded in the selection object, it [inserts the result](./packages/houdini/runtime/cache/cache.ts#L482-L484) in thelist
    using the handler it stored in step one.

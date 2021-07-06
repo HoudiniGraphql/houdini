@@ -25,8 +25,8 @@ export function operationsByPath(
 	// inside of the mutation could contain operations
 	graphql.visit(definition, {
 		FragmentSpread(node, _, __, ___, ancestors) {
-			// if the fragment is not a connection operation, we don't care about it now
-			if (!config.isConnectionFragment(node.name.value)) {
+			// if the fragment is not a list operation, we don't care about it now
+			if (!config.isListFragment(node.name.value)) {
 				return
 			}
 
@@ -40,8 +40,8 @@ export function operationsByPath(
 			pathOperations[path].elements.push(
 				operationObject({
 					config,
-					connectionName: config.connectionNameFromFragment(node.name.value),
-					operationKind: config.connectionOperationFromFragment(node.name.value),
+					listName: config.listNameFromFragment(node.name.value),
+					operationKind: config.listOperationFromFragment(node.name.value),
 					info: operationInfo(config, node),
 					type: parentTypeFromAncestors(config.schema, ancestors).name,
 					filterTypes,
@@ -64,13 +64,13 @@ export function operationsByPath(
 			pathOperations[path].elements.push(
 				operationObject({
 					config,
-					connectionName: `${node.name.value}`,
+					listName: node.name.value,
 					operationKind: 'delete',
 					info: operationInfo(
 						config,
 						ancestors[ancestors.length - 1] as graphql.FieldNode
 					),
-					type: config.connectionNameFromDirective(node.name.value),
+					type: config.listNameFromDirective(node.name.value),
 					filterTypes,
 				})
 			)
@@ -82,14 +82,14 @@ export function operationsByPath(
 
 function operationObject({
 	config,
-	connectionName,
+	listName,
 	operationKind,
 	info,
 	type,
 	filterTypes,
 }: {
 	config: Config
-	connectionName: string
+	listName: string
 	operationKind: string
 	info: OperationInfo
 	type: string
@@ -102,7 +102,7 @@ function operationObject({
 	// delete doesn't have a target
 	if (operationKind !== 'delete') {
 		operation.properties.push(
-			AST.objectProperty(AST.literal('connection'), AST.stringLiteral(connectionName))
+			AST.objectProperty(AST.literal('connection'), AST.stringLiteral(listName))
 		)
 	}
 
@@ -145,7 +145,7 @@ function operationObject({
 			when.properties.push(
 				AST.objectProperty(
 					AST.literal('must'),
-					filterAST(filterTypes, connectionName, info.when.must)
+					filterAST(filterTypes, listName, info.when.must)
 				)
 			)
 		}
@@ -155,7 +155,7 @@ function operationObject({
 			when.properties.push(
 				AST.objectProperty(
 					AST.literal('must_not'),
-					filterAST(filterTypes, connectionName, info.when.must_not)
+					filterAST(filterTypes, listName, info.when.must_not)
 				)
 			)
 		}
@@ -215,7 +215,7 @@ function operationInfo(config: Config, selection: graphql.SelectionNode): Operat
 		// and append directives or with the parentID directive.
 
 		let parentIDArg = parent?.arguments?.find((argument) => argument.name.value === 'value')
-		// if there is no parent id argument, it could have been provided by one of the connection directives
+		// if there is no parent id argument, it could have been provided by one of the list directives
 		if (!parentIDArg) {
 			parentIDArg = (append || prepend)?.arguments?.find(
 				({ name }) => name.value === config.listDirectiveParentIDArg
@@ -317,7 +317,7 @@ function operationInfo(config: Config, selection: graphql.SelectionNode): Operat
 
 function filterAST(
 	filterTypes: FilterMap,
-	connectionName: string,
+	listName: string,
 	filter: ConnectionWhen['must']
 ): namedTypes.ObjectExpression {
 	if (!filter) {
@@ -328,11 +328,9 @@ function filterAST(
 	return AST.objectExpression(
 		Object.entries(filter).map(([key, value]) => {
 			// look up the key in the type map
-			const type = filterTypes[connectionName] && filterTypes[connectionName][key]
+			const type = filterTypes[listName] && filterTypes[listName][key]
 			if (!type) {
-				throw new Error(
-					`It looks like "${key}" is an invalid filter for connection ${connectionName}`
-				)
+				throw new Error(`It looks like "${key}" is an invalid filter for list ${listName}`)
 			}
 
 			let literal
@@ -367,7 +365,7 @@ function ancestorKey(ancestors: any): string {
 }
 
 export type FilterMap = {
-	[connectionName: string]: {
+	[listName: string]: {
 		[filterName: string]: 'String' | 'Float' | 'Int' | 'Boolean'
 	}
 }

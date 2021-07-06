@@ -50,7 +50,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Fragment Arguments](#fragment-arguments)
 1. [Mutations](#mutations)
     1. [Updating fields](#updating-fields)
-    1. [Connections](#connections)
+    1. [Lists](#lists)
         1. [Insert](#inserting-a-record)
         1. [Remove](#removing-a-record)
         1. [Delete](#deleting-a-record)
@@ -540,7 +540,7 @@ record's id. Take for example, an `TodoItemRow` component:
 </li>
 ```
 
-### Connections
+### Lists
 
 Adding and removing records from a list is done by mixing together a few different generated fragments
 and directives. In order to tell the compiler which lists are targets for these operations, you have to
@@ -554,7 +554,7 @@ query AllItems {
 }
 ```
 
-It's recommended to name these connections with a different casing convention than the rest of your
+It's recommended to name these lists with a different casing convention than the rest of your
 application to distinguish the generated fragments from those in your codebase.
 
 #### Inserting a record
@@ -571,7 +571,7 @@ mutation NewItem($input: AddItemInput!) {
 
 #### Removing a record
 
-Any mutation that returns an `Item` can also be used to remove an item from the connection:
+Any mutation that returns an `Item` can also be used to remove an item from the list:
 
 ```graphql
 mutation RemoveItem($input: RemoveItemInput!) {
@@ -583,9 +583,9 @@ mutation RemoveItem($input: RemoveItemInput!) {
 
 #### Deleting a record
 
-Sometimes it can be tedious to remove a record from every single connection that mentions it.
+Sometimes it can be tedious to remove a record from every single list that mentions it.
 For these situations, Houdini provides a directive that can be used to mark a field in
-the mutation response holding the ID of a record to delete from all connections.
+the mutation response holding the ID of a record to delete from all lists.
 
 ```graphql
 mutation DeleteItem($id: ID!) {
@@ -597,7 +597,7 @@ mutation DeleteItem($id: ID!) {
 
 #### Conditionals
 
-Sometimes you only want to add or remove a record from a connection when an argument has a particular value.
+Sometimes you only want to add or remove a record from a list when an argument has a particular value.
 For example, in a todo list you might only want to add the result to the list if there is no filter being
 applied. To support this, houdini provides the `@when` and `@when_not` directives:
 
@@ -674,7 +674,7 @@ Here is an example of a simple subscription from the example application include
 
 Houdini can work with any websocket client as long as you can provide an object that satisfies
 the `SubscriptionHandler` interface as the second argument to the Environment's constructor. Keep in mind
-that WebSocket connections only exist between the browser and your API, therefor you must remember to
+that WebSocket lists only exist between the browser and your API, therefor you must remember to
 pass `null` when configuring your environment on the rendering server.
 
 #### Using `graphql-ws`

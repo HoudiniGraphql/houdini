@@ -248,7 +248,7 @@ const validateConnections = ({
 			// if we run into a fragment spread
 			FragmentSpread(node) {
 				// if the fragment is not a connection fragment don't do the normal processing
-				if (!config.isConnectionFragment(node.name.value)) {
+				if (!config.isListFragment(node.name.value)) {
 					// make sure its a defined fragment
 					if (!fragments[node.name.value]) {
 						ctx.reportError(
@@ -261,7 +261,7 @@ const validateConnections = ({
 					return
 				}
 				// compute the name of the connection from the fragment
-				const connectionName = config.connectionNameFromFragment(node.name.value)
+				const connectionName = config.listNameFromFragment(node.name.value)
 
 				// make sure we know the connection
 				if (!connections.includes(connectionName)) {
@@ -337,7 +337,7 @@ const validateConnections = ({
 				// if the directive points to a type we don't recognize as the target of a connection
 				if (
 					config.isConnectionOperationDirective(directiveName) &&
-					!connectionTypes.includes(config.connectionNameFromDirective(directiveName))
+					!connectionTypes.includes(config.listNameFromDirective(directiveName))
 				) {
 					ctx.reportError(
 						new graphql.GraphQLError(
