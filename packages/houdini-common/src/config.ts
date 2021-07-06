@@ -342,12 +342,12 @@ export class Config {
 		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.removeFragmentSuffix)
 	}
 
-	isConnectionOperationDirective(name: string): boolean {
+	isListOperationDirective(name: string): boolean {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}
 
-	isFragmentForList(connectionName: string, fragmentName: string) {
-		return fragmentName.startsWith(connectionName)
+	isFragmentForList(listName: string, fragmentName: string) {
+		return fragmentName.startsWith(listName)
 	}
 
 	// return 'insert' for All_Users_insert
@@ -359,16 +359,14 @@ export class Config {
 			return 'remove'
 		}
 
-		throw new Error(
-			'Could not determine connection operation from fragment name: ' + fragmentName
-		)
+		throw new Error('Could not determine list operation from fragment name: ' + fragmentName)
 	}
 
 	listNameFromDirective(directiveName: string): string {
 		try {
 			return this.listNameFromFragment(directiveName)
 		} catch (e) {
-			throw new Error('Could not find connection name from directive: ' + directiveName)
+			throw new Error('Could not find list name from directive: ' + directiveName)
 		}
 	}
 
@@ -381,7 +379,7 @@ export class Config {
 			}
 		}
 
-		throw new Error('Could not find connection name from fragment: ' + fragmentName)
+		throw new Error('Could not find list name from fragment: ' + fragmentName)
 	}
 }
 // a place to store the current configuration

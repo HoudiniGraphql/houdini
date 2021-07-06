@@ -97,7 +97,7 @@ test('delete fragments on query selection set', async function () {
 	`)
 })
 
-test('connection fragments on fragment selection set', async function () {
+test('list fragments on fragment selection set', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'UpdateUser',
@@ -170,7 +170,7 @@ test('delete node', async function () {
 	await expect(runPipeline(testConfig(), docs)).resolves.toBeUndefined()
 })
 
-test('connection fragments must be unique', async function () {
+test('list fragments must be unique', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'TestQuery',
@@ -195,7 +195,7 @@ test('connection fragments must be unique', async function () {
 	await expect(runPipeline(testConfig(), docs)).rejects.toBeTruthy()
 })
 
-test('includes `id` in connection fragment', async function () {
+test('includes `id` in list fragment', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'UpdateUser',
@@ -239,7 +239,7 @@ test('includes `id` in connection fragment', async function () {
 	`)
 })
 
-test('cannot use connection directive if id is not a valid field', async function () {
+test('cannot use list directive if id is not a valid field', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'TestQuery',

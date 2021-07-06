@@ -4,8 +4,8 @@ import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 
-// addConnectionFragments adds fragments for the fields tagged with @list
-export default async function addConnectionFragments(
+// addListFragments adds fragments for the fields tagged with @list
+export default async function addListFragments(
 	config: Config,
 	documents: CollectedGraphQLDocument[]
 ): Promise<void> {
@@ -130,7 +130,7 @@ export default async function addConnectionFragments(
 
 					// if there is no selection set
 					if (!field.selectionSet) {
-						throw new HoudiniErrorTodo('Connections must have a selection')
+						throw new HoudiniErrorTodo('Lists must have a selection')
 					}
 
 					// we need a copy of the field's selection set that we can mutate

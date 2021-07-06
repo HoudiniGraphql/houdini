@@ -336,7 +336,7 @@ const validateConnections = ({
 
 				// if the directive points to a type we don't recognize as the target of a connection
 				if (
-					config.isConnectionOperationDirective(directiveName) &&
+					config.isListOperationDirective(directiveName) &&
 					!connectionTypes.includes(config.listNameFromDirective(directiveName))
 				) {
 					ctx.reportError(
