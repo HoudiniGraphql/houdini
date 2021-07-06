@@ -50,7 +50,6 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "41ec892821ed25278cbbaf2c4d434205",
 
 		    raw: \`query TestQuery {
 		  version
@@ -82,7 +81,6 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		module.exports = {
 		    name: "TestFragment",
 		    kind: "HoudiniFragment",
-		    hash: "a77288e39dcdadb70e4010b543c89c6a",
 
 		    raw: \`fragment TestFragment on User {
 		  firstName
@@ -127,7 +125,6 @@ test('selection includes fragments', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "8662e6b2267b8667e81533ecbb73dd23",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -172,7 +169,6 @@ test('selection includes fragments', async function () {
 		module.exports = {
 		    name: "TestFragment",
 		    kind: "HoudiniFragment",
-		    hash: "a77288e39dcdadb70e4010b543c89c6a",
 
 		    raw: \`fragment TestFragment on User {
 		  firstName
@@ -213,7 +209,6 @@ test('internal directives are scrubbed', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "f4887b164296c8e6be4c4461520a7f99",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -267,7 +262,6 @@ test('overlapping query and fragment selection', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "3ec890e9ea3a5482628bdaf932551e3c",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -325,7 +319,6 @@ test('overlapping query and fragment nested selection', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "d99668cf016f0e99335dce103bd6ccfd",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -413,7 +406,6 @@ test('selections with interfaces', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "3dfb2abee22703b6e1e61db8c97818b8",
 
 		    raw: \`query Friends {
 		  friends {
@@ -513,7 +505,6 @@ test('selections with unions', async function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "10e08a60f9ef70535a9e0a8629409297",
 
 		    raw: \`query Friends {
 		  entities {
@@ -617,7 +608,6 @@ describe('mutation artifacts', function () {
 		export default {
 		    name: "Mutation B",
 		    kind: "HoudiniMutation",
-		    hash: "e9f6440182fec6d7a6d505710f13786e",
 
 		    raw: \`mutation B {
 		  addFriend {
@@ -694,7 +684,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "8b0662945dc40367f151352db91956d9",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -787,7 +776,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "1c16742ee77c99369985c0eb3977bb51",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -871,7 +859,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "93b6b6a347ea5d70f4a0eec5aa3bcad6",
 
 		    raw: \`mutation A {
 		  deleteUser(id: "1234") {
@@ -942,7 +929,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "7c841bbbbd206c7c2e40bc683b173294",
 
 		    raw: \`mutation A {
 		  deleteUser(id: "1234") {
@@ -1021,7 +1007,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "661e8ea6aef15a9dc54d9a75e6e7b181",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1119,7 +1104,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "542ad5bd1546c881cd681f11f00681b9",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1217,7 +1201,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "86320c3ec367b754e394444499e08955",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1315,7 +1298,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "aca7e0bd918f4c47a73b6e7f58f550cc",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1414,7 +1396,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "bbb139f4dbff5e14ac8fbf686c5f0361",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1513,7 +1494,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "b143d50e839463c0ec641cadd67f2c5b",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1612,7 +1592,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "d99dd22eb6d5cabf74c839e786ad6017",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1711,7 +1690,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "a85f3dd007201c1cf851405358b13505",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1815,7 +1793,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "24f50fa3efd06490701180759984ddbb",
 
 		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -1915,7 +1892,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "Mutation A",
 		    kind: "HoudiniMutation",
-		    hash: "7bcbb707250eccabf4fecb1b8976889c",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -2014,7 +1990,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "214e4de1395c8620738a3c53619e73bd",
 
 		    raw: \`query TestQuery {
 		  users(stringValue: "foo") {
@@ -2086,7 +2061,6 @@ describe('mutation artifacts', function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "24f50fa3efd06490701180759984ddbb",
 
 		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -2183,7 +2157,6 @@ describe('mutation artifacts', function () {
 		export default {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "24f50fa3efd06490701180759984ddbb",
 
 		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -2290,7 +2263,6 @@ test('custom scalar shows up in artifact', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "3490b051bd7d2704ccc8810deef2a742",
 
 		    raw: \`query TestQuery {
 		  allItems {
@@ -2391,7 +2363,6 @@ test('operation inputs', async function () {
 		module.exports = {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
-		    hash: "d8d2089cd5e3dd8793db526f8cdb3be2",
 
 		    raw: \`query TestQuery($id: ID, $filter: UserFilter, $filterList: [UserFilter!], $enumArg: MyEnum) {
 		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
@@ -2479,7 +2450,6 @@ describe('subscription artifacts', function () {
 		module.exports = {
 		    name: "Subscription B",
 		    kind: "HoudiniSubscription",
-		    hash: "5b9fd19fce6b2a025d3d7e4a1b2a61c0",
 
 		    raw: \`subscription B {
 		  newUser {

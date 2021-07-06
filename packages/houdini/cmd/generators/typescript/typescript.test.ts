@@ -859,6 +859,4 @@ describe('typescript', function () {
 	test.todo('intersections with __typename in subselection')
 
 	test.todo('inline fragments')
-
-	test.todo('union')
 })

@@ -13,14 +13,12 @@ export default function selection({
 	rootType,
 	selectionSet,
 	operations,
-	printed,
 	path = [],
 	includeFragments,
 	document,
 }: {
 	config: Config
 	rootType: string
-	printed: string
 	selectionSet: graphql.SelectionSetNode
 	operations: { [path: string]: namedTypes.ArrayExpression }
 	path?: string[]
@@ -47,7 +45,6 @@ export default function selection({
 				operations,
 				selectionSet: fragmentDefinition.selectionSet,
 				path,
-				printed,
 				includeFragments,
 				document,
 			})
@@ -67,7 +64,6 @@ export default function selection({
 				operations,
 				selectionSet: field.selectionSet,
 				path,
-				printed,
 				includeFragments,
 				document,
 			})
@@ -99,10 +95,7 @@ export default function selection({
 			// the object holding data for this field
 			const fieldObj = AST.objectExpression([
 				AST.objectProperty(AST.literal('type'), AST.stringLiteral(typeName)),
-				AST.objectProperty(
-					AST.literal('keyRaw'),
-					AST.stringLiteral(fieldKey(printed, field))
-				),
+				AST.objectProperty(AST.literal('keyRaw'), AST.stringLiteral(fieldKey(field))),
 			])
 
 			// is there an operation for this field
@@ -133,7 +126,6 @@ export default function selection({
 					selectionSet: field.selectionSet,
 					operations,
 					path: pathSoFar,
-					printed,
 					includeFragments,
 					document,
 				})

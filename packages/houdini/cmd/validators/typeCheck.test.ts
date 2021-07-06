@@ -323,6 +323,26 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: 'unknown directives',
+		pass: false,
+		documents: [
+			`
+				query Foo {
+					user {
+						firstName @foo
+					}
+				}
+			`,
+			`
+				query Foo2 {
+					user {
+						firstName @foo
+					}
+				}
+			`,
+		],
+	},
+	{
 		title: 'unknown connection fragments errors before generation',
 		pass: false,
 		// note: we pass parentID here to ensure we're not getting caught on the
@@ -389,9 +409,85 @@ const table: Row[] = [
 				}
 			`,
 		],
-		check: function (e: HoudiniError | HoudiniError[]) {
-			expect(e).toHaveLength(2)
-		},
+	},
+	{
+		title: 'missing fragment arguments',
+		pass: false,
+		documents: [
+			`
+				fragment Foo on Query @arguments(name: { type: "String"}) {
+					users(stringValue: $name) { id }
+				}
+			`,
+			`
+				query Query1 { 
+					...Foo 
+				}
+			`,
+			`
+				query Query2 { 
+					...Foo
+				}
+			`,
+		],
+	},
+	{
+		title: 'invalid argument',
+		pass: false,
+		documents: [
+			`
+				fragment Foo on Query @arguments(name: { type: "String"}) {
+					users(stringValue: $name) { id }
+				}
+			`,
+			`
+				query Query1 { 
+					...Foo @with(bar: "blah", name: "bar")
+				}
+			`,
+			`
+				query Query2 { 
+					...Foo @with(any: true, name: "bar")
+				}
+			`,
+		],
+	},
+	{
+		title: 'applied fragment arguments',
+		pass: false,
+		documents: [
+			`
+				fragment Foo on Query @arguments(name: { type: "String"}) {
+					users(stringValue: $name) { id }
+				}
+			`,
+			`
+				query Query2 { 
+					...Foo @with(name: true)
+				}
+			`,
+			`
+				query Query2 { 
+					...Foo @with(name: true)
+				}
+			`,
+		],
+	},
+	{
+		title: 'fragment argument definition default',
+		pass: false,
+		documents: [
+			`
+				fragment Foo on Query @arguments(name: { type: "String", default: true}) {
+					users(stringValue: $name) { id }
+				}
+			`,
+			`
+				fragment Foo on Query @arguments(name: { type: "String", default: true}) {
+					users(stringValue: $name) { id }
+				}
+			`,
+		],
 	},
 ]
 
@@ -410,7 +506,7 @@ type Row =
 	  }
 
 // run the tests
-for (const { title, pass, documents } of table) {
+for (const { title, pass, documents, check } of table) {
 	describe('type check', function () {
 		// run the pipeline over the documents
 		pipelineTest(
@@ -419,9 +515,10 @@ for (const { title, pass, documents } of table) {
 			pass,
 			pass
 				? undefined
-				: function (e: HoudiniError | HoudiniError[]) {
-						expect(e).toHaveLength(2)
-				  }
+				: check ||
+						function (e: HoudiniError | HoudiniError[]) {
+							expect(e).toHaveLength(2)
+						}
 		)
 	})
 }
