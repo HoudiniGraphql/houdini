@@ -47,7 +47,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Refetching Data](#refetching-data)
     1. [What about load?](#what-about-load)
 1. [Fragments](#fragments)
-    1. [Fragment Variables](#fragment-variables)
+    1. [Fragment Arguments](#fragment-arguments)
 1. [Mutations](#mutations)
     1. [Updating fields](#updating-fields)
     1. [Connections](#connections)
@@ -430,7 +430,7 @@ that all necessary data has been asked for:
 It's worth mentioning explicitly that a component can rely on multiple fragments
 at the same time so long as the fragment names are unique and prop names are different.
 
-### Fragment Variables
+### Fragment Arguments
 
 In some situations it's necessary to configure the documents inside of a fragment. For example,
 you might want to extend the `UserAvatar` component to allow for different sized profile pictures. 
