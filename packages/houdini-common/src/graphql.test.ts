@@ -76,3 +76,129 @@ test('can find interface ancestor from type', function () {
 
 	expect(foundType).toEqual('User')
 })
+
+test('interfaces on interfaces', function () {
+	const doc = graphql.parse(`
+        query Friends {
+            me { 
+                goals { 
+                    family { 
+                        objective { 
+                            id
+                        }
+                    }
+                }
+            }
+        }
+    `)
+
+	const schema = graphql.buildSchema(`
+        interface Goal {
+            id: Int
+            title: String
+            type: String
+        }
+
+        type GoalFamily {
+            objective: Objective
+        }
+
+        type Objective implements Goal & OkrGoal {
+            cachedPercentageComplete: Float
+            family: GoalFamily
+            id: Int
+            title: String
+            type: String
+        }
+
+        interface OkrGoal implements Goal {
+            cachedPercentageComplete: Float
+            family: GoalFamily
+            id: Int
+            title: String
+            type: String
+        }
+
+        type Query {
+            me: User
+        }
+
+        type User {
+            avatarURL: String
+            fullName: String
+            goals: [OkrGoal]
+            id: Int
+            position: String
+        }
+    `)
+	let foundType = ''
+
+	graphql.visit(doc, {
+		Field(node, key, parent, path, ancestors) {
+			if (node.name.value === 'objective') {
+				foundType = parentTypeFromAncestors(schema, ancestors).name
+			}
+		},
+	})
+
+	expect(foundType).toEqual('GoalFamily')
+})
+
+test('union ancestor', function () {
+	const doc = graphql.parse(`
+        query Friends {
+            me { 
+                goals { 
+                    family { 
+                        objective { 
+                            id
+                        }
+                    }
+                }
+            }
+        }
+    `)
+
+	const schema = graphql.buildSchema(`
+        union ObjectiveWithFamily = Objective | GoalFamily
+
+        interface Goal {
+            id: Int
+            title: String
+            type: String
+        }
+
+        type Objective implements Goal & OkrGoal {
+            family: GoalFamily
+        }
+
+        interface OkrGoal implements Goal {
+            family: GoalFamily
+        }
+
+        type Query {
+            me: User
+        }
+
+        type User {
+            avatarURL: String
+            fullName: String
+            goals: [GoalFamily]
+            id: Int
+            position: String
+        }
+    `)
+	let foundType = ''
+
+	expect(graphql.validate(schema, doc)).toHaveLength(0)
+
+	graphql.visit(doc, {
+		Field(node, key, parent, path, ancestors) {
+			if (node.name.value === 'objective') {
+				foundType = parentTypeFromAncestors(schema, ancestors).name
+			}
+		},
+	})
+
+	expect(foundType).toEqual('GoalFamily')
+})
