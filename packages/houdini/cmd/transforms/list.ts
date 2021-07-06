@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 
-// addConnectionFragments adds fragments for the fields tagged with @connection
+// addConnectionFragments adds fragments for the fields tagged with @list
 export default async function addConnectionFragments(
 	config: Config,
 	documents: CollectedGraphQLDocument[]
@@ -24,8 +24,8 @@ export default async function addConnectionFragments(
 	for (const { document, filename } of documents) {
 		graphql.visit(document, {
 			Directive(node, key, parent, path, ancestors) {
-				// if we found a @connection applied
-				if (node.name.value === 'connection') {
+				// if we found a @list applied
+				if (node.name.value === config.listDirective) {
 					// look up the name passed to the directive
 					const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
 
@@ -43,21 +43,21 @@ export default async function addConnectionFragments(
 
 					// if there is no name argument
 					if (!nameArg) {
-						error.message = '@connection must have a name argument'
+						error.message = '@list must have a name argument'
 						errors.push(error)
 						return
 					}
 
 					// make sure it was a string
 					if (nameArg.value.kind !== 'StringValue') {
-						error.message = '@connection name must be a string'
+						error.message = '@list name must be a string'
 						errors.push(error)
 						return
 					}
 
 					// if we've already seen this connection
 					if (connections[nameArg.value.value]) {
-						error.message = '@connection name must be unique'
+						error.message = '@list name must be unique'
 						errors.push(error)
 					}
 

@@ -74,13 +74,13 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@connection on query',
+		title: '@list on query',
 		pass: true,
 		documents: [
 			`
                 query TestQuery {
 					user {
-						friends @connection(name: "Friends") {
+						friends @list(name: "Friends") {
 							id
 						}
 					}
@@ -96,14 +96,14 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@connection with parentID on query',
+		title: '@list with parentID on query',
 		pass: true,
 		documents: [
 			`
                 query TestQuery {
 					user {
 						friends {
-							friends @connection(name: "Friends") {
+							friends @list(name: "Friends") {
 								id
 							}
 						}
@@ -120,14 +120,14 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@connection name must be unique',
+		title: '@list name must be unique',
 		pass: false,
 		documents: [
 			`
                 query TestQuery1 {
 					user {
 						friends {
-							friends @connection(name: "Friends") {
+							friends @list(name: "Friends") {
 								id
 							}
 						}
@@ -138,7 +138,7 @@ const table: Row[] = [
 				query TestQuery2 {
 					user {
 						friends {
-							friends @connection(name: "Friends") {
+							friends @list(name: "Friends") {
 								id
 							}
 						}
@@ -149,7 +149,7 @@ const table: Row[] = [
 				query TestQuery2 {
 					user {
 						friends {
-							friends @connection(name: "Friends") {
+							friends @list(name: "Friends") {
 								id
 							}
 						}
@@ -159,14 +159,14 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@connection with parentID as variable on query',
+		title: '@list with parentID as variable on query',
 		pass: true,
 		documents: [
 			`
                 query TestQuery {
 					user {
 						friends {
-							friends @connection(name: "Friends") {
+							friends @list(name: "Friends") {
 								id
 							}
 						}
@@ -183,12 +183,12 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@connection without parentID on fragment',
+		title: '@list without parentID on fragment',
 		pass: false,
 		documents: [
 			`
                 fragment FragmentA on User {
-					friends @connection(name: "Friends") {
+					friends @list(name: "Friends") {
 						firstName
 					}
                 }
@@ -210,14 +210,14 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@connection prepend on query no id',
+		title: '@list prepend on query no id',
 		pass: false,
 		documents: [
 			`
                 query UserFriends {
 					user {
 						friends {
-							friends @connection(name: "Friends") {
+							friends @list(name: "Friends") {
 								id
 							}
 						}
@@ -241,14 +241,14 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@connection append on query no id',
+		title: '@list append on query no id',
 		pass: false,
 		documents: [
 			`
                 query UserFriends {
 					user {
 						friends {
-							friends @connection(name: "Friends") {
+							friends @list(name: "Friends") {
 								id
 							}
 						}
@@ -272,14 +272,14 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: '@connection no directive on query',
+		title: '@list no directive on query',
 		pass: false,
 		documents: [
 			`
                 query UserFriends {
 					user {
 						friends {
-							friends @connection(name: "Friends") {
+							friends @list(name: "Friends") {
 								id
 							}
 						}
@@ -373,7 +373,7 @@ const table: Row[] = [
 			`
 				query UserFriends {
 					user {
-						cats @connection(name: "Friends") {
+						cats @list(name: "Friends") {
 							id
 						}
 					}
@@ -420,12 +420,12 @@ const table: Row[] = [
 				}
 			`,
 			`
-				query Query1 { 
-					...Foo 
+				query Query1 {
+					...Foo
 				}
 			`,
 			`
-				query Query2 { 
+				query Query2 {
 					...Foo
 				}
 			`,
@@ -441,12 +441,12 @@ const table: Row[] = [
 				}
 			`,
 			`
-				query Query1 { 
+				query Query1 {
 					...Foo @with(bar: "blah", name: "bar")
 				}
 			`,
 			`
-				query Query2 { 
+				query Query2 {
 					...Foo @with(any: true, name: "bar")
 				}
 			`,
@@ -462,12 +462,12 @@ const table: Row[] = [
 				}
 			`,
 			`
-				query Query2 { 
+				query Query2 {
 					...Foo @with(name: true)
 				}
 			`,
 			`
-				query Query2 { 
+				query Query2 {
 					...Foo @with(name: true)
 				}
 			`,
@@ -523,4 +523,4 @@ for (const { title, pass, documents, check } of table) {
 	})
 }
 
-test.todo('@connection on root list with no id fails')
+test.todo('@list on root list with no id fails')

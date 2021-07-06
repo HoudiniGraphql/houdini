@@ -23,30 +23,30 @@ export default async function graphqlExtensions(
 			}
 
 			"""
-				@${config.connectionDirective} is used to mark a field for the runtime as a place to add or remove
+				@${config.listDirective} is used to mark a field for the runtime as a place to add or remove
 				entities in mutations
 			"""
-			directive @${config.connectionDirective}(${config.connectionNameArg}: String!) on FIELD
+			directive @${config.listDirective}(${config.listNameArg}: String!) on FIELD
 
 			"""
-				@${config.connectionPrependDirective} is used to tell the runtime to add the result to the end of the list
+				@${config.listPrependDirective} is used to tell the runtime to add the result to the end of the list
 			"""
-			directive @${config.connectionPrependDirective}(
-				${config.connectionDirectiveParentIDArg}: ID, 
-				when: HoudiniConnectionWhen, 
+			directive @${config.listPrependDirective}(
+				${config.listDirectiveParentIDArg}: ID,
+				when: HoudiniConnectionWhen,
 				when_not: HoudiniConnectionWhen
 			) on FRAGMENT_SPREAD
 
 			"""
-				@${config.connectionAppendDirective} is used to tell the runtime to add the result to the start of the list
+				@${config.listAppendDirective} is used to tell the runtime to add the result to the start of the list
 			"""
-			directive @${config.connectionAppendDirective}(${config.connectionDirectiveParentIDArg}: ID, when: HoudiniConnectionWhen, when_not: HoudiniConnectionWhen) on FRAGMENT_SPREAD
+			directive @${config.listAppendDirective}(${config.listDirectiveParentIDArg}: ID, when: HoudiniConnectionWhen, when_not: HoudiniConnectionWhen) on FRAGMENT_SPREAD
 
 			"""
-				@${config.connectionParentDirective} is used to provide a parentID without specifying position or in situations
+				@${config.listParentDirective} is used to provide a parentID without specifying position or in situations
 				where it doesn't make sense (eg when deleting a node.)
 			"""
-			directive @${config.connectionParentDirective}(value: ID!) on FRAGMENT_SPREAD
+			directive @${config.listParentDirective}(value: ID!) on FRAGMENT_SPREAD
 
 			"""
 				@${config.whenDirective} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)

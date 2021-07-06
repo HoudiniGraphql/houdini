@@ -190,11 +190,11 @@ function operationInfo(config: Config, selection: graphql.SelectionNode): Operat
 	if (internalDirectives && internalDirectives.length > 0) {
 		// is prepend applied?
 		const prepend = internalDirectives.find(
-			({ name }) => name.value === config.connectionPrependDirective
+			({ name }) => name.value === config.listPrependDirective
 		)
 		// is append applied?
 		const append = internalDirectives.find(
-			({ name }) => name.value === config.connectionAppendDirective
+			({ name }) => name.value === config.listAppendDirective
 		)
 		// is when applied?
 		const when = internalDirectives.find(({ name }) => name.value === 'when')
@@ -202,7 +202,7 @@ function operationInfo(config: Config, selection: graphql.SelectionNode): Operat
 		const when_not = internalDirectives.find(({ name }) => name.value === 'when_not')
 		// look for the parentID directive
 		let parent = internalDirectives.find(
-			({ name }) => name.value === config.connectionParentDirective
+			({ name }) => name.value === config.listParentDirective
 		)
 
 		// if both are applied, there's a problem
@@ -218,7 +218,7 @@ function operationInfo(config: Config, selection: graphql.SelectionNode): Operat
 		// if there is no parent id argument, it could have been provided by one of the connection directives
 		if (!parentIDArg) {
 			parentIDArg = (append || prepend)?.arguments?.find(
-				({ name }) => name.value === config.connectionDirectiveParentIDArg
+				({ name }) => name.value === config.listDirectiveParentIDArg
 			)
 		}
 

@@ -26,12 +26,12 @@
 	// load the items
 	const { data } = query<AllItems>(graphql`
 		query AllItems($completed: Boolean) {
-			filteredItems: items(completed: $completed) @connection(name: "Filtered_Items") {
+			filteredItems: items(completed: $completed) @list(name: "Filtered_Items") {
 				id
 				completed
 				...ItemEntry_item
 			}
-			allItems: items @connection(name: "All_Items") {
+			allItems: items @list(name: "All_Items") {
 				id
 				completed
 			}

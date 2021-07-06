@@ -177,26 +177,26 @@ If you have updated your schema on the server, you can pull down the most recent
 npx houdini generate --pull-schema
 ```
 
-**Note**: If you are building your application with 
+**Note**: If you are building your application with
 [`adapter-static`](https://github.com/sveltejs/kit/tree/master/packages/adapter-static) (or any other adapter that turns
-your application into a static site), you will need to set the `static` value in your config file to `true`. 
+your application into a static site), you will need to set the `static` value in your config file to `true`.
 
 ### Svelte
 
 If you are working on an application that isn't using SvelteKit or Sapper, you have to configure the
 compiler and preprocessor to generate the correct logic by setting the `framework` field in your
-config file to `"svelte"`. 
+config file to `"svelte"`.
 
-Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the 
+Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the
 redirect as it will update your browsers `location` attribute, causing a hard transition to that url. Instead, you should
 use `this.error` to return an error and handle the redirect in a way that's appropriate for your application.
 
 ## 📄&nbsp;Config File
 
-All configuration for your houdini application is defined in a single file that is imported by both the runtime and the 
-command-line tool. Because of this, you must make sure that any imports and logic are resolvable in both environments. 
-This means that if you rely on `process.env` or other node-specifics you will have to use a 
-[plugin](https://www.npmjs.com/package/vite-plugin-replace) to replace the expression with something that can run in the browser. 
+All configuration for your houdini application is defined in a single file that is imported by both the runtime and the
+command-line tool. Because of this, you must make sure that any imports and logic are resolvable in both environments.
+This means that if you rely on `process.env` or other node-specifics you will have to use a
+[plugin](https://www.npmjs.com/package/vite-plugin-replace) to replace the expression with something that can run in the browser.
 
 ## 🚀&nbsp;&nbsp;Fetching Data
 
@@ -433,7 +433,7 @@ at the same time so long as the fragment names are unique and prop names are dif
 ### Fragment Arguments
 
 In some situations it's necessary to configure the documents inside of a fragment. For example,
-you might want to extend the `UserAvatar` component to allow for different sized profile pictures. 
+you might want to extend the `UserAvatar` component to allow for different sized profile pictures.
 To support this, houdini provides two directives `@arguments` and `@with` which declare arguments
 for a fragment and provide values, respectively.
 
@@ -445,9 +445,9 @@ fragment UserAvatar on User @arguments(width: {type:"Int", default: 50}) {
 }
 ```
 
-An argument with no default value is considered required. If no value is provided, 
+An argument with no default value is considered required. If no value is provided,
 an error will be thrown when generating your runtime. Providing values for fragments
-is done with the `@with` decorator: 
+is done with the `@with` decorator:
 
 ```graphql
 query AllUsers {
@@ -544,11 +544,11 @@ record's id. Take for example, an `TodoItemRow` component:
 
 Adding and removing records from a list is done by mixing together a few different generated fragments
 and directives. In order to tell the compiler which lists are targets for these operations, you have to
-mark them with the `@connection` directive and provide a unique name:
+mark them with the `@list` directive and provide a unique name:
 
 ```graphql
 query AllItems {
-    items @connection(name: "All_Items") {
+    items @list(name: "All_Items") {
         id
     }
 }
@@ -746,7 +746,7 @@ export default {
 	scalars: {
 		// the name of the scalar we are configuring
 		DateTime: {
-			// the corresponding typescript type 
+			// the corresponding typescript type
 			type: 'Date',
 			// turn the api's response into that type
 			unmarshal(val) {

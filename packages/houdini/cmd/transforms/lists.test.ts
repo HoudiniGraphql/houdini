@@ -23,7 +23,7 @@ test('insert fragments on query selection set', async function () {
 			`
 				query AllUsers {
 					user {
-						friends @connection(name:"User_Friends") {
+						friends @list(name:"User_Friends") {
 							firstName
 							id
 						}
@@ -69,7 +69,7 @@ test('delete fragments on query selection set', async function () {
 			`
 				query AllUsers {
 					user {
-						friends @connection(name:"User_Friends") {
+						friends @list(name:"User_Friends") {
 							firstName
 							id
 						}
@@ -113,7 +113,7 @@ test('connection fragments on fragment selection set', async function () {
 			'TestQuery',
 			`
 				fragment AllUsers  on User{
-					friends @connection(name:"User_Friends") {
+					friends @list(name:"User_Friends") {
 						firstName
 						id
 					}
@@ -157,7 +157,7 @@ test('delete node', async function () {
 			'TestQuery',
 			`
 				fragment AllUsers  on User{
-					friends @connection(name:"User_Friends") {
+					friends @list(name:"User_Friends") {
 						firstName
 						id
 					}
@@ -177,11 +177,11 @@ test('connection fragments must be unique', async function () {
 			`
 				query AllUsers {
 					user {
-						friends @connection(name:"User_Friends") {
+						friends @list(name:"User_Friends") {
 							firstName
 							id
 						}
-						otherFriends: friends @connection(name:"User_Friends") {
+						otherFriends: friends @list(name:"User_Friends") {
 							firstName
 							id
 						}
@@ -211,7 +211,7 @@ test('includes `id` in connection fragment', async function () {
 			'TestQuery',
 			`
 			fragment AllUsers  on User{
-				friends @connection(name:"User_Friends") {
+				friends @list(name:"User_Friends") {
 					id
 					firstName
 				}
@@ -247,7 +247,7 @@ test('cannot use connection directive if id is not a valid field', async functio
 			query AllGhosts {
 				ghost {
 					friends {
-						friends @connection(name: "Ghost_Friends"){
+						friends @list(name: "Ghost_Friends"){
 							name
 						}
 					}

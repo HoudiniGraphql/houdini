@@ -30,14 +30,12 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			// look for any field marked with a connection
 			Directive(node, _, __, ___, ancestors) {
 				// we only care about connections
-				if (node.name.value !== config.connectionDirective) {
+				if (node.name.value !== config.listDirective) {
 					return
 				}
 
 				// get the name of the connection
-				const nameArg = node.arguments?.find(
-					(arg) => arg.name.value === config.connectionNameArg
-				)
+				const nameArg = node.arguments?.find((arg) => arg.name.value === config.listNameArg)
 				if (!nameArg || nameArg.value.kind !== 'StringValue') {
 					throw new Error('could not find name arg in connection directive')
 				}

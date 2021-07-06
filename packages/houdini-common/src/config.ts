@@ -243,27 +243,27 @@ export class Config {
 
 	*/
 
-	get connectionDirective() {
-		return 'connection'
+	get listDirective() {
+		return 'list'
 	}
 
-	get connectionPrependDirective() {
+	get listPrependDirective() {
 		return 'prepend'
 	}
 
-	get connectionAppendDirective() {
+	get listAppendDirective() {
 		return 'append'
 	}
 
-	get connectionParentDirective() {
-		return this.connectionDirectiveParentIDArg
+	get listParentDirective() {
+		return this.listDirectiveParentIDArg
 	}
 
-	get connectionDirectiveParentIDArg() {
+	get listDirectiveParentIDArg() {
 		return 'parentID'
 	}
 
-	get connectionNameArg() {
+	get listNameArg() {
 		return 'name'
 	}
 
@@ -326,10 +326,10 @@ export class Config {
 	isInternalDirective({ name }: graphql.DirectiveNode): boolean {
 		return (
 			[
-				this.connectionDirective,
-				this.connectionPrependDirective,
-				this.connectionAppendDirective,
-				this.connectionDirectiveParentIDArg,
+				this.listDirective,
+				this.listPrependDirective,
+				this.listAppendDirective,
+				this.listDirectiveParentIDArg,
 				this.whenDirective,
 				this.whenNotDirective,
 				this.argumentsDirective,
@@ -452,7 +452,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				entities: [Entity!]!
 			}
 
-			interface Friend { 
+			interface Friend {
 				name: String!
 			}
 

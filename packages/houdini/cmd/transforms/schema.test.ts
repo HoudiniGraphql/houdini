@@ -12,7 +12,7 @@ describe('schema transform', function () {
 				`
 					fragment Foo on User {
 
-						friends @connection(name:"Friends") {
+						friends @list(name:"Friends") {
 							id
 						}
 					}

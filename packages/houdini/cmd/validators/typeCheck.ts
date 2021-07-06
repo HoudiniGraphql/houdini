@@ -37,13 +37,13 @@ export default async function typeCheck(
 			},
 			[graphql.Kind.DIRECTIVE](directive, _, parent, __, ancestors) {
 				// if the fragment is a connection fragment
-				if (directive.name.value !== config.connectionDirective) {
+				if (directive.name.value !== config.listDirective) {
 					return
 				}
 
 				// look up the name of the connection
 				const nameArg = directive.arguments?.find(
-					({ name }) => name.value === config.connectionNameArg
+					({ name }) => name.value === config.listNameArg
 				)
 
 				if (!nameArg) {
@@ -89,7 +89,7 @@ export default async function typeCheck(
 						definition.kind !== 'FragmentDefinition') ||
 					(definition.kind === 'OperationDefinition' && definition.operation !== 'query')
 				) {
-					errors.push(new Error('@connection can only appear in queries or fragments'))
+					errors.push(new Error('@list can only appear in queries or fragments'))
 					return
 				}
 
@@ -281,7 +281,7 @@ const validateConnections = ({
 				// the typechecker will verify that there is a value passed to @parentID
 				// so if it exists, we're good to go
 				let directive = node.directives?.find(
-					({ name }) => name.value === config.connectionParentDirective
+					({ name }) => name.value === config.listParentDirective
 				)
 				if (directive) {
 					// there's nothing else to check
@@ -290,9 +290,7 @@ const validateConnections = ({
 
 				// look for one of the connection directives
 				directive = node.directives?.find(({ name }) => [
-					[config.connectionPrependDirective, config.connectionAppendDirective].includes(
-						name.value
-					),
+					[config.listPrependDirective, config.listAppendDirective].includes(name.value),
 				])
 				// if there is no directive
 				if (!directive) {
@@ -306,7 +304,7 @@ const validateConnections = ({
 
 				// find the argument holding the parent ID
 				let parentArg = directive.arguments?.find(
-					(arg) => arg.name.value === config.connectionDirectiveParentIDArg
+					(arg) => arg.name.value === config.listDirectiveParentIDArg
 				)
 
 				if (!parentArg) {

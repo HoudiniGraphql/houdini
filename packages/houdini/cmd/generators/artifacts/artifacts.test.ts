@@ -374,13 +374,13 @@ test('selections with interfaces', async function () {
 			'TestQuery',
 			`query Friends {
 					friends {
-                        ... on Cat { 
+                        ... on Cat {
                             id
-							owner { 
+							owner {
 								firstName
 							}
                         }
-                        ... on Ghost { 
+                        ... on Ghost {
                             name
                         }
 					}
@@ -473,13 +473,13 @@ test('selections with unions', async function () {
 			'TestQuery',
 			`query Friends {
 					entities {
-                        ... on Cat { 
+                        ... on Cat {
                             id
-							owner { 
+							owner {
 								firstName
 							}
                         }
-                        ... on Ghost { 
+                        ... on Ghost {
                             name
                         }
 					}
@@ -583,7 +583,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -659,7 +659,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -751,7 +751,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -834,7 +834,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -904,7 +904,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -982,7 +982,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -1079,7 +1079,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -1176,7 +1176,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -1273,7 +1273,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -1371,7 +1371,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -1469,7 +1469,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -1567,7 +1567,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -1665,7 +1665,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -1768,7 +1768,7 @@ describe('mutation artifacts', function () {
 						boolValue: true,
 						floatValue: 1.2,
 						intValue: 1,
-					) @connection(name: "All_Users") {
+					) @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -1867,7 +1867,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo", boolValue:true) @connection(name: "All_Users") {
+					users(stringValue: "foo", boolValue:true) @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -1965,7 +1965,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				'TestQuery',
 				`query TestQuery {
-					users(stringValue: "foo") @connection(name: "All_Users") {
+					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -2036,7 +2036,7 @@ describe('mutation artifacts', function () {
 						boolValue: true,
 						floatValue: 1.2,
 						intValue: 1,
-					) @connection(name: "All_Users") {
+					) @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -2132,7 +2132,7 @@ describe('mutation artifacts', function () {
 						boolValue: true,
 						floatValue: 1.2,
 						intValue: 1,
-					) @connection(name: "All_Users") {
+					) @list(name: "All_Users") {
 						firstName
 					}
 				}`
@@ -2222,11 +2222,11 @@ test('custom scalar shows up in artifact', async function () {
 	const localConfig = testConfig({
 		schema: `
 			scalar DateTime
-			type TodoItem { 
+			type TodoItem {
 				text: String!
-				createdAt: DateTime! 
-			}	
-			type Query { 
+				createdAt: DateTime!
+			}
+			type Query {
 				allItems: [TodoItem!]!
 			}
 		`,
@@ -2294,10 +2294,10 @@ test('operation inputs', async function () {
 	// the config to use in tests
 	const localConfig = testConfig({
 		schema: `
-		enum MyEnum { 
+		enum MyEnum {
 			Hello
 		}
-		
+
 		input UserFilter {
 			middle: NestedUserFilter
 			listRequired: [String!]!
@@ -2314,7 +2314,7 @@ test('operation inputs', async function () {
 			weight: Float
 		}
 
-		type User { 
+		type User {
 			id: ID!
 		}
 
@@ -2330,19 +2330,19 @@ test('operation inputs', async function () {
 			'TestQuery',
 			`
 			query TestQuery(
-				$id: ID, 
-				$filter: UserFilter, 
-				$filterList: [UserFilter!], 
+				$id: ID,
+				$filter: UserFilter,
+				$filterList: [UserFilter!],
 				$enumArg: MyEnum
-			) { 
+			) {
 				user(
 					id: $id,
 					filter: $filter,
 					filterList: $filterList,
 					enumArg: $enumArg,
 				) {
-					id 
-				} 
+					id
+				}
 			}
 			`
 		),

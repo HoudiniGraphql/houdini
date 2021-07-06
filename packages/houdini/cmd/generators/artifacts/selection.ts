@@ -108,7 +108,7 @@ export default function selection({
 
 			// get the name of the connection directive tagging this field
 			const nameArg = field.directives
-				?.find((directive) => directive.name.value === config.connectionDirective)
+				?.find((directive) => directive.name.value === config.listDirective)
 				?.arguments?.find((arg) => arg.name.value === 'name')
 			let connection
 			if (nameArg && nameArg.value.kind === 'StringValue') {

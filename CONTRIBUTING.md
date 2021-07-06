@@ -164,7 +164,7 @@ There are two parts to this feature. First, a user marks a particular field as a
 
 ```graphql
 query AllUsersQuery {
-	users @connection(name: "All_Users") {
+	users @list(name: "All_Users") {
 		id
 		firstName
 	}
@@ -189,7 +189,7 @@ The steps for updating the `generate` function to support this feature can be br
    can pick it up to include in the mutation query when its sent to the server. This happens in the
    [connection transform](./packages/houdini/cmd/transforms/connections.ts).
 1. When generating the artifacts for the query,
-   [remove any references to the `@connection` directive](./packages/houdini/cmd/generators/artifacts/index.ts#L107-L110) and
+   [remove any references to the `@list` directive](./packages/houdini/cmd/generators/artifacts/index.ts#L107-L110) and
    [leave behind a label](./packages/houdini/cmd/generators/artifacts/selection.ts#L329-L331) identifying the field as
    the "All_Users" connection. For a better idea of how this label is embedded in the artifact, look at the
    [connection filters test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L1993).
