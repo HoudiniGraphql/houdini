@@ -160,18 +160,6 @@ test('can find interface ancestor from type', function () {
 })
 
 test('union ancestor', function () {
-	const doc = graphql.parse(`
-        query Friends {
-            types { 
-                ... on TypeA {
-                    objective { 
-                        id
-                    }
-                }
-            }
-        }
-    `)
-
 	const schema = graphql.buildSchema(`
         union UnionType = TypeB | TypeA
 
@@ -191,6 +179,19 @@ test('union ancestor', function () {
             types: [UnionType]
         }
     `)
+
+	const doc = graphql.parse(`
+        query Friends {
+            types { 
+                ... on TypeA {
+                    objective { 
+                        id
+                    }
+                }
+            }
+        }
+    `)
+
 	let foundType = ''
 
 	// make sure its valid first
