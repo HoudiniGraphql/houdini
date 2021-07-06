@@ -343,10 +343,10 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: 'unknown connection fragments errors before generation',
+		title: 'unknown list fragments errors before generation',
 		pass: false,
 		// note: we pass parentID here to ensure we're not getting caught on the
-		//		 free connections check
+		//		 free lists check
 		documents: [
 			`
 				mutation Foo {
@@ -365,10 +365,10 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: 'known connection directives',
+		title: 'known list directives',
 		pass: true,
 		// note: we pass parentID here to ensure we're not getting caught on the
-		//		 free connections check
+		//		 free lists check
 		documents: [
 			`
 				query UserFriends {
@@ -389,10 +389,10 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: 'unknown connection directives errors before generation',
+		title: 'unknown list directives errors before generation',
 		pass: false,
 		// note: we pass parentID here to ensure we're not getting caught on the
-		//		 free connections check
+		//		 free lists check
 		documents: [
 			`
 				mutation Foo {

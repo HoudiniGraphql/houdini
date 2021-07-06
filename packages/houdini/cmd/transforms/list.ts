@@ -9,8 +9,8 @@ export default async function addListFragments(
 	config: Config,
 	documents: CollectedGraphQLDocument[]
 ): Promise<void> {
-	// collect all of the fields that have the connection applied
-	const connections: {
+	// collect all of the fields that have the list applied
+	const lists: {
 		[name: string]: {
 			field: graphql.FieldNode
 			type: graphql.GraphQLNamedType
@@ -55,8 +55,8 @@ export default async function addListFragments(
 						return
 					}
 
-					// if we've already seen this connection
-					if (connections[nameArg.value.value]) {
+					// if we've already seen this list
+					if (lists[nameArg.value.value]) {
 						error.message = '@list name must be unique'
 						errors.push(error)
 					}
@@ -67,7 +67,7 @@ export default async function addListFragments(
 					const parentType = parentTypeFromAncestors(config.schema, ancestors.slice(1))
 
 					// if id is not a valid field on the parent, we won't be able to add or remove
-					// from this connection if it doesn't fall under root
+					// from this list if it doesn't fall under root
 					if (
 						!(parentType instanceof graphql.GraphQLObjectType) ||
 						(parentType.name !== config.schema.getQueryType()?.name &&
@@ -75,14 +75,14 @@ export default async function addListFragments(
 					) {
 						throw {
 							...new graphql.GraphQLError(
-								'Can only use a connection field on fragment on a type with id'
+								'Can only use a list field on fragment on a type with id'
 							),
 							filepath: filename,
 						}
 					}
 
 					// add the target of the directive to the list
-					connections[nameArg.value.value] = {
+					lists[nameArg.value.value] = {
 						field: ancestors[ancestors.length - 1] as graphql.FieldNode,
 						type,
 						filename,
@@ -97,10 +97,10 @@ export default async function addListFragments(
 		throw errors
 	}
 
-	// we need to add a delete directive for every type that is the target of a connection
-	const connectionTargets = [
+	// we need to add a delete directive for every type that is the target of a list
+	const listTargets = [
 		...new Set(
-			Object.values(connections).map(({ type, field }) => {
+			Object.values(lists).map(({ type, field }) => {
 				// only consider object types
 				if (!(type instanceof graphql.GraphQLObjectType)) {
 					return ''
@@ -122,8 +122,8 @@ export default async function addListFragments(
 		...documents[0].document,
 		definitions: [
 			...documents[0].document.definitions,
-			// every connection needs insert and remove fragments
-			...Object.entries(connections).flatMap<graphql.FragmentDefinitionNode>(
+			// every list needs insert and remove fragments
+			...Object.entries(lists).flatMap<graphql.FragmentDefinitionNode>(
 				([name, { field, type, filename }]) => {
 					// look up the type
 					const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
@@ -162,12 +162,12 @@ export default async function addListFragments(
 						]
 					}
 
-					// we at least want to create fragment to indicate inserts in connections
+					// we at least want to create fragment to indicate inserts in lists
 					return [
-						// a fragment to insert items into this connection
+						// a fragment to insert items into this list
 						{
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
-							// in order to insert an item into this connection, it must
+							// in order to insert an item into this list, it must
 							// have the same selection as the field
 							selectionSet: selection,
 							name: {
@@ -182,7 +182,7 @@ export default async function addListFragments(
 								},
 							},
 						},
-						// add a fragment to remove from the specific connection
+						// add a fragment to remove from the specific list
 						{
 							kind: graphql.Kind.FRAGMENT_DEFINITION,
 							name: {
@@ -214,7 +214,7 @@ export default async function addListFragments(
 				}
 			),
 
-			...connectionTargets.flatMap<graphql.DirectiveDefinitionNode>((typeName) => [
+			...listTargets.flatMap<graphql.DirectiveDefinitionNode>((typeName) => [
 				{
 					kind: 'DirectiveDefinition',
 					name: {

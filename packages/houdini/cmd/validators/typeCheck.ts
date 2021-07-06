@@ -18,14 +18,14 @@ export default async function typeCheck(
 	// wrap the errors we run into in a HoudiniError
 	const errors: HoudiniError[] = []
 
-	// we need to catch errors in the connection API. this means that a user
-	// must provide parentID if they are using a connection that is not all-objects
-	// from root. figure out which connections are "free" (ie, can be applied without a parentID arg)
-	const freeConnections: string[] = []
-	// we also want to keep track of all connection names so we can validate the mutation fragments
-	const connections: string[] = []
-	// keep track of every type in a connection so we can validate the directives too
-	const connectionTypes: string[] = []
+	// we need to catch errors in the list API. this means that a user
+	// must provide parentID if they are using a list that is not all-objects
+	// from root. figure out which lists are "free" (ie, can be applied without a parentID arg)
+	const freeLists: string[] = []
+	// we also want to keep track of all list names so we can validate the mutation fragments
+	const lists: string[] = []
+	// keep track of every type in a list so we can validate the directives too
+	const listTypes: string[] = []
 	// keep track of every fragment that's defined in the set
 	const fragments: Record<string, graphql.FragmentDefinitionNode> = {}
 
@@ -36,12 +36,12 @@ export default async function typeCheck(
 				fragments[definition.name.value] = definition
 			},
 			[graphql.Kind.DIRECTIVE](directive, _, parent, __, ancestors) {
-				// if the fragment is a connection fragment
+				// if the fragment is a list fragment
 				if (directive.name.value !== config.listDirective) {
 					return
 				}
 
-				// look up the name of the connection
+				// look up the name of the list
 				const nameArg = directive.arguments?.find(
 					({ name }) => name.value === config.listNameArg
 				)
@@ -93,7 +93,7 @@ export default async function typeCheck(
 					return
 				}
 
-				// we need to figure out the type of the connection so lets start walking down
+				// we need to figure out the type of the list so lets start walking down
 				// the list of parents starting at the root type
 				let rootType: graphql.GraphQLNamedType | undefined | null =
 					definition.kind === 'OperationDefinition'
@@ -150,20 +150,20 @@ export default async function typeCheck(
 
 				const parentType = parentTypeFromAncestors(config.schema, ancestors)
 
-				// if we have already seen the connection name there's a problem
-				const connectionName = nameArg.value.value
-				if (connections.includes(connectionName)) {
-					errors.push(new HoudiniErrorTodo('Connection names must be unique'))
+				// if we have already seen the list name there's a problem
+				const listName = nameArg.value.value
+				if (lists.includes(listName)) {
+					errors.push(new HoudiniErrorTodo('List names must be unique'))
 					return
 				}
 
-				// add the connection to the list
-				connections.push(connectionName)
-				connectionTypes.push(parentType.name)
+				// add the list to the list
+				lists.push(listName)
+				listTypes.push(parentType.name)
 
-				// if we still don't need a parent by now, add it to the list of free connections
+				// if we still don't need a parent by now, add it to the list of free lists
 				if (!needsParent) {
-					freeConnections.push(connectionName)
+					freeLists.push(listName)
 				}
 			},
 		})
@@ -184,7 +184,7 @@ export default async function typeCheck(
 					// some of the documents (ie the injected ones) will contain directive definitions
 					// and therefor not be explicitly executable
 					graphql.ExecutableDefinitionsRule,
-					// connection include directives that aren't defined by the schema. this
+					// list include directives that aren't defined by the schema. this
 					// is replaced with a more appropriate version down below
 					graphql.KnownDirectivesRule,
 					// a few directives such at @arguments and @with don't have static names. this is
@@ -194,11 +194,11 @@ export default async function typeCheck(
 		)
 		.concat(
 			// this will replace `KnownDirectives` and `KnownFragmentNames`
-			validateConnections({
+			validateLists({
 				config,
-				freeConnections,
-				connections,
-				connectionTypes,
+				freeLists,
+				lists,
+				listTypes,
 				fragments,
 			}),
 			// this replaces KnownArgumentNamesRule
@@ -228,26 +228,26 @@ export default async function typeCheck(
 
 //
 
-// build up the custom rule that requires parentID on all connection directives
-// applied to connection fragment spreads whose name does not appear in `freeConnections`
-const validateConnections = ({
+// build up the custom rule that requires parentID on all list directives
+// applied to list fragment spreads whose name does not appear in `freeLists`
+const validateLists = ({
 	config,
-	freeConnections,
-	connections,
-	connectionTypes,
+	freeLists,
+	lists,
+	listTypes,
 	fragments,
 }: {
 	config: Config
-	freeConnections: string[]
-	connections: string[]
-	connectionTypes: string[]
+	freeLists: string[]
+	lists: string[]
+	listTypes: string[]
 	fragments: Record<string, graphql.FragmentDefinitionNode>
 }) =>
-	function verifyConnectionArtifacts(ctx: graphql.ValidationContext): graphql.ASTVisitor {
+	function verifyListArtifacts(ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		return {
 			// if we run into a fragment spread
 			FragmentSpread(node) {
-				// if the fragment is not a connection fragment don't do the normal processing
+				// if the fragment is not a list fragment don't do the normal processing
 				if (!config.isListFragment(node.name.value)) {
 					// make sure its a defined fragment
 					if (!fragments[node.name.value]) {
@@ -260,21 +260,21 @@ const validateConnections = ({
 
 					return
 				}
-				// compute the name of the connection from the fragment
-				const connectionName = config.listNameFromFragment(node.name.value)
+				// compute the name of the list from the fragment
+				const listName = config.listNameFromFragment(node.name.value)
 
-				// make sure we know the connection
-				if (!connections.includes(connectionName)) {
+				// make sure we know the list
+				if (!lists.includes(listName)) {
 					ctx.reportError(
 						new graphql.GraphQLError(
-							'Encountered fragment referencing unknown connection: ' + connectionName
+							'Encountered fragment referencing unknown list: ' + listName
 						)
 					)
 					return
 				}
 
-				// if the connection fragment doesn't need a parent ID, we can ignore it
-				if (freeConnections.includes(connectionName)) {
+				// if the list fragment doesn't need a parent ID, we can ignore it
+				if (freeLists.includes(listName)) {
 					return
 				}
 
@@ -288,16 +288,14 @@ const validateConnections = ({
 					return
 				}
 
-				// look for one of the connection directives
+				// look for one of the list directives
 				directive = node.directives?.find(({ name }) => [
 					[config.listPrependDirective, config.listAppendDirective].includes(name.value),
 				])
 				// if there is no directive
 				if (!directive) {
 					ctx.reportError(
-						new graphql.GraphQLError(
-							'parentID is required for this connection fragment'
-						)
+						new graphql.GraphQLError('parentID is required for this list fragment')
 					)
 					return
 				}
@@ -309,18 +307,16 @@ const validateConnections = ({
 
 				if (!parentArg) {
 					ctx.reportError(
-						new graphql.GraphQLError(
-							'parentID is required for this connection fragment'
-						)
+						new graphql.GraphQLError('parentID is required for this list fragment')
 					)
 					return
 				}
 			},
-			// if we run into a directive that points to a connection, make sure that connection exists
+			// if we run into a directive that points to a list, make sure that list exists
 			Directive(node) {
 				const directiveName = node.name.value
 
-				// if the directive is not a connection directive
+				// if the directive is not a list directive
 				if (!config.isInternalDirective(node)) {
 					// look for the definition of the fragment
 					if (!config.schema.getDirective(directiveName)) {
@@ -334,14 +330,14 @@ const validateConnections = ({
 					return
 				}
 
-				// if the directive points to a type we don't recognize as the target of a connection
+				// if the directive points to a type we don't recognize as the target of a list
 				if (
 					config.isListOperationDirective(directiveName) &&
-					!connectionTypes.includes(config.listNameFromDirective(directiveName))
+					!listTypes.includes(config.listNameFromDirective(directiveName))
 				) {
 					ctx.reportError(
 						new graphql.GraphQLError(
-							'Encountered directive referencing unknown connection: ' + directiveName
+							'Encountered directive referencing unknown list: ' + directiveName
 						)
 					)
 					return

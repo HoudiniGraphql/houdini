@@ -106,15 +106,15 @@ export default function selection({
 				)
 			}
 
-			// get the name of the connection directive tagging this field
+			// get the name of the list directive tagging this field
 			const nameArg = field.directives
 				?.find((directive) => directive.name.value === config.listDirective)
 				?.arguments?.find((arg) => arg.name.value === 'name')
-			let connection
+			let list
 			if (nameArg && nameArg.value.kind === 'StringValue') {
-				connection = nameArg.value.value
+				list = nameArg.value.value
 				fieldObj.properties.push(
-					AST.objectProperty(AST.literal('connection'), AST.stringLiteral(connection))
+					AST.objectProperty(AST.literal('connection'), AST.stringLiteral(list))
 				)
 			}
 
@@ -132,8 +132,8 @@ export default function selection({
 				fieldObj.properties.push(AST.objectProperty(AST.literal('fields'), selectionObj))
 			}
 
-			// any arguments on the connection field can act as a filter
-			if (field.arguments?.length && connection) {
+			// any arguments on the list field can act as a filter
+			if (field.arguments?.length && list) {
 				fieldObj.properties.push(
 					AST.objectProperty(
 						AST.stringLiteral('filters'),
@@ -254,7 +254,7 @@ function mergeSelections(
 					JSON.stringify([...new Set(keys)])
 			)
 		}
-		const connections = properties
+		const lists = properties
 			.map(
 				(property) =>
 					(property.value as namedTypes.ObjectExpression).properties.find(
@@ -306,7 +306,7 @@ function mergeSelections(
 		// look at the first one in the list to check type
 		const typeProperty = types[0]
 		const key = keys[0]
-		const connection = connections[0]
+		const list = lists[0]
 		const abstractFlag = abstractFlags[0]
 
 		// if the type is a scalar just add the first one and move on
@@ -341,14 +341,14 @@ function mergeSelections(
 				fieldObj.properties.push(AST.objectProperty(AST.literal('fields'), merged))
 			}
 
-			// add the connection field if its present
-			if (connection) {
+			// add the list field if its present
+			if (list) {
 				fieldObj.properties.push(
-					AST.objectProperty(AST.literal('connection'), AST.stringLiteral(connection))
+					AST.objectProperty(AST.literal('connection'), AST.stringLiteral(list))
 				)
 			}
 
-			// if its marked as a connection
+			// if its marked as a list
 			if (abstractFlag) {
 				fieldObj.properties.push(
 					AST.objectProperty(AST.literal('abstract'), AST.booleanLiteral(abstractFlag))
