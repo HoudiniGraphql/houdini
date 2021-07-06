@@ -251,8 +251,7 @@ function collectDefaultArgumentValues(
 		let argObject = arg.value as graphql.ObjectValueNode
 
 		// if there is no default value, dont consider this argument
-		const defaultValue = argObject.fields.find((field) => field.name.value === 'defaultValue')
-			?.value
+		const defaultValue = argObject.fields.find((field) => field.name.value === 'default')?.value
 		if (!defaultValue) {
 			continue
 		}

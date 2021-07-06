@@ -409,7 +409,7 @@ function fragmentArguments(
 					// grab the type argument
 					const typeArg = arg.value.fields.find((field) => field.name.value === 'type')
 					const defaultValue = arg.value.fields.find(
-						(field) => field.name.value === 'defaultValue'
+						(field) => field.name.value === 'default'
 					)
 
 					// if there is no type value
@@ -470,9 +470,7 @@ function fragmentArguments(
 							(arg) =>
 								arg.value.kind === 'ObjectValue' &&
 								// any arg without a default value key in its body is required
-								!arg.value.fields.find(
-									(field) => field.name.value === 'defaultValue'
-								)
+								!arg.value.fields.find((field) => field.name.value === 'default')
 						)
 						.map((arg) => arg.name.value)
 					fragmentArgumentNames[fragmentName] = args.map((arg) => arg.name.value)

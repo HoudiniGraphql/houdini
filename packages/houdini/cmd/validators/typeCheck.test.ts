@@ -474,16 +474,16 @@ const table: Row[] = [
 		],
 	},
 	{
-		title: 'fragment argument definition defaultValue',
+		title: 'fragment argument definition default',
 		pass: false,
 		documents: [
 			`
-				fragment Foo on Query @arguments(name: { type: "String", defaultValue: true}) {
+				fragment Foo on Query @arguments(name: { type: "String", default: true}) {
 					users(stringValue: $name) { id }
 				}
 			`,
 			`
-				fragment Foo on Query @arguments(name: { type: "String", defaultValue: true}) {
+				fragment Foo on Query @arguments(name: { type: "String", default: true}) {
 					users(stringValue: $name) { id }
 				}
 			`,

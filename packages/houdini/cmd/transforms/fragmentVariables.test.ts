@@ -96,7 +96,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
-                @arguments(name: {type: "String", defaultValue: "Hello"}) {
+                @arguments(name: {type: "String", default: "Hello"}) {
                     users(stringValue: $name) { 
                         id
                     }
@@ -168,7 +168,7 @@ test('thread query variables to inner fragments', async function () {
 			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
-                @arguments(name: {type: "String", defaultValue: "Hello"}) {
+                @arguments(name: {type: "String", default: "Hello"}) {
                     ...InnerFragment @with(name: $name)
 				}
 			`
@@ -177,7 +177,7 @@ test('thread query variables to inner fragments', async function () {
 			'InnerFragment',
 			`
 				fragment InnerFragment on Query 
-                @arguments(name: {type: "String", defaultValue: "Hello"}) {
+                @arguments(name: {type: "String", default: "Hello"}) {
                     users(stringValue: $name) { 
                         id
                     }
@@ -261,7 +261,7 @@ test('inner fragment with intermediate default value', async function () {
 			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
-                @arguments(name: {type: "String", defaultValue: "Hello"}) {
+                @arguments(name: {type: "String", default: "Hello"}) {
                     ...InnerFragment @with(name: $name)
 				}
 			`
@@ -270,7 +270,7 @@ test('inner fragment with intermediate default value', async function () {
 			'InnerFragment',
 			`
 				fragment InnerFragment on Query 
-                @arguments(name: {type: "String", defaultValue: "Goodbye"}, age: {type: "Int", defaultValue: 2}) {
+                @arguments(name: {type: "String", default: "Goodbye"}, age: {type: "Int", default: 2}) {
                     users(stringValue: $name, intValue: $age) { 
                         id
                     }
@@ -346,7 +346,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
-                @arguments(name: {type: "String", defaultValue: "Hello"}) {
+                @arguments(name: {type: "String", default: "Hello"}) {
                     ...InnerFragment
 				}
 			`
@@ -355,7 +355,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 			'InnerFragment',
 			`
 				fragment InnerFragment on Query 
-                @arguments(name: {type: "String", defaultValue: "Goodbye"}) {
+                @arguments(name: {type: "String", default: "Goodbye"}) {
                     users(stringValue: $name) { 
                         id
                     }
@@ -431,7 +431,7 @@ test('default arguments', async function () {
 			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
-                @arguments(name: {type: "String", defaultValue: "Hello"}, cool: {type: "Boolean", defaultValue: true}) {
+                @arguments(name: {type: "String", default: "Hello"}, cool: {type: "Boolean", default: true}) {
                     users(boolValue: $cool, stringValue: $name) { 
 						id
 					}
@@ -503,7 +503,7 @@ test('multiple with directives - no overlap', async function () {
 			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
-                @arguments(name: {type: "String", defaultValue: "Hello"}, cool: {type: "Boolean", defaultValue: true}) {
+                @arguments(name: {type: "String", default: "Hello"}, cool: {type: "Boolean", default: true}) {
                     users(boolValue: $cool, stringValue: $name) { 
 						id
 					}

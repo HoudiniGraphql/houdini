@@ -437,10 +437,10 @@ you might want to extend the `UserAvatar` component to allow for different sized
 To support this, houdini provides two directives `@arguments` and `@with` which declare arguments
 for a fragment and provide values, respectively.
 
-Default values can be provided to fragment arguments with the `defaultValue` key:
+Default values can be provided to fragment arguments with the `default` key:
 
 ```graphql
-fragment UserAvatar on User @arguments(width: {type:"Int", defaultValue: 50}) {
+fragment UserAvatar on User @arguments(width: {type:"Int", default: 50}) {
     profilePicture(width: $width)
 }
 ```
