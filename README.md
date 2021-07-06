@@ -674,7 +674,7 @@ Here is an example of a simple subscription from the example application include
 
 Houdini can work with any websocket client as long as you can provide an object that satisfies
 the `SubscriptionHandler` interface as the second argument to the Environment's constructor. Keep in mind
-that WebSocket lists only exist between the browser and your API, therefor you must remember to
+that WebSocket connections only exist between the browser and your API, therefor you must remember to
 pass `null` when configuring your environment on the rendering server.
 
 #### Using `graphql-ws`
