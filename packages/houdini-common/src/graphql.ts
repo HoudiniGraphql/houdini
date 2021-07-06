@@ -66,7 +66,6 @@ type GraphQLParentType =
 	| graphql.GraphQLObjectType
 	| graphql.GraphQLInputObjectType
 	| graphql.GraphQLInterfaceType
-	| graphql.GraphQLUnionType
 
 export function parentTypeFromAncestors(schema: graphql.GraphQLSchema, ancestors: readonly any[]) {
 	const parents = [...ancestors] as (
@@ -155,7 +154,6 @@ function walkAncestors(
 	if (head.kind === 'SelectionSet') {
 		return parent
 	}
-	console.log(head.name.value)
 	// we are looking at a field so we can just access the field map of the parent type
 	const field = parent.getFields()[head.name.value]
 	if (!field) {

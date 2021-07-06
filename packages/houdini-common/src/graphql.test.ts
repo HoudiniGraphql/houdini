@@ -149,7 +149,7 @@ test('union ancestor', function () {
         query Friends {
             me { 
                 goals { 
-                    family { 
+                    ... on TypeA {
                         objective { 
                             id
                         }
@@ -160,45 +160,40 @@ test('union ancestor', function () {
     `)
 
 	const schema = graphql.buildSchema(`
-        union ObjectiveWithFamily = Objective | GoalFamily
+        union UnionType = TypeB | TypeA
 
-        interface Goal {
-            id: Int
-            title: String
-            type: String
+        type TypeA {
+            id: String
+            objective: TypeB
         }
 
-        type Objective implements Goal & OkrGoal {
-            family: GoalFamily
+        type TypeB  {
+            family: TypeA
+            objective: TypeB
+            id: String
         }
 
-        interface OkrGoal implements Goal {
-            family: GoalFamily
-        }
 
         type Query {
             me: User
         }
 
         type User {
-            avatarURL: String
-            fullName: String
-            goals: [GoalFamily]
-            id: Int
-            position: String
+            goals: [UnionType]
         }
     `)
 	let foundType = ''
 
+	// make sure its valid first
 	expect(graphql.validate(schema, doc)).toHaveLength(0)
 
 	graphql.visit(doc, {
 		Field(node, key, parent, path, ancestors) {
-			if (node.name.value === 'objective') {
+			if (node.name.value === 'id') {
 				foundType = parentTypeFromAncestors(schema, ancestors).name
 			}
 		},
 	})
 
-	expect(foundType).toEqual('GoalFamily')
+	expect(foundType).toEqual('TypeB')
 })
