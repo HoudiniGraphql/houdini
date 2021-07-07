@@ -171,7 +171,6 @@ export class Cache {
 			else {
 				// look up the primitive value
 				const val = parent.getField(key)
-				console.log(type)
 
 				// is the type a custom scalar with a specified unmarshal function
 				if (this._config.scalars?.[type]?.unmarshal) {
