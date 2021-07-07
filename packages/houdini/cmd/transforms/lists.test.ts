@@ -23,7 +23,7 @@ test('insert fragments on query selection set', async function () {
 			`
 				query AllUsers {
 					user {
-						friends @connection(name:"User_Friends") {
+						friends @list(name:"User_Friends") {
 							firstName
 							id
 						}
@@ -69,7 +69,7 @@ test('delete fragments on query selection set', async function () {
 			`
 				query AllUsers {
 					user {
-						friends @connection(name:"User_Friends") {
+						friends @list(name:"User_Friends") {
 							firstName
 							id
 						}
@@ -97,7 +97,7 @@ test('delete fragments on query selection set', async function () {
 	`)
 })
 
-test('connection fragments on fragment selection set', async function () {
+test('list fragments on fragment selection set', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'UpdateUser',
@@ -113,7 +113,7 @@ test('connection fragments on fragment selection set', async function () {
 			'TestQuery',
 			`
 				fragment AllUsers  on User{
-					friends @connection(name:"User_Friends") {
+					friends @list(name:"User_Friends") {
 						firstName
 						id
 					}
@@ -157,7 +157,7 @@ test('delete node', async function () {
 			'TestQuery',
 			`
 				fragment AllUsers  on User{
-					friends @connection(name:"User_Friends") {
+					friends @list(name:"User_Friends") {
 						firstName
 						id
 					}
@@ -170,18 +170,18 @@ test('delete node', async function () {
 	await expect(runPipeline(testConfig(), docs)).resolves.toBeUndefined()
 })
 
-test('connection fragments must be unique', async function () {
+test('list fragments must be unique', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'TestQuery',
 			`
 				query AllUsers {
 					user {
-						friends @connection(name:"User_Friends") {
+						friends @list(name:"User_Friends") {
 							firstName
 							id
 						}
-						otherFriends: friends @connection(name:"User_Friends") {
+						otherFriends: friends @list(name:"User_Friends") {
 							firstName
 							id
 						}
@@ -195,7 +195,7 @@ test('connection fragments must be unique', async function () {
 	await expect(runPipeline(testConfig(), docs)).rejects.toBeTruthy()
 })
 
-test('includes `id` in connection fragment', async function () {
+test('includes `id` in list fragment', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'UpdateUser',
@@ -211,7 +211,7 @@ test('includes `id` in connection fragment', async function () {
 			'TestQuery',
 			`
 			fragment AllUsers  on User{
-				friends @connection(name:"User_Friends") {
+				friends @list(name:"User_Friends") {
 					id
 					firstName
 				}
@@ -239,7 +239,7 @@ test('includes `id` in connection fragment', async function () {
 	`)
 })
 
-test('cannot use connection directive if id is not a valid field', async function () {
+test('cannot use list directive if id is not a valid field', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'TestQuery',
@@ -247,7 +247,7 @@ test('cannot use connection directive if id is not a valid field', async functio
 			query AllGhosts {
 				ghost {
 					friends {
-						friends @connection(name: "Ghost_Friends"){
+						friends @list(name: "Ghost_Friends"){
 							name
 						}
 					}

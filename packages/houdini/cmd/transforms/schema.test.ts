@@ -7,12 +7,12 @@ describe('schema transform', function () {
 	// and make sure they don't error
 	const table = [
 		{
-			title: 'connection directive',
+			title: 'list directive',
 			documents: [
 				`
 					fragment Foo on User {
 
-						friends @connection(name:"Friends") {
+						friends @list(name:"Friends") {
 							id
 						}
 					}

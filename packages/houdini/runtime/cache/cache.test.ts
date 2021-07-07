@@ -773,7 +773,7 @@ test('unsubscribe', function () {
 	).toHaveLength(0)
 })
 
-test('append in connection', function () {
+test('append in list', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -789,7 +789,7 @@ test('append in connection', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -832,8 +832,8 @@ test('append in connection', function () {
 		selection,
 	})
 
-	// insert an element into the connection (no parent ID)
-	cache.connection('All_Users').append(
+	// insert an element into the list (no parent ID)
+	cache.list('All_Users').append(
 		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
 		{
 			id: '3',
@@ -859,7 +859,7 @@ test('append in connection', function () {
 	})
 })
 
-test('prepend in connection', function () {
+test('prepend in list', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -875,7 +875,7 @@ test('prepend in connection', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -918,8 +918,8 @@ test('prepend in connection', function () {
 		selection,
 	})
 
-	// insert an element into the connection (no parent ID)
-	cache.connection('All_Users').prepend(
+	// insert an element into the list (no parent ID)
+	cache.list('All_Users').prepend(
 		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
 		{
 			id: '3',
@@ -945,7 +945,7 @@ test('prepend in connection', function () {
 	})
 })
 
-test('connection filter - must_not positive', function () {
+test('list filter - must_not positive', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -961,7 +961,7 @@ test('connection filter - must_not positive', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1010,9 +1010,9 @@ test('connection filter - must_not positive', function () {
 		selection,
 	})
 
-	// insert an element into the connection (no parent ID)
+	// insert an element into the list (no parent ID)
 	cache
-		.connection('All_Users')
+		.list('All_Users')
 		.when({ must_not: { foo: 'not-bar' } })
 		.prepend(
 			{
@@ -1043,7 +1043,7 @@ test('connection filter - must_not positive', function () {
 	})
 })
 
-test('connection filter - must_not negative', function () {
+test('list filter - must_not negative', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1059,7 +1059,7 @@ test('connection filter - must_not negative', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1108,9 +1108,9 @@ test('connection filter - must_not negative', function () {
 		selection,
 	})
 
-	// insert an element into the connection (no parent ID)
+	// insert an element into the list (no parent ID)
 	cache
-		.connection('All_Users')
+		.list('All_Users')
 		.when({ must_not: { foo: 'bar' } })
 		.prepend(
 			{
@@ -1127,7 +1127,7 @@ test('connection filter - must_not negative', function () {
 	expect(set).not.toHaveBeenCalled()
 })
 
-test('connection filter - must positive', function () {
+test('list filter - must positive', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1143,7 +1143,7 @@ test('connection filter - must positive', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1192,9 +1192,9 @@ test('connection filter - must positive', function () {
 		selection,
 	})
 
-	// insert an element into the connection (no parent ID)
+	// insert an element into the list (no parent ID)
 	cache
-		.connection('All_Users')
+		.list('All_Users')
 		.when({ must: { foo: 'bar' } })
 		.prepend(
 			{
@@ -1225,7 +1225,7 @@ test('connection filter - must positive', function () {
 	})
 })
 
-test('connection filter - must negative', function () {
+test('list filter - must negative', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1241,7 +1241,7 @@ test('connection filter - must negative', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1290,9 +1290,9 @@ test('connection filter - must negative', function () {
 		selection,
 	})
 
-	// insert an element into the connection (no parent ID)
+	// insert an element into the list (no parent ID)
 	cache
-		.connection('All_Users')
+		.list('All_Users')
 		.when({ must: { foo: 'not-bar' } })
 		.prepend(
 			{
@@ -1309,7 +1309,7 @@ test('connection filter - must negative', function () {
 	expect(set).not.toHaveBeenCalled()
 })
 
-test('subscribe to new connection nodes', function () {
+test('subscribe to new list nodes', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1325,7 +1325,7 @@ test('subscribe to new connection nodes', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -1368,8 +1368,8 @@ test('subscribe to new connection nodes', function () {
 		selection,
 	})
 
-	// insert an element into the connection (no parent ID)
-	cache.connection('All_Users').append(
+	// insert an element into the list (no parent ID)
+	cache.list('All_Users').append(
 		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
 		{
 			id: '3',
@@ -1417,7 +1417,7 @@ test('subscribe to new connection nodes', function () {
 	})
 })
 
-test('remove from connection', function () {
+test('remove from list', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1433,7 +1433,7 @@ test('remove from connection', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -1476,8 +1476,8 @@ test('remove from connection', function () {
 		selection: selection,
 	})
 
-	// remove user 2 from the connection
-	cache.connection('All_Users').remove({
+	// remove user 2 from the list
+	cache.list('All_Users').remove({
 		id: '2',
 	})
 
@@ -1512,7 +1512,7 @@ test('delete node', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -1555,7 +1555,7 @@ test('delete node', function () {
 		selection,
 	})
 
-	// remove user 2 from the connection
+	// remove user 2 from the list
 	cache.delete(
 		cache.id('User', {
 			id: '2',
@@ -1578,7 +1578,7 @@ test('append operation', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	// create a connection we will add to
+	// create a list we will add to
 	cache.write(
 		{
 			viewer: {
@@ -1600,7 +1600,7 @@ test('append operation', function () {
 		{}
 	)
 
-	// subscribe to the data to register the connection
+	// subscribe to the data to register the list
 	cache.subscribe(
 		{
 			rootType: 'User',
@@ -1608,7 +1608,7 @@ test('append operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -1628,7 +1628,7 @@ test('append operation', function () {
 	)
 
 	// write some data to a different location with a new user
-	// that should be added to the connection
+	// that should be added to the list
 	cache.write(
 		{
 			newUser: {
@@ -1637,7 +1637,7 @@ test('append operation', function () {
 				operations: [
 					{
 						action: 'insert',
-						connection: 'All_Users',
+						list: 'All_Users',
 						parentID: {
 							kind: 'String',
 							value: cache.id('User', '1'),
@@ -1660,15 +1660,15 @@ test('append operation', function () {
 		{}
 	)
 
-	// make sure we just added to the connection
-	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(1)
+	// make sure we just added to the list
+	expect([...cache.list('All_Users', cache.id('User', '1'))]).toHaveLength(1)
 })
 
 test('append when operation', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	// create a connection we will add to
+	// create a list we will add to
 	cache.write(
 		{
 			viewer: {
@@ -1690,7 +1690,7 @@ test('append when operation', function () {
 		{}
 	)
 
-	// subscribe to the data to register the connection
+	// subscribe to the data to register the list
 	cache.subscribe(
 		{
 			rootType: 'User',
@@ -1698,7 +1698,7 @@ test('append when operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					filters: {
 						value: {
 							kind: 'String',
@@ -1724,7 +1724,7 @@ test('append when operation', function () {
 	)
 
 	// write some data to a different location with a new user
-	// that should be added to the connection
+	// that should be added to the list
 	cache.write(
 		{
 			newUser: {
@@ -1733,7 +1733,7 @@ test('append when operation', function () {
 				operations: [
 					{
 						action: 'insert',
-						connection: 'All_Users',
+						list: 'All_Users',
 						parentID: {
 							kind: 'String',
 							value: cache.id('User', '1'),
@@ -1761,15 +1761,15 @@ test('append when operation', function () {
 		{}
 	)
 
-	// make sure we just added to the connection
-	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+	// make sure we just added to the list
+	expect([...cache.list('All_Users', cache.id('User', '1'))]).toHaveLength(0)
 })
 
 test('prepend when operation', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	// create a connection we will add to
+	// create a list we will add to
 	cache.write(
 		{
 			viewer: {
@@ -1791,7 +1791,7 @@ test('prepend when operation', function () {
 		{}
 	)
 
-	// subscribe to the data to register the connection
+	// subscribe to the data to register the list
 	cache.subscribe(
 		{
 			rootType: 'User',
@@ -1799,7 +1799,7 @@ test('prepend when operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					filters: {
 						value: {
 							kind: 'String',
@@ -1825,7 +1825,7 @@ test('prepend when operation', function () {
 	)
 
 	// write some data to a different location with a new user
-	// that should be added to the connection
+	// that should be added to the list
 	cache.write(
 		{
 			newUser: {
@@ -1834,7 +1834,7 @@ test('prepend when operation', function () {
 				operations: [
 					{
 						action: 'insert',
-						connection: 'All_Users',
+						list: 'All_Users',
 						parentID: {
 							kind: 'String',
 							value: cache.id('User', '1'),
@@ -1863,15 +1863,15 @@ test('prepend when operation', function () {
 		{}
 	)
 
-	// make sure we just added to the connection
-	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+	// make sure we just added to the list
+	expect([...cache.list('All_Users', cache.id('User', '1'))]).toHaveLength(0)
 })
 
 test('prepend operation', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	// create a connection we will add to
+	// create a list we will add to
 	cache.write(
 		{
 			viewer: {
@@ -1913,7 +1913,7 @@ test('prepend operation', function () {
 		{}
 	)
 
-	// subscribe to the data to register the connection
+	// subscribe to the data to register the list
 	cache.subscribe(
 		{
 			rootType: 'User',
@@ -1921,7 +1921,7 @@ test('prepend operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -1941,7 +1941,7 @@ test('prepend operation', function () {
 	)
 
 	// write some data to a different location with a new user
-	// that should be added to the connection
+	// that should be added to the list
 	cache.write(
 		{
 			newUser: {
@@ -1950,7 +1950,7 @@ test('prepend operation', function () {
 				operations: [
 					{
 						action: 'insert',
-						connection: 'All_Users',
+						list: 'All_Users',
 						parentID: {
 							kind: 'String',
 							value: cache.id('User', '1'),
@@ -1974,9 +1974,9 @@ test('prepend operation', function () {
 		{}
 	)
 
-	// make sure we just added to the connection
+	// make sure we just added to the list
 	expect(
-		[...cache.connection('All_Users', cache.id('User', '1'))].map((record) => record.fields.id)
+		[...cache.list('All_Users', cache.id('User', '1'))].map((record) => record.fields.id)
 	).toEqual(['3', '2'])
 })
 
@@ -1984,7 +1984,7 @@ test('remove operation', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	// create a connection we will add to
+	// create a list we will add to
 	cache.write(
 		{
 			viewer: {
@@ -2021,7 +2021,7 @@ test('remove operation', function () {
 		{}
 	)
 
-	// subscribe to the data to register the connection
+	// subscribe to the data to register the list
 	cache.subscribe(
 		{
 			rootType: 'User',
@@ -2029,7 +2029,7 @@ test('remove operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -2058,7 +2058,7 @@ test('remove operation', function () {
 				operations: [
 					{
 						action: 'remove',
-						connection: 'All_Users',
+						list: 'All_Users',
 						parentID: {
 							kind: 'String',
 							value: cache.id('User', '1'),
@@ -2081,15 +2081,15 @@ test('remove operation', function () {
 		{}
 	)
 
-	// make sure we removed the element from the connection
-	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+	// make sure we removed the element from the list
+	expect([...cache.list('All_Users', cache.id('User', '1'))]).toHaveLength(0)
 })
 
 test('delete operation', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
-	// create a connection we will add to
+	// create a list we will add to
 	cache.write(
 		{
 			viewer: {
@@ -2126,7 +2126,7 @@ test('delete operation', function () {
 		{}
 	)
 
-	// subscribe to the data to register the connection
+	// subscribe to the data to register the list
 	cache.subscribe(
 		{
 			rootType: 'User',
@@ -2134,7 +2134,7 @@ test('delete operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -2154,7 +2154,7 @@ test('delete operation', function () {
 	)
 
 	// write some data to a different location with a new user
-	// that should be added to the connection
+	// that should be added to the list
 	cache.write(
 		{
 			deleteUser: {
@@ -2182,8 +2182,8 @@ test('delete operation', function () {
 		{}
 	)
 
-	// make sure we removed the element from the connection
-	expect([...cache.connection('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+	// make sure we removed the element from the list
+	expect([...cache.list('All_Users', cache.id('User', '1'))]).toHaveLength(0)
 
 	expect(cache.internal.getRecord('User:2')).toBeNull()
 })
@@ -2204,7 +2204,7 @@ test('variables in query and subscription', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends(filter: $filter)',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -2260,7 +2260,7 @@ test('variables in query and subscription', function () {
 	)
 
 	// make sure we have a cached value for friends(filter: "foo")
-	expect(cache.connection('All_Users').key).toEqual('friends(filter: "foo")')
+	expect(cache.list('All_Users').key).toEqual('friends(filter: "foo")')
 
 	// somehow write a user to the cache with a new friends list
 	cache.write(
@@ -2315,7 +2315,7 @@ test('deleting a node removes nested subscriptions', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -2384,7 +2384,7 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					connection: 'All_Users',
+					list: 'All_Users',
 					fields: {
 						id: {
 							type: 'ID',
@@ -2438,8 +2438,8 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 	// make sure there is a subscriber for the user's first name
 	expect(cache.internal.getRecord('User:1')?.getSubscribers('firstName')).toHaveLength(1)
 
-	// remove the user from the connection
-	cache.connection('All_Users').remove({ id: '1' })
+	// remove the user from the list
+	cache.list('All_Users').remove({ id: '1' })
 
 	// we should still be subscribing to the user's first name
 	expect(cache.internal.getRecord('User:1')?.getSubscribers('firstName')).toHaveLength(1)
@@ -2754,9 +2754,9 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	})
 })
 
-test.todo('inserting node creates back reference to connection')
+test.todo('inserting node creates back reference to list')
 
-test.todo('unsubscribe removes connection handlers')
+test.todo('unsubscribe removes list handlers')
 
 test.todo('nested linked record update')
 

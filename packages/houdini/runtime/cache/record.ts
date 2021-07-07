@@ -2,7 +2,7 @@
 import { GraphQLValue, SubscriptionSpec } from '../types'
 import { Cache } from './cache'
 
-type Connection = {
+type List = {
 	name: string
 	parentID: string | undefined
 }
@@ -20,7 +20,7 @@ export class Record {
 	private referenceCounts: {
 		[fieldName: string]: Map<SubscriptionSpec['set'], number>
 	} = {}
-	connections: Connection[] = []
+	lists: List[] = []
 
 	constructor(cache: Cache) {
 		this.cache = cache
@@ -127,12 +127,12 @@ export class Record {
 		this.forgetSubscribers(...this.allSubscribers())
 	}
 
-	addConnectionReference(ref: Connection) {
-		this.connections.push(ref)
+	addListReference(ref: List) {
+		this.lists.push(ref)
 	}
 
-	removeConnectionReference(ref: Connection) {
-		this.connections = this.connections.filter(
+	removeListReference(ref: List) {
+		this.lists = this.lists.filter(
 			(conn) => !(conn.name === ref.name && conn.parentID === ref.parentID)
 		)
 	}

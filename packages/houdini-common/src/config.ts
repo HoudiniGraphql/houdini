@@ -243,27 +243,27 @@ export class Config {
 
 	*/
 
-	get connectionDirective() {
-		return 'connection'
+	get listDirective() {
+		return 'list'
 	}
 
-	get connectionPrependDirective() {
+	get listPrependDirective() {
 		return 'prepend'
 	}
 
-	get connectionAppendDirective() {
+	get listAppendDirective() {
 		return 'append'
 	}
 
-	get connectionParentDirective() {
-		return this.connectionDirectiveParentIDArg
+	get listParentDirective() {
+		return this.listDirectiveParentIDArg
 	}
 
-	get connectionDirectiveParentIDArg() {
+	get listDirectiveParentIDArg() {
 		return 'parentID'
 	}
 
-	get connectionNameArg() {
+	get listNameArg() {
 		return 'name'
 	}
 
@@ -299,7 +299,7 @@ export class Config {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}
 
-	connectionDeleteDirective(name: string): string {
+	listDeleteDirective(name: string): string {
 		return name + this.deleteDirectiveSuffix
 	}
 
@@ -311,7 +311,7 @@ export class Config {
 		return name.endsWith(this.insertFragmentSuffix)
 	}
 
-	connectionInsertFragment(name: string): string {
+	listInsertFragment(name: string): string {
 		return name + this.insertFragmentSuffix
 	}
 
@@ -319,17 +319,17 @@ export class Config {
 		return name.endsWith(this.removeFragmentSuffix)
 	}
 
-	connectionRemoveFragment(name: string): string {
+	listRemoveFragment(name: string): string {
 		return name + this.removeFragmentSuffix
 	}
 
 	isInternalDirective({ name }: graphql.DirectiveNode): boolean {
 		return (
 			[
-				this.connectionDirective,
-				this.connectionPrependDirective,
-				this.connectionAppendDirective,
-				this.connectionDirectiveParentIDArg,
+				this.listDirective,
+				this.listPrependDirective,
+				this.listAppendDirective,
+				this.listDirectiveParentIDArg,
 				this.whenDirective,
 				this.whenNotDirective,
 				this.argumentsDirective,
@@ -338,20 +338,20 @@ export class Config {
 		)
 	}
 
-	isConnectionFragment(name: string): boolean {
+	isListFragment(name: string): boolean {
 		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.removeFragmentSuffix)
 	}
 
-	isConnectionOperationDirective(name: string): boolean {
+	isListOperationDirective(name: string): boolean {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}
 
-	isFragmentForConnection(connectionName: string, fragmentName: string) {
-		return fragmentName.startsWith(connectionName)
+	isFragmentForList(listName: string, fragmentName: string) {
+		return fragmentName.startsWith(listName)
 	}
 
 	// return 'insert' for All_Users_insert
-	connectionOperationFromFragment(fragmentName: string): 'insert' | 'remove' {
+	listOperationFromFragment(fragmentName: string): 'insert' | 'remove' {
 		// check the name against the fragment patterns
 		if (this.isInsertFragment(fragmentName)) {
 			return 'insert'
@@ -359,20 +359,18 @@ export class Config {
 			return 'remove'
 		}
 
-		throw new Error(
-			'Could not determine connection operation from fragment name: ' + fragmentName
-		)
+		throw new Error('Could not determine list operation from fragment name: ' + fragmentName)
 	}
 
-	connectionNameFromDirective(directiveName: string): string {
+	listNameFromDirective(directiveName: string): string {
 		try {
-			return this.connectionNameFromFragment(directiveName)
+			return this.listNameFromFragment(directiveName)
 		} catch (e) {
-			throw new Error('Could not find connection name from directive: ' + directiveName)
+			throw new Error('Could not find list name from directive: ' + directiveName)
 		}
 	}
 
-	connectionNameFromFragment(fragmentName: string): string {
+	listNameFromFragment(fragmentName: string): string {
 		// starting at the end of the fragment name going left, look for a _
 		for (let i = fragmentName.length - 1; i >= 0; i--) {
 			// if we hit a _
@@ -381,7 +379,7 @@ export class Config {
 			}
 		}
 
-		throw new Error('Could not find connection name from fragment: ' + fragmentName)
+		throw new Error('Could not find list name from fragment: ' + fragmentName)
 	}
 }
 // a place to store the current configuration
@@ -452,7 +450,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				entities: [Entity!]!
 			}
 
-			interface Friend { 
+			interface Friend {
 				name: String!
 			}
 

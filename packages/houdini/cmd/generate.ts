@@ -33,7 +33,7 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 		config,
 		[
 			transforms.internalSchema,
-			transforms.connections,
+			transforms.list,
 			validators.typeCheck,
 			transforms.typename,
 			validators.uniqueNames,
