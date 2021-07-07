@@ -156,8 +156,19 @@ export class Cache {
 			// if the link points to a list
 			const linkedList = parent.linkedList(key)
 
-			// if we are looking at a scalar
-			if (isScalar(this._config, type)) {
+			// the field could be an object
+			if (linkedRecord && fields) {
+				target[attributeName] = this.getData(linkedRecord, fields, variables)
+				continue
+			}
+			// the field could be a list
+			else if (linkedList && fields) {
+				target[attributeName] = linkedList.map((linkedRecord) =>
+					this.getData(linkedRecord, fields, variables)
+				)
+			}
+			// we are looking at a scalar or some other type we don't recognize
+			else {
 				// look up the primitive value
 				const val = parent.getField(key)
 
@@ -173,21 +184,6 @@ export class Cache {
 
 				// we're done
 				continue
-			}
-			// the field could be an object
-			else if (linkedRecord && fields) {
-				target[attributeName] = this.getData(linkedRecord, fields, variables)
-				continue
-			}
-			// the field could be a list
-			else if (linkedList && fields) {
-				target[attributeName] = linkedList.map((linkedRecord) =>
-					this.getData(linkedRecord, fields, variables)
-				)
-			}
-			// we don't recognize the field type
-			else {
-				throw new Error('Encountered unknown type: ' + type)
 			}
 		}
 
