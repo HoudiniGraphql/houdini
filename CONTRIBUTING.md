@@ -189,21 +189,21 @@ The steps for updating the `generate` function to support this feature can be br
    can pick it up to include in the mutation query when its sent to the server. This happens in the
    [list transform](./packages/houdini/cmd/transforms/lists.ts).
 1. When generating the artifacts for the query,
-   [remove any references to the `@list` directive](./packages/houdini/cmd/generators/artifacts/index.ts#L107-L110) and
-   [leave behind a label](./packages/houdini/cmd/generators/artifacts/selection.ts#L329-L331) identifying the field as
+   [remove any references to the `@list` directive](./packages/houdini/cmd/generators/artifacts/index.ts#L97-L100) and
+   [leave behind a label](./packages/houdini/cmd/generators/artifacts/selection.ts#L346-L348) identifying the field as
    the "All_Users" list. For a better idea of how this label is embedded in the artifact, look at the
    [list filters test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L1993).
 1. When generating the artifact for the mutation, look for
    [any fragment spreads that are list operations](./packages/houdini/cmd/generators/artifacts/operations.ts#L27) and
-   and [embed them](./packages/houdini/cmd/generators/artifacts/selection.ts#L335-L342) in the selection
+   and [embed them](./packages/houdini/cmd/generators/artifacts/selection.ts#117) in the selection
    object for the mutation. For a better picture for how this looks in the final artifact, look at the
    [insert operation test](./packages/houdini/cmd/generators/artifacts/artifacts.test.ts#L537-L541).
 
 With the information embedded in the artifacts, all that's left is to teach the runtime how to handle the server's response; this
 is broken down into two parts:
 
-1. When the cache encounters a request to [subscribe to a field marked as a list](./packages/houdini/runtime/cache/cache.ts#L192),
-   it [saves a handler to that list](./packages/houdini/runtime/cache/cache.ts#L199-L219) in an internal Map under the provided name.
-1. When writing data, if the cache [encounters a field with a list of operations](./packages/houdini/runtime/cache/cache.ts#L457)
-   embedded in the selection object, it [inserts the result](./packages/houdini/runtime/cache/cache.ts#L482-L484) in thelist
+1. When the cache encounters a request to [subscribe to a field marked as a list](./packages/houdini/runtime/cache/cache.ts#L217),
+   it saves a handler to that list in an internal Map under the provided name.
+1. When writing data, if the cache [encounters a field with a list of operations](./packages/houdini/runtime/cache/cache.ts#L515)
+   embedded in the selection object, it [inserts the result](./packages/houdini/runtime/cache/cache.ts#L540) in the list
    using the handler it stored in step one.
