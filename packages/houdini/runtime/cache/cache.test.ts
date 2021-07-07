@@ -2754,6 +2754,48 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	})
 })
 
+test('can pull enum from cached values', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache(config)
+
+	// the selection we are gonna write
+	const selection = {
+		node: {
+			type: 'Node',
+			keyRaw: 'node',
+			fields: {
+				enumValue: {
+					type: 'MyEnum',
+					keyRaw: 'enumValue',
+				},
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+			},
+		},
+	}
+
+	// save the data
+	const data = {
+		node: {
+			id: '1',
+			enumValue: 'Hello',
+		},
+	}
+
+	// write the data to cache
+	cache.write(selection, data, {})
+
+	// pull the data out of the cache
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		node: {
+			id: '1',
+			enumValue: 'Hello',
+		},
+	})
+})
+
 test.todo('inserting node creates back reference to list')
 
 test.todo('unsubscribe removes list handlers')
