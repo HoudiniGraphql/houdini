@@ -725,7 +725,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "insert",
-		                        "connection": "All_Users",
+		                        "list": "All_Users",
 		                        "position": "last"
 		                    }]
 		                }
@@ -811,7 +811,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "remove",
-		                        "connection": "All_Users"
+		                        "list": "All_Users"
 		                    }]
 		                }
 		            }
@@ -1048,7 +1048,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "insert",
-		                        "connection": "All_Users",
+		                        "list": "All_Users",
 		                        "position": "first",
 
 		                        "parentID": {
@@ -1145,7 +1145,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "insert",
-		                        "connection": "All_Users",
+		                        "list": "All_Users",
 		                        "position": "last",
 
 		                        "parentID": {
@@ -1242,7 +1242,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "insert",
-		                        "connection": "All_Users",
+		                        "list": "All_Users",
 		                        "position": "last",
 
 		                        "parentID": {
@@ -1339,7 +1339,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "insert",
-		                        "connection": "All_Users",
+		                        "list": "All_Users",
 		                        "position": "first",
 
 		                        "when": {
@@ -1437,7 +1437,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "insert",
-		                        "connection": "All_Users",
+		                        "list": "All_Users",
 		                        "position": "last",
 
 		                        "when": {
@@ -1535,7 +1535,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "insert",
-		                        "connection": "All_Users",
+		                        "list": "All_Users",
 		                        "position": "last",
 
 		                        "when": {
@@ -1633,7 +1633,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "insert",
-		                        "connection": "All_Users",
+		                        "list": "All_Users",
 		                        "position": "first",
 
 		                        "when": {
@@ -1731,7 +1731,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "insert",
-		                        "connection": "All_Users",
+		                        "list": "All_Users",
 		                        "position": "last",
 
 		                        "when": {
@@ -1748,7 +1748,7 @@ describe('mutation artifacts', function () {
 	`)
 	})
 
-	test('connection filters', async function () {
+	test('list filters', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
@@ -1815,7 +1815,7 @@ describe('mutation artifacts', function () {
 		                }
 		            },
 
-		            "connection": "All_Users",
+		            "list": "All_Users",
 
 		            "filters": {
 		                "stringValue": {
@@ -1933,7 +1933,7 @@ describe('mutation artifacts', function () {
 
 		                    "operations": [{
 		                        "action": "insert",
-		                        "connection": "All_Users",
+		                        "list": "All_Users",
 		                        "position": "last",
 
 		                        "when": {
@@ -1950,7 +1950,7 @@ describe('mutation artifacts', function () {
 	`)
 	})
 
-	test('tracks connection name', async function () {
+	test('tracks list name', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
 				'Mutation A',
@@ -2012,7 +2012,7 @@ describe('mutation artifacts', function () {
 		                }
 		            },
 
-		            "connection": "All_Users",
+		            "list": "All_Users",
 
 		            "filters": {
 		                "stringValue": {
@@ -2083,7 +2083,7 @@ describe('mutation artifacts', function () {
 		                }
 		            },
 
-		            "connection": "All_Users",
+		            "list": "All_Users",
 
 		            "filters": {
 		                "stringValue": {
@@ -2179,7 +2179,7 @@ describe('mutation artifacts', function () {
 		                }
 		            },
 
-		            "connection": "All_Users",
+		            "list": "All_Users",
 
 		            "filters": {
 		                "stringValue": {

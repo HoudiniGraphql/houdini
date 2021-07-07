@@ -77,11 +77,11 @@ const artifact: QueryArtifact = {
 						},
 					},
 
-					connection: 'All_Items',
+					list: 'All_Items',
 				},
 			},
 
-			connection: 'All_Items',
+			list: 'All_Items',
 		},
 	},
 	rootType: 'Query',
@@ -362,7 +362,7 @@ describe('unmarshal selection', function () {
 							},
 						},
 
-						connection: 'All_Items',
+						list: 'All_Items',
 					},
 				},
 			},

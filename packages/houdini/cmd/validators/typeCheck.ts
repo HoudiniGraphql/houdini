@@ -316,8 +316,16 @@ const validateLists = ({
 			Directive(node) {
 				const directiveName = node.name.value
 
+				// TODO: remove @connection guard
+				// if the user is using @connection, warn them it will be removed
+				if (directiveName === 'connection') {
+					console.log(
+						'@connection has been renamed to @list. Please update your code, the old name will be removed soon.'
+					)
+				}
+
 				// if the directive is not a list directive
-				if (!config.isInternalDirective(node)) {
+				if (!config.isInternalDirective(node) && directiveName !== 'connection') {
 					// look for the definition of the fragment
 					if (!config.schema.getDirective(directiveName)) {
 						ctx.reportError(

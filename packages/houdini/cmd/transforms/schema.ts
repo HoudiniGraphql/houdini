@@ -17,7 +17,7 @@ export default async function graphqlExtensions(
 			config.schema,
 			graphql.buildSchema(`
 
-			input HoudiniConnectionWhen {
+			input HoudiniListWhen {
 				argument: String
 				value: String
 			}
@@ -33,14 +33,14 @@ export default async function graphqlExtensions(
 			"""
 			directive @${config.listPrependDirective}(
 				${config.listDirectiveParentIDArg}: ID,
-				when: HoudiniConnectionWhen,
-				when_not: HoudiniConnectionWhen
+				when: HoudiniListWhen,
+				when_not: HoudiniListWhen
 			) on FRAGMENT_SPREAD
 
 			"""
 				@${config.listAppendDirective} is used to tell the runtime to add the result to the start of the list
 			"""
-			directive @${config.listAppendDirective}(${config.listDirectiveParentIDArg}: ID, when: HoudiniConnectionWhen, when_not: HoudiniConnectionWhen) on FRAGMENT_SPREAD
+			directive @${config.listAppendDirective}(${config.listDirectiveParentIDArg}: ID, when: HoudiniListWhen, when_not: HoudiniListWhen) on FRAGMENT_SPREAD
 
 			"""
 				@${config.listParentDirective} is used to provide a parentID without specifying position or in situations

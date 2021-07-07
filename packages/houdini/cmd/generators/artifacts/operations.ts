@@ -1,7 +1,7 @@
 // externals
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { Config, parentTypeFromAncestors } from 'houdini-common'
-import { ConnectionWhen, MutationOperation } from '../../../runtime'
+import { ListWhen, MutationOperation } from '../../../runtime'
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 
@@ -102,7 +102,7 @@ function operationObject({
 	// delete doesn't have a target
 	if (operationKind !== 'delete') {
 		operation.properties.push(
-			AST.objectProperty(AST.literal('connection'), AST.stringLiteral(listName))
+			AST.objectProperty(AST.literal('list'), AST.stringLiteral(listName))
 		)
 	}
 
@@ -173,7 +173,7 @@ type OperationInfo = {
 		value: string
 		kind: string
 	}
-	when?: ConnectionWhen
+	when?: ListWhen
 }
 
 function operationInfo(config: Config, selection: graphql.SelectionNode): OperationInfo {
@@ -318,7 +318,7 @@ function operationInfo(config: Config, selection: graphql.SelectionNode): Operat
 function filterAST(
 	filterTypes: FilterMap,
 	listName: string,
-	filter: ConnectionWhen['must']
+	filter: ListWhen['must']
 ): namedTypes.ObjectExpression {
 	if (!filter) {
 		return AST.objectExpression([])

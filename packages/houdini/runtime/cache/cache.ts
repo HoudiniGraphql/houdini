@@ -3,7 +3,7 @@ import type { Config } from 'houdini-common'
 // local imports
 import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../types'
 import { Record } from './record'
-import { ConnectionHandler } from './connection'
+import { ListHandler } from './list'
 import { isScalar } from '../scalars'
 
 // this class implements the cache that drives houdini queries
@@ -15,8 +15,8 @@ export class Cache {
 
 	// the map from entity id to record
 	private _data: Map<string | undefined, Record> = new Map()
-	// associate connection names with the handler that wraps the list
-	private _connections: Map<string, Map<string, ConnectionHandler>> = new Map()
+	// associate list names with the handler that wraps the list
+	private _lists: Map<string, Map<string, ListHandler>> = new Map()
 
 	// save the response in the local store and notify any subscribers
 	write(
@@ -73,13 +73,22 @@ export class Cache {
 		this.removeSubscribers(rootRecord, spec, spec.selection, variables)
 	}
 
-	// get the connection handler associated by name
-	connection(name: string, id?: string): ConnectionHandler {
+	// TODO: remove this on the next major version
+	// old applications might still use connection()
+	connection(name: string, id?: string): ListHandler {
+		console.warn(
+			'cache.connection is deprecated and will be removed soon. Please update your code to use cache.list instead'
+		)
+		return this.list(name, id)
+	}
+
+	// get the list handler associated by name
+	list(name: string, id?: string): ListHandler {
 		// make sure that the handler exists
-		const handler = this._connections.get(name)?.get(id || rootID)
+		const handler = this._lists.get(name)?.get(id || rootID)
 		if (!handler) {
 			throw new Error(
-				`Cannot find connection with name: ${name} under parent: ${id}. ` +
+				`Cannot find list with name: ${name} under parent: ${id}. ` +
 					'Is it possible that the query is not mounted?'
 			)
 		}
@@ -88,19 +97,19 @@ export class Cache {
 		return handler
 	}
 
-	// remove the record from every connection we know of and the cache itself
+	// remove the record from every list we know of and the cache itself
 	delete(id: string, variables: {} = {}): boolean {
 		const record = this.record(id)
 
 		// remove any related subscriptions
 		record.removeAllSubscribers()
 
-		for (const { name, parentID } of record.connections) {
-			// look up the connection
-			const connection = this.connection(name, parentID)
+		for (const { name, parentID } of record.lists) {
+			// look up the list
+			const list = this.list(name, parentID)
 
-			// remove the entity from the connection
-			connection.removeID(id, variables)
+			// remove the entity from the list
+			list.removeID(id, variables)
 		}
 
 		// remove the entry from the cache
@@ -200,7 +209,7 @@ export class Cache {
 		selection: SubscriptionSelection,
 		variables: { [key: string]: GraphQLValue }
 	) {
-		for (const { type, keyRaw, fields, connection, filters } of Object.values(selection)) {
+		for (const { type, keyRaw, fields, list, filters } of Object.values(selection)) {
 			const key = this.evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the field
@@ -213,22 +222,22 @@ export class Cache {
 				const linkedRecord = rootRecord.linkedRecord(key)
 				let children = linkedRecord ? [linkedRecord] : rootRecord.linkedList(key)
 
-				// if this field is marked as a connection, register it
-				if (connection && fields) {
-					// if we haven't seen this connection before
-					if (!this._connections.has(connection)) {
-						this._connections.set(connection, new Map())
+				// if this field is marked as a list, register it
+				if (list && fields) {
+					// if we haven't seen this list before
+					if (!this._lists.has(list)) {
+						this._lists.set(list, new Map())
 					}
 
-					// if we haven't already registered a handler to this connection in the cache
-					this._connections.get(connection)?.set(
+					// if we haven't already registered a handler to this list in the cache
+					this._lists.get(list)?.set(
 						spec.parentID || rootID,
-						new ConnectionHandler({
-							name: connection,
+						new ListHandler({
+							name: list,
 							parentID: spec.parentID,
 							cache: this,
 							record: rootRecord,
-							connectionType: type,
+							listType: type,
 							key,
 							selection: fields,
 							filters: Object.entries(filters || {}).reduce(
@@ -251,11 +260,11 @@ export class Cache {
 
 				// add the subscriber to every child
 				for (const child of children) {
-					// the children of a connection need the reference back
-					if (connection) {
-						// add the connection reference to record
-						child.addConnectionReference({
-							name: connection,
+					// the children of a list need the reference back
+					if (list) {
+						// add the list reference to record
+						child.addListReference({
+							name: list,
 							parentID: spec.parentID,
 						})
 					}
@@ -273,18 +282,18 @@ export class Cache {
 		selection: SubscriptionSelection,
 		variables: {}
 	) {
-		for (const { type, keyRaw, fields, connection } of Object.values(selection)) {
+		for (const { type, keyRaw, fields, list } of Object.values(selection)) {
 			// figure out the actual key
 			const key = this.evaluateKey(keyRaw, variables)
 
 			// remove the subscriber to the field
 			rootRecord.forgetSubscribers(spec)
 
-			// if this field is marked as a connection remove it from teh cache
-			if (connection) {
-				this._connections.delete(connection)
-				rootRecord.removeConnectionReference({
-					name: connection,
+			// if this field is marked as a list remove it from teh cache
+			if (list) {
+				this._lists.delete(list)
+				rootRecord.removeListReference({
+					name: list,
 					parentID: spec.parentID,
 				})
 			}
@@ -310,7 +319,7 @@ export class Cache {
 	}
 
 	private _write(
-		rootID: string, // the ID that anchors any connections
+		rootID: string, // the ID that anchors any lists
 		parentID: string, // the ID that can be used to build up the key for embedded data
 		selection: SubscriptionSelection,
 		recordID: string, // the ID of the record that we are updating in cache
@@ -338,7 +347,7 @@ export class Cache {
 				keyRaw,
 				fields,
 				operations,
-				connection,
+				list,
 				abstract: isAbstract,
 			} = selection[field]
 			const key = this.evaluateKey(keyRaw, variables)
@@ -452,18 +461,18 @@ export class Cache {
 					if (!oldIDs.includes(linkedID)) {
 						newIDs.push(linkedID)
 
-						if (connection) {
-							this.record(linkedID).addConnectionReference({
+						if (list) {
+							this.record(linkedID).addListReference({
 								parentID: rootID,
-								name: connection,
+								name: list,
 							})
 						}
 					}
 				}
 
 				// we have to notify the subscribers if a few things happen:
-				// either the data changed (ie we got new content for the same connection)
-				// or we got content for a new connection which could already be known. If we just look at
+				// either the data changed (ie we got new content for the same list)
+				// or we got content for a new list which could already be known. If we just look at
 				// wether the IDs are the same, situations where we have old data that
 				// is still valid would not be triggered
 				const contentChanged = JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)
@@ -529,28 +538,28 @@ export class Cache {
 					}
 				}
 
-				// only insert an object into a connection if we're adding an object with fields
+				// only insert an object into a list if we're adding an object with fields
 				if (
 					operation.action === 'insert' &&
 					value instanceof Object &&
 					!Array.isArray(value) &&
 					fields &&
-					operation.connection
+					operation.list
 				) {
-					this.connection(operation.connection, parentID)
+					this.list(operation.list, parentID)
 						.when(operation.when)
-						.addToConnection(fields, value, variables, operation.position || 'last')
+						.addToList(fields, value, variables, operation.position || 'last')
 				}
 
-				// only insert an object into a connection if we're adding an object with fields
+				// only insert an object into a list if we're adding an object with fields
 				else if (
 					operation.action === 'remove' &&
 					value instanceof Object &&
 					!Array.isArray(value) &&
 					fields &&
-					operation.connection
+					operation.list
 				) {
-					this.connection(operation.connection, parentID)
+					this.list(operation.list, parentID)
 						.when(operation.when)
 						.remove(value, variables)
 				}

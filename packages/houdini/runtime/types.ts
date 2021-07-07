@@ -86,21 +86,21 @@ export type TaggedGraphqlQuery = {
 
 type Filter = { [key: string]: string | boolean | number }
 
-export type ConnectionWhen = {
+export type ListWhen = {
 	must?: Filter
 	must_not?: Filter
 }
 
 export type MutationOperation = {
 	action: 'insert' | 'remove' | 'delete'
-	connection?: string
+	list?: string
 	type?: string
 	parentID?: {
 		kind: string
 		value: string
 	}
 	position?: 'first' | 'last'
-	when?: ConnectionWhen
+	when?: ListWhen
 }
 
 export const CompiledFragmentKind = 'HoudiniFragment'
@@ -128,7 +128,7 @@ export type SubscriptionSelection = {
 		type: string
 		keyRaw: string
 		operations?: MutationOperation[]
-		connection?: string
+		list?: string
 		filters?: {
 			[key: string]: {
 				kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'

@@ -24,8 +24,9 @@ export default async function addListFragments(
 	for (const { document, filename } of documents) {
 		graphql.visit(document, {
 			Directive(node, key, parent, path, ancestors) {
-				// if we found a @list applied
-				if (node.name.value === config.listDirective) {
+				// TODO: remove @connection guard
+				// if we found a @list applied (old applications will call this @connection)
+				if (node.name.value === config.listDirective || node.name.value === 'connection') {
 					// look up the name passed to the directive
 					const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
 

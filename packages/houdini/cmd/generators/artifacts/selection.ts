@@ -114,7 +114,7 @@ export default function selection({
 			if (nameArg && nameArg.value.kind === 'StringValue') {
 				list = nameArg.value.value
 				fieldObj.properties.push(
-					AST.objectProperty(AST.literal('connection'), AST.stringLiteral(list))
+					AST.objectProperty(AST.literal('list'), AST.stringLiteral(list))
 				)
 			}
 
@@ -261,7 +261,7 @@ function mergeSelections(
 						(prop) =>
 							prop.type === 'ObjectProperty' &&
 							prop.key.type === 'Literal' &&
-							prop.key.value === 'connection'
+							prop.key.value === 'list'
 						// @ts-ignore
 					)?.value.value
 			)
@@ -344,7 +344,7 @@ function mergeSelections(
 			// add the list field if its present
 			if (list) {
 				fieldObj.properties.push(
-					AST.objectProperty(AST.literal('connection'), AST.stringLiteral(list))
+					AST.objectProperty(AST.literal('list'), AST.stringLiteral(list))
 				)
 			}
 

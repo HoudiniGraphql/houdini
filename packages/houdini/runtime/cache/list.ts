@@ -1,15 +1,15 @@
 // local imports
-import { SubscriptionSelection, ConnectionWhen, SubscriptionSpec } from '../types'
+import { SubscriptionSelection, ListWhen, SubscriptionSpec } from '../types'
 import { Cache } from './cache'
 import { Record } from './record'
 
-export class ConnectionHandler {
+export class ListHandler {
 	readonly record: Record
 	readonly key: string
-	readonly connectionType: string
+	readonly listType: string
 	private cache: Cache
 	readonly selection: SubscriptionSelection
-	private _when?: ConnectionWhen
+	private _when?: ListWhen
 	private filters?: { [key: string]: number | boolean | string }
 	readonly name: string
 	readonly parentID: SubscriptionSpec['parentID']
@@ -19,7 +19,7 @@ export class ConnectionHandler {
 		cache,
 		record,
 		key,
-		connectionType,
+		listType,
 		selection,
 		when,
 		filters,
@@ -29,15 +29,15 @@ export class ConnectionHandler {
 		cache: Cache
 		record: Record
 		key: string
-		connectionType: string
+		listType: string
 		selection: SubscriptionSelection
-		when?: ConnectionWhen
-		filters?: ConnectionHandler['filters']
+		when?: ListWhen
+		filters?: ListHandler['filters']
 		parentID?: SubscriptionSpec['parentID']
 	}) {
 		this.record = record
 		this.key = key
-		this.connectionType = connectionType
+		this.listType = listType
 		this.cache = cache
 		this.selection = selection
 		this._when = when
@@ -46,13 +46,13 @@ export class ConnectionHandler {
 		this.parentID = parentID
 	}
 
-	// when applies a when condition to a new connection pointing to the same spot
-	when(when?: ConnectionWhen): ConnectionHandler {
-		return new ConnectionHandler({
+	// when applies a when condition to a new list pointing to the same spot
+	when(when?: ListWhen): ListHandler {
+		return new ListHandler({
 			cache: this.cache,
 			record: this.record,
 			key: this.key,
-			connectionType: this.connectionType,
+			listType: this.listType,
 			selection: this.selection,
 			when,
 			filters: this.filters,
@@ -62,14 +62,14 @@ export class ConnectionHandler {
 	}
 
 	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
-		return this.addToConnection(selection, data, variables, 'last')
+		return this.addToList(selection, data, variables, 'last')
 	}
 
 	prepend(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
-		return this.addToConnection(selection, data, variables, 'first')
+		return this.addToList(selection, data, variables, 'first')
 	}
 
-	addToConnection(
+	addToList(
 		selection: SubscriptionSelection,
 		data: {},
 		variables: {} = {},
@@ -80,7 +80,7 @@ export class ConnectionHandler {
 			return
 		}
 		// figure out the id of the type we are adding
-		const dataID = this.cache.id(this.connectionType, data)
+		const dataID = this.cache.id(this.listType, data)
 
 		// update the cache with the data we just found
 		this.cache.write(selection, data, variables, dataID)
@@ -93,7 +93,7 @@ export class ConnectionHandler {
 			this.record.appendLinkedList(this.key, dataID)
 		}
 
-		// get the list of specs that are subscribing to the connection
+		// get the list of specs that are subscribing to the list
 		const subscribers = this.record.getSubscribers(this.key)
 
 		// notify the subscribers we care about
@@ -102,14 +102,14 @@ export class ConnectionHandler {
 		// look up the new record in the cache
 		const newRecord = this.cache.internal.record(dataID)
 
-		// add the connection reference
-		newRecord.addConnectionReference({
+		// add the list reference
+		newRecord.addListReference({
 			parentID: this.parentID,
 			name: this.name,
 		})
 
-		// walk down the connection fields relative to the new record
-		// and make sure all of the connection's subscribers are listening
+		// walk down the list fields relative to the new record
+		// and make sure all of the list's subscribers are listening
 		// to that object
 		this.cache.internal.insertSubscribers(newRecord, this.selection, variables, ...subscribers)
 	}
@@ -123,13 +123,13 @@ export class ConnectionHandler {
 		// add the record we just created to the list
 		this.record.removeFromLinkedList(this.key, id)
 
-		// get the list of specs that are subscribing to the connection
+		// get the list of specs that are subscribing to the list
 		const subscribers = this.record.getSubscribers(this.key)
 
 		// notify the subscribers about the change
 		this.cache.internal.notifySubscribers(subscribers, variables)
 
-		// disconnect record from any subscriptions associated with the connection
+		// disconnect record from any subscriptions associated with the list
 		this.cache.internal.unsubscribeSelection(
 			this.cache.internal.record(id),
 			this.selection,
@@ -140,7 +140,7 @@ export class ConnectionHandler {
 
 	remove(data: {}, variables: {} = {}) {
 		// figure out the id of the type we are adding
-		this.removeID(this.cache.id(this.connectionType, data), variables)
+		this.removeID(this.cache.id(this.listType, data), variables)
 	}
 
 	private validateWhen() {
@@ -173,7 +173,7 @@ export class ConnectionHandler {
 		return ok
 	}
 
-	// iterating over the connection handler should be the same as iterating over
+	// iterating over the list handler should be the same as iterating over
 	// the underlying linked list
 	*[Symbol.iterator]() {
 		for (let record of this.record.linkedList(this.key)) {
