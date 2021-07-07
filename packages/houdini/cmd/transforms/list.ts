@@ -26,7 +26,7 @@ export default async function addListFragments(
 			Directive(node, key, parent, path, ancestors) {
 				// TODO: remove @connection guard
 				// if we found a @list applied (old applications will call this @connection)
-				if (node.name.value === config.listDirective || node.name.value === 'connection') {
+				if (node.name.value === config.listDirective) {
 					// look up the name passed to the directive
 					const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
 

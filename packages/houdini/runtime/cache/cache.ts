@@ -73,15 +73,6 @@ export class Cache {
 		this.removeSubscribers(rootRecord, spec, spec.selection, variables)
 	}
 
-	// TODO: remove this on the next major version
-	// old applications might still use connection()
-	connection(name: string, id?: string): ListHandler {
-		console.warn(
-			'cache.connection is deprecated and will be removed soon. Please update your code to use cache.list instead'
-		)
-		return this.list(name, id)
-	}
-
 	// get the list handler associated by name
 	list(name: string, id?: string): ListHandler {
 		// make sure that the handler exists
