@@ -164,7 +164,7 @@ function inlineFragmentArgs(
 
 					// remove the element from the list
 					const localDefinitions = [...doc.document.definitions]
-					localDefinitions.splice(definitionIndex)
+					localDefinitions.splice(definitionIndex, 1)
 					localDefinitions.push(
 						inlineFragmentArgs(
 							config,
