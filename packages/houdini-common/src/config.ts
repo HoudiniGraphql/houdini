@@ -295,6 +295,10 @@ export class Config {
 		return 'with'
 	}
 
+	get paginateDirective() {
+		return 'paginate'
+	}
+
 	isDeleteDirective(name: string) {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}
@@ -334,6 +338,7 @@ export class Config {
 				this.whenNotDirective,
 				this.argumentsDirective,
 				this.withDirective,
+				this.paginateDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}
@@ -423,6 +428,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
+				friendsByCursor(first: Int, cursor: String, after: Int): UserConnection
 				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
 				cats: [Cat!]!
@@ -448,6 +454,23 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 				entities: [Entity!]!
+			}
+
+			type PageInfo {
+				hasPreviousPage: Boolean!
+				hasNextPage: Boolean!
+				startCursor: String!
+				endCursor: String!
+			}
+
+			type UserEdge {
+				cursor: String!
+				node: User
+			}
+
+			type UserConnection {
+				pageInfo: PageInfo!
+				edges: [UserEdge]
 			}
 
 			interface Friend {
