@@ -478,13 +478,79 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-				fragment Foo on Query @arguments(name: { type: "String", default: true}) {
+				fragment FooA on Query @arguments(name: { type: "String", default: true}) {
 					users(stringValue: $name) { id }
 				}
 			`,
 			`
-				fragment Foo on Query @arguments(name: { type: "String", default: true}) {
+				fragment FooB on Query @arguments(name: { type: "String", default: true}) {
 					users(stringValue: $name) { id }
+				}
+			`,
+		],
+	},
+	{
+		title: 'cursor pagination requires first',
+		pass: false,
+		documents: [
+			`
+				fragment UserPaginatedA on User {
+					friendsByCursor @paginate { 
+						edges {
+							node {
+								id
+							}
+						}
+					}
+				}
+			`,
+			`
+				fragment UserPaginatedB on User {
+					friendsByCursor @paginate { 
+						edges { 
+							node { 
+								id
+							}
+						}	
+					}
+				}
+			`,
+			`
+				fragment UserPaginatedC on User {
+					friendsByCursor(first: 10) @paginate { 
+						edges {
+							node {
+								id
+							}
+						}
+					}
+				}
+			`,
+		],
+	},
+	{
+		title: 'offset pagination requires limit',
+		pass: false,
+		documents: [
+			`
+				fragment UserPaginatedA on User {
+					friendsByOffset @paginate { 
+						id
+					}
+				}
+			`,
+			`
+				fragment UserPaginatedB on User {
+					friendsByOffset @paginate { 
+						id
+					}
+				}
+			`,
+			`
+				fragment UserPaginatedC on User {
+					friendsByOffset(limit: 10) @paginate { 
+						id
+					}
 				}
 			`,
 		],

@@ -30,14 +30,10 @@ export default async function paginate(
 
 				const forwardPagination = !!parentType
 					.getFields()
-					[node.name.value].args.find(
-						(arg) => arg.name === 'first' || arg.name === 'after'
-					)
+					[node.name.value].args.find((arg) => arg.name === 'first')
 				const backwardPagination = !!parentType
 					.getFields()
-					[node.name.value].args.find(
-						(arg) => arg.name === 'first' || arg.name === 'before'
-					)
+					[node.name.value].args.find((arg) => arg.name === 'first')
 				const cursorPagination = forwardPagination || backwardPagination
 
 				// if the field supports cursor based pagination we need to make sure we have the
