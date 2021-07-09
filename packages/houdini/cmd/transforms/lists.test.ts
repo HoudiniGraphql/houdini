@@ -41,6 +41,7 @@ test('insert fragments on query selection set', async function () {
 		"mutation UpdateUser {
 		  updateUser {
 		    ...User_Friends_insert
+		    id
 		  }
 		}
 
@@ -87,6 +88,7 @@ test('delete fragments on query selection set', async function () {
 		"mutation UpdateUser {
 		  updateUser {
 		    ...User_Friends_remove
+		    id
 		  }
 		}
 
@@ -130,6 +132,7 @@ test('list fragments on fragment selection set', async function () {
 		"mutation UpdateUser {
 		  updateUser {
 		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
+		    id
 		  }
 		}
 
@@ -228,6 +231,7 @@ test('includes `id` in list fragment', async function () {
 		"mutation UpdateUser {
 		  updateUser {
 		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
+		    id
 		  }
 		}
 
