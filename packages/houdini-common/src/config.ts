@@ -429,6 +429,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				firstName: String!
 				friends: [User!]!
 				friendsByCursor(first: Int, cursor: String, after: Int): UserConnection
+				friendsByOffset(offset: Int, limit: Int): [User!]!
 				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
 				cats: [Cat!]!
