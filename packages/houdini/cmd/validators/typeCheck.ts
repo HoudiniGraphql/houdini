@@ -204,7 +204,9 @@ export default async function typeCheck(
 			// this replaces KnownArgumentNamesRule
 			knownArguments(config),
 			// validate any fragment arguments
-			fragmentArguments(config, fragments)
+			fragmentArguments(config, fragments),
+			// make sure there are pagination args
+			paginationArgs(config)
 		)
 
 	for (const { filename, document: parsed } of docs) {
@@ -572,6 +574,88 @@ function fragmentArguments(
 							)
 						}
 					}
+				}
+			},
+		}
+	}
+}
+
+function paginationArgs(config: Config) {
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		return {
+			Directive(node, _, __, ___, ancestors) {
+				// only consider pagination directives
+				if (node.name.value !== config.paginateDirective) {
+					return
+				}
+
+				// look at the field the directive is applied to
+				const targetFieldType = parentTypeFromAncestors(
+					config.schema,
+					ancestors.slice(0, -1)
+				)
+				const targetField = ancestors.slice(-1)[0] as graphql.FieldNode
+
+				// look at the possible args for the type to figure out if its a cursor-based
+				const { args: fieldArgs } = targetFieldType.getFields()[
+					targetField.name.value
+				] as graphql.GraphQLField<any, any>
+
+				const firstArg = fieldArgs.find(
+					(arg) =>
+						arg.name === 'first' && unwrapType(config, arg.type).type.name === 'Int'
+				)
+				const afterArg = fieldArgs.find(
+					(arg) =>
+						arg.name === 'after' && unwrapType(config, arg.type).type.name === 'String'
+				)
+				const beforeArg = fieldArgs.find(
+					(arg) =>
+						arg.name === 'before' && unwrapType(config, arg.type).type.name === 'String'
+				)
+
+				// a field with cursor based pagination must have the first arg and one of before or after
+				const cursorPagination = firstArg && (afterArg || beforeArg)
+
+				// if the field supports cursor based pagination, there must be a first argument applied
+				if (cursorPagination) {
+					const appliedFirstArg = targetField.arguments?.find(
+						(arg) => arg.name.value === 'first'
+					)
+
+					if (!appliedFirstArg) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								'A field with cursor-based pagination must have a first argument'
+							)
+						)
+					}
+
+					return
+				}
+
+				// a field with offset based paginate must have offset and limit args
+				const offsetPagination = fieldArgs.filter(
+					(arg) =>
+						(arg.name === 'offset' &&
+							unwrapType(config, arg.type).type.name === 'Int') ||
+						(arg.name === 'limit' && unwrapType(config, arg.type).type.name === 'Int')
+				)
+
+				if (offsetPagination) {
+					const appliedLimitArg = targetField.arguments?.find(
+						(arg) => arg.name.value === 'limit'
+					)
+
+					if (!appliedLimitArg) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								'A field with offset-based pagination must have a limit argument'
+							)
+						)
+					}
+
+					return
 				}
 			},
 		}
