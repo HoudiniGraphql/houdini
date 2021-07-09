@@ -45,10 +45,11 @@ export default async function addTypename(
 						node.selectionSet.selections.find(
 							(selection) =>
 								selection.kind === 'Field' &&
-								selection.alias === null &&
+								!selection.alias &&
 								selection.name.value === 'id'
 						)
 					) {
+						console.log('has id already')
 						return
 					}
 
