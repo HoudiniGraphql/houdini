@@ -23,26 +23,19 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	// @ts-ignore: typing esm/cjs interop is hard
 	const artifact: FragmentArtifact = fragment.artifact.default || fragment.artifact
 
-	// @ts-ignore
-	const config: Config = fragment.config.default || fragment.config
-
 	const queryVariables = getVariables()
 
 	// @ts-ignore: isn't properly typed yet to know if initialValue has the right values
 	const parentID = cache.id(artifact.rootType, initialValue)
 
-	// load the fragment data from the cache
-	const initialStoreValue = unmarshalSelection(config, artifact.selection, initialValue)
-
-	let subscriptionSpec: SubscriptionSpec | undefined
 	// wrap the result in a store we can use to keep this query up to date
-	const value = readable(initialStoreValue, (set) => {
+	const value = readable(initialValue, (set) => {
 		// if we couldn't compute the parent of the fragment
 		if (!parentID) {
 			return
 		}
 
-		subscriptionSpec = {
+		const subscriptionSpec = {
 			rootType: artifact.rootType,
 			selection: artifact.selection,
 			set,
@@ -52,11 +45,8 @@ export default function fragment<_Fragment extends Fragment<any>>(
 
 		// when the component mounts
 		onMount(() => {
-			// if there is an id we can anchor the cache off of
-			if (subscriptionSpec) {
-				// stay up to date
-				cache.subscribe(subscriptionSpec, queryVariables())
-			}
+			// stay up to date
+			cache.subscribe(subscriptionSpec, queryVariables())
 		})
 
 		// the function used to clean up the store

@@ -352,7 +352,6 @@ test('overlapping query and fragment nested selection', async function () {
 		fragment A on User {
 		  friends {
 		    id
-		    id
 		  }
 		}
 		\`,
@@ -2445,7 +2444,6 @@ test('operation inputs', async function () {
 
 		    raw: \`query TestQuery($id: ID, $filter: UserFilter, $filterList: [UserFilter!], $enumArg: MyEnum) {
 		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
-		    id
 		    id
 		  }
 		}
