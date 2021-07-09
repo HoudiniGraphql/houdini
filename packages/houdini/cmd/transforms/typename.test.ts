@@ -84,6 +84,7 @@ test('adds __typename on interface selection sets under an object', async functi
 		      }
 		      __typename
 		    }
+		    id
 		  }
 		}
 		"

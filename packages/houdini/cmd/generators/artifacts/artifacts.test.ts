@@ -129,6 +129,7 @@ test('selection includes fragments', async function () {
 		    raw: \`query TestQuery {
 		  user {
 		    ...TestFragment
+		    id
 		  }
 		}
 
@@ -148,6 +149,11 @@ test('selection includes fragments', async function () {
 		                "firstName": {
 		                    "type": "String",
 		                    "keyRaw": "firstName"
+		                },
+
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
 		                }
 		            }
 		        }
@@ -213,6 +219,7 @@ test('internal directives are scrubbed', async function () {
 		    raw: \`query TestQuery {
 		  user {
 		    ...A
+		    id
 		  }
 		}
 
@@ -232,6 +239,11 @@ test('internal directives are scrubbed', async function () {
 		                "firstName": {
 		                    "type": "String",
 		                    "keyRaw": "firstName"
+		                },
+
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
 		                }
 		            }
 		        }
@@ -267,6 +279,7 @@ test('overlapping query and fragment selection', async function () {
 		  user {
 		    firstName
 		    ...A
+		    id
 		  }
 		}
 
@@ -286,6 +299,11 @@ test('overlapping query and fragment selection', async function () {
 		                "firstName": {
 		                    "type": "String",
 		                    "keyRaw": "firstName"
+		                },
+
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
 		                }
 		            }
 		        }
@@ -324,8 +342,10 @@ test('overlapping query and fragment nested selection', async function () {
 		  user {
 		    friends {
 		      firstName
+		      id
 		    }
 		    ...A
+		    id
 		  }
 		}
 
@@ -359,6 +379,11 @@ test('overlapping query and fragment nested selection', async function () {
 		                            "keyRaw": "id"
 		                        }
 		                    }
+		                },
+
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
 		                }
 		            }
 		        }
@@ -413,6 +438,7 @@ test('selections with interfaces', async function () {
 		      id
 		      owner {
 		        firstName
+		        id
 		      }
 		    }
 		    ... on Ghost {
@@ -444,6 +470,11 @@ test('selections with interfaces', async function () {
 		                        "firstName": {
 		                            "type": "String",
 		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                },
@@ -512,6 +543,7 @@ test('selections with unions', async function () {
 		      id
 		      owner {
 		        firstName
+		        id
 		      }
 		    }
 		    ... on Ghost {
@@ -543,6 +575,11 @@ test('selections with unions', async function () {
 		                        "firstName": {
 		                            "type": "String",
 		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                },
@@ -613,6 +650,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      firstName
+		      id
 		    }
 		  }
 		}
@@ -634,6 +672,11 @@ describe('mutation artifacts', function () {
 		                        "firstName": {
 		                            "type": "String",
 		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
@@ -689,6 +732,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
+		      id
 		    }
 		  }
 		}
@@ -781,6 +825,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_remove
+		      id
 		    }
 		  }
 		}
@@ -1012,6 +1057,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
+		      id
 		    }
 		  }
 		}
@@ -1109,6 +1155,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
+		      id
 		    }
 		  }
 		}
@@ -1206,6 +1253,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
+		      id
 		    }
 		  }
 		}
@@ -1303,6 +1351,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
+		      id
 		    }
 		  }
 		}
@@ -1401,6 +1450,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
+		      id
 		    }
 		  }
 		}
@@ -1499,6 +1549,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
+		      id
 		    }
 		  }
 		}
@@ -1597,6 +1648,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
+		      id
 		    }
 		  }
 		}
@@ -1695,6 +1747,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
+		      id
 		    }
 		  }
 		}
@@ -1797,6 +1850,7 @@ describe('mutation artifacts', function () {
 		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
+		    id
 		  }
 		}
 		\`,
@@ -1812,6 +1866,11 @@ describe('mutation artifacts', function () {
 		                "firstName": {
 		                    "type": "String",
 		                    "keyRaw": "firstName"
+		                },
+
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
 		                }
 		            },
 
@@ -1897,6 +1956,7 @@ describe('mutation artifacts', function () {
 		  addFriend {
 		    friend {
 		      ...All_Users_insert
+		      id
 		    }
 		  }
 		}
@@ -1994,6 +2054,7 @@ describe('mutation artifacts', function () {
 		    raw: \`query TestQuery {
 		  users(stringValue: "foo") {
 		    firstName
+		    id
 		  }
 		}
 		\`,
@@ -2009,6 +2070,11 @@ describe('mutation artifacts', function () {
 		                "firstName": {
 		                    "type": "String",
 		                    "keyRaw": "firstName"
+		                },
+
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
 		                }
 		            },
 
@@ -2065,6 +2131,7 @@ describe('mutation artifacts', function () {
 		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
+		    id
 		  }
 		}
 		\`,
@@ -2080,6 +2147,11 @@ describe('mutation artifacts', function () {
 		                "firstName": {
 		                    "type": "String",
 		                    "keyRaw": "firstName"
+		                },
+
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
 		                }
 		            },
 
@@ -2161,6 +2233,7 @@ describe('mutation artifacts', function () {
 		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
+		    id
 		  }
 		}
 		\`,
@@ -2176,6 +2249,11 @@ describe('mutation artifacts', function () {
 		                "firstName": {
 		                    "type": "String",
 		                    "keyRaw": "firstName"
+		                },
+
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
 		                }
 		            },
 
@@ -2455,6 +2533,7 @@ describe('subscription artifacts', function () {
 		  newUser {
 		    user {
 		      firstName
+		      id
 		    }
 		  }
 		}
@@ -2476,6 +2555,11 @@ describe('subscription artifacts', function () {
 		                        "firstName": {
 		                            "type": "String",
 		                            "keyRaw": "firstName"
+		                        },
+
+		                        "id": {
+		                            "type": "ID",
+		                            "keyRaw": "id"
 		                        }
 		                    }
 		                }
