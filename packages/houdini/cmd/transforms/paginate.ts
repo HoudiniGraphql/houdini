@@ -45,6 +45,80 @@ export default async function paginate(
 				if (!cursorPagination) {
 					return
 				}
+
+				// if there's no selection set ignore the field
+				if (!node.selectionSet) {
+					return
+				}
+
+				return {
+					...node,
+					selectionSet: {
+						...node.selectionSet,
+						selections: [
+							...node.selectionSet.selections,
+							{
+								kind: 'Field',
+								name: {
+									kind: 'Name',
+									value: 'edges',
+								},
+								selectionSet: {
+									kind: 'SelectionSet',
+									selections: [
+										{
+											kind: 'Field',
+											name: {
+												kind: 'Name',
+												value: 'cursor',
+											},
+										},
+									],
+								},
+							},
+							{
+								kind: 'Field',
+								name: {
+									kind: 'Name',
+									value: 'pageInfo',
+								},
+								selectionSet: {
+									kind: 'SelectionSet',
+									selections: [
+										{
+											kind: 'Field',
+											name: {
+												kind: 'Name',
+												value: 'hasPreviousPage',
+											},
+										},
+										{
+											kind: 'Field',
+											name: {
+												kind: 'Name',
+												value: 'hasNextPage',
+											},
+										},
+										{
+											kind: 'Field',
+											name: {
+												kind: 'Name',
+												value: 'startCursor',
+											},
+										},
+										{
+											kind: 'Field',
+											name: {
+												kind: 'Name',
+												value: 'endCursor',
+											},
+										},
+									],
+								},
+							},
+						],
+					},
+				} as graphql.FieldNode
 			},
 		})
 	}

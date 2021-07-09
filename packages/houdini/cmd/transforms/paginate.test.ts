@@ -11,7 +11,7 @@ import '../../../../jest.setup'
 import { runPipeline } from '../generate'
 import { mockCollectedDoc } from '../testUtils'
 
-test('adds page info to cursor pagination', async function () {
+test('adds pagination info', async function () {
 	const docs = [
 		mockCollectedDoc(
 			'TestPaginationFields',
@@ -34,61 +34,54 @@ test('adds page info to cursor pagination', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
-	expect(queryContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
-		parser: typeScriptParser,
-	}).program
-	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports = {
-		    name: "TestPaginationFields",
-		    kind: "HoudiniFragment",
-
-		    raw: \`fragment UserFriends on User {
-		  friendsByCursor(first: 10) {
+	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
+		"fragment UserFriends on User {
+		  friendsByCursor(first: 10) @paginate {
 		    edges {
 		      node {
 		        id
 		      }
 		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
 		  }
 		}
-		\`,
+		"
+	`)
+})
 
-		    rootType: "User",
+test("doesn't add pagination info to offset pagination", async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestPaginationFields',
+			`
+                fragment UserFriends on User {
+                    friendsByOffset(limit: 10) @paginate {
+						id
+                    }
+                }
+			`
+		),
+	]
 
-		    selection: {
-		        "friendsByCursor": {
-		            "type": "UserConnection",
-		            "keyRaw": "friendsByCursor(first: 10)",
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
 
-		            "fields": {
-		                "edges": {
-		                    "type": "UserEdge",
-		                    "keyRaw": "edges",
-
-		                    "fields": {
-		                        "node": {
-		                            "type": "User",
-		                            "keyRaw": "node",
-
-		                            "fields": {
-		                                "id": {
-		                                    "type": "ID",
-		                                    "keyRaw": "id"
-		                                }
-		                            }
-		                        }
-		                    }
-		                }
-		            }
-		        }
-		    }
-		};
+	// load the contents of the file
+	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
+		"fragment UserFriends on User {
+		  friendsByOffset(limit: 10) @paginate {
+		    id
+		  }
+		}
+		"
 	`)
 })
