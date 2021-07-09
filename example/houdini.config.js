@@ -11,7 +11,6 @@ export default {
 				return val.getTime()
 			},
 			unmarshal(val) {
-				console.log('unmarshaling', val)
 				return new Date(val)
 			},
 		},
