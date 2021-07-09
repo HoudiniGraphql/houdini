@@ -49,7 +49,6 @@ export default async function addTypename(
 								selection.name.value === 'id'
 						)
 					) {
-						console.log('has id already')
 						return
 					}
 
