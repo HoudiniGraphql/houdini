@@ -38,12 +38,18 @@ export class Cache {
 	}
 
 	// returns the global id of the specified field (used to access the record in the cache)
-	id(type: string, data: { id?: string } | null): string
+	id(type: string, data: { id?: string } | null): string | null
 	// this is like id but it trusts the value used for the id and just joins it with the
 	// type to form the global id
-	id(type: string, id: string): string
-	id(type: string, data: any): string {
-		return type + ':' + (typeof data === 'string' ? data : this.computeID(data))
+	id(type: string, id: string): string | null
+	id(type: string, data: any): string | null {
+		// try to compute the id of the record
+		const id = typeof data === 'string' ? data : this.computeID(data)
+		if (!id) {
+			return null
+		}
+
+		return type + ':' + id
 	}
 
 	idFields(type: string): string[] {
@@ -376,7 +382,7 @@ export class Cache {
 				const linkedID = !embedded ? this.id(linkedType, value) : `${parentID}.${key}`
 
 				// if we are now linked to a new object we need to record the new value
-				if (oldID !== linkedID) {
+				if (linkedID && oldID !== linkedID) {
 					// record the updated value
 					record.writeRecordLink(key, linkedID)
 
@@ -390,8 +396,11 @@ export class Cache {
 					specs.push(...subscribers)
 				}
 
-				// update the linked fields too
-				this._write(rootID, recordID, fields, linkedID, value, variables, specs)
+				// only update the data if there is an id for the record
+				if (linkedID) {
+					// update the linked fields too
+					this._write(rootID, recordID, fields, linkedID, value, variables, specs)
+				}
 			}
 
 			// the value could be a list
@@ -438,6 +447,11 @@ export class Cache {
 					const linkedID = !embedded
 						? this.id(innerType, entry)
 						: `${parentID}.${key}[${i}]`
+
+					// if we couldn't compute the id, just move on
+					if (!linkedID) {
+						continue
+					}
 
 					// update the linked fields too
 					this._write(rootID, recordID, fields, linkedID, entry, variables, specs)
@@ -557,7 +571,12 @@ export class Cache {
 						throw new Error('Cannot delete a record with a non-string ID')
 					}
 
-					this.delete(this.id(operation.type, value), variables)
+					const targetID = this.id(operation.type, value)
+					if (!targetID) {
+						continue
+					}
+
+					this.delete(targetID, variables)
 				}
 			}
 		}

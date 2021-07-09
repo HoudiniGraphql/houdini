@@ -75,12 +75,13 @@ export class ListHandler {
 		variables: {} = {},
 		where: 'first' | 'last'
 	) {
-		// if there are conditions for this operation
-		if (!this.validateWhen()) {
-			return
-		}
 		// figure out the id of the type we are adding
 		const dataID = this.cache.id(this.listType, data)
+
+		// if there are conditions for this operation
+		if (!this.validateWhen() || !dataID) {
+			return
+		}
 
 		// update the cache with the data we just found
 		this.cache.write(selection, data, variables, dataID)
@@ -139,8 +140,13 @@ export class ListHandler {
 	}
 
 	remove(data: {}, variables: {} = {}) {
+		const targetID = this.cache.id(this.listType, data)
+		if (!targetID) {
+			return
+		}
+
 		// figure out the id of the type we are adding
-		this.removeID(this.cache.id(this.listType, data), variables)
+		this.removeID(targetID, variables)
 	}
 
 	private validateWhen() {
