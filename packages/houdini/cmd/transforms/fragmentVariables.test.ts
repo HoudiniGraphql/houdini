@@ -123,11 +123,11 @@ test("nullable arguments with no values don't show up in the query", async funct
 		    kind: "HoudiniQuery",
 
 		    raw: \`query AllUsers {
-		  ...QueryFragment_10b3uv
+		  ...QueryFragment
 		}
 
-		fragment QueryFragment_10b3uv on Query {
-		  users(stringValue: "Hello") {
+		fragment QueryFragment on Query {
+		  users {
 		    id
 		  }
 		}
@@ -138,7 +138,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		    selection: {
 		        "users": {
 		            "type": "User",
-		            "keyRaw": "users(stringValue: \\"Hello\\")",
+		            "keyRaw": "users",
 
 		            "fields": {
 		                "id": {

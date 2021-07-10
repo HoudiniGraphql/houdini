@@ -445,9 +445,16 @@ fragment UserAvatar on User @arguments(width: {type:"Int", default: 50}) {
 }
 ```
 
-An argument with no default value is considered required. If no value is provided,
-an error will be thrown when generating your runtime. Providing values for fragments
-is done with the `@with` decorator:
+In order to mark an argument as required, pass the type with a `!` at the end.
+If no value is provided, an error will be thrown when generating your runtime.
+
+```graphql
+fragment UserAvatar on User @arguments(width: {type:"Int!"}) {
+    profilePicture(width: $width)
+}
+```
+
+Providing values for fragments is done with the `@with` decorator:
 
 ```graphql
 query AllUsers {
