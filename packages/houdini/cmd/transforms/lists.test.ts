@@ -35,8 +35,8 @@ test('insert fragments on query selection set', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"mutation UpdateUser {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
 		  updateUser {
 		    ...User_Friends_insert
 		    id
@@ -47,7 +47,7 @@ test('insert fragments on query selection set', async function () {
 		  firstName
 		  id
 		}
-		"
+
 	`)
 })
 
@@ -80,8 +80,8 @@ test('delete fragments on query selection set', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"mutation UpdateUser {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
 		  updateUser {
 		    ...User_Friends_remove
 		    id
@@ -91,7 +91,7 @@ test('delete fragments on query selection set', async function () {
 		fragment User_Friends_remove on User {
 		  id
 		}
-		"
+
 	`)
 })
 
@@ -122,8 +122,8 @@ test('list fragments on fragment selection set', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"mutation UpdateUser {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
 		  updateUser {
 		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
 		    id
@@ -134,7 +134,7 @@ test('list fragments on fragment selection set', async function () {
 		  firstName
 		  id
 		}
-		"
+
 	`)
 })
 
@@ -239,8 +239,8 @@ test('includes `id` in list fragment', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"mutation UpdateUser {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
 		  updateUser {
 		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
 		    id
@@ -251,7 +251,7 @@ test('includes `id` in list fragment', async function () {
 		  id
 		  firstName
 		}
-		"
+
 	`)
 })
 
