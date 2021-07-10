@@ -457,6 +457,10 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 				entities: [Entity!]!
+				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection
+				usersByBackwardsCursor(last: Int, before: String): UserConnection
+				usersByForwardsCursor(first: Int, after: String): UserConnection
+				usersByOffset(offset: Int, limit: Int): [User!]!
 			}
 
 			type PageInfo {
