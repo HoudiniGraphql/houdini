@@ -19,6 +19,9 @@ export default async function typeCheck(
 	// wrap the errors we run into in a HoudiniError
 	const errors: HoudiniError[] = []
 
+	// verify the node interface (if it exists)
+	verifyNodeInterface(config)
+
 	// we need to catch errors in the list API. this means that a user
 	// must provide parentID if they are using a list that is not all-objects
 	// from root. figure out which lists are "free" (ie, can be applied without a parentID arg)
@@ -202,6 +205,8 @@ export default async function typeCheck(
 				listTypes,
 				fragments,
 			}),
+			// pagination directive can only show up on nodes or the query type
+			nodeDirectives(config, [config.paginateDirective]),
 			// this replaces KnownArgumentNamesRule
 			knownArguments(config),
 			// validate any fragment arguments
@@ -674,35 +679,70 @@ function paginationArgs(config: Config) {
 function nodeDirectives(config: Config, directives: string[]) {
 	const queryType = config.schema.getQueryType()
 
+	let possibleNodes = [queryType?.name || '']
+	// check if there's a node interface
+	const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
+	if (nodeInterface) {
+		const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
+		possibleNodes.push(
+			...objects.map((object) => object.name),
+			...interfaces.map((object) => object.name),
+			'Node'
+		)
+	}
+
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		// if there is no node
 		return {
 			Directive(node, _, __, ___, ancestors) {
-				// only look at refetchables
-				if (node.name.value !== config.refetchableDirective) {
+				// only look at the rarget directives
+				if (!directives.includes(node.name.value)) {
 					return
 				}
 
-				// we know that this is applied to a fragment definition
-				const {
-					typeCondition: {
-						name: { value: targetName },
-					},
-				} = ancestors.slice(-1)[0] as graphql.FragmentDefinitionNode
+				// in order to look up field type information we have to start at the parent
+				// and work our way down
+				// note:  the top-most parent is always gonna be a document so we ignore it
+				let parents = [...ancestors] as (
+					| graphql.FieldNode
+					| graphql.InlineFragmentNode
+					| graphql.FragmentDefinitionNode
+					| graphql.OperationDefinitionNode
+					| graphql.SelectionSetNode
+				)[]
+				parents.shift()
 
-				// check if there's a node interface
-				const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
-				const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
-				const possibleNodes = [
-					...objects.map((object) => object.name),
-					...interfaces.map((object) => object.name),
-				].concat('Node', queryType?.name || '')
+				// the first meaningful parent is a definition of some kind
+				let definition = parents.shift() as
+					| graphql.FragmentDefinitionNode
+					| graphql.OperationDefinitionNode
+				while (Array.isArray(definition) && definition) {
+					// @ts-ignore
+					definition = parents.shift()
+				}
+
+				// if the definition points to an operation, it must point to a query
+				let definitionType = ''
+				if (definition.kind === 'OperationDefinition') {
+					// if the definition is for something other than a query
+					if (definition.operation !== 'query') {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								`@${node.name.value} must fall on a fragment or query document`
+							)
+						)
+						return
+					}
+					definitionType = config.schema.getQueryType()?.name || ''
+				} else if (definition.kind === 'FragmentDefinition') {
+					definitionType = definition.typeCondition.name.value
+				}
 
 				// if the fragment is not on the query type or an implementor of node
-				if (!possibleNodes.includes(targetName)) {
+				if (!possibleNodes.includes(definitionType)) {
 					ctx.reportError(
 						new graphql.GraphQLError(
-							'@refetchable must be applied to the query type or Node'
+							`@${node.name.value} must be applied to the query type or Node.`
 						)
 					)
 				}

@@ -22,6 +22,7 @@ const config = testConfig({
 			users: [User]
 			nodes: [Node!]!
 			entities: [Entity]
+			node(id: ID!): Node
 		}
 
 		type Mutation { 
