@@ -131,11 +131,16 @@ export default async function paginate(
 		// if we saw the paginate directive we need to add arguments to the fragment
 		if (paginated) {
 			let fragmentName = ''
+			// check if we have to embed the fragment in Node
+			let nodeQuery = false
 
 			// add the arguments directive if it doesn't exist
 			doc.document = graphql.visit(doc.document, {
 				FragmentDefinition(node) {
 					fragmentName = node.name.value
+
+					// a fragment has to be embedded in Node if its not on the query type
+					nodeQuery = node.typeCondition.name.value !== config.schema.getQueryType()?.name
 
 					// look at the fragment definition for an arguments directive
 					const argDirective = node.directives?.find(
@@ -207,6 +212,26 @@ export default async function paginate(
 				},
 			})
 
+			const fragmentSpreadSelection = [
+				{
+					kind: 'FragmentSpread',
+					name: {
+						kind: 'Name',
+						value: fragmentName,
+					},
+					directives: [
+						{
+							kind: 'Directive',
+							name: {
+								kind: 'Name',
+								value: config.withDirective,
+							},
+							arguments: paginationArgs.map(({ name }) => variableAsArgument(name)),
+						},
+					],
+				},
+			] as graphql.SelectionNode[]
+
 			const queryDoc: graphql.DocumentNode = {
 				kind: 'Document',
 				definitions: [
@@ -217,57 +242,94 @@ export default async function paginate(
 							value: fragmentName + '_Houdini_Paginate',
 						},
 						operation: 'query',
-						variableDefinitions: paginationArgs.map(
-							(arg) =>
-								({
-									kind: 'VariableDefinition',
-									type: {
-										kind: 'NamedType',
-										name: {
-											kind: 'Name',
-											value: arg.type,
-										},
-									},
-									variable: {
-										kind: 'Variable',
-										name: {
-											kind: 'Name',
-											value: arg.name,
-										},
-									},
-									defaultValue: !existingPaginationArgs[arg.name]
-										? undefined
-										: {
-												kind: (arg.type + 'Value') as
-													| 'IntValue'
-													| 'StringValue',
-												value: existingPaginationArgs[arg.name],
-										  },
-								} as graphql.VariableDefinitionNode)
-						),
-						selectionSet: {
-							kind: 'SelectionSet',
-							selections: [
-								{
-									kind: 'FragmentSpread',
-									name: {
-										kind: 'Name',
-										value: fragmentName,
-									},
-									directives: [
-										{
-											kind: 'Directive',
+						variableDefinitions: paginationArgs
+							.map(
+								(arg) =>
+									({
+										kind: 'VariableDefinition',
+										type: {
+											kind: 'NamedType',
 											name: {
 												kind: 'Name',
-												value: config.withDirective,
+												value: arg.type,
 											},
-											arguments: paginationArgs.map(({ name }) =>
-												variableAsArgument(name)
-											),
 										},
-									],
-								},
-							],
+										variable: {
+											kind: 'Variable',
+											name: {
+												kind: 'Name',
+												value: arg.name,
+											},
+										},
+										defaultValue: !existingPaginationArgs[arg.name]
+											? undefined
+											: {
+													kind: (arg.type + 'Value') as
+														| 'IntValue'
+														| 'StringValue',
+													value: existingPaginationArgs[arg.name],
+											  },
+									} as graphql.VariableDefinitionNode)
+							)
+							.concat(
+								!nodeQuery
+									? []
+									: [
+											{
+												kind: 'VariableDefinition',
+												type: {
+													kind: 'NonNullType',
+													type: {
+														kind: 'NamedType',
+														name: {
+															kind: 'Name',
+															value: 'ID',
+														},
+													},
+												},
+												variable: {
+													kind: 'Variable',
+													name: {
+														kind: 'Name',
+														value: 'id',
+													},
+												},
+											},
+									  ]
+							),
+						selectionSet: {
+							kind: 'SelectionSet',
+							selections: !nodeQuery
+								? fragmentSpreadSelection
+								: [
+										{
+											kind: 'Field',
+											name: {
+												kind: 'Name',
+												value: 'node',
+											},
+											arguments: [
+												{
+													kind: 'Argument',
+													name: {
+														kind: 'Name',
+														value: 'id',
+													},
+													value: {
+														kind: 'Variable',
+														name: {
+															kind: 'Name',
+															value: 'id',
+														},
+													},
+												},
+											],
+											selectionSet: {
+												kind: 'SelectionSet',
+												selections: fragmentSpreadSelection,
+											},
+										},
+								  ],
 						},
 					},
 				],
