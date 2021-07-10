@@ -424,7 +424,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 		filepath: path.join(process.cwd(), 'config.cjs'),
 		sourceGlob: '123',
 		schema: `
-			type User {
+			type User implements Node {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
@@ -444,7 +444,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				friends: [Ghost!]!
 			}
 
-			type Cat implements Friend {
+			type Cat implements Friend & Node {
 				id: ID!
 				name: String!
 				owner: User!
@@ -461,6 +461,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				usersByBackwardsCursor(last: Int, before: String): UserConnection
 				usersByForwardsCursor(first: Int, after: String): UserConnection
 				usersByOffset(offset: Int, limit: Int): [User!]!
+				node(id: ID!): Node
 			}
 
 			type PageInfo {
@@ -521,6 +522,10 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 
 			type CatMutationOutput {
 				cat: Cat
+			}
+
+			interface  Node { 
+				id: ID!
 			}
 		`,
 		framework: 'sapper',
