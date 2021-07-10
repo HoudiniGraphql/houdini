@@ -309,3 +309,53 @@ test('sets before with default value', async function () {
 
 	`)
 })
+
+test('embeds pagination query as a separate document', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestPaginationFields',
+			`
+                fragment UserFriends on User {
+                    friendsByForwardsCursor(first: 10) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[1]?.document).toMatchInlineSnapshot(`
+		query UserFriends_Houdini_Paginate($first: Int, $after: String) {
+		  ...UserFriends_jrGTj @with(first: $first, after: $after)
+		}
+
+		fragment UserFriends_jrGTj on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+		  friendsByForwardsCursor(first: $first, after: $after) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+
+	`)
+})
