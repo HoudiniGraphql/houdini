@@ -37,7 +37,7 @@ export default async function paginate(
 
 		// we need to add page info to the selection
 		doc.document = graphql.visit(doc.document, {
-			Field(node, _, parent, ___, ancestors) {
+			Field(node, _, __, ___, ancestors) {
 				// if there's no paginate directive, ignore the field
 				const paginateDirective = node.directives?.find(
 					(directive) => directive.name.value === config.paginateDirective
