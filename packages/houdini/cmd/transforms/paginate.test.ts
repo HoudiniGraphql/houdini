@@ -269,3 +269,49 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 
 	`)
 })
+
+test('sets before with default value', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestPaginationFields',
+			`
+                fragment UserFriends on User {
+                    friendsByCursor(last: 10, before: "asdf") @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment UserFriends on User @arguments(last: {type: "Int", default: 10}, before: {type: "String", default: "asdf"}) {
+		  friendsByCursor(last: $last, before: $before) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+
+	`)
+})

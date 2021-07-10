@@ -18,9 +18,15 @@ export default async function paginate(
 		let forwardPagination = false
 		let backwardsPagination = false
 		let offsetPagination = false
+
 		let first: number = 0
+		let after: string = ''
+
 		let last: number = 0
+		let before: string = ''
+
 		let limit: number = 0
+		let offset: number = 0
 
 		// we need to add page info to the selection
 		doc.document = graphql.visit(doc.document, {
@@ -58,9 +64,7 @@ export default async function paginate(
 						.length === 2
 
 				// we need to replace the hard coded first and last arguments with variables
-				let nodeArguments = [...(node.arguments || [])]
-
-				for (const [i, argument] of (node.arguments || []).entries()) {
+				let nodeArguments = [...(node.arguments || [])].map((argument, i) => {
 					// if we found the first argument
 					if (argument.name.value === 'first') {
 						// disable backwards pagination
@@ -69,11 +73,8 @@ export default async function paginate(
 						// store the value so we can set a default
 						first = parseInt((argument.value as graphql.IntValueNode).value)
 
-						// remove the index and add a variable in its place
-						nodeArguments.splice(i, 1)
-
-						// add the variable in its place
-						nodeArguments.push({
+						// turn the field into a variable
+						return {
 							kind: 'Argument',
 							name: {
 								kind: 'Name',
@@ -86,22 +87,18 @@ export default async function paginate(
 									value: 'first',
 								},
 							},
-						})
-
-						// stop looking for args
-						break
-					} else if (argument.name.value === 'last') {
+						}
+					}
+					// process and hoist the last argument
+					else if (argument.name.value === 'last') {
 						// disable forward pagination
 						forwardPagination = false
 
 						// store the value so we can set a default
 						last = parseInt((argument.value as graphql.IntValueNode).value)
 
-						// remove the index and add a variable in its place
-						nodeArguments.splice(i, 1)
-
 						// add the variable in its place
-						nodeArguments.push({
+						return {
 							kind: 'Argument',
 							name: {
 								kind: 'Name',
@@ -114,22 +111,19 @@ export default async function paginate(
 									value: 'last',
 								},
 							},
-						})
-
-						// stop looking for args
-						break
-					} else if (argument.name.value === 'limit') {
-						// disable forward pagination
+						}
+					}
+					// process and hoist the limit arg
+					else if (argument.name.value === 'limit') {
+						// disable both pagination flags
 						forwardPagination = false
+						backwardsPagination = false
 
 						// store the value so we can set a default
 						limit = parseInt((argument.value as graphql.IntValueNode).value)
 
-						// remove the index and add a variable in its place
-						nodeArguments.splice(i, 1)
-
 						// add the variable in its place
-						nodeArguments.push({
+						return {
 							kind: 'Argument',
 							name: {
 								kind: 'Name',
@@ -142,12 +136,72 @@ export default async function paginate(
 									value: 'limit',
 								},
 							},
-						})
-
-						// stop looking for args
-						break
+						}
 					}
-				}
+					// process and hoist the before arg
+					else if (argument.name.value === 'before') {
+						// store the value so we can set a default
+						before = (argument.value as graphql.StringValueNode).value
+
+						// add the variable in its place
+						return {
+							kind: 'Argument',
+							name: {
+								kind: 'Name',
+								value: 'before',
+							},
+							value: {
+								kind: 'Variable',
+								name: {
+									kind: 'Name',
+									value: 'before',
+								},
+							},
+						}
+					}
+					// process and hoist the after arg
+					else if (argument.name.value === 'after') {
+						// store the value so we can set a default
+						after = (argument.value as graphql.StringValueNode).value
+
+						// add the variable in its place
+						return {
+							kind: 'Argument',
+							name: {
+								kind: 'Name',
+								value: 'after',
+							},
+							value: {
+								kind: 'Variable',
+								name: {
+									kind: 'Name',
+									value: 'after',
+								},
+							},
+						}
+					}
+					// process and hoist the offset arg
+					else if (argument.name.value === 'offset') {
+						// store the value so we can set a default
+						offset = parseInt((argument.value as graphql.IntValueNode).value)
+
+						// add the variable in its place
+						return {
+							kind: 'Argument',
+							name: {
+								kind: 'Name',
+								value: 'offset',
+							},
+							value: {
+								kind: 'Variable',
+								name: {
+									kind: 'Name',
+									value: 'offset',
+								},
+							},
+						}
+					}
+				})
 
 				// if the field supports cursor based pagination we need to make sure we have the
 				// page info field
@@ -275,7 +329,7 @@ export default async function paginate(
 					// if the field supports offset pagination
 					if (offsetPagination) {
 						newArgs = argumentsList({
-							offset: ['Int'],
+							offset: ['Int', offset],
 							limit: ['Int', limit],
 						})
 					}
@@ -286,7 +340,7 @@ export default async function paginate(
 							newArgs.push(
 								...argumentsList({
 									first: ['Int', first],
-									after: ['String'],
+									after: ['String', after],
 								})
 							)
 						}
@@ -296,7 +350,7 @@ export default async function paginate(
 							newArgs.push(
 								...argumentsList({
 									last: ['Int', last],
-									before: ['String'],
+									before: ['String', before],
 								})
 							)
 						}
@@ -313,7 +367,9 @@ export default async function paginate(
 	}
 }
 
-function argumentsList(source: Record<string, [string, number?]>): graphql.ArgumentNode[] {
+function argumentsList(
+	source: Record<string, [string, number | string | undefined]>
+): graphql.ArgumentNode[] {
 	return Object.entries(source).map(([name, value]) => ({
 		kind: 'Argument',
 		name: {
@@ -324,7 +380,10 @@ function argumentsList(source: Record<string, [string, number?]>): graphql.Argum
 	}))
 }
 
-function objectNode([type, defaultValue]: [string, number?]): graphql.ObjectValueNode {
+function objectNode([type, defaultValue]: [
+	string,
+	number | string | undefined
+]): graphql.ObjectValueNode {
 	const node = {
 		kind: 'ObjectValue' as 'ObjectValue',
 		fields: [
@@ -347,7 +406,10 @@ function objectNode([type, defaultValue]: [string, number?]): graphql.ObjectValu
 		node.fields.push({
 			kind: 'ObjectField',
 			name: { kind: 'Name', value: 'default' } as graphql.NameNode,
-			value: { kind: 'IntValue', value: defaultValue.toString() },
+			value: {
+				kind: typeof defaultValue === 'number' ? 'IntValue' : 'StringValue',
+				value: defaultValue.toString(),
+			},
 		} as graphql.ObjectFieldNode)
 	}
 
