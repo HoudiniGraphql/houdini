@@ -15,7 +15,7 @@ import { CollectedGraphQLDocument } from '../types'
 //   add the necessary arguments to the field, referencing variables that will be inject
 // - if the @paginate directive was found, add the @arguments directive to the fragment
 //   definition and use any fields that were previously set as the default value. that
-//   make let the fragment arguments directive inline the default values if one isn't
+//   causes the fragment arguments directive to inline the default values if one isn't
 //   given, preserving the original definition for the first query
 // - generate the query with the fragment embedded using @with to pass query variables through
 
@@ -49,25 +49,19 @@ export default async function paginate(
 				// remember we saw this directive
 				paginated = true
 
-				// look for the parent type
-				const parentType = parentTypeFromAncestors(
-					config.schema,
-					ancestors
-				) as graphql.GraphQLObjectType
+				// loop over the args of the field once so we can check their existence
+				const args = new Set(
+					(parentTypeFromAncestors(config.schema, ancestors) as
+						| graphql.GraphQLObjectType
+						| graphql.GraphQLInterfaceType)
+						.getFields()
+						[node.name.value].args.map((arg) => arg.name)
+				)
 
-				const { args: fieldArgs } = parentType.getFields()[node.name.value]
-
-				forwardPagination =
-					fieldArgs.filter((arg) => arg.name === 'first' || arg.name === 'after')
-						.length === 2
-				backwardsPagination =
-					fieldArgs.filter((arg) => arg.name === 'last' || arg.name === 'before')
-						.length === 2
-
-				// while we're here see if we support offset
-				offsetPagination =
-					fieldArgs.filter((arg) => arg.name === 'offset' || arg.name === 'limit')
-						.length === 2
+				// figure out what kind of pagination we support
+				forwardPagination = args.has('first') && args.has('after')
+				backwardsPagination = args.has('last') && args.has('before')
+				offsetPagination = args.has('offset') && args.has('limit')
 
 				let { arguments: nodeArguments, values } = replaceArgumentsWithVariables(
 					node.arguments,
