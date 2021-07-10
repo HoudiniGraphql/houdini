@@ -96,6 +96,25 @@ function inlineFragmentArgs(
 	newName?: string
 ): any {
 	const result = graphql.visit(document, {
+		Argument(node) {
+			// look at the arguments value to see if its a variable
+			const value = node.value
+			if (value.kind !== 'Variable') {
+				return
+			}
+
+			// if there's no scope we can't evaluate it
+			if (!scope) {
+				throw new Error(
+					node.name.value +
+						' is not defined in the current scope: ' +
+						JSON.stringify(scope)
+				)
+			}
+
+			// is the variable in scope
+			const newValue = scope[value.name.value]
+		},
 		Variable(node) {
 			// if there is no scope
 			if (!scope) {
@@ -230,10 +249,17 @@ export function withArguments(
 	return withDirectives.flatMap((directive) => directive.arguments || [])
 }
 
+export type FragmentArgument = {
+	name: string
+	type: string
+	required: boolean
+	defaultValue: graphql.ValueNode | null
+}
+
 export function fragmentArguments(
 	config: Config,
 	definition: graphql.FragmentDefinitionNode
-): graphql.ArgumentNode[] {
+): FragmentArgument[] {
 	const directives = definition.directives?.filter(
 		(directive) => directive.name.value === config.argumentsDirective
 	)
@@ -242,8 +268,46 @@ export function fragmentArguments(
 		return []
 	}
 
-	let result: ValueMap = {}
-	return directives.flatMap((directive) => directive.arguments || [])
+	return directives.flatMap(
+		(directive) =>
+			// every argument to the directive specifies an argument to the fragment
+			directive.arguments?.flatMap((arg) => {
+				// arguments must be object
+				if (arg.value.kind !== 'ObjectValue') {
+					throw new Error('values of @argument must be objects')
+				}
+
+				// look for the type field
+				const typeArg = arg.value.fields?.find((arg) => arg.name.value === 'type')?.value
+				// if theres no type arg, ignore it
+				if (!typeArg || typeArg.kind !== 'StringValue') {
+					return []
+				}
+
+				let type = typeArg.value
+				let name = arg.name.value
+				let required = false
+				let defaultValue =
+					arg.value.fields?.find((arg) => arg.name.value === 'default')?.value || null
+
+				// if the name of the type ends in a ! we need to mark it as required
+				if (type[type.length - 1] === '!') {
+					type = type.slice(0, -1)
+					required = true
+					// there is no default value for a required argument
+					defaultValue = null
+				}
+
+				return [
+					{
+						name,
+						type,
+						required,
+						defaultValue,
+					},
+				]
+			}) || []
+	)
 }
 
 function collectDefaultArgumentValues(
@@ -251,16 +315,13 @@ function collectDefaultArgumentValues(
 	definition: graphql.FragmentDefinitionNode
 ): ValueMap | null {
 	let result: ValueMap = {}
-	for (const arg of fragmentArguments(config, definition)) {
-		// look up the default value key
-		let argObject = arg.value as graphql.ObjectValueNode
-
-		// if there is no default value, dont consider this argument
-		const defaultValue = argObject.fields.find((field) => field.name.value === 'default')?.value
-		if (!defaultValue) {
+	for (const { name, required, defaultValue } of fragmentArguments(config, definition)) {
+		// if the argument is required, there's no default value
+		if (required || !defaultValue) {
 			continue
 		}
-		result[arg.name.value] = defaultValue
+
+		result[name] = defaultValue
 	}
 
 	return result

@@ -22,6 +22,78 @@ test('pass argument values to generated fragments', async function () {
 		mockCollectedDoc(
 			`
 				fragment QueryFragment on Query 
+                @arguments(name: {type: "String!"} ) {
+                    users(stringValue: $name) { 
+                        id
+                    }
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+
+		    raw: \`query AllUsers {
+		  ...QueryFragment_10b3uv
+		}
+
+		fragment QueryFragment_10b3uv on Query {
+		  users(stringValue: "Hello") {
+		    id
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        "users": {
+		            "type": "User",
+		            "keyRaw": "users(stringValue: \\"Hello\\")",
+
+		            "fields": {
+		                "id": {
+		                    "type": "ID",
+		                    "keyRaw": "id"
+		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test("nullable arguments with no values don't show up in the query", async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestQuery',
+			`
+				query AllUsers {
+                    ...QueryFragment
+				}
+			`
+		),
+		mockCollectedDoc(
+			'QueryFragment',
+			`
+				fragment QueryFragment on Query 
                 @arguments(name: {type: "String"} ) {
                     users(stringValue: $name) { 
                         id

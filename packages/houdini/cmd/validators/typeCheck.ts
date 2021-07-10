@@ -4,6 +4,7 @@ import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 import {
+	FragmentArgument,
 	fragmentArguments as collectFragmentArguments,
 	withArguments,
 } from '../transforms/fragmentVariables'
@@ -393,7 +394,7 @@ function fragmentArguments(
 	// map fragment name to the list of all the args
 	const fragmentArgumentNames: Record<string, string[]> = {}
 	// map fragment names to the argument nodes
-	const fragmentArguments: Record<string, graphql.ArgumentNode[]> = {}
+	const fragmentArguments: Record<string, FragmentArgument[]> = {}
 
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		return {
@@ -468,19 +469,20 @@ function fragmentArguments(
 
 				// if we haven't computed the required arguments for the fragment, do it now
 				if (!requiredArgs[fragmentName]) {
-					// look up the arguments for the fragment
-					const args = collectFragmentArguments(config, fragments[fragmentName])
+					let args: FragmentArgument[]
+					try {
+						// look up the arguments for the fragment
+						args = collectFragmentArguments(config, fragments[fragmentName])
+					} catch (e) {
+						ctx.reportError(new graphql.GraphQLError((e as Error).message))
+						return
+					}
 
 					fragmentArguments[fragmentName] = args
 					requiredArgs[fragmentName] = args
-						.filter(
-							(arg) =>
-								arg.value.kind === 'ObjectValue' &&
-								// any arg without a default value key in its body is required
-								!arg.value.fields.find((field) => field.name.value === 'default')
-						)
-						.map((arg) => arg.name.value)
-					fragmentArgumentNames[fragmentName] = args.map((arg) => arg.name.value)
+						.filter((arg) => arg.required)
+						.map((arg) => arg.name)
+					fragmentArgumentNames[fragmentName] = args.map((arg) => arg.name)
 				}
 
 				// get the arguments applied through with
@@ -508,6 +510,7 @@ function fragmentArguments(
 								JSON.stringify(missing)
 						)
 					)
+					return
 				}
 
 				// look for any args that we don't recognize
@@ -526,12 +529,10 @@ function fragmentArguments(
 					// zip together the provided argument with the one in the fragment definition
 					const zipped: [
 						graphql.ArgumentNode,
-						graphql.ArgumentNode
+						string
 					][] = appliedArgumentNames.map((name) => [
 						appliedArguments[name],
-						fragmentArguments[fragmentName].find(
-							(arg) => arg.name.value === name
-						) as graphql.ArgumentNode,
+						fragmentArguments[fragmentName].find((arg) => arg.name === name)!.type,
 					])
 
 					for (const [applied, target] of zipped) {
@@ -551,25 +552,11 @@ function fragmentArguments(
 							applied.value.kind.length - 'Value'.length
 						)
 
-						// find the type argument
-						const typeField = (target.value as graphql.ObjectValueNode).fields.find(
-							(field) => field.name.value === 'type'
-						)?.value
-						if (typeField?.kind !== 'StringValue') {
-							ctx.reportError(
-								new graphql.GraphQLError(
-									'type field of @arguments must be a string'
-								)
-							)
-							return
-						}
-						const targetType = typeField.value
-
 						// if the two don't match up, its not a valid argument type
-						if (appliedType !== targetType) {
+						if (appliedType !== target) {
 							ctx.reportError(
 								new graphql.GraphQLError(
-									`Invalid argument type. Expected ${targetType}, found ${appliedType}`
+									`Invalid argument type. Expected ${target}, found ${appliedType}`
 								)
 							)
 						}
