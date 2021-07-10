@@ -584,36 +584,56 @@ function paginationArgs(config: Config) {
 				const targetField = ancestors.slice(-1)[0] as graphql.FieldNode
 
 				// look at the possible args for the type to figure out if its a cursor-based
-				const { args: fieldArgs } = targetFieldType.getFields()[
+				const type = targetFieldType.getFields()[
 					targetField.name.value
 				] as graphql.GraphQLField<any, any>
 
-				const firstArg = fieldArgs.find(
-					(arg) =>
-						arg.name === 'first' && unwrapType(config, arg.type).type.name === 'Int'
-				)
-				const afterArg = fieldArgs.find(
-					(arg) =>
-						arg.name === 'after' && unwrapType(config, arg.type).type.name === 'String'
-				)
-				const beforeArg = fieldArgs.find(
-					(arg) =>
-						arg.name === 'before' && unwrapType(config, arg.type).type.name === 'String'
-				)
+				// if the type doesn't exist, don't do anything someone else will pick up the error
+				if (!type) {
+					return
+				}
+
+				const fieldArgs = type.args
+
+				const forwardPagination =
+					fieldArgs.filter((arg) => {
+						// look at the type of the arg
+						const {
+							type: { name: type },
+						} = unwrapType(config, arg.type)
+
+						return (
+							(arg.name === 'first' && type === 'Int') ||
+							(arg.name === 'after' && type === 'String')
+						)
+					}).length === 2
+
+				const backwardsPagination =
+					fieldArgs.filter((arg) => {
+						// look at the type of the arg
+						const {
+							type: { name: type },
+						} = unwrapType(config, arg.type)
+
+						return (
+							(arg.name === 'last' && type === 'Int') ||
+							(arg.name === 'before' && type === 'String')
+						)
+					}).length === 2
 
 				// a field with cursor based pagination must have the first arg and one of before or after
-				const cursorPagination = firstArg && (afterArg || beforeArg)
+				const cursorPagination = forwardPagination || backwardsPagination
 
 				// if the field supports cursor based pagination, there must be a first argument applied
 				if (cursorPagination) {
-					const appliedFirstArg = targetField.arguments?.find(
-						(arg) => arg.name.value === 'first'
+					const appliedCursorArg = targetField.arguments?.find(
+						(arg) => arg.name.value === 'first' || arg.name.value === 'last'
 					)
 
-					if (!appliedFirstArg) {
+					if (!appliedCursorArg) {
 						ctx.reportError(
 							new graphql.GraphQLError(
-								'A field with cursor-based pagination must have a first argument'
+								'A field with cursor-based pagination must have a first or last argument'
 							)
 						)
 					}
