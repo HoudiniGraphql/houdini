@@ -670,3 +670,97 @@ function paginationArgs(config: Config) {
 		}
 	}
 }
+
+function nodeDirectives(config: Config, directives: string[]) {
+	const queryType = config.schema.getQueryType()
+
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		// if there is no node
+		return {
+			Directive(node, _, __, ___, ancestors) {
+				// only look at refetchables
+				if (node.name.value !== config.refetchableDirective) {
+					return
+				}
+
+				// we know that this is applied to a fragment definition
+				const {
+					typeCondition: {
+						name: { value: targetName },
+					},
+				} = ancestors.slice(-1)[0] as graphql.FragmentDefinitionNode
+
+				// check if there's a node interface
+				const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
+				const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
+				const possibleNodes = [
+					...objects.map((object) => object.name),
+					...interfaces.map((object) => object.name),
+				].concat('Node', queryType?.name || '')
+
+				// if the fragment is not on the query type or an implementor of node
+				if (!possibleNodes.includes(targetName)) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							'@refetchable must be applied to the query type or Node'
+						)
+					)
+				}
+			},
+		}
+	}
+}
+
+function verifyNodeInterface(config: Config) {
+	const { schema } = config
+
+	// look for Node
+	const nodeInterface = schema.getType('Node')
+
+	// if there is no node interface don't do anything else
+	if (!nodeInterface) {
+		return
+	}
+
+	// make sure its an interface
+	if (!graphql.isInterfaceType(nodeInterface)) {
+		throw new Error('Node must be an interface')
+	}
+
+	// look for a field on the query type to look up a node by id
+	const queryType = schema.getQueryType()
+	if (!queryType) {
+		throw new Error('There must be a query type if you define a Node interface')
+	}
+
+	// look for a node field
+	const nodeField = queryType.getFields()['node']
+	if (!nodeField) {
+		throw new Error('There must be a node field if you define a Node interface')
+	}
+
+	// there needs to be an arg on the field called id
+	const args = nodeField.args
+	if (args.length === 0) {
+		throw new Error('The node field must have args')
+	}
+
+	// look for the id arg
+	const idArg = args.find((arg) => arg.name === 'id')
+	if (!idArg) {
+		throw new Error('The node field must have an id argument')
+	}
+
+	// make sure that the id arg takes an ID
+	const idType = unwrapType(config, idArg.type)
+	// make sure its an ID
+	if (idType.type.name !== 'ID') {
+		throw new Error('The id arg of the node field must be an ID')
+	}
+
+	// make sure that the node field returns a Node
+	const fieldReturnType = unwrapType(config, nodeField.type)
+	if (fieldReturnType.type.name !== 'Node') {
+		throw new Error('The node field must return a Node')
+	}
+}
