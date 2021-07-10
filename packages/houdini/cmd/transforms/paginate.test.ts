@@ -334,7 +334,7 @@ test('embeds pagination query as a separate document', async function () {
 
 	// load the contents of the file
 	expect(docs[1]?.document).toMatchInlineSnapshot(`
-		query UserFriends_Houdini_Paginate($first: Int, $after: String) {
+		query UserFriends_Houdini_Paginate($first: Int = 10, $after: String) {
 		  ...UserFriends_jrGTj @with(first: $first, after: $after)
 		}
 

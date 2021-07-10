@@ -217,23 +217,34 @@ export default async function paginate(
 							value: fragmentName + '_Houdini_Paginate',
 						},
 						operation: 'query',
-						variableDefinitions: paginationArgs.map((arg) => ({
-							kind: 'VariableDefinition',
-							type: {
-								kind: 'NamedType',
-								name: {
-									kind: 'Name',
-									value: arg.type,
-								},
-							},
-							variable: {
-								kind: 'Variable',
-								name: {
-									kind: 'Name',
-									value: arg.name,
-								},
-							},
-						})),
+						variableDefinitions: paginationArgs.map(
+							(arg) =>
+								({
+									kind: 'VariableDefinition',
+									type: {
+										kind: 'NamedType',
+										name: {
+											kind: 'Name',
+											value: arg.type,
+										},
+									},
+									variable: {
+										kind: 'Variable',
+										name: {
+											kind: 'Name',
+											value: arg.name,
+										},
+									},
+									defaultValue: !existingPaginationArgs[arg.name]
+										? undefined
+										: {
+												kind: (arg.type + 'Value') as
+													| 'IntValue'
+													| 'StringValue',
+												value: existingPaginationArgs[arg.name],
+										  },
+								} as graphql.VariableDefinitionNode)
+						),
 						selectionSet: {
 							kind: 'SelectionSet',
 							selections: [
