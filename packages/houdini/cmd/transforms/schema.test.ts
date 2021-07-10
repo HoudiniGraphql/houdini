@@ -131,6 +131,6 @@ describe('schema transform', function () {
 	]
 
 	for (const row of table) {
-		pipelineTest(row.title, row.documents, row.pass, null)
+		pipelineTest(row.title, row.documents, row.pass)
 	}
 })

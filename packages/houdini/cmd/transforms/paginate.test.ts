@@ -78,7 +78,7 @@ test("doesn't add pagination info to offset pagination", async function () {
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		fragment UserFriends on User @arguments(offset: {type: "Int"}, limit: {type: "Int", default: 10}) {
-		  friendsByOffset(limit: $limit) @paginate {
+		  friendsByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
 		  }
 		}
@@ -203,7 +203,7 @@ test('paginate adds forwards cursor args to the fragment', async function () {
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		fragment UserFriends on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  friendsByForwardsCursor(first: $first) @paginate {
+		  friendsByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -249,7 +249,7 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		fragment UserFriends on User @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
-		  friendsByBackwardsCursor(last: $last) @paginate {
+		  friendsByBackwardsCursor(last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -276,7 +276,7 @@ test('sets before with default value', async function () {
 			'TestPaginationFields',
 			`
                 fragment UserFriends on User {
-                    friendsByCursor(last: 10, before: "asdf") @paginate {
+                    friendsByCursor(last: 10, before: "cursor") @paginate {
                         edges {
                             node {
                                 id
@@ -294,7 +294,7 @@ test('sets before with default value', async function () {
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on User @arguments(last: {type: "Int", default: 10}, before: {type: "String", default: "asdf"}) {
+		fragment UserFriends on User @arguments(last: {type: "Int", default: 10}, before: {type: "String", default: "cursor"}) {
 		  friendsByCursor(last: $last, before: $before) @paginate {
 		    edges {
 		      node {
