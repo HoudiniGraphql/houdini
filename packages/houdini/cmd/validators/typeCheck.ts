@@ -635,12 +635,14 @@ function paginationArgs(config: Config) {
 				}
 
 				// a field with offset based paginate must have offset and limit args
-				const offsetPagination = fieldArgs.filter(
-					(arg) =>
-						(arg.name === 'offset' &&
-							unwrapType(config, arg.type).type.name === 'Int') ||
-						(arg.name === 'limit' && unwrapType(config, arg.type).type.name === 'Int')
-				)
+				const offsetPagination =
+					fieldArgs.filter(
+						(arg) =>
+							(arg.name === 'offset' &&
+								unwrapType(config, arg.type).type.name === 'Int') ||
+							(arg.name === 'limit' &&
+								unwrapType(config, arg.type).type.name === 'Int')
+					).length === 2
 
 				if (offsetPagination) {
 					const appliedLimitArg = targetField.arguments?.find(

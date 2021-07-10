@@ -415,7 +415,7 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-				fragment Foo on Query @arguments(name: { type: "String"}) {
+				fragment Foo on Query @arguments(name: { type: "String!" }) {
 					users(stringValue: $name) { id }
 				}
 			`,
@@ -436,7 +436,7 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-				fragment Foo on Query @arguments(name: { type: "String"}) {
+				fragment Foo on Query @arguments(name: { type: "String" }) {
 					users(stringValue: $name) { id }
 				}
 			`,
@@ -457,7 +457,7 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-				fragment Foo on Query @arguments(name: { type: "String"}) {
+				fragment Foo on Query @arguments(name: { type: "String" }) {
 					users(stringValue: $name) { id }
 				}
 			`,
@@ -494,7 +494,7 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-				fragment UserPaginatedA on User {
+				fragment UserCursorPaginatedA on User {
 					friendsByCursor @paginate { 
 						edges {
 							node {
@@ -505,7 +505,7 @@ const table: Row[] = [
 				}
 			`,
 			`
-				fragment UserPaginatedB on User {
+				fragment UserCursorPaginatedB on User {
 					friendsByCursor @paginate { 
 						edges { 
 							node { 
@@ -516,7 +516,7 @@ const table: Row[] = [
 				}
 			`,
 			`
-				fragment UserPaginatedC on User {
+				fragment UserCursorPaginatedC on User {
 					friendsByCursor(first: 10) @paginate { 
 						edges {
 							node {
