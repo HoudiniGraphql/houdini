@@ -10,8 +10,8 @@ test('adds pagination info to full', async function () {
 		mockCollectedDoc(
 			'TestPaginationFields',
 			`
-                fragment UserFriends on User {
-                    friendsByCursor(first: 10) @paginate {
+                fragment UserFriends on Query {
+                    usersByCursor(first: 10) @paginate {
                         edges {
                             node {
                                 id
@@ -21,6 +21,14 @@ test('adds pagination info to full', async function () {
                 }
 			`
 		),
+		mockCollectedDoc(
+			'ClearArgumentsQuery',
+			`
+				query ClearArgumentsQuery {
+					...UserFriends
+				}
+			`
+		),
 	]
 
 	// run the pipeline
@@ -28,13 +36,28 @@ test('adds pagination info to full', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[1].document).toMatchInlineSnapshot(`
-		query UserFriends_Houdini_Paginate($first: Int = 10, $after: String) {
-		  ...UserFriends_jrGTj @with(first: $first, after: $after)
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+		  usersByCursor(first: 10) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
 		}
 
-		fragment UserFriends_jrGTj on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  friendsByCursor(first: $first, after: $after) @paginate {
+		fragment UserFriends_jrGTj on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+		  usersByCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -60,11 +83,19 @@ test("doesn't add pagination info to offset pagination", async function () {
 		mockCollectedDoc(
 			'TestPaginationFields',
 			`
-                fragment UserFriends on User {
-                    friendsByOffset(limit: 10) @paginate {
+                fragment UserFriends on Query {
+                    usersByOffset(limit: 10) @paginate {
 						id
                     }
                 }
+			`
+		),
+		mockCollectedDoc(
+			'ClearArgumentsQuery',
+			`
+				query ClearArgumentsQuery {
+					...UserFriends
+				}
 			`
 		),
 	]
@@ -74,13 +105,15 @@ test("doesn't add pagination info to offset pagination", async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[1].document).toMatchInlineSnapshot(`
-		query UserFriends_Houdini_Paginate($limit: Int = 10, $offset: Int) {
-		  ...UserFriends_1ZUIJ1 @with(limit: $limit, offset: $offset)
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment UserFriends on Query @arguments(offset: {type: "Int"}, limit: {type: "Int", default: 10}) {
+		  usersByOffset(limit: 10) @paginate {
+		    id
+		  }
 		}
 
-		fragment UserFriends_1ZUIJ1 on User @arguments(offset: {type: "Int"}, limit: {type: "Int", default: 10}) {
-		  friendsByOffset(limit: $limit, offset: $offset) @paginate {
+		fragment UserFriends_1ZUIJ1 on Query @arguments(offset: {type: "Int"}, limit: {type: "Int", default: 10}) {
+		  usersByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
 		  }
 		}
@@ -93,8 +126,8 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 		mockCollectedDoc(
 			'TestPaginationFields',
 			`
-                fragment UserFriends on User {
-                    friendsByCursor(first: 10) @paginate {
+                fragment UserFriends on Query {
+                    usersByCursor(first: 10) @paginate {
                         edges {
                             node {
                                 id
@@ -104,6 +137,14 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
                 }
 			`
 		),
+		mockCollectedDoc(
+			'ClearArgumentsQuery',
+			`
+				query ClearArgumentsQuery {
+					...UserFriends
+				}
+			`
+		),
 	]
 
 	// run the pipeline
@@ -111,13 +152,28 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[1].document).toMatchInlineSnapshot(`
-		query UserFriends_Houdini_Paginate($first: Int = 10, $after: String) {
-		  ...UserFriends_jrGTj @with(first: $first, after: $after)
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+		  usersByCursor(first: 10) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
 		}
 
-		fragment UserFriends_jrGTj on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  friendsByCursor(first: $first, after: $after) @paginate {
+		fragment UserFriends_jrGTj on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+		  usersByCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -143,8 +199,8 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 		mockCollectedDoc(
 			'TestPaginationFields',
 			`
-                fragment UserFriends on User {
-                    friendsByCursor(last: 10) @paginate {
+                fragment UserFriends on Query {
+                    usersByCursor(last: 10) @paginate {
                         edges {
                             node {
                                 id
@@ -154,6 +210,14 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
                 }
 			`
 		),
+		mockCollectedDoc(
+			'ClearArgumentsQuery',
+			`
+				query ClearArgumentsQuery {
+					...UserFriends
+				}
+			`
+		),
 	]
 
 	// run the pipeline
@@ -161,13 +225,28 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[1].document).toMatchInlineSnapshot(`
-		query UserFriends_Houdini_Paginate($last: Int = 10, $before: String) {
-		  ...UserFriends_41Q4zu @with(last: $last, before: $before)
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment UserFriends on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
+		  usersByCursor(last: 10) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
 		}
 
-		fragment UserFriends_41Q4zu on User @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
-		  friendsByCursor(last: $last, before: $before) @paginate {
+		fragment UserFriends_41Q4zu on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
+		  usersByCursor(last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -193,8 +272,8 @@ test('paginate adds forwards cursor args to the fragment', async function () {
 		mockCollectedDoc(
 			'TestPaginationFields',
 			`
-                fragment UserFriends on User {
-                    friendsByForwardsCursor(first: 10) @paginate {
+                fragment UserFriends on Query {
+                    usersByForwardsCursor(first: 10) @paginate {
                         edges {
                             node {
                                 id
@@ -204,6 +283,14 @@ test('paginate adds forwards cursor args to the fragment', async function () {
                 }
 			`
 		),
+		mockCollectedDoc(
+			'ClearArgumentsQuery',
+			`
+				query ClearArgumentsQuery {
+					...UserFriends
+				}
+			`
+		),
 	]
 
 	// run the pipeline
@@ -211,13 +298,28 @@ test('paginate adds forwards cursor args to the fragment', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[1].document).toMatchInlineSnapshot(`
-		query UserFriends_Houdini_Paginate($first: Int = 10, $after: String) {
-		  ...UserFriends_jrGTj @with(first: $first, after: $after)
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment UserFriends on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+		  usersByForwardsCursor(first: 10) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
 		}
 
-		fragment UserFriends_jrGTj on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  friendsByForwardsCursor(first: $first, after: $after) @paginate {
+		fragment UserFriends_jrGTj on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+		  usersByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -243,8 +345,8 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 		mockCollectedDoc(
 			'TestPaginationFields',
 			`
-                fragment UserFriends on User {
-                    friendsByBackwardsCursor(last: 10) @paginate {
+                fragment UserFriends on Query {
+                    usersByBackwardsCursor(last: 10) @paginate {
                         edges {
                             node {
                                 id
@@ -254,6 +356,14 @@ test('paginate adds backwards cursor args to the fragment', async function () {
                 }
 			`
 		),
+		mockCollectedDoc(
+			'ClearArgumentsQuery',
+			`
+				query ClearArgumentsQuery {
+					...UserFriends
+				}
+			`
+		),
 	]
 
 	// run the pipeline
@@ -261,13 +371,28 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[1].document).toMatchInlineSnapshot(`
-		query UserFriends_Houdini_Paginate($last: Int = 10, $before: String) {
-		  ...UserFriends_41Q4zu @with(last: $last, before: $before)
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment UserFriends on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
+		  usersByBackwardsCursor(last: 10) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
 		}
 
-		fragment UserFriends_41Q4zu on User @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
-		  friendsByBackwardsCursor(last: $last, before: $before) @paginate {
+		fragment UserFriends_41Q4zu on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
+		  usersByBackwardsCursor(last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -293,8 +418,8 @@ test('sets before with default value', async function () {
 		mockCollectedDoc(
 			'TestPaginationFields',
 			`
-                fragment UserFriends on User {
-                    friendsByCursor(last: 10, before: "cursor") @paginate {
+                fragment UserFriends on Query {
+                    usersByCursor(last: 10, before: "cursor") @paginate {
                         edges {
                             node {
                                 id
@@ -304,6 +429,14 @@ test('sets before with default value', async function () {
                 }
 			`
 		),
+		mockCollectedDoc(
+			'ClearArgumentsQuery',
+			`
+				query ClearArgumentsQuery {
+					...UserFriends
+				}
+			`
+		),
 	]
 
 	// run the pipeline
@@ -311,13 +444,28 @@ test('sets before with default value', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[1].document).toMatchInlineSnapshot(`
-		query UserFriends_Houdini_Paginate($last: Int = 10, $before: String = "cursor") {
-		  ...UserFriends_41Q4zu @with(last: $last, before: $before)
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment UserFriends on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String", default: "cursor"}) {
+		  usersByCursor(last: 10, before: "cursor") @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
 		}
 
-		fragment UserFriends_41Q4zu on User @arguments(last: {type: "Int", default: 10}, before: {type: "String", default: "cursor"}) {
-		  friendsByCursor(last: $last, before: $before) @paginate {
+		fragment UserFriends_41Q4zu on Query @arguments(last: {type: "Int", default: 10}, before: {type: "String", default: "cursor"}) {
+		  usersByCursor(last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
@@ -343,8 +491,8 @@ test('embeds pagination query as a separate document', async function () {
 		mockCollectedDoc(
 			'TestPaginationFields',
 			`
-                fragment UserFriends on User {
-                    friendsByForwardsCursor(first: 10) @paginate {
+                fragment UserFriends on Query {
+                    usersByForwardsCursor(first: 10) @paginate {
                         edges {
                             node {
                                 id
@@ -366,8 +514,8 @@ test('embeds pagination query as a separate document', async function () {
 		  ...UserFriends_jrGTj @with(first: $first, after: $after)
 		}
 
-		fragment UserFriends_jrGTj on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  friendsByForwardsCursor(first: $first, after: $after) @paginate {
+		fragment UserFriends_jrGTj on Query @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+		  usersByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
