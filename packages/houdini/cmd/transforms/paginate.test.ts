@@ -28,8 +28,12 @@ test('adds pagination info to full', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+	expect(docs[1].document).toMatchInlineSnapshot(`
+		query UserFriends_Houdini_Paginate($first: Int = 10, $after: String) {
+		  ...UserFriends_jrGTj @with(first: $first, after: $after)
+		}
+
+		fragment UserFriends_jrGTj on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
 		  friendsByCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
@@ -70,8 +74,12 @@ test("doesn't add pagination info to offset pagination", async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on User @arguments(offset: {type: "Int"}, limit: {type: "Int", default: 10}) {
+	expect(docs[1].document).toMatchInlineSnapshot(`
+		query UserFriends_Houdini_Paginate($limit: Int = 10, $offset: Int) {
+		  ...UserFriends_1ZUIJ1 @with(limit: $limit, offset: $offset)
+		}
+
+		fragment UserFriends_1ZUIJ1 on User @arguments(offset: {type: "Int"}, limit: {type: "Int", default: 10}) {
 		  friendsByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
 		  }
@@ -103,8 +111,12 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+	expect(docs[1].document).toMatchInlineSnapshot(`
+		query UserFriends_Houdini_Paginate($first: Int = 10, $after: String) {
+		  ...UserFriends_jrGTj @with(first: $first, after: $after)
+		}
+
+		fragment UserFriends_jrGTj on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
 		  friendsByCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
@@ -149,8 +161,12 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on User @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
+	expect(docs[1].document).toMatchInlineSnapshot(`
+		query UserFriends_Houdini_Paginate($last: Int = 10, $before: String) {
+		  ...UserFriends_41Q4zu @with(last: $last, before: $before)
+		}
+
+		fragment UserFriends_41Q4zu on User @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
 		  friendsByCursor(last: $last, before: $before) @paginate {
 		    edges {
 		      node {
@@ -195,8 +211,12 @@ test('paginate adds forwards cursor args to the fragment', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
+	expect(docs[1].document).toMatchInlineSnapshot(`
+		query UserFriends_Houdini_Paginate($first: Int = 10, $after: String) {
+		  ...UserFriends_jrGTj @with(first: $first, after: $after)
+		}
+
+		fragment UserFriends_jrGTj on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
 		  friendsByForwardsCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
@@ -241,8 +261,12 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on User @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
+	expect(docs[1].document).toMatchInlineSnapshot(`
+		query UserFriends_Houdini_Paginate($last: Int = 10, $before: String) {
+		  ...UserFriends_41Q4zu @with(last: $last, before: $before)
+		}
+
+		fragment UserFriends_41Q4zu on User @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
 		  friendsByBackwardsCursor(last: $last, before: $before) @paginate {
 		    edges {
 		      node {
@@ -287,8 +311,12 @@ test('sets before with default value', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on User @arguments(last: {type: "Int", default: 10}, before: {type: "String", default: "cursor"}) {
+	expect(docs[1].document).toMatchInlineSnapshot(`
+		query UserFriends_Houdini_Paginate($last: Int = 10, $before: String = "cursor") {
+		  ...UserFriends_41Q4zu @with(last: $last, before: $before)
+		}
+
+		fragment UserFriends_41Q4zu on User @arguments(last: {type: "Int", default: 10}, before: {type: "String", default: "cursor"}) {
 		  friendsByCursor(last: $last, before: $before) @paginate {
 		    edges {
 		      node {
