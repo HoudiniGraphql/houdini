@@ -58,9 +58,14 @@ export default async function paginate(
 						[node.name.value].args.map((arg) => arg.name)
 				)
 
+				// also look to see if the user wants to do forward pagination
+				const passedArgs = new Set(node.arguments?.map((arg) => arg.name.value))
+				const specifiedForwards = passedArgs.has('first')
+				const specifiedBackwards = passedArgs.has('last')
+
 				// figure out what kind of pagination we support
-				forwardPagination = args.has('first') && args.has('after')
-				backwardsPagination = args.has('last') && args.has('before')
+				forwardPagination = !specifiedBackwards && args.has('first') && args.has('after')
+				backwardsPagination = !specifiedForwards && args.has('last') && args.has('before')
 				offsetPagination = args.has('offset') && args.has('limit')
 
 				let { arguments: nodeArguments, values } = replaceArgumentsWithVariables(

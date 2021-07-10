@@ -1,11 +1,5 @@
 // external imports
 import { testConfig } from 'houdini-common'
-import * as graphql from 'graphql'
-import * as recast from 'recast'
-import { ProgramKind } from 'ast-types/gen/kinds'
-import fs from 'fs/promises'
-import path from 'path'
-import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
 import '../../../../jest.setup'
 import { runPipeline } from '../generate'
@@ -36,7 +30,7 @@ test('adds pagination info to full', async function () {
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		fragment UserFriends on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  friendsByCursor(first: $first) @paginate {
+		  friendsByCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -111,7 +105,7 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		fragment UserFriends on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  friendsByCursor(first: $first) @paginate {
+		  friendsByCursor(first: $first, after: $after) @paginate {
 		    edges {
 		      node {
 		        id
@@ -157,7 +151,7 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		fragment UserFriends on User @arguments(last: {type: "Int", default: 10}, before: {type: "String"}) {
-		  friendsByCursor(last: $last) @paginate {
+		  friendsByCursor(last: $last, before: $before) @paginate {
 		    edges {
 		      node {
 		        id
