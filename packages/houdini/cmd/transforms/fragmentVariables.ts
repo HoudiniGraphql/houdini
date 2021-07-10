@@ -68,20 +68,18 @@ export default async function fragmentVariables(
 
 	// once we've handled every fragment in every document we need to add any
 	// new fragment definitions to the list of collected docs so they can be picked up
-	if (documents.length > 0) {
-		const doc: graphql.DocumentNode = {
-			kind: 'Document',
-			definitions: Object.values(generatedFragments),
-		}
-
-		documents.push({
-			name: 'generated::fragmentVariables',
-			document: doc,
-			originalDocument: doc,
-			generated: true,
-			filename: '__generated__',
-		})
+	const doc: graphql.DocumentNode = {
+		kind: 'Document',
+		definitions: Object.values(generatedFragments),
 	}
+
+	documents.push({
+		name: 'generated::fragmentVariables',
+		document: doc,
+		originalDocument: doc,
+		generated: true,
+		filename: '__generated__',
+	})
 }
 
 type ValueMap = Record<string, graphql.ValueNode>
