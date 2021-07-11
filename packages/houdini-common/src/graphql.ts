@@ -162,3 +162,28 @@ function walkAncestors(
 
 	return getRootType(field.type) as GraphQLParentType
 }
+
+export function definitionFromAncestors(ancestors: readonly any[]) {
+	// in order to look up field type information we have to start at the parent
+	// and work our way down
+	// note:  the top-most parent is always gonna be a document so we ignore it
+	let parents = [...ancestors] as (
+		| graphql.FieldNode
+		| graphql.InlineFragmentNode
+		| graphql.FragmentDefinitionNode
+		| graphql.OperationDefinitionNode
+		| graphql.SelectionSetNode
+	)[]
+	parents.shift()
+
+	// the first meaningful parent is a definition of some kind
+	let definition = parents.shift() as
+		| graphql.FragmentDefinitionNode
+		| graphql.OperationDefinitionNode
+	while (Array.isArray(definition) && definition) {
+		// @ts-ignore
+		definition = parents.shift()
+	}
+
+	return definition
+}

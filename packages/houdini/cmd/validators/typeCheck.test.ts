@@ -605,6 +605,34 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: "@paginate can't show up in a document with required args",
+		pass: false,
+		documents: [
+			`
+			fragment UserPaginatedA on User @arguments(foo: { type: "String!" }) {
+				friendsByCursor(first: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User @arguments(foo: { type: "String!" }) {
+				friendsByCursor(first: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
 		title: 'offset pagination requires limit',
 		pass: false,
 		documents: [
