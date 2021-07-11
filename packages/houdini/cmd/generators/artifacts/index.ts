@@ -10,12 +10,14 @@ import {
 	CollectedGraphQLDocument,
 } from '../../types'
 import * as recast from 'recast'
+import { ObjectExpressionKind } from 'ast-types/gen/kinds'
 // locals
 import { moduleExport, writeFile } from '../../utils'
 import selection from './selection'
 import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
+import { serializeValue } from './utils'
 
 const AST = recast.types.builders
 
@@ -89,7 +91,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			writeIndexFile(config, docs),
 		].concat(
 			// and an artifact for every document
-			docs.map(async ({ document, name, generated }) => {
+			docs.map(async ({ document, name, generated, ...doc }) => {
 				// if the document is generated, don't write it to disk - it's use is to provide definitions
 				// for the other transforms
 				if (generated) {
@@ -149,17 +151,12 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 				// generate a hash of the document that we can use to detect changes
 				// start building up the artifact
-				const artifact = AST.objectExpression([
-					AST.objectProperty(AST.identifier('name'), AST.stringLiteral(name)),
-					AST.objectProperty(AST.identifier('kind'), AST.stringLiteral(docKind)),
-					AST.objectProperty(
-						AST.identifier('raw'),
-						AST.templateLiteral(
-							[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
-							[]
-						)
-					),
-				])
+				const artifact = serializeValue({
+					name,
+					kind: docKind,
+					raw: rawString,
+					refetch: doc.refetch,
+				}) as ObjectExpressionKind
 
 				let rootType: string | undefined = ''
 				let selectionSet: graphql.SelectionSetNode

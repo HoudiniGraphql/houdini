@@ -2,7 +2,7 @@
 import * as graphql from 'graphql'
 import { Config, parentTypeFromAncestors } from 'houdini-common'
 // locals
-import { CollectedGraphQLDocument } from '../types'
+import { CollectedGraphQLDocument, RefetchUpdateMode } from '../types'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination
 // to be embedded in the query that will be used to fetch additional data. That means it
@@ -65,6 +65,10 @@ export default async function paginate(
 				type: 'Int',
 			},
 		}
+
+		// we need to know the path where the paginate directive shows up so we can distinguish updated
+		// values from data that needs to be added to the list
+		let paginationPath: string[] = []
 
 		// we need to add page info to the selection
 		doc.document = graphql.visit(doc.document, {
@@ -136,8 +140,15 @@ export default async function paginate(
 		// field that is marked for pagination
 		if (paginated) {
 			let fragmentName = ''
+			let refetchQueryName = ''
 			// check if we have to embed the fragment in Node
 			let nodeQuery = false
+
+			// figure out the right refetch
+			let refetchUpdate = RefetchUpdateMode.append
+			if (flags.last.enabled) {
+				refetchUpdate = RefetchUpdateMode.prepend
+			}
 
 			// remember if we found a fragment or operation
 			let fragment = false
@@ -151,6 +162,8 @@ export default async function paginate(
 							`@${config.paginateDirective} can only show up in a query or fragment document`
 						)
 					}
+
+					refetchQueryName = node.name?.value || ''
 
 					// build a map from existing variables to their value so we can compare with the ones we need to inject
 					const operationVariables: Record<string, graphql.VariableDefinitionNode> =
@@ -195,6 +208,7 @@ export default async function paginate(
 					fragment = true
 
 					fragmentName = node.name.value
+					refetchQueryName = fragmentName + '_Houdini_Paginate'
 
 					// a fragment has to be embedded in Node if its not on the query type
 					nodeQuery = node.typeCondition.name.value !== config.schema.getQueryType()?.name
@@ -249,6 +263,14 @@ export default async function paginate(
 			// we need to add a document to perform the query if we are paginating on a
 			// fragment
 
+			// add the paginate info to the collected document
+			doc.refetch = {
+				kind: 'paginate',
+				queryName: refetchQueryName,
+				update: refetchUpdate,
+				path: paginationPath,
+			}
+
 			// if we're not paginating a fragment, there's nothing more to do. we mutated
 			// the query's definition to contain the arguments we need to get more data
 			// and we can just use it for refetches
@@ -288,7 +310,7 @@ export default async function paginate(
 						kind: 'OperationDefinition',
 						name: {
 							kind: 'Name',
-							value: fragmentName + '_Houdini_Paginate',
+							value: refetchQueryName,
 						},
 						operation: 'query',
 						variableDefinitions: paginationArgs

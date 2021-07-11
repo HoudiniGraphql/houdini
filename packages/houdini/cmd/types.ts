@@ -8,6 +8,18 @@ export type CollectedGraphQLDocument = {
 	document: graphql.DocumentNode
 	originalDocument: graphql.DocumentNode
 	generated: boolean
+	refetch?: {
+		kind: 'paginate'
+		update: RefetchUpdateMode
+		queryName: string
+		path: string[]
+	}
+}
+
+export enum RefetchUpdateMode {
+	append = 'append',
+	prepend = 'prepend',
+	replace = 'replace',
 }
 
 // an error pertaining to a specific graphql document
