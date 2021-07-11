@@ -134,9 +134,185 @@ export default async function paginate(
 			// check if we have to embed the fragment in Node
 			let nodeQuery = false
 
-			// add the arguments directive if it doesn't exist
+			// remember if we found a fragment or operation
+			let fragment = false
+
 			doc.document = graphql.visit(doc.document, {
+				// if we are dealing with a query, we'll need to add the variables to the definition
+				OperationDefinition(node) {
+					// make sure its a query
+					if (node.operation !== 'query') {
+						throw new Error(
+							`@${config.paginateDirective} can only show up in a query or fragment document`
+						)
+					}
+
+					// figure out the variables we want on the query
+					let newVariables: graphql.VariableDefinitionNode[] = []
+
+					// add the query variables for offset pagination
+					if (offsetPagination) {
+						newVariables.push(
+							{
+								kind: 'VariableDefinition',
+								variable: {
+									kind: 'Variable',
+									name: {
+										kind: 'Name',
+										value: 'limit',
+									},
+								},
+								type: {
+									kind: 'NamedType',
+									name: {
+										kind: 'Name',
+										value: 'Int',
+									},
+								},
+								defaultValue: !existingPaginationArgs['limit']
+									? undefined
+									: {
+											kind: 'IntValue',
+											value: existingPaginationArgs['limit'].toString(),
+									  },
+							},
+							{
+								kind: 'VariableDefinition',
+								variable: {
+									kind: 'Variable',
+									name: {
+										kind: 'Name',
+										value: 'offset',
+									},
+								},
+								type: {
+									kind: 'NamedType',
+									name: {
+										kind: 'Name',
+										value: 'Int',
+									},
+								},
+								defaultValue: !existingPaginationArgs['offset']
+									? undefined
+									: {
+											kind: 'IntValue',
+											value: existingPaginationArgs['offset'].toString(),
+									  },
+							}
+						)
+					}
+					// add forwards cursor pagination
+					else if (forwardPagination) {
+						newVariables.push(
+							{
+								kind: 'VariableDefinition',
+								variable: {
+									kind: 'Variable',
+									name: {
+										kind: 'Name',
+										value: 'first',
+									},
+								},
+								type: {
+									kind: 'NamedType',
+									name: {
+										kind: 'Name',
+										value: 'Int',
+									},
+								},
+								defaultValue: !existingPaginationArgs['first']
+									? undefined
+									: {
+											kind: 'IntValue',
+											value: existingPaginationArgs['first'].toString(),
+									  },
+							},
+							{
+								kind: 'VariableDefinition',
+								variable: {
+									kind: 'Variable',
+									name: {
+										kind: 'Name',
+										value: 'after',
+									},
+								},
+								type: {
+									kind: 'NamedType',
+									name: {
+										kind: 'Name',
+										value: 'String',
+									},
+								},
+								defaultValue: !existingPaginationArgs['after']
+									? undefined
+									: {
+											kind: 'IntValue',
+											value: existingPaginationArgs['after'].toString(),
+									  },
+							}
+						)
+					}
+					// add backwards cursor pagination
+					else if (backwardsPagination) {
+						newVariables.push(
+							{
+								kind: 'VariableDefinition',
+								variable: {
+									kind: 'Variable',
+									name: {
+										kind: 'Name',
+										value: 'last',
+									},
+								},
+								type: {
+									kind: 'NamedType',
+									name: {
+										kind: 'Name',
+										value: 'Int',
+									},
+								},
+								defaultValue: !existingPaginationArgs['last']
+									? undefined
+									: {
+											kind: 'IntValue',
+											value: existingPaginationArgs['last'].toString(),
+									  },
+							},
+							{
+								kind: 'VariableDefinition',
+								variable: {
+									kind: 'Variable',
+									name: {
+										kind: 'Name',
+										value: 'before',
+									},
+								},
+								type: {
+									kind: 'NamedType',
+									name: {
+										kind: 'Name',
+										value: 'String',
+									},
+								},
+								defaultValue: !existingPaginationArgs['before']
+									? undefined
+									: {
+											kind: 'IntValue',
+											value: existingPaginationArgs['before'].toString(),
+									  },
+							}
+						)
+					}
+
+					return {
+						...node,
+						variableDefinitions: [...(node.variableDefinitions || []), ...newVariables],
+					} as graphql.OperationDefinitionNode
+				},
+				// if we are dealing with a fragment definition we'll need to add the arguments directive if it doesn't exist
 				FragmentDefinition(node) {
+					fragment = true
+
 					fragmentName = node.name.value
 
 					// a fragment has to be embedded in Node if its not on the query type
@@ -211,6 +387,13 @@ export default async function paginate(
 					} as graphql.DirectiveNode
 				},
 			})
+
+			// now that we've mutated the document to be flexible for @paginate's needs
+			// we need to add a document to perform the query if we are paginating on a
+			// fragment
+			if (!fragment) {
+				continue
+			}
 
 			const fragmentSpreadSelection = [
 				{
