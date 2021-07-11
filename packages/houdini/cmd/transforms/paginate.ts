@@ -31,6 +31,7 @@ export default async function paginate(
 	for (const doc of documents) {
 		// remember if we ran into a paginate argument
 		let paginated = false
+
 		// track the kind pagination
 		let forwardPagination = false
 		let backwardsPagination = false
@@ -71,7 +72,11 @@ export default async function paginate(
 				// figure out what kind of pagination we support
 				forwardPagination = !specifiedBackwards && args.has('first') && args.has('after')
 				backwardsPagination = !specifiedForwards && args.has('last') && args.has('before')
-				offsetPagination = args.has('offset') && args.has('limit')
+				offsetPagination =
+					!forwardPagination &&
+					!backwardsPagination &&
+					args.has('offset') &&
+					args.has('limit')
 
 				let {
 					arguments: nodeArguments,
@@ -107,8 +112,6 @@ export default async function paginate(
 				// extract the values we care about so the fragment argument definition
 				// can use them for default values
 				existingPaginationArgs = values
-				forwardPagination = Boolean(values['first'])
-				backwardsPagination = !forwardPagination
 				paginationArgs = paginationArguments
 
 				// if the field supports cursor based pagination we need to make sure we have the
@@ -147,166 +150,72 @@ export default async function paginate(
 						)
 					}
 
+					// build a map from existing variables to their value so we can compare with the ones we need to inject
+					const operationVariables: Record<string, graphql.VariableDefinitionNode> =
+						node.variableDefinitions?.reduce(
+							(vars, definition) => ({
+								...vars,
+								[definition.variable.name.value]: definition,
+							}),
+							{}
+						) || {}
+
 					// figure out the variables we want on the query
-					let newVariables: graphql.VariableDefinitionNode[] = []
+					let newVariables: Record<string, graphql.VariableDefinitionNode> = {}
 
 					// add the query variables for offset pagination
 					if (offsetPagination) {
-						newVariables.push(
-							{
-								kind: 'VariableDefinition',
-								variable: {
-									kind: 'Variable',
-									name: {
-										kind: 'Name',
-										value: 'limit',
-									},
-								},
-								type: {
-									kind: 'NamedType',
-									name: {
-										kind: 'Name',
-										value: 'Int',
-									},
-								},
-								defaultValue: !existingPaginationArgs['limit']
-									? undefined
-									: {
-											kind: 'IntValue',
-											value: existingPaginationArgs['limit'].toString(),
-									  },
-							},
-							{
-								kind: 'VariableDefinition',
-								variable: {
-									kind: 'Variable',
-									name: {
-										kind: 'Name',
-										value: 'offset',
-									},
-								},
-								type: {
-									kind: 'NamedType',
-									name: {
-										kind: 'Name',
-										value: 'Int',
-									},
-								},
-								defaultValue: !existingPaginationArgs['offset']
-									? undefined
-									: {
-											kind: 'IntValue',
-											value: existingPaginationArgs['offset'].toString(),
-									  },
-							}
+						newVariables['limit'] = staticVariableDefinition(
+							'limit',
+							'Int',
+							existingPaginationArgs['limit']
+						)
+						newVariables['offset'] = staticVariableDefinition(
+							'offset',
+							'Int',
+							existingPaginationArgs['offset']
 						)
 					}
 					// add forwards cursor pagination
 					else if (forwardPagination) {
-						newVariables.push(
-							{
-								kind: 'VariableDefinition',
-								variable: {
-									kind: 'Variable',
-									name: {
-										kind: 'Name',
-										value: 'first',
-									},
-								},
-								type: {
-									kind: 'NamedType',
-									name: {
-										kind: 'Name',
-										value: 'Int',
-									},
-								},
-								defaultValue: !existingPaginationArgs['first']
-									? undefined
-									: {
-											kind: 'IntValue',
-											value: existingPaginationArgs['first'].toString(),
-									  },
-							},
-							{
-								kind: 'VariableDefinition',
-								variable: {
-									kind: 'Variable',
-									name: {
-										kind: 'Name',
-										value: 'after',
-									},
-								},
-								type: {
-									kind: 'NamedType',
-									name: {
-										kind: 'Name',
-										value: 'String',
-									},
-								},
-								defaultValue: !existingPaginationArgs['after']
-									? undefined
-									: {
-											kind: 'IntValue',
-											value: existingPaginationArgs['after'].toString(),
-									  },
-							}
+						newVariables['first'] = staticVariableDefinition(
+							'first',
+							'Int',
+							existingPaginationArgs['first']
+						)
+						newVariables['after'] = staticVariableDefinition(
+							'after',
+							'String',
+							existingPaginationArgs['after']
 						)
 					}
 					// add backwards cursor pagination
 					else if (backwardsPagination) {
-						newVariables.push(
-							{
-								kind: 'VariableDefinition',
-								variable: {
-									kind: 'Variable',
-									name: {
-										kind: 'Name',
-										value: 'last',
-									},
-								},
-								type: {
-									kind: 'NamedType',
-									name: {
-										kind: 'Name',
-										value: 'Int',
-									},
-								},
-								defaultValue: !existingPaginationArgs['last']
-									? undefined
-									: {
-											kind: 'IntValue',
-											value: existingPaginationArgs['last'].toString(),
-									  },
-							},
-							{
-								kind: 'VariableDefinition',
-								variable: {
-									kind: 'Variable',
-									name: {
-										kind: 'Name',
-										value: 'before',
-									},
-								},
-								type: {
-									kind: 'NamedType',
-									name: {
-										kind: 'Name',
-										value: 'String',
-									},
-								},
-								defaultValue: !existingPaginationArgs['before']
-									? undefined
-									: {
-											kind: 'IntValue',
-											value: existingPaginationArgs['before'].toString(),
-									  },
-							}
+						newVariables['last'] = staticVariableDefinition(
+							'last',
+							'Int',
+							existingPaginationArgs['last']
+						)
+						newVariables['before'] = staticVariableDefinition(
+							'before',
+							'String',
+							existingPaginationArgs['before']
 						)
 					}
 
+					// the full list of variables comes from both source
+					const variableNames = new Set<string>(
+						Object.keys(operationVariables).concat(Object.keys(newVariables))
+					)
+
+					// we need to build a unique set of variable definitions
+					const finalVariables = [...variableNames].map(
+						(name) => operationVariables[name] || newVariables[name]
+					)
+
 					return {
 						...node,
-						variableDefinitions: [...(node.variableDefinitions || []), ...newVariables],
+						variableDefinitions: finalVariables,
 					} as graphql.OperationDefinitionNode
 				},
 				// if we are dealing with a fragment definition we'll need to add the arguments directive if it doesn't exist
@@ -546,6 +455,8 @@ function replaceArgumentsWithVariables(
 	// hold onto any of the pagination-specific args in a separate list so we can easily embed references where we need
 	const paginationArgs: { name: string; type: string }[] = []
 
+	const seenArgs: Record<string, boolean> = {}
+
 	const newArgs = (args || []).map((arg) => {
 		// the specification for this variable
 		const spec = vars[arg.name.value]
@@ -554,12 +465,17 @@ function replaceArgumentsWithVariables(
 			return arg
 		}
 
-		const oldValue = (arg.value as graphql.StringValueNode).value
+		// if we are being passed a variable,
+		if (arg.value.kind !== 'Variable') {
+			const oldValue = (arg.value as graphql.StringValueNode).value
 
-		// transform the value if we have to
-		values[arg.name.value] = spec.type === 'Int' ? parseInt(oldValue) : oldValue
+			// transform the value if we have to
+			values[arg.name.value] = spec.type === 'Int' ? parseInt(oldValue) : oldValue
+		}
 
 		paginationArgs.push({ type: spec.type, name: arg.name.value })
+
+		seenArgs[arg.name.value] = true
 
 		// turn the field into a variable
 		return variableAsArgument(arg.name.value)
@@ -571,7 +487,7 @@ function replaceArgumentsWithVariables(
 		const spec = vars[name]
 
 		// if we have a value or its disabled, ignore it
-		if (values[name] || !spec.enabled) {
+		if (values[name] || !spec.enabled || seenArgs[name]) {
 			continue
 		}
 
@@ -607,6 +523,32 @@ function variableAsArgument(name: string): graphql.ArgumentNode {
 			},
 		},
 	}
+}
+
+function staticVariableDefinition(name: string, type: string, defaultValue?: string) {
+	return {
+		kind: 'VariableDefinition',
+		type: {
+			kind: 'NamedType',
+			name: {
+				kind: 'Name',
+				value: type,
+			},
+		},
+		variable: {
+			kind: 'Variable',
+			name: {
+				kind: 'Name',
+				value: name,
+			},
+		},
+		defaultValue: !defaultValue
+			? undefined
+			: {
+					kind: (type + 'Value') as 'IntValue' | 'StringValue',
+					value: defaultValue,
+			  },
+	} as graphql.VariableDefinitionNode
 }
 
 function argumentsList(
