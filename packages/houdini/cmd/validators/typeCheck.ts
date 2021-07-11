@@ -1,5 +1,5 @@
 // externals
-import { Config, parentTypeFromAncestors } from 'houdini-common'
+import { Config, definitionFromAncestors, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
@@ -210,7 +210,7 @@ export default async function typeCheck(
 			// this replaces KnownArgumentNamesRule
 			knownArguments(config),
 			// validate any fragment arguments
-			fragmentArguments(config, fragments),
+			validateFragmentArguments(config, fragments),
 			// make sure there are pagination args on fields marked with @paginate
 			paginateArgs(config)
 		)
@@ -390,7 +390,7 @@ function knownArguments(config: Config) {
 	}
 }
 
-function fragmentArguments(
+function validateFragmentArguments(
 	config: Config,
 	fragments: Record<string, graphql.FragmentDefinitionNode>
 ) {
@@ -596,6 +596,26 @@ function paginateArgs(config: Config) {
 				// make sure we fail if we see another paginated field
 				alreadyPaginated = true
 
+				// find the definition containing the directive
+				const definition = definitionFromAncestors(ancestors)
+
+				// look at the fragment arguments
+				const definitionArgs = collectFragmentArguments(
+					config,
+					definition as graphql.FragmentDefinitionNode
+				)
+
+				// a fragment marked for pagination can't have requried args
+				const hasRequiredArgs = definitionArgs.find((arg) => arg.required)
+				if (hasRequiredArgs) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							'@paginate cannot appear on a document with required args'
+						)
+					)
+					return
+				}
+
 				// look at the field the directive is applied to
 				const targetFieldType = parentTypeFromAncestors(
 					config.schema,
@@ -706,26 +726,8 @@ function nodeDirectives(config: Config, directives: string[]) {
 					return
 				}
 
-				// in order to look up field type information we have to start at the parent
-				// and work our way down
-				// note:  the top-most parent is always gonna be a document so we ignore it
-				let parents = [...ancestors] as (
-					| graphql.FieldNode
-					| graphql.InlineFragmentNode
-					| graphql.FragmentDefinitionNode
-					| graphql.OperationDefinitionNode
-					| graphql.SelectionSetNode
-				)[]
-				parents.shift()
-
-				// the first meaningful parent is a definition of some kind
-				let definition = parents.shift() as
-					| graphql.FragmentDefinitionNode
-					| graphql.OperationDefinitionNode
-				while (Array.isArray(definition) && definition) {
-					// @ts-ignore
-					definition = parents.shift()
-				}
+				// look through the ancestor list for the definition node
+				let definition = definitionFromAncestors(ancestors)
 
 				// if the definition points to an operation, it must point to a query
 				let definitionType = ''
