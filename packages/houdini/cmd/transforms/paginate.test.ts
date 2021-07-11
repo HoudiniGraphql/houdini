@@ -412,3 +412,216 @@ test('embeds node pagination query as a separate document', async function () {
 
 	`)
 })
+
+test('query with forwards cursor paginate', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestPaginationFields',
+			`
+                query Users {
+                    usersByForwardsCursor(first: 10) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($first: Int = 10, $after: String) {
+		  usersByForwardsCursor(first: $first, after: $after) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+
+	`)
+})
+
+test('query with backwards cursor paginate', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestPaginationFields',
+			`
+                query Users {
+                    usersByBackwardsCursor(last: 10) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($last: Int = 10, $before: String) {
+		  usersByBackwardsCursor(last: $last, before: $before) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+
+	`)
+})
+
+test('query with offset paginate', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestPaginationFields',
+			`
+                query Users {
+                    usersByOffset(limit: 10) @paginate {
+						id
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($limit: Int = 10, $offset: Int) {
+		  usersByOffset(limit: $limit, offset: $offset) @paginate {
+		    id
+		  }
+		}
+
+	`)
+})
+
+test('query with backwards cursor on full paginate', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestPaginationFields',
+			`
+                query Users {
+                    usersByCursor(last: 10) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($last: Int = 10, $before: String) {
+		  usersByCursor(last: $last, before: $before) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+
+	`)
+})
+
+test('query with forwards cursor on full paginate', async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestPaginationFields',
+			`
+                query Users {
+                    usersByCursor(first: 10) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($first: Int = 10, $after: String) {
+		  usersByCursor(first: $first, after: $after) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+
+	`)
+})
