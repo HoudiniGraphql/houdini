@@ -13,11 +13,16 @@ import { CollectedGraphQLDocument } from '../types'
 
 // - walk through the document and look for a field marked for pagination. if one is found,
 //   add the necessary arguments to the field, referencing variables that will be injected
+//   and compute what kind of pagination (toggling an object of flags)
 // - if the @paginate directive was found, add the @arguments directive to the fragment
 //   definition and use any fields that were previously set as the default value. that
 //   will cause the fragment arguments directive to inline the default values if one isn't
 //   given, preserving the original definition for the first query
 // - generate the query with the fragment embedded using @with to pass query variables through
+
+type PaginationFlags = {
+	[fieldName: string]: { enabled: boolean; type: 'String' | 'Int'; defaultValue?: any }
+}
 
 // paginate transform adds the necessary fields for a paginated field
 export default async function paginate(
@@ -32,14 +37,34 @@ export default async function paginate(
 		// remember if we ran into a paginate argument
 		let paginated = false
 
-		// track the kind pagination
-		let forwardPagination = false
-		let backwardsPagination = false
-		let offsetPagination = false
-
-		let existingPaginationArgs: { [key: string]: any } = {}
-
-		let paginationArgs: { type: string; name: string }[] = []
+		// store the pagination state to coordinate what we define as args to the field and the argument definitions of
+		// the fragment and operation. we'll fill in the enabled state and default values once we encounter @paginate
+		const flags: PaginationFlags = {
+			first: {
+				enabled: false,
+				type: 'Int',
+			},
+			after: {
+				enabled: false,
+				type: 'String',
+			},
+			last: {
+				enabled: false,
+				type: 'Int',
+			},
+			before: {
+				enabled: false,
+				type: 'String',
+			},
+			limit: {
+				enabled: false,
+				type: 'Int',
+			},
+			offset: {
+				enabled: false,
+				type: 'Int',
+			},
+		}
 
 		// we need to add page info to the selection
 		doc.document = graphql.visit(doc.document, {
@@ -69,56 +94,32 @@ export default async function paginate(
 				const specifiedForwards = passedArgs.has('first')
 				const specifiedBackwards = passedArgs.has('last')
 
-				// figure out what kind of pagination we support
-				forwardPagination = !specifiedBackwards && args.has('first') && args.has('after')
-				backwardsPagination = !specifiedForwards && args.has('last') && args.has('before')
-				offsetPagination =
+				// figure out what kind of pagination the field supports
+				const forwardPagination =
+					!specifiedBackwards && args.has('first') && args.has('after')
+				const backwardsPagination =
+					!specifiedForwards && args.has('last') && args.has('before')
+				const offsetPagination =
 					!forwardPagination &&
 					!backwardsPagination &&
 					args.has('offset') &&
 					args.has('limit')
 
-				let {
-					arguments: nodeArguments,
-					values,
-					paginationArguments,
-				} = replaceArgumentsWithVariables(node.arguments, {
-					first: {
-						enabled: forwardPagination,
-						type: 'Int',
-					},
-					after: {
-						enabled: forwardPagination,
-						type: 'String',
-					},
-					last: {
-						enabled: backwardsPagination,
-						type: 'Int',
-					},
-					before: {
-						enabled: backwardsPagination,
-						type: 'String',
-					},
-					limit: {
-						enabled: offsetPagination,
-						type: 'Int',
-					},
-					offset: {
-						enabled: offsetPagination,
-						type: 'Int',
-					},
-				})
-
-				// extract the values we care about so the fragment argument definition
-				// can use them for default values
-				existingPaginationArgs = values
-				paginationArgs = paginationArguments
+				// update the flags based on what the tagged field supports
+				flags.first.enabled = forwardPagination
+				flags.after.enabled = forwardPagination
+				flags.last.enabled = backwardsPagination
+				flags.before.enabled = backwardsPagination
+				flags.offset.enabled = offsetPagination
+				flags.limit.enabled = offsetPagination
 
 				// if the field supports cursor based pagination we need to make sure we have the
 				// page info field
 				return {
 					...node,
-					arguments: nodeArguments,
+					// any pagination arguments we run into will need to be replaced with variables
+					// since they will be hoisted into the arguments for the fragment or query
+					arguments: replaceArgumentsWithVariables(node.arguments, flags),
 					selectionSet: offsetPagination
 						? // no need to add any fields to the selection if we're dealing with offset pagination
 						  node.selectionSet
@@ -131,7 +132,8 @@ export default async function paginate(
 			},
 		})
 
-		// if we saw the paginate directive we need to add arguments to the fragment
+		// if we saw the paginate directive we need to add arguments to the fragment or query that contain the
+		// field that is marked for pagination
 		if (paginated) {
 			let fragmentName = ''
 			// check if we have to embed the fragment in Node
@@ -161,47 +163,17 @@ export default async function paginate(
 						) || {}
 
 					// figure out the variables we want on the query
-					let newVariables: Record<string, graphql.VariableDefinitionNode> = {}
-
-					// add the query variables for offset pagination
-					if (offsetPagination) {
-						newVariables['limit'] = staticVariableDefinition(
-							'limit',
-							'Int',
-							existingPaginationArgs['limit']
-						)
-						newVariables['offset'] = staticVariableDefinition(
-							'offset',
-							'Int',
-							existingPaginationArgs['offset']
-						)
-					}
-					// add forwards cursor pagination
-					else if (forwardPagination) {
-						newVariables['first'] = staticVariableDefinition(
-							'first',
-							'Int',
-							existingPaginationArgs['first']
-						)
-						newVariables['after'] = staticVariableDefinition(
-							'after',
-							'String',
-							existingPaginationArgs['after']
-						)
-					}
-					// add backwards cursor pagination
-					else if (backwardsPagination) {
-						newVariables['last'] = staticVariableDefinition(
-							'last',
-							'Int',
-							existingPaginationArgs['last']
-						)
-						newVariables['before'] = staticVariableDefinition(
-							'before',
-							'String',
-							existingPaginationArgs['before']
-						)
-					}
+					let newVariables: Record<
+						string,
+						graphql.VariableDefinitionNode
+					> = Object.fromEntries(
+						Object.entries(flags)
+							.filter(([, spec]) => spec.enabled)
+							.map(([fieldName, spec]) => [
+								fieldName,
+								staticVariableDefinition(fieldName, spec.type, spec.defaultValue),
+							])
+					)
 
 					// the full list of variables comes from both source
 					const variableNames = new Set<string>(
@@ -256,38 +228,14 @@ export default async function paginate(
 						return
 					}
 
-					// figure out the args to add
-					let newArgs = []
-
-					// if the field supports offset pagination
-					if (offsetPagination) {
-						newArgs = argumentsList({
-							offset: ['Int', existingPaginationArgs['offset']],
-							limit: ['Int', existingPaginationArgs['limit']],
-						})
-					}
-					// the field supports cursor based pagination
-					else {
-						// if the field supports forward pagination
-						if (forwardPagination) {
-							newArgs.push(
-								...argumentsList({
-									first: ['Int', existingPaginationArgs['first']],
-									after: ['String', existingPaginationArgs['after']],
-								})
-							)
-						}
-
-						// the field could also support backwards pagination
-						if (backwardsPagination) {
-							newArgs.push(
-								...argumentsList({
-									last: ['Int', existingPaginationArgs['last']],
-									before: ['String', existingPaginationArgs['before']],
-								})
-							)
-						}
-					}
+					// turn the set of enabled pagination args into arg definitions for the directive
+					let newArgs = [
+						...Object.entries(flags)
+							.filter(([, spec]) => spec.enabled)
+							.map(([key, spec]) =>
+								argumentNode(key, [spec.type, spec.defaultValue])
+							),
+					]
 
 					// add non-null versions of the arguments we'll use to paginate
 					return {
@@ -300,9 +248,18 @@ export default async function paginate(
 			// now that we've mutated the document to be flexible for @paginate's needs
 			// we need to add a document to perform the query if we are paginating on a
 			// fragment
+
+			// if we're not paginating a fragment, there's nothing more to do. we mutated
+			// the query's definition to contain the arguments we need to get more data
+			// and we can just use it for refetches
 			if (!fragment) {
 				continue
 			}
+
+			// grab the enabled fields to create the list of arguments for the directive
+			const paginationArgs = Object.entries(flags)
+				.filter(([_, { enabled }]) => enabled)
+				.map(([key, value]) => ({ name: key, ...value }))
 
 			const fragmentSpreadSelection = [
 				{
@@ -353,13 +310,13 @@ export default async function paginate(
 												value: arg.name,
 											},
 										},
-										defaultValue: !existingPaginationArgs[arg.name]
+										defaultValue: !flags[arg.name].defaultValue
 											? undefined
 											: {
 													kind: (arg.type + 'Value') as
 														| 'IntValue'
 														| 'StringValue',
-													value: existingPaginationArgs[arg.name],
+													value: flags[arg.name].defaultValue,
 											  },
 									} as graphql.VariableDefinitionNode)
 							)
@@ -443,37 +400,25 @@ export default async function paginate(
 
 function replaceArgumentsWithVariables(
 	args: readonly graphql.ArgumentNode[] | undefined,
-	vars: { [fieldName: string]: { enabled: boolean; type: 'String' | 'Int' } }
-): {
-	arguments: graphql.ArgumentNode[]
-	values: { [key in keyof typeof vars]: any }
-	paginationArguments: { type: string; name: string }[]
-} {
-	// we need to keep a map of wether we visited a field
-	const values: { [key in keyof typeof vars]: any } = {}
-
-	// hold onto any of the pagination-specific args in a separate list so we can easily embed references where we need
-	const paginationArgs: { name: string; type: string }[] = []
-
+	flags: PaginationFlags
+): graphql.ArgumentNode[] {
 	const seenArgs: Record<string, boolean> = {}
 
 	const newArgs = (args || []).map((arg) => {
 		// the specification for this variable
-		const spec = vars[arg.name.value]
+		const spec = flags[arg.name.value]
 		// if the arg is not something we care about or is disabled we need to leave it alone
 		if (!spec || !spec.enabled) {
 			return arg
 		}
 
-		// if we are being passed a variable,
+		// if the argument isn't being passed a variable, we will need to set a default value
 		if (arg.value.kind !== 'Variable') {
 			const oldValue = (arg.value as graphql.StringValueNode).value
 
-			// transform the value if we have to
-			values[arg.name.value] = spec.type === 'Int' ? parseInt(oldValue) : oldValue
+			// transform the value if we have to and save the default value
+			flags[arg.name.value].defaultValue = spec.type === 'Int' ? parseInt(oldValue) : oldValue
 		}
-
-		paginationArgs.push({ type: spec.type, name: arg.name.value })
 
 		seenArgs[arg.name.value] = true
 
@@ -482,30 +427,29 @@ function replaceArgumentsWithVariables(
 	})
 
 	// any fields that are enabled but don't have values need to have variable references add
-	for (const name of Object.keys(vars)) {
+	for (const name of Object.keys(flags)) {
 		// the specification for this variable
-		const spec = vars[name]
+		const spec = flags[name]
 
 		// if we have a value or its disabled, ignore it
-		if (values[name] || !spec.enabled || seenArgs[name]) {
+		if (flags[name].defaultValue || !spec.enabled || seenArgs[name]) {
 			continue
 		}
 
 		// if we are looking at forward pagination args when backwards is enabled ignore it
-		if (['first', 'after'].includes(name) && vars['before'].enabled) {
+		if (['first', 'after'].includes(name) && flags['before'].enabled) {
 			continue
 		}
-		if (['last', 'before'].includes(name) && vars['first'].enabled) {
+		// same but opposite for backwards pagination
+		if (['last', 'before'].includes(name) && flags['first'].enabled) {
 			continue
 		}
-
-		paginationArgs.push({ type: spec.type, name })
 
 		// we need to add a variable referencing the argument
 		newArgs.push(variableAsArgument(name))
 	}
 
-	return { arguments: newArgs, values, paginationArguments: paginationArgs }
+	return newArgs
 }
 
 function variableAsArgument(name: string): graphql.ArgumentNode {
@@ -551,17 +495,18 @@ function staticVariableDefinition(name: string, type: string, defaultValue?: str
 	} as graphql.VariableDefinitionNode
 }
 
-function argumentsList(
-	source: Record<string, [string, number | string | undefined]>
-): graphql.ArgumentNode[] {
-	return Object.entries(source).map(([name, value]) => ({
+function argumentNode(
+	name: string,
+	value: [string, number | string | undefined]
+): graphql.ArgumentNode {
+	return {
 		kind: 'Argument',
 		name: {
 			kind: 'Name',
 			value: name,
 		},
 		value: objectNode(value),
-	}))
+	}
 }
 
 function objectNode([type, defaultValue]: [

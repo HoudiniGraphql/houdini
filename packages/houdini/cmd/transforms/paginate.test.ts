@@ -71,7 +71,7 @@ test("doesn't add pagination info to offset pagination", async function () {
 
 	// load the contents of the file
 	expect(docs[0].document).toMatchInlineSnapshot(`
-		fragment UserFriends on Query @arguments(offset: {type: "Int"}, limit: {type: "Int", default: 10}) {
+		fragment UserFriends on Query @arguments(limit: {type: "Int", default: 10}, offset: {type: "Int"}) {
 		  usersByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
 		  }
