@@ -12,11 +12,11 @@ test('adds pagination info to full', async function () {
 			`
                 fragment UserFriends on Query {
                     usersByCursor(first: 10) @paginate {
-                        edges {
-                            node {
-                                id
-                            }
-                        }
+						edges { 
+							node { 
+								id
+							}
+						}
                     }
                 }
 			`
@@ -626,7 +626,7 @@ test('query with forwards cursor on full paginate', async function () {
 	`)
 })
 
-test("paginated query doesn't overlap variables", async function () {
+test("forwards cursor paginated query doesn't overlap variables", async function () {
 	const docs = [
 		mockCollectedDoc(
 			'TestPaginationFields',
@@ -666,6 +666,81 @@ test("paginated query doesn't overlap variables", async function () {
 		      startCursor
 		      endCursor
 		    }
+		  }
+		}
+
+	`)
+})
+
+test("backwards cursor paginated query doesn't overlap variables", async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestPaginationFields',
+			`
+                query Users($last: Int!) {
+                    usersByCursor(last: $last) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($last: Int!, $before: String) {
+		  usersByCursor(last: $last, before: $before) @paginate {
+		    edges {
+		      node {
+		        id
+		      }
+		    }
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+
+	`)
+})
+
+test("offset paginated query doesn't overlap variables", async function () {
+	const docs = [
+		mockCollectedDoc(
+			'TestPaginationFields',
+			`
+                query Users($limit: Int! = 10) {
+                    usersByOffset(limit: $limit) @paginate {
+						id
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	expect(docs[0]?.document).toMatchInlineSnapshot(`
+		query Users($limit: Int! = 10, $offset: Int) {
+		  usersByOffset(limit: $limit, offset: $offset) @paginate {
+		    id
 		  }
 		}
 
