@@ -490,6 +490,54 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@paginate offset happy path',
+		pass: true,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				friendsByOffset(limit: 10) @paginate { 
+					id
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				friendsByOffset(limit: 10) @paginate { 
+					id
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@paginate cursor happy path',
+		pass: true,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				friendsByCursor(first: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				friendsByCursor(first: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
 		title: 'cursor pagination requires first',
 		pass: false,
 		documents: [
@@ -525,6 +573,34 @@ const table: Row[] = [
 						}
 					}
 				}
+			`,
+		],
+	},
+	{
+		title: "@paginate cursor can't go both ways",
+		pass: false,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				friendsByCursor(first: 10, last: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				friendsByCursor(first: 10, last: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
 			`,
 		],
 	},

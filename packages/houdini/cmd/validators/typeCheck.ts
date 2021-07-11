@@ -576,6 +576,7 @@ function paginateArgs(config: Config) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		// track if we have seen a paginate directive (to error on the second one)
 		let alreadyPaginated = false
+
 		return {
 			Directive(node, _, __, ___, ancestors) {
 				// only consider pagination directives
@@ -612,47 +613,44 @@ function paginateArgs(config: Config) {
 					return
 				}
 
-				const fieldArgs = type.args
+				// get a summary of the types defined on the field
+				const fieldArgs = type.args.reduce<Record<string, string>>(
+					(args, arg) => ({
+						...args,
+						[arg.name]: unwrapType(config, arg.type).type.name,
+					}),
+					{}
+				)
+
+				// create a summary of the applied args
+				const appliedArgs = new Set(targetField.arguments?.map((arg) => arg.name.value))
 
 				const forwardPagination =
-					fieldArgs.filter((arg) => {
-						// look at the type of the arg
-						const {
-							type: { name: type },
-						} = unwrapType(config, arg.type)
-
-						return (
-							(arg.name === 'first' && type === 'Int') ||
-							(arg.name === 'after' && type === 'String')
-						)
-					}).length === 2
+					fieldArgs['first'] === 'Int' && fieldArgs['after'] === 'String'
 
 				const backwardsPagination =
-					fieldArgs.filter((arg) => {
-						// look at the type of the arg
-						const {
-							type: { name: type },
-						} = unwrapType(config, arg.type)
-
-						return (
-							(arg.name === 'last' && type === 'Int') ||
-							(arg.name === 'before' && type === 'String')
-						)
-					}).length === 2
+					fieldArgs['last'] === 'Int' && fieldArgs['before'] === 'String'
 
 				// a field with cursor based pagination must have the first arg and one of before or after
 				const cursorPagination = forwardPagination || backwardsPagination
 
 				// if the field supports cursor based pagination, there must be a first argument applied
 				if (cursorPagination) {
-					const appliedCursorArg = targetField.arguments?.find(
-						(arg) => arg.name.value === 'first' || arg.name.value === 'last'
-					)
+					const forward = appliedArgs.has('first')
+					const backwards = appliedArgs.has('last')
 
-					if (!appliedCursorArg) {
+					if (!forward && !backwards) {
 						ctx.reportError(
 							new graphql.GraphQLError(
 								'A field with cursor-based pagination must have a first or last argument'
+							)
+						)
+					}
+
+					if (forward && backwards) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								`A field with cursor pagination cannot go forwards an backwards simultaneously`
 							)
 						)
 					}
@@ -662,13 +660,7 @@ function paginateArgs(config: Config) {
 
 				// a field with offset based paginate must have offset and limit args
 				const offsetPagination =
-					fieldArgs.filter(
-						(arg) =>
-							(arg.name === 'offset' &&
-								unwrapType(config, arg.type).type.name === 'Int') ||
-							(arg.name === 'limit' &&
-								unwrapType(config, arg.type).type.name === 'Int')
-					).length === 2
+					fieldArgs['offset'] === 'Int' && fieldArgs['limit'] === 'Int'
 
 				if (offsetPagination) {
 					const appliedLimitArg = targetField.arguments?.find(
