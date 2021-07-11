@@ -154,8 +154,8 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				const artifact = serializeValue({
 					name,
 					kind: docKind,
-					raw: rawString,
 					refetch: doc.refetch,
+					raw: rawString,
 				}) as ObjectExpressionKind
 
 				let rootType: string | undefined = ''

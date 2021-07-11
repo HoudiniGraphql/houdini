@@ -9,10 +9,10 @@ export type CollectedGraphQLDocument = {
 	originalDocument: graphql.DocumentNode
 	generated: boolean
 	refetch?: {
-		kind: 'paginate'
 		update: RefetchUpdateMode
-		queryName: string
-		path: string[]
+		source: string[]
+		target: string[]
+		method: 'cursor' | 'offset'
 	}
 }
 

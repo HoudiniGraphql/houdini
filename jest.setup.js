@@ -13,7 +13,7 @@ process.env.TEST = 'true'
 const config = testConfig()
 
 expect.addSnapshotSerializer({
-	test: (val) => val && val.type,
+	test: (val) => val && Object.keys(recast.types.namedTypes).includes(val.type),
 	serialize: (val) => {
 		console.log
 		return recast.print(val).code
@@ -21,8 +21,18 @@ expect.addSnapshotSerializer({
 })
 
 expect.addSnapshotSerializer({
-	test: (val) => val && val.kind,
+	test: (val) => val && Object.values(graphql.Kind).includes(val.kind),
 	serialize: (val) => graphql.print(val),
+})
+
+expect.addSnapshotSerializer({
+	test: (val) =>
+		val &&
+		!Object.values(graphql.Kind).includes(val.kind) &&
+		!Object.keys(recast.types.namedTypes).includes(val.type),
+	serialize: (val) => {
+		return JSON.stringify(val, null, 4)
+	},
 })
 
 expect.extend({
