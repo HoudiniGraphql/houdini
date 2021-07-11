@@ -117,6 +117,16 @@ export default async function paginate(
 				flags.offset.enabled = offsetPagination
 				flags.limit.enabled = offsetPagination
 
+				paginationPath = (ancestors
+					.filter(
+						(ancestor) =>
+							// @ts-ignore
+							!Array.isArray(ancestor) && ancestor.kind === graphql.Kind.FIELD
+					)
+					.concat(node) as graphql.FieldNode[]).map(
+					(field) => field.alias?.value || field.name.value
+				)
+
 				// if the field supports cursor based pagination we need to make sure we have the
 				// page info field
 				return {
@@ -265,10 +275,10 @@ export default async function paginate(
 
 			// add the paginate info to the collected document
 			doc.refetch = {
-				kind: 'paginate',
-				queryName: refetchQueryName,
 				update: refetchUpdate,
-				path: paginationPath,
+				source: [...paginationPath],
+				target: [...paginationPath],
+				method: flags.first.enabled || flags.last.enabled ? 'cursor' : 'offset',
 			}
 
 			// if we're not paginating a fragment, there's nothing more to do. we mutated
@@ -276,6 +286,12 @@ export default async function paginate(
 			// and we can just use it for refetches
 			if (!fragment) {
 				continue
+			}
+
+			// if we embedding it in a node query
+			if (nodeQuery) {
+				// make sure we index the source under the 'node' field
+				doc.refetch.source.unshift('node')
 			}
 
 			// grab the enabled fields to create the list of arguments for the directive

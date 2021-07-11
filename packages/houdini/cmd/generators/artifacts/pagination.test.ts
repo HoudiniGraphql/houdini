@@ -34,6 +34,13 @@ test('pagination arguments stripped from key', async function () {
 					    name: "PaginatedFragment",
 					    kind: "HoudiniFragment",
 
+					    refetch: {
+					        update: "append",
+					        source: ["node", "friendsByCursor"],
+					        target: ["friendsByCursor"],
+					        method: "cursor"
+					    },
+
 					    raw: \`fragment PaginatedFragment on User {
 					  friendsByCursor(first: $first, filter: "hello", after: $after) {
 					    edges {
@@ -53,13 +60,6 @@ test('pagination arguments stripped from key', async function () {
 					  }
 					}
 					\`,
-
-					    refetch: {
-					        kind: "paginate",
-					        queryName: "PaginatedFragment_Houdini_Paginate",
-					        update: "append",
-					        path: []
-					    },
 
 					    rootType: "User",
 
