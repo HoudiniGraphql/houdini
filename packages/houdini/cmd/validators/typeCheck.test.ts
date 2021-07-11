@@ -555,6 +555,40 @@ const table: Row[] = [
 			`,
 		],
 	},
+	{
+		title: 'multiple @paginate',
+		pass: false,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				friendsByOffset(limit: 10) @paginate { 
+					id
+				}
+				friendsByCursor(first: 10) @paginate {
+					edges {
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				friendsByOffset(limit: 10) @paginate { 
+					id
+				}
+				friendsByCursor(first: 10) @paginate {
+					edges {
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
 ]
 
 type Row =

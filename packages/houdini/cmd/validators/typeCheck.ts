@@ -211,8 +211,8 @@ export default async function typeCheck(
 			knownArguments(config),
 			// validate any fragment arguments
 			fragmentArguments(config, fragments),
-			// make sure there are pagination args
-			paginationArgs(config)
+			// make sure there are pagination args on fields marked with @paginate
+			paginateArgs(config)
 		)
 
 	for (const { filename, document: parsed } of docs) {
@@ -485,7 +485,7 @@ function fragmentArguments(
 
 					fragmentArguments[fragmentName] = args
 					requiredArgs[fragmentName] = args
-						.filter((arg) => arg.required)
+						.filter((arg) => arg && arg.required)
 						.map((arg) => arg.name)
 					fragmentArgumentNames[fragmentName] = args.map((arg) => arg.name)
 				}
@@ -572,14 +572,28 @@ function fragmentArguments(
 	}
 }
 
-function paginationArgs(config: Config) {
+function paginateArgs(config: Config) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		// track if we have seen a paginate directive (to error on the second one)
+		let alreadyPaginated = false
 		return {
 			Directive(node, _, __, ___, ancestors) {
 				// only consider pagination directives
 				if (node.name.value !== config.paginateDirective) {
 					return
 				}
+
+				// if we have already run into a paginated field, yell loudly
+				if (alreadyPaginated) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							`@${config.paginateDirective} can only appear in a document once.`
+						)
+					)
+				}
+
+				// make sure we fail if we see another paginated field
+				alreadyPaginated = true
 
 				// look at the field the directive is applied to
 				const targetFieldType = parentTypeFromAncestors(

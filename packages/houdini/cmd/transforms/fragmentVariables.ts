@@ -134,7 +134,7 @@ function inlineFragmentArgs({
 				}
 			}
 			// if the argument is required
-			if (definitionArgs[value.name.value].required) {
+			if (definitionArgs[value.name.value] && definitionArgs[value.name.value].required) {
 				throw new Error('Missing value for required arg: ' + value.name.value)
 			}
 
