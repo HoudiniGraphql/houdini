@@ -428,10 +428,10 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
-				friendsByCursor(first: Int, after: String, last: Int, before: String): UserConnection
-				friendsByBackwardsCursor(last: Int, before: String): UserConnection
-				friendsByForwardsCursor(first: Int, after: String): UserConnection
-				friendsByOffset(offset: Int, limit: Int): [User!]!
+				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection
+				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnection
+				friendsByForwardsCursor(first: Int, after: String, filter: String): UserConnection
+				friendsByOffset(offset: Int, limit: Int, filter: String): [User!]!
 				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
 				cats: [Cat!]!

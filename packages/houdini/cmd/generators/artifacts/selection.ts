@@ -95,7 +95,10 @@ export default function selection({
 			// the object holding data for this field
 			const fieldObj = AST.objectExpression([
 				AST.objectProperty(AST.literal('type'), AST.stringLiteral(typeName)),
-				AST.objectProperty(AST.literal('keyRaw'), AST.stringLiteral(fieldKey(field))),
+				AST.objectProperty(
+					AST.literal('keyRaw'),
+					AST.stringLiteral(fieldKey(config, field))
+				),
 			])
 
 			// is there an operation for this field

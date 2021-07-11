@@ -3,12 +3,21 @@ const graphql = require('graphql')
 const { testConfig } = require('houdini-common')
 const mockFs = require('mock-fs')
 const path = require('path')
+const { toMatchInlineSnapshot } = require('jest-snapshot')
+const fs = require('fs/promises')
+const typeScriptParser = require('recast/parsers/typescript')
 
 process.env.TEST = 'true'
 
+// the config to use in tests
+const config = testConfig()
+
 expect.addSnapshotSerializer({
 	test: (val) => val && val.type,
-	serialize: (val) => recast.print(val).code,
+	serialize: (val) => {
+		console.log
+		return recast.print(val).code
+	},
 })
 
 expect.addSnapshotSerializer({
@@ -16,8 +25,25 @@ expect.addSnapshotSerializer({
 	serialize: (val) => graphql.print(val),
 })
 
-// the config to use in tests
-const config = testConfig()
+expect.extend({
+	async toMatchArtifactSnapshot(value, ...rest) {
+		// The error (and its stacktrace) must be created before any `await`
+		this.error = new Error()
+
+		// assuming that the value we were given is a collected document, figure
+		// out the path holding the artifact
+		const path = config.artifactPath(value.document)
+
+		const artifactContents = await fs.readFile(path, 'utf-8')
+
+		// parse the contents
+		const parsed = recast.parse(artifactContents, {
+			parser: typeScriptParser,
+		}).program
+
+		return toMatchInlineSnapshot.call(this, parsed, ...rest)
+	},
+})
 
 beforeEach(() => {
 	mockFs({

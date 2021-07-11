@@ -49,6 +49,10 @@ test('adds pagination info to full', async function () {
 		}
 
 	`)
+
+	expect(JSON.stringify(docs[0].refetch)).toMatchInlineSnapshot(
+		`"{\\"kind\\":\\"paginate\\",\\"queryName\\":\\"UserFriends_Houdini_Paginate\\",\\"update\\":\\"append\\",\\"path\\":[]}"`
+	)
 })
 
 test("doesn't add pagination info to offset pagination", async function () {
