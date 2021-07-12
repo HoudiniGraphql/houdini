@@ -11,7 +11,7 @@ export type Operation<_Result, _Input> = {
 
 export type Session = any
 
-export type Maybe<T> = T | null
+export type Maybe<T> = T | null | undefined
 
 // any compiled result
 export type DocumentArtifact =
@@ -114,12 +114,14 @@ export type CompiledDocumentKind =
 	| 'HoudiniQuery'
 	| 'HoudiniSubscription'
 
+export type GraphQLObject = { [key: string]: GraphQLValue }
+
 export type GraphQLValue =
 	| number
 	| string
 	| boolean
 	| null
-	| { [key: string]: GraphQLValue }
+	| GraphQLObject
 	| GraphQLValue[]
 	| undefined
 

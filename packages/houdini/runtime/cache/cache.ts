@@ -1,7 +1,13 @@
 // external imports
 import type { Config } from 'houdini-common'
 // local imports
-import { Maybe, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../types'
+import {
+	Maybe,
+	GraphQLValue,
+	SubscriptionSelection,
+	SubscriptionSpec,
+	GraphQLObject,
+} from '../types'
 import { Record } from './record'
 import { ListHandler } from './list'
 import { isScalar } from '../scalars'
@@ -148,11 +154,17 @@ export class Cache {
 
 	// walk down the spec
 	private getData(
-		parent: Record,
+		parent: Record | null | undefined,
 		selection: SubscriptionSelection,
 		variables: {}
-	): { [key: string]: GraphQLValue } {
+	): { [key: string]: GraphQLValue } | null {
+		// we could be asking for values of null
+		if (parent === null || typeof parent === 'undefined') {
+			return null
+		}
+
 		const target: { [key: string]: GraphQLValue } = {}
+
 		// look at every field in the parentFields
 		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
 			const key = this.evaluateKey(keyRaw, variables)
@@ -161,6 +173,12 @@ export class Cache {
 			const linkedRecord = parent.linkedRecord(key)
 			// if the link points to a list
 			const linkedList = parent.linkedList(key)
+
+			// if the attribute links to a null value
+			if (linkedRecord === null) {
+				target[attributeName] = null
+				continue
+			}
 
 			// the field could be an object
 			if (linkedRecord && fields) {
@@ -253,6 +271,11 @@ export class Cache {
 
 				// add the subscriber to every child
 				for (const child of children) {
+					// avoid null children
+					if (!child) {
+						continue
+					}
+
 					// the children of a list need the reference back
 					if (list) {
 						// add the list reference to record
@@ -305,6 +328,10 @@ export class Cache {
 
 				// remove the subscriber to every child
 				for (const child of children) {
+					// avoid null children
+					if (!child) {
+						continue
+					}
 					this.removeSubscribers(child, spec, fields, variables)
 				}
 			}
@@ -348,6 +375,12 @@ export class Cache {
 			// make sure we found the type info
 			if (!linkedType) {
 				throw new Error('could not find the field information for ' + field)
+			}
+
+			// if the value we are writing is null
+			if (value === null) {
+				// just treat it as a linked object
+				record.writeRecordLink(key, null)
 			}
 
 			// the subscribers we need to register if we updated something
@@ -406,7 +439,7 @@ export class Cache {
 			// the value could be a list
 			else if (!isScalar(this._config, linkedType) && Array.isArray(value) && fields) {
 				// build up the list of linked ids
-				const linkedIDs: string[] = []
+				const linkedIDs: (string | null)[] = []
 				// look up the current known link id
 				const oldIDs = record.linkedListIDs(this.evaluateKey(key, variables))
 
@@ -415,16 +448,21 @@ export class Cache {
 
 				// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
 				// required to compute the entity's id in the first non-null value we can find
-				const embedded =
-					value.length > 0 &&
-					this.idFields(linkedType)?.filter(
-						(field) =>
-							typeof (value.find((val) => val) as { [key: string]: any })[field] ===
-							'undefined'
-					).length > 0
 
 				// visit every entry in the list
 				for (const [i, entry] of value.entries()) {
+					// if the entry is a null value, just add it to the list
+					if (entry === null) {
+						linkedIDs.push(null)
+						continue
+					}
+
+					// figure out if this record is embedded
+					const embedded =
+						this.idFields(linkedType)?.filter(
+							(field) => typeof (entry as GraphQLObject)[field] === 'undefined'
+						).length > 0
+
 					// this has to be an object for sanity sake (it can't be a link if its a scalar)
 					if (!(entry instanceof Object) || Array.isArray(entry)) {
 						throw new Error('Encountered link to non objects')
@@ -489,12 +527,15 @@ export class Cache {
 				}
 
 				// remove any subscribers we don't care about
-				for (const lostID of oldIDs.filter((id) => !linkedIDs.includes(id))) {
+				for (const lostID of oldIDs.filter(
+					(id) => id !== null && !linkedIDs.includes(id)
+				)) {
+					const id = lostID as string
 					for (const sub of subscribers) {
-						if (!oldSubscribers[lostID]) {
-							oldSubscribers[lostID] = new Set()
+						if (!oldSubscribers[id]) {
+							oldSubscribers[id] = new Set()
 						}
-						oldSubscribers[lostID].add(sub)
+						oldSubscribers[id].add(sub)
 					}
 				}
 
@@ -583,12 +624,15 @@ export class Cache {
 	}
 
 	// look up the information for a specific record
-	private getRecord(id: string): Maybe<Record> {
-		if (!id) {
+	private getRecord(id: string | null): Maybe<Record> {
+		if (id === null) {
 			return null
 		}
+		if (!id) {
+			return
+		}
 
-		return this._data.get(id) || null
+		return this._data.get(id) || undefined
 	}
 
 	private notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
@@ -623,6 +667,12 @@ export class Cache {
 				// figure out who else needs subscribers
 				const children = linkedRecord ? [linkedRecord] : record.linkedList(key)
 				for (const linkedRecord of children) {
+					// avoid null records
+					if (!linkedRecord) {
+						continue
+					}
+
+					// insert the subscriber
 					this.insertSubscribers(linkedRecord, fields, variables, ...subscribers)
 				}
 			}
@@ -645,7 +695,13 @@ export class Cache {
 			if (fields) {
 				// figure out who else needs subscribers
 				const children = record.linkedList(key) || [record.linkedRecord(key)]
+
 				for (const linkedRecord of children) {
+					// avoid null records
+					if (!linkedRecord) {
+						continue
+					}
+
 					this.unsubscribeSelection(linkedRecord, fields, variables, ...subscribers)
 				}
 			}

@@ -51,7 +51,7 @@ test('save root object', function () {
 	)
 
 	// make sure we can get back what we wrote
-	expect(cache.internal.getRecord(cache.id('User', data.viewer))?.fields).toEqual({
+	expect(cache.internal.getRecord(cache.id('User', data.viewer)!)?.fields).toEqual({
 		id: '1',
 		firstName: 'bob',
 	})
@@ -115,7 +115,7 @@ test('partial update existing record', function () {
 	)
 
 	// make sure we can get back what we wrote
-	expect(cache.internal.getRecord(cache.id('User', '1'))?.fields).toEqual({
+	expect(cache.internal.getRecord(cache.id('User', '1')!)?.fields).toEqual({
 		id: '1',
 		firstName: 'bob',
 		lastName: 'barker',
@@ -172,7 +172,7 @@ test('linked records with updates', function () {
 	)
 
 	// check user 1
-	const user1 = cache.internal.getRecord(cache.id('User', '1'))
+	const user1 = cache.internal.getRecord(cache.id('User', '1')!)
 	expect(user1?.fields).toEqual({
 		id: '1',
 		firstName: 'bob',
@@ -183,12 +183,12 @@ test('linked records with updates', function () {
 	})
 
 	// check user 2
-	const user2 = cache.internal.getRecord(cache.id('User', '2'))
+	const user2 = cache.internal.getRecord(cache.id('User', '2')!)
 	expect(user2?.fields).toEqual({
 		id: '2',
 		firstName: 'jane',
 	})
-	expect(user2?.linkedRecord('parent')).toBeNull()
+	expect(user2?.linkedRecord('parent')).toBeFalsy()
 
 	// associate user2 with a new parent
 	cache.write(
@@ -303,9 +303,9 @@ test('linked lists', function () {
 
 	// make sure we can get the linked lists back
 	const friendData = cache.internal
-		.getRecord(cache.id('User', '1'))
+		.getRecord(cache.id('User', '1')!)
 		?.linkedList('friends')
-		.map(({ fields }) => fields)
+		.map((data) => data!.fields)
 	expect(friendData).toEqual([
 		{
 			id: '2',
@@ -356,7 +356,7 @@ test('list as value with args', function () {
 
 	// look up the value
 	expect(
-		cache.internal.getRecord(cache.id('User', '1'))?.fields['favoriteColors(where: "foo")']
+		cache.internal.getRecord(cache.id('User', '1')!)?.fields['favoriteColors(where: "foo")']
 	).toEqual(['red', 'green', 'blue'])
 })
 
@@ -503,7 +503,7 @@ test('root subscribe - linked object changed', function () {
 
 	// make sure we are no longer subscribing to user 1
 	expect(
-		cache.internal.getRecord(cache.id('User', '1'))?.getSubscribers('firstName')
+		cache.internal.getRecord(cache.id('User', '1')!)?.getSubscribers('firstName')
 	).toHaveLength(0)
 })
 
@@ -600,7 +600,7 @@ test('root subscribe - linked list lost entry', function () {
 
 	// we shouldn't be subscribing to user 3 any more
 	expect(
-		cache.internal.getRecord(cache.id('User', '3'))?.getSubscribers('firstName')
+		cache.internal.getRecord(cache.id('User', '3')!)?.getSubscribers('firstName')
 	).toHaveLength(0)
 })
 
@@ -704,10 +704,10 @@ test('root subscribe - linked list reorder', function () {
 
 	// we should still be subscribing to both users
 	expect(
-		cache.internal.getRecord(cache.id('User', '2'))?.getSubscribers('firstName')
+		cache.internal.getRecord(cache.id('User', '2')!)?.getSubscribers('firstName')
 	).toHaveLength(1)
 	expect(
-		cache.internal.getRecord(cache.id('User', '3'))?.getSubscribers('firstName')
+		cache.internal.getRecord(cache.id('User', '3')!)?.getSubscribers('firstName')
 	).toHaveLength(1)
 })
 
@@ -761,7 +761,7 @@ test('unsubscribe', function () {
 
 	// make sure we  registered the subscriber
 	expect(
-		cache.internal.getRecord(cache.id('User', '1'))?.getSubscribers('firstName')
+		cache.internal.getRecord(cache.id('User', '1')!)?.getSubscribers('firstName')
 	).toHaveLength(1)
 
 	// unsubscribe
@@ -769,7 +769,7 @@ test('unsubscribe', function () {
 
 	// make sure there is no more subscriber
 	expect(
-		cache.internal.getRecord(cache.id('User', '1'))?.getSubscribers('firstName')
+		cache.internal.getRecord(cache.id('User', '1')!)?.getSubscribers('firstName')
 	).toHaveLength(0)
 })
 
@@ -1492,7 +1492,7 @@ test('remove from list', function () {
 
 	// make sure we aren't subscribing to user 2 any more
 	expect(
-		cache.internal.getRecord(cache.id('User', '2'))?.getSubscribers('firstName')
+		cache.internal.getRecord(cache.id('User', '2')!)?.getSubscribers('firstName')
 	).toHaveLength(0)
 })
 
@@ -1559,7 +1559,7 @@ test('delete node', function () {
 	cache.delete(
 		cache.id('User', {
 			id: '2',
-		})
+		})!
 	)
 
 	// we should have been updated with an empty list
@@ -1571,7 +1571,7 @@ test('delete node', function () {
 	})
 
 	// make sure its empty now
-	expect(cache.internal.getRecord('User:2')).toBeNull()
+	expect(cache.internal.getRecord('User:2')).toBeFalsy()
 })
 
 test('append operation', function () {
@@ -1621,7 +1621,7 @@ test('append operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1'),
+			parentID: cache.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -1640,7 +1640,7 @@ test('append operation', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1'),
+							value: cache.id('User', '1')!,
 						},
 					},
 				],
@@ -1661,7 +1661,7 @@ test('append operation', function () {
 	)
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache.id('User', '1'))]).toHaveLength(1)
+	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(1)
 })
 
 test('append when operation', function () {
@@ -1717,7 +1717,7 @@ test('append when operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1'),
+			parentID: cache.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -1736,7 +1736,7 @@ test('append when operation', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1'),
+							value: cache.id('User', '1')!,
 						},
 						when: {
 							must: {
@@ -1762,7 +1762,7 @@ test('append when operation', function () {
 	)
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
 })
 
 test('prepend when operation', function () {
@@ -1818,7 +1818,7 @@ test('prepend when operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1'),
+			parentID: cache.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -1837,7 +1837,7 @@ test('prepend when operation', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1'),
+							value: cache.id('User', '1')!,
 						},
 						position: 'first',
 						when: {
@@ -1864,7 +1864,7 @@ test('prepend when operation', function () {
 	)
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
 })
 
 test('prepend operation', function () {
@@ -1934,7 +1934,7 @@ test('prepend operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1'),
+			parentID: cache.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -1953,7 +1953,7 @@ test('prepend operation', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1'),
+							value: cache.id('User', '1')!,
 						},
 						position: 'first',
 					},
@@ -1976,7 +1976,7 @@ test('prepend operation', function () {
 
 	// make sure we just added to the list
 	expect(
-		[...cache.list('All_Users', cache.id('User', '1'))].map((record) => record.fields.id)
+		[...cache.list('All_Users', cache.id('User', '1')!)].map((record) => record!.fields.id)
 	).toEqual(['3', '2'])
 })
 
@@ -2042,7 +2042,7 @@ test('remove operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1'),
+			parentID: cache.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -2061,7 +2061,7 @@ test('remove operation', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1'),
+							value: cache.id('User', '1')!,
 						},
 					},
 				],
@@ -2082,7 +2082,7 @@ test('remove operation', function () {
 	)
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
 })
 
 test('delete operation', function () {
@@ -2147,7 +2147,7 @@ test('delete operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1'),
+			parentID: cache.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -2183,9 +2183,9 @@ test('delete operation', function () {
 	)
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache.id('User', '1'))]).toHaveLength(0)
+	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
 
-	expect(cache.internal.getRecord('User:2')).toBeNull()
+	expect(cache.internal.getRecord('User:2')).toBeFalsy()
 })
 
 test('variables in query and subscription', function () {
@@ -2295,7 +2295,7 @@ test('variables in query and subscription', function () {
 
 	// we shouldn't be subscribing to user 3 any more
 	expect(
-		cache.internal.getRecord(cache.id('User', '3'))?.getSubscribers('firstName')
+		cache.internal.getRecord(cache.id('User', '3')!)?.getSubscribers('firstName')
 	).toHaveLength(0)
 })
 
@@ -2652,7 +2652,7 @@ test('writing abstract objects', function () {
 	)
 
 	// make sure we can get back what we wrote
-	expect(cache.internal.getRecord(cache.id('User', data.viewer))?.fields).toEqual({
+	expect(cache.internal.getRecord(cache.id('User', data.viewer)!)?.fields).toEqual({
 		__typename: 'User',
 		id: '1',
 		firstName: 'bob',
@@ -2705,7 +2705,7 @@ test('writing abstract lists', function () {
 	)
 
 	// make sure we can get back what we wrote
-	expect(cache.internal.getRecord(cache.id('User', data.nodes[0]))?.fields).toEqual({
+	expect(cache.internal.getRecord(cache.id('User', data.nodes[0])!)?.fields).toEqual({
 		__typename: 'User',
 		id: '1',
 		firstName: 'bob',
@@ -2792,6 +2792,232 @@ test('can pull enum from cached values', function () {
 		node: {
 			id: '1',
 			enumValue: 'Hello',
+		},
+	})
+})
+
+test('can store and retrieve lists with null values', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					null,
+				],
+			},
+		},
+		{}
+	)
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [
+				{
+					id: '2',
+					firstName: 'jane',
+				},
+				null,
+			],
+		},
+	})
+})
+
+test('can store and retrieve links with null values', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write(
+		selection,
+		{
+			viewer: null,
+		},
+		{}
+	)
+
+	// make sure we can get the linked record back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: null,
+	})
+})
+
+test('can write list of just null', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [null],
+			},
+		},
+		{}
+	)
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [null],
+		},
+	})
+})
+
+test('can write list of scalars', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'Int',
+					keyRaw: 'friends',
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [1],
+			},
+		},
+		{}
+	)
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1],
 		},
 	})
 })

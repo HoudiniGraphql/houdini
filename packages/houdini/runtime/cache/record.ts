@@ -1,5 +1,5 @@
 // local imports
-import { GraphQLValue, SubscriptionSpec } from '../types'
+import { GraphQLValue, Maybe, SubscriptionSpec } from '../types'
 import { Cache } from './cache'
 
 type List = {
@@ -14,8 +14,8 @@ export class Record {
 
 	keyVersions: { [key: string]: Set<string> } = {}
 	private subscribers: { [key: string]: SubscriptionSpec[] } = {}
-	private recordLinks: { [key: string]: string } = {}
-	private listLinks: { [key: string]: string[] } = {}
+	private recordLinks: { [key: string]: string | null } = {}
+	private listLinks: { [key: string]: (string | null)[] } = {}
 	private cache: Cache
 	private referenceCounts: {
 		[fieldName: string]: Map<SubscriptionSpec['set'], number>
@@ -38,30 +38,33 @@ export class Record {
 		this.fields[fieldName] = value
 	}
 
-	writeRecordLink(fieldName: string, value: string) {
+	writeRecordLink(fieldName: string, value: string | null) {
 		this.recordLinks[fieldName] = value
 	}
 
-	writeListLink(fieldName: string, value: string[]) {
+	writeListLink(fieldName: string, value: (string | null)[]) {
 		this.listLinks[fieldName] = value
 	}
 
 	linkedRecord(fieldName: string) {
-		return this.cache.internal.getRecord(this.recordLinks[fieldName])
+		const linkedRecord = this.recordLinks[fieldName]
+		if (linkedRecord === null) {
+			return null
+		}
+
+		return this.cache.internal.getRecord(linkedRecord)
 	}
 
 	linkedRecordID(fieldName: string) {
 		return this.recordLinks[fieldName]
 	}
 
-	linkedListIDs(fieldName: string): string[] {
+	linkedListIDs(fieldName: string): (string | null)[] {
 		return this.listLinks[fieldName] || []
 	}
 
-	linkedList(fieldName: string): Record[] {
-		return (this.listLinks[fieldName] || [])
-			.map((link) => this.cache.internal.getRecord(link))
-			.filter((record) => record !== null) as Record[]
+	linkedList(fieldName: string): Maybe<Record>[] {
+		return (this.listLinks[fieldName] || []).map(this.cache.internal.getRecord)
 	}
 
 	appendLinkedList(fieldName: string, id: string) {
@@ -153,9 +156,15 @@ export class Record {
 		this.removeSubscribers(Object.keys(this.subscribers), targets)
 
 		// walk down to every record we know about
-		const linkedIDs = Object.keys(this.recordLinks).concat(
-			Object.keys(this.listLinks).flatMap((key) => this.listLinks[key])
-		)
+		const linkedIDs = Object.keys(this.recordLinks)
+		for (const key of Object.keys(this.listLinks)) {
+			for (const child of this.listLinks[key]) {
+				if (child !== null) {
+					linkedIDs.push(child)
+				}
+			}
+		}
+
 		for (const linkedRecordID of linkedIDs) {
 			this.cache.internal.getRecord(linkedRecordID)?.forgetSubscribers_walk(targets)
 		}
