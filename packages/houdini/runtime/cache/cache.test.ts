@@ -507,6 +507,73 @@ test('root subscribe - linked object changed', function () {
 	).toHaveLength(0)
 })
 
+test("subscribing to null object doesn't explode", function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				favoriteColors: {
+					type: 'String',
+					keyRaw: 'favoriteColors(where: "foo")',
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write(
+		selection,
+		{
+			viewer: null,
+		},
+		{}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// somehow write a user to the cache with a different id
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '2',
+				firstName: 'mary',
+			},
+		},
+		{}
+	)
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			firstName: 'mary',
+			// this is a sanity-check. the cache wasn't written with that value
+			favoriteColors: undefined,
+			id: '2',
+		},
+	})
+})
+
 test('root subscribe - linked list lost entry', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
@@ -602,6 +669,95 @@ test('root subscribe - linked list lost entry', function () {
 	expect(
 		cache.internal.getRecord(cache.id('User', '3')!)?.getSubscribers('firstName')
 	).toHaveLength(0)
+})
+
+test("subscribing to list with null values doesn't explode", function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					null,
+				],
+			},
+		},
+		{}
+	)
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// somehow write a user to the cache with a new friends list
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+					},
+				],
+			},
+		},
+		{}
+	)
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+			],
+		},
+	})
 })
 
 test('root subscribe - linked list reorder', function () {
