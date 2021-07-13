@@ -11,7 +11,6 @@ const config = testConfig()
 test('pagination arguments stripped from key', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'PaginatedFragment',
 			`
             fragment PaginatedFragment on User {
                 friendsByCursor(first:10, filter: "hello") @paginate {

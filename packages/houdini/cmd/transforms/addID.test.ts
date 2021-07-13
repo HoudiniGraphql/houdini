@@ -23,14 +23,14 @@ test('adds ids to selection sets of objects with them', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"query Friends {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		query Friends {
 		  user {
 		    firstName
 		    id
 		  }
 		}
-		"
+
 	`)
 })
 
@@ -51,12 +51,12 @@ test("doesn't add id if there isn't one", async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"query Friends {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		query Friends {
 		  ghost {
 		    aka
 		  }
 		}
-		"
+
 	`)
 })

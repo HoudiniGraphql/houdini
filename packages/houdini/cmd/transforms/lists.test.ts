@@ -125,7 +125,7 @@ test('list fragments on fragment selection set', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
+		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
 		  }
 		}
@@ -242,7 +242,7 @@ test('includes `id` in list fragment', async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
+		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
 		  }
 		}
