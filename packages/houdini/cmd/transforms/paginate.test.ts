@@ -8,7 +8,6 @@ import { mockCollectedDoc } from '../testUtils'
 test('adds pagination info to full', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
                     usersByCursor(first: 10) @paginate {
@@ -67,7 +66,6 @@ test('adds pagination info to full', async function () {
 test('paginated fragments on node pull data from one field deeper', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on User {
 					friendsByCursor(first: 10) @paginate {
@@ -104,7 +102,6 @@ test('paginated fragments on node pull data from one field deeper', async functi
 test("doesn't add pagination info to offset pagination", async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
                     usersByOffset(limit: 10) @paginate {
@@ -133,7 +130,6 @@ test("doesn't add pagination info to offset pagination", async function () {
 test('paginate adds forwards cursor args to the full cursor fragment', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
                     usersByCursor(first: 10) @paginate {
@@ -179,7 +175,6 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 test('paginate adds backwards cursor args to the full cursor fragment', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
                     usersByCursor(last: 10) @paginate {
@@ -225,7 +220,6 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 test('paginate adds forwards cursor args to the fragment', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
                     usersByForwardsCursor(first: 10) @paginate {
@@ -271,7 +265,6 @@ test('paginate adds forwards cursor args to the fragment', async function () {
 test('paginate adds backwards cursor args to the fragment', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
                     usersByBackwardsCursor(last: 10) @paginate {
@@ -317,7 +310,6 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 test('sets before with default value', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
                     usersByCursor(last: 10, before: "cursor") @paginate {
@@ -364,7 +356,6 @@ test('sets before with default value', async function () {
 test('embeds pagination query as a separate document', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
                     usersByForwardsCursor(first: 10) @paginate {
@@ -414,7 +405,6 @@ test('embeds pagination query as a separate document', async function () {
 test('embeds node pagination query as a separate document', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on User {
                     friendsByForwardsCursor(first: 10) @paginate {
@@ -466,7 +456,6 @@ test('embeds node pagination query as a separate document', async function () {
 test('query with forwards cursor paginate', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 query Users {
                     usersByForwardsCursor(first: 10) @paginate {
@@ -512,7 +501,6 @@ test('query with forwards cursor paginate', async function () {
 test('query with backwards cursor paginate', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 query Users {
                     usersByBackwardsCursor(last: 10) @paginate {
@@ -558,7 +546,6 @@ test('query with backwards cursor paginate', async function () {
 test('query with offset paginate', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 query Users {
                     usersByOffset(limit: 10) @paginate {
@@ -587,7 +574,6 @@ test('query with offset paginate', async function () {
 test('query with backwards cursor on full paginate', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 query Users {
                     usersByCursor(last: 10) @paginate {
@@ -633,7 +619,6 @@ test('query with backwards cursor on full paginate', async function () {
 test('query with forwards cursor on full paginate', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 query Users {
                     usersByCursor(first: 10) @paginate {
@@ -679,7 +664,6 @@ test('query with forwards cursor on full paginate', async function () {
 test("forwards cursor paginated query doesn't overlap variables", async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 query Users($first: Int!) {
                     usersByCursor(first: $first) @paginate {
@@ -725,7 +709,6 @@ test("forwards cursor paginated query doesn't overlap variables", async function
 test("backwards cursor paginated query doesn't overlap variables", async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 query Users($last: Int!) {
                     usersByCursor(last: $last) @paginate {
@@ -771,7 +754,6 @@ test("backwards cursor paginated query doesn't overlap variables", async functio
 test("offset paginated query doesn't overlap variables", async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 query Users($limit: Int! = 10) {
                     usersByOffset(limit: $limit) @paginate {
@@ -800,7 +782,6 @@ test("offset paginated query doesn't overlap variables", async function () {
 test('refetch path handles nesting', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
                     usersByCursor(first: 10)  {
@@ -848,7 +829,6 @@ test('refetch path handles nesting', async function () {
 test('refetch specification with backwards pagination', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
 					usersByCursor(last: 10) @paginate {
@@ -884,7 +864,6 @@ test('refetch specification with backwards pagination', async function () {
 test('refetch specification with offset pagination', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestPaginationFields',
 			`
                 fragment UserFriends on Query {
 					usersByOffset(limit: 10) @paginate {

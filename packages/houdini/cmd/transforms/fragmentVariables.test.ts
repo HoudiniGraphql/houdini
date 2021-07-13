@@ -47,7 +47,7 @@ test('pass argument values to generated fragments', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "TestQuery",
+		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 
 		    raw: \`query AllUsers {
@@ -83,7 +83,6 @@ test('pass argument values to generated fragments', async function () {
 test("nullable arguments with no values don't show up in the query", async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestQuery',
 			`
 				query AllUsers {
                     ...QueryFragment
@@ -91,7 +90,6 @@ test("nullable arguments with no values don't show up in the query", async funct
 			`
 		),
 		mockCollectedDoc(
-			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
                 @arguments(name: {type: "String"} ) {
