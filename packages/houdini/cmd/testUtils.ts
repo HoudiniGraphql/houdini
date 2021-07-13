@@ -15,17 +15,7 @@ export function pipelineTest(
 ) {
 	test(title, async function () {
 		// the first thing to do is to create the list of collected documents
-		const docs: CollectedGraphQLDocument[] = documents.map((documentBody) => {
-			// parse the graphql document
-			const document = graphql.parse(documentBody)
-
-			// assume we didn't do anything crazy and there's only a single document per case
-			const definition = document.definitions[0] as
-				| graphql.FragmentDefinitionNode
-				| graphql.OperationDefinitionNode
-
-			return mockCollectedDoc(definition.name?.value || 'NO_NAME', documentBody)
-		})
+		const docs: CollectedGraphQLDocument[] = documents.map(mockCollectedDoc)
 
 		// we need to trap if we didn't fail
 		let error: HoudiniError[] = []
@@ -56,11 +46,17 @@ export function pipelineTest(
 	})
 }
 
-export function mockCollectedDoc(name: string, query: string) {
+export function mockCollectedDoc(query: string) {
+	const parsed = graphql.parse(query)
+
+	// look at the first definition in the pile for the name
+	// @ts-ignore
+	const name = parsed.definitions[0].name.value
+
 	return {
 		name,
-		document: graphql.parse(query),
-		originalDocument: graphql.parse(query),
+		document: parsed,
+		originalDocument: parsed,
 		filename: `${name}.ts`,
 		printed: query,
 		generated: false,

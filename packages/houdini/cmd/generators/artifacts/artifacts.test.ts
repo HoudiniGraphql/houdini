@@ -16,8 +16,8 @@ const config = testConfig()
 
 // the documents to test
 const docs: CollectedGraphQLDocument[] = [
-	mockCollectedDoc('TestQuery', `query TestQuery { version }`),
-	mockCollectedDoc('TestFragment', `fragment TestFragment on User { firstName }`),
+	mockCollectedDoc(`query TestQuery { version }`),
+	mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 ]
 
 test('generates an artifact for every document', async function () {
@@ -102,8 +102,8 @@ test('adds kind, name, and raw, response, and selection', async function () {
 test('selection includes fragments', async function () {
 	// the documents to test
 	const selectionDocs: CollectedGraphQLDocument[] = [
-		mockCollectedDoc('TestQuery', `query TestQuery { user { ...TestFragment } }`),
-		mockCollectedDoc('TestFragment', `fragment TestFragment on User { firstName }`),
+		mockCollectedDoc(`query TestQuery { user { ...TestFragment } }`),
+		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
 
 	// execute the generator
@@ -196,8 +196,8 @@ test('selection includes fragments', async function () {
 test('internal directives are scrubbed', async function () {
 	// execute the generator
 	await runPipeline(config, [
-		mockCollectedDoc('Fragment', `fragment A on User { firstName }`),
-		mockCollectedDoc('TestQuery', `query TestQuery { user { ...A @prepend } }`),
+		mockCollectedDoc(`fragment A on User { firstName }`),
+		mockCollectedDoc(`query TestQuery { user { ...A @prepend } }`),
 	])
 
 	// load the contents of the file
@@ -255,8 +255,8 @@ test('internal directives are scrubbed', async function () {
 test('overlapping query and fragment selection', async function () {
 	// execute the generator
 	await runPipeline(config, [
-		mockCollectedDoc('Fragment', `fragment A on User { firstName }`),
-		mockCollectedDoc('TestQuery', `query TestQuery { user { firstName ...A @prepend } }`),
+		mockCollectedDoc(`fragment A on User { firstName }`),
+		mockCollectedDoc(`query TestQuery { user { firstName ...A @prepend } }`),
 	])
 
 	// load the contents of the file
@@ -315,11 +315,8 @@ test('overlapping query and fragment selection', async function () {
 test('overlapping query and fragment nested selection', async function () {
 	// execute the generator
 	await runPipeline(config, [
-		mockCollectedDoc('Fragment', `fragment A on User { friends { id } }`),
-		mockCollectedDoc(
-			'TestQuery',
-			`query TestQuery { user { friends { firstName } ...A @prepend } }`
-		),
+		mockCollectedDoc(`fragment A on User { friends { id } }`),
+		mockCollectedDoc(`query TestQuery { user { friends { firstName } ...A @prepend } }`),
 	])
 
 	// load the contents of the file
@@ -396,7 +393,6 @@ test('selections with interfaces', async function () {
 	const cfg = testConfig({ mode: 'kit' })
 	const mutationDocs = [
 		mockCollectedDoc(
-			'TestQuery',
 			`query Friends {
 					friends {
                         ... on Cat {
@@ -429,7 +425,7 @@ test('selections with interfaces', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "TestQuery",
+		    name: "Friends",
 		    kind: "HoudiniQuery",
 
 		    raw: \`query Friends {
@@ -501,7 +497,6 @@ test('selections with unions', async function () {
 	const cfg = testConfig({ mode: 'kit' })
 	const mutationDocs = [
 		mockCollectedDoc(
-			'TestQuery',
 			`query Friends {
 					entities {
                         ... on Cat {
@@ -534,7 +529,7 @@ test('selections with unions', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "TestQuery",
+		    name: "Friends",
 		    kind: "HoudiniQuery",
 
 		    raw: \`query Friends {
@@ -608,7 +603,6 @@ describe('mutation artifacts', function () {
 
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation B',
 				`mutation B {
 					addFriend {
 						friend {
@@ -618,7 +612,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -643,7 +636,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		export default {
-		    name: "Mutation B",
+		    name: "B",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation B {
@@ -690,7 +683,6 @@ describe('mutation artifacts', function () {
 	test('insert operation', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -700,7 +692,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -725,7 +716,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -783,7 +774,6 @@ describe('mutation artifacts', function () {
 	test('remove operation', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -793,7 +783,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -818,7 +807,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -869,7 +858,6 @@ describe('mutation artifacts', function () {
 	test('delete operation', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					deleteUser(id: "1234") {
 						userID @User_delete
@@ -877,7 +865,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -902,7 +889,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -939,7 +926,6 @@ describe('mutation artifacts', function () {
 	test('delete operation with condition', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					deleteUser(id: "1234") {
 						userID @User_delete @when(argument: "stringValue", value: "foo")
@@ -947,7 +933,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -972,7 +957,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -1015,7 +1000,6 @@ describe('mutation artifacts', function () {
 	test('parentID - prepend', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -1025,7 +1009,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -1050,7 +1033,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -1113,7 +1096,6 @@ describe('mutation artifacts', function () {
 	test('parentID - append', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -1123,7 +1105,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -1148,7 +1129,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -1211,7 +1192,6 @@ describe('mutation artifacts', function () {
 	test('parentID - parentID directive', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -1221,7 +1201,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -1246,7 +1225,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -1309,7 +1288,6 @@ describe('mutation artifacts', function () {
 	test('must - prepend', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -1319,7 +1297,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -1344,7 +1321,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -1408,7 +1385,6 @@ describe('mutation artifacts', function () {
 	test('must - append', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -1418,7 +1394,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -1443,7 +1418,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -1507,7 +1482,6 @@ describe('mutation artifacts', function () {
 	test('must - directive', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -1517,7 +1491,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -1542,7 +1515,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -1606,7 +1579,6 @@ describe('mutation artifacts', function () {
 	test('must_not - prepend', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -1616,7 +1588,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -1641,7 +1612,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -1705,7 +1676,6 @@ describe('mutation artifacts', function () {
 	test('must_not - append', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -1715,7 +1685,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -1740,7 +1709,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -1804,7 +1773,6 @@ describe('mutation artifacts', function () {
 	test('list filters', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -1814,7 +1782,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery($value: String!) {
 					users(
 						stringValue: $value,
@@ -1914,7 +1881,6 @@ describe('mutation artifacts', function () {
 	test('must_not - directive', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -1924,7 +1890,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo", boolValue:true) @list(name: "All_Users") {
 						firstName
@@ -1949,7 +1914,7 @@ describe('mutation artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Mutation A",
+		    name: "A",
 		    kind: "HoudiniMutation",
 
 		    raw: \`mutation A {
@@ -2013,7 +1978,6 @@ describe('mutation artifacts', function () {
 	test('tracks list name', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Mutation A',
 				`mutation A {
 					addFriend {
 						friend {
@@ -2023,7 +1987,6 @@ describe('mutation artifacts', function () {
 				}`
 			),
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery {
 					users(stringValue: "foo") @list(name: "All_Users") {
 						firstName
@@ -2095,7 +2058,6 @@ describe('mutation artifacts', function () {
 	test('field args', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery($value: String!) {
 					users(
 						stringValue: $value,
@@ -2197,7 +2159,6 @@ describe('mutation artifacts', function () {
 
 		const mutationDocs = [
 			mockCollectedDoc(
-				'TestQuery',
 				`query TestQuery($value: String!) {
 					users(
 						stringValue: $value,
@@ -2322,9 +2283,7 @@ test('custom scalar shows up in artifact', async function () {
 	})
 
 	// execute the generator
-	await runPipeline(localConfig, [
-		mockCollectedDoc('TestQuery', `query TestQuery { allItems { createdAt } }`),
-	])
+	await runPipeline(localConfig, [mockCollectedDoc(`query TestQuery { allItems { createdAt } }`)])
 
 	// load the contents of the file
 	const queryContents = await fs.readFile(
@@ -2405,7 +2364,6 @@ test('operation inputs', async function () {
 	// execute the generator
 	await runPipeline(localConfig, [
 		mockCollectedDoc(
-			'TestQuery',
 			`
 			query TestQuery(
 				$id: ID,
@@ -2499,7 +2457,6 @@ describe('subscription artifacts', function () {
 	test('happy path', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
-				'Subscription B',
 				`subscription B {
 					newUser {
 						user {
@@ -2526,7 +2483,7 @@ describe('subscription artifacts', function () {
 		// verify contents
 		expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "Subscription B",
+		    name: "B",
 		    kind: "HoudiniSubscription",
 
 		    raw: \`subscription B {

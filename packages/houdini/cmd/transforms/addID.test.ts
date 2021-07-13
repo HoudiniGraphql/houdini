@@ -9,7 +9,6 @@ import { mockCollectedDoc } from '../testUtils'
 test('adds ids to selection sets of objects with them', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'Friends',
 			`
 				query Friends {
                     user { 
@@ -38,7 +37,6 @@ test('adds ids to selection sets of objects with them', async function () {
 test("doesn't add id if there isn't one", async function () {
 	const docs = [
 		mockCollectedDoc(
-			'Friends',
 			`
 				query Friends {
                     ghost { 

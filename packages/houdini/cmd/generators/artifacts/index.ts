@@ -233,7 +233,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 				// write the result to the artifact path we're configured to write to
 				await writeFile(config.artifactPath(document), recast.print(file).code)
-				console.log(config.artifactPath(document), docKind)
 				// log the file location to confirm
 				if (!config.quiet) {
 					console.log(name)
