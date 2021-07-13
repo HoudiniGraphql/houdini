@@ -189,6 +189,29 @@ test('list fragments must be unique', async function () {
 	await expect(runPipeline(testConfig(), docs)).rejects.toBeTruthy()
 })
 
+test("fragment with list doesn't clutter its definition", async function () {
+	const docs = [
+		mockCollectedDoc(`fragment Friends on User  { 
+			friends @list(name:"Friends") {  
+				id
+			}
+		}`),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment Friends on User {
+		  friends @list(name: "Friends") {
+		    id
+		  }
+		}
+
+	`)
+})
+
 test('includes `id` in list fragment', async function () {
 	const docs = [
 		mockCollectedDoc(
