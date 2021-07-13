@@ -7,7 +7,7 @@ export type CollectedGraphQLDocument = {
 	name: string
 	document: graphql.DocumentNode
 	originalDocument: graphql.DocumentNode
-	generated: boolean
+	generate: boolean
 	refetch?: {
 		update: RefetchUpdateMode
 		source: string[]

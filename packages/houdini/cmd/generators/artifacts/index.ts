@@ -91,10 +91,10 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			writeIndexFile(config, docs),
 		].concat(
 			// and an artifact for every document
-			docs.map(async ({ document, name, generated, ...doc }) => {
+			docs.map(async ({ document, name, generate, ...doc }) => {
 				// if the document is generated, don't write it to disk - it's use is to provide definitions
 				// for the other transforms
-				if (generated) {
+				if (!generate) {
 					return
 				}
 
