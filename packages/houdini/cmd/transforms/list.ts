@@ -233,7 +233,7 @@ export default async function addListFragments(
 
 	documents.push({
 		name: 'generated::lists',
-		generated: true,
+		generate: false,
 		document: generatedDoc,
 		originalDocument: generatedDoc,
 		filename: '__generated__',

@@ -58,6 +58,6 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 		document: parsed,
 		originalDocument: parsed,
 		filename: `${name}.ts`,
-		generated: false,
+		generate: true,
 	}
 }

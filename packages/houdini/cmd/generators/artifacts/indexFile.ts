@@ -6,20 +6,18 @@ import path from 'path'
 import { CollectedGraphQLDocument } from '../../types'
 import { cjsIndexFilePreamble, exportDefaultFrom, writeFile } from '../../utils'
 
-const AST = recast.types.builders
-
 export default async function writeIndexFile(config: Config, docs: CollectedGraphQLDocument[]) {
-	const nonGeneratedDocs = docs.filter((doc) => !doc.generated)
+	const docsToGenerate = docs.filter((doc) => doc.generate)
 
 	// we want to export every artifact from the index file.
 	let body =
 		config.module === 'esm'
-			? nonGeneratedDocs.reduce(
+			? docsToGenerate.reduce(
 					(content, doc) =>
 						content + `\n export { default as ${doc.name}} from './${doc.name}'`,
 					''
 			  )
-			: nonGeneratedDocs.reduce(
+			: docsToGenerate.reduce(
 					(content, doc) => content + `\n${exportDefaultFrom(`./${doc.name}`, doc.name)}`,
 					cjsIndexFilePreamble
 			  )

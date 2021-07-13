@@ -428,7 +428,7 @@ export default async function paginate(
 				name: fragmentName + 'Houdini_Paginated',
 				document: queryDoc,
 				originalDocument: queryDoc,
-				generated: false,
+				generate: true,
 			})
 		}
 	}
