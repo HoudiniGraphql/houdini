@@ -13,7 +13,6 @@ import { mockCollectedDoc } from '../testUtils'
 test('pass argument values to generated fragments', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestQuery',
 			`
 				query AllUsers {
                     ...QueryFragment @with(name: "Hello")
@@ -21,7 +20,6 @@ test('pass argument values to generated fragments', async function () {
 			`
 		),
 		mockCollectedDoc(
-			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
                 @arguments(name: {type: "String"} ) {
@@ -49,7 +47,7 @@ test('pass argument values to generated fragments', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "TestQuery",
+		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 
 		    raw: \`query AllUsers {
@@ -85,7 +83,6 @@ test('pass argument values to generated fragments', async function () {
 test("fragment arguments with default values don't rename the fragment", async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestQuery',
 			`
 				query AllUsers {
                     ...QueryFragment
@@ -93,7 +90,6 @@ test("fragment arguments with default values don't rename the fragment", async f
 			`
 		),
 		mockCollectedDoc(
-			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
                 @arguments(name: {type: "String", default: "Hello"}) {
@@ -121,7 +117,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "TestQuery",
+		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 
 		    raw: \`query AllUsers {
@@ -157,7 +153,6 @@ test("fragment arguments with default values don't rename the fragment", async f
 test('thread query variables to inner fragments', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestQuery',
 			`
 				query AllUsers($name: String!) {
                     ...QueryFragment @with(name: $name)
@@ -165,7 +160,6 @@ test('thread query variables to inner fragments', async function () {
 			`
 		),
 		mockCollectedDoc(
-			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
                 @arguments(name: {type: "String", default: "Hello"}) {
@@ -174,7 +168,6 @@ test('thread query variables to inner fragments', async function () {
 			`
 		),
 		mockCollectedDoc(
-			'InnerFragment',
 			`
 				fragment InnerFragment on Query 
                 @arguments(name: {type: "String", default: "Hello"}) {
@@ -202,7 +195,7 @@ test('thread query variables to inner fragments', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "TestQuery",
+		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 
 		    raw: \`query AllUsers($name: String!) {
@@ -250,7 +243,6 @@ test('thread query variables to inner fragments', async function () {
 test('inner fragment with intermediate default value', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestQuery',
 			`
 				query AllUsers {
                     ...QueryFragment
@@ -258,7 +250,6 @@ test('inner fragment with intermediate default value', async function () {
 			`
 		),
 		mockCollectedDoc(
-			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
                 @arguments(name: {type: "String", default: "Hello"}) {
@@ -267,7 +258,6 @@ test('inner fragment with intermediate default value', async function () {
 			`
 		),
 		mockCollectedDoc(
-			'InnerFragment',
 			`
 				fragment InnerFragment on Query 
                 @arguments(name: {type: "String", default: "Goodbye"}, age: {type: "Int", default: 2}) {
@@ -295,7 +285,7 @@ test('inner fragment with intermediate default value', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "TestQuery",
+		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 
 		    raw: \`query AllUsers {
@@ -335,7 +325,6 @@ test('inner fragment with intermediate default value', async function () {
 test("default values don't overwrite unless explicitly passed", async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestQuery',
 			`
 				query AllUsers {
                     ...QueryFragment
@@ -343,7 +332,6 @@ test("default values don't overwrite unless explicitly passed", async function (
 			`
 		),
 		mockCollectedDoc(
-			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
                 @arguments(name: {type: "String", default: "Hello"}) {
@@ -352,7 +340,6 @@ test("default values don't overwrite unless explicitly passed", async function (
 			`
 		),
 		mockCollectedDoc(
-			'InnerFragment',
 			`
 				fragment InnerFragment on Query 
                 @arguments(name: {type: "String", default: "Goodbye"}) {
@@ -380,7 +367,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "TestQuery",
+		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 
 		    raw: \`query AllUsers {
@@ -420,7 +407,6 @@ test("default values don't overwrite unless explicitly passed", async function (
 test('default arguments', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestQuery',
 			`
 				query AllUsers {
                     ...QueryFragment
@@ -428,7 +414,6 @@ test('default arguments', async function () {
 			`
 		),
 		mockCollectedDoc(
-			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
                 @arguments(name: {type: "String", default: "Hello"}, cool: {type: "Boolean", default: true}) {
@@ -456,7 +441,7 @@ test('default arguments', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "TestQuery",
+		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 
 		    raw: \`query AllUsers {
@@ -492,7 +477,6 @@ test('default arguments', async function () {
 test('multiple with directives - no overlap', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'TestQuery',
 			`
 				query AllUsers {
                     ...QueryFragment @with(name: "Goodbye") @with(cool: false)
@@ -500,7 +484,6 @@ test('multiple with directives - no overlap', async function () {
 			`
 		),
 		mockCollectedDoc(
-			'QueryFragment',
 			`
 				fragment QueryFragment on Query 
                 @arguments(name: {type: "String", default: "Hello"}, cool: {type: "Boolean", default: true}) {
@@ -528,7 +511,7 @@ test('multiple with directives - no overlap', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		module.exports = {
-		    name: "TestQuery",
+		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 
 		    raw: \`query AllUsers {

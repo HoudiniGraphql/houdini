@@ -94,7 +94,6 @@ describe('typescript', function () {
 	test('fragment types', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			'TestFragment',
 			`fragment TestFragment on User { firstName nickname enumValue }`
 		)
 
@@ -133,7 +132,7 @@ describe('typescript', function () {
 		const fragment = `fragment TestFragment on User { firstName parent { firstName } }`
 
 		// the document to test
-		const doc = mockCollectedDoc('TestFragment', fragment)
+		const doc = mockCollectedDoc(fragment)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -166,7 +165,6 @@ describe('typescript', function () {
 	test('scalars', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			'TestFragment',
 			`fragment TestFragment on User { firstName admin age id weight }`
 		)
 
@@ -202,7 +200,6 @@ describe('typescript', function () {
 	test('list types', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			'TestFragment',
 			`fragment TestFragment on User { firstName friends { firstName } }`
 		)
 
@@ -236,7 +233,7 @@ describe('typescript', function () {
 
 	test('query with no input', async function () {
 		// the document to test
-		const doc = mockCollectedDoc('TestFragment', `query Query { user { firstName } }`)
+		const doc = mockCollectedDoc(`query Query { user { firstName } }`)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -265,20 +262,13 @@ describe('typescript', function () {
 
 	test('query with root list', async function () {
 		// the document with the query
-		const query = `
+		const queryDoc = mockCollectedDoc(`
 			query Query {
 				users {
 					firstName,
 				}
 			}
-		`
-		const queryDoc = {
-			name: 'Query',
-			document: graphql.parse(query),
-			originalDocument: graphql.parse(query),
-			filename: 'fragment.ts',
-			printed: query,
-		}
+		`)
 		// execute the generator
 		await runPipeline(config, [queryDoc])
 
@@ -307,7 +297,6 @@ describe('typescript', function () {
 	test('query with input', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			'TestFragment',
 			`query Query($id: ID!, $enum: MyEnum) { user(id: $id, enumArg: $enum ) { firstName } }`
 		)
 
@@ -348,7 +337,6 @@ describe('typescript', function () {
 	test('mutation with input list', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			'TestFragment',
 			`mutation Mutation(
 				$filter: UserFilter, 
 				$filterList: [UserFilter!]!, 
@@ -429,7 +417,6 @@ describe('typescript', function () {
 	test('nested input objects', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			'TestFragment',
 			`query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
 		)
 
@@ -485,7 +472,6 @@ describe('typescript', function () {
 	test('generates index file', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			'Query',
 			`query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
 		)
 
@@ -507,10 +493,10 @@ describe('typescript', function () {
 
 	test('fragment spreads', async function () {
 		// the document with the fragment
-		const fragment = mockCollectedDoc('Foo', `fragment Foo on User { firstName }`)
+		const fragment = mockCollectedDoc(`fragment Foo on User { firstName }`)
 
 		// the document to test
-		const query = mockCollectedDoc('Query', `query Query { user { ...Foo } }`)
+		const query = mockCollectedDoc(`query Query { user { ...Foo } }`)
 
 		// execute the generator
 		await runPipeline(config, [query, fragment])
@@ -542,7 +528,6 @@ describe('typescript', function () {
 	test('interfaces', async function () {
 		// the document to test
 		const query = mockCollectedDoc(
-			'Query',
 			`
 			query Query { 
 				nodes { 
@@ -589,7 +574,6 @@ describe('typescript', function () {
 	test('unions', async function () {
 		// the document to test
 		const query = mockCollectedDoc(
-			'Query',
 			`
 			query Query { 
 				entities { 
@@ -636,7 +620,6 @@ describe('typescript', function () {
 	test('discriminated interface', async function () {
 		// the document to test
 		const query = mockCollectedDoc(
-			'Query',
 			`
 			query Query { 
 				nodes { 
@@ -686,7 +669,6 @@ describe('typescript', function () {
 	test('intersecting interface', async function () {
 		// the document to test
 		const query = mockCollectedDoc(
-			'Query',
 			`
 			query Query { 
 				entities { 
@@ -764,7 +746,7 @@ describe('typescript', function () {
 		})
 
 		// the document to test
-		const query = mockCollectedDoc('Query', `query Query { allItems { createdAt } }`)
+		const query = mockCollectedDoc(`query Query { allItems { createdAt } }`)
 
 		// execute the generator
 		await runPipeline(localConfig, [query])
@@ -821,7 +803,6 @@ describe('typescript', function () {
 
 		// the document to test
 		const query = mockCollectedDoc(
-			'Query',
 			`query Query($date: DateTime!) { allItems(createdAt: $date) { createdAt } }`
 		)
 

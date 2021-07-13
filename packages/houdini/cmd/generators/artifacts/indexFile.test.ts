@@ -16,8 +16,8 @@ const config = testConfig()
 
 // the documents to test
 const docs: CollectedGraphQLDocument[] = [
-	mockCollectedDoc('TestQuery', `query TestQuery { version }`),
-	mockCollectedDoc('TestFragment', `fragment TestFragment on User { firstName }`),
+	mockCollectedDoc(`query TestQuery { version }`),
+	mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 ]
 
 test('index file - kit', async function () {

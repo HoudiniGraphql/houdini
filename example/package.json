@@ -6,7 +6,7 @@
 		"dev": "svelte-kit dev",
 		"build": "svelte-kit build",
 		"start": "svelte-kit start",
-		"generate": "houdini generate",
+		"generate": "rm -rf \"\\$houdini\" && houdini generate",
 		"api": "node api.cjs"
 	},
 	"devDependencies": {

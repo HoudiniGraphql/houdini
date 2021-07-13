@@ -9,7 +9,6 @@ import { mockCollectedDoc } from '../testUtils'
 test('adds __typename on interface selection sets under query', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'Friends',
 			`
 				query Friends {
 					friends {
@@ -48,7 +47,6 @@ test('adds __typename on interface selection sets under query', async function (
 test('adds __typename on interface selection sets under an object', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'Friends',
 			`
 				query Friends {
                     users(stringValue: "hello") { 
@@ -94,7 +92,6 @@ test('adds __typename on interface selection sets under an object', async functi
 test('adds __typename on unions', async function () {
 	const docs = [
 		mockCollectedDoc(
-			'Friends',
 			`
 				query Friends {
 					entities {
