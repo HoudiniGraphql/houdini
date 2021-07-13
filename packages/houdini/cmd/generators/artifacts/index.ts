@@ -89,9 +89,15 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			writeIndexFile(config, docs),
 		].concat(
 			// and an artifact for every document
-			docs.map(async ({ document, name }) => {
+			docs.map(async ({ document, name, generated }) => {
+				// if the document is generated, don't write it to disk - it's use is to provide definitions
+				// for the other transforms
+				if (generated) {
+					return
+				}
+
 				// before we can print the document, we need to strip all references to internal directives
-				const rawString = graphql.print(
+				let rawString = graphql.print(
 					graphql.visit(document, {
 						Directive(node) {
 							// if the directive is one of the internal ones, remove it
@@ -183,8 +189,16 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				}
 				// we are looking at a fragment so use its selection set and type for the subscribe index
 				else {
-					rootType = fragments[0].typeCondition.name.value
-					selectionSet = fragments[0].selectionSet
+					// there are a lot of fragments added to a document. The fragment we care about
+					// is the one with the matching name
+					const matchingFragment = fragments.find(
+						(fragment) => fragment.name.value === name
+					)
+					if (!matchingFragment) {
+						throw new Error("Fragment doesn't exist in its own document?!")
+					}
+					rootType = matchingFragment.typeCondition.name.value
+					selectionSet = matchingFragment.selectionSet
 				}
 
 				// add the selection information so we can subscribe to the store
@@ -219,7 +233,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 				// write the result to the artifact path we're configured to write to
 				await writeFile(config.artifactPath(document), recast.print(file).code)
-
+				console.log(config.artifactPath(document), docKind)
 				// log the file location to confirm
 				if (!config.quiet) {
 					console.log(name)

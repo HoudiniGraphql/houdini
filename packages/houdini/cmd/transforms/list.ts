@@ -113,126 +113,129 @@ export default async function addListFragments(
 	].filter(Boolean)
 
 	// if there are no documents, we don't have anything to do
-	if (documents.length === 0) {
+	if (Object.keys(lists).length === 0) {
 		return
 	}
 
 	// we need to add the fragment definitions __somewhere__ where they will be picked up
 	// so we're going to add them to the list of documents, one each
-	documents[0].document = {
-		...documents[0].document,
-		definitions: [
-			...documents[0].document.definitions,
-			// every list needs insert and remove fragments
-			...Object.entries(lists).flatMap<graphql.FragmentDefinitionNode>(
-				([name, { field, type, filename }]) => {
-					// look up the type
-					const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
+	const generatedDoc: graphql.DocumentNode = {
+		kind: 'Document',
+		definitions: Object.entries(lists).flatMap<graphql.FragmentDefinitionNode>(
+			([name, { field, type, filename }]) => {
+				// look up the type
+				const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
 
-					// if there is no selection set
-					if (!field.selectionSet) {
-						throw new HoudiniErrorTodo('Lists must have a selection')
-					}
+				// if there is no selection set
+				if (!field.selectionSet) {
+					throw new HoudiniErrorTodo('Lists must have a selection')
+				}
 
-					// we need a copy of the field's selection set that we can mutate
-					const selection: graphql.SelectionSetNode = {
-						kind: 'SelectionSet',
-						selections: [...field.selectionSet.selections],
-						loc: field.selectionSet.loc,
-					}
+				// we need a copy of the field's selection set that we can mutate
+				const selection: graphql.SelectionSetNode = {
+					kind: 'SelectionSet',
+					selections: [...field.selectionSet.selections],
+					loc: field.selectionSet.loc,
+				}
 
-					// is there no id selection
-					if (
-						schemaType &&
-						selection &&
-						!selection?.selections.find(
-							(selection) =>
-								selection.kind === 'Field' && selection.name.value === 'id'
-						)
-					) {
-						// add the id field to the selection
-						selection.selections = [
-							...selection.selections,
-							{
-								kind: 'Field',
-								name: {
-									kind: 'Name',
-									value: 'id',
-								},
-							},
-						]
-					}
-
-					// we at least want to create fragment to indicate inserts in lists
-					return [
-						// a fragment to insert items into this list
+				// is there no id selection
+				if (
+					schemaType &&
+					selection &&
+					!selection?.selections.find(
+						(selection) => selection.kind === 'Field' && selection.name.value === 'id'
+					)
+				) {
+					// add the id field to the selection
+					selection.selections = [
+						...selection.selections,
 						{
-							kind: graphql.Kind.FRAGMENT_DEFINITION,
-							// in order to insert an item into this list, it must
-							// have the same selection as the field
-							selectionSet: selection,
+							kind: 'Field',
 							name: {
 								kind: 'Name',
-								value: config.listInsertFragment(name),
-							},
-							typeCondition: {
-								kind: 'NamedType',
-								name: {
-									kind: 'Name',
-									value: type.name,
-								},
-							},
-						},
-						// add a fragment to remove from the specific list
-						{
-							kind: graphql.Kind.FRAGMENT_DEFINITION,
-							name: {
-								kind: 'Name',
-								value: config.listRemoveFragment(name),
-							},
-							// deleting an entity just takes its id and the parent
-							selectionSet: {
-								kind: 'SelectionSet',
-								selections: [
-									{
-										kind: 'Field',
-										name: {
-											kind: 'Name',
-											value: 'id',
-										},
-									},
-								],
-							},
-							typeCondition: {
-								kind: 'NamedType',
-								name: {
-									kind: 'Name',
-									value: type.name,
-								},
+								value: 'id',
 							},
 						},
 					]
 				}
-			),
 
-			...listTargets.flatMap<graphql.DirectiveDefinitionNode>((typeName) => [
-				{
-					kind: 'DirectiveDefinition',
-					name: {
-						kind: 'Name',
-						value: config.listDeleteDirective(typeName),
-					},
-					locations: [
-						// the delete directive must be applied to a field in the response
-						// corresponding to the id
-						{
+				// we at least want to create fragment to indicate inserts in lists
+				return [
+					// a fragment to insert items into this list
+					{
+						kind: graphql.Kind.FRAGMENT_DEFINITION,
+						// in order to insert an item into this list, it must
+						// have the same selection as the field
+						selectionSet: selection,
+						name: {
 							kind: 'Name',
-							value: 'FIELD',
+							value: config.listInsertFragment(name),
 						},
-					],
-					repeatable: true,
+						typeCondition: {
+							kind: 'NamedType',
+							name: {
+								kind: 'Name',
+								value: type.name,
+							},
+						},
+					},
+					// add a fragment to remove from the specific list
+					{
+						kind: graphql.Kind.FRAGMENT_DEFINITION,
+						name: {
+							kind: 'Name',
+							value: config.listRemoveFragment(name),
+						},
+						// deleting an entity just takes its id and the parent
+						selectionSet: {
+							kind: 'SelectionSet',
+							selections: [
+								{
+									kind: 'Field',
+									name: {
+										kind: 'Name',
+										value: 'id',
+									},
+								},
+							],
+						},
+						typeCondition: {
+							kind: 'NamedType',
+							name: {
+								kind: 'Name',
+								value: type.name,
+							},
+						},
+					},
+				]
+			}
+		),
+
+		...listTargets.flatMap<graphql.DirectiveDefinitionNode>((typeName) => [
+			{
+				kind: 'DirectiveDefinition',
+				name: {
+					kind: 'Name',
+					value: config.listDeleteDirective(typeName),
 				},
-			]),
-		],
+				locations: [
+					// the delete directive must be applied to a field in the response
+					// corresponding to the id
+					{
+						kind: 'Name',
+						value: 'FIELD',
+					},
+				],
+				repeatable: true,
+			},
+		]),
 	}
+
+	documents.push({
+		name: 'generated::lists',
+		generated: true,
+		document: generatedDoc,
+		originalDocument: generatedDoc,
+		filename: '__generated__',
+	})
 }

@@ -63,5 +63,6 @@ export function mockCollectedDoc(name: string, query: string) {
 		originalDocument: graphql.parse(query),
 		filename: `${name}.ts`,
 		printed: query,
+		generated: false,
 	}
 }

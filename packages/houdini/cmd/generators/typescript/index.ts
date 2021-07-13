@@ -27,7 +27,11 @@ export default async function typescriptGenerator(
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(async ({ originalDocument }) => {
+		docs.map(async ({ originalDocument, generated }) => {
+			if (generated) {
+				return
+			}
+
 			// the place to put the artifact's type definition
 			const typeDefPath = config.artifactTypePath(originalDocument)
 
