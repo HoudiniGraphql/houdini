@@ -97,8 +97,7 @@ your API's schema. Next, generate your runtime:
 npx houdini generate
 ```
 
-and finally, add the preprocessor to your sapper setup. Don't forget to add it to both the
-client and the server configurations if you're using sapper.
+and finally, add the preprocessor to your sapper setup:
 
 ```typescript
 import houdini from 'houdini-preprocess'
@@ -115,8 +114,8 @@ import houdini from 'houdini-preprocess'
 
 ### Sapper
 
-With that in place, the only thing left to configure your Sapper application is
-to connect your client and server to the generate network layer:
+You'll need to add the preprocessor to both your client and your server configuration. With that in place, 
+the only thing left to configure your Sapper application is to connect your client and server to the generate network layer:
 
 ```typescript
 // in both src/client.js and src/server.js
