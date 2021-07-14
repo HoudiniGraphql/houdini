@@ -58,7 +58,7 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 				//       can't find the exported value when it comes from inside. It has no problem
 				//       finding the config reference exported from $houdini from the preprocessor 🤷
 				const isCacheIndex =
-					source.substring(source.lastIndexOf('/') + 1) === 'cache' &&
+					source.substring(source.lastIndexOf(path.sep) + 1) === 'cache' &&
 					child === 'index.js'
 				const cacheIndexPath = path.join(config.runtimeDirectory, 'cache', 'index.js')
 
@@ -78,6 +78,8 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 						const relativePath = path
 							.relative(cacheIndexPath, config.filepath)
 							.slice('../'.length)
+							.split(path.sep)
+							.join('/')
 
 						contents =
 							(config.module === 'esm'
