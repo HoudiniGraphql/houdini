@@ -9,9 +9,11 @@ import { cjsIndexFilePreamble, exportStarFrom, exportDefaultFrom, writeFile } fr
 // code-splitting concerns with the "cleanliness" of importing from a single location
 export default async function writeIndexFile(config: Config, docs: CollectedGraphQLDocument[]) {
 	// the directories we want to export
-	const runtimeDir = './' + path.relative(config.rootDir, config.runtimeDirectory)
-	const artifactDir = './' + path.relative(config.rootDir, config.artifactDirectory)
-	const configPath = path.relative(config.rootDir, config.filepath)
+	const runtimeDir =
+		'./' + path.relative(config.rootDir, config.runtimeDirectory).split(path.sep).join('/')
+	const artifactDir =
+		'./' + path.relative(config.rootDir, config.artifactDirectory).split(path.sep).join('/')
+	const configPath = path.relative(config.rootDir, config.filepath).split(path.sep).join('/')
 
 	// if we are rendering an index file for sapper we need to compile it for commonjs
 	let body = ''
