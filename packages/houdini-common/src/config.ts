@@ -299,6 +299,10 @@ export class Config {
 		return 'paginate'
 	}
 
+	paginationQueryName(documentName: string) {
+		return documentName + '_Pagination_Query'
+	}
+
 	isDeleteDirective(name: string) {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}

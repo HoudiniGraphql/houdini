@@ -425,7 +425,7 @@ export default async function paginate(
 			// add a document to the list
 			newDocs.push({
 				filename: doc.filename,
-				name: fragmentName + 'Houdini_Paginated',
+				name: config.paginationQueryName(fragmentName),
 				document: queryDoc,
 				originalDocument: queryDoc,
 				generate: true,
