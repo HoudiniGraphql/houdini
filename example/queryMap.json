@@ -1,0 +1,9 @@
+{
+	"e1bd3faf8b80f8206bcbbc236c4943a9": "mutation CompleteItem($id: ID!) {\n  checkItem(item: $id) {\n    item {\n      id\n      completed\n      ...Filtered_Items_remove\n    }\n  }\n}\n\nfragment Filtered_Items_remove on TodoItem {\n  id\n}\n",
+	"71fa4426fa8ba60f86d6fb0a2908c63c": "mutation UncompleteItem($id: ID!) {\n  uncheckItem(item: $id) {\n    item {\n      id\n      completed\n      ...Filtered_Items_remove\n    }\n  }\n}\n\nfragment Filtered_Items_remove on TodoItem {\n  id\n}\n",
+	"fc356a484115ab1638f9a51aae58d6ab": "mutation DeleteItem($id: ID!) {\n  deleteItem(item: $id) {\n    itemID\n  }\n}\n",
+	"2c0c4ce8b2a4ae98552ce72e6d677385": "subscription ItemUpdate($id: ID!) {\n  itemUpdate(id: $id) {\n    item {\n      id\n      completed\n      text\n      createdAt\n    }\n  }\n}\n",
+	"10967d2188b18eb59fbf584e464ea304": "query AllItems($completed: Boolean) {\n  filteredItems: items(completed: $completed) {\n    id\n    completed\n    ...ItemEntry_item\n  }\n  allItems: items {\n    id\n    completed\n  }\n}\n\nfragment ItemEntry_item on TodoItem {\n  id\n  text\n  completed\n  createdAt\n}\n",
+	"2e75b105da88343c6c346ab5f50e8ef7": "mutation AddItem($input: AddItemInput!) {\n  addItem(input: $input) {\n    error {\n      message\n    }\n  }\n}\n",
+	"aa3f58b88d49fadfd8224cfe06424002": "subscription NewItem {\n  newItem {\n    item {\n      ...All_Items_insert\n      ...Filtered_Items_insert\n      id\n    }\n  }\n}\n\nfragment All_Items_insert on TodoItem {\n  id\n  completed\n}\n\nfragment Filtered_Items_insert on TodoItem {\n  id\n  completed\n  ...ItemEntry_item\n}\n\nfragment ItemEntry_item on TodoItem {\n  id\n  text\n  completed\n  createdAt\n}\n"
+}
