@@ -17,7 +17,7 @@ program
 	.command('generate')
 	.description('generate the application runtime')
 	.option('-p, --pull-schema', 'pull the latest schema before generating')
-	.option('-po, --persist-output [outputPath]', 'persist the queries')
+	.option('-po, --persist-output [outputPath]', 'persist queries to a queryMap file')
 	.action(
 		async (args: { pullSchema: boolean; persistOutput?: string } = { pullSchema: false }) => {
 			// grab the config file
