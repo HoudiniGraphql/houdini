@@ -69,7 +69,7 @@ test('runtime index file - kit', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		export {default as houdiniConfig } from "../config.cjs"
+		export { default as houdiniConfig } from "../config.cjs"
 		export * from "./runtime"
 		export * from "./artifacts"
 	`)

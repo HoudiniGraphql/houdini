@@ -27,7 +27,7 @@ ${exportStarFrom(artifactDir)}
 	// otherwise just use esm statements as the final result
 	else {
 		body = `
-export {default as houdiniConfig } from "${configPath}"
+export { default as houdiniConfig } from "${configPath}"
 export * from "${runtimeDir}"
 export * from "${artifactDir}"
 `

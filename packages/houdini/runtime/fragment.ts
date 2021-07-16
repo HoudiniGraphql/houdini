@@ -6,10 +6,9 @@ import type { Config } from 'houdini-common'
 import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
 import cache from './cache'
 import { getVariables } from './context'
-import { unmarshalSelection } from './scalars'
 
 // fragment returns the requested data from the reference
-export default function fragment<_Fragment extends Fragment<any>>(
+export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
 	initialValue: _Fragment
 ): Readable<_Fragment['shape']> {
@@ -66,4 +65,20 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	})
 
 	return value
+}
+
+type PaginatedResponse<_Shape> = {
+	data: Readable<_Shape>
+}
+
+// paginatedFragment takes a fragment marked with pagination and returns the data along with utility functions
+// that load the the next page (and previous if cursor pagination is used), and a store containing the page info
+export function paginatedFragment<_Fragment extends Fragment<any>>(
+	document: GraphQLTagResult,
+	initialValue: _Fragment
+): PaginatedResponse<_Fragment['shape']> {
+	// get the fragment data
+	const data = fragment(document, initialValue)
+
+	return { data }
 }

@@ -11,7 +11,7 @@ import { marshalInputs, unmarshalSelection } from './scalars'
 // subscription holds open a live connection to the server. it returns a store
 // containing the requested data. Houdini will also update the cache with any
 // information that it encounters in the response.
-export default function subscription<_Subscription extends Operation<any, any>>(
+export function subscription<_Subscription extends Operation<any, any>>(
 	document: GraphQLTagResult,
 	variables?: _Subscription['input']
 ): {

@@ -12,7 +12,7 @@ import { marshalInputs, unmarshalSelection } from './scalars'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
 
-export default function query<_Query extends Operation<any, any>>(
+export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): QueryResponse<_Query['result'], _Query['input']> {
 	// make sure we got a query document
