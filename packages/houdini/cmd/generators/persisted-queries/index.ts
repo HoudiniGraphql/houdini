@@ -13,14 +13,18 @@ export default async function persistOutputGenerator(
 ) {
 	if (!config.outputPath || config.outputPath.length === 0) return
 
+	if (!config.outputPath.endsWith('.json')) {
+		console.log('Can only write the queryMap to a json file')
+		return
+	}
+
 	const queryMap = docs.reduce<Record<string, string>>((acc, { document, generated }) => {
-		// if the document is generated, don't write it to disk - it's use is to provide definitions
-		// for the other transforms
+		// if the document is generated, just return early since there is no operation
 		if (generated) {
 			return acc
 		}
 
-		// before we can print the document, we need to strip all references to internal directives
+		// Strip all references to internal directives
 		let rawString = graphql.print(
 			graphql.visit(document, {
 				Directive(node) {
@@ -38,6 +42,7 @@ export default async function persistOutputGenerator(
 
 		// if there are operations in the document
 		if (operations.length > 0 && operations[0].kind === 'OperationDefinition') {
+			// Add it to the queryMap
 			acc[hashDocument(rawString)] = rawString
 		}
 
@@ -46,5 +51,6 @@ export default async function persistOutputGenerator(
 
 	if (Object.keys(queryMap).length === 0) return
 
+	// Write the queryMap to the provided path
 	await writeFile(config.outputPath, JSON.stringify(queryMap), 'utf-8')
 }
