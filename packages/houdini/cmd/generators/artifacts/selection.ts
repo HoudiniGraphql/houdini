@@ -138,7 +138,7 @@ export default function selection({
 					// otherwise mark this field
 					fieldObj.properties.push(
 						AST.objectProperty(
-							AST.literal('paginate'),
+							AST.literal('update'),
 							AST.stringLiteral(document.refetch.update)
 						)
 					)
@@ -150,7 +150,7 @@ export default function selection({
 				// otherwise mark this field
 				fieldObj.properties.push(
 					AST.objectProperty(
-						AST.literal('paginate'),
+						AST.literal('update'),
 						AST.stringLiteral(document.refetch.update)
 					)
 				)
@@ -315,7 +315,7 @@ function mergeSelections(
 						(prop) =>
 							prop.type === 'ObjectProperty' &&
 							prop.key.type === 'Literal' &&
-							prop.key.value === 'paginate'
+							prop.key.value === 'update'
 						// @ts-ignore
 					)?.value.value
 			)
@@ -406,7 +406,7 @@ function mergeSelections(
 			// check if the field is marked for pagination
 			if (paginateFlag) {
 				fieldObj.properties.push(
-					AST.objectProperty(AST.literal('paginate'), AST.stringLiteral(paginateFlag))
+					AST.objectProperty(AST.literal('update'), AST.stringLiteral(paginateFlag))
 				)
 			}
 

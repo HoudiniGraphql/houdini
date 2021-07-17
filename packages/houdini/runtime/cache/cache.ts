@@ -350,7 +350,6 @@ export class Cache {
 		variables: { [key: string]: GraphQLValue },
 		specs: SubscriptionSpec[]
 	) {
-		console.log(data)
 		// the record we are storing information about this object
 		const record = this.record(recordID)
 
@@ -556,7 +555,6 @@ export class Cache {
 
 			// the value is neither an object or a list so its a scalar
 			else {
-				console.log('scalar', key)
 				// if the value is different
 				if (value !== record.getField(key)) {
 					// update the cached value

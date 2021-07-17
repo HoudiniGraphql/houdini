@@ -144,6 +144,7 @@ export type SubscriptionSelection = {
 		keyRaw: string
 		operations?: MutationOperation[]
 		list?: string
+		update?: RefetchUpdateMode
 		filters?: {
 			[key: string]: {
 				kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'

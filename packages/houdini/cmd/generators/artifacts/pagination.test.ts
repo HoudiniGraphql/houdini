@@ -91,7 +91,7 @@ test('pagination arguments stripped from key', async function () {
 					                        }
 					                    },
 
-					                    "paginate": "append"
+					                    "update": "append"
 					                },
 
 					                "pageInfo": {
@@ -176,7 +176,7 @@ test('offset based pagination marks appropriate field', async function () {
 					                }
 					            },
 
-					            "paginate": "append"
+					            "update": "append"
 					        }
 					    }
 					};
@@ -305,7 +305,7 @@ test('pagination arguments stripped from key', async function () {
 					                        }
 					                    },
 
-					                    "paginate": "append"
+					                    "update": "append"
 					                },
 
 					                "pageInfo": {
