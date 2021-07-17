@@ -45,7 +45,11 @@ export function mutation<_Mutation extends Operation<any, any>>(
 				sessionStore
 			)
 
-			cache.write(artifact.selection, result.data, queryVariables())
+			cache.write({
+				selection: artifact.selection,
+				data: result.data,
+				variables: queryVariables(),
+			})
 
 			// unmarshal any scalars on the body
 			return unmarshalSelection(config, artifact.selection, result.data)

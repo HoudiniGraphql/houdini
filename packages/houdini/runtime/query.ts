@@ -55,7 +55,11 @@ export function query<_Query extends Operation<any, any>>(
 		// if we were given data on mount
 		if (initialValue) {
 			// update the cache with the data that we just ran into
-			cache.write(artifact.selection, initialValue, variables)
+			cache.write({
+				selection: artifact.selection,
+				data: initialValue,
+				variables,
+			})
 
 			// stay up to date
 			if (subscriptionSpec) {
@@ -95,7 +99,11 @@ export function query<_Query extends Operation<any, any>>(
 		store.set(unmarshalSelection(config, artifact.selection, newData.data))
 
 		// write the data we received
-		cache.write(artifact.selection, newData.data, variables)
+		cache.write({
+			selection: artifact.selection,
+			data: newData.data,
+			variables,
+		})
 	}
 
 	return {

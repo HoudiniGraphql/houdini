@@ -84,7 +84,12 @@ export class ListHandler {
 		}
 
 		// update the cache with the data we just found
-		this.cache.write(selection, data, variables, dataID)
+		this.cache.write({
+			selection,
+			data,
+			variables,
+			parent: dataID,
+		})
 
 		if (where === 'first') {
 			// add the record we just created to the list

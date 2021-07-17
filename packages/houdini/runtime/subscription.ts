@@ -80,7 +80,11 @@ export function subscription<_Subscription extends Operation<any, any>>(
 					// if we got a result
 					if (data) {
 						// update the cache with the result
-						cache.write(selection, data, marshaledVariables)
+						cache.write({
+							selection,
+							data,
+							variables: marshaledVariables,
+						})
 
 						// update the local store
 						store.set(unmarshalSelection(config, artifact.selection, data))

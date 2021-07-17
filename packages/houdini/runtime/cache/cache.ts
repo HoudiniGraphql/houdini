@@ -25,19 +25,22 @@ export class Cache {
 	private _lists: Map<string, Map<string, ListHandler>> = new Map()
 
 	// save the response in the local store and notify any subscribers
-	write(
-		selection: SubscriptionSelection,
-		data: { [key: string]: GraphQLValue },
-		variables: {} = {},
-		id?: string
-	) {
+	write({
+		selection,
+		data,
+		variables = {},
+		parent = rootID,
+	}: {
+		selection: SubscriptionSelection
+		data: { [key: string]: GraphQLValue }
+		variables?: {}
+		parent?: string
+	}) {
 		const specs: SubscriptionSpec[] = []
-
-		const parentID = id || rootID
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
 		// will build up different specs of subscriptions that need to be run against the current state
-		this._write(parentID, parentID, selection, parentID, data, variables, specs)
+		this._write(parent, parent, selection, parent, data, variables, specs)
 
 		// compute new values for every spec that needs to be run
 		this.notifySubscribers(specs, variables)
@@ -347,6 +350,7 @@ export class Cache {
 		variables: { [key: string]: GraphQLValue },
 		specs: SubscriptionSpec[]
 	) {
+		console.log(data)
 		// the record we are storing information about this object
 		const record = this.record(recordID)
 
@@ -552,6 +556,7 @@ export class Cache {
 
 			// the value is neither an object or a list so its a scalar
 			else {
+				console.log('scalar', key)
 				// if the value is different
 				if (value !== record.getField(key)) {
 					// update the cached value
