@@ -462,15 +462,6 @@ export class Cache {
 
 				// build up the list of linked ids
 				let linkedIDs: (string | null)[] = []
-				let updateLinkedIDs = (val: string | null) => linkedIDs.push(val)
-
-				if (applyUpdates && update) {
-					linkedIDs = oldIDs
-					// if we are supposed to prepend, use unshift to update
-					if (update === 'prepend') {
-						updateLinkedIDs = (val: string | null) => linkedIDs.unshift(val)
-					}
-				}
 
 				// keep track of the records we are adding
 				const newIDs: (string | null)[] = []
@@ -479,7 +470,7 @@ export class Cache {
 				for (const [i, entry] of value.entries()) {
 					// if the entry is a null value, just add it to the list
 					if (entry === null) {
-						updateLinkedIDs(null)
+						newIDs.push(null)
 						continue
 					}
 
@@ -531,7 +522,7 @@ export class Cache {
 					)
 
 					// add the id to the list
-					updateLinkedIDs(linkedID)
+					newIDs.push(linkedID)
 					// hold onto the new ids
 					if (!oldIDs.includes(linkedID) && list) {
 						this.record(linkedID).addListReference({
@@ -539,6 +530,26 @@ export class Cache {
 							name: list,
 						})
 					}
+				}
+
+				// if we're supposed to apply this write as an update, we need to figure out how
+				if (applyUpdates && update) {
+					// if we have to prepend it, do so
+					if (update === 'prepend') {
+						linkedIDs = newIDs.concat(oldIDs)
+					}
+					// otherwise we might have to append it
+					else if (update === 'append') {
+						linkedIDs = oldIDs.concat(newIDs)
+					}
+					// if the update is a replace do the right thing
+					else if (update === 'replace') {
+						linkedIDs = newIDs
+					}
+				}
+				// we're not supposed to apply this write as an update, just use the new value
+				else {
+					linkedIDs = newIDs
 				}
 
 				// we have to notify the subscribers if a few things happen:
@@ -585,9 +596,21 @@ export class Cache {
 			// the value is neither an object or a list so its a scalar
 			else {
 				// if the value is different
-				if (value !== record.getField(key)) {
+				if (JSON.stringify(value) !== JSON.stringify(record.getField(key))) {
+					let newValue = value
+					// if the value is an array, we might have to apply updates
+					if (Array.isArray(value) && applyUpdates && update) {
+						// if we have to prepend the new value on the old one
+						if (update === 'append') {
+							newValue = ((record.getField(key) as any[]) || []).concat(value)
+						}
+						// we might have to prepend our value onto the old one
+						else if (update === 'prepend') {
+							newValue = value.concat(record.getField(key) || [])
+						}
+					}
 					// update the cached value
-					record.writeField(key, value)
+					record.writeField(key, newValue)
 
 					// add every subscriber to the list of specs to change
 					specs.push(...subscribers)
@@ -603,12 +626,12 @@ export class Cache {
 					if (operation.parentID.kind !== 'Variable') {
 						parentID = operation.parentID.value
 					} else {
-						const value = variables[operation.parentID.value]
-						if (typeof value !== 'string') {
+						const id = variables[operation.parentID.value]
+						if (typeof id !== 'string') {
 							throw new Error('parentID value must be a string')
 						}
 
-						parentID = value
+						parentID = id
 					}
 				}
 

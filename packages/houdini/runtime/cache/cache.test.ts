@@ -3205,7 +3205,7 @@ test('writing a scalar marked with a disabled update overwrites', function () {
 	})
 })
 
-test('writing a scalar marked with an prepend', function () {
+test('writing a scalar marked with a prepend', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -3225,7 +3225,7 @@ test('writing a scalar marked with an prepend', function () {
 				friends: {
 					type: 'Int',
 					keyRaw: 'friends',
-					update: 'append',
+					update: 'prepend',
 				},
 			},
 		},
@@ -3262,6 +3262,7 @@ test('writing a scalar marked with an prepend', function () {
 				friends: [2],
 			},
 		},
+		applyUpdates: true,
 	})
 
 	// make sure we can get the updated lists back
@@ -3269,7 +3270,7 @@ test('writing a scalar marked with an prepend', function () {
 		viewer: {
 			id: '1',
 			firstName: 'bob',
-			friends: [1, 2],
+			friends: [2, 1],
 		},
 	})
 })
@@ -3331,6 +3332,7 @@ test('writing a scalar marked with an append', function () {
 				friends: [2],
 			},
 		},
+		applyUpdates: true,
 	})
 
 	// make sure we can get the updated lists back
