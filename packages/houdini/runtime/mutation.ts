@@ -12,7 +12,7 @@ import { getSession } from './adapter.mjs'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
-export default function mutation<_Mutation extends Operation<any, any>>(
+export function mutation<_Mutation extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document

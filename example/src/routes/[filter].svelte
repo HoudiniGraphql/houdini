@@ -18,53 +18,39 @@
 </script>
 
 <script lang="ts">
-	import { query, graphql, mutation, subscription, AllItems, AddItem } from '$houdini'
+	import { paginatedQuery, graphql, mutation, subscription, AllItems } from '$houdini'
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { page } from '$app/stores'
 	import { derived } from 'svelte/store'
+import { onMount } from 'svelte';
 
 	// load the items
-	const { data } = query<AllItems>(graphql`
+	const { data, loadNextPage } = paginatedQuery<AllItems>(graphql`
 		query AllItems($completed: Boolean) {
-			filteredItems: items(completed: $completed) @list(name: "Filtered_Items") {
-				id
-				completed
-				...ItemEntry_item
+			filteredItems: items(completed: $completed, first: 2) @paginate  {
+				edges { 
+					node { 
+						id
+						completed
+						...ItemEntry_item
+					}
+				}
 			}
-			allItems: items @list(name: "All_Items") {
-				id
-				completed
-			}
-		}
-	`)
-
-	// state and handler for the new item input
-	const addItem = mutation<AddItem>(graphql`
-		mutation AddItem($input: AddItemInput!) {
-			addItem(input: $input) {
-				error {
-					message
+			allItems: items  {
+				edges { 
+					node { 
+						id
+						completed
+					}
 				}
 			}
 		}
 	`)
 
-	subscription(graphql`
-		subscription NewItem {
-			newItem {
-				item {
-					...All_Items_insert
-					...Filtered_Items_insert
-						@prepend(when_not: { argument: "completed", value: "true" })
-				}
-			}
-		}
-	`)
-
-	const numberOfItems = derived(data, ($data) => $data.allItems.length)
+	const numberOfItems = derived(data, ($data) => $data.allItems.edges.length)
 	const itemsLeft = derived(
 		data,
-		($data) => $data.allItems.filter((item) => !item.completed).length
+		($data) => $data.allItems.edges.filter(({node: item}) => !item.completed).length
 	)
 
 	// figure out the current page
@@ -81,7 +67,7 @@
 	async function onBlur() {
 		if (inputValue) {
 			// trigger the mutation
-			await addItem({ input: { text: inputValue } })
+			// await addItem({ input: { text: inputValue } })
 
 			// clear the input
 			inputValue = ''
@@ -94,6 +80,9 @@
 	<a href="/">
 		<h1>todos</h1>
 	</a>
+	<nav>
+		<button on:click={loadNextPage}>load more</button>
+	</nav>
 	<input
 		class="new-todo"
 		placeholder="What needs to be done?"
@@ -101,13 +90,12 @@
 		on:blur={onBlur}
 	/>
 </header>
-
 <section class="main">
 	<input id="toggle-all" class="toggle-all" type="checkbox" />
 	<label for="toggle-all">Mark all as complete</label>
 	<ul class="todo-list">
-		{#each $data.filteredItems as item (item.id)}
-			<ItemEntry {item} />
+		{#each $data.filteredItems.edges as edge (edge.node.id)}
+			<ItemEntry item={edge.node} />
 		{/each}
 	</ul>
 </section>

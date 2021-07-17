@@ -1,15 +1,13 @@
 // externals
 import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
-import type { Config } from 'houdini-common'
 // locals
 import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
 import cache from './cache'
 import { getVariables } from './context'
-import { unmarshalSelection } from './scalars'
 
 // fragment returns the requested data from the reference
-export default function fragment<_Fragment extends Fragment<any>>(
+export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
 	initialValue: _Fragment
 ): Readable<_Fragment['shape']> {
@@ -66,4 +64,8 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	})
 
 	return value
+}
+
+type PaginatedResponse<_Shape> = {
+	data: Readable<_Shape>
 }

@@ -12,7 +12,7 @@ import { marshalInputs, unmarshalSelection } from './scalars'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
 
-export default function query<_Query extends Operation<any, any>>(
+export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): QueryResponse<_Query['result'], _Query['input']> {
 	// make sure we got a query document
@@ -131,7 +131,7 @@ export default function query<_Query extends Operation<any, any>>(
 
 // we need to wrap the response from a query in something that we can
 // use as a proxy to the query for refetches, writing to the cache, etc
-type QueryResponse<_Data, _Input> = {
+export type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
 	writeData: (data: RequestPayload<_Data>, variables: _Input) => void
 	refetch: (newVariables?: _Input) => Promise<void>

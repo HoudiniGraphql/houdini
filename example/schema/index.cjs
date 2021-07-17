@@ -1,6 +1,7 @@
 const gql = require('graphql-tag')
 const { PubSub, withFilter } = require('apollo-server')
 const { GraphQLScalarType, Kind } = require('graphql')
+const { connectionFromArray } = require('graphql-relay')
 
 const pubsub = new PubSub()
 
@@ -20,7 +21,7 @@ module.exports.typeDefs = gql`
 	}
 
 	type Query {
-		items(completed: Boolean): [TodoItem!]!
+		items(first: Int, after: String, completed: Boolean): TodoItemConnection!
 	}
 
 	type Mutation {
@@ -57,25 +58,51 @@ module.exports.typeDefs = gql`
 	type ItemUpdate {
 		item: TodoItem!
 	}
-`
 
-id = 3
+	type PageInfo {
+		startCursor: String
+		endCursor: String
+		hasNextPage: Boolean!
+		hasPreviousPage: Boolean!
+	}
+
+	type TodoItemConnection {
+		totalCount: Int!
+		pageInfo: PageInfo!
+		edges: [TodoItemEdge!]!
+	}
+
+	type TodoItemEdge {
+		cursor: String
+		node: TodoItem
+	}
+`
 
 // example data
 let items = [
 	{ id: '1', text: 'Taste JavaScript', createdAt: new Date() },
 	{ id: '2', text: 'Buy a unicorn', createdAt: new Date() },
+	{ id: '3', text: 'Taste more JavaScript', createdAt: new Date() },
+	{ id: '4', text: 'Buy a another unicorn', createdAt: new Date() },
+	{ id: '5', text: 'Taste even more JavaScript', createdAt: new Date() },
+	{ id: '6', text: 'Buy a third unicorn', createdAt: new Date() },
 ]
+
+id = items.length
 
 module.exports.resolvers = {
 	Query: {
-		items: (_, { completed } = {}) => {
-			// if completed is undefined there is no filter
-			if (typeof completed === 'undefined') {
-				return items
-			}
+		items: (_, { completed, ...args } = {}) => {
+			const filtered = items.filter((item) =>
+				typeof completed === 'boolean'
+					? Boolean(item.completed) === Boolean(completed)
+					: true
+			)
 
-			return items.filter((item) => Boolean(item.completed) === Boolean(completed))
+			const connection = connectionFromArray(filtered, args)
+			connection.totalCount = items.length
+
+			return connection
 		},
 	},
 	Mutation: {

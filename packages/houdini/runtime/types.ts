@@ -1,4 +1,5 @@
 import type { Config } from 'houdini-common'
+import { Readable } from 'svelte/store'
 
 export type Fragment<_Result> = {
 	readonly shape?: _Result
@@ -36,7 +37,13 @@ export type SubscriptionArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniSubscription'
 }
 
-type BaseCompiledDocument = {
+export enum RefetchUpdateMode {
+	append = 'append',
+	prepend = 'prepend',
+	replace = 'replace',
+}
+
+export type BaseCompiledDocument = {
 	name: string
 	raw: string
 	hash: string
@@ -45,6 +52,12 @@ type BaseCompiledDocument = {
 	input?: {
 		fields: Record<string, string>
 		types: Record<string, Record<string, string>>
+	}
+	refetch?: {
+		update: RefetchUpdateMode
+		source: string[]
+		target: string[]
+		method: 'cursor' | 'offset'
 	}
 }
 
