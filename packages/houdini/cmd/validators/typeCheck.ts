@@ -40,26 +40,10 @@ export default async function typeCheck(
 				fragments[definition.name.value] = definition
 			},
 			[graphql.Kind.DIRECTIVE](directive, _, parent, __, ancestors) {
-				// if the fragment is a list fragment
-				if (directive.name.value !== config.listDirective) {
-					return
-				}
-
-				// look up the name of the list
-				const nameArg = directive.arguments?.find(
-					({ name }) => name.value === config.listNameArg
-				)
-
-				if (!nameArg) {
-					errors.push(new HoudiniErrorTodo('Could not find name arg'))
-					return
-				}
-				if (nameArg.value.kind !== 'StringValue') {
-					errors.push(
-						new HoudiniErrorTodo(
-							'Name arg must be a static string, it cannot be set to a variable.'
-						)
-					)
+				// only consider @paginate or @list
+				if (
+					![config.listDirective, config.paginateDirective].includes(directive.name.value)
+				) {
 					return
 				}
 
@@ -85,7 +69,7 @@ export default async function typeCheck(
 				}
 
 				// look at the list of ancestors to see if we required a parent ID
-				let needsParent = definition.kind === 'FragmentDefinition'
+				let needsParent = false
 
 				// if we are looking at an operation that's not query
 				if (
@@ -93,7 +77,11 @@ export default async function typeCheck(
 						definition.kind !== 'FragmentDefinition') ||
 					(definition.kind === 'OperationDefinition' && definition.operation !== 'query')
 				) {
-					errors.push(new Error('@list can only appear in queries or fragments'))
+					errors.push(
+						new Error(
+							`@${directive.name.value} can only appear in queries or fragments`
+						)
+					)
 					return
 				}
 
@@ -152,7 +140,44 @@ export default async function typeCheck(
 					rootType = rootType?.getFields()[parent.name.value].type
 				}
 
+				// if we found a pagination directive, make sure that it doesn't
+				// fall under a list (same logic as @list needing a parent)
+				if (directive.name.value === config.paginateDirective) {
+					// if we need a parent, we can't paginate it
+					if (needsParent) {
+						errors.push(
+							new HoudiniErrorTodo(
+								`@${config.paginateDirective} cannot be below a list`
+							)
+						)
+					}
+
+					return
+				}
+
+				// if we got this far, we need a parent if we're under any fragment
+				// since a list mutation can't compute the parent from the owner of the fragment
+				needsParent = needsParent || definition.kind === 'FragmentDefinition'
+
 				const parentType = parentTypeFromAncestors(config.schema, ancestors)
+
+				// look up the name of the list
+				const nameArg = directive.arguments?.find(
+					({ name }) => name.value === config.listNameArg
+				)
+
+				if (!nameArg) {
+					errors.push(new HoudiniErrorTodo('Could not find name arg'))
+					return
+				}
+				if (nameArg.value.kind !== 'StringValue') {
+					errors.push(
+						new HoudiniErrorTodo(
+							'Name arg must be a static string, it cannot be set to a variable.'
+						)
+					)
+					return
+				}
 
 				// if we have already seen the list name there's a problem
 				const listName = nameArg.value.value

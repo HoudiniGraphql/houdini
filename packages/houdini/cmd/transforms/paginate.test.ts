@@ -784,15 +784,11 @@ test('refetch path handles nesting', async function () {
 		mockCollectedDoc(
 			`
                 fragment UserFriends on Query {
-                    usersByCursor(first: 10)  {
-						edges { 
-							node { 
-								friendsByCursor(first: 10) @paginate {
-									edges { 
-										node { 
-											id
-										}
-									}
+                    user  {
+						friendsByCursor(first: 10) @paginate {
+							edges { 
+								node { 
+									id
 								}
 							}
 						}
@@ -810,15 +806,11 @@ test('refetch path handles nesting', async function () {
 		{
 		    "update": "append",
 		    "source": [
-		        "usersByCursor",
-		        "edges",
-		        "node",
+		        "user",
 		        "friendsByCursor"
 		    ],
 		    "target": [
-		        "usersByCursor",
-		        "edges",
-		        "node",
+		        "user",
 		        "friendsByCursor"
 		    ],
 		    "method": "cursor"

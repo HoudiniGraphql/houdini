@@ -91,7 +91,10 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			writeIndexFile(config, docs),
 		].concat(
 			// and an artifact for every document
-			docs.map(async ({ document, name, generate, ...doc }) => {
+			docs.map(async (doc) => {
+				// pull out the info we need from the collected doc
+				const { document, name, generate } = doc
+
 				// if the document is generated, don't write it to disk - it's use is to provide definitions
 				// for the other transforms
 				if (!generate) {
@@ -211,7 +214,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 							// do not include used fragments if we are rendering the selection
 							// for a fragment document
 							includeFragments: docKind !== 'HoudiniFragment',
-							document,
+							document: doc,
 						})
 					)
 				)

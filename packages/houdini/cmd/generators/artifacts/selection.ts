@@ -5,6 +5,7 @@ import * as recast from 'recast'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
 import fieldKey from './fieldKey'
+import { CollectedGraphQLDocument } from '../../types'
 
 const AST = recast.types.builders
 
@@ -16,6 +17,7 @@ export default function selection({
 	path = [],
 	includeFragments,
 	document,
+	markEdges,
 }: {
 	config: Config
 	rootType: string
@@ -23,7 +25,8 @@ export default function selection({
 	operations: { [path: string]: namedTypes.ArrayExpression }
 	path?: string[]
 	includeFragments: boolean
-	document: graphql.DocumentNode
+	document: CollectedGraphQLDocument
+	markEdges?: string
 }): namedTypes.ObjectExpression {
 	// we need to build up an object that contains every field in the selection
 	const object = AST.objectExpression([])
@@ -32,7 +35,7 @@ export default function selection({
 		// ignore fragment spreads
 		if (field.kind === 'FragmentSpread' && includeFragments) {
 			// look up the fragment definition
-			const fragmentDefinition = document.definitions.find(
+			const fragmentDefinition = document.document.definitions.find(
 				(defn) => defn.kind === 'FragmentDefinition' && defn.name.value === field.name.value
 			) as graphql.FragmentDefinitionNode
 			if (!fragmentDefinition) {
@@ -121,6 +124,41 @@ export default function selection({
 				)
 			}
 
+			// if the field is marked for pagination we want to leave something behind
+			// so that cache.write can perform the necessary inserts when appropriate
+			const paginated = field.directives?.find(
+				(directive) => directive.name.value === config.paginateDirective
+			)
+			if (paginated && document.refetch) {
+				// if we are paginating by cursor
+				if (document.refetch.method === 'cursor') {
+					// we need to mark the edge field for pagination
+					markEdges = document.refetch.update
+				} else {
+					// otherwise mark this field
+					fieldObj.properties.push(
+						AST.objectProperty(
+							AST.literal('paginate'),
+							AST.stringLiteral(document.refetch.update)
+						)
+					)
+				}
+			}
+
+			// if we are looking at the edges field and we're supposed to mark it for pagination
+			if (attributeName === 'edges' && markEdges && document.refetch) {
+				// otherwise mark this field
+				fieldObj.properties.push(
+					AST.objectProperty(
+						AST.literal('paginate'),
+						AST.stringLiteral(document.refetch.update)
+					)
+				)
+
+				// make sure we don't mark any more edge fields
+				markEdges = ''
+			}
+
 			// only add the field object if there are properties in it
 			if (field.selectionSet) {
 				const selectionObj = selection({
@@ -131,6 +169,7 @@ export default function selection({
 					path: pathSoFar,
 					includeFragments,
 					document,
+					markEdges,
 				})
 				fieldObj.properties.push(AST.objectProperty(AST.literal('fields'), selectionObj))
 			}
@@ -269,6 +308,18 @@ function mergeSelections(
 					)?.value.value
 			)
 			.filter(Boolean)
+		const paginateFlags = properties
+			.map(
+				(property) =>
+					(property.value as namedTypes.ObjectExpression).properties.find(
+						(prop) =>
+							prop.type === 'ObjectProperty' &&
+							prop.key.type === 'Literal' &&
+							prop.key.value === 'paginate'
+						// @ts-ignore
+					)?.value.value
+			)
+			.filter(Boolean)
 		const operations = properties
 			.flatMap<namedTypes.ArrayExpression['elements']>(
 				(property) =>
@@ -311,6 +362,7 @@ function mergeSelections(
 		const key = keys[0]
 		const list = lists[0]
 		const abstractFlag = abstractFlags[0]
+		const paginateFlag = paginateFlags[0]
 
 		// if the type is a scalar just add the first one and move on
 		if (config.isSelectionScalar(typeProperty)) {
@@ -348,6 +400,13 @@ function mergeSelections(
 			if (list) {
 				fieldObj.properties.push(
 					AST.objectProperty(AST.literal('list'), AST.stringLiteral(list))
+				)
+			}
+
+			// check if the field is marked for pagination
+			if (paginateFlag) {
+				fieldObj.properties.push(
+					AST.objectProperty(AST.literal('paginate'), AST.stringLiteral(paginateFlag))
 				)
 			}
 

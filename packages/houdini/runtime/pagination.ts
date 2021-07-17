@@ -3,6 +3,7 @@ import { Readable } from 'svelte/store'
 // locals
 import { Operation, GraphQLTagResult, Fragment } from './types'
 import { query, QueryResponse } from './query'
+import { getVariables } from './context'
 import { fragment } from './fragment'
 
 type PaginatedQueryResponse<_Data, _Input> = {
@@ -22,12 +23,13 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	}
 
 	// hold onto the current value
-	let currentValue: _Query['result']
+	let value: _Query['result']
 	data.subscribe((val) => {
-		currentValue = val
+		value = val
 	})
+	const variables = getVariables()
 	const loadNextPage = async () => {
-		console.log(currentValue)
+		console.log(variables())
 	}
 
 	return { data, loadNextPage, ...restOfQueryResponse }

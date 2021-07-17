@@ -22,7 +22,6 @@
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { page } from '$app/stores'
 	import { derived } from 'svelte/store'
-import { onMount } from 'svelte';
 
 	// load the items
 	const { data, loadNextPage } = paginatedQuery<AllItems>(graphql`
@@ -81,7 +80,7 @@ import { onMount } from 'svelte';
 		<h1>todos</h1>
 	</a>
 	<nav>
-		<button on:click={loadNextPage}>load more</button>
+		<button on:click={() => loadNextPage()}>load more</button>
 	</nav>
 	<input
 		class="new-todo"

@@ -693,6 +693,30 @@ const table: Row[] = [
 			`,
 		],
 	},
+	{
+		title: "@paginate can't fall under lists",
+		pass: false,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				friends {
+					friendsByOffset(limit: 10) @paginate { 
+						id
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				friends {
+					friendsByOffset(limit: 10) @paginate { 
+						id
+					}
+				}
+			}
+			`,
+		],
+	},
 ]
 
 type Row =
