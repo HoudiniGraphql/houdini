@@ -60,8 +60,8 @@ module.exports.typeDefs = gql`
 	}
 
 	type PageInfo {
-		startCursor: String!
-		endCursor: String!
+		startCursor: String
+		endCursor: String
 		hasNextPage: Boolean!
 		hasPreviousPage: Boolean!
 	}

@@ -29,6 +29,7 @@ export type EmbeddedGraphqlDocument = {
 		remove: () => void
 		replaceWith: (node: BaseNode) => void
 	}
+	tagContent: string
 	parent: BaseNode
 }
 
@@ -127,6 +128,7 @@ export default async function walkTaggedDocuments(
 						kind,
 					},
 					parent,
+					tagContent,
 				})
 			}
 		},

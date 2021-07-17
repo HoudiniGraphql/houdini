@@ -18,13 +18,14 @@
 </script>
 
 <script lang="ts">
-	import { query, graphql, mutation, subscription, AllItems } from '$houdini'
+	import { paginatedQuery, graphql, mutation, subscription, AllItems } from '$houdini'
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { page } from '$app/stores'
 	import { derived } from 'svelte/store'
+import { onMount } from 'svelte';
 
 	// load the items
-	const { data } = query<AllItems>(graphql`
+	const { data, loadNextPage } = paginatedQuery<AllItems>(graphql`
 		query AllItems($completed: Boolean) {
 			filteredItems: items(completed: $completed, first: 2) @paginate  {
 				edges { 
@@ -80,7 +81,7 @@
 		<h1>todos</h1>
 	</a>
 	<nav>
-		<button>load more</button>
+		<button on:click={loadNextPage}>load more</button>
 	</nav>
 	<input
 		class="new-todo"

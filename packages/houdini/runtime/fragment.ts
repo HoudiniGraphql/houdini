@@ -1,7 +1,6 @@
 // externals
 import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
-import type { Config } from 'houdini-common'
 // locals
 import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
 import cache from './cache'
@@ -69,16 +68,4 @@ export function fragment<_Fragment extends Fragment<any>>(
 
 type PaginatedResponse<_Shape> = {
 	data: Readable<_Shape>
-}
-
-// paginatedFragment takes a fragment marked with pagination and returns the data along with utility functions
-// that load the the next page (and previous if cursor pagination is used), and a store containing the page info
-export function paginatedFragment<_Fragment extends Fragment<any>>(
-	document: GraphQLTagResult,
-	initialValue: _Fragment
-): PaginatedResponse<_Fragment['shape']> {
-	// get the fragment data
-	const data = fragment(document, initialValue)
-
-	return { data }
 }

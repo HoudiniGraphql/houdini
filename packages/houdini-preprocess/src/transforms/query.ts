@@ -49,7 +49,8 @@ export default async function queryProcessor(
 	// note: we'll  replace the tags as we discover them with something the runtime library can use
 	const queries: EmbeddedGraphqlDocument[] = []
 
-	// we need to keep track of
+	// remember the function that the document is passed to
+	let functionName = ''
 
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
@@ -65,7 +66,7 @@ export default async function queryProcessor(
 		// we want to replace it with an object that the runtime can use
 		onTag(tag: EmbeddedGraphqlDocument) {
 			// pull out what we need
-			const { node, parsedDocument, parent, artifact } = tag
+			const { node, parsedDocument, parent, artifact, tagContent } = tag
 
 			// add the document to the list
 			queries.push(tag)
@@ -109,6 +110,9 @@ export default async function queryProcessor(
 			// handler into a value that's useful for the operation context (route vs component)
 			const callParent = parent as namedTypes.CallExpression
 			if (callParent.type === 'CallExpression' && callParent.callee.type === 'Identifier') {
+				// need to make sure that we call the same function we were passed to
+				functionName = callParent.callee.name
+				// update the function called for the environment
 				callParent.callee.name = isRoute ? 'routeQuery' : 'componentQuery'
 			}
 		},
@@ -142,7 +146,7 @@ export default async function queryProcessor(
 			doc.instance.content.body.unshift(artifactImport(config, document.artifact))
 		}
 	}
-	processInstance(config, isRoute, doc.instance, queries)
+	processInstance(config, isRoute, doc.instance, queries, functionName)
 }
 
 function processModule(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
@@ -174,7 +178,8 @@ function processInstance(
 	config: Config,
 	isRoute: boolean,
 	script: Script,
-	queries: EmbeddedGraphqlDocument[]
+	queries: EmbeddedGraphqlDocument[],
+	functionName: string
 ) {
 	// make sure we have the imports we need
 	ensureImports(config, script.content.body, ['routeQuery', 'componentQuery', 'query'])
@@ -222,7 +227,7 @@ function processInstance(
 			AST.variableDeclaration('let', [
 				AST.variableDeclarator(
 					queryHandlerIdentifier(operation),
-					AST.callExpression(AST.identifier('query'), [
+					AST.callExpression(AST.identifier(functionName), [
 						AST.objectExpression([
 							AST.objectProperty(
 								AST.stringLiteral('config'),

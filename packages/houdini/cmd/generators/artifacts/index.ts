@@ -92,7 +92,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 		].concat(
 			// and an artifact for every document
 			docs.map(async ({ document, name, generate, ...doc }) => {
-				console.log(name, generate)
 				// if the document is generated, don't write it to disk - it's use is to provide definitions
 				// for the other transforms
 				if (!generate) {

@@ -1,5 +1,6 @@
 import type * as graphql from 'graphql'
 export * from '../runtime/types'
+import { BaseCompiledDocument } from '../runtime/types'
 
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {
@@ -8,18 +9,7 @@ export type CollectedGraphQLDocument = {
 	document: graphql.DocumentNode
 	originalDocument: graphql.DocumentNode
 	generate: boolean
-	refetch?: {
-		update: RefetchUpdateMode
-		source: string[]
-		target: string[]
-		method: 'cursor' | 'offset'
-	}
-}
-
-export enum RefetchUpdateMode {
-	append = 'append',
-	prepend = 'prepend',
-	replace = 'replace',
+	refetch?: BaseCompiledDocument['refetch']
 }
 
 // an error pertaining to a specific graphql document
