@@ -3136,6 +3136,640 @@ test('can write list of scalars', function () {
 	})
 })
 
+test('writing a scalar marked with a disabled update overwrites', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'Int',
+					keyRaw: 'friends',
+					update: 'append',
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [1],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1],
+		},
+	})
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [2],
+			},
+		},
+	})
+
+	// make sure we can get the updated lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [2],
+		},
+	})
+})
+
+test('writing a scalar marked with an prepend', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'Int',
+					keyRaw: 'friends',
+					update: 'append',
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [1],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1],
+		},
+	})
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [2],
+			},
+		},
+	})
+
+	// make sure we can get the updated lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1, 2],
+		},
+	})
+})
+
+test('writing a scalar marked with an append', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'Int',
+					keyRaw: 'friends',
+					update: 'append',
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [1],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1],
+		},
+	})
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [2],
+			},
+		},
+	})
+
+	// make sure we can get the updated lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1, 2],
+		},
+	})
+})
+
+test('writing a scalar marked with replace', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'Int',
+					keyRaw: 'friends',
+					update: 'append',
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [1],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1],
+		},
+	})
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [2],
+			},
+		},
+	})
+
+	// make sure we can get the updated lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [2],
+		},
+	})
+})
+
+test('disabled linked lists update', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					update: 'append',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '2',
+			firstName: 'jane',
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		},
+	])
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '3',
+						firstName: 'jane',
+					},
+					{
+						id: '4',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '3',
+			firstName: 'jane',
+		},
+		{
+			id: '4',
+			firstName: 'mary',
+		},
+	])
+})
+
+test('append linked lists update', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					update: 'append',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '2',
+			firstName: 'jane',
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		},
+	])
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '4',
+						firstName: 'jane',
+					},
+					{
+						id: '5',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+		applyUpdates: true,
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '2',
+			firstName: 'jane',
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		},
+		{
+			id: '4',
+			firstName: 'jane',
+		},
+		{
+			id: '5',
+			firstName: 'mary',
+		},
+	])
+})
+
+test('prepend linked lists update', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					update: 'prepend',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+		applyUpdates: true,
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '2',
+			firstName: 'jane',
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		},
+	])
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '4',
+						firstName: 'jane',
+					},
+					{
+						id: '5',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+		applyUpdates: true,
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '4',
+			firstName: 'jane',
+		},
+		{
+			id: '5',
+			firstName: 'mary',
+		},
+		{
+			id: '2',
+			firstName: 'jane',
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		},
+	])
+})
+
 test.todo('inserting node creates back reference to list')
 
 test.todo('unsubscribe removes list handlers')

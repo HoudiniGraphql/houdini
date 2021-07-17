@@ -30,17 +30,19 @@ export class Cache {
 		data,
 		variables = {},
 		parent = rootID,
+		applyUpdates = false,
 	}: {
 		selection: SubscriptionSelection
 		data: { [key: string]: GraphQLValue }
 		variables?: {}
 		parent?: string
+		applyUpdates?: boolean
 	}) {
 		const specs: SubscriptionSpec[] = []
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
 		// will build up different specs of subscriptions that need to be run against the current state
-		this._write(parent, parent, selection, parent, data, variables, specs)
+		this._write(parent, parent, selection, parent, data, variables, specs, applyUpdates)
 
 		// compute new values for every spec that needs to be run
 		this.notifySubscribers(specs, variables)
@@ -348,7 +350,8 @@ export class Cache {
 		recordID: string, // the ID of the record that we are updating in cache
 		data: { [key: string]: GraphQLValue },
 		variables: { [key: string]: GraphQLValue },
-		specs: SubscriptionSpec[]
+		specs: SubscriptionSpec[],
+		applyUpdates: boolean
 	) {
 		// the record we are storing information about this object
 		const record = this.record(recordID)
@@ -372,6 +375,7 @@ export class Cache {
 				operations,
 				list,
 				abstract: isAbstract,
+				update,
 			} = selection[field]
 			const key = this.evaluateKey(keyRaw, variables)
 
@@ -435,32 +439,52 @@ export class Cache {
 				// only update the data if there is an id for the record
 				if (linkedID) {
 					// update the linked fields too
-					this._write(rootID, recordID, fields, linkedID, value, variables, specs)
+					this._write(
+						rootID,
+						recordID,
+						fields,
+						linkedID,
+						value,
+						variables,
+						specs,
+						applyUpdates
+					)
 				}
 			}
 
 			// the value could be a list
 			else if (!isScalar(this._config, linkedType) && Array.isArray(value) && fields) {
-				// build up the list of linked ids
-				const linkedIDs: (string | null)[] = []
 				// look up the current known link id
 				const oldIDs = record.linkedListIDs(this.evaluateKey(key, variables))
 
-				// the ids that have been added since the last time
-				const newIDs: string[] = []
+				// if we are supposed to prepend or append and the mutation is enabled
+				// the new list of IDs for this link will start with an existing value
 
-				// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
-				// required to compute the entity's id in the first non-null value we can find
+				// build up the list of linked ids
+				let linkedIDs: (string | null)[] = []
+				let updateLinkedIDs = (val: string | null) => linkedIDs.push(val)
+
+				if (applyUpdates && update) {
+					linkedIDs = oldIDs
+					// if we are supposed to prepend, use unshift to update
+					if (update === 'prepend') {
+						updateLinkedIDs = (val: string | null) => linkedIDs.unshift(val)
+					}
+				}
+
+				// keep track of the records we are adding
+				const newIDs: (string | null)[] = []
 
 				// visit every entry in the list
 				for (const [i, entry] of value.entries()) {
 					// if the entry is a null value, just add it to the list
 					if (entry === null) {
-						linkedIDs.push(null)
+						updateLinkedIDs(null)
 						continue
 					}
 
-					// figure out if this record is embedded
+					// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
+					// required to compute the entity's id
 					const embedded =
 						this.idFields(linkedType)?.filter(
 							(field) => typeof (entry as GraphQLObject)[field] === 'undefined'
@@ -495,20 +519,25 @@ export class Cache {
 					}
 
 					// update the linked fields too
-					this._write(rootID, recordID, fields, linkedID, entry, variables, specs)
+					this._write(
+						rootID,
+						recordID,
+						fields,
+						linkedID,
+						entry,
+						variables,
+						specs,
+						applyUpdates
+					)
 
 					// add the id to the list
-					linkedIDs.push(linkedID)
+					updateLinkedIDs(linkedID)
 					// hold onto the new ids
-					if (!oldIDs.includes(linkedID)) {
-						newIDs.push(linkedID)
-
-						if (list) {
-							this.record(linkedID).addListReference({
-								parentID: rootID,
-								name: list,
-							})
-						}
+					if (!oldIDs.includes(linkedID) && list) {
+						this.record(linkedID).addListReference({
+							parentID: rootID,
+							name: list,
+						})
 					}
 				}
 
