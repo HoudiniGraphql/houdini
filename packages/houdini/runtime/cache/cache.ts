@@ -38,7 +38,6 @@ export class Cache {
 		parent?: string
 		applyUpdates?: boolean
 	}) {
-		console.log('writing', data)
 		const specs: SubscriptionSpec[] = []
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
@@ -736,8 +735,6 @@ export class Cache {
 			if (!rootRecord) {
 				throw new Error('Could not find root of subscription')
 			}
-
-			console.log(this.getData(rootRecord, spec.selection, spec.variables?.()))
 
 			// trigger the update
 			spec.set(this.getData(rootRecord, spec.selection, spec.variables?.()))

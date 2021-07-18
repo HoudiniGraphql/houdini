@@ -84,23 +84,7 @@ export function query<_Query extends Operation<any, any>>(
 
 	const sessionStore = getSession()
 
-	function writeData(
-		newData: RequestPayload<_Query['result']>,
-		newVariables: _Query['input'],
-		applyUpdate?: boolean
-	) {
-		// if the variables changed we need to unsubscribe from the old fields and
-		// listen to the new ones
-		if (subscriptionSpec && JSON.stringify(variables) !== JSON.stringify(newVariables)) {
-			console.log('forgetting', variables)
-			cache.unsubscribe(subscriptionSpec, variables)
-			console.log('listening to', newVariables)
-			cache.subscribe(subscriptionSpec, newVariables)
-		}
-
-		// save the new variables
-		variables = newVariables || {}
-
+	function writeData(newData: RequestPayload<_Query['result']>, newVariables: _Query['input']) {
 		// update the local store
 		store.set(unmarshalSelection(config, artifact.selection, newData.data))
 
@@ -108,8 +92,18 @@ export function query<_Query extends Operation<any, any>>(
 		cache.write({
 			selection: artifact.selection,
 			data: newData.data,
-			variables,
+			variables: newVariables,
 		})
+
+		// if the variables changed we need to unsubscribe from the old fields and
+		// listen to the new ones
+		if (subscriptionSpec && JSON.stringify(variables) !== JSON.stringify(newVariables)) {
+			cache.unsubscribe(subscriptionSpec, variables)
+			cache.subscribe(subscriptionSpec, newVariables)
+		}
+
+		// save the new variables
+		variables = newVariables || {}
 	}
 
 	return {

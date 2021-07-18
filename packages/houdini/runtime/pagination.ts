@@ -66,8 +66,6 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 			sessionStore
 		)
 
-		console.log({ result })
-
 		// update cache with the result
 		cache.write({
 			selection: document.artifact.selection,
