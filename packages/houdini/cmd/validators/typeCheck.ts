@@ -404,7 +404,14 @@ function knownArguments(config: Config) {
 
 				// if the directive points to the arguments or with directive, we don't
 				// need the arguments to be defined
-				if ([config.argumentsDirective, config.withDirective].includes(directiveName)) {
+				if (
+					[
+						config.argumentsDirective,
+						config.withDirective,
+						config.whenDirective,
+						config.whenNotDirective,
+					].includes(directiveName)
+				) {
 					return false
 				}
 

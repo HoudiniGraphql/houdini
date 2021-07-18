@@ -28,6 +28,7 @@ test('adds ids to selection sets of objects with them', async function () {
 		  user {
 		    firstName
 		    id
+		    __typename
 		  }
 		}
 
@@ -55,6 +56,7 @@ test("doesn't add id if there isn't one", async function () {
 		query Friends {
 		  ghost {
 		    aka
+		    __typename
 		  }
 		}
 

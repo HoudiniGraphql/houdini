@@ -33,8 +33,11 @@ test('adds pagination info to full', async function () {
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -121,6 +124,7 @@ test("doesn't add pagination info to offset pagination", async function () {
 		fragment UserFriends on Query @arguments(limit: {type: "Int", default: 10}, offset: {type: "Int"}) {
 		  usersByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
+		    __typename
 		  }
 		}
 
@@ -155,8 +159,11 @@ test('paginate adds forwards cursor args to the full cursor fragment', async fun
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -200,8 +207,11 @@ test('paginate adds backwards cursor args to the full cursor fragment', async fu
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -245,8 +255,11 @@ test('paginate adds forwards cursor args to the fragment', async function () {
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -290,8 +303,11 @@ test('paginate adds backwards cursor args to the fragment', async function () {
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -336,8 +352,11 @@ test('sets before with default value', async function () {
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -385,8 +404,11 @@ test('embeds pagination query as a separate document', async function () {
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -436,8 +458,11 @@ test('embeds node pagination query as a separate document', async function () {
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -481,8 +506,11 @@ test('query with forwards cursor paginate', async function () {
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -526,8 +554,11 @@ test('query with backwards cursor paginate', async function () {
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -565,6 +596,7 @@ test('query with offset paginate', async function () {
 		query Users($limit: Int = 10, $offset: Int) {
 		  usersByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
+		    __typename
 		  }
 		}
 
@@ -599,8 +631,11 @@ test('query with backwards cursor on full paginate', async function () {
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -644,8 +679,11 @@ test('query with forwards cursor on full paginate', async function () {
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -689,8 +727,11 @@ test("forwards cursor paginated query doesn't overlap variables", async function
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -734,8 +775,11 @@ test("backwards cursor paginated query doesn't overlap variables", async functio
 		    edges {
 		      node {
 		        id
+		        __typename
 		      }
+		      __typename
 		    }
+		    __typename
 		    edges {
 		      cursor
 		    }
@@ -773,6 +817,7 @@ test("offset paginated query doesn't overlap variables", async function () {
 		query Users($limit: Int! = 10, $offset: Int) {
 		  usersByOffset(limit: $limit, offset: $offset) @paginate {
 		    id
+		    __typename
 		  }
 		}
 

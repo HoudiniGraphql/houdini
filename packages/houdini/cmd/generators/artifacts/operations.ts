@@ -4,6 +4,7 @@ import { Config, parentTypeFromAncestors } from 'houdini-common'
 import { ListWhen, MutationOperation } from '../../../runtime'
 import * as recast from 'recast'
 import * as graphql from 'graphql'
+import { convertValue } from './utils'
 
 const AST = recast.types.builders
 
@@ -12,9 +13,9 @@ export function operationsByPath(
 	config: Config,
 	definition: graphql.OperationDefinitionNode,
 	filterTypes: FilterMap
-): { [path: string]: namedTypes.ArrayExpression } {
+): { [path: string]: MutationOperation[] } {
 	// map the path in the response to the list of operations that treat it as the source
-	const pathOperations: { [path: string]: namedTypes.ArrayExpression } = {}
+	const pathOperations: { [path: string]: MutationOperation[] } = {}
 
 	// we need to look for three different things in the operation:
 	// - insert fragments
@@ -33,18 +34,17 @@ export function operationsByPath(
 			// if this is the first time we've seen this path give us a home
 			const path = ancestorKey(ancestors)
 			if (!pathOperations[path]) {
-				pathOperations[path] = AST.arrayExpression([])
+				pathOperations[path] = []
 			}
 
 			// add the operation object to the list
-			pathOperations[path].elements.push(
+			pathOperations[path].push(
 				operationObject({
 					config,
 					listName: config.listNameFromFragment(node.name.value),
 					operationKind: config.listOperationFromFragment(node.name.value),
-					info: operationInfo(config, node),
 					type: parentTypeFromAncestors(config.schema, ancestors).name,
-					filterTypes,
+					selection: node,
 				})
 			)
 		},
@@ -57,21 +57,17 @@ export function operationsByPath(
 			// if this is the first time we've seen this path give us a home
 			const path = ancestorKey(ancestors)
 			if (!pathOperations[path]) {
-				pathOperations[path] = AST.arrayExpression([])
+				pathOperations[path] = []
 			}
 
 			// add the operation object to the list
-			pathOperations[path].elements.push(
+			pathOperations[path].push(
 				operationObject({
 					config,
 					listName: node.name.value,
 					operationKind: 'delete',
-					info: operationInfo(
-						config,
-						ancestors[ancestors.length - 1] as graphql.FieldNode
-					),
 					type: config.listNameFromDirective(node.name.value),
-					filterTypes,
+					selection: ancestors[ancestors.length - 1] as graphql.FieldNode,
 				})
 			)
 		},
@@ -84,99 +80,15 @@ function operationObject({
 	config,
 	listName,
 	operationKind,
-	info,
 	type,
-	filterTypes,
+	selection,
 }: {
 	config: Config
 	listName: string
-	operationKind: string
-	info: OperationInfo
+	operationKind: MutationOperation['action']
 	type: string
-	filterTypes: FilterMap
-}) {
-	const operation = AST.objectExpression([
-		AST.objectProperty(AST.literal('action'), AST.stringLiteral(operationKind)),
-	])
-
-	// delete doesn't have a target
-	if (operationKind !== 'delete') {
-		operation.properties.push(
-			AST.objectProperty(AST.literal('list'), AST.stringLiteral(listName))
-		)
-	}
-
-	// add the target type to delete operations
-	if (operationKind === 'delete' && type) {
-		operation.properties.push(AST.objectProperty(AST.literal('type'), AST.stringLiteral(type)))
-	}
-
-	// only add the position argument if we are inserting something
-	if (operationKind === 'insert') {
-		operation.properties.push(
-			AST.objectProperty(AST.literal('position'), AST.stringLiteral(info.position || 'last'))
-		)
-	}
-
-	// if there is a parent id
-	if (info.parentID) {
-		// add it to the object
-		operation.properties.push(
-			AST.objectProperty(
-				AST.literal('parentID'),
-				AST.objectExpression([
-					AST.objectProperty(AST.literal('kind'), AST.stringLiteral(info.parentID.kind)),
-					AST.objectProperty(
-						AST.literal('value'),
-						AST.stringLiteral(info.parentID.value)
-					),
-				])
-			)
-		)
-	}
-
-	// if there is a conditional
-	if (info.when) {
-		// build up the when object
-		const when = AST.objectExpression([])
-
-		// if there is a must
-		if (info.when.must) {
-			when.properties.push(
-				AST.objectProperty(
-					AST.literal('must'),
-					filterAST(filterTypes, listName, info.when.must)
-				)
-			)
-		}
-
-		// if there is a must_not
-		if (info.when.must_not) {
-			when.properties.push(
-				AST.objectProperty(
-					AST.literal('must_not'),
-					filterAST(filterTypes, listName, info.when.must_not)
-				)
-			)
-		}
-
-		// add it to the object
-		operation.properties.push(AST.objectProperty(AST.literal('when'), when))
-	}
-
-	return operation
-}
-
-type OperationInfo = {
-	position: string
-	parentID?: {
-		value: string
-		kind: string
-	}
-	when?: ListWhen
-}
-
-function operationInfo(config: Config, selection: graphql.SelectionNode): OperationInfo {
+	selection: graphql.SelectionNode
+}): MutationOperation {
 	// look at the directives applies to the spread for meta data about the mutation
 	let parentID
 	let parentKind: 'Variable' | 'String' = 'String'
@@ -280,74 +192,56 @@ function operationInfo(config: Config, selection: graphql.SelectionNode): Operat
 			// which are we looking at
 			const which = i ? 'must_not' : 'must'
 
-			// look for the argument field
-			const key = directive.arguments?.find(({ name }) => name.value === 'argument')
-			const value = directive.arguments?.find(({ name }) => name.value === 'value')
-
-			// make sure we got a string for the key
-			if (key?.value.kind !== 'StringValue' || !value || value.value.kind !== 'StringValue') {
-				throw new Error('Key and Value must be strings')
-			}
-
 			// make sure we have a place to record the when condition
 			if (!operationWhen) {
 				operationWhen = {}
 			}
 
-			// the kind of `value` is always going to be a string because the directive
-			// can only take one type as its argument so we'll worry about parsing when
-			// generating the patches
-			operationWhen[which] = {
-				[key.value.value]: value.value.value,
-			}
+			// look for the argument field
+			operationWhen[which] = directive.arguments?.reduce(
+				(filters, argument) => ({
+					...filters,
+					[argument.name.value]: convertValue(argument.value).value,
+				}),
+				{}
+			)
 		}
 	}
 
-	return {
-		parentID: parentID
-			? {
-					value: parentID,
-					kind: parentKind,
-			  }
-			: undefined,
-		position,
-		when: operationWhen,
-	}
-}
-
-function filterAST(
-	filterTypes: FilterMap,
-	listName: string,
-	filter: ListWhen['must']
-): namedTypes.ObjectExpression {
-	if (!filter) {
-		return AST.objectExpression([])
+	const operation: MutationOperation = {
+		action: operationKind,
 	}
 
-	// build up the object
-	return AST.objectExpression(
-		Object.entries(filter).map(([key, value]) => {
-			// look up the key in the type map
-			const type = filterTypes[listName] && filterTypes[listName][key]
-			if (!type) {
-				throw new Error(`It looks like "${key}" is an invalid filter for list ${listName}`)
-			}
+	// delete doesn't have a target
+	if (operationKind !== 'delete') {
+		operation.list = listName
+	}
 
-			let literal
-			if (type === 'String') {
-				literal = AST.stringLiteral(value as string)
-			} else if (type === 'Boolean') {
-				literal = AST.booleanLiteral(value === 'true')
-			} else if (type === 'Float') {
-				literal = AST.numericLiteral(parseFloat(value as string))
-			} else if (type === 'Int') {
-				literal = AST.numericLiteral(parseInt(value as string, 10))
-			} else {
-				throw new Error('Could not figure out filter value with type: ' + type)
-			}
-			return AST.objectProperty(AST.literal(key), literal)
-		})
-	)
+	// add the target type to delete operations
+	if (operationKind === 'delete' && type) {
+		operation.type = type
+	}
+
+	// only add the position argument if we are inserting something
+	if (operationKind === 'insert') {
+		operation.position = position || 'last'
+	}
+
+	// if there is a parent id
+	if (parentID) {
+		// add it to the object
+		operation.parentID = {
+			kind: parentKind,
+			value: parentID,
+		}
+	}
+
+	// if there is a conditional
+	if (operationWhen) {
+		operation.when = operationWhen
+	}
+
+	return operation
 }
 
 // TODO: find a way to reference the actual type for ancestors, using any as escape hatch

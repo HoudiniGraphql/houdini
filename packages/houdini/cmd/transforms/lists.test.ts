@@ -40,6 +40,7 @@ test('insert fragments on query selection set', async function () {
 		  updateUser {
 		    ...User_Friends_insert
 		    id
+		    __typename
 		  }
 		}
 
@@ -85,6 +86,7 @@ test('delete fragments on query selection set', async function () {
 		  updateUser {
 		    ...User_Friends_remove
 		    id
+		    __typename
 		  }
 		}
 
@@ -127,6 +129,7 @@ test('list fragments on fragment selection set', async function () {
 		  updateUser {
 		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
+		    __typename
 		  }
 		}
 
@@ -206,6 +209,7 @@ test("fragment with list doesn't clutter its definition", async function () {
 		fragment Friends on User {
 		  friends @list(name: "Friends") {
 		    id
+		    __typename
 		  }
 		}
 
@@ -244,6 +248,7 @@ test('includes `id` in list fragment', async function () {
 		  updateUser {
 		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
+		    __typename
 		  }
 		}
 

@@ -51,12 +51,12 @@ export default async function graphqlExtensions(
 			"""
 				@${config.whenDirective} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
 			"""
-			directive @${config.whenDirective}(argument: String!, value: String!) on FRAGMENT_SPREAD
+			directive @${config.whenDirective} on FRAGMENT_SPREAD
 
 			"""
 				@${config.whenNotDirective} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
 			"""
-			directive @${config.whenNotDirective}(argument: String!, value: String!) on FRAGMENT_SPREAD
+			directive @${config.whenNotDirective} on FRAGMENT_SPREAD
 
 			"""
 				@${config.argumentsDirective} is used to define the arguments of a fragment

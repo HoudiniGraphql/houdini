@@ -1,5 +1,5 @@
 // externals
-import { Config, getRootType, hashDocument, parentTypeFromAncestors } from 'houdini-common'
+import { Config, getRootType, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 import {
 	CompiledQueryKind,
@@ -10,7 +10,6 @@ import {
 	CollectedGraphQLDocument,
 } from '../../types'
 import * as recast from 'recast'
-import { ObjectExpressionKind } from 'ast-types/gen/kinds'
 // locals
 import { moduleExport, writeFile } from '../../utils'
 import selection from './selection'
@@ -152,15 +151,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					throw new Error('Could not figure out what kind of document we were given')
 				}
 
-				// generate a hash of the document that we can use to detect changes
-				// start building up the artifact
-				const artifact = serializeValue({
-					name,
-					kind: docKind,
-					refetch: doc.refetch,
-					raw: rawString,
-				}) as ObjectExpressionKind
-
 				let rootType: string | undefined = ''
 				let selectionSet: graphql.SelectionSetNode
 
@@ -201,35 +191,34 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					selectionSet = matchingFragment.selectionSet
 				}
 
-				// add the selection information so we can subscribe to the store
-				artifact.properties.push(
-					AST.objectProperty(AST.identifier('rootType'), AST.stringLiteral(rootType)),
-					AST.objectProperty(
-						AST.identifier('selection'),
-						selection({
-							config,
-							rootType,
-							selectionSet: selectionSet,
-							operations: operationsByPath(config, operations[0], filterTypes),
-							// do not include used fragments if we are rendering the selection
-							// for a fragment document
-							includeFragments: docKind !== 'HoudiniFragment',
-							document: doc,
-						})
-					)
-				)
-
 				// if there are inputs to the operation
 				const inputs = operations[0]?.variableDefinitions
-				// add the input type definition to the artifact
-				if (inputs && inputs.length > 0) {
-					artifact.properties.push(
-						AST.objectProperty(AST.identifier('input'), inputObject(config, inputs))
-					)
+
+				// generate a hash of the document that we can use to detect changes
+				// start building up the artifact
+				const artifact = {
+					name,
+					kind: docKind,
+					refetch: doc.refetch,
+					raw: rawString,
+					rootType,
+					selection: selection({
+						config,
+						rootType,
+						selectionSet: selectionSet,
+						operations: operationsByPath(config, operations[0], filterTypes),
+						// do not include used fragments if we are rendering the selection
+						// for a fragment document
+						includeFragments: docKind !== 'HoudiniFragment',
+						document: doc,
+					}),
+					input: inputs && inputs.length > 0 ? inputObject(config, inputs) : undefined,
 				}
 
 				// the artifact should be the default export of the file
-				const file = AST.program([moduleExport(config, 'default', artifact)])
+				const file = AST.program([
+					moduleExport(config, 'default', serializeValue(artifact)),
+				])
 
 				// write the result to the artifact path we're configured to write to
 				await writeFile(config.artifactPath(document), recast.print(file).code)

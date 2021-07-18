@@ -14,38 +14,28 @@ export default async function addTypename(
 	for (const doc of documents) {
 		// update the document (graphql.visit is pure)
 		doc.document = graphql.visit(doc.document, {
-			Field(node, key, parent, path, ancestors): graphql.ASTNode | undefined {
+			Field(node): graphql.ASTNode | undefined {
 				// if we are looking at a leaf type
 				if (!node.selectionSet) {
 					return
 				}
 
-				// figure out the parent type
-				const type = parentTypeFromAncestors(config.schema, ancestors.slice(0, -1))
-				// look up the field definition in the parent type
-				const field = type.getFields()[node.name.value]
-
-				// look up the field in the parent
-				const fieldType = unwrapType(config, field.type).type
-				// if we are looking at an interface
-				if (graphql.isInterfaceType(fieldType) || graphql.isUnionType(fieldType)) {
-					// add the __typename selection to the field's selection set
-					return {
-						...node,
-						selectionSet: {
-							...node.selectionSet,
-							selections: [
-								...node.selectionSet.selections,
-								{
-									kind: 'Field',
-									name: {
-										kind: 'Name',
-										value: '__typename',
-									},
+				// add the __typename selection to the field's selection set
+				return {
+					...node,
+					selectionSet: {
+						...node.selectionSet,
+						selections: [
+							...node.selectionSet.selections,
+							{
+								kind: 'Field',
+								name: {
+									kind: 'Name',
+									value: '__typename',
 								},
-							],
-						},
-					}
+							},
+						],
+					},
 				}
 			},
 		})

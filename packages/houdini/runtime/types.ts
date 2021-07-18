@@ -43,16 +43,18 @@ export enum RefetchUpdateMode {
 	replace = 'replace',
 }
 
+export type InputObject = {
+	fields: Record<string, string>
+	types: Record<string, Record<string, string>>
+}
+
 export type BaseCompiledDocument = {
 	name: string
 	raw: string
 	hash: string
 	selection: SubscriptionSelection
 	rootType: string
-	input?: {
-		fields: Record<string, string>
-		types: Record<string, Record<string, string>>
-	}
+	input?: InputObject
 	refetch?: {
 		update: RefetchUpdateMode
 		source: string[]

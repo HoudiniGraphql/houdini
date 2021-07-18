@@ -59,9 +59,9 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "version": {
-		            "type": "Int",
-		            "keyRaw": "version"
+		        version: {
+		            type: "Int",
+		            keyRaw: "version"
 		        }
 		    }
 		};
@@ -90,9 +90,9 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    rootType: "User",
 
 		    selection: {
-		        "firstName": {
-		            "type": "String",
-		            "keyRaw": "firstName"
+		        firstName: {
+		            type: "String",
+		            keyRaw: "firstName"
 		        }
 		    }
 		};
@@ -130,6 +130,7 @@ test('selection includes fragments', async function () {
 		  user {
 		    ...TestFragment
 		    id
+		    __typename
 		  }
 		}
 
@@ -141,19 +142,24 @@ test('selection includes fragments', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "user": {
-		            "type": "User",
-		            "keyRaw": "user",
+		        user: {
+		            type: "User",
+		            keyRaw: "user",
 
-		            "fields": {
-		                "firstName": {
-		                    "type": "String",
-		                    "keyRaw": "firstName"
+		            fields: {
+		                firstName: {
+		                    type: "String",
+		                    keyRaw: "firstName"
 		                },
 
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -184,9 +190,9 @@ test('selection includes fragments', async function () {
 		    rootType: "User",
 
 		    selection: {
-		        "firstName": {
-		            "type": "String",
-		            "keyRaw": "firstName"
+		        firstName: {
+		            type: "String",
+		            keyRaw: "firstName"
 		        }
 		    }
 		};
@@ -220,6 +226,7 @@ test('internal directives are scrubbed', async function () {
 		  user {
 		    ...A
 		    id
+		    __typename
 		  }
 		}
 
@@ -231,19 +238,24 @@ test('internal directives are scrubbed', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "user": {
-		            "type": "User",
-		            "keyRaw": "user",
+		        user: {
+		            type: "User",
+		            keyRaw: "user",
 
-		            "fields": {
-		                "firstName": {
-		                    "type": "String",
-		                    "keyRaw": "firstName"
+		            fields: {
+		                firstName: {
+		                    type: "String",
+		                    keyRaw: "firstName"
 		                },
 
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -280,6 +292,7 @@ test('overlapping query and fragment selection', async function () {
 		    firstName
 		    ...A
 		    id
+		    __typename
 		  }
 		}
 
@@ -291,19 +304,24 @@ test('overlapping query and fragment selection', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "user": {
-		            "type": "User",
-		            "keyRaw": "user",
+		        user: {
+		            type: "User",
+		            keyRaw: "user",
 
-		            "fields": {
-		                "firstName": {
-		                    "type": "String",
-		                    "keyRaw": "firstName"
+		            fields: {
+		                firstName: {
+		                    type: "String",
+		                    keyRaw: "firstName"
 		                },
 
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -340,15 +358,18 @@ test('overlapping query and fragment nested selection', async function () {
 		    friends {
 		      firstName
 		      id
+		      __typename
 		    }
 		    ...A
 		    id
+		    __typename
 		  }
 		}
 
 		fragment A on User {
 		  friends {
 		    id
+		    __typename
 		  }
 		}
 		\`,
@@ -356,31 +377,41 @@ test('overlapping query and fragment nested selection', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "user": {
-		            "type": "User",
-		            "keyRaw": "user",
+		        user: {
+		            type: "User",
+		            keyRaw: "user",
 
-		            "fields": {
-		                "friends": {
-		                    "type": "User",
-		                    "keyRaw": "friends",
+		            fields: {
+		                friends: {
+		                    type: "User",
+		                    keyRaw: "friends",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        },
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
 		                        }
 		                    }
 		                },
 
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -435,6 +466,7 @@ test('selections with interfaces', async function () {
 		      owner {
 		        firstName
 		        id
+		        __typename
 		      }
 		    }
 		    ... on Ghost {
@@ -448,45 +480,50 @@ test('selections with interfaces', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "friends": {
-		            "type": "Friend",
-		            "keyRaw": "friends",
+		        friends: {
+		            type: "Friend",
+		            keyRaw: "friends",
 
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
 		                },
 
-		                "owner": {
-		                    "type": "User",
-		                    "keyRaw": "owner",
+		                owner: {
+		                    type: "User",
+		                    keyRaw: "owner",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        },
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
 		                        }
 		                    }
 		                },
 
-		                "name": {
-		                    "type": "String",
-		                    "keyRaw": "name"
+		                name: {
+		                    type: "String",
+		                    keyRaw: "name"
 		                },
 
-		                "__typename": {
-		                    "type": "String",
-		                    "keyRaw": "__typename"
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            },
 
-		            "abstract": true
+		            abstract: true
 		        }
 		    }
 		};
@@ -539,6 +576,7 @@ test('selections with unions', async function () {
 		      owner {
 		        firstName
 		        id
+		        __typename
 		      }
 		    }
 		    ... on Ghost {
@@ -552,45 +590,50 @@ test('selections with unions', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "entities": {
-		            "type": "Entity",
-		            "keyRaw": "entities",
+		        entities: {
+		            type: "Entity",
+		            keyRaw: "entities",
 
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
 		                },
 
-		                "owner": {
-		                    "type": "User",
-		                    "keyRaw": "owner",
+		                owner: {
+		                    type: "User",
+		                    keyRaw: "owner",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        },
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
 		                        }
 		                    }
 		                },
 
-		                "name": {
-		                    "type": "String",
-		                    "keyRaw": "name"
+		                name: {
+		                    type: "String",
+		                    keyRaw: "name"
 		                },
 
-		                "__typename": {
-		                    "type": "String",
-		                    "keyRaw": "__typename"
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            },
 
-		            "abstract": true
+		            abstract: true
 		        }
 		    }
 		};
@@ -644,7 +687,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      firstName
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 		\`,
@@ -652,26 +697,36 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        },
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
 		                        }
 		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -724,7 +779,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -737,32 +794,42 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                    operations: [{
+		                        action: "insert",
+		                        list: "All_Users",
+		                        position: "last"
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        },
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        }
-		                    },
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
 
-		                    "operations": [{
-		                        "action": "insert",
-		                        "list": "All_Users",
-		                        "position": "last"
-		                    }]
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -815,7 +882,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_remove
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -827,26 +896,36 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
+		                    operations: [{
+		                        action: "remove",
+		                        list: "All_Users"
+		                    }],
+
+		                    fields: {
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
 		                        }
-		                    },
+		                    }
+		                },
 
-		                    "operations": [{
-		                        "action": "remove",
-		                        "list": "All_Users"
-		                    }]
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -895,6 +974,7 @@ describe('mutation artifacts', function () {
 		    raw: \`mutation A {
 		  deleteUser(id: "1234") {
 		    userID
+		    __typename
 		  }
 		}
 		\`,
@@ -902,19 +982,24 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "deleteUser": {
-		            "type": "DeleteUserOutput",
-		            "keyRaw": "deleteUser(id: \\"1234\\")",
+		        deleteUser: {
+		            type: "DeleteUserOutput",
+		            keyRaw: "deleteUser(id: \\"1234\\")",
 
-		            "fields": {
-		                "userID": {
-		                    "type": "ID",
-		                    "keyRaw": "userID",
+		            fields: {
+		                userID: {
+		                    type: "ID",
+		                    keyRaw: "userID",
 
-		                    "operations": [{
-		                        "action": "delete",
-		                        "type": "User"
+		                    operations: [{
+		                        action: "delete",
+		                        type: "User"
 		                    }]
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -928,7 +1013,7 @@ describe('mutation artifacts', function () {
 			mockCollectedDoc(
 				`mutation A {
 					deleteUser(id: "1234") {
-						userID @User_delete @when(argument: "stringValue", value: "foo")
+						userID @User_delete @when(stringValue: "foo")
 					}
 				}`
 			),
@@ -963,6 +1048,7 @@ describe('mutation artifacts', function () {
 		    raw: \`mutation A {
 		  deleteUser(id: "1234") {
 		    userID
+		    __typename
 		  }
 		}
 		\`,
@@ -970,25 +1056,30 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "deleteUser": {
-		            "type": "DeleteUserOutput",
-		            "keyRaw": "deleteUser(id: \\"1234\\")",
+		        deleteUser: {
+		            type: "DeleteUserOutput",
+		            keyRaw: "deleteUser(id: \\"1234\\")",
 
-		            "fields": {
-		                "userID": {
-		                    "type": "ID",
-		                    "keyRaw": "userID",
+		            fields: {
+		                userID: {
+		                    type: "ID",
+		                    keyRaw: "userID",
 
-		                    "operations": [{
-		                        "action": "delete",
-		                        "type": "User",
+		                    operations: [{
+		                        action: "delete",
+		                        type: "User",
 
-		                        "when": {
-		                            "must": {
-		                                "stringValue": "foo"
+		                        when: {
+		                            must: {
+		                                stringValue: "foo"
 		                            }
 		                        }
 		                    }]
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1041,7 +1132,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -1054,37 +1147,47 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                    operations: [{
+		                        action: "insert",
+		                        list: "All_Users",
+		                        position: "first",
+
+		                        parentID: {
+		                            kind: "String",
+		                            value: "1234"
+		                        }
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        },
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        }
-		                    },
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
 
-		                    "operations": [{
-		                        "action": "insert",
-		                        "list": "All_Users",
-		                        "position": "first",
-
-		                        "parentID": {
-		                            "kind": "String",
-		                            "value": "1234"
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
 		                        }
-		                    }]
+		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1137,7 +1240,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -1150,37 +1255,47 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                    operations: [{
+		                        action: "insert",
+		                        list: "All_Users",
+		                        position: "last",
+
+		                        parentID: {
+		                            kind: "String",
+		                            value: "1234"
+		                        }
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        },
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        }
-		                    },
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
 
-		                    "operations": [{
-		                        "action": "insert",
-		                        "list": "All_Users",
-		                        "position": "last",
-
-		                        "parentID": {
-		                            "kind": "String",
-		                            "value": "1234"
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
 		                        }
-		                    }]
+		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1233,7 +1348,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -1246,37 +1363,47 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                    operations: [{
+		                        action: "insert",
+		                        list: "All_Users",
+		                        position: "last",
+
+		                        parentID: {
+		                            kind: "String",
+		                            value: "1234"
+		                        }
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        },
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        }
-		                    },
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
 
-		                    "operations": [{
-		                        "action": "insert",
-		                        "list": "All_Users",
-		                        "position": "last",
-
-		                        "parentID": {
-		                            "kind": "String",
-		                            "value": "1234"
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
 		                        }
-		                    }]
+		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1329,7 +1456,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -1342,38 +1471,48 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
-		                        },
+		                    operations: [{
+		                        action: "insert",
+		                        list: "All_Users",
+		                        position: "first",
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        }
-		                    },
-
-		                    "operations": [{
-		                        "action": "insert",
-		                        "list": "All_Users",
-		                        "position": "first",
-
-		                        "when": {
-		                            "must": {
-		                                "stringValue": "foo"
+		                        when: {
+		                            must: {
+		                                stringValue: "foo"
 		                            }
 		                        }
-		                    }]
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
+		                        },
+
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1426,7 +1565,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -1439,38 +1580,48 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
-		                        },
+		                    operations: [{
+		                        action: "insert",
+		                        list: "All_Users",
+		                        position: "last",
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        }
-		                    },
-
-		                    "operations": [{
-		                        "action": "insert",
-		                        "list": "All_Users",
-		                        "position": "last",
-
-		                        "when": {
-		                            "must": {
-		                                "stringValue": "true"
+		                        when: {
+		                            must: {
+		                                stringValue: "true"
 		                            }
 		                        }
-		                    }]
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
+		                        },
+
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1485,7 +1636,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @when(argument: "stringValue", value: "true")
+							...All_Users_insert @when(stringValue: "true")
 						}
 					}
 				}`
@@ -1523,7 +1674,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -1536,38 +1689,48 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
-		                        },
+		                    operations: [{
+		                        action: "insert",
+		                        list: "All_Users",
+		                        position: "last",
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        }
-		                    },
-
-		                    "operations": [{
-		                        "action": "insert",
-		                        "list": "All_Users",
-		                        "position": "last",
-
-		                        "when": {
-		                            "must": {
-		                                "stringValue": "true"
+		                        when: {
+		                            must: {
+		                                stringValue: "true"
 		                            }
 		                        }
-		                    }]
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
+		                        },
+
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1620,7 +1783,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -1633,38 +1798,48 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
-		                        },
+		                    operations: [{
+		                        action: "insert",
+		                        list: "All_Users",
+		                        position: "first",
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        }
-		                    },
-
-		                    "operations": [{
-		                        "action": "insert",
-		                        "list": "All_Users",
-		                        "position": "first",
-
-		                        "when": {
-		                            "must_not": {
-		                                "stringValue": "true"
+		                        when: {
+		                            must_not: {
+		                                stringValue: "true"
 		                            }
 		                        }
-		                    }]
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
+		                        },
+
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1717,7 +1892,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -1730,38 +1907,48 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
-		                        },
+		                    operations: [{
+		                        action: "insert",
+		                        list: "All_Users",
+		                        position: "last",
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        }
-		                    },
-
-		                    "operations": [{
-		                        "action": "insert",
-		                        "list": "All_Users",
-		                        "position": "last",
-
-		                        "when": {
-		                            "must_not": {
-		                                "stringValue": "true"
+		                        when: {
+		                            must_not: {
+		                                stringValue: "true"
 		                            }
 		                        }
-		                    }]
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
+		                        },
+
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1776,7 +1963,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @when_not(argument: "boolValue", value: "true")
+							...All_Users_insert @when_not(boolValue: true)
 						}
 					}
 				}`
@@ -1818,6 +2005,7 @@ describe('mutation artifacts', function () {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
 		    id
+		    __typename
 		  }
 		}
 		\`,
@@ -1825,54 +2013,58 @@ describe('mutation artifacts', function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+		            list: "All_Users",
 
-		            "fields": {
-		                "firstName": {
-		                    "type": "String",
-		                    "keyRaw": "firstName"
+		            fields: {
+		                firstName: {
+		                    type: "String",
+		                    keyRaw: "firstName"
 		                },
 
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            },
 
-		            "list": "All_Users",
-
-		            "filters": {
-		                "stringValue": {
-		                    "kind": "Variable",
-		                    "value": "value"
+		            filters: {
+		                stringValue: {
+		                    kind: "Variable",
+		                    value: "value"
 		                },
 
-		                "boolValue": {
-		                    "kind": "Boolean",
-		                    "value": true
+		                boolValue: {
+		                    kind: "Boolean",
+		                    value: true
 		                },
 
-		                "floatValue": {
-		                    "kind": "Float",
-		                    "value": 1.2
+		                floatValue: {
+		                    kind: "Float",
+		                    value: 1.2
 		                },
 
-		                "intValue": {
-		                    "kind": "Int",
-		                    "value": 1
+		                intValue: {
+		                    kind: "Int",
+		                    value: 1
 		                }
 		            }
 		        }
 		    },
 
 		    input: {
-		        "fields": {
-		            "value": "String"
+		        fields: {
+		            value: "String"
 		        },
 
-		        "types": {}
+		        types: {}
 		    }
 		};
 	`)
@@ -1884,7 +2076,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @when_not(argument: "boolValue", value: "true")
+							...All_Users_insert @when_not(boolValue: true)
 						}
 					}
 				}`
@@ -1922,7 +2114,9 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 
@@ -1935,38 +2129,48 @@ describe('mutation artifacts', function () {
 		    rootType: "Mutation",
 
 		    selection: {
-		        "addFriend": {
-		            "type": "AddFriendOutput",
-		            "keyRaw": "addFriend",
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
 
-		            "fields": {
-		                "friend": {
-		                    "type": "User",
-		                    "keyRaw": "friend",
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
-		                        },
+		                    operations: [{
+		                        action: "insert",
+		                        list: "All_Users",
+		                        position: "last",
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
-		                        }
-		                    },
-
-		                    "operations": [{
-		                        "action": "insert",
-		                        "list": "All_Users",
-		                        "position": "last",
-
-		                        "when": {
-		                            "must_not": {
-		                                "boolValue": true
+		                        when: {
+		                            must_not: {
+		                                boolValue: true
 		                            }
 		                        }
-		                    }]
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
+		                        },
+
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -2018,6 +2222,7 @@ describe('mutation artifacts', function () {
 		  users(stringValue: "foo") {
 		    firstName
 		    id
+		    __typename
 		  }
 		}
 		\`,
@@ -2025,28 +2230,32 @@ describe('mutation artifacts', function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(stringValue: \\"foo\\")",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(stringValue: \\"foo\\")",
+		            list: "All_Users",
 
-		            "fields": {
-		                "firstName": {
-		                    "type": "String",
-		                    "keyRaw": "firstName"
+		            fields: {
+		                firstName: {
+		                    type: "String",
+		                    keyRaw: "firstName"
 		                },
 
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            },
 
-		            "list": "All_Users",
-
-		            "filters": {
-		                "stringValue": {
-		                    "kind": "String",
-		                    "value": "foo"
+		            filters: {
+		                stringValue: {
+		                    kind: "String",
+		                    value: "foo"
 		                }
 		            }
 		        }
@@ -2094,6 +2303,7 @@ describe('mutation artifacts', function () {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
 		    id
+		    __typename
 		  }
 		}
 		\`,
@@ -2101,54 +2311,58 @@ describe('mutation artifacts', function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+		            list: "All_Users",
 
-		            "fields": {
-		                "firstName": {
-		                    "type": "String",
-		                    "keyRaw": "firstName"
+		            fields: {
+		                firstName: {
+		                    type: "String",
+		                    keyRaw: "firstName"
 		                },
 
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            },
 
-		            "list": "All_Users",
-
-		            "filters": {
-		                "stringValue": {
-		                    "kind": "Variable",
-		                    "value": "value"
+		            filters: {
+		                stringValue: {
+		                    kind: "Variable",
+		                    value: "value"
 		                },
 
-		                "boolValue": {
-		                    "kind": "Boolean",
-		                    "value": true
+		                boolValue: {
+		                    kind: "Boolean",
+		                    value: true
 		                },
 
-		                "floatValue": {
-		                    "kind": "Float",
-		                    "value": 1.2
+		                floatValue: {
+		                    kind: "Float",
+		                    value: 1.2
 		                },
 
-		                "intValue": {
-		                    "kind": "Int",
-		                    "value": 1
+		                intValue: {
+		                    kind: "Int",
+		                    value: 1
 		                }
 		            }
 		        }
 		    },
 
 		    input: {
-		        "fields": {
-		            "value": "String"
+		        fields: {
+		            value: "String"
 		        },
 
-		        "types": {}
+		        types: {}
 		    }
 		};
 	`)
@@ -2195,6 +2409,7 @@ describe('mutation artifacts', function () {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
 		    id
+		    __typename
 		  }
 		}
 		\`,
@@ -2202,54 +2417,58 @@ describe('mutation artifacts', function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
+		            list: "All_Users",
 
-		            "fields": {
-		                "firstName": {
-		                    "type": "String",
-		                    "keyRaw": "firstName"
+		            fields: {
+		                firstName: {
+		                    type: "String",
+		                    keyRaw: "firstName"
 		                },
 
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            },
 
-		            "list": "All_Users",
-
-		            "filters": {
-		                "stringValue": {
-		                    "kind": "Variable",
-		                    "value": "value"
+		            filters: {
+		                stringValue: {
+		                    kind: "Variable",
+		                    value: "value"
 		                },
 
-		                "boolValue": {
-		                    "kind": "Boolean",
-		                    "value": true
+		                boolValue: {
+		                    kind: "Boolean",
+		                    value: true
 		                },
 
-		                "floatValue": {
-		                    "kind": "Float",
-		                    "value": 1.2
+		                floatValue: {
+		                    kind: "Float",
+		                    value: 1.2
 		                },
 
-		                "intValue": {
-		                    "kind": "Int",
-		                    "value": 1
+		                intValue: {
+		                    kind: "Int",
+		                    value: 1
 		                }
 		            }
 		        }
 		    },
 
 		    input: {
-		        "fields": {
-		            "value": "String"
+		        fields: {
+		            value: "String"
 		        },
 
-		        "types": {}
+		        types: {}
 		    }
 		};
 	`)
@@ -2304,6 +2523,7 @@ test('custom scalar shows up in artifact', async function () {
 		    raw: \`query TestQuery {
 		  allItems {
 		    createdAt
+		    __typename
 		  }
 		}
 		\`,
@@ -2311,14 +2531,19 @@ test('custom scalar shows up in artifact', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "allItems": {
-		            "type": "TodoItem",
-		            "keyRaw": "allItems",
+		        allItems: {
+		            type: "TodoItem",
+		            keyRaw: "allItems",
 
-		            "fields": {
-		                "createdAt": {
-		                    "type": "DateTime",
-		                    "keyRaw": "createdAt"
+		            fields: {
+		                createdAt: {
+		                    type: "DateTime",
+		                    keyRaw: "createdAt"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -2403,6 +2628,7 @@ test('operation inputs', async function () {
 		    raw: \`query TestQuery($id: ID, $filter: UserFilter, $filterList: [UserFilter!], $enumArg: MyEnum) {
 		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
 		    id
+		    __typename
 		  }
 		}
 		\`,
@@ -2410,42 +2636,47 @@ test('operation inputs', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "user": {
-		            "type": "User",
-		            "keyRaw": "user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg)",
+		        user: {
+		            type: "User",
+		            keyRaw: "user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg)",
 
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
 		    },
 
 		    input: {
-		        "fields": {
-		            "id": "ID",
-		            "filter": "UserFilter",
-		            "filterList": "UserFilter",
-		            "enumArg": "MyEnum"
+		        fields: {
+		            id: "ID",
+		            filter: "UserFilter",
+		            filterList: "UserFilter",
+		            enumArg: "MyEnum"
 		        },
 
-		        "types": {
-		            "NestedUserFilter": {
-		                "id": "ID",
-		                "firstName": "String",
-		                "admin": "Boolean",
-		                "age": "Int",
-		                "weight": "Float"
+		        types: {
+		            NestedUserFilter: {
+		                id: "ID",
+		                firstName: "String",
+		                admin: "Boolean",
+		                age: "Int",
+		                weight: "Float"
 		            },
 
-		            "UserFilter": {
-		                "middle": "NestedUserFilter",
-		                "listRequired": "String",
-		                "nullList": "String",
-		                "recursive": "UserFilter",
-		                "enum": "MyEnum"
+		            UserFilter: {
+		                middle: "NestedUserFilter",
+		                listRequired: "String",
+		                nullList: "String",
+		                recursive: "UserFilter",
+		                enum: "MyEnum"
 		            }
 		        }
 		    }
@@ -2491,7 +2722,9 @@ describe('subscription artifacts', function () {
 		    user {
 		      firstName
 		      id
+		      __typename
 		    }
+		    __typename
 		  }
 		}
 		\`,
@@ -2499,26 +2732,36 @@ describe('subscription artifacts', function () {
 		    rootType: "Subscription",
 
 		    selection: {
-		        "newUser": {
-		            "type": "NewUserResult",
-		            "keyRaw": "newUser",
+		        newUser: {
+		            type: "NewUserResult",
+		            keyRaw: "newUser",
 
-		            "fields": {
-		                "user": {
-		                    "type": "User",
-		                    "keyRaw": "user",
+		            fields: {
+		                user: {
+		                    type: "User",
+		                    keyRaw: "user",
 
-		                    "fields": {
-		                        "firstName": {
-		                            "type": "String",
-		                            "keyRaw": "firstName"
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
 		                        },
 
-		                        "id": {
-		                            "type": "ID",
-		                            "keyRaw": "id"
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
 		                        }
 		                    }
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
 		                }
 		            }
 		        }

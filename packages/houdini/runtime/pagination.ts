@@ -1,10 +1,15 @@
 // externals
 import { Readable } from 'svelte/store'
 // locals
-import { Operation, GraphQLTagResult, Fragment } from './types'
+import { Operation, GraphQLTagResult, Fragment, GraphQLObject, QueryArtifact } from './types'
 import { query, QueryResponse } from './query'
 import { getVariables } from './context'
-import { fragment } from './fragment'
+import { executeQuery } from './network'
+import cache from './cache'
+// @ts-ignore: this file will get generated and does not exist in the source code
+import { getSession } from './adapter.mjs'
+// this has to be in a separate file since config isn't defined in cache/index.ts
+import { extractPageInfo } from './utils'
 
 type PaginatedQueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
@@ -27,9 +32,46 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	data.subscribe((val) => {
 		value = val
 	})
+
 	const variables = getVariables()
-	const loadNextPage = async () => {
-		console.log(variables())
+	const sessionStore = getSession()
+
+	const loadNextPage = async (pageCount?: number) => {
+		// we need to find the connection object holding the current page info
+		const pageInfo = extractPageInfo(value, document.artifact.refetch!.target)
+
+		// if there is no next page, we're done
+		if (!pageInfo.hasNextPage) {
+			return
+		}
+
+		console.log(pageInfo.endCursor)
+
+		console.log(document.artifact.selection)
+
+		// build up the variables to pass to the query
+		const queryVariables = {
+			...variables,
+			first: pageCount,
+			after: pageInfo.endCursor,
+		}
+
+		// send the query
+		const result = await executeQuery<_Query['result']>(
+			document.artifact as QueryArtifact,
+			queryVariables,
+			sessionStore
+		)
+
+		console.log('response', result.data)
+
+		// update cache with the result
+		cache.write({
+			selection: document.artifact.selection,
+			data: result.data,
+			variables: queryVariables,
+			applyUpdates: true,
+		})
 	}
 
 	return { data, loadNextPage, ...restOfQueryResponse }

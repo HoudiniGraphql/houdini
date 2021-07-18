@@ -46,11 +46,8 @@
 		}
 	`)
 
-	const numberOfItems = derived(data, ($data) => $data.allItems.edges.length)
-	const itemsLeft = derived(
-		data,
-		($data) => $data.allItems.edges.filter(({node: item}) => !item.completed).length
-	)
+	$: numberOfItems = $data.allItems.edges.length
+	$: itemsLeft = $data.allItems.edges.filter(({node: item}) => !item.completed).length
 
 	// figure out the current page
 	const currentPage = derived(page, ($page) => {
@@ -72,6 +69,8 @@
 			inputValue = ''
 		}
 	}
+
+	$: console.log($data)
 
 </script>
 
@@ -98,9 +97,9 @@
 		{/each}
 	</ul>
 </section>
-{#if $numberOfItems > 0}
+{#if numberOfItems > 0}
 	<footer class="footer">
-		<span class="todo-count"><strong>{$itemsLeft}</strong> item left</span>
+		<span class="todo-count"><strong>{itemsLeft}</strong> item left</span>
 		<ul class="filters">
 			<li>
 				<a class:selected={$currentPage === 'all'} class="selected" href="/">All</a>

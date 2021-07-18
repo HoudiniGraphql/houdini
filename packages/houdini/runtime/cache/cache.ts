@@ -500,9 +500,21 @@ export class Cache {
 					}
 
 					// build up an
-					const linkedID = !embedded
+					let linkedID = !embedded
 						? this.id(innerType, entry)
 						: `${parentID}.${key}[${i}]`
+
+					// if the field is marked for pagination and we are looking at edges, we need
+					// to use the underlying node for the id
+					if (key === 'edges' && entry['node']) {
+						const node = entry['node'] as {}
+						// @ts-ignore
+						const typename = node.__typename
+						let nodeID = this.id(typename, node)
+						if (nodeID) {
+							linkedID += '#' + nodeID
+						}
+					}
 
 					// if we couldn't compute the id, just move on
 					if (!linkedID) {
