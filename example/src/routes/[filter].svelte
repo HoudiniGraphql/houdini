@@ -24,7 +24,7 @@
 	import { derived } from 'svelte/store'
 
 	// load the items
-	const { data, loadNextPage } = paginatedQuery<AllItems>(graphql`
+	const { data, loadNextPage, pageInfo } = paginatedQuery<AllItems>(graphql`
 		query AllItems($completed: Boolean) {
 			filteredItems: items(completed: $completed, first: 2) @paginate  {
 				edges { 
@@ -70,17 +70,17 @@
 		}
 	}
 
-	$: console.log($data)
-
 </script>
 
 <header class="header">
 	<a href="/">
 		<h1>todos</h1>
 	</a>
-	<nav>
-		<button on:click={() => loadNextPage()}>load more</button>
-	</nav>
+	{#if $pageInfo.hasNextPage} 
+		<nav>
+			<button on:click={() => loadNextPage()}>load more</button>
+		</nav>
+	{/if}
 	<input
 		class="new-todo"
 		placeholder="What needs to be done?"
@@ -113,3 +113,24 @@
 		</ul>
 	</footer>
 {/if}
+
+
+<style>
+	nav { 
+		position: absolute;
+		right: 0;
+		top: -30px;
+	}
+
+	button { 
+		border: 1px solid darkgray;
+		border-radius: 3px;
+		padding: 4px;
+		background: white;
+		cursor: pointer;	
+	}
+
+	button:active { 
+		background: #f6f6f6;
+	}
+</style>

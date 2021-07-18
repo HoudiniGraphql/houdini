@@ -1,5 +1,5 @@
 // externals
-import { Readable } from 'svelte/store'
+import { readable, Readable, writable } from 'svelte/store'
 // locals
 import {
 	Operation,
@@ -16,16 +16,22 @@ import cache from './cache'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
 // this has to be in a separate file since config isn't defined in cache/index.ts
-import { extractPageInfo } from './utils'
+import { extractPageInfo, PageInfo } from './utils'
 
 type PaginatedQueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
 	loadNextPage(pageCount?: number): Promise<void>
+	pageInfo: Readable<PageInfo>
 } & QueryResponse<_Data, _Input>
 
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): PaginatedQueryResponse<_Query['result'], _Query['input']> {
+	// make sure we got a query document
+	if (document.kind !== 'HoudiniQuery') {
+		throw new Error('paginatedQuery() must be passed a query document')
+	}
+
 	// pass the artifact to the base query operation
 	const { data, writeData, ...restOfQueryResponse } = query(document)
 
@@ -34,21 +40,27 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 		throw new Error('paginatedQuery must be passed a query with @paginate.')
 	}
 
-	// hold onto the current value
-	let value: _Query['result']
-	data.subscribe((val) => {
-		value = val
-	})
-
 	const variables = getVariables()
 	const sessionStore = getSession()
 
+	// track the current page info in an easy-to-reach store
+	const pageInfo = writable<PageInfo>(
+		extractPageInfo(document.initialValue.data, document.artifact.refetch!.target)
+	)
+
+	// hold onto the current value
+	let value: _Query['result']
+	data.subscribe((val) => {
+		pageInfo.set(extractPageInfo(val, document.artifact.refetch!.target))
+		value = val
+	})
+
 	const loadNextPage = async (pageCount?: number) => {
 		// we need to find the connection object holding the current page info
-		const pageInfo = extractPageInfo(value, document.artifact.refetch!.target)
+		const currentPageInfo = extractPageInfo(value, document.artifact.refetch!.target)
 
 		// if there is no next page, we're done
-		if (!pageInfo.hasNextPage) {
+		if (!currentPageInfo.hasNextPage) {
 			return
 		}
 
@@ -56,7 +68,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 		const queryVariables = {
 			...variables(),
 			first: pageCount,
-			after: pageInfo.endCursor,
+			after: currentPageInfo.endCursor,
 		}
 
 		// send the query
@@ -65,6 +77,9 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 			queryVariables,
 			sessionStore
 		)
+
+		// we need to find the connection object holding the current page info
+		pageInfo.set(extractPageInfo(result.data, document.artifact.refetch!.target))
 
 		// update cache with the result
 		cache.write({
@@ -75,5 +90,11 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 		})
 	}
 
-	return { data, writeData, loadNextPage, ...restOfQueryResponse }
+	return {
+		data,
+		writeData,
+		loadNextPage,
+		pageInfo: { subscribe: pageInfo.subscribe },
+		...restOfQueryResponse,
+	}
 }

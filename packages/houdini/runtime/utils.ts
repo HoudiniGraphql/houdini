@@ -1,6 +1,6 @@
 import { GraphQLObject } from './types'
 
-type PageInfo = {
+export type PageInfo = {
 	startCursor: string | null
 	endCursor: string | null
 	hasNextPage: boolean
