@@ -2,7 +2,6 @@
 import { Config, getRootType } from 'houdini-common'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { namedTypes } from 'ast-types/gen/namedTypes'
 // locals
 import fieldKey from './fieldKey'
 import { CollectedGraphQLDocument } from '../../types'
@@ -119,15 +118,10 @@ export default function selection({
 			const paginated = field.directives?.find(
 				(directive) => directive.name.value === config.paginateDirective
 			)
-			if (paginated && document.refetch) {
-				// if we are paginating by cursor
-				if (document.refetch.method === 'cursor') {
-					// we need to mark the edge field for pagination
-					markEdges = document.refetch.update
-				} else {
-					// otherwise mark this field
-					fieldObj.update = document.refetch.update
-				}
+
+			// if the field is marked for offset pagination we need to mark this field
+			if (paginated && document.refetch && document.refetch.method === 'offset') {
+				fieldObj.update = document.refetch.update
 			}
 
 			// if we are looking at the edges field and we're supposed to mark it for pagination
@@ -135,12 +129,19 @@ export default function selection({
 				// otherwise mark this field
 				fieldObj.update = document.refetch.update
 
-				// make sure we don't mark any more edge fields
+				// make sure we dont mark the children
 				markEdges = ''
 			}
 
 			// only add the field object if there are properties in it
 			if (field.selectionSet) {
+				// if this field was marked for cursor based pagination we need to mark
+				// the edges field that falls underneath it
+				const edgesMark =
+					paginated && document.refetch?.method === 'cursor'
+						? document.refetch.update
+						: markEdges
+
 				fieldObj.fields = selection({
 					config,
 					rootType: typeName,
@@ -149,7 +150,7 @@ export default function selection({
 					path: pathSoFar,
 					includeFragments,
 					document,
-					markEdges,
+					markEdges: edgesMark,
 				})
 			}
 

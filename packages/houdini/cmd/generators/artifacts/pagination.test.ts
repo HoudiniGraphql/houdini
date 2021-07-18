@@ -206,7 +206,7 @@ test('offset based pagination marks appropriate field', async function () {
 				`)
 })
 
-test('sibling aliases dont get marked', async function () {
+test("sibling aliases don't get marked", async function () {
 	const docs = [
 		mockCollectedDoc(
 			`
@@ -437,7 +437,6 @@ test('sibling aliases dont get marked', async function () {
 					                edges: {
 					                    type: "UserEdge",
 					                    keyRaw: "edges",
-					                    update: "append",
 
 					                    fields: {
 					                        node: {

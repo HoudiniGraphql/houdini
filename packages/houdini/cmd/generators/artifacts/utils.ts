@@ -55,7 +55,7 @@ export function deepMerge(...targets: {}[]): {} {
 
 	// if we are looking at a list of lists
 	if (Array.isArray(targets[0])) {
-		return targets[0].concat(...targets.slice(1))
+		return (targets[0] as {}[]).concat(...targets.slice(1))
 	}
 
 	// collect all of the fields that the targets specify and map them to their value
