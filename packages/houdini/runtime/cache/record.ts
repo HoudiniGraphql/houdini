@@ -13,6 +13,7 @@ export class Record {
 	fields: { [key: string]: GraphQLValue } = {}
 
 	keyVersions: { [key: string]: Set<string> } = {}
+	private id: string
 	private subscribers: { [key: string]: SubscriptionSpec[] } = {}
 	private recordLinks: { [key: string]: string | null } = {}
 	private listLinks: { [key: string]: (string | null)[] } = {}
@@ -22,7 +23,8 @@ export class Record {
 	} = {}
 	lists: List[] = []
 
-	constructor(cache: Cache) {
+	constructor(id: string, cache: Cache) {
+		this.id = id
 		this.cache = cache
 	}
 

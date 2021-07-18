@@ -38,14 +38,35 @@ export class Cache {
 		parent?: string
 		applyUpdates?: boolean
 	}) {
+		console.log('writing', data)
 		const specs: SubscriptionSpec[] = []
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
 		// will build up different specs of subscriptions that need to be run against the current state
-		this._write(parent, parent, selection, parent, data, variables, specs, applyUpdates)
+		this._write({
+			rootID: parent,
+			selection,
+			recordID: parent,
+			data,
+			variables,
+			specs,
+			applyUpdates,
+		})
+
+		// the same spec will likely need to be updated multiple times, create the unique list by using the set
+		// function's identity
+		const uniqueSpecs: SubscriptionSpec[] = []
+		const assignedSets: SubscriptionSpec['set'][] = []
+		for (const spec of specs) {
+			// if we haven't added the set yet
+			if (!assignedSets.includes(spec.set)) {
+				uniqueSpecs.push(spec)
+				assignedSets.push(spec.set)
+			}
+		}
 
 		// compute new values for every spec that needs to be run
-		this.notifySubscribers(specs, variables)
+		this.notifySubscribers(uniqueSpecs, variables)
 	}
 
 	// returns the global id of the specified field (used to access the record in the cache)
@@ -130,7 +151,7 @@ export class Cache {
 	private record(id: string | undefined): Record {
 		// if we haven't seen the record before add an entry in the store
 		if (!this._data.has(id)) {
-			this._data.set(id, new Record(this))
+			this._data.set(id, new Record(id || '', this))
 		}
 
 		// write the field value
@@ -343,16 +364,23 @@ export class Cache {
 		}
 	}
 
-	private _write(
-		rootID: string, // the ID that anchors any lists
-		parentID: string, // the ID that can be used to build up the key for embedded data
-		selection: SubscriptionSelection,
-		recordID: string, // the ID of the record that we are updating in cache
-		data: { [key: string]: GraphQLValue },
-		variables: { [key: string]: GraphQLValue },
-		specs: SubscriptionSpec[],
+	private _write({
+		rootID,
+		selection,
+		recordID,
+		data,
+		variables,
+		specs,
+		applyUpdates,
+	}: {
+		rootID: string // the ID that anchors any lists
+		selection: SubscriptionSelection
+		recordID: string // the ID of the record that we are updating in cache
+		data: { [key: string]: GraphQLValue }
+		variables: { [key: string]: GraphQLValue }
+		specs: SubscriptionSpec[]
 		applyUpdates: boolean
-	) {
+	}) {
 		// the record we are storing information about this object
 		const record = this.record(recordID)
 
@@ -367,6 +395,7 @@ export class Cache {
 						''
 				)
 			}
+
 			// look up the field in our schema
 			let {
 				type: linkedType,
@@ -419,7 +448,7 @@ export class Cache {
 					).length > 0
 
 				// figure out the id of the new linked record
-				const linkedID = !embedded ? this.id(linkedType, value) : `${parentID}.${key}`
+				const linkedID = !embedded ? this.id(linkedType, value) : `${recordID}.${key}`
 
 				// if we are now linked to a new object we need to record the new value
 				if (linkedID && oldID !== linkedID) {
@@ -439,16 +468,15 @@ export class Cache {
 				// only update the data if there is an id for the record
 				if (linkedID) {
 					// update the linked fields too
-					this._write(
+					this._write({
 						rootID,
-						recordID,
-						fields,
-						linkedID,
-						value,
+						selection: fields,
+						recordID: linkedID,
+						data: value,
 						variables,
 						specs,
-						applyUpdates
-					)
+						applyUpdates,
+					})
 				}
 			}
 
@@ -502,7 +530,7 @@ export class Cache {
 					// build up an
 					let linkedID = !embedded
 						? this.id(innerType, entry)
-						: `${parentID}.${key}[${i}]`
+						: `${recordID}.${key}[${i}]`
 
 					// if the field is marked for pagination and we are looking at edges, we need
 					// to use the underlying node for the id
@@ -522,16 +550,15 @@ export class Cache {
 					}
 
 					// update the linked fields too
-					this._write(
+					this._write({
 						rootID,
-						recordID,
-						fields,
-						linkedID,
-						entry,
+						selection: fields,
+						recordID: linkedID,
+						data: entry,
 						variables,
 						specs,
-						applyUpdates
-					)
+						applyUpdates,
+					})
 
 					// add the id to the list
 					newIDs.push(linkedID)
@@ -709,6 +736,8 @@ export class Cache {
 			if (!rootRecord) {
 				throw new Error('Could not find root of subscription')
 			}
+
+			console.log(this.getData(rootRecord, spec.selection, spec.variables?.()))
 
 			// trigger the update
 			spec.set(this.getData(rootRecord, spec.selection, spec.variables?.()))

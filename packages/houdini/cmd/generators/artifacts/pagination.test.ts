@@ -68,7 +68,7 @@ test('pagination arguments stripped from key', async function () {
 					    selection: {
 					        friendsByCursor: {
 					            type: "UserConnection",
-					            keyRaw: "paginated::friendsByCursor(filter: \\"hello\\")",
+					            keyRaw: "friendsByCursor(filter: \\"hello\\")::paginated",
 
 					            fields: {
 					                edges: {
@@ -186,7 +186,7 @@ test('offset based pagination marks appropriate field', async function () {
 					    selection: {
 					        friendsByOffset: {
 					            type: "User",
-					            keyRaw: "paginated::friendsByOffset(filter: \\"hello\\")",
+					            keyRaw: "friendsByOffset(filter: \\"hello\\")::paginated",
 					            update: "append",
 
 					            fields: {
@@ -315,7 +315,7 @@ test("sibling aliases don't get marked", async function () {
 					    selection: {
 					        friendsByCursor: {
 					            type: "UserConnection",
-					            keyRaw: "paginated::friendsByCursor(filter: \\"hello\\")",
+					            keyRaw: "friendsByCursor(filter: \\"hello\\")::paginated",
 
 					            fields: {
 					                edges: {

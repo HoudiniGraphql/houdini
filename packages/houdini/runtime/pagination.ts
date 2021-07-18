@@ -1,7 +1,14 @@
 // externals
 import { Readable } from 'svelte/store'
 // locals
-import { Operation, GraphQLTagResult, Fragment, GraphQLObject, QueryArtifact } from './types'
+import {
+	Operation,
+	GraphQLTagResult,
+	Fragment,
+	GraphQLObject,
+	QueryArtifact,
+	TaggedGraphqlQuery,
+} from './types'
 import { query, QueryResponse } from './query'
 import { getVariables } from './context'
 import { executeQuery } from './network'
@@ -20,7 +27,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): PaginatedQueryResponse<_Query['result'], _Query['input']> {
 	// pass the artifact to the base query operation
-	const { data, ...restOfQueryResponse } = query(document)
+	const { data, writeData, ...restOfQueryResponse } = query(document)
 
 	// if there's no refetch config for the artifact there's a problem
 	if (!document.artifact.refetch) {
@@ -45,13 +52,9 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 			return
 		}
 
-		console.log(pageInfo.endCursor)
-
-		console.log(document.artifact.selection)
-
 		// build up the variables to pass to the query
 		const queryVariables = {
-			...variables,
+			...variables(),
 			first: pageCount,
 			after: pageInfo.endCursor,
 		}
@@ -63,7 +66,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 			sessionStore
 		)
 
-		console.log('response', result.data)
+		console.log({ result })
 
 		// update cache with the result
 		cache.write({
@@ -74,5 +77,5 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 		})
 	}
 
-	return { data, loadNextPage, ...restOfQueryResponse }
+	return { data, writeData, loadNextPage, ...restOfQueryResponse }
 }

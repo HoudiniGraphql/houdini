@@ -84,11 +84,17 @@ export function query<_Query extends Operation<any, any>>(
 
 	const sessionStore = getSession()
 
-	function writeData(newData: RequestPayload<_Query['result']>, newVariables: _Query['input']) {
+	function writeData(
+		newData: RequestPayload<_Query['result']>,
+		newVariables: _Query['input'],
+		applyUpdate?: boolean
+	) {
 		// if the variables changed we need to unsubscribe from the old fields and
 		// listen to the new ones
 		if (subscriptionSpec && JSON.stringify(variables) !== JSON.stringify(newVariables)) {
+			console.log('forgetting', variables)
 			cache.unsubscribe(subscriptionSpec, variables)
+			console.log('listening to', newVariables)
 			cache.subscribe(subscriptionSpec, newVariables)
 		}
 

@@ -32,7 +32,6 @@ export function fragment<_Fragment extends Fragment<any>>(
 		if (!parentID) {
 			return
 		}
-
 		const subscriptionSpec = {
 			rootType: artifact.rootType,
 			selection: artifact.selection,
@@ -40,13 +39,11 @@ export function fragment<_Fragment extends Fragment<any>>(
 			parentID,
 			variables: queryVariables,
 		}
-
 		// when the component mounts
 		onMount(() => {
 			// stay up to date
 			cache.subscribe(subscriptionSpec, queryVariables())
 		})
-
 		// the function used to clean up the store
 		return () => {
 			// if we subscribed to something we'll need to clean up
@@ -64,8 +61,4 @@ export function fragment<_Fragment extends Fragment<any>>(
 	})
 
 	return value
-}
-
-type PaginatedResponse<_Shape> = {
-	data: Readable<_Shape>
 }

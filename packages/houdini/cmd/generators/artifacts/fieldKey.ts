@@ -53,7 +53,7 @@ export default function fieldKey(config: Config, field: graphql.FieldNode): stri
 
 	// if the field is paginated, key it differently so other documents can ask for the non paginated value without conflict
 	if (paginated) {
-		key = 'paginated::' + key
+		key = key + '::paginated'
 	}
 
 	return key
