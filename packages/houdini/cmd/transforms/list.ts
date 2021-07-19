@@ -22,8 +22,8 @@ export default async function addListFragments(
 	const errors: HoudiniError[] = []
 
 	// look at every document
-	for (const { document, filename } of documents) {
-		graphql.visit(document, {
+	for (const doc of documents) {
+		doc.document = graphql.visit(doc.document, {
 			Directive(node, key, parent, path, ancestors) {
 				// TODO: remove @connection guard
 				// if we found a @list applied (old applications will call this @connection)
@@ -40,7 +40,7 @@ export default async function addListFragments(
 							node.loc ? [node.loc.start, node.loc.end] : null,
 							path
 						),
-						filepath: filename,
+						filepath: doc.filename,
 					}
 
 					// if there is no name argument
@@ -77,10 +77,7 @@ export default async function addListFragments(
 						targetField.name.value
 					] as graphql.GraphQLField<any, any>
 
-					const [selection, type]: [
-						graphql.SelectionSetNode | undefined,
-						graphql.GraphQLObjectType
-					] = connectionSelection(
+					const { selection, type, connection } = connectionSelection(
 						config,
 						targetFieldDefinition,
 						parentTypeFromAncestors(
@@ -94,7 +91,29 @@ export default async function addListFragments(
 					lists[nameArg.value.value] = {
 						selection,
 						type,
-						filename,
+						filename: doc.filename,
+					}
+
+					// if the list is marking a connection we need to add the flag in a place we can track when
+					// generating the artifact
+					if (connection) {
+						return {
+							...node,
+							arguments: [
+								...node.arguments!,
+								{
+									kind: 'Argument',
+									name: {
+										kind: 'Name',
+										value: 'connection',
+									},
+									value: {
+										kind: 'BooleanValue',
+										value: true,
+									},
+								} as graphql.ArgumentNode,
+							],
+						}
 					}
 				}
 			},
@@ -254,7 +273,11 @@ function connectionSelection(
 	field: graphql.GraphQLField<any, any>,
 	type: graphql.GraphQLObjectType,
 	selection: graphql.SelectionSetNode | undefined
-): [graphql.SelectionSetNode | undefined, graphql.GraphQLObjectType] {
+): {
+	selection: graphql.SelectionSetNode | undefined
+	type: graphql.GraphQLObjectType
+	connection?: boolean
+} {
 	// make sure the field has the fields for either forward or backwards pagination
 	const fieldArgs = field.args.reduce<Record<string, string>>(
 		(args, arg) => ({
@@ -266,7 +289,7 @@ function connectionSelection(
 	const forwardPagination = fieldArgs['first'] === 'Int' && fieldArgs['after'] === 'String'
 	const backwardsPagination = fieldArgs['last'] === 'Int' && fieldArgs['before'] === 'String'
 	if (!forwardPagination && !backwardsPagination) {
-		return [selection, type]
+		return { selection, type }
 	}
 
 	// we need to make sure that there is an edges field
@@ -274,27 +297,31 @@ function connectionSelection(
 		(selection) => selection.kind === 'Field' && selection.name.value === 'edges'
 	) as graphql.FieldNode
 	if (!edgesField) {
-		return [selection, type]
+		return { selection, type }
 	}
 
 	const nodeSelection = edgesField.selectionSet?.selections.find(
 		(selection) => selection.kind === 'Field' && selection.name.value === 'node'
 	) as graphql.FieldNode
 	if (!nodeSelection.selectionSet) {
-		return [selection, type]
+		return { selection, type }
 	}
 
 	// now that we have the correct selection, we have to lookup node type
 	// we need to make sure that there is an edges field
 	const edgeField = (field.type as graphql.GraphQLObjectType).getFields()['edges']
 	if (!edgeField || !(edgeField.type instanceof graphql.GraphQLList)) {
-		return [selection, type]
+		return { selection, type }
 	}
 
 	const nodeField = (edgeField.type as graphql.GraphQLList<any>).ofType.getFields()['node']
 	if (!nodeField) {
-		return [selection, type]
+		return { selection, type }
 	}
 
-	return [nodeSelection.selectionSet, nodeField.type]
+	return {
+		selection: nodeSelection.selectionSet,
+		type: nodeField.type,
+		connection: true,
+	}
 }

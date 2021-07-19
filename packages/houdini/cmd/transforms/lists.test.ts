@@ -315,6 +315,53 @@ test('includes node selection on connection', async function () {
 	`)
 })
 
+test('list flags connections', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+			fragment AllUsers  on User{
+				friendsByCursor @list(name:"User_Friends") {
+					edges { 
+						node { 
+							id
+							firstName
+							friends { 
+								id
+							}
+						}
+					}
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment AllUsers on User {
+		  friendsByCursor @list(name: "User_Friends", connection: true) {
+		    edges {
+		      node {
+		        id
+		        firstName
+		        friends {
+		          id
+		          __typename
+		        }
+		        __typename
+		      }
+		      __typename
+		    }
+		    __typename
+		  }
+		}
+
+	`)
+})
+
 test('cannot use list directive if id is not a valid field', async function () {
 	const docs = [
 		mockCollectedDoc(

@@ -106,11 +106,18 @@ export default function selection({
 			}
 
 			// get the name of the list directive tagging this field
-			const nameArg = field.directives
-				?.find((directive) => directive.name.value === config.listDirective)
-				?.arguments?.find((arg) => arg.name.value === 'name')
+			const listDirective = field.directives?.find(
+				(directive) => directive.name.value === config.listDirective
+			)
+			const nameArg = listDirective?.arguments?.find((arg) => arg.name.value === 'name')
 			if (nameArg && nameArg.value.kind === 'StringValue') {
-				fieldObj.list = nameArg.value.value
+				const connection = Boolean(
+					listDirective?.arguments?.find((arg) => arg.name.value === 'connection')
+				)
+				fieldObj.list = {
+					name: nameArg.value.value,
+					connection,
+				}
 			}
 
 			// if the field is marked for pagination we want to leave something behind

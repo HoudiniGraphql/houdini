@@ -2016,7 +2016,11 @@ describe('mutation artifacts', function () {
 		        users: {
 		            type: "User",
 		            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
-		            list: "All_Users",
+
+		            list: {
+		                name: "All_Users",
+		                connection: false
+		            },
 
 		            fields: {
 		                firstName: {
@@ -2233,7 +2237,11 @@ describe('mutation artifacts', function () {
 		        users: {
 		            type: "User",
 		            keyRaw: "users(stringValue: \\"foo\\")",
-		            list: "All_Users",
+
+		            list: {
+		                name: "All_Users",
+		                connection: false
+		            },
 
 		            fields: {
 		                firstName: {
@@ -2314,7 +2322,11 @@ describe('mutation artifacts', function () {
 		        users: {
 		            type: "User",
 		            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
-		            list: "All_Users",
+
+		            list: {
+		                name: "All_Users",
+		                connection: false
+		            },
 
 		            fields: {
 		                firstName: {
@@ -2420,7 +2432,11 @@ describe('mutation artifacts', function () {
 		        users: {
 		            type: "User",
 		            keyRaw: "users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1)",
-		            list: "All_Users",
+
+		            list: {
+		                name: "All_Users",
+		                connection: false
+		            },
 
 		            fields: {
 		                firstName: {

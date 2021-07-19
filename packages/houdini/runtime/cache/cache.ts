@@ -261,15 +261,15 @@ export class Cache {
 				// if this field is marked as a list, register it
 				if (list && fields) {
 					// if we haven't seen this list before
-					if (!this._lists.has(list)) {
-						this._lists.set(list, new Map())
+					if (!this._lists.has(list.name)) {
+						this._lists.set(list.name, new Map())
 					}
 
 					// if we haven't already registered a handler to this list in the cache
-					this._lists.get(list)?.set(
+					this._lists.get(list.name)?.set(
 						spec.parentID || rootID,
 						new ListHandler({
-							name: list,
+							name: list.name,
 							parentID: spec.parentID,
 							cache: this,
 							record: rootRecord,
@@ -305,7 +305,7 @@ export class Cache {
 					if (list) {
 						// add the list reference to record
 						child.addListReference({
-							name: list,
+							name: list.name,
 							parentID: spec.parentID,
 						})
 					}
@@ -332,9 +332,9 @@ export class Cache {
 
 			// if this field is marked as a list remove it from teh cache
 			if (list) {
-				this._lists.delete(list)
+				this._lists.delete(list.name)
 				rootRecord.removeListReference({
-					name: list,
+					name: list.name,
 					parentID: spec.parentID,
 				})
 			}
@@ -565,7 +565,7 @@ export class Cache {
 					if (!oldIDs.includes(linkedID) && list) {
 						this.record(linkedID).addListReference({
 							parentID: rootID,
-							name: list,
+							name: list.name,
 						})
 					}
 				}

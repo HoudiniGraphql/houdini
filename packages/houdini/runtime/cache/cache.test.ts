@@ -925,7 +925,10 @@ test('append in list', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1010,7 +1013,10 @@ test('prepend in list', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1095,7 +1101,10 @@ test('list filter - must_not positive', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1192,7 +1201,10 @@ test('list filter - must_not negative', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1275,7 +1287,10 @@ test('list filter - must positive', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1372,7 +1387,10 @@ test('list filter - must negative', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1455,7 +1473,10 @@ test('subscribe to new list nodes', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1561,7 +1582,10 @@ test('remove from list', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1639,7 +1663,10 @@ test('delete node', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1733,7 +1760,10 @@ test('append operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1821,7 +1851,10 @@ test('append when operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					filters: {
 						value: {
 							kind: 'String',
@@ -1920,7 +1953,10 @@ test('prepend when operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					filters: {
 						value: {
 							kind: 'String',
@@ -2040,7 +2076,10 @@ test('prepend operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2146,7 +2185,10 @@ test('remove operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2249,7 +2291,10 @@ test('delete operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2318,7 +2363,10 @@ test('variables in query and subscription', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends(filter: $filter)',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2429,7 +2477,10 @@ test('deleting a node removes nested subscriptions', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2501,7 +2552,10 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+					},
 					fields: {
 						id: {
 							type: 'ID',

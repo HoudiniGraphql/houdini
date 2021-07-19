@@ -26,7 +26,7 @@ export default async function graphqlExtensions(
 				@${config.listDirective} is used to mark a field for the runtime as a place to add or remove
 				entities in mutations
 			"""
-			directive @${config.listDirective}(${config.listNameArg}: String!) on FIELD
+			directive @${config.listDirective}(${config.listNameArg}: String!, connection: Boolean) on FIELD
 
 			"""
 				@${config.listPrependDirective} is used to tell the runtime to add the result to the end of the list

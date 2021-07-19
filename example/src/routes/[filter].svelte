@@ -35,7 +35,7 @@
 					}
 				}
 			}
-			allItems: items  {
+			allItems: items {
 				edges { 
 					node { 
 						id
