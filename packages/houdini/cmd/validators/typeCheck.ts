@@ -674,9 +674,6 @@ function paginateArgs(config: Config) {
 					{}
 				)
 
-				// create a summary of the applied args
-				const appliedArgs = new Set(targetField.arguments?.map((arg) => arg.name.value))
-
 				const forwardPagination =
 					fieldArgs['first'] === 'Int' && fieldArgs['after'] === 'String'
 
@@ -685,6 +682,9 @@ function paginateArgs(config: Config) {
 
 				// a field with cursor based pagination must have the first arg and one of before or after
 				const cursorPagination = forwardPagination || backwardsPagination
+
+				// create a summary of the applied args
+				const appliedArgs = new Set(targetField.arguments?.map((arg) => arg.name.value))
 
 				// if the field supports cursor based pagination, there must be a first argument applied
 				if (cursorPagination) {

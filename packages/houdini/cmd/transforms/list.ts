@@ -3,6 +3,7 @@ import { Config, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
+import { unwrapType } from '../utils'
 
 // addListFragments adds fragments for the fields tagged with @list
 export default async function addListFragments(
@@ -12,7 +13,7 @@ export default async function addListFragments(
 	// collect all of the fields that have the list applied
 	const lists: {
 		[name: string]: {
-			field: graphql.FieldNode
+			selection: graphql.SelectionSetNode | undefined
 			type: graphql.GraphQLNamedType
 			filename: string
 		}
@@ -62,29 +63,36 @@ export default async function addListFragments(
 						errors.push(error)
 					}
 
-					const type = parentTypeFromAncestors(config.schema, ancestors)
-
 					// look up the parent's type
-					const parentType = parentTypeFromAncestors(config.schema, ancestors.slice(1))
+					const parentType = parentTypeFromAncestors(
+						config.schema,
+						ancestors.slice(0, -1)
+					)
 
-					// if id is not a valid field on the parent, we won't be able to add or remove
-					// from this list if it doesn't fall under root
-					if (
-						!(parentType instanceof graphql.GraphQLObjectType) ||
-						(parentType.name !== config.schema.getQueryType()?.name &&
-							!parentType.getFields().id)
-					) {
-						throw {
-							...new graphql.GraphQLError(
-								'Can only use a list field on fragment on a type with id'
-							),
-							filepath: filename,
-						}
-					}
+					// a non-connection list can just use the selection set of the tagged field
+					// but if this is a connection tagged with list we need to use the selection
+					// of the edges.node field
+					const targetField = ancestors[ancestors.length - 1] as graphql.FieldNode
+					const targetFieldDefinition = parentType.getFields()[
+						targetField.name.value
+					] as graphql.GraphQLField<any, any>
+
+					const [selection, type]: [
+						graphql.SelectionSetNode | undefined,
+						graphql.GraphQLObjectType
+					] = connectionSelection(
+						config,
+						targetFieldDefinition,
+						parentTypeFromAncestors(
+							config.schema,
+							ancestors
+						) as graphql.GraphQLObjectType,
+						(ancestors[ancestors.length - 1] as graphql.FieldNode).selectionSet
+					)
 
 					// add the target of the directive to the list
 					lists[nameArg.value.value] = {
-						field: ancestors[ancestors.length - 1] as graphql.FieldNode,
+						selection,
 						type,
 						filename,
 					}
@@ -101,7 +109,7 @@ export default async function addListFragments(
 	// we need to add a delete directive for every type that is the target of a list
 	const listTargets = [
 		...new Set(
-			Object.values(lists).map(({ type, field }) => {
+			Object.values(lists).map(({ type }) => {
 				// only consider object types
 				if (!(type instanceof graphql.GraphQLObjectType)) {
 					return ''
@@ -122,33 +130,32 @@ export default async function addListFragments(
 	const generatedDoc: graphql.DocumentNode = {
 		kind: 'Document',
 		definitions: Object.entries(lists).flatMap<graphql.FragmentDefinitionNode>(
-			([name, { field, type, filename }]) => {
+			([name, { selection, type, filename }]) => {
 				// look up the type
 				const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
 
 				// if there is no selection set
-				if (!field.selectionSet) {
+				if (!selection) {
 					throw new HoudiniErrorTodo('Lists must have a selection')
 				}
 
 				// we need a copy of the field's selection set that we can mutate
-				const selection: graphql.SelectionSetNode = {
+				const fragmentSelection: graphql.SelectionSetNode = {
 					kind: 'SelectionSet',
-					selections: [...field.selectionSet.selections],
-					loc: field.selectionSet.loc,
+					selections: [...selection.selections],
 				}
 
 				// is there no id selection
 				if (
 					schemaType &&
-					selection &&
-					!selection?.selections.find(
-						(selection) => selection.kind === 'Field' && selection.name.value === 'id'
+					fragmentSelection &&
+					!fragmentSelection?.selections.find(
+						(field) => field.kind === 'Field' && field.name.value === 'id'
 					)
 				) {
 					// add the id field to the selection
-					selection.selections = [
-						...selection.selections,
+					fragmentSelection.selections = [
+						...fragmentSelection.selections,
 						{
 							kind: 'Field',
 							name: {
@@ -163,14 +170,14 @@ export default async function addListFragments(
 				return [
 					// a fragment to insert items into this list
 					{
+						name: {
+							value: config.listInsertFragment(name),
+							kind: 'Name',
+						},
 						kind: graphql.Kind.FRAGMENT_DEFINITION,
 						// in order to insert an item into this list, it must
 						// have the same selection as the field
-						selectionSet: selection,
-						name: {
-							kind: 'Name',
-							value: config.listInsertFragment(name),
-						},
+						selectionSet: fragmentSelection,
 						typeCondition: {
 							kind: 'NamedType',
 							name: {
@@ -183,8 +190,8 @@ export default async function addListFragments(
 					{
 						kind: graphql.Kind.FRAGMENT_DEFINITION,
 						name: {
-							kind: 'Name',
 							value: config.listRemoveFragment(name),
+							kind: 'Name',
 						},
 						// deleting an entity just takes its id and the parent
 						selectionSet: {
@@ -238,4 +245,56 @@ export default async function addListFragments(
 		originalDocument: generatedDoc,
 		filename: '__generated__',
 	})
+}
+
+// a field is considered a connection if it has one of the required connection arguments
+// as well as an edges > node selection
+function connectionSelection(
+	config: Config,
+	field: graphql.GraphQLField<any, any>,
+	type: graphql.GraphQLObjectType,
+	selection: graphql.SelectionSetNode | undefined
+): [graphql.SelectionSetNode | undefined, graphql.GraphQLObjectType] {
+	// make sure the field has the fields for either forward or backwards pagination
+	const fieldArgs = field.args.reduce<Record<string, string>>(
+		(args, arg) => ({
+			...args,
+			[arg.name]: unwrapType(config, arg.type).type.name,
+		}),
+		{}
+	)
+	const forwardPagination = fieldArgs['first'] === 'Int' && fieldArgs['after'] === 'String'
+	const backwardsPagination = fieldArgs['last'] === 'Int' && fieldArgs['before'] === 'String'
+	if (!forwardPagination && !backwardsPagination) {
+		return [selection, type]
+	}
+
+	// we need to make sure that there is an edges field
+	const edgesField = selection?.selections.find(
+		(selection) => selection.kind === 'Field' && selection.name.value === 'edges'
+	) as graphql.FieldNode
+	if (!edgesField) {
+		return [selection, type]
+	}
+
+	const nodeSelection = edgesField.selectionSet?.selections.find(
+		(selection) => selection.kind === 'Field' && selection.name.value === 'node'
+	) as graphql.FieldNode
+	if (!nodeSelection.selectionSet) {
+		return [selection, type]
+	}
+
+	// now that we have the correct selection, we have to lookup node type
+	// we need to make sure that there is an edges field
+	const edgeField = (field.type as graphql.GraphQLObjectType).getFields()['edges']
+	if (!edgeField || !(edgeField.type instanceof graphql.GraphQLList)) {
+		return [selection, type]
+	}
+
+	const nodeField = (edgeField.type as graphql.GraphQLList<any>).ofType.getFields()['node']
+	if (!nodeField) {
+		return [selection, type]
+	}
+
+	return [nodeSelection.selectionSet, nodeField.type]
 }

@@ -260,6 +260,61 @@ test('includes `id` in list fragment', async function () {
 	`)
 })
 
+test('includes node selection on connection', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+			mutation UpdateUser {
+				updateUser {
+					...User_Friends_insert @prepend(parentID: "1234")
+				}
+			}
+		`
+		),
+		mockCollectedDoc(
+			`
+			fragment AllUsers  on User{
+				friendsByCursor @list(name:"User_Friends") {
+					edges { 
+						node { 
+							id
+							firstName
+							friends { 
+								id
+							}
+						}
+					}
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
+		  updateUser {
+		    ...User_Friends_insert @prepend(parentID: "1234")
+		    id
+		    __typename
+		  }
+		}
+
+		fragment User_Friends_insert on User {
+		  id
+		  firstName
+		  friends {
+		    id
+		    __typename
+		  }
+		}
+
+	`)
+})
+
 test('cannot use list directive if id is not a valid field', async function () {
 	const docs = [
 		mockCollectedDoc(

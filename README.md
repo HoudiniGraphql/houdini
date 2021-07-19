@@ -610,7 +610,7 @@ applied. To support this, houdini provides the `@when` and `@when_not` directive
 ```graphql
 mutation NewItem($input: AddItemInput!) {
     addItem(input: $input) {
-        ...All_Items_insert @when_not(argument: "completed", value: "true")
+        ...All_Items_insert @when_not(completed: true)
     }
 }
 ```
