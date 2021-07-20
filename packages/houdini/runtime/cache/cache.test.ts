@@ -1085,6 +1085,111 @@ test('prepend in list', function () {
 	})
 })
 
+test('delete from connection', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: true,
+					},
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'Node',
+									keyRaw: 'node',
+									abstract: true,
+									fields: {
+										__typename: {
+											type: 'String',
+											keyRaw: '__typename',
+										},
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection: selection,
+	})
+
+	// remove user 2 from the list
+	cache.list('All_Users').remove({
+		id: '2',
+	})
+
+	// the first time set was called, a new entry was added.
+	// the second time it's called, we get a new value for mary-prime
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [],
+			},
+		},
+	})
+
+	// make sure we aren't subscribing to user 2 any more
+	expect(
+		cache.internal.getRecord(cache.id('User', '2')!)?.getSubscribers('firstName')
+	).toHaveLength(0)
+})
+
 test('append in connection', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
