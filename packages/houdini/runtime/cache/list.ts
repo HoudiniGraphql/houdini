@@ -1,5 +1,5 @@
 // local imports
-import { SubscriptionSelection, ListWhen, SubscriptionSpec } from '../types'
+import { SubscriptionSelection, ListWhen, SubscriptionSpec, RefetchUpdateMode } from '../types'
 import { Cache } from './cache'
 import { Record } from './record'
 
@@ -13,6 +13,7 @@ export class ListHandler {
 	private filters?: { [key: string]: number | boolean | string }
 	readonly name: string
 	readonly parentID: SubscriptionSpec['parentID']
+	private connection: boolean
 
 	constructor({
 		name,
@@ -24,8 +25,10 @@ export class ListHandler {
 		when,
 		filters,
 		parentID,
+		connection,
 	}: {
 		name: string
+		connection: boolean
 		cache: Cache
 		record: Record
 		key: string
@@ -44,6 +47,7 @@ export class ListHandler {
 		this.filters = filters
 		this.name = name
 		this.parentID = parentID
+		this.connection = connection
 	}
 
 	// when applies a when condition to a new list pointing to the same spot
@@ -58,6 +62,7 @@ export class ListHandler {
 			filters: this.filters,
 			parentID: this.parentID,
 			name: this.name,
+			connection: this.connection,
 		})
 	}
 
@@ -83,27 +88,67 @@ export class ListHandler {
 			return
 		}
 
-		// update the cache with the data we just found
-		this.cache.write({
-			selection,
-			data,
-			variables,
-			parent: dataID,
-		})
+		// we are going to implement the insert as a write with an update flag on a field
+		// that matches the key of the list. We'll have to embed the lists data and selection
+		// in the appropriate objects
+		let insertSelection = selection
+		let insertData = data
 
-		if (where === 'first') {
-			// add the record we just created to the list
-			this.record.prependLinkedList(this.key, dataID)
+		// if we are wrapping a connection, we have to embed the data under edges > node
+		if (this.connection) {
+			insertSelection = {
+				newEntry: {
+					keyRaw: this.key,
+					type: 'Connection',
+					fields: {
+						edges: {
+							keyRaw: 'edges',
+							type: 'ConnectionEdge',
+							update: (where === 'first' ? 'prepend' : 'append') as RefetchUpdateMode,
+							fields: {
+								node: {
+									type: this.listType,
+									keyRaw: 'node',
+									fields: {
+										...selection,
+										__typename: {
+											keyRaw: '__typename',
+											type: 'String',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			insertData = {
+				newEntry: {
+					edges: [{ node: { ...data, __typename: this.listType } }],
+				},
+			}
 		} else {
-			// add the record we just created to the list
-			this.record.appendLinkedList(this.key, dataID)
+			insertSelection = {
+				newEntries: {
+					keyRaw: this.key,
+					type: this.listType,
+					update: (where === 'first' ? 'prepend' : 'append') as RefetchUpdateMode,
+					fields: {
+						...selection,
+						__typename: {
+							keyRaw: '__typename',
+							type: 'String',
+						},
+					},
+				},
+			}
+			insertData = {
+				newEntries: [{ ...data, __typename: this.listType }],
+			}
 		}
 
 		// get the list of specs that are subscribing to the list
 		const subscribers = this.record.getSubscribers(this.key)
-
-		// notify the subscribers we care about
-		this.cache.internal.notifySubscribers(subscribers, variables)
 
 		// look up the new record in the cache
 		const newRecord = this.cache.internal.record(dataID)
@@ -117,7 +162,16 @@ export class ListHandler {
 		// walk down the list fields relative to the new record
 		// and make sure all of the list's subscribers are listening
 		// to that object
-		this.cache.internal.insertSubscribers(newRecord, this.selection, variables, ...subscribers)
+		this.cache.internal.insertSubscribers(newRecord, selection, variables, ...subscribers)
+
+		// update the cache with the data we just found
+		this.cache.write({
+			selection: insertSelection,
+			data: insertData,
+			variables,
+			parent: this.record.id,
+			applyUpdates: true,
+		})
 	}
 
 	removeID(id: string, variables: {} = {}) {

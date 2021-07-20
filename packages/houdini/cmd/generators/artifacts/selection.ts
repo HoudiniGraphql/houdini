@@ -136,7 +136,7 @@ export default function selection({
 				// otherwise mark this field
 				fieldObj.update = document.refetch.update
 
-				// make sure we dont mark the children
+				// make sure we don't mark the children
 				markEdges = ''
 			}
 

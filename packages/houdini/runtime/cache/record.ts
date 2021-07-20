@@ -13,7 +13,7 @@ export class Record {
 	fields: { [key: string]: GraphQLValue } = {}
 
 	keyVersions: { [key: string]: Set<string> } = {}
-	private id: string
+	readonly id: string
 	private subscribers: { [key: string]: SubscriptionSpec[] } = {}
 	private recordLinks: { [key: string]: string | null } = {}
 	private listLinks: { [key: string]: (string | null)[] } = {}

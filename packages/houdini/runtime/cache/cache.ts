@@ -270,6 +270,7 @@ export class Cache {
 						spec.parentID || rootID,
 						new ListHandler({
 							name: list.name,
+							connection: list.connection,
 							parentID: spec.parentID,
 							cache: this,
 							record: rootRecord,
