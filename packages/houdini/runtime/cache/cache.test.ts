@@ -1152,6 +1152,13 @@ test('delete from connection', function () {
 								firstName: 'jane',
 							},
 						},
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
+						},
 					],
 				},
 			},
@@ -1179,7 +1186,15 @@ test('delete from connection', function () {
 		viewer: {
 			id: '1',
 			friends: {
-				edges: [],
+				edges: [
+					{
+						node: {
+							__typename: 'User',
+							id: '3',
+							firstName: 'jane',
+						},
+					},
+				],
 			},
 		},
 	})
@@ -1188,6 +1203,12 @@ test('delete from connection', function () {
 	expect(
 		cache.internal.getRecord(cache.id('User', '2')!)?.getSubscribers('firstName')
 	).toHaveLength(0)
+	// but we're still subscribing to user 3
+	expect(
+		cache.internal.getRecord(cache.id('User', '3')!)?.getSubscribers('firstName')
+	).toHaveLength(1)
+	// make sure we deleted the edge holding onto this information
+	expect(cache.internal.getRecord('User:1.friends.edges[0]#User:2')).toBeUndefined()
 })
 
 test('append in connection', function () {

@@ -788,7 +788,10 @@ export class Cache {
 			// if there are fields under this
 			if (fields) {
 				// figure out who else needs subscribers
-				const children = record.linkedList(key) || [record.linkedRecord(key)]
+				const children =
+					record.linkedList(key).length > 0
+						? record.linkedList(key)
+						: [record.linkedRecord(key)]
 
 				for (const linkedRecord of children) {
 					// avoid null records

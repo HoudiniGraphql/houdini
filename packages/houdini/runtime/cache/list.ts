@@ -180,22 +180,61 @@ export class ListHandler {
 			return
 		}
 
-		// add the record we just created to the list
-		this.record.removeFromLinkedList(this.key, id)
+		// if we are removing from a connection, the id we are removing from
+		// has to be computed
+		let parentID = this.record.id
+		let targetID = id
+		let targetKey = this.key
+
+		// if we are removing a record from a connection we have to walk through
+		// some embedded references first
+		if (this.connection) {
+			const embeddedConnection = this.record.linkedRecord(this.key)
+			if (!embeddedConnection) {
+				return
+			}
+			// look at every embedded edge for the one with a node corresponding to the element
+			// we want to delete
+			for (const edge of embeddedConnection.linkedList('edges') || []) {
+				if (!edge) {
+					continue
+				}
+				// look at the edge's node
+				const node = edge.linkedRecord('node')
+				if (!node) {
+					continue
+				}
+				// if we found the node
+				if (node.id === id) {
+					targetID = edge.id
+				}
+			}
+			parentID = embeddedConnection.id
+			targetKey = 'edges'
+		}
 
 		// get the list of specs that are subscribing to the list
 		const subscribers = this.record.getSubscribers(this.key)
 
-		// notify the subscribers about the change
-		this.cache.internal.notifySubscribers(subscribers, variables)
-
 		// disconnect record from any subscriptions associated with the list
 		this.cache.internal.unsubscribeSelection(
-			this.cache.internal.record(id),
-			this.selection,
+			this.cache.internal.record(targetID),
+			// if we're unsubscribing from a connection, only unsubscribe from the target
+			this.connection ? this.selection.edges.fields! : this.selection,
 			variables,
 			...subscribers.map(({ set }) => set)
 		)
+
+		// remove the target from the parent
+		this.cache.internal.record(parentID).removeFromLinkedList(targetKey, targetID)
+
+		// notify the subscribers about the change
+		this.cache.internal.notifySubscribers(subscribers, variables)
+
+		// if we are removing from a connection, delete the embedded edge holding the record
+		if (this.connection) {
+			this.cache.delete(targetID)
+		}
 	}
 
 	remove(data: {}, variables: {} = {}) {
