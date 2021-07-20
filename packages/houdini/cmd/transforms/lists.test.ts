@@ -383,3 +383,58 @@ test('cannot use list directive if id is not a valid field', async function () {
 	const config = testConfig()
 	await expect(runPipeline(config, docs)).rejects.toBeTruthy()
 })
+
+test('paginate with name also gets treated as a list', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+			mutation UpdateUser {
+				updateUser {
+					...User_Friends_insert @prepend(parentID: "1234")
+				}
+			}
+		`
+		),
+		mockCollectedDoc(
+			`
+			fragment AllUsers  on User{
+				friendsByCursor(first: 10) @paginate(name:"User_Friends") {
+					edges { 
+						node { 
+							id
+							firstName
+							friends { 
+								id
+							}
+						}
+					}
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
+		  updateUser {
+		    ...User_Friends_insert @prepend(parentID: "1234")
+		    id
+		    __typename
+		  }
+		}
+
+		fragment User_Friends_insert on User {
+		  id
+		  firstName
+		  friends {
+		    id
+		    __typename
+		  }
+		}
+
+	`)
+})

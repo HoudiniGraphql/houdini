@@ -151,8 +151,6 @@ export default async function typeCheck(
 							)
 						)
 					}
-
-					return
 				}
 
 				// if we got this far, we need a parent if we're under any fragment
@@ -167,7 +165,12 @@ export default async function typeCheck(
 				)
 
 				if (!nameArg) {
-					errors.push(new HoudiniErrorTodo('Could not find name arg'))
+					// if we are looking at @list there is an error
+					if (directive.name.value === config.listDirective) {
+						errors.push(new HoudiniErrorTodo('Could not find name arg'))
+					}
+
+					// regardless there's nothing more to process
 					return
 				}
 				if (nameArg.value.kind !== 'StringValue') {

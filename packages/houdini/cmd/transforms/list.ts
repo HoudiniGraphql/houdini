@@ -25,9 +25,8 @@ export default async function addListFragments(
 	for (const doc of documents) {
 		doc.document = graphql.visit(doc.document, {
 			Directive(node, key, parent, path, ancestors) {
-				// TODO: remove @connection guard
 				// if we found a @list applied (old applications will call this @connection)
-				if (node.name.value === config.listDirective) {
+				if ([config.listDirective, config.paginateDirective].includes(node.name.value)) {
 					// look up the name passed to the directive
 					const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')
 
@@ -45,21 +44,26 @@ export default async function addListFragments(
 
 					// if there is no name argument
 					if (!nameArg) {
-						error.message = '@list must have a name argument'
-						errors.push(error)
+						// if we are looking at a @list we need a name argument
+						if (node.name.value === config.listDirective) {
+							error.message = `@${node.name.value} must have a name argument`
+							errors.push(error)
+						}
+
+						// regardless, we dont need to process this node any more
 						return
 					}
 
 					// make sure it was a string
 					if (nameArg.value.kind !== 'StringValue') {
-						error.message = '@list name must be a string'
+						error.message = `@${node.name.value} name must be a string`
 						errors.push(error)
 						return
 					}
 
 					// if we've already seen this list
 					if (lists[nameArg.value.value]) {
-						error.message = '@list name must be unique'
+						error.message = `@${node.name.value} name must be unique`
 						errors.push(error)
 					}
 
