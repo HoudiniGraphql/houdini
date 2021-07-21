@@ -196,7 +196,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 				// generate a hash of the document that we can use to detect changes
 				// start building up the artifact
-				const artifact = {
+				const artifact: Record<string, any> = {
 					name,
 					kind: docKind,
 					refetch: doc.refetch,
@@ -212,7 +212,12 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						includeFragments: docKind !== 'HoudiniFragment',
 						document: doc,
 					}),
-					input: inputs && inputs.length > 0 ? inputObject(config, inputs) : undefined,
+				}
+
+				// if the document has inputs describe their types in the artifact so we can
+				// marshal and unmarshal scalars
+				if (inputs && inputs.length > 0) {
+					artifact.input = inputObject(config, inputs)
 				}
 
 				// the artifact should be the default export of the file

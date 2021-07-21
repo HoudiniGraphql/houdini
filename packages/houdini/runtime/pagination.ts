@@ -21,6 +21,7 @@ import { extractPageInfo, PageInfo } from './utils'
 type PaginatedQueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
 	loadNextPage(pageCount?: number): Promise<void>
+	loadPreviousPage(pageCount?: number): Promise<void>
 	pageInfo: Readable<PageInfo>
 } & QueryResponse<_Data, _Input>
 
@@ -33,7 +34,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	}
 
 	// pass the artifact to the base query operation
-	const { data, writeData, ...restOfQueryResponse } = query(document)
+	const { data, ...restOfQueryResponse } = query(document)
 
 	// if there's no refetch config for the artifact there's a problem
 	if (!document.artifact.refetch) {
@@ -90,10 +91,45 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 		})
 	}
 
+	const loadPreviousPage = async (pageCount?: number) => {
+		// we need to find the connection object holding the current page info
+		const currentPageInfo = extractPageInfo(value, document.artifact.refetch!.target)
+
+		// if there is no next page, we're done
+		if (!currentPageInfo.hasPreviousPage) {
+			return
+		}
+
+		// build up the variables to pass to the query
+		const queryVariables = {
+			...variables(),
+			last: pageCount,
+			before: currentPageInfo.startCursor,
+		}
+
+		// send the query
+		const result = await executeQuery<_Query['result']>(
+			document.artifact as QueryArtifact,
+			queryVariables,
+			sessionStore
+		)
+
+		// we need to find the connection object holding the current page info
+		pageInfo.set(extractPageInfo(result.data, document.artifact.refetch!.target))
+
+		// update cache with the result
+		cache.write({
+			selection: document.artifact.selection,
+			data: result.data,
+			variables: queryVariables,
+			applyUpdates: true,
+		})
+	}
+
 	return {
 		data,
-		writeData,
 		loadNextPage,
+		loadPreviousPage,
 		pageInfo: { subscribe: pageInfo.subscribe },
 		...restOfQueryResponse,
 	}
