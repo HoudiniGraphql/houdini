@@ -153,7 +153,7 @@ export default async function addListFragments(
 	const generatedDoc: graphql.DocumentNode = {
 		kind: 'Document',
 		definitions: Object.entries(lists).flatMap<graphql.FragmentDefinitionNode>(
-			([name, { selection, type, filename }]) => {
+			([name, { selection, type }]) => {
 				// look up the type
 				const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
 
@@ -266,7 +266,7 @@ export default async function addListFragments(
 		generate: false,
 		document: generatedDoc,
 		originalDocument: generatedDoc,
-		filename: '__generated__',
+		filename: 'generated::lists',
 	})
 }
 
@@ -313,7 +313,8 @@ function connectionSelection(
 
 	// now that we have the correct selection, we have to lookup node type
 	// we need to make sure that there is an edges field
-	const edgeField = (field.type as graphql.GraphQLObjectType).getFields()['edges']
+	const edgeField = (unwrapType(config, field.type)
+		.type as graphql.GraphQLObjectType).getFields()['edges']
 	if (!edgeField || !(edgeField.type instanceof graphql.GraphQLList)) {
 		return { selection, type }
 	}

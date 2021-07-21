@@ -18,7 +18,7 @@
 </script>
 
 <script lang="ts">
-	import { paginatedQuery, graphql, mutation, subscription, AllItems } from '$houdini'
+	import { paginatedQuery, graphql, mutation, subscription, AddItem, AllItems } from '$houdini'
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { page } from '$app/stores'
 	import { derived } from 'svelte/store'
@@ -26,7 +26,7 @@
 	// load the items
 	const { data, loadNextPage, pageInfo } = paginatedQuery<AllItems>(graphql`
 		query AllItems($completed: Boolean) {
-			filteredItems: items(completed: $completed, first: 2) @paginate  {
+			filteredItems: items(completed: $completed, first: 2) @paginate(name: "Filtered_Items")  {
 				edges { 
 					node { 
 						id
@@ -35,7 +35,7 @@
 					}
 				}
 			}
-			allItems: items {
+			allItems: items @list(name: "All_Items") {
 				edges { 
 					node { 
 						id
@@ -45,6 +45,30 @@
 			}
 		}
 	`)
+	
+	// state and handler for the new item input
+	const addItem = mutation<AddItem>(graphql`
+		mutation AddItem($input: AddItemInput!) {
+			addItem(input: $input) {
+				error {
+					message
+				}
+			}
+		}
+	`)
+
+	subscription(graphql`
+		subscription NewItem {
+			newItem {
+				item {
+					...All_Items_insert
+					...Filtered_Items_insert
+						@prepend(when_not: { argument: "completed", value: "true" })
+				}
+			}
+		}
+	`)
+
 
 	$: numberOfItems = $data.allItems.edges.length
 	$: itemsLeft = $data.allItems.edges.filter(({node: item}) => !item.completed).length
@@ -63,7 +87,7 @@
 	async function onBlur() {
 		if (inputValue) {
 			// trigger the mutation
-			// await addItem({ input: { text: inputValue } })
+			await addItem({ input: { text: inputValue } })
 
 			// clear the input
 			inputValue = ''

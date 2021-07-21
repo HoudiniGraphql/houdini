@@ -78,7 +78,7 @@ export default async function fragmentVariables(
 		document: doc,
 		originalDocument: doc,
 		generate: false,
-		filename: '__generated__',
+		filename: 'generated::fragmentVariables',
 	})
 }
 
