@@ -1,6 +1,6 @@
 {
 	"name": "houdini",
-	"version": "0.9.7",
+	"version": "0.9.8",
 	"description": "",
 	"scripts": {
 		"build:runtime": "npm run build:runtime:cjs && npm run build:runtime:esm",
@@ -18,7 +18,7 @@
 	"author": "",
 	"license": "ISC",
 	"engines": {
-		"node": ">=15"
+		"node": ">=14.13"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.12.10",

@@ -150,7 +150,7 @@ export class Cache {
 	private record(id: string | undefined): Record {
 		// if we haven't seen the record before add an entry in the store
 		if (!this._data.has(id)) {
-			this._data.set(id, new Record(id || '', this))
+			this._data.set(id, new Record(this, id || ''))
 		}
 
 		// write the field value

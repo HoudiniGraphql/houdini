@@ -23,10 +23,10 @@ jobs:
               run: |
                   git checkout ${{ github.event.pull_request.base.ref }}
 
-            - name: Setup Node 15
+            - name: Setup Node 14
               uses: actions/setup-node@v1
               with:
-                  node-version: 15
+                  node-version: 14.13
                   registry-url: 'https://npm.pkg.github.com'
 
             - name: Set Git Identity

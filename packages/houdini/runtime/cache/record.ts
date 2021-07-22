@@ -23,9 +23,9 @@ export class Record {
 	} = {}
 	lists: List[] = []
 
-	constructor(id: string, cache: Cache) {
-		this.id = id
+	constructor(cache: Cache, id: string) {
 		this.cache = cache
+		this.id = id
 	}
 
 	allSubscribers() {
@@ -153,9 +153,10 @@ export class Record {
 		this.removeSubscribers([...this.keyVersions[keyRaw]], [spec.set])
 	}
 
-	private forgetSubscribers_walk(targets: SubscriptionSpec['set'][]) {
+	private forgetSubscribers_walk(targets: SubscriptionSpec['set'][], visited: string[] = []) {
 		// clean up any subscribers that reference the set
 		this.removeSubscribers(Object.keys(this.subscribers), targets)
+		visited.push(this.id)
 
 		// walk down to every record we know about
 		const linkedIDs = Object.keys(this.recordLinks)
@@ -168,7 +169,11 @@ export class Record {
 		}
 
 		for (const linkedRecordID of linkedIDs) {
-			this.cache.internal.getRecord(linkedRecordID)?.forgetSubscribers_walk(targets)
+			if (visited.includes(linkedRecordID)) {
+				continue
+			}
+
+			this.cache.internal.getRecord(linkedRecordID)?.forgetSubscribers_walk(targets, visited)
 		}
 	}
 
