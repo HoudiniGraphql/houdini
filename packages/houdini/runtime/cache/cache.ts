@@ -133,19 +133,20 @@ export class Cache {
 		record.removeAllSubscribers()
 
 		// look at every list we know of with the matching type
-		for (const [name, parentMap] of this._lists.entries()) {
+		for (const parentMap of this._lists.values()) {
 			for (const handler of parentMap.values()) {
-				// if the list handler is of the matching type
+				// only consider the list if it holds the matching type
 				if (handler.listType !== type) {
 					continue
 				}
 
+				// remove the id from the list
 				handler.removeID(id, variables)
 			}
 		}
 
 		// remove the entry from the cache
-		return this._data.delete(id)
+		return this.clear(id)
 	}
 
 	// grab the record specified by {id}.
@@ -839,8 +840,8 @@ export class Cache {
 		return evaluated
 	}
 
-	private clear(id: string) {
-		this._data.delete(id)
+	private clear(id: string): boolean {
+		return this._data.delete(id)
 	}
 }
 
