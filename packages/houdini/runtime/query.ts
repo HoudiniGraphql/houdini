@@ -85,9 +85,6 @@ export function query<_Query extends Operation<any, any>>(
 	const sessionStore = getSession()
 
 	function writeData(newData: RequestPayload<_Query['result']>, newVariables: _Query['input']) {
-		// update the local store
-		store.set(unmarshalSelection(config, artifact.selection, newData.data))
-
 		// write the data we received
 		cache.write({
 			selection: artifact.selection,
@@ -101,6 +98,9 @@ export function query<_Query extends Operation<any, any>>(
 			cache.unsubscribe(subscriptionSpec, variables)
 			cache.subscribe(subscriptionSpec, newVariables)
 		}
+
+		// update the local store
+		store.set(unmarshalSelection(config, artifact.selection, newData.data))
 
 		// save the new variables
 		variables = newVariables || {}
