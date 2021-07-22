@@ -3178,6 +3178,196 @@ test('can write list of scalars', function () {
 	})
 })
 
+test('self-referencing linked lists can be unsubscribed (avoid infinite recursion)', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '1',
+						firstName: 'bob',
+						friends: [
+							{
+								id: '1',
+								firstName: 'bob',
+							},
+						],
+					},
+				],
+			},
+		},
+		{}
+	)
+
+	// subscribe to the list
+	const spec = {
+		set: jest.fn(),
+		selection,
+		rootType: 'Query',
+	}
+	cache.subscribe(spec)
+	cache.unsubscribe(spec)
+
+	// no one should be subscribing to User:1's first name
+	expect(
+		cache.internal.getRecord(cache.id('User', '1')!)?.getSubscribers('firstName')
+	).toHaveLength(0)
+})
+
+test('self-referencing links can be unsubscribed (avoid infinite recursion)', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friend: {
+					type: 'User',
+					keyRaw: 'friend',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						friend: {
+							type: 'User',
+							keyRaw: 'friend',
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+								friend: {
+									type: 'User',
+									keyRaw: 'friend',
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write(
+		selection,
+		{
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friend: {
+					id: '1',
+					firstName: 'bob',
+					friend: {
+						id: '1',
+						firstName: 'bob',
+						friend: {
+							id: '1',
+							firstName: 'bob',
+						},
+					},
+				},
+			},
+		},
+		{}
+	)
+
+	// subscribe to the list
+	const spec = {
+		set: jest.fn(),
+		selection,
+		rootType: 'Query',
+	}
+	cache.subscribe(spec)
+	cache.unsubscribe(spec)
+
+	// no one should be subscribing to User:1's first name
+	expect(
+		cache.internal.getRecord(cache.id('User', '1')!)?.getSubscribers('firstName')
+	).toHaveLength(0)
+})
+
 test.todo('inserting node creates back reference to list')
 
 test.todo('unsubscribe removes list handlers')
