@@ -27,18 +27,21 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 		throw new Error('paginatedQuery() must be passed a query document')
 	}
 
+	// @ts-ignore: typing esm/cjs interop is hard
+	const artifact: QueryArtifact = document.artifact.default || document.artifact
+
 	// pass the artifact to the base query operation
 	const { data, ...restOfQueryResponse } = query(document)
 
 	// if there's no refetch config for the artifact there's a problem
-	if (!document.artifact.refetch) {
+	if (!artifact.refetch) {
 		throw new Error('paginatedQuery must be passed a query with @paginate.')
 	}
 
-	const { loadNextPage, loadPreviousPage, pageInfo } = cursorHandlers({
+	const { loadNextPage, loadPreviousPage, pageInfo } = paginationHandlers({
 		initialValue: document.initialValue.data,
 		store: data,
-		artifact: document.artifact,
+		artifact,
 	})
 
 	return {
@@ -88,18 +91,12 @@ function paginationHandlers({
 			loadPreviousPage = handlers.loadPreviousPage
 		}
 	}
-	// the artifact supports offset-based pagination
+	// the artifact supports offset-based pagination, only loadNextPage is valid
 	else {
-		loadNextPage = offsetPaginationHandler({ initialValue, artifact, store })
+		loadNextPage = offsetPaginationHandler({ artifact })
 	}
 
 	return { loadNextPage, loadPreviousPage, pageInfo }
-}
-
-type PaginatedHandlers = {
-	loadNextPage(pageCount?: number): Promise<void>
-	loadPreviousPage(pageCount?: number): Promise<void>
-	pageInfo: Readable<PageInfo>
 }
 
 function cursorHandlers({
@@ -199,6 +196,16 @@ function cursorHandlers({
 		loadPreviousPage,
 		pageInfo,
 	}
+}
+
+function offsetPaginationHandler({ artifact }: { artifact: QueryArtifact }) {
+	return async (pageSize?: number) => {}
+}
+
+type PaginatedHandlers = {
+	loadNextPage(pageCount?: number): Promise<void>
+	loadPreviousPage(pageCount?: number): Promise<void>
+	pageInfo: Readable<PageInfo>
 }
 
 function defaultLoadNextPage(pageSize?: number): Promise<void> {
