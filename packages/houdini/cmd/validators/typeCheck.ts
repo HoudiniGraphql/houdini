@@ -427,6 +427,8 @@ function knownArguments(config: Config) {
 						config.withDirective,
 						config.whenDirective,
 						config.whenNotDirective,
+						config.listAppendDirective,
+						config.listPrependDirective,
 					].includes(directiveName)
 				) {
 					return false

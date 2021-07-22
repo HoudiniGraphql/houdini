@@ -1527,7 +1527,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @append(when: { argument: "stringValue", value: "true" })
+							...All_Users_insert @append(when: { stringValue: "true" })
 						}
 					}
 				}`
@@ -1745,7 +1745,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @prepend(when_not: { argument: "stringValue", value: "true" })
+							...All_Users_insert @prepend(when_not: { stringValue: "true" })
 						}
 					}
 				}`
@@ -1854,7 +1854,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @append(when_not: { argument: "stringValue", value: "true" })
+							...All_Users_insert @append(when_not: { stringValue: "true" })
 						}
 					}
 				}`

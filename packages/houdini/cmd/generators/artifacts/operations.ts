@@ -159,17 +159,6 @@ function operationObject({
 				continue
 			}
 
-			// which are we looking at
-			const which = i ? 'must_not' : 'must'
-			// build up all of the values into a single object
-			const key = arg.value.fields.find(({ name, value }) => name.value === 'argument')?.value
-			const value = arg.value.fields.find(({ name }) => name.value === 'value')
-
-			// make sure we got a string for the key
-			if (key?.kind !== 'StringValue' || !value || value.value.kind !== 'StringValue') {
-				throw new Error('Key and Value must be strings')
-			}
-
 			// make sure we have a place to record the when condition
 			if (!operationWhen) {
 				operationWhen = {}
@@ -178,9 +167,13 @@ function operationObject({
 			// the kind of `value` is always going to be a string because the directive
 			// can only take one type as its argument so we'll worry about parsing when
 			// generating the artifact
-			operationWhen[which] = {
-				[key.value]: value.value.value,
-			}
+			operationWhen[i ? 'must_not' : 'must'] = arg.value.fields.reduce(
+				(obj, arg) => ({
+					...obj,
+					[arg.name.value]: convertValue(arg.value).value,
+				}),
+				{}
+			)
 		}
 
 		// look at the when and when_not directives
