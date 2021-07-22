@@ -35,7 +35,6 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 		throw new Error('paginatedQuery must be passed a query with @paginate.')
 	}
 
-	// generate the pagination handlers
 	const { loadNextPage, loadPreviousPage, pageInfo } = cursorHandlers({
 		initialValue: document.initialValue.data,
 		store: data,
@@ -51,13 +50,59 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	}
 }
 
+function paginationHandlers({
+	initialValue,
+	artifact,
+	store,
+}: {
+	initialValue: GraphQLObject
+	artifact: QueryArtifact
+	store: Readable<GraphQLObject>
+}): PaginatedHandlers {
+	// start with the defaults and no meaningful page info
+	let loadPreviousPage = defaultLoadPreviousPage
+	let loadNextPage = defaultLoadNextPage
+	let pageInfo = readable<PageInfo>(
+		{
+			startCursor: null,
+			endCursor: null,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		},
+		() => {}
+	)
+
+	// if the artifact supports cursor based pagination
+	if (artifact.refetch?.method === 'cursor') {
+		// generate the cursor handlers
+		const handlers = cursorHandlers({ initialValue, artifact, store })
+		// always track pageInfo
+		pageInfo = handlers.pageInfo
+
+		// if we are implementing forward pagination
+		if (artifact.refetch.update === 'append') {
+			loadNextPage = handlers.loadNextPage
+		}
+		// the artifact implements backwards pagination
+		else {
+			loadPreviousPage = handlers.loadPreviousPage
+		}
+	}
+	// the artifact supports offset-based pagination
+	else {
+		loadNextPage = offsetPaginationHandler({ initialValue, artifact, store })
+	}
+
+	return { loadNextPage, loadPreviousPage, pageInfo }
+}
+
 type PaginatedHandlers = {
 	loadNextPage(pageCount?: number): Promise<void>
 	loadPreviousPage(pageCount?: number): Promise<void>
 	pageInfo: Readable<PageInfo>
 }
 
-function cursorHandlers<_Data>({
+function cursorHandlers({
 	initialValue,
 	artifact,
 	store,
@@ -149,5 +194,21 @@ function cursorHandlers<_Data>({
 		})
 	}
 
-	return { loadNextPage, loadPreviousPage, pageInfo }
+	return {
+		loadNextPage,
+		loadPreviousPage,
+		pageInfo,
+	}
+}
+
+function defaultLoadNextPage(pageSize?: number): Promise<void> {
+	throw new Error(
+		'loadNextPage() only works on fields marked @paginate that implement forward cursor or offset pagination.'
+	)
+}
+
+function defaultLoadPreviousPage(pageSize?: number): Promise<void> {
+	throw new Error(
+		'loadPreviousPage() only works on fields marked @paginate that implement backward cursor pagination.'
+	)
 }
