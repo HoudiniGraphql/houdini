@@ -4140,9 +4140,9 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 	}
 
 	// add some data to the cache
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
@@ -4160,8 +4160,7 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// subscribe to the list
 	const spec = {
@@ -4242,9 +4241,9 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 	}
 
 	// add some data to the cache
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
@@ -4262,8 +4261,7 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 				},
 			},
 		},
-		{}
-	)
+	})
 
 	// subscribe to the list
 	const spec = {
