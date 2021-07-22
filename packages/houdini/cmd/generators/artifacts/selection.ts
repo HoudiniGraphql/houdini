@@ -7,6 +7,7 @@ import fieldKey from './fieldKey'
 import { CollectedGraphQLDocument } from '../../types'
 import type { MutationOperation, SubscriptionSelection } from '../../../runtime'
 import { convertValue, deepMerge } from './utils'
+import { connectionSelection } from '../../transforms/list'
 
 const AST = recast.types.builders
 
@@ -106,17 +107,22 @@ export default function selection({
 			}
 
 			// get the name of the list directive tagging this field
-			const listDirective = field.directives?.find(
-				(directive) => directive.name.value === config.listDirective
+			const listDirective = field.directives?.find((directive) =>
+				[config.listDirective, config.paginateDirective].includes(directive.name.value)
 			)
 			const nameArg = listDirective?.arguments?.find((arg) => arg.name.value === 'name')
 			if (nameArg && nameArg.value.kind === 'StringValue') {
-				const connection = Boolean(
-					listDirective?.arguments?.find((arg) => arg.name.value === 'connection')
+				const { connection, type: connectionType } = connectionSelection(
+					config,
+					type.getFields()[field.name.value] as graphql.GraphQLField<any, any>,
+					fieldType as graphql.GraphQLObjectType,
+					field.selectionSet
 				)
+
 				fieldObj.list = {
 					name: nameArg.value.value,
 					connection,
+					type: connectionType.name,
 				}
 			}
 

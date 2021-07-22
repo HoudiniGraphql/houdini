@@ -33,6 +33,7 @@
 				item {
 					id
 					completed
+					...Filtered_Items_remove @when(completed: false)
 				}
 			}
 		}
@@ -43,6 +44,7 @@
 				item {
 					id
 					completed
+					...Filtered_Items_remove @when(completed: true)
 				}
 			}
 		}
@@ -50,7 +52,7 @@
 	const deleteItem = mutation<DeleteItem>(graphql`
 		mutation DeleteItem($id: ID!) {
 			deleteItem(item: $id) {
-				itemID 
+				itemID @TodoItem_delete
 			}
 		}
 	`)

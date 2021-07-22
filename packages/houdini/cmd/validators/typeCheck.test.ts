@@ -389,6 +389,34 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: 'known connection directives',
+		pass: true,
+		// note: we pass parentID here to ensure we're not getting caught on the
+		//		 free lists check
+		documents: [
+			`
+				query UserFriends {
+					user {
+						friendsByCursor @list(name: "Friends") {
+							edges { 
+								node {
+									id
+								}
+							}
+						}
+					}
+				}
+			`,
+			`
+				mutation Bar {
+					deleteUser(id: "2") {
+						userID @User_delete
+					}
+				}
+			`,
+		],
+	},
+	{
 		title: 'unknown list directives errors before generation',
 		pass: false,
 		// note: we pass parentID here to ensure we're not getting caught on the

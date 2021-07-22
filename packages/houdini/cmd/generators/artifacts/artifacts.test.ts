@@ -1418,7 +1418,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_insert @prepend(when: { argument: "stringValue", value: "foo" })
+							...All_Users_insert @prepend(when: { stringValue: "foo" })
 						}
 					}
 				}`
@@ -2019,7 +2019,8 @@ describe('mutation artifacts', function () {
 
 		            list: {
 		                name: "All_Users",
-		                connection: false
+		                connection: false,
+		                type: "User"
 		            },
 
 		            fields: {
@@ -2240,7 +2241,8 @@ describe('mutation artifacts', function () {
 
 		            list: {
 		                name: "All_Users",
-		                connection: false
+		                connection: false,
+		                type: "User"
 		            },
 
 		            fields: {
@@ -2267,6 +2269,194 @@ describe('mutation artifacts', function () {
 		                }
 		            }
 		        }
+		    }
+		};
+	`)
+	})
+
+	test('tracks paginate name', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_insert @prepend(parentID: "1234")
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery {
+					usersByCursor(first: 10) @paginate(name: "All_Users") {
+						edges { 
+							node { 
+								firstName
+							}
+						}
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[1].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+
+		    refetch: {
+		        update: "append",
+		        source: ["usersByCursor"],
+		        target: ["usersByCursor"],
+		        method: "cursor"
+		    },
+
+		    raw: \`query TestQuery($first: Int = 10, $after: String) {
+		  usersByCursor(first: $first, after: $after) {
+		    edges {
+		      node {
+		        firstName
+		        id
+		        __typename
+		      }
+		      __typename
+		    }
+		    __typename
+		    edges {
+		      cursor
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        usersByCursor: {
+		            type: "UserConnection",
+		            keyRaw: "usersByCursor::paginated",
+
+		            list: {
+		                name: "All_Users",
+		                connection: true,
+		                type: "User"
+		            },
+
+		            fields: {
+		                edges: {
+		                    type: "UserEdge",
+		                    keyRaw: "edges",
+
+		                    fields: {
+		                        cursor: {
+		                            type: "String",
+		                            keyRaw: "cursor"
+		                        },
+
+		                        node: {
+		                            type: "User",
+		                            keyRaw: "node",
+
+		                            fields: {
+		                                firstName: {
+		                                    type: "String",
+		                                    keyRaw: "firstName"
+		                                },
+
+		                                id: {
+		                                    type: "ID",
+		                                    keyRaw: "id"
+		                                },
+
+		                                __typename: {
+		                                    type: "String",
+		                                    keyRaw: "__typename"
+		                                }
+		                            }
+		                        },
+
+		                        __typename: {
+		                            type: "String",
+		                            keyRaw: "__typename"
+		                        }
+		                    },
+
+		                    update: "append"
+		                },
+
+		                __typename: {
+		                    type: "String",
+		                    keyRaw: "__typename"
+		                },
+
+		                pageInfo: {
+		                    type: "PageInfo",
+		                    keyRaw: "pageInfo",
+
+		                    fields: {
+		                        hasPreviousPage: {
+		                            type: "Boolean",
+		                            keyRaw: "hasPreviousPage"
+		                        },
+
+		                        hasNextPage: {
+		                            type: "Boolean",
+		                            keyRaw: "hasNextPage"
+		                        },
+
+		                        startCursor: {
+		                            type: "String",
+		                            keyRaw: "startCursor"
+		                        },
+
+		                        endCursor: {
+		                            type: "String",
+		                            keyRaw: "endCursor"
+		                        }
+		                    }
+		                }
+		            },
+
+		            filters: {
+		                first: {
+		                    kind: "Variable",
+		                    value: "first"
+		                },
+
+		                after: {
+		                    kind: "Variable",
+		                    value: "after"
+		                }
+		            }
+		        }
+		    },
+
+		    input: {
+		        fields: {
+		            first: "Int",
+		            after: "String"
+		        },
+
+		        types: {}
 		    }
 		};
 	`)
@@ -2325,7 +2515,8 @@ describe('mutation artifacts', function () {
 
 		            list: {
 		                name: "All_Users",
-		                connection: false
+		                connection: false,
+		                type: "User"
 		            },
 
 		            fields: {
@@ -2435,7 +2626,8 @@ describe('mutation artifacts', function () {
 
 		            list: {
 		                name: "All_Users",
-		                connection: false
+		                connection: false,
+		                type: "User"
 		            },
 
 		            fields: {

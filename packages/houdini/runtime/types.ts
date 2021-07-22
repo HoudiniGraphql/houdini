@@ -148,6 +148,7 @@ export type SubscriptionSelection = {
 		list?: {
 			name: string
 			connection: boolean
+			type: string
 		}
 		update?: RefetchUpdateMode
 		filters?: {

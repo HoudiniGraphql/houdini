@@ -928,6 +928,7 @@ test('append in list', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -1016,6 +1017,7 @@ test('prepend in list', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -1104,6 +1106,7 @@ test('delete from connection', function () {
 					list: {
 						name: 'All_Users',
 						connection: true,
+						type: 'User',
 					},
 					fields: {
 						edges: {
@@ -1230,6 +1233,7 @@ test('append in connection', function () {
 					list: {
 						name: 'All_Users',
 						connection: true,
+						type: 'User',
 					},
 					fields: {
 						edges: {
@@ -1348,6 +1352,7 @@ test('list filter - must_not positive', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					filters: {
 						foo: {
@@ -1448,6 +1453,7 @@ test('list filter - must_not negative', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					filters: {
 						foo: {
@@ -1534,6 +1540,7 @@ test('list filter - must positive', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					filters: {
 						foo: {
@@ -1634,6 +1641,7 @@ test('list filter - must negative', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					filters: {
 						foo: {
@@ -1720,6 +1728,7 @@ test('subscribe to new list nodes', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -1829,6 +1838,7 @@ test('remove from list', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -1910,6 +1920,7 @@ test('delete node', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -2007,6 +2018,7 @@ test('append operation', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -2098,6 +2110,7 @@ test('append when operation', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					filters: {
 						value: {
@@ -2200,6 +2213,7 @@ test('prepend when operation', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					filters: {
 						value: {
@@ -2323,6 +2337,7 @@ test('prepend operation', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -2432,6 +2447,7 @@ test('remove operation', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -2538,6 +2554,7 @@ test('delete operation', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -2610,6 +2627,7 @@ test('variables in query and subscription', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -2724,6 +2742,7 @@ test('deleting a node removes nested subscriptions', function () {
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {
@@ -2799,6 +2818,7 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 					list: {
 						name: 'All_Users',
 						connection: false,
+						type: 'User',
 					},
 					fields: {
 						id: {

@@ -168,6 +168,43 @@ test('delete node', async function () {
 	await expect(runPipeline(testConfig(), docs)).resolves.toBeUndefined()
 })
 
+test('delete node from connection', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+				mutation DeleteUser {
+					deleteUser(id: "1234") {
+						userID @User_delete
+					}
+				}
+			`
+		),
+		mockCollectedDoc(
+			`
+				fragment AllUsers  on User{
+					friendsByCursor @list(name:"User_Friends") {
+							edges { 
+								node { 
+								firstName
+								id
+							}
+						}
+					}
+				}
+			`
+		),
+	]
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation DeleteUser {
+		  deleteUser(id: "1234") {
+		    userID @User_delete
+		  }
+		}
+
+	`)
+})
+
 test('list fragments must be unique', async function () {
 	const docs = [
 		mockCollectedDoc(

@@ -274,7 +274,7 @@ export class Cache {
 							parentID: spec.parentID,
 							cache: this,
 							record: rootRecord,
-							listType: type,
+							listType: list.type,
 							key,
 							selection: fields,
 							filters: Object.entries(filters || {}).reduce(

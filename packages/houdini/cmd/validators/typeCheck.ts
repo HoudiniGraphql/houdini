@@ -9,6 +9,7 @@ import {
 	withArguments,
 } from '../transforms/fragmentVariables'
 import { unwrapType } from '../utils'
+import { connectionSelection } from '../transforms/list'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.
@@ -157,8 +158,6 @@ export default async function typeCheck(
 				// since a list mutation can't compute the parent from the owner of the fragment
 				needsParent = needsParent || definition.kind === 'FragmentDefinition'
 
-				const parentType = parentTypeFromAncestors(config.schema, ancestors)
-
 				// look up the name of the list
 				const nameArg = directive.arguments?.find(
 					({ name }) => name.value === config.listNameArg
@@ -189,9 +188,24 @@ export default async function typeCheck(
 					return
 				}
 
+				// in order to figure out the targets for the list we need to look at the field
+				// definition
+				const parentType = parentTypeFromAncestors(config.schema, ancestors.slice(0, -1))
+				const targetField = ancestors[ancestors.length - 1] as graphql.FieldNode
+				const targetFieldDefinition = parentType.getFields()[
+					targetField.name.value
+				] as graphql.GraphQLField<any, any>
+
+				const { type } = connectionSelection(
+					config,
+					targetFieldDefinition,
+					parentTypeFromAncestors(config.schema, ancestors) as graphql.GraphQLObjectType,
+					targetField.selectionSet
+				)
+
 				// add the list to the list
 				lists.push(listName)
-				listTypes.push(parentType.name)
+				listTypes.push(type.name)
 
 				// if we still don't need a parent by now, add it to the list of free lists
 				if (!needsParent) {
@@ -716,12 +730,10 @@ function paginateArgs(config: Config) {
 				// a field with offset based paginate must have offset and limit args
 				const offsetPagination =
 					fieldArgs['offset'] === 'Int' && fieldArgs['limit'] === 'Int'
-
 				if (offsetPagination) {
 					const appliedLimitArg = targetField.arguments?.find(
 						(arg) => arg.name.value === 'limit'
 					)
-
 					if (!appliedLimitArg) {
 						ctx.reportError(
 							new graphql.GraphQLError(

@@ -1,4 +1,4 @@
-// externals
+// externalsr
 import { Config, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
@@ -272,7 +272,7 @@ export default async function addListFragments(
 
 // a field is considered a connection if it has one of the required connection arguments
 // as well as an edges > node selection
-function connectionSelection(
+export function connectionSelection(
 	config: Config,
 	field: graphql.GraphQLField<any, any>,
 	type: graphql.GraphQLObjectType,
@@ -280,7 +280,7 @@ function connectionSelection(
 ): {
 	selection: graphql.SelectionSetNode | undefined
 	type: graphql.GraphQLObjectType
-	connection?: boolean
+	connection: boolean
 } {
 	// make sure the field has the fields for either forward or backwards pagination
 	const fieldArgs = field.args.reduce<Record<string, string>>(
@@ -293,7 +293,7 @@ function connectionSelection(
 	const forwardPagination = fieldArgs['first'] === 'Int' && fieldArgs['after'] === 'String'
 	const backwardsPagination = fieldArgs['last'] === 'Int' && fieldArgs['before'] === 'String'
 	if (!forwardPagination && !backwardsPagination) {
-		return { selection, type }
+		return { selection, type, connection: false }
 	}
 
 	// we need to make sure that there is an edges field
@@ -301,32 +301,33 @@ function connectionSelection(
 		(selection) => selection.kind === 'Field' && selection.name.value === 'edges'
 	) as graphql.FieldNode
 	if (!edgesField) {
-		return { selection, type }
+		return { selection, type, connection: false }
 	}
 
 	const nodeSelection = edgesField.selectionSet?.selections.find(
 		(selection) => selection.kind === 'Field' && selection.name.value === 'node'
 	) as graphql.FieldNode
 	if (!nodeSelection.selectionSet) {
-		return { selection, type }
+		return { selection, type, connection: false }
 	}
 
 	// now that we have the correct selection, we have to lookup node type
 	// we need to make sure that there is an edges field
 	const edgeField = (unwrapType(config, field.type)
 		.type as graphql.GraphQLObjectType).getFields()['edges']
-	if (!edgeField || !(edgeField.type instanceof graphql.GraphQLList)) {
-		return { selection, type }
+	const { list, type: edgeFieldType } = unwrapType(config, edgeField.type)
+	if (!list) {
+		return { selection, type, connection: false }
 	}
 
-	const nodeField = (edgeField.type as graphql.GraphQLList<any>).ofType.getFields()['node']
+	const nodeField = (edgeFieldType as graphql.GraphQLObjectType).getFields()['node']
 	if (!nodeField) {
-		return { selection, type }
+		return { selection, type, connection: false }
 	}
 
 	return {
 		selection: nodeSelection.selectionSet,
-		type: nodeField.type,
+		type: nodeField.type as graphql.GraphQLObjectType,
 		connection: true,
 	}
 }
