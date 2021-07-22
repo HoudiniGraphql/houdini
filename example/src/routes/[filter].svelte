@@ -63,7 +63,7 @@
 				item {
 					...All_Items_insert
 					...Filtered_Items_insert
-						@prepend(when: {completed: true})
+						@prepend(when_not: {completed: true})
 				}
 			}
 		}

@@ -1087,7 +1087,7 @@ test('prepend in list', function () {
 	})
 })
 
-test('delete from connection', function () {
+test('remove from connection', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
@@ -1965,6 +1965,7 @@ test('delete node', function () {
 
 	// remove user 2 from the list
 	cache.delete(
+		'User',
 		cache.id('User', {
 			id: '2',
 		})!
@@ -1975,6 +1976,112 @@ test('delete node', function () {
 		viewer: {
 			id: '1',
 			friends: [],
+		},
+	})
+
+	// make sure its empty now
+	expect(cache.internal.getRecord('User:2')).toBeFalsy()
+})
+
+test('delete node from connection', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: true,
+						type: 'User',
+					},
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'Node',
+									keyRaw: 'node',
+									abstract: true,
+									fields: {
+										__typename: {
+											type: 'String',
+											keyRaw: '__typename',
+										},
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// remove user 2 from the list
+	cache.delete(
+		'User',
+		cache.id('User', {
+			id: '2',
+		})!
+	)
+
+	// we should have been updated with an empty list
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [],
+			},
 		},
 	})
 
@@ -2789,7 +2896,7 @@ test('deleting a node removes nested subscriptions', function () {
 	expect(cache.internal.getRecord('User:2')?.getSubscribers('firstName')).toHaveLength(1)
 
 	// delete the parent
-	cache.delete('User:1')
+	cache.delete('User', 'User:1')
 
 	// sanity check
 	expect(cache.internal.getRecord('User:2')?.getSubscribers('firstName')).toHaveLength(0)

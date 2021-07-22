@@ -126,18 +126,22 @@ export class Cache {
 	}
 
 	// remove the record from every list we know of and the cache itself
-	delete(id: string, variables: {} = {}): boolean {
+	delete(type: string, id: string, variables: {} = {}): boolean {
 		const record = this.record(id)
 
 		// remove any related subscriptions
 		record.removeAllSubscribers()
 
-		for (const { name, parentID } of record.lists) {
-			// look up the list
-			const list = this.list(name, parentID)
+		// look at every list we know of with the matching type
+		for (const [name, parentMap] of this._lists.entries()) {
+			for (const handler of parentMap.values()) {
+				// if the list handler is of the matching type
+				if (handler.listType !== type) {
+					continue
+				}
 
-			// remove the entity from the list
-			list.removeID(id, variables)
+				handler.removeID(id, variables)
+			}
 		}
 
 		// remove the entry from the cache
@@ -166,6 +170,7 @@ export class Cache {
 			record: this.record.bind(this),
 			getRecord: this.getRecord.bind(this),
 			getData: this.getData.bind(this),
+			clear: this.clear.bind(this),
 		}
 	}
 
@@ -302,15 +307,6 @@ export class Cache {
 						continue
 					}
 
-					// the children of a list need the reference back
-					if (list) {
-						// add the list reference to record
-						child.addListReference({
-							name: list.name,
-							parentID: spec.parentID,
-						})
-					}
-
 					// make sure the children update this subscription
 					this.addSubscribers(child, spec, fields, variables)
 				}
@@ -331,13 +327,9 @@ export class Cache {
 			// remove the subscriber to the field
 			rootRecord.forgetSubscribers(spec)
 
-			// if this field is marked as a list remove it from teh cache
+			// if this field is marked as a list remove it from the cache
 			if (list) {
 				this._lists.delete(list.name)
-				rootRecord.removeListReference({
-					name: list.name,
-					parentID: spec.parentID,
-				})
 			}
 
 			// if the field points to a link, we need to remove any subscribers on any fields of that
@@ -562,13 +554,6 @@ export class Cache {
 
 					// add the id to the list
 					newIDs.push(linkedID)
-					// hold onto the new ids
-					if (!oldIDs.includes(linkedID) && list) {
-						this.record(linkedID).addListReference({
-							parentID: rootID,
-							name: list.name,
-						})
-					}
 				}
 
 				// if we're supposed to apply this write as an update, we need to figure out how
@@ -710,8 +695,7 @@ export class Cache {
 					if (!targetID) {
 						continue
 					}
-
-					this.delete(targetID, variables)
+					this.delete(operation.type, targetID, variables)
 				}
 			}
 		}
@@ -854,6 +838,10 @@ export class Cache {
 
 		return evaluated
 	}
+
+	private clear(id: string) {
+		this._data.delete(id)
+	}
 }
 
 // the list of characters that make up a valid graphql variable name
@@ -869,6 +857,7 @@ export type CacheProxy = {
 	evaluateKey: Cache['evaluateKey']
 	getRecord: Cache['getRecord']
 	getData: Cache['getData']
+	clear: Cache['clear']
 }
 
 // id that we should use to refer to things in root

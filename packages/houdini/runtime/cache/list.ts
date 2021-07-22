@@ -85,6 +85,7 @@ export class ListHandler {
 
 		// if there are conditions for this operation
 		if (!this.validateWhen() || !dataID) {
+			console.log('when invalid', this._when)
 			return
 		}
 
@@ -152,12 +153,6 @@ export class ListHandler {
 
 		// look up the new record in the cache
 		const newRecord = this.cache.internal.record(dataID)
-
-		// add the list reference
-		newRecord.addListReference({
-			parentID: this.parentID,
-			name: this.name,
-		})
 
 		// walk down the list fields relative to the new record
 		// and make sure all of the list's subscribers are listening
@@ -233,7 +228,7 @@ export class ListHandler {
 
 		// if we are removing from a connection, delete the embedded edge holding the record
 		if (this.connection) {
-			this.cache.delete(targetID)
+			this.cache.internal.clear(targetID)
 		}
 	}
 
