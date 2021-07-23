@@ -11,6 +11,7 @@ import {
 	FragmentArtifact,
 } from './types'
 import { query, QueryResponse } from './query'
+import { fragment } from './fragment'
 import { getVariables } from './context'
 import { executeQuery } from './network'
 import cache from './cache'
@@ -38,18 +39,41 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 		throw new Error('paginatedQuery must be passed a query with @paginate.')
 	}
 
-	const { loadNextPage, loadPreviousPage, pageInfo } = paginationHandlers({
-		initialValue: document.initialValue.data,
-		store: data,
-		artifact,
-	})
+	return {
+		data,
+		...paginationHandlers({
+			initialValue: document.initialValue.data,
+			store: data,
+			artifact,
+		}),
+		...restOfQueryResponse,
+	}
+}
+
+export function paginatedFragment<_Fragment extends Fragment<any>>(
+	document: GraphQLTagResult,
+	initialValue: _Fragment
+): { data: Readable<_Fragment['shape']> } & PaginatedHandlers {
+	// make sure we got a query document
+	if (document.kind !== 'HoudiniFragment') {
+		throw new Error('getFragment can only take fragment documents')
+	}
+
+	// pass the inputs to the normal fragment function
+	const data = fragment(document, initialValue)
+
+	// if we don't have a pagination fragment there is a problem
+	if (!document.paginationArtifact) {
+		throw new Error('paginatedFragment must be passed a fragment with @paginate')
+	}
 
 	return {
 		data,
-		loadNextPage,
-		loadPreviousPage,
-		pageInfo: { subscribe: pageInfo.subscribe },
-		...restOfQueryResponse,
+		...paginationHandlers({
+			initialValue,
+			store: data,
+			artifact: document.paginationArtifact,
+		}),
 	}
 }
 
@@ -112,25 +136,19 @@ function cursorHandlers({
 	const variables = getVariables()
 	const sessionStore = getSession()
 
-	// if the refetch is embedded inside of node, we need to look down one for the page info
-	const path = artifact.refetch!.path
-	if (artifact.refetch!.embedded) {
-		path.unshift('node')
-	}
-
 	// track the current page info in an easy-to-reach store
-	const pageInfo = writable<PageInfo>(extractPageInfo(initialValue, path))
+	const pageInfo = writable<PageInfo>(extractPageInfo(initialValue, artifact.refetch!.path))
 
 	// hold onto the current value
 	let value: GraphQLObject
 	store.subscribe((val) => {
-		pageInfo.set(extractPageInfo(val, path))
+		pageInfo.set(extractPageInfo(val, artifact.refetch!.path))
 		value = val
 	})
 
 	const loadNextPage = async (pageCount?: number, after?: string) => {
 		// we need to find the connection object holding the current page info
-		const currentPageInfo = extractPageInfo(value, path)
+		const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
 
 		// if there is no next page, we're done
 		if (!currentPageInfo.hasNextPage) {
@@ -151,8 +169,15 @@ function cursorHandlers({
 			sessionStore
 		)
 
+		// if the query is embedded in a node field (paginated fragments)
+		// make sure we look down one more for the updated page info
+		const resultPath = [...artifact.refetch!.path]
+		if (artifact.refetch!.embedded) {
+			resultPath.unshift('node')
+		}
+
 		// we need to find the connection object holding the current page info
-		pageInfo.set(extractPageInfo(result.data, path))
+		pageInfo.set(extractPageInfo(result.data, resultPath))
 
 		// update cache with the result
 		cache.write({
@@ -165,7 +190,7 @@ function cursorHandlers({
 
 	const loadPreviousPage = async (pageCount?: number, before?: string) => {
 		// we need to find the connection object holding the current page info
-		const currentPageInfo = extractPageInfo(value, path)
+		const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
 
 		// if there is no next page, we're done
 		if (!currentPageInfo.hasPreviousPage) {
@@ -186,8 +211,15 @@ function cursorHandlers({
 			sessionStore
 		)
 
+		// if the query is embedded in a node field (paginated fragments)
+		// make sure we look down one more for the updated page info
+		const resultPath = [...artifact.refetch!.path]
+		if (artifact.refetch!.embedded) {
+			resultPath.unshift('node')
+		}
+
 		// we need to find the connection object holding the current page info
-		pageInfo.set(extractPageInfo(result.data, path))
+		pageInfo.set(extractPageInfo(result.data, resultPath))
 
 		// update cache with the result
 		cache.write({

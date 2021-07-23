@@ -76,6 +76,7 @@ export type TaggedGraphqlFragment = {
 	kind: 'HoudiniFragment'
 	artifact: FragmentArtifact
 	config: Config
+	paginationArtifact?: QueryArtifact
 }
 
 // the result of tagging an operation

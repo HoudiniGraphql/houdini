@@ -31,21 +31,37 @@ export default async function fragmentProcessor(
 			)
 		},
 		// if we found a tag we want to replace it with an object that the runtime can use
-		async onTag({ artifact, node }) {
+		async onTag({ artifact, node, tagContent }) {
 			// the local identifier for the artifact
 			const artifactVariable = artifactIdentifier(artifact)
 
 			// replace the node with an object
-			node.replaceWith(
-				AST.objectExpression([
-					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-					AST.objectProperty(AST.literal('artifact'), AST.identifier(artifactVariable)),
-					AST.objectProperty(AST.literal('config'), AST.identifier('houdiniConfig')),
-				])
-			)
+			const replacement = AST.objectExpression([
+				AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
+				AST.objectProperty(AST.literal('artifact'), AST.identifier(artifactVariable)),
+				AST.objectProperty(AST.literal('config'), AST.identifier('houdiniConfig')),
+			])
 
 			// add an import to the body pointing to the artifact
-			doc.instance?.content.body.unshift(artifactImport(config, artifact))
+			doc.instance!.content.body.unshift(artifactImport(config, artifact))
+
+			// if the fragment is paginated we need to add a reference to the pagination query
+			if (tagContent.includes(`@${config.paginateDirective}`)) {
+				// add the import to the pagination query
+				doc.instance!.content.body.unshift(
+					artifactImport(config, { name: config.paginationQueryName(artifact.name) })
+				)
+
+				// and a reference in the tag replacement
+				replacement.properties.push(
+					AST.objectProperty(
+						AST.literal('paginationArtifact'),
+						AST.identifier(config.paginationQueryName(artifact.name))
+					)
+				)
+			}
+
+			node.replaceWith(replacement)
 		},
 	})
 }
