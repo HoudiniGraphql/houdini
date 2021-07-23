@@ -530,7 +530,11 @@ export class Cache {
 					// NOTE: this approach might cause weird behavior of a node is loaded in the same
 					// location in two different pages. In practice, nodes rarely show up in the same
 					// connection so it might not be a problem.
-					if (key === 'edges' && entry['node']) {
+					if (
+						key === 'edges' &&
+						entry['node'] &&
+						(entry['node'] as { __typename: string }).__typename
+					) {
 						const node = entry['node'] as {}
 						// @ts-ignore
 						const typename = node.__typename
