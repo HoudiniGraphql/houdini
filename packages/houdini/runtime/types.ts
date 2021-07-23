@@ -61,6 +61,7 @@ export type BaseCompiledDocument = {
 		method: 'cursor' | 'offset'
 		pageSize: number
 		start?: string | number
+		embedded: boolean
 	}
 }
 

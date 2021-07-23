@@ -59,7 +59,8 @@ test('adds pagination info to full', async function () {
 		        "usersByCursor"
 		    ],
 		    "method": "cursor",
-		    "pageSize": 10
+		    "pageSize": 10,
+		    "embedded": false
 		}
 	`)
 })
@@ -92,7 +93,8 @@ test('paginated fragments on node pull data from one field deeper', async functi
 		        "friendsByCursor"
 		    ],
 		    "method": "cursor",
-		    "pageSize": 10
+		    "pageSize": 10,
+		    "embedded": true
 		}
 	`)
 })
@@ -847,7 +849,8 @@ test('refetch specification with backwards pagination', async function () {
 		        "usersByCursor"
 		    ],
 		    "method": "cursor",
-		    "pageSize": 10
+		    "pageSize": 10,
+		    "embedded": false
 		}
 	`)
 })
@@ -881,6 +884,7 @@ test('refetch entry with initial backwards', async function () {
 		    ],
 		    "method": "cursor",
 		    "pageSize": 10,
+		    "embedded": false,
 		    "start": "1234"
 		}
 	`)
@@ -915,9 +919,163 @@ test('refetch entry with initial forwards', async function () {
 		    ],
 		    "method": "cursor",
 		    "pageSize": 10,
+		    "embedded": false,
 		    "start": "1234"
 		}
 	`)
+})
+
+test('generated query has same refetch spec', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                fragment UserFriends on Query {
+					usersByCursor(first: 10, after: "1234") @paginate {
+						edges { 
+							node { 
+								id
+							}
+						}
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	await expect(docs[1]).toMatchArtifactSnapshot(`
+					module.exports = {
+					    name: "UserFriends_Pagination_Query",
+					    kind: "HoudiniQuery",
+
+					    refetch: {
+					        update: "append",
+					        path: ["usersByCursor"],
+					        method: "cursor",
+					        pageSize: 10,
+					        embedded: false,
+					        start: "1234"
+					    },
+
+					    raw: \`query UserFriends_Houdini_Paginate($first: Int = 10, $after: String = "1234") {
+					  ...UserFriends_jrGTj
+					}
+
+					fragment UserFriends_jrGTj on Query {
+					  usersByCursor(first: $first, after: $after) {
+					    edges {
+					      node {
+					        id
+					        __typename
+					      }
+					      __typename
+					    }
+					    __typename
+					    edges {
+					      cursor
+					    }
+					    pageInfo {
+					      hasPreviousPage
+					      hasNextPage
+					      startCursor
+					      endCursor
+					    }
+					  }
+					}
+					\`,
+
+					    rootType: "Query",
+
+					    selection: {
+					        usersByCursor: {
+					            type: "UserConnection",
+					            keyRaw: "usersByCursor::paginated",
+
+					            fields: {
+					                edges: {
+					                    type: "UserEdge",
+					                    keyRaw: "edges",
+
+					                    fields: {
+					                        cursor: {
+					                            type: "String",
+					                            keyRaw: "cursor"
+					                        },
+
+					                        node: {
+					                            type: "User",
+					                            keyRaw: "node",
+
+					                            fields: {
+					                                id: {
+					                                    type: "ID",
+					                                    keyRaw: "id"
+					                                },
+
+					                                __typename: {
+					                                    type: "String",
+					                                    keyRaw: "__typename"
+					                                }
+					                            }
+					                        },
+
+					                        __typename: {
+					                            type: "String",
+					                            keyRaw: "__typename"
+					                        }
+					                    },
+
+					                    update: "append"
+					                },
+
+					                __typename: {
+					                    type: "String",
+					                    keyRaw: "__typename"
+					                },
+
+					                pageInfo: {
+					                    type: "PageInfo",
+					                    keyRaw: "pageInfo",
+
+					                    fields: {
+					                        hasPreviousPage: {
+					                            type: "Boolean",
+					                            keyRaw: "hasPreviousPage"
+					                        },
+
+					                        hasNextPage: {
+					                            type: "Boolean",
+					                            keyRaw: "hasNextPage"
+					                        },
+
+					                        startCursor: {
+					                            type: "String",
+					                            keyRaw: "startCursor"
+					                        },
+
+					                        endCursor: {
+					                            type: "String",
+					                            keyRaw: "endCursor"
+					                        }
+					                    }
+					                }
+					            }
+					        }
+					    },
+
+					    input: {
+					        fields: {
+					            first: "Int",
+					            after: "String"
+					        },
+
+					        types: {}
+					    }
+					};
+				`)
 })
 
 test('refetch specification with offset pagination', async function () {
@@ -944,7 +1102,8 @@ test('refetch specification with offset pagination', async function () {
 		        "usersByOffset"
 		    ],
 		    "method": "offset",
-		    "pageSize": 10
+		    "pageSize": 10,
+		    "embedded": false
 		}
 	`)
 })
@@ -974,6 +1133,7 @@ test('refetch specification with initial offset', async function () {
 		    ],
 		    "method": "offset",
 		    "pageSize": 10,
+		    "embedded": false,
 		    "start": 10
 		}
 	`)

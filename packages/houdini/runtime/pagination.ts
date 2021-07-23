@@ -78,17 +78,17 @@ function paginationHandlers({
 	// if the artifact supports cursor based pagination
 	if (artifact.refetch?.method === 'cursor') {
 		// generate the cursor handlers
-		const handlers = cursorHandlers({ initialValue, artifact, store })
+		const cursor = cursorHandlers({ initialValue, artifact, store })
 		// always track pageInfo
-		pageInfo = handlers.pageInfo
+		pageInfo = cursor.pageInfo
 
 		// if we are implementing forward pagination
 		if (artifact.refetch.update === 'append') {
-			loadNextPage = handlers.loadNextPage
+			loadNextPage = cursor.loadNextPage
 		}
 		// the artifact implements backwards pagination
 		else {
-			loadPreviousPage = handlers.loadPreviousPage
+			loadPreviousPage = cursor.loadPreviousPage
 		}
 	}
 	// the artifact supports offset-based pagination, only loadNextPage is valid
@@ -108,22 +108,29 @@ function cursorHandlers({
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
 }): PaginatedHandlers {
+	// pull out the context accessors
 	const variables = getVariables()
 	const sessionStore = getSession()
 
+	// if the refetch is embedded inside of node, we need to look down one for the page info
+	const path = artifact.refetch!.path
+	if (artifact.refetch!.embedded) {
+		path.unshift('node')
+	}
+
 	// track the current page info in an easy-to-reach store
-	const pageInfo = writable<PageInfo>(extractPageInfo(initialValue, artifact.refetch!.path))
+	const pageInfo = writable<PageInfo>(extractPageInfo(initialValue, path))
 
 	// hold onto the current value
 	let value: GraphQLObject
 	store.subscribe((val) => {
-		pageInfo.set(extractPageInfo(val, artifact.refetch!.path))
+		pageInfo.set(extractPageInfo(val, path))
 		value = val
 	})
 
 	const loadNextPage = async (pageCount?: number, after?: string) => {
 		// we need to find the connection object holding the current page info
-		const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
+		const currentPageInfo = extractPageInfo(value, path)
 
 		// if there is no next page, we're done
 		if (!currentPageInfo.hasNextPage) {
@@ -145,7 +152,7 @@ function cursorHandlers({
 		)
 
 		// we need to find the connection object holding the current page info
-		pageInfo.set(extractPageInfo(result.data, artifact.refetch!.path))
+		pageInfo.set(extractPageInfo(result.data, path))
 
 		// update cache with the result
 		cache.write({
@@ -158,7 +165,7 @@ function cursorHandlers({
 
 	const loadPreviousPage = async (pageCount?: number, before?: string) => {
 		// we need to find the connection object holding the current page info
-		const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
+		const currentPageInfo = extractPageInfo(value, path)
 
 		// if there is no next page, we're done
 		if (!currentPageInfo.hasPreviousPage) {
@@ -180,7 +187,7 @@ function cursorHandlers({
 		)
 
 		// we need to find the connection object holding the current page info
-		pageInfo.set(extractPageInfo(result.data, artifact.refetch!.path))
+		pageInfo.set(extractPageInfo(result.data, path))
 
 		// update cache with the result
 		cache.write({

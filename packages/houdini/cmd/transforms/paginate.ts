@@ -279,6 +279,7 @@ export default async function paginate(
 				path: paginationPath,
 				method: flags.first.enabled || flags.last.enabled ? 'cursor' : 'offset',
 				pageSize: 0,
+				embedded: nodeQuery,
 			}
 
 			// add the correct default page size
@@ -434,6 +435,7 @@ export default async function paginate(
 				document: queryDoc,
 				originalDocument: queryDoc,
 				generate: true,
+				refetch: doc.refetch,
 			})
 		}
 	}

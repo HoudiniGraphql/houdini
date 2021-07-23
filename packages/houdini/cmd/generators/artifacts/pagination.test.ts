@@ -37,7 +37,8 @@ test('pagination arguments stripped from key', async function () {
 					        update: "append",
 					        path: ["friendsByCursor"],
 					        method: "cursor",
-					        pageSize: 10
+					        pageSize: 10,
+					        embedded: true
 					    },
 
 					    raw: \`fragment PaginatedFragment on User {
@@ -170,7 +171,8 @@ test('offset based pagination marks appropriate field', async function () {
 					        update: "append",
 					        path: ["friendsByOffset"],
 					        method: "offset",
-					        pageSize: 10
+					        pageSize: 10,
+					        embedded: true
 					    },
 
 					    raw: \`fragment PaginatedFragment on User {
@@ -254,7 +256,8 @@ test("sibling aliases don't get marked", async function () {
 					        update: "append",
 					        path: ["friendsByCursor"],
 					        method: "cursor",
-					        pageSize: 10
+					        pageSize: 10,
+					        embedded: true
 					    },
 
 					    raw: \`fragment PaginatedFragment on User {

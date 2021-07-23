@@ -2321,7 +2321,8 @@ describe('mutation artifacts', function () {
 		        update: "append",
 		        path: ["usersByCursor"],
 		        method: "cursor",
-		        pageSize: 10
+		        pageSize: 10,
+		        embedded: false
 		    },
 
 		    raw: \`query TestQuery($first: Int = 10, $after: String) {
