@@ -1,6 +1,6 @@
 {
 	"name": "houdini",
-	"version": "0.9.9",
+	"version": "0.9.10",
 	"description": "The disappearing graphql client for SvelteKit",
 	"scripts": {
 		"build:runtime": "npm run build:runtime:cjs && npm run build:runtime:esm",
