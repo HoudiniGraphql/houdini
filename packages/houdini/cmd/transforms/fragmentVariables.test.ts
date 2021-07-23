@@ -57,7 +57,6 @@ test('pass argument values to generated fragments', async function () {
 		fragment QueryFragment_10b3uv on Query {
 		  users(stringValue: "Hello") {
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -73,11 +72,6 @@ test('pass argument values to generated fragments', async function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -133,7 +127,6 @@ test("nullable arguments with no values don't show up in the query", async funct
 		fragment QueryFragment on Query {
 		  users {
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -149,11 +142,6 @@ test("nullable arguments with no values don't show up in the query", async funct
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -209,7 +197,6 @@ test("fragment arguments with default values don't rename the fragment", async f
 		fragment QueryFragment on Query {
 		  users(stringValue: "Hello") {
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -225,11 +212,6 @@ test("fragment arguments with default values don't rename the fragment", async f
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -297,7 +279,6 @@ test('thread query variables to inner fragments', async function () {
 		fragment InnerFragment_VDHGm on Query {
 		  users(stringValue: $name) {
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -313,11 +294,6 @@ test('thread query variables to inner fragments', async function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -393,7 +369,6 @@ test('inner fragment with intermediate default value', async function () {
 		fragment InnerFragment_10b3uv on Query {
 		  users(stringValue: "Hello", intValue: 2) {
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -409,11 +384,6 @@ test('inner fragment with intermediate default value', async function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -481,7 +451,6 @@ test("default values don't overwrite unless explicitly passed", async function (
 		fragment InnerFragment on Query {
 		  users(stringValue: "Goodbye") {
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -497,11 +466,6 @@ test("default values don't overwrite unless explicitly passed", async function (
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -557,7 +521,6 @@ test('default arguments', async function () {
 		fragment QueryFragment on Query {
 		  users(boolValue: true, stringValue: "Hello") {
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -573,11 +536,6 @@ test('default arguments', async function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -633,7 +591,6 @@ test('multiple with directives - no overlap', async function () {
 		fragment QueryFragment_2prn0K on Query {
 		  users(boolValue: false, stringValue: "Goodbye") {
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -649,11 +606,6 @@ test('multiple with directives - no overlap', async function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }

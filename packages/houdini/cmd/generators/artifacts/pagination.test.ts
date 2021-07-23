@@ -46,13 +46,13 @@ test('pagination arguments stripped from key', async function () {
 					    edges {
 					      node {
 					        id
-					        __typename
 					      }
-					      __typename
 					    }
-					    __typename
 					    edges {
 					      cursor
+					      node {
+					        __typename
+					      }
 					    }
 					    pageInfo {
 					      hasPreviousPage
@@ -87,30 +87,20 @@ test('pagination arguments stripped from key', async function () {
 					                            keyRaw: "node",
 
 					                            fields: {
-					                                id: {
-					                                    type: "ID",
-					                                    keyRaw: "id"
-					                                },
-
 					                                __typename: {
 					                                    type: "String",
 					                                    keyRaw: "__typename"
+					                                },
+
+					                                id: {
+					                                    type: "ID",
+					                                    keyRaw: "id"
 					                                }
 					                            }
-					                        },
-
-					                        __typename: {
-					                            type: "String",
-					                            keyRaw: "__typename"
 					                        }
 					                    },
 
 					                    update: "append"
-					                },
-
-					                __typename: {
-					                    type: "String",
-					                    keyRaw: "__typename"
 					                },
 
 					                pageInfo: {
@@ -178,7 +168,6 @@ test('offset based pagination marks appropriate field', async function () {
 					    raw: \`fragment PaginatedFragment on User {
 					  friendsByOffset(limit: $limit, filter: "hello", offset: $offset) {
 					    id
-					    __typename
 					  }
 					}
 					\`,
@@ -195,11 +184,6 @@ test('offset based pagination marks appropriate field', async function () {
 					                id: {
 					                    type: "ID",
 					                    keyRaw: "id"
-					                },
-
-					                __typename: {
-					                    type: "String",
-					                    keyRaw: "__typename"
 					                }
 					            }
 					        }
@@ -268,20 +252,17 @@ test("sibling aliases don't get marked", async function () {
 					          edges {
 					            node {
 					              id
-					              __typename
 					            }
-					            __typename
 					          }
-					          __typename
 					        }
 					        id
-					        __typename
 					      }
-					      __typename
 					    }
-					    __typename
 					    edges {
 					      cursor
+					      node {
+					        __typename
+					      }
 					    }
 					    pageInfo {
 					      hasPreviousPage
@@ -297,18 +278,12 @@ test("sibling aliases don't get marked", async function () {
 					          edges {
 					            node {
 					              id
-					              __typename
 					            }
-					            __typename
 					          }
-					          __typename
 					        }
 					        id
-					        __typename
 					      }
-					      __typename
 					    }
-					    __typename
 					  }
 					}
 					\`,
@@ -336,6 +311,11 @@ test("sibling aliases don't get marked", async function () {
 					                            keyRaw: "node",
 
 					                            fields: {
+					                                __typename: {
+					                                    type: "String",
+					                                    keyRaw: "__typename"
+					                                },
+
 					                                friendsByCursor: {
 					                                    type: "UserConnection",
 					                                    keyRaw: "friendsByCursor",
@@ -354,25 +334,10 @@ test("sibling aliases don't get marked", async function () {
 					                                                        id: {
 					                                                            type: "ID",
 					                                                            keyRaw: "id"
-					                                                        },
-
-					                                                        __typename: {
-					                                                            type: "String",
-					                                                            keyRaw: "__typename"
 					                                                        }
 					                                                    }
-					                                                },
-
-					                                                __typename: {
-					                                                    type: "String",
-					                                                    keyRaw: "__typename"
 					                                                }
 					                                            }
-					                                        },
-
-					                                        __typename: {
-					                                            type: "String",
-					                                            keyRaw: "__typename"
 					                                        }
 					                                    }
 					                                },
@@ -380,27 +345,12 @@ test("sibling aliases don't get marked", async function () {
 					                                id: {
 					                                    type: "ID",
 					                                    keyRaw: "id"
-					                                },
-
-					                                __typename: {
-					                                    type: "String",
-					                                    keyRaw: "__typename"
 					                                }
 					                            }
-					                        },
-
-					                        __typename: {
-					                            type: "String",
-					                            keyRaw: "__typename"
 					                        }
 					                    },
 
 					                    update: "append"
-					                },
-
-					                __typename: {
-					                    type: "String",
-					                    keyRaw: "__typename"
 					                },
 
 					                pageInfo: {
@@ -465,25 +415,10 @@ test("sibling aliases don't get marked", async function () {
 					                                                        id: {
 					                                                            type: "ID",
 					                                                            keyRaw: "id"
-					                                                        },
-
-					                                                        __typename: {
-					                                                            type: "String",
-					                                                            keyRaw: "__typename"
 					                                                        }
 					                                                    }
-					                                                },
-
-					                                                __typename: {
-					                                                    type: "String",
-					                                                    keyRaw: "__typename"
 					                                                }
 					                                            }
-					                                        },
-
-					                                        __typename: {
-					                                            type: "String",
-					                                            keyRaw: "__typename"
 					                                        }
 					                                    }
 					                                },
@@ -491,25 +426,10 @@ test("sibling aliases don't get marked", async function () {
 					                                id: {
 					                                    type: "ID",
 					                                    keyRaw: "id"
-					                                },
-
-					                                __typename: {
-					                                    type: "String",
-					                                    keyRaw: "__typename"
 					                                }
 					                            }
-					                        },
-
-					                        __typename: {
-					                            type: "String",
-					                            keyRaw: "__typename"
 					                        }
 					                    }
-					                },
-
-					                __typename: {
-					                    type: "String",
-					                    keyRaw: "__typename"
 					                }
 					            }
 					        }

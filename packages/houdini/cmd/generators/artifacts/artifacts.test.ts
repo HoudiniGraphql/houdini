@@ -130,7 +130,6 @@ test('selection includes fragments', async function () {
 		  user {
 		    ...TestFragment
 		    id
-		    __typename
 		  }
 		}
 
@@ -155,11 +154,6 @@ test('selection includes fragments', async function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -226,7 +220,6 @@ test('internal directives are scrubbed', async function () {
 		  user {
 		    ...A
 		    id
-		    __typename
 		  }
 		}
 
@@ -251,11 +244,6 @@ test('internal directives are scrubbed', async function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -292,7 +280,6 @@ test('overlapping query and fragment selection', async function () {
 		    firstName
 		    ...A
 		    id
-		    __typename
 		  }
 		}
 
@@ -317,11 +304,6 @@ test('overlapping query and fragment selection', async function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -358,18 +340,15 @@ test('overlapping query and fragment nested selection', async function () {
 		    friends {
 		      firstName
 		      id
-		      __typename
 		    }
 		    ...A
 		    id
-		    __typename
 		  }
 		}
 
 		fragment A on User {
 		  friends {
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -395,11 +374,6 @@ test('overlapping query and fragment nested selection', async function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
 		                },
@@ -407,11 +381,6 @@ test('overlapping query and fragment nested selection', async function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -466,7 +435,6 @@ test('selections with interfaces', async function () {
 		      owner {
 		        firstName
 		        id
-		        __typename
 		      }
 		    }
 		    ... on Ghost {
@@ -503,11 +471,6 @@ test('selections with interfaces', async function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
 		                },
@@ -576,7 +539,6 @@ test('selections with unions', async function () {
 		      owner {
 		        firstName
 		        id
-		        __typename
 		      }
 		    }
 		    ... on Ghost {
@@ -613,11 +575,6 @@ test('selections with unions', async function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
 		                },
@@ -687,9 +644,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      firstName
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 		\`,
@@ -715,18 +670,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -779,9 +724,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -818,18 +761,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -882,9 +815,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_remove
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -914,18 +845,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -974,7 +895,6 @@ describe('mutation artifacts', function () {
 		    raw: \`mutation A {
 		  deleteUser(id: "1234") {
 		    userID
-		    __typename
 		  }
 		}
 		\`,
@@ -995,11 +915,6 @@ describe('mutation artifacts', function () {
 		                        action: "delete",
 		                        type: "User"
 		                    }]
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1048,7 +963,6 @@ describe('mutation artifacts', function () {
 		    raw: \`mutation A {
 		  deleteUser(id: "1234") {
 		    userID
-		    __typename
 		  }
 		}
 		\`,
@@ -1075,11 +989,6 @@ describe('mutation artifacts', function () {
 		                            }
 		                        }
 		                    }]
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1132,9 +1041,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -1176,18 +1083,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1240,9 +1137,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -1284,18 +1179,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1348,9 +1233,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -1392,18 +1275,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1456,9 +1329,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -1501,18 +1372,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1565,9 +1426,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -1610,18 +1469,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1674,9 +1523,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -1719,18 +1566,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1783,9 +1620,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -1828,18 +1663,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -1892,9 +1717,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -1937,18 +1760,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -2005,7 +1818,6 @@ describe('mutation artifacts', function () {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -2032,11 +1844,6 @@ describe('mutation artifacts', function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            },
 
@@ -2119,9 +1926,7 @@ describe('mutation artifacts', function () {
 		    friend {
 		      ...All_Users_insert
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -2164,18 +1969,8 @@ describe('mutation artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -2227,7 +2022,6 @@ describe('mutation artifacts', function () {
 		  users(stringValue: "foo") {
 		    firstName
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -2254,11 +2048,6 @@ describe('mutation artifacts', function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            },
 
@@ -2331,13 +2120,13 @@ describe('mutation artifacts', function () {
 		      node {
 		        firstName
 		        id
-		        __typename
 		      }
-		      __typename
 		    }
-		    __typename
 		    edges {
 		      cursor
+		      node {
+		        __typename
+		      }
 		    }
 		    pageInfo {
 		      hasPreviousPage
@@ -2378,6 +2167,11 @@ describe('mutation artifacts', function () {
 		                            keyRaw: "node",
 
 		                            fields: {
+		                                __typename: {
+		                                    type: "String",
+		                                    keyRaw: "__typename"
+		                                },
+
 		                                firstName: {
 		                                    type: "String",
 		                                    keyRaw: "firstName"
@@ -2386,27 +2180,12 @@ describe('mutation artifacts', function () {
 		                                id: {
 		                                    type: "ID",
 		                                    keyRaw: "id"
-		                                },
-
-		                                __typename: {
-		                                    type: "String",
-		                                    keyRaw: "__typename"
 		                                }
 		                            }
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    },
 
 		                    update: "append"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                },
 
 		                pageInfo: {
@@ -2502,7 +2281,6 @@ describe('mutation artifacts', function () {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -2529,11 +2307,6 @@ describe('mutation artifacts', function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            },
 
@@ -2613,7 +2386,6 @@ describe('mutation artifacts', function () {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
 		    firstName
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -2640,11 +2412,6 @@ describe('mutation artifacts', function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            },
 
@@ -2732,7 +2499,6 @@ test('custom scalar shows up in artifact', async function () {
 		    raw: \`query TestQuery {
 		  allItems {
 		    createdAt
-		    __typename
 		  }
 		}
 		\`,
@@ -2748,11 +2514,6 @@ test('custom scalar shows up in artifact', async function () {
 		                createdAt: {
 		                    type: "DateTime",
 		                    keyRaw: "createdAt"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -2837,7 +2598,6 @@ test('operation inputs', async function () {
 		    raw: \`query TestQuery($id: ID, $filter: UserFilter, $filterList: [UserFilter!], $enumArg: MyEnum) {
 		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
 		    id
-		    __typename
 		  }
 		}
 		\`,
@@ -2853,11 +2613,6 @@ test('operation inputs', async function () {
 		                id: {
 		                    type: "ID",
 		                    keyRaw: "id"
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }
@@ -2931,9 +2686,7 @@ describe('subscription artifacts', function () {
 		    user {
 		      firstName
 		      id
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 		\`,
@@ -2959,18 +2712,8 @@ describe('subscription artifacts', function () {
 		                        id: {
 		                            type: "ID",
 		                            keyRaw: "id"
-		                        },
-
-		                        __typename: {
-		                            type: "String",
-		                            keyRaw: "__typename"
 		                        }
 		                    }
-		                },
-
-		                __typename: {
-		                    type: "String",
-		                    keyRaw: "__typename"
 		                }
 		            }
 		        }

@@ -608,6 +608,25 @@ const pageInfoSelection = [
 						value: 'cursor',
 					},
 				},
+				{
+					kind: 'Field',
+					name: {
+						kind: 'Name',
+						value: 'node',
+					},
+					selectionSet: {
+						kind: 'SelectionSet',
+						selections: [
+							{
+								kind: 'Field',
+								name: {
+									kind: 'Name',
+									value: '__typename',
+								},
+							},
+						],
+					},
+				},
 			],
 		},
 	},

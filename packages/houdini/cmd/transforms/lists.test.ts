@@ -40,7 +40,6 @@ test('insert fragments on query selection set', async function () {
 		  updateUser {
 		    ...User_Friends_insert
 		    id
-		    __typename
 		  }
 		}
 
@@ -86,7 +85,6 @@ test('delete fragments on query selection set', async function () {
 		  updateUser {
 		    ...User_Friends_remove
 		    id
-		    __typename
 		  }
 		}
 
@@ -129,7 +127,6 @@ test('list fragments on fragment selection set', async function () {
 		  updateUser {
 		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
-		    __typename
 		  }
 		}
 
@@ -246,7 +243,6 @@ test("fragment with list doesn't clutter its definition", async function () {
 		fragment Friends on User {
 		  friends @list(name: "Friends") {
 		    id
-		    __typename
 		  }
 		}
 
@@ -285,7 +281,6 @@ test('includes `id` in list fragment', async function () {
 		  updateUser {
 		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
-		    __typename
 		  }
 		}
 
@@ -336,7 +331,6 @@ test('includes node selection on connection', async function () {
 		  updateUser {
 		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
-		    __typename
 		  }
 		}
 
@@ -345,7 +339,6 @@ test('includes node selection on connection', async function () {
 		  firstName
 		  friends {
 		    id
-		    __typename
 		  }
 		}
 
@@ -386,13 +379,9 @@ test('list flags connections', async function () {
 		        firstName
 		        friends {
 		          id
-		          __typename
 		        }
-		        __typename
 		      }
-		      __typename
 		    }
-		    __typename
 		  }
 		}
 
@@ -460,7 +449,6 @@ test('paginate with name also gets treated as a list', async function () {
 		  updateUser {
 		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
-		    __typename
 		  }
 		}
 
@@ -469,7 +457,6 @@ test('paginate with name also gets treated as a list', async function () {
 		  firstName
 		  friends {
 		    id
-		    __typename
 		  }
 		}
 
