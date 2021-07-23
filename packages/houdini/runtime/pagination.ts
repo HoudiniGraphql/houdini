@@ -137,7 +137,15 @@ function cursorHandlers({
 	const sessionStore = getSession()
 
 	// track the current page info in an easy-to-reach store
-	const pageInfo = writable<PageInfo>(extractPageInfo(initialValue, artifact.refetch!.path))
+	const initialPageInfo = initialValue
+		? extractPageInfo(initialValue, artifact.refetch!.path)
+		: {
+				startCursor: null,
+				endCursor: null,
+				hasNextPage: false,
+				hasPreviousPage: false,
+		  }
+	const pageInfo = writable<PageInfo>(initialPageInfo)
 
 	// hold onto the current value
 	let value: GraphQLObject
@@ -233,7 +241,7 @@ function cursorHandlers({
 	return {
 		loadNextPage,
 		loadPreviousPage,
-		pageInfo,
+		pageInfo: { subscribe: pageInfo.subscribe },
 	}
 }
 
