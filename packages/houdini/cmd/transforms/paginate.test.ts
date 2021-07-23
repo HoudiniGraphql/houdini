@@ -443,36 +443,147 @@ test('embeds node pagination query as a separate document', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	expect(docs[1]?.document).toMatchInlineSnapshot(`
-		query UserFriends_Houdini_Paginate($first: Int = 10, $after: String, $id: ID!) {
-		  node(id: $id) {
-		    ...UserFriends_jrGTj @with(first: $first, after: $after)
-		  }
-		}
+	await expect(docs[1]).toMatchArtifactSnapshot(`
+					module.exports = {
+					    name: "UserFriends_Pagination_Query",
+					    kind: "HoudiniQuery",
 
-		fragment UserFriends_jrGTj on User @arguments(first: {type: "Int", default: 10}, after: {type: "String"}) {
-		  friendsByForwardsCursor(first: $first, after: $after) @paginate {
-		    edges {
-		      node {
-		        id
-		        __typename
-		      }
-		      __typename
-		    }
-		    __typename
-		    edges {
-		      cursor
-		    }
-		    pageInfo {
-		      hasPreviousPage
-		      hasNextPage
-		      startCursor
-		      endCursor
-		    }
-		  }
-		}
+					    refetch: {
+					        update: "append",
+					        path: ["friendsByForwardsCursor"],
+					        method: "cursor",
+					        pageSize: 10,
+					        embedded: true
+					    },
 
-	`)
+					    raw: \`query UserFriends_Houdini_Paginate($first: Int = 10, $after: String, $id: ID!) {
+					  node(id: $id) {
+					    ...UserFriends_jrGTj
+					  }
+					}
+
+					fragment UserFriends_jrGTj on User {
+					  friendsByForwardsCursor(first: $first, after: $after) {
+					    edges {
+					      node {
+					        id
+					        __typename
+					      }
+					      __typename
+					    }
+					    __typename
+					    edges {
+					      cursor
+					    }
+					    pageInfo {
+					      hasPreviousPage
+					      hasNextPage
+					      startCursor
+					      endCursor
+					    }
+					  }
+					}
+					\`,
+
+					    rootType: "Query",
+
+					    selection: {
+					        node: {
+					            type: "Node",
+					            keyRaw: "node(id: $id)",
+
+					            fields: {
+					                friendsByForwardsCursor: {
+					                    type: "UserConnection",
+					                    keyRaw: "friendsByForwardsCursor::paginated",
+
+					                    fields: {
+					                        edges: {
+					                            type: "UserEdge",
+					                            keyRaw: "edges",
+
+					                            fields: {
+					                                cursor: {
+					                                    type: "String",
+					                                    keyRaw: "cursor"
+					                                },
+
+					                                node: {
+					                                    type: "User",
+					                                    keyRaw: "node",
+
+					                                    fields: {
+					                                        id: {
+					                                            type: "ID",
+					                                            keyRaw: "id"
+					                                        },
+
+					                                        __typename: {
+					                                            type: "String",
+					                                            keyRaw: "__typename"
+					                                        }
+					                                    }
+					                                },
+
+					                                __typename: {
+					                                    type: "String",
+					                                    keyRaw: "__typename"
+					                                }
+					                            },
+
+					                            update: "append"
+					                        },
+
+					                        __typename: {
+					                            type: "String",
+					                            keyRaw: "__typename"
+					                        },
+
+					                        pageInfo: {
+					                            type: "PageInfo",
+					                            keyRaw: "pageInfo",
+
+					                            fields: {
+					                                hasPreviousPage: {
+					                                    type: "Boolean",
+					                                    keyRaw: "hasPreviousPage"
+					                                },
+
+					                                hasNextPage: {
+					                                    type: "Boolean",
+					                                    keyRaw: "hasNextPage"
+					                                },
+
+					                                startCursor: {
+					                                    type: "String",
+					                                    keyRaw: "startCursor"
+					                                },
+
+					                                endCursor: {
+					                                    type: "String",
+					                                    keyRaw: "endCursor"
+					                                }
+					                            }
+					                        }
+					                    }
+					                }
+					            },
+
+					            abstract: true
+					        }
+					    },
+
+					    input: {
+					        fields: {
+					            first: "Int",
+					            after: "String",
+					            id: "ID"
+					        },
+
+					        types: {}
+					    }
+					};
+				`)
 })
 
 test('query with forwards cursor paginate', async function () {
