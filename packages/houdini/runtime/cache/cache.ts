@@ -609,7 +609,6 @@ export class Cache {
 
 							// only keep the edge if the node's id doesn't show up in the new list
 							return !newNodeIDs.includes(node.id)
-							return true
 						})
 					}
 
