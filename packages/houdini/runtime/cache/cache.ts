@@ -395,7 +395,6 @@ export class Cache {
 				keyRaw,
 				fields,
 				operations,
-				list,
 				abstract: isAbstract,
 				update,
 			} = selection[field]
