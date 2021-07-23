@@ -475,7 +475,7 @@ export class Cache {
 			// the value could be a list
 			else if (!isScalar(this._config, linkedType) && Array.isArray(value) && fields) {
 				// look up the current known link id
-				const oldIDs = record.linkedListIDs(this.evaluateKey(key, variables))
+				let oldIDs = record.linkedListIDs(this.evaluateKey(key, variables))
 
 				// if we are supposed to prepend or append and the mutation is enabled
 				// the new list of IDs for this link will start with an existing value
@@ -525,7 +525,11 @@ export class Cache {
 						: `${recordID}.${key}[${i}]`
 
 					// if the field is marked for pagination and we are looking at edges, we need
-					// to use the underlying node for the id
+					// to use the underlying node for the id because the embedded key will conflict
+					// with entries in the previous loaded value.
+					// NOTE: this approach might cause weird behavior of a node is loaded in the same
+					// location in two different pages. In practice, nodes rarely show up in the same
+					// connection so it might not be a problem.
 					if (key === 'edges' && entry['node']) {
 						const node = entry['node'] as {}
 						// @ts-ignore
@@ -558,6 +562,57 @@ export class Cache {
 
 				// if we're supposed to apply this write as an update, we need to figure out how
 				if (applyUpdates && update) {
+					// it's possible that one of the ids in the field corresponds to an entry
+					// that was added as part of a mutation operation on this list.
+					// ideally we want to remove the old reference and leave the new one behind.
+					// In order to pull this off, we have to rely on the fact that a mutation operation
+					// doesn't leave a cursor behind. so we need to look at the old list of edges,
+					// track if there's a cursor value, get their node id, and remove any node ids
+					// that show up in the new list
+					if (key === 'edges') {
+						// build up a list of the ids found in the new list
+						const newNodeIDs: string[] = []
+						for (const id of newIDs) {
+							if (!id) {
+								continue
+							}
+
+							// look up the lined node record
+							const node = this.record(id).linkedRecord('node')
+							if (!node || !node.fields.__typename) {
+								continue
+							}
+
+							newNodeIDs.push(node.id)
+						}
+
+						// filter out any old ids that point to edges with no cursor and a node that is found in the new list
+						oldIDs = oldIDs.filter((id) => {
+							if (!id) {
+								return true
+							}
+
+							// look up the edge record
+							const edge = this.record(id)
+
+							// if there is a cursor, keep it
+							if (edge.fields['cursor']) {
+								return true
+							}
+
+							// look up the linked node
+							const node = edge.linkedRecord('node')
+							// if there one, keep the edge
+							if (!node) {
+								return true
+							}
+
+							// only keep the edge if the node's id doesn't show up in the new list
+							return !newNodeIDs.includes(node.id)
+							return true
+						})
+					}
+
 					// if we have to prepend it, do so
 					if (update === 'prepend') {
 						linkedIDs = newIDs.concat(oldIDs)

@@ -1509,8 +1509,8 @@ test('inserting data with an update overwrites a record inserted with list.appen
 						},
 					},
 					{
-						cursor: '1234',
 						node: {
+							__typename: 'User',
 							id: '3',
 							firstName: 'mary',
 						},
