@@ -57,9 +57,10 @@ export type BaseCompiledDocument = {
 	input?: InputObject
 	refetch?: {
 		update: RefetchUpdateMode
-		source: string[]
-		target: string[]
+		path: string[]
 		method: 'cursor' | 'offset'
+		pageSize: number
+		start?: string | number
 	}
 }
 

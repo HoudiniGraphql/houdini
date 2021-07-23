@@ -112,18 +112,18 @@ function cursorHandlers({
 	const sessionStore = getSession()
 
 	// track the current page info in an easy-to-reach store
-	const pageInfo = writable<PageInfo>(extractPageInfo(initialValue, artifact.refetch!.target))
+	const pageInfo = writable<PageInfo>(extractPageInfo(initialValue, artifact.refetch!.path))
 
 	// hold onto the current value
 	let value: GraphQLObject
 	store.subscribe((val) => {
-		pageInfo.set(extractPageInfo(val, artifact.refetch!.target))
+		pageInfo.set(extractPageInfo(val, artifact.refetch!.path))
 		value = val
 	})
 
-	const loadNextPage = async (pageCount?: number) => {
+	const loadNextPage = async (pageCount?: number, after?: string) => {
 		// we need to find the connection object holding the current page info
-		const currentPageInfo = extractPageInfo(value, artifact.refetch!.target)
+		const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
 
 		// if there is no next page, we're done
 		if (!currentPageInfo.hasNextPage) {
@@ -134,7 +134,7 @@ function cursorHandlers({
 		const queryVariables = {
 			...variables(),
 			first: pageCount,
-			after: currentPageInfo.endCursor,
+			after: after || currentPageInfo.endCursor,
 		}
 
 		// send the query
@@ -145,7 +145,7 @@ function cursorHandlers({
 		)
 
 		// we need to find the connection object holding the current page info
-		pageInfo.set(extractPageInfo(result.data, artifact.refetch!.target))
+		pageInfo.set(extractPageInfo(result.data, artifact.refetch!.path))
 
 		// update cache with the result
 		cache.write({
@@ -156,9 +156,9 @@ function cursorHandlers({
 		})
 	}
 
-	const loadPreviousPage = async (pageCount?: number) => {
+	const loadPreviousPage = async (pageCount?: number, before?: string) => {
 		// we need to find the connection object holding the current page info
-		const currentPageInfo = extractPageInfo(value, artifact.refetch!.target)
+		const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
 
 		// if there is no next page, we're done
 		if (!currentPageInfo.hasPreviousPage) {
@@ -169,7 +169,7 @@ function cursorHandlers({
 		const queryVariables = {
 			...variables(),
 			last: pageCount,
-			before: currentPageInfo.startCursor,
+			before: before || currentPageInfo.startCursor,
 		}
 
 		// send the query
@@ -180,7 +180,7 @@ function cursorHandlers({
 		)
 
 		// we need to find the connection object holding the current page info
-		pageInfo.set(extractPageInfo(result.data, artifact.refetch!.target))
+		pageInfo.set(extractPageInfo(result.data, artifact.refetch!.path))
 
 		// update cache with the result
 		cache.write({
@@ -199,22 +199,55 @@ function cursorHandlers({
 }
 
 function offsetPaginationHandler({ artifact }: { artifact: QueryArtifact }) {
-	return async (pageSize?: number) => {}
+	// we need to track the most recent offset for this handler
+	let currentOffset = (artifact.refetch?.start as number) || 0
+	const pageSize = artifact.refetch?.pageSize || 10
+
+	// grab the context getters
+	const variables = getVariables()
+	const sessionStore = getSession()
+
+	return async (limit: number = pageSize) => {
+		// build up the variables to pass to the query
+		const queryVariables = {
+			...variables(),
+			offset: currentOffset,
+			limit,
+		}
+
+		// send the query
+		const result = await executeQuery<GraphQLObject>(
+			artifact as QueryArtifact,
+			queryVariables,
+			sessionStore
+		)
+
+		// update cache with the result
+		cache.write({
+			selection: artifact.selection,
+			data: result.data,
+			variables: queryVariables,
+			applyUpdates: true,
+		})
+
+		// add the page size to the offset so we load the next page next time
+		currentOffset += limit
+	}
 }
 
 type PaginatedHandlers = {
-	loadNextPage(pageCount?: number): Promise<void>
-	loadPreviousPage(pageCount?: number): Promise<void>
+	loadNextPage(pageCount?: number, after?: string | number): Promise<void>
+	loadPreviousPage(pageCount?: number, before?: string): Promise<void>
 	pageInfo: Readable<PageInfo>
 }
 
-function defaultLoadNextPage(pageSize?: number): Promise<void> {
+function defaultLoadNextPage(): Promise<void> {
 	throw new Error(
 		'loadNextPage() only works on fields marked @paginate that implement forward cursor or offset pagination.'
 	)
 }
 
-function defaultLoadPreviousPage(pageSize?: number): Promise<void> {
+function defaultLoadPreviousPage(): Promise<void> {
 	throw new Error(
 		'loadPreviousPage() only works on fields marked @paginate that implement backward cursor pagination.'
 	)

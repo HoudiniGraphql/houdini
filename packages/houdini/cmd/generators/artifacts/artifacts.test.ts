@@ -2319,9 +2319,9 @@ describe('mutation artifacts', function () {
 
 		    refetch: {
 		        update: "append",
-		        source: ["usersByCursor"],
-		        target: ["usersByCursor"],
-		        method: "cursor"
+		        path: ["usersByCursor"],
+		        method: "cursor",
+		        pageSize: 10
 		    },
 
 		    raw: \`query TestQuery($first: Int = 10, $after: String) {

@@ -55,13 +55,11 @@ test('adds pagination info to full', async function () {
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
 		    "update": "append",
-		    "source": [
+		    "path": [
 		        "usersByCursor"
 		    ],
-		    "target": [
-		        "usersByCursor"
-		    ],
-		    "method": "cursor"
+		    "method": "cursor",
+		    "pageSize": 10
 		}
 	`)
 })
@@ -90,14 +88,11 @@ test('paginated fragments on node pull data from one field deeper', async functi
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
 		    "update": "append",
-		    "source": [
-		        "node",
+		    "path": [
 		        "friendsByCursor"
 		    ],
-		    "target": [
-		        "friendsByCursor"
-		    ],
-		    "method": "cursor"
+		    "method": "cursor",
+		    "pageSize": 10
 		}
 	`)
 })
@@ -824,45 +819,6 @@ test("offset paginated query doesn't overlap variables", async function () {
 	`)
 })
 
-test('refetch path handles nesting', async function () {
-	const docs = [
-		mockCollectedDoc(
-			`
-                fragment UserFriends on Query {
-                    user  {
-						friendsByCursor(first: 10) @paginate {
-							edges { 
-								node { 
-									id
-								}
-							}
-						}
-                    }
-                }
-			`
-		),
-	]
-
-	// run the pipeline
-	const config = testConfig()
-	await runPipeline(config, docs)
-
-	expect(docs[0].refetch).toMatchInlineSnapshot(`
-		{
-		    "update": "append",
-		    "source": [
-		        "user",
-		        "friendsByCursor"
-		    ],
-		    "target": [
-		        "user",
-		        "friendsByCursor"
-		    ],
-		    "method": "cursor"
-		}
-	`)
-})
-
 test('refetch specification with backwards pagination', async function () {
 	const docs = [
 		mockCollectedDoc(
@@ -887,13 +843,79 @@ test('refetch specification with backwards pagination', async function () {
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
 		    "update": "prepend",
-		    "source": [
+		    "path": [
 		        "usersByCursor"
 		    ],
-		    "target": [
+		    "method": "cursor",
+		    "pageSize": 10
+		}
+	`)
+})
+
+test('refetch entry with initial backwards', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                fragment UserFriends on Query {
+					usersByCursor(last: 10, before: "1234") @paginate {
+						edges { 
+							node { 
+								id
+							}
+						}
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].refetch).toMatchInlineSnapshot(`
+		{
+		    "update": "prepend",
+		    "path": [
 		        "usersByCursor"
 		    ],
-		    "method": "cursor"
+		    "method": "cursor",
+		    "pageSize": 10,
+		    "start": "1234"
+		}
+	`)
+})
+
+test('refetch entry with initial forwards', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                fragment UserFriends on Query {
+					usersByCursor(first: 10, after: "1234") @paginate {
+						edges { 
+							node { 
+								id
+							}
+						}
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].refetch).toMatchInlineSnapshot(`
+		{
+		    "update": "append",
+		    "path": [
+		        "usersByCursor"
+		    ],
+		    "method": "cursor",
+		    "pageSize": 10,
+		    "start": "1234"
 		}
 	`)
 })
@@ -918,13 +940,41 @@ test('refetch specification with offset pagination', async function () {
 	expect(docs[0].refetch).toMatchInlineSnapshot(`
 		{
 		    "update": "append",
-		    "source": [
+		    "path": [
 		        "usersByOffset"
 		    ],
-		    "target": [
+		    "method": "offset",
+		    "pageSize": 10
+		}
+	`)
+})
+
+test('refetch specification with initial offset', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                fragment UserFriends on Query {
+					usersByOffset(limit: 10, offset: 10) @paginate {
+						id
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].refetch).toMatchInlineSnapshot(`
+		{
+		    "update": "append",
+		    "path": [
 		        "usersByOffset"
 		    ],
-		    "method": "offset"
+		    "method": "offset",
+		    "pageSize": 10,
+		    "start": 10
 		}
 	`)
 })

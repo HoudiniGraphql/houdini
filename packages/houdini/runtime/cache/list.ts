@@ -85,7 +85,6 @@ export class ListHandler {
 
 		// if there are conditions for this operation
 		if (!this.validateWhen() || !dataID) {
-			console.log('when invalid', this._when)
 			return
 		}
 

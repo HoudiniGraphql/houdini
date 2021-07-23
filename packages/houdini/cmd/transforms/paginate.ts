@@ -276,9 +276,21 @@ export default async function paginate(
 			// add the paginate info to the collected document
 			doc.refetch = {
 				update: refetchUpdate,
-				source: [...paginationPath],
-				target: [...paginationPath],
+				path: paginationPath,
 				method: flags.first.enabled || flags.last.enabled ? 'cursor' : 'offset',
+				pageSize: 0,
+			}
+
+			// add the correct default page size
+			if (flags.first.enabled) {
+				doc.refetch.pageSize = flags.first.defaultValue
+				doc.refetch.start = flags.after.defaultValue
+			} else if (flags.last.enabled) {
+				doc.refetch.pageSize = flags.last.defaultValue
+				doc.refetch.start = flags.before.defaultValue
+			} else if (flags.limit.enabled) {
+				doc.refetch.pageSize = flags.limit.defaultValue
+				doc.refetch.start = flags.offset.defaultValue
 			}
 
 			// if we're not paginating a fragment, there's nothing more to do. we mutated
@@ -287,13 +299,6 @@ export default async function paginate(
 			if (!fragment) {
 				continue
 			}
-
-			// if we embedding it in a node query
-			if (nodeQuery) {
-				// make sure we index the source under the 'node' field
-				doc.refetch.source.unshift('node')
-			}
-
 			// grab the enabled fields to create the list of arguments for the directive
 			const paginationArgs = Object.entries(flags)
 				.filter(([_, { enabled }]) => enabled)
