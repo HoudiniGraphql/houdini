@@ -1,7 +1,7 @@
 {
 	"name": "houdini",
 	"version": "0.9.9",
-	"description": "",
+	"description": "The disappearing graphql client for SvelteKit",
 	"scripts": {
 		"build:runtime": "npm run build:runtime:cjs && npm run build:runtime:esm",
 		"build:runtime:cjs": "tsc --p tsconfig.runtime.cjs.json",
@@ -9,14 +9,21 @@
 		"build:cmd": "npm run build:cmd:tsc && npm run build:cmd:main",
 		"build:cmd:main": "TARGET=esm WHICH=cmd rollup --config ./rollup.config.js && ./typeModule.sh",
 		"build:cmd:tsc": "tsc --p tsconfig.json",
-		"build": "npm run build:runtime && npm run build:cmd",
+		"build:readme": "cp ../../README.md .",
+		"build": "npm run build:runtime && npm run build:cmd && npm run build:readme",
 		"prepare": "npm run build"
 	},
 	"main": "build/cmd/index.js",
 	"bin": "build/cmd.js",
-	"keywords": [],
+	"bugs": "https://github.com/AlecAivazis/houdini/issues",
+	"repository": "AlecAivazis/houdini",
+	"keywords": [
+		"graphql",
+		"svelte",
+		"houdini"
+	],
 	"author": "",
-	"license": "ISC",
+	"license": "MIT",
 	"engines": {
 		"node": ">=14.13"
 	},
