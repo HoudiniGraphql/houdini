@@ -788,16 +788,17 @@ info can be looked up with the `pageInfo` store returned from the paginated func
 
 ```svelte
 <script>
-  const { loadNextPage, data } = paginatedQuery(graphql`
-      query UserList {
-          friends {
-              totalCount
-              users(limit: 10) @paginate {
-                id
-              }
-          }
-      }
-  `)
+    const { loadNextPage, data } = paginatedQuery(graphql`
+        query UserList {
+            friends(first: 10) @paginate {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    `)
 </script>
 
 {#if $pageInfo.hasNextPage}
