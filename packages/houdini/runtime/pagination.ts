@@ -139,7 +139,7 @@ function cursorHandlers({
 	initialValue,
 	artifact,
 	store,
-	queryVariables,
+	queryVariables: extraVariables,
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
@@ -222,6 +222,7 @@ function cursorHandlers({
 		// build up the variables to pass to the query
 		const queryVariables = {
 			...variables(),
+			...extraVariables,
 			last: pageCount,
 			before: before || currentPageInfo.startCursor,
 		}
