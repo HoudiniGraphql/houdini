@@ -1,7 +1,7 @@
 {
 	"name": "example-kit",
 	"private": true,
-	"version": "0.10.0-alpha.3",
+	"version": "0.10.0-alpha.4",
 	"scripts": {
 		"dev": "svelte-kit dev",
 		"build": "svelte-kit build",
