@@ -843,6 +843,24 @@ In short, this means that any paginated fragment must be of a type that implemen
 (so it can be looked up in the api). You can read more information about the `Node` interface in
 [this section](https://graphql.org/learn/global-object-identification/) of the graphql community website.
 
+### Mutation Operations
+
+A paginated field can be marked as a potential target for a mutation operation by passing
+a `name` argument to the `@paginate` directive:
+
+```javascript
+const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
+    fragment UserWithFriends on User {
+        friends(first: 10) @paginate(name: "User_Friends") {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+`)
+
 ## ⚖️&nbsp;Custom Scalars
 
 Configuring your runtime to handle custom scalars is done under the `scalars` key in your config:
