@@ -75,7 +75,7 @@ export class Cache {
 	id(type: string, id: string): string | null
 	id(type: string, data: any): string | null {
 		// try to compute the id of the record
-		const id = typeof data === 'string' ? data : this.computeID(data)
+		const id = typeof data === 'string' ? data : this.computeID(type, data)
 		if (!id) {
 			return null
 		}
@@ -172,10 +172,11 @@ export class Cache {
 			getRecord: this.getRecord.bind(this),
 			getData: this.getData.bind(this),
 			clear: this.clear.bind(this),
+			computeID: this.computeID.bind(this),
 		}
 	}
 
-	private computeID(data: { [key: string]: GraphQLValue }) {
+	private computeID(type: string, data: { [key: string]: GraphQLValue }) {
 		return data.id
 	}
 
@@ -916,6 +917,7 @@ export type CacheProxy = {
 	getRecord: Cache['getRecord']
 	getData: Cache['getData']
 	clear: Cache['clear']
+	computeID: Cache['computeID']
 }
 
 // id that we should use to refer to things in root

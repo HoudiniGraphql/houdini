@@ -67,12 +67,22 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 		throw new Error('paginatedFragment must be passed a fragment with @paginate')
 	}
 
+	// @ts-ignore: typing esm/cjs interop is hard
+	const fragmentArtifact: FragmentArtifact = document.artifact.default || document.artifact
+
+	const paginationArtifact: QueryArtifact =
+		// @ts-ignore: typing esm/cjs interop is hard
+		document.paginationArtifact.default || document.paginationArtifact
+
 	return {
 		data,
 		...paginationHandlers({
 			initialValue,
 			store: data,
-			artifact: document.paginationArtifact,
+			artifact: paginationArtifact,
+			queryVariables: paginationArtifact.refetch!.embedded
+				? { id: cache.internal.computeID(fragmentArtifact.rootType, initialValue) }
+				: {},
 		}),
 	}
 }
@@ -81,10 +91,12 @@ function paginationHandlers({
 	initialValue,
 	artifact,
 	store,
+	queryVariables,
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
+	queryVariables?: {}
 }): PaginatedHandlers {
 	// start with the defaults and no meaningful page info
 	let loadPreviousPage = defaultLoadPreviousPage
@@ -127,10 +139,12 @@ function cursorHandlers({
 	initialValue,
 	artifact,
 	store,
+	queryVariables,
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
+	queryVariables?: {}
 }): PaginatedHandlers {
 	// pull out the context accessors
 	const variables = getVariables()
