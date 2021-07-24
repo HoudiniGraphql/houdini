@@ -828,7 +828,7 @@ const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
 ```
 
 In order to look up the next page for the user's friend. We need a way to query the specific user
-that this fragment as been mixing into. In order to pull this off, houdini relies on the generic `Node`
+that this fragment has been spread into. In order to pull this off, houdini relies on the generic `Node`
 interface and corresponding query:
 
 ```graphql
