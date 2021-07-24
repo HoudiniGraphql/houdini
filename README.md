@@ -752,9 +752,9 @@ is designed to handle modern pagination features such a infinite scrolling.
 
 Regardless of the strategy used, houdini follows a simple pattern: wrap your document in a
 "paginated" funnction (ie, `paginatedQuery` or `paginatedFragmnet`), mark the field with
-`@paginate` and provide the "page size" (via the `first`, `last` or `limit` arguments to the field).
+`@paginate`, and provide the "page size" via the `first`, `last` or `limit` arguments to the field.
 `paginatedQuery` and `paginatedFragment` behave identically: they return a `data` field containing
-a svelte store with your full dataset as well as functions you can call to load the next or prevous
+a svelte store with your full dataset as well as functions you can call to load the next or previous
 page. For example, a simple field support offset-based pagination would look something like:
 
 ```javascript
