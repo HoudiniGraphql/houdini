@@ -60,6 +60,8 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Using graphql-ws](#using-graphql-ws)
     1. [Using subscriptions-transport-ws](#using-subscriptions-transport-ws)
 1. [Pagination](#%EF%B8%8Fpagination)
+    1. [Paginated Fragments](#paginated-fragments)
+    1. [Mutation Operations](#mutation-operations) 
 1. [Custom Scalars](#%EF%B8%8Fcustom-scalars)
 1. [Authentication](#authentication)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
