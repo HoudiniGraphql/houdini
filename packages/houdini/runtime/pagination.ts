@@ -114,7 +114,7 @@ function paginationHandlers({
 	// if the artifact supports cursor based pagination
 	if (artifact.refetch?.method === 'cursor') {
 		// generate the cursor handlers
-		const cursor = cursorHandlers({ initialValue, artifact, store })
+		const cursor = cursorHandlers({ initialValue, artifact, store, queryVariables })
 		// always track pageInfo
 		pageInfo = cursor.pageInfo
 
@@ -129,7 +129,7 @@ function paginationHandlers({
 	}
 	// the artifact supports offset-based pagination, only loadNextPage is valid
 	else {
-		loadNextPage = offsetPaginationHandler({ artifact })
+		loadNextPage = offsetPaginationHandler({ artifact, queryVariables })
 	}
 
 	return { loadNextPage, loadPreviousPage, pageInfo }
@@ -185,11 +185,7 @@ function cursorHandlers({
 		}
 
 		// send the query
-		const result = await executeQuery<GraphQLObject>(
-			artifact as QueryArtifact,
-			queryVariables,
-			sessionStore
-		)
+		const result = await executeQuery<GraphQLObject>(artifact, queryVariables, sessionStore)
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -228,11 +224,7 @@ function cursorHandlers({
 		}
 
 		// send the query
-		const result = await executeQuery<GraphQLObject>(
-			artifact as QueryArtifact,
-			queryVariables,
-			sessionStore
-		)
+		const result = await executeQuery<GraphQLObject>(artifact, queryVariables, sessionStore)
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -260,7 +252,13 @@ function cursorHandlers({
 	}
 }
 
-function offsetPaginationHandler({ artifact }: { artifact: QueryArtifact }) {
+function offsetPaginationHandler({
+	artifact,
+	queryVariables: extraVariables,
+}: {
+	artifact: QueryArtifact
+	queryVariables?: {}
+}) {
 	// we need to track the most recent offset for this handler
 	let currentOffset = (artifact.refetch?.start as number) || 0
 	const pageSize = artifact.refetch?.pageSize || 10
@@ -273,16 +271,13 @@ function offsetPaginationHandler({ artifact }: { artifact: QueryArtifact }) {
 		// build up the variables to pass to the query
 		const queryVariables = {
 			...variables(),
+			...extraVariables,
 			offset: currentOffset,
 			limit,
 		}
 
 		// send the query
-		const result = await executeQuery<GraphQLObject>(
-			artifact as QueryArtifact,
-			queryVariables,
-			sessionStore
-		)
+		const result = await executeQuery<GraphQLObject>(artifact, queryVariables, sessionStore)
 
 		// update cache with the result
 		cache.write({
