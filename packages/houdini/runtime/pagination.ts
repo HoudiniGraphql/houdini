@@ -31,13 +31,13 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	// @ts-ignore: typing esm/cjs interop is hard
 	const artifact: QueryArtifact = document.artifact.default || document.artifact
 
-	// pass the artifact to the base query operation
-	const { data, ...restOfQueryResponse } = query(document)
-
 	// if there's no refetch config for the artifact there's a problem
 	if (!artifact.refetch) {
 		throw new Error('paginatedQuery must be passed a query with @paginate.')
 	}
+
+	// pass the artifact to the base query operation
+	const { data, ...restOfQueryResponse } = query(document)
 
 	return {
 		data,
@@ -56,16 +56,15 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 ): { data: Readable<_Fragment['shape']> } & PaginatedHandlers {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniFragment') {
-		throw new Error('getFragment can only take fragment documents')
+		throw new Error('paginatedFragment() must be passed a fragment document')
 	}
-
-	// pass the inputs to the normal fragment function
-	const data = fragment(document, initialValue)
-
 	// if we don't have a pagination fragment there is a problem
 	if (!document.paginationArtifact) {
 		throw new Error('paginatedFragment must be passed a fragment with @paginate')
 	}
+
+	// pass the inputs to the normal fragment function
+	const data = fragment(document, initialValue)
 
 	// @ts-ignore: typing esm/cjs interop is hard
 	const fragmentArtifact: FragmentArtifact = document.artifact.default || document.artifact
@@ -180,6 +179,7 @@ function cursorHandlers({
 		// build up the variables to pass to the query
 		const queryVariables = {
 			...variables(),
+			...extraVariables,
 			first: pageCount,
 			after: after || currentPageInfo.endCursor,
 		}
