@@ -862,6 +862,7 @@ const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
         }
     }
 `)
+```
 
 ## ⚖️&nbsp;Custom Scalars
 
