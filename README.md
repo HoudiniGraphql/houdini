@@ -790,7 +790,7 @@ info can be looked up with the `pageInfo` store returned from the paginated func
 
 ```svelte
 <script>
-    const { loadNextPage, data } = paginatedQuery(graphql`
+    const { data, loadNextPage, pageInfo } = paginatedQuery(graphql`
         query UserList {
             friends(first: 10) @paginate {
                 edges {
