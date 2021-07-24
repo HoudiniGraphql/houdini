@@ -753,14 +753,14 @@ is a bi-directional strategy that relies on `first`/`after` or `last`/`before` a
 is designed to handle modern pagination features such a infinite scrolling.
 
 Regardless of the strategy used, houdini follows a simple pattern: wrap your document in a
-"paginated" funnction (ie, `paginatedQuery` or `paginatedFragmnet`), mark the field with
+"paginated" function (ie, `paginatedQuery` or `paginatedFragment`), mark the field with
 `@paginate`, and provide the "page size" via the `first`, `last` or `limit` arguments to the field.
 `paginatedQuery` and `paginatedFragment` behave identically: they return a `data` field containing
 a svelte store with your full dataset as well as functions you can call to load the next or previous
-page. For example, a simple field support offset-based pagination would look something like:
+page. For example, a simple field supporting offset-based pagination would look something like:
 
 ```javascript
-const { loadNextPage, data } = paginatedQuery(graphql`
+const { data, loadNextPage } = paginatedQuery(graphql`
     query UserList {
         friends(limit: 10) @paginate {
             id
@@ -769,10 +769,10 @@ const { loadNextPage, data } = paginatedQuery(graphql`
 `)
 ```
 
-and a field that supports backwards cursor-based pagination would look something like:
+and a field that supports cursor-based pagination starting at the end of the list would look something like:
 
 ```javascript
-const { loadPreviousPage, data } = paginatedQuery(graphql`
+const { data, loadPreviousPage } = paginatedQuery(graphql`
     query UserList {
         friends(last: 10) @paginate {
             edges {
@@ -810,8 +810,8 @@ info can be looked up with the `pageInfo` store returned from the paginated func
 
 ### Paginated Fragments
 
-`paginatedFragment` works very similarly to `paginatedQuery` except for a few extra things to keep
-in mind. Consider the following:
+`paginatedFragment` functions very similarly to `paginatedQuery` with a few caveats. 
+Consider the following:
 
 ```javascript
 const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
@@ -845,7 +845,7 @@ In short, this means that any paginated fragment must be of a type that implemen
 (so it can be looked up in the api). You can read more information about the `Node` interface in
 [this section](https://graphql.org/learn/global-object-identification/) of the graphql community website.
 This is only a requirement for paginated fragments. If your application only uses paginated queries, 
-you do not need to implement the node interface and resolver.
+you do not need to implement the Node interface and resolver.
 
 ### Mutation Operations
 
