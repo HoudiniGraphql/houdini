@@ -842,6 +842,8 @@ type Query {
 In short, this means that any paginated fragment must be of a type that implements the Node interface
 (so it can be looked up in the api). You can read more information about the `Node` interface in
 [this section](https://graphql.org/learn/global-object-identification/) of the graphql community website.
+This is only a requirement for paginated fragments. If your application only uses paginated queries, 
+you do not need to implement the node interface and resolver.
 
 ### Mutation Operations
 
