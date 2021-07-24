@@ -59,6 +59,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Configuring the WebSocket client](#configuring-the-websocket-client)
     1. [Using graphql-ws](#using-graphql-ws)
     1. [Using subscriptions-transport-ws](#using-subscriptions-transport-ws)
+1. [Pagination](#pagination)
 1. [Custom Scalars](#%EF%B8%8Fcustom-scalars)
 1. [Authentication](#authentication)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
@@ -114,7 +115,7 @@ import houdini from 'houdini-preprocess'
 
 ### Sapper
 
-You'll need to add the preprocessor to both your client and your server configuration. With that in place, 
+You'll need to add the preprocessor to both your client and your server configuration. With that in place,
 the only thing left to configure your Sapper application is to connect your client and server to the generate network layer:
 
 ```typescript
@@ -738,6 +739,108 @@ if (browser) {
 
 export default new Environment(fetchQuery, socketClient)
 ```
+
+## ♻️&nbsp;Pagination
+
+It's often the case that you want to avoid querying an entire list from your API in order
+to minimize the amount of data transfers over the network. To support this, GraphQL APIs will
+"paginate" a field, allowing users to query a slice of the list. The strategy used to access
+slices of a list fall into two categories. Offset-based pagination relies `offset` and `limit`
+arguments and mimics the mechanisms provided by most database engines. Cursor-based pagination
+is a bi-directional strategy that relies on `first`/`after` or `last`/`before` arguments and
+is designed to handle modern pagination features such a infinite scrolling.
+
+Regardless of the strategy used, houdini follows a simple pattern: wrap your document in a
+"paginated" funnction (ie, `paginatedQuery` or `paginatedFragmnet`), mark the field with
+`@paginate` and provide the "page size" (via the `first`, `last` or `limit` arguments to the field).
+`paginatedQuery` and `paginatedFragment` behave identically: they return a `data` field containing
+a svelte store with your full dataset as well as functions you can call to load the next or prevous
+page. For example, a simple field support offset-based pagination would look something like:
+
+```javascript
+const { loadNextPage, data } = paginatedQuery(graphql`
+    query UserList {
+        friends(limit: 10) @paginate {
+            id
+        }
+    }
+`)
+```
+
+and a field that supports backwards cursor-based pagination would look something like:
+
+```javascript
+const { loadPreviousPage, data } = paginatedQuery(graphql`
+    query UserList {
+        friends(last: 10) @paginate {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+`)
+```
+
+If you are paginating a field with a cursor-based strategy (forward or backwards), the current page
+info can be looked up with the `pageInfo` store returned from the paginated function:
+
+```svelte
+<script>
+  const { loadNextPage, data } = paginatedQuery(graphql`
+      query UserList {
+          friends {
+              totalCount
+              users(limit: 10) @paginate {
+                id
+              }
+          }
+      }
+  `)
+</script>
+
+{#if $pageInfo.hasNextPage}
+    <button onClick={() => loadNextPage()}> load more </button>
+{/if}
+```
+
+### Paginated Fragments
+
+`paginatedFragment` works very similarly to `paginatedQuery` except for a few extra things to keep
+in mind. Consider the following:
+
+```javascript
+const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
+    fragment UserWithFriends on User {
+        friends(first: 10) @paginate {
+            edges {
+                node {
+                    id
+                }
+            }
+        }
+    }
+`)
+```
+
+In order to look up the next page for the user's friend. We need a way to query the specific user
+that this fragment as been mixing into. In order to pull this off, houdini relies on the generic `Node`
+interface and corresponding query:
+
+```graphql
+interface Node {
+    id: ID!
+}
+
+type Query {
+    node(id: ID!): Node
+}
+```
+
+In short, this means that any paginated fragment must be of a type that implements the Node interface
+(so it can be looked up in the api). You can read more information about the `Node` interface in
+[this section](https://graphql.org/learn/global-object-identification/) of the graphql community website.
 
 ## ⚖️&nbsp;Custom Scalars
 
