@@ -1,5 +1,7 @@
 import type { Config } from 'houdini-common'
 
+export type { ConfigFile } from 'houdini-common'
+
 export type Fragment<_Result> = {
 	readonly shape?: _Result
 }

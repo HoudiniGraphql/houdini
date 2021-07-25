@@ -1,4 +1,5 @@
-export default {
+/** @type {import('houdini/build/runtime').ConfigFile} */
+const config = {
 	schemaPath: './schema/schema.gql',
 	sourceGlob: 'src/**/*.svelte',
 	framework: 'kit',
@@ -16,3 +17,5 @@ export default {
 		},
 	},
 }
+
+export default config
