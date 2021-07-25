@@ -1,5 +1,5 @@
 // externals
-import { readable, Readable, writable } from 'svelte/store'
+import { derived, readable, Readable, Writable, writable } from 'svelte/store'
 // locals
 import {
 	Operation,
@@ -37,7 +37,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	}
 
 	// pass the artifact to the base query operation
-	const { data, ...restOfQueryResponse } = query(document)
+	const { data, loading, ...restOfQueryResponse } = query(document)
 
 	return {
 		data,
@@ -45,6 +45,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 			initialValue: document.initialValue.data,
 			store: data,
 			artifact,
+			documentLoading: loading,
 		}),
 		...restOfQueryResponse,
 	}
@@ -91,11 +92,13 @@ function paginationHandlers({
 	artifact,
 	store,
 	queryVariables,
+	documentLoading = readable(false, () => {}),
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
 	queryVariables?: {}
+	documentLoading?: Readable<boolean>
 }): PaginatedHandlers {
 	// start with the defaults and no meaningful page info
 	let loadPreviousPage = defaultLoadPreviousPage
@@ -110,10 +113,18 @@ function paginationHandlers({
 		() => {}
 	)
 
+	let paginationLoadingState = writable(false)
+
 	// if the artifact supports cursor based pagination
 	if (artifact.refetch?.method === 'cursor') {
 		// generate the cursor handlers
-		const cursor = cursorHandlers({ initialValue, artifact, store, queryVariables })
+		const cursor = cursorHandlers({
+			initialValue,
+			artifact,
+			store,
+			queryVariables,
+			loading: paginationLoadingState,
+		})
 		// always track pageInfo
 		pageInfo = cursor.pageInfo
 
@@ -128,10 +139,20 @@ function paginationHandlers({
 	}
 	// the artifact supports offset-based pagination, only loadNextPage is valid
 	else {
-		loadNextPage = offsetPaginationHandler({ artifact, queryVariables })
+		loadNextPage = offsetPaginationHandler({
+			artifact,
+			queryVariables,
+			loading: paginationLoadingState,
+		})
 	}
 
-	return { loadNextPage, loadPreviousPage, pageInfo }
+	// merge the pagination and document loading state
+	const loading = derived(
+		[paginationLoadingState, documentLoading],
+		($loadingStates) => $loadingStates[0] || $loadingStates[1]
+	)
+
+	return { loadNextPage, loadPreviousPage, pageInfo, loading }
 }
 
 function cursorHandlers({
@@ -139,12 +160,18 @@ function cursorHandlers({
 	artifact,
 	store,
 	queryVariables: extraVariables,
+	loading,
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
 	queryVariables?: {}
-}): PaginatedHandlers {
+	loading: Writable<boolean>
+}): {
+	loadNextPage: PaginatedHandlers['loadNextPage']
+	loadPreviousPage: PaginatedHandlers['loadPreviousPage']
+	pageInfo: PaginatedHandlers['pageInfo']
+} {
 	// pull out the context accessors
 	const variables = getVariables()
 	const sessionStore = getSession()
@@ -176,6 +203,9 @@ function cursorHandlers({
 			return
 		}
 
+		// set the loading state to true
+		loading.set(true)
+
 		// build up the variables to pass to the query
 		const queryVariables = {
 			...variables(),
@@ -204,6 +234,9 @@ function cursorHandlers({
 			variables: queryVariables,
 			applyUpdates: true,
 		})
+
+		// we're not loading any more
+		loading.set(false)
 	}
 
 	const loadPreviousPage = async (pageCount?: number, before?: string) => {
@@ -214,6 +247,9 @@ function cursorHandlers({
 		if (!currentPageInfo.hasPreviousPage) {
 			return
 		}
+
+		// set the loading state to true
+		loading.set(true)
 
 		// build up the variables to pass to the query
 		const queryVariables = {
@@ -243,6 +279,9 @@ function cursorHandlers({
 			variables: queryVariables,
 			applyUpdates: true,
 		})
+
+		// we're not loading any more
+		loading.set(false)
 	}
 
 	return {
@@ -255,10 +294,12 @@ function cursorHandlers({
 function offsetPaginationHandler({
 	artifact,
 	queryVariables: extraVariables,
+	loading,
 }: {
 	artifact: QueryArtifact
 	queryVariables?: {}
-}) {
+	loading: Writable<boolean>
+}): PaginatedHandlers['loadNextPage'] {
 	// we need to track the most recent offset for this handler
 	let currentOffset = (artifact.refetch?.start as number) || 0
 	const pageSize = artifact.refetch?.pageSize || 10
@@ -276,6 +317,9 @@ function offsetPaginationHandler({
 			limit,
 		}
 
+		// set the loading state to true
+		loading.set(true)
+
 		// send the query
 		const result = await executeQuery<GraphQLObject>(artifact, queryVariables, sessionStore)
 
@@ -289,12 +333,16 @@ function offsetPaginationHandler({
 
 		// add the page size to the offset so we load the next page next time
 		currentOffset += limit
+
+		// we're not loading any more
+		loading.set(true)
 	}
 }
 
 type PaginatedHandlers = {
 	loadNextPage(pageCount?: number, after?: string | number): Promise<void>
 	loadPreviousPage(pageCount?: number, before?: string): Promise<void>
+	loading: Readable<boolean>
 	pageInfo: Readable<PageInfo>
 }
 
