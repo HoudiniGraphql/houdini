@@ -327,7 +327,7 @@ export function connectionSelection(
 
 	return {
 		selection: nodeSelection.selectionSet,
-		type: nodeField.type as graphql.GraphQLObjectType,
+		type: unwrapType(config, nodeField.type).type as graphql.GraphQLObjectType,
 		connection: true,
 	}
 }
