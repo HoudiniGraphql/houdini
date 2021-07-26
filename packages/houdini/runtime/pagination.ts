@@ -220,7 +220,7 @@ function cursorHandlers({
 			...input,
 		}
 
-		// if we dont have a value for the page size, tell the user
+		// if we don't have a value for the page size, tell the user
 		if (!queryVariables[pageSizeVar] && !artifact.refetch!.pageSize) {
 			throw missingPageSizeError(functionName)
 		}
