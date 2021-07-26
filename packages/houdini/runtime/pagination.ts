@@ -194,69 +194,16 @@ function cursorHandlers({
 		value = val
 	})
 
-	const loadNextPage = async (pageCount?: number, after?: string) => {
-		// we need to find the connection object holding the current page info
-		const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
-
-		// if there is no next page, we're done
-		if (!currentPageInfo.hasNextPage) {
-			return
-		}
-
+	// dry up the page-loading logic
+	const loadPage = async (input: {}) => {
 		// set the loading state to true
 		loading.set(true)
 
 		// build up the variables to pass to the query
 		const queryVariables = {
 			...variables(),
+			...input,
 			...extraVariables,
-			first: pageCount,
-			after: after || currentPageInfo.endCursor,
-		}
-
-		// send the query
-		const result = await executeQuery<GraphQLObject>(artifact, queryVariables, sessionStore)
-
-		// if the query is embedded in a node field (paginated fragments)
-		// make sure we look down one more for the updated page info
-		const resultPath = [...artifact.refetch!.path]
-		if (artifact.refetch!.embedded) {
-			resultPath.unshift('node')
-		}
-
-		// we need to find the connection object holding the current page info
-		pageInfo.set(extractPageInfo(result.data, resultPath))
-
-		// update cache with the result
-		cache.write({
-			selection: artifact.selection,
-			data: result.data,
-			variables: queryVariables,
-			applyUpdates: true,
-		})
-
-		// we're not loading any more
-		loading.set(false)
-	}
-
-	const loadPreviousPage = async (pageCount?: number, before?: string) => {
-		// we need to find the connection object holding the current page info
-		const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
-
-		// if there is no next page, we're done
-		if (!currentPageInfo.hasPreviousPage) {
-			return
-		}
-
-		// set the loading state to true
-		loading.set(true)
-
-		// build up the variables to pass to the query
-		const queryVariables = {
-			...variables(),
-			...extraVariables,
-			last: pageCount,
-			before: before || currentPageInfo.startCursor,
 		}
 
 		// send the query
@@ -285,8 +232,34 @@ function cursorHandlers({
 	}
 
 	return {
-		loadNextPage,
-		loadPreviousPage,
+		loadNextPage: async (pageCount?: number) => {
+			// we need to find the connection object holding the current page info
+			const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
+
+			// if there is no next page, we're done
+			if (!currentPageInfo.hasNextPage) {
+				return
+			}
+
+			return await loadPage({
+				first: pageCount,
+				after: currentPageInfo.endCursor,
+			})
+		},
+		loadPreviousPage: async (pageCount?: number) => {
+			// we need to find the connection object holding the current page info
+			const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
+
+			// if there is no next page, we're done
+			if (!currentPageInfo.hasPreviousPage) {
+				return
+			}
+
+			return await loadPage({
+				last: pageCount,
+				before: currentPageInfo.startCursor,
+			})
+		},
 		pageInfo: { subscribe: pageInfo.subscribe },
 	}
 }
@@ -335,7 +308,7 @@ function offsetPaginationHandler({
 		currentOffset += limit
 
 		// we're not loading any more
-		loading.set(true)
+		loading.set(false)
 	}
 }
 
