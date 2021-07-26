@@ -61,7 +61,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Using subscriptions-transport-ws](#using-subscriptions-transport-ws)
 1. [Pagination](#%EF%B8%8Fpagination)
     1. [Paginated Fragments](#paginated-fragments)
-    1. [Mutation Operations](#mutation-operations) 
+    1. [Mutation Operations](#mutation-operations)
 1. [Custom Scalars](#%EF%B8%8Fcustom-scalars)
 1. [Authentication](#authentication)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
@@ -756,11 +756,12 @@ Regardless of the strategy used, houdini follows a simple pattern: wrap your doc
 "paginated" function (ie, `paginatedQuery` or `paginatedFragment`), mark the field with
 `@paginate`, and provide the "page size" via the `first`, `last` or `limit` arguments to the field.
 `paginatedQuery` and `paginatedFragment` behave identically: they return a `data` field containing
-a svelte store with your full dataset as well as functions you can call to load the next or previous
-page. For example, a simple field supporting offset-based pagination would look something like:
+a svelte store with your full dataset, functions you can call to load the next or previous
+page, as well as a readable store with a boolean loading state. For example, a field
+supporting offset-based pagination would look something like:
 
 ```javascript
-const { data, loadNextPage } = paginatedQuery(graphql`
+const { data, loadNextPage, loading } = paginatedQuery(graphql`
     query UserList {
         friends(limit: 10) @paginate {
             id
@@ -810,7 +811,7 @@ info can be looked up with the `pageInfo` store returned from the paginated func
 
 ### Paginated Fragments
 
-`paginatedFragment` functions very similarly to `paginatedQuery` with a few caveats. 
+`paginatedFragment` functions very similarly to `paginatedQuery` with a few caveats.
 Consider the following:
 
 ```javascript
@@ -844,7 +845,7 @@ type Query {
 In short, this means that any paginated fragment must be of a type that implements the Node interface
 (so it can be looked up in the api). You can read more information about the `Node` interface in
 [this section](https://graphql.org/learn/global-object-identification/) of the graphql community website.
-This is only a requirement for paginated fragments. If your application only uses paginated queries, 
+This is only a requirement for paginated fragments. If your application only uses paginated queries,
 you do not need to implement the Node interface and resolver.
 
 ### Mutation Operations
