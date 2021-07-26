@@ -207,9 +207,9 @@ function cursorHandlers({
 
 		// build up the variables to pass to the query
 		const queryVariables = {
+			...extraVariables,
 			...variables(),
 			...input,
-			...extraVariables,
 		}
 
 		// send the query
