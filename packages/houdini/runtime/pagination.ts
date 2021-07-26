@@ -201,15 +201,28 @@ function cursorHandlers({
 	})
 
 	// dry up the page-loading logic
-	const loadPage = async (input: {}) => {
+	const loadPage = async ({
+		pageSizeVar,
+		input,
+		functionName,
+	}: {
+		pageSizeVar: string
+		functionName: string
+		input: {}
+	}) => {
 		// set the loading state to true
 		loading.set(true)
 
 		// build up the variables to pass to the query
-		const queryVariables = {
+		const queryVariables: Record<string, any> = {
 			...extraVariables,
 			...variables(),
 			...input,
+		}
+
+		// if we dont have a value for the page size, tell the user
+		if (!queryVariables[pageSizeVar] && !artifact.refetch!.pageSize) {
+			throw missingPageSizeError(functionName)
 		}
 
 		// send the query
@@ -247,15 +260,19 @@ function cursorHandlers({
 				return
 			}
 
-			// if we weren't given a page count but there's no default value in the query
-			// the user will receive an error from the API - let's give them something more useful
-			if (!pageCount && !artifact.refetch!.pageSize) {
-				throw missingPageSizeError('loadNextPage')
+			// only specify the page count if we're given one
+			const input: Record<string, any> = {
+				after: currentPageInfo.endCursor,
+			}
+			if (pageCount) {
+				input.first = pageCount
 			}
 
+			// load the page
 			return await loadPage({
-				first: pageCount,
-				after: currentPageInfo.endCursor,
+				pageSizeVar: 'first',
+				functionName: 'loadNextPage',
+				input,
 			})
 		},
 		loadPreviousPage: async (pageCount?: number) => {
@@ -267,15 +284,19 @@ function cursorHandlers({
 				return
 			}
 
-			// if we weren't given a page count but there's no default value in the query
-			// the user will receive an error from the API - let's give them something more useful
-			if (!pageCount && !artifact.refetch!.pageSize) {
-				throw missingPageSizeError('loadPreviousPage')
+			// only specify the page count if we're given one
+			const input: Record<string, any> = {
+				before: currentPageInfo.startCursor,
+			}
+			if (pageCount) {
+				input.last = pageCount
 			}
 
+			// load the page
 			return await loadPage({
-				last: pageCount,
-				before: currentPageInfo.startCursor,
+				pageSizeVar: 'last',
+				functionName: 'loadPreviousPage',
+				input,
 			})
 		},
 		pageInfo: { subscribe: pageInfo.subscribe },
@@ -299,18 +320,20 @@ function offsetPaginationHandler({
 	const sessionStore = getSession()
 
 	return async (limit?: number) => {
-		// figure out the page size
-		const pageSize = limit || artifact.refetch?.pageSize
-		if (!pageSize) {
-			throw missingPageSizeError('loadNextPage')
-		}
-
 		// build up the variables to pass to the query
-		const queryVariables = {
+		const queryVariables: Record<string, any> = {
 			...variables(),
 			...extraVariables,
 			offset: currentOffset,
-			limit: pageSize,
+		}
+		if (limit) {
+			queryVariables.limit = limit
+		}
+
+		// if we made it this far without a limit argument and there's no default page size,
+		// they made a mistake
+		if (!queryVariables.limit && !artifact.refetch!.pageSize) {
+			throw missingPageSizeError('loadNextPage')
 		}
 
 		// set the loading state to true
@@ -328,6 +351,7 @@ function offsetPaginationHandler({
 		})
 
 		// add the page size to the offset so we load the next page next time
+		const pageSize = queryVariables.limit || artifact.refetch!.pageSize
 		currentOffset += pageSize
 
 		// we're not loading any more
