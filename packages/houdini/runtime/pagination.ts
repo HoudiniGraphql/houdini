@@ -92,7 +92,7 @@ function paginationHandlers({
 	artifact,
 	store,
 	queryVariables,
-	documentLoading = readable(false, () => {}),
+	documentLoading,
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
@@ -144,6 +144,11 @@ function paginationHandlers({
 			queryVariables,
 			loading: paginationLoadingState,
 		})
+	}
+
+	// if no loading state was provided just use a store that's always false
+	if (!documentLoading) {
+		documentLoading = readable(false, () => {})
 	}
 
 	// merge the pagination and document loading state
@@ -241,6 +246,12 @@ function cursorHandlers({
 				return
 			}
 
+			// if we weren't given a page count but there's no default value in the query
+			// the user will receive an error from the API - let's give them something more useful
+			if (!pageCount && !artifact.refetch!.pageSize) {
+				throw missingPageSizeError('loadNextPage')
+			}
+
 			return await loadPage({
 				first: pageCount,
 				after: currentPageInfo.endCursor,
@@ -253,6 +264,12 @@ function cursorHandlers({
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasPreviousPage) {
 				return
+			}
+
+			// if we weren't given a page count but there's no default value in the query
+			// the user will receive an error from the API - let's give them something more useful
+			if (!pageCount && !artifact.refetch!.pageSize) {
+				throw missingPageSizeError('loadPreviousPage')
 			}
 
 			return await loadPage({
@@ -275,19 +292,24 @@ function offsetPaginationHandler({
 }): PaginatedHandlers['loadNextPage'] {
 	// we need to track the most recent offset for this handler
 	let currentOffset = (artifact.refetch?.start as number) || 0
-	const pageSize = artifact.refetch?.pageSize || 10
 
 	// grab the context getters
 	const variables = getVariables()
 	const sessionStore = getSession()
 
-	return async (limit: number = pageSize) => {
+	return async (limit?: number) => {
+		// figure out the page size
+		const pageSize = limit || artifact.refetch?.pageSize
+		if (!pageSize) {
+			throw missingPageSizeError('loadNextPage')
+		}
+
 		// build up the variables to pass to the query
 		const queryVariables = {
 			...variables(),
 			...extraVariables,
 			offset: currentOffset,
-			limit,
+			limit: pageSize,
 		}
 
 		// set the loading state to true
@@ -305,7 +327,7 @@ function offsetPaginationHandler({
 		})
 
 		// add the page size to the offset so we load the next page next time
-		currentOffset += limit
+		currentOffset += pageSize
 
 		// we're not loading any more
 		loading.set(false)
@@ -328,5 +350,13 @@ function defaultLoadNextPage(): Promise<void> {
 function defaultLoadPreviousPage(): Promise<void> {
 	throw new Error(
 		'loadPreviousPage() only works on fields marked @paginate that implement backward cursor pagination.'
+	)
+}
+
+function missingPageSizeError(fnName: string) {
+	return new Error(
+		'Loading a page with no page size. If you are paginating a field with a variable page size, ' +
+			`you have to pass a value to \`${fnName}\`. If you don't care to have the page size vary, ` +
+			'consider passing a fixed value to the field instead.'
 	)
 }
