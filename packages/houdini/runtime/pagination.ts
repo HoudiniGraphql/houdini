@@ -45,6 +45,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 			initialValue: document.initialValue.data,
 			store: data,
 			artifact,
+			queryVariables: document.variables,
 			documentLoading: loading,
 		}),
 		...restOfQueryResponse,
