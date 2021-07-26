@@ -1,4 +1,4 @@
-/** @type {import('houdini/build/runtime').ConfigFile} */
+/** @type {import('houdini').ConfigFile} */
 const config = {
 	schemaPath: './schema/schema.gql',
 	sourceGlob: 'src/**/*.svelte',
