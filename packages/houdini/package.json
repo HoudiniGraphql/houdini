@@ -1,6 +1,6 @@
 {
 	"name": "houdini",
-	"version": "0.10.0-alpha.9",
+	"version": "0.10.0-alpha.11",
 	"description": "",
 	"scripts": {
 		"build:runtime": "npm run build:runtime:cjs && npm run build:runtime:esm",
