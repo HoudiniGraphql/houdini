@@ -141,9 +141,11 @@ const configFile = ({
 
 	return module === 'esm'
 		? // SvelteKit default config
-		  `export default ${configObj}
+		  `/** @type {import('houdini').ConfigFile} */
+export default ${configObj}
 `
 		: // sapper default config
-		  `module.exports = ${configObj}
+		  `/** @type {import('houdini').ConfigFile} */
+module.exports = ${configObj}
 `
 }

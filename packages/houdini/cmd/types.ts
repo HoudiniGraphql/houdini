@@ -1,4 +1,7 @@
 import type * as graphql from 'graphql'
+
+export type { ConfigFile } from 'houdini-common'
+
 export * from '../runtime/types'
 
 // the result of collecting documents from source code

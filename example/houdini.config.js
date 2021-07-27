@@ -1,3 +1,4 @@
+/** @type {import('houdini').ConfigFile} */
 export default {
 	schemaPath: './schema/schema.gql',
 	sourceGlob: 'src/**/*.svelte',
