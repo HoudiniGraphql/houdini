@@ -143,14 +143,10 @@ const configFile = ({
 		? // SvelteKit default config
 		  `
 		  /** @type {import('houdini').ConfigFile} */
-		  const config = ${configObj}
-
-		  export default config;
+		  export default ${configObj}
 `
 		: // sapper default config
 		  `/** @type {import('houdini').ConfigFile} */
-		  const config = ${configObj}
-
-		  module.exports = config;
+		  module.exports = ${configObj}
 `
 }
