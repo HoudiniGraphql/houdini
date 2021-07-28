@@ -132,20 +132,24 @@ const configFile = ({
 }) => {
 	// the actual config contents
 	const configObj = `{
-		schemaPath: '${schemaPath}',
-		sourceGlob: 'src/**/*.svelte',
-		module: '${module}',
-		framework: '${framework}',
-		apiUrl: '${url}'
-	}`
+	schemaPath: '${schemaPath}',
+	sourceGlob: 'src/**/*.svelte',
+	module: '${module}',
+	framework: '${framework}',
+	apiUrl: '${url}'
+}`
 
 	return module === 'esm'
 		? // SvelteKit default config
 		  `/** @type {import('houdini').ConfigFile} */
-export default ${configObj}
+const config = ${configObj}
+
+export default config
 `
 		: // sapper default config
 		  `/** @type {import('houdini').ConfigFile} */
-module.exports = ${configObj}
+const config = ${configObj}
+
+module.exports = config
 `
 }
