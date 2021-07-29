@@ -24,7 +24,8 @@ specific, feel free to reach out to @AlecAivazis on the Svelte discord. There's 
 -   Normalized cache with declarative updates
 -   Generated types
 -   Subscriptions
--   Support for Sapper and SvelteKit's public beta
+-   Support for SvelteKit and Sapper
+-   Pagination (cursors **and** offsets)
 
 At its core, houdini seeks to enable a high quality developer experience
 without compromising bundle size. Like Svelte, houdini shifts what is
@@ -36,8 +37,8 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Example](#example)
 1. [Installation](#installation)
 1. [Configuring Your Application](#configuring-your-application)
-    1. [Sapper](#sapper)
     1. [SvelteKit](#sveltekit)
+    1. [Sapper](#sapper)
     1. [Svelte](#svelte)
 1. [Config File](#config-file)
 1. [Running the Compiler](#running-the-compiler)
@@ -100,34 +101,7 @@ your API's schema. Next, generate your runtime:
 npx houdini generate
 ```
 
-and finally, add the preprocessor to your sapper setup:
-
-```typescript
-import houdini from 'houdini-preprocess'
-
-// somewhere in your config file
-{
-    plugins: [
-        svelte({
-            preprocess: [houdini()],
-        }),
-    ]
-}
-```
-
-### Sapper
-
-You'll need to add the preprocessor to both your client and your server configuration. With that in place,
-the only thing left to configure your Sapper application is to connect your client and server to the generate network layer:
-
-```typescript
-// in both src/client.js and src/server.js
-
-import { setEnvironment } from '$houdini'
-import env from './environment'
-
-setEnvironment(env)
-```
+Finally, follow the steps appropriate for your framework.
 
 ### SvelteKit
 
@@ -135,7 +109,11 @@ We need to define an alias so that your codebase can import the generated runtim
 values to `svelte.config.js`:
 
 ```typescript
+import houdini from 'houdini-preprocess'
+
 {
+    preprocess: [houdini()],
+    
     kit: {
         vite: {
             resolve: {
@@ -162,6 +140,49 @@ this, add the following block of code to `src/routes/__layout.svelte`:
 
 You might need to generate your runtime in order to fix typescript errors.
 
+
+**Note**: If you are building your application with
+[`adapter-static`](https://github.com/sveltejs/kit/tree/master/packages/adapter-static) (or any other adapter that turns
+your application into a static site), you will need to set the `static` value in your config file to `true`.
+
+### Sapper
+
+You'll need to add the preprocessor to both your client and your server configuration:
+
+```typescript
+import houdini from 'houdini-preprocess'
+
+// add to both server and client configurations
+{
+    plugins: [
+        svelte({
+            preprocess: [houdini()],
+        }),
+    ]
+}
+```
+
+With that in place, the only thing left to configure your Sapper application is to connect your client and server to the generate network layer:
+
+```typescript
+// in both src/client.js and src/server.js
+
+import { setEnvironment } from '$houdini'
+import env from './environment'
+
+setEnvironment(env)
+```
+
+### Svelte
+
+If you are working on an application that isn't using SvelteKit or Sapper, you have to configure the
+compiler and preprocessor to generate the correct logic by setting the `framework` field in your
+config file to `"svelte"`.
+
+Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the
+redirect as it will update your browsers `location` attribute, causing a hard transition to that url. Instead, you should
+use `this.error` to return an error and handle the redirect in a way that's appropriate for your application.
+
 ## <img src="./.github/assets/cylon.gif" height="28px" />&nbsp;&nbsp;Running the Compiler
 
 The compiler is responsible for a number of things, ranging from generating the actual runtime
@@ -178,20 +199,6 @@ If you have updated your schema on the server, you can pull down the most recent
 ```sh
 npx houdini generate --pull-schema
 ```
-
-**Note**: If you are building your application with
-[`adapter-static`](https://github.com/sveltejs/kit/tree/master/packages/adapter-static) (or any other adapter that turns
-your application into a static site), you will need to set the `static` value in your config file to `true`.
-
-### Svelte
-
-If you are working on an application that isn't using SvelteKit or Sapper, you have to configure the
-compiler and preprocessor to generate the correct logic by setting the `framework` field in your
-config file to `"svelte"`.
-
-Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the
-redirect as it will update your browsers `location` attribute, causing a hard transition to that url. Instead, you should
-use `this.error` to return an error and handle the redirect in a way that's appropriate for your application.
 
 ## 📄&nbsp;Config File
 
