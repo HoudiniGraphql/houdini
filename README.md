@@ -24,7 +24,8 @@ specific, feel free to reach out to @AlecAivazis on the Svelte discord. There's 
 -   Normalized cache with declarative updates
 -   Generated types
 -   Subscriptions
--   Support for Sapper and SvelteKit's public beta
+-   Support for SvelteKit and Sapper
+-   Pagination (cursors **and** offsets)
 
 At its core, houdini seeks to enable a high quality developer experience
 without compromising bundle size. Like Svelte, houdini shifts what is
