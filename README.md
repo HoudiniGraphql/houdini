@@ -64,6 +64,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Mutation Operations](#mutation-operations)
 1. [Custom Scalars](#%EF%B8%8Fcustom-scalars)
 1. [Authentication](#authentication)
+1. [Persisted Queries](#persisted-queries)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
 
 ## 🕹️&nbsp;&nbsp;Example
@@ -924,6 +925,92 @@ export default new Environment(async function ({ text, variables = {} }, session
     return await result.json()
 })
 ```
+
+## 🚦&nbsp;&nbsp;Persisted Queries
+
+### Improved network performance by sending smaller requests
+
+houdini supports persisted queries in two variants: [Relay](https://relay.dev/docs/guides/persisted-queries/) and [Apollo](https://www.apollographql.com/docs/apollo-server/performance/apq/)
+
+#### An example for Automatic persisted queries with Apollo:
+
+```typescript
+///src/environment.ts
+
+// This sends the actual fetch request to the server
+async function sendFetch({ text, variables, hash }) {
+	const result = await this.fetch('localhost:4000/graphql', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({
+			query: text ? text : undefined,
+			variables,
+			extensions: {
+				persistedQuery: {
+					version: 1,
+					sha256Hash: hash,
+				},
+			},
+		}),
+	})
+
+	return result.json();
+}
+
+export default new Environment(async function({ text, variables = {}, hash }){
+	const fetchWithoutQueryText = await sendFetch.apply(this, [{ variables, hash, text: null }])
+
+	if (!fetchWithoutQueryText.errors) {
+		return fetchWithoutQueryText
+	}
+
+	return await sendFetch.apply(this, { variables, hash, text })
+})
+```
+
+#### Persisted Queries in Relay Style:
+
+Run the houdini generate command with the `--persist-output <path>` flag.
+
+This results in a JSON file at the provided `<path>` you specify, containing a mapping from query `hash` (sha256) to the corresponding operation texts.
+
+```sh
+npx houdini generate --persist-output ./path/to/persisted-queries.json
+# or
+npx houdini generate -po ./path/to/persisted-queries.json
+```
+
+Instead of sending the full operation texts with every request you can now simply pass a doc_id or however you like to name it.
+
+```typescript
+///src/environment.ts
+
+export default new Environment(async function({ text, variables = {}, hash }){
+    const result = await this.fetch('http://localhost:4000', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            doc_id: hash,
+            variables,
+        }),
+    })
+
+    // parse the result as json
+    return await result.json()
+})
+
+```
+
+##### Executing Persisted Queries on the Server
+
+To execute client requests that send persisted queries instead of query text, your server will need to be able to lookup the query text corresponding to each `hash`. Typically this will involve saving the output of the --persist-output <path> JSON file to a database or some other storage mechanism, and retrieving the corresponding text for the ID specified by a client.
+
+For a detailed explanation please refer to the [Relay Docs](https://relay.dev/docs/guides/persisted-queries/#simple-server-example).
+
 
 ## ⚠️&nbsp;&nbsp;Notes, Constraints, and Conventions
 - The compiler must be run every time the contents of a `graphql` tagged string changes

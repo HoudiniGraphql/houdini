@@ -11,7 +11,7 @@ export default async function persistOutputGenerator(
 	config: Config,
 	docs: CollectedGraphQLDocument[]
 ) {
-	if (!config.outputPath || config.outputPath.length === 0) return
+	if (typeof config.outputPath !== 'string' || config.outputPath.length === 0) return
 
 	if (!config.outputPath.endsWith('.json')) {
 		console.log('Can only write the queryMap to a json file')
@@ -20,7 +20,7 @@ export default async function persistOutputGenerator(
 
 	const queryMap = docs.reduce<Record<string, string>>((acc, { document, generate }) => {
 		// if the document is generated, just return early since there is no operation
-		if (generate) {
+		if (!generate) {
 			return acc
 		}
 
