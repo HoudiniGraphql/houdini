@@ -500,75 +500,70 @@ describe('query preprocessor', function () {
 	test.todo('adds arguments to an empty preload')
 })
 
-// test('onLoad hook', async function () {
-// 	const doc = await preprocessorTest(
-// 		`
-// 		<script context="module">
-// 			export async function onLoad(){
-// 			   return this.redirect(302, '/test')
-// 			}
-// 		</script>
-// 		<script>
-// 			const { data } = query(graphql\`
-// 				query TestQuery {
-// 					viewer {
-// 						id
-// 					}
-// 				}
-// 			\`)
-// 		</script>
-// 	`
-// 	)
+test('onLoad hook', async function () {
+	const doc = await preprocessorTest(
+		`
+		<script context="module">
+			export async function onLoad(){
+			   return this.redirect(302, "/test")
+			}
+		</script>
+		<script>
+			const { data } = query(graphql\`
+				query TestQuery {
+					viewer {
+						id
+					}
+				}
+			\`)
+		</script>
+	`
+	)
 
-// 	expect(doc.module?.content).toMatchInlineSnapshot(`
-// 	import { convertKitPayload } from '$houdini';
-// 	import { fetchQuery, RequestContext } from '$houdini';
-// 	import _TestQueryArtifact from '$houdini/artifacts/TestQuery';
-// 	import { houdiniConfig } from '$houdini';
+	expect(doc.module?.content).toMatchInlineSnapshot(`
+		import { convertKitPayload } from "$houdini";
+		import { fetchQuery, RequestContext } from "$houdini";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import { houdiniConfig } from "$houdini";
 
-// 	export async function onLoad() {
-// 		return this.redirect(302, '/test');
-// 	}
+		export async function onLoad() {
+		    return this.redirect(302, "/test");
+		}
 
-// 	export async function load(context) {
-// 		const _houdini_context = new RequestContext(context);
-// 		const _TestQuery_Input = {};
+		export async function load(context) {
+		    const _houdini_context = new RequestContext(context);
+		    const _TestQuery_Input = {};
 
-// 		if (onLoad) {
-// 			const onLoadValue = _houdini_context.onLoadHook({
-// 				mode: 'sapper',
-// 				onLoadFunction: onLoad,
-// 			});
-// 		}
+		    _houdini_context.onLoadHook({
+		        "mode": "sapper",
+		        "onLoadFunction": onLoad
+		    });
 
-// 		if (!_houdini_context.continue) {
-// 			return _houdini_context.returnValue;
-// 		}
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
 
-// 		const _TestQuery = await fetchQuery(
-// 			_houdini_context,
-// 			{
-// 				text: _TestQueryArtifact.raw,
-// 				variables: _TestQuery_Input,
-// 			},
-// 			context.session
-// 		);
+		    const _TestQuery = await fetchQuery(_houdini_context, {
+		        "text": _TestQueryArtifact.raw,
+		        "variables": _TestQuery_Input
+		    }, context.session);
 
-// 		if (!_TestQuery.data) {
-// 			_houdini_context.graphqlErrors(_TestQuery);
-// 			return _houdini_context.returnValue;
-// 		}
+		    if (!_TestQuery.data) {
+		        _houdini_context.graphqlErrors(_TestQuery);
+		        return _houdini_context.returnValue;
+		    }
 
-// 		return {
-// 			props: {
-// 				_TestQuery: _TestQuery,
-// 				_TestQuery_Input: _TestQuery_Input,
-// 			},
-// 		};
-// 	}
+		    return {
+		        props: {
+		            ..._houdini_context.returnValue,
+		            _TestQuery: _TestQuery,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
+		    };
+		}
 
-// 	export function preload(page, session) {
-// 		return convertKitPayload(this, load, page, session);
-// 	}
-//   `)
-// })
+		export function preload(page, session) {
+		    return convertKitPayload(this, load, page, session);
+		}
+  `)
+})

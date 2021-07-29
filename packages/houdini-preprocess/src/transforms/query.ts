@@ -415,33 +415,22 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 				),
 			]),
 			onloadDefinition &&
-				AST.ifStatement(
-					AST.identifier('onLoad'),
-					AST.blockStatement([
-						AST.variableDeclaration('const', [
-							AST.variableDeclarator(
-								AST.identifier('onLoadValue'),
-								AST.callExpression(
-									AST.memberExpression(
-										requestContext,
-										AST.identifier('onLoadHook')
-									),
-									[
-										AST.objectExpression([
-											AST.objectProperty(
-												AST.literal('mode'),
-												AST.stringLiteral(config.framework)
-											),
-											AST.objectProperty(
-												AST.literal('onLoadFunction'),
-												AST.identifier('onLoad')
-											),
-										]),
-									]
-								)
-							),
-						]),
-					])
+				AST.expressionStatement(
+					AST.callExpression(
+						AST.memberExpression(requestContext, AST.identifier('onLoadHook')),
+						[
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.literal('mode'),
+									AST.stringLiteral(config.framework)
+								),
+								AST.objectProperty(
+									AST.literal('onLoadFunction'),
+									AST.identifier('onLoad')
+								),
+							]),
+						]
+					)
 				),
 			// if we ran into a problem computing the variables
 			AST.ifStatement(
@@ -508,16 +497,32 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			)
 		)
 
-		// add the field to the return value of preload
-		propsValue.properties.push(
-			// @ts-ignore
-			AST.objectProperty(AST.identifier(preloadKey), AST.identifier(preloadKey)),
-			// @ts-ignore
-			AST.objectProperty(
-				AST.identifier(variableIdentifier),
-				AST.identifier(variableIdentifier)
+		if (onloadDefinition) {
+			// add the field to the return value of preload
+			propsValue.properties.push(
+				// @ts-ignore
+				AST.spreadProperty(
+					AST.memberExpression(requestContext, AST.identifier('returnValue'))
+				),
+				AST.objectProperty(AST.identifier(preloadKey), AST.identifier(preloadKey)),
+				// @ts-ignore
+				AST.objectProperty(
+					AST.identifier(variableIdentifier),
+					AST.identifier(variableIdentifier)
+				)
 			)
-		)
+		} else {
+			// add the field to the return value of preload
+			propsValue.properties.push(
+				// @ts-ignore
+				AST.objectProperty(AST.identifier(preloadKey), AST.identifier(preloadKey)),
+				// @ts-ignore
+				AST.objectProperty(
+					AST.identifier(variableIdentifier),
+					AST.identifier(variableIdentifier)
+				)
+			)
+		}
 	}
 }
 
