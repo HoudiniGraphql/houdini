@@ -101,7 +101,7 @@ your API's schema. Next, generate your runtime:
 npx houdini generate
 ```
 
-and finally, add the preprocessor to your sapper setup:
+and finally, add the preprocessor to your config file:
 
 ```typescript
 import houdini from 'houdini-preprocess'
