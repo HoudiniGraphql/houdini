@@ -301,6 +301,14 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 	if (preloadDefinition) {
 		throw new Error('Cannot have a query where there is already a load() defined')
 	}
+
+	let onloadDefinition = body.find(
+		(expression) =>
+			expression.type === 'ExportNamedDeclaration' &&
+			expression.declaration?.type === 'FunctionDeclaration' &&
+			expression.declaration?.id?.name === 'onLoad'
+	) as ExportNamedDeclaration
+
 	const preloadFn = AST.functionDeclaration(
 		AST.identifier('load'),
 		[AST.identifier('context')],
@@ -406,7 +414,35 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 						: AST.objectExpression([])
 				),
 			]),
-
+			onloadDefinition &&
+				AST.ifStatement(
+					AST.identifier('onLoad'),
+					AST.blockStatement([
+						AST.variableDeclaration('const', [
+							AST.variableDeclarator(
+								AST.identifier('onLoadValue'),
+								AST.callExpression(
+									AST.memberExpression(
+										requestContext,
+										AST.identifier('onLoadHook')
+									),
+									[
+										AST.objectExpression([
+											AST.objectProperty(
+												AST.literal('mode'),
+												AST.stringLiteral(config.framework)
+											),
+											AST.objectProperty(
+												AST.literal('onLoadFunction'),
+												AST.identifier('onLoad')
+											),
+										]),
+									]
+								)
+							),
+						]),
+					])
+				),
 			// if we ran into a problem computing the variables
 			AST.ifStatement(
 				AST.unaryExpression(
@@ -496,6 +532,7 @@ function addSapperPreload(config: Config, body: Statement[]) {
 			expression.declaration?.type === 'FunctionDeclaration' &&
 			expression.declaration?.id?.name === 'preload'
 	) as ExportNamedDeclaration
+
 	// if there isn't one, add it
 	if (preloadDefinition) {
 		throw new Error('Cannot have a query where there is already a preload() defined')

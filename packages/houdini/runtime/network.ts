@@ -233,6 +233,14 @@ export class RequestContext {
 		return this.error(500, 'Encountered invalid response: ' + JSON.stringify(payload))
 	}
 
+	onLoadHook({ mode, onLoadFunction }: any) {
+		if (mode === 'kit') {
+			onLoadFunction.call(this, this.context)
+		} else {
+			onLoadFunction.call(this, this.context.page, this.context.session)
+		}
+	}
+
 	// compute the inputs for an operation should reflect the framework's conventions.
 	// in sapper, this means preparing a `this` for the function. for kit, we can just pass
 	// the context
