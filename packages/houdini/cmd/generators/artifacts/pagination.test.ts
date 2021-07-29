@@ -235,6 +235,7 @@ test("sibling aliases don't get marked", async function () {
 					module.exports = {
 					    name: "PaginatedFragment",
 					    kind: "HoudiniFragment",
+						hash: "1a2d87a1d79e0241ab3ebda1cd43296a631d99973bb06e4fc66becd42c4a67be",
 
 					    refetch: {
 					        update: "append",
