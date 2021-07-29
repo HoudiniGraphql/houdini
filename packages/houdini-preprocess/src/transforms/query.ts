@@ -379,6 +379,39 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			0,
 			// @ts-ignore
 			// compute the query variables once
+			onloadDefinition &&
+				AST.expressionStatement(
+					AST.awaitExpression(
+						AST.callExpression(
+							AST.memberExpression(requestContext, AST.identifier('onLoadHook')),
+							[
+								AST.objectExpression([
+									AST.objectProperty(
+										AST.literal('mode'),
+										AST.stringLiteral(config.framework)
+									),
+									AST.objectProperty(
+										AST.literal('onLoadFunction'),
+										AST.identifier('onLoad')
+									),
+								]),
+							]
+						)
+					)
+				),
+			// if the onLoad function returned an error or redirect
+			onloadDefinition &&
+				AST.ifStatement(
+					AST.unaryExpression(
+						'!',
+						AST.memberExpression(requestContext, AST.identifier('continue'))
+					),
+					AST.blockStatement([
+						AST.returnStatement(
+							AST.memberExpression(requestContext, AST.identifier('returnValue'))
+						),
+					])
+				),
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier(variableIdentifier),
@@ -414,26 +447,6 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 						: AST.objectExpression([])
 				),
 			]),
-			onloadDefinition &&
-				AST.expressionStatement(
-					AST.awaitExpression(
-						AST.callExpression(
-							AST.memberExpression(requestContext, AST.identifier('onLoadHook')),
-							[
-								AST.objectExpression([
-									AST.objectProperty(
-										AST.literal('mode'),
-										AST.stringLiteral(config.framework)
-									),
-									AST.objectProperty(
-										AST.literal('onLoadFunction'),
-										AST.identifier('onLoad')
-									),
-								]),
-							]
-						)
-					)
-				),
 			// if we ran into a problem computing the variables
 			AST.ifStatement(
 				AST.unaryExpression(
@@ -446,7 +459,6 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 					),
 				])
 			),
-
 			// @ts-ignore
 			// perform the fetch and save the value under {preloadKey}
 			AST.variableDeclaration('const', [

@@ -252,6 +252,10 @@ export class RequestContext {
 						this.context.session
 				  )
 
+		// If the returnValue is already set through this.error or this.redirect return early
+		if (this.continue) {
+			return
+		}
 		// If the result is null or undefined, or the result isn't an object return early
 		if (result == null || typeof result !== 'object') {
 			return

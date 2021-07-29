@@ -507,10 +507,16 @@ test('onLoad hook', async function () {
 			export async function onLoad(){
 			   return this.redirect(302, "/test")
 			}
+
+			export function TestQueryVariables(page) {
+				return {
+					test: true
+				}
+			}
 		</script>
 		<script>
 			const { data } = query(graphql\`
-				query TestQuery {
+				query TestQuery($test: Boolean!) {
 					viewer {
 						id
 					}
@@ -530,13 +536,29 @@ test('onLoad hook', async function () {
 		    return this.redirect(302, "/test");
 		}
 
+		export function TestQueryVariables(page) {
+		    return {
+		        test: true
+		    };
+		}
+
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
-		    const _TestQuery_Input = {};
 
 		    await _houdini_context.onLoadHook({
 		        "mode": "sapper",
 		        "onLoadFunction": onLoad
+		    });
+
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery_Input = _houdini_context.computeInput({
+		        "config": houdiniConfig,
+		        "mode": "sapper",
+		        "variableFunction": TestQueryVariables,
+		        "artifact": _TestQueryArtifact
 		    });
 
 		    if (!_houdini_context.continue) {
