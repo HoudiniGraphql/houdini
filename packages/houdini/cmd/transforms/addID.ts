@@ -6,7 +6,7 @@ import { CollectedGraphQLDocument } from '../types'
 import { unwrapType } from '../utils'
 
 // typename adds __typename to the selection set of any unions or interfaces
-export default async function addTypename(
+export default async function addID(
 	config: Config,
 	documents: CollectedGraphQLDocument[]
 ): Promise<void> {

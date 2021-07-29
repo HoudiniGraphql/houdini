@@ -29,8 +29,8 @@ test('save root object', function () {
 			firstName: 'bob',
 		},
 	}
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -47,8 +47,7 @@ test('save root object', function () {
 			},
 		},
 		data,
-		{}
-	)
+	})
 
 	// make sure we can get back what we wrote
 	expect(cache.internal.getRecord(cache.id('User', data.viewer)!)?.fields).toEqual({
@@ -62,8 +61,8 @@ test('partial update existing record', function () {
 	const cache = new Cache(config)
 
 	// save the data
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -79,17 +78,16 @@ test('partial update existing record', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
 			},
 		},
-		{}
-	)
+	})
 
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -105,14 +103,13 @@ test('partial update existing record', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 				lastName: 'barker',
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we can get back what we wrote
 	expect(cache.internal.getRecord(cache.id('User', '1')!)?.fields).toEqual({
@@ -127,8 +124,8 @@ test('linked records with updates', function () {
 	const cache = new Cache(config)
 
 	// save the data
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -158,7 +155,7 @@ test('linked records with updates', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
@@ -168,8 +165,7 @@ test('linked records with updates', function () {
 				},
 			},
 		},
-		{}
-	)
+	})
 
 	// check user 1
 	const user1 = cache.internal.getRecord(cache.id('User', '1')!)
@@ -191,8 +187,8 @@ test('linked records with updates', function () {
 	expect(user2?.linkedRecord('parent')).toBeFalsy()
 
 	// associate user2 with a new parent
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -222,7 +218,7 @@ test('linked records with updates', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '2',
 				firstName: 'jane-prime',
@@ -232,8 +228,7 @@ test('linked records with updates', function () {
 				},
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we updated user 2
 	expect(user2?.fields).toEqual({
@@ -251,8 +246,8 @@ test('linked lists', function () {
 	const cache = new Cache(config)
 
 	// add some data to the cache
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -282,7 +277,7 @@ test('linked lists', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
@@ -298,8 +293,7 @@ test('linked lists', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we can get the linked lists back
 	const friendData = cache.internal
@@ -323,8 +317,8 @@ test('list as value with args', function () {
 	const cache = new Cache(config)
 
 	// add some data to the cache
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -344,15 +338,14 @@ test('list as value with args', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
 				favoriteColors: ['red', 'green', 'blue'],
 			},
 		},
-		{}
-	)
+	})
 
 	// look up the value
 	expect(
@@ -386,17 +379,16 @@ test('root subscribe - field change', function () {
 	}
 
 	// write some data
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
 				favoriteColors: ['red', 'green', 'blue'],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -409,16 +401,15 @@ test('root subscribe - field change', function () {
 	})
 
 	// somehow write a user to the cache with the same id, but a different name
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'mary',
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
@@ -456,17 +447,16 @@ test('root subscribe - linked object changed', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
 				favoriteColors: ['red', 'green', 'blue'],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -479,17 +469,16 @@ test('root subscribe - linked object changed', function () {
 	})
 
 	// somehow write a user to the cache with a different id
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '2',
 				firstName: 'mary',
 				// ignoring favoriteColors as a sanity check (should get undefined)
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
@@ -533,13 +522,12 @@ test("subscribing to null object doesn't explode", function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: null,
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -552,16 +540,15 @@ test("subscribing to null object doesn't explode", function () {
 	})
 
 	// somehow write a user to the cache with a different id
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '2',
 				firstName: 'mary',
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
@@ -606,9 +593,9 @@ test('root subscribe - linked list lost entry', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -623,8 +610,7 @@ test('root subscribe - linked list lost entry', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -637,9 +623,9 @@ test('root subscribe - linked list lost entry', function () {
 	})
 
 	// somehow write a user to the cache with a new friends list
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -649,8 +635,7 @@ test('root subscribe - linked list lost entry', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
@@ -703,9 +688,9 @@ test("subscribing to list with null values doesn't explode", function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -717,8 +702,7 @@ test("subscribing to list with null values doesn't explode", function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -731,9 +715,9 @@ test("subscribing to list with null values doesn't explode", function () {
 	})
 
 	// somehow write a user to the cache with a new friends list
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -743,8 +727,7 @@ test("subscribing to list with null values doesn't explode", function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
@@ -792,9 +775,9 @@ test('root subscribe - linked list reorder', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -809,8 +792,7 @@ test('root subscribe - linked list reorder', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -823,9 +805,9 @@ test('root subscribe - linked list reorder', function () {
 	})
 
 	// somehow write a user to the cache with the same id, but a different name
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -838,8 +820,7 @@ test('root subscribe - linked list reorder', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
@@ -893,17 +874,16 @@ test('unsubscribe', function () {
 	}
 
 	// write some data
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
 				favoriteColors: ['red', 'green', 'blue'],
 			},
 		},
-		{}
-	)
+	})
 
 	// the spec we will register/unregister
 	const spec = {
@@ -945,7 +925,11 @@ test('append in list', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -962,9 +946,9 @@ test('append in list', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -975,8 +959,7 @@ test('append in list', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -1031,7 +1014,11 @@ test('prepend in list', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1048,9 +1035,9 @@ test('prepend in list', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -1061,8 +1048,7 @@ test('prepend in list', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -1101,6 +1087,440 @@ test('prepend in list', function () {
 	})
 })
 
+test('remove from connection', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: true,
+						type: 'User',
+					},
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'Node',
+									keyRaw: 'node',
+									abstract: true,
+									fields: {
+										__typename: {
+											type: 'String',
+											keyRaw: '__typename',
+										},
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection: selection,
+	})
+
+	// remove user 2 from the list
+	cache.list('All_Users').remove({
+		id: '2',
+	})
+
+	// the first time set was called, a new entry was added.
+	// the second time it's called, we get a new value for mary-prime
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							__typename: 'User',
+							id: '3',
+							firstName: 'jane',
+						},
+					},
+				],
+			},
+		},
+	})
+
+	// make sure we aren't subscribing to user 2 any more
+	expect(
+		cache.internal.getRecord(cache.id('User', '2')!)?.getSubscribers('firstName')
+	).toHaveLength(0)
+	// but we're still subscribing to user 3
+	expect(
+		cache.internal.getRecord(cache.id('User', '3')!)?.getSubscribers('firstName')
+	).toHaveLength(1)
+	// make sure we deleted the edge holding onto this information
+	expect(cache.internal.getRecord('User:1.friends.edges[0]#User:2')).toBeUndefined()
+})
+
+test('append in connection', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: true,
+						type: 'User',
+					},
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'Node',
+									keyRaw: 'node',
+									abstract: true,
+									fields: {
+										__typename: {
+											type: 'String',
+											keyRaw: '__typename',
+										},
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// insert an element into the list (no parent ID)
+	cache.list('All_Users').append(
+		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
+		{
+			id: '3',
+			firstName: 'mary',
+		}
+	)
+
+	// make sure we got the new value
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							__typename: 'User',
+							id: '2',
+							firstName: 'jane',
+						},
+					},
+					{
+						node: {
+							__typename: 'User',
+							id: '3',
+							firstName: 'mary',
+						},
+					},
+				],
+			},
+		},
+	})
+})
+
+test('inserting data with an update overwrites a record inserted with list.append', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: true,
+						type: 'User',
+					},
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'Node',
+									keyRaw: 'node',
+									abstract: true,
+									fields: {
+										__typename: {
+											type: 'String',
+											keyRaw: '__typename',
+										},
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// insert an element into the list (no parent ID)
+	cache.list('All_Users').append(
+		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
+		{
+			id: '3',
+			firstName: 'mary',
+		}
+	)
+
+	// insert a record with a query update
+	cache.write({
+		applyUpdates: true,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'John',
+				friends: {
+					edges: [
+						{
+							cursor: '1234',
+							node: {
+								id: '3',
+								firstName: 'mary',
+							},
+						},
+					],
+				},
+			},
+		},
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					firstName: {
+						type: 'String',
+						keyRaw: 'firstName',
+					},
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						fields: {
+							edges: {
+								type: 'UserEdge',
+								keyRaw: 'edges',
+								update: 'append',
+								fields: {
+									cursor: {
+										type: 'String',
+										keyRaw: 'cursor',
+									},
+									node: {
+										type: 'User',
+										keyRaw: 'node',
+										fields: {
+											id: {
+												type: 'ID',
+												keyRaw: 'id',
+											},
+											firstName: {
+												type: 'String',
+												keyRaw: 'firstName',
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		} as SubscriptionSelection,
+	})
+
+	// make sure the duplicate has been removed
+	expect(set).toHaveBeenNthCalledWith(2, {
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							__typename: 'User',
+							id: '2',
+							firstName: 'jane',
+						},
+					},
+					{
+						node: {
+							__typename: 'User',
+							id: '3',
+							firstName: 'mary',
+						},
+					},
+				],
+			},
+		},
+	})
+})
+
 test('list filter - must_not positive', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
@@ -1117,7 +1537,11 @@ test('list filter - must_not positive', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1140,9 +1564,9 @@ test('list filter - must_not positive', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -1153,8 +1577,7 @@ test('list filter - must_not positive', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -1215,7 +1638,11 @@ test('list filter - must_not negative', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1238,9 +1665,9 @@ test('list filter - must_not negative', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -1251,8 +1678,7 @@ test('list filter - must_not negative', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -1299,7 +1725,11 @@ test('list filter - must positive', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1322,9 +1752,9 @@ test('list filter - must positive', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -1335,8 +1765,7 @@ test('list filter - must positive', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -1397,7 +1826,11 @@ test('list filter - must negative', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					filters: {
 						foo: {
 							kind: 'String',
@@ -1420,9 +1853,9 @@ test('list filter - must negative', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -1433,8 +1866,7 @@ test('list filter - must negative', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -1481,7 +1913,11 @@ test('subscribe to new list nodes', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1498,9 +1934,9 @@ test('subscribe to new list nodes', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -1511,8 +1947,7 @@ test('subscribe to new list nodes', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -1534,9 +1969,9 @@ test('subscribe to new list nodes', function () {
 	)
 
 	// update the user we just added
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -1551,8 +1986,7 @@ test('subscribe to new list nodes', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// the first time set was called, a new entry was added.
 	// the second time it's called, we get a new value for mary-prime
@@ -1589,7 +2023,11 @@ test('remove from list', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1606,9 +2044,9 @@ test('remove from list', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -1619,8 +2057,7 @@ test('remove from list', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -1668,7 +2105,11 @@ test('delete node', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1685,9 +2126,9 @@ test('delete node', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -1698,8 +2139,7 @@ test('delete node', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -1713,6 +2153,7 @@ test('delete node', function () {
 
 	// remove user 2 from the list
 	cache.delete(
+		'User',
 		cache.id('User', {
 			id: '2',
 		})!
@@ -1730,13 +2171,119 @@ test('delete node', function () {
 	expect(cache.internal.getRecord('User:2')).toBeFalsy()
 })
 
+test('delete node from connection', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: true,
+						type: 'User',
+					},
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'Node',
+									keyRaw: 'node',
+									abstract: true,
+									fields: {
+										__typename: {
+											type: 'String',
+											keyRaw: '__typename',
+										},
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// remove user 2 from the list
+	cache.delete(
+		'User',
+		cache.id('User', {
+			id: '2',
+		})!
+	)
+
+	// we should have been updated with an empty list
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [],
+			},
+		},
+	})
+
+	// make sure its empty now
+	expect(cache.internal.getRecord('User:2')).toBeFalsy()
+})
+
 test('append operation', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
 
 	// create a list we will add to
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -1748,13 +2295,12 @@ test('append operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 			},
 		},
-		{}
-	)
+	})
 
 	// subscribe to the data to register the list
 	cache.subscribe(
@@ -1764,7 +2310,11 @@ test('append operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -1785,8 +2335,8 @@ test('append operation', function () {
 
 	// write some data to a different location with a new user
 	// that should be added to the list
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			newUser: {
 				type: 'User',
 				keyRaw: 'newUser',
@@ -1808,13 +2358,12 @@ test('append operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			newUser: {
 				id: '3',
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we just added to the list
 	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(1)
@@ -1825,8 +2374,8 @@ test('append when operation', function () {
 	const cache = new Cache(config)
 
 	// create a list we will add to
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -1838,13 +2387,12 @@ test('append when operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 			},
 		},
-		{}
-	)
+	})
 
 	// subscribe to the data to register the list
 	cache.subscribe(
@@ -1854,7 +2402,11 @@ test('append when operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					filters: {
 						value: {
 							kind: 'String',
@@ -1881,8 +2433,8 @@ test('append when operation', function () {
 
 	// write some data to a different location with a new user
 	// that should be added to the list
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			newUser: {
 				type: 'User',
 				keyRaw: 'newUser',
@@ -1909,13 +2461,12 @@ test('append when operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			newUser: {
 				id: '3',
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we just added to the list
 	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
@@ -1926,8 +2477,8 @@ test('prepend when operation', function () {
 	const cache = new Cache(config)
 
 	// create a list we will add to
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -1939,13 +2490,12 @@ test('prepend when operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 			},
 		},
-		{}
-	)
+	})
 
 	// subscribe to the data to register the list
 	cache.subscribe(
@@ -1955,7 +2505,11 @@ test('prepend when operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					filters: {
 						value: {
 							kind: 'String',
@@ -1982,8 +2536,8 @@ test('prepend when operation', function () {
 
 	// write some data to a different location with a new user
 	// that should be added to the list
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			newUser: {
 				type: 'User',
 				keyRaw: 'newUser',
@@ -2011,13 +2565,12 @@ test('prepend when operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			newUser: {
 				id: '3',
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we just added to the list
 	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
@@ -2028,8 +2581,8 @@ test('prepend operation', function () {
 	const cache = new Cache(config)
 
 	// create a list we will add to
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -2055,7 +2608,7 @@ test('prepend operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -2066,8 +2619,7 @@ test('prepend operation', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// subscribe to the data to register the list
 	cache.subscribe(
@@ -2077,7 +2629,11 @@ test('prepend operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2098,8 +2654,8 @@ test('prepend operation', function () {
 
 	// write some data to a different location with a new user
 	// that should be added to the list
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			newUser: {
 				type: 'User',
 				keyRaw: 'newUser',
@@ -2122,13 +2678,12 @@ test('prepend operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			newUser: {
 				id: '3',
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we just added to the list
 	expect(
@@ -2141,8 +2696,8 @@ test('remove operation', function () {
 	const cache = new Cache(config)
 
 	// create a list we will add to
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -2168,14 +2723,13 @@ test('remove operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [{ id: '2', firstName: 'jane' }],
 			},
 		},
-		{}
-	)
+	})
 
 	// subscribe to the data to register the list
 	cache.subscribe(
@@ -2185,7 +2739,11 @@ test('remove operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2206,8 +2764,8 @@ test('remove operation', function () {
 
 	// write some data to a different location with a new user
 	// that should be removed from the operation
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			newUser: {
 				type: 'User',
 				keyRaw: 'newUser',
@@ -2229,13 +2787,12 @@ test('remove operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			newUser: {
 				id: '2',
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we removed the element from the list
 	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
@@ -2246,8 +2803,8 @@ test('delete operation', function () {
 	const cache = new Cache(config)
 
 	// create a list we will add to
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
@@ -2273,14 +2830,13 @@ test('delete operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [{ id: '2', firstName: 'jane' }],
 			},
 		},
-		{}
-	)
+	})
 
 	// subscribe to the data to register the list
 	cache.subscribe(
@@ -2290,7 +2846,11 @@ test('delete operation', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2311,8 +2871,8 @@ test('delete operation', function () {
 
 	// write some data to a different location with a new user
 	// that should be added to the list
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			deleteUser: {
 				type: 'User',
 				keyRaw: 'deleteUser',
@@ -2330,13 +2890,12 @@ test('delete operation', function () {
 				},
 			},
 		},
-		{
+		data: {
 			deleteUser: {
 				id: '2',
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we removed the element from the list
 	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
@@ -2360,7 +2919,11 @@ test('variables in query and subscription', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends(filter: $filter)',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2377,9 +2940,9 @@ test('variables in query and subscription', function () {
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -2394,10 +2957,10 @@ test('variables in query and subscription', function () {
 				],
 			},
 		},
-		{
+		variables: {
 			filter: 'foo',
-		}
-	)
+		},
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -2419,9 +2982,9 @@ test('variables in query and subscription', function () {
 	expect(cache.list('All_Users').key).toEqual('friends(filter: "foo")')
 
 	// somehow write a user to the cache with a new friends list
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				friends: [
@@ -2431,10 +2994,10 @@ test('variables in query and subscription', function () {
 				],
 			},
 		},
-		{
+		variables: {
 			filter: 'foo',
-		}
-	)
+		},
+	})
 
 	// make sure that set got called with the full response
 	expect(set).toHaveBeenCalledWith({
@@ -2471,7 +3034,11 @@ test('deleting a node removes nested subscriptions', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2488,15 +3055,18 @@ test('deleting a node removes nested subscriptions', function () {
 	}
 
 	// start off associated with one object
-	cache.write(selection, {
-		viewer: {
-			id: '1',
-			friends: [
-				{
-					id: '2',
-					firstName: 'jane',
-				},
-			],
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
 		},
 	})
 
@@ -2514,7 +3084,7 @@ test('deleting a node removes nested subscriptions', function () {
 	expect(cache.internal.getRecord('User:2')?.getSubscribers('firstName')).toHaveLength(1)
 
 	// delete the parent
-	cache.delete('User:1')
+	cache.delete('User', 'User:1')
 
 	// sanity check
 	expect(cache.internal.getRecord('User:2')?.getSubscribers('firstName')).toHaveLength(0)
@@ -2540,7 +3110,11 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
-					list: 'All_Users',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
 					fields: {
 						id: {
 							type: 'ID',
@@ -2557,9 +3131,9 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 	}
 
 	// start off associated with one object
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
@@ -2571,10 +3145,10 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 				],
 			},
 		},
-		{
+		variables: {
 			filter: 'foo',
-		}
-	)
+		},
+	})
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
@@ -2645,24 +3219,27 @@ test('embedded references', function () {
 	}
 
 	// write an embedded list of embedded objects holding references to an object
-	cache.write(selection, {
-		viewer: {
-			id: '1',
-			friends: {
-				edges: [
-					{
-						node: {
-							id: '2',
-							firstName: 'jane',
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								id: '2',
+								firstName: 'jane',
+							},
 						},
-					},
-					{
-						node: {
-							id: '3',
-							firstName: 'mary',
+						{
+							node: {
+								id: '3',
+								firstName: 'mary',
+							},
 						},
-					},
-				],
+					],
+				},
 			},
 		},
 	})
@@ -2683,8 +3260,8 @@ test('embedded references', function () {
 	)
 
 	// update one of the embedded references
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			user: {
 				type: 'User',
 				keyRaw: 'user',
@@ -2700,13 +3277,13 @@ test('embedded references', function () {
 				},
 			},
 		},
-		{
+		data: {
 			user: {
 				id: '2',
 				firstName: 'not-jane',
 			},
-		}
-	)
+		},
+	})
 
 	// make sure we got the updated data
 	expect(set).toHaveBeenCalledWith({
@@ -2781,8 +3358,8 @@ test('writing abstract objects', function () {
 			firstName: 'bob',
 		},
 	}
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			viewer: {
 				type: 'Node',
 				abstract: true,
@@ -2804,8 +3381,7 @@ test('writing abstract objects', function () {
 			},
 		},
 		data,
-		{}
-	)
+	})
 
 	// make sure we can get back what we wrote
 	expect(cache.internal.getRecord(cache.id('User', data.viewer)!)?.fields).toEqual({
@@ -2834,8 +3410,8 @@ test('writing abstract lists', function () {
 			},
 		],
 	}
-	cache.write(
-		{
+	cache.write({
+		selection: {
 			nodes: {
 				type: 'Node',
 				abstract: true,
@@ -2857,8 +3433,7 @@ test('writing abstract lists', function () {
 			},
 		},
 		data,
-		{}
-	)
+	})
 
 	// make sure we can get back what we wrote
 	expect(cache.internal.getRecord(cache.id('User', data.nodes[0])!)?.fields).toEqual({
@@ -2899,7 +3474,7 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	}
 
 	// write the data to cache
-	cache.write(selection, data, {})
+	cache.write({ selection, data })
 
 	// pull the data out of the cache
 	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
@@ -2941,7 +3516,7 @@ test('can pull enum from cached values', function () {
 	}
 
 	// write the data to cache
-	cache.write(selection, data, {})
+	cache.write({ selection, data })
 
 	// pull the data out of the cache
 	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
@@ -2988,9 +3563,9 @@ test('can store and retrieve lists with null values', function () {
 	}
 
 	// add some data to the cache
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
@@ -3003,8 +3578,7 @@ test('can store and retrieve lists with null values', function () {
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we can get the linked lists back
 	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
@@ -3058,13 +3632,12 @@ test('can store and retrieve links with null values', function () {
 	}
 
 	// add some data to the cache
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: null,
 		},
-		{}
-	)
+	})
 
 	// make sure we can get the linked record back
 	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
@@ -3108,17 +3681,16 @@ test('can write list of just null', function () {
 	}
 
 	// add some data to the cache
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
 				friends: [null],
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we can get the linked lists back
 	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
@@ -3156,17 +3728,16 @@ test('can write list of scalars', function () {
 	}
 
 	// add some data to the cache
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
 				friends: [1],
 			},
 		},
-		{}
-	)
+	})
 
 	// make sure we can get the linked lists back
 	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
@@ -3176,6 +3747,642 @@ test('can write list of scalars', function () {
 			friends: [1],
 		},
 	})
+})
+
+test('writing a scalar marked with a disabled update overwrites', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'Int',
+					keyRaw: 'friends',
+					update: 'append',
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [1],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1],
+		},
+	})
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [2],
+			},
+		},
+	})
+
+	// make sure we can get the updated lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [2],
+		},
+	})
+})
+
+test('writing a scalar marked with a prepend', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'Int',
+					keyRaw: 'friends',
+					update: 'prepend',
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [1],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1],
+		},
+	})
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [2],
+			},
+		},
+		applyUpdates: true,
+	})
+
+	// make sure we can get the updated lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [2, 1],
+		},
+	})
+})
+
+test('writing a scalar marked with an append', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'Int',
+					keyRaw: 'friends',
+					update: 'append',
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [1],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1],
+		},
+	})
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [2],
+			},
+		},
+		applyUpdates: true,
+	})
+
+	// make sure we can get the updated lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1, 2],
+		},
+	})
+})
+
+test('writing a scalar marked with replace', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'Int',
+					keyRaw: 'friends',
+					update: 'append',
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [1],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [1],
+		},
+	})
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [2],
+			},
+		},
+	})
+
+	// make sure we can get the updated lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [2],
+		},
+	})
+})
+
+test('disabled linked lists update', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					update: 'append',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '2',
+			firstName: 'jane',
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		},
+	])
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '3',
+						firstName: 'jane',
+					},
+					{
+						id: '4',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '3',
+			firstName: 'jane',
+		},
+		{
+			id: '4',
+			firstName: 'mary',
+		},
+	])
+})
+
+test('append linked lists update', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					update: 'append',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '2',
+			firstName: 'jane',
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		},
+	])
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '4',
+						firstName: 'jane',
+					},
+					{
+						id: '5',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+		applyUpdates: true,
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '2',
+			firstName: 'jane',
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		},
+		{
+			id: '4',
+			firstName: 'jane',
+		},
+		{
+			id: '5',
+			firstName: 'mary',
+		},
+	])
+})
+
+test('prepend linked lists update', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					update: 'prepend',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	} as SubscriptionSelection
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+		applyUpdates: true,
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '2',
+			firstName: 'jane',
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		},
+	])
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '4',
+						firstName: 'jane',
+					},
+					{
+						id: '5',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+		applyUpdates: true,
+	})
+
+	// make sure we can get the linked lists back
+	expect(
+		cache.internal
+			.getRecord(cache.id('User', '1')!)
+			?.linkedList('friends')
+			.map((data) => data!.fields)
+	).toEqual([
+		{
+			id: '4',
+			firstName: 'jane',
+		},
+		{
+			id: '5',
+			firstName: 'mary',
+		},
+		{
+			id: '2',
+			firstName: 'jane',
+		},
+		{
+			id: '3',
+			firstName: 'mary',
+		},
+	])
 })
 
 test('self-referencing linked lists can be unsubscribed (avoid infinite recursion)', function () {
@@ -3228,9 +4435,9 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 	}
 
 	// add some data to the cache
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
@@ -3248,8 +4455,7 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 				],
 			},
 		},
-		{}
-	)
+	})
 
 	// subscribe to the list
 	const spec = {
@@ -3330,9 +4536,9 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 	}
 
 	// add some data to the cache
-	cache.write(
+	cache.write({
 		selection,
-		{
+		data: {
 			viewer: {
 				id: '1',
 				firstName: 'bob',
@@ -3350,8 +4556,7 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 				},
 			},
 		},
-		{}
-	)
+	})
 
 	// subscribe to the list
 	const spec = {

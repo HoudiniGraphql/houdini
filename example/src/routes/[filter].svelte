@@ -18,26 +18,34 @@
 </script>
 
 <script lang="ts">
-	import { query, graphql, mutation, subscription, AllItems, AddItem } from '$houdini'
+	import { paginatedQuery, graphql, mutation, subscription, AddItem, AllItems } from '$houdini'
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { page } from '$app/stores'
 	import { derived } from 'svelte/store'
 
 	// load the items
-	const { data } = query<AllItems>(graphql`
+	const { data, loadNextPage, pageInfo } = paginatedQuery<AllItems>(graphql`
 		query AllItems($completed: Boolean) {
-			filteredItems: items(completed: $completed) @list(name: "Filtered_Items") {
-				id
-				completed
-				...ItemEntry_item
+			filteredItems: items(completed: $completed, first: 2) @paginate(name: "Filtered_Items")  {
+				edges { 
+					node { 
+						id
+						completed
+						...ItemEntry_item
+					}
+				}
 			}
 			allItems: items @list(name: "All_Items") {
-				id
-				completed
+				edges { 
+					node { 
+						id
+						completed
+					}
+				}
 			}
 		}
 	`)
-
+	
 	// state and handler for the new item input
 	const addItem = mutation<AddItem>(graphql`
 		mutation AddItem($input: AddItemInput!) {
@@ -55,17 +63,15 @@
 				item {
 					...All_Items_insert
 					...Filtered_Items_insert
-						@prepend(when_not: { argument: "completed", value: "true" })
+						@prepend(when_not: {completed: true})
 				}
 			}
 		}
 	`)
 
-	const numberOfItems = derived(data, ($data) => $data.allItems.length)
-	const itemsLeft = derived(
-		data,
-		($data) => $data.allItems.filter((item) => !item.completed).length
-	)
+
+	$: numberOfItems = $data.allItems.edges.length
+	$: itemsLeft = $data.allItems.edges.filter(({node: item}) => !item.completed).length
 
 	// figure out the current page
 	const currentPage = derived(page, ($page) => {
@@ -94,6 +100,11 @@
 	<a href="/">
 		<h1>todos</h1>
 	</a>
+	{#if $pageInfo.hasNextPage} 
+		<nav>
+			<button on:click={() => loadNextPage()}>load more</button>
+		</nav>
+	{/if}
 	<input
 		class="new-todo"
 		placeholder="What needs to be done?"
@@ -101,19 +112,18 @@
 		on:blur={onBlur}
 	/>
 </header>
-
 <section class="main">
 	<input id="toggle-all" class="toggle-all" type="checkbox" />
 	<label for="toggle-all">Mark all as complete</label>
 	<ul class="todo-list">
-		{#each $data.filteredItems as item (item.id)}
-			<ItemEntry {item} />
+		{#each $data.filteredItems.edges as edge (edge.node.id)}
+			<ItemEntry item={edge.node} />
 		{/each}
 	</ul>
 </section>
-{#if $numberOfItems > 0}
+{#if numberOfItems > 0}
 	<footer class="footer">
-		<span class="todo-count"><strong>{$itemsLeft}</strong> item left</span>
+		<span class="todo-count"><strong>{itemsLeft}</strong> item left</span>
 		<ul class="filters">
 			<li>
 				<a class:selected={$currentPage === 'all'} class="selected" href="/">All</a>
@@ -127,3 +137,24 @@
 		</ul>
 	</footer>
 {/if}
+
+
+<style>
+	nav { 
+		position: absolute;
+		right: 0;
+		top: -30px;
+	}
+
+	button { 
+		border: 1px solid darkgray;
+		border-radius: 3px;
+		padding: 4px;
+		background: white;
+		cursor: pointer;	
+	}
+
+	button:active { 
+		background: #f6f6f6;
+	}
+</style>

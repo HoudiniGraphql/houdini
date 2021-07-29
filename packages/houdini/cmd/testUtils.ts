@@ -46,7 +46,7 @@ export function pipelineTest(
 	})
 }
 
-export function mockCollectedDoc(query: string) {
+export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 	const parsed = graphql.parse(query)
 
 	// look at the first definition in the pile for the name
@@ -58,7 +58,6 @@ export function mockCollectedDoc(query: string) {
 		document: parsed,
 		originalDocument: parsed,
 		filename: `${name}.ts`,
-		printed: query,
-		generated: false,
+		generate: true,
 	}
 }

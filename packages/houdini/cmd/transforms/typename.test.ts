@@ -28,8 +28,8 @@ test('adds __typename on interface selection sets under query', async function (
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"query Friends {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		query Friends {
 		  friends {
 		    ... on Cat {
 		      id
@@ -40,7 +40,7 @@ test('adds __typename on interface selection sets under query', async function (
 		    __typename
 		  }
 		}
-		"
+
 	`)
 })
 
@@ -69,9 +69,9 @@ test('adds __typename on interface selection sets under an object', async functi
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"query Friends {
-		  users(stringValue: \\"hello\\") {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		query Friends {
+		  users(stringValue: "hello") {
 		    friendsInterface {
 		      ... on Cat {
 		        id
@@ -85,7 +85,7 @@ test('adds __typename on interface selection sets under an object', async functi
 		    id
 		  }
 		}
-		"
+
 	`)
 })
 
@@ -111,8 +111,8 @@ test('adds __typename on unions', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"query Friends {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		query Friends {
 		  entities {
 		    ... on Cat {
 		      id
@@ -123,6 +123,6 @@ test('adds __typename on unions', async function () {
 		    __typename
 		  }
 		}
-		"
+
 	`)
 })

@@ -1,5 +1,5 @@
 // externals
-import { Config, getRootType, hashDocument, parentTypeFromAncestors } from 'houdini-common'
+import { Config, getRootType, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 import {
 	CompiledQueryKind,
@@ -16,13 +16,14 @@ import selection from './selection'
 import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
+import { serializeValue } from './utils'
 
 const AST = recast.types.builders
 
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
 export default async function artifactGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
-	// put together the type information for the filter for everylist
+	// put together the type information for the filter for every list
 	const filterTypes: FilterMap = {}
 
 	for (const doc of docs) {
@@ -89,10 +90,13 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 			writeIndexFile(config, docs),
 		].concat(
 			// and an artifact for every document
-			docs.map(async ({ document, name, generated }) => {
+			docs.map(async (doc) => {
+				// pull out the info we need from the collected doc
+				const { document, name, generate } = doc
+
 				// if the document is generated, don't write it to disk - it's use is to provide definitions
 				// for the other transforms
-				if (generated) {
+				if (!generate) {
 					return
 				}
 
@@ -147,20 +151,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					throw new Error('Could not figure out what kind of document we were given')
 				}
 
-				// generate a hash of the document that we can use to detect changes
-				// start building up the artifact
-				const artifact = AST.objectExpression([
-					AST.objectProperty(AST.identifier('name'), AST.stringLiteral(name)),
-					AST.objectProperty(AST.identifier('kind'), AST.stringLiteral(docKind)),
-					AST.objectProperty(
-						AST.identifier('raw'),
-						AST.templateLiteral(
-							[AST.templateElement({ raw: rawString, cooked: rawString }, true)],
-							[]
-						)
-					),
-				])
-
 				let rootType: string | undefined = ''
 				let selectionSet: graphql.SelectionSetNode
 
@@ -201,35 +191,39 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					selectionSet = matchingFragment.selectionSet
 				}
 
-				// add the selection information so we can subscribe to the store
-				artifact.properties.push(
-					AST.objectProperty(AST.identifier('rootType'), AST.stringLiteral(rootType)),
-					AST.objectProperty(
-						AST.identifier('selection'),
-						selection({
-							config,
-							rootType,
-							selectionSet: selectionSet,
-							operations: operationsByPath(config, operations[0], filterTypes),
-							// do not include used fragments if we are rendering the selection
-							// for a fragment document
-							includeFragments: docKind !== 'HoudiniFragment',
-							document,
-						})
-					)
-				)
-
 				// if there are inputs to the operation
 				const inputs = operations[0]?.variableDefinitions
-				// add the input type definition to the artifact
+
+				// generate a hash of the document that we can use to detect changes
+				// start building up the artifact
+				const artifact: Record<string, any> = {
+					name,
+					kind: docKind,
+					refetch: doc.refetch,
+					raw: rawString,
+					rootType,
+					selection: selection({
+						config,
+						rootType,
+						selectionSet: selectionSet,
+						operations: operationsByPath(config, operations[0], filterTypes),
+						// do not include used fragments if we are rendering the selection
+						// for a fragment document
+						includeFragments: docKind !== 'HoudiniFragment',
+						document: doc,
+					}),
+				}
+
+				// if the document has inputs describe their types in the artifact so we can
+				// marshal and unmarshal scalars
 				if (inputs && inputs.length > 0) {
-					artifact.properties.push(
-						AST.objectProperty(AST.identifier('input'), inputObject(config, inputs))
-					)
+					artifact.input = inputObject(config, inputs)
 				}
 
 				// the artifact should be the default export of the file
-				const file = AST.program([moduleExport(config, 'default', artifact)])
+				const file = AST.program([
+					moduleExport(config, 'default', serializeValue(artifact)),
+				])
 
 				// write the result to the artifact path we're configured to write to
 				await writeFile(config.artifactPath(document), recast.print(file).code)

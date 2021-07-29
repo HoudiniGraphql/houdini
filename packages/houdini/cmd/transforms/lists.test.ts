@@ -35,8 +35,8 @@ test('insert fragments on query selection set', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"mutation UpdateUser {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
 		  updateUser {
 		    ...User_Friends_insert
 		    id
@@ -47,7 +47,7 @@ test('insert fragments on query selection set', async function () {
 		  firstName
 		  id
 		}
-		"
+
 	`)
 })
 
@@ -80,8 +80,8 @@ test('delete fragments on query selection set', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"mutation UpdateUser {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
 		  updateUser {
 		    ...User_Friends_remove
 		    id
@@ -91,7 +91,7 @@ test('delete fragments on query selection set', async function () {
 		fragment User_Friends_remove on User {
 		  id
 		}
-		"
+
 	`)
 })
 
@@ -122,10 +122,10 @@ test('list fragments on fragment selection set', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"mutation UpdateUser {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
+		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
 		  }
 		}
@@ -134,7 +134,7 @@ test('list fragments on fragment selection set', async function () {
 		  firstName
 		  id
 		}
-		"
+
 	`)
 })
 
@@ -163,6 +163,43 @@ test('delete node', async function () {
 
 	// the document should validate
 	await expect(runPipeline(testConfig(), docs)).resolves.toBeUndefined()
+})
+
+test('delete node from connection', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+				mutation DeleteUser {
+					deleteUser(id: "1234") {
+						userID @User_delete
+					}
+				}
+			`
+		),
+		mockCollectedDoc(
+			`
+				fragment AllUsers  on User{
+					friendsByCursor @list(name:"User_Friends") {
+							edges { 
+								node { 
+								firstName
+								id
+							}
+						}
+					}
+				}
+			`
+		),
+	]
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation DeleteUser {
+		  deleteUser(id: "1234") {
+		    userID @User_delete
+		  }
+		}
+
+	`)
 })
 
 test('list fragments must be unique', async function () {
@@ -239,10 +276,10 @@ test('includes `id` in list fragment', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	expect(graphql.print(docs[0].document)).toMatchInlineSnapshot(`
-		"mutation UpdateUser {
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
 		  updateUser {
-		    ...User_Friends_insert @prepend(parentID: \\"1234\\")
+		    ...User_Friends_insert @prepend(parentID: "1234")
 		    id
 		  }
 		}
@@ -251,7 +288,103 @@ test('includes `id` in list fragment', async function () {
 		  id
 		  firstName
 		}
-		"
+
+	`)
+})
+
+test('includes node selection on connection', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+			mutation UpdateUser {
+				updateUser {
+					...User_Friends_insert @prepend(parentID: "1234")
+				}
+			}
+		`
+		),
+		mockCollectedDoc(
+			`
+			fragment AllUsers  on User{
+				friendsByCursor @list(name:"User_Friends") {
+					edges { 
+						node { 
+							id
+							firstName
+							friends { 
+								id
+							}
+						}
+					}
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
+		  updateUser {
+		    ...User_Friends_insert @prepend(parentID: "1234")
+		    id
+		  }
+		}
+
+		fragment User_Friends_insert on User {
+		  id
+		  firstName
+		  friends {
+		    id
+		  }
+		}
+
+	`)
+})
+
+test('list flags connections', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+			fragment AllUsers  on User{
+				friendsByCursor @list(name:"User_Friends") {
+					edges { 
+						node { 
+							id
+							firstName
+							friends { 
+								id
+							}
+						}
+					}
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment AllUsers on User {
+		  friendsByCursor @list(name: "User_Friends", connection: true) {
+		    edges {
+		      node {
+		        id
+		        firstName
+		        friends {
+		          id
+		        }
+		      }
+		    }
+		  }
+		}
+
 	`)
 })
 
@@ -275,4 +408,57 @@ test('cannot use list directive if id is not a valid field', async function () {
 	// run the pipeline
 	const config = testConfig()
 	await expect(runPipeline(config, docs)).rejects.toBeTruthy()
+})
+
+test('paginate with name also gets treated as a list', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+			mutation UpdateUser {
+				updateUser {
+					...User_Friends_insert @prepend(parentID: "1234")
+				}
+			}
+		`
+		),
+		mockCollectedDoc(
+			`
+			fragment AllUsers  on User{
+				friendsByCursor(first: 10) @paginate(name:"User_Friends") {
+					edges { 
+						node { 
+							id
+							firstName
+							friends { 
+								id
+							}
+						}
+					}
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		mutation UpdateUser {
+		  updateUser {
+		    ...User_Friends_insert @prepend(parentID: "1234")
+		    id
+		  }
+		}
+
+		fragment User_Friends_insert on User {
+		  id
+		  firstName
+		  friends {
+		    id
+		  }
+		}
+
+	`)
 })

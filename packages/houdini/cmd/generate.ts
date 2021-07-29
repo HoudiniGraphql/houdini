@@ -39,6 +39,7 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 			transforms.typename,
 			validators.uniqueNames,
 			validators.noIDAlias,
+			transforms.paginate, // must go before fragment variables
 			transforms.fragmentVariables,
 			transforms.composeQueries,
 			generators.artifacts,
@@ -127,7 +128,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 									document: parsedDoc,
 									filename: filePath,
 									originalDocument: parsedDoc,
-									generated: false,
+									generate: true,
 								})
 							}
 						},

@@ -1,6 +1,6 @@
 {
 	"name": "houdini-common",
-	"version": "0.9.0",
+	"version": "0.10.0-alpha.8",
 	"description": "",
 	"main": "build/cjs/index.js",
 	"module": "build/esm/index.js",
@@ -19,7 +19,7 @@
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
-	"gitHead": "5c8d7507e445cdfb5db7e31ce724a9be9672452c",
+	"gitHead": "53c9c521029f9539e63fdaf5a9cd11244ef12cd5",
 	"dependencies": {
 		"@babel/parser": "^7.13.4",
 		"mkdirp": "^1.0.4"

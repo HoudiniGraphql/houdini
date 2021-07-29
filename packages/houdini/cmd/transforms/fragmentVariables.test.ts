@@ -22,7 +22,7 @@ test('pass argument values to generated fragments', async function () {
 		mockCollectedDoc(
 			`
 				fragment QueryFragment on Query 
-                @arguments(name: {type: "String"} ) {
+                @arguments(name: {type: "String!"} ) {
                     users(stringValue: $name) { 
                         id
                     }
@@ -64,14 +64,84 @@ test('pass argument values to generated fragments', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(stringValue: \\"Hello\\")",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(stringValue: \\"Hello\\")",
 
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                }
+		            }
+		        }
+		    }
+		};
+	`)
+})
+
+test("nullable arguments with no values don't show up in the query", async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+				query AllUsers {
+                    ...QueryFragment
+				}
+			`
+		),
+		mockCollectedDoc(
+			`
+				fragment QueryFragment on Query 
+                @arguments(name: {type: "String"} ) {
+                    users(stringValue: $name) { 
+                        id
+                    }
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports = {
+		    name: "AllUsers",
+		    kind: "HoudiniQuery",
+
+		    raw: \`query AllUsers {
+		  ...QueryFragment
+		}
+
+		fragment QueryFragment on Query {
+		  users {
+		    id
+		  }
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        users: {
+		            type: "User",
+		            keyRaw: "users",
+
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
 		                }
 		            }
 		        }
@@ -134,14 +204,14 @@ test("fragment arguments with default values don't rename the fragment", async f
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(stringValue: \\"Hello\\")",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(stringValue: \\"Hello\\")",
 
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
 		                }
 		            }
 		        }
@@ -216,25 +286,25 @@ test('thread query variables to inner fragments', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(stringValue: $name)",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(stringValue: $name)",
 
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
 		                }
 		            }
 		        }
 		    },
 
 		    input: {
-		        "fields": {
-		            "name": "String"
+		        fields: {
+		            name: "String"
 		        },
 
-		        "types": {}
+		        types: {}
 		    }
 		};
 	`)
@@ -306,14 +376,14 @@ test('inner fragment with intermediate default value', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(stringValue: \\"Hello\\", intValue: 2)",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(stringValue: \\"Hello\\", intValue: 2)",
 
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
 		                }
 		            }
 		        }
@@ -388,14 +458,14 @@ test("default values don't overwrite unless explicitly passed", async function (
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(stringValue: \\"Goodbye\\")",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(stringValue: \\"Goodbye\\")",
 
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
 		                }
 		            }
 		        }
@@ -458,14 +528,14 @@ test('default arguments', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(boolValue: true, stringValue: \\"Hello\\")",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(boolValue: true, stringValue: \\"Hello\\")",
 
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
 		                }
 		            }
 		        }
@@ -528,14 +598,14 @@ test('multiple with directives - no overlap', async function () {
 		    rootType: "Query",
 
 		    selection: {
-		        "users": {
-		            "type": "User",
-		            "keyRaw": "users(boolValue: false, stringValue: \\"Goodbye\\")",
+		        users: {
+		            type: "User",
+		            keyRaw: "users(boolValue: false, stringValue: \\"Goodbye\\")",
 
-		            "fields": {
-		                "id": {
-		                    "type": "ID",
-		                    "keyRaw": "id"
+		            fields: {
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
 		                }
 		            }
 		        }

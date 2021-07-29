@@ -1,4 +1,5 @@
 import type { Config } from 'houdini-common'
+import { Readable } from 'svelte/store'
 
 export type Fragment<_Result> = {
 	readonly shape?: _Result
@@ -36,15 +37,31 @@ export type SubscriptionArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniSubscription'
 }
 
-type BaseCompiledDocument = {
+export enum RefetchUpdateMode {
+	append = 'append',
+	prepend = 'prepend',
+	replace = 'replace',
+}
+
+export type InputObject = {
+	fields: Record<string, string>
+	types: Record<string, Record<string, string>>
+}
+
+export type BaseCompiledDocument = {
 	name: string
 	raw: string
 	hash: string
 	selection: SubscriptionSelection
 	rootType: string
-	input?: {
-		fields: Record<string, string>
-		types: Record<string, Record<string, string>>
+	input?: InputObject
+	refetch?: {
+		update: RefetchUpdateMode
+		path: string[]
+		method: 'cursor' | 'offset'
+		pageSize: number
+		start?: string | number
+		embedded: boolean
 	}
 }
 
@@ -59,6 +76,7 @@ export type TaggedGraphqlFragment = {
 	kind: 'HoudiniFragment'
 	artifact: FragmentArtifact
 	config: Config
+	paginationArtifact?: QueryArtifact
 }
 
 // the result of tagging an operation
@@ -130,7 +148,12 @@ export type SubscriptionSelection = {
 		type: string
 		keyRaw: string
 		operations?: MutationOperation[]
-		list?: string
+		list?: {
+			name: string
+			connection: boolean
+			type: string
+		}
+		update?: RefetchUpdateMode
 		filters?: {
 			[key: string]: {
 				kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'

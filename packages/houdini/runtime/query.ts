@@ -12,7 +12,7 @@ import { marshalInputs, unmarshalSelection } from './scalars'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
 
-export default function query<_Query extends Operation<any, any>>(
+export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): QueryResponse<_Query['result'], _Query['input']> {
 	// make sure we got a query document
@@ -55,7 +55,11 @@ export default function query<_Query extends Operation<any, any>>(
 		// if we were given data on mount
 		if (initialValue) {
 			// update the cache with the data that we just ran into
-			cache.write(artifact.selection, initialValue, variables)
+			cache.write({
+				selection: artifact.selection,
+				data: initialValue,
+				variables,
+			})
 
 			// stay up to date
 			if (subscriptionSpec) {
@@ -81,6 +85,13 @@ export default function query<_Query extends Operation<any, any>>(
 	const sessionStore = getSession()
 
 	function writeData(newData: RequestPayload<_Query['result']>, newVariables: _Query['input']) {
+		// write the data we received
+		cache.write({
+			selection: artifact.selection,
+			data: newData.data,
+			variables: newVariables,
+		})
+
 		// if the variables changed we need to unsubscribe from the old fields and
 		// listen to the new ones
 		if (subscriptionSpec && JSON.stringify(variables) !== JSON.stringify(newVariables)) {
@@ -88,14 +99,11 @@ export default function query<_Query extends Operation<any, any>>(
 			cache.subscribe(subscriptionSpec, newVariables)
 		}
 
-		// save the new variables
-		variables = newVariables || {}
-
 		// update the local store
 		store.set(unmarshalSelection(config, artifact.selection, newData.data))
 
-		// write the data we received
-		cache.write(artifact.selection, newData.data, variables)
+		// save the new variables
+		variables = newVariables || {}
 	}
 
 	return {
@@ -131,7 +139,7 @@ export default function query<_Query extends Operation<any, any>>(
 
 // we need to wrap the response from a query in something that we can
 // use as a proxy to the query for refetches, writing to the cache, etc
-type QueryResponse<_Data, _Input> = {
+export type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
 	writeData: (data: RequestPayload<_Data>, variables: _Input) => void
 	refetch: (newVariables?: _Input) => Promise<void>

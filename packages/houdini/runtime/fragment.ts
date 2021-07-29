@@ -1,15 +1,13 @@
 // externals
 import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
-import type { Config } from 'houdini-common'
 // locals
 import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
 import cache from './cache'
 import { getVariables } from './context'
-import { unmarshalSelection } from './scalars'
 
 // fragment returns the requested data from the reference
-export default function fragment<_Fragment extends Fragment<any>>(
+export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
 	initialValue: _Fragment
 ): Readable<_Fragment['shape']> {
@@ -28,13 +26,15 @@ export default function fragment<_Fragment extends Fragment<any>>(
 	// @ts-ignore: isn't properly typed yet to know if initialValue has the right values
 	const parentID = cache.id(artifact.rootType, initialValue)
 
+	// a fragment has to subscribe individually because svelte can't detect that a prop has changed
+	// if there is an object passed
+
 	// wrap the result in a store we can use to keep this query up to date
 	const value = readable(initialValue, (set) => {
 		// if we couldn't compute the parent of the fragment
 		if (!parentID) {
 			return
 		}
-
 		const subscriptionSpec = {
 			rootType: artifact.rootType,
 			selection: artifact.selection,
@@ -42,13 +42,11 @@ export default function fragment<_Fragment extends Fragment<any>>(
 			parentID,
 			variables: queryVariables,
 		}
-
 		// when the component mounts
 		onMount(() => {
 			// stay up to date
 			cache.subscribe(subscriptionSpec, queryVariables())
 		})
-
 		// the function used to clean up the store
 		return () => {
 			// if we subscribed to something we'll need to clean up

@@ -30,7 +30,7 @@ test('cache index runtime imports config file - commonjs', async function () {
 		Object.defineProperty(exports, "__esModule", { value: true });
 		var cache_1 = require("./cache");
 		// @ts-ignore: config will be defined by the generator
-		exports.default = new cache_1.Cache(config);
+		exports.default = new cache_1.Cache(config || {});
 	`)
 })
 
@@ -54,6 +54,6 @@ test('cache index runtime imports config file - kit', async function () {
 		import config from "../../../config.cjs"
 		import { Cache } from './cache';
 		// @ts-ignore: config will be defined by the generator
-		export default new Cache(config);
+		export default new Cache(config || {});
 	`)
 })

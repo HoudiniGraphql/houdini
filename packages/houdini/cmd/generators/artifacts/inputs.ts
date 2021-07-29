@@ -2,7 +2,9 @@
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { Config } from 'houdini-common'
+// locals
 import { unwrapType } from '../../utils'
+import type { InputObject } from '../../../runtime/types'
 
 const AST = recast.types.builders
 
@@ -12,46 +14,37 @@ type ObjectExpression = recast.types.namedTypes.ObjectExpression
 export function inputObject(
 	config: Config,
 	inputs: readonly graphql.VariableDefinitionNode[]
-): ObjectExpression {
-	// inputs can be recursive so we can't flatten the input type into a single object
-
-	// there will always be an object that maps the root inputs to their type
-	const properties: ObjectProperty[] = [
-		AST.objectProperty(
-			AST.literal('fields'),
-			AST.objectExpression(
-				inputs.map((input) => {
-					// find the inner type
-					const { type } = unwrapType(config, input.type)
-
-					// embed the type in the input
-					return AST.objectProperty(
-						AST.literal(input.variable.name.value),
-						AST.stringLiteral(type.name)
-					)
-				})
-			)
-		),
-	]
-
+): InputObject {
 	// make sure we don't define the same input type
 	const visitedTypes = new Set<string>()
 
-	const typeObjectProperties: ObjectProperty[] = []
-	for (const input of inputs) {
-		walkInputs(config, visitedTypes, typeObjectProperties, input.type)
-	}
-	properties.push(
-		AST.objectProperty(AST.literal('types'), AST.objectExpression(typeObjectProperties))
-	)
+	// inputs can be recursive so we can't flatten the input type into a single object
+	const inputObj: InputObject = {
+		fields: inputs.reduce((fields, input) => {
+			// find the inner type
+			const { type } = unwrapType(config, input.type)
 
-	return AST.objectExpression(properties)
+			// embed the type in the input
+			return {
+				...fields,
+				[input.variable.name.value]: type.name,
+			}
+		}, {}),
+		types: {},
+	}
+
+	// walk through every type referenced and add it to the list
+	for (const input of inputs) {
+		walkInputs(config, visitedTypes, inputObj, input.type)
+	}
+
+	return inputObj
 }
 
 function walkInputs(
 	config: Config,
 	visitedTypes: Set<string>,
-	properties: ObjectProperty[],
+	inputObj: InputObject,
 	rootType: graphql.TypeNode | graphql.GraphQLNamedType
 ) {
 	// find the core type
@@ -75,22 +68,18 @@ function walkInputs(
 	visitedTypes.add(type.name)
 
 	// generate the entry for the type
-	properties.push(
-		AST.objectProperty(
-			AST.literal(type.name),
-			AST.objectExpression(
-				Object.values(type.getFields()).map((field: graphql.GraphQLInputField) => {
-					const { type: fieldType } = unwrapType(config, field.type)
+	inputObj!.types[type.name] = Object.values(type.getFields()).reduce(
+		(typeFields, field: graphql.GraphQLInputField) => {
+			const { type: fieldType } = unwrapType(config, field.type)
 
-					// keep walking down
-					walkInputs(config, visitedTypes, properties, fieldType)
+			// keep walking down
+			walkInputs(config, visitedTypes, inputObj, fieldType)
 
-					return AST.objectProperty(
-						AST.literal(field.name),
-						AST.stringLiteral(fieldType.toString())
-					)
-				})
-			)
-		)
+			return {
+				...typeFields,
+				[field.name]: fieldType.toString(),
+			}
+		},
+		{}
 	)
 }

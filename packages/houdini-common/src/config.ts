@@ -295,6 +295,14 @@ export class Config {
 		return 'with'
 	}
 
+	get paginateDirective() {
+		return 'paginate'
+	}
+
+	paginationQueryName(documentName: string) {
+		return documentName + '_Pagination_Query'
+	}
+
 	isDeleteDirective(name: string) {
 		return name.endsWith(this.deleteDirectiveSuffix)
 	}
@@ -334,6 +342,7 @@ export class Config {
 				this.whenNotDirective,
 				this.argumentsDirective,
 				this.withDirective,
+				this.paginateDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}
@@ -419,10 +428,14 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 		filepath: path.join(process.cwd(), 'config.cjs'),
 		sourceGlob: '123',
 		schema: `
-			type User {
+			type User implements Node {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
+				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection
+				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnection
+				friendsByForwardsCursor(first: Int, after: String, filter: String): UserConnection
+				friendsByOffset(offset: Int, limit: Int, filter: String): [User!]!
 				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
 				cats: [Cat!]!
@@ -435,7 +448,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				friends: [Ghost!]!
 			}
 
-			type Cat implements Friend {
+			type Cat implements Friend & Node {
 				id: ID!
 				name: String!
 				owner: User!
@@ -448,6 +461,28 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 				entities: [Entity!]!
+				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection
+				usersByBackwardsCursor(last: Int, before: String): UserConnection
+				usersByForwardsCursor(first: Int, after: String): UserConnection
+				usersByOffset(offset: Int, limit: Int): [User!]!
+				node(id: ID!): Node
+			}
+
+			type PageInfo {
+				hasPreviousPage: Boolean!
+				hasNextPage: Boolean!
+				startCursor: String!
+				endCursor: String!
+			}
+
+			type UserEdge {
+				cursor: String!
+				node: User
+			}
+
+			type UserConnection {
+				pageInfo: PageInfo!
+				edges: [UserEdge]
 			}
 
 			interface Friend {
@@ -491,6 +526,10 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 
 			type CatMutationOutput {
 				cat: Cat
+			}
+
+			interface  Node { 
+				id: ID!
 			}
 		`,
 		framework: 'sapper',

@@ -13,7 +13,7 @@ export class Record {
 	fields: { [key: string]: GraphQLValue } = {}
 
 	keyVersions: { [key: string]: Set<string> } = {}
-	id: string
+	readonly id: string
 	private subscribers: { [key: string]: SubscriptionSpec[] } = {}
 	private recordLinks: { [key: string]: string | null } = {}
 	private listLinks: { [key: string]: (string | null)[] } = {}
@@ -21,7 +21,6 @@ export class Record {
 	private referenceCounts: {
 		[fieldName: string]: Map<SubscriptionSpec['set'], number>
 	} = {}
-	lists: List[] = []
 
 	constructor(cache: Cache, id: string) {
 		this.cache = cache
@@ -130,16 +129,6 @@ export class Record {
 
 	removeAllSubscribers() {
 		this.forgetSubscribers(...this.allSubscribers())
-	}
-
-	addListReference(ref: List) {
-		this.lists.push(ref)
-	}
-
-	removeListReference(ref: List) {
-		this.lists = this.lists.filter(
-			(conn) => !(conn.name === ref.name && conn.parentID === ref.parentID)
-		)
 	}
 
 	removeAllSubscriptionVersions(keyRaw: string, spec: SubscriptionSpec) {

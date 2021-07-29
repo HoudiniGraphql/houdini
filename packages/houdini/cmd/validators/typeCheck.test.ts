@@ -389,6 +389,34 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: 'known connection directives',
+		pass: true,
+		// note: we pass parentID here to ensure we're not getting caught on the
+		//		 free lists check
+		documents: [
+			`
+				query UserFriends {
+					user {
+						friendsByCursor @list(name: "Friends") {
+							edges { 
+								node {
+									id
+								}
+							}
+						}
+					}
+				}
+			`,
+			`
+				mutation Bar {
+					deleteUser(id: "2") {
+						userID @User_delete
+					}
+				}
+			`,
+		],
+	},
+	{
 		title: 'unknown list directives errors before generation',
 		pass: false,
 		// note: we pass parentID here to ensure we're not getting caught on the
@@ -415,7 +443,7 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-				fragment Foo on Query @arguments(name: { type: "String"}) {
+				fragment Foo on Query @arguments(name: { type: "String!" }) {
 					users(stringValue: $name) { id }
 				}
 			`,
@@ -436,7 +464,7 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-				fragment Foo on Query @arguments(name: { type: "String"}) {
+				fragment Foo on Query @arguments(name: { type: "String" }) {
 					users(stringValue: $name) { id }
 				}
 			`,
@@ -457,7 +485,7 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-				fragment Foo on Query @arguments(name: { type: "String"}) {
+				fragment Foo on Query @arguments(name: { type: "String" }) {
 					users(stringValue: $name) { id }
 				}
 			`,
@@ -478,14 +506,242 @@ const table: Row[] = [
 		pass: false,
 		documents: [
 			`
-				fragment Foo on Query @arguments(name: { type: "String", default: true}) {
+				fragment FooA on Query @arguments(name: { type: "String", default: true}) {
 					users(stringValue: $name) { id }
 				}
 			`,
 			`
-				fragment Foo on Query @arguments(name: { type: "String", default: true}) {
+				fragment FooB on Query @arguments(name: { type: "String", default: true}) {
 					users(stringValue: $name) { id }
 				}
+			`,
+		],
+	},
+	{
+		title: '@paginate offset happy path',
+		pass: true,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				friendsByOffset(limit: 10) @paginate { 
+					id
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				friendsByOffset(limit: 10) @paginate { 
+					id
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@paginate cursor happy path',
+		pass: true,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				friendsByCursor(first: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				friendsByCursor(first: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: 'cursor pagination requires first',
+		pass: false,
+		documents: [
+			`
+				fragment UserCursorPaginatedA on User {
+					friendsByCursor @paginate { 
+						edges {
+							node {
+								id
+							}
+						}
+					}
+				}
+			`,
+			`
+				fragment UserCursorPaginatedB on User {
+					friendsByCursor @paginate { 
+						edges { 
+							node { 
+								id
+							}
+						}	
+					}
+				}
+			`,
+			`
+				fragment UserCursorPaginatedC on User {
+					friendsByCursor(first: 10) @paginate { 
+						edges {
+							node {
+								id
+							}
+						}
+					}
+				}
+			`,
+		],
+	},
+	{
+		title: "@paginate cursor can't go both ways",
+		pass: false,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				friendsByCursor(first: 10, last: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				friendsByCursor(first: 10, last: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: "@paginate can't show up in a document with required args",
+		pass: false,
+		documents: [
+			`
+			fragment UserPaginatedA on User @arguments(foo: { type: "String!" }) {
+				friendsByCursor(first: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User @arguments(foo: { type: "String!" }) {
+				friendsByCursor(first: 10) @paginate {
+					edges { 
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: 'offset pagination requires limit',
+		pass: false,
+		documents: [
+			`
+				fragment UserPaginatedA on User {
+					friendsByOffset @paginate { 
+						id
+					}
+				}
+			`,
+			`
+				fragment UserPaginatedB on User {
+					friendsByOffset @paginate { 
+						id
+					}
+				}
+			`,
+			`
+				fragment UserPaginatedC on User {
+					friendsByOffset(limit: 10) @paginate { 
+						id
+					}
+				}
+			`,
+		],
+	},
+	{
+		title: 'multiple @paginate',
+		pass: false,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				friendsByOffset(limit: 10) @paginate { 
+					id
+				}
+				friendsByCursor(first: 10) @paginate {
+					edges {
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				friendsByOffset(limit: 10) @paginate { 
+					id
+				}
+				friendsByCursor(first: 10) @paginate {
+					edges {
+						node { 
+							id
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: "@paginate can't fall under lists",
+		pass: false,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				friends {
+					friendsByOffset(limit: 10) @paginate { 
+						id
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				friends {
+					friendsByOffset(limit: 10) @paginate { 
+						id
+					}
+				}
+			}
 			`,
 		],
 	},

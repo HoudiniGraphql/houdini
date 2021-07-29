@@ -41,7 +41,7 @@ type Mutation {
 }
 
 type Query {
-	items(completed: Boolean): [TodoItem!]!
+	items(first: Int, after: String, completed: Boolean): TodoItemConnection!
 }
 
 type Subscription {
@@ -59,6 +59,24 @@ type TodoItem {
 type UpdateItemOutput {
 	error: Error
 	item: TodoItem
+}
+
+type PageInfo {
+	startCursor: String
+	endCursor: String
+	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+}
+
+type TodoItemConnection {
+	totalCount: Int!
+	pageInfo: PageInfo!
+	edges: [TodoItemEdge!]!
+}
+
+type TodoItemEdge {
+	cursor: String
+	node: TodoItem
 }
 
 """

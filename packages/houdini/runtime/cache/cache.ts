@@ -25,22 +25,47 @@ export class Cache {
 	private _lists: Map<string, Map<string, ListHandler>> = new Map()
 
 	// save the response in the local store and notify any subscribers
-	write(
-		selection: SubscriptionSelection,
-		data: { [key: string]: GraphQLValue },
-		variables: {} = {},
-		id?: string
-	) {
+	write({
+		selection,
+		data,
+		variables = {},
+		parent = rootID,
+		applyUpdates = false,
+	}: {
+		selection: SubscriptionSelection
+		data: { [key: string]: GraphQLValue }
+		variables?: {}
+		parent?: string
+		applyUpdates?: boolean
+	}) {
 		const specs: SubscriptionSpec[] = []
-
-		const parentID = id || rootID
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
 		// will build up different specs of subscriptions that need to be run against the current state
-		this._write(parentID, parentID, selection, parentID, data, variables, specs)
+		this._write({
+			rootID: parent,
+			selection,
+			recordID: parent,
+			data,
+			variables,
+			specs,
+			applyUpdates,
+		})
+
+		// the same spec will likely need to be updated multiple times, create the unique list by using the set
+		// function's identity
+		const uniqueSpecs: SubscriptionSpec[] = []
+		const assignedSets: SubscriptionSpec['set'][] = []
+		for (const spec of specs) {
+			// if we haven't added the set yet
+			if (!assignedSets.includes(spec.set)) {
+				uniqueSpecs.push(spec)
+				assignedSets.push(spec.set)
+			}
+		}
 
 		// compute new values for every spec that needs to be run
-		this.notifySubscribers(specs, variables)
+		this.notifySubscribers(uniqueSpecs, variables)
 	}
 
 	// returns the global id of the specified field (used to access the record in the cache)
@@ -50,7 +75,7 @@ export class Cache {
 	id(type: string, id: string): string | null
 	id(type: string, data: any): string | null {
 		// try to compute the id of the record
-		const id = typeof data === 'string' ? data : this.computeID(data)
+		const id = typeof data === 'string' ? data : this.computeID(type, data)
 		if (!id) {
 			return null
 		}
@@ -101,22 +126,27 @@ export class Cache {
 	}
 
 	// remove the record from every list we know of and the cache itself
-	delete(id: string, variables: {} = {}): boolean {
+	delete(type: string, id: string, variables: {} = {}): boolean {
 		const record = this.record(id)
 
 		// remove any related subscriptions
 		record.removeAllSubscribers()
 
-		for (const { name, parentID } of record.lists) {
-			// look up the list
-			const list = this.list(name, parentID)
+		// look at every list we know of with the matching type
+		for (const parentMap of this._lists.values()) {
+			for (const handler of parentMap.values()) {
+				// only consider the list if it holds the matching type
+				if (handler.listType !== type) {
+					continue
+				}
 
-			// remove the entity from the list
-			list.removeID(id, variables)
+				// remove the id from the list
+				handler.removeID(id, variables)
+			}
 		}
 
 		// remove the entry from the cache
-		return this._data.delete(id)
+		return this.clear(id)
 	}
 
 	// grab the record specified by {id}.
@@ -141,10 +171,12 @@ export class Cache {
 			record: this.record.bind(this),
 			getRecord: this.getRecord.bind(this),
 			getData: this.getData.bind(this),
+			clear: this.clear.bind(this),
+			computeID: this.computeID.bind(this),
 		}
 	}
 
-	private computeID(data: { [key: string]: GraphQLValue }) {
+	private computeID(type: string, data: { [key: string]: GraphQLValue }) {
 		return data.id
 	}
 
@@ -236,19 +268,20 @@ export class Cache {
 				// if this field is marked as a list, register it
 				if (list && fields) {
 					// if we haven't seen this list before
-					if (!this._lists.has(list)) {
-						this._lists.set(list, new Map())
+					if (!this._lists.has(list.name)) {
+						this._lists.set(list.name, new Map())
 					}
 
 					// if we haven't already registered a handler to this list in the cache
-					this._lists.get(list)?.set(
+					this._lists.get(list.name)?.set(
 						spec.parentID || rootID,
 						new ListHandler({
-							name: list,
+							name: list.name,
+							connection: list.connection,
 							parentID: spec.parentID,
 							cache: this,
 							record: rootRecord,
-							listType: type,
+							listType: list.type,
 							key,
 							selection: fields,
 							filters: Object.entries(filters || {}).reduce(
@@ -276,15 +309,6 @@ export class Cache {
 						continue
 					}
 
-					// the children of a list need the reference back
-					if (list) {
-						// add the list reference to record
-						child.addListReference({
-							name: list,
-							parentID: spec.parentID,
-						})
-					}
-
 					// make sure the children update this subscription
 					this.addSubscribers(child, spec, fields, variables)
 				}
@@ -305,13 +329,9 @@ export class Cache {
 			// remove the subscriber to the field
 			rootRecord.forgetSubscribers(spec)
 
-			// if this field is marked as a list remove it from teh cache
+			// if this field is marked as a list remove it from the cache
 			if (list) {
-				this._lists.delete(list)
-				rootRecord.removeListReference({
-					name: list,
-					parentID: spec.parentID,
-				})
+				this._lists.delete(list.name)
 			}
 
 			// if the field points to a link, we need to remove any subscribers on any fields of that
@@ -338,15 +358,23 @@ export class Cache {
 		}
 	}
 
-	private _write(
-		rootID: string, // the ID that anchors any lists
-		parentID: string, // the ID that can be used to build up the key for embedded data
-		selection: SubscriptionSelection,
-		recordID: string, // the ID of the record that we are updating in cache
-		data: { [key: string]: GraphQLValue },
-		variables: { [key: string]: GraphQLValue },
+	private _write({
+		rootID,
+		selection,
+		recordID,
+		data,
+		variables,
+		specs,
+		applyUpdates,
+	}: {
+		rootID: string // the ID that anchors any lists
+		selection: SubscriptionSelection
+		recordID: string // the ID of the record that we are updating in cache
+		data: { [key: string]: GraphQLValue }
+		variables: { [key: string]: GraphQLValue }
 		specs: SubscriptionSpec[]
-	) {
+		applyUpdates: boolean
+	}) {
 		// the record we are storing information about this object
 		const record = this.record(recordID)
 
@@ -361,14 +389,15 @@ export class Cache {
 						''
 				)
 			}
+
 			// look up the field in our schema
 			let {
 				type: linkedType,
 				keyRaw,
 				fields,
 				operations,
-				list,
 				abstract: isAbstract,
+				update,
 			} = selection[field]
 			const key = this.evaluateKey(keyRaw, variables)
 
@@ -412,7 +441,7 @@ export class Cache {
 					).length > 0
 
 				// figure out the id of the new linked record
-				const linkedID = !embedded ? this.id(linkedType, value) : `${parentID}.${key}`
+				const linkedID = !embedded ? this.id(linkedType, value) : `${recordID}.${key}`
 
 				// if we are now linked to a new object we need to record the new value
 				if (linkedID && oldID !== linkedID) {
@@ -432,32 +461,42 @@ export class Cache {
 				// only update the data if there is an id for the record
 				if (linkedID) {
 					// update the linked fields too
-					this._write(rootID, recordID, fields, linkedID, value, variables, specs)
+					this._write({
+						rootID,
+						selection: fields,
+						recordID: linkedID,
+						data: value,
+						variables,
+						specs,
+						applyUpdates,
+					})
 				}
 			}
 
 			// the value could be a list
 			else if (!isScalar(this._config, linkedType) && Array.isArray(value) && fields) {
-				// build up the list of linked ids
-				const linkedIDs: (string | null)[] = []
 				// look up the current known link id
-				const oldIDs = record.linkedListIDs(this.evaluateKey(key, variables))
+				let oldIDs = record.linkedListIDs(this.evaluateKey(key, variables))
 
-				// the ids that have been added since the last time
-				const newIDs: string[] = []
+				// if we are supposed to prepend or append and the mutation is enabled
+				// the new list of IDs for this link will start with an existing value
 
-				// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
-				// required to compute the entity's id in the first non-null value we can find
+				// build up the list of linked ids
+				let linkedIDs: (string | null)[] = []
+
+				// keep track of the records we are adding
+				const newIDs: (string | null)[] = []
 
 				// visit every entry in the list
 				for (const [i, entry] of value.entries()) {
 					// if the entry is a null value, just add it to the list
 					if (entry === null) {
-						linkedIDs.push(null)
+						newIDs.push(null)
 						continue
 					}
 
-					// figure out if this record is embedded
+					// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
+					// required to compute the entity's id
 					const embedded =
 						this.idFields(linkedType)?.filter(
 							(field) => typeof (entry as GraphQLObject)[field] === 'undefined'
@@ -482,9 +521,29 @@ export class Cache {
 					}
 
 					// build up an
-					const linkedID = !embedded
+					let linkedID = !embedded
 						? this.id(innerType, entry)
-						: `${parentID}.${key}[${i}]`
+						: `${recordID}.${key}[${i}]`
+
+					// if the field is marked for pagination and we are looking at edges, we need
+					// to use the underlying node for the id because the embedded key will conflict
+					// with entries in the previous loaded value.
+					// NOTE: this approach might cause weird behavior of a node is loaded in the same
+					// location in two different pages. In practice, nodes rarely show up in the same
+					// connection so it might not be a problem.
+					if (
+						key === 'edges' &&
+						entry['node'] &&
+						(entry['node'] as { __typename: string }).__typename
+					) {
+						const node = entry['node'] as {}
+						// @ts-ignore
+						const typename = node.__typename
+						let nodeID = this.id(typename, node)
+						if (nodeID) {
+							linkedID += '#' + nodeID
+						}
+					}
 
 					// if we couldn't compute the id, just move on
 					if (!linkedID) {
@@ -492,21 +551,88 @@ export class Cache {
 					}
 
 					// update the linked fields too
-					this._write(rootID, recordID, fields, linkedID, entry, variables, specs)
+					this._write({
+						rootID,
+						selection: fields,
+						recordID: linkedID,
+						data: entry,
+						variables,
+						specs,
+						applyUpdates,
+					})
 
 					// add the id to the list
-					linkedIDs.push(linkedID)
-					// hold onto the new ids
-					if (!oldIDs.includes(linkedID)) {
-						newIDs.push(linkedID)
+					newIDs.push(linkedID)
+				}
 
-						if (list) {
-							this.record(linkedID).addListReference({
-								parentID: rootID,
-								name: list,
-							})
+				// if we're supposed to apply this write as an update, we need to figure out how
+				if (applyUpdates && update) {
+					// it's possible that one of the ids in the field corresponds to an entry
+					// that was added as part of a mutation operation on this list.
+					// ideally we want to remove the old reference and leave the new one behind.
+					// In order to pull this off, we have to rely on the fact that a mutation operation
+					// doesn't leave a cursor behind. so we need to look at the old list of edges,
+					// track if there's a cursor value, get their node id, and remove any node ids
+					// that show up in the new list
+					if (key === 'edges') {
+						// build up a list of the ids found in the new list
+						const newNodeIDs: string[] = []
+						for (const id of newIDs) {
+							if (!id) {
+								continue
+							}
+
+							// look up the lined node record
+							const node = this.record(id).linkedRecord('node')
+							if (!node || !node.fields.__typename) {
+								continue
+							}
+
+							newNodeIDs.push(node.id)
 						}
+
+						// filter out any old ids that point to edges with no cursor and a node that is found in the new list
+						oldIDs = oldIDs.filter((id) => {
+							if (!id) {
+								return true
+							}
+
+							// look up the edge record
+							const edge = this.record(id)
+
+							// if there is a cursor, keep it
+							if (edge.fields['cursor']) {
+								return true
+							}
+
+							// look up the linked node
+							const node = edge.linkedRecord('node')
+							// if there one, keep the edge
+							if (!node) {
+								return true
+							}
+
+							// only keep the edge if the node's id doesn't show up in the new list
+							return !newNodeIDs.includes(node.id)
+						})
 					}
+
+					// if we have to prepend it, do so
+					if (update === 'prepend') {
+						linkedIDs = newIDs.concat(oldIDs)
+					}
+					// otherwise we might have to append it
+					else if (update === 'append') {
+						linkedIDs = oldIDs.concat(newIDs)
+					}
+					// if the update is a replace do the right thing
+					else if (update === 'replace') {
+						linkedIDs = newIDs
+					}
+				}
+				// we're not supposed to apply this write as an update, just use the new value
+				else {
+					linkedIDs = newIDs
 				}
 
 				// we have to notify the subscribers if a few things happen:
@@ -553,9 +679,21 @@ export class Cache {
 			// the value is neither an object or a list so its a scalar
 			else {
 				// if the value is different
-				if (value !== record.getField(key)) {
+				if (JSON.stringify(value) !== JSON.stringify(record.getField(key))) {
+					let newValue = value
+					// if the value is an array, we might have to apply updates
+					if (Array.isArray(value) && applyUpdates && update) {
+						// if we have to prepend the new value on the old one
+						if (update === 'append') {
+							newValue = ((record.getField(key) as any[]) || []).concat(value)
+						}
+						// we might have to prepend our value onto the old one
+						else if (update === 'prepend') {
+							newValue = value.concat(record.getField(key) || [])
+						}
+					}
 					// update the cached value
-					record.writeField(key, value)
+					record.writeField(key, newValue)
 
 					// add every subscriber to the list of specs to change
 					specs.push(...subscribers)
@@ -571,12 +709,12 @@ export class Cache {
 					if (operation.parentID.kind !== 'Variable') {
 						parentID = operation.parentID.value
 					} else {
-						const value = variables[operation.parentID.value]
-						if (typeof value !== 'string') {
+						const id = variables[operation.parentID.value]
+						if (typeof id !== 'string') {
 							throw new Error('parentID value must be a string')
 						}
 
-						parentID = value
+						parentID = id
 					}
 				}
 
@@ -616,8 +754,7 @@ export class Cache {
 					if (!targetID) {
 						continue
 					}
-
-					this.delete(targetID, variables)
+					this.delete(operation.type, targetID, variables)
 				}
 			}
 		}
@@ -694,7 +831,10 @@ export class Cache {
 			// if there are fields under this
 			if (fields) {
 				// figure out who else needs subscribers
-				const children = record.linkedList(key) || [record.linkedRecord(key)]
+				const children =
+					record.linkedList(key).length > 0
+						? record.linkedList(key)
+						: [record.linkedRecord(key)]
 
 				for (const linkedRecord of children) {
 					// avoid null records
@@ -757,6 +897,10 @@ export class Cache {
 
 		return evaluated
 	}
+
+	private clear(id: string): boolean {
+		return this._data.delete(id)
+	}
 }
 
 // the list of characters that make up a valid graphql variable name
@@ -772,6 +916,8 @@ export type CacheProxy = {
 	evaluateKey: Cache['evaluateKey']
 	getRecord: Cache['getRecord']
 	getData: Cache['getData']
+	clear: Cache['clear']
+	computeID: Cache['computeID']
 }
 
 // id that we should use to refer to things in root

@@ -12,7 +12,7 @@ import { getSession } from './adapter.mjs'
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
-export default function mutation<_Mutation extends Operation<any, any>>(
+export function mutation<_Mutation extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): (_input: _Mutation['input']) => Promise<_Mutation['result']> {
 	// make sure we got a query document
@@ -45,7 +45,11 @@ export default function mutation<_Mutation extends Operation<any, any>>(
 				sessionStore
 			)
 
-			cache.write(artifact.selection, result.data, queryVariables())
+			cache.write({
+				selection: artifact.selection,
+				data: result.data,
+				variables: queryVariables(),
+			})
 
 			// unmarshal any scalars on the body
 			return unmarshalSelection(config, artifact.selection, result.data)

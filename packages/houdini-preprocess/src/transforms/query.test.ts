@@ -400,6 +400,52 @@ describe('query preprocessor', function () {
 	`)
 	})
 
+	test('paginated query gets reference to refetch artifact', async function () {
+		const doc = await preprocessorTest(
+			`
+			<script context="module">
+				export function TestQueryVariables(page) {
+					return {
+						test: true
+					}
+				}
+			</script>
+
+			<script>
+				const { data } = paginatedQuery(graphql\`
+					query TestQuery($test: Boolean!) {
+						viewer @paginate {
+							id
+						}
+					}
+				\`)
+			</script>
+		`
+		)
+		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		export let _TestQuery = undefined;
+		export let _TestQuery_Input = undefined;
+
+		let _TestQuery_handler = paginatedQuery({
+		    "config": houdiniConfig,
+		    "initialValue": _TestQuery,
+		    "variables": _TestQuery_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQueryArtifact
+		});
+
+		const {
+		    data
+		} = routeQuery(_TestQuery_handler);
+
+		$:
+		{
+		    _TestQuery_handler.writeData(_TestQuery, _TestQuery_Input);
+		}
+	`)
+	})
+
 	test('bare svelte component in route filepath', async function () {
 		const doc = await preprocessorTest(
 			`

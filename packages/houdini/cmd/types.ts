@@ -3,6 +3,7 @@ import type * as graphql from 'graphql'
 export type { ConfigFile } from 'houdini-common'
 
 export * from '../runtime/types'
+import { BaseCompiledDocument } from '../runtime/types'
 
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {
@@ -10,7 +11,8 @@ export type CollectedGraphQLDocument = {
 	name: string
 	document: graphql.DocumentNode
 	originalDocument: graphql.DocumentNode
-	generated: boolean
+	generate: boolean
+	refetch?: BaseCompiledDocument['refetch']
 }
 
 // an error pertaining to a specific graphql document

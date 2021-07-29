@@ -62,7 +62,7 @@ describe('schema transform', function () {
 				`
 					mutation Update {
 						updateUser {
-							...A @prepend(when: { argument: "value", value: "value" })
+							...A @prepend(when: { value: "value" })
 						}
 					}
 				`,
@@ -116,7 +116,7 @@ describe('schema transform', function () {
 				`
 					mutation Update {
 						updateUser {
-							...A @append(when: { argument: "value", value: "value" })
+							...A @append(when: { value: "value" })
 						}
 					}
 				`,
@@ -131,6 +131,6 @@ describe('schema transform', function () {
 	]
 
 	for (const row of table) {
-		pipelineTest(row.title, row.documents, row.pass, null)
+		pipelineTest(row.title, row.documents, row.pass)
 	}
 })
