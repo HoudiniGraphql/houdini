@@ -25,7 +25,7 @@ program
 
 			try {
 				if (args.persistOutput) {
-					config.outputPath = args.persistOutput
+					config.persistedQueryPath = args.persistOutput
 				}
 				// Pull the newest schema if the flag is set
 				if (args.pullSchema) {

@@ -11,9 +11,10 @@ export default async function persistOutputGenerator(
 	config: Config,
 	docs: CollectedGraphQLDocument[]
 ) {
-	if (typeof config.outputPath !== 'string' || config.outputPath.length === 0) return
+	if (typeof config.persistedQueryPath !== 'string' || config.persistedQueryPath.length === 0)
+		return
 
-	if (!config.outputPath.endsWith('.json')) {
+	if (!config.persistedQueryPath.endsWith('.json')) {
 		console.log('Can only write the queryMap to a json file')
 		return
 	}
@@ -51,5 +52,5 @@ export default async function persistOutputGenerator(
 	if (Object.keys(queryMap).length === 0) return
 
 	// Write the queryMap to the provided path
-	await writeFile(config.outputPath, JSON.stringify(queryMap), 'utf-8')
+	await writeFile(config.persistedQueryPath, JSON.stringify(queryMap), 'utf-8')
 }

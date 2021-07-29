@@ -38,7 +38,7 @@ export class Config {
 	schema: graphql.GraphQLSchema
 	apiUrl?: string
 	schemaPath?: string
-	outputPath?: string
+	persistedQueryPath?: string
 	sourceGlob: string
 	quiet: boolean
 	static?: boolean
