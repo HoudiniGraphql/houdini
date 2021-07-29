@@ -966,7 +966,7 @@ export default new Environment(async function({ text, variables = {}, hash }){
 		return fetchWithoutQueryText
 	}
 
-	return await sendFetch.apply(this, { variables, hash, text })
+	return await sendFetch.apply(this, [{ variables, hash, text }])
 })
 ```
 
