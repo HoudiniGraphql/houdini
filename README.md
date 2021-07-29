@@ -103,10 +103,15 @@ npx houdini generate
 
 and finally, add the preprocessor to your config file:
 
+
+### Sapper
+
+You'll need to add the preprocessor to both your client and your server configuration:
+
 ```typescript
 import houdini from 'houdini-preprocess'
 
-// somewhere in your config file
+// add to both server and client configurations
 {
     plugins: [
         svelte({
@@ -116,10 +121,7 @@ import houdini from 'houdini-preprocess'
 }
 ```
 
-### Sapper
-
-You'll need to add the preprocessor to both your client and your server configuration. With that in place,
-the only thing left to configure your Sapper application is to connect your client and server to the generate network layer:
+With that in place, the only thing left to configure your Sapper application is to connect your client and server to the generate network layer:
 
 ```typescript
 // in both src/client.js and src/server.js
@@ -136,7 +138,11 @@ We need to define an alias so that your codebase can import the generated runtim
 values to `svelte.config.js`:
 
 ```typescript
+import houdini from 'houdini-preprocess'
+
 {
+    preprocess: [houdini()],
+    
     kit: {
         vite: {
             resolve: {
