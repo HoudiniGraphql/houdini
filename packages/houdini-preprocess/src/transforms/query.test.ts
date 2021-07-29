@@ -534,7 +534,7 @@ test('onLoad hook', async function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
-		    _houdini_context.onLoadHook({
+		    await _houdini_context.onLoadHook({
 		        "mode": "sapper",
 		        "onLoadFunction": onLoad
 		    });

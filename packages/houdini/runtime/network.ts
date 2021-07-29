@@ -235,7 +235,7 @@ export class RequestContext {
 
 	// This hook fires before executing any queries, it allows to redirect/error based on session state for example
 	// It also allows to return custom props that should be returned from the corresponding load function.
-	onLoadHook({
+	async onLoadHook({
 		mode,
 		onLoadFunction,
 	}: {
@@ -245,8 +245,12 @@ export class RequestContext {
 		// call the onLoad function to match the framework
 		let result =
 			mode === 'kit'
-				? (onLoadFunction as KitLoad).call(this, this.context)
-				: (onLoadFunction as SapperLoad).call(this, this.context.page, this.context.session)
+				? await (onLoadFunction as KitLoad).call(this, this.context)
+				: await (onLoadFunction as SapperLoad).call(
+						this,
+						this.context.page,
+						this.context.session
+				  )
 
 		// If the result is null or undefined, or the result isn't an object return early
 		if (result == null || typeof result !== 'object') {
