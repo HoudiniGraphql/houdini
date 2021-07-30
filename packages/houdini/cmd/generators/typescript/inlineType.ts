@@ -4,7 +4,7 @@ import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { TSTypeKind, StatementKind } from 'ast-types/gen/kinds'
 // locals
-import { unwrapType } from '../../utils'
+import { TypeWrapper, unwrapType } from '../../utils'
 import { enumDeclaration, nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
@@ -29,7 +29,7 @@ export function inlineType({
 	visitedTypes: Set<string>
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
-	const { type, list, nullable, nonNull } = unwrapType(config, rootType)
+	const { type, wrappers } = unwrapType(config, rootType)
 
 	let result: TSTypeKind
 	// if we are looking at a scalar field
@@ -272,23 +272,18 @@ export function inlineType({
 		throw Error('Could not convert selection to typescript')
 	}
 
-	// if we are wrapping a list
-	if (list) {
-		// if we do not have an inner non-null, wrap it
-		if (!nonNull) {
+	// we need to wrap the result in the right combination of nullable, list, and non-null markers
+	for (const toWrap of wrappers) {
+		if (!root && toWrap === TypeWrapper.Nullable) {
 			result = nullableField(result)
 		}
-		// wrap it in the list
-		result = AST.tsArrayType(AST.tsParenthesizedType(result))
-
-		// if we do not have an outer null
-		if (!nullable) {
-			result = nullableField(result)
+		// if its a non-null we don't need to add anything
+		else if (toWrap === TypeWrapper.NonNull) {
+			continue
 		}
-	} else {
-		// if we aren't marked as non-null
-		if (!nonNull && !root && !nullable) {
-			result = nullableField(result)
+		// it could be a list
+		else if (toWrap === TypeWrapper.List) {
+			result = AST.tsArrayType(AST.tsParenthesizedType(result))
 		}
 	}
 
