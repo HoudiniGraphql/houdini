@@ -342,7 +342,7 @@ any logic you need. If you return a value from this function, it will be passed 
         }
 	
 	return {
-	    message: "hello world"
+	    message: "There are this many items"
         }
     } 
 </script>
@@ -357,16 +357,12 @@ any logic you need. If you return a value from this function, it will be passed 
         query AllItems {
             items {
                 id
-                text
             }
         }
     `)
 </script>
 
-{message}
-{#each $data.items as item}
-    <div>{item.text}</div>
-{/each}
+{message}: {$data.items.length}
 ```
 
 ### Refetching Data
