@@ -935,14 +935,22 @@ export default new Environment(async function ({ text, variables = {} }, session
 
 ## 🚦&nbsp;&nbsp;Persisted Queries
 
-### Improved network performance by sending smaller requests
+Sometimes you want to confine an API to only fire a set of pre-defined queries. This 
+can be useful to not only reduce the amount of information transferred over the write
+but also act as a list of approved queries, providing additional security. Regardless of
+your motivation, the approach involves associating a known string with a particular query
+and sending that string to the server instead of the full query body. To support this,
+houdini passes a queries hash to the fetch function for you to use.
 
-houdini supports persisted queries in two variants: [Relay](https://relay.dev/docs/guides/persisted-queries/) and [Apollo](https://www.apollographql.com/docs/apollo-server/performance/apq/)
+### Automatic Persisted Queries
 
-#### An example for Automatic persisted queries with Apollo:
+An approach to Persisted Queries, popularized by Apollo, is known as 
+[Automatic Persisted Queries](https://www.apollographql.com/docs/apollo-server/performance/apq/). 
+This involves first sending a queries hash and if its unrecognized, sending the full
+query string. This might look something like: 
 
 ```typescript
-///src/environment.ts
+// src/environment.ts
 
 // This sends the actual fetch request to the server
 async function sendFetch({ text, variables, hash }) {
@@ -967,21 +975,26 @@ async function sendFetch({ text, variables, hash }) {
 }
 
 export default new Environment(async function({ text, variables = {}, hash }){
-	const fetchWithoutQueryText = await sendFetch.apply(this, [{ variables, hash, text: null }])
+    // first send the request without the text, only the hash
+	const response = await sendFetch.apply(this, [{ variables, hash, text: null }])
 
-	if (!fetchWithoutQueryText.errors) {
-		return fetchWithoutQueryText
+    // if there were no errors, we're good to go
+	if (!response.errors) {
+		return response
 	}
 
+    // there were errors, send the hash and the query to associate the two for 
+    // future requests
 	return await sendFetch.apply(this, [{ variables, hash, text }])
 })
 ```
 
-#### Persisted Queries in Relay Style:
+### Fixed List of Persisted Queries
 
-Run the houdini generate command with the `--persist-output <path>` flag.
-
-This results in a JSON file at the provided `<path>` you specify, containing a mapping from query `hash` (sha256) to the corresponding operation texts.
+If you don't want the flexibility of Automatic Persisted Queries, you will need
+a fixed association of hash to query for every document that your client will send.
+To support this, you can pass the `--persist-output` flag to the `generate` command
+and provide a path to save the map:
 
 ```sh
 npx houdini generate --persist-output ./path/to/persisted-queries.json
@@ -989,7 +1002,10 @@ npx houdini generate --persist-output ./path/to/persisted-queries.json
 npx houdini generate -po ./path/to/persisted-queries.json
 ```
 
-Instead of sending the full operation texts with every request you can now simply pass a doc_id or however you like to name it.
+Once this map has been created, you will have to make it available to your server.
+
+Now, instead of sending the full operation text with every request, you can now simply 
+pass the hash under whatever field name you prefer:
 
 ```typescript
 ///src/environment.ts
@@ -1009,15 +1025,7 @@ export default new Environment(async function({ text, variables = {}, hash }){
     // parse the result as json
     return await result.json()
 })
-
 ```
-
-##### Executing Persisted Queries on the Server
-
-To execute client requests that send persisted queries instead of query text, your server will need to be able to lookup the query text corresponding to each `hash`. Typically this will involve saving the output of the --persist-output <path> JSON file to a database or some other storage mechanism, and retrieving the corresponding text for the ID specified by a client.
-
-For a detailed explanation please refer to the [Relay Docs](https://relay.dev/docs/guides/persisted-queries/#simple-server-example).
-
 
 ## ⚠️&nbsp;&nbsp;Notes, Constraints, and Conventions
 - The compiler must be run every time the contents of a `graphql` tagged string changes
