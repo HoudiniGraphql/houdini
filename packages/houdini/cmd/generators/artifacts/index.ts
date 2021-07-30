@@ -1,5 +1,5 @@
 // externals
-import { Config, getRootType, parentTypeFromAncestors } from 'houdini-common'
+import { Config, getRootType, hashDocument, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 import {
 	CompiledQueryKind,
@@ -199,6 +199,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				const artifact: Record<string, any> = {
 					name,
 					kind: docKind,
+					hash: hashDocument(rawString),
 					refetch: doc.refetch,
 					raw: rawString,
 					rootType,
