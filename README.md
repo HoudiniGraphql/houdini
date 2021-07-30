@@ -950,7 +950,7 @@ This involves first sending a queries hash and if its unrecognized, sending the 
 query string. This might look something like: 
 
 ```typescript
-// src/environment.ts
+/// src/environment.ts
 
 // This sends the actual fetch request to the server
 async function sendFetch({ text, variables, hash }) {
@@ -975,16 +975,16 @@ async function sendFetch({ text, variables, hash }) {
 }
 
 export default new Environment(async function({ text, variables = {}, hash }){
-    // first send the request without the text, only the hash
+	// first send the request without the text, only the hash
 	const response = await sendFetch.apply(this, [{ variables, hash, text: null }])
 
-    // if there were no errors, we're good to go
+	// if there were no errors, we're good to go
 	if (!response.errors) {
 		return response
 	}
 
-    // there were errors, send the hash and the query to associate the two for 
-    // future requests
+	// there were errors, send the hash and the query to associate the two for 
+	// future requests
 	return await sendFetch.apply(this, [{ variables, hash, text }])
 })
 ```
@@ -996,7 +996,7 @@ a fixed association of hash to query for every document that your client will se
 To support this, you can pass the `--persist-output` flag to the `generate` command
 and provide a path to save the map:
 
-```sh
+```bash
 npx houdini generate --persist-output ./path/to/persisted-queries.json
 # or
 npx houdini generate -po ./path/to/persisted-queries.json
@@ -1008,7 +1008,7 @@ Now, instead of sending the full operation text with every request, you can now 
 pass the hash under whatever field name you prefer:
 
 ```typescript
-///src/environment.ts
+/// src/environment.ts
 
 export default new Environment(async function({ text, variables = {}, hash }){
     const result = await this.fetch('http://localhost:4000', {
