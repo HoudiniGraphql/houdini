@@ -253,7 +253,7 @@ export class RequestContext {
 				  )
 
 		// If the returnValue is already set through this.error or this.redirect return early
-		if (this.continue) {
+		if (!this.continue) {
 			return
 		}
 		// If the result is null or undefined, or the result isn't an object return early
