@@ -1,6 +1,6 @@
 {
 	"name": "houdini",
-	"version": "0.10.0",
+	"version": "0.10.1",
 	"description": "The disappearing graphql client for SvelteKit",
 	"scripts": {
 		"build:runtime": "npm run build:runtime:cjs && npm run build:runtime:esm",
@@ -49,7 +49,7 @@
 		"estree-walker": "^2.0.2",
 		"glob": "^7.1.6",
 		"graphql": "^15.5.0",
-		"houdini-common": "^0.10.0",
+		"houdini-common": "^0.10.1",
 		"inquirer": "^7.3.3",
 		"mkdirp": "^1.0.4",
 		"node-fetch": "^2.6.1",

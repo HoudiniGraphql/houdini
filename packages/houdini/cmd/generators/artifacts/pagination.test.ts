@@ -32,6 +32,7 @@ test('pagination arguments stripped from key', async function () {
 					module.exports = {
 					    name: "PaginatedFragment",
 					    kind: "HoudiniFragment",
+					    hash: "d655188329bfa82826d0e09c9b56fb90c276ed5b3b155784c3358db3cac30c87",
 
 					    refetch: {
 					        update: "append",
@@ -156,6 +157,7 @@ test('offset based pagination marks appropriate field', async function () {
 					module.exports = {
 					    name: "PaginatedFragment",
 					    kind: "HoudiniFragment",
+					    hash: "61656f834b4f2afccdd42328b499f288fc9776befbef14154133565e0ac7e8b6",
 
 					    refetch: {
 					        update: "append",
@@ -235,6 +237,7 @@ test("sibling aliases don't get marked", async function () {
 					module.exports = {
 					    name: "PaginatedFragment",
 					    kind: "HoudiniFragment",
+					    hash: "1a2d87a1d79e0241ab3ebda1cd43296a631d99973bb06e4fc66becd42c4a67be",
 
 					    refetch: {
 					        update: "append",

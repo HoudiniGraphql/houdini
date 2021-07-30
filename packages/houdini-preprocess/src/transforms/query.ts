@@ -469,6 +469,13 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 							requestContext,
 							AST.objectExpression([
 								AST.objectProperty(
+									AST.literal('hash'),
+									AST.memberExpression(
+										AST.identifier(artifactIdentifier(document.artifact)),
+										AST.identifier('hash')
+									)
+								),
+								AST.objectProperty(
 									AST.literal('text'),
 									AST.memberExpression(
 										AST.identifier(artifactIdentifier(document.artifact)),

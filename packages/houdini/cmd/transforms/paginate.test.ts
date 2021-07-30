@@ -446,6 +446,7 @@ test('embeds node pagination query as a separate document', async function () {
 					module.exports = {
 					    name: "UserFriends_Pagination_Query",
 					    kind: "HoudiniQuery",
+					    hash: "3be5a3f44ae5c1b63dca445a9fb41956565dfb855d47298ba944417c1feed7af",
 
 					    refetch: {
 					        update: "append",
@@ -1048,6 +1049,7 @@ test('generated query has same refetch spec', async function () {
 					module.exports = {
 					    name: "UserFriends_Pagination_Query",
 					    kind: "HoudiniQuery",
+					    hash: "3d3844eacd739623d7c4a81fbed8b11ec7fd8a60d15adabae3c79ba9767701e8",
 
 					    refetch: {
 					        update: "append",
