@@ -46,6 +46,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Query variables and page data](#query-variables-and-page-data)
     1. [Loading State](#loading-state)
     1. [Refetching Data](#refetching-data)
+    1. [Additional Logic](#additional-logic)
     1. [What about load?](#what-about-load)
 1. [Fragments](#fragments)
     1. [Fragment Arguments](#fragment-arguments)
@@ -323,6 +324,42 @@ the result of query:
 {:else}
     data is loaded!
 {/if}
+```
+
+### Additional logic
+
+Sometimes you will need to add additional logic to a component's query. For example, you might want to 
+check if the current session is valid before a query is sent to the server. In order to support this,
+houdini will look for a function called `onLoad` defined in the module context which can be used to perform 
+any logic you need. If you return a value from this function, it will be passed as props to your component:
+
+```svelte
+<script context="module">
+    // It has access to the same arguments and this.error this.redirect as the variable functions
+    export function onLoad({page, session}){
+        if(!session.authenticated){
+            return this.redirect(302, '/login')
+        }
+    } 
+</script>
+
+<script>
+    import { query, graphql } from '$houdini'
+
+    // load the items
+    const { data } = query(graphql`
+        query AllItems {
+            items {
+                id
+                text
+            }
+        }
+    `)
+</script>
+
+{#each $data.items as item}
+    <div>{item.text}</div>
+{/each}
 ```
 
 ### Refetching Data
