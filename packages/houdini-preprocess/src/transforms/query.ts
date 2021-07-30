@@ -301,6 +301,14 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 	if (preloadDefinition) {
 		throw new Error('Cannot have a query where there is already a load() defined')
 	}
+
+	let onloadDefinition = body.find(
+		(expression) =>
+			expression.type === 'ExportNamedDeclaration' &&
+			expression.declaration?.type === 'FunctionDeclaration' &&
+			expression.declaration?.id?.name === 'onLoad'
+	) as ExportNamedDeclaration
+
 	const preloadFn = AST.functionDeclaration(
 		AST.identifier('load'),
 		[AST.identifier('context')],
@@ -371,6 +379,39 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			0,
 			// @ts-ignore
 			// compute the query variables once
+			onloadDefinition &&
+				AST.expressionStatement(
+					AST.awaitExpression(
+						AST.callExpression(
+							AST.memberExpression(requestContext, AST.identifier('onLoadHook')),
+							[
+								AST.objectExpression([
+									AST.objectProperty(
+										AST.literal('mode'),
+										AST.stringLiteral(config.framework)
+									),
+									AST.objectProperty(
+										AST.literal('onLoadFunction'),
+										AST.identifier('onLoad')
+									),
+								]),
+							]
+						)
+					)
+				),
+			// if the onLoad function returned an error or redirect
+			onloadDefinition &&
+				AST.ifStatement(
+					AST.unaryExpression(
+						'!',
+						AST.memberExpression(requestContext, AST.identifier('continue'))
+					),
+					AST.blockStatement([
+						AST.returnStatement(
+							AST.memberExpression(requestContext, AST.identifier('returnValue'))
+						),
+					])
+				),
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier(variableIdentifier),
@@ -406,7 +447,6 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 						: AST.objectExpression([])
 				),
 			]),
-
 			// if we ran into a problem computing the variables
 			AST.ifStatement(
 				AST.unaryExpression(
@@ -419,7 +459,6 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 					),
 				])
 			),
-
 			// @ts-ignore
 			// perform the fetch and save the value under {preloadKey}
 			AST.variableDeclaration('const', [
@@ -479,6 +518,15 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			)
 		)
 
+		if (onloadDefinition) {
+			// add the returnValue of the onLoad Hook to the return value of pre(load)
+			propsValue.properties.push(
+				// @ts-ignore
+				AST.spreadProperty(
+					AST.memberExpression(requestContext, AST.identifier('returnValue'))
+				)
+			)
+		}
 		// add the field to the return value of preload
 		propsValue.properties.push(
 			// @ts-ignore
@@ -503,6 +551,7 @@ function addSapperPreload(config: Config, body: Statement[]) {
 			expression.declaration?.type === 'FunctionDeclaration' &&
 			expression.declaration?.id?.name === 'preload'
 	) as ExportNamedDeclaration
+
 	// if there isn't one, add it
 	if (preloadDefinition) {
 		throw new Error('Cannot have a query where there is already a preload() defined')

@@ -237,6 +237,37 @@ export class RequestContext {
 		return this.error(500, 'Encountered invalid response: ' + JSON.stringify(payload))
 	}
 
+	// This hook fires before executing any queries, it allows to redirect/error based on session state for example
+	// It also allows to return custom props that should be returned from the corresponding load function.
+	async onLoadHook({
+		mode,
+		onLoadFunction,
+	}: {
+		mode: 'kit' | 'sapper'
+		onLoadFunction: SapperLoad | KitLoad
+	}) {
+		// call the onLoad function to match the framework
+		let result =
+			mode === 'kit'
+				? await (onLoadFunction as KitLoad).call(this, this.context)
+				: await (onLoadFunction as SapperLoad).call(
+						this,
+						this.context.page,
+						this.context.session
+				  )
+
+		// If the returnValue is already set through this.error or this.redirect return early
+		if (!this.continue) {
+			return
+		}
+		// If the result is null or undefined, or the result isn't an object return early
+		if (result == null || typeof result !== 'object') {
+			return
+		}
+
+		this.returnValue = result
+	}
+
 	// compute the inputs for an operation should reflect the framework's conventions.
 	// in sapper, this means preparing a `this` for the function. for kit, we can just pass
 	// the context
