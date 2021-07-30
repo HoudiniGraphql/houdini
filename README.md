@@ -340,11 +340,17 @@ any logic you need. If you return a value from this function, it will be passed 
         if(!session.authenticated){
             return this.redirect(302, '/login')
         }
+	
+	return {
+	    message: "hello world"
+        }
     } 
 </script>
 
 <script>
     import { query, graphql } from '$houdini'
+
+    export let message
 
     // load the items
     const { data } = query(graphql`
@@ -357,6 +363,7 @@ any logic you need. If you return a value from this function, it will be passed 
     `)
 </script>
 
+{message}
 {#each $data.items as item}
     <div>{item.text}</div>
 {/each}
