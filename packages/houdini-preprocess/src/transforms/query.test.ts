@@ -569,6 +569,7 @@ test('onLoad hook', async function () {
 		    }
 
 		    const _TestQuery = await fetchQuery(_houdini_context, {
+		        "hash": _TestQueryArtifact.hash,
 		        "text": _TestQueryArtifact.raw,
 		        "variables": _TestQuery_Input
 		    }, context.session);
