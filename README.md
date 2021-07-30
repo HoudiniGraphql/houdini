@@ -976,7 +976,7 @@ async function sendFetch({ text, variables, hash }) {
 
 export default new Environment(async function({ text, variables = {}, hash }){
 	// first send the request without the text, only the hash
-	const response = await sendFetch.apply(this, [{ variables, hash, text: null }])
+	const response = await sendFetch.call(this, { variables, hash, text: null })
 
 	// if there were no errors, we're good to go
 	if (!response.errors) {
@@ -985,7 +985,7 @@ export default new Environment(async function({ text, variables = {}, hash }){
 
 	// there were errors, send the hash and the query to associate the two for 
 	// future requests
-	return await sendFetch.apply(this, [{ variables, hash, text }])
+	return await sendFetch.call(this, { variables, hash, text })
 })
 ```
 
