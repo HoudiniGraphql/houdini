@@ -52,5 +52,5 @@ export default async function persistOutputGenerator(
 	if (Object.keys(queryMap).length === 0) return
 
 	// Write the queryMap to the provided path
-	await writeFile(config.persistedQueryPath, JSON.stringify(queryMap), 'utf-8')
+	await writeFile(config.persistedQueryPath, JSON.stringify(queryMap, null, 4), 'utf-8')
 }
