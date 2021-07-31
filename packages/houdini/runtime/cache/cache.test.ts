@@ -298,7 +298,7 @@ test('linked lists', function () {
 	// make sure we can get the linked lists back
 	const friendData = cache.internal
 		.getRecord(cache.id('User', '1')!)
-		?.linkedList('friends')
+		?.flatLinkedList('friends')
 		.map((data) => data!.fields)
 	expect(friendData).toEqual([
 		{
@@ -1438,6 +1438,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 						{
 							cursor: '1234',
 							node: {
+								__typename: 'User',
 								id: '3',
 								firstName: 'mary',
 							},
@@ -1476,6 +1477,10 @@ test('inserting data with an update overwrites a record inserted with list.appen
 										type: 'User',
 										keyRaw: 'node',
 										fields: {
+											__typename: {
+												type: 'String',
+												keyRaw: '__typename',
+											},
 											id: {
 												type: 'ID',
 												keyRaw: 'id',
@@ -3436,7 +3441,7 @@ test('writing abstract lists', function () {
 	})
 
 	// make sure we can get back what we wrote
-	expect(cache.internal.getRecord(cache.id('User', data.nodes[0])!)?.fields).toEqual({
+	expect(cache.internal.getRecord('User:1')?.fields).toEqual({
 		__typename: 'User',
 		id: '1',
 		firstName: 'bob',
@@ -3591,6 +3596,140 @@ test('can store and retrieve lists with null values', function () {
 					firstName: 'jane',
 				},
 				null,
+			],
+		},
+	})
+})
+
+test('can store and retrieve lists of lists of scalars', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				strings: {
+					type: 'String',
+					keyRaw: 'strings',
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				strings: ['bob', 'john'],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			strings: ['bob', 'john'],
+		},
+	})
+})
+
+test('can store and retrieve lists of lists of records', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					[
+						{
+							id: '2',
+							firstName: 'jane',
+						},
+						null,
+					],
+					[
+						{
+							id: '3',
+							firstName: 'jane',
+						},
+						{
+							id: '4',
+							firstName: 'jane',
+						},
+					],
+				],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [
+				[
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					null,
+				],
+				[
+					{
+						id: '3',
+						firstName: 'jane',
+					},
+					{
+						id: '4',
+						firstName: 'jane',
+					},
+				],
 			],
 		},
 	})
@@ -4088,7 +4227,7 @@ test('disabled linked lists update', function () {
 	expect(
 		cache.internal
 			.getRecord(cache.id('User', '1')!)
-			?.linkedList('friends')
+			?.flatLinkedList('friends')
 			.map((data) => data!.fields)
 	).toEqual([
 		{
@@ -4126,7 +4265,7 @@ test('disabled linked lists update', function () {
 	expect(
 		cache.internal
 			.getRecord(cache.id('User', '1')!)
-			?.linkedList('friends')
+			?.flatLinkedList('friends')
 			.map((data) => data!.fields)
 	).toEqual([
 		{
@@ -4201,7 +4340,7 @@ test('append linked lists update', function () {
 	expect(
 		cache.internal
 			.getRecord(cache.id('User', '1')!)
-			?.linkedList('friends')
+			?.flatLinkedList('friends')
 			.map((data) => data!.fields)
 	).toEqual([
 		{
@@ -4240,7 +4379,7 @@ test('append linked lists update', function () {
 	expect(
 		cache.internal
 			.getRecord(cache.id('User', '1')!)
-			?.linkedList('friends')
+			?.flatLinkedList('friends')
 			.map((data) => data!.fields)
 	).toEqual([
 		{
@@ -4324,7 +4463,7 @@ test('prepend linked lists update', function () {
 	expect(
 		cache.internal
 			.getRecord(cache.id('User', '1')!)
-			?.linkedList('friends')
+			?.flatLinkedList('friends')
 			.map((data) => data!.fields)
 	).toEqual([
 		{
@@ -4363,7 +4502,7 @@ test('prepend linked lists update', function () {
 	expect(
 		cache.internal
 			.getRecord(cache.id('User', '1')!)
-			?.linkedList('friends')
+			?.flatLinkedList('friends')
 			.map((data) => data!.fields)
 	).toEqual([
 		{
