@@ -22,6 +22,7 @@ const config = testConfig({
 			users: [User]
 			nodes: [Node!]!
 			entities: [Entity]
+			listOfLists: [[User]]!
 			node(id: ID!): Node
 		}
 
@@ -832,6 +833,45 @@ describe('typescript', function () {
 
 		export type Query$input = {
 		    date: Date
+		};
+	`)
+	})
+
+	test('can generate types for list of lists', async function () {
+		// the document to test
+		const query = mockCollectedDoc(
+			`
+			query Query { 
+				listOfLists { 
+					firstName
+					nickname
+				}
+			}
+		`
+		)
+
+		// execute the generator
+		await runPipeline(config, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly listOfLists: (({
+		        readonly firstName: string,
+		        readonly nickname: string | null
+		    } | null)[] | null)[]
 		};
 	`)
 	})

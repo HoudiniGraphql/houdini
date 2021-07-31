@@ -189,7 +189,7 @@ export class ListHandler {
 			}
 			// look at every embedded edge for the one with a node corresponding to the element
 			// we want to delete
-			for (const edge of embeddedConnection.linkedList('edges') || []) {
+			for (const edge of embeddedConnection.flatLinkedList('edges') || []) {
 				if (!edge) {
 					continue
 				}
@@ -274,7 +274,7 @@ export class ListHandler {
 	// iterating over the list handler should be the same as iterating over
 	// the underlying linked list
 	*[Symbol.iterator]() {
-		for (let record of this.record.linkedList(this.key)) {
+		for (let record of this.record.flatLinkedList(this.key)) {
 			yield record
 		}
 	}

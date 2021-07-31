@@ -3,7 +3,7 @@ import { Config, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
-import { unwrapType } from '../utils'
+import { TypeWrapper, unwrapType } from '../utils'
 
 // addListFragments adds fragments for the fields tagged with @list
 export default async function addListFragments(
@@ -315,7 +315,11 @@ export function connectionSelection(
 	// we need to make sure that there is an edges field
 	const edgeField = (unwrapType(config, field.type)
 		.type as graphql.GraphQLObjectType).getFields()['edges']
-	const { list, type: edgeFieldType } = unwrapType(config, edgeField.type)
+	const { wrappers, type: edgeFieldType } = unwrapType(config, edgeField.type)
+	// wrappers are in reverse order (last one is the top level, and there's a nullable entry)
+	// so a nullable list of non-null elements looks like [NonNull, List, Nullable].
+	// this means we just have to look at the second to last element and check if its a list
+	const list = wrappers[wrappers.length - 2] === TypeWrapper.List
 	if (!list) {
 		return { selection, type, connection: false }
 	}

@@ -16,7 +16,7 @@ export class Record {
 	readonly id: string
 	private subscribers: { [key: string]: SubscriptionSpec[] } = {}
 	private recordLinks: { [key: string]: string | null } = {}
-	private listLinks: { [key: string]: (string | null)[] } = {}
+	listLinks: { [key: string]: (string | null | (string | null)[])[] } = {}
 	private cache: Cache
 	private referenceCounts: {
 		[fieldName: string]: Map<SubscriptionSpec['set'], number>
@@ -43,7 +43,7 @@ export class Record {
 		this.recordLinks[fieldName] = value
 	}
 
-	writeListLink(fieldName: string, value: (string | null)[]) {
+	writeListLink(fieldName: string, value: (string | null | (string | null)[])[]) {
 		this.listLinks[fieldName] = value
 	}
 
@@ -61,11 +61,28 @@ export class Record {
 	}
 
 	linkedListIDs(fieldName: string): (string | null)[] {
-		return this.listLinks[fieldName] || []
+		const ids: (string | null)[] = []
+
+		// we need to flatten the list links
+		const unvisited = [this.listLinks[fieldName] || []]
+		while (unvisited.length > 0) {
+			const target = unvisited.shift() as string | string[]
+
+			for (const id of target) {
+				if (Array.isArray(id)) {
+					unvisited.push(id)
+					continue
+				}
+
+				ids.push(id)
+			}
+		}
+
+		return ids
 	}
 
-	linkedList(fieldName: string): Maybe<Record>[] {
-		return (this.listLinks[fieldName] || []).map(this.cache.internal.getRecord)
+	flatLinkedList(fieldName: string): Maybe<Record>[] {
+		return this.linkedListIDs(fieldName).map(this.cache.internal.getRecord)
 	}
 
 	appendLinkedList(fieldName: string, id: string) {
@@ -150,7 +167,7 @@ export class Record {
 		// walk down to every record we know about
 		const linkedIDs = Object.keys(this.recordLinks)
 		for (const key of Object.keys(this.listLinks)) {
-			for (const child of this.listLinks[key]) {
+			for (const child of this.linkedListIDs(key)) {
 				if (child !== null) {
 					linkedIDs.push(child)
 				}

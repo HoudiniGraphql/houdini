@@ -3,49 +3,42 @@ import { Config } from 'houdini-common'
 
 export function unwrapType(
 	config: Config,
-	source: any
-): { type: graphql.GraphQLNamedType; list: boolean; nonNull: boolean; nullable: boolean } {
-	// build a reference we will unwrap
-	let type = source
-	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
-	let nonNull = false
+	type: any,
+	wrappers: TypeWrapper[] = []
+): { type: graphql.GraphQLNamedType; wrappers: TypeWrapper[] } {
+	// if we are looking at a non null type
 	if (type.kind === 'NonNullType') {
-		type = type.type
-		nonNull = true
+		return unwrapType(config, type.type, [TypeWrapper.NonNull, ...wrappers])
 	}
 	if (type instanceof graphql.GraphQLNonNull) {
-		nonNull = true
-		type = type.ofType
+		return unwrapType(config, type.ofType, [TypeWrapper.NonNull, ...wrappers])
 	}
-	let list = false
+
+	// if the last thing we added was not a non-null indicator
+	if (wrappers[0] !== TypeWrapper.NonNull) {
+		// add the nullable mark
+		wrappers.unshift(TypeWrapper.Nullable)
+	}
+
 	if (type.kind === 'ListType') {
-		type = type.type
-		list = true
+		return unwrapType(config, type.type, [TypeWrapper.List, ...wrappers])
 	}
 	if (type instanceof graphql.GraphQLList) {
-		type = type.ofType
-		list = true
-	}
-	let innerNonNull = false
-	if (type.kind === 'NonNullType') {
-		type = type.type
-		innerNonNull = true
-	}
-	if (type instanceof graphql.GraphQLNonNull) {
-		type = type.ofType
-		innerNonNull = true
+		return unwrapType(config, type.ofType, [TypeWrapper.List, ...wrappers])
 	}
 
 	// get the named type
 	const namedType = config.schema.getType(type.name.value || type.name)
 	if (!namedType) {
-		throw new Error('Could not unwrap type: ' + source)
+		throw new Error('Could not unwrap type: ' + type)
 	}
 
-	return {
-		type: namedType,
-		nullable: nonNull,
-		nonNull: innerNonNull,
-		list,
-	}
+	// don't add any wrappers
+	return { type: namedType, wrappers }
+}
+
+export enum TypeWrapper {
+	Nullable = 'Nullable',
+	List = 'List',
+	NonNull = 'NonNull',
 }
