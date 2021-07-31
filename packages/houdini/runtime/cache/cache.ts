@@ -476,30 +476,6 @@ export class Cache {
 			else if (!isScalar(this._config, linkedType) && Array.isArray(value) && fields) {
 				// look up the current known link id
 				let oldIDs = [...(record.listLinks[this.evaluateKey(key, variables)] || [])]
-				// find the empty nodes before we update the cache
-				const emptyEdges = oldIDs.filter((id) => {
-					if (!id) {
-						return false
-					}
-
-					// look up the edge record
-					const edge = this.record(id as string)
-
-					// if there is a cursor, keep it
-					if (edge.fields['cursor']) {
-						return false
-					}
-
-					// look up the linked node
-					const node = edge.linkedRecord('node')
-					// if there one, keep the edge
-					if (!node) {
-						return false
-					}
-
-					// there is no cursor
-					return true
-				})
 
 				// if we are supposed to prepend or append and the mutation is enabled
 				// the new list of IDs for this link will start with an existing value
@@ -610,6 +586,31 @@ export class Cache {
 
 				// if we're supposed to apply this write as an update, we need to figure out how
 				if (applyUpdates && update) {
+					// find the empty nodes before we update the cache
+					const emptyEdges = oldIDs.filter((id) => {
+						if (!id) {
+							return false
+						}
+
+						// look up the edge record
+						const edge = this.record(id as string)
+
+						// if there is a cursor, keep it
+						if (edge.fields['cursor']) {
+							return false
+						}
+
+						// look up the linked node
+						const node = edge.linkedRecord('node')
+						// if there one, keep the edge
+						if (!node) {
+							return false
+						}
+
+						// there is no cursor
+						return true
+					})
+
 					// it's possible that one of the ids in the field corresponds to an entry
 					// that was added as part of a mutation operation on this list.
 					// ideally we want to remove the old reference and leave the new one behind.
