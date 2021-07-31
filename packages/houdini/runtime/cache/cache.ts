@@ -509,106 +509,22 @@ export class Cache {
 				// build up the list of linked ids
 				let linkedIDs: LinkedList = []
 
-				// keep track of the records we are adding
-				const newIDs: (string | null)[] = []
-
 				// it could be a list of lists, in order to recreate the list of lists we need
 				// we need to track two sets of IDs, the ids of the embedded records and
 				// then the full structure of embedded lists. we'll use the flat list to add
 				// and remove subscribers but we'll save the second list in the record so
 				// we can recreate the structure
-				const pendingLists = [value]
-				let id = 0
-				while (pendingLists.length > 0) {
-					const target = pendingLists.shift() as (GraphQLValue | GraphQLValue[])[]
-
-					// grab the list at the front of the list
-					for (const [i, entry] of [...target.entries()] as [
-						number,
-						{ __typename?: string; node?: {} }
-					][]) {
-						// if the entry is a list, add it to the pile
-						if (Array.isArray(entry)) {
-							pendingLists.push(entry)
-							continue
-						}
-
-						// if the entry is null, leave it
-						if (target[i] === null) {
-							continue
-						}
-
-						// start off building up the embedded id
-						let linkedID = `${recordID}.${key}[${id++}]`
-
-						// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
-						// required to compute the entity's id
-						const embedded =
-							this.idFields(linkedType)?.filter(
-								(field) => typeof (entry as GraphQLObject)[field] === 'undefined'
-							).length > 0
-
-						const typename = entry.__typename as string | undefined
-
-						let innerType = linkedType
-						// if we ran into an interface
-						if (isAbstract) {
-							// make sure we have a __typename field
-							if (!typename) {
-								throw new Error(
-									'Encountered interface type without __typename in the payload'
-								)
-							}
-
-							// we need to look at the __typename field in the response for the type
-							innerType = typename as string
-						}
-
-						// build up an
-						if (!embedded) {
-							const id = this.id(innerType, entry as {})
-							if (id) {
-								linkedID = id
-							} else {
-								continue
-							}
-						}
-
-						// if the field is marked for pagination and we are looking at edges, we need
-						// to use the underlying node for the id because the embedded key will conflict
-						// with entries in the previous loaded value.
-						// NOTE: this approach might cause weird behavior of a node is loaded in the same
-						// location in two different pages. In practice, nodes rarely show up in the same
-						// connection so it might not be a problem.
-						if (
-							key === 'edges' &&
-							entry['node'] &&
-							(entry['node'] as { __typename: string }).__typename
-						) {
-							const node = entry['node'] as {}
-							// @ts-ignore
-							const typename = node.__typename
-							let nodeID = this.id(typename, node)
-							if (nodeID) {
-								linkedID += '#' + nodeID
-							}
-						}
-
-						// update the linked fields too
-						this._write({
-							rootID,
-							selection: fields,
-							recordID: linkedID,
-							data: entry,
-							variables,
-							specs,
-							applyUpdates,
-						})
-
-						newIDs.push(linkedID)
-						target[i] = linkedID
-					}
-				}
+				const { newIDs, nestedIDs } = this.extractNestedListIDs({
+					value,
+					abstract: Boolean(isAbstract),
+					specs,
+					applyUpdates,
+					recordID,
+					key,
+					linkedType,
+					variables,
+					fields,
+				})
 
 				// if we're supposed to apply this write as an update, we need to figure out how
 				if (applyUpdates && update) {
@@ -657,7 +573,7 @@ export class Cache {
 				}
 				// we're not supposed to apply this write as an update, just use the new value
 				else {
-					linkedIDs = value as (string | null | (string | null)[])[]
+					linkedIDs = nestedIDs as (string | null | (string | null)[])[]
 				}
 
 				// we have to notify the subscribers if a few things happen:
@@ -811,6 +727,140 @@ export class Cache {
 			// look up the data for the record
 			return this.getData(this.record(entry), fields, variables)
 		})
+	}
+
+	private extractNestedListIDs({
+		value,
+		abstract,
+		recordID,
+		key,
+		linkedType,
+		fields,
+		variables,
+		applyUpdates,
+		specs,
+	}: {
+		value: GraphQLValue[]
+		recordID: string
+		key: string
+		linkedType: string
+		abstract: boolean
+		variables: {}
+		specs: SubscriptionSpec[]
+		applyUpdates: boolean
+		fields: SubscriptionSelection
+	}): { nestedIDs: LinkedList; newIDs: (string | null)[] } {
+		// build up the two lists
+		const nestedIDs: LinkedList = []
+		const newIDs = []
+
+		let id = 0
+
+		for (const [i, entry] of value.entries()) {
+			// if we found another list
+			if (Array.isArray(entry)) {
+				// compute the nested list of ids
+				const inner = this.extractNestedListIDs({
+					value: entry as GraphQLValue[],
+					abstract,
+					recordID,
+					key,
+					linkedType,
+					fields,
+					variables,
+					applyUpdates,
+					specs,
+				})
+
+				// add the list of new ids to our list
+				newIDs.push(...inner.newIDs)
+
+				// @ts-ignore
+				// and use the nested form in place of it
+				nestedIDs[i] = inner.nestedIDs
+				console.log('inner', inner.nestedIDs)
+				continue
+			}
+			// if the value is null just use that
+			if (entry === null || typeof entry === 'undefined') {
+				newIDs.push(null)
+				nestedIDs[i] = null
+				continue
+			}
+
+			// we know now that entry is an object
+			const entryObj = entry as GraphQLObject
+
+			// start off building up the embedded id
+			let linkedID = `${recordID}.${key}[${id++}]`
+
+			// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
+			// required to compute the entity's id
+			const embedded =
+				this.idFields(linkedType)?.filter(
+					(field) => typeof (entry as GraphQLObject)[field] === 'undefined'
+				).length > 0
+
+			const typename = entryObj.__typename as string | undefined
+
+			let innerType = linkedType
+			// if we ran into an interface
+			if (abstract) {
+				// make sure we have a __typename field
+				if (!typename) {
+					throw new Error('Encountered interface type without __typename in the payload')
+				}
+
+				// we need to look at the __typename field in the response for the type
+				innerType = typename as string
+			}
+
+			// build up an
+			if (!embedded) {
+				const id = this.id(innerType, entry as {})
+				if (id) {
+					linkedID = id
+				} else {
+					continue
+				}
+			}
+
+			// if the field is marked for pagination and we are looking at edges, we need
+			// to use the underlying node for the id because the embedded key will conflict
+			// with entries in the previous loaded value.
+			// NOTE: this approach might cause weird behavior of a node is loaded in the same
+			// location in two different pages. In practice, nodes rarely show up in the same
+			// connection so it might not be a problem.
+			if (
+				key === 'edges' &&
+				entryObj.node &&
+				(entryObj.node as { __typename: string }).__typename
+			) {
+				const node = entryObj.node as {}
+				// @ts-ignore
+				const typename = node.__typename
+				let nodeID = this.id(typename, node)
+				if (nodeID) {
+					linkedID += '#' + nodeID
+				}
+			}
+
+			// update the linked fields too
+			this._write({
+				rootID,
+				selection: fields,
+				recordID: linkedID,
+				data: entryObj,
+				variables,
+				specs,
+				applyUpdates,
+			})
+
+			newIDs.push(linkedID)
+			nestedIDs[i] = linkedID
+		}
+
+		return { newIDs, nestedIDs }
 	}
 
 	// look up the information for a specific record
