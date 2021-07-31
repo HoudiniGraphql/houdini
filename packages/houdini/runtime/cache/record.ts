@@ -1,6 +1,6 @@
 // local imports
 import { GraphQLValue, Maybe, SubscriptionSpec } from '../types'
-import { Cache } from './cache'
+import { Cache, LinkedList } from './cache'
 
 type List = {
 	name: string
@@ -16,7 +16,7 @@ export class Record {
 	readonly id: string
 	private subscribers: { [key: string]: SubscriptionSpec[] } = {}
 	private recordLinks: { [key: string]: string | null } = {}
-	listLinks: { [key: string]: (string | null | (string | null)[])[] } = {}
+	listLinks: { [key: string]: LinkedList } = {}
 	private cache: Cache
 	private referenceCounts: {
 		[fieldName: string]: Map<SubscriptionSpec['set'], number>
@@ -43,7 +43,7 @@ export class Record {
 		this.recordLinks[fieldName] = value
 	}
 
-	writeListLink(fieldName: string, value: (string | null | (string | null)[])[]) {
+	writeListLink(fieldName: string, value: LinkedList) {
 		this.listLinks[fieldName] = value
 	}
 

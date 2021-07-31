@@ -775,10 +775,8 @@ export class Cache {
 				// add the list of new ids to our list
 				newIDs.push(...inner.newIDs)
 
-				// @ts-ignore
 				// and use the nested form in place of it
 				nestedIDs[i] = inner.nestedIDs
-				console.log('inner', inner.nestedIDs)
 				continue
 			}
 			// if the value is null just use that
@@ -1026,4 +1024,4 @@ export type CacheProxy = {
 // id that we should use to refer to things in root
 export const rootID = '_ROOT_'
 
-type LinkedList<_Result = string> = (_Result | null | (_Result | null)[])[]
+export type LinkedList<_Result = string> = (_Result | null | LinkedList<_Result>)[]
