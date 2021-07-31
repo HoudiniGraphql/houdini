@@ -475,7 +475,31 @@ export class Cache {
 			// the value could be a list
 			else if (!isScalar(this._config, linkedType) && Array.isArray(value) && fields) {
 				// look up the current known link id
-				let oldIDs = record.listLinks[this.evaluateKey(key, variables)] || []
+				let oldIDs = [...(record.listLinks[this.evaluateKey(key, variables)] || [])]
+				// find the empty nodes before we update the cache
+				const emptyEdges = oldIDs.filter((id) => {
+					if (!id) {
+						return false
+					}
+
+					// look up the edge record
+					const edge = this.record(id as string)
+
+					// if there is a cursor, keep it
+					if (edge.fields['cursor']) {
+						return false
+					}
+
+					// look up the linked node
+					const node = edge.linkedRecord('node')
+					// if there one, keep the edge
+					if (!node) {
+						return false
+					}
+
+					// there is no cursor
+					return true
+				})
 
 				// if we are supposed to prepend or append and the mutation is enabled
 				// the new list of IDs for this link will start with an existing value
@@ -610,30 +634,10 @@ export class Cache {
 							newNodeIDs.push(node.id)
 						}
 
-						// filter out any old ids that point to edges with no cursor and a node that is found in the new list
-						oldIDs = oldIDs.filter((id) => {
-							if (!id) {
-								return true
-							}
-
-							// look up the edge record
-							const edge = this.record(id as string)
-
-							// if there is a cursor, keep it
-							if (edge.fields['cursor']) {
-								return true
-							}
-
-							// look up the linked node
-							const node = edge.linkedRecord('node')
-							// if there one, keep the edge
-							if (!node) {
-								return true
-							}
-
-							// only keep the edge if the node's id doesn't show up in the new list
-							return !newNodeIDs.includes(node.id)
-						})
+						// only save a previous ID if the id shows up in the new list and was previously empty,
+						oldIDs = oldIDs.filter(
+							(id) => !(newIDs.includes(id as string) && emptyEdges.includes(id))
+						)
 					}
 
 					// if we have to prepend it, do so
