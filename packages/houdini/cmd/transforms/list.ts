@@ -316,11 +316,10 @@ export function connectionSelection(
 	const edgeField = (unwrapType(config, field.type)
 		.type as graphql.GraphQLObjectType).getFields()['edges']
 	const { wrappers, type: edgeFieldType } = unwrapType(config, edgeField.type)
-	// ignore the nullable marks for this check
-	const wrappersFilters = wrappers.filter((toWrap) => toWrap !== TypeWrapper.Nullable)
-	const list =
-		wrappersFilters[0] === TypeWrapper.List ||
-		(wrappersFilters[0] === TypeWrapper.NonNull && wrappersFilters[1] === TypeWrapper.List)
+	// wrappers are in reverse order (last one is the top level, and there's a nullable entry)
+	// so a nullable list of non-null elements looks like [NonNull, List, Nullable].
+	// this means we just have to look at the second to last element and check if its a list
+	const list = wrappers[wrappers.length - 2] === TypeWrapper.List
 	if (!list) {
 		return { selection, type, connection: false }
 	}
