@@ -612,7 +612,7 @@ export class Cache {
 				}
 
 				// if there was a change in the list
-				if (contentChanged) {
+				if (contentChanged || (oldIDs.length === 0 && newIDs.length === 0)) {
 					// update the cached value
 					record.writeListLink(key, linkedIDs)
 				}
