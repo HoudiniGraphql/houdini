@@ -173,6 +173,7 @@ export class Cache {
 			getData: this.getData.bind(this),
 			clear: this.clear.bind(this),
 			computeID: this.computeID.bind(this),
+			isDataAvailable: this.isDataAvailable.bind(this),
 		}
 	}
 
@@ -1002,6 +1003,60 @@ export class Cache {
 	private clear(id: string): boolean {
 		return this._data.delete(id)
 	}
+
+	private isDataAvailable(target: SubscriptionSelection, parentID: string = rootID): boolean {
+		// look up the parent
+		const record = this.record(parentID)
+
+		// every field in the selection needs to be present
+		for (const [fieldName, selection] of Object.entries(target)) {
+			// a single field could show up in the 3 places: as a field, a linked record, or a linked list
+
+			// if the field has a value, we're good
+			if (typeof record.getField(fieldName) !== 'undefined') {
+				continue
+			}
+			// if the field has no value and there are no subselections and we dont have a value, we are missing data
+			else if (!selection.fields) {
+				return false
+			}
+
+			// if we have a null linked record
+			const linked = record.linkedRecordID(fieldName)
+			if (typeof linked !== 'undefined') {
+				// if we have a null value we're good
+				if (linked === null) {
+					continue
+				}
+
+				// if we have a valid id, walk down
+				return this.isDataAvailable(selection.fields!, linked)
+			}
+			// look up the linked list
+			const hasListLinks = record.listLinks[fieldName]
+			if (hasListLinks) {
+				// we need to look at every linked record
+				for (const linkedRecord of record.flatLinkedList(fieldName)) {
+					if (!linkedRecord) {
+						continue
+					}
+
+					// if the linked record doesn't have the field then we are missing data
+					if (!this.isDataAvailable(selection.fields!, linkedRecord.id)) {
+						return false
+					}
+				}
+			}
+
+			// if we dont have a linked record or linked list, we dont have the data
+			if (typeof linked === 'undefined' && typeof hasListLinks === 'undefined') {
+				return false
+			}
+		}
+
+		// if we got this far, we have the information
+		return true
+	}
 }
 
 // the list of characters that make up a valid graphql variable name
@@ -1019,6 +1074,7 @@ export type CacheProxy = {
 	getData: Cache['getData']
 	clear: Cache['clear']
 	computeID: Cache['computeID']
+	isDataAvailable: Cache['isDataAvailable']
 }
 
 // id that we should use to refer to things in root

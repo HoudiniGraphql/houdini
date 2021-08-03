@@ -2,7 +2,6 @@
 import { testConfig } from 'houdini-common'
 // locals
 import { Cache, rootID } from '../cache'
-import { SubscriptionSelection } from '../../types'
 
 const config = testConfig()
 
@@ -1413,43 +1412,6 @@ test('embedded references', function () {
 	})
 })
 
-describe('key evaluation', function () {
-	const table = [
-		{
-			title: 'string',
-			key: 'fieldName',
-			variables: {},
-			expected: 'fieldName',
-		},
-		{
-			title: 'variable',
-			key: 'fieldName(foo: $bar)',
-			variables: { bar: 'baz' },
-			expected: 'fieldName(foo: "baz")',
-		},
-		{
-			title: '$ in string',
-			key: 'fieldName(foo: "$bar")',
-			variables: { bar: 'baz' },
-			expected: 'fieldName(foo: "$bar")',
-		},
-		{
-			title: 'undefined variable',
-			key: 'fieldName(foo: $bar)',
-			variables: {},
-			expected: 'fieldName(foo: undefined)',
-		},
-	]
-
-	for (const row of table) {
-		test(row.title, function () {
-			const cache = new Cache(config)
-
-			expect(cache.internal.evaluateKey(row.key, row.variables)).toEqual(row.expected)
-		})
-	}
-})
-
 test('writing abstract objects', function () {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
@@ -2045,10 +2007,41 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 	).toHaveLength(0)
 })
 
-test.todo('inserting node creates back reference to list')
+test('can check if data exists in cache', function () {})
 
-test.todo('unsubscribe removes list handlers')
+describe('key evaluation', function () {
+	const table = [
+		{
+			title: 'string',
+			key: 'fieldName',
+			variables: {},
+			expected: 'fieldName',
+		},
+		{
+			title: 'variable',
+			key: 'fieldName(foo: $bar)',
+			variables: { bar: 'baz' },
+			expected: 'fieldName(foo: "baz")',
+		},
+		{
+			title: '$ in string',
+			key: 'fieldName(foo: "$bar")',
+			variables: { bar: 'baz' },
+			expected: 'fieldName(foo: "$bar")',
+		},
+		{
+			title: 'undefined variable',
+			key: 'fieldName(foo: $bar)',
+			variables: {},
+			expected: 'fieldName(foo: undefined)',
+		},
+	]
 
-test.todo('nested linked record update')
+	for (const row of table) {
+		test(row.title, function () {
+			const cache = new Cache(config)
 
-test.todo('nested linked list update')
+			expect(cache.internal.evaluateKey(row.key, row.variables)).toEqual(row.expected)
+		})
+	}
+})
