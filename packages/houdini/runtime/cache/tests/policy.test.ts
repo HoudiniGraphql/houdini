@@ -178,7 +178,7 @@ test('existing data - empty list', function () {
 	expect(cache.internal.isDataAvailable(selection)).toBeTruthy()
 })
 
-test('existing data - empty cache', function () {
+test('existing data - missing linked record', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
@@ -195,7 +195,7 @@ test('existing data - empty cache', function () {
 					type: 'String',
 					keyRaw: 'firstName',
 				},
-				friends: {
+				parent: {
 					type: 'User',
 					keyRaw: 'friends',
 					fields: {
@@ -219,7 +219,12 @@ test('existing data - empty cache', function () {
 	// add some data to the cache
 	cache.write({
 		selection,
-		data: {},
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+			},
+		},
 	})
 
 	// make sure we can't resolve it already
