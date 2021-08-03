@@ -1,8 +1,8 @@
 // external imports
 import { testConfig } from 'houdini-common'
 // locals
-import { Cache, rootID } from './cache'
-import { SubscriptionSelection } from '../types'
+import { Cache, rootID } from '../cache'
+import { SubscriptionSelection } from '../../types'
 
 const config = testConfig({
 	scalars: {
