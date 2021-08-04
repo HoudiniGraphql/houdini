@@ -146,7 +146,7 @@ export class Cache {
 		}
 
 		// remove the entry from the cache
-		return this.clear(id)
+		return this.deleteID(id)
 	}
 
 	// grab the record specified by {id}.
@@ -171,7 +171,7 @@ export class Cache {
 			record: this.record.bind(this),
 			getRecord: this.getRecord.bind(this),
 			getData: this.getData.bind(this),
-			clear: this.clear.bind(this),
+			deleteID: this.deleteID.bind(this),
 			computeID: this.computeID.bind(this),
 		}
 	}
@@ -999,7 +999,12 @@ export class Cache {
 		return evaluated
 	}
 
-	private clear(id: string): boolean {
+	clear() {
+		this._data = new Map()
+		this._lists = new Map()
+	}
+
+	private deleteID(id: string): boolean {
 		return this._data.delete(id)
 	}
 }
@@ -1017,7 +1022,7 @@ export type CacheProxy = {
 	evaluateKey: Cache['evaluateKey']
 	getRecord: Cache['getRecord']
 	getData: Cache['getData']
-	clear: Cache['clear']
+	deleteID: Cache['deleteID']
 	computeID: Cache['computeID']
 }
 
