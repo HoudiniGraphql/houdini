@@ -24,6 +24,9 @@ export class Cache {
 	// associate list names with the handler that wraps the list
 	private _lists: Map<string, Map<string, ListHandler>> = new Map()
 
+	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
+	private _disabled = false
+
 	// save the response in the local store and notify any subscribers
 	write({
 		selection,
@@ -38,6 +41,12 @@ export class Cache {
 		parent?: string
 		applyUpdates?: boolean
 	}) {
+		// if the cache is disabled we shouldn't write anything
+		if (this._disabled) {
+			return
+		}
+
+		// keep track of all of the subscription specs we have to write to because of this operation
 		const specs: SubscriptionSpec[] = []
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
@@ -1005,11 +1014,20 @@ export class Cache {
 		this._lists = new Map()
 	}
 
+	disable() {
+		this._disabled = true
+	}
+
 	private deleteID(id: string): boolean {
 		return this._data.delete(id)
 	}
 
 	private isDataAvailable(target: SubscriptionSelection, parentID: string = rootID): boolean {
+		// if the cache is disabled we dont have to look at anything else
+		if (this._disabled) {
+			return false
+		}
+
 		// look up the parent
 		const record = this.record(parentID)
 
