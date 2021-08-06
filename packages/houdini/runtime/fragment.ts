@@ -47,12 +47,12 @@ export function fragment<_Fragment extends Fragment<any>>(
 		// when the component mounts
 		onMount(() => {
 			// stay up to date
-			cache!.subscribe(subscriptionSpec, queryVariables())
+			cache.subscribe(subscriptionSpec, queryVariables())
 		})
 		// the function used to clean up the store
 		return () => {
 			// if we subscribed to something we'll need to clean up
-			cache!.unsubscribe(
+			cache.unsubscribe(
 				{
 					rootType: artifact.rootType,
 					parentID,
