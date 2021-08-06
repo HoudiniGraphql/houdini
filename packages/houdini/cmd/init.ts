@@ -118,11 +118,12 @@ export default async (_path: string | undefined) => {
 	const config = await getConfig()
 
 	// generate the initial runtime
-	await Promise.all([
-		generateRuntime(config),
-		// and the initial hook
-		generateHook(config),
-	])
+	await generateRuntime(config)
+
+	// if we are initializing a kit project
+	if (config.framework === 'kit') {
+		await generateHook(config)
+	}
 }
 
 const networkFile = (url: string) => `import { Environment } from '$houdini'
