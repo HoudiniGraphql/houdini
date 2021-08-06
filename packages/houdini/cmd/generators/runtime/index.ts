@@ -19,7 +19,5 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		generateAdapter(config),
 		// and the index file at the root of the runtime
 		writeIndexFile(config, docs),
-		// and the hook file
-		generateHook(config),
 	])
 }

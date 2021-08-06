@@ -3,18 +3,17 @@ import fs from 'fs/promises'
 import { testConfig } from 'houdini-common'
 import path from 'path'
 import * as typeScriptParser from 'recast/parsers/typescript'
-import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
-import '../../../../../jest.setup'
-import { runPipeline } from '../../generate'
+import '../../../jest.setup'
+import { generateHook } from './init'
 
 test('non-existing hook', async function () {
 	// generating with a non-existing hook file shoud create one
 	const config = testConfig()
 
 	// run the pipeline
-	await runPipeline(config, [])
+	await generateHook(config)
 
 	// validate the hook files contents
 	expect(
@@ -59,7 +58,7 @@ export async function handle({ request, render }) {
 	)
 
 	// run the pipeline
-	await runPipeline(config, [])
+	await generateHook(config)
 
 	// validate the hook files contents
 	expect(
@@ -104,7 +103,7 @@ export async function handle({ request, render }) {
 	)
 
 	// run the pipeline
-	await runPipeline(config, [])
+	await generateHook(config)
 
 	// validate the hook files contents
 	expect(
@@ -151,7 +150,7 @@ export async function handle({ request, render }) {
 	)
 
 	// run the pipeline
-	await runPipeline(config, [])
+	await generateHook(config)
 
 	// validate the hook files contents
 	expect(
@@ -191,7 +190,7 @@ export async function handle({ request, render }) {
 	)
 
 	// run the pipeline
-	await runPipeline(config, [])
+	await generateHook(config)
 
 	// validate the hook files contents
 	expect(
