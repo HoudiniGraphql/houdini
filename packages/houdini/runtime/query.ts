@@ -3,6 +3,7 @@ import { Readable, writable, readable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
 import type { Config } from 'houdini-common'
 // locals
+import type { Cache } from './cache/cache'
 import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
 import { getCache, setVariables } from './context'
 import { executeQuery, RequestPayload } from './network'
@@ -12,15 +13,17 @@ import { marshalInputs, unmarshalSelection } from './scalars'
 import { getSession, goTo } from './adapter.mjs'
 
 export function query<_Query extends Operation<any, any>>(
-	document: GraphQLTagResult
+	document: GraphQLTagResult,
+	cache?: Cache
 ): QueryResponse<_Query['result'], _Query['input']> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniQuery') {
 		throw new Error('query() must be passed a query document')
 	}
 
-	const cache = getCache()
-
+	if (!cache) {
+		cache = getCache()
+	}
 	// we might get re-exported values nested under default
 
 	// @ts-ignore: typing esm/cjs interop is hard
@@ -56,7 +59,7 @@ export function query<_Query extends Operation<any, any>>(
 		// if we were given data on mount
 		if (initialValue) {
 			// update the cache with the data that we just ran into
-			cache.write({
+			cache!.write({
 				selection: artifact.selection,
 				data: initialValue,
 				variables,
@@ -64,7 +67,7 @@ export function query<_Query extends Operation<any, any>>(
 
 			// stay up to date
 			if (subscriptionSpec) {
-				cache.subscribe(subscriptionSpec, variables)
+				cache!.subscribe(subscriptionSpec, variables)
 			}
 		}
 	})
@@ -72,7 +75,7 @@ export function query<_Query extends Operation<any, any>>(
 	// the function used to clean up the store
 	onDestroy(() => {
 		subscriptionSpec = null
-		cache.unsubscribe(
+		cache!.unsubscribe(
 			{
 				rootType: artifact.rootType,
 				selection: artifact.selection,
@@ -87,7 +90,7 @@ export function query<_Query extends Operation<any, any>>(
 
 	function writeData(newData: RequestPayload<_Query['result']>, newVariables: _Query['input']) {
 		// write the data we received
-		cache.write({
+		cache!.write({
 			selection: artifact.selection,
 			data: newData.data,
 			variables: newVariables,
@@ -96,8 +99,8 @@ export function query<_Query extends Operation<any, any>>(
 		// if the variables changed we need to unsubscribe from the old fields and
 		// listen to the new ones
 		if (subscriptionSpec && JSON.stringify(variables) !== JSON.stringify(newVariables)) {
-			cache.unsubscribe(subscriptionSpec, variables)
-			cache.subscribe(subscriptionSpec, newVariables)
+			cache!.unsubscribe(subscriptionSpec, variables)
+			cache!.subscribe(subscriptionSpec, newVariables)
 		}
 
 		// update the local store

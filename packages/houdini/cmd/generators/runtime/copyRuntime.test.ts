@@ -28,9 +28,13 @@ test('cache index runtime imports config file - commonjs', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		var config = require('../../../../../config.cjs');
 		Object.defineProperty(exports, "__esModule", { value: true });
+		exports.createCache = void 0;
 		var cache_1 = require("./cache");
-		// @ts-ignore: config will be defined by the generator
-		exports.default = new cache_1.Cache(config || {});
+		function createCache() {
+		    // @ts-ignore: config will be defined by the generator
+		    return new cache_1.Cache(config || {});
+		}
+		exports.createCache = createCache;
 	`)
 })
 
@@ -53,7 +57,9 @@ test('cache index runtime imports config file - kit', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import config from "../../../config.cjs"
 		import { Cache } from './cache';
-		// @ts-ignore: config will be defined by the generator
-		export default new Cache(config || {});
+		export function createCache() {
+		    // @ts-ignore: config will be defined by the generator
+		    return new Cache(config || {});
+		}
 	`)
 })

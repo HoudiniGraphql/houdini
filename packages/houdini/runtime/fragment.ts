@@ -3,19 +3,23 @@ import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
 import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
+import type { Cache } from './cache/cache'
 import { getCache, getVariables } from './context'
 
 // fragment returns the requested data from the reference
 export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
-	initialValue: _Fragment
+	initialValue: _Fragment,
+	cache?: Cache
 ): Readable<_Fragment['shape']> {
 	// make sure we got a query document
 	if (fragment.kind !== 'HoudiniFragment') {
 		throw new Error('getFragment can only take fragment documents')
 	}
 
-	const cache = getCache()
+	if (!cache) {
+		cache = getCache()
+	}
 
 	// we might get re-exported values nested under default
 
@@ -46,12 +50,12 @@ export function fragment<_Fragment extends Fragment<any>>(
 		// when the component mounts
 		onMount(() => {
 			// stay up to date
-			cache.subscribe(subscriptionSpec, queryVariables())
+			cache!.subscribe(subscriptionSpec, queryVariables())
 		})
 		// the function used to clean up the store
 		return () => {
 			// if we subscribed to something we'll need to clean up
-			cache.unsubscribe(
+			cache!.unsubscribe(
 				{
 					rootType: artifact.rootType,
 					parentID,
