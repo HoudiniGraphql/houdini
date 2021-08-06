@@ -4,8 +4,7 @@ import { onDestroy, onMount } from 'svelte'
 import type { Config } from 'houdini-common'
 // locals
 import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
-import cache from './cache'
-import { setVariables } from './context'
+import { getCache, setVariables } from './context'
 import { executeQuery, RequestPayload } from './network'
 import { marshalInputs, unmarshalSelection } from './scalars'
 
@@ -20,12 +19,14 @@ export function query<_Query extends Operation<any, any>>(
 		throw new Error('query() must be passed a query document')
 	}
 
+	const cache = getCache()
+
 	// we might get re-exported values nested under default
 
 	// @ts-ignore: typing esm/cjs interop is hard
 	const artifact: QueryArtifact = document.artifact.default || document.artifact
-	// @ts-ignore: typing esm/cjs interop is hard
-	const config: Config = document.config.default || document.config
+
+	const config: Config = cache._config
 
 	// a query is never 'loading'
 	const loading = writable(false)

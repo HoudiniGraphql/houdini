@@ -4,6 +4,7 @@ export * from './network'
 export * from './types'
 
 export { query, routeQuery, componentQuery } from './query'
+export { setCache, getCache } from './context'
 export { mutation } from './mutation'
 export { fragment } from './fragment'
 export { subscription } from './subscription'

@@ -5,8 +5,8 @@ import type { Config } from 'houdini-common'
 // locals
 import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
 import { getEnvironment } from './network'
-import cache from './cache'
 import { marshalInputs, unmarshalSelection } from './scalars'
+import { getCache } from './context'
 
 // subscription holds open a live connection to the server. it returns a store
 // containing the requested data. Houdini will also update the cache with any
@@ -21,6 +21,8 @@ export function subscription<_Subscription extends Operation<any, any>>(
 	if (document.kind !== 'HoudiniSubscription') {
 		throw new Error('subscription() must be passed a subscription document')
 	}
+
+	const cache = getCache()
 
 	// we might get re-exported values nested under default
 

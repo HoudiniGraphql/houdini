@@ -12,13 +12,13 @@ import {
 } from './types'
 import { query, QueryResponse } from './query'
 import { fragment } from './fragment'
-import { getVariables } from './context'
+import { getCache, getVariables } from './context'
 import { executeQuery } from './network'
-import cache from './cache'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
 // this has to be in a separate file since config isn't defined in cache/index.ts
 import { extractPageInfo, PageInfo } from './utils'
+import type { Cache } from './cache/cache'
 
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -39,12 +39,15 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	// pass the artifact to the base query operation
 	const { data, loading, ...restOfQueryResponse } = query(document)
 
+	const cache = getCache()
+
 	return {
 		data,
 		...paginationHandlers({
 			initialValue: document.initialValue.data,
 			store: data,
 			artifact,
+			cache,
 			queryVariables: document.variables,
 			documentLoading: loading,
 		}),
@@ -68,6 +71,8 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	// pass the inputs to the normal fragment function
 	const data = fragment(document, initialValue)
 
+	const cache = getCache()
+
 	// @ts-ignore: typing esm/cjs interop is hard
 	const fragmentArtifact: FragmentArtifact = document.artifact.default || document.artifact
 
@@ -80,6 +85,7 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 		...paginationHandlers({
 			initialValue,
 			store: data,
+			cache,
 			artifact: paginationArtifact,
 			queryVariables: paginationArtifact.refetch!.embedded
 				? { id: cache.internal.computeID(fragmentArtifact.rootType, initialValue) }
@@ -94,12 +100,14 @@ function paginationHandlers({
 	store,
 	queryVariables,
 	documentLoading,
+	cache,
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
 	queryVariables?: {}
 	documentLoading?: Readable<boolean>
+	cache: Cache
 }): PaginatedHandlers {
 	// start with the defaults and no meaningful page info
 	let loadPreviousPage = defaultLoadPreviousPage
@@ -123,6 +131,7 @@ function paginationHandlers({
 			initialValue,
 			artifact,
 			store,
+			cache,
 			queryVariables,
 			loading: paginationLoadingState,
 		})
@@ -143,6 +152,7 @@ function paginationHandlers({
 		loadNextPage = offsetPaginationHandler({
 			artifact,
 			queryVariables,
+			cache,
 			loading: paginationLoadingState,
 		})
 	}
@@ -167,12 +177,14 @@ function cursorHandlers({
 	store,
 	queryVariables: extraVariables,
 	loading,
+	cache,
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
 	queryVariables?: {}
 	loading: Writable<boolean>
+	cache: Cache
 }): {
 	loadNextPage: PaginatedHandlers['loadNextPage']
 	loadPreviousPage: PaginatedHandlers['loadPreviousPage']
@@ -307,10 +319,12 @@ function offsetPaginationHandler({
 	artifact,
 	queryVariables: extraVariables,
 	loading,
+	cache,
 }: {
 	artifact: QueryArtifact
 	queryVariables?: {}
 	loading: Writable<boolean>
+	cache: Cache
 }): PaginatedHandlers['loadNextPage'] {
 	// we need to track the most recent offset for this handler
 	let currentOffset = (artifact.refetch?.start as number) || 0

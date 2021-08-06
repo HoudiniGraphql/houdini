@@ -1,15 +1,12 @@
 <script context="module">
 	import env from '../environment'
-	import { setEnvironment } from '$houdini'
-	import cache from '$houdini/runtime/cache'
-	import { browser } from '$app/env'
-
-	if (browser) {
-		// @ts-ignore
-		window.cache = cache
-	}
+	import { setEnvironment, setCache, getCache } from '$houdini'
 
 	setEnvironment(env)
+</script>
+
+<script>
+	setCache()
 </script>
 
 <svelte:head>

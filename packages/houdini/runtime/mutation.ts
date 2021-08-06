@@ -3,8 +3,7 @@ import type { Config } from 'houdini-common'
 // locals
 import { executeQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact } from './types'
-import cache from './cache'
-import { getVariables } from './context'
+import { getCache, getVariables } from './context'
 import { marshalInputs, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
@@ -21,6 +20,8 @@ export function mutation<_Mutation extends Operation<any, any>>(
 	}
 
 	// we might get re-exported values nested under default
+
+	const cache = getCache()
 
 	// @ts-ignore: typing esm/cjs interop is hard
 	const artifact: MutationArtifact = document.artifact.default || document.artifact

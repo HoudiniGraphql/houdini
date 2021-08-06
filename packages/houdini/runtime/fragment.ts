@@ -3,8 +3,7 @@ import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
 import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
-import cache from './cache'
-import { getVariables } from './context'
+import { getCache, getVariables } from './context'
 
 // fragment returns the requested data from the reference
 export function fragment<_Fragment extends Fragment<any>>(
@@ -15,6 +14,8 @@ export function fragment<_Fragment extends Fragment<any>>(
 	if (fragment.kind !== 'HoudiniFragment') {
 		throw new Error('getFragment can only take fragment documents')
 	}
+
+	const cache = getCache()
 
 	// we might get re-exported values nested under default
 
