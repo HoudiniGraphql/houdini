@@ -96,12 +96,8 @@ for help setting one up. Once you have a project and want to add houdini, execut
 npx houdini init
 ```
 
-This will create a few necessary files, as well as pull down a json representation of
-your API's schema. Next, generate your runtime:
-
-```sh
-npx houdini generate
-```
+This will create a few necessary files, pull down a json representation of
+your API's schema, and generate the initial runtime.
 
 Finally, follow the steps appropriate for your framework.
 
@@ -115,7 +111,7 @@ import houdini from 'houdini-preprocess'
 
 {
     preprocess: [houdini()],
-    
+
     kit: {
         vite: {
             resolve: {
@@ -328,9 +324,9 @@ the result of query:
 
 ### Additional logic
 
-Sometimes you will need to add additional logic to a component's query. For example, you might want to 
+Sometimes you will need to add additional logic to a component's query. For example, you might want to
 check if the current session is valid before a query is sent to the server. In order to support this,
-houdini will look for a function called `onLoad` defined in the module context which can be used to perform 
+houdini will look for a function called `onLoad` defined in the module context which can be used to perform
 any logic you need. If you return a value from this function, it will be passed as props to your component:
 
 ```svelte
@@ -340,11 +336,11 @@ any logic you need. If you return a value from this function, it will be passed 
         if(!session.authenticated){
             return this.redirect(302, '/login')
         }
-	
+
 	return {
 	    message: "There are this many items"
         }
-    } 
+    }
 </script>
 
 <script>
@@ -975,7 +971,7 @@ export default new Environment(async function ({ text, variables = {} }, session
 
 ## 🚦&nbsp;&nbsp;Persisted Queries
 
-Sometimes you want to confine an API to only fire a set of pre-defined queries. This 
+Sometimes you want to confine an API to only fire a set of pre-defined queries. This
 can be useful to not only reduce the amount of information transferred over the write
 but also act as a list of approved queries, providing additional security. Regardless of
 your motivation, the approach involves associating a known string with a particular query
@@ -984,10 +980,10 @@ houdini passes a queries hash to the fetch function for you to use.
 
 ### Automatic Persisted Queries
 
-An approach to Persisted Queries, popularized by Apollo, is known as 
-[Automatic Persisted Queries](https://www.apollographql.com/docs/apollo-server/performance/apq/). 
+An approach to Persisted Queries, popularized by Apollo, is known as
+[Automatic Persisted Queries](https://www.apollographql.com/docs/apollo-server/performance/apq/).
 This involves first sending a queries hash and if its unrecognized, sending the full
-query string. This might look something like: 
+query string. This might look something like:
 
 ```typescript
 /// src/environment.ts
@@ -1023,7 +1019,7 @@ export default new Environment(async function({ text, variables = {}, hash }){
 		return response
 	}
 
-	// there were errors, send the hash and the query to associate the two for 
+	// there were errors, send the hash and the query to associate the two for
 	// future requests
 	return await sendFetch.call(this, { variables, hash, text })
 })
@@ -1044,7 +1040,7 @@ npx houdini generate -po ./path/to/persisted-queries.json
 
 Once this map has been created, you will have to make it available to your server.
 
-Now, instead of sending the full operation text with every request, you can now simply 
+Now, instead of sending the full operation text with every request, you can now simply
 pass the hash under whatever field name you prefer:
 
 ```typescript

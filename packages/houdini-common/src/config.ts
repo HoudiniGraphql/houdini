@@ -17,6 +17,7 @@ export type ConfigFile = {
 	mode?: 'kit' | 'sapper'
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
+	srcPath?: string
 }
 
 export type ScalarSpec = {
@@ -43,6 +44,7 @@ export class Config {
 	quiet: boolean
 	static?: boolean
 	scalars?: ScalarMap
+	srcPath: string
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
 	module: 'commonjs' | 'esm' = 'commonjs'
 
@@ -58,6 +60,7 @@ export class Config {
 		static: staticSite,
 		mode,
 		scalars,
+		srcPath,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -139,6 +142,7 @@ export class Config {
 		this.projectRoot = path.dirname(filepath)
 		this.static = staticSite
 		this.scalars = scalars
+		this.srcPath = srcPath || path.join(this.projectRoot, 'src')
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
@@ -529,7 +533,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				cat: Cat
 			}
 
-			interface  Node { 
+			interface  Node {
 				id: ID!
 			}
 		`,

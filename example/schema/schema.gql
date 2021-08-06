@@ -3,8 +3,6 @@ directive @cacheControl(
 	scope: CacheControlScope
 ) on FIELD_DEFINITION | INTERFACE | OBJECT
 
-scalar DateTime
-
 input AddItemInput {
 	text: String!
 }
@@ -18,6 +16,11 @@ enum CacheControlScope {
 	PRIVATE
 	PUBLIC
 }
+
+"""
+Date custom scalar type
+"""
+scalar DateTime
 
 type DeleteIemOutput {
 	error: Error
@@ -40,8 +43,15 @@ type Mutation {
 	uncheckItem(item: ID!): UpdateItemOutput!
 }
 
+type PageInfo {
+	endCursor: String
+	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String
+}
+
 type Query {
-	items(first: Int, after: String, completed: Boolean): TodoItemConnection!
+	items(after: String, completed: Boolean, first: Int): TodoItemConnection!
 }
 
 type Subscription {
@@ -51,32 +61,25 @@ type Subscription {
 
 type TodoItem {
 	completed: Boolean!
+	createdAt: DateTime!
 	id: ID!
 	text: String!
-	createdAt: DateTime!
-}
-
-type UpdateItemOutput {
-	error: Error
-	item: TodoItem
-}
-
-type PageInfo {
-	startCursor: String
-	endCursor: String
-	hasNextPage: Boolean!
-	hasPreviousPage: Boolean!
 }
 
 type TodoItemConnection {
-	totalCount: Int!
-	pageInfo: PageInfo!
 	edges: [TodoItemEdge!]!
+	pageInfo: PageInfo!
+	totalCount: Int!
 }
 
 type TodoItemEdge {
 	cursor: String
 	node: TodoItem
+}
+
+type UpdateItemOutput {
+	error: Error
+	item: TodoItem
 }
 
 """

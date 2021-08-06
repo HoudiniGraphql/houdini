@@ -1,8 +1,9 @@
 import path from 'path'
 import inquirer from 'inquirer'
 import fs from 'fs/promises'
-import { Config } from 'houdini-common'
+import { Config, getConfig } from 'houdini-common'
 import { writeSchema } from './utils/writeSchema'
+import generateRuntime from './generate'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
@@ -97,6 +98,10 @@ export default async (_path: string | undefined) => {
 	])
 
 	console.log('Welcome to houdini!')
+	console.log('Generating initial runtime...')
+
+	// generate the initial runtime
+	await generateRuntime(await getConfig())
 }
 
 const networkFile = (url: string) => `import { Environment } from '$houdini'

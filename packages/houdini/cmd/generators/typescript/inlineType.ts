@@ -237,7 +237,6 @@ export function inlineType({
 							.concat(
 								unionFragments
 									.filter(({ type }) => {
-										console.log(type)
 										return true
 									})
 									.map(({ tsType }) => tsType)

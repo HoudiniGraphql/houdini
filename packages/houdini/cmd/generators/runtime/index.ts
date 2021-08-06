@@ -4,6 +4,7 @@ import { Config } from 'houdini-common'
 import { CollectedGraphQLDocument } from '../../types'
 import generateAdapter from './adapter'
 import copyRuntime from './copyRuntime'
+import { generateHook } from './hook'
 import writeIndexFile from './indexFile'
 
 // the runtime generator is responsible for generating a majority of the runtime that the client will use.
@@ -18,5 +19,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		generateAdapter(config),
 		// and the index file at the root of the runtime
 		writeIndexFile(config, docs),
+		// and the hook file
+		generateHook(config),
 	])
 }
