@@ -17,6 +17,13 @@ export class Cache {
 	_config: Config
 	constructor(config: Config) {
 		this._config = config
+
+		// the cache should always be disabled on the server
+		try {
+			this._disabled = typeof window === 'undefined'
+		} catch {
+			this._disabled = true
+		}
 	}
 
 	// the map from entity id to record
