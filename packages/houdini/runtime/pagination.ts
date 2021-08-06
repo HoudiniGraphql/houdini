@@ -36,10 +36,11 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 		throw new Error('paginatedQuery must be passed a query with @paginate.')
 	}
 
+	// Get the cache from the context
 	const cache = getCache()
 
 	// pass the artifact to the base query operation
-	const { data, loading, ...restOfQueryResponse } = query(document, cache)
+	const { data, loading, ...restOfQueryResponse } = query(document)
 
 	return {
 		data,
@@ -68,10 +69,11 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 		throw new Error('paginatedFragment must be passed a fragment with @paginate')
 	}
 
+	// Get the cache from the context
 	const cache = getCache()
 
 	// pass the inputs to the normal fragment function
-	const data = fragment(document, initialValue, cache)
+	const data = fragment(document, initialValue)
 
 	// @ts-ignore: typing esm/cjs interop is hard
 	const fragmentArtifact: FragmentArtifact = document.artifact.default || document.artifact

@@ -2,24 +2,21 @@
 import { readable, Readable } from 'svelte/store'
 import { onMount } from 'svelte'
 // locals
-import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
-import type { Cache } from './cache/cache'
+import type { Fragment, FragmentArtifact, GraphQLTagResult } from './types'
 import { getCache, getVariables } from './context'
 
 // fragment returns the requested data from the reference
 export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
-	initialValue: _Fragment,
-	cache?: Cache
+	initialValue: _Fragment
 ): Readable<_Fragment['shape']> {
 	// make sure we got a query document
 	if (fragment.kind !== 'HoudiniFragment') {
 		throw new Error('getFragment can only take fragment documents')
 	}
 
-	if (!cache) {
-		cache = getCache()
-	}
+	// Get the cache from the context
+	const cache = getCache()
 
 	// we might get re-exported values nested under default
 
