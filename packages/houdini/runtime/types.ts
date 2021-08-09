@@ -1,5 +1,11 @@
 import type { Config } from 'houdini-common'
-import { Readable } from 'svelte/store'
+
+export enum CachePolicy {
+	CacheOrNetwork = 'CacheOrNetwork',
+	CacheOnly = 'CacheOnly',
+	NetworkOnly = 'NetworkOnly',
+	CacheAndNetwork = 'CacheAndNetwork',
+}
 
 export type Fragment<_Result> = {
 	readonly shape?: _Result
@@ -23,6 +29,7 @@ export type DocumentArtifact =
 
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
+	policy: CachePolicy
 }
 
 export type MutationArtifact = BaseCompiledDocument & {

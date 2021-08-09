@@ -304,6 +304,14 @@ export class Config {
 		return 'paginate'
 	}
 
+	get cacheDirective() {
+		return 'cache'
+	}
+
+	get cachePolicyArg() {
+		return 'policy'
+	}
+
 	paginationQueryName(documentName: string) {
 		return documentName + '_Pagination_Query'
 	}
@@ -348,6 +356,7 @@ export class Config {
 				this.argumentsDirective,
 				this.withDirective,
 				this.paginateDirective,
+				this.cacheDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}
