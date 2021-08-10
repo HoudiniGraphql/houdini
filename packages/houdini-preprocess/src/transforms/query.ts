@@ -163,7 +163,7 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	}
 
 	// add the imports if they're not there
-	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext'])
+	ensureImports(config, script.content.body, ['RequestContext'])
 
 	// add the kit preload function
 	addKitLoad(config, script.content.body, queries)
@@ -465,34 +465,29 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 				AST.variableDeclarator(
 					AST.identifier(preloadKey),
 					AST.awaitExpression(
-						AST.callExpression(AST.identifier('fetchQuery'), [
-							requestContext,
-							AST.objectExpression([
-								AST.objectProperty(
-									AST.literal('hash'),
-									AST.memberExpression(
-										AST.identifier(artifactIdentifier(document.artifact)),
-										AST.identifier('hash')
-									)
-								),
-								AST.objectProperty(
-									AST.literal('text'),
-									AST.memberExpression(
-										AST.identifier(artifactIdentifier(document.artifact)),
-										AST.identifier('raw')
-									)
-								),
-								// grab the variables from the function
-								AST.objectProperty(
-									AST.literal('variables'),
-									AST.identifier(variableIdentifier)
-								),
-							]),
-							AST.memberExpression(
-								AST.identifier('context'),
-								AST.identifier('session')
-							),
-						])
+						AST.callExpression(
+							AST.memberExpression(requestContext, AST.identifier('fetchQuery')),
+							[
+								AST.objectExpression([
+									AST.objectProperty(
+										AST.literal('artifact'),
+										AST.identifier(artifactIdentifier(document.artifact))
+									),
+									AST.objectProperty(
+										AST.literal('variables'),
+										AST.identifier(variableIdentifier)
+									),
+									AST.objectProperty(
+										AST.literal('session'),
+
+										AST.memberExpression(
+											AST.identifier('context'),
+											AST.identifier('session')
+										)
+									),
+								]),
+							]
+						)
 					)
 				),
 				,

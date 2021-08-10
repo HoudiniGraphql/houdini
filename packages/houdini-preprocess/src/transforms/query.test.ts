@@ -21,7 +21,7 @@ describe('query preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
-		import { fetchQuery, RequestContext } from "$houdini";
+		import { RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { houdiniConfig } from "$houdini";
 
@@ -33,11 +33,11 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await fetchQuery(_houdini_context, {
-		        "hash": _TestQueryArtifact.hash,
-		        "text": _TestQueryArtifact.raw,
-		        "variables": _TestQuery_Input
-		    }, context.session);
+		    const _TestQuery = await _houdini_context.fetchQuery({
+		        "artifact": _TestQueryArtifact,
+		        "variables": _TestQuery_Input,
+		        "session": context.session
+		    });
 
 		    if (!_TestQuery.data) {
 		        _houdini_context.graphqlErrors(_TestQuery);
@@ -106,7 +106,7 @@ describe('query preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
-		import { fetchQuery, RequestContext } from "$houdini";
+		import { RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { houdiniConfig } from "$houdini";
 
@@ -130,11 +130,11 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await fetchQuery(_houdini_context, {
-		        "hash": _TestQueryArtifact.hash,
-		        "text": _TestQueryArtifact.raw,
-		        "variables": _TestQuery_Input
-		    }, context.session);
+		    const _TestQuery = await _houdini_context.fetchQuery({
+		        "artifact": _TestQueryArtifact,
+		        "variables": _TestQuery_Input,
+		        "session": context.session
+		    });
 
 		    if (!_TestQuery.data) {
 		        _houdini_context.graphqlErrors(_TestQuery);
@@ -198,7 +198,7 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
-		import { fetchQuery, RequestContext } from "$houdini";
+		import { RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { houdiniConfig } from "$houdini";
 
@@ -210,11 +210,11 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await fetchQuery(_houdini_context, {
-		        "hash": _TestQueryArtifact.hash,
-		        "text": _TestQueryArtifact.raw,
-		        "variables": _TestQuery_Input
-		    }, context.session);
+		    const _TestQuery = await _houdini_context.fetchQuery({
+		        "artifact": _TestQueryArtifact,
+		        "variables": _TestQuery_Input,
+		        "session": context.session
+		    });
 
 		    if (!_TestQuery.data) {
 		        _houdini_context.graphqlErrors(_TestQuery);
@@ -531,7 +531,7 @@ test('onLoad hook', async function () {
 
 	expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
-		import { fetchQuery, RequestContext } from "$houdini";
+		import { RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { houdiniConfig } from "$houdini";
 
@@ -568,11 +568,11 @@ test('onLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await fetchQuery(_houdini_context, {
-		        "hash": _TestQueryArtifact.hash,
-		        "text": _TestQueryArtifact.raw,
-		        "variables": _TestQuery_Input
-		    }, context.session);
+		    const _TestQuery = await _houdini_context.fetchQuery({
+		        "artifact": _TestQueryArtifact,
+		        "variables": _TestQuery_Input,
+		        "session": context.session
+		    });
 
 		    if (!_TestQuery.data) {
 		        _houdini_context.graphqlErrors(_TestQuery);
@@ -591,5 +591,5 @@ test('onLoad hook', async function () {
 		export function preload(page, session) {
 		    return convertKitPayload(this, load, page, session);
 		}
-  `)
+	`)
 })

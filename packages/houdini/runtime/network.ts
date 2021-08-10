@@ -297,6 +297,29 @@ export class RequestContext {
 		// and pass page and session
 		return marshalInputs({ artifact, config, input })
 	}
+
+	fetchQuery<_Data>({
+		artifact,
+		variables,
+		session,
+	}: {
+		artifact: QueryArtifact
+		variables: {}
+		session?: FetchSession
+	}) {
+		// grab the current environment
+		const environment = getEnvironment()
+		// if there is no environment
+		if (!environment) {
+			return { data: {}, errors: [{ message: 'could not find houdini environment' }] }
+		}
+
+		return environment.sendRequest<_Data>(
+			this.context,
+			{ text: artifact.raw, hash: artifact.hash, variables },
+			session
+		)
+	}
 }
 
 type SapperLoad = (
