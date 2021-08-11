@@ -207,6 +207,13 @@ function fetchQuery<_Data>({
 				errors: [],
 			}
 		}
+		// if the policy is cacheOnly and we got this far, we need to return null
+		else if (artifact.policy === CachePolicy.CacheOnly) {
+			return {
+				data: null,
+				errors: [],
+			}
+		}
 	}
 
 	return environment.sendRequest<_Data>(

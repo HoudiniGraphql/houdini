@@ -202,11 +202,11 @@ export class Cache {
 	}
 
 	// walk down the spec
-	private getData(
+	private getData<_Data = { [key: string]: GraphQLValue } | null>(
 		parent: Record | null | undefined,
 		selection: SubscriptionSelection,
 		variables: {}
-	): { [key: string]: GraphQLValue } | null {
+	): _Data | null {
 		// we could be asking for values of null
 		if (parent === null || typeof parent === 'undefined') {
 			return null

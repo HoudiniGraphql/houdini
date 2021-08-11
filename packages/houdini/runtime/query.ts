@@ -3,7 +3,7 @@ import { Readable, writable, readable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
 import type { Config } from 'houdini-common'
 // locals
-import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact } from './types'
+import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact, CachePolicy } from './types'
 import cache from './cache'
 import { setVariables } from './context'
 import { executeQuery, RequestPayload } from './network'
@@ -11,6 +11,7 @@ import { marshalInputs, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo } from './adapter.mjs'
+import { rootID } from './cache/cache'
 
 export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -65,6 +66,15 @@ export function query<_Query extends Operation<any, any>>(
 			if (subscriptionSpec) {
 				cache.subscribe(subscriptionSpec, variables)
 			}
+		}
+
+		// if the document cache policy wants a network request to be sent
+		// after the initial one, do that now
+		if (artifact.policy === CachePolicy.CacheAndNetwork) {
+			// execute the query and write the data to the cache
+			executeQuery(artifact, variables, sessionStore).then((result) => {
+				writeData(result, variables)
+			})
 		}
 	})
 
@@ -211,6 +221,27 @@ export const componentQuery = <_Data, _Input>({
 		// if there was an error while computing variables
 		if (variableError) {
 			error.set(variableError)
+		}
+		// the artifact might have a defined cache policy we need to enforce
+		else if (
+			[
+				CachePolicy.CacheOrNetwork,
+				CachePolicy.CacheOnly,
+				CachePolicy.CacheAndNetwork,
+			].includes(artifact.policy!) &&
+			cache.internal.isDataAvailable(artifact.selection, variables)
+		) {
+			writeData(
+				{
+					data: cache.internal.getData<_Data>(
+						cache.internal.record(rootID),
+						artifact.selection,
+						variables
+					)!,
+					errors: [],
+				},
+				variables
+			)
 		}
 		// there was no error while computing the variables
 		else {
