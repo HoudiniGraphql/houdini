@@ -29,7 +29,7 @@ export type DocumentArtifact =
 
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
-	policy: CachePolicy
+	policy?: CachePolicy
 }
 
 export type MutationArtifact = BaseCompiledDocument & {

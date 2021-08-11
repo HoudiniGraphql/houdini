@@ -218,7 +218,7 @@ export const componentQuery = <_Data, _Input>({
 			loading.set(true)
 
 			// fire the query
-			executeQuery<_Data>(artifact, variables || {}, getSession())
+			executeQuery<_Data, _Input>(artifact, variables || ({} as _Input), getSession())
 				.then((result) => {
 					// update the store with the new result
 					writeData(result, variables)

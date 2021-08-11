@@ -33,7 +33,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _houdini_context.fetchQuery({
+		    const _TestQuery = await fetchQuery({
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
 		        "session": context.session
@@ -130,7 +130,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _houdini_context.fetchQuery({
+		    const _TestQuery = await fetchQuery({
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
 		        "session": context.session
@@ -210,7 +210,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _houdini_context.fetchQuery({
+		    const _TestQuery = await fetchQuery({
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
 		        "session": context.session
@@ -568,7 +568,7 @@ test('onLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _houdini_context.fetchQuery({
+		    const _TestQuery = await fetchQuery({
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
 		        "session": context.session

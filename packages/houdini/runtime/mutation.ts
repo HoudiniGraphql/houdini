@@ -35,7 +35,7 @@ export function mutation<_Mutation extends Operation<any, any>>(
 	// return an async function that sends the mutation go the server
 	return async (variables: _Mutation['input']) => {
 		try {
-			const result = await executeQuery<_Mutation['result']>(
+			const result = await executeQuery<_Mutation['result'], _Mutation['input']>(
 				artifact,
 				marshalInputs({
 					input: variables,

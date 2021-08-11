@@ -2,8 +2,10 @@
 import { get, Readable } from 'svelte/store'
 import type { Config } from 'houdini-common'
 // locals
-import { MutationArtifact, QueryArtifact, SubscriptionArtifact } from './types'
+import { CachePolicy, MutationArtifact, QueryArtifact, SubscriptionArtifact } from './types'
 import { marshalInputs } from './scalars'
+import cache from './cache'
+import { rootID } from './cache/cache'
 
 export class Environment {
 	private fetch: RequestHandler<any>
@@ -73,7 +75,7 @@ type GraphQLError = {
 	message: string
 }
 
-export type RequestPayload<_Data> = {
+export type RequestPayload<_Data = any> = {
 	data: _Data
 	errors: {
 		message: string
@@ -88,11 +90,11 @@ export type RequestHandler<_Data> = (
 
 // This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
-export async function executeQuery<_Data>(
+export async function executeQuery<_Data, _Input>(
 	artifact: QueryArtifact | MutationArtifact,
-	variables: { [key: string]: any },
+	variables: _Input,
 	sessionStore: Readable<any>
-): Promise<RequestPayload<_Data>> {
+): Promise<RequestPayload> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?
 	const session = get(sessionStore)
@@ -110,18 +112,12 @@ export async function executeQuery<_Data>(
 		},
 	}
 
-	// pull the query text out of the compiled artifact
-	const { raw: text, hash } = artifact
-
-	const res = await fetchQuery<_Data>(
-		fetchCtx,
-		{
-			text,
-			hash,
-			variables,
-		},
-		session
-	)
+	const res = await fetchQuery<_Data>({
+		context: fetchCtx,
+		artifact,
+		session,
+		variables,
+	})
 
 	// we could have gotten a null response
 	if (res.errors) {
@@ -132,30 +128,6 @@ export async function executeQuery<_Data>(
 	}
 
 	return res
-}
-
-// fetchQuery is used by the preprocess-generated runtime to send an operation to the server
-export async function fetchQuery<_Data>(
-	ctx: FetchContext,
-	{
-		text,
-		hash,
-		variables,
-	}: {
-		text: string
-		hash: string
-		variables: { [name: string]: unknown }
-	},
-	session?: FetchSession
-) {
-	// grab the current environment
-	const environment = getEnvironment()
-	// if there is no environment
-	if (!environment) {
-		return { data: {}, errors: [{ message: 'could not find houdini environment' }] }
-	}
-
-	return await environment.sendRequest<_Data>(ctx, { text, hash, variables }, session)
 }
 
 // convertKitPayload is responsible for taking the result of kit's load
@@ -192,6 +164,56 @@ export async function convertKitPayload(
 
 	// we shouldn't get here
 	throw new Error('Could not handle response from loader: ' + JSON.stringify(result))
+}
+
+function fetchQuery<_Data>({
+	context,
+	artifact,
+	variables,
+	session,
+}: {
+	context: FetchContext
+	artifact: QueryArtifact | MutationArtifact
+	variables: {}
+	session?: FetchSession
+}) {
+	// grab the current environment
+	const environment = getEnvironment()
+	// if there is no environment
+	if (!environment) {
+		return { data: {}, errors: [{ message: 'could not find houdini environment' }] }
+	}
+
+	// enforce cache policies for queries
+	if (artifact.kind === 'HoudiniQuery') {
+		// this function is called as the first step in requesting data. If the policy prefers
+		// cached data, we need to load data from the cache (if its available). If the policy
+		// prefers network data we need to send a request (the onMount of the component will
+		// resolve the next data)
+		if (
+			[
+				CachePolicy.CacheOrNetwork,
+				CachePolicy.CacheOnly,
+				CachePolicy.CacheAndNetwork,
+			].includes(artifact.policy!) &&
+			cache.internal.isDataAvailable(artifact.selection, variables)
+		) {
+			return {
+				data: cache.internal.getData(
+					cache.internal.record(rootID),
+					artifact.selection,
+					variables
+				),
+				errors: [],
+			}
+		}
+	}
+
+	return environment.sendRequest<_Data>(
+		context,
+		{ text: artifact.raw, hash: artifact.hash, variables },
+		session
+	)
 }
 
 export class RequestContext {
@@ -296,29 +318,6 @@ export class RequestContext {
 
 		// and pass page and session
 		return marshalInputs({ artifact, config, input })
-	}
-
-	fetchQuery<_Data>({
-		artifact,
-		variables,
-		session,
-	}: {
-		artifact: QueryArtifact
-		variables: {}
-		session?: FetchSession
-	}) {
-		// grab the current environment
-		const environment = getEnvironment()
-		// if there is no environment
-		if (!environment) {
-			return { data: {}, errors: [{ message: 'could not find houdini environment' }] }
-		}
-
-		return environment.sendRequest<_Data>(
-			this.context,
-			{ text: artifact.raw, hash: artifact.hash, variables },
-			session
-		)
 	}
 }
 

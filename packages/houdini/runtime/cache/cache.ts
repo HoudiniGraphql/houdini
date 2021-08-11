@@ -1029,7 +1029,11 @@ export class Cache {
 		return this._data.delete(id)
 	}
 
-	private isDataAvailable(target: SubscriptionSelection, parentID: string = rootID): boolean {
+	private isDataAvailable(
+		target: SubscriptionSelection,
+		variables: {},
+		parentID: string = rootID
+	): boolean {
 		// if the cache is disabled we dont have to look at anything else
 		if (this._disabled) {
 			return false
@@ -1039,7 +1043,9 @@ export class Cache {
 		const record = this.record(parentID)
 
 		// every field in the selection needs to be present
-		for (const [fieldName, selection] of Object.entries(target)) {
+		for (const selection of Object.values(target)) {
+			const fieldName = this.evaluateKey(selection.keyRaw, variables)
+
 			// a single field could show up in the 3 places: as a field, a linked record, or a linked list
 
 			// if the field has a value, we're good
@@ -1060,7 +1066,7 @@ export class Cache {
 				}
 
 				// if we have a valid id, walk down
-				return this.isDataAvailable(selection.fields!, linked)
+				return this.isDataAvailable(selection.fields!, variables, linked)
 			}
 			// look up the linked list
 			const hasListLinks = record.listLinks[fieldName]
@@ -1072,7 +1078,7 @@ export class Cache {
 					}
 
 					// if the linked record doesn't have the field then we are missing data
-					if (!this.isDataAvailable(selection.fields!, linkedRecord.id)) {
+					if (!this.isDataAvailable(selection.fields!, variables, linkedRecord.id)) {
 						return false
 					}
 				}

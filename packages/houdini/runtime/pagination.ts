@@ -226,7 +226,7 @@ function cursorHandlers({
 		}
 
 		// send the query
-		const result = await executeQuery<GraphQLObject>(artifact, queryVariables, sessionStore)
+		const result = await executeQuery<GraphQLObject, {}>(artifact, queryVariables, sessionStore)
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -340,7 +340,7 @@ function offsetPaginationHandler({
 		loading.set(true)
 
 		// send the query
-		const result = await executeQuery<GraphQLObject>(artifact, queryVariables, sessionStore)
+		const result = await executeQuery<GraphQLObject, {}>(artifact, queryVariables, sessionStore)
 
 		// update cache with the result
 		cache.write({

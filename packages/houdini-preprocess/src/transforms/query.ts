@@ -465,29 +465,26 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 				AST.variableDeclarator(
 					AST.identifier(preloadKey),
 					AST.awaitExpression(
-						AST.callExpression(
-							AST.memberExpression(requestContext, AST.identifier('fetchQuery')),
-							[
-								AST.objectExpression([
-									AST.objectProperty(
-										AST.literal('artifact'),
-										AST.identifier(artifactIdentifier(document.artifact))
-									),
-									AST.objectProperty(
-										AST.literal('variables'),
-										AST.identifier(variableIdentifier)
-									),
-									AST.objectProperty(
-										AST.literal('session'),
+						AST.callExpression(AST.identifier('fetchQuery'), [
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.literal('artifact'),
+									AST.identifier(artifactIdentifier(document.artifact))
+								),
+								AST.objectProperty(
+									AST.literal('variables'),
+									AST.identifier(variableIdentifier)
+								),
+								AST.objectProperty(
+									AST.literal('session'),
 
-										AST.memberExpression(
-											AST.identifier('context'),
-											AST.identifier('session')
-										)
-									),
-								]),
-							]
-						)
+									AST.memberExpression(
+										AST.identifier('context'),
+										AST.identifier('session')
+									)
+								),
+							]),
+						])
 					)
 				),
 				,
