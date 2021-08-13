@@ -3,7 +3,14 @@ import { Readable, writable, readable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
 import type { Config } from 'houdini-common'
 // locals
-import { Operation, GraphQLTagResult, SubscriptionSpec, QueryArtifact, CachePolicy } from './types'
+import {
+	Operation,
+	GraphQLTagResult,
+	SubscriptionSpec,
+	QueryArtifact,
+	CachePolicy,
+	GraphQLObject,
+} from './types'
 import cache from './cache'
 import { setVariables } from './context'
 import { executeQuery, RequestPayload } from './network'
@@ -165,7 +172,7 @@ export const routeQuery = <_Data, _Input>(
 
 // component queries are implemented as wrappers over the normal query that fire the
 // appropriate network request and then write the result to the underlying store
-export const componentQuery = <_Data, _Input>({
+export const componentQuery = <_Data extends GraphQLObject, _Input>({
 	config,
 	artifact,
 	queryHandler,
@@ -233,11 +240,11 @@ export const componentQuery = <_Data, _Input>({
 		) {
 			writeData(
 				{
-					data: cache.internal.getData<_Data>(
+					data: cache.internal.getData(
 						cache.internal.record(rootID),
 						artifact.selection,
 						variables
-					)!,
+					)! as _Data,
 					errors: [],
 				},
 				variables

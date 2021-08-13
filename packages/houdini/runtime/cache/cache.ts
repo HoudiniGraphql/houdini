@@ -202,17 +202,17 @@ export class Cache {
 	}
 
 	// walk down the spec
-	private getData<_Data = { [key: string]: GraphQLValue } | null>(
+	private getData(
 		parent: Record | null | undefined,
 		selection: SubscriptionSelection,
 		variables: {}
-	): _Data | null {
+	): GraphQLObject | null {
 		// we could be asking for values of null
 		if (parent === null || typeof parent === 'undefined') {
 			return null
 		}
 
-		const target: { [key: string]: GraphQLValue } = {}
+		const target = {} as GraphQLObject
 
 		// look at every field in the parentFields
 		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
@@ -247,7 +247,9 @@ export class Cache {
 				// is the type a custom scalar with a specified unmarshal function
 				if (this._config.scalars?.[type]?.unmarshal) {
 					// pass the primitive value to the unmarshal function
-					target[attributeName] = this._config.scalars[type].unmarshal(val)
+					target[attributeName] = this._config.scalars[type].unmarshal(
+						val
+					) as GraphQLValue
 				}
 				// the field does not have an unmarshal function
 				else {

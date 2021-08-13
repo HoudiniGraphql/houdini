@@ -21,7 +21,7 @@ describe('query preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
-		import { RequestContext } from "$houdini";
+		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { houdiniConfig } from "$houdini";
 
@@ -34,6 +34,7 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery({
+		        "context": context,
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
 		        "session": context.session
@@ -106,7 +107,7 @@ describe('query preprocessor', function () {
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
-		import { RequestContext } from "$houdini";
+		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { houdiniConfig } from "$houdini";
 
@@ -131,6 +132,7 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery({
+		        "context": context,
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
 		        "session": context.session
@@ -198,7 +200,7 @@ describe('query preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.module?.content).toMatchInlineSnapshot(`
-		import { RequestContext } from "$houdini";
+		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { houdiniConfig } from "$houdini";
 
@@ -211,6 +213,7 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery = await fetchQuery({
+		        "context": context,
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
 		        "session": context.session
@@ -531,7 +534,7 @@ test('onLoad hook', async function () {
 
 	expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini";
-		import { RequestContext } from "$houdini";
+		import { fetchQuery, RequestContext } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { houdiniConfig } from "$houdini";
 
@@ -569,6 +572,7 @@ test('onLoad hook', async function () {
 		    }
 
 		    const _TestQuery = await fetchQuery({
+		        "context": context,
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
 		        "session": context.session

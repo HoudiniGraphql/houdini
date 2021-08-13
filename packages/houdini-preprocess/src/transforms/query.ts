@@ -163,7 +163,7 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	}
 
 	// add the imports if they're not there
-	ensureImports(config, script.content.body, ['RequestContext'])
+	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext'])
 
 	// add the kit preload function
 	addKitLoad(config, script.content.body, queries)
@@ -467,6 +467,10 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 					AST.awaitExpression(
 						AST.callExpression(AST.identifier('fetchQuery'), [
 							AST.objectExpression([
+								AST.objectProperty(
+									AST.literal('context'),
+									AST.identifier('context')
+								),
 								AST.objectProperty(
 									AST.literal('artifact'),
 									AST.identifier(artifactIdentifier(document.artifact))

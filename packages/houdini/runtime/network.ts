@@ -166,7 +166,7 @@ export async function convertKitPayload(
 	throw new Error('Could not handle response from loader: ' + JSON.stringify(result))
 }
 
-function fetchQuery<_Data>({
+export function fetchQuery<_Data>({
 	context,
 	artifact,
 	variables,
