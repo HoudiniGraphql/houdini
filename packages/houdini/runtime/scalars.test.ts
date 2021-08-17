@@ -9,8 +9,8 @@ jest.mock('./cache', function () {
 
 // a mock request context
 const ctx = new RequestContext({
-	page: { host: '', path: '', params: null, query: null },
-	context: null,
+	page: { host: '', path: '', params: {}, query: new URLSearchParams() },
+	context: {},
 	session: null,
 	fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,
 })

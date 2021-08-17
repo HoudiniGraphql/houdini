@@ -14,7 +14,6 @@
 			completed: page.params.filter === 'completed',
 		}
 	}
-
 </script>
 
 <script lang="ts">
@@ -25,10 +24,11 @@
 
 	// load the items
 	const { data, loadNextPage, pageInfo } = paginatedQuery<AllItems>(graphql`
-		query AllItems($completed: Boolean) {
-			filteredItems: items(completed: $completed, first: 2) @paginate(name: "Filtered_Items")  {
-				edges { 
-					node { 
+		query AllItems($completed: Boolean) @cache(policy: CacheOrNetwork) {
+			filteredItems: items(completed: $completed, first: 2)
+				@paginate(name: "Filtered_Items") {
+				edges {
+					node {
 						id
 						completed
 						...ItemEntry_item
@@ -36,8 +36,8 @@
 				}
 			}
 			allItems: items @list(name: "All_Items") {
-				edges { 
-					node { 
+				edges {
+					node {
 						id
 						completed
 					}
@@ -45,7 +45,7 @@
 			}
 		}
 	`)
-	
+
 	// state and handler for the new item input
 	const addItem = mutation<AddItem>(graphql`
 		mutation AddItem($input: AddItemInput!) {
@@ -62,16 +62,14 @@
 			newItem {
 				item {
 					...All_Items_insert
-					...Filtered_Items_insert
-						@prepend(when_not: {completed: true})
+					...Filtered_Items_insert @prepend(when_not: { completed: true })
 				}
 			}
 		}
 	`)
 
-
 	$: numberOfItems = $data.allItems.edges.length
-	$: itemsLeft = $data.allItems.edges.filter(({node: item}) => !item.completed).length
+	$: itemsLeft = $data.allItems.edges.filter(({ node: item }) => !item.completed).length
 
 	// figure out the current page
 	const currentPage = derived(page, ($page) => {
@@ -93,14 +91,13 @@
 			inputValue = ''
 		}
 	}
-
 </script>
 
 <header class="header">
 	<a href="/">
 		<h1>todos</h1>
 	</a>
-	{#if $pageInfo.hasNextPage} 
+	{#if $pageInfo.hasNextPage}
 		<nav>
 			<button on:click={() => loadNextPage()}>load more</button>
 		</nav>
@@ -138,23 +135,22 @@
 	</footer>
 {/if}
 
-
 <style>
-	nav { 
+	nav {
 		position: absolute;
 		right: 0;
 		top: -30px;
 	}
 
-	button { 
+	button {
 		border: 1px solid darkgray;
 		border-radius: 3px;
 		padding: 4px;
 		background: white;
-		cursor: pointer;	
+		cursor: pointer;
 	}
 
-	button:active { 
+	button:active {
 		background: #f6f6f6;
 	}
 </style>

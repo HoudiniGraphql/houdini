@@ -18,6 +18,7 @@ export type ConfigFile = {
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
 	srcPath?: string
+	bufferSize?: number
 }
 
 export type ScalarSpec = {
@@ -47,6 +48,7 @@ export class Config {
 	srcPath: string
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
 	module: 'commonjs' | 'esm' = 'commonjs'
+	bufferSize?: number
 
 	constructor({
 		schema,
@@ -61,6 +63,7 @@ export class Config {
 		mode,
 		scalars,
 		srcPath,
+		bufferSize,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -143,6 +146,7 @@ export class Config {
 		this.static = staticSite
 		this.scalars = scalars
 		this.srcPath = srcPath || path.join(this.projectRoot, 'src')
+		this.bufferSize = bufferSize
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact

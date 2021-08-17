@@ -15,16 +15,6 @@ import { isScalar } from '../scalars'
 // this class implements the cache that drives houdini queries
 export class Cache {
 	_config: Config
-	constructor(config: Config) {
-		this._config = config
-
-		// the cache should always be disabled on the server
-		try {
-			this._disabled = typeof window === 'undefined'
-		} catch {
-			this._disabled = true
-		}
-	}
 
 	// the map from entity id to record
 	private _data: Map<string | undefined, Record> = new Map()
@@ -33,6 +23,23 @@ export class Cache {
 
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
 	private _disabled = false
+
+	// the number of ticks of the garbage collector that a piece of data will
+	readonly bufferSize: number = 10
+
+	constructor(config: Config) {
+		this._config = config
+		if (config.bufferSize) {
+			this.bufferSize = config.bufferSize
+		}
+
+		// the cache should always be disabled on the server
+		try {
+			this._disabled = typeof window === 'undefined'
+		} catch {
+			this._disabled = true
+		}
+	}
 
 	// save the response in the local store and notify any subscribers
 	write({
@@ -1094,6 +1101,14 @@ export class Cache {
 
 		// if we got this far, we have the information
 		return true
+	}
+
+	collectGarbage() {
+		// visit every field of every record we know about, and if there are no
+		// active subscribers decrement their reference count
+		for (const id of this._data.keys()) {
+			this.record(id).onGcTick()
+		}
 	}
 }
 
