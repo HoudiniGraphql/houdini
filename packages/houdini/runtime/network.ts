@@ -186,6 +186,11 @@ export function fetchQuery<_Data>({
 
 	// enforce cache policies for queries
 	if (artifact.kind === 'HoudiniQuery') {
+		// tick the garbage collector asynchronously
+		setTimeout(() => {
+			cache.collectGarbage()
+		}, 0)
+
 		// this function is called as the first step in requesting data. If the policy prefers
 		// cached data, we need to load data from the cache (if its available). If the policy
 		// prefers network data we need to send a request (the onMount of the component will

@@ -129,6 +129,8 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 		cache.collectGarbage()
 	}
 
+	const set = jest.fn()
+
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
@@ -144,7 +146,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 				},
 			},
 		},
-		set: jest.fn(),
+		set,
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
@@ -167,7 +169,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 				},
 			},
 		},
-		set: jest.fn(),
+		set,
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
@@ -177,4 +179,9 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 
 	// make sure we still have a value
 	expect(cache.internal.record('User:1').fields).toEqual({ id: '1' })
+
+	// tick once more to clear the garbage
+	cache.collectGarbage()
+
+	expect(cache.internal.record('User:1').fields).toEqual({})
 })
