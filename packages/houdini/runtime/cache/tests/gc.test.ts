@@ -148,7 +148,30 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: cache.bufferSize - 2 })) {
+	for (const _ of Array.from({ length: cache.bufferSize })) {
+		cache.collectGarbage()
+	}
+
+	// subscribe to the fields
+	cache.unsubscribe({
+		rootType: 'Query',
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+				},
+			},
+		},
+		set: jest.fn(),
+	})
+
+	// tick the garbage collector enough times to fill up the buffer size
+	for (const _ of Array.from({ length: cache.bufferSize })) {
 		cache.collectGarbage()
 	}
 
