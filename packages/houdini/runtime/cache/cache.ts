@@ -1075,7 +1075,9 @@ export class Cache {
 				}
 
 				// if we have a valid id, walk down
-				return this.isDataAvailable(selection.fields!, variables, linked)
+				if (!this.isDataAvailable(selection.fields!, variables, linked)) {
+					return false
+				}
 			}
 			// look up the linked list
 			const hasListLinks = record.listLinks[fieldName]

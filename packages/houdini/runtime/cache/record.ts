@@ -234,23 +234,22 @@ export class Record {
 				// lower the current count by 1
 				const previousCount = this.lifetimes.get(field) || 0
 				this.lifetimes.set(field, previousCount + 1)
-
 				// if the lifetime exceeds the cache's buffer size we should remove the field, linked record, or list
 				if (this.lifetimes.get(field)! > this.cache.bufferSize) {
 					delete this.fields[field]
 					delete this.recordLinks[field]
 					delete this.recordLinks[field]
+
+					// if we dont have any data left, delete the record from the cache
+					if (
+						Object.keys(this.fields).length === 0 &&
+						Object.keys(this.recordLinks).length === 0 &&
+						Object.keys(this.recordLinks).length === 0
+					) {
+						this.cache.internal.deleteID(this.id)
+					}
 				}
 			}
-		}
-
-		// if we dont have any data left, delete the record from the cache
-		if (
-			Object.keys(this.fields).length === 0 &&
-			Object.keys(this.recordLinks).length === 0 &&
-			Object.keys(this.recordLinks).length === 0
-		) {
-			this.cache.internal.deleteID(this.id)
 		}
 	}
 }
