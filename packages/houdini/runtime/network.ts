@@ -207,7 +207,6 @@ export function fetchQuery<_Data>({
 			].includes(artifact.policy!) &&
 			cache.internal.isDataAvailable(artifact.selection, variables)
 		) {
-			console.log('using cached data', variables)
 			return {
 				data: cache.internal.getData(
 					cache.internal.record(rootID),
