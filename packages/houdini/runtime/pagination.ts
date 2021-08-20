@@ -45,7 +45,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 			initialValue: document.initialValue.data,
 			store: data,
 			artifact,
-			queryVariables: document.variables,
+			queryVariables: () => document.variables,
 			documentLoading: loading,
 		}),
 		...restOfQueryResponse,
@@ -82,8 +82,8 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 			store: data,
 			artifact: paginationArtifact,
 			queryVariables: paginationArtifact.refetch!.embedded
-				? { id: cache.internal.computeID(fragmentArtifact.rootType, initialValue) }
-				: {},
+				? () => ({ id: cache.internal.computeID(fragmentArtifact.rootType, initialValue) })
+				: () => ({}),
 		}),
 	}
 }
@@ -98,7 +98,7 @@ function paginationHandlers({
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
-	queryVariables?: {}
+	queryVariables?: () => {}
 	documentLoading?: Readable<boolean>
 }): PaginatedHandlers {
 	// start with the defaults and no meaningful page info
@@ -171,7 +171,7 @@ function cursorHandlers({
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
-	queryVariables?: {}
+	queryVariables?: () => {}
 	loading: Writable<boolean>
 }): {
 	loadNextPage: PaginatedHandlers['loadNextPage']
@@ -226,7 +226,12 @@ function cursorHandlers({
 		}
 
 		// send the query
-		const result = await executeQuery<GraphQLObject, {}>(artifact, queryVariables, sessionStore)
+		const result = await executeQuery<GraphQLObject, {}>(
+			artifact,
+			queryVariables,
+			sessionStore,
+			false
+		)
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -340,7 +345,12 @@ function offsetPaginationHandler({
 		loading.set(true)
 
 		// send the query
-		const result = await executeQuery<GraphQLObject, {}>(artifact, queryVariables, sessionStore)
+		const result = await executeQuery<GraphQLObject, {}>(
+			artifact,
+			queryVariables,
+			sessionStore,
+			false
+		)
 
 		// update cache with the result
 		cache.write({

@@ -42,7 +42,9 @@ export function query<_Query extends Operation<any, any>>(
 	let variables = document.variables
 
 	// embed the variables in the components context
-	setVariables(() => variables)
+	setVariables(() => {
+		return variables
+	})
 
 	// dry the reference to the initial value
 	const initialValue = document.initialValue?.data
@@ -79,7 +81,7 @@ export function query<_Query extends Operation<any, any>>(
 		// after the initial one, do that now
 		if (artifact.policy === CachePolicy.CacheAndNetwork) {
 			// execute the query and write the data to the cache
-			executeQuery(artifact, variables, sessionStore).then((result) => {
+			executeQuery(artifact, variables, sessionStore, true).then((result) => {
 				writeData(result, variables)
 			})
 		}
@@ -102,6 +104,15 @@ export function query<_Query extends Operation<any, any>>(
 	const sessionStore = getSession()
 
 	function writeData(newData: RequestPayload<_Query['result']>, newVariables: _Query['input']) {
+		const updated =
+			subscriptionSpec && JSON.stringify(variables) !== JSON.stringify(newVariables)
+
+		// if the variables changed we need to unsubscribe from the old fields and
+		// listen to the new ones
+		if (updated) {
+			cache.unsubscribe(subscriptionSpec!, variables)
+		}
+
 		// write the data we received
 		cache.write({
 			selection: artifact.selection,
@@ -109,11 +120,8 @@ export function query<_Query extends Operation<any, any>>(
 			variables: newVariables,
 		})
 
-		// if the variables changed we need to unsubscribe from the old fields and
-		// listen to the new ones
-		if (subscriptionSpec && JSON.stringify(variables) !== JSON.stringify(newVariables)) {
-			cache.unsubscribe(subscriptionSpec, variables)
-			cache.subscribe(subscriptionSpec, newVariables)
+		if (updated) {
+			cache.subscribe(subscriptionSpec!, newVariables)
 		}
 
 		// update the local store
@@ -138,7 +146,7 @@ export function query<_Query extends Operation<any, any>>(
 				}
 
 				// Execute the query
-				const result = await executeQuery(artifact, variableBag, sessionStore)
+				const result = await executeQuery(artifact, variableBag, sessionStore, false)
 
 				// Write the data to the cache
 				writeData(result, variableBag)
@@ -256,7 +264,7 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 			loading.set(true)
 
 			// fire the query
-			executeQuery<_Data, _Input>(artifact, variables || ({} as _Input), getSession())
+			executeQuery<_Data, _Input>(artifact, variables || ({} as _Input), getSession(), true)
 				.then((result) => {
 					// update the store with the new result
 					writeData(result, variables)

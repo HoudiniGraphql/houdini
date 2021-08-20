@@ -93,7 +93,8 @@ export type RequestHandler<_Data> = (
 export async function executeQuery<_Data, _Input>(
 	artifact: QueryArtifact | MutationArtifact,
 	variables: _Input,
-	sessionStore: Readable<any>
+	sessionStore: Readable<any>,
+	cached: boolean
 ): Promise<RequestPayload> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?
@@ -117,10 +118,11 @@ export async function executeQuery<_Data, _Input>(
 		artifact,
 		session,
 		variables,
+		cached,
 	})
 
 	// we could have gotten a null response
-	if (res.errors) {
+	if (res.errors && res.errors.length > 0) {
 		throw res.errors
 	}
 	if (!res.data) {
@@ -171,11 +173,13 @@ export function fetchQuery<_Data>({
 	artifact,
 	variables,
 	session,
+	cached = true,
 }: {
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
 	variables: {}
 	session?: FetchSession
+	cached?: boolean
 }) {
 	// grab the current environment
 	const environment = getEnvironment()
@@ -185,11 +189,11 @@ export function fetchQuery<_Data>({
 	}
 
 	// enforce cache policies for queries
-	if (artifact.kind === 'HoudiniQuery') {
+	if (cached && artifact.kind === 'HoudiniQuery') {
 		// tick the garbage collector asynchronously
-		setTimeout(() => {
-			cache.collectGarbage()
-		}, 0)
+		// setTimeout(() => {
+		// 	cache.collectGarbage()
+		// }, 0)
 
 		// this function is called as the first step in requesting data. If the policy prefers
 		// cached data, we need to load data from the cache (if its available). If the policy
@@ -203,6 +207,7 @@ export function fetchQuery<_Data>({
 			].includes(artifact.policy!) &&
 			cache.internal.isDataAvailable(artifact.selection, variables)
 		) {
+			console.log('using cached data', variables)
 			return {
 				data: cache.internal.getData(
 					cache.internal.record(rootID),
