@@ -406,6 +406,44 @@ describe('parser tests', () => {
 		checkScriptBounds(doc, result)
 	})
 
+	test("styling tag parse errors don't fail (postcss support)", async () => {
+		const doc = `<script lang="ts">
+		const example = object({});
+	</script>
+	<style>
+		.test { 
+			&_title {
+				width: 500px;
+				@media (max-width: 500px) {
+					width: auto;
+				}
+				body.is_dark & {
+					color: white;
+				}
+			}
+			img {
+				display: block;
+			}
+		}
+	</style>
+
+	<div>hello</div>
+	`
+
+		// parse the string
+		const result = await parseFile(doc)
+
+		expect(result.instance?.content).toMatchInlineSnapshot(`const example = object({});`)
+		expect(result.instance?.start).toMatchInlineSnapshot(`0`)
+		expect(result.instance?.end).toMatchInlineSnapshot(`58`)
+
+		expect(result.module?.content).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.start).toMatchInlineSnapshot(`undefined`)
+		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
+
+		checkScriptBounds(doc, result)
+	})
+
 	test('empty object in script', async () => {
 		const doc = `<script lang="ts">
 		const example = object({});

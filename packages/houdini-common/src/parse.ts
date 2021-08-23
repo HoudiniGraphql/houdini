@@ -19,6 +19,11 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 					code: input.replace(/\S/g, ' '),
 				}
 			},
+			style({ content: input }) {
+				return {
+					code: input.replace(/\S/g, ' '),
+				}
+			},
 		},
 	])
 	// parse the result to find the bounds
