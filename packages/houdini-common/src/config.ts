@@ -88,6 +88,9 @@ export class Config {
 
 			// interpret the schema path as relative to cwd
 			const localSchemaPath = path.resolve(process.cwd(), schemaPath)
+			if (!fs.existsSync(localSchemaPath)) {
+				throw new Error(`Schema file does not exist! Create it using houdini generate -p`)
+			}
 
 			// if the schema points to an sdl file
 			if (localSchemaPath.endsWith('gql') || localSchemaPath.endsWith('graphql')) {
