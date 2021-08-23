@@ -28,8 +28,7 @@ Keeping documentation up to date is as important as _any_ bug fix or new feature
 The quickest way to test and develop new features is by using the [example project](./example).
 Starting with `yarn && yarn build` at the root of the repository will handle the details
 of linking everything up. Once yarn is done, run `yarn generate && yarn dev` inside of the example
-directory to start the development server. You will also need to start the example app's api with
-`yarn api` (in a separate terminal, also inside the example directory). After all of this, you
+directory to start both the web app & API development servers. After all of this, you
 should be able to visit `localhost:3000` in a web browser and see a working todo list.
 
 ## General Introduction
