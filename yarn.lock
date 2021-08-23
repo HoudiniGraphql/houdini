@@ -4582,6 +4582,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cliui@npm:^7.0.2":
+  version: 7.0.4
+  resolution: "cliui@npm:7.0.4"
+  dependencies:
+    string-width: ^4.2.0
+    strip-ansi: ^6.0.0
+    wrap-ansi: ^7.0.0
+  checksum: c49ac1d13f6dda4beaa11b26f62867e0e9892eb985951187d7c691793e0fe08b9bc15cedfaf4dc6d2e9a4d1516704c0c9dcb671ebcd758dbabb18b5d757fbdb5
+  languageName: node
+  linkType: hard
+
 "clone-deep@npm:^4.0.1":
   version: 4.0.1
   resolution: "clone-deep@npm:4.0.1"
@@ -4762,6 +4773,25 @@ __metadata:
     readable-stream: ^3.0.2
     typedarray: ^0.0.6
   checksum: 286f55bb6a41f290248b0c4b1fa84f08b1d7f248634bf5907b1b946e28b537b8f95bd6100f10394e9d870fcec9ed50d4636dfc68c0b7e820b06c7f84814edb43
+  languageName: node
+  linkType: hard
+
+"concurrently@npm:^6.2.1":
+  version: 6.2.1
+  resolution: "concurrently@npm:6.2.1"
+  dependencies:
+    chalk: ^4.1.0
+    date-fns: ^2.16.1
+    lodash: ^4.17.21
+    read-pkg: ^5.2.0
+    rxjs: ^6.6.3
+    spawn-command: ^0.0.2-1
+    supports-color: ^8.1.0
+    tree-kill: ^1.2.2
+    yargs: ^16.2.0
+  bin:
+    concurrently: bin/concurrently.js
+  checksum: 673bf80f5acf136c0fb7725df362d4b03486204ca6d1898b69226cb60b6b1a7061c05db567d883860080162a2e0053fb133079f4ae8bf31c3ecad0818323e947
   languageName: node
   linkType: hard
 
@@ -5101,6 +5131,13 @@ __metadata:
     whatwg-mimetype: ^2.3.0
     whatwg-url: ^8.0.0
   checksum: 42239927c6a202e2d02b7f41c94ca53e3cea036898b97b8bf6120ed1b25e0dd11c48ec7aa5c84cf807c2cb9f3a637df9fb50f3ca25a52863186a4ac46254726b
+  languageName: node
+  linkType: hard
+
+"date-fns@npm:^2.16.1":
+  version: 2.23.0
+  resolution: "date-fns@npm:2.23.0"
+  checksum: 5b23cf7f08a27d0c1633e81304c95ac2bacb1160d86a25d36c40c84853796e442e597a4d75acec3f0920a71f3a65dd55b37565d356fa3fb4c2345225df42d930
   languageName: node
   linkType: hard
 
@@ -5702,10 +5739,11 @@ __metadata:
   dependencies:
     "@sveltejs/kit": 1.0.0-next.107
     apollo-server: ^2.24.0
+    concurrently: ^6.2.1
     graphql: 15.5.0
     graphql-relay: ^0.8.0
-    houdini: ^0.10.0
-    houdini-preprocess: ^0.10.0
+    houdini: ^0.10.5
+    houdini-preprocess: ^0.10.5
     subscriptions-transport-ws: ^0.9.18
     svelte: ^3.38.2
     svelte-preprocess: ^4.0.0
@@ -6246,7 +6284,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-caller-file@npm:^2.0.1":
+"get-caller-file@npm:^2.0.1, get-caller-file@npm:^2.0.5":
   version: 2.0.5
   resolution: "get-caller-file@npm:2.0.5"
   checksum: 9dd9e1e2591039ee4c38c897365b904f66f1e650a8c1cb7b7db8ce667fa63e88cc8b13282b74df9d93de481114b3304a0487880d31cd926dfda6efe71455855d
@@ -6716,7 +6754,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.10.0, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.10.5, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
@@ -6761,7 +6799,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.10.0, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.10.5, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -6775,8 +6813,8 @@ __metadata:
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
     graphql: 15.5.0
-    houdini: ^0.10.0
-    houdini-common: ^0.10.0
+    houdini: ^0.10.5
+    houdini-common: ^0.10.5
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -6787,7 +6825,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.10.0, houdini@workspace:packages/houdini":
+"houdini@^0.10.5, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
@@ -6808,7 +6846,7 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.10.0
+    houdini-common: ^0.10.5
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
@@ -8544,7 +8582,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.x":
+"lodash@npm:4.x, lodash@npm:^4.17.21":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: 4983720b9abca930a4a46f18db163d7dad8dd00dbed6db0cc7b499b33b717cce69f80928b27bbb1ff2cbd3b19d251ee90669a8b5ea466072ca81c2ebe91e7468
@@ -10960,6 +10998,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rxjs@npm:^6.6.3":
+  version: 6.6.7
+  resolution: "rxjs@npm:6.6.7"
+  dependencies:
+    tslib: ^1.9.0
+  checksum: 1146975cbd5388ee5e61450235dc5670931e43cce71813f567977d334acc4d75c6e8d9d293df67e1fb31510b99fc8957943d4a9b550d109e4dc69967a8471543
+  languageName: node
+  linkType: hard
+
 "sade@npm:^1.7.4":
   version: 1.7.4
   resolution: "sade@npm:1.7.4"
@@ -11381,6 +11428,13 @@ __metadata:
   version: 1.4.8
   resolution: "sourcemap-codec@npm:1.4.8"
   checksum: 4d56d1232a45af813606d1755f11e7ae6b3542c615a7e3f904382f0134a9412ba8d090e83749254d78449eafdfcc62d5158b8f35e6241480b51b74b5c46b99f9
+  languageName: node
+  linkType: hard
+
+"spawn-command@npm:^0.0.2-1":
+  version: 0.0.2
+  resolution: "spawn-command@npm:0.0.2"
+  checksum: 961fb1551f2d5848509ec661f639c515e582034b010724fcaad6949148e21c50226e30889dd710a70dce25c4ba43437665aad621fc37c0f8a75fa9ec3e46a69f
   languageName: node
   linkType: hard
 
@@ -11817,6 +11871,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"supports-color@npm:^8.1.0":
+  version: 8.1.1
+  resolution: "supports-color@npm:8.1.1"
+  dependencies:
+    has-flag: ^4.0.0
+  checksum: 0219f5c91753fea8dc8046cd4b18d39458b5dc0c6421c67c1072209faae9ba93b89283252e3b05d5c18901fd9f8b95001e3247fb93e2265f66d584a676522c75
+  languageName: node
+  linkType: hard
+
 "supports-hyperlinks@npm:^2.0.0":
   version: 2.1.0
   resolution: "supports-hyperlinks@npm:2.1.0"
@@ -12177,6 +12240,15 @@ __metadata:
   version: 0.3.9
   resolution: "traverse@npm:0.3.9"
   checksum: f2f99aa18539e8a1420b41456ad931bd5c2c8091bb993416b4ae9d234edc82052dac5d61cb422b2053101f67e804a1bdf022bff7436b7fa4ac518a7aff6f7cc3
+  languageName: node
+  linkType: hard
+
+"tree-kill@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "tree-kill@npm:1.2.2"
+  bin:
+    tree-kill: cli.js
+  checksum: 967643efa4a231868232ea9d046c3ba7494ea6061fbb1e661c699b43ca0f0a14dad0782a631d915959d562830035166bab80ed726f9fe33b838af8a7516624ed
   languageName: node
   linkType: hard
 
@@ -12888,6 +12960,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"wrap-ansi@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "wrap-ansi@npm:7.0.0"
+  dependencies:
+    ansi-styles: ^4.0.0
+    string-width: ^4.1.0
+    strip-ansi: ^6.0.0
+  checksum: 09939dd775ae565bb99a25a6c072fe3775a95fa71751b5533c94265fe986ba3e3ab071a027ab76cf26876bd9afd10ac3c2d06d7c4bcce148bf7d2d9514e3a0df
+  languageName: node
+  linkType: hard
+
 "wrappy@npm:1":
   version: 1.0.2
   resolution: "wrappy@npm:1.0.2"
@@ -13029,6 +13112,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"y18n@npm:^5.0.5":
+  version: 5.0.8
+  resolution: "y18n@npm:5.0.8"
+  checksum: 56275bfa72a8a585c4d2905b086862fb881dfe7871adcefe4ecf4c1a6a78c6389b459b427c0a8672ccdb09731a78143acc71f0bcc8dc8d8427869fafe7f18b95
+  languageName: node
+  linkType: hard
+
 "yallist@npm:^3.0.0, yallist@npm:^3.0.2, yallist@npm:^3.0.3":
   version: 3.1.1
   resolution: "yallist@npm:3.1.1"
@@ -13067,6 +13157,13 @@ __metadata:
     camelcase: ^5.0.0
     decamelize: ^1.2.0
   checksum: 33871721679053cc38165afc6356c06c3e820459589b5db78f315886105070eb90cbb583cd6515fa4231937d60c80262ca2b7c486d5942576802446318a39597
+  languageName: node
+  linkType: hard
+
+"yargs-parser@npm:^20.2.2":
+  version: 20.2.9
+  resolution: "yargs-parser@npm:20.2.9"
+  checksum: 3c58da6f6142f93c5207e309764bd90f723b9d7ed43f2e8aad0da1cefab83ee8ebf311dee2e81102646b74450c899e35b35053800b91fac23e6f433056f4c4cf
   languageName: node
   linkType: hard
 
@@ -13112,6 +13209,21 @@ __metadata:
     y18n: ^4.0.0
     yargs-parser: ^18.1.2
   checksum: dbf687d6b938f01bbf11e158dde6df906282b70cd9295af0217ee8cefbd83ad09d49fa9458d0d5325b0e66f03df954a38986db96f91e5b46ccdbbaf9a0157b23
+  languageName: node
+  linkType: hard
+
+"yargs@npm:^16.2.0":
+  version: 16.2.0
+  resolution: "yargs@npm:16.2.0"
+  dependencies:
+    cliui: ^7.0.2
+    escalade: ^3.1.1
+    get-caller-file: ^2.0.5
+    require-directory: ^2.1.1
+    string-width: ^4.2.0
+    y18n: ^5.0.5
+    yargs-parser: ^20.2.2
+  checksum: a79ce1f043021cd645de1ffebb6149541d382ba68f4a6b5eca5d2ad65af51893371bbd78e240dc3b6cf0cbb419511ba5bda715dec992e4266e6863ea49f14feb
   languageName: node
   linkType: hard
 

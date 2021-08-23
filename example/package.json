@@ -3,14 +3,16 @@
 	"private": true,
 	"version": "0.10.5",
 	"scripts": {
-		"dev": "svelte-kit dev",
+		"dev": "concurrently \"yarn web\" \"yarn api\"",
 		"build": "svelte-kit build",
 		"start": "svelte-kit start",
 		"generate": "rm -rf \"\\$houdini\" && houdini generate",
+		"web": "svelte-kit dev",
 		"api": "node api.cjs"
 	},
 	"devDependencies": {
 		"@sveltejs/kit": "1.0.0-next.107",
+		"concurrently": "^6.2.1",
 		"graphql": "15.5.0",
 		"houdini": "^0.10.5",
 		"houdini-preprocess": "^0.10.5",
