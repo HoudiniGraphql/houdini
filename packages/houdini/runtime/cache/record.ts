@@ -235,7 +235,7 @@ export class Record {
 				const previousCount = this.lifetimes.get(field) || 0
 				this.lifetimes.set(field, previousCount + 1)
 				// if the lifetime exceeds the cache's buffer size we should remove the field, linked record, or list
-				if (this.lifetimes.get(field)! > this.cache.bufferSize) {
+				if (this.lifetimes.get(field)! > this.cache.cacheBufferSize) {
 					delete this.fields[field]
 					delete this.recordLinks[field]
 					delete this.recordLinks[field]

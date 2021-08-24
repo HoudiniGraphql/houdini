@@ -25,12 +25,12 @@ export class Cache {
 	private _disabled = false
 
 	// the number of ticks of the garbage collector that a piece of data will
-	readonly bufferSize: number = 10
+	readonly cacheBufferSize: number = 10
 
 	constructor(config: Config) {
 		this._config = config
-		if (config.bufferSize) {
-			this.bufferSize = config.bufferSize
+		if (config.cacheBufferSize) {
+			this.cacheBufferSize = config.cacheBufferSize
 		}
 
 		// the cache should always be disabled on the server
