@@ -97,6 +97,7 @@ const artifact: QueryArtifact = {
 		fields: {
 			date: 'NestedDate',
 			booleanValue: 'Boolean',
+			enumValue: 'EnumValue',
 		},
 		types: {
 			NestedDate: {
@@ -258,6 +259,25 @@ describe('marshal inputs', function () {
 			date: undefined,
 		})
 	})
+
+	test('enums', function () {
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					enumValue: 'ValueA',
+				}
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			enumValue: 'ValueA',
+		})
+	})
 })
 
 describe('unmarshal selection', function () {
@@ -404,6 +424,23 @@ describe('unmarshal selection', function () {
 
 		expect(unmarshalSelection(config, selection, data)).toEqual({
 			rootBool: true,
+		})
+	})
+
+	test('enums', function () {
+		const data = {
+			enumValue: 'Hello',
+		}
+
+		const selection = {
+			enumValue: {
+				type: 'EnumValue',
+				keyRaw: 'enumValue',
+			},
+		}
+
+		expect(unmarshalSelection(config, selection, data)).toEqual({
+			enumValue: 'Hello',
 		})
 	})
 })
