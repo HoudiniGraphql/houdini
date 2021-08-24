@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // external imports
-import { getConfig } from 'houdini-common'
+import { getConfig, readConfigFile } from 'houdini-common'
 import { Command } from 'commander'
 import path from 'path'
 // local imports
@@ -21,14 +21,12 @@ program
 	.action(
 		async (args: { pullSchema: boolean; persistOutput?: string } = { pullSchema: false }) => {
 			// grab the config file
-			const config = await getConfig()
+			let config
 
 			try {
-				if (args.persistOutput) {
-					config.persistedQueryPath = args.persistOutput
-				}
 				// Pull the newest schema if the flag is set
 				if (args.pullSchema) {
+					config = await readConfigFile()
 					// Check if apiUrl is set in config
 					if (!config.apiUrl) {
 						throw new Error(
@@ -38,14 +36,19 @@ program
 					// The target path -> current working directory by default. Should we allow passing custom paths?
 					const targetPath = process.cwd()
 					// Write the schema
-					const schema = await writeSchema(
+					await writeSchema(
 						config.apiUrl,
 						config.schemaPath
 							? config.schemaPath
 							: path.resolve(targetPath, 'schema.json')
 					)
-					// Set the newly written schema into the config
-					config.schema = schema
+					console.log(`Pulled latest schema from ${config.apiUrl}`)
+				}
+
+				// Load config
+				config = await getConfig()
+				if (args.persistOutput) {
+					config.persistedQueryPath = args.persistOutput
 				}
 				await generate(config)
 			} catch (e) {

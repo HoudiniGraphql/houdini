@@ -39,7 +39,7 @@ export function marshalInputs<T>({
 	return Object.fromEntries(
 		Object.entries(input as {}).map(([fieldName, value]) => {
 			// look up the type for the field
-			const type = fields[fieldName]
+			const type = fields?.[fieldName]
 			// if we don't have type information for this field, just use it directly
 			// it's most likely a non-custom scalars or enums
 			if (!type) {
@@ -52,7 +52,7 @@ export function marshalInputs<T>({
 			}
 
 			// if the type doesn't require marshaling and isn't a referenced type
-			if (isScalar(config, type)) {
+			if (isScalar(config, type) || !artifact.input!.types[type]) {
 				return [fieldName, value]
 			}
 
@@ -88,17 +88,7 @@ export function unmarshalSelection(
 				return [fieldName, value]
 			}
 
-			// is the type something that requires marshaling
-			if (config.scalars?.[type]?.marshal) {
-				return [fieldName, config.scalars[type].unmarshal(value)]
-			}
-
-			// if the type doesn't require marshaling and isn't a referenced type
-			// if the type is a scalar that doesn't require marshaling
-			if (isScalar(config, type)) {
-				return [fieldName, value]
-			}
-
+			// if there is a sub selection, walk down the selection
 			if (fields) {
 				return [
 					fieldName,
@@ -107,7 +97,14 @@ export function unmarshalSelection(
 				]
 			}
 
-			return []
+			// is the type something that requires marshaling
+			if (config.scalars?.[type]?.marshal) {
+				return [fieldName, config.scalars[type].unmarshal(value)]
+			}
+
+			// if the type doesn't require marshaling and isn't a referenced type
+			// then the type is a scalar that doesn't require marshaling
+			return [fieldName, value]
 		})
 	)
 }
