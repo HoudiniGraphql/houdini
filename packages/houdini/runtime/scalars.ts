@@ -42,7 +42,7 @@ export function marshalInputs<T>({
 			const type = fields?.[fieldName]
 			// if we don't have type information for this field, just use it directly
 			// it's most likely a non-custom scalars or enums
-			if (!type || !artifact.input!.types[type]) {
+			if (!type) {
 				return [fieldName, value]
 			}
 
@@ -52,7 +52,7 @@ export function marshalInputs<T>({
 			}
 
 			// if the type doesn't require marshaling and isn't a referenced type
-			if (isScalar(config, type)) {
+			if (isScalar(config, type) || !artifact.input!.types[type]) {
 				return [fieldName, value]
 			}
 
