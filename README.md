@@ -45,8 +45,9 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
     1. [Loading State](#loading-state)
-    1. [Refetching Data](#refetching-data)
     1. [Additional Logic](#additional-logic)
+    1. [Refetching Data](#refetching-data)
+    1. [Cache policy](#cache-policy)
     1. [What about load?](#what-about-load)
 1. [Fragments](#fragments)
     1. [Fragment Arguments](#fragment-arguments)
@@ -387,6 +388,27 @@ Refetching data is done with the `refetch` function provided from the result of 
 
 <input type=checkbox bind:checked={completed}>
 ```
+
+### Cache policy
+
+By default, houdini will try to load queries against its local cache whenever possible. 
+If any piece of data is missing, it will fetch the entire query from your API. 
+This behavior is customizable using the `@cache` directive:
+
+```graphql
+query AllItems @cache(policy: CacheOrNetwork) {
+    items {
+        id
+        text
+    }
+}
+```
+
+There are 3 different policies that can be specified:
+
+- **CacheOrNetwork**  will first check if a query can be resolved from the cache. If it can, it will return the cached value and only send a network request if data was missing.
+- **CacheAndNetwork** will use cached data if it exists and always send a network request after the component has mounted to retrieve the latest data from the server
+- **NetworkOnly** will never check if the data exists in the cache and always send a network request
 
 ### What about `load`?
 
