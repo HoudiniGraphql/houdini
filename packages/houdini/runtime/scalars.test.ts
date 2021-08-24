@@ -97,11 +97,13 @@ const artifact: QueryArtifact = {
 		fields: {
 			date: 'NestedDate',
 			booleanValue: 'Boolean',
+			enumValue: 'EnumValue',
 		},
 		types: {
 			NestedDate: {
 				date: 'DateTime',
 				nested: 'NestedDate',
+				enumValue: 'EnumValue',
 			},
 		},
 	},
@@ -128,6 +130,7 @@ describe('marshal inputs', function () {
 								date: date2,
 								nested: {
 									date: date3,
+									enumValue: 'asdf',
 								},
 							},
 						},
@@ -145,6 +148,7 @@ describe('marshal inputs', function () {
 						date: date2.getTime(),
 						nested: {
 							date: date3.getTime(),
+							enumValue: 'asdf',
 						},
 					},
 				},
@@ -256,6 +260,44 @@ describe('marshal inputs', function () {
 		// make sure we got the expected value
 		expect(inputs).toEqual({
 			date: undefined,
+		})
+	})
+
+	test('enums', function () {
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					enumValue: 'ValueA',
+				}
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			enumValue: 'ValueA',
+		})
+	})
+
+	test('list of enums', function () {
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					enumValue: ['ValueA', 'ValueB'],
+				}
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			enumValue: ['ValueA', 'ValueB'],
 		})
 	})
 })
@@ -404,6 +446,40 @@ describe('unmarshal selection', function () {
 
 		expect(unmarshalSelection(config, selection, data)).toEqual({
 			rootBool: true,
+		})
+	})
+
+	test('enums', function () {
+		const data = {
+			enumValue: 'Hello',
+		}
+
+		const selection = {
+			enumValue: {
+				type: 'EnumValue',
+				keyRaw: 'enumValue',
+			},
+		}
+
+		expect(unmarshalSelection(config, selection, data)).toEqual({
+			enumValue: 'Hello',
+		})
+	})
+
+	test('list of enums', function () {
+		const data = {
+			enumValue: ['Hello', 'World'],
+		}
+
+		const selection = {
+			enumValue: {
+				type: 'EnumValue',
+				keyRaw: 'enumValue',
+			},
+		}
+
+		expect(unmarshalSelection(config, selection, data)).toEqual({
+			enumValue: ['Hello', 'World'],
 		})
 	})
 })
