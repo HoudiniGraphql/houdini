@@ -399,7 +399,7 @@ export class Config {
 const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'houdini.config.js')
 
 // helper function to load the config file
-export async function loadConfigFile(configPath: string = DEFAULT_CONFIG_PATH): Promise<any> {
+export async function readConfigFile(configPath: string = DEFAULT_CONFIG_PATH): Promise<any> {
 	// on windows, we need to prepend the right protocol before we
 	// can import from an absolute path
 	let importPath = configPath
@@ -425,7 +425,7 @@ export async function getConfig(): Promise<Config> {
 
 	// add the filepath and save the result
 	const configPath = DEFAULT_CONFIG_PATH
-	const config = await loadConfigFile(configPath)
+	const config = await readConfigFile(configPath)
 	_config = new Config({
 		...config,
 		filepath: configPath,

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // external imports
-import { getConfig, loadConfigFile } from 'houdini-common'
+import { getConfig, readConfigFile } from 'houdini-common'
 import { Command } from 'commander'
 import path from 'path'
 // local imports
@@ -26,7 +26,7 @@ program
 			try {
 				// Pull the newest schema if the flag is set
 				if (args.pullSchema) {
-					config = await loadConfigFile()
+					config = await readConfigFile()
 					// Check if apiUrl is set in config
 					if (!config.apiUrl) {
 						throw new Error(
