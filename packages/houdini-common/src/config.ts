@@ -88,6 +88,9 @@ export class Config {
 
 			// interpret the schema path as relative to cwd
 			const localSchemaPath = path.resolve(process.cwd(), schemaPath)
+			if (!fs.existsSync(localSchemaPath)) {
+				throw new Error(`Schema file does not exist! Create it using houdini generate -p`)
+			}
 
 			// if the schema points to an sdl file
 			if (localSchemaPath.endsWith('gql') || localSchemaPath.endsWith('graphql')) {
@@ -392,18 +395,11 @@ export class Config {
 		throw new Error('Could not find list name from fragment: ' + fragmentName)
 	}
 }
-// a place to store the current configuration
-let _config: Config
 
-// get the project's current configuration
-export async function getConfig(): Promise<Config> {
-	if (_config) {
-		return _config
-	}
+const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'houdini.config.js')
 
-	// load the config file
-	const configPath = path.join(process.cwd(), 'houdini.config.js')
-
+// helper function to load the config file
+export async function loadConfigFile(configPath: string = DEFAULT_CONFIG_PATH): Promise<any> {
 	// on windows, we need to prepend the right protocol before we
 	// can import from an absolute path
 	let importPath = configPath
@@ -415,8 +411,21 @@ export async function getConfig(): Promise<Config> {
 
 	// if this is wrapped in a default, use it
 	const config = imported.default || imported
+	return config
+}
+
+// a place to store the current configuration
+let _config: Config
+
+// get the project's current configuration
+export async function getConfig(): Promise<Config> {
+	if (_config) {
+		return _config
+	}
 
 	// add the filepath and save the result
+	const configPath = DEFAULT_CONFIG_PATH
+	const config = await loadConfigFile(configPath)
 	_config = new Config({
 		...config,
 		filepath: configPath,
