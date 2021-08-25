@@ -415,9 +415,10 @@ There are 3 different policies that can be specified:
 Houdini will retain a query's data for a configurable number of queries (default 10). 
 For a concrete example, consider an example app that has 3 routes. If you load one of the 
 routes and then click between the other two 5 times, the first route's data will still be 
-resolvable (and the counter will reset). If you then toggle between the other routes 10 times
-and then try to load the first route, a network request will be sent. This number is 
-configurable with the `cacheBufferSize` value in your config file:
+resolvable (and the counter will reset if you visit it). 
+If you then toggle between the other routes 10 times and then try to load the first 
+route, a network request will be sent. This number is configurable with the 
+`cacheBufferSize` value in your config file:
 
 ```js
 export default { 
