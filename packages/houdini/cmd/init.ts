@@ -6,7 +6,7 @@ import { writeSchema } from './utils/writeSchema'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
-export default async (_path: string | undefined) => {
+export default async (_path: string | undefined, args: { pullHeader?: string[] }) => {
 	// we need to collect some information from the user before we
 	// can continue
 	let answers = await inquirer.prompt([
@@ -79,7 +79,7 @@ export default async (_path: string | undefined) => {
 
 	await Promise.all([
 		// Get the schema from the url and write it to file
-		writeSchema(answers.url, path.join(targetPath, answers.schemaPath)),
+		writeSchema(answers.url, path.join(targetPath, answers.schemaPath), args?.pullHeader),
 
 		// write the config file
 		fs.writeFile(

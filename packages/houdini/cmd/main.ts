@@ -20,7 +20,7 @@ program
 	.option('-po, --persist-output [outputPath]', 'persist queries to a queryMap file')
 	.option(
 		'-ph, --pull-header <headers...>',
-		'headers to use when pulling your schema. Should be passed as KEY=VALUE'
+		'header to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
 	.action(
 		async (
@@ -49,7 +49,8 @@ program
 						config.apiUrl,
 						config.schemaPath
 							? config.schemaPath
-							: path.resolve(targetPath, 'schema.json')
+							: path.resolve(targetPath, 'schema.json'),
+						args.pullHeader
 					)
 					console.log(`Pulled latest schema from ${config.apiUrl}`)
 				}
@@ -69,11 +70,12 @@ program
 // register the init command
 program
 	.command('init')
+	.arguments('[path]')
 	.usage('[path] [options]')
 	.description('initialize a new houdini project')
 	.option(
 		'-ph, --pull-header <headers...>',
-		'headers to use when pulling your schema. Should be passed as KEY=VALUE'
+		'header to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
 	.action(init)
 

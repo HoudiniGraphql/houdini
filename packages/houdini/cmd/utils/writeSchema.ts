@@ -3,14 +3,23 @@ import fs from 'fs/promises'
 import fetch from 'node-fetch'
 import { writeFile } from './writeFile'
 
-export async function writeSchema(url: string, schemaPath: string) {
+export async function writeSchema(url: string, schemaPath: string, headers?: string[]) {
+	// the headers to include are a list of strings in KEY=VALUE format
+	const moreHeaders = headers?.reduce((total, header) => {
+		const [key, value] = header.split('=')
+		return {
+			...total,
+			[key]: value,
+		}
+	}, {})
+
 	// send the request
 	const resp = await fetch(url, {
 		method: 'POST',
 		body: JSON.stringify({
 			query: graphql.getIntrospectionQuery(),
 		}),
-		headers: { 'Content-Type': 'application/json' },
+		headers: { 'Content-Type': 'application/json', ...moreHeaders },
 	})
 	const content = await resp.text()
 	try {
@@ -28,7 +37,7 @@ export async function writeSchema(url: string, schemaPath: string) {
 		// return the schema for usage in --pull-schema
 		return schema
 	} catch (e) {
-		console.log('encountered error parsing response as json: ' + e.message)
+		console.log('encountered error parsing response as json: ' + (e as Error).message)
 		console.log('full body: ' + content)
 		process.exit(0)
 	}
