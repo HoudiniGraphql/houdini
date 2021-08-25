@@ -410,6 +410,22 @@ There are 3 different policies that can be specified:
 - **CacheAndNetwork** will use cached data if it exists and always send a network request after the component has mounted to retrieve the latest data from the server
 - **NetworkOnly** will never check if the data exists in the cache and always send a network request
 
+#### Data Retention
+
+Houdini will retain a query's data for a configurable number of queries (default 10). 
+For a concrete example, consider an example app that has 3 routes. If you load one of the 
+routes and then click between the other two 5 times, the first route's data will still be 
+resolvable (and the counter will reset). If you then toggle between the other routes 10 times
+and then try to load the first route, a network request will be sent. This number is 
+configurable with the `cacheBufferSize` value in your config file:
+
+```js
+export default { 
+    // ...
+    cacheBufferSize: 5,
+}
+```
+
 ### What about `load`?
 
 Don't worry - that's where the preprocessor comes in. One of its responsibilities is moving the actual
