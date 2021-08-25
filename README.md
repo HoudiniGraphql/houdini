@@ -96,6 +96,13 @@ for help setting one up. Once you have a project and want to add houdini, execut
 npx houdini init
 ```
 
+> Note, this will send a request to your API to download your schema definition. If you need 
+> headers to authenticate this request, you can pass them in with the `--pull-header` 
+> flag (abbreviated `-ph`). For example, 
+> `npx houdini init -ph Authorization="Bearer MyToken"`. 
+> You will also need to provide the same flag to `generate` when using the 
+> `--pull-schema` flag.
+
 This will create a few necessary files, as well as pull down a json representation of
 your API's schema. Next, generate your runtime:
 
