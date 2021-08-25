@@ -1,12 +1,13 @@
 import path from 'path'
 import inquirer from 'inquirer'
 import fs from 'fs/promises'
-import { Config } from 'houdini-common'
+import { Config, getConfig } from 'houdini-common'
 import { writeSchema } from './utils/writeSchema'
+import generate from './generate'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
-export default async (_path: string | undefined) => {
+export default async (_path: string | undefined, args: { pullHeader?: string[] }) => {
 	// we need to collect some information from the user before we
 	// can continue
 	let answers = await inquirer.prompt([
@@ -79,7 +80,7 @@ export default async (_path: string | undefined) => {
 
 	await Promise.all([
 		// Get the schema from the url and write it to file
-		writeSchema(answers.url, path.join(targetPath, answers.schemaPath)),
+		writeSchema(answers.url, path.join(targetPath, answers.schemaPath), args?.pullHeader),
 
 		// write the config file
 		fs.writeFile(
@@ -96,7 +97,16 @@ export default async (_path: string | undefined) => {
 		fs.writeFile(environmentPath, networkFile(answers.url)),
 	])
 
-	console.log('Welcome to houdini!')
+	// generate an empty runtime
+	console.log('Creating necessary files...')
+
+	// make sure we don't log anything else
+	const config = await getConfig()
+	config.quiet = true
+	await generate(config)
+
+	// we're done!
+	console.log('Welcome to Houdini!')
 }
 
 const networkFile = (url: string) => `import { Environment } from '$houdini'
