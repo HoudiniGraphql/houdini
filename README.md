@@ -401,7 +401,7 @@ If any piece of data is missing, it will fetch the entire query from your API.
 This behavior is customizable using the `@cache` directive:
 
 ```graphql
-query AllItems @cache(policy: CacheOrNetwork) {
+query AllItems @cache(policy: NetworkOnly) {
     items {
         id
         text
@@ -426,6 +426,8 @@ route, a network request will be sent. This number is configurable with the
 `cacheBufferSize` value in your config file:
 
 ```js
+// houdini.config.js
+
 export default {
     // ...
     cacheBufferSize: 5,
