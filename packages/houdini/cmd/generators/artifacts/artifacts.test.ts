@@ -64,7 +64,9 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		            type: "Int",
 		            keyRaw: "version"
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 
@@ -160,7 +162,9 @@ test('selection includes fragments', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 
@@ -252,7 +256,9 @@ test('internal directives are scrubbed', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -313,7 +319,9 @@ test('overlapping query and fragment selection', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -391,7 +399,9 @@ test('overlapping query and fragment nested selection', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -496,7 +506,9 @@ test('selections with interfaces', async function () {
 
 		            abstract: true
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -601,7 +613,9 @@ test('selections with unions', async function () {
 
 		            abstract: true
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -1900,7 +1914,9 @@ describe('mutation artifacts', function () {
 		        },
 
 		        types: {}
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 	})
@@ -2083,7 +2099,9 @@ describe('mutation artifacts', function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 	})
@@ -2263,7 +2281,9 @@ describe('mutation artifacts', function () {
 		        },
 
 		        types: {}
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 	})
@@ -2367,7 +2387,9 @@ describe('mutation artifacts', function () {
 		        },
 
 		        types: {}
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 	})
@@ -2473,7 +2495,9 @@ describe('mutation artifacts', function () {
 		        },
 
 		        types: {}
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 	})
@@ -2546,7 +2570,9 @@ test('custom scalar shows up in artifact', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -2673,7 +2699,9 @@ test('operation inputs', async function () {
 		                enum: "MyEnum"
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })

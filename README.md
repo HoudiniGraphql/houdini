@@ -411,7 +411,7 @@ query AllItems @cache(policy: CacheOrNetwork) {
 
 There are 3 different policies that can be specified:
 
-- **CacheOrNetwork**  will first check if a query can be resolved from the cache. If it can, it will return the cached value and only send a network request if data was missing.
+- **CacheOrNetwork** will first check if a query can be resolved from the cache. If it can, it will return the cached value and only send a network request if data was missing.
 - **CacheAndNetwork** will use cached data if it exists and always send a network request after the component has mounted to retrieve the latest data from the server
 - **NetworkOnly** will never check if the data exists in the cache and always send a network request
 

@@ -76,7 +76,9 @@ test('pass argument values to generated fragments', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -147,7 +149,9 @@ test("nullable arguments with no values don't show up in the query", async funct
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -218,7 +222,9 @@ test("fragment arguments with default values don't rename the fragment", async f
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -309,7 +315,9 @@ test('thread query variables to inner fragments', async function () {
 		        },
 
 		        types: {}
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -392,7 +400,9 @@ test('inner fragment with intermediate default value', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -475,7 +485,9 @@ test("default values don't overwrite unless explicitly passed", async function (
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -546,7 +558,9 @@ test('default arguments', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })
@@ -617,7 +631,9 @@ test('multiple with directives - no overlap', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "CacheOrNetwork"
 		};
 	`)
 })

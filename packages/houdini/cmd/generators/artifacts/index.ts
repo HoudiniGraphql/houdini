@@ -17,6 +17,7 @@ import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { serializeValue } from './utils'
+import { CachePolicy } from '../../../runtime'
 
 const AST = recast.types.builders
 
@@ -233,7 +234,11 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						)
 						if (policy && policy.value.kind === 'EnumValue') {
 							artifact.policy = policy.value.value
+						} else {
+							artifact.policy = CachePolicy.CacheOrNetwork
 						}
+					} else {
+						artifact.policy = CachePolicy.CacheOrNetwork
 					}
 				}
 
