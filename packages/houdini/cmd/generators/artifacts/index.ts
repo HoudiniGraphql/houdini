@@ -17,7 +17,7 @@ import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { serializeValue } from './utils'
-import { CachePolicy } from '../../../runtime'
+import { CachePolicy } from '../../../runtime/types'
 
 const AST = recast.types.builders
 
