@@ -91,14 +91,19 @@ npm install --save-dev houdini houdini-preprocess
 
 Adding houdini to an existing project can easily be done with the provided command-line tool.
 If you don't already have an existing app, visit [this link](https://kit.svelte.dev/docs)
-for help setting one up. Once you have a project and want to add houdini, execute the following command:
+for help setting one up. Once you have a project and want to add houdini, execute the following command which will create a few necessary files, as well as pull down a json
+representation of your API's schema.
 
 ```sh
 npx houdini init
 ```
 
-This will create a few necessary files, pull down a json representation of
-your API's schema, and generate the initial runtime.
+> This will send a request to your API to download your schema definition. If you need
+> headers to authenticate this request, you can pass them in with the `--pull-header`
+> flag (abbreviated `-ph`). For example,
+> `npx houdini init -ph Authorization="Bearer MyToken"`.
+> You will also need to provide the same flag to `generate` when using the
+> `--pull-schema` flag.
 
 Finally, follow the steps appropriate for your framework.
 
@@ -391,8 +396,8 @@ Refetching data is done with the `refetch` function provided from the result of 
 
 ### Cache policy
 
-By default, houdini will try to load queries against its local cache whenever possible. 
-If any piece of data is missing, it will fetch the entire query from your API. 
+By default, houdini will try to load queries against its local cache whenever possible.
+If any piece of data is missing, it will fetch the entire query from your API.
 This behavior is customizable using the `@cache` directive:
 
 ```graphql
@@ -412,16 +417,16 @@ There are 3 different policies that can be specified:
 
 #### Data Retention
 
-Houdini will retain a query's data for a configurable number of queries (default 10). 
-For a concrete example, consider an example app that has 3 routes. If you load one of the 
-routes and then click between the other two 5 times, the first route's data will still be 
-resolvable (and the counter will reset if you visit it). 
-If you then toggle between the other routes 10 times and then try to load the first 
-route, a network request will be sent. This number is configurable with the 
+Houdini will retain a query's data for a configurable number of queries (default 10).
+For a concrete example, consider an example app that has 3 routes. If you load one of the
+routes and then click between the other two 5 times, the first route's data will still be
+resolvable (and the counter will reset if you visit it).
+If you then toggle between the other routes 10 times and then try to load the first
+route, a network request will be sent. This number is configurable with the
 `cacheBufferSize` value in your config file:
 
 ```js
-export default { 
+export default {
     // ...
     cacheBufferSize: 5,
 }

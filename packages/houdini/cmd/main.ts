@@ -18,8 +18,17 @@ program
 	.description('generate the application runtime')
 	.option('-p, --pull-schema', 'pull the latest schema before generating')
 	.option('-po, --persist-output [outputPath]', 'persist queries to a queryMap file')
+	.option(
+		'-ph, --pull-header <headers...>',
+		'header to use when pulling your schema. Should be passed as KEY=VALUE'
+	)
 	.action(
-		async (args: { pullSchema: boolean; persistOutput?: string } = { pullSchema: false }) => {
+		async (
+			args: { pullSchema: boolean; persistOutput?: string; pullHeader: string[] } = {
+				pullSchema: false,
+				pullHeader: [],
+			}
+		) => {
 			// grab the config file
 			let config
 
@@ -40,7 +49,8 @@ program
 						config.apiUrl,
 						config.schemaPath
 							? config.schemaPath
-							: path.resolve(targetPath, 'schema.json')
+							: path.resolve(targetPath, 'schema.json'),
+						args.pullHeader
 					)
 					console.log(`Pulled latest schema from ${config.apiUrl}`)
 				}
@@ -58,7 +68,16 @@ program
 	)
 
 // register the init command
-program.command('init [path]').description('initialize a new houdini project').action(init)
+program
+	.command('init')
+	.arguments('[path]')
+	.usage('[path] [options]')
+	.description('initialize a new houdini project')
+	.option(
+		'-ph, --pull-header <headers...>',
+		'header to use when pulling your schema. Should be passed as KEY=VALUE'
+	)
+	.action(init)
 
 // start the command
 program.parse()
