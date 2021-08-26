@@ -53,7 +53,15 @@ test('cache index runtime imports config file - kit', async function () {
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import config from "../../../config.cjs"
 		import { Cache } from './cache';
-		// @ts-ignore: config will be defined by the generator
-		export default new Cache(config || {});
+		let cache;
+		try {
+		    // @ts-ignore: config will be defined by the generator
+		    cache = new Cache(config || {});
+		}
+		catch {
+		    // @ts-ignore
+		    cache = new Cache({});
+		}
+		export default cache;
 	`)
 })

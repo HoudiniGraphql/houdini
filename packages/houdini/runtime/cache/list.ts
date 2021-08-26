@@ -67,7 +67,6 @@ export class ListHandler {
 	}
 
 	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
-		console.log('appending data', variables)
 		return this.addToList(selection, data, variables, 'last')
 	}
 
