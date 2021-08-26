@@ -1,9 +1,7 @@
-// this file is ignored when building the runtime, its only here for testing purposes
-
-module.exports.getSession = function () {
+export function getSession() {
 	return {}
 }
 
-module.exports.goTo = function (location, options) {
+export function goTo(location, options) {
 	window.location = location
 }
