@@ -17,7 +17,6 @@ export type ConfigFile = {
 	mode?: 'kit' | 'sapper'
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
-	srcPath?: string
 	cacheBufferSize?: number
 }
 
@@ -45,7 +44,6 @@ export class Config {
 	quiet: boolean
 	static?: boolean
 	scalars?: ScalarMap
-	srcPath: string
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
 	module: 'commonjs' | 'esm' = 'commonjs'
 	cacheBufferSize?: number
@@ -62,7 +60,6 @@ export class Config {
 		static: staticSite,
 		mode,
 		scalars,
-		srcPath,
 		cacheBufferSize,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
@@ -148,7 +145,6 @@ export class Config {
 		this.projectRoot = path.dirname(filepath)
 		this.static = staticSite
 		this.scalars = scalars
-		this.srcPath = srcPath || path.join(this.projectRoot, 'src')
 		this.cacheBufferSize = cacheBufferSize
 
 		// if we are building a sapper project, we want to put the runtime in
