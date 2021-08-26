@@ -12,7 +12,7 @@ test('cache policy is persisted in artifact', async function () {
 	const docs = [
 		mockCollectedDoc(
 			`
-            query CachedFriends @cache(policy: CacheOrNetwork) {
+            query CachedFriends @cache(policy: CacheAndNetwork) {
                 user {
                     friends {
                         id
@@ -70,7 +70,7 @@ test('cache policy is persisted in artifact', async function () {
 					        }
 					    },
 
-					    policy: "CacheOrNetwork"
+					    policy: "CacheAndNetwork"
 					};
 				`)
 })
