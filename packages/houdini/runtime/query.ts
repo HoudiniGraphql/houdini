@@ -283,6 +283,14 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 		}
 	}
 
+	onMount(() => {
+		// if the document cache policy wants a network request to be sent
+		// after the initial one, do that now
+		if (artifact.policy === CachePolicy.CacheAndNetwork) {
+			queryHandler.refetch()
+		}
+	})
+
 	// return the handler to the user
 	return {
 		...queryHandler,
