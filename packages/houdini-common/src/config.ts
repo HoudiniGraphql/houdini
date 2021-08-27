@@ -3,6 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import mkdirp from 'mkdirp'
 import os from 'os'
+// locals
+import { CachePolicy } from './types'
 
 // the values we can take in from the config file
 export type ConfigFile = {
@@ -18,6 +20,7 @@ export type ConfigFile = {
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
 	cacheBufferSize?: number
+	defaultCachePolicy?: CachePolicy
 }
 
 export type ScalarSpec = {
@@ -47,6 +50,7 @@ export class Config {
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
 	module: 'commonjs' | 'esm' = 'commonjs'
 	cacheBufferSize?: number
+	defaultCachePolicy: CachePolicy
 
 	constructor({
 		schema,
@@ -61,6 +65,7 @@ export class Config {
 		mode,
 		scalars,
 		cacheBufferSize,
+		defaultCachePolicy = CachePolicy.CacheOrNetwork,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -146,6 +151,7 @@ export class Config {
 		this.static = staticSite
 		this.scalars = scalars
 		this.cacheBufferSize = cacheBufferSize
+		this.defaultCachePolicy = defaultCachePolicy
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact

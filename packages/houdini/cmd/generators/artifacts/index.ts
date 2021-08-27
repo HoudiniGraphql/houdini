@@ -235,10 +235,10 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						if (policy && policy.value.kind === 'EnumValue') {
 							artifact.policy = policy.value.value
 						} else {
-							artifact.policy = CachePolicy.CacheOrNetwork
+							artifact.policy = config.defaultCachePolicy
 						}
 					} else {
-						artifact.policy = CachePolicy.CacheOrNetwork
+						artifact.policy = config.defaultCachePolicy
 					}
 				}
 

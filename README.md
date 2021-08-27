@@ -434,6 +434,23 @@ export default {
 }
 ```
 
+#### Changing default cache policy.
+
+As previously mentioned, the default cache policy is `CacheOrNetwork`. This can be changed
+by setting the `defaultCachePolicy` config value:
+
+```js
+// houdini.config.js
+
+import { CachePolicy } from '$houdini'
+
+export default {
+    // ...
+
+    defaultCachePolicy: CachePolicy.NetworkOnly,
+}
+```
+
 ### What about `load`?
 
 Don't worry - that's where the preprocessor comes in. One of its responsibilities is moving the actual
