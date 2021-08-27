@@ -447,6 +447,8 @@ import { CachePolicy } from '$houdini'
 export default {
     // ...
 
+    // note: if you are upgrading from a previous version of houdini, you might
+    // have to generate your runtime before this type to be defined.
     defaultCachePolicy: CachePolicy.NetworkOnly,
 }
 ```
