@@ -48,6 +48,8 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
     1. [Additional Logic](#additional-logic)
     1. [Refetching Data](#refetching-data)
     1. [Cache policy](#cache-policy)
+        1. [Data Retention](#data-retention)
+        1. [Changing default cache policy](#changing-default-cache-policy)
     1. [What about load?](#what-about-load)
 1. [Fragments](#fragments)
     1. [Fragment Arguments](#fragment-arguments)
@@ -434,7 +436,7 @@ export default {
 }
 ```
 
-#### Changing default cache policy.
+#### Changing default cache policy
 
 As previously mentioned, the default cache policy is `CacheOrNetwork`. This can be changed
 by setting the `defaultCachePolicy` config value:
