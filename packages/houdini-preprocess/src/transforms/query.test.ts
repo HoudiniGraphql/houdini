@@ -72,7 +72,13 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = routeQuery(_TestQuery_handler);
+		} = routeQuery({
+		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: null,
+		    getProps: () => $$props
+		});
 
 		$:
 		{
@@ -170,7 +176,13 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = routeQuery(_TestQuery_handler);
+		} = routeQuery({
+		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: TestQueryVariables,
+		    getProps: () => $$props
+		});
 
 		$:
 		{
@@ -247,7 +259,13 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = routeQuery(_TestQuery_handler);
+		} = routeQuery({
+		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: null,
+		    getProps: () => $$props
+		});
 
 		$:
 		{
@@ -443,7 +461,13 @@ describe('query preprocessor', function () {
 
 		const {
 		    data
-		} = routeQuery(_TestQuery_handler);
+		} = routeQuery({
+		    queryHandler: _TestQuery_handler,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact,
+		    variableFunction: TestQueryVariables,
+		    getProps: () => $$props
+		});
 
 		$:
 		{
