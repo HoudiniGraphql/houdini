@@ -76,15 +76,6 @@ export function query<_Query extends Operation<any, any>>(
 				cache.subscribe(subscriptionSpec, variables)
 			}
 		}
-
-		// if the document cache policy wants a network request to be sent
-		// after the initial one, do that now
-		if (artifact.policy === CachePolicy.CacheAndNetwork) {
-			// execute the query and write the data to the cache
-			executeQuery(artifact, variables, sessionStore, true).then((result) => {
-				writeData(result, variables)
-			})
-		}
 	})
 
 	// the function used to clean up the store
@@ -173,10 +164,24 @@ export type QueryResponse<_Data, _Input> = {
 }
 
 // we need something to dress up the result of `query` to be used for a route.
-export const routeQuery = <_Data, _Input>(
-	queryResult: QueryResponse<_Data, _Input>
+export const routeQuery = <_Data, _Input>({
+	queryHandler,
+	artifact,
+}: {
+	queryHandler: QueryResponse<_Data, _Input>
+	artifact: QueryArtifact
+}): QueryResponse<_Data, _Input> => {
+	onMount(() => {
+		// if the document cache policy wants a network request to be sent
+		// after the initial one, do that now
+		if (artifact.policy === CachePolicy.CacheAndNetwork) {
+			queryHandler.refetch()
+		}
+	})
+
 	// the query handler doesn't need any extra treatment for a route
-): QueryResponse<_Data, _Input> => queryResult
+	return queryHandler
+}
 
 // component queries are implemented as wrappers over the normal query that fire the
 // appropriate network request and then write the result to the underlying store
