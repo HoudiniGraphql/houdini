@@ -194,17 +194,15 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 	queryHandler,
 	variableFunction,
 	getProps,
-	source,
 }: {
 	config: Config
 	artifact: QueryArtifact
 	queryHandler: QueryResponse<_Data, _Input>
 	variableFunction: ((...args: any[]) => _Input) | null
 	getProps: () => any
-	source: DataSource
 }): QueryResponse<_Data, _Input> => {
 	// pull out the function we'll use to update the store after we've fired it
-	const { writeData } = queryHandler
+	const { writeData, refetch } = queryHandler
 
 	// we need our own store to track loading state (the handler's isn't meaningful)
 	const loading = writable(true)
@@ -230,6 +228,21 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 		error: setVariableError,
 	}
 
+	// the function to call to reload the data while updating the internal stores
+	const reload = () => {
+		// set the loading state
+		loading.set(true)
+
+		// fire the query
+		refetch(variables)
+			.catch((err) => {
+				error.set(err.message ? err : new Error(err))
+			})
+			.finally(() => {
+				loading.set(false)
+			})
+	}
+
 	$: {
 		// clear any previous variable error
 		variableError = null
@@ -243,6 +256,9 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 
 	// a component should fire the query and then write the result to the store
 	$: {
+		// remember if the data was loaded from cache
+		let cached = false
+
 		// if there was an error while computing variables
 		if (variableError) {
 			error.set(variableError)
@@ -267,34 +283,20 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 				},
 				variables
 			)
+			cached = true
 		}
 		// there was no error while computing the variables
 		else {
-			// set the loading state
-			loading.set(true)
+			// load the query
+			reload()
+		}
 
-			// fire the query
-			executeQuery<_Data, _Input>(artifact, variables || ({} as _Input), getSession(), true)
-				.then((result) => {
-					// update the store with the new result
-					writeData(result, variables)
-				})
-				.catch((err) => {
-					error.set(err.message ? err : new Error(err))
-				})
-				.finally(() => {
-					loading.set(false)
-				})
+		// if we loaded a cached value and we haven't sent the follow up
+		if (cached && artifact.policy === CachePolicy.CacheAndNetwork) {
+			// reload the query
+			reload()
 		}
 	}
-
-	onMount(() => {
-		// if the data was loaded from a cached value, and the document cache policy wants a
-		// network request to be sent after the data was loaded, load the data
-		if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
-			queryHandler.refetch()
-		}
-	})
 
 	// return the handler to the user
 	return {
