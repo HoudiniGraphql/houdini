@@ -33,7 +33,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await fetchQuery({
+		    const [_TestQuery, _TestQuery_Source] = await fetchQuery({
 		        "context": context,
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
@@ -48,7 +48,8 @@ describe('query preprocessor', function () {
 		    return {
 		        props: {
 		            _TestQuery: _TestQuery,
-		            _TestQuery_Input: _TestQuery_Input
+		            _TestQuery_Input: _TestQuery_Input,
+		            _TestQuery_Source: _TestQuery_Source
 		        }
 		    };
 		}
@@ -61,13 +62,15 @@ describe('query preprocessor', function () {
 		import { routeQuery, componentQuery, query } from "$houdini";
 		export let _TestQuery = undefined;
 		export let _TestQuery_Input = undefined;
+		export let _TestQuery_Source = undefined;
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact
+		    "artifact": _TestQueryArtifact,
+		    "source": _TestQuery_Source
 		});
 
 		const {
@@ -137,7 +140,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await fetchQuery({
+		    const [_TestQuery, _TestQuery_Source] = await fetchQuery({
 		        "context": context,
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
@@ -152,7 +155,8 @@ describe('query preprocessor', function () {
 		    return {
 		        props: {
 		            _TestQuery: _TestQuery,
-		            _TestQuery_Input: _TestQuery_Input
+		            _TestQuery_Input: _TestQuery_Input,
+		            _TestQuery_Source: _TestQuery_Source
 		        }
 		    };
 		}
@@ -165,13 +169,15 @@ describe('query preprocessor', function () {
 		import { routeQuery, componentQuery, query } from "$houdini";
 		export let _TestQuery = undefined;
 		export let _TestQuery_Input = undefined;
+		export let _TestQuery_Source = undefined;
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact
+		    "artifact": _TestQueryArtifact,
+		    "source": _TestQuery_Source
 		});
 
 		const {
@@ -224,7 +230,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await fetchQuery({
+		    const [_TestQuery, _TestQuery_Source] = await fetchQuery({
 		        "context": context,
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
@@ -239,7 +245,8 @@ describe('query preprocessor', function () {
 		    return {
 		        props: {
 		            _TestQuery: _TestQuery,
-		            _TestQuery_Input: _TestQuery_Input
+		            _TestQuery_Input: _TestQuery_Input,
+		            _TestQuery_Source: _TestQuery_Source
 		        }
 		    };
 		}
@@ -248,13 +255,15 @@ describe('query preprocessor', function () {
 		import { routeQuery, componentQuery, query } from "$houdini";
 		export let _TestQuery = undefined;
 		export let _TestQuery_Input = undefined;
+		export let _TestQuery_Source = undefined;
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact
+		    "artifact": _TestQueryArtifact,
+		    "source": _TestQuery_Source
 		});
 
 		const {
@@ -305,13 +314,15 @@ describe('query preprocessor', function () {
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		export let _TestQuery = undefined;
 		export let _TestQuery_Input = undefined;
+		export let _TestQuery_Source = undefined;
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact
+		    "artifact": _TestQueryArtifact,
+		    "source": _TestQuery_Source
 		});
 
 		const {
@@ -354,13 +365,15 @@ describe('query preprocessor', function () {
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		export let _TestQuery = undefined;
 		export let _TestQuery_Input = undefined;
+		export let _TestQuery_Source = undefined;
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact
+		    "artifact": _TestQueryArtifact,
+		    "source": _TestQuery_Source
 		});
 
 		const {
@@ -403,13 +416,15 @@ describe('query preprocessor', function () {
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		export let _TestQuery = undefined;
 		export let _TestQuery_Input = undefined;
+		export let _TestQuery_Source = undefined;
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact
+		    "artifact": _TestQueryArtifact,
+		    "source": _TestQuery_Source
 		});
 
 		const {
@@ -450,13 +465,15 @@ describe('query preprocessor', function () {
 		import { routeQuery, componentQuery, query } from "$houdini";
 		export let _TestQuery = undefined;
 		export let _TestQuery_Input = undefined;
+		export let _TestQuery_Source = undefined;
 
 		let _TestQuery_handler = paginatedQuery({
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact
+		    "artifact": _TestQueryArtifact,
+		    "source": _TestQuery_Source
 		});
 
 		const {
@@ -504,13 +521,15 @@ describe('query preprocessor', function () {
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		export let _TestQuery = undefined;
 		export let _TestQuery_Input = undefined;
+		export let _TestQuery_Source = undefined;
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery,
 		    "variables": _TestQuery_Input,
 		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact
+		    "artifact": _TestQueryArtifact,
+		    "source": _TestQuery_Source
 		});
 
 		const {
@@ -595,7 +614,7 @@ test('onLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await fetchQuery({
+		    const [_TestQuery, _TestQuery_Source] = await fetchQuery({
 		        "context": context,
 		        "artifact": _TestQueryArtifact,
 		        "variables": _TestQuery_Input,
@@ -611,7 +630,8 @@ test('onLoad hook', async function () {
 		        props: {
 		            ..._houdini_context.returnValue,
 		            _TestQuery: _TestQuery,
-		            _TestQuery_Input: _TestQuery_Input
+		            _TestQuery_Input: _TestQuery_Input,
+		            _TestQuery_Source: _TestQuery_Source
 		        }
 		    };
 		}

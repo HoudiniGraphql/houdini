@@ -192,6 +192,7 @@ function processInstance(
 		const operation = document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 		// figure out the local variable that holds the result
 		const preloadKey = preloadPayloadKey(operation)
+		const preloadSourceKey = preloadsourceKey(operation)
 
 		// the identifier for the query variables
 		const variableIdentifier = variablesKey(operation)
@@ -213,6 +214,14 @@ function processInstance(
 				AST.variableDeclaration('let', [
 					AST.variableDeclarator(
 						AST.identifier(variableIdentifier),
+						AST.identifier('undefined')
+					),
+				])
+			),
+			AST.exportNamedDeclaration(
+				AST.variableDeclaration('let', [
+					AST.variableDeclarator(
+						AST.identifier(preloadSourceKey),
 						AST.identifier('undefined')
 					),
 				])
@@ -251,6 +260,10 @@ function processInstance(
 							AST.objectProperty(
 								AST.literal('artifact'),
 								AST.identifier(artifactIdentifier(artifact))
+							),
+							AST.objectProperty(
+								AST.literal('source'),
+								AST.identifier(preloadSourceKey)
 							),
 						]),
 					])
@@ -362,6 +375,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 
 		// figure out the local variable that holds the result
 		const preloadKey = preloadPayloadKey(operation)
+		const preloadSourceKey = preloadsourceKey(operation)
 
 		// the identifier for the query variables
 		const variableIdentifier = variablesKey(operation)
@@ -456,7 +470,10 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			// perform the fetch and save the value under {preloadKey}
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
-					AST.identifier(preloadKey),
+					AST.arrayPattern([
+						AST.identifier(preloadKey),
+						AST.identifier(preloadSourceKey),
+					]),
 					AST.awaitExpression(
 						AST.callExpression(AST.identifier('fetchQuery'), [
 							AST.objectExpression([
@@ -518,13 +535,12 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 		}
 		// add the field to the return value of preload
 		propsValue.properties.push(
-			// @ts-ignore
 			AST.objectProperty(AST.identifier(preloadKey), AST.identifier(preloadKey)),
-			// @ts-ignore
 			AST.objectProperty(
 				AST.identifier(variableIdentifier),
 				AST.identifier(variableIdentifier)
-			)
+			),
+			AST.objectProperty(AST.identifier(preloadSourceKey), AST.identifier(preloadSourceKey))
 		)
 	}
 }
@@ -569,6 +585,10 @@ function addSapperPreload(config: Config, body: Statement[]) {
 
 function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
 	return `_${operation.name?.value}`
+}
+
+function preloadsourceKey(operation: graphql.OperationDefinitionNode): string {
+	return `_${operation.name?.value}_Source`
 }
 
 function queryHandlerIdentifier(operation: graphql.OperationDefinitionNode): namedTypes.Identifier {

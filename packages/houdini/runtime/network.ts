@@ -2,7 +2,14 @@
 import { get, Readable } from 'svelte/store'
 import type { Config } from 'houdini-common'
 // locals
-import { CachePolicy, MutationArtifact, QueryArtifact, SubscriptionArtifact } from './types'
+import {
+	CachePolicy,
+	DataSource,
+	GraphQLObject,
+	MutationArtifact,
+	QueryArtifact,
+	SubscriptionArtifact,
+} from './types'
 import { marshalInputs } from './scalars'
 import cache from './cache'
 import { rootID } from './cache/cache'
@@ -90,7 +97,7 @@ export type RequestHandler<_Data> = (
 
 // This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
-export async function executeQuery<_Data, _Input>(
+export async function executeQuery<_Data extends GraphQLObject, _Input>(
 	artifact: QueryArtifact | MutationArtifact,
 	variables: _Input,
 	sessionStore: Readable<any>,
@@ -113,7 +120,7 @@ export async function executeQuery<_Data, _Input>(
 		},
 	}
 
-	const res = await fetchQuery<_Data>({
+	const [res] = await fetchQuery<_Data>({
 		context: fetchCtx,
 		artifact,
 		session,
@@ -168,7 +175,7 @@ export async function convertKitPayload(
 	throw new Error('Could not handle response from loader: ' + JSON.stringify(result))
 }
 
-export function fetchQuery<_Data>({
+export async function fetchQuery<_Data extends GraphQLObject>({
 	context,
 	artifact,
 	variables,
@@ -180,12 +187,12 @@ export function fetchQuery<_Data>({
 	variables: {}
 	session?: FetchSession
 	cached?: boolean
-}) {
+}): Promise<[RequestPayload<_Data | {} | null>, DataSource | null]> {
 	// grab the current environment
 	const environment = getEnvironment()
 	// if there is no environment
 	if (!environment) {
-		return { data: {}, errors: [{ message: 'could not find houdini environment' }] }
+		return [{ data: {}, errors: [{ message: 'could not find houdini environment' }] }, null]
 	}
 
 	// enforce cache policies for queries
@@ -207,29 +214,38 @@ export function fetchQuery<_Data>({
 			].includes(artifact.policy!) &&
 			cache.internal.isDataAvailable(artifact.selection, variables)
 		) {
-			return {
-				data: cache.internal.getData(
-					cache.internal.record(rootID),
-					artifact.selection,
-					variables
-				),
-				errors: [],
-			}
+			return [
+				{
+					data: cache.internal.getData(
+						cache.internal.record(rootID),
+						artifact.selection,
+						variables
+					),
+					errors: [],
+				},
+				DataSource.Cache,
+			]
 		}
 		// if the policy is cacheOnly and we got this far, we need to return null
 		else if (artifact.policy === CachePolicy.CacheOnly) {
-			return {
-				data: null,
-				errors: [],
-			}
+			return [
+				{
+					data: null,
+					errors: [],
+				},
+				null,
+			]
 		}
 	}
 
-	return environment.sendRequest<_Data>(
-		context,
-		{ text: artifact.raw, hash: artifact.hash, variables },
-		session
-	)
+	return [
+		await environment.sendRequest<_Data>(
+			context,
+			{ text: artifact.raw, hash: artifact.hash, variables },
+			session
+		),
+		DataSource.Network,
+	]
 }
 
 export class RequestContext {

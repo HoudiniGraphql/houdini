@@ -10,6 +10,7 @@ import {
 	QueryArtifact,
 	CachePolicy,
 	GraphQLObject,
+	DataSource,
 } from './types'
 import cache from './cache'
 import { setVariables } from './context'
@@ -167,14 +168,16 @@ export type QueryResponse<_Data, _Input> = {
 export const routeQuery = <_Data, _Input>({
 	queryHandler,
 	artifact,
+	source,
 }: {
 	queryHandler: QueryResponse<_Data, _Input>
 	artifact: QueryArtifact
+	source: DataSource
 }): QueryResponse<_Data, _Input> => {
 	onMount(() => {
-		// if the document cache policy wants a network request to be sent
-		// after the initial one, do that now
-		if (artifact.policy === CachePolicy.CacheAndNetwork) {
+		// if the data was loaded from a cached value, and the document cache policy wants a
+		// network request to be sent after the data was loaded, load the data
+		if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
 			queryHandler.refetch()
 		}
 	})
@@ -191,12 +194,14 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 	queryHandler,
 	variableFunction,
 	getProps,
+	source,
 }: {
 	config: Config
 	artifact: QueryArtifact
 	queryHandler: QueryResponse<_Data, _Input>
 	variableFunction: ((...args: any[]) => _Input) | null
 	getProps: () => any
+	source: DataSource
 }): QueryResponse<_Data, _Input> => {
 	// pull out the function we'll use to update the store after we've fired it
 	const { writeData } = queryHandler
@@ -284,9 +289,9 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 	}
 
 	onMount(() => {
-		// if the document cache policy wants a network request to be sent
-		// after the initial one, do that now
-		if (artifact.policy === CachePolicy.CacheAndNetwork) {
+		// if the data was loaded from a cached value, and the document cache policy wants a
+		// network request to be sent after the data was loaded, load the data
+		if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
 			queryHandler.refetch()
 		}
 	})

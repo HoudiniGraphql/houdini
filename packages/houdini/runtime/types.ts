@@ -116,6 +116,11 @@ export type ListWhen = {
 	must_not?: Filter
 }
 
+export enum DataSource {
+	Cache,
+	Network,
+}
+
 export type MutationOperation = {
 	action: 'insert' | 'remove' | 'delete'
 	list?: string
