@@ -4,6 +4,7 @@
 import { getConfig, readConfigFile } from 'houdini-common'
 import { Command } from 'commander'
 import path from 'path'
+import util from 'util'
 // local imports
 import generate from './generate'
 import init from './init'
@@ -62,7 +63,7 @@ program
 				}
 				await generate(config)
 			} catch (e) {
-				console.error(e)
+				console.error(util.inspect(e, { showHidden: false, depth: null, colors: true }))
 			}
 		}
 	)
