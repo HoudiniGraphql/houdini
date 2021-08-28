@@ -229,12 +229,12 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 	}
 
 	// the function to call to reload the data while updating the internal stores
-	const reload = () => {
+	const reload = (vars: _Input | undefined) => {
 		// set the loading state
 		loading.set(true)
 
 		// fire the query
-		refetch(variables)
+		return refetch(vars)
 			.catch((err) => {
 				error.set(err.message ? err : new Error(err))
 			})
@@ -288,19 +288,20 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 		// there was no error while computing the variables
 		else {
 			// load the query
-			reload()
+			reload(variables)
 		}
 
 		// if we loaded a cached value and we haven't sent the follow up
 		if (cached && artifact.policy === CachePolicy.CacheAndNetwork) {
 			// reload the query
-			reload()
+			reload(variables)
 		}
 	}
 
 	// return the handler to the user
 	return {
 		...queryHandler,
+		refetch: reload,
 		loading: { subscribe: loading.subscribe },
 		error: { subscribe: error.subscribe },
 	}
