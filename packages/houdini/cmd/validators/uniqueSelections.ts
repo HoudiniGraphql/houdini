@@ -22,9 +22,12 @@ export function recurseDuplicates(
 	// check if current node has duplicates
 	const selectionCount: Record<string, number> = {}
 	const childrenDuplicates = selections
-		.map((s) => {
-			// @ts-ignore - "alias" and "name" are supposed to be valid properties
-			const fieldName = s.alias?.value || s.name.value
+		.map((s: any) => {
+			// "alias" and "name" are supposed to be valid properties
+			const fieldName: string = s.alias?.value || s.name?.value
+			if (!fieldName) {
+				return []
+			}
 			selectionCount[fieldName] = (selectionCount[fieldName] || 0) + 1
 			return recurseDuplicates(s as any, [...currentPath, fieldName])
 		})
