@@ -38,6 +38,7 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 			validators.typeCheck,
 			transforms.typename,
 			validators.uniqueNames,
+			validators.uniqueSelections,
 			validators.noIDAlias,
 			transforms.paginate, // must go before fragment variables
 			transforms.fragmentVariables,
