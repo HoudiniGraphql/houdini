@@ -99,7 +99,6 @@
 	</a>
 	{#if $pageInfo.hasNextPage}
 		<nav>
-			<button on:click={() => refetch()}>refetch</button>
 			<button on:click={() => loadNextPage()}>load more</button>
 		</nav>
 	{/if}
