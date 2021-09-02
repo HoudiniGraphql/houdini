@@ -23,7 +23,7 @@
 	import { derived } from 'svelte/store'
 
 	// load the items
-	const { data, loadNextPage, pageInfo } = paginatedQuery<AllItems>(graphql`
+	const { data, pageInfo, loadNextPage, refetch,  } = paginatedQuery<AllItems>(graphql`
 		query AllItems($completed: Boolean) @cache(policy: CacheOrNetwork) {
 			filteredItems: items(completed: $completed, first: 2)
 				@paginate(name: "Filtered_Items") {
@@ -99,6 +99,7 @@
 	</a>
 	{#if $pageInfo.hasNextPage}
 		<nav>
+			<button on:click={() => refetch()}>refetch</button>
 			<button on:click={() => loadNextPage()}>load more</button>
 		</nav>
 	{/if}

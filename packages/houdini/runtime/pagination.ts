@@ -18,7 +18,7 @@ import cache from './cache'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
 // this has to be in a separate file since config isn't defined in cache/index.ts
-import { extractPageInfo, PageInfo } from './utils'
+import { countPage, extractPageInfo, PageInfo } from './utils'
 
 type RefetchFn = (vars: any) => Promise<void>
 
@@ -326,7 +326,7 @@ function cursorHandlers<_Input>({
 				return
 			}
 			// if the input is different than the query variables then we just do everything like normal
-			if (JSON.stringify(variables()) !== JSON.stringify(input)) {
+			if (input && JSON.stringify(variables()) !== JSON.stringify(input)) {
 				return refetch(input)
 			}
 		},
@@ -414,11 +414,42 @@ function offsetPaginationHandler<_Data, _Input>({
 				return
 			}
 			// if the input is different than the query variables then we just do everything like normal
-			if (JSON.stringify(variables()) !== JSON.stringify(input)) {
+			if (input && JSON.stringify(variables()) !== JSON.stringify(input)) {
 				return refetch(input)
 			}
 
-			// we are updating the current set of items,
+			// we are updating the current set of items, count the number of items that currently exist
+			// and ask for the full data set
+			const count = countPage(artifact.refetch!.path, value)
+
+			// build up the variables to pass to the query
+			const queryVariables: Record<string, any> = {
+				...variables(),
+				...extraVariables,
+				first: count,
+			}
+
+			// set the loading state to true
+			loading.set(true)
+
+			// send the query
+			const result = await executeQuery<GraphQLObject, {}>(
+				artifact,
+				queryVariables,
+				sessionStore,
+				false
+			)
+
+			// update cache with the result
+			cache.write({
+				selection: artifact.selection,
+				data: result.data,
+				variables: queryVariables,
+				applyUpdates: true,
+			})
+
+			// we're not loading any more
+			loading.set(false)
 		},
 	}
 }
