@@ -329,6 +329,41 @@ function cursorHandlers<_Input>({
 			if (input && JSON.stringify(variables()) !== JSON.stringify(input)) {
 				return refetch(input)
 			}
+
+			// we are updating the current set of items, count the number of items that currently exist
+			// and ask for the full data set
+			const count = countPage(artifact.refetch!.path.concat('edges'), value)
+
+			// build up the variables to pass to the query
+			const queryVariables: Record<string, any> = {
+				...variables(),
+				...extraVariables,
+				// reverse cursors need the last entries in the list
+				[artifact.refetch!.update === 'prepend' ? 'last' : 'first']: count,
+			}
+
+			// set the loading state to true
+			loading.set(true)
+
+			// send the query
+			const result = await executeQuery<GraphQLObject, {}>(
+				artifact,
+				queryVariables,
+				sessionStore,
+				false
+			)
+
+			// update cache with the result
+			cache.write({
+				selection: artifact.selection,
+				data: result.data,
+				variables: queryVariables,
+				// overwrite the current data
+				applyUpdates: false,
+			})
+
+			// we're not loading any more
+			loading.set(false)
 		},
 	}
 }
@@ -426,7 +461,7 @@ function offsetPaginationHandler<_Data, _Input>({
 			const queryVariables: Record<string, any> = {
 				...variables(),
 				...extraVariables,
-				first: count,
+				limit: count,
 			}
 
 			// set the loading state to true
