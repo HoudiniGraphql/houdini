@@ -107,6 +107,7 @@ export type TaggedGraphqlQuery = {
 	variables: { [key: string]: any }
 	artifact: QueryArtifact
 	config: Config
+	source: DataSource
 }
 
 type Filter = { [key: string]: string | boolean | number }
@@ -117,8 +118,8 @@ export type ListWhen = {
 }
 
 export enum DataSource {
-	Cache,
-	Network,
+	Cache = 'cache',
+	Network = 'network',
 }
 
 export type MutationOperation = {

@@ -18,7 +18,7 @@ import { executeQuery, RequestPayload } from './network'
 import { marshalInputs, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession, goTo } from './adapter.mjs'
+import { getSession, goTo, isBrowser } from './adapter.mjs'
 import { rootID } from './cache/cache'
 
 export function query<_Query extends Operation<any, any>>(
@@ -151,6 +151,27 @@ export function query<_Query extends Operation<any, any>>(
 		writeData,
 		loading: { subscribe: loading.subscribe },
 		error: readable(null, () => {}),
+		onMount(
+			newData: RequestPayload<_Query['result']>,
+			newVariables: _Query['input'],
+			source: DataSource
+		) {
+			// we got new data from mounting, write it
+			writeData(newData, newVariables)
+
+			// if we are mounting on a browser we might need to perform an additional network request
+			if (isBrowser) {
+				// if the data was loaded from a cached value, and the document cache policy wants a
+				// network request to be sent after the data was loaded, load the data
+				if (
+					source === DataSource.Cache &&
+					artifact.policy === CachePolicy.CacheAndNetwork
+				) {
+					// this will invoke pagination's refetch because of javascript's magic this binding
+					this.refetch()
+				}
+			}
+		},
 	}
 }
 
@@ -159,6 +180,7 @@ export function query<_Query extends Operation<any, any>>(
 export type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
 	writeData: (data: RequestPayload<_Data>, variables: _Input) => void
+	onMount: (data: RequestPayload<_Data>, variables: _Input, source: DataSource) => void
 	refetch: (newVariables?: _Input) => Promise<void>
 	loading: Readable<boolean>
 	error: Readable<Error | null>
@@ -174,14 +196,6 @@ export const routeQuery = <_Data, _Input>({
 	artifact: QueryArtifact
 	source: DataSource
 }): QueryResponse<_Data, _Input> => {
-	onMount(() => {
-		// if the data was loaded from a cached value, and the document cache policy wants a
-		// network request to be sent after the data was loaded, load the data
-		if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
-			queryHandler.refetch()
-		}
-	})
-
 	// the query handler doesn't need any extra treatment for a route
 	return queryHandler
 }

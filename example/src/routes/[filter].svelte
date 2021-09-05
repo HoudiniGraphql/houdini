@@ -23,8 +23,8 @@
 	import { derived } from 'svelte/store'
 
 	// load the items
-	const { data, pageInfo, loadNextPage, refetch,  } = paginatedQuery<AllItems>(graphql`
-		query AllItems($completed: Boolean) @cache(policy: CacheOrNetwork) {
+	const { data, pageInfo, loadNextPage } = paginatedQuery<AllItems>(graphql`
+		query AllItems($completed: Boolean) @cache(policy: CacheAndNetwork) {
 			filteredItems: items(completed: $completed, first: 2)
 				@paginate(name: "Filtered_Items") {
 				edges {

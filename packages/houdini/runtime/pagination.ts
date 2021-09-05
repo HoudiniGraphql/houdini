@@ -321,6 +321,7 @@ function cursorHandlers<_Input>({
 		},
 		pageInfo: { subscribe: pageInfo.subscribe },
 		async refetch(input: any) {
+			console.log('pagination refetch')
 			// if this document shouldn't be refetched, don't do anything
 			if (!refetch) {
 				return

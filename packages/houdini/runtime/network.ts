@@ -214,6 +214,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 			].includes(artifact.policy!) &&
 			cache.internal.isDataAvailable(artifact.selection, variables)
 		) {
+			console.log('using cached data')
 			return [
 				{
 					data: cache.internal.getData(
