@@ -85,7 +85,7 @@ describe('query preprocessor', function () {
 
 		$:
 		{
-		    _TestQuery_handler.onMount(_TestQuery, _TestQuery_Input, _TestQuery_Source, _TestQuery_handler);
+		    _TestQuery_handler.onMount(_TestQuery, _TestQuery_Input, _TestQuery_Source);
 		}
 	`)
 	})
@@ -192,7 +192,7 @@ describe('query preprocessor', function () {
 
 		$:
 		{
-		    _TestQuery_handler.onMount(_TestQuery, _TestQuery_Input, _TestQuery_Source, _TestQuery_handler);
+		    _TestQuery_handler.onMount(_TestQuery, _TestQuery_Input, _TestQuery_Source);
 		}
 	`)
 	})
@@ -278,7 +278,7 @@ describe('query preprocessor', function () {
 
 		$:
 		{
-		    _TestQuery_handler.onMount(_TestQuery, _TestQuery_Input, _TestQuery_Source, _TestQuery_handler);
+		    _TestQuery_handler.onMount(_TestQuery, _TestQuery_Input, _TestQuery_Source);
 		}
 	`)
 	})
@@ -488,7 +488,7 @@ describe('query preprocessor', function () {
 
 		$:
 		{
-		    _TestQuery_handler.onMount(_TestQuery, _TestQuery_Input, _TestQuery_Source, _TestQuery_handler);
+		    _TestQuery_handler.onMount(_TestQuery, _TestQuery_Input, _TestQuery_Source);
 		}
 	`)
 	})
