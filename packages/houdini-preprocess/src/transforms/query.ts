@@ -283,7 +283,7 @@ function processInstance(
 							AST.callExpression(
 								AST.memberExpression(
 									queryHandlerIdentifier(operation),
-									AST.identifier('onMount')
+									AST.identifier('onLoad')
 								),
 								[
 									AST.identifier(preloadKey),

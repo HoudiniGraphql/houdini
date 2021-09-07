@@ -204,7 +204,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 
 		// this function is called as the first step in requesting data. If the policy prefers
 		// cached data, we need to load data from the cache (if its available). If the policy
-		// prefers network data we need to send a request (the onMount of the component will
+		// prefers network data we need to send a request (the onLoad of the component will
 		// resolve the next data)
 		if (
 			[

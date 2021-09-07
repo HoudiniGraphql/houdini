@@ -151,7 +151,7 @@ export function query<_Query extends Operation<any, any>>(
 		writeData,
 		loading: { subscribe: loading.subscribe },
 		error: readable(null, () => {}),
-		onMount(
+		onLoad(
 			newData: RequestPayload<_Query['result']>,
 			newVariables: _Query['input'],
 			source: DataSource
@@ -180,7 +180,7 @@ export function query<_Query extends Operation<any, any>>(
 export type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
 	writeData: (data: RequestPayload<_Data>, variables: _Input) => void
-	onMount: (data: RequestPayload<_Data>, variables: _Input, source: DataSource) => void
+	onLoad: (data: RequestPayload<_Data>, variables: _Input, source: DataSource) => void
 	refetch: (newVariables?: _Input) => Promise<void>
 	loading: Readable<boolean>
 	error: Readable<Error | null>
