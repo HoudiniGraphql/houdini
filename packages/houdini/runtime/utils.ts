@@ -17,3 +17,21 @@ export function extractPageInfo(data: GraphQLObject, path: string[]): PageInfo {
 
 	return current.pageInfo as PageInfo
 }
+
+export function countPage(source: string[], value: GraphQLObject): number {
+	let data = value
+	for (const field of source) {
+		const obj = data[field] as GraphQLObject | GraphQLObject[]
+		if (obj && !Array.isArray(obj)) {
+			data = obj
+		} else if (!data) {
+			throw new Error('Could not count page size')
+		}
+
+		if (Array.isArray(obj)) {
+			return obj.length
+		}
+	}
+
+	return 0
+}

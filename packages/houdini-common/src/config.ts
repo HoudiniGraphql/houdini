@@ -3,6 +3,8 @@ import fs from 'fs'
 import path from 'path'
 import mkdirp from 'mkdirp'
 import os from 'os'
+// locals
+import { CachePolicy } from './types'
 
 // the values we can take in from the config file
 export type ConfigFile = {
@@ -17,6 +19,8 @@ export type ConfigFile = {
 	mode?: 'kit' | 'sapper'
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
+	cacheBufferSize?: number
+	defaultCachePolicy?: CachePolicy
 }
 
 export type ScalarSpec = {
@@ -45,6 +49,8 @@ export class Config {
 	scalars?: ScalarMap
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
 	module: 'commonjs' | 'esm' = 'commonjs'
+	cacheBufferSize?: number
+	defaultCachePolicy: CachePolicy
 
 	constructor({
 		schema,
@@ -58,6 +64,8 @@ export class Config {
 		static: staticSite,
 		mode,
 		scalars,
+		cacheBufferSize,
+		defaultCachePolicy = CachePolicy.NetworkOnly,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -142,6 +150,8 @@ export class Config {
 		this.projectRoot = path.dirname(filepath)
 		this.static = staticSite
 		this.scalars = scalars
+		this.cacheBufferSize = cacheBufferSize
+		this.defaultCachePolicy = defaultCachePolicy
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
@@ -303,6 +313,14 @@ export class Config {
 		return 'paginate'
 	}
 
+	get cacheDirective() {
+		return 'cache'
+	}
+
+	get cachePolicyArg() {
+		return 'policy'
+	}
+
 	paginationQueryName(documentName: string) {
 		return documentName + '_Pagination_Query'
 	}
@@ -347,6 +365,7 @@ export class Config {
 				this.argumentsDirective,
 				this.withDirective,
 				this.paginateDirective,
+				this.cacheDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}
@@ -538,7 +557,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				cat: Cat
 			}
 
-			interface  Node { 
+			interface  Node {
 				id: ID!
 			}
 		`,

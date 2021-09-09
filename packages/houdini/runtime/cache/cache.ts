@@ -15,14 +15,31 @@ import { isScalar } from '../scalars'
 // this class implements the cache that drives houdini queries
 export class Cache {
 	_config: Config
-	constructor(config: Config) {
-		this._config = config
-	}
 
 	// the map from entity id to record
 	private _data: Map<string | undefined, Record> = new Map()
 	// associate list names with the handler that wraps the list
 	private _lists: Map<string, Map<string, ListHandler>> = new Map()
+
+	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
+	private _disabled = false
+
+	// the number of ticks of the garbage collector that a piece of data will
+	readonly cacheBufferSize: number = 10
+
+	constructor(config: Config) {
+		this._config = config
+		if (config.cacheBufferSize) {
+			this.cacheBufferSize = config.cacheBufferSize
+		}
+
+		// the cache should always be disabled on the server
+		try {
+			this._disabled = typeof window === 'undefined'
+		} catch {
+			this._disabled = true
+		}
+	}
 
 	// save the response in the local store and notify any subscribers
 	write({
@@ -38,6 +55,12 @@ export class Cache {
 		parent?: string
 		applyUpdates?: boolean
 	}) {
+		// if the cache is disabled we shouldn't write anything
+		if (this._disabled) {
+			return
+		}
+
+		// keep track of all of the subscription specs we have to write to because of this operation
 		const specs: SubscriptionSpec[] = []
 
 		// recursively walk down the payload and update the store. calls to update atomic fields
@@ -146,7 +169,7 @@ export class Cache {
 		}
 
 		// remove the entry from the cache
-		return this.clear(id)
+		return this.deleteID(id)
 	}
 
 	// grab the record specified by {id}.
@@ -171,8 +194,9 @@ export class Cache {
 			record: this.record.bind(this),
 			getRecord: this.getRecord.bind(this),
 			getData: this.getData.bind(this),
-			clear: this.clear.bind(this),
+			deleteID: this.deleteID.bind(this),
 			computeID: this.computeID.bind(this),
+			isDataAvailable: this.isDataAvailable.bind(this),
 		}
 	}
 
@@ -189,13 +213,13 @@ export class Cache {
 		parent: Record | null | undefined,
 		selection: SubscriptionSelection,
 		variables: {}
-	): { [key: string]: GraphQLValue } | null {
+	): GraphQLObject | null {
 		// we could be asking for values of null
 		if (parent === null || typeof parent === 'undefined') {
 			return null
 		}
 
-		const target: { [key: string]: GraphQLValue } = {}
+		const target = {} as GraphQLObject
 
 		// look at every field in the parentFields
 		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
@@ -230,7 +254,9 @@ export class Cache {
 				// is the type a custom scalar with a specified unmarshal function
 				if (this._config.scalars?.[type]?.unmarshal) {
 					// pass the primitive value to the unmarshal function
-					target[attributeName] = this._config.scalars[type].unmarshal(val)
+					target[attributeName] = this._config.scalars[type].unmarshal(
+						val
+					) as GraphQLValue
 				}
 				// the field does not have an unmarshal function
 				else {
@@ -611,7 +637,7 @@ export class Cache {
 				}
 
 				// if there was a change in the list
-				if (contentChanged) {
+				if (contentChanged || (oldIDs.length === 0 && newIDs.length === 0)) {
 					// update the cached value
 					record.writeListLink(key, linkedIDs)
 				}
@@ -999,8 +1025,92 @@ export class Cache {
 		return evaluated
 	}
 
-	private clear(id: string): boolean {
+	clear() {
+		this._data = new Map()
+		this._lists = new Map()
+	}
+
+	disable() {
+		this._disabled = true
+	}
+
+	private deleteID(id: string): boolean {
 		return this._data.delete(id)
+	}
+
+	private isDataAvailable(
+		target: SubscriptionSelection,
+		variables: {},
+		parentID: string = rootID
+	): boolean {
+		// if the cache is disabled we dont have to look at anything else
+		if (this._disabled) {
+			return false
+		}
+
+		// look up the parent
+		const record = this.record(parentID)
+
+		// every field in the selection needs to be present
+		for (const selection of Object.values(target)) {
+			const fieldName = this.evaluateKey(selection.keyRaw, variables)
+
+			// a single field could show up in the 3 places: as a field, a linked record, or a linked list
+
+			// if the field has a value, we're good
+			if (typeof record.getField(fieldName) !== 'undefined') {
+				continue
+			}
+			// if the field has no value and there are no subselections and we dont have a value, we are missing data
+			else if (!selection.fields) {
+				return false
+			}
+
+			// if we have a null linked record
+			const linked = record.linkedRecordID(fieldName)
+			if (typeof linked !== 'undefined') {
+				// if we have a null value we're good
+				if (linked === null) {
+					continue
+				}
+
+				// if we have a valid id, walk down
+				if (!this.isDataAvailable(selection.fields!, variables, linked)) {
+					return false
+				}
+			}
+			// look up the linked list
+			const hasListLinks = record.listLinks[fieldName]
+			if (hasListLinks) {
+				// we need to look at every linked record
+				for (const linkedRecord of record.flatLinkedList(fieldName)) {
+					if (!linkedRecord) {
+						continue
+					}
+
+					// if the linked record doesn't have the field then we are missing data
+					if (!this.isDataAvailable(selection.fields!, variables, linkedRecord.id)) {
+						return false
+					}
+				}
+			}
+
+			// if we dont have a linked record or linked list, we dont have the data
+			if (typeof linked === 'undefined' && typeof hasListLinks === 'undefined') {
+				return false
+			}
+		}
+
+		// if we got this far, we have the information
+		return true
+	}
+
+	collectGarbage() {
+		// visit every field of every record we know about, and if there are no
+		// active subscribers decrement their reference count
+		for (const id of this._data.keys()) {
+			this.record(id).onGcTick()
+		}
 	}
 }
 
@@ -1017,8 +1127,9 @@ export type CacheProxy = {
 	evaluateKey: Cache['evaluateKey']
 	getRecord: Cache['getRecord']
 	getData: Cache['getData']
-	clear: Cache['clear']
+	deleteID: Cache['deleteID']
 	computeID: Cache['computeID']
+	isDataAvailable: Cache['isDataAvailable']
 }
 
 // id that we should use to refer to things in root

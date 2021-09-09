@@ -21,6 +21,7 @@ export class Record {
 	private referenceCounts: {
 		[fieldName: string]: Map<SubscriptionSpec['set'], number>
 	} = {}
+	private lifetimes: Map<string, number> = new Map()
 
 	constructor(cache: Cache, id: string) {
 		this.cache = cache
@@ -129,6 +130,9 @@ export class Record {
 		}
 		const counts = this.referenceCounts[key]
 
+		// clear the lifetime count for the field
+		this.lifetimes.delete(key)
+
 		// increment the reference count for every subscriber
 		for (const spec of specs) {
 			// we're going to increment the current value by one
@@ -204,7 +208,7 @@ export class Record {
 				// if that was the last reference we knew of
 				if (newVal <= 0) {
 					targets.push(set)
-					// remove the count too
+					// remove the reference to the set function
 					counts.delete(set)
 				}
 			}
@@ -213,6 +217,39 @@ export class Record {
 			this.subscribers[fieldName] = this.getSubscribers(fieldName).filter(
 				({ set }) => !targets.includes(set)
 			)
+		}
+	}
+
+	// this function is invoked by the cache when the garbage collector is ticking
+	onGcTick() {
+		const fields = Object.keys(this.fields)
+			.concat(Object.keys(this.listLinks))
+			.concat(Object.keys(this.recordLinks))
+
+		// any fields with no reference counts need to be decremented
+		for (const field of fields) {
+			// {value} has a key for every subscriber - can check for no subscribers by looking
+			// at the number of fields in the value
+			if (!this.referenceCounts[field] || this.referenceCounts[field].size === 0) {
+				// lower the current count by 1
+				const previousCount = this.lifetimes.get(field) || 0
+				this.lifetimes.set(field, previousCount + 1)
+				// if the lifetime exceeds the cache's buffer size we should remove the field, linked record, or list
+				if (this.lifetimes.get(field)! > this.cache.cacheBufferSize) {
+					delete this.fields[field]
+					delete this.recordLinks[field]
+					delete this.recordLinks[field]
+
+					// if we dont have any data left, delete the record from the cache
+					if (
+						Object.keys(this.fields).length === 0 &&
+						Object.keys(this.recordLinks).length === 0 &&
+						Object.keys(this.recordLinks).length === 0
+					) {
+						this.cache.internal.deleteID(this.id)
+					}
+				}
+			}
 		}
 	}
 }

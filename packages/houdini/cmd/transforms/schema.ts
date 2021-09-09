@@ -2,9 +2,9 @@
 import { Config, getRootType } from 'houdini-common'
 import { mergeSchemas } from '@graphql-tools/merge'
 import * as graphql from 'graphql'
-
 // locals
 import { CollectedGraphQLDocument } from '../types'
+import { CachePolicy } from '../../runtime/types'
 
 // graphqlExtensions adds a few different things to the graphql schema
 export default async function graphqlExtensions(
@@ -16,6 +16,12 @@ export default async function graphqlExtensions(
 		schemas: [
 			config.schema,
 			graphql.buildSchema(`
+			enum CachePolicy {
+				${CachePolicy.CacheAndNetwork}
+				${CachePolicy.CacheOnly}
+				${CachePolicy.CacheOrNetwork}
+				${CachePolicy.NetworkOnly}
+			}
 
 			"""
 				@${config.listDirective} is used to mark a field for the runtime as a place to add or remove
@@ -55,6 +61,11 @@ export default async function graphqlExtensions(
 				@${config.argumentsDirective} is used to define the arguments of a fragment
 			"""
 			directive @${config.argumentsDirective} on FRAGMENT_DEFINITION
+
+			"""
+				@${config.cacheDirective} is used to specify cache rules for a query
+			"""
+			directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy) on QUERY
 
 		`),
 		],

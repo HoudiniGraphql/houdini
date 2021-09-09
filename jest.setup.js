@@ -15,7 +15,6 @@ const config = testConfig()
 expect.addSnapshotSerializer({
 	test: (val) => val && Object.keys(recast.types.namedTypes).includes(val.type),
 	serialize: (val) => {
-		console.log
 		return recast.print(val).code
 	},
 })

@@ -17,6 +17,7 @@ import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { serializeValue } from './utils'
+import { CachePolicy } from '../../../runtime/types'
 
 const AST = recast.types.builders
 
@@ -221,6 +222,26 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					artifact.input = inputObject(config, inputs)
 				}
 
+				// add the cache policy to query documents
+				if (docKind === 'HoudiniQuery') {
+					const cacheDirective = operations[0].directives?.find(
+						(directive) => directive.name.value === config.cacheDirective
+					)
+					if (cacheDirective) {
+						// look for a policy argument
+						const policy = cacheDirective.arguments?.find(
+							(arg) => arg.name.value === config.cachePolicyArg
+						)
+						if (policy && policy.value.kind === 'EnumValue') {
+							artifact.policy = policy.value.value
+						} else {
+							artifact.policy = config.defaultCachePolicy
+						}
+					} else {
+						artifact.policy = config.defaultCachePolicy
+					}
+				}
+
 				// the artifact should be the default export of the file
 				const file = AST.program([
 					moduleExport(config, 'default', serializeValue(artifact)),
@@ -228,6 +249,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 				// write the result to the artifact path we're configured to write to
 				await writeFile(config.artifactPath(document), recast.print(file).code)
+
 				// log the file location to confirm
 				if (!config.quiet) {
 					console.log(name)

@@ -45,8 +45,11 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
     1. [Loading State](#loading-state)
-    1. [Refetching Data](#refetching-data)
     1. [Additional Logic](#additional-logic)
+    1. [Refetching Data](#refetching-data)
+    1. [Cache policy](#cache-policy)
+        1. [Data Retention](#data-retention)
+        1. [Changing default cache policy](#changing-default-cache-policy)
     1. [What about load?](#what-about-load)
 1. [Fragments](#fragments)
     1. [Fragment Arguments](#fragment-arguments)
@@ -97,11 +100,11 @@ representation of your API's schema.
 npx houdini init
 ```
 
-> This will send a request to your API to download your schema definition. If you need 
-> headers to authenticate this request, you can pass them in with the `--pull-header` 
-> flag (abbreviated `-ph`). For example, 
-> `npx houdini init -ph Authorization="Bearer MyToken"`. 
-> You will also need to provide the same flag to `generate` when using the 
+> This will send a request to your API to download your schema definition. If you need
+> headers to authenticate this request, you can pass them in with the `--pull-header`
+> flag (abbreviated `-ph`). For example,
+> `npx houdini init -ph Authorization="Bearer MyToken"`.
+> You will also need to provide the same flag to `generate` when using the
 > `--pull-schema` flag.
 
 Finally, follow the steps appropriate for your framework.
@@ -116,7 +119,7 @@ import houdini from 'houdini-preprocess'
 
 {
     preprocess: [houdini()],
-    
+
     kit: {
         vite: {
             resolve: {
@@ -329,9 +332,9 @@ the result of query:
 
 ### Additional logic
 
-Sometimes you will need to add additional logic to a component's query. For example, you might want to 
+Sometimes you will need to add additional logic to a component's query. For example, you might want to
 check if the current session is valid before a query is sent to the server. In order to support this,
-houdini will look for a function called `onLoad` defined in the module context which can be used to perform 
+houdini will look for a function called `onLoad` defined in the module context which can be used to perform
 any logic you need. If you return a value from this function, it will be passed as props to your component:
 
 ```svelte
@@ -341,11 +344,11 @@ any logic you need. If you return a value from this function, it will be passed 
         if(!session.authenticated){
             return this.redirect(302, '/login')
         }
-	
+
 	return {
 	    message: "There are this many items"
         }
-    } 
+    }
 </script>
 
 <script>
@@ -391,6 +394,64 @@ Refetching data is done with the `refetch` function provided from the result of 
 </script>
 
 <input type=checkbox bind:checked={completed}>
+```
+
+### Cache policy
+
+By default, houdini will only try to load queries against its local cache when you indicate it is safe to do so.
+This can be done with the `@cache` directive:
+
+```graphql
+query AllItems @cache(policy: CacheOrNetwork) {
+    items {
+        id
+        text
+    }
+}
+```
+
+There are 3 different policies that can be specified:
+
+- **CacheOrNetwork** will first check if a query can be resolved from the cache. If it can, it will return the cached value and only send a network request if data was missing.
+- **CacheAndNetwork** will use cached data if it exists and always send a network request after the component has mounted to retrieve the latest data from the server
+- **NetworkOnly** will never check if the data exists in the cache and always send a network request
+
+#### Data Retention
+
+Houdini will retain a query's data for a configurable number of queries (default 10).
+For a concrete example, consider an example app that has 3 routes. If you load one of the
+routes and then click between the other two 5 times, the first route's data will still be
+resolvable (and the counter will reset if you visit it).
+If you then toggle between the other routes 10 times and then try to load the first
+route, a network request will be sent. This number is configurable with the
+`cacheBufferSize` value in your config file:
+
+```js
+// houdini.config.js
+
+export default {
+    // ...
+    cacheBufferSize: 5,
+}
+```
+
+#### Changing default cache policy
+
+As previously mentioned, the default cache policy is `CacheOrNetwork`. This can be changed
+by setting the `defaultCachePolicy` config value:
+
+```js
+// houdini.config.js
+
+import { CachePolicy } from '$houdini'
+
+export default {
+    // ...
+
+    // note: if you are upgrading from a previous version of houdini, you might
+    // have to generate your runtime for this type to be defined.
+    defaultCachePolicy: CachePolicy.NetworkOnly,
+}
 ```
 
 ### What about `load`?
@@ -976,7 +1037,7 @@ export default new Environment(async function ({ text, variables = {} }, session
 
 ## 🚦&nbsp;&nbsp;Persisted Queries
 
-Sometimes you want to confine an API to only fire a set of pre-defined queries. This 
+Sometimes you want to confine an API to only fire a set of pre-defined queries. This
 can be useful to not only reduce the amount of information transferred over the write
 but also act as a list of approved queries, providing additional security. Regardless of
 your motivation, the approach involves associating a known string with a particular query
@@ -985,10 +1046,10 @@ houdini passes a queries hash to the fetch function for you to use.
 
 ### Automatic Persisted Queries
 
-An approach to Persisted Queries, popularized by Apollo, is known as 
-[Automatic Persisted Queries](https://www.apollographql.com/docs/apollo-server/performance/apq/). 
+An approach to Persisted Queries, popularized by Apollo, is known as
+[Automatic Persisted Queries](https://www.apollographql.com/docs/apollo-server/performance/apq/).
 This involves first sending a queries hash and if its unrecognized, sending the full
-query string. This might look something like: 
+query string. This might look something like:
 
 ```typescript
 /// src/environment.ts
@@ -1024,7 +1085,7 @@ export default new Environment(async function({ text, variables = {}, hash }){
 		return response
 	}
 
-	// there were errors, send the hash and the query to associate the two for 
+	// there were errors, send the hash and the query to associate the two for
 	// future requests
 	return await sendFetch.call(this, { variables, hash, text })
 })
@@ -1045,7 +1106,7 @@ npx houdini generate -po ./path/to/persisted-queries.json
 
 Once this map has been created, you will have to make it available to your server.
 
-Now, instead of sending the full operation text with every request, you can now simply 
+Now, instead of sending the full operation text with every request, you can now simply
 pass the hash under whatever field name you prefer:
 
 ```typescript

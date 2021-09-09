@@ -3,10 +3,14 @@ import { RequestContext } from './network'
 import { unmarshalSelection } from './scalars'
 import { QueryArtifact } from './types'
 
+jest.mock('./cache', function () {
+	return
+})
+
 // a mock request context
 const ctx = new RequestContext({
-	page: { host: '', path: '', params: null, query: null },
-	context: null,
+	page: { host: '', path: '', params: {}, query: new URLSearchParams() },
+	context: {},
 	session: null,
 	fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,
 })
@@ -14,24 +18,24 @@ const ctx = new RequestContext({
 const config = testConfig({
 	schema: `
 		scalar DateTime
-		
-		input NestedDate { 
+
+		input NestedDate {
 			name: String
 			date: DateTime!
 			nested: NestedDate!
 		}
 
-		type TodoItem { 
+		type TodoItem {
 			text: String!
-			createdAt: DateTime! 
+			createdAt: DateTime!
 			creator: User!
-		}	
+		}
 
-		type User { 
+		type User {
 			firstName: String!
 		}
 
-		type Query { 
+		type Query {
 			items(date: NestedDate, booleanValue: Boolean): [TodoItem!]!
 			item: TodoItem
 			rootBool: Boolean!

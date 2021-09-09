@@ -1,5 +1,11 @@
 import type { Config } from 'houdini-common'
-import { Readable } from 'svelte/store'
+
+export enum CachePolicy {
+	CacheOrNetwork = 'CacheOrNetwork',
+	CacheOnly = 'CacheOnly',
+	NetworkOnly = 'NetworkOnly',
+	CacheAndNetwork = 'CacheAndNetwork',
+}
 
 export type Fragment<_Result> = {
 	readonly shape?: _Result
@@ -23,6 +29,7 @@ export type DocumentArtifact =
 
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: 'HoudiniQuery'
+	policy?: CachePolicy
 }
 
 export type MutationArtifact = BaseCompiledDocument & {
@@ -100,6 +107,7 @@ export type TaggedGraphqlQuery = {
 	variables: { [key: string]: any }
 	artifact: QueryArtifact
 	config: Config
+	source: DataSource
 }
 
 type Filter = { [key: string]: string | boolean | number }
@@ -107,6 +115,11 @@ type Filter = { [key: string]: string | boolean | number }
 export type ListWhen = {
 	must?: Filter
 	must_not?: Filter
+}
+
+export enum DataSource {
+	Cache = 'cache',
+	Network = 'network',
 }
 
 export type MutationOperation = {

@@ -64,7 +64,9 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		            type: "Int",
 		            keyRaw: "version"
 		        }
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 
@@ -160,7 +162,9 @@ test('selection includes fragments', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 
@@ -252,7 +256,9 @@ test('internal directives are scrubbed', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -313,7 +319,9 @@ test('overlapping query and fragment selection', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -391,7 +399,9 @@ test('overlapping query and fragment nested selection', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -496,7 +506,9 @@ test('selections with interfaces', async function () {
 
 		            abstract: true
 		        }
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -601,7 +613,9 @@ test('selections with unions', async function () {
 
 		            abstract: true
 		        }
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -1900,7 +1914,9 @@ describe('mutation artifacts', function () {
 		        },
 
 		        types: {}
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 	})
@@ -2083,7 +2099,9 @@ describe('mutation artifacts', function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 	})
@@ -2263,7 +2281,9 @@ describe('mutation artifacts', function () {
 		        },
 
 		        types: {}
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 	})
@@ -2367,7 +2387,9 @@ describe('mutation artifacts', function () {
 		        },
 
 		        types: {}
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 	})
@@ -2473,7 +2495,9 @@ describe('mutation artifacts', function () {
 		        },
 
 		        types: {}
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 	})
@@ -2546,7 +2570,9 @@ test('custom scalar shows up in artifact', async function () {
 		                }
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -2673,7 +2699,9 @@ test('operation inputs', async function () {
 		                enum: "MyEnum"
 		            }
 		        }
-		    }
+		    },
+
+		    policy: "NetworkOnly"
 		};
 	`)
 })
