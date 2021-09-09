@@ -65,7 +65,7 @@ export class Config {
 		mode,
 		scalars,
 		cacheBufferSize,
-		defaultCachePolicy = CachePolicy.CacheOrNetwork,
+		defaultCachePolicy = CachePolicy.NetworkOnly,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {

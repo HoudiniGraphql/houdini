@@ -66,7 +66,7 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 
@@ -164,7 +164,7 @@ test('selection includes fragments', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 
@@ -258,7 +258,7 @@ test('internal directives are scrubbed', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -321,7 +321,7 @@ test('overlapping query and fragment selection', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -401,7 +401,7 @@ test('overlapping query and fragment nested selection', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -508,7 +508,7 @@ test('selections with interfaces', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -615,7 +615,7 @@ test('selections with unions', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -1916,7 +1916,7 @@ describe('mutation artifacts', function () {
 		        types: {}
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 	})
@@ -2101,7 +2101,7 @@ describe('mutation artifacts', function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 	})
@@ -2283,7 +2283,7 @@ describe('mutation artifacts', function () {
 		        types: {}
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 	})
@@ -2389,7 +2389,7 @@ describe('mutation artifacts', function () {
 		        types: {}
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 	})
@@ -2497,7 +2497,7 @@ describe('mutation artifacts', function () {
 		        types: {}
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 	})
@@ -2572,7 +2572,7 @@ test('custom scalar shows up in artifact', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 })
@@ -2701,7 +2701,7 @@ test('operation inputs', async function () {
 		        }
 		    },
 
-		    policy: "CacheOrNetwork"
+		    policy: "NetworkOnly"
 		};
 	`)
 })

@@ -398,12 +398,11 @@ Refetching data is done with the `refetch` function provided from the result of 
 
 ### Cache policy
 
-By default, houdini will try to load queries against its local cache whenever possible.
-If any piece of data is missing, it will fetch the entire query from your API.
-This behavior is customizable using the `@cache` directive:
+By default, houdini will only try to load queries against its local cache when you indicate it is safe to do so.
+This can be done with the `@cache` directive:
 
 ```graphql
-query AllItems @cache(policy: NetworkOnly) {
+query AllItems @cache(policy: CacheOrNetwork) {
     items {
         id
         text
