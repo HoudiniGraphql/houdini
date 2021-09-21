@@ -11,9 +11,6 @@
   <br />
 </div>
 
-NOTE: Houdini is in the early phases of development. Please create an issue or start a discussion if you run into problems. For more information on what's coming for this project, you can visit the
-[roadmap](https://github.com/AlecAivazis/houdini/projects/1).
-
 If you are interested in helping out, the [contributing guide](./CONTRIBUTING.md) should provide some guidance. If you need something more
 specific, feel free to reach out to @AlecAivazis on the Svelte discord. There's lots to do regardless of how deep you want to dive 🙂
 
