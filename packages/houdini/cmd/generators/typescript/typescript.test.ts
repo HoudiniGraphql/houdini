@@ -876,6 +876,38 @@ describe('typescript', function () {
 	`)
 	})
 
+	test('duplicate fields', async function () {
+		// the document with the fragment
+		const fragment = mockCollectedDoc(`fragment Foo on User { firstName }`)
+
+		// the document to test
+		const query = mockCollectedDoc(`query Query { user { firstName firstName } }`)
+
+		// execute the generator
+		await runPipeline(config, [query, fragment])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly user: {
+		        readonly firstName: string,
+		    } | null
+		};
+	`)
+	})
+
 	test.todo('fragments on interfaces')
 
 	test.todo('intersections with __typename in subselection')
