@@ -877,14 +877,20 @@ describe('typescript', function () {
 	})
 
 	test('duplicate fields', async function () {
-		// the document with the fragment
-		const fragment = mockCollectedDoc(`fragment Foo on User { firstName }`)
-
 		// the document to test
-		const query = mockCollectedDoc(`query Query { user { firstName firstName } }`)
+		const query = mockCollectedDoc(`query Query { 
+			user { 
+				parent { 
+					firstName
+				} 
+				parent { 
+					nickname
+				}
+			} 
+		}`)
 
 		// execute the generator
-		await runPipeline(config, [query, fragment])
+		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
 		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
