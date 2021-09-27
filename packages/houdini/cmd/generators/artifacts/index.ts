@@ -211,7 +211,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						operations: operationsByPath(config, operations[0], filterTypes),
 						// do not include used fragments if we are rendering the selection
 						// for a fragment document
-						includeFragments: docKind !== 'HoudiniFragment',
+						includeFragments: true,
 						document: doc,
 					}),
 				}

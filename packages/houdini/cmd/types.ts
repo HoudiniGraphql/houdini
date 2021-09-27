@@ -13,6 +13,7 @@ export type CollectedGraphQLDocument = {
 	originalDocument: graphql.DocumentNode
 	generate: boolean
 	refetch?: BaseCompiledDocument['refetch']
+	selections?: graphql.SelectionSetNode['selections']
 }
 
 // an error pertaining to a specific graphql document
