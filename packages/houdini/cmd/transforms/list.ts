@@ -4,6 +4,7 @@ import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 import { TypeWrapper, unwrapType } from '../utils'
+import { ArtifactKind } from '../../runtime/types'
 
 // addListFragments adds fragments for the fields tagged with @list
 export default async function addListFragments(
@@ -263,6 +264,7 @@ export default async function addListFragments(
 
 	documents.push({
 		name: 'generated::lists',
+		kind: ArtifactKind.Fragment,
 		generate: false,
 		document: generatedDoc,
 		originalDocument: generatedDoc,

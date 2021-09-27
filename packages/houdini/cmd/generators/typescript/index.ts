@@ -27,7 +27,7 @@ export default async function typescriptGenerator(
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(async ({ originalDocument, generate }) => {
+		docs.map(async ({ originalDocument, selections, generate }) => {
 			if (!generate) {
 				return
 			}
@@ -47,6 +47,7 @@ export default async function typescriptGenerator(
 				await generateOperationTypeDefs(
 					config,
 					program.body,
+					selections || [],
 					originalDocument.definitions,
 					visitedTypes
 				)
@@ -55,6 +56,7 @@ export default async function typescriptGenerator(
 				await generateFragmentTypeDefs(
 					config,
 					program.body,
+					selections || [],
 					originalDocument.definitions,
 					visitedTypes
 				)
@@ -92,6 +94,7 @@ export default async function typescriptGenerator(
 async function generateOperationTypeDefs(
 	config: Config,
 	body: StatementKind[],
+	selections: readonly graphql.SelectionNode[],
 	definitions: readonly graphql.DefinitionNode[],
 	visitedTypes: Set<string>
 ) {
@@ -99,6 +102,7 @@ async function generateOperationTypeDefs(
 	await generateFragmentTypeDefs(
 		config,
 		body,
+		selections,
 		definitions.filter(({ kind }) => kind === 'FragmentDefinition'),
 		visitedTypes
 	)
@@ -166,7 +170,7 @@ async function generateOperationTypeDefs(
 					inlineType({
 						config,
 						rootType: type,
-						selections: [...definition.selectionSet.selections],
+						selections,
 						root: true,
 						allowReadonly: true,
 						visitedTypes,
@@ -211,6 +215,7 @@ async function generateOperationTypeDefs(
 async function generateFragmentTypeDefs(
 	config: Config,
 	body: StatementKind[],
+	selections: readonly graphql.SelectionNode[],
 	definitions: readonly graphql.DefinitionNode[],
 	visitedTypes: Set<string>
 ) {
@@ -276,7 +281,7 @@ async function generateFragmentTypeDefs(
 					inlineType({
 						config,
 						rootType: type,
-						selections: [...definition.selectionSet.selections],
+						selections,
 						root: true,
 						allowReadonly: true,
 						body,
