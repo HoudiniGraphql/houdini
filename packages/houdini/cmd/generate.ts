@@ -143,7 +143,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 										kind = ArtifactKind.Mutation
 									}
 									// subscription
-									if (
+									else if (
 										operations[0].kind === 'OperationDefinition' &&
 										operations[0].operation === 'subscription'
 									) {
