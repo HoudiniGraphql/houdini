@@ -219,7 +219,7 @@ export default async function paginate(
 					fragment = true
 
 					fragmentName = node.name.value
-					refetchQueryName = fragmentName + '_Houdini_Paginate'
+					refetchQueryName = config.paginationQueryName(fragmentName)
 
 					// a fragment has to be embedded in Node if its not on the query type
 					nodeQuery = node.typeCondition.name.value !== config.schema.getQueryType()?.name
@@ -433,7 +433,7 @@ export default async function paginate(
 			newDocs.push({
 				kind: ArtifactKind.Query,
 				filename: doc.filename,
-				name: config.paginationQueryName(fragmentName),
+				name: refetchQueryName,
 				document: queryDoc,
 				originalDocument: queryDoc,
 				generate: true,

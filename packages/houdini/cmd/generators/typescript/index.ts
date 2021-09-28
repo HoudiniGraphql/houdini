@@ -44,9 +44,12 @@ export default async function typescriptGenerator(
 
 			// if there's an operation definition
 			let definition = originalDocument.definitions.find(
-				(def) => def.kind === 'OperationDefinition'
-			) as graphql.OperationDefinitionNode | undefined
-			if (definition) {
+				(def) =>
+					(def.kind === 'OperationDefinition' || def.kind === 'FragmentDefinition') &&
+					def.name?.value === name
+			) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
+
+			if (definition?.kind === 'OperationDefinition') {
 				// treat it as an operation document
 				await generateOperationTypeDefs(
 					config,
@@ -60,11 +63,6 @@ export default async function typescriptGenerator(
 					visitedTypes
 				)
 			} else {
-				// look for the primary fragment definition
-				let definition = originalDocument.definitions.find(
-					(defn) => defn.kind === 'FragmentDefinition' && defn.name.value === name
-				)! as graphql.FragmentDefinitionNode
-
 				// treat it as a fragment document
 				await generateFragmentTypeDefs(
 					config,

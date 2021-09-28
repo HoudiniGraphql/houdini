@@ -391,7 +391,7 @@ test('embeds pagination query as a separate document', async function () {
 
 	// load the contents of the file
 	expect(docs[1]?.document).toMatchInlineSnapshot(`
-		query UserFriends_Houdini_Paginate($first: Int = 10, $after: String) {
+		query UserFriends_Pagination_Query($first: Int = 10, $after: String) {
 		  ...UserFriends_jrGTj @with(first: $first, after: $after)
 		}
 
@@ -446,7 +446,7 @@ test('embeds node pagination query as a separate document', async function () {
 					module.exports = {
 					    name: "UserFriends_Pagination_Query",
 					    kind: "HoudiniQuery",
-					    hash: "3be5a3f44ae5c1b63dca445a9fb41956565dfb855d47298ba944417c1feed7af",
+					    hash: "59992fa37d2b9bacc20bcfc5f747b2ec89fe53c65278bc4e56d81a21ec6a0c88",
 
 					    refetch: {
 					        update: "append",
@@ -456,7 +456,7 @@ test('embeds node pagination query as a separate document', async function () {
 					        embedded: true
 					    },
 
-					    raw: \`query UserFriends_Houdini_Paginate($first: Int = 10, $after: String, $id: ID!) {
+					    raw: \`query UserFriends_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
 					  node(id: $id) {
 					    ...UserFriends_jrGTj
 					  }
@@ -1051,7 +1051,7 @@ test('generated query has same refetch spec', async function () {
 					module.exports = {
 					    name: "UserFriends_Pagination_Query",
 					    kind: "HoudiniQuery",
-					    hash: "3d3844eacd739623d7c4a81fbed8b11ec7fd8a60d15adabae3c79ba9767701e8",
+					    hash: "5aeb471edf15c5b3e709ddccc6014f073d2dfdc1259d04b7ee26887ea81ef23b",
 
 					    refetch: {
 					        update: "append",
@@ -1062,7 +1062,7 @@ test('generated query has same refetch spec', async function () {
 					        start: "1234"
 					    },
 
-					    raw: \`query UserFriends_Houdini_Paginate($first: Int = 10, $after: String = "1234") {
+					    raw: \`query UserFriends_Pagination_Query($first: Int = 10, $after: String = "1234") {
 					  ...UserFriends_jrGTj
 					}
 
