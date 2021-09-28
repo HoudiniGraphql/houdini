@@ -6,11 +6,12 @@ import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
-import { writeFile } from '../../utils'
+import { flattenSelections, writeFile } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { tsTypeReference } from './typeReference'
 import { readonlyProperty } from './types'
 import { fragmentKey, inlineType } from './inlineType'
+import { ArtifactKind } from '../../../runtime/types'
 
 const AST = recast.types.builders
 
@@ -27,7 +28,7 @@ export default async function typescriptGenerator(
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(async ({ originalDocument, selections, generate }) => {
+		docs.map(async ({ originalDocument, name, kind, generate }) => {
 			if (!generate) {
 				return
 			}
@@ -42,7 +43,7 @@ export default async function typescriptGenerator(
 			const visitedTypes = new Set<string>()
 
 			// if there's an operation definition
-			const definition = originalDocument.definitions.find(
+			let definition = originalDocument.definitions.find(
 				(def) => def.kind === 'OperationDefinition'
 			) as graphql.OperationDefinitionNode | undefined
 			if (definition) {
@@ -51,15 +52,26 @@ export default async function typescriptGenerator(
 					config,
 					program.body,
 					definition,
-					selections || [],
+					flattenSelections({
+						config,
+						selections: definition.selectionSet.selections,
+						includeFragments: kind !== ArtifactKind.Fragment,
+					}),
 					visitedTypes
 				)
 			} else {
+				let definition = originalDocument.definitions.find(
+					(defn) => defn.kind === 'FragmentDefinition' && defn.name.value === name
+				)! as graphql.FragmentDefinitionNode
 				// treat it as a fragment document
 				await generateFragmentTypeDefs(
 					config,
 					program.body,
-					selections || [],
+					flattenSelections({
+						config,
+						selections: definition.selectionSet.selections,
+						includeFragments: kind !== ArtifactKind.Fragment,
+					}),
 					originalDocument.definitions,
 					visitedTypes
 				)

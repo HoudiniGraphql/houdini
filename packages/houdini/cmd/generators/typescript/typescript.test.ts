@@ -193,8 +193,7 @@ describe('typescript', function () {
 		export type TestFragment$data = {
 		    readonly firstName: string,
 		    readonly parent: {
-		        readonly firstName: string,
-		        readonly id: string
+		        readonly firstName: string
 		    } | null
 		};
 	`)
@@ -263,8 +262,7 @@ describe('typescript', function () {
 		export type TestFragment$data = {
 		    readonly firstName: string,
 		    readonly friends: ({
-		        readonly firstName: string,
-		        readonly id: string
+		        readonly firstName: string
 		    } | null)[] | null
 		};
 	`)
@@ -293,8 +291,7 @@ describe('typescript', function () {
 
 		export type Query$result = {
 		    readonly user: {
-		        readonly firstName: string,
-		        readonly id: string
+		        readonly firstName: string
 		    } | null
 		};
 	`)
@@ -328,8 +325,7 @@ describe('typescript', function () {
 
 		export type Query$result = {
 		    readonly users: ({
-		        readonly firstName: string,
-		        readonly id: string
+		        readonly firstName: string
 		    } | null)[] | null
 		};
 	`)
@@ -360,8 +356,7 @@ describe('typescript', function () {
 
 		export type Query$result = {
 		    readonly user: {
-		        readonly firstName: string,
-		        readonly id: string
+		        readonly firstName: string
 		    } | null
 		};
 
@@ -420,8 +415,7 @@ describe('typescript', function () {
 
 		export type Mutation$result = {
 		    readonly doThing: {
-		        readonly firstName: string,
-		        readonly id: string
+		        readonly firstName: string
 		    } | null
 		};
 
@@ -482,8 +476,7 @@ describe('typescript', function () {
 
 		export type Query$result = {
 		    readonly user: {
-		        readonly firstName: string,
-		        readonly id: string
+		        readonly firstName: string
 		    } | null
 		};
 
@@ -561,7 +554,6 @@ describe('typescript', function () {
 
 		export type Query$result = {
 		    readonly user: {
-		        readonly id: string,
 		        readonly $fragments: {
 		            Foo: true
 		        }
@@ -605,10 +597,7 @@ describe('typescript', function () {
 		};
 
 		export type Query$result = {
-		    readonly nodes: ({
-		        readonly id: string,
-		        readonly __typename: string | null
-		    } & (({
+		    readonly nodes: ({} & (({
 		        readonly id: string,
 		        readonly __typename: "User"
 		    }) | ({
@@ -654,9 +643,7 @@ describe('typescript', function () {
 		};
 
 		export type Query$result = {
-		    readonly entities: ({
-		        readonly __typename: string | null
-		    } & (({
+		    readonly entities: ({} & (({
 		        readonly id: string,
 		        readonly __typename: "User"
 		    }) | ({
@@ -704,8 +691,7 @@ describe('typescript', function () {
 
 		export type Query$result = {
 		    readonly nodes: ({
-		        readonly id: string,
-		        readonly __typename: string | null
+		        readonly id: string
 		    } & (({
 		        readonly firstName: string,
 		        readonly __typename: "User"
@@ -755,9 +741,7 @@ describe('typescript', function () {
 		};
 
 		export type Query$result = {
-		    readonly entities: ({
-		        readonly __typename: string | null
-		    } & (({
+		    readonly entities: ({} & (({
 		        readonly firstName: string,
 		        readonly __typename: "User"
 		    }) | ({
@@ -921,8 +905,7 @@ describe('typescript', function () {
 		export type Query$result = {
 		    readonly listOfLists: (({
 		        readonly firstName: string,
-		        readonly nickname: string | null,
-		        readonly id: string
+		        readonly nickname: string | null
 		    } | null)[] | null)[]
 		};
 	`)
@@ -963,10 +946,8 @@ describe('typescript', function () {
 		    readonly user: {
 		        readonly parent: {
 		            readonly firstName: string,
-		            readonly id: string,
 		            readonly nickname: string | null
-		        } | null,
-		        readonly id: string
+		        } | null
 		    } | null
 		};
 	`)

@@ -4,3 +4,5 @@ export * from './writeFile'
 export * from './graphql'
 export * from './murmur'
 export * from './writeSchema'
+
+export * from './flattenSelections'
