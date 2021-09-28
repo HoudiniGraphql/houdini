@@ -107,6 +107,7 @@ export function inlineType({
 		const fragmentSpreads = selections?.filter(({ kind }) => kind === 'FragmentSpread') as
 			| graphql.FragmentSpreadNode[]
 			| undefined
+
 		if (fragmentSpreads && fragmentSpreads.length) {
 			result.members.push(
 				readonlyProperty(

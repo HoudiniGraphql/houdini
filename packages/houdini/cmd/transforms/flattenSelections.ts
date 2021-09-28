@@ -33,14 +33,17 @@ function _flatten({
 	config,
 	selections,
 	includeFragments,
+	preserveInlineFragments = true,
 }: {
 	config: Config
 	selections: readonly graphql.SelectionNode[]
 	includeFragments: boolean
+	preserveInlineFragments?: boolean
 }): readonly graphql.SelectionNode[] {
 	// group the selections by field name, inline fragments
 	const fieldMap: { [attributeName: string]: graphql.FieldNode } = {}
 	const inlineFragments: { [typeName: string]: graphql.InlineFragmentNode } = {}
+	const spreadFragments: { [fragmentName: string]: graphql.FragmentSpreadNode } = {}
 
 	// look at every selection
 	for (const selection of selections) {
@@ -95,6 +98,8 @@ function _flatten({
 					},
 				}
 			}
+		} else if (selection.kind === 'FragmentSpread' && !spreadFragments[selection.name.value]) {
+			spreadFragments[selection.name.value] = selection
 		}
 	}
 
@@ -123,5 +128,6 @@ function _flatten({
 				}),
 			},
 		})),
+		...Object.values(spreadFragments),
 	]
 }
