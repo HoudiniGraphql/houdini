@@ -1,14 +1,7 @@
 // externals
 import { Config, getRootType, hashDocument, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
-import {
-	CompiledQueryKind,
-	CompiledFragmentKind,
-	CompiledMutationKind,
-	CompiledDocumentKind,
-	CompiledSubscriptionKind,
-	CollectedGraphQLDocument,
-} from '../../types'
+import { CollectedGraphQLDocument } from '../../types'
 import * as recast from 'recast'
 // locals
 import { moduleExport, writeFile } from '../../utils'
@@ -17,7 +10,7 @@ import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { serializeValue } from './utils'
-import { ArtifactKind, CachePolicy } from '../../../runtime/types'
+import { ArtifactKind } from '../../../runtime/types'
 
 const AST = recast.types.builders
 
@@ -180,7 +173,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					selection: selection({
 						config,
 						rootType,
-						selectionSet: selectionSet,
+						selections: selectionSet.selections,
 						operations: operationsByPath(config, operations[0], filterTypes),
 						// do not include used fragments if we are rendering the selection
 						// for a fragment document

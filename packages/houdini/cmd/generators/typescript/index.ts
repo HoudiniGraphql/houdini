@@ -60,9 +60,11 @@ export default async function typescriptGenerator(
 					visitedTypes
 				)
 			} else {
+				// look for the primary fragment definition
 				let definition = originalDocument.definitions.find(
 					(defn) => defn.kind === 'FragmentDefinition' && defn.name.value === name
 				)! as graphql.FragmentDefinitionNode
+
 				// treat it as a fragment document
 				await generateFragmentTypeDefs(
 					config,
