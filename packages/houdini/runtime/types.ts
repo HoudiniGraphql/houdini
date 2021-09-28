@@ -29,7 +29,7 @@ export type DocumentArtifact =
 
 export enum ArtifactKind {
 	Query = 'HoudiniQuery',
-	Subcription = 'HoudiniQuery',
+	Subcription = 'HoudiniSubscription',
 	Mutation = 'HoudiniMutation',
 	Fragment = 'HoudiniFragment',
 }

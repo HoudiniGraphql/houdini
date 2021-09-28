@@ -60,7 +60,6 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 	let kind = ArtifactKind.Fragment
 	if (operations.length === 1) {
 		// the document kind depends on the artifact
-
 		// query
 		if (operations[0].kind === 'OperationDefinition' && operations[0].operation === 'query') {
 			kind = ArtifactKind.Query
@@ -73,7 +72,7 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 			kind = ArtifactKind.Mutation
 		}
 		// subscription
-		if (
+		else if (
 			operations[0].kind === 'OperationDefinition' &&
 			operations[0].operation === 'subscription'
 		) {

@@ -125,11 +125,6 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
 				) as graphql.FragmentDefinitionNode[]
 
-				// if we couldn't figure out the kind
-				if (!docKind) {
-					throw new Error('Could not figure out what kind of document we were given')
-				}
-
 				let rootType: string | undefined = ''
 				let selectionSet: graphql.SelectionSetNode
 
