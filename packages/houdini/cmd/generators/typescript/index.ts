@@ -53,7 +53,6 @@ export default async function typescriptGenerator(
 			const selections = flattenSelections({
 				config,
 				selections: definition.selectionSet.selections,
-				includeFragments: kind !== ArtifactKind.Fragment,
 			})
 
 			if (definition?.kind === 'OperationDefinition') {

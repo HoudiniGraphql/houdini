@@ -5,11 +5,9 @@ import { Config } from 'houdini-common'
 export function flattenSelections({
 	config,
 	selections,
-	includeFragments,
 }: {
 	config: Config
 	selections: readonly graphql.SelectionNode[]
-	includeFragments: boolean
 }): readonly graphql.SelectionNode[] {
 	// group the selections by field name, inline fragments
 	const fieldMap: { [attributeName: string]: graphql.FieldNode } = {}
@@ -82,7 +80,6 @@ export function flattenSelections({
 						kind: 'SelectionSet',
 						selections: flattenSelections({
 							config,
-							includeFragments,
 							selections: field.selectionSet?.selections,
 						}),
 				  } as graphql.SelectionSetNode)
@@ -94,7 +91,6 @@ export function flattenSelections({
 				kind: 'SelectionSet' as 'SelectionSet',
 				selections: flattenSelections({
 					config,
-					includeFragments,
 					selections: fragment.selectionSet.selections,
 				}),
 			},
