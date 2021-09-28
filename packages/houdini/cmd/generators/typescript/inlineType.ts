@@ -6,7 +6,6 @@ import { TSTypeKind, StatementKind } from 'ast-types/gen/kinds'
 // locals
 import { TypeWrapper, unwrapType } from '../../utils'
 import { enumDeclaration, nullableField, readonlyProperty, scalarPropertyValue } from './types'
-import { collectFields, ExecutionContext } from 'graphql/execution/execute'
 
 const AST = recast.types.builders
 

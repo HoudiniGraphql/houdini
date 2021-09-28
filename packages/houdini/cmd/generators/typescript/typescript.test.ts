@@ -130,41 +130,6 @@ describe('typescript', function () {
 	`)
 	})
 
-	test('embedded fragments', async function () {
-		// the document to test
-		const docs = [
-			mockCollectedDoc(`fragment TestFragment on User { firstName nickname enumValue }`),
-			mockCollectedDoc(`fragment TestFragment2 on User { firstName ...TestFragment}`),
-		]
-
-		// execute the generator
-		await runPipeline(config, docs)
-
-		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(docs[1].document), 'utf-8')
-
-		// make sure they match what we expect
-		expect(
-			recast.parse(fileContents, {
-				parser: typeScriptParser,
-			})
-		).toMatchInlineSnapshot(`
-		export type TestFragment2 = {
-		    readonly "shape"?: TestFragment2$data,
-		    readonly "$fragments": {
-		        "TestFragment2": true
-		    }
-		};
-
-		export type TestFragment2$data = {
-		    readonly firstName: string,
-		    readonly $fragments: {
-		        TestFragment: true
-		    }
-		};
-	`)
-	})
-
 	test('nested types', async function () {
 		const fragment = `fragment TestFragment on User { firstName parent { firstName } }`
 

@@ -11,8 +11,6 @@ import { connectionSelection } from '../../transforms/list'
 
 const AST = recast.types.builders
 
-// USE FLATTENED SELECTION here to avoid deep merge
-
 export default function selection({
 	config,
 	rootType,
