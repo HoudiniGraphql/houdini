@@ -38,8 +38,9 @@ function _flatten({
 	selections: readonly graphql.SelectionNode[]
 	includeFragments: boolean
 }): readonly graphql.SelectionNode[] {
-	// build up a readonly list of the fields included at this depth
+	// group the selections by field name, inline fragments
 	const fieldMap: { [attributeName: string]: graphql.FieldNode } = {}
+	const inlineFragments: { [typeName: string]: graphql.InlineFragmentNode } = {}
 
 	// look at every selection
 	for (const selection of selections) {
@@ -66,27 +67,61 @@ function _flatten({
 			fieldMap[attributeName] = {
 				...fieldMap[attributeName],
 				selectionSet: {
-					kind: 'SelectionSet',
+					...inlineFragments[attributeName]?.selectionSet,
 					selections: [
-						...(fieldMap[attributeName].selectionSet?.selections || []),
+						...(fieldMap[attributeName]?.selectionSet?.selections || []),
 						...selection.selectionSet.selections,
 					],
 				},
 			}
 		}
+		// the selection could be an inline fragment
+		else if (selection.kind === 'InlineFragment') {
+			const typeCondition = selection.typeCondition?.name.value || ''
+			// if we haven't seen the type yet
+			if (!inlineFragments[typeCondition]) {
+				inlineFragments[typeCondition] = selection
+			}
+			// we've seen the type condition before, add the selection to the inline fragment
+			else {
+				inlineFragments[typeCondition] = {
+					...inlineFragments[typeCondition],
+					selectionSet: {
+						...inlineFragments[typeCondition].selectionSet,
+						selections: [
+							...inlineFragments[typeCondition].selectionSet.selections,
+							...selection.selectionSet.selections,
+						],
+					},
+				}
+			}
+		}
 	}
 
-	return Object.values(fieldMap).map((field) => ({
-		...field,
-		selectionSet: field.selectionSet
-			? {
-					kind: 'SelectionSet',
-					selections: _flatten({
-						config,
-						includeFragments,
-						selections: field.selectionSet?.selections,
-					}),
-			  }
-			: undefined,
-	}))
+	return [
+		...Object.values(fieldMap).map((field) => ({
+			...field,
+			selectionSet: field.selectionSet
+				? ({
+						kind: 'SelectionSet',
+						selections: _flatten({
+							config,
+							includeFragments,
+							selections: field.selectionSet?.selections,
+						}),
+				  } as graphql.SelectionSetNode)
+				: undefined,
+		})),
+		...Object.values(inlineFragments).map((fragment) => ({
+			...fragment,
+			selectionSet: {
+				kind: 'SelectionSet' as 'SelectionSet',
+				selections: _flatten({
+					config,
+					includeFragments,
+					selections: fragment.selectionSet.selections,
+				}),
+			},
+		})),
+	]
 }

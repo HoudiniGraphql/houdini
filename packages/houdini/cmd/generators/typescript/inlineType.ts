@@ -51,7 +51,7 @@ export function inlineType({
 		result = AST.tsTypeReference(AST.identifier(type.name))
 	}
 	// if we are looking at something with a selection set
-	else if (selections && selections?.length > 0) {
+	else if (selections) {
 		const rootObj = type as graphql.GraphQLObjectType<any, any>
 
 		// before we can begin, we need to sort the selection set for this field for

@@ -9,11 +9,32 @@ export function selectionTypeInfo(
 ): { field: graphql.GraphQLField<any, any>; type: graphql.GraphQLNamedType } {
 	// the field we are looking at
 	const selectionName = (selection as graphql.FieldNode).name.value
-	const response = graphql.isNonNullType(rootType)
-		? rootType.ofType.getFields()
-		: rootType.getFields()
 
-	const field = response[selectionName]
+	// look up the fields for the root object
+	let fields: { [fieldName: string]: graphql.GraphQLField<any, any> } = {}
+
+	// if the parent type in question is a union, there is only __typename
+	if (selection.kind === 'Field' && selection.name.value === '__typename') {
+		return {
+			field: {
+				name: '__typename',
+				// @ts-ignore
+				type: schema.getType('String')!,
+				args: [],
+			},
+			type: schema.getType('String')!,
+		}
+	}
+	// unwrap non-nulls
+	else if (graphql.isNonNullType(rootType)) {
+		fields = rootType.ofType.getFields()
+	}
+	// anything else
+	else {
+		fields = rootType.getFields()
+	}
+
+	const field = fields[selectionName]
 
 	if (!field) {
 		throw new Error(

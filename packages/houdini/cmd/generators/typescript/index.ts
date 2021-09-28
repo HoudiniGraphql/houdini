@@ -162,7 +162,6 @@ async function generateOperationTypeDefs(
 					])
 				)
 			),
-
 			// export the type that describes the result
 			AST.exportNamedDeclaration(
 				AST.tsTypeAliasDeclaration(
