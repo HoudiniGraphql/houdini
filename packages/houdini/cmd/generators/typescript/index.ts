@@ -49,17 +49,20 @@ export default async function typescriptGenerator(
 					def.name?.value === name
 			) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
 
+			// de-dupe/flatten the selection of the definition
+			const selections = flattenSelections({
+				config,
+				selections: definition.selectionSet.selections,
+				includeFragments: kind !== ArtifactKind.Fragment,
+			})
+
 			if (definition?.kind === 'OperationDefinition') {
 				// treat it as an operation document
 				await generateOperationTypeDefs(
 					config,
 					program.body,
 					definition,
-					flattenSelections({
-						config,
-						selections: definition.selectionSet.selections,
-						includeFragments: kind !== ArtifactKind.Fragment,
-					}),
+					selections,
 					visitedTypes
 				)
 			} else {
@@ -67,11 +70,7 @@ export default async function typescriptGenerator(
 				await generateFragmentTypeDefs(
 					config,
 					program.body,
-					flattenSelections({
-						config,
-						selections: definition.selectionSet.selections,
-						includeFragments: kind !== ArtifactKind.Fragment,
-					}),
+					selections,
 					originalDocument.definitions,
 					visitedTypes
 				)
