@@ -7,7 +7,7 @@ import { promisify } from 'util'
 import { Config, runPipeline as run, parseFile, ParsedSvelteFile } from 'houdini-common'
 import { Program } from '@babel/types'
 // locals
-import { CollectedGraphQLDocument } from './types'
+import { CollectedGraphQLDocument, ArtifactKind } from './types'
 import * as transforms from './transforms'
 import * as generators from './generators'
 import * as validators from './validators'
@@ -123,9 +123,38 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 									}
 								}
 
+								// figure out the document kind
+								let kind = ArtifactKind.Fragment
+								if (operations.length === 1) {
+									// the document kind depends on the artifact
+
+									// query
+									if (
+										operations[0].kind === 'OperationDefinition' &&
+										operations[0].operation === 'query'
+									) {
+										kind = ArtifactKind.Query
+									}
+									// mutation
+									else if (
+										operations[0].kind === 'OperationDefinition' &&
+										operations[0].operation === 'mutation'
+									) {
+										kind = ArtifactKind.Mutation
+									}
+									// subscription
+									else if (
+										operations[0].kind === 'OperationDefinition' &&
+										operations[0].operation === 'subscription'
+									) {
+										kind = ArtifactKind.Subcription
+									}
+								}
+
 								// add it to the list
 								documents.push({
 									name: config.documentName(parsedDoc),
+									kind,
 									document: parsedDoc,
 									filename: filePath,
 									originalDocument: parsedDoc,

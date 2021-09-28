@@ -14,7 +14,7 @@ const AST = recast.types.builders
 export default function selection({
 	config,
 	rootType,
-	selectionSet,
+	selections,
 	operations,
 	path = [],
 	includeFragments,
@@ -23,7 +23,7 @@ export default function selection({
 }: {
 	config: Config
 	rootType: string
-	selectionSet: graphql.SelectionSetNode
+	selections: readonly graphql.SelectionNode[]
 	operations: { [path: string]: MutationOperation[] }
 	path?: string[]
 	includeFragments: boolean
@@ -33,7 +33,7 @@ export default function selection({
 	// we need to build up an object that contains every field in the selection
 	let object: SubscriptionSelection = {}
 
-	for (const field of selectionSet.selections) {
+	for (const field of selections) {
 		// ignore fragment spreads
 		if (field.kind === 'FragmentSpread' && includeFragments) {
 			// look up the fragment definition
@@ -51,7 +51,7 @@ export default function selection({
 					config,
 					rootType: fragmentDefinition.typeCondition.name.value,
 					operations,
-					selectionSet: fragmentDefinition.selectionSet,
+					selections: fragmentDefinition.selectionSet.selections,
 					path,
 					includeFragments,
 					document,
@@ -66,7 +66,7 @@ export default function selection({
 					config,
 					rootType: field.typeCondition?.name.value || rootType,
 					operations,
-					selectionSet: field.selectionSet,
+					selections: field.selectionSet.selections,
 					path,
 					includeFragments,
 					document,
@@ -158,7 +158,7 @@ export default function selection({
 				fieldObj.fields = selection({
 					config,
 					rootType: typeName,
-					selectionSet: field.selectionSet,
+					selections: field.selectionSet.selections,
 					operations,
 					path: pathSoFar,
 					includeFragments,

@@ -27,21 +27,28 @@ export type DocumentArtifact =
 	| MutationArtifact
 	| SubscriptionArtifact
 
+export enum ArtifactKind {
+	Query = 'HoudiniQuery',
+	Subcription = 'HoudiniSubscription',
+	Mutation = 'HoudiniMutation',
+	Fragment = 'HoudiniFragment',
+}
+
 export type QueryArtifact = BaseCompiledDocument & {
-	kind: 'HoudiniQuery'
+	kind: ArtifactKind.Query
 	policy?: CachePolicy
 }
 
 export type MutationArtifact = BaseCompiledDocument & {
-	kind: 'HoudiniMutation'
+	kind: ArtifactKind.Mutation
 }
 
 export type FragmentArtifact = BaseCompiledDocument & {
-	kind: 'HoudiniFragment'
+	kind: ArtifactKind.Fragment
 }
 
 export type SubscriptionArtifact = BaseCompiledDocument & {
-	kind: 'HoudiniSubscription'
+	kind: ArtifactKind.Subcription
 }
 
 export enum RefetchUpdateMode {

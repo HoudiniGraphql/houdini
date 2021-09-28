@@ -6,11 +6,12 @@ import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
 import { CollectedGraphQLDocument } from '../../types'
-import { writeFile } from '../../utils'
+import { flattenSelections, writeFile } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { tsTypeReference } from './typeReference'
 import { readonlyProperty } from './types'
 import { fragmentKey, inlineType } from './inlineType'
+import { ArtifactKind } from '../../../runtime/types'
 
 const AST = recast.types.builders
 
@@ -27,7 +28,7 @@ export default async function typescriptGenerator(
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(async ({ originalDocument, generate }) => {
+		docs.map(async ({ originalDocument, name, kind, generate }) => {
 			if (!generate) {
 				return
 			}
@@ -42,12 +43,25 @@ export default async function typescriptGenerator(
 			const visitedTypes = new Set<string>()
 
 			// if there's an operation definition
-			if (originalDocument.definitions.find((def) => def.kind === 'OperationDefinition')) {
+			let definition = originalDocument.definitions.find(
+				(def) =>
+					(def.kind === 'OperationDefinition' || def.kind === 'FragmentDefinition') &&
+					def.name?.value === name
+			) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
+
+			// de-dupe/flatten the selection of the definition
+			const selections = flattenSelections({
+				config,
+				selections: definition.selectionSet.selections,
+			})
+
+			if (definition?.kind === 'OperationDefinition') {
 				// treat it as an operation document
 				await generateOperationTypeDefs(
 					config,
 					program.body,
-					originalDocument.definitions,
+					definition,
+					selections,
 					visitedTypes
 				)
 			} else {
@@ -55,6 +69,7 @@ export default async function typescriptGenerator(
 				await generateFragmentTypeDefs(
 					config,
 					program.body,
+					selections,
 					originalDocument.definitions,
 					visitedTypes
 				)
@@ -92,125 +107,104 @@ export default async function typescriptGenerator(
 async function generateOperationTypeDefs(
 	config: Config,
 	body: StatementKind[],
-	definitions: readonly graphql.DefinitionNode[],
+	definition: graphql.OperationDefinitionNode,
+	selections: readonly graphql.SelectionNode[],
 	visitedTypes: Set<string>
 ) {
-	// handle any fragment definitions
-	await generateFragmentTypeDefs(
-		config,
-		body,
-		definitions.filter(({ kind }) => kind === 'FragmentDefinition'),
-		visitedTypes
-	)
+	// the name of the types we will define
+	const inputTypeName = `${definition.name!.value}$input`
+	const shapeTypeName = `${definition.name!.value}$result`
 
-	// every definition will contribute something to the typedef
-	for (const definition of definitions) {
-		if (definition.kind !== 'OperationDefinition' || !definition.name) {
-			continue
-		}
+	// look up the root type of the document
+	let type: graphql.GraphQLNamedType | null | undefined
+	if (definition.operation === 'query') {
+		type = config.schema.getQueryType()
+	} else if (definition.operation === 'mutation') {
+		type = config.schema.getMutationType()
+	} else if (definition.operation === 'subscription') {
+		type = config.schema.getSubscriptionType()
+	}
+	if (!type) {
+		throw new Error('Could not find root type for document')
+	}
 
-		// the name of the types we will define
-		const inputTypeName = `${definition.name.value}$input`
-		const shapeTypeName = `${definition.name.value}$result`
+	// dry
+	const hasInputs = definition.variableDefinitions && definition.variableDefinitions.length > 0
 
-		// look up the root type of the document
-		let type: graphql.GraphQLNamedType | null | undefined
-		if (definition.operation === 'query') {
-			type = config.schema.getQueryType()
-		} else if (definition.operation === 'mutation') {
-			type = config.schema.getMutationType()
-		} else if (definition.operation === 'subscription') {
-			type = config.schema.getSubscriptionType()
-		}
-		if (!type) {
-			throw new Error('Could not find root type for document')
-		}
-
-		// dry
-		const hasInputs =
-			definition.variableDefinitions && definition.variableDefinitions.length > 0
-
-		// add our types to the body
-		body.push(
-			// add the root type named after the document that links the input and result types
-			AST.exportNamedDeclaration(
-				AST.tsTypeAliasDeclaration(
-					AST.identifier(definition.name.value),
-					AST.tsTypeLiteral([
-						readonlyProperty(
-							AST.tsPropertySignature(
-								AST.stringLiteral('input'),
-								AST.tsTypeAnnotation(
-									hasInputs
-										? AST.tsTypeReference(AST.identifier(inputTypeName))
-										: AST.tsNullKeyword()
-								)
+	// add our types to the body
+	body.push(
+		// add the root type named after the document that links the input and result types
+		AST.exportNamedDeclaration(
+			AST.tsTypeAliasDeclaration(
+				AST.identifier(definition.name!.value),
+				AST.tsTypeLiteral([
+					readonlyProperty(
+						AST.tsPropertySignature(
+							AST.stringLiteral('input'),
+							AST.tsTypeAnnotation(
+								hasInputs
+									? AST.tsTypeReference(AST.identifier(inputTypeName))
+									: AST.tsNullKeyword()
 							)
-						),
-						readonlyProperty(
-							AST.tsPropertySignature(
-								AST.stringLiteral('result'),
-								AST.tsTypeAnnotation(
-									AST.tsTypeReference(AST.identifier(shapeTypeName))
-								)
-							)
-						),
-					])
-				)
-			),
-
-			// export the type that describes the result
-			AST.exportNamedDeclaration(
-				AST.tsTypeAliasDeclaration(
-					AST.identifier(shapeTypeName),
-					inlineType({
-						config,
-						rootType: type,
-						selections: [...definition.selectionSet.selections],
-						root: true,
-						allowReadonly: true,
-						visitedTypes,
-						body,
-					})
-				)
+						)
+					),
+					readonlyProperty(
+						AST.tsPropertySignature(
+							AST.stringLiteral('result'),
+							AST.tsTypeAnnotation(AST.tsTypeReference(AST.identifier(shapeTypeName)))
+						)
+					),
+				])
+			)
+		),
+		// export the type that describes the result
+		AST.exportNamedDeclaration(
+			AST.tsTypeAliasDeclaration(
+				AST.identifier(shapeTypeName),
+				inlineType({
+					config,
+					rootType: type,
+					selections,
+					root: true,
+					allowReadonly: true,
+					visitedTypes,
+					body,
+				})
 			)
 		)
+	)
 
-		// if there are variables in this query
-		if (
-			hasInputs &&
-			definition.variableDefinitions &&
-			definition.variableDefinitions.length > 0
-		) {
-			for (const variableDefinition of definition.variableDefinitions) {
-				addReferencedInputTypes(config, body, visitedTypes, variableDefinition.type)
-			}
+	// if there are variables in this query
+	if (hasInputs && definition.variableDefinitions && definition.variableDefinitions.length > 0) {
+		for (const variableDefinition of definition.variableDefinitions) {
+			addReferencedInputTypes(config, body, visitedTypes, variableDefinition.type)
+		}
 
-			// merge all of the variables into a single object
-			body.push(
-				AST.exportNamedDeclaration(
-					AST.tsTypeAliasDeclaration(
-						AST.identifier(inputTypeName),
-						AST.tsTypeLiteral(
-							(definition.variableDefinitions || []).map(
-								(definition: graphql.VariableDefinitionNode) =>
-									// add a property describing the variable to the root object
-									AST.tsPropertySignature(
-										AST.identifier(definition.variable.name.value),
-										AST.tsTypeAnnotation(tsTypeReference(config, definition))
-									)
-							)
+		// merge all of the variables into a single object
+		body.push(
+			AST.exportNamedDeclaration(
+				AST.tsTypeAliasDeclaration(
+					AST.identifier(inputTypeName),
+					AST.tsTypeLiteral(
+						(definition.variableDefinitions || []).map(
+							(definition: graphql.VariableDefinitionNode) =>
+								// add a property describing the variable to the root object
+								AST.tsPropertySignature(
+									AST.identifier(definition.variable.name.value),
+									AST.tsTypeAnnotation(tsTypeReference(config, definition))
+								)
 						)
 					)
 				)
 			)
-		}
+		)
 	}
 }
 
 async function generateFragmentTypeDefs(
 	config: Config,
 	body: StatementKind[],
+	selections: readonly graphql.SelectionNode[],
 	definitions: readonly graphql.DefinitionNode[],
 	visitedTypes: Set<string>
 ) {
@@ -276,7 +270,7 @@ async function generateFragmentTypeDefs(
 					inlineType({
 						config,
 						rootType: type,
-						selections: [...definition.selectionSet.selections],
+						selections,
 						root: true,
 						allowReadonly: true,
 						body,

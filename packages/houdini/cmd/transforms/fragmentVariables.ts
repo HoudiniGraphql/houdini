@@ -5,6 +5,7 @@ import * as graphql from 'graphql'
 import { CollectedGraphQLDocument } from '../types'
 import { collectFragments, FragmentDependency } from './composeQueries'
 import { murmurHash } from '../utils'
+import { ArtifactKind } from '../../runtime/types'
 
 const GraphqlKinds = graphql.Kind
 
@@ -75,6 +76,7 @@ export default async function fragmentVariables(
 
 	documents.push({
 		name: 'generated::fragmentVariables',
+		kind: ArtifactKind.Fragment,
 		document: doc,
 		originalDocument: doc,
 		generate: false,

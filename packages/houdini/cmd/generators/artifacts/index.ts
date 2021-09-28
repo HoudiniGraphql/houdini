@@ -1,14 +1,7 @@
 // externals
 import { Config, getRootType, hashDocument, parentTypeFromAncestors } from 'houdini-common'
 import * as graphql from 'graphql'
-import {
-	CompiledQueryKind,
-	CompiledFragmentKind,
-	CompiledMutationKind,
-	CompiledDocumentKind,
-	CompiledSubscriptionKind,
-	CollectedGraphQLDocument,
-} from '../../types'
+import { CollectedGraphQLDocument } from '../../types'
 import * as recast from 'recast'
 // locals
 import { moduleExport, writeFile } from '../../utils'
@@ -17,7 +10,7 @@ import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { serializeValue } from './utils'
-import { CachePolicy } from '../../../runtime/types'
+import { ArtifactKind } from '../../../runtime/types'
 
 const AST = recast.types.builders
 
@@ -114,7 +107,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				)
 
 				// figure out the document kind
-				let docKind: CompiledDocumentKind | null = null
+				let docKind = doc.kind
 
 				// look for the operation
 				const operations = document.definitions.filter(
@@ -125,38 +118,11 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
 				) as graphql.FragmentDefinitionNode[]
 
-				// if there are operations in the document
-				if (operations.length > 0 && operations[0].kind === 'OperationDefinition') {
-					const { operation } = operations[0]
-
-					// figure out if its a query
-					if (operation === 'query') {
-						docKind = CompiledQueryKind
-					}
-					// or a mutation
-					else if (operation === 'mutation') {
-						docKind = CompiledMutationKind
-					}
-					// or a subscription
-					else if (operation === 'subscription') {
-						docKind = CompiledSubscriptionKind
-					}
-				}
-				// if there are operations in the document
-				else if (fragments.length > 0) {
-					docKind = CompiledFragmentKind
-				}
-
-				// if we couldn't figure out the kind
-				if (!docKind) {
-					throw new Error('Could not figure out what kind of document we were given')
-				}
-
 				let rootType: string | undefined = ''
 				let selectionSet: graphql.SelectionSetNode
 
 				// if we are generating the artifact for an operation
-				if (docKind !== 'HoudiniFragment') {
+				if (docKind !== ArtifactKind.Fragment) {
 					// find the operation
 					const operation = operations[0]
 
@@ -207,7 +173,7 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 					selection: selection({
 						config,
 						rootType,
-						selectionSet: selectionSet,
+						selections: selectionSet.selections,
 						operations: operationsByPath(config, operations[0], filterTypes),
 						// do not include used fragments if we are rendering the selection
 						// for a fragment document

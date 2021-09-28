@@ -13,7 +13,7 @@ import { mockCollectedDoc } from '../../testUtils'
 // the config to use in tests
 const config = testConfig({
 	schema: `
-		enum MyEnum { 
+		enum MyEnum {
 			Hello
 		}
 
@@ -26,9 +26,9 @@ const config = testConfig({
 			node(id: ID!): Node
 		}
 
-		type Mutation { 
+		type Mutation {
 			doThing(
-				filter: UserFilter, 
+				filter: UserFilter,
 				list: [UserFilter!]!,
 				id: ID!
 				firstName: String!
@@ -58,13 +58,13 @@ const config = testConfig({
 			id: ID!
 		}
 
-		type Cat implements Node & Animal { 
+		type Cat implements Node & Animal {
 			id: ID!
 			kitty: Boolean!
 			isAnimal: Boolean!
 		}
 
-		interface Animal { 
+		interface Animal {
 			isAnimal: Boolean!
 		}
 
@@ -72,7 +72,7 @@ const config = testConfig({
 
 		union AnotherEntity = User | Ghost
 
-		type Ghost { 
+		type Ghost {
 			aka: String!
 		}
 
@@ -340,24 +340,24 @@ describe('typescript', function () {
 		// the document to test
 		const doc = mockCollectedDoc(
 			`mutation Mutation(
-				$filter: UserFilter, 
-				$filterList: [UserFilter!]!, 
+				$filter: UserFilter,
+				$filterList: [UserFilter!]!,
 				$id: ID!
 				$firstName: String!
 				$admin: Boolean
 				$age: Int
 				$weight: Float
 			) { doThing(
-				filter: $filter, 
-				list: $filterList, 
+				filter: $filter,
+				list: $filterList,
 				id:$id
 				firstName:$firstName
 				admin:$admin
 				age:$age
 				weight:$weight
-			) { 
-				firstName 
-			  } 
+			) {
+				firstName
+			  }
 			}`
 		)
 
@@ -531,15 +531,15 @@ describe('typescript', function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query { 
-				nodes { 
-					... on User { 
+			query Query {
+				nodes {
+					... on User {
 						id
 					}
-					... on Cat { 
+					... on Cat {
 						id
 					}
-				} 
+				}
 			}
 		`
 		)
@@ -577,15 +577,15 @@ describe('typescript', function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query { 
-				entities { 
-					... on User { 
+			query Query {
+				entities {
+					... on User {
 						id
 					}
-					... on Cat { 
+					... on Cat {
 						id
 					}
-				} 
+				}
 			}
 		`
 		)
@@ -623,16 +623,16 @@ describe('typescript', function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query { 
-				nodes { 
+			query Query {
+				nodes {
 					id
-					... on User { 
+					... on User {
 						firstName
 					}
-					... on Cat { 
+					... on Cat {
 						kitty
 					}
-				} 
+				}
 			}
 		`
 		)
@@ -672,18 +672,18 @@ describe('typescript', function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query { 
-				entities { 
-					... on Animal { 
+			query Query {
+				entities {
+					... on Animal {
 						isAnimal
 					}
-					... on User { 
+					... on User {
 						firstName
 					}
-					... on Cat { 
+					... on Cat {
 						kitty
 					}
-				} 
+				}
 			}
 		`
 		)
@@ -724,13 +724,13 @@ describe('typescript', function () {
 		const localConfig = testConfig({
 			schema: `
 		scalar DateTime
-		
-		type TodoItem { 
+
+		type TodoItem {
 			text: String!
-			createdAt: DateTime! 
-		}	
-		
-		type Query { 
+			createdAt: DateTime!
+		}
+
+		type Query {
 			allItems: [TodoItem!]!
 		}
 	`,
@@ -780,13 +780,13 @@ describe('typescript', function () {
 		const localConfig = testConfig({
 			schema: `
 		scalar DateTime
-		
-		type TodoItem { 
+
+		type TodoItem {
 			text: String!
-			createdAt: DateTime! 
-		}	
-		
-		type Query { 
+			createdAt: DateTime!
+		}
+
+		type Query {
 			allItems(createdAt: DateTime): [TodoItem!]!
 		}
 	`,
@@ -841,8 +841,8 @@ describe('typescript', function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query { 
-				listOfLists { 
+			query Query {
+				listOfLists {
 					firstName
 					nickname
 				}
@@ -872,6 +872,48 @@ describe('typescript', function () {
 		        readonly firstName: string,
 		        readonly nickname: string | null
 		    } | null)[] | null)[]
+		};
+	`)
+	})
+
+	test('duplicate fields', async function () {
+		// the document to test
+		const query = mockCollectedDoc(`query Query {
+			user {
+				parent {
+					firstName
+					firstName
+				}
+				parent {
+					nickname
+				}
+			}
+		}`)
+
+		// execute the generator
+		await runPipeline(config, [query])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type Query = {
+		    readonly "input": null,
+		    readonly "result": Query$result
+		};
+
+		export type Query$result = {
+		    readonly user: {
+		        readonly parent: {
+		            readonly firstName: string,
+		            readonly nickname: string | null
+		        } | null
+		    } | null
 		};
 	`)
 	})

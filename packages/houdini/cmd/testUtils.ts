@@ -4,6 +4,7 @@ import { testConfig } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument, HoudiniError } from './types'
 import { runPipeline } from './generate'
+import { ArtifactKind } from '../runtime/types'
 
 export function pipelineTest(
 	title: string,
@@ -53,8 +54,35 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 	// @ts-ignore
 	const name = parsed.definitions[0].name.value
 
+	const operations = parsed.definitions
+
+	// figure out the document kind
+	let kind = ArtifactKind.Fragment
+	if (operations.length === 1) {
+		// the document kind depends on the artifact
+		// query
+		if (operations[0].kind === 'OperationDefinition' && operations[0].operation === 'query') {
+			kind = ArtifactKind.Query
+		}
+		// mutation
+		else if (
+			operations[0].kind === 'OperationDefinition' &&
+			operations[0].operation === 'mutation'
+		) {
+			kind = ArtifactKind.Mutation
+		}
+		// subscription
+		else if (
+			operations[0].kind === 'OperationDefinition' &&
+			operations[0].operation === 'subscription'
+		) {
+			kind = ArtifactKind.Subcription
+		}
+	}
+
 	return {
 		name,
+		kind,
 		document: parsed,
 		originalDocument: parsed,
 		filename: `${name}.ts`,

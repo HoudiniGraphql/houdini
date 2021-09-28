@@ -3,10 +3,11 @@ import type * as graphql from 'graphql'
 export type { ConfigFile } from 'houdini-common'
 
 export * from '../runtime/types'
-import { BaseCompiledDocument } from '../runtime/types'
+import { BaseCompiledDocument, ArtifactKind } from '../runtime/types'
 
 // the result of collecting documents from source code
 export type CollectedGraphQLDocument = {
+	kind: ArtifactKind
 	filename: string
 	name: string
 	document: graphql.DocumentNode
