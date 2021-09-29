@@ -1484,6 +1484,96 @@ test('append operation', function () {
 	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(1)
 })
 
+test('append from list', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache.id('User', '1')!,
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be added to the list
+	cache.write({
+		selection: {
+			newUser: {
+				type: 'User',
+				keyRaw: 'newUser',
+				operations: [
+					{
+						action: 'insert',
+						list: 'All_Users',
+						parentID: {
+							kind: 'String',
+							value: cache.id('User', '1')!,
+						},
+					},
+				],
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+				},
+			},
+		},
+		data: {
+			newUser: [{ id: '3' }, { id: '4' }],
+		},
+	})
+
+	// make sure we just added to the list
+	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(2)
+})
+
 test('append when operation', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
@@ -1913,6 +2003,114 @@ test('remove operation', function () {
 	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
 })
 
+test('remove operation from list', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{ id: '2', firstName: 'jane' },
+					{ id: '3', firstName: 'Alfred' },
+				],
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache.id('User', '1')!,
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be removed from the operation
+	cache.write({
+		selection: {
+			newUser: {
+				type: 'User',
+				keyRaw: 'newUser',
+				operations: [
+					{
+						action: 'remove',
+						list: 'All_Users',
+						parentID: {
+							kind: 'String',
+							value: cache.id('User', '1')!,
+						},
+					},
+				],
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+				},
+			},
+		},
+		data: {
+			newUser: [{ id: '2' }, { id: '3' }],
+		},
+	})
+
+	// make sure we removed the element from the list
+	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
+})
+
 test('delete operation', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
@@ -2016,6 +2214,115 @@ test('delete operation', function () {
 	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
 
 	expect(cache.internal.getRecord('User:2')).toBeFalsy()
+})
+
+test('delete operation from list', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{ id: '2', firstName: 'jane' },
+					{ id: '3', firstName: 'Alfred' },
+				],
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache.id('User', '1')!,
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be added to the list
+	cache.write({
+		selection: {
+			deleteUser: {
+				type: 'User',
+				keyRaw: 'deleteUser',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+						operations: [
+							{
+								action: 'delete',
+								type: 'User',
+							},
+						],
+					},
+				},
+			},
+		},
+		data: {
+			deleteUser: {
+				id: ['2', '3'],
+			},
+		},
+	})
+
+	// make sure we removed the element from the list
+	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
+
+	expect(cache.internal.getRecord('User:2')).toBeFalsy()
+	expect(cache.internal.getRecord('User:3')).toBeFalsy()
 })
 
 test('disabled linked lists update', function () {

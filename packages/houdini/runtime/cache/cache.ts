@@ -685,43 +685,45 @@ export class Cache {
 					}
 				}
 
-				// only insert an object into a list if we're adding an object with fields
-				if (
-					operation.action === 'insert' &&
-					value instanceof Object &&
-					!Array.isArray(value) &&
-					fields &&
-					operation.list
-				) {
-					this.list(operation.list, parentID)
-						.when(operation.when)
-						.addToList(fields, value, variables, operation.position || 'last')
-				}
-
-				// only insert an object into a list if we're adding an object with fields
-				else if (
-					operation.action === 'remove' &&
-					value instanceof Object &&
-					!Array.isArray(value) &&
-					fields &&
-					operation.list
-				) {
-					this.list(operation.list, parentID)
-						.when(operation.when)
-						.remove(value, variables)
-				}
-
-				// delete the operation if we have to
-				else if (operation.action === 'delete' && operation.type) {
-					if (typeof value !== 'string') {
-						throw new Error('Cannot delete a record with a non-string ID')
+				// there could be a list of elements to perform the operation on
+				const targets = Array.isArray(value) ? value : [value]
+				for (const target of targets) {
+					// only insert an object into a list if we're adding an object with fields
+					if (
+						operation.action === 'insert' &&
+						target instanceof Object &&
+						fields &&
+						operation.list
+					) {
+						this.list(operation.list, parentID)
+							.when(operation.when)
+							.addToList(fields, target, variables, operation.position || 'last')
 					}
 
-					const targetID = this.id(operation.type, value)
-					if (!targetID) {
-						continue
+					// only insert an object into a list if we're adding an object with fields
+					else if (
+						operation.action === 'remove' &&
+						target instanceof Object &&
+						fields &&
+						operation.list
+					) {
+						this.list(operation.list, parentID)
+							.when(operation.when)
+							.remove(target, variables)
 					}
-					this.delete(operation.type, targetID, variables)
+
+					// delete the operation if we have to
+					else if (operation.action === 'delete' && operation.type) {
+						if (typeof target !== 'string') {
+							throw new Error('Cannot delete a record with a non-string ID')
+						}
+
+						const targetID = this.id(operation.type, target)
+						if (!targetID) {
+							continue
+						}
+						this.delete(operation.type, targetID, variables)
+					}
 				}
 			}
 		}
