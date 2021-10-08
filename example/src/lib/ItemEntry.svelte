@@ -16,11 +16,12 @@
 	// get the information we need about the item
 	const data = fragment(
 		graphql`
-			fragment ItemEntry_item on TodoItem {
+			fragment ItemEntry_item on TodoItem @arguments(filter: { type: "String!" }) {
 				id
 				text
 				completed
 				createdAt
+				filter(val: $filter)
 			}
 		`,
 		item
@@ -121,7 +122,7 @@
 			{$data.text} 
 			<span class="timestamp">
 				{$data.createdAt.toLocaleDateString("en-US")}
-			</span>
+			</span> - { $data.filter}
 		</label>
 		<button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
 	</div>

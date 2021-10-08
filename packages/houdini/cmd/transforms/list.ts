@@ -26,7 +26,7 @@ export default async function addListFragments(
 	for (const doc of documents) {
 		doc.document = graphql.visit(doc.document, {
 			Directive(node, key, parent, path, ancestors) {
-				// if we found a @list applied (old applications will call this @connection)
+				// if we found a @list applied (or a @paginate which implies a @list )
 				if ([config.listDirective, config.paginateDirective].includes(node.name.value)) {
 					// look up the name passed to the directive
 					const nameArg = node.arguments?.find((arg) => arg.name.value === 'name')

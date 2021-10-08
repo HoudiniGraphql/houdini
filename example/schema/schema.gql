@@ -64,6 +64,7 @@ type TodoItem {
 	createdAt: DateTime!
 	id: ID!
 	text: String!
+	filter(val: String): String!
 }
 
 type TodoItemConnection {

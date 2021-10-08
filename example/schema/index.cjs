@@ -18,6 +18,7 @@ module.exports.typeDefs = gql`
 		text: String!
 		completed: Boolean!
 		createdAt: DateTime!
+		filter(val: String): String!
 	}
 
 	type Query {
@@ -166,6 +167,7 @@ module.exports.resolvers = {
 	},
 	TodoItem: {
 		completed: ({ completed }) => Boolean(completed),
+		filter: ({ val }) => val,
 	},
 	Subscription: {
 		itemUpdate: {

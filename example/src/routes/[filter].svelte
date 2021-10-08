@@ -31,7 +31,7 @@
 					node {
 						id
 						completed
-						...ItemEntry_item
+						...ItemEntry_item @with(filter: "1234")
 					}
 				}
 			}

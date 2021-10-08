@@ -39,23 +39,6 @@ export default async function fragmentVariables(
 			continue
 		}
 
-		// an operation defines a root scope that maps variable names to a value node
-		// pointing to an argument with the same name
-		const rootScope =
-			operation.variableDefinitions?.reduce<ValueMap>(
-				(scope, definition) => ({
-					...scope,
-					[definition.variable.name.value]: {
-						kind: 'Variable',
-						name: {
-							kind: 'Name',
-							value: definition.variable.name.value,
-						},
-					} as graphql.VariableNode,
-				}),
-				{}
-			) || {}
-
 		// inline any fragment arguments in the document
 		doc.document = inlineFragmentArgs({
 			config,
@@ -63,7 +46,7 @@ export default async function fragmentVariables(
 			document: doc.document,
 			generatedFragments,
 			visitedFragments,
-			scope: rootScope,
+			scope: null,
 		})
 	}
 
@@ -86,7 +69,7 @@ export default async function fragmentVariables(
 
 type ValueMap = Record<string, graphql.ValueNode>
 
-function inlineFragmentArgs({
+export function inlineFragmentArgs({
 	config,
 	fragmentDefinitions,
 	document,
@@ -103,6 +86,16 @@ function inlineFragmentArgs({
 	scope: ValueMap | undefined | null
 	newName?: string
 }): any {
+	// if the scope is null, use the root-level scope defined by the document's
+	// operation definition
+	if (!scope) {
+		scope = operationScope(
+			(document as graphql.DocumentNode).definitions.find(
+				({ kind }) => kind === GraphqlKinds.OPERATION_DEFINITION
+			) as graphql.OperationDefinitionNode
+		)
+	}
+
 	// look up the arguments for the fragment
 	const definitionArgs = fragmentArguments(
 		config,
@@ -110,43 +103,13 @@ function inlineFragmentArgs({
 	).reduce<Record<string, FragmentArgument>>((acc, arg) => ({ ...acc, [arg.name]: arg }), {})
 
 	const result = graphql.visit(document, {
-		Argument(node) {
-			// look at the arguments value to see if its a variable
-			const value = node.value
-			if (value.kind !== 'Variable') {
-				return
-			}
-
-			// if there's no scope we can't evaluate it
-			if (!scope) {
-				throw new Error(
-					node.name.value +
-						' is not defined in the current scope: ' +
-						JSON.stringify(scope)
-				)
-			}
-
-			// is the variable in scope
-			const newValue = scope[value.name.value]
-			// if it is just use it
-			if (newValue) {
-				return {
-					...node,
-					value: newValue,
-				}
-			}
-			// if the argument is required
-			if (definitionArgs[value.name.value] && definitionArgs[value.name.value].required) {
-				throw new Error('Missing value for required arg: ' + value.name.value)
-			}
-
-			// if we got this far, theres no value for a non-required arg, remove the node
-			return null
-		},
+		// every time we run into a fragment spread we might need to replace it
+		// with a version that incorporates the current scope's variable values
 		FragmentSpread(node) {
 			// look at the fragment spread to see if there are any default arguments
 			// that haven't been overridden by with
 			const { definition } = fragmentDefinitions[node.name.value]
+
 			// we have to apply arguments to the fragment definitions
 			let { args, hash } = collectWithArguments(config, node, scope)
 
@@ -194,7 +157,8 @@ function inlineFragmentArgs({
 							definition.name.value === node.name.value
 					)
 
-					// remove the element from the list
+					// keep walking down the referenced fragment's selection
+					// and replace the definition in the document
 					const localDefinitions = [...doc.document.definitions]
 					localDefinitions.splice(definitionIndex, 1)
 					localDefinitions.push(
@@ -228,9 +192,44 @@ function inlineFragmentArgs({
 				}
 			}
 		},
+		// look at every time something is used as an argument
+		Argument(node) {
+			// if the argument is a variable we need to expand it to its value (passed from the parent)
+			const value = node.value
+			if (value.kind !== 'Variable') {
+				return
+			}
+
+			// if there's no scope we can't evaluate it
+			if (!scope) {
+				throw new Error(
+					node.name.value +
+						' is not defined in the current scope: ' +
+						JSON.stringify(scope)
+				)
+			}
+
+			// is the variable in scope
+			const newValue = scope[value.name.value]
+			// if it is just use it
+			if (newValue) {
+				return {
+					...node,
+					value: newValue,
+				}
+			}
+			// if the argument is required
+			if (definitionArgs[value.name.value] && definitionArgs[value.name.value].required) {
+				throw new Error('Missing value for required arg: ' + value.name.value)
+			}
+
+			// if we got this far, theres no value for a non-required arg, remove the node
+			return null
+		},
 	})
 
-	// if we are supposed to change the name
+	// if we computed a new name for the fragment (because we got here as part of analyzing a fragment
+	// spread with @with), we need to change the name of the fragment
 	if (newName) {
 		// the new name for the document
 		result.name = {
@@ -335,7 +334,7 @@ function collectDefaultArgumentValues(
 	return result
 }
 
-function collectWithArguments(
+export function collectWithArguments(
 	config: Config,
 	node: graphql.FragmentSpreadNode,
 	scope: ValueMap | null = {}
@@ -372,4 +371,22 @@ function collectWithArguments(
 		args,
 		hash: '_' + murmurHash(JSON.stringify(args)),
 	}
+}
+
+function operationScope(operation: graphql.OperationDefinitionNode) {
+	return (
+		operation.variableDefinitions?.reduce<ValueMap>(
+			(scope, definition) => ({
+				...scope,
+				[definition.variable.name.value]: {
+					kind: 'Variable',
+					name: {
+						kind: 'Name',
+						value: definition.variable.name.value,
+					},
+				} as graphql.VariableNode,
+			}),
+			{}
+		) || {}
+	)
 }

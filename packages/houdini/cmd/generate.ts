@@ -32,14 +32,18 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 	await run(
 		config,
 		[
-			transforms.internalSchema,
-			transforms.list,
-			transforms.addID,
 			validators.typeCheck,
-			transforms.typename,
 			validators.uniqueNames,
 			validators.noIDAlias,
-			transforms.paginate, // must go before fragment variables
+			transforms.internalSchema,
+			transforms.addID,
+			transforms.typename,
+			// list transform must go before fragment variables
+			// so that the mutation fragments are defined before they get mixed in
+			transforms.list,
+			// paginate transform needs to go before fragmentVariables
+			// so that the variable definitions get hashed
+			transforms.paginate,
 			transforms.fragmentVariables,
 			transforms.composeQueries,
 			generators.artifacts,

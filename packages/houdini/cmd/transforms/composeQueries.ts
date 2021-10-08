@@ -1,5 +1,5 @@
 // externals
-import graphql, { visit as walkGraphQL, Kind as GraphqlKinds } from 'graphql'
+import graphql, { visit as walkGraphQL, Kind as GraphqlKinds, print } from 'graphql'
 import { Config } from 'houdini-common'
 // locals
 import { CollectedGraphQLDocument } from '../types'
@@ -103,7 +103,7 @@ function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<st
 
 // take a list of required fragments and turn it into a list of fragments
 // needed to create the query document
-export function flattenFragments(
+function flattenFragments(
 	operation: { requiredFragments: Array<string> },
 	fragments: { [name: string]: { requiredFragments: Array<string> } }
 ): Array<string> {
@@ -139,7 +139,7 @@ export function flattenFragments(
 		// grab the referenced fragment
 		const targetFragment = fragments[nextFragment]
 		if (!targetFragment) {
-			throw new Error('Could not find definition for fragment ' + nextFragment)
+			throw new Error('compose: could not find definition for fragment ' + nextFragment)
 		}
 
 		// add this fragments dependents to the pile

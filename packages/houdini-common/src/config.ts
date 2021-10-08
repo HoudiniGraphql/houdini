@@ -468,6 +468,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
 				cats: [Cat!]!
+				field(filter: String): String
 			}
 
 			type Ghost implements Friend {
