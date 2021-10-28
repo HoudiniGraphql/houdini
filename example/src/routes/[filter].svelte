@@ -24,14 +24,14 @@
 
 	// load the items
 	const { data, pageInfo, loadNextPage } = paginatedQuery<AllItems>(graphql`
-		query AllItems($completed: Boolean, $filter: String) @cache(policy: CacheAndNetwork) {
+		query AllItems($completed: Boolean) @cache(policy: CacheAndNetwork) {
 			filteredItems: items(completed: $completed, first: 2)
 				@paginate(name: "Filtered_Items") {
 				edges {
 					node {
 						id
 						completed
-						...ItemEntry_item @with(filter: $filter)
+						...ItemEntry_item
 					}
 				}
 			}
@@ -58,11 +58,11 @@
 	`)
 
 	subscription(graphql`
-		subscription NewItem($filter: String) {
+		subscription NewItem {
 			newItem {
 				item {
 					...All_Items_insert
-					...Filtered_Items_insert @prepend(when_not: { completed: true }) @with(filter: $filter)
+					...Filtered_Items_insert @prepend(when_not: { completed: true })
 				}
 			}
 		}
