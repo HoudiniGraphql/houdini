@@ -1,0 +1,68 @@
+{
+	".svelte-kit/build/runtime/internal/start.js": {
+		"file": "start-2da4d5a5.js",
+		"src": ".svelte-kit/build/runtime/internal/start.js",
+		"isEntry": true,
+		"imports": ["_vendor-be35de2e.js"],
+		"dynamicImports": [
+			".svelte-kit/build/components/layout.svelte",
+			".svelte-kit/build/components/error.svelte",
+			"src/routes/index.svelte",
+			"src/routes/docs/__layout.svelte",
+			"src/routes/docs/index.md",
+			"src/routes/docs/installation.md"
+		],
+		"css": ["assets/start-a8cd1609.css"]
+	},
+	".svelte-kit/build/components/layout.svelte": {
+		"file": "layout.svelte-a736d89a.js",
+		"src": ".svelte-kit/build/components/layout.svelte",
+		"isEntry": true,
+		"isDynamicEntry": true,
+		"imports": ["_vendor-be35de2e.js"]
+	},
+	".svelte-kit/build/components/error.svelte": {
+		"file": "error.svelte-4385f0d9.js",
+		"src": ".svelte-kit/build/components/error.svelte",
+		"isEntry": true,
+		"isDynamicEntry": true,
+		"imports": ["_vendor-be35de2e.js"]
+	},
+	"src/routes/index.svelte": {
+		"file": "pages/index.svelte-bc7963b2.js",
+		"src": "src/routes/index.svelte",
+		"isEntry": true,
+		"isDynamicEntry": true,
+		"imports": ["_vendor-be35de2e.js"]
+	},
+	"src/routes/docs/__layout.svelte": {
+		"file": "pages/docs/__layout.svelte-e4a92952.js",
+		"src": "src/routes/docs/__layout.svelte",
+		"isEntry": true,
+		"isDynamicEntry": true,
+		"imports": ["_vendor-be35de2e.js"],
+		"css": ["assets/pages/docs/__layout.svelte-3ca85a3a.css"]
+	},
+	"src/routes/docs/index.md": {
+		"file": "pages/docs/index.md-c81e9eff.js",
+		"src": "src/routes/docs/index.md",
+		"isEntry": true,
+		"isDynamicEntry": true,
+		"imports": ["_vendor-be35de2e.js", "_Docs.layout-3b38f4d9.js"]
+	},
+	"src/routes/docs/installation.md": {
+		"file": "pages/docs/installation.md-3ad403ae.js",
+		"src": "src/routes/docs/installation.md",
+		"isEntry": true,
+		"isDynamicEntry": true,
+		"imports": ["_vendor-be35de2e.js", "_Docs.layout-3b38f4d9.js"]
+	},
+	"_vendor-be35de2e.js": {
+		"file": "chunks/vendor-be35de2e.js"
+	},
+	"_Docs.layout-3b38f4d9.js": {
+		"file": "chunks/Docs.layout-3b38f4d9.js",
+		"imports": ["_vendor-be35de2e.js"],
+		"css": ["assets/Docs.layout-339c9754.css"]
+	}
+}

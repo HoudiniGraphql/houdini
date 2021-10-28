@@ -4,6 +4,7 @@
 	"description": "The disappearing graphql client for SvelteKit",
 	"workspaces": [
 		"example",
+		"docs",
 		"packages/*"
 	],
 	"type": "module",
