@@ -572,6 +572,8 @@ query AllUsers {
     }
 }
 ```
+> Keep in mind, if you are using fragment variables inside of a field flagged for 
+> list operations, you'll have to pass a value for the variable when performing the operation 
 
 ## 📝&nbsp;&nbsp;Mutations
 

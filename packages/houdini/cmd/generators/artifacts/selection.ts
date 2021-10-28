@@ -41,7 +41,9 @@ export default function selection({
 				(defn) => defn.kind === 'FragmentDefinition' && defn.name.value === field.name.value
 			) as graphql.FragmentDefinitionNode
 			if (!fragmentDefinition) {
-				throw new Error('Could not find definition for fragment ' + field.name.value)
+				throw new Error(
+					'selection: could not find definition for fragment ' + field.name.value
+				)
 			}
 
 			// merge the fragments selection into ours

@@ -419,16 +419,16 @@ test("default values don't overwrite unless explicitly passed", async function (
 		mockCollectedDoc(
 			`
 				fragment QueryFragment on Query 
-                @arguments(name: {type: "String", default: "Hello"}) {
-                    ...InnerFragment
+                @arguments(name: {type: "Int", default: 10}) {
+                    ...InnerFragment @with(other: $name)
 				}
 			`
 		),
 		mockCollectedDoc(
 			`
 				fragment InnerFragment on Query 
-                @arguments(name: {type: "String", default: "Goodbye"}) {
-                    users(stringValue: $name) { 
+                @arguments(name: {type: "String", default: "Goodbye"}, other: { type: "Int"}) {
+                    users(stringValue: $name, intValue: $other) { 
                         id
                     }
 				}
@@ -454,18 +454,18 @@ test("default values don't overwrite unless explicitly passed", async function (
 		module.exports = {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
-		    hash: "65064d681cee9e6381a4f63605c9f33f7d6348fc6a7ac010f3f8ea6fabf3c8ee",
+		    hash: "b155b401cdbdfe0f63dd47575fbcfb2aa90678e7530b93476c4efe559405cf4f",
 
 		    raw: \`query AllUsers {
 		  ...QueryFragment
 		}
 
 		fragment QueryFragment on Query {
-		  ...InnerFragment
+		  ...InnerFragment_2geNXY
 		}
 
-		fragment InnerFragment on Query {
-		  users(stringValue: "Goodbye") {
+		fragment InnerFragment_2geNXY on Query {
+		  users(stringValue: "Goodbye", intValue: 10) {
 		    id
 		  }
 		}
@@ -476,7 +476,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		    selection: {
 		        users: {
 		            type: "User",
-		            keyRaw: "users(stringValue: \\"Goodbye\\")",
+		            keyRaw: "users(stringValue: \\"Goodbye\\", intValue: 10)",
 
 		            fields: {
 		                id: {

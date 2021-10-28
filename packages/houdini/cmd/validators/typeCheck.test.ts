@@ -481,6 +481,22 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: 'unused fragment arguments',
+		pass: false,
+		documents: [
+			`
+				fragment Foo1 on Query @arguments(name: { type: "String!" }) {
+					users(stringValue: "hello") { id }
+				}
+			`,
+			`
+				fragment Foo2 on Query @arguments(name: { type: "String!" }) {
+					users(stringValue: "hello") { id }
+				}
+			`,
+		],
+	},
+	{
 		title: 'applied fragment arguments',
 		pass: false,
 		documents: [
@@ -638,7 +654,7 @@ const table: Row[] = [
 		documents: [
 			`
 			fragment UserPaginatedA on User @arguments(foo: { type: "String!" }) {
-				friendsByCursor(first: 10) @paginate {
+				friendsByCursor(first: 10, after: $foo) @paginate {
 					edges { 
 						node { 
 							id
@@ -649,7 +665,7 @@ const table: Row[] = [
 			`,
 			`
 			fragment UserPaginatedB on User @arguments(foo: { type: "String!" }) {
-				friendsByCursor(first: 10) @paginate {
+				friendsByCursor(first: 10, after: $foo) @paginate {
 					edges { 
 						node { 
 							id

@@ -203,6 +203,16 @@ export default async function typeCheck(
 					targetField.selectionSet
 				)
 
+				// make sure there is an id field
+				if (!type.getFields()['id']) {
+					errors.push(
+						new HoudiniErrorTodo(
+							`@${config.listDirective} can only be applied to types with an id field.`
+						)
+					)
+					return
+				}
+
 				// add the list to the list
 				lists.push(listName)
 				listTypes.push(type.name)
@@ -214,6 +224,13 @@ export default async function typeCheck(
 			},
 		})
 	}
+
+	// if we got errors
+	if (errors.length > 0) {
+		throw errors
+	}
+
+	// there was nothing wrong, we're ready validate the documents totally
 
 	// build up the list of rules we'll apply to every document
 	const rules = [...graphql.specifiedRules]
@@ -254,7 +271,9 @@ export default async function typeCheck(
 			// validate any fragment arguments
 			validateFragmentArguments(config, fragments),
 			// make sure there are pagination args on fields marked with @paginate
-			paginateArgs(config)
+			paginateArgs(config),
+			// make sure every argument defined in a fragment is used
+			noUnusedFragmentArguments(config)
 		)
 
 	for (const { filename, document: parsed } of docs) {
@@ -746,6 +765,43 @@ function paginateArgs(config: Config) {
 
 					return
 				}
+			},
+		}
+	}
+}
+
+function noUnusedFragmentArguments(config: Config) {
+	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
+		// if we run into a fragment definition with arguments we need to make sure every argument is used
+		const args = new Set<string>()
+
+		return {
+			// when we first see a fragment definition
+			enter: {
+				FragmentDefinition(node) {
+					const definitionArguments = node.directives
+						?.filter((directive) => directive.name.value === config.argumentsDirective)
+						.flatMap((directive) => directive.arguments!)
+
+					for (const arg of definitionArguments?.map((arg) => arg?.name.value) || []) {
+						args.add(arg)
+					}
+				},
+				Variable(node) {
+					args.delete(node.name.value)
+				},
+			},
+			leave: {
+				// once we're done with the definition make sure we used everything
+				FragmentDefinition(node) {
+					if (args.size > 0) {
+						ctx.reportError(
+							new graphql.GraphQLError(
+								'Encountered unused fragment arguments: ' + [...args].join(',')
+							)
+						)
+					}
+				},
 			},
 		}
 	}
