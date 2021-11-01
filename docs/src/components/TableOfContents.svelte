@@ -24,7 +24,7 @@
 				<a href="/">
 					<img
 						src="/images/logo.png"
-						height="70"
+						height="60"
 						alt="Houdini logo. Looks like a hat with rabbit ears coming out of it"
 					/>
 				</a>
@@ -73,9 +73,9 @@
 	}
 
 	.scroll-area {
-		overflow-y: scroll;
+		overflow-y: auto;
 		height: 100%;
-		padding: 2rem 2rem 2rem 3rem;
+		padding: 2rem 2rem 2rem 2rem;
 	}
 
 	details {
@@ -125,7 +125,6 @@
 
 	.header {
 		display: flex;
-		margin-left: -30px;
 		align-items: baseline;
 		margin-bottom: 1rem;
 	}

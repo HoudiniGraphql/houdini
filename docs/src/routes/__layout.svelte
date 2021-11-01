@@ -18,7 +18,9 @@
 	a,
 	hr,
 	body,
-	html {
+	html,
+	ul,
+	li {
 		margin: 0;
 		padding: 0;
 		border: none;
