@@ -1,5 +1,5 @@
 ---
-title: Getting Started
+title: Introduction
 description: The "disappearing" GraphQL client for the Svelte ecosystem
 ---
 

@@ -4,12 +4,15 @@ import { mdsvex } from 'mdsvex'
 
 /** @type {import('@sveltejs/kit').Config} */
 export default {
-	extensions: ['.svelte', '.md'],
+	extensions: ['.svelte', '.svx', '.md'],
 	preprocess: [
 		preprocess(),
 		mdsvex({
 			extensions: ['.md'],
 			layout: './src/components/Docs.layout.svelte',
+			smartypants: {
+				backticks: false,
+			},
 		}),
 	],
 

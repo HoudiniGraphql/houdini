@@ -5,8 +5,8 @@
 	const [send, receive] = crossfade({})
 
 	const pages = [
-		{ name: 'Getting Started', href: '/docs' },
-		{ name: 'Installation', href: '/docs/installation' },
+		{ name: 'Introduction', href: '/docs' },
+		{ name: 'Getting Started', href: '/docs/getting-started' },
 	]
 
 	const otherPages = [{ name: 'Contributing', href: '/docs/contributing' }]

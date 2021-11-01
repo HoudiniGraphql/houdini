@@ -1,6 +1,14 @@
+<script context="module">
+	import Header1 from './Header1.svelte'
+	import Header2 from './Header2.svelte'
+	import Header3 from './Header3.svelte'
+	import Code from './Code.svelte'
+	export { Header1 as h1, Header2 as h2, Header3 as h3, Code as code }
+</script>
+
 <script>
-	export let title;
-	export let description;
+	export let title
+	export let description
 </script>
 
 <svelte:head>
@@ -49,9 +57,7 @@
 		margin-bottom: 1rem;
 	}
 
-	article hr {
-		height: 1px;
-		background-color: var(--color3);
-		margin: 1rem 0;
+	pre {
+		border-radius: 0.25rem;
 	}
 </style>
