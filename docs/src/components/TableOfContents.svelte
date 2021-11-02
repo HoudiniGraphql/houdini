@@ -70,6 +70,7 @@
 	aside {
 		grid-column: 1;
 		height: 100vh;
+		z-index: 100;
 	}
 
 	.scroll-area {

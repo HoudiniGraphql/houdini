@@ -22,6 +22,9 @@ export const routes = [
 
 	// src/routes/docs/contributing.md
 	[/^\/docs\/contributing\/?$/, [c[0], c[3], c[6]], [c[1]]],
+
+	// src/routes/api/search.ts
+	[/^\/api\/search\/?$/],
 ]
 
 export const fallback = [c[0](), c[1]()]

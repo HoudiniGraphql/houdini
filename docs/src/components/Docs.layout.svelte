@@ -1,9 +1,6 @@
 <script context="module">
-	import Header1 from './Header1.svelte'
-	import Header2 from './Header2.svelte'
-	import Header3 from './Header3.svelte'
 	import Code from './Code.svelte'
-	export { Header1 as h1, Header2 as h2, Header3 as h3, Code as code }
+	export { Code as code }
 </script>
 
 <script>
@@ -26,7 +23,7 @@
 
 <style global>
 	article {
-		padding-top: 2rem;
+		padding-top: 4.5rem;
 		padding-bottom: 2rem;
 	}
 
@@ -59,5 +56,84 @@
 
 	pre {
 		border-radius: 0.25rem;
+	}
+
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-weight: 700;
+		margin-bottom: 1rem;
+		margin-top: 1rem;
+	}
+
+	h1 {
+		font-weight: 700;
+		margin-bottom: 1rem;
+		font-size: 1.5rem;
+		line-height: 2rem;
+	}
+
+	h1:not(:first-of-type) {
+		border-top: 1px solid rgb(216, 210, 210);
+		padding-top: 1.5rem;
+		margin-top: 2rem;
+	}
+
+	h2 {
+		font-size: 1.25rem;
+		line-height: 1.75rem;
+	}
+
+	h3 {
+		font-size: 1.125rem;
+		line-height: 1.75rem;
+	}
+
+	h4 {
+		font-size: 1rem;
+		line-height: 1.5rem;
+	}
+
+	h5 {
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+	}
+
+	h6 {
+		font-size: 0.75rem;
+		line-height: 1rem;
+	}
+
+	.hash-link {
+		opacity: 0;
+		transition: opacity 200ms;
+		font-size: inherit;
+	}
+
+	h1 a,
+	h2 a,
+	h3 a,
+	h4 a,
+	h5 a,
+	h6 a {
+		font-size: inherit;
+		font-weight: inherit;
+	}
+
+	h1:hover .hash-link,
+	h2:hover .hash-link,
+	h3:hover .hash-link,
+	h4:hover .hash-link,
+	h5:hover .hash-link,
+	h6:hover .hash-link {
+		opacity: 1;
+	}
+
+	.hash-link::before {
+		content: '#';
+
+		margin-left: 0.5rem;
 	}
 </style>

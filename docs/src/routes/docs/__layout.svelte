@@ -1,11 +1,15 @@
 <script>
 	import TableOfContents from '$components/TableOfContents.svelte'
+	import TopBar from '$components/TopBar.svelte'
 </script>
 
-<div class="wrapper">
-	<TableOfContents />
+<div>
+	<TopBar />
+	<div class="wrapper">
+		<TableOfContents />
 
-	<slot />
+		<slot />
+	</div>
 </div>
 
 <style>

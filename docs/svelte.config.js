@@ -1,6 +1,8 @@
 import preprocess from 'svelte-preprocess'
 import path from 'path'
 import { mdsvex } from 'mdsvex'
+import rehypeSlug from 'rehype-slug'
+import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 
 /** @type {import('@sveltejs/kit').Config} */
 export default {
@@ -13,6 +15,21 @@ export default {
 			smartypants: {
 				backticks: false,
 			},
+			rehypePlugins: [
+				rehypeSlug,
+				[
+					rehypeAutolinkHeadings,
+					{
+						behavior: 'append',
+						content: {
+							type: 'element',
+							tagName: 'span',
+							properties: { className: ['hash-link'] },
+							children: [],
+						},
+					},
+				],
+			],
 		}),
 	],
 

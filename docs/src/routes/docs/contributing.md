@@ -1,6 +1,6 @@
 ---
 title: Contributing
-description: The "disappearing" GraphQL client for the Svelte ecosystem
+description: Contributing to Houdini
 ---
 
 # Contributing

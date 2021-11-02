@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: The "disappearing" GraphQL client for the Svelte ecosystem
+description: How to install and get started with Houdini
 ---
 
 # Installation
