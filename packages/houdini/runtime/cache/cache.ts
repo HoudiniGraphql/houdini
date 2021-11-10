@@ -201,7 +201,7 @@ export class Cache {
 	}
 
 	private computeID(type: string, data: { [key: string]: GraphQLValue }) {
-		return data.id
+		return data?.id
 	}
 
 	private root(): Record {
