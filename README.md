@@ -69,7 +69,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Persisted Queries](#persisted-queries)
 1. [Notes, Constraints, and Conventions](#%EF%B8%8Fnotes-constraints-and-conventions)
 
-## 🕹️&nbsp;&nbsp;Example
+## 🕹&nbsp;&nbsp;Example
 
 A demo can be found in the <a href='./example'>example directory</a>.
 
