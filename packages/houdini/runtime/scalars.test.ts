@@ -22,12 +22,14 @@ const config = testConfig({
 		input NestedDate {
 			name: String
 			date: DateTime!
+			dates: [DateTime]
 			nested: NestedDate!
 		}
 
 		type TodoItem {
 			text: String!
 			createdAt: DateTime!
+			dates: [DateTime]
 			creator: User!
 		}
 
@@ -70,6 +72,10 @@ const artifact: QueryArtifact = {
 					type: 'DateTime',
 					keyRaw: 'createdAt',
 				},
+				dates: {
+					type: 'DateTime',
+					keyRaw: 'dates',
+				},
 				creator: {
 					type: 'User',
 					keyRaw: 'creator',
@@ -106,6 +112,7 @@ const artifact: QueryArtifact = {
 		types: {
 			NestedDate: {
 				date: 'DateTime',
+				dates: 'DateTime',
 				nested: 'NestedDate',
 				enumValue: 'EnumValue',
 			},
@@ -155,6 +162,64 @@ describe('marshal inputs', function () {
 							enumValue: 'asdf',
 						},
 					},
+				},
+			],
+		})
+	})
+
+	test('list of scalars', function () {
+		// some dates to check against
+		const date1 = new Date(0)
+		const date2 = new Date(1)
+
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					date: [
+						{
+							dates: [date1, date2],
+						},
+					],
+				}
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			date: [
+				{
+					dates: [date1.getTime(), date2.getTime()],
+				},
+			],
+		})
+	})
+
+	test('empty list of scalars', function () {
+		// compute the inputs
+		const inputs = ctx.computeInput({
+			config,
+			mode: 'kit',
+			artifact,
+			variableFunction() {
+				return {
+					date: [
+						{
+							dates: [],
+						},
+					],
+				}
+			},
+		})
+
+		// make sure we got the expected value
+		expect(inputs).toEqual({
+			date: [
+				{
+					dates: [],
 				},
 			],
 		})
@@ -332,6 +397,71 @@ describe('unmarshal selection', function () {
 				},
 			],
 		})
+	})
+
+	test('list of scalars', function () {
+		// the date to compare against
+		const date1 = new Date(1)
+		const date2 = new Date(2)
+
+		const data = {
+			items: [
+				{
+					dates: [date1.getTime(), date2.getTime()],
+				},
+			],
+		}
+
+		expect(unmarshalSelection(config, artifact.selection, data)).toEqual({
+			items: [
+				{
+					dates: [date1, date2],
+				},
+			],
+		})
+	})
+
+	test('empty list of scalars', function () {
+		const data = {
+			items: [
+				{
+					dates: [],
+				},
+			],
+		}
+
+		expect(unmarshalSelection(config, artifact.selection, data)).toEqual({
+			items: [
+				{
+					dates: [],
+				},
+			],
+		})
+	})
+
+	test('missing unmarshal function', function () {
+		const data = {
+			items: [
+				{
+					dates: [new Date()],
+				},
+			],
+		}
+
+		const badConfig = {
+			...config,
+			scalars: {
+				...config.scalars,
+				DateTime: {
+					...config.scalars.DateTime,
+					unmarshal: undefined,
+				},
+			},
+		}
+
+		expect(() => unmarshalSelection(badConfig, artifact.selection, data)).toThrow(
+			/scalar type DateTime is missing an `unmarshal` function/
+		)
 	})
 
 	test('undefined', function () {
