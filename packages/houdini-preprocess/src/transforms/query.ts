@@ -388,41 +388,6 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 		preloadFn.body.body.splice(
 			insertIndex,
 			0,
-			// @ts-ignore
-			// compute the query variables once
-			onloadDefinition &&
-				AST.expressionStatement(
-					AST.awaitExpression(
-						AST.callExpression(
-							AST.memberExpression(requestContext, AST.identifier('onLoadHook')),
-							[
-								AST.objectExpression([
-									AST.objectProperty(
-										AST.literal('mode'),
-										AST.stringLiteral(config.framework)
-									),
-									AST.objectProperty(
-										AST.literal('onLoadFunction'),
-										AST.identifier('onLoad')
-									),
-								]),
-							]
-						)
-					)
-				),
-			// if the onLoad function returned an error or redirect
-			onloadDefinition &&
-				AST.ifStatement(
-					AST.unaryExpression(
-						'!',
-						AST.memberExpression(requestContext, AST.identifier('continue'))
-					),
-					AST.blockStatement([
-						AST.returnStatement(
-							AST.memberExpression(requestContext, AST.identifier('returnValue'))
-						),
-					])
-				),
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier(variableIdentifier),
@@ -528,15 +493,6 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			)
 		)
 
-		if (onloadDefinition) {
-			// add the returnValue of the onLoad Hook to the return value of pre(load)
-			propsValue.properties.push(
-				// @ts-ignore
-				AST.spreadProperty(
-					AST.memberExpression(requestContext, AST.identifier('returnValue'))
-				)
-			)
-		}
 		// add the field to the return value of preload
 		propsValue.properties.push(
 			AST.objectProperty(AST.identifier(preloadKey), AST.identifier(preloadKey)),
@@ -545,6 +501,73 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 				AST.identifier(variableIdentifier)
 			),
 			AST.objectProperty(AST.identifier(preloadSourceKey), AST.identifier(preloadSourceKey))
+		)
+	}
+
+	// @ts-ignore
+	// compute the query variables once
+	if (onloadDefinition) {
+		preloadFn.body.body.splice(
+			-1,
+			0,
+			AST.expressionStatement(
+				AST.awaitExpression(
+					AST.callExpression(
+						AST.memberExpression(requestContext, AST.identifier('onLoadHook')),
+						[
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.literal('mode'),
+									AST.stringLiteral(config.framework)
+								),
+								AST.objectProperty(
+									AST.literal('onLoadFunction'),
+									AST.identifier('onLoad')
+								),
+								AST.objectProperty(
+									AST.literal('data'),
+									AST.objectExpression(
+										queries.map(({ parsedDocument: { definitions } }) =>
+											AST.objectProperty(
+												AST.literal(
+													(definitions[0] as graphql.OperationDefinitionNode)
+														?.name?.value || null
+												),
+												AST.memberExpression(
+													AST.identifier(
+														preloadPayloadKey(
+															definitions[0] as graphql.OperationDefinitionNode
+														)
+													),
+													AST.identifier('data')
+												)
+											)
+										)
+									)
+								),
+							]),
+						]
+					)
+				)
+			),
+			// if the onLoad function returned an error or redirect
+			AST.ifStatement(
+				AST.unaryExpression(
+					'!',
+					AST.memberExpression(requestContext, AST.identifier('continue'))
+				),
+				AST.blockStatement([
+					AST.returnStatement(
+						AST.memberExpression(requestContext, AST.identifier('returnValue'))
+					),
+				])
+			)
+		)
+
+		// add the returnValue of the onLoad Hook to the return value of pre(load)
+		propsValue.properties.push(
+			// @ts-ignore
+			AST.spreadProperty(AST.memberExpression(requestContext, AST.identifier('returnValue')))
 		)
 	}
 }

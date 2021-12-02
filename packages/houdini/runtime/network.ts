@@ -67,6 +67,10 @@ export type FetchContext = {
 	context: Record<string, any>
 }
 
+export type OnLoadContext = FetchContext & {
+	data: Record<string, any>
+}
+
 export type KitLoadResponse = {
 	status?: number
 	error?: Error
@@ -297,18 +301,24 @@ export class RequestContext {
 	async onLoadHook({
 		mode,
 		onLoadFunction,
+		data,
 	}: {
 		mode: 'kit' | 'sapper'
 		onLoadFunction: SapperLoad | KitLoad
+		data: Record<string, any>
 	}) {
 		// call the onLoad function to match the framework
 		let result =
 			mode === 'kit'
-				? await (onLoadFunction as KitLoad).call(this, this.context)
-				: await (onLoadFunction as SapperLoad).call(
+				? await (onLoadFunction as KitOnLoad).call(this, {
+						...this.context,
+						data,
+				  } as OnLoadContext)
+				: await (onLoadFunction as SapperOnLoad).call(
 						this,
 						this.context.page,
-						this.context.session
+						this.context.session,
+						data
 				  )
 
 		// If the returnValue is already set through this.error or this.redirect return early
@@ -358,5 +368,11 @@ type SapperLoad = (
 	page: FetchContext['page'],
 	session: FetchContext['session']
 ) => Record<string, any>
+type SapperOnLoad = (
+	page: FetchContext['page'],
+	session: FetchContext['session'],
+	data: Record<string, any>
+) => Record<string, any>
 
 type KitLoad = (ctx: FetchContext) => Record<string, any>
+type KitOnLoad = (ctx: OnLoadContext) => Record<string, any>
