@@ -5742,8 +5742,8 @@ __metadata:
     concurrently: ^6.2.1
     graphql: 15.5.0
     graphql-relay: ^0.8.0
-    houdini: ^0.10.7
-    houdini-preprocess: ^0.10.7
+    houdini: ^0.11.2
+    houdini-preprocess: ^0.11.2
     subscriptions-transport-ws: ^0.9.18
     svelte: ^3.38.2
     svelte-preprocess: ^4.0.0
@@ -6754,7 +6754,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.10.6, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.11.1, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
@@ -6799,7 +6799,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@^0.10.7, houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.11.2, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -6813,8 +6813,8 @@ __metadata:
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
     graphql: 15.5.0
-    houdini: ^0.10.7
-    houdini-common: ^0.10.6
+    houdini: ^0.11.2
+    houdini-common: ^0.11.1
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -6825,7 +6825,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.10.7, houdini@workspace:packages/houdini":
+"houdini@^0.11.2, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
@@ -6846,7 +6846,7 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.10.6
+    houdini-common: ^0.11.1
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
