@@ -47,8 +47,13 @@ export function marshalInputs<T>({
 			}
 
 			// is the type something that requires marshaling
-			if (config.scalars?.[type]?.marshal) {
-				return [fieldName, config.scalars[type].marshal(value)]
+			const marshalFn = config.scalars?.[type]?.marshal
+			if (marshalFn) {
+				// if we are looking at a list of scalars
+				if (Array.isArray(value)) {
+					return [fieldName, value.map(marshalFn)]
+				}
+				return [fieldName, marshalFn(value)]
 			}
 
 			// if the type doesn't require marshaling and isn't a referenced type
@@ -99,7 +104,16 @@ export function unmarshalSelection(
 
 			// is the type something that requires marshaling
 			if (config.scalars?.[type]?.marshal) {
-				return [fieldName, config.scalars[type].unmarshal(value)]
+				const unmarshalFn = config.scalars[type].unmarshal
+				if (!unmarshalFn) {
+					throw new Error(
+						`scalar type ${type} is missing an \`unmarshal\` function. see https://github.com/AlecAivazis/houdini#%EF%B8%8Fcustom-scalars`
+					)
+				}
+				if (Array.isArray(value)) {
+					return [fieldName, value.map(unmarshalFn)]
+				}
+				return [fieldName, unmarshalFn(value)]
 			}
 
 			// if the type doesn't require marshaling and isn't a referenced type
