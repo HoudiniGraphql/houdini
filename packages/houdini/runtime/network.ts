@@ -67,7 +67,8 @@ export type FetchContext = {
 	context: Record<string, any>
 }
 
-export type OnLoadContext = FetchContext & {
+export type BeforeLoadContext = FetchContext
+export type AfterLoadContext = FetchContext & {
 	data: Record<string, any>
 }
 
@@ -298,28 +299,47 @@ export class RequestContext {
 
 	// This hook fires before executing any queries, it allows to redirect/error based on session state for example
 	// It also allows to return custom props that should be returned from the corresponding load function.
-	async onLoadHook({
+	async invokeLoadHook({
+		variant,
 		mode,
-		onLoadFunction,
+		hookFn,
 		data,
 	}: {
+		variant: 'before' | 'after'
 		mode: 'kit' | 'sapper'
-		onLoadFunction: SapperLoad | KitLoad
+		hookFn: KitBeforeLoad | KitAfterLoad | SapperBeforeLoad | SapperAfterLoad
 		data: Record<string, any>
 	}) {
 		// call the onLoad function to match the framework
-		let result =
-			mode === 'kit'
-				? await (onLoadFunction as KitOnLoad).call(this, {
-						...this.context,
-						data,
-				  } as OnLoadContext)
-				: await (onLoadFunction as SapperOnLoad).call(
-						this,
-						this.context.page,
-						this.context.session,
-						data
-				  )
+		let hookCall
+		if (mode === 'kit') {
+			if (variant === 'before') {
+				hookCall = (hookFn as KitBeforeLoad).call(this, this.context as BeforeLoadContext)
+			} else {
+				hookCall = (hookFn as KitAfterLoad).call(this, {
+					...this.context,
+					data,
+				} as AfterLoadContext)
+			}
+		} else {
+			// sapper
+			if (variant === 'before') {
+				hookCall = (hookFn as SapperBeforeLoad).call(
+					this,
+					this.context.page,
+					this.context.session
+				)
+			} else {
+				hookCall = (hookFn as SapperAfterLoad).call(
+					this,
+					this.context.page,
+					this.context.session,
+					data
+				)
+			}
+		}
+
+		let result = await hookCall
 
 		// If the returnValue is already set through this.error or this.redirect return early
 		if (!this.continue) {
@@ -343,7 +363,7 @@ export class RequestContext {
 		artifact,
 	}: {
 		mode: 'kit' | 'sapper'
-		variableFunction: SapperLoad | KitLoad
+		variableFunction: SapperBeforeLoad | KitBeforeLoad
 		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
 		config: Config
 	}) {
@@ -351,9 +371,9 @@ export class RequestContext {
 		let input =
 			mode === 'kit'
 				? // in kit just pass the context directly
-				  (variableFunction as KitLoad).call(this, this.context)
+				  (variableFunction as KitBeforeLoad).call(this, this.context)
 				: // we are in sapper mode, so we need to prepare the function context
-				  (variableFunction as SapperLoad).call(
+				  (variableFunction as SapperBeforeLoad).call(
 						this,
 						this.context.page,
 						this.context.session
@@ -364,15 +384,15 @@ export class RequestContext {
 	}
 }
 
-type SapperLoad = (
+type SapperBeforeLoad = (
 	page: FetchContext['page'],
 	session: FetchContext['session']
 ) => Record<string, any>
-type SapperOnLoad = (
+type SapperAfterLoad = (
 	page: FetchContext['page'],
 	session: FetchContext['session'],
 	data: Record<string, any>
 ) => Record<string, any>
 
-type KitLoad = (ctx: FetchContext) => Record<string, any>
-type KitOnLoad = (ctx: OnLoadContext) => Record<string, any>
+type KitBeforeLoad = (ctx: BeforeLoadContext) => Record<string, any>
+type KitAfterLoad = (ctx: AfterLoadContext) => Record<string, any>

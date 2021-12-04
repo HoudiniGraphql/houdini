@@ -312,11 +312,17 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 		throw new Error('Cannot have a query where there is already a load() defined')
 	}
 
-	let onloadDefinition = body.find(
+	let beforeLoadDefinition = body.find(
 		(expression) =>
 			expression.type === 'ExportNamedDeclaration' &&
 			expression.declaration?.type === 'FunctionDeclaration' &&
-			expression.declaration?.id?.name === 'onLoad'
+			expression.declaration?.id?.name === 'beforeLoad'
+	) as ExportNamedDeclaration
+	let afterLoadDefinition = body.find(
+		(expression) =>
+			expression.type === 'ExportNamedDeclaration' &&
+			expression.declaration?.type === 'FunctionDeclaration' &&
+			expression.declaration?.id?.name === 'afterLoad'
 	) as ExportNamedDeclaration
 
 	const preloadFn = AST.functionDeclaration(
@@ -504,67 +510,19 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 		)
 	}
 
-	// @ts-ignore
-	// compute the query variables once
-	if (onloadDefinition) {
-		preloadFn.body.body.splice(
-			-1,
-			0,
-			AST.expressionStatement(
-				AST.awaitExpression(
-					AST.callExpression(
-						AST.memberExpression(requestContext, AST.identifier('onLoadHook')),
-						[
-							AST.objectExpression([
-								AST.objectProperty(
-									AST.literal('mode'),
-									AST.stringLiteral(config.framework)
-								),
-								AST.objectProperty(
-									AST.literal('onLoadFunction'),
-									AST.identifier('onLoad')
-								),
-								AST.objectProperty(
-									AST.literal('data'),
-									AST.objectExpression(
-										queries.map(({ parsedDocument: { definitions } }) =>
-											AST.objectProperty(
-												AST.literal(
-													(definitions[0] as graphql.OperationDefinitionNode)
-														?.name?.value || null
-												),
-												AST.memberExpression(
-													AST.identifier(
-														preloadPayloadKey(
-															definitions[0] as graphql.OperationDefinitionNode
-														)
-													),
-													AST.identifier('data')
-												)
-											)
-										)
-									)
-								),
-							]),
-						]
-					)
-				)
-			),
-			// if the onLoad function returned an error or redirect
-			AST.ifStatement(
-				AST.unaryExpression(
-					'!',
-					AST.memberExpression(requestContext, AST.identifier('continue'))
-				),
-				AST.blockStatement([
-					AST.returnStatement(
-						AST.memberExpression(requestContext, AST.identifier('returnValue'))
-					),
-				])
-			)
-		)
+	// add calls to user before/after load functions
+	if (beforeLoadDefinition || afterLoadDefinition) {
+		let context = [requestContext, config, queries] as const
 
-		// add the returnValue of the onLoad Hook to the return value of pre(load)
+		if (beforeLoadDefinition) {
+			preloadFn.body.body.splice(insertIndex, 0, ...loadHookStatements('before', ...context))
+		}
+
+		if (afterLoadDefinition) {
+			preloadFn.body.body.splice(-1, 0, ...loadHookStatements('after', ...context))
+		}
+
+		// add the returnValue of the load hooks to the return value of pre(load)
 		propsValue.properties.push(
 			// @ts-ignore
 			AST.spreadProperty(AST.memberExpression(requestContext, AST.identifier('returnValue')))
@@ -608,6 +566,75 @@ function addSapperPreload(config: Config, body: Statement[]) {
 
 	// export the function from the module
 	body.push(AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration)
+}
+
+function loadHookStatements(
+	variant: 'before' | 'after',
+	requestContext: namedTypes.Identifier,
+	config: Config,
+	queries: EmbeddedGraphqlDocument[]
+) {
+	return [
+		AST.expressionStatement(
+			AST.awaitExpression(
+				AST.callExpression(
+					AST.memberExpression(requestContext, AST.identifier('invokeLoadHook')),
+					[
+						AST.objectExpression([
+							AST.objectProperty(AST.literal('variant'), AST.stringLiteral(variant)),
+							AST.objectProperty(
+								AST.literal('mode'),
+								AST.stringLiteral(config.framework)
+							),
+							AST.objectProperty(
+								AST.literal('hookFn'),
+								AST.identifier(`${variant}Load`)
+							),
+							// after load: pass query data to the hook
+							...(variant === 'after'
+								? [
+										AST.objectProperty(
+											AST.literal('data'),
+											afterLoadQueryData(queries)
+										),
+								  ]
+								: []),
+						]),
+					]
+				)
+			)
+		),
+		// if the beforeLoad function returned an error or redirect
+		AST.ifStatement(
+			AST.unaryExpression(
+				'!',
+				AST.memberExpression(requestContext, AST.identifier('continue'))
+			),
+			AST.blockStatement([
+				AST.returnStatement(
+					AST.memberExpression(requestContext, AST.identifier('returnValue'))
+				),
+			])
+		),
+	]
+}
+
+function afterLoadQueryData(queries: EmbeddedGraphqlDocument[]) {
+	return AST.objectExpression(
+		queries.map(({ parsedDocument: { definitions } }) =>
+			AST.objectProperty(
+				AST.literal(
+					(definitions[0] as graphql.OperationDefinitionNode)?.name?.value || null
+				),
+				AST.memberExpression(
+					AST.identifier(
+						preloadPayloadKey(definitions[0] as graphql.OperationDefinitionNode)
+					),
+					AST.identifier('data')
+				)
+			)
+		)
+	)
 }
 
 function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
