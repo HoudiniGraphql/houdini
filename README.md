@@ -327,23 +327,30 @@ the result of query:
 {/if}
 ```
 
-### Additional logic
+### Load Hooks
 
 Sometimes you will need to add additional logic to a component's query. For example, you might want to
 check if the current session is valid before a query is sent to the server. In order to support this,
-houdini will look for a function called `onLoad` defined in the module context which can be used to perform
-any logic you need. If you return a value from this function, it will be passed as props to your component:
+houdini will look for hook functions defined in the module context which can be used to perform
+any logic you need.
+
+#### `beforeLoad`
+
+Called before Houdini executes load queries against the server. You can expect the same
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) hook.
+
+If you return a value from this function, it will be passed as props to your component.
 
 ```svelte
 <script context="module">
     // It has access to the same arguments and this.error this.redirect as the variable functions
-    export function onLoad({page, session}){
+    export function beforeLoad({page, session}){
         if(!session.authenticated){
             return this.redirect(302, '/login')
         }
 
-	return {
-	    message: "There are this many items"
+    	return {
+    	    message: "There are this many items"
         }
     }
 </script>
@@ -364,6 +371,42 @@ any logic you need. If you return a value from this function, it will be passed 
 </script>
 
 {message}: {$data.items.length}
+```
+
+#### `afterLoad`
+
+Called after Houdini executes load queries against the server. You can expect the same
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) hook, plus an additional
+`data` property referencing query result data.
+
+If you return a value from this function, it will be passed as props to your component.
+
+```svelte
+<script context="module">
+    export function MyProfileVariables({ page: { params: { id } } }) {
+        return { id }
+    }
+    export function afterLoad({ data }){
+        if(!data.MyProfile){
+            return this.error(404)
+        }
+    }
+</script>
+
+<script>
+    import { query, graphql } from '$houdini'
+
+    // load the items
+    const { data } = query(graphql`
+        query MyProfile {
+            profile(id) {
+                name
+            }
+        }
+    `)
+</script>
+
+Hello I'm {$data.profile.name}
 ```
 
 ### Refetching Data
