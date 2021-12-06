@@ -301,29 +301,15 @@ function processInstance(
 
 function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlDocument[]) {
 	// look for a preload definition
-	let preloadDefinition = body.find(
-		(expression) =>
-			expression.type === 'ExportNamedDeclaration' &&
-			expression.declaration?.type === 'FunctionDeclaration' &&
-			expression.declaration?.id?.name === 'load'
-	) as ExportNamedDeclaration
+	let preloadDefinition = findExportedFunction(body, 'load')
 	// if there isn't one, add it
 	if (preloadDefinition) {
 		throw new Error('Cannot have a query where there is already a load() defined')
 	}
 
-	let beforeLoadDefinition = body.find(
-		(expression) =>
-			expression.type === 'ExportNamedDeclaration' &&
-			expression.declaration?.type === 'FunctionDeclaration' &&
-			expression.declaration?.id?.name === 'beforeLoad'
-	) as ExportNamedDeclaration
-	let afterLoadDefinition = body.find(
-		(expression) =>
-			expression.type === 'ExportNamedDeclaration' &&
-			expression.declaration?.type === 'FunctionDeclaration' &&
-			expression.declaration?.id?.name === 'afterLoad'
-	) as ExportNamedDeclaration
+	let beforeLoadDefinition = findExportedFunction(body, 'beforeLoad')
+	let afterLoadDefinition = findExportedFunction(body, 'afterLoad')
+	let onLoadDefinition = findExportedFunction(body, 'onLoad')
 
 	const preloadFn = AST.functionDeclaration(
 		AST.identifier('load'),
@@ -511,15 +497,21 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 	}
 
 	// add calls to user before/after load functions
-	if (beforeLoadDefinition || afterLoadDefinition) {
+	if (beforeLoadDefinition || afterLoadDefinition || onLoadDefinition) {
 		let context = [requestContext, config, queries] as const
 
 		if (beforeLoadDefinition) {
-			preloadFn.body.body.splice(insertIndex, 0, ...loadHookStatements('before', ...context))
+			preloadFn.body.body.splice(
+				insertIndex,
+				0,
+				...loadHookStatements('beforeLoad', ...context)
+			)
+		} else if (onLoadDefinition) {
+			preloadFn.body.body.splice(insertIndex, 0, ...loadHookStatements('onLoad', ...context))
 		}
 
 		if (afterLoadDefinition) {
-			preloadFn.body.body.splice(-1, 0, ...loadHookStatements('after', ...context))
+			preloadFn.body.body.splice(-1, 0, ...loadHookStatements('afterLoad', ...context))
 		}
 
 		// add the returnValue of the load hooks to the return value of pre(load)
@@ -535,12 +527,7 @@ function addSapperPreload(config: Config, body: Statement[]) {
 	ensureImports(config, body, ['convertKitPayload'])
 
 	// look for a preload definition
-	let preloadDefinition = body.find(
-		(expression) =>
-			expression.type === 'ExportNamedDeclaration' &&
-			expression.declaration?.type === 'FunctionDeclaration' &&
-			expression.declaration?.id?.name === 'preload'
-	) as ExportNamedDeclaration
+	let preloadDefinition = findExportedFunction(body, 'preload')
 
 	// if there isn't one, add it
 	if (preloadDefinition) {
@@ -569,11 +556,17 @@ function addSapperPreload(config: Config, body: Statement[]) {
 }
 
 function loadHookStatements(
-	variant: 'before' | 'after',
+	name: 'beforeLoad' | 'afterLoad' | 'onLoad',
 	requestContext: namedTypes.Identifier,
 	config: Config,
 	queries: EmbeddedGraphqlDocument[]
 ) {
+	if (name === 'onLoad') {
+		console.warn(
+			'Warning: Houdini `onLoad` hook has been renamed to `beforeLoad`. ' +
+				'Support for onLoad will be removed in an upcoming release'
+		)
+	}
 	return [
 		AST.expressionStatement(
 			AST.awaitExpression(
@@ -581,17 +574,17 @@ function loadHookStatements(
 					AST.memberExpression(requestContext, AST.identifier('invokeLoadHook')),
 					[
 						AST.objectExpression([
-							AST.objectProperty(AST.literal('variant'), AST.stringLiteral(variant)),
+							AST.objectProperty(
+								AST.literal('variant'),
+								AST.stringLiteral(name === 'afterLoad' ? 'after' : 'before')
+							),
 							AST.objectProperty(
 								AST.literal('mode'),
 								AST.stringLiteral(config.framework)
 							),
-							AST.objectProperty(
-								AST.literal('hookFn'),
-								AST.identifier(`${variant}Load`)
-							),
+							AST.objectProperty(AST.literal('hookFn'), AST.identifier(name)),
 							// after load: pass query data to the hook
-							...(variant === 'after'
+							...(name === 'afterLoad'
 								? [
 										AST.objectProperty(
 											AST.literal('data'),
@@ -604,7 +597,7 @@ function loadHookStatements(
 				)
 			)
 		),
-		// if the beforeLoad function returned an error or redirect
+		// if any hook function returned an error or redirect
 		AST.ifStatement(
 			AST.unaryExpression(
 				'!',
@@ -655,4 +648,13 @@ function variablesKey(operation: graphql.OperationDefinitionNode): string {
 
 function queryInputFunction(name: string) {
 	return `${name}Variables`
+}
+
+function findExportedFunction(body: Statement[], name: string): ExportNamedDeclaration | null {
+	return body.find(
+		(expression) =>
+			expression.type === 'ExportNamedDeclaration' &&
+			expression.declaration?.type === 'FunctionDeclaration' &&
+			expression.declaration?.id?.name === name
+	) as ExportNamedDeclaration
 }

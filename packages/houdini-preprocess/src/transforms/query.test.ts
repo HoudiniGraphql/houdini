@@ -1240,3 +1240,97 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		}
 	`)
 })
+
+test('deprecated onLoad hook', async function () {
+	const doc = await preprocessorTest(
+		`
+		<script context="module">
+			export async function onLoad(){
+			   return this.redirect(302, "/test")
+			}
+
+			export function TestQueryVariables(page) {
+				return {
+					test: true
+				}
+			}
+		</script>
+		<script>
+			const { data } = query(graphql\`
+				query TestQuery($test: Boolean!) {
+					viewer {
+						id
+					}
+				}
+			\`)
+		</script>
+	`
+	)
+
+	expect(doc.module?.content).toMatchInlineSnapshot(`
+		import { convertKitPayload } from "$houdini";
+		import { fetchQuery, RequestContext } from "$houdini";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import { houdiniConfig } from "$houdini";
+
+		export async function onLoad() {
+		    return this.redirect(302, "/test");
+		}
+
+		export function TestQueryVariables(page) {
+		    return {
+		        test: true
+		    };
+		}
+
+		export async function load(context) {
+		    const _houdini_context = new RequestContext(context);
+
+		    await _houdini_context.invokeLoadHook({
+		        "variant": "before",
+		        "mode": "sapper",
+		        "hookFn": onLoad
+		    });
+
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery_Input = _houdini_context.computeInput({
+		        "config": houdiniConfig,
+		        "mode": "sapper",
+		        "variableFunction": TestQueryVariables,
+		        "artifact": _TestQueryArtifact
+		    });
+
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const [_TestQuery, _TestQuery_Source] = await fetchQuery({
+		        "context": context,
+		        "artifact": _TestQueryArtifact,
+		        "variables": _TestQuery_Input,
+		        "session": context.session
+		    });
+
+		    if (!_TestQuery.data) {
+		        _houdini_context.graphqlErrors(_TestQuery);
+		        return _houdini_context.returnValue;
+		    }
+
+		    return {
+		        props: {
+		            _TestQuery: _TestQuery,
+		            _TestQuery_Input: _TestQuery_Input,
+		            _TestQuery_Source: _TestQuery_Source,
+		            ..._houdini_context.returnValue
+		        }
+		    };
+		}
+
+		export function preload(page, session) {
+		    return convertKitPayload(this, load, page, session);
+		}
+	`)
+})
