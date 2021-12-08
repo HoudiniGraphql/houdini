@@ -3,7 +3,7 @@ import { GraphQLValue } from '../types'
 export interface LayerStorage {
 	write(data: { layer: EntityFieldMap; optimistic?: boolean }): number
 	resolveLayer(id: number, values: EntityFieldMap): void
-	read(id: string, field: string): GraphQLValue
+	get(id: string, field: string): GraphQLValue
 }
 
 export class InMemoryStorage implements LayerStorage {
@@ -52,9 +52,8 @@ export class InMemoryStorage implements LayerStorage {
 				nextUnoptimisticIndex++
 			) {
 				const nextLayer = this._data[nextUnoptimisticIndex]
-
 				// if this layer is optimistic, we're done looking for more layers to merge
-				if (nextLayer?.optimistic) {
+				if (!nextLayer || nextLayer.optimistic) {
 					break
 				}
 
@@ -64,6 +63,8 @@ export class InMemoryStorage implements LayerStorage {
 
 			// merge all of the layers into this one
 			layer.values = newValue
+			// and mark it as a resolved layer
+			layer.optimistic = false
 
 			// before we layers, we might have to include this one if the layer below us is also
 			// optimistic
@@ -78,7 +79,7 @@ export class InMemoryStorage implements LayerStorage {
 		}
 	}
 
-	read(id: string, field: string): GraphQLValue {
+	get(id: string, field: string): GraphQLValue {
 		// looking up an id's field requires looping through the layers we know about
 		for (let i = this._data.length - 1; i >= 0; i--) {
 			if (this._data[i].values[id][field]) {
