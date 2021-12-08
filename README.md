@@ -42,7 +42,7 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 1. [Fetching Data](#fetching-data)
     1. [Query variables and page data](#query-variables-and-page-data)
     1. [Loading State](#loading-state)
-    1. [Additional Logic](#additional-logic)
+    1. [Hooks](#load-hooks)
     1. [Refetching Data](#refetching-data)
     1. [Cache policy](#cache-policy)
         1. [Data Retention](#data-retention)
