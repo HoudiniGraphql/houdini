@@ -29,6 +29,10 @@ jobs:
                   node-version: 14.13
                   registry-url: 'https://npm.pkg.github.com'
 
+            - name: Use HTTPS registry
+              run: |
+                  npm config set registry https://registry.npmjs.org/
+
             - name: Set Git Identity
               run: |
                   git config --global user.name 'github-actions[bot]'
