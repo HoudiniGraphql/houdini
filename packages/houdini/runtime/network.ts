@@ -64,7 +64,7 @@ export type FetchContext = {
 	}
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
 	session: any
-	context: Record<string, any>
+	stuff: Record<string, any>
 }
 
 export type BeforeLoadContext = FetchContext
@@ -116,7 +116,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 	const fetchCtx = {
 		fetch: window.fetch.bind(window),
 		session,
-		context: {},
+		stuff: {},
 		page: {
 			host: '',
 			path: '',
@@ -155,7 +155,7 @@ export async function convertKitPayload(
 	const result = await loader({
 		page,
 		session,
-		context,
+		stuff: {},
 		fetch: context.fetch,
 	})
 
