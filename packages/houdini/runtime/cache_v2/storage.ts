@@ -1,37 +1,33 @@
 import { GraphQLValue } from '../types'
 
-export class DataStorage {
-	private _layers: LayerStorage
-
-	constructor() {
-		// when the data storage is initialized we need to pick the appropriate
-		// layer solution
-		this._layers = new InMemoryLayers()
-	}
-}
-
-interface LayerStorage extends Iterable<EntityFieldMap> {
-	writeLayer(values: EntityFieldMap, resolved: boolean): number
+export interface LayerStorage {
+	write(data: { layer: EntityFieldMap; optimistic?: boolean }): number
 	resolveLayer(id: number, values: EntityFieldMap): void
+	read(id: string, field: string): GraphQLValue
 }
 
-class InMemoryLayers implements LayerStorage {
-	private _data: { id: number; values: EntityFieldMap; resolved: boolean }[]
+export class InMemoryStorage implements LayerStorage {
+	private _data: { id: number; values: EntityFieldMap; optimistic?: boolean }[]
+	private idCount = 0
 
 	constructor() {
 		this._data = []
 	}
 
-	writeLayer(values: EntityFieldMap, resolved: boolean): number {
+	get layerCount(): number {
+		return this._data.length
+	}
+
+	write({ layer, optimistic }: { layer: EntityFieldMap; optimistic?: boolean }): number {
 		// generate an id for the new layer
-		const id = new Date().getTime() + Math.random()
+		const id = this.idCount++
 
 		// add the layer to the list
-		this._data.push({ id, values, resolved })
+		this._data.push({ id, values: layer, optimistic })
 
-		// if we are writing a resolved layer that's not the first, go ahead and resolve it immediately
-		if (resolved && this._data.length > 1) {
-			this.resolveLayer(id, values)
+		// if we are writing a optimistic layer that's not the first, go ahead and resolve it immediately
+		if (!optimistic && this._data.length > 1) {
+			this.resolveLayer(id, layer)
 		}
 
 		// return the id
@@ -48,21 +44,21 @@ class InMemoryLayers implements LayerStorage {
 			const newValue = values
 
 			// before we merge the values down to the lower layer, lets walk up the list and
-			// look for more resolved layers we should merge with this one
-			let nextUnresolvedIndex
+			// look for more optimistic layers we should merge with this one
+			let nextUnoptimisticIndex
 			for (
-				nextUnresolvedIndex = index + 1;
-				nextUnresolvedIndex < this._data.length;
-				nextUnresolvedIndex++
+				nextUnoptimisticIndex = index + 1;
+				nextUnoptimisticIndex < this._data.length;
+				nextUnoptimisticIndex++
 			) {
-				const nextLayer = this._data[nextUnresolvedIndex]
+				const nextLayer = this._data[nextUnoptimisticIndex]
 
-				// if this layer is not resolved, we're done looking for more layers to merge
-				if (!nextLayer?.resolved) {
+				// if this layer is optimistic, we're done looking for more layers to merge
+				if (nextLayer?.optimistic) {
 					break
 				}
 
-				// the layer is resolved, save its value and remove it from the list
+				// the layer is optimistic, save its value and remove it from the list
 				this.mergeLayers(newValue, nextLayer.values)
 			}
 
@@ -70,22 +66,24 @@ class InMemoryLayers implements LayerStorage {
 			layer.values = newValue
 
 			// before we layers, we might have to include this one if the layer below us is also
-			// resolved
+			// optimistic
 			let startingIndex = index + 1
-			if (this._data[index - 1].resolved) {
+			if (!this._data[index - 1]?.optimistic) {
 				this.mergeLayers(this._data[index - 1].values, layer.values)
 				startingIndex--
 			}
 
 			// delete the layers we merged
-			this._data.splice(startingIndex, nextUnresolvedIndex - startingIndex + 1)
+			this._data.splice(startingIndex, nextUnoptimisticIndex - startingIndex + 1)
 		}
 	}
 
-	// the list of layers goes from "top" to "bottom" (last layer, to the base)
-	*[Symbol.iterator]() {
+	read(id: string, field: string): GraphQLValue {
+		// looking up an id's field requires looping through the layers we know about
 		for (let i = this._data.length - 1; i >= 0; i--) {
-			yield this._data[i].values
+			if (this._data[i].values[id][field]) {
+				return this._data[i].values[id][field]
+			}
 		}
 	}
 
@@ -106,3 +104,5 @@ class InMemoryLayers implements LayerStorage {
 }
 
 type EntityFieldMap = { [id: string]: { [field: string]: GraphQLValue } }
+
+const FieldNotFoundError = new Error('field not found')
