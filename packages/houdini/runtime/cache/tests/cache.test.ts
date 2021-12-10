@@ -2046,7 +2046,7 @@ describe('key evaluation', function () {
 	}
 })
 
-test.only('does not fail without data', function () {
+test('computeID does not throw without data', function () {
 	const cache = new Cache(config)
 
 	expect(cache.id('SomeType', undefined)).toEqual(undefined)
