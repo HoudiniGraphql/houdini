@@ -66,7 +66,7 @@ export class InMemoryStorage implements LayerStorage {
 			// and mark it as a resolved layer
 			layer.optimistic = false
 
-			// before we layers, we might have to include this one if the layer below us is also
+			// before we delete the layers, we might have to include this one if the layer below us is also
 			// optimistic
 			let startingIndex = index + 1
 			if (!this._data[index - 1]?.optimistic) {
