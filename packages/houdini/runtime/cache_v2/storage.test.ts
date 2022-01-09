@@ -1,18 +1,13 @@
-import { InMemoryStorage } from './storage'
+import { InMemoryStorage, link } from './storage'
 
 describe('in memory layers', function () {
 	test('first layer written can be looked up', function () {
 		// instantiate an storage layer with an in-memory layer
 		const storage = new InMemoryStorage()
 
-		// write the layer
-		storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'John',
-				},
-			},
-		})
+		// create the layer and write some data
+		const layer = storage.createLayer()
+		layer.write('User:1', 'firstName', 'John')
 
 		// can get the data back
 		expect(storage.get('User:1', 'firstName')).toEqual('John')
@@ -23,21 +18,9 @@ describe('in memory layers', function () {
 		// instantiate an storage layer with an in-memory layer
 		const storage = new InMemoryStorage()
 
-		// write the layer
-		storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'John',
-				},
-			},
-		})
-		storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'Marshal',
-				},
-			},
-		})
+		// create the two layers and write overlapping data
+		storage.write('User:1', 'firstName', 'John')
+		storage.write('User:1', 'firstName', 'Marshal')
 
 		// can get the data back
 		expect(storage.get('User:1', 'firstName')).toEqual('Marshal')
@@ -48,22 +31,9 @@ describe('in memory layers', function () {
 		// instantiate an storage layer with an in-memory layer
 		const storage = new InMemoryStorage()
 
-		// write the layer
-		storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'John',
-				},
-			},
-		})
-		storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'Marshal',
-				},
-			},
-			optimistic: true,
-		})
+		// create the two layers and write overlapping data
+		storage.write('User:1', 'firstName', 'John')
+		storage.createLayer(true).write('User:1', 'firstName', 'Marshal')
 
 		// can get the data back
 		expect(storage.get('User:1', 'firstName')).toEqual('Marshal')
@@ -75,31 +45,24 @@ describe('in memory layers', function () {
 		const storage = new InMemoryStorage()
 
 		// write the layer
-		storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'John',
-				},
-			},
-		})
+		storage.write('User:1', 'firstName', 'John')
 		expect(storage.get('User:1', 'firstName')).toEqual('John')
 		expect(storage.layerCount).toEqual(1)
 
-		const layerID = storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'Marshal',
-				},
-			},
-			optimistic: true,
-		})
+		// add an optimistic layer
+		const optimisticLayer = storage.createLayer(true)
+		optimisticLayer.write('User:1', 'firstName', 'Marshal')
+
+		// sanity check
 		expect(storage.get('User:1', 'firstName')).toEqual('Marshal')
 		expect(storage.layerCount).toEqual(2)
 
-		// resolve the layer with different data
-		storage.resolveLayer(layerID, {
-			'User:1': {
-				firstName: 'Mike',
+		// resolve the middle layer with different data
+		storage.resolveLayer(optimisticLayer.id, {
+			fields: {
+				'User:1': {
+					firstName: 'Mike',
+				},
 			},
 		})
 
@@ -113,64 +76,29 @@ describe('in memory layers', function () {
 		const storage = new InMemoryStorage()
 
 		// write the layer
-		storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'John',
-				},
-			},
-		})
-		expect(storage.get('User:1', 'firstName')).toEqual('John')
-		expect(storage.layerCount).toEqual(1)
+		storage.write('User:1', 'firstName', 'John')
 
 		// write an optimistic layer above the base
-		const layer1 = storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'Michael',
-				},
-			},
-			optimistic: true,
-		})
+		const layer1 = storage.createLayer(true)
+		layer1.write('User:1', 'firstName', 'Michael')
 
-		// add a layer above it that we will resolve
-		const layer2 = storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'Mitch',
-					lastName: 'Michelson',
-				},
-			},
-			optimistic: true,
-		})
-		// and a layer above that we want to merge into
-		storage.write({
-			layer: {
-				'User:1': {
-					firstName: 'Jeremy',
-				},
-			},
-		})
+		// add a layer above it
+		const layer2 = storage.createLayer()
+		layer2.write('User:1', 'firstName', 'Jeremy')
+		layer2.write('User:1', 'lastName', 'Michelson')
+
+		// sanity check
 		expect(storage.get('User:1', 'firstName')).toEqual('Jeremy')
-		expect(storage.layerCount).toEqual(4)
-
-		storage.resolveLayer(layer2, {
-			'User:1': {
-				firstName: 'Mitch2',
-				lastName: 'Michelson2',
-			},
-		})
-
-		expect(storage.get('User:1', 'firstName')).toEqual('Jeremy')
-		expect(storage.get('User:1', 'lastName')).toEqual('Michelson2')
 		expect(storage.layerCount).toEqual(3)
 
 		// flatten the data down to a single layer
-		storage.resolveLayer(layer1, {
-			'User:1': {
-				firstName: 'Michael',
-				lastName: 'George',
-				age: 5,
+		storage.resolveLayer(layer1.id, {
+			fields: {
+				'User:1': {
+					firstName: 'Michael',
+					lastName: 'George',
+					age: 5,
+				},
 			},
 		})
 
@@ -178,6 +106,14 @@ describe('in memory layers', function () {
 		expect(storage.layerCount).toEqual(1)
 		expect(storage.get('User:1', 'age')).toEqual(5)
 		expect(storage.get('User:1', 'firstName')).toEqual('Jeremy')
-		expect(storage.get('User:1', 'lastName')).toEqual('Michelson2')
+		expect(storage.get('User:1', 'lastName')).toEqual('Michelson')
+	})
+
+	test('can write and retrieve links', function () {
+		const storage = new InMemoryStorage()
+
+		storage.write('User:1', 'bestFriend', link('User:2'))
+
+		expect(storage.get('User:1', 'bestFriend')).toEqual(link('User:2'))
 	})
 })

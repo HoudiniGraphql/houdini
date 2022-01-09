@@ -1,13 +1,7 @@
 import { GraphQLValue } from '../types'
 
-export interface LayerStorage {
-	write(data: { layer: EntityFieldMap; optimistic?: boolean }): number
-	resolveLayer(id: number, values: EntityFieldMap): void
-	get(id: string, field: string): GraphQLValue
-}
-
-export class InMemoryStorage implements LayerStorage {
-	private _data: { id: number; values: EntityFieldMap; optimistic?: boolean }[]
+export class InMemoryStorage {
+	private _data: Layer[]
 	private idCount = 0
 
 	constructor() {
@@ -18,33 +12,59 @@ export class InMemoryStorage implements LayerStorage {
 		return this._data.length
 	}
 
-	write({ layer, optimistic }: { layer: EntityFieldMap; optimistic?: boolean }): number {
-		// generate an id for the new layer
-		const id = this.idCount++
+	// create a layer and return its id
+	createLayer(optimistic: boolean = false): Layer {
+		// generate the next layer
+		const layer = new Layer(this.idCount++)
+		layer.optimistic = optimistic
 
 		// add the layer to the list
-		this._data.push({ id, values: layer, optimistic })
+		this._data.push(layer)
 
-		// if we are writing a optimistic layer that's not the first, go ahead and resolve it immediately
-		if (!optimistic && this._data.length > 1) {
-			this.resolveLayer(id, layer)
-		}
-
-		// return the id
-		return id
+		// pass the layer on so it can be updated
+		return layer
 	}
 
-	resolveLayer(id: number, values: EntityFieldMap): void {
+	get(id: string, field: string): GraphQLField {
+		// go through the list of layers in reverse
+		for (let i = this._data.length - 1; i >= 0; i--) {
+			const layerValue = this._data[i].get(id, field)
+
+			if (typeof layerValue !== 'undefined') {
+				return layerValue
+			}
+		}
+	}
+
+	write(id: string, field: string, value: GraphQLField) {
+		// if there is no base layer
+		if (this._data.length === 0) {
+			this.createLayer()
+		}
+
+		// if the last layer is optimistic, create another layer
+		if (this._data[this._data.length - 1]?.optimistic) {
+			this.createLayer()
+		}
+
+		// write to the top most layer
+		return this._data[this._data.length - 1].write(id, field, value)
+	}
+
+	resolveLayer(id: number, values: LayerData): void {
 		// find the layer with the matching id
 		for (const [index, layer] of this._data.entries()) {
 			if (layer.id !== id) {
 				continue
 			}
 
-			const newValue = values
+			// copy the new values onto the layer
+			layer.writeLayer(values)
+			// and mark it as a resolved layer
+			layer.optimistic = false
 
 			// before we merge the values down to the lower layer, lets walk up the list and
-			// look for more optimistic layers we should merge with this one
+			// look for more non-optimistic layers we should merge with this one
 			let nextUnoptimisticIndex
 			for (
 				nextUnoptimisticIndex = index + 1;
@@ -57,20 +77,15 @@ export class InMemoryStorage implements LayerStorage {
 					break
 				}
 
-				// the layer is optimistic, save its value and remove it from the list
-				this.mergeLayers(newValue, nextLayer.values)
+				// the layer is not optimistic, save its value and remove it from the list
+				layer.writeLayer(nextLayer)
 			}
-
-			// merge all of the layers into this one
-			layer.values = newValue
-			// and mark it as a resolved layer
-			layer.optimistic = false
 
 			// before we delete the layers, we might have to include this one if the layer below us is also
 			// optimistic
 			let startingIndex = index + 1
 			if (!this._data[index - 1]?.optimistic) {
-				this.mergeLayers(this._data[index - 1].values, layer.values)
+				this._data[index - 1].writeLayer(layer)
 				startingIndex--
 			}
 
@@ -78,32 +93,94 @@ export class InMemoryStorage implements LayerStorage {
 			this._data.splice(startingIndex, nextUnoptimisticIndex - startingIndex + 1)
 		}
 	}
+}
 
-	get(id: string, field: string): GraphQLValue {
-		// looking up an id's field requires looping through the layers we know about
-		for (let i = this._data.length - 1; i >= 0; i--) {
-			if (this._data[i].values[id][field]) {
-				return this._data[i].values[id][field]
+class Layer {
+	readonly id: number
+	public optimistic: boolean = false
+
+	fields: EntityFieldMap = {}
+	links: LinkMap = {}
+
+	constructor(id: number) {
+		this.id = id
+	}
+
+	get(id: string, field: string): GraphQLField {
+		// if its a link return the value
+		if (typeof this.links[id]?.[field] !== 'undefined') {
+			return this.links[id][field]
+		}
+
+		// only other option is a value
+		return this.fields[id]?.[field]
+	}
+
+	write(id: string, field: string, value: GraphQLField) {
+		// if we were given a link
+		if (isLink(value)) {
+			this.links[id] = {
+				...this.links[id],
+				[field]: value,
 			}
+
+			// we're done
+			return
+		}
+
+		// the value is not a link, register it as a field value
+		this.fields[id] = {
+			...this.fields[id],
+			[field]: value,
 		}
 	}
 
-	private mergeLayers(base: EntityFieldMap, newValues: EntityFieldMap) {
-		for (const [id, values] of Object.entries(newValues)) {
+	writeLayer({ fields, links }: LayerData): void {
+		// copy the field values
+		for (const [id, values] of Object.entries(fields || {})) {
 			// if we haven't seen this id before, just copy it all
-			if (!base[id]) {
-				base[id] = values
+			if (!this.fields[id]) {
+				this.fields[id] = values
 				continue
 			}
 
 			// we do have a record matching this id, copy the individual fields
 			for (const [field, value] of Object.entries(values)) {
-				base[id][field] = value
+				this.fields[id][field] = value
+			}
+		}
+		// copy the field values
+		for (const [id, values] of Object.entries(links || {})) {
+			// if we haven't seen this id before, just copy it all
+			if (!this.links[id]) {
+				this.links[id] = values
+				continue
+			}
+
+			// we do have a record matching this id, copy the individual links
+			for (const [field, value] of Object.entries(values)) {
+				this.links[id][field] = value
 			}
 		}
 	}
 }
 
+type Link = { to: string }
+
+export function link(to: string) {
+	return { to }
+}
+
+export function isLink(field: GraphQLField): field is Link {
+	return Boolean((field as any)?.to)
+}
+
+type GraphQLField = GraphQLValue | Link
+
 type EntityFieldMap = { [id: string]: { [field: string]: GraphQLValue } }
 
-const FieldNotFoundError = new Error('field not found')
+type LinkMap = { [id: string]: { [field: string]: Link | null | LinkedList<Link> } }
+
+type LayerData = { fields?: EntityFieldMap; links?: LinkMap }
+
+type LinkedList<_Result = string> = (_Result | null | LinkedList<_Result>)[]
