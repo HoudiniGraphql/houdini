@@ -123,7 +123,12 @@ import houdini from 'houdini-preprocess'
                 alias: {
                     $houdini: path.resolve('.', '$houdini')
                 }
-            }
+            },
+	    server: {
+                fs: {
+                    allow: ['.'],
+                },
+            },
         }
     }
 }
