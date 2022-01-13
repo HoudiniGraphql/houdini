@@ -1,4 +1,4 @@
-import { InMemoryStorage, link } from './storage'
+import { InMemoryStorage } from './storage'
 
 describe('in memory layers', function () {
 	test('first layer written can be looked up', function () {
@@ -7,7 +7,7 @@ describe('in memory layers', function () {
 
 		// create the layer and write some data
 		const layer = storage.createLayer()
-		layer.write('User:1', 'firstName', 'John')
+		layer.writeField('User:1', 'firstName', 'John')
 
 		// can get the data back
 		expect(storage.get('User:1', 'firstName')).toEqual('John')
@@ -19,8 +19,8 @@ describe('in memory layers', function () {
 		const storage = new InMemoryStorage()
 
 		// create the two layers and write overlapping data
-		storage.write('User:1', 'firstName', 'John')
-		storage.write('User:1', 'firstName', 'Marshal')
+		storage.writeField('User:1', 'firstName', 'John')
+		storage.writeField('User:1', 'firstName', 'Marshal')
 
 		// can get the data back
 		expect(storage.get('User:1', 'firstName')).toEqual('Marshal')
@@ -32,8 +32,8 @@ describe('in memory layers', function () {
 		const storage = new InMemoryStorage()
 
 		// create the two layers and write overlapping data
-		storage.write('User:1', 'firstName', 'John')
-		storage.createLayer(true).write('User:1', 'firstName', 'Marshal')
+		storage.writeField('User:1', 'firstName', 'John')
+		storage.createLayer(true).writeField('User:1', 'firstName', 'Marshal')
 
 		// can get the data back
 		expect(storage.get('User:1', 'firstName')).toEqual('Marshal')
@@ -45,13 +45,13 @@ describe('in memory layers', function () {
 		const storage = new InMemoryStorage()
 
 		// write the layer
-		storage.write('User:1', 'firstName', 'John')
+		storage.writeField('User:1', 'firstName', 'John')
 		expect(storage.get('User:1', 'firstName')).toEqual('John')
 		expect(storage.layerCount).toEqual(1)
 
 		// add an optimistic layer
 		const optimisticLayer = storage.createLayer(true)
-		optimisticLayer.write('User:1', 'firstName', 'Marshal')
+		optimisticLayer.writeField('User:1', 'firstName', 'Marshal')
 
 		// sanity check
 		expect(storage.get('User:1', 'firstName')).toEqual('Marshal')
@@ -76,16 +76,16 @@ describe('in memory layers', function () {
 		const storage = new InMemoryStorage()
 
 		// write the layer
-		storage.write('User:1', 'firstName', 'John')
+		storage.writeField('User:1', 'firstName', 'John')
 
 		// write an optimistic layer above the base
 		const layer1 = storage.createLayer(true)
-		layer1.write('User:1', 'firstName', 'Michael')
+		layer1.writeField('User:1', 'firstName', 'Michael')
 
 		// add a layer above it
 		const layer2 = storage.createLayer()
-		layer2.write('User:1', 'firstName', 'Jeremy')
-		layer2.write('User:1', 'lastName', 'Michelson')
+		layer2.writeField('User:1', 'firstName', 'Jeremy')
+		layer2.writeField('User:1', 'lastName', 'Michelson')
 
 		// sanity check
 		expect(storage.get('User:1', 'firstName')).toEqual('Jeremy')
@@ -112,15 +112,16 @@ describe('in memory layers', function () {
 	test('can write and retrieve links', function () {
 		const storage = new InMemoryStorage()
 
-		storage.write('User:1', 'bestFriend', link('User:2'))
+		storage.writeLink('User:1', 'bestFriend', 'User:2')
 
-		expect(storage.get('User:1', 'bestFriend')).toEqual(link('User:2'))
+		expect(storage.get('User:1', 'bestFriend')).toEqual('User:2')
 	})
 
-	test('can write operations', function () {
+	test('can write list of links', function () {
 		const storage = new InMemoryStorage()
 
-		// add a linked link we will add records to
-		storage.write('User:1')
+		storage.writeLink('User:1', 'friends', ['User:1'])
+
+		expect(storage.get('User:1', 'friends')).toEqual(['User:1'])
 	})
 })
