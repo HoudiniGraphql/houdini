@@ -36,19 +36,13 @@ export class InMemoryStorage {
 		}
 	}
 
-	write(id: string, field: string, value: GraphQLField) {
-		// if there is no base layer
-		if (this._data.length === 0) {
-			this.createLayer()
-		}
-
-		// if the last layer is optimistic, create another layer
-		if (this._data[this._data.length - 1]?.optimistic) {
-			this.createLayer()
-		}
-
+	writeLink(id: string, field: string, value: Link | LinkedList<Link>) {
 		// write to the top most layer
-		return this._data[this._data.length - 1].write(id, field, value)
+		return this.topLayer.writeLink(id, field, value)
+	}
+
+	write(id: string, field: string, value: GraphQLValue) {
+		return this.topLayer.write(id, field, value)
 	}
 
 	resolveLayer(id: number, values: LayerData): void {
@@ -93,6 +87,22 @@ export class InMemoryStorage {
 			this._data.splice(startingIndex, nextUnoptimisticIndex - startingIndex + 1)
 		}
 	}
+
+	private get topLayer(): Layer {
+		let layer: Layer
+
+		// if there is no base layer
+		if (this._data.length === 0) {
+			layer = this.createLayer()
+		}
+
+		// if the last layer is optimistic, create another layer
+		if (this._data[this._data.length - 1]?.optimistic) {
+			layer = this.createLayer()
+		}
+
+		return this._data[this._data.length - 1]
+	}
 }
 
 class Layer {
@@ -116,21 +126,16 @@ class Layer {
 		return this.fields[id]?.[field]
 	}
 
-	write(id: string, field: string, value: GraphQLField) {
-		// if we were given a link
-		if (isLink(value)) {
-			this.links[id] = {
-				...this.links[id],
-				[field]: value,
-			}
-
-			// we're done
-			return
-		}
-
-		// the value is not a link, register it as a field value
+	write(id: string, field: string, value: GraphQLValue) {
 		this.fields[id] = {
 			...this.fields[id],
+			[field]: value,
+		}
+	}
+
+	writeLink(id: string, field: string, value: Link | LinkedList<Link>) {
+		this.links[id] = {
+			...this.links[id],
 			[field]: value,
 		}
 	}
@@ -175,7 +180,7 @@ export function isLink(field: GraphQLField): field is Link {
 	return Boolean((field as any)?.to)
 }
 
-type GraphQLField = GraphQLValue | Link
+type GraphQLField = GraphQLValue | Link | LinkedList<Link>
 
 type EntityFieldMap = { [id: string]: { [field: string]: GraphQLValue } }
 
