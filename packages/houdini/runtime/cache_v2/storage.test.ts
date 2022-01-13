@@ -116,4 +116,11 @@ describe('in memory layers', function () {
 
 		expect(storage.get('User:1', 'bestFriend')).toEqual(link('User:2'))
 	})
+
+	test('can write operations', function () {
+		const storage = new InMemoryStorage()
+
+		// add a linked link we will add records to
+		storage.write('User:1')
+	})
 })
