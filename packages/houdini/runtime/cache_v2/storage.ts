@@ -45,15 +45,17 @@ export class InMemoryStorage {
 		return this.topLayer.writeField(id, field, value)
 	}
 
-	resolveLayer(id: number, values: LayerData): void {
+	writeOperation(operation: Operation) {
+		return this.topLayer.writeOperation(operation)
+	}
+
+	resolveLayer(id: number): void {
 		// find the layer with the matching id
 		for (const [index, layer] of this._data.entries()) {
 			if (layer.id !== id) {
 				continue
 			}
 
-			// copy the new values onto the layer
-			layer.writeLayer(values)
 			// and mark it as a resolved layer
 			layer.optimistic = false
 
@@ -140,6 +142,8 @@ class Layer {
 		}
 	}
 
+	writeOperation(operaton: Operation) {}
+
 	writeLayer({ fields, links }: LayerData): void {
 		// copy the field values
 		for (const [id, values] of Object.entries(fields || {})) {
@@ -172,10 +176,44 @@ class Layer {
 
 type GraphQLField = GraphQLValue | LinkedList
 
-type EntityFieldMap = { [id: string]: { [field: string]: GraphQLValue } }
+type EntityMap<_Value> = { [id: string]: { [field: string]: _Value } }
 
-type LinkMap = { [id: string]: { [field: string]: string | null | LinkedList } }
+type EntityFieldMap = EntityMap<GraphQLField>
 
-type LayerData = { fields?: EntityFieldMap; links?: LinkMap }
+type LinkMap = EntityMap<string | null | LinkedList>
+
+type OperationMap = EntityMap<Array<Operation>>
+
+type LayerData = { fields?: EntityFieldMap; links?: LinkMap; operations?: OperationMap }
 
 type LinkedList<_Result = string> = (_Result | null | LinkedList<_Result>)[]
+
+type Operation =
+	| {
+			kind: OperationKind.delete
+			target: string
+	  }
+	| {
+			kind: OperationKind.insert
+			location: OperationLocation
+			parentID: string
+			parentField: string
+			target: string
+	  }
+	| {
+			kind: OperationKind.remove
+			parentID: string
+			parentField: string
+			target: string
+	  }
+
+enum OperationLocation {
+	start = 'start',
+	end = 'end',
+}
+
+export enum OperationKind {
+	delete = 'delete',
+	insert = 'insert',
+	remove = 'remove',
+}

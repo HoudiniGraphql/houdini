@@ -1,4 +1,4 @@
-import { InMemoryStorage } from './storage'
+import { InMemoryStorage, OperationKind } from './storage'
 
 describe('in memory layers', function () {
 	test('first layer written can be looked up', function () {
@@ -58,13 +58,8 @@ describe('in memory layers', function () {
 		expect(storage.layerCount).toEqual(2)
 
 		// resolve the middle layer with different data
-		storage.resolveLayer(optimisticLayer.id, {
-			fields: {
-				'User:1': {
-					firstName: 'Mike',
-				},
-			},
-		})
+		optimisticLayer.writeField('User:1', 'firstName', 'Mike')
+		storage.resolveLayer(optimisticLayer.id)
 
 		// make sure the layer was committed correctly
 		expect(storage.get('User:1', 'firstName')).toEqual('Mike')
@@ -92,15 +87,10 @@ describe('in memory layers', function () {
 		expect(storage.layerCount).toEqual(3)
 
 		// flatten the data down to a single layer
-		storage.resolveLayer(layer1.id, {
-			fields: {
-				'User:1': {
-					firstName: 'Michael',
-					lastName: 'George',
-					age: 5,
-				},
-			},
-		})
+		layer1.writeField('User:1', 'firstName', 'Michael')
+		layer1.writeField('User:1', 'lastName', "George'")
+		layer1.writeField('User:1', 'age', 5)
+		storage.resolveLayer(layer1.id)
 
 		// make sure the data is what we expect
 		expect(storage.layerCount).toEqual(1)
@@ -109,19 +99,41 @@ describe('in memory layers', function () {
 		expect(storage.get('User:1', 'lastName')).toEqual('Michelson')
 	})
 
-	test('can write and retrieve links', function () {
+	test('can write links', function () {
 		const storage = new InMemoryStorage()
-
 		storage.writeLink('User:1', 'bestFriend', 'User:2')
-
 		expect(storage.get('User:1', 'bestFriend')).toEqual('User:2')
 	})
 
 	test('can write list of links', function () {
 		const storage = new InMemoryStorage()
-
 		storage.writeLink('User:1', 'friends', ['User:1'])
-
 		expect(storage.get('User:1', 'friends')).toEqual(['User:1'])
+	})
+
+	describe('operations', function () {
+		test('optimistic deletes', function () {
+			const storage = new InMemoryStorage()
+
+			// add some information on the base layer we will delete
+			storage.writeField('User:1', 'firstName', 'John')
+			storage.writeField('User:1', 'lastName', 'Schmidt')
+
+			// create a layer that deletes the record
+			const middleLayer = storage.createLayer(true)
+			middleLayer.writeOperation({ kind: OperationKind.delete, target: 'User:1' })
+
+			// add some more information for the record
+			storage.writeField('User:1', 'middleName', 'Jingleheymer')
+
+			// we should be able to retrieve the top layer of information
+			expect(storage.get('User:1', 'middleName')).toEqual('Jingleheymer')
+
+			// and the information in the lower layer should be inaccessible
+			expect(storage.get('User:1', 'firstName')).toBeUndefined()
+
+			// resolving the middle layer should delete the information
+			storage.resolveLayer(middleLayer.id)
+		})
 	})
 })
