@@ -36,13 +36,13 @@ export class InMemoryStorage {
 		}
 	}
 
-	writeLink(id: string, field: string, value: Link | LinkedList<Link>) {
+	writeLink(id: string, field: string, value: string | LinkedList) {
 		// write to the top most layer
 		return this.topLayer.writeLink(id, field, value)
 	}
 
-	write(id: string, field: string, value: GraphQLValue) {
-		return this.topLayer.write(id, field, value)
+	writeField(id: string, field: string, value: GraphQLValue) {
+		return this.topLayer.writeField(id, field, value)
 	}
 
 	resolveLayer(id: number, values: LayerData): void {
@@ -126,14 +126,14 @@ class Layer {
 		return this.fields[id]?.[field]
 	}
 
-	write(id: string, field: string, value: GraphQLValue) {
+	writeField(id: string, field: string, value: GraphQLField) {
 		this.fields[id] = {
 			...this.fields[id],
 			[field]: value,
 		}
 	}
 
-	writeLink(id: string, field: string, value: Link | LinkedList<Link>) {
+	writeLink(id: string, field: string, value: string | LinkedList) {
 		this.links[id] = {
 			...this.links[id],
 			[field]: value,
@@ -170,21 +170,11 @@ class Layer {
 	}
 }
 
-type Link = { to: string }
-
-export function link(to: string) {
-	return { to }
-}
-
-export function isLink(field: GraphQLField): field is Link {
-	return Boolean((field as any)?.to)
-}
-
-type GraphQLField = GraphQLValue | Link | LinkedList<Link>
+type GraphQLField = GraphQLValue | LinkedList
 
 type EntityFieldMap = { [id: string]: { [field: string]: GraphQLValue } }
 
-type LinkMap = { [id: string]: { [field: string]: Link | null | LinkedList<Link> } }
+type LinkMap = { [id: string]: { [field: string]: string | null | LinkedList } }
 
 type LayerData = { fields?: EntityFieldMap; links?: LinkMap }
 
