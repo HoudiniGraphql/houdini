@@ -142,3 +142,9 @@ describe('in memory layers', function () {
 		})
 	})
 })
+
+/// Notes:
+///
+/// - a layer has to be completely cleared before values are reolved. if User:1 got a bunch of
+///   values from the the layer but things resolved with User:2, we need to forget the User:1
+///   values
