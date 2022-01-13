@@ -131,9 +131,14 @@ describe('in memory layers', function () {
 
 			// and the information in the lower layer should be inaccessible
 			expect(storage.get('User:1', 'firstName')).toBeUndefined()
+			expect(storage.get('User:1', 'lastName')).toBeUndefined()
 
 			// resolving the middle layer should delete the information
 			storage.resolveLayer(middleLayer.id)
+			expect(storage.layerCount).toEqual(1)
+			expect(storage.get('User:1', 'firstName')).toBeUndefined()
+			expect(storage.get('User:1', 'lastName')).toBeUndefined()
+			expect(storage.get('User:1', 'middleName')).toEqual('Jingleheymer')
 		})
 	})
 })
