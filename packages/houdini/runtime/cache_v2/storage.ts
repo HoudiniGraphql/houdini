@@ -25,6 +25,18 @@ export class InMemoryStorage {
 		return layer
 	}
 
+	insert(id: string, field: string, location: OperationLocation, target: string) {
+		return this.topLayer.insert(id, field, location, target)
+	}
+
+	remove(id: string, field: string, target: string) {
+		return this.topLayer.remove(id, field, target)
+	}
+
+	delete(id: string) {
+		return this.topLayer.delete(id)
+	}
+
 	get(id: string, field: string): GraphQLField {
 		// go through the list of layers in reverse
 		for (let i = this._data.length - 1; i >= 0; i--) {
@@ -43,10 +55,6 @@ export class InMemoryStorage {
 
 	writeField(id: string, field: string, value: GraphQLValue) {
 		return this.topLayer.writeField(id, field, value)
-	}
-
-	writeOperation(operation: Operation) {
-		return this.topLayer.writeOperation(operation)
 	}
 
 	resolveLayer(id: number): void {
@@ -113,6 +121,7 @@ class Layer {
 
 	fields: EntityFieldMap = {}
 	links: LinkMap = {}
+	operations: OperationMap = {}
 
 	constructor(id: number) {
 		this.id = id
@@ -142,7 +151,17 @@ class Layer {
 		}
 	}
 
-	writeOperation(operaton: Operation) {}
+	clear() {
+		this.links = {}
+		this.fields = {}
+		this.operations = {}
+	}
+
+	delete(id: string) {}
+
+	insert(id: string, field: string, where: OperationLocation, target: string) {}
+
+	remove(id: string, field: string, target: string) {}
 
 	writeLayer({ fields, links }: LayerData): void {
 		// copy the field values
@@ -207,7 +226,7 @@ type Operation =
 			target: string
 	  }
 
-enum OperationLocation {
+export enum OperationLocation {
 	start = 'start',
 	end = 'end',
 }
