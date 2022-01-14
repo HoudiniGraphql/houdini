@@ -99,16 +99,14 @@ export class InMemoryStorage {
 	}
 
 	private get topLayer(): Layer {
-		let layer: Layer
-
 		// if there is no base layer
 		if (this._data.length === 0) {
-			layer = this.createLayer()
+			this.createLayer()
 		}
 
-		// if the last layer is optimistic, create another layer
+		// if the last layer is optimistic, create another layer on top of it
 		if (this._data[this._data.length - 1]?.optimistic) {
-			layer = this.createLayer()
+			this.createLayer()
 		}
 
 		return this._data[this._data.length - 1]
