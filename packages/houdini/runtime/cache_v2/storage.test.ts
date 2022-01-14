@@ -111,7 +111,7 @@ describe('in memory layers', function () {
 		expect(storage.get('User:1', 'friends')).toEqual(['User:1'])
 	})
 
-	test('layers can be cleared', function () {
+	test('values are reset when layer is cleared', function () {
 		const storage = new InMemoryStorage()
 		const layer = storage.createLayer(true)
 
@@ -127,7 +127,7 @@ describe('in memory layers', function () {
 		expect(storage.get('User:1', 'firstName')).toBeUndefined()
 	})
 
-	test.todo('clear layer operations, and links')
+	test.todo('links are reset when layer is cleared')
 
 	describe('operations', function () {
 		test('optimistic deletes', function () {
@@ -136,6 +136,9 @@ describe('in memory layers', function () {
 			// add some information on the base layer we will delete
 			storage.writeField('User:1', 'firstName', 'John')
 			storage.writeField('User:1', 'lastName', 'Schmidt')
+
+			// add the user we're going to delete to a linked list to make sure they are removed from it
+			storage.writeLink('User:2', 'friends', ['User:1'])
 
 			// create a layer that deletes the record
 			const middleLayer = storage.createLayer(true)
@@ -157,6 +160,7 @@ describe('in memory layers', function () {
 			expect(storage.get('User:1', 'firstName')).toBeUndefined()
 			expect(storage.get('User:1', 'lastName')).toBeUndefined()
 			expect(storage.get('User:1', 'middleName')).toEqual('Jingleheymer')
+			expect(storage.get('User:2', 'friends')).toEqual([])
 		})
 
 		test('insert into linked list', function () {
