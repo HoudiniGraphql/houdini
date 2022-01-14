@@ -157,11 +157,33 @@ class Layer {
 		this.operations = {}
 	}
 
-	delete(id: string) {}
+	delete(id: string) {
+		// add an insert operation to the map
+		this.operations = {
+			...this.operations,
+			[id]: {
+				...this.operations[id],
+				deleted: true,
+			},
+		}
+	}
 
-	insert(id: string, field: string, where: OperationLocation, target: string) {}
+	insert(id: string, field: string, where: OperationLocation, target: string) {
+		// add an insert operation for the field
+		this.addFieldOperation(id, field, {
+			kind: OperationKind.insert,
+			id: target,
+			location: where,
+		})
+	}
 
-	remove(id: string, field: string, target: string) {}
+	remove(id: string, field: string, target: string) {
+		// add a remove operation for the field
+		this.addFieldOperation(id, field, {
+			kind: OperationKind.remove,
+			id: target,
+		})
+	}
 
 	writeLayer({ fields, links }: LayerData): void {
 		// copy the field values
@@ -191,6 +213,18 @@ class Layer {
 			}
 		}
 	}
+
+	private addFieldOperation(id: string, field: string, operation: ListOperation) {
+		this.operations = {
+			...this.operations,
+			[id]: {
+				...this.operations[id],
+				fields: {
+					[field]: [...(this.operations[id]?.fields[field] || []), operation],
+				},
+			},
+		}
+	}
 }
 
 type GraphQLField = GraphQLValue | LinkedList
@@ -201,29 +235,26 @@ type EntityFieldMap = EntityMap<GraphQLField>
 
 type LinkMap = EntityMap<string | null | LinkedList>
 
-type OperationMap = EntityMap<Array<Operation>>
+type OperationMap = {
+	[id: string]: {
+		deleted?: boolean
+		fields: { [field: string]: ListOperation[] }
+	}
+}
 
 type LayerData = { fields?: EntityFieldMap; links?: LinkMap; operations?: OperationMap }
 
 type LinkedList<_Result = string> = (_Result | null | LinkedList<_Result>)[]
 
-type Operation =
-	| {
-			kind: OperationKind.delete
-			target: string
-	  }
+type ListOperation =
 	| {
 			kind: OperationKind.insert
 			location: OperationLocation
-			parentID: string
-			parentField: string
-			target: string
+			id: string
 	  }
 	| {
 			kind: OperationKind.remove
-			parentID: string
-			parentField: string
-			target: string
+			id: string
 	  }
 
 export enum OperationLocation {
