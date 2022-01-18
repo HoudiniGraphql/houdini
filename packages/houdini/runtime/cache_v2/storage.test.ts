@@ -177,7 +177,7 @@ describe('in memory layers', function () {
 			storage.insert('User:1', 'friends', OperationLocation.end, 'User:5')
 
 			// make sure we got the full list back
-			expect(storage.get('User:1', 'friends')).toEqual(['User:2', 'User:3'])
+			expect(storage.get('User:1', 'friends')).toEqual(['User:2', 'User:3', 'User:5'])
 
 			// simulate a mutation response with different data (clear the layer, add a new record, and resolve it)
 			layer.clear()
