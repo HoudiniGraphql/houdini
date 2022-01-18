@@ -38,13 +38,62 @@ export class InMemoryStorage {
 	}
 
 	get(id: string, field: string): GraphQLField {
+		// the list of operations for the field
+		const operations = {
+			[OperationKind.insert]: {
+				[OperationLocation.start]: [] as string[],
+				[OperationLocation.end]: [] as string[],
+			},
+			[OperationKind.remove]: [] as string[],
+		}
+
 		// go through the list of layers in reverse
 		for (let i = this._data.length - 1; i >= 0; i--) {
 			const layerValue = this._data[i].get(id, field)
+			const layerOperations = this._data[i].getOperations(id, field) || []
 
-			if (typeof layerValue !== 'undefined') {
+			// if the layer does not contain a value for the field, move on
+			if (typeof layerValue === 'undefined' && typeof operations === 'undefined') {
+				continue
+			}
+
+			// if the result isn't an array we can just use the value
+			if (!Array.isArray(layerValue)) {
 				return layerValue
 			}
+
+			// if we have an operation
+			if (typeof layerOperations !== 'undefined') {
+				// process every operation
+				for (const op of layerOperations) {
+					// remove operation
+					if (isRemoveOperation(op)) {
+						operations.remove.push(op.id)
+					}
+					// inserts are sorted by location
+					if (isInsertOperation(op)) {
+						operations.insert[op.location].push(op.id)
+					}
+					// if we found a delete operation, we're done
+					if (isDeleteOperation(op)) {
+						return undefined
+					}
+				}
+			}
+
+			// if there are no operations, move along
+			if (
+				!operations.remove.length &&
+				!operations.insert.start.length &&
+				!operations.insert.end.length
+			) {
+				return layerValue
+			}
+
+			// we have operations to apply to the list
+			return [...operations.insert.start, ...layerValue, ...operations.insert.end].filter(
+				(value) => !operations.remove.includes(value as string)
+			)
 		}
 	}
 
@@ -125,7 +174,24 @@ class Layer {
 		this.id = id
 	}
 
-	get(id: string, field: string): GraphQLField {
+	getOperations(id: string, field: string): Operation[] | undefined {
+		// if the id has been deleted
+		if (this.operations[id]?.deleted) {
+			return [
+				{
+					kind: OperationKind.delete,
+					target: id,
+				},
+			]
+		}
+
+		// there could be a mutation for the specific field
+		if (this.operations[id]?.fields[field]) {
+			return this.operations[id].fields[field]
+		}
+	}
+
+	get(id: string, field: string): DeleteOperation | ListOperation[] | GraphQLField {
 		// if its a link return the value
 		if (typeof this.links[id]?.[field] !== 'undefined') {
 			return this.links[id][field]
@@ -244,16 +310,37 @@ type LayerData = { fields?: EntityFieldMap; links?: LinkMap; operations?: Operat
 
 type LinkedList<_Result = string> = (_Result | null | LinkedList<_Result>)[]
 
-type ListOperation =
-	| {
-			kind: OperationKind.insert
-			location: OperationLocation
-			id: string
-	  }
-	| {
-			kind: OperationKind.remove
-			id: string
-	  }
+type InsertOperation = {
+	kind: OperationKind.insert
+	location: OperationLocation
+	id: string
+}
+
+type RemoveOperation = {
+	kind: OperationKind.remove
+	id: string
+}
+
+type DeleteOperation = {
+	kind: OperationKind.delete
+	target: string
+}
+
+type ListOperation = InsertOperation | RemoveOperation
+
+function isDeleteOperation(value: GraphQLField | Operation): value is DeleteOperation {
+	return !!value && (value as Operation).kind === OperationKind.delete
+}
+
+function isInsertOperation(value: GraphQLField | Operation): value is InsertOperation {
+	return !!value && (value as Operation).kind === OperationKind.insert
+}
+
+function isRemoveOperation(value: GraphQLField | Operation): value is RemoveOperation {
+	return !!value && (value as Operation).kind === OperationKind.remove
+}
+
+type Operation = ListOperation | DeleteOperation
 
 export enum OperationLocation {
 	start = 'start',
