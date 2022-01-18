@@ -58,7 +58,7 @@ export class InMemoryStorage {
 			}
 
 			// if the result isn't an array we can just use the value
-			if (!Array.isArray(layerValue)) {
+			if (typeof layerValue !== 'undefined' && !Array.isArray(layerValue)) {
 				return layerValue
 			}
 
@@ -72,13 +72,18 @@ export class InMemoryStorage {
 					}
 					// inserts are sorted by location
 					if (isInsertOperation(op)) {
-						operations.insert[op.location].push(op.id)
+						operations.insert[op.location].unshift(op.id)
 					}
 					// if we found a delete operation, we're done
 					if (isDeleteOperation(op)) {
 						return undefined
 					}
 				}
+			}
+
+			// if we don't have a value to return, we're done
+			if (typeof layerValue === 'undefined') {
+				continue
 			}
 
 			// if there are no operations, move along
