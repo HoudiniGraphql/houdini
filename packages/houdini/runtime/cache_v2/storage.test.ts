@@ -182,11 +182,10 @@ describe('in memory layers', function () {
 			// simulate a mutation response with different data (clear the layer, add a new record, and resolve it)
 			layer.clear()
 			layer.insert('User:1', 'friends', OperationLocation.end, 'User:4')
-			layer.insert('User:1', 'friends', OperationLocation.end, 'User:5')
 			storage.resolveLayer(layer.id)
 
 			// look up the linked list
-			expect(storage.get('User:1', 'friends')).toEqual(['User:2', 'User:4', 'User:5'])
+			expect(storage.get('User:1', 'friends')).toEqual(['User:2', 'User:5', 'User:4'])
 			// there should only be one layer
 			expect(storage.layerCount).toEqual(1)
 		})
@@ -214,5 +213,7 @@ describe('in memory layers', function () {
 			expect(storage.get('User:1', 'friends')).toEqual(['User:2'])
 			expect(storage.layerCount).toEqual(1)
 		})
+
+		test.todo('layer.applyOperations')
 	})
 })
