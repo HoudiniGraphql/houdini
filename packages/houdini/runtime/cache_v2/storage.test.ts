@@ -214,10 +214,10 @@ describe('in memory layers', function () {
 			expect(storage.layerCount).toEqual(1)
 		})
 
-		test.todo('layer.applyOperations')
-
 		test.todo(
-			'resolve layer with deletes and fields together, should delete old data and save the new stuff'
+			'resolving layer with deletes and fields removes old data and retains the new stuff'
 		)
+
+		test.todo('an optimistic layer after a stack non-optimistic survives resolution')
 	})
 })

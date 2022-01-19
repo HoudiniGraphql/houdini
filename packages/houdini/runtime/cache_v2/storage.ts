@@ -168,17 +168,20 @@ export class InMemoryStorage {
 		}
 
 		// if the last layer is optimistic, create another layer on top of it
+		// since optimistic layers have to be written to directly
 		if (this._data[this._data.length - 1]?.optimistic) {
 			this.createLayer()
 		}
 
+		// the top layer is safe to write to (its non-null and guaranteed not optimistic)
 		return this._data[this._data.length - 1]
 	}
 }
 
 class Layer {
 	readonly id: number
-	public optimistic: boolean = false
+
+	optimistic: boolean = false
 
 	fields: EntityFieldMap = {}
 	links: LinkMap = {}
@@ -186,6 +189,16 @@ class Layer {
 
 	constructor(id: number) {
 		this.id = id
+	}
+
+	get(id: string, field: string): DeleteOperation | ListOperation[] | GraphQLField {
+		// if its a link return the value
+		if (typeof this.links[id]?.[field] !== 'undefined') {
+			return this.links[id][field]
+		}
+
+		// only other option is a value
+		return this.fields[id]?.[field]
 	}
 
 	getOperations(id: string, field: string): Operation[] | undefined {
@@ -205,16 +218,6 @@ class Layer {
 		}
 	}
 
-	get(id: string, field: string): DeleteOperation | ListOperation[] | GraphQLField {
-		// if its a link return the value
-		if (typeof this.links[id]?.[field] !== 'undefined') {
-			return this.links[id][field]
-		}
-
-		// only other option is a value
-		return this.fields[id]?.[field]
-	}
-
 	writeField(id: string, field: string, value: GraphQLField) {
 		this.fields[id] = {
 			...this.fields[id],
@@ -222,7 +225,7 @@ class Layer {
 		}
 	}
 
-	writeLink(id: string, field: string, value: string | LinkedList) {
+	writeLink(id: string, field: string, value: null | string | LinkedList) {
 		this.links[id] = {
 			...this.links[id],
 			[field]: value,
@@ -293,28 +296,17 @@ class Layer {
 
 		// copy the field values
 		for (const [id, values] of Object.entries(fields)) {
-			// if we haven't seen this id before, just copy it all
-			if (!this.fields[id]) {
-				this.fields[id] = values
-				continue
-			}
-
 			// we do have a record matching this id, copy the individual fields
 			for (const [field, value] of Object.entries(values)) {
-				this.fields[id][field] = value
+				this.writeField(id, field, value)
 			}
 		}
-		// copy the field values
-		for (const [id, values] of Object.entries(links)) {
-			// if we haven't seen this id before, just copy it all
-			if (!this.links[id]) {
-				this.links[id] = values
-				continue
-			}
 
+		// copy the link values
+		for (const [id, values] of Object.entries(links)) {
 			// we do have a record matching this id, copy the individual links
 			for (const [field, value] of Object.entries(values)) {
-				this.links[id][field] = value
+				this.writeLink(id, field, value)
 			}
 		}
 	}
