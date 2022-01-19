@@ -57,7 +57,8 @@ export class InMemoryStorage {
 				continue
 			}
 
-			// if the result isn't an array we can just use the value
+			// if the result isn't an array we can just use the value since we can't
+			// apply operations to the field
 			if (typeof layerValue !== 'undefined' && !Array.isArray(layerValue)) {
 				return layerValue
 			}
@@ -144,14 +145,13 @@ export class InMemoryStorage {
 		const baseLayer = this._data[startingIndex]
 		let layerIndex = startingIndex
 		while (layerIndex < this._data.length) {
-			// the layer in question
-			const layer = this._data[layerIndex]
+			// the layer in question and move the counter up one after we index
+			const layer = this._data[layerIndex++]
 
 			// if the layer is optimistic, we can't go further
-			if (!layer || layer.optimistic) {
+			if (layer.optimistic) {
 				break
 			}
-			layerIndex++
 
 			// apply the layer onto our base
 			baseLayer.writeLayer(layer)
@@ -264,6 +264,33 @@ class Layer {
 	}
 
 	writeLayer({ fields = {}, links = {}, operations = {} }: LayerData): void {
+		// we have to apply operations before we move fields so we can clean up existing
+		// data if we have a delete before we copy over the values
+		for (const [id, ops] of Object.entries(operations)) {
+			const fields: OperationMap['id']['fields'] = {}
+
+			// merge the two operation maps
+			for (const opMap of [this.operations[id], ops].filter(Boolean)) {
+				for (const [fieldName, operations] of Object.entries(opMap.fields || {})) {
+					fields[fieldName] = [...(fields[fieldName] || []), ...operations]
+				}
+			}
+
+			// only copy a field key if there is something
+			if (Object.keys(fields).length > 0) {
+				this.operations[id] = {
+					...this.operations[id],
+					fields,
+				}
+			}
+
+			// if we are applying
+			if (ops.deleted) {
+				delete this.fields[id]
+				delete this.links[id]
+			}
+		}
+
 		// copy the field values
 		for (const [id, values] of Object.entries(fields)) {
 			// if we haven't seen this id before, just copy it all
@@ -288,31 +315,6 @@ class Layer {
 			// we do have a record matching this id, copy the individual links
 			for (const [field, value] of Object.entries(values)) {
 				this.links[id][field] = value
-			}
-		}
-
-		// copy the operations
-		for (const [id, ops] of Object.entries(operations)) {
-			const fields: OperationMap['id']['fields'] = {}
-
-			// merge the two operation maps
-			for (const opMap of [this.operations[id], ops].filter(Boolean)) {
-				for (const [fieldName, operations] of Object.entries(opMap.fields || {})) {
-					fields[fieldName] = [...(fields[fieldName] || []), ...operations]
-				}
-			}
-
-			// only copy a field key if there is something
-			if (Object.keys(fields).length > 0) {
-				this.operations[id] = {
-					...this.operations[id],
-					fields,
-				}
-			}
-
-			if (ops.deleted) {
-				delete this.fields[id]
-				delete this.links[id]
 			}
 		}
 	}

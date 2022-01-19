@@ -215,5 +215,9 @@ describe('in memory layers', function () {
 		})
 
 		test.todo('layer.applyOperations')
+
+		test.todo(
+			'resolve layer with deletes and fields together, should delete old data and save the new stuff'
+		)
 	})
 })
