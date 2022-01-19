@@ -112,44 +112,53 @@ export class InMemoryStorage {
 	}
 
 	resolveLayer(id: number): void {
+		let startingIndex = null
+
 		// find the layer with the matching id
 		for (const [index, layer] of this._data.entries()) {
 			if (layer.id !== id) {
 				continue
 			}
 
-			// and mark it as a resolved layer
-			layer.optimistic = false
+			// we found the target layer
+			startingIndex = index - 1
 
-			// before we merge the values down to the lower layer, lets walk up the list and
-			// look for more non-optimistic layers we should merge with this one
-			let nextUnoptimisticIndex
-			for (
-				nextUnoptimisticIndex = index + 1;
-				nextUnoptimisticIndex < this._data.length;
-				nextUnoptimisticIndex++
-			) {
-				const nextLayer = this._data[nextUnoptimisticIndex]
-				// if this layer is optimistic, we're done looking for more layers to merge
-				if (!nextLayer || nextLayer.optimistic) {
-					break
-				}
+			// its not optimistic any more
+			this._data[index].optimistic = false
 
-				// the layer is not optimistic, save its value and remove it from the list
-				layer.writeLayer(nextLayer)
-			}
-
-			// before we delete the layers, we might have to include this one if the layer below us is also
-			// optimistic
-			let startingIndex = index + 1
-			if (!this._data[index - 1]?.optimistic) {
-				this._data[index - 1].writeLayer(layer)
-				startingIndex--
-			}
-
-			// delete the layers we merged
-			this._data.splice(startingIndex, nextUnoptimisticIndex - startingIndex + 1)
+			// we're done
+			break
 		}
+
+		// if we didn't find the layer, yell loudly
+		if (startingIndex === null) {
+			throw new Error('could not find layer with id: ' + id)
+		}
+
+		// if the starting layer is optimistic then we can't write to it
+		if (this._data[startingIndex].optimistic) {
+			startingIndex++
+		}
+
+		// start walking down the list of layers, applying any non-optimistic ones to the target
+		const baseLayer = this._data[startingIndex]
+		let layerIndex = startingIndex
+		while (layerIndex < this._data.length) {
+			// the layer in question
+			const layer = this._data[layerIndex]
+
+			// if the layer is optimistic, we can't go further
+			if (!layer || layer.optimistic) {
+				break
+			}
+			layerIndex++
+
+			// apply the layer onto our base
+			baseLayer.writeLayer(layer)
+		}
+
+		// delete the layers we merged
+		this._data.splice(startingIndex + 1, layerIndex - startingIndex - 1)
 	}
 
 	private get topLayer(): Layer {
@@ -254,9 +263,9 @@ class Layer {
 		})
 	}
 
-	writeLayer({ fields, links }: LayerData): void {
+	writeLayer({ fields = {}, links = {}, operations = {} }: LayerData): void {
 		// copy the field values
-		for (const [id, values] of Object.entries(fields || {})) {
+		for (const [id, values] of Object.entries(fields)) {
 			// if we haven't seen this id before, just copy it all
 			if (!this.fields[id]) {
 				this.fields[id] = values
@@ -269,7 +278,7 @@ class Layer {
 			}
 		}
 		// copy the field values
-		for (const [id, values] of Object.entries(links || {})) {
+		for (const [id, values] of Object.entries(links)) {
 			// if we haven't seen this id before, just copy it all
 			if (!this.links[id]) {
 				this.links[id] = values
@@ -279,6 +288,31 @@ class Layer {
 			// we do have a record matching this id, copy the individual links
 			for (const [field, value] of Object.entries(values)) {
 				this.links[id][field] = value
+			}
+		}
+
+		// copy the operations
+		for (const [id, ops] of Object.entries(operations)) {
+			const fields: OperationMap['id']['fields'] = {}
+
+			// merge the two operation maps
+			for (const opMap of [this.operations[id], ops].filter(Boolean)) {
+				for (const [fieldName, operations] of Object.entries(opMap.fields || {})) {
+					fields[fieldName] = [...(fields[fieldName] || []), ...operations]
+				}
+			}
+
+			// only copy a field key if there is something
+			if (Object.keys(fields).length > 0) {
+				this.operations[id] = {
+					...this.operations[id],
+					fields,
+				}
+			}
+
+			if (ops.deleted) {
+				delete this.fields[id]
+				delete this.links[id]
 			}
 		}
 	}
