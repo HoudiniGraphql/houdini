@@ -2007,8 +2007,6 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 	).toHaveLength(0)
 })
 
-test('can check if data exists in cache', function () {})
-
 describe('key evaluation', function () {
 	const table = [
 		{
