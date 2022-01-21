@@ -49,11 +49,13 @@ export class InMemoryStorage {
 
 		// go through the list of layers in reverse
 		for (let i = this._data.length - 1; i >= 0; i--) {
-			const layerValue = this._data[i].get(id, field)
-			const layerOperations = this._data[i].getOperations(id, field) || []
+			const layer = this._data[i]
+			const layerValue = layer.get(id, field)
+			const layerOperations = layer.getOperations(id, field) || []
+			operations.remove.push(...layer.deletedIDs)
 
 			// if the layer does not contain a value for the field, move on
-			if (typeof layerValue === 'undefined' && typeof operations === 'undefined') {
+			if (typeof layerValue === 'undefined' && typeof layerOperations === 'undefined') {
 				continue
 			}
 
@@ -186,6 +188,7 @@ class Layer {
 	fields: EntityFieldMap = {}
 	links: LinkMap = {}
 	operations: OperationMap = {}
+	deletedIDs: string[] = []
 
 	constructor(id: number) {
 		this.id = id
@@ -236,6 +239,7 @@ class Layer {
 		this.links = {}
 		this.fields = {}
 		this.operations = {}
+		this.deletedIDs = []
 	}
 
 	delete(id: string) {
@@ -247,6 +251,9 @@ class Layer {
 				deleted: true,
 			},
 		}
+
+		// add the id to the list of ids that have been deleted in this layer (so we can filter them out later)
+		this.deletedIDs.push(id)
 	}
 
 	insert(id: string, field: string, where: OperationLocation, target: string) {
@@ -266,14 +273,14 @@ class Layer {
 		})
 	}
 
-	writeLayer({ fields = {}, links = {}, operations = {} }: LayerData): void {
+	writeLayer(layer: Layer): void {
 		// we have to apply operations before we move fields so we can clean up existing
 		// data if we have a delete before we copy over the values
-		for (const [id, ops] of Object.entries(operations)) {
+		for (const [id, ops] of Object.entries(layer.operations)) {
 			const fields: OperationMap['id']['fields'] = {}
 
 			// merge the two operation maps
-			for (const opMap of [this.operations[id], ops].filter(Boolean)) {
+			for (const opMap of [this.operations[id], layer.operations[id]].filter(Boolean)) {
 				for (const [fieldName, operations] of Object.entries(opMap.fields || {})) {
 					fields[fieldName] = [...(fields[fieldName] || []), ...operations]
 				}
@@ -295,7 +302,7 @@ class Layer {
 		}
 
 		// copy the field values
-		for (const [id, values] of Object.entries(fields)) {
+		for (const [id, values] of Object.entries(layer.fields)) {
 			// we do have a record matching this id, copy the individual fields
 			for (const [field, value] of Object.entries(values)) {
 				this.writeField(id, field, value)
@@ -303,12 +310,15 @@ class Layer {
 		}
 
 		// copy the link values
-		for (const [id, values] of Object.entries(links)) {
+		for (const [id, values] of Object.entries(layer.links)) {
 			// we do have a record matching this id, copy the individual links
 			for (const [field, value] of Object.entries(values)) {
 				this.writeLink(id, field, value)
 			}
 		}
+
+		// add the list of deleted ids to this layer
+		this.deletedIDs.push(...layer.deletedIDs)
 	}
 
 	private addFieldOperation(id: string, field: string, operation: ListOperation) {
