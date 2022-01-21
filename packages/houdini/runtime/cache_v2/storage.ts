@@ -49,7 +49,7 @@ export class InMemoryStorage {
 				[OperationLocation.start]: [] as string[],
 				[OperationLocation.end]: [] as string[],
 			},
-			[OperationKind.remove]: [] as string[],
+			[OperationKind.remove]: new Set<string>(),
 		}
 
 		// go through the list of layers in reverse
@@ -57,7 +57,7 @@ export class InMemoryStorage {
 			const layer = this._data[i]
 			const layerValue = layer.get(id, field)
 			const layerOperations = layer.getOperations(id, field) || []
-			operations.remove.push(...layer.deletedIDs)
+			layer.deletedIDs.forEach((v) => operations.remove.add(v))
 
 			// if the layer does not contain a value for the field, move on
 			if (typeof layerValue === 'undefined' && typeof layerOperations === 'undefined') {
@@ -76,7 +76,7 @@ export class InMemoryStorage {
 				for (const op of layerOperations) {
 					// remove operation
 					if (isRemoveOperation(op)) {
-						operations.remove.push(op.id)
+						operations.remove.add(op.id)
 					}
 					// inserts are sorted by location
 					if (isInsertOperation(op)) {
@@ -96,7 +96,7 @@ export class InMemoryStorage {
 
 			// if there are no operations, move along
 			if (
-				!operations.remove.length &&
+				!operations.remove.size &&
 				!operations.insert.start.length &&
 				!operations.insert.end.length
 			) {
@@ -105,7 +105,7 @@ export class InMemoryStorage {
 
 			// we have operations to apply to the list
 			return [...operations.insert.start, ...layerValue, ...operations.insert.end].filter(
-				(value) => !operations.remove.includes(value as string)
+				(value) => !operations.remove.has(value as string)
 			)
 		}
 	}
@@ -193,7 +193,7 @@ class Layer {
 	fields: EntityFieldMap = {}
 	links: LinkMap = {}
 	operations: OperationMap = {}
-	deletedIDs: string[] = []
+	deletedIDs = new Set<string>()
 
 	constructor(id: number) {
 		this.id = id
@@ -244,7 +244,7 @@ class Layer {
 		this.links = {}
 		this.fields = {}
 		this.operations = {}
-		this.deletedIDs = []
+		this.deletedIDs = new Set<string>()
 	}
 
 	delete(id: string) {
@@ -258,7 +258,7 @@ class Layer {
 		}
 
 		// add the id to the list of ids that have been deleted in this layer (so we can filter them out later)
-		this.deletedIDs.push(id)
+		this.deletedIDs.add(id)
 	}
 
 	insert(id: string, field: string, where: OperationLocation, target: string) {
@@ -323,7 +323,7 @@ class Layer {
 		}
 
 		// add the list of deleted ids to this layer
-		this.deletedIDs.push(...layer.deletedIDs)
+		layer.deletedIDs.forEach((v) => this.deletedIDs.add(v))
 	}
 
 	private addFieldOperation(id: string, field: string, operation: ListOperation) {
@@ -353,8 +353,6 @@ type OperationMap = {
 		fields: { [field: string]: ListOperation[] }
 	}
 }
-
-type LayerData = { fields?: EntityFieldMap; links?: LinkMap; operations?: OperationMap }
 
 type LinkedList<_Result = string> = (_Result | null | LinkedList<_Result>)[]
 
