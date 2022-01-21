@@ -138,7 +138,7 @@ describe('in memory layers', function () {
 			storage.writeField('User:1', 'lastName', 'Schmidt')
 
 			// add the user we're going to delete to a linked list to make sure they are removed from it
-			storage.writeLink('User:2', 'friends', ['User:1'])
+			storage.writeLink('User:2', 'friends', ['User:1', 'User:3'])
 
 			// create a layer that deletes the record
 			const middleLayer = storage.createLayer(true)
@@ -149,18 +149,25 @@ describe('in memory layers', function () {
 
 			// we should be able to retrieve the top layer of information
 			expect(storage.get('User:1', 'middleName')).toEqual('Jingleheymer')
+			expect(storage.get('User:2', 'friends')).toEqual(['User:3'])
 
 			// and the information in the lower layer should be inaccessible
 			expect(storage.get('User:1', 'firstName')).toBeUndefined()
 			expect(storage.get('User:1', 'lastName')).toBeUndefined()
 
-			// resolving the middle layer should delete the information
+			// resolving the middle layer should delete the information even if its different
+			// than the original source
+			middleLayer.clear()
+			middleLayer.delete('User:3')
 			storage.resolveLayer(middleLayer.id)
+
 			expect(storage.layerCount).toEqual(1)
-			expect(storage.get('User:1', 'firstName')).toBeUndefined()
-			expect(storage.get('User:1', 'lastName')).toBeUndefined()
+
+			// the original fields of User:1 should still exist
+			expect(storage.get('User:1', 'firstName')).toBe('John')
+			expect(storage.get('User:1', 'lastName')).toBe('Schmidt')
 			expect(storage.get('User:1', 'middleName')).toEqual('Jingleheymer')
-			expect(storage.get('User:2', 'friends')).toEqual([])
+			expect(storage.get('User:2', 'friends')).toEqual(['User:1'])
 		})
 
 		test('insert into linked list', function () {
