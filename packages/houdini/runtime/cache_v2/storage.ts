@@ -1,5 +1,10 @@
 import { GraphQLValue } from '../types'
 
+// NOTE: the current implementation of delete is slow. it should try to compare the
+// type of the id being deleted with the type contained in the linked list so that
+// the removal logic is only performed when its possible the ID is found inside.
+// ie: deleting a user should not slow down looking up a list of cats
+
 export class InMemoryStorage {
 	private _data: Layer[]
 	private idCount = 0
