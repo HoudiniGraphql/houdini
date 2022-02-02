@@ -1,7 +1,7 @@
 {
 	"name": "example-kit",
 	"private": true,
-	"version": "0.12.1",
+	"version": "0.12.2",
 	"scripts": {
 		"dev": "concurrently \"yarn web\" \"yarn api\"",
 		"build": "svelte-kit build",
@@ -15,7 +15,7 @@
 		"concurrently": "^6.2.1",
 		"graphql": "15.5.0",
 		"houdini": "^0.12.1",
-		"houdini-preprocess": "^0.12.1",
+		"houdini-preprocess": "^0.12.2",
 		"svelte": "^3.38.2",
 		"svelte-preprocess": "^4.0.0",
 		"tslib": "^2.2.0",

@@ -1,6 +1,6 @@
 {
 	"name": "houdini-preprocess",
-	"version": "0.12.1",
+	"version": "0.12.2",
 	"description": "",
 	"main": "build/cjs/index.js",
 	"module": "build/esm/index.js",
