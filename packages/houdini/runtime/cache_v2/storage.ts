@@ -42,7 +42,18 @@ export class InMemoryStorage {
 		return this.topLayer.delete(id)
 	}
 
-	get(id: string, field: string): GraphQLField {
+	getLayer(id: number): Layer {
+		for (const layer of this._data) {
+			if (layer.id === id) {
+				return layer
+			}
+		}
+
+		// we didn't find the layer
+		throw new Error('Could not find layer with id: ' + id)
+	}
+
+	get(id: string, field: string): [GraphQLField, LayerID[]] {
 		// the list of operations for the field
 		const operations = {
 			[OperationKind.insert]: {
@@ -52,6 +63,9 @@ export class InMemoryStorage {
 			[OperationKind.remove]: new Set<string>(),
 		}
 
+		// the list of layers we used to build up the value
+		const layerIDs = []
+
 		// go through the list of layers in reverse
 		for (let i = this._data.length - 1; i >= 0; i--) {
 			const layer = this._data[i]
@@ -60,18 +74,25 @@ export class InMemoryStorage {
 			layer.deletedIDs.forEach((v) => operations.remove.add(v))
 
 			// if the layer does not contain a value for the field, move on
-			if (typeof layerValue === 'undefined' && typeof layerOperations === 'undefined') {
+			if (typeof layerValue === 'undefined' && layerOperations.length === 0) {
+				if (layer.deletedIDs.size > 0) {
+					layerIDs.push(layer.id)
+				}
 				continue
 			}
 
 			// if the result isn't an array we can just use the value since we can't
 			// apply operations to the field
 			if (typeof layerValue !== 'undefined' && !Array.isArray(layerValue)) {
-				return layerValue
+				return [layerValue, [layer.id]]
 			}
 
+			// if the layer contains operations or values add it to the list of relevant layers
+			// add the layer to the list
+			layerIDs.push(layer.id)
+
 			// if we have an operation
-			if (typeof layerOperations !== 'undefined') {
+			if (layerOperations.length > 0) {
 				// process every operation
 				for (const op of layerOperations) {
 					// remove operation
@@ -84,7 +105,7 @@ export class InMemoryStorage {
 					}
 					// if we found a delete operation, we're done
 					if (isDeleteOperation(op)) {
-						return undefined
+						return [undefined, []]
 					}
 				}
 			}
@@ -100,14 +121,19 @@ export class InMemoryStorage {
 				!operations.insert.start.length &&
 				!operations.insert.end.length
 			) {
-				return layerValue
+				return [layerValue, layerIDs]
 			}
 
 			// we have operations to apply to the list
-			return [...operations.insert.start, ...layerValue, ...operations.insert.end].filter(
-				(value) => !operations.remove.has(value as string)
-			)
+			return [
+				[...operations.insert.start, ...layerValue, ...operations.insert.end].filter(
+					(value) => !operations.remove.has(value as string)
+				),
+				layerIDs,
+			]
 		}
+
+		return [undefined, []]
 	}
 
 	writeLink(id: string, field: string, value: string | LinkedList) {
@@ -168,7 +194,7 @@ export class InMemoryStorage {
 		this._data.splice(startingIndex + 1, layerIndex - startingIndex - 1)
 	}
 
-	private get topLayer(): Layer {
+	get topLayer(): Layer {
 		// if there is no base layer
 		if (this._data.length === 0) {
 			this.createLayer()
@@ -185,8 +211,8 @@ export class InMemoryStorage {
 	}
 }
 
-class Layer {
-	readonly id: number
+export class Layer {
+	readonly id: LayerID
 
 	optimistic: boolean = false
 
@@ -199,7 +225,7 @@ class Layer {
 		this.id = id
 	}
 
-	get(id: string, field: string): DeleteOperation | ListOperation[] | GraphQLField {
+	get(id: string, field: string): GraphQLField {
 		// if its a link return the value
 		if (typeof this.links[id]?.[field] !== 'undefined') {
 			return this.links[id][field]
@@ -226,18 +252,22 @@ class Layer {
 		}
 	}
 
-	writeField(id: string, field: string, value: GraphQLField) {
+	writeField(id: string, field: string, value: GraphQLField): LayerID {
 		this.fields[id] = {
 			...this.fields[id],
 			[field]: value,
 		}
+
+		return this.id
 	}
 
-	writeLink(id: string, field: string, value: null | string | LinkedList) {
+	writeLink(id: string, field: string, value: null | string | LinkedList): LayerID {
 		this.links[id] = {
 			...this.links[id],
 			[field]: value,
 		}
+
+		return this.id
 	}
 
 	clear() {
@@ -398,3 +428,5 @@ export enum OperationKind {
 	insert = 'insert',
 	remove = 'remove',
 }
+
+export type LayerID = number

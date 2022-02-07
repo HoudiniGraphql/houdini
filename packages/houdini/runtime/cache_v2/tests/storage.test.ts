@@ -1,4 +1,4 @@
-import { InMemoryStorage, OperationKind, OperationLocation } from './storage'
+import { InMemoryStorage, OperationLocation } from '../storage'
 
 describe('in memory layers', function () {
 	test('first layer written can be looked up', function () {
@@ -10,7 +10,7 @@ describe('in memory layers', function () {
 		layer.writeField('User:1', 'firstName', 'John')
 
 		// can get the data back
-		expect(storage.get('User:1', 'firstName')).toEqual('John')
+		expect(storage.get('User:1', 'firstName')).toEqual(['John', [layer.id]])
 		expect(storage.layerCount).toEqual(1)
 	})
 
@@ -20,10 +20,10 @@ describe('in memory layers', function () {
 
 		// create the two layers and write overlapping data
 		storage.writeField('User:1', 'firstName', 'John')
-		storage.writeField('User:1', 'firstName', 'Marshal')
+		const layerID = storage.writeField('User:1', 'firstName', 'Marshal')
 
 		// can get the data back
-		expect(storage.get('User:1', 'firstName')).toEqual('Marshal')
+		expect(storage.get('User:1', 'firstName')).toEqual(['Marshal', [layerID]])
 		expect(storage.layerCount).toEqual(1)
 	})
 
@@ -33,10 +33,12 @@ describe('in memory layers', function () {
 
 		// create the two layers and write overlapping data
 		storage.writeField('User:1', 'firstName', 'John')
-		storage.createLayer(true).writeField('User:1', 'firstName', 'Marshal')
+		const optimisticLayerID = storage
+			.createLayer(true)
+			.writeField('User:1', 'firstName', 'Marshal')
 
 		// can get the data back
-		expect(storage.get('User:1', 'firstName')).toEqual('Marshal')
+		expect(storage.get('User:1', 'firstName')).toEqual(['Marshal', [optimisticLayerID]])
 		expect(storage.layerCount).toEqual(2)
 	})
 
@@ -45,8 +47,8 @@ describe('in memory layers', function () {
 		const storage = new InMemoryStorage()
 
 		// write the layer
-		storage.writeField('User:1', 'firstName', 'John')
-		expect(storage.get('User:1', 'firstName')).toEqual('John')
+		const baseLayerID = storage.writeField('User:1', 'firstName', 'John')
+		expect(storage.get('User:1', 'firstName')).toEqual(['John', [baseLayerID]])
 		expect(storage.layerCount).toEqual(1)
 
 		// add an optimistic layer
@@ -54,7 +56,7 @@ describe('in memory layers', function () {
 		optimisticLayer.writeField('User:1', 'firstName', 'Marshal')
 
 		// sanity check
-		expect(storage.get('User:1', 'firstName')).toEqual('Marshal')
+		expect(storage.get('User:1', 'firstName')).toEqual(['Marshal', [optimisticLayer.id]])
 		expect(storage.layerCount).toEqual(2)
 
 		// resolve the middle layer with different data
@@ -62,7 +64,7 @@ describe('in memory layers', function () {
 		storage.resolveLayer(optimisticLayer.id)
 
 		// make sure the layer was committed correctly
-		expect(storage.get('User:1', 'firstName')).toEqual('Mike')
+		expect(storage.get('User:1', 'firstName')).toEqual(['Mike', [baseLayerID]])
 		expect(storage.layerCount).toEqual(1)
 	})
 
@@ -71,7 +73,7 @@ describe('in memory layers', function () {
 		const storage = new InMemoryStorage()
 
 		// write the layer
-		storage.writeField('User:1', 'firstName', 'John')
+		const baseLayerID = storage.writeField('User:1', 'firstName', 'John')
 
 		// write an optimistic layer above the base
 		const layer1 = storage.createLayer(true)
@@ -83,7 +85,7 @@ describe('in memory layers', function () {
 		layer2.writeField('User:1', 'lastName', 'Michelson')
 
 		// sanity check
-		expect(storage.get('User:1', 'firstName')).toEqual('Jeremy')
+		expect(storage.get('User:1', 'firstName')).toEqual(['Jeremy', [layer2.id]])
 		expect(storage.layerCount).toEqual(3)
 
 		// flatten the data down to a single layer
@@ -94,21 +96,21 @@ describe('in memory layers', function () {
 
 		// make sure the data is what we expect
 		expect(storage.layerCount).toEqual(1)
-		expect(storage.get('User:1', 'age')).toEqual(5)
-		expect(storage.get('User:1', 'firstName')).toEqual('Jeremy')
-		expect(storage.get('User:1', 'lastName')).toEqual('Michelson')
+		expect(storage.get('User:1', 'age')).toEqual([5, [baseLayerID]])
+		expect(storage.get('User:1', 'firstName')).toEqual(['Jeremy', [baseLayerID]])
+		expect(storage.get('User:1', 'lastName')).toEqual(['Michelson', [baseLayerID]])
 	})
 
 	test('can write links', function () {
 		const storage = new InMemoryStorage()
-		storage.writeLink('User:1', 'bestFriend', 'User:2')
-		expect(storage.get('User:1', 'bestFriend')).toEqual('User:2')
+		const layerID = storage.writeLink('User:1', 'bestFriend', 'User:2')
+		expect(storage.get('User:1', 'bestFriend')).toEqual(['User:2', [layerID]])
 	})
 
 	test('can write list of links', function () {
 		const storage = new InMemoryStorage()
-		storage.writeLink('User:1', 'friends', ['User:1'])
-		expect(storage.get('User:1', 'friends')).toEqual(['User:1'])
+		const layerID = storage.writeLink('User:1', 'friends', ['User:1'])
+		expect(storage.get('User:1', 'friends')).toEqual([['User:1'], [layerID]])
 	})
 
 	test('values are reset when layer is cleared', function () {
@@ -118,13 +120,13 @@ describe('in memory layers', function () {
 		layer.writeField('User:1', 'firstName', 'Alec')
 
 		// sanity check
-		expect(storage.get('User:1', 'firstName')).toEqual('Alec')
+		expect(storage.get('User:1', 'firstName')).toEqual(['Alec', [layer.id]])
 
 		// clear the layer
 		layer.clear()
 
 		// make sure we dont have any data back
-		expect(storage.get('User:1', 'firstName')).toBeUndefined()
+		expect(storage.get('User:1', 'firstName')[0]).toBeUndefined()
 	})
 
 	test.todo('links are reset when layer is cleared')
@@ -138,22 +140,25 @@ describe('in memory layers', function () {
 			storage.writeField('User:1', 'lastName', 'Schmidt')
 
 			// add the user we're going to delete to a linked list to make sure they are removed from it
-			storage.writeLink('User:2', 'friends', ['User:1', 'User:3'])
+			const baseLayerID = storage.writeLink('User:2', 'friends', ['User:1', 'User:3'])
 
 			// create a layer that deletes the record
 			const middleLayer = storage.createLayer(true)
 			middleLayer.delete('User:1')
 
 			// add some more information for the record
-			storage.writeField('User:1', 'middleName', 'Jingleheymer')
+			const topLayerID = storage.writeField('User:1', 'middleName', 'Jingleheymer')
 
 			// we should be able to retrieve the top layer of information
-			expect(storage.get('User:1', 'middleName')).toEqual('Jingleheymer')
-			expect(storage.get('User:2', 'friends')).toEqual(['User:3'])
+			expect(storage.get('User:1', 'middleName')).toEqual(['Jingleheymer', [topLayerID]])
+			expect(storage.get('User:2', 'friends')).toEqual([
+				['User:3'],
+				[middleLayer.id, baseLayerID],
+			])
 
 			// and the information in the lower layer should be inaccessible
-			expect(storage.get('User:1', 'firstName')).toBeUndefined()
-			expect(storage.get('User:1', 'lastName')).toBeUndefined()
+			expect(storage.get('User:1', 'firstName')[0]).toBeUndefined()
+			expect(storage.get('User:1', 'lastName')[0]).toBeUndefined()
 
 			// resolving the middle layer should delete the information even if its different
 			// than the original source
@@ -164,17 +169,17 @@ describe('in memory layers', function () {
 			expect(storage.layerCount).toEqual(1)
 
 			// the original fields of User:1 should still exist
-			expect(storage.get('User:1', 'firstName')).toBe('John')
-			expect(storage.get('User:1', 'lastName')).toBe('Schmidt')
-			expect(storage.get('User:1', 'middleName')).toEqual('Jingleheymer')
-			expect(storage.get('User:2', 'friends')).toEqual(['User:1'])
+			expect(storage.get('User:1', 'firstName')).toEqual(['John', [baseLayerID]])
+			expect(storage.get('User:1', 'lastName')).toEqual(['Schmidt', [baseLayerID]])
+			expect(storage.get('User:1', 'middleName')).toEqual(['Jingleheymer', [baseLayerID]])
+			expect(storage.get('User:2', 'friends')).toEqual([['User:1'], [baseLayerID]])
 		})
 
 		test('insert into linked list', function () {
 			const storage = new InMemoryStorage()
 
 			// add a linked list that we will append to in an optimistic layer
-			storage.writeLink('User:1', 'friends', ['User:2'])
+			const baseLayerID = storage.writeLink('User:1', 'friends', ['User:2'])
 
 			// create an optimistic layer and insert a new friend
 			const layer = storage.createLayer(true)
@@ -184,7 +189,10 @@ describe('in memory layers', function () {
 			storage.insert('User:1', 'friends', OperationLocation.end, 'User:5')
 
 			// make sure we got the full list back
-			expect(storage.get('User:1', 'friends')).toEqual(['User:2', 'User:3', 'User:5'])
+			expect(storage.get('User:1', 'friends')).toEqual([
+				['User:2', 'User:3', 'User:5'],
+				[storage.topLayer.id, layer.id, baseLayerID],
+			])
 
 			// simulate a mutation response with different data (clear the layer, add a new record, and resolve it)
 			layer.clear()
@@ -192,7 +200,10 @@ describe('in memory layers', function () {
 			storage.resolveLayer(layer.id)
 
 			// look up the linked list
-			expect(storage.get('User:1', 'friends')).toEqual(['User:2', 'User:5', 'User:4'])
+			expect(storage.get('User:1', 'friends')).toEqual([
+				['User:2', 'User:5', 'User:4'],
+				[baseLayerID],
+			])
 			// there should only be one layer
 			expect(storage.layerCount).toEqual(1)
 		})
@@ -201,14 +212,21 @@ describe('in memory layers', function () {
 			const storage = new InMemoryStorage()
 
 			// add a linked list we will remove from in a layer
-			storage.writeLink('User:1', 'friends', ['User:2', 'User:3', 'User:4'])
+			const baseLayerID = storage.writeLink('User:1', 'friends', [
+				'User:2',
+				'User:3',
+				'User:4',
+			])
 
 			// create an optimistic layer we will use to mutate the list
 			const layer = storage.createLayer(true)
 			layer.remove('User:1', 'friends', 'User:2')
 
 			// make sure we removed the user from the list
-			expect(storage.get('User:1', 'friends')).toEqual(['User:3', 'User:4'])
+			expect(storage.get('User:1', 'friends')).toEqual([
+				['User:3', 'User:4'],
+				[layer.id, baseLayerID],
+			])
 
 			// simulate a mutation response with different data (clear the layer, remove a different one, and resolve it)
 			layer.clear()
@@ -217,7 +235,7 @@ describe('in memory layers', function () {
 			storage.resolveLayer(layer.id)
 
 			// make sure we got the correct final result
-			expect(storage.get('User:1', 'friends')).toEqual(['User:2'])
+			expect(storage.get('User:1', 'friends')).toEqual([['User:2'], [baseLayerID]])
 			expect(storage.layerCount).toEqual(1)
 		})
 
