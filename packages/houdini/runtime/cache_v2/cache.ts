@@ -256,11 +256,14 @@ class CacheInternal {
 			}
 			// otherwise the field is an object
 			else {
-				target[attributeName] = this.getSelection({
-					parent: value as string,
-					selection: fields,
-					variables,
-				})
+				// if we dont have a value, use null
+				target[attributeName] = !value
+					? null
+					: this.getSelection({
+							parent: value as string,
+							selection: fields,
+							variables,
+					  })
 				continue
 			}
 		}
