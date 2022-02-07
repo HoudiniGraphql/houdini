@@ -5,44 +5,6 @@ import { Cache, rootID } from '../cache'
 
 const config = testConfig()
 
-test('save root object', function () {
-	// instantiate a cache we'll test against
-	const cache = new Cache(config)
-
-	// save the data
-	const data = {
-		viewer: {
-			id: '1',
-			firstName: 'bob',
-		},
-	}
-	cache.write({
-		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
-					},
-				},
-			},
-		},
-		data,
-	})
-
-	// make sure we can get back what we wrote
-	expect(cache.internal.getRecord(cache.id('User', data.viewer)!)?.fields).toEqual({
-		id: '1',
-		firstName: 'bob',
-	})
-})
-
 test('partial update existing record', function () {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
