@@ -19,7 +19,7 @@ export class Cache {
 
 	// walk down the selection and save the values that we encounter.
 	// any changes will notify subscribers. writing to an optimistic layer will resolve it
-	writeSelection({
+	write({
 		layer: layerID,
 		...args
 	}: {
@@ -42,10 +42,12 @@ export class Cache {
 		return layer.id
 	}
 
-	// reconstruct an object with the fields/related specified by a selection
-	getSelection(...args: Parameters<CacheInternal['getSelection']>) {
+	// reconstruct an object with the fields/relations specified by a selection
+	read(...args: Parameters<CacheInternal['getSelection']>) {
 		return this._internal_unstable.getSelection(...args)
 	}
+
+	//
 }
 
 class CacheInternal {
@@ -60,7 +62,7 @@ class CacheInternal {
 	writeSelection({
 		data,
 		selection,
-		variables,
+		variables = {},
 		root = rootID,
 		parent = rootID,
 		applyUpdates = false,
@@ -69,7 +71,7 @@ class CacheInternal {
 	}: {
 		data: { [key: string]: GraphQLValue }
 		selection: SubscriptionSelection
-		variables?: {}
+		variables?: { [key: string]: GraphQLValue }
 		parent?: string
 		root?: string
 		layer: Layer
@@ -247,7 +249,7 @@ class CacheInternal {
 					recordID: parent,
 					key,
 					linkedType,
-					variables: variables || {},
+					variables: variables,
 					fields,
 					layer,
 				})
