@@ -6,15 +6,15 @@ import { GraphQLValue } from '../types'
 // ie: deleting a user should not slow down looking up a list of cats
 
 export class InMemoryStorage {
-	private _data: Layer[]
+	private data: Layer[]
 	private idCount = 0
 
 	constructor() {
-		this._data = []
+		this.data = []
 	}
 
 	get layerCount(): number {
-		return this._data.length
+		return this.data.length
 	}
 
 	// create a layer and return its id
@@ -24,7 +24,7 @@ export class InMemoryStorage {
 		layer.optimistic = optimistic
 
 		// add the layer to the list
-		this._data.push(layer)
+		this.data.push(layer)
 
 		// pass the layer on so it can be updated
 		return layer
@@ -43,7 +43,7 @@ export class InMemoryStorage {
 	}
 
 	getLayer(id: number): Layer {
-		for (const layer of this._data) {
+		for (const layer of this.data) {
 			if (layer.id === id) {
 				return layer
 			}
@@ -67,8 +67,8 @@ export class InMemoryStorage {
 		const layerIDs = []
 
 		// go through the list of layers in reverse
-		for (let i = this._data.length - 1; i >= 0; i--) {
-			const layer = this._data[i]
+		for (let i = this.data.length - 1; i >= 0; i--) {
+			const layer = this.data[i]
 			const layerValue = layer.get(id, field)
 			const layerOperations = layer.getOperations(id, field) || []
 			layer.deletedIDs.forEach((v) => operations.remove.add(v))
@@ -149,7 +149,7 @@ export class InMemoryStorage {
 		let startingIndex = null
 
 		// find the layer with the matching id
-		for (const [index, layer] of this._data.entries()) {
+		for (const [index, layer] of this.data.entries()) {
 			if (layer.id !== id) {
 				continue
 			}
@@ -158,7 +158,7 @@ export class InMemoryStorage {
 			startingIndex = index - 1
 
 			// its not optimistic any more
-			this._data[index].optimistic = false
+			this.data[index].optimistic = false
 
 			// we're done
 			break
@@ -170,16 +170,16 @@ export class InMemoryStorage {
 		}
 
 		// if the starting layer is optimistic then we can't write to it
-		if (this._data[startingIndex].optimistic) {
+		if (this.data[startingIndex].optimistic) {
 			startingIndex++
 		}
 
 		// start walking down the list of layers, applying any non-optimistic ones to the target
-		const baseLayer = this._data[startingIndex]
+		const baseLayer = this.data[startingIndex]
 		let layerIndex = startingIndex
-		while (layerIndex < this._data.length) {
+		while (layerIndex < this.data.length) {
 			// the layer in question and move the counter up one after we index
-			const layer = this._data[layerIndex++]
+			const layer = this.data[layerIndex++]
 
 			// if the layer is optimistic, we can't go further
 			if (layer.optimistic) {
@@ -191,23 +191,23 @@ export class InMemoryStorage {
 		}
 
 		// delete the layers we merged
-		this._data.splice(startingIndex + 1, layerIndex - startingIndex - 1)
+		this.data.splice(startingIndex + 1, layerIndex - startingIndex - 1)
 	}
 
 	get topLayer(): Layer {
 		// if there is no base layer
-		if (this._data.length === 0) {
+		if (this.data.length === 0) {
 			this.createLayer()
 		}
 
 		// if the last layer is optimistic, create another layer on top of it
 		// since optimistic layers have to be written to directly
-		if (this._data[this._data.length - 1]?.optimistic) {
+		if (this.data[this.data.length - 1]?.optimistic) {
 			this.createLayer()
 		}
 
 		// the top layer is safe to write to (its non-null and guaranteed not optimistic)
-		return this._data[this._data.length - 1]
+		return this.data[this.data.length - 1]
 	}
 }
 

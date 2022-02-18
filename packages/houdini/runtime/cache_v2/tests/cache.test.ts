@@ -331,7 +331,7 @@ test('root subscribe - field change', function () {
 		},
 	})
 
-	console.log(JSON.stringify(cache._internal_unstable._storage, null, 4))
+	// console.log(JSON.stringify(cache._internal_unstable._storage, null, 4))
 
 	// a function to spy on that will play the role of set
 	const set = jest.fn()
