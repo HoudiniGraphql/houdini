@@ -1,13 +1,13 @@
 import { GraphQLValue } from '..'
 import { LinkedList } from '../cache/cache'
 
-export function flattenList(source: LinkedList): (string | null)[] {
-	const ids: (string | null)[] = []
+export function flattenList<T>(source: LinkedList<T>): T[] {
+	const flat: T[] = []
 
 	// we need to flatten the list links
 	const unvisited = [source || []]
 	while (unvisited.length > 0) {
-		const target = unvisited.shift() as string | string[]
+		const target = unvisited.shift() as T[]
 
 		for (const id of target) {
 			if (Array.isArray(id)) {
@@ -15,11 +15,11 @@ export function flattenList(source: LinkedList): (string | null)[] {
 				continue
 			}
 
-			ids.push(id)
+			flat.push(id)
 		}
 	}
 
-	return ids
+	return flat
 }
 
 // given a raw key and a set of variables, generate the fully qualified key

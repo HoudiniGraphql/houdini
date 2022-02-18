@@ -1,14 +1,16 @@
 import { LinkedList } from '../cache/cache'
 import { SubscriptionSpec, SubscriptionSelection } from '../types'
-import { InMemoryStorage } from './storage'
 import { evaluateKey, flattenList } from './stuff'
+import { Cache } from './cache'
+import { List } from './lists'
+import { GraphQLValue } from '..'
 
 // manage the subscriptions
 export class InMemorySubscriptions {
-	private storage: InMemoryStorage
+	private cache: Cache
 
-	constructor(storage: InMemoryStorage) {
-		this.storage = storage
+	constructor(cache: Cache) {
+		this.cache = cache
 	}
 
 	private subscribers: { [id: string]: { [fieldName: string]: SubscriptionSpec[] } } = {}
@@ -16,6 +18,83 @@ export class InMemorySubscriptions {
 		[id: string]: { [fieldName: string]: Map<SubscriptionSpec['set'], number> }
 	} = {}
 	keyVersions: { [key: string]: Set<string> } = {}
+
+	add({
+		parent,
+		spec,
+		selection,
+		variables,
+	}: {
+		parent: string
+		spec: SubscriptionSpec
+		selection: SubscriptionSelection
+		variables: { [key: string]: GraphQLValue }
+	}) {
+		for (const { type, keyRaw, fields, list, filters } of Object.values(selection)) {
+			const key = evaluateKey(keyRaw, variables)
+
+			// add the subscriber to the field
+			this.addFieldSubscription(parent, key, spec)
+
+			// if the field points to a link, we need to subscribe to any fields of that
+			// linked record
+			if (fields) {
+				// if the link points to a record then we just have to add it to the one
+				const [linkedRecord] = this.cache._internal_unstable.storage.get(
+					parent,
+					key
+				) as LinkedList
+				let children = !Array.isArray(linkedRecord)
+					? [linkedRecord]
+					: flattenList(linkedRecord)
+
+				// if this field is marked as a list, register it. this will overwrite existing list handlers
+				// so that they can get up to date filters
+				if (list && fields) {
+					this.cache._internal_unstable.lists.set({
+						name: list.name,
+						connection: list.connection,
+						parentID: spec.parentID,
+						cache: this.cache,
+						recordID: parent,
+						listType: list.type,
+						key,
+						selection: fields,
+						filters: Object.entries(filters || {}).reduce(
+							(acc, [key, { kind, value }]) => {
+								return {
+									...acc,
+									[key]: kind !== 'Variable' ? value : variables[value],
+								}
+							},
+							{}
+						),
+					})
+				}
+
+				// if we're not related to anything, we're done
+				if (!children || !fields) {
+					continue
+				}
+
+				// add the subscriber to every child
+				for (const child of children) {
+					// avoid null children
+					if (!child) {
+						continue
+					}
+
+					// make sure the children update this subscription
+					this.add({
+						parent: child,
+						spec,
+						selection: fields,
+						variables,
+					})
+				}
+			}
+		}
+	}
 
 	addFieldSubscription(id: string, field: string, spec: SubscriptionSpec) {
 		// if we haven't seen the id or field before, create a list we can add to
@@ -75,16 +154,17 @@ export class InMemorySubscriptions {
 			this.removeSubscribers(id, key, targets)
 
 			// if this field is marked as a list remove it from the cache
-			// if (selection.list) {
-			// 	this._lists.delete(selection.list.name)
-			// }
+			if (selection.list) {
+				// TODO: no parent?!
+				this.cache._internal_unstable.lists.remove(selection.list.name)
+			}
 
 			// if there is no subselection it doesn't point to a link, move on
 			if (!selection.fields) {
 				continue
 			}
 
-			const [previousValue] = this.storage.get(id, key)
+			const [previousValue] = this.cache._internal_unstable.storage.get(id, key)
 
 			// if its not a list, wrap it as one so we can dry things up
 			const links = !Array.isArray(previousValue)
