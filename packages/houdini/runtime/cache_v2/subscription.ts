@@ -1,7 +1,7 @@
 import { LinkedList } from '../cache/cache'
 import { SubscriptionSpec, SubscriptionSelection } from '../types'
 import { InMemoryStorage } from './storage'
-import { flattenList } from './stuff'
+import { evaluateKey, flattenList } from './stuff'
 
 // manage the subscriptions
 export class InMemorySubscriptions {
@@ -15,8 +15,9 @@ export class InMemorySubscriptions {
 	private referenceCounts: {
 		[id: string]: { [fieldName: string]: Map<SubscriptionSpec['set'], number> }
 	} = {}
+	keyVersions: { [key: string]: Set<string> } = {}
 
-	add(id: string, field: string, spec: SubscriptionSpec) {
+	addFieldSubscription(id: string, field: string, spec: SubscriptionSpec) {
 		// if we haven't seen the id or field before, create a list we can add to
 		if (!this.subscribers[id]) {
 			this.subscribers[id] = {}
@@ -25,7 +26,29 @@ export class InMemorySubscriptions {
 			this.subscribers[id][field] = []
 		}
 
-		this.subscribers[id][field].push(spec)
+		// if this is the first time we've seen the raw key
+		if (!this.keyVersions[field]) {
+			this.keyVersions[field] = new Set()
+		}
+
+		// add this version of the key if we need to
+		this.keyVersions[field].add(field)
+
+		if (!this.subscribers[id][field].map(({ set }) => set).includes(spec.set)) {
+			this.subscribers[id][field].push(spec)
+		}
+
+		// if this is the first time we've seen this field
+		if (!this.referenceCounts[id]) {
+			this.referenceCounts[id] = {}
+		}
+		if (!this.referenceCounts[id][field]) {
+			this.referenceCounts[id][field] = new Map()
+		}
+		const counts = this.referenceCounts[id][field]
+
+		// we're going to increment the current value by one
+		counts.set(spec.set, (counts.get(spec.set) || 0) + 1)
 	}
 
 	get(id: string, field: string): SubscriptionSpec[] {
@@ -36,6 +59,7 @@ export class InMemorySubscriptions {
 		id: string,
 		fields: SubscriptionSelection,
 		targets: SubscriptionSpec[],
+		variables: {},
 		visited: string[] = []
 	) {
 		visited.push(id)
@@ -44,16 +68,23 @@ export class InMemorySubscriptions {
 		const linkedIDs: [string, SubscriptionSelection][] = []
 
 		// look at the fields for ones corresponding to links
-		for (const [fieldName, selection] of Object.entries(fields)) {
+		for (const selection of Object.values(fields)) {
+			const key = evaluateKey(selection.keyRaw, variables)
+
 			// remove the subscribers for the field
-			this.removeSubscribers(id, fieldName, targets)
+			this.removeSubscribers(id, key, targets)
+
+			// if this field is marked as a list remove it from the cache
+			// if (selection.list) {
+			// 	this._lists.delete(selection.list.name)
+			// }
 
 			// if there is no subselection it doesn't point to a link, move on
 			if (!selection.fields) {
 				continue
 			}
 
-			const [previousValue] = this.storage.get(id, fieldName)
+			const [previousValue] = this.storage.get(id, key)
 
 			// if its not a list, wrap it as one so we can dry things up
 			const links = !Array.isArray(previousValue)
@@ -68,10 +99,6 @@ export class InMemorySubscriptions {
 		}
 
 		for (const [linkedRecordID, linkFields] of linkedIDs) {
-			if (visited.includes(linkedRecordID)) {
-				continue
-			}
-
 			this.remove(linkedRecordID, linkFields, targets, visited)
 		}
 	}
@@ -101,8 +128,10 @@ export class InMemorySubscriptions {
 		}
 
 		// we do need to remove the set from the list
-		this.subscribers[id][fieldName] = this.get(id, fieldName).filter(
-			({ set }) => !targets.includes(set)
-		)
+		if (this.subscribers[id]) {
+			this.subscribers[id][fieldName] = this.get(id, fieldName).filter(
+				({ set }) => !targets.includes(set)
+			)
+		}
 	}
 }
