@@ -2,6 +2,7 @@
 import type { Config } from 'houdini-common'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
 import { LinkedList } from '../cache/cache'
+import { List, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
@@ -13,13 +14,12 @@ export class Cache {
 	_internal_unstable: CacheInternal
 
 	constructor(config: Config) {
-		// instantiate the storage system
-		const storage = new InMemoryStorage()
-
 		this._internal_unstable = new CacheInternal({
 			config,
-			storage,
-			subscriptions: new InMemorySubscriptions(storage),
+			storage: new InMemoryStorage(),
+			subscriptions: new InMemorySubscriptions(this),
+			lists: new ListManager(),
+			cache: this,
 		})
 	}
 
@@ -75,7 +75,7 @@ export class Cache {
 	// register the provided callbacks with the fields specified by the selection
 	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
 		// add the subscribers to every field in the specification
-		return this._internal_unstable.addSubscribers({
+		return this._internal_unstable.subscriptions.add({
 			parent: spec.parentID || rootID,
 			spec,
 			selection: spec.selection,
@@ -84,12 +84,26 @@ export class Cache {
 	}
 
 	unsubscribe(spec: SubscriptionSpec, variables: {} = {}) {
-		return this._internal_unstable.removeSubscribers({
-			parent: spec.parentID || rootID,
-			spec,
-			selection: spec.selection,
-			variables,
-		})
+		return this._internal_unstable.subscriptions.remove(
+			spec.parentID || rootID,
+			spec.selection,
+			[spec],
+			variables
+		)
+	}
+
+	list(name: string, parentID?: string): List {
+		const handler = this._internal_unstable.lists.get(name, parentID)
+		if (!handler) {
+			throw new Error(
+				`Cannot find list with name: ${name}${
+					parentID ? 'under parent ' + parentID : ''
+				}. ` + 'Is it possible that the query is not mounted?'
+			)
+		}
+
+		// return the handler
+		return handler
 	}
 }
 
@@ -97,19 +111,27 @@ class CacheInternal {
 	config: Config
 	storage: InMemoryStorage
 	subscriptions: InMemorySubscriptions
+	lists: ListManager
+	cache: Cache
 
 	constructor({
 		config,
 		storage,
 		subscriptions,
+		lists,
+		cache,
 	}: {
 		storage: InMemoryStorage
 		config: Config
 		subscriptions: InMemorySubscriptions
+		lists: ListManager
+		cache: Cache
 	}) {
 		this.config = config
 		this.storage = storage
 		this.subscriptions = subscriptions
+		this.lists = lists
+		this.cache = cache
 	}
 
 	writeSelection({
@@ -672,103 +694,7 @@ class CacheInternal {
 
 		return { newIDs, nestedIDs }
 	}
-
-	addSubscribers({
-		parent,
-		spec,
-		selection,
-		variables,
-	}: {
-		parent: string
-		spec: SubscriptionSpec
-		selection: SubscriptionSelection
-		variables: { [key: string]: GraphQLValue }
-	}) {
-		for (const { type, keyRaw, fields, list, filters } of Object.values(selection)) {
-			const key = evaluateKey(keyRaw, variables)
-
-			// add the subscriber to the field
-			this.subscriptions.addFieldSubscription(parent, key, spec)
-
-			// if the field points to a link, we need to subscribe to any fields of that
-			// linked record
-			if (fields) {
-				// if the link points to a record then we just have to add it to the one
-				const [linkedRecord] = this.storage.get(parent, key) as LinkedList
-				let children = !Array.isArray(linkedRecord)
-					? [linkedRecord]
-					: flattenList(linkedRecord)
-
-				// // if this field is marked as a list, register it
-				// if (list && fields) {
-				// 	// if we haven't seen this list before
-				// 	if (!this._lists.has(list.name)) {
-				// 		this._lists.set(list.name, new Map())
-				// 	}
-
-				// 	// if we haven't already registered a handler to this list in the cache
-				// 	this._lists.get(list.name)?.set(
-				// 		spec.parentID || rootID,
-				// 		new ListHandler({
-				// 			name: list.name,
-				// 			connection: list.connection,
-				// 			parentID: spec.parentID,
-				// 			cache: this,
-				// 			record: rootRecord,
-				// 			listType: list.type,
-				// 			key,
-				// 			selection: fields,
-				// 			filters: Object.entries(filters || {}).reduce(
-				// 				(acc, [key, { kind, value }]) => {
-				// 					return {
-				// 						...acc,
-				// 						[key]: kind !== 'Variable' ? value : variables[value],
-				// 					}
-				// 				},
-				// 				{}
-				// 			),
-				// 		})
-				// 	)
-				// }
-
-				// if we're not related to anything, we're done
-				if (!children || !fields) {
-					continue
-				}
-
-				// add the subscriber to every child
-				for (const child of children) {
-					// avoid null children
-					if (!child) {
-						continue
-					}
-
-					// make sure the children update this subscription
-					this.addSubscribers({
-						parent: child,
-						spec,
-						selection: fields,
-						variables,
-					})
-				}
-			}
-		}
-	}
-
-	removeSubscribers({
-		parent,
-		spec,
-		selection,
-		variables,
-	}: {
-		parent: string
-		spec: SubscriptionSpec
-		selection: SubscriptionSelection
-		variables: {}
-	}) {
-		return this.subscriptions.remove(parent, selection, [spec], variables)
-	}
 }
 
 // fields on the root of the data store are keyed with a fixed id
-const rootID = '_ROOT_'
+export const rootID = '_ROOT_'
