@@ -1,5 +1,5 @@
 import { GraphQLValue } from '..'
-import { LinkedList } from '../cache/cache'
+import { LinkedList } from './cache'
 
 export function flattenList<T>(source: LinkedList<T>): T[] {
 	const flat: T[] = []
