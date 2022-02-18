@@ -1,7 +1,6 @@
-import { LinkedList } from '../cache/cache'
 import { SubscriptionSpec, SubscriptionSelection } from '../types'
 import { evaluateKey, flattenList } from './stuff'
-import { Cache } from './cache'
+import { Cache, LinkedList } from './cache'
 import { GraphQLValue } from '..'
 
 // manage the subscriptions

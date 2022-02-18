@@ -1,7 +1,6 @@
 // local imports
-import { LinkedList } from '../cache/cache'
 import { SubscriptionSelection, ListWhen, SubscriptionSpec, RefetchUpdateMode } from '../types'
-import { Cache, rootID } from './cache'
+import { Cache, rootID, LinkedList } from './cache'
 import { flattenList } from './stuff'
 
 export class ListManager {
