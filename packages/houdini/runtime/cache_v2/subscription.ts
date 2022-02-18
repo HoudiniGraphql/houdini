@@ -39,10 +39,10 @@ export class InMemorySubscriptions {
 			// linked record
 			if (fields) {
 				// if the link points to a record then we just have to add it to the one
-				const [linkedRecord] = this.cache._internal_unstable.storage.get(
+				const { value: linkedRecord } = this.cache._internal_unstable.storage.get(
 					parent,
 					key
-				) as LinkedList
+				)
 				let children = !Array.isArray(linkedRecord)
 					? [linkedRecord]
 					: flattenList(linkedRecord)
@@ -85,7 +85,7 @@ export class InMemorySubscriptions {
 
 					// make sure the children update this subscription
 					this.add({
-						parent: child,
+						parent: child as string,
 						spec,
 						selection: fields,
 						variables,
@@ -152,7 +152,7 @@ export class InMemorySubscriptions {
 
 			// if there are fields under this
 			if (fields) {
-				const [link] = this.cache._internal_unstable.storage.get(parent, key)
+				const { value: link } = this.cache._internal_unstable.storage.get(parent, key)
 				// figure out who else needs subscribers
 				const children = !Array.isArray(link)
 					? ([link] as string[])
@@ -209,7 +209,7 @@ export class InMemorySubscriptions {
 				continue
 			}
 
-			const [previousValue] = this.cache._internal_unstable.storage.get(id, key)
+			const { value: previousValue } = this.cache._internal_unstable.storage.get(id, key)
 
 			// if its not a list, wrap it as one so we can dry things up
 			const links = !Array.isArray(previousValue)
@@ -257,6 +257,41 @@ export class InMemorySubscriptions {
 			this.subscribers[id][fieldName] = this.get(id, fieldName).filter(
 				({ set }) => !targets.includes(set)
 			)
+		}
+	}
+
+	removeAllSubscribers(id: string, targets?: SubscriptionSpec[], visited: string[] = []) {
+		visited.push(id)
+
+		// every field that currently being subscribed to needs to be cleaned up
+		for (const field of Object.keys(this.subscribers[id] || [])) {
+			// grab the current set of subscribers
+			const subscribers = targets || this.subscribers[id][field]
+
+			// delete the subscriber for the field
+			this.removeSubscribers(id, field, subscribers)
+
+			const { value, kind } = this.cache._internal_unstable.storage.get(id, field)
+
+			// if the field is a scalar, there's nothing more to do
+			if (kind === 'scalar') {
+				continue
+			}
+
+			// if the value is a single link , wrap it in a list. otherwise, flatten the link list
+			const nextTargets = Array.isArray(value)
+				? flattenList(value as LinkedList)
+				: [value as string]
+
+			for (const id of nextTargets) {
+				// if we have already visited this id, move on
+				if (visited.includes(id)) {
+					continue
+				}
+
+				// keep walking down
+				this.removeAllSubscribers(id, subscribers, visited)
+			}
 		}
 	}
 }
