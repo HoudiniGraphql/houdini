@@ -10,7 +10,7 @@ export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
 	// a second class to avoid users from relying on unstable APIs. typescript's private
 	// label accomplishes this but would not prevent someone using vanilla js
-	private _internal_unstable: CacheInternal
+	_internal_unstable: CacheInternal
 
 	constructor(config: Config) {
 		// instantiate the storage system
@@ -39,10 +39,29 @@ export class Cache {
 		// find the correct layer
 		const layer = layerID
 			? this._internal_unstable.storage.getLayer(layerID)
-			: this._internal_unstable.storage.createLayer()
+			: this._internal_unstable.storage.topLayer
 
 		// write any values that we run into and get a list of subscribers
 		const subscribers = this._internal_unstable.writeSelection({ ...args, layer })
+
+		// the same spec will likely need to be updated multiple times, create the unique list by using the set
+		// function's identity
+		const notified: SubscriptionSpec['set'][] = []
+		for (const spec of subscribers) {
+			// if we haven't added the set yet
+			if (!notified.includes(spec.set)) {
+				notified.push(spec.set)
+
+				// trigger the update
+				spec.set(
+					this._internal_unstable.getSelection({
+						parent: spec.parentID || rootID,
+						selection: spec.selection,
+						variables: args.variables,
+					})
+				)
+			}
+		}
 
 		// return the id to the caller so they can resolve the layer if it was optimistic
 		return layer.id
@@ -55,11 +74,18 @@ export class Cache {
 
 	// register the provided callbacks with the fields specified by the selection
 	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
-		const parentID = spec.parentID || rootID
-
 		// add the subscribers to every field in the specification
-		this._internal_unstable.addSubscribers({
-			parent: parentID,
+		return this._internal_unstable.addSubscribers({
+			parent: spec.parentID || rootID,
+			spec,
+			selection: spec.selection,
+			variables,
+		})
+	}
+
+	unsubscribe(spec: SubscriptionSpec, variables: {} = {}) {
+		return this._internal_unstable.removeSubscribers({
+			parent: spec.parentID || rootID,
 			spec,
 			selection: spec.selection,
 			variables,
@@ -134,6 +160,7 @@ class CacheInternal {
 
 			// look up the previous value
 			const [previousValue, displayLayers] = this.storage.get(parent, key)
+
 			// if the layer we are updating is the top most layer for the field
 			// then its value is "live", it is providing the current value and
 			// subscribers need to know if the value changed
@@ -158,6 +185,7 @@ class CacheInternal {
 
 				// if the value changed on a layer that impacts the current latest value
 				const valueChanged = JSON.stringify(newValue) !== JSON.stringify(previousValue)
+
 				if (valueChanged && displayLayer) {
 					// we need to add the fields' subscribers to the set of callbacks
 					// we need to invoke
@@ -205,7 +233,12 @@ class CacheInternal {
 				if (linkedID && displayLayer && linkChange) {
 					// if there was an old subscriber we are forgotten
 					if (previousValue && typeof previousValue === 'string') {
-						this.subscriptions.remove(previousValue, fields, currentSubcribers)
+						this.subscriptions.remove(
+							previousValue,
+							fields,
+							currentSubcribers,
+							variables
+						)
 					}
 
 					// we need to clear the subscriptions in the previous link
@@ -364,7 +397,7 @@ class CacheInternal {
 						continue
 					}
 
-					this.subscriptions.remove(lostID, fields, currentSubcribers)
+					this.subscriptions.remove(lostID, fields, currentSubcribers, variables)
 				}
 
 				// if there was a change in the list
@@ -655,7 +688,7 @@ class CacheInternal {
 			const key = evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the field
-			this.subscriptions.add(parent, keyRaw, spec)
+			this.subscriptions.addFieldSubscription(parent, key, spec)
 
 			// if the field points to a link, we need to subscribe to any fields of that
 			// linked record
@@ -720,6 +753,20 @@ class CacheInternal {
 				}
 			}
 		}
+	}
+
+	removeSubscribers({
+		parent,
+		spec,
+		selection,
+		variables,
+	}: {
+		parent: string
+		spec: SubscriptionSpec
+		selection: SubscriptionSelection
+		variables: {}
+	}) {
+		return this.subscriptions.remove(parent, selection, [spec], variables)
 	}
 }
 
