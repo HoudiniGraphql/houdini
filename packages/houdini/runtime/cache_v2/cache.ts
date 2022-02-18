@@ -1,10 +1,9 @@
 // external imports
 import type { Config } from 'houdini-common'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
-import { LinkedList } from '../cache/cache'
 import { List, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
-import { evaluateKey, flattenList } from './stuff'
+import { evaluateKey } from './stuff'
 import { InMemorySubscriptions } from './subscription'
 
 export class Cache {
@@ -707,3 +706,5 @@ class CacheInternal {
 
 // fields on the root of the data store are keyed with a fixed id
 export const rootID = '_ROOT_'
+
+export type LinkedList<_Result = string> = (_Result | null | LinkedList<_Result>)[]
