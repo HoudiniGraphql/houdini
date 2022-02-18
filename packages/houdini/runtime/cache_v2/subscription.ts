@@ -29,7 +29,7 @@ export class InMemorySubscriptions {
 		selection: SubscriptionSelection
 		variables: { [key: string]: GraphQLValue }
 	}) {
-		for (const { type, keyRaw, fields, list, filters } of Object.values(selection)) {
+		for (const { keyRaw, fields, list, filters } of Object.values(selection)) {
 			const key = evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the field
@@ -127,6 +127,52 @@ export class InMemorySubscriptions {
 
 		// we're going to increment the current value by one
 		counts.set(spec.set, (counts.get(spec.set) || 0) + 1)
+	}
+
+	// this is different from add because of the treatment of lists
+	addMany({
+		parent,
+		selection,
+		variables,
+		subscribers,
+	}: {
+		parent: string
+		selection: SubscriptionSelection
+		variables: {}
+		subscribers: SubscriptionSpec[]
+	}) {
+		// look at every field in the selection and add the subscribers
+		for (const { keyRaw, fields } of Object.values(selection)) {
+			const key = evaluateKey(keyRaw, variables)
+
+			// add the subscriber to the
+			for (const spec of subscribers) {
+				this.addFieldSubscription(parent, key, spec)
+			}
+
+			// if there are fields under this
+			if (fields) {
+				const [link] = this.cache._internal_unstable.storage.get(parent, key)
+				// figure out who else needs subscribers
+				const children = !Array.isArray(link)
+					? ([link] as string[])
+					: flattenList(link as string[])
+				for (const linkedRecord of children) {
+					// avoid null records
+					if (!linkedRecord) {
+						continue
+					}
+
+					// insert the subscriber
+					this.addMany({
+						parent: linkedRecord,
+						selection: fields,
+						variables,
+						subscribers,
+					})
+				}
+			}
+		}
 	}
 
 	get(id: string, field: string): SubscriptionSpec[] {
