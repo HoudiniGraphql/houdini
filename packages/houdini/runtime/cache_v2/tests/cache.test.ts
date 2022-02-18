@@ -1133,6 +1133,852 @@ test('deleting a node removes nested subscriptions', function () {
 	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
 })
 
+test('same record twice in a query survives one unsubscribe (reference counting)', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '1',
+						firstName: 'bob',
+					},
+				],
+			},
+		},
+		variables: {
+			filter: 'foo',
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			selection,
+			set,
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// make sure there is a subscriber for the user's first name
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
+
+	// remove the user from the list
+	cache.list('All_Users').remove({ id: '1' })
+
+	// we should still be subscribing to the user's first name
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
+})
+
+test('embedded references', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'User',
+									keyRaw: 'node',
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// write an embedded list of embedded objects holding references to an object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+						{
+							node: {
+								id: '3',
+								firstName: 'mary',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			selection,
+			set,
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// update one of the embedded references
+	cache.write({
+		selection: {
+			user: {
+				type: 'User',
+				keyRaw: 'user',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					firstName: {
+						type: 'String',
+						keyRaw: 'firstName',
+					},
+				},
+			},
+		},
+		data: {
+			user: {
+				id: '2',
+				firstName: 'not-jane',
+			},
+		},
+	})
+
+	// make sure we got the updated data
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							id: '2',
+							firstName: 'not-jane',
+						},
+					},
+					{
+						node: {
+							id: '3',
+							firstName: 'mary',
+						},
+					},
+				],
+			},
+		},
+	})
+})
+
+test('writing abstract objects', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache(config)
+
+	// save the data
+	const data = {
+		viewer: {
+			__typename: 'User',
+			id: '1',
+			firstName: 'bob',
+		},
+	}
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'Node',
+				abstract: true,
+				keyRaw: 'viewer',
+				fields: {
+					__typename: {
+						type: 'String',
+						keyRaw: '__typename',
+					},
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					firstName: {
+						type: 'String',
+						keyRaw: 'firstName',
+					},
+				},
+			},
+		},
+		data,
+	})
+
+	// make sure we can get back what we wrote
+	expect(
+		cache.read({
+			parent: 'User:1',
+			selection: {
+				__typename: {
+					type: 'String',
+					keyRaw: '__typename',
+				},
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		})
+	).toEqual({
+		__typename: 'User',
+		id: '1',
+		firstName: 'bob',
+	})
+})
+
+test('writing abstract lists', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache(config)
+
+	// save the data
+	const data = {
+		nodes: [
+			{
+				__typename: 'User',
+				id: '1',
+				firstName: 'bob',
+			},
+			{
+				__typename: 'User',
+				id: '2',
+				firstName: 'bob',
+			},
+		],
+	}
+	cache.write({
+		selection: {
+			nodes: {
+				type: 'Node',
+				abstract: true,
+				keyRaw: 'nodes',
+				fields: {
+					__typename: {
+						type: 'String',
+						keyRaw: '__typename',
+					},
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					firstName: {
+						type: 'String',
+						keyRaw: 'firstName',
+					},
+				},
+			},
+		},
+		data,
+	})
+
+	// make sure we can get back what we wrote
+	expect(
+		cache.read({
+			parent: 'User:1',
+			selection: {
+				__typename: {
+					type: 'String',
+					keyRaw: '__typename',
+				},
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		})
+	).toEqual({
+		__typename: 'User',
+		id: '1',
+		firstName: 'bob',
+	})
+})
+
+test('can pull enum from cached values', function () {
+	// instantiate a cache we'll test against
+	const cache = new Cache(config)
+
+	// the selection we are gonna write
+	const selection = {
+		node: {
+			type: 'Node',
+			keyRaw: 'node',
+			fields: {
+				enumValue: {
+					type: 'MyEnum',
+					keyRaw: 'enumValue',
+				},
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+			},
+		},
+	}
+
+	// save the data
+	const data = {
+		node: {
+			id: '1',
+			enumValue: 'Hello',
+		},
+	}
+
+	// write the data to cache
+	cache.write({ selection, data })
+
+	// pull the data out of the cache
+	expect(cache.read({ selection })).toEqual({
+		node: {
+			id: '1',
+			enumValue: 'Hello',
+		},
+	})
+})
+
+test('can store and retrieve lists with null values', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					null,
+				],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.read({ selection })).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [
+				{
+					id: '2',
+					firstName: 'jane',
+				},
+				null,
+			],
+		},
+	})
+})
+
+test('can store and retrieve lists of lists of records', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					[
+						{
+							id: '2',
+							firstName: 'jane',
+						},
+						null,
+					],
+					[
+						{
+							id: '3',
+							firstName: 'jane',
+						},
+						{
+							id: '4',
+							firstName: 'jane',
+						},
+					],
+				],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.read({ selection })).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [
+				[
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					null,
+				],
+				[
+					{
+						id: '3',
+						firstName: 'jane',
+					},
+					{
+						id: '4',
+						firstName: 'jane',
+					},
+				],
+			],
+		},
+	})
+})
+
+test('can store and retrieve links with null values', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: null,
+		},
+	})
+
+	// make sure we can get the linked record back
+	expect(cache.read({ selection })).toEqual({
+		viewer: null,
+	})
+})
+
+test('can write list of just null', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [null],
+			},
+		},
+	})
+
+	// make sure we can get the linked lists back
+	expect(cache.read({ selection })).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
+			friends: [null],
+		},
+	})
+})
+
+test('self-referencing linked lists can be unsubscribed (avoid infinite recursion)', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friends: [
+					{
+						id: '1',
+						firstName: 'bob',
+						friends: [
+							{
+								id: '1',
+								firstName: 'bob',
+							},
+						],
+					},
+				],
+			},
+		},
+	})
+
+	// subscribe to the list
+	const spec = {
+		set: jest.fn(),
+		selection,
+		rootType: 'Query',
+	}
+	cache.subscribe(spec)
+	cache.unsubscribe(spec)
+
+	// no one should be subscribing to User:1's first name
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
+})
+
+test('self-referencing links can be unsubscribed (avoid infinite recursion)', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friend: {
+					type: 'User',
+					keyRaw: 'friend',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						friend: {
+							type: 'User',
+							keyRaw: 'friend',
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+								friend: {
+									type: 'User',
+									keyRaw: 'friend',
+									fields: {
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				friend: {
+					id: '1',
+					firstName: 'bob',
+					friend: {
+						id: '1',
+						firstName: 'bob',
+						friend: {
+							id: '1',
+							firstName: 'bob',
+						},
+					},
+				},
+			},
+		},
+	})
+
+	// subscribe to the list
+	const spec = {
+		set: jest.fn(),
+		selection,
+		rootType: 'Query',
+	}
+	cache.subscribe(spec)
+	cache.unsubscribe(spec)
+
+	// no one should be subscribing to User:1's first name
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
+})
+
 test.todo('can write to and resolve layers')
 
 test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")
