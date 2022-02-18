@@ -1,4 +1,5 @@
 // local imports
+import { LinkedList } from '../cache/cache'
 import { SubscriptionSelection, ListWhen, SubscriptionSpec, RefetchUpdateMode } from '../types'
 import { Cache, rootID } from './cache'
 import { flattenList } from './stuff'
@@ -171,7 +172,7 @@ export class List {
 		}
 
 		// get the list of specs that are subscribing to the list
-		const subscribers = this.cache._internal_unstable.subscriptions.get(dataID, this.key)
+		const subscribers = this.cache._internal_unstable.subscriptions.get(this.recordID, this.key)
 
 		// walk down the list fields relative to the new record
 		// and make sure all of the list's subscribers are listening
@@ -208,7 +209,7 @@ export class List {
 		// if we are removing a record from a connection we have to walk through
 		// some embedded references first
 		if (this.connection) {
-			const [embeddedConnection] = this.cache._internal_unstable.storage.get(
+			const { value: embeddedConnection } = this.cache._internal_unstable.storage.get(
 				this.recordID,
 				this.key
 			)
@@ -219,8 +220,11 @@ export class List {
 
 			// look at every embedded edge for the one with a node corresponding to the element
 			// we want to delete
-			const edges = this.cache._internal_unstable.storage.get(embeddedConnectionID, 'edges')
-			for (const edge of flattenList(edges) || []) {
+			const { value: edges } = this.cache._internal_unstable.storage.get(
+				embeddedConnectionID,
+				'edges'
+			)
+			for (const edge of flattenList(edges as LinkedList) || []) {
 				if (!edge) {
 					continue
 				}
@@ -228,12 +232,15 @@ export class List {
 				const edgeID = edge as string
 
 				// look at the edge's node
-				const [node] = this.cache._internal_unstable.storage.get(edgeID, 'node')
+				const { value: node } = this.cache._internal_unstable.storage.get(edgeID, 'node')
 				if (!node) {
 					continue
 				}
 
-				const [nodeID] = this.cache._internal_unstable.storage.get(node as string, 'id')
+				const { value: nodeID } = this.cache._internal_unstable.storage.get(
+					node as string,
+					'id'
+				)
 				// if we found the node
 				if (nodeID === id) {
 					targetID = edgeID
@@ -320,7 +327,7 @@ export class List {
 	// the underlying linked list
 	*[Symbol.iterator]() {
 		for (let record of flattenList(
-			this.cache._internal_unstable.storage.get(this.recordID, this.key)
+			this.cache._internal_unstable.storage.get(this.recordID, this.key).value as LinkedList
 		)) {
 			yield record
 		}

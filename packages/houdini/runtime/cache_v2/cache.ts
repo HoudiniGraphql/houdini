@@ -105,6 +105,15 @@ export class Cache {
 		// return the handler
 		return handler
 	}
+
+	delete(id: string) {
+		// clean up any subscribers associated with the record before we destroy the actual values that will let us
+		// walk down
+		this._internal_unstable.subscriptions.removeAllSubscribers(id)
+
+		// delete the record from the store
+		this._internal_unstable.storage.delete(id)
+	}
 }
 
 class CacheInternal {
@@ -181,7 +190,7 @@ class CacheInternal {
 			const currentSubcribers = this.subscriptions.get(parent, key)
 
 			// look up the previous value
-			const [previousValue, displayLayers] = this.storage.get(parent, key)
+			const { value: previousValue, displayLayers } = this.storage.get(parent, key)
 
 			// if the layer we are updating is the top most layer for the field
 			// then its value is "live", it is providing the current value and
@@ -305,14 +314,14 @@ class CacheInternal {
 							}
 
 							// look up the edge record
-							const [cursorField] = this.storage.get(id, 'cursor')
+							const { value: cursorField } = this.storage.get(id, 'cursor')
 							// if there is a value for the cursor, it needs to remain
 							if (cursorField) {
 								return false
 							}
 
 							// look up the node reference
-							const [node] = this.storage.get(id, 'node')
+							const { value: node } = this.storage.get(id, 'node')
 							// if there one, keep the edge
 							if (!node) {
 								return false
@@ -359,7 +368,7 @@ class CacheInternal {
 							}
 
 							// look up the lined node record
-							const [node] = this.storage.get(id, 'node')
+							const { value: node } = this.storage.get(id, 'node')
 							// node should be a reference
 							if (typeof node !== 'string') {
 								continue
@@ -456,7 +465,7 @@ class CacheInternal {
 			const key = evaluateKey(keyRaw, variables)
 
 			// look up the value in our store
-			const [value] = this.storage.get(parent, key)
+			const { value } = this.storage.get(parent, key)
 
 			// if the value is null
 			if (value === null) {

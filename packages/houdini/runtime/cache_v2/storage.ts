@@ -53,7 +53,14 @@ export class InMemoryStorage {
 		throw new Error('Could not find layer with id: ' + id)
 	}
 
-	get(id: string, field: string): [GraphQLField, LayerID[]] {
+	get(
+		id: string,
+		field: string
+	): {
+		value: GraphQLField
+		kind: 'link' | 'scalar' | 'unknown'
+		displayLayers: number[]
+	} {
 		// the list of operations for the field
 		const operations = {
 			[OperationKind.insert]: {
@@ -69,7 +76,7 @@ export class InMemoryStorage {
 		// go through the list of layers in reverse
 		for (let i = this.data.length - 1; i >= 0; i--) {
 			const layer = this.data[i]
-			const layerValue = layer.get(id, field)
+			const [layerValue, kind] = layer.get(id, field)
 			const layerOperations = layer.getOperations(id, field) || []
 			layer.deletedIDs.forEach((v) => operations.remove.add(v))
 
@@ -84,7 +91,11 @@ export class InMemoryStorage {
 			// if the result isn't an array we can just use the value since we can't
 			// apply operations to the field
 			if (typeof layerValue !== 'undefined' && !Array.isArray(layerValue)) {
-				return [layerValue, [layer.id]]
+				return {
+					value: layerValue,
+					kind,
+					displayLayers: [layer.id],
+				}
 			}
 
 			// if the layer contains operations or values add it to the list of relevant layers
@@ -105,7 +116,11 @@ export class InMemoryStorage {
 					}
 					// if we found a delete operation, we're done
 					if (isDeleteOperation(op)) {
-						return [undefined, []]
+						return {
+							value: undefined,
+							kind: 'unknown',
+							displayLayers: [],
+						}
 					}
 				}
 			}
@@ -121,19 +136,24 @@ export class InMemoryStorage {
 				!operations.insert.start.length &&
 				!operations.insert.end.length
 			) {
-				return [layerValue, layerIDs]
+				return { value: layerValue, displayLayers: layerIDs, kind: 'link' }
 			}
 
 			// we have operations to apply to the list
-			return [
-				[...operations.insert.start, ...layerValue, ...operations.insert.end].filter(
+			return {
+				value: [...operations.insert.start, ...layerValue, ...operations.insert.end].filter(
 					(value) => !operations.remove.has(value as string)
 				),
-				layerIDs,
-			]
+				displayLayers: layerIDs,
+				kind,
+			}
 		}
 
-		return [undefined, []]
+		return {
+			value: undefined,
+			kind: 'unknown',
+			displayLayers: [],
+		}
 	}
 
 	writeLink(id: string, field: string, value: string | LinkedList) {
@@ -225,14 +245,14 @@ export class Layer {
 		this.id = id
 	}
 
-	get(id: string, field: string): GraphQLField {
+	get(id: string, field: string): [GraphQLField, 'link' | 'scalar'] {
 		// if its a link return the value
 		if (typeof this.links[id]?.[field] !== 'undefined') {
-			return this.links[id][field]
+			return [this.links[id][field], 'link']
 		}
 
 		// only other option is a value
-		return this.fields[id]?.[field]
+		return [this.fields[id]?.[field], 'scalar']
 	}
 
 	getOperations(id: string, field: string): Operation[] | undefined {
