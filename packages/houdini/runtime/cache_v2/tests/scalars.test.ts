@@ -52,7 +52,7 @@ test('extracting data with custom scalars unmarshals the value', () => {
 	cache.write({ selection, data })
 
 	// pull the data out of the cache
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ parent: rootID, selection })).toEqual({
 		node: {
 			id: '1',
 			date: new Date(data.node.date),
@@ -93,7 +93,7 @@ test('can store and retrieve lists of lists of scalars', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ parent: rootID, selection })).toEqual({
 		viewer: {
 			id: '1',
 			strings: ['bob', 'john'],
@@ -139,7 +139,7 @@ test('can write list of scalars', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ parent: rootID, selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -187,7 +187,7 @@ test('writing a scalar marked with replace', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ parent: rootID, selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -208,7 +208,7 @@ test('writing a scalar marked with replace', function () {
 	})
 
 	// make sure we can get the updated lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ parent: rootID, selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
