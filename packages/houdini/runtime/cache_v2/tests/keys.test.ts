@@ -1,4 +1,4 @@
-import { evaluateKey } from '../cache'
+import { evaluateKey } from '../stuff'
 
 describe('key evaluation', function () {
 	const table = [
