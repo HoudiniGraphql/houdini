@@ -242,7 +242,16 @@ export class List {
 		this.cache.internal.record(parentID).removeFromLinkedList(targetKey, targetID)
 
 		// notify the subscribers about the change
-		this.cache.internal.notifySubscribers(subscribers, variables)
+		for (const spec of subscribers) {
+			// trigger the update
+			spec.set(
+				this.cache._internal_unstable.getSelection({
+					parent: spec.parentID || rootID,
+					selection: spec.selection,
+					variables: variables,
+				})
+			)
+		}
 
 		// if we are removing from a connection, delete the embedded edge holding the record
 		if (this.connection) {
