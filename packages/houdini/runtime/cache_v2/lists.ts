@@ -1,6 +1,7 @@
 // local imports
 import { SubscriptionSelection, ListWhen, SubscriptionSpec, RefetchUpdateMode } from '../types'
 import { Cache, rootID } from './cache'
+import { flattenList } from './stuff'
 
 export class ListManager {
 	// associate list names with the handler that wraps the list
@@ -175,7 +176,12 @@ export class List {
 		// walk down the list fields relative to the new record
 		// and make sure all of the list's subscribers are listening
 		// to that object
-		this.cache.internal.insertSubscribers(dataID, selection, variables, ...subscribers)
+		this.cache._internal_unstable.subscriptions.addMany({
+			parent: dataID,
+			selection,
+			variables,
+			subscribers,
+		})
 
 		// update the cache with the data we just found
 		this.cache.write({
@@ -202,27 +208,38 @@ export class List {
 		// if we are removing a record from a connection we have to walk through
 		// some embedded references first
 		if (this.connection) {
-			const embeddedConnection = this.record.linkedRecord(this.key)
+			const [embeddedConnection] = this.cache._internal_unstable.storage.get(
+				this.recordID,
+				this.key
+			)
 			if (!embeddedConnection) {
 				return
 			}
+			const embeddedConnectionID = embeddedConnection as string
+
 			// look at every embedded edge for the one with a node corresponding to the element
 			// we want to delete
-			for (const edge of embeddedConnection.flatLinkedList('edges') || []) {
+			const edges = this.cache._internal_unstable.storage.get(embeddedConnectionID, 'edges')
+			for (const edge of flattenList(edges) || []) {
 				if (!edge) {
 					continue
 				}
+
+				const edgeID = edge as string
+
 				// look at the edge's node
-				const node = edge.linkedRecord('node')
+				const [node] = this.cache._internal_unstable.storage.get(edgeID, 'node')
 				if (!node) {
 					continue
 				}
+
+				const [nodeID] = this.cache._internal_unstable.storage.get(node as string, 'id')
 				// if we found the node
-				if (node.id === id) {
-					targetID = edge.id
+				if (nodeID === id) {
+					targetID = edgeID
 				}
 			}
-			parentID = embeddedConnection.id
+			parentID = embeddedConnectionID
 			targetKey = 'edges'
 		}
 
@@ -230,16 +247,16 @@ export class List {
 		const subscribers = this.cache._internal_unstable.subscriptions.get(this.recordID, this.key)
 
 		// disconnect record from any subscriptions associated with the list
-		this.cache._internal_unstable.unsubscribe(
+		this.cache._internal_unstable.subscriptions.remove(
 			targetID,
 			// if we're unsubscribing from a connection, only unsubscribe from the target
 			this.connection ? this.selection.edges.fields! : this.selection,
-			variables,
-			...subscribers.map(({ set }) => set)
+			subscribers,
+			variables
 		)
 
 		// remove the target from the parent
-		this.cache.internal.record(parentID).removeFromLinkedList(targetKey, targetID)
+		this.cache._internal_unstable.storage.remove(parentID, targetKey, targetID)
 
 		// notify the subscribers about the change
 		for (const spec of subscribers) {
@@ -255,7 +272,7 @@ export class List {
 
 		// if we are removing from a connection, delete the embedded edge holding the record
 		if (this.connection) {
-			this.cache.internal.deleteID(targetID)
+			this.cache._internal_unstable.storage.delete(targetID)
 		}
 	}
 
@@ -302,7 +319,9 @@ export class List {
 	// iterating over the list handler should be the same as iterating over
 	// the underlying linked list
 	*[Symbol.iterator]() {
-		for (let record of this.record.flatLinkedList(this.key)) {
+		for (let record of flattenList(
+			this.cache._internal_unstable.storage.get(this.recordID, this.key)
+		)) {
 			yield record
 		}
 	}
