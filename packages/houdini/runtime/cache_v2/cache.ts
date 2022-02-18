@@ -3,7 +3,7 @@ import type { Config } from 'houdini-common'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
 import { List, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
-import { evaluateKey } from './stuff'
+import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
 
 export class Cache {
@@ -116,6 +116,9 @@ export class Cache {
 }
 
 class CacheInternal {
+	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
+	private _disabled = false
+
 	config: Config
 	storage: InMemoryStorage
 	subscriptions: InMemorySubscriptions
@@ -140,6 +143,13 @@ class CacheInternal {
 		this.subscriptions = subscriptions
 		this.lists = lists
 		this.cache = cache
+
+		// the cache should always be disabled on the server
+		try {
+			this._disabled = typeof window === 'undefined'
+		} catch {
+			this._disabled = true
+		}
 	}
 
 	writeSelection({
@@ -701,6 +711,69 @@ class CacheInternal {
 		}
 
 		return { newIDs, nestedIDs }
+	}
+
+	isDataAvailable(
+		target: SubscriptionSelection,
+		variables: {},
+		parentID: string = rootID
+	): boolean {
+		// if the cache is disabled we dont have to look at anything else
+		if (this._disabled) {
+			return false
+		}
+
+		// every field in the selection needs to be present
+		for (const selection of Object.values(target)) {
+			const fieldName = evaluateKey(selection.keyRaw, variables)
+
+			// look up the field value
+			const { value, kind } = this.storage.get(parentID, fieldName)
+
+			// if the field is a scalar and has a value, we're good (no need to check a subselection)
+			if (kind === 'scalar' && typeof value !== 'undefined') {
+				continue
+			}
+			// if the field has no value and there are no subselections and we dont have a value, we are missing data
+			else if (!selection.fields) {
+				return false
+			}
+
+			// the link could be an object
+			else if (!Array.isArray(value)) {
+				// if we have a null value we're good
+				if (value === null) {
+					continue
+				}
+
+				// if we have a valid id, walk down
+				if (!this.isDataAvailable(selection.fields!, variables, value as string)) {
+					return false
+				}
+			}
+			// the link is a list
+			else {
+				// we need to look at every linked record
+				for (const linkedRecord of flattenList(value as LinkedList)) {
+					if (!linkedRecord) {
+						continue
+					}
+
+					// if the linked record doesn't have the field then we are missing data
+					if (!this.isDataAvailable(selection.fields!, variables, linkedRecord)) {
+						return false
+					}
+				}
+			}
+
+			// if we dont have a linked record or linked list, we dont have the data
+			if (typeof value === 'undefined') {
+				return false
+			}
+		}
+
+		// if we got this far, we have the information
+		return true
 	}
 }
 
