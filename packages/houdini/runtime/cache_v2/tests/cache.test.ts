@@ -838,6 +838,301 @@ test('unsubscribe', function () {
 	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
 })
 
+test('subscribe to new list nodes', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// insert an element into the list (no parent ID)
+	cache.list('All_Users').append(
+		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
+		{
+			id: '3',
+			firstName: 'mary',
+		}
+	)
+
+	// update the user we just added
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary-prime',
+					},
+				],
+			},
+		},
+	})
+
+	// the first time set was called, a new entry was added.
+	// the second time it's called, we get a new value for mary
+	expect(set).toHaveBeenNthCalledWith(2, {
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+				{
+					firstName: 'mary-prime',
+					id: '3',
+				},
+			],
+		},
+	})
+})
+
+test('variables in query and subscription', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends(filter: $filter)',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+					{
+						id: '3',
+						firstName: 'mary',
+					},
+				],
+			},
+		},
+		variables: {
+			filter: 'foo',
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			selection,
+			set,
+			variables: () => ({ filter: 'foo' }),
+		},
+		{
+			filter: 'foo',
+		}
+	)
+
+	// make sure we have a cached value for friends(filter: "foo")
+	expect(cache.list('All_Users').key).toEqual('friends(filter: "foo")')
+
+	// somehow write a user to the cache with a new friends list
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+					},
+				],
+			},
+		},
+		variables: {
+			filter: 'foo',
+		},
+	})
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'jane',
+					id: '2',
+				},
+			],
+		},
+	})
+
+	// we shouldn't be subscribing to user 3 any more
+	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(0)
+})
+
+test('deleting a node removes nested subscriptions', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// sanity check
+	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)
+
+	// delete the parent
+	cache.delete('User:1')
+
+	// sanity check
+	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
+})
+
 test.todo('can write to and resolve layers')
 
 test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")
