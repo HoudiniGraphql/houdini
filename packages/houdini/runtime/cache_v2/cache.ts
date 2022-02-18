@@ -3,17 +3,23 @@ import type { Config } from 'houdini-common'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
 import { LinkedList } from '../cache/cache'
 import { InMemoryStorage, Layer, LayerID } from './storage'
+import { evaluateKey, flattenList } from './stuff'
+import { InMemorySubscriptions } from './subscription'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
 	// a second class to avoid users from relying on unstable APIs. typescript's private
 	// label accomplishes this but would not prevent someone using vanilla js
-	_internal_unstable: CacheInternal
+	private _internal_unstable: CacheInternal
 
 	constructor(config: Config) {
+		// instantiate the storage system
+		const storage = new InMemoryStorage()
+
 		this._internal_unstable = new CacheInternal({
 			config,
-			storage: new InMemoryStorage(),
+			storage,
+			subscriptions: new InMemorySubscriptions(storage),
 		})
 	}
 
@@ -32,8 +38,8 @@ export class Cache {
 	}): LayerID {
 		// find the correct layer
 		const layer = layerID
-			? this._internal_unstable._storage.getLayer(layerID)
-			: this._internal_unstable._storage.createLayer()
+			? this._internal_unstable.storage.getLayer(layerID)
+			: this._internal_unstable.storage.createLayer()
 
 		// write any values that we run into and get a list of subscribers
 		const subscribers = this._internal_unstable.writeSelection({ ...args, layer })
@@ -47,16 +53,37 @@ export class Cache {
 		return this._internal_unstable.getSelection(...args)
 	}
 
-	//
+	// register the provided callbacks with the fields specified by the selection
+	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
+		const parentID = spec.parentID || rootID
+
+		// add the subscribers to every field in the specification
+		this._internal_unstable.addSubscribers({
+			parent: parentID,
+			spec,
+			selection: spec.selection,
+			variables,
+		})
+	}
 }
 
 class CacheInternal {
-	_config: Config
-	_storage: InMemoryStorage
+	config: Config
+	storage: InMemoryStorage
+	subscriptions: InMemorySubscriptions
 
-	constructor({ config, storage }: { storage: InMemoryStorage; config: Config }) {
-		this._config = config
-		this._storage = storage
+	constructor({
+		config,
+		storage,
+		subscriptions,
+	}: {
+		storage: InMemoryStorage
+		config: Config
+		subscriptions: InMemorySubscriptions
+	}) {
+		this.config = config
+		this.storage = storage
+		this.subscriptions = subscriptions
 	}
 
 	writeSelection({
@@ -67,7 +94,7 @@ class CacheInternal {
 		parent = rootID,
 		applyUpdates = false,
 		layer,
-		subscribersSoFar = [],
+		toNotify = [],
 	}: {
 		data: { [key: string]: GraphQLValue }
 		selection: SubscriptionSelection
@@ -75,7 +102,7 @@ class CacheInternal {
 		parent?: string
 		root?: string
 		layer: Layer
-		subscribersSoFar?: SubscriptionSpec[]
+		toNotify?: SubscriptionSpec[]
 		applyUpdates?: boolean
 	}): SubscriptionSpec[] {
 		// data is an object with fields that we need to write to the store
@@ -102,8 +129,11 @@ class CacheInternal {
 			} = selection[field]
 			const key = evaluateKey(keyRaw, variables)
 
+			// the current set of subscribers
+			const currentSubcribers = this.subscriptions.get(parent, key)
+
 			// look up the previous value
-			const [previousValue, displayLayers] = this._storage.get(parent, key)
+			const [previousValue, displayLayers] = this.storage.get(parent, key)
 			// if the layer we are updating is the top most layer for the field
 			// then its value is "live", it is providing the current value and
 			// subscribers need to know if the value changed
@@ -131,6 +161,7 @@ class CacheInternal {
 				if (valueChanged && displayLayer) {
 					// we need to add the fields' subscribers to the set of callbacks
 					// we need to invoke
+					toNotify.push(...currentSubcribers)
 				}
 
 				// write value to the layer
@@ -171,9 +202,15 @@ class CacheInternal {
 				layer.writeLink(parent, key, linkedID)
 
 				// if the link target of this field changed and it was responsible for the current subscription
-				if (displayLayer && linkChange) {
+				if (linkedID && displayLayer && linkChange) {
+					// if there was an old subscriber we are forgotten
+					if (previousValue && typeof previousValue === 'string') {
+						this.subscriptions.remove(previousValue, fields, currentSubcribers)
+					}
+
 					// we need to clear the subscriptions in the previous link
 					// and add them to the new link
+					toNotify.push(...currentSubcribers)
 				}
 
 				// if the link target points to another record in the cache we need to walk down its
@@ -185,7 +222,7 @@ class CacheInternal {
 						parent: linkedID,
 						data: value,
 						variables,
-						subscribersSoFar,
+						toNotify,
 						applyUpdates,
 						layer,
 					})
@@ -213,14 +250,14 @@ class CacheInternal {
 							}
 
 							// look up the edge record
-							const [cursorField] = this._storage.get(id, 'cursor')
+							const [cursorField] = this.storage.get(id, 'cursor')
 							// if there is a value for the cursor, it needs to remain
 							if (cursorField) {
 								return false
 							}
 
 							// look up the node reference
-							const [node] = this._storage.get(id, 'node')
+							const [node] = this.storage.get(id, 'node')
 							// if there one, keep the edge
 							if (!node) {
 								return false
@@ -244,7 +281,7 @@ class CacheInternal {
 				const { newIDs, nestedIDs } = this.extractNestedListIDs({
 					value,
 					abstract: Boolean(isAbstract),
-					specs: subscribersSoFar,
+					specs: toNotify,
 					applyUpdates,
 					recordID: parent,
 					key,
@@ -267,14 +304,14 @@ class CacheInternal {
 							}
 
 							// look up the lined node record
-							const [node] = this._storage.get(id, 'node')
+							const [node] = this.storage.get(id, 'node')
 							// node should be a reference
 							if (typeof node !== 'string') {
 								continue
 							}
 
 							// if we dont have type information or a valid reference
-							if (!node || !this._storage.get(node, '__typename')) {
+							if (!node || !this.storage.get(node, '__typename')) {
 								continue
 							}
 
@@ -311,7 +348,24 @@ class CacheInternal {
 				// is still valid would not be triggered
 				const contentChanged = JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)
 
-				// update subscriptions between the old IDs and the new ones
+				let oldSubscribers: { [key: string]: Set<SubscriptionSpec> } = {}
+
+				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
+				for (const subscriber of currentSubcribers) {
+					// if either are true, add the subscriber to the list
+					if (contentChanged) {
+						toNotify.push(subscriber)
+					}
+				}
+
+				// any ids that don't show up in the new list need to have their subscribers wiped
+				for (const lostID of oldIDs) {
+					if (linkedIDs.includes(lostID) || !lostID) {
+						continue
+					}
+
+					this.subscriptions.remove(lostID, fields, currentSubcribers)
+				}
 
 				// if there was a change in the list
 				if (contentChanged || (oldIDs.length === 0 && newIDs.length === 0)) {
@@ -322,7 +376,7 @@ class CacheInternal {
 		}
 
 		// return the list of subscribers that need to be updated because of this change
-		return subscribersSoFar
+		return toNotify
 	}
 
 	// reconstruct an object defined by its selection
@@ -347,7 +401,7 @@ class CacheInternal {
 			const key = evaluateKey(keyRaw, variables)
 
 			// look up the value in our store
-			const [value] = this._storage.get(parent, key)
+			const [value] = this.storage.get(parent, key)
 
 			// if the value is null
 			if (value === null) {
@@ -358,9 +412,9 @@ class CacheInternal {
 			// if the field is a scalar
 			if (!fields) {
 				// is the type a custom scalar with a specified unmarshal function
-				if (this._config.scalars?.[type]?.unmarshal) {
+				if (this.config.scalars?.[type]?.unmarshal) {
 					// pass the primitive value to the unmarshal function
-					target[attributeName] = this._config.scalars[type].unmarshal(
+					target[attributeName] = this.config.scalars[type].unmarshal(
 						value
 					) as GraphQLValue
 				}
@@ -398,6 +452,30 @@ class CacheInternal {
 		return target
 	}
 
+	// returns the global id of the specified field (used to access the record in the cache)
+	id(type: string, data: { id?: string } | null): string | null
+	// this is like id but it trusts the value used for the id and just joins it with the
+	// type to form the global id
+	id(type: string, id: string): string | null
+	id(type: string, data: any): string | null {
+		// try to compute the id of the record
+		const id = typeof data === 'string' ? data : this.computeID(type, data)
+		if (!id) {
+			return null
+		}
+
+		return type + ':' + id
+	}
+
+	// the list of fields that we need in order to compute an objects id
+	idFields(type: string): string[] {
+		return ['id']
+	}
+
+	computeID(type: string, data: { [key: string]: GraphQLValue }) {
+		return data.id
+	}
+
 	hydrateNestedList({
 		fields,
 		variables,
@@ -426,31 +504,7 @@ class CacheInternal {
 		})
 	}
 
-	// returns the global id of the specified field (used to access the record in the cache)
-	id(type: string, data: { id?: string } | null): string | null
-	// this is like id but it trusts the value used for the id and just joins it with the
-	// type to form the global id
-	id(type: string, id: string): string | null
-	id(type: string, data: any): string | null {
-		// try to compute the id of the record
-		const id = typeof data === 'string' ? data : this.computeID(type, data)
-		if (!id) {
-			return null
-		}
-
-		return type + ':' + id
-	}
-
-	// the list of fields that we need in order to compute an objects id
-	idFields(type: string): string[] {
-		return ['id']
-	}
-
-	computeID(type: string, data: { [key: string]: GraphQLValue }) {
-		return data.id
-	}
-
-	private extractNestedListIDs({
+	extractNestedListIDs({
 		value,
 		abstract,
 		recordID,
@@ -574,7 +628,7 @@ class CacheInternal {
 				parent: linkedID,
 				data: entryObj,
 				variables,
-				subscribersSoFar: specs,
+				toNotify: specs,
 				applyUpdates,
 				layer,
 			})
@@ -585,61 +639,89 @@ class CacheInternal {
 
 		return { newIDs, nestedIDs }
 	}
-}
 
-// given a raw key and a set of variables, generate the fully qualified key
-export function evaluateKey(key: string, variables: { [key: string]: GraphQLValue } = {}): string {
-	// accumulate the evaluated key
-	let evaluated = ''
-	// accumulate a variable name that we're evaluating
-	let varName = ''
-	// some state to track if we are "in" a string
-	let inString = false
+	addSubscribers({
+		parent,
+		spec,
+		selection,
+		variables,
+	}: {
+		parent: string
+		spec: SubscriptionSpec
+		selection: SubscriptionSelection
+		variables: { [key: string]: GraphQLValue }
+	}) {
+		for (const { type, keyRaw, fields, list, filters } of Object.values(selection)) {
+			const key = evaluateKey(keyRaw, variables)
 
-	for (const char of key) {
-		// if we are building up a variable
-		if (varName) {
-			// if we are looking at a valid variable character
-			if (varChars.includes(char)) {
-				// add it to the variable name
-				varName += char
-				continue
+			// add the subscriber to the field
+			this.subscriptions.add(parent, keyRaw, spec)
+
+			// if the field points to a link, we need to subscribe to any fields of that
+			// linked record
+			if (fields) {
+				// if the link points to a record then we just have to add it to the one
+				const [linkedRecord] = this.storage.get(parent, key) as LinkedList
+				let children = !Array.isArray(linkedRecord)
+					? [linkedRecord]
+					: flattenList(linkedRecord)
+
+				// // if this field is marked as a list, register it
+				// if (list && fields) {
+				// 	// if we haven't seen this list before
+				// 	if (!this._lists.has(list.name)) {
+				// 		this._lists.set(list.name, new Map())
+				// 	}
+
+				// 	// if we haven't already registered a handler to this list in the cache
+				// 	this._lists.get(list.name)?.set(
+				// 		spec.parentID || rootID,
+				// 		new ListHandler({
+				// 			name: list.name,
+				// 			connection: list.connection,
+				// 			parentID: spec.parentID,
+				// 			cache: this,
+				// 			record: rootRecord,
+				// 			listType: list.type,
+				// 			key,
+				// 			selection: fields,
+				// 			filters: Object.entries(filters || {}).reduce(
+				// 				(acc, [key, { kind, value }]) => {
+				// 					return {
+				// 						...acc,
+				// 						[key]: kind !== 'Variable' ? value : variables[value],
+				// 					}
+				// 				},
+				// 				{}
+				// 			),
+				// 		})
+				// 	)
+				// }
+
+				// if we're not related to anything, we're done
+				if (!children || !fields) {
+					continue
+				}
+
+				// add the subscriber to every child
+				for (const child of children) {
+					// avoid null children
+					if (!child) {
+						continue
+					}
+
+					// make sure the children update this subscription
+					this.addSubscribers({
+						parent: child,
+						spec,
+						selection: fields,
+						variables,
+					})
+				}
 			}
-			// we are at the end of a variable name so we
-			// need to clean up and add before continuing with the string
-
-			// look up the variable and add the result (varName starts with a $)
-			const value = variables[varName.slice(1)]
-
-			evaluated += typeof value !== 'undefined' ? JSON.stringify(value) : 'undefined'
-
-			// clear the variable name accumulator
-			varName = ''
 		}
-
-		// if we are looking at the start of a variable
-		if (char === '$' && !inString) {
-			// start the accumulator
-			varName = '$'
-
-			// move along
-			continue
-		}
-
-		// if we found a quote, invert the string state
-		if (char === '"') {
-			inString = !inString
-		}
-
-		// this isn't a special case, just add the letter to the value
-		evaluated += char
 	}
-
-	return evaluated
 }
 
 // fields on the root of the data store are keyed with a fixed id
 const rootID = '_ROOT_'
-
-// the list of characters that make up a valid graphql variable name
-const varChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
