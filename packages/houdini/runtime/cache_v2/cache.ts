@@ -82,6 +82,7 @@ export class Cache {
 		})
 	}
 
+	// stop listening to a particular subscription
 	unsubscribe(spec: SubscriptionSpec, variables: {} = {}) {
 		return this._internal_unstable.subscriptions.remove(
 			spec.parentID || rootID,
@@ -91,6 +92,7 @@ export class Cache {
 		)
 	}
 
+	// return the list handler to mutate a named list in the cache
 	list(name: string, parentID?: string): List {
 		const handler = this._internal_unstable.lists.get(name, parentID)
 		if (!handler) {
@@ -105,6 +107,7 @@ export class Cache {
 		return handler
 	}
 
+	// remove the record from the cache's store and unsubscribe from it
 	delete(id: string) {
 		// clean up any subscribers associated with the record before we destroy the actual values that will let us
 		// walk down

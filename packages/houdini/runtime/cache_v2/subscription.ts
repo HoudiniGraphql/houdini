@@ -15,7 +15,7 @@ export class InMemorySubscriptions {
 	private referenceCounts: {
 		[id: string]: { [fieldName: string]: Map<SubscriptionSpec['set'], number> }
 	} = {}
-	keyVersions: { [key: string]: Set<string> } = {}
+	private keyVersions: { [key: string]: Set<string> } = {}
 
 	add({
 		parent,
@@ -270,6 +270,8 @@ export class InMemorySubscriptions {
 			// delete the subscriber for the field
 			this.removeSubscribers(id, field, subscribers)
 
+			// look up the value for the field so we can remove any subscribers that existed because of a
+			// subscriber to this record
 			const { value, kind } = this.cache._internal_unstable.storage.get(id, field)
 
 			// if the field is a scalar, there's nothing more to do

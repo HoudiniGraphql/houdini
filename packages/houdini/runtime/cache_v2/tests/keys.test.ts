@@ -5,7 +5,6 @@ describe('key evaluation', function () {
 		{
 			title: 'string',
 			key: 'fieldName',
-			variables: {},
 			expected: 'fieldName',
 		},
 		{
@@ -23,7 +22,6 @@ describe('key evaluation', function () {
 		{
 			title: 'undefined variable',
 			key: 'fieldName(foo: $bar)',
-			variables: {},
 			expected: 'fieldName(foo: undefined)',
 		},
 	]
