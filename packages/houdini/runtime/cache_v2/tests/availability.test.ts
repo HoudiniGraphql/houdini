@@ -41,7 +41,7 @@ test('existing data - positive', function () {
 	}
 
 	// make sure we can't resolve it already
-	expect(cache.internal.isDataAvailable(selection, {})).toBeFalsy()
+	expect(cache._internal_unstable.isDataAvailable(selection, {})).toBeFalsy()
 
 	// add some data to the cache
 	cache.write({
@@ -62,7 +62,7 @@ test('existing data - positive', function () {
 	})
 
 	// make sure we can't resolve it already
-	expect(cache.internal.isDataAvailable(selection, {})).toBeTruthy()
+	expect(cache._internal_unstable.isDataAvailable(selection, {})).toBeTruthy()
 })
 
 test('existing data - negative', function () {
@@ -101,7 +101,7 @@ test('existing data - negative', function () {
 	}
 
 	// make sure we can't resolve it already
-	expect(cache.internal.isDataAvailable(selection, {})).toBeFalsy()
+	expect(cache._internal_unstable.isDataAvailable(selection, {})).toBeFalsy()
 
 	// add some data to the cache
 	cache.write({
@@ -113,6 +113,7 @@ test('existing data - negative', function () {
 				friends: [
 					{
 						id: '2',
+						// missing first name
 					},
 					null,
 				],
@@ -121,7 +122,7 @@ test('existing data - negative', function () {
 	})
 
 	// make sure we can't resolve it already
-	expect(cache.internal.isDataAvailable(selection, {})).toBeFalsy()
+	expect(cache._internal_unstable.isDataAvailable(selection, {})).toBeFalsy()
 })
 
 test('existing data - empty list', function () {
@@ -160,7 +161,7 @@ test('existing data - empty list', function () {
 	}
 
 	// make sure we can't resolve it already
-	expect(cache.internal.isDataAvailable(selection, {})).toBeFalsy()
+	expect(cache._internal_unstable.isDataAvailable(selection, {})).toBeFalsy()
 
 	// add some data to the cache
 	cache.write({
@@ -175,7 +176,7 @@ test('existing data - empty list', function () {
 	})
 
 	// make sure we can't resolve it already
-	expect(cache.internal.isDataAvailable(selection, {})).toBeTruthy()
+	expect(cache._internal_unstable.isDataAvailable(selection, {})).toBeTruthy()
 })
 
 test('existing data - missing linked record', function () {
@@ -214,7 +215,7 @@ test('existing data - missing linked record', function () {
 	}
 
 	// make sure we can't resolve it already
-	expect(cache.internal.isDataAvailable(selection, {})).toBeFalsy()
+	expect(cache._internal_unstable.isDataAvailable(selection, {})).toBeFalsy()
 
 	// add some data to the cache
 	cache.write({
@@ -228,5 +229,5 @@ test('existing data - missing linked record', function () {
 	})
 
 	// make sure we can't resolve it already
-	expect(cache.internal.isDataAvailable(selection, {})).toBeFalsy()
+	expect(cache._internal_unstable.isDataAvailable(selection, {})).toBeFalsy()
 })
