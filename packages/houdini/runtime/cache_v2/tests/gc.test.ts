@@ -4,6 +4,7 @@ import { testConfig } from 'houdini-common'
 import { Cache } from '../cache'
 
 const config = testConfig()
+config.cacheBufferSize = 10
 
 test('adequate ticks of garbage collector clear unsubscribed data', function () {
 	const cache = new Cache(config)
@@ -111,7 +112,7 @@ test("subscribed data shouldn't be garbage collected", function () {
 			selection: {
 				id: {
 					type: 'ID',
-					keyRaw: "id'",
+					keyRaw: 'id',
 				},
 			},
 			parent: 'User:1',
@@ -206,7 +207,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 			selection: {
 				id: {
 					type: 'ID',
-					keyRaw: "id'",
+					keyRaw: 'id',
 				},
 			},
 			parent: 'User:1',
@@ -221,7 +222,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 			{
 				id: {
 					type: 'ID',
-					keyRaw: "id'",
+					keyRaw: 'id',
 				},
 			},
 			{},
