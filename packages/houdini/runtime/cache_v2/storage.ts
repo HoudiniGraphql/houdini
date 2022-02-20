@@ -42,6 +42,10 @@ export class InMemoryStorage {
 		return this.topLayer.delete(id)
 	}
 
+	deleteField(id: string, field: string) {
+		return this.topLayer.deleteField(id, field)
+	}
+
 	getLayer(id: number): Layer {
 		for (const layer of this.data) {
 			if (layer.id === id) {
@@ -297,6 +301,32 @@ export class Layer {
 		this.deletedIDs = new Set<string>()
 	}
 
+	applyDeletes() {
+		// any field that's marked as undefined needs to be deleted
+		for (const [id, fields] of Object.entries(this.fields)) {
+			for (const [field, value] of Object.entries(fields)) {
+				if (typeof value === 'undefined') {
+					try {
+						delete this.fields[id][field]
+					} catch {}
+					try {
+						delete this.links[id][field]
+					} catch {}
+				}
+			}
+
+			// if there are no fields left for the object, clean it up
+			if (Object.keys(fields || {}).length === 0) {
+				delete this.fields[id]
+			}
+
+			// if there are no more links, clean it up
+			if (Object.keys(this.links[id] || {}).length === 0) {
+				delete this.links[id]
+			}
+		}
+	}
+
 	delete(id: string) {
 		// add an insert operation to the map
 		this.operations = {
@@ -309,6 +339,10 @@ export class Layer {
 
 		// add the id to the list of ids that have been deleted in this layer (so we can filter them out later)
 		this.deletedIDs.add(id)
+	}
+
+	deleteField(id: string, field: string) {
+		this.fields[id][field] = undefined
 	}
 
 	insert(id: string, field: string, where: OperationLocation, target: string) {

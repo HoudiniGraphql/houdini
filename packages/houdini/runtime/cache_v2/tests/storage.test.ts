@@ -181,6 +181,61 @@ describe('in memory layers', function () {
 		expect(storage.get('User:1', 'firstName').value).toBeUndefined()
 	})
 
+	test('deleting specific fields removes the field', function () {
+		const storage = new InMemoryStorage()
+
+		// write some data to the storage we will delete
+		storage.writeField('User:1', 'firstName', 'Michael')
+		storage.writeField('User:1', 'lastName', 'Aivazis')
+
+		expect(storage.get('User:1', 'firstName')).toEqual({
+			value: 'Michael',
+			displayLayers: [storage.topLayer.id],
+			kind: 'scalar',
+		})
+
+		// delete the value
+		storage.deleteField('User:1', 'firstName')
+		storage.topLayer.applyDeletes()
+
+		// look up the value now that it's been deleted
+		expect(storage.get('User:1', 'firstName')).toEqual({
+			value: undefined,
+			displayLayers: [],
+			kind: 'unknown',
+		})
+
+		// make sure that the top layer doesn't actually hold the value
+		expect(Object.keys(storage.topLayer.fields['User:1'])).toEqual(['lastName'])
+	})
+
+	test('deleting all fields of a record deletes the record', function () {
+		const storage = new InMemoryStorage()
+
+		// write some data to the storage we will delete
+		storage.writeField('User:1', 'firstName', 'Michael')
+
+		expect(storage.get('User:1', 'firstName')).toEqual({
+			value: 'Michael',
+			displayLayers: [storage.topLayer.id],
+			kind: 'scalar',
+		})
+
+		// delete the value
+		storage.deleteField('User:1', 'firstName')
+		storage.topLayer.applyDeletes()
+
+		// look up the value now that it's been deleted
+		expect(storage.get('User:1', 'firstName')).toEqual({
+			value: undefined,
+			displayLayers: [],
+			kind: 'unknown',
+		})
+
+		// make sure that the top layer doesn't actually hold the value
+		expect(storage.topLayer.fields['User:1']).toBeUndefined()
+	})
+
 	test.todo('links are reset when layer is cleared')
 
 	describe('operations', function () {
