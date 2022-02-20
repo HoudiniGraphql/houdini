@@ -342,7 +342,10 @@ export class Layer {
 	}
 
 	deleteField(id: string, field: string) {
-		this.fields[id][field] = undefined
+		this.fields[id] = {
+			...this.fields[id],
+			[field]: undefined,
+		}
 	}
 
 	insert(id: string, field: string, where: OperationLocation, target: string) {

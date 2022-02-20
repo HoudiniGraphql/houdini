@@ -126,6 +126,9 @@ export class InMemorySubscriptions {
 
 		// we're going to increment the current value by one
 		counts.set(spec.set, (counts.get(spec.set) || 0) + 1)
+
+		// reset the lifetime for the field
+		this.cache._internal_unstable.lifetimes.resetLifetime(id, field)
 	}
 
 	// this is different from add because of the treatment of lists
