@@ -1,6 +1,7 @@
 // external imports
 import type { Config } from 'houdini-common'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
+import { GarbageCollector } from './gc'
 import { List, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
@@ -14,11 +15,12 @@ export class Cache {
 
 	constructor(config: Config) {
 		this._internal_unstable = new CacheInternal({
+			cache: this,
 			config,
 			storage: new InMemoryStorage(),
 			subscriptions: new InMemorySubscriptions(this),
 			lists: new ListManager(),
-			cache: this,
+			lifetimes: new GarbageCollector(this, config.cacheBufferSize),
 		})
 	}
 
@@ -127,6 +129,7 @@ class CacheInternal {
 	subscriptions: InMemorySubscriptions
 	lists: ListManager
 	cache: Cache
+	lifetimes: GarbageCollector
 
 	constructor({
 		config,
@@ -134,18 +137,21 @@ class CacheInternal {
 		subscriptions,
 		lists,
 		cache,
+		lifetimes,
 	}: {
 		storage: InMemoryStorage
 		config: Config
 		subscriptions: InMemorySubscriptions
 		lists: ListManager
 		cache: Cache
+		lifetimes: GarbageCollector
 	}) {
 		this.config = config
 		this.storage = storage
 		this.subscriptions = subscriptions
 		this.lists = lists
 		this.cache = cache
+		this.lifetimes = lifetimes
 
 		// the cache should always be disabled on the server
 		try {
@@ -208,6 +214,11 @@ class CacheInternal {
 			// then its value is "live", it is providing the current value and
 			// subscribers need to know if the value changed
 			const displayLayer = displayLayers.length === 0 || displayLayers.includes(layer.id)
+
+			// if we are writing to the display layer we need to refresh the lifetime of the value
+			if (displayLayer) {
+				this.lifetimes.resetLifetime(parent, key)
+			}
 
 			// any non-scalar is defined as a field with no selection
 			if (!fields) {
@@ -777,6 +788,16 @@ class CacheInternal {
 
 		// if we got this far, we have the information
 		return true
+	}
+
+	collectGarbage() {
+		// increment the lifetimes of unused data
+		this.lifetimes.tick()
+
+		// if there is only one layer in the cache, clean up the data
+		if (this.storage.layerCount === 1) {
+			this.storage.topLayer.applyDeletes()
+		}
 	}
 }
 
