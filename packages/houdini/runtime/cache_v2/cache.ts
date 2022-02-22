@@ -463,6 +463,68 @@ class CacheInternal {
 					layer.writeField(parent, key, linkedIDs)
 				}
 			}
+
+			// handle any operations relative to this node
+			for (const operation of operations || []) {
+				// turn the ID into something we can use
+				let parentID: string | undefined
+				if (operation.parentID) {
+					// if its a normal scalar we can use the value directly
+					if (operation.parentID.kind !== 'Variable') {
+						parentID = operation.parentID.value
+					} else {
+						const id = variables[operation.parentID.value]
+						if (typeof id !== 'string') {
+							throw new Error('parentID value must be a string')
+						}
+
+						parentID = id
+					}
+				}
+
+				// there could be a list of elements to perform the operation on
+				const targets = Array.isArray(value) ? value : [value]
+				for (const target of targets) {
+					// only insert an object into a list if we're adding an object with fields
+					if (
+						operation.action === 'insert' &&
+						target instanceof Object &&
+						fields &&
+						operation.list
+					) {
+						this.cache
+							.list(operation.list, parentID)
+							.when(operation.when)
+							.addToList(fields, target, variables, operation.position || 'last')
+					}
+
+					// only insert an object into a list if we're adding an object with fields
+					else if (
+						operation.action === 'remove' &&
+						target instanceof Object &&
+						fields &&
+						operation.list
+					) {
+						this.cache
+							.list(operation.list, parentID)
+							.when(operation.when)
+							.remove(target, variables)
+					}
+
+					// delete the operation if we have to
+					else if (operation.action === 'delete' && operation.type) {
+						if (typeof target !== 'string') {
+							throw new Error('Cannot delete a record with a non-string ID')
+						}
+
+						const targetID = this.id(operation.type, target)
+						if (!targetID) {
+							continue
+						}
+						this.cache.delete(targetID)
+					}
+				}
+			}
 		}
 
 		// return the list of subscribers that need to be updated because of this change
