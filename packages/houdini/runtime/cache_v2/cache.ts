@@ -250,7 +250,7 @@ class CacheInternal {
 				}
 
 				// write value to the layer
-				layer.writeField(parent, key, value)
+				layer.writeField(parent, key, newValue)
 			}
 			// the field could point to a linked object
 			else if (value instanceof Object && !Array.isArray(value)) {
