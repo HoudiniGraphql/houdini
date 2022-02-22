@@ -199,7 +199,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	if (cached && artifact.kind === 'HoudiniQuery') {
 		// tick the garbage collector asynchronously
 		setTimeout(() => {
-			cache.collectGarbage()
+			cache._internal_unstable.collectGarbage()
 		}, 0)
 
 		// this function is called as the first step in requesting data. If the policy prefers
@@ -212,16 +212,15 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 				CachePolicy.CacheOnly,
 				CachePolicy.CacheAndNetwork,
 			].includes(artifact.policy!) &&
-			cache.internal.isDataAvailable(artifact.selection, variables)
+			cache._internal_unstable.isDataAvailable(artifact.selection, variables)
 		) {
-			console.log('using cached data')
 			return [
 				{
-					data: cache.internal.getData(
-						cache.internal.record(rootID),
-						artifact.selection,
-						variables
-					),
+					data: cache.read({
+						parent: rootID,
+						selection: artifact.selection,
+						variables,
+					}),
 					errors: [],
 				},
 				DataSource.Cache,

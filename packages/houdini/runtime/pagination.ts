@@ -85,7 +85,12 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 			store: data,
 			artifact: paginationArtifact,
 			queryVariables: paginationArtifact.refetch!.embedded
-				? () => ({ id: cache.internal.computeID(fragmentArtifact.rootType, initialValue) })
+				? () => ({
+						id: cache._internal_unstable.computeID(
+							fragmentArtifact.rootType,
+							initialValue
+						),
+				  })
 				: () => ({}),
 		}),
 	}
