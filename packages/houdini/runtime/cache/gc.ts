@@ -38,6 +38,14 @@ export class GarbageCollector {
 				// if the lifetime is older than the maximum value, delete the value
 				if (fieldMap.get(field)! > this.cacheBufferSize) {
 					this.cache._internal_unstable.storage.deleteField(id, field)
+
+					// delete the entry in lifetime map
+					fieldMap.delete(field)
+
+					// if there are no more entries for the id, delete the id info
+					if ([...fieldMap.keys()].length === 0) {
+						this.lifetimes.delete(id)
+					}
 				}
 			}
 		}
