@@ -283,7 +283,7 @@ export class List {
 				this.cache._internal_unstable.getSelection({
 					parent: spec.parentID || rootID,
 					selection: spec.selection,
-					variables: variables,
+					variables: spec.variables?.() || {},
 				})
 			)
 		}
