@@ -1,37 +1,160 @@
 // external imports
 import type { Config } from 'houdini-common'
-// local imports
-import {
-	Maybe,
-	GraphQLValue,
-	SubscriptionSelection,
-	SubscriptionSpec,
-	GraphQLObject,
-} from '../types'
-import { Record } from './record'
-import { ListHandler } from './list'
-import { isScalar } from '../scalars'
+import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
+import { GarbageCollector } from './gc'
+import { List, ListManager } from './lists'
+import { InMemoryStorage, Layer, LayerID } from './storage'
+import { evaluateKey, flattenList } from './stuff'
+import { InMemorySubscriptions } from './subscription'
 
-// this class implements the cache that drives houdini queries
 export class Cache {
-	_config: Config
+	// the internal implementation for a lot of the cache's methods are moved into
+	// a second class to avoid users from relying on unstable APIs. typescript's private
+	// label accomplishes this but would not prevent someone using vanilla js
+	_internal_unstable: CacheInternal
 
-	// the map from entity id to record
-	private _data: Map<string | undefined, Record> = new Map()
-	// associate list names with the handler that wraps the list
-	private _lists: Map<string, Map<string, ListHandler>> = new Map()
+	constructor(config: Config) {
+		this._internal_unstable = new CacheInternal({
+			cache: this,
+			config,
+			storage: new InMemoryStorage(),
+			subscriptions: new InMemorySubscriptions(this),
+			lists: new ListManager(),
+			lifetimes: new GarbageCollector(this, config.cacheBufferSize),
+		})
+	}
 
+	// walk down the selection and save the values that we encounter.
+	// any changes will notify subscribers. writing to an optimistic layer will resolve it
+	write({
+		layer: layerID,
+		...args
+	}: {
+		data: { [key: string]: GraphQLValue }
+		selection: SubscriptionSelection
+		variables?: {}
+		parent?: string
+		layer?: LayerID
+		applyUpdates?: boolean
+	}): LayerID {
+		// find the correct layer
+		const layer = layerID
+			? this._internal_unstable.storage.getLayer(layerID)
+			: this._internal_unstable.storage.topLayer
+
+		// write any values that we run into and get a list of subscribers
+		const subscribers = this._internal_unstable.writeSelection({ ...args, layer })
+
+		// the same spec will likely need to be updated multiple times, create the unique list by using the set
+		// function's identity
+		const notified: SubscriptionSpec['set'][] = []
+		for (const spec of subscribers) {
+			// if we haven't added the set yet
+			if (!notified.includes(spec.set)) {
+				notified.push(spec.set)
+
+				// trigger the update
+				spec.set(
+					this._internal_unstable.getSelection({
+						parent: spec.parentID || rootID,
+						selection: spec.selection,
+						variables: spec.variables?.() || {},
+					})
+				)
+			}
+		}
+
+		// return the id to the caller so they can resolve the layer if it was optimistic
+		return layer.id
+	}
+
+	// reconstruct an object with the fields/relations specified by a selection
+	read(...args: Parameters<CacheInternal['getSelection']>) {
+		return this._internal_unstable.getSelection(...args)
+	}
+
+	// register the provided callbacks with the fields specified by the selection
+	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
+		// add the subscribers to every field in the specification
+		return this._internal_unstable.subscriptions.add({
+			parent: spec.parentID || rootID,
+			spec,
+			selection: spec.selection,
+			variables,
+		})
+	}
+
+	// stop listening to a particular subscription
+	unsubscribe(spec: SubscriptionSpec, variables: {} = {}) {
+		return this._internal_unstable.subscriptions.remove(
+			spec.parentID || rootID,
+			spec.selection,
+			[spec],
+			variables
+		)
+	}
+
+	// return the list handler to mutate a named list in the cache
+	list(name: string, parentID?: string): List {
+		const handler = this._internal_unstable.lists.get(name, parentID)
+		if (!handler) {
+			throw new Error(
+				`Cannot find list with name: ${name}${
+					parentID ? 'under parent ' + parentID : ''
+				}. ` + 'Is it possible that the query is not mounted?'
+			)
+		}
+
+		// return the handler
+		return handler
+	}
+
+	// remove the record from the cache's store and unsubscribe from it
+	delete(id: string) {
+		// clean up any subscribers associated with the record before we destroy the actual values that will let us
+		// walk down
+		this._internal_unstable.subscriptions.removeAllSubscribers(id)
+
+		// make sure we remove the id from any lists that it appears in
+		this._internal_unstable.lists.removeIDFromAllLists(id)
+
+		// delete the record from the store
+		this._internal_unstable.storage.delete(id)
+	}
+}
+
+class CacheInternal {
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
 	private _disabled = false
 
-	// the number of ticks of the garbage collector that a piece of data will
-	readonly cacheBufferSize: number = 10
+	config: Config
+	storage: InMemoryStorage
+	subscriptions: InMemorySubscriptions
+	lists: ListManager
+	cache: Cache
+	lifetimes: GarbageCollector
 
-	constructor(config: Config) {
-		this._config = config
-		if (config.cacheBufferSize) {
-			this.cacheBufferSize = config.cacheBufferSize
-		}
+	constructor({
+		config,
+		storage,
+		subscriptions,
+		lists,
+		cache,
+		lifetimes,
+	}: {
+		storage: InMemoryStorage
+		config: Config
+		subscriptions: InMemorySubscriptions
+		lists: ListManager
+		cache: Cache
+		lifetimes: GarbageCollector
+	}) {
+		this.config = config
+		this.storage = storage
+		this.subscriptions = subscriptions
+		this.lists = lists
+		this.cache = cache
+		this.lifetimes = lifetimes
 
 		// the cache should always be disabled on the server
 		try {
@@ -41,370 +164,28 @@ export class Cache {
 		}
 	}
 
-	// save the response in the local store and notify any subscribers
-	write({
-		selection,
+	writeSelection({
 		data,
+		selection,
 		variables = {},
+		root = rootID,
 		parent = rootID,
 		applyUpdates = false,
+		layer,
+		toNotify = [],
 	}: {
-		selection: SubscriptionSelection
 		data: { [key: string]: GraphQLValue }
-		variables?: {}
-		parent?: string
-		applyUpdates?: boolean
-	}) {
-		// if the cache is disabled we shouldn't write anything
-		if (this._disabled) {
-			return
-		}
-
-		// keep track of all of the subscription specs we have to write to because of this operation
-		const specs: SubscriptionSpec[] = []
-
-		// recursively walk down the payload and update the store. calls to update atomic fields
-		// will build up different specs of subscriptions that need to be run against the current state
-		this._write({
-			rootID: parent,
-			selection,
-			recordID: parent,
-			data,
-			variables,
-			specs,
-			applyUpdates,
-		})
-
-		// the same spec will likely need to be updated multiple times, create the unique list by using the set
-		// function's identity
-		const uniqueSpecs: SubscriptionSpec[] = []
-		const assignedSets: SubscriptionSpec['set'][] = []
-		for (const spec of specs) {
-			// if we haven't added the set yet
-			if (!assignedSets.includes(spec.set)) {
-				uniqueSpecs.push(spec)
-				assignedSets.push(spec.set)
-			}
-		}
-
-		// compute new values for every spec that needs to be run
-		this.notifySubscribers(uniqueSpecs, variables)
-	}
-
-	// returns the global id of the specified field (used to access the record in the cache)
-	id(type: string, data: { id?: string } | null): string | null
-	// this is like id but it trusts the value used for the id and just joins it with the
-	// type to form the global id
-	id(type: string, id: string): string | null
-	id(type: string, data: any): string | null {
-		// try to compute the id of the record
-		const id = typeof data === 'string' ? data : this.computeID(type, data)
-		if (!id) {
-			return null
-		}
-
-		return type + ':' + id
-	}
-
-	idFields(type: string): string[] {
-		return ['id']
-	}
-
-	subscribe(spec: SubscriptionSpec, variables: {} = {}) {
-		// find the root record
-		let rootRecord = spec.parentID ? this.record(spec.parentID) : this.root()
-		if (!rootRecord) {
-			throw new Error('Could not find root of subscription')
-		}
-
-		// walk down the selection and register any subscribers
-		this.addSubscribers(rootRecord, spec, spec.selection, variables)
-	}
-
-	unsubscribe(spec: SubscriptionSpec, variables: {} = {}) {
-		// find the root record
-		let rootRecord = spec.parentID ? this.getRecord(spec.parentID) : this.root()
-		// if there's no root, there's nothing to unsubscribe from
-		if (!rootRecord) {
-			return
-		}
-
-		// walk down the selection and remove any subscribers from the list
-		this.removeSubscribers(rootRecord, spec, spec.selection, variables)
-	}
-
-	// get the list handler associated by name
-	list(name: string, id?: string): ListHandler {
-		// make sure that the handler exists
-		const handler = this._lists.get(name)?.get(id || rootID)
-		if (!handler) {
-			throw new Error(
-				`Cannot find list with name: ${name} under parent: ${id}. ` +
-					'Is it possible that the query is not mounted?'
-			)
-		}
-
-		// return the handler
-		return handler
-	}
-
-	// remove the record from every list we know of and the cache itself
-	delete(type: string, id: string, variables: {} = {}): boolean {
-		const record = this.record(id)
-
-		// remove any related subscriptions
-		record.removeAllSubscribers()
-
-		// look at every list we know of with the matching type
-		for (const parentMap of this._lists.values()) {
-			for (const handler of parentMap.values()) {
-				// only consider the list if it holds the matching type
-				if (handler.listType !== type) {
-					continue
-				}
-
-				// remove the id from the list
-				handler.removeID(id, variables)
-			}
-		}
-
-		// remove the entry from the cache
-		return this.deleteID(id)
-	}
-
-	// grab the record specified by {id}.
-	// note: this is hidden behind the adapter because it will make entries in the
-	// cache that might not play by the correct garbage keeping rules. "advanced users only"
-	private record(id: string | undefined): Record {
-		// if we haven't seen the record before add an entry in the store
-		if (!this._data.has(id)) {
-			this._data.set(id, new Record(this, id || ''))
-		}
-
-		// write the field value
-		return this._data.get(id) as Record
-	}
-
-	get internal(): CacheProxy {
-		return {
-			notifySubscribers: this.notifySubscribers.bind(this),
-			insertSubscribers: this.insertSubscribers.bind(this),
-			unsubscribeSelection: this.unsubscribeSelection.bind(this),
-			evaluateKey: this.evaluateKey.bind(this),
-			record: this.record.bind(this),
-			getRecord: this.getRecord.bind(this),
-			getData: this.getData.bind(this),
-			deleteID: this.deleteID.bind(this),
-			computeID: this.computeID.bind(this),
-			isDataAvailable: this.isDataAvailable.bind(this),
-		}
-	}
-
-	private computeID(type: string, data: { [key: string]: GraphQLValue }) {
-		return data.id
-	}
-
-	private root(): Record {
-		return this.record(rootID)
-	}
-
-	// walk down the spec
-	private getData(
-		parent: Record | null | undefined,
-		selection: SubscriptionSelection,
-		variables: {}
-	): GraphQLObject | null {
-		// we could be asking for values of null
-		if (parent === null || typeof parent === 'undefined') {
-			return null
-		}
-
-		const target = {} as GraphQLObject
-
-		// look at every field in the parentFields
-		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
-			const key = this.evaluateKey(keyRaw, variables)
-
-			// if the link points to a record then we just have to add it to the one
-			const linkedRecord = parent.linkedRecord(key)
-			// if the link points to a list
-			const linkedList = parent.listLinks[key] || []
-
-			// if the attribute links to a null value
-			if (linkedRecord === null) {
-				target[attributeName] = null
-				continue
-			}
-
-			// the field could be an object
-			if (linkedRecord && fields) {
-				target[attributeName] = this.getData(linkedRecord, fields, variables)
-				continue
-			}
-			// the field could be a list
-			else if (fields) {
-				// the linked list could be a deeply nested thing, we need to call getData for each record
-				target[attributeName] = this.hydrateNestedList({ fields, variables, linkedList })
-			}
-			// we are looking at a scalar or some other type we don't recognize
-			else {
-				// look up the primitive value
-				const val = parent.getField(key)
-
-				// is the type a custom scalar with a specified unmarshal function
-				if (this._config.scalars?.[type]?.unmarshal) {
-					// pass the primitive value to the unmarshal function
-					target[attributeName] = this._config.scalars[type].unmarshal(
-						val
-					) as GraphQLValue
-				}
-				// the field does not have an unmarshal function
-				else {
-					target[attributeName] = val
-				}
-
-				// we're done
-				continue
-			}
-		}
-
-		return target
-	}
-
-	private addSubscribers(
-		rootRecord: Record,
-		spec: SubscriptionSpec,
-		selection: SubscriptionSelection,
-		variables: { [key: string]: GraphQLValue }
-	) {
-		for (const { type, keyRaw, fields, list, filters } of Object.values(selection)) {
-			const key = this.evaluateKey(keyRaw, variables)
-
-			// add the subscriber to the field
-			rootRecord.addSubscriber(keyRaw, key, spec)
-
-			// if the field points to a link, we need to subscribe to any fields of that
-			// linked record
-			if (!isScalar(this._config, type)) {
-				// if the link points to a record then we just have to add it to the one
-				const linkedRecord = rootRecord.linkedRecord(key)
-				let children = linkedRecord ? [linkedRecord] : rootRecord.flatLinkedList(key)
-
-				// if this field is marked as a list, register it
-				if (list && fields) {
-					// if we haven't seen this list before
-					if (!this._lists.has(list.name)) {
-						this._lists.set(list.name, new Map())
-					}
-
-					// if we haven't already registered a handler to this list in the cache
-					this._lists.get(list.name)?.set(
-						spec.parentID || rootID,
-						new ListHandler({
-							name: list.name,
-							connection: list.connection,
-							parentID: spec.parentID,
-							cache: this,
-							record: rootRecord,
-							listType: list.type,
-							key,
-							selection: fields,
-							filters: Object.entries(filters || {}).reduce(
-								(acc, [key, { kind, value }]) => {
-									return {
-										...acc,
-										[key]: kind !== 'Variable' ? value : variables[value],
-									}
-								},
-								{}
-							),
-						})
-					)
-				}
-
-				// if we're not related to anything, we're done
-				if (!children || !fields) {
-					continue
-				}
-
-				// add the subscriber to every child
-				for (const child of children) {
-					// avoid null children
-					if (!child) {
-						continue
-					}
-
-					// make sure the children update this subscription
-					this.addSubscribers(child, spec, fields, variables)
-				}
-			}
-		}
-	}
-
-	private removeSubscribers(
-		rootRecord: Record,
-		spec: SubscriptionSpec,
-		selection: SubscriptionSelection,
-		variables: {}
-	) {
-		for (const { type, keyRaw, fields, list } of Object.values(selection)) {
-			// figure out the actual key
-			const key = this.evaluateKey(keyRaw, variables)
-
-			// remove the subscriber to the field
-			rootRecord.forgetSubscribers(spec)
-
-			// if this field is marked as a list remove it from the cache
-			if (list) {
-				this._lists.delete(list.name)
-			}
-
-			// if the field points to a link, we need to remove any subscribers on any fields of that
-			// linked record
-			if (!isScalar(this._config, type)) {
-				// if the link points to a record then we just have to remove it to the one
-				const linkedRecord = rootRecord.linkedRecord(key)
-				let children = linkedRecord ? [linkedRecord] : rootRecord.flatLinkedList(key)
-
-				// if we still don't have anything to attach it to then there's no one to subscribe to
-				if (!children || !fields) {
-					continue
-				}
-
-				// remove the subscriber to every child
-				for (const child of children) {
-					// avoid null children
-					if (!child) {
-						continue
-					}
-					this.removeSubscribers(child, spec, fields, variables)
-				}
-			}
-		}
-	}
-
-	private _write({
-		rootID,
-		selection,
-		recordID,
-		data,
-		variables,
-		specs,
-		applyUpdates,
-	}: {
-		rootID: string // the ID that anchors any lists
 		selection: SubscriptionSelection
-		recordID: string // the ID of the record that we are updating in cache
-		data: { [key: string]: GraphQLValue } | GraphQLValue[]
-		variables: { [key: string]: GraphQLValue }
-		specs: SubscriptionSpec[]
-		applyUpdates: boolean
-	}) {
-		// the record we are storing information about this object
-		const record = this.record(recordID)
-
-		// look at ever field in the data
+		variables?: { [key: string]: GraphQLValue }
+		parent?: string
+		root?: string
+		layer: Layer
+		toNotify?: SubscriptionSpec[]
+		applyUpdates?: boolean
+	}): SubscriptionSpec[] {
+		// data is an object with fields that we need to write to the store
 		for (const [field, value] of Object.entries(data)) {
+			// grab the selection info we care about
 			if (!selection || !selection[field]) {
 				throw new Error(
 					'Could not find field listing in selection for ' +
@@ -424,25 +205,58 @@ export class Cache {
 				abstract: isAbstract,
 				update,
 			} = selection[field]
-			const key = this.evaluateKey(keyRaw, variables)
+			const key = evaluateKey(keyRaw, variables)
 
-			// make sure we found the type info
-			if (!linkedType) {
-				throw new Error('could not find the field information for ' + field)
+			// the current set of subscribers
+			const currentSubcribers = this.subscriptions.get(parent, key)
+
+			// look up the previous value
+			const { value: previousValue, displayLayers } = this.storage.get(parent, key)
+
+			// if the layer we are updating is the top most layer for the field
+			// then its value is "live", it is providing the current value and
+			// subscribers need to know if the value changed
+			const displayLayer = displayLayers.length === 0 || displayLayers.includes(layer.id)
+
+			// if we are writing to the display layer we need to refresh the lifetime of the value
+			if (displayLayer) {
+				this.lifetimes.resetLifetime(parent, key)
 			}
 
-			// if the value we are writing is null
-			if (value === null) {
-				// just treat it as a linked object
-				record.writeRecordLink(key, null)
+			// any non-scalar is defined as a field with no selection
+			if (!fields) {
+				// the value to write to the layer
+				let newValue = value
+
+				// if the value is an array, we might have to apply updates
+				if (Array.isArray(value) && applyUpdates && update) {
+					// if we have to prepend the new value on the old one
+					if (update === 'append') {
+						newValue = ((previousValue as any[]) || []).concat(value)
+					}
+					// we might have to prepend our value onto the old one
+					else if (update === 'prepend') {
+						newValue = value.concat(previousValue || [])
+					}
+				}
+
+				// if the value changed on a layer that impacts the current latest value
+				const valueChanged = JSON.stringify(newValue) !== JSON.stringify(previousValue)
+
+				if (valueChanged && displayLayer) {
+					// we need to add the fields' subscribers to the set of callbacks
+					// we need to invoke
+					toNotify.push(...currentSubcribers)
+				}
+
+				// write value to the layer
+				layer.writeField(parent, key, newValue)
 			}
+			// the field could point to a linked object
+			else if (value instanceof Object && !Array.isArray(value)) {
+				// the previous value is a string holding the id of the object to link to
 
-			// the subscribers we need to register if we updated something
-			const subscribers = record.getSubscribers(key)
-
-			// if the value is an object, we know it points to a linked record
-			if (value instanceof Object && !Array.isArray(value) && fields) {
-				// if we ran into an interface
+				// if we ran into an interface we need to look at the __typename field
 				if (isAbstract) {
 					// make sure we have a __typename field
 					if (!value.__typename) {
@@ -455,9 +269,6 @@ export class Cache {
 					linkedType = value.__typename as string
 				}
 
-				// look up the current known link id
-				const oldID = record.linkedRecordID(key)
-
 				// figure out if this is an embedded object or a linked one by looking for all of the fields marked as
 				// required to compute the entity's id
 				const embedded =
@@ -465,44 +276,62 @@ export class Cache {
 						(field) => typeof value[field] === 'undefined'
 					).length > 0
 
-				// figure out the id of the new linked record
-				const linkedID = !embedded ? this.id(linkedType, value) : `${recordID}.${key}`
+				// figure out the new target of the object link
+				let linkedID = null
+				if (value !== null) {
+					linkedID = !embedded ? this.id(linkedType, value) : `${parent}.${key}`
+				}
+				let linkChange = linkedID !== previousValue
 
-				// if we are now linked to a new object we need to record the new value
-				if (linkedID && oldID !== linkedID) {
-					// record the updated value
-					record.writeRecordLink(key, linkedID)
+				// write the link to the layer
+				layer.writeLink(parent, key, linkedID)
 
-					// if there was a record we replaced
-					if (oldID) {
-						// we need to remove any subscribers that we just added to the specs
-						this.record(oldID).forgetSubscribers(...subscribers)
+				// if the link target of this field changed and it was responsible for the current subscription
+				if (linkedID && displayLayer && linkChange) {
+					// if there was an old subscriber we are forgotten
+					if (previousValue && typeof previousValue === 'string') {
+						this.subscriptions.remove(
+							previousValue,
+							fields,
+							currentSubcribers,
+							variables
+						)
 					}
 
-					// add every subscriber to the list of specs to change
-					specs.push(...subscribers)
+					// we need to clear the subscriptions in the previous link
+					// and add them to the new link
+					toNotify.push(...currentSubcribers)
 				}
 
-				// only update the data if there is an id for the record
+				// if the link target points to another record in the cache we need to walk down its
+				// selection and update any values we run into
 				if (linkedID) {
-					// update the linked fields too
-					this._write({
-						rootID,
+					this.writeSelection({
+						root,
 						selection: fields,
-						recordID: linkedID,
+						parent: linkedID,
 						data: value,
 						variables,
-						specs,
+						toNotify,
 						applyUpdates,
+						layer,
 					})
 				}
 			}
+			// the field could point to a list of related objects
+			else if (
+				Array.isArray(value) &&
+				// make typescript happy
+				(typeof previousValue === 'undefined' || Array.isArray(previousValue))
+			) {
+				// make a shallow copy of the previous value we can  mutate
+				let oldIDs = [...(previousValue || [])] as (string | null)[]
 
-			// the value could be a list
-			else if (!isScalar(this._config, linkedType) && Array.isArray(value) && fields) {
-				// look up the current known link id
-				let oldIDs = [...(record.listLinks[this.evaluateKey(key, variables)] || [])]
-				// find the empty nodes before we update the cache
+				// this field could be a connection (a list of references to edge objects).
+				// inserts in this list might insert objects into the connection that
+				// have already been added as part of a list operation. if that happens
+				// we will need to filter out ids that refer to these fake-edges which
+				// can be idenfitied as not having a cursor or node value
 				const emptyEdges = !update
 					? []
 					: oldIDs.filter((id) => {
@@ -511,15 +340,14 @@ export class Cache {
 							}
 
 							// look up the edge record
-							const edge = this.record(id as string)
-
-							// if there is a cursor, keep it
-							if (edge.fields['cursor']) {
+							const { value: cursorField } = this.storage.get(id, 'cursor')
+							// if there is a value for the cursor, it needs to remain
+							if (cursorField) {
 								return false
 							}
 
-							// look up the linked node
-							const node = edge.linkedRecord('node')
+							// look up the node reference
+							const { value: node } = this.storage.get(id, 'node')
 							// if there one, keep the edge
 							if (!node) {
 								return false
@@ -543,24 +371,20 @@ export class Cache {
 				const { newIDs, nestedIDs } = this.extractNestedListIDs({
 					value,
 					abstract: Boolean(isAbstract),
-					specs,
+					specs: toNotify,
 					applyUpdates,
-					recordID,
+					recordID: parent,
 					key,
 					linkedType,
-					variables,
+					variables: variables,
 					fields,
+					layer,
 				})
 
 				// if we're supposed to apply this write as an update, we need to figure out how
 				if (applyUpdates && update) {
-					// it's possible that one of the ids in the field corresponds to an entry
-					// that was added as part of a mutation operation on this list.
-					// ideally we want to remove the old reference and leave the new one behind.
-					// In order to pull this off, we have to rely on the fact that a mutation operation
-					// doesn't leave a cursor behind. so we need to look at the old list of edges,
-					// track if there's a cursor value, get their node id, and remove any node ids
-					// that show up in the new list
+					// if we are updating the edges field, we might need to do a little more than just
+					// append/prepend to the field value. we might need to wrap the values in extra references
 					if (key === 'edges') {
 						// build up a list of the ids found in the new list
 						const newNodeIDs: string[] = []
@@ -570,12 +394,18 @@ export class Cache {
 							}
 
 							// look up the lined node record
-							const node = this.record(id).linkedRecord('node')
-							if (!node || !node.fields.__typename) {
+							const { value: node } = this.storage.get(id, 'node')
+							// node should be a reference
+							if (typeof node !== 'string') {
 								continue
 							}
 
-							newNodeIDs.push(node.id)
+							// if we dont have type information or a valid reference
+							if (!node || !this.storage.get(node, '__typename')) {
+								continue
+							}
+
+							newNodeIDs.push(node)
 						}
 
 						// only save a previous ID if the id shows up in the new list and was previously empty,
@@ -583,7 +413,6 @@ export class Cache {
 							(id) => !(newIDs.includes(id as string) && emptyEdges.includes(id))
 						)
 					}
-
 					// if we have to prepend it, do so
 					if (update === 'prepend') {
 						linkedIDs = newIDs.concat(oldIDs as (string | null)[])
@@ -612,58 +441,26 @@ export class Cache {
 				let oldSubscribers: { [key: string]: Set<SubscriptionSpec> } = {}
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
-				for (const subscriber of subscribers) {
+				for (const subscriber of currentSubcribers) {
 					// if either are true, add the subscriber to the list
 					if (contentChanged) {
-						specs.push(subscriber)
+						toNotify.push(subscriber)
 					}
 				}
 
-				// remove any subscribers we don't care about
-				for (const lostID of oldIDs.filter(
-					(id) => id !== null && !linkedIDs.includes(id)
-				)) {
-					const id = lostID as string
-					for (const sub of subscribers) {
-						if (!oldSubscribers[id]) {
-							oldSubscribers[id] = new Set()
-						}
-						oldSubscribers[id].add(sub)
+				// any ids that don't show up in the new list need to have their subscribers wiped
+				for (const lostID of oldIDs) {
+					if (linkedIDs.includes(lostID) || !lostID) {
+						continue
 					}
-				}
 
-				for (const [id, subscribers] of Object.entries(oldSubscribers)) {
-					this.record(id).forgetSubscribers(...subscribers)
+					this.subscriptions.remove(lostID, fields, currentSubcribers, variables)
 				}
 
 				// if there was a change in the list
 				if (contentChanged || (oldIDs.length === 0 && newIDs.length === 0)) {
 					// update the cached value
-					record.writeListLink(key, linkedIDs)
-				}
-			}
-
-			// the value is neither an object or a list so its a scalar
-			else {
-				// if the value is different
-				if (JSON.stringify(value) !== JSON.stringify(record.getField(key))) {
-					let newValue = value
-					// if the value is an array, we might have to apply updates
-					if (Array.isArray(value) && applyUpdates && update) {
-						// if we have to prepend the new value on the old one
-						if (update === 'append') {
-							newValue = ((record.getField(key) as any[]) || []).concat(value)
-						}
-						// we might have to prepend our value onto the old one
-						else if (update === 'prepend') {
-							newValue = value.concat(record.getField(key) || [])
-						}
-					}
-					// update the cached value
-					record.writeField(key, newValue)
-
-					// add every subscriber to the list of specs to change
-					specs.push(...subscribers)
+					layer.writeField(parent, key, linkedIDs)
 				}
 			}
 
@@ -695,7 +492,8 @@ export class Cache {
 						fields &&
 						operation.list
 					) {
-						this.list(operation.list, parentID)
+						this.cache
+							.list(operation.list, parentID)
 							.when(operation.when)
 							.addToList(fields, target, variables, operation.position || 'last')
 					}
@@ -707,7 +505,8 @@ export class Cache {
 						fields &&
 						operation.list
 					) {
-						this.list(operation.list, parentID)
+						this.cache
+							.list(operation.list, parentID)
 							.when(operation.when)
 							.remove(target, variables)
 					}
@@ -722,20 +521,120 @@ export class Cache {
 						if (!targetID) {
 							continue
 						}
-						this.delete(operation.type, targetID, variables)
+						this.cache.delete(targetID)
 					}
 				}
 			}
 		}
+
+		// return the list of subscribers that need to be updated because of this change
+		return toNotify
 	}
 
-	private hydrateNestedList({
+	// reconstruct an object defined by its selection
+	getSelection({
+		selection,
+		parent = rootID,
+		variables,
+	}: {
+		selection: SubscriptionSelection
+		parent?: string
+		variables?: {}
+	}): GraphQLObject | null {
+		// we could be asking for values of null
+		if (parent === null) {
+			return null
+		}
+
+		const target = {} as GraphQLObject
+
+		// look at every field in the parentFields
+		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
+			const key = evaluateKey(keyRaw, variables)
+
+			// look up the value in our store
+			const { value } = this.storage.get(parent, key)
+
+			// if the value is null
+			if (value === null) {
+				target[attributeName] = null
+				continue
+			}
+
+			// if the field is a scalar
+			if (!fields) {
+				// is the type a custom scalar with a specified unmarshal function
+				if (this.config.scalars?.[type]?.unmarshal) {
+					// pass the primitive value to the unmarshal function
+					target[attributeName] = this.config.scalars[type].unmarshal(
+						value
+					) as GraphQLValue
+				}
+				// the field does not have an unmarshal function
+				else {
+					target[attributeName] = value
+				}
+
+				// we're done
+				continue
+			}
+			// if the field is a list of records
+			else if (Array.isArray(value)) {
+				// the linked list could be a deeply nested thing, we need to call getData for each record
+				target[attributeName] = this.hydrateNestedList({
+					fields,
+					variables,
+					linkedList: value as LinkedList,
+				})
+			}
+			// otherwise the field is an object
+			else {
+				// if we dont have a value, use null
+				target[attributeName] = !value
+					? null
+					: this.getSelection({
+							parent: value as string,
+							selection: fields,
+							variables,
+					  })
+				continue
+			}
+		}
+
+		return target
+	}
+
+	// returns the global id of the specified field (used to access the record in the cache)
+	id(type: string, data: { id?: string } | null): string | null
+	// this is like id but it trusts the value used for the id and just joins it with the
+	// type to form the global id
+	id(type: string, id: string): string | null
+	id(type: string, data: any): string | null {
+		// try to compute the id of the record
+		const id = typeof data === 'string' ? data : this.computeID(type, data)
+		if (!id) {
+			return null
+		}
+
+		return type + ':' + id
+	}
+
+	// the list of fields that we need in order to compute an objects id
+	idFields(type: string): string[] {
+		return ['id']
+	}
+
+	computeID(type: string, data: { [key: string]: GraphQLValue }) {
+		return data.id
+	}
+
+	hydrateNestedList({
 		fields,
 		variables,
 		linkedList,
 	}: {
 		fields: SubscriptionSelection
-		variables: {}
+		variables?: {}
 		linkedList: LinkedList
 	}): LinkedList<GraphQLValue> {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
@@ -753,11 +652,11 @@ export class Cache {
 			}
 
 			// look up the data for the record
-			return this.getData(this.record(entry), fields, variables)
+			return this.getSelection({ parent: entry, selection: fields, variables })
 		})
 	}
 
-	private extractNestedListIDs({
+	extractNestedListIDs({
 		value,
 		abstract,
 		recordID,
@@ -767,6 +666,7 @@ export class Cache {
 		variables,
 		applyUpdates,
 		specs,
+		layer,
 	}: {
 		value: GraphQLValue[]
 		recordID: string
@@ -777,6 +677,7 @@ export class Cache {
 		specs: SubscriptionSpec[]
 		applyUpdates: boolean
 		fields: SubscriptionSelection
+		layer: Layer
 	}): { nestedIDs: LinkedList; newIDs: (string | null)[] } {
 		// build up the two lists
 		const nestedIDs: LinkedList = []
@@ -798,6 +699,7 @@ export class Cache {
 					variables,
 					applyUpdates,
 					specs,
+					layer,
 				})
 
 				// add the list of new ids to our list
@@ -872,14 +774,15 @@ export class Cache {
 			}
 
 			// update the linked fields too
-			this._write({
-				rootID,
+			this.writeSelection({
+				root: rootID,
 				selection: fields,
-				recordID: linkedID,
+				parent: linkedID,
 				data: entryObj,
 				variables,
-				specs,
+				toNotify: specs,
 				applyUpdates,
+				layer,
 			})
 
 			newIDs.push(linkedID)
@@ -889,158 +792,7 @@ export class Cache {
 		return { newIDs, nestedIDs }
 	}
 
-	// look up the information for a specific record
-	private getRecord(id: string | null): Maybe<Record> {
-		if (id === null) {
-			return null
-		}
-		if (!id) {
-			return
-		}
-
-		return this._data.get(id) || undefined
-	}
-
-	private notifySubscribers(specs: SubscriptionSpec[], variables: {} = {}) {
-		for (const spec of specs) {
-			// find the root record
-			let rootRecord = spec.parentID ? this.getRecord(spec.parentID) : this.root()
-			if (!rootRecord) {
-				throw new Error('Could not find root of subscription')
-			}
-
-			// trigger the update
-			spec.set(this.getData(rootRecord, spec.selection, spec.variables?.()))
-		}
-	}
-
-	private insertSubscribers(
-		record: Record,
-		selection: SubscriptionSelection,
-		variables: {},
-		...subscribers: SubscriptionSpec[]
-	) {
-		// look at every field in the selection and add the subscribers
-		for (const { keyRaw, fields } of Object.values(selection)) {
-			const key = this.evaluateKey(keyRaw, variables)
-
-			// add the subscriber to the
-			record.addSubscriber(keyRaw, key, ...subscribers)
-
-			// if there are fields under this
-			if (fields) {
-				const linkedRecord = record.linkedRecord(key)
-				// figure out who else needs subscribers
-				const children = linkedRecord ? [linkedRecord] : record.flatLinkedList(key)
-				for (const linkedRecord of children) {
-					// avoid null records
-					if (!linkedRecord) {
-						continue
-					}
-
-					// insert the subscriber
-					this.insertSubscribers(linkedRecord, fields, variables, ...subscribers)
-				}
-			}
-		}
-	}
-
-	private unsubscribeSelection(
-		record: Record,
-		selection: SubscriptionSelection,
-		variables: {},
-		...subscribers: SubscriptionSpec['set'][]
-	) {
-		// look at every field in the selection and add the subscribers
-		for (const { keyRaw, fields } of Object.values(selection)) {
-			const key = this.evaluateKey(keyRaw, variables)
-			// add the subscriber to the
-			record.removeSubscribers([key], subscribers)
-
-			// if there are fields under this
-			if (fields) {
-				// figure out who else needs subscribers
-				const children =
-					record.flatLinkedList(key).length > 0
-						? record.flatLinkedList(key)
-						: [record.linkedRecord(key)]
-
-				for (const linkedRecord of children) {
-					// avoid null records
-					if (!linkedRecord) {
-						continue
-					}
-
-					this.unsubscribeSelection(linkedRecord, fields, variables, ...subscribers)
-				}
-			}
-		}
-	}
-
-	private evaluateKey(key: string, variables: { [key: string]: GraphQLValue } = {}): string {
-		// accumulate the evaluated key
-		let evaluated = ''
-		// accumulate a variable name that we're evaluating
-		let varName = ''
-		// some state to track if we are "in" a string
-		let inString = false
-
-		for (const char of key) {
-			// if we are building up a variable
-			if (varName) {
-				// if we are looking at a valid variable character
-				if (varChars.includes(char)) {
-					// add it to the variable name
-					varName += char
-					continue
-				}
-				// we are at the end of a variable name so we
-				// need to clean up and add before continuing with the string
-
-				// look up the variable and add the result (varName starts with a $)
-				const value = variables[varName.slice(1)]
-
-				evaluated += typeof value !== 'undefined' ? JSON.stringify(value) : 'undefined'
-
-				// clear the variable name accumulator
-				varName = ''
-			}
-
-			// if we are looking at the start of a variable
-			if (char === '$' && !inString) {
-				// start the accumulator
-				varName = '$'
-
-				// move along
-				continue
-			}
-
-			// if we found a quote, invert the string state
-			if (char === '"') {
-				inString = !inString
-			}
-
-			// this isn't a special case, just add the letter to the value
-			evaluated += char
-		}
-
-		return evaluated
-	}
-
-	clear() {
-		this._data = new Map()
-		this._lists = new Map()
-	}
-
-	disable() {
-		this._disabled = true
-	}
-
-	private deleteID(id: string): boolean {
-		return this._data.delete(id)
-	}
-
-	private isDataAvailable(
+	isDataAvailable(
 		target: SubscriptionSelection,
 		variables: {},
 		parentID: string = rootID
@@ -1050,17 +802,15 @@ export class Cache {
 			return false
 		}
 
-		// look up the parent
-		const record = this.record(parentID)
-
 		// every field in the selection needs to be present
 		for (const selection of Object.values(target)) {
-			const fieldName = this.evaluateKey(selection.keyRaw, variables)
+			const fieldName = evaluateKey(selection.keyRaw, variables)
 
-			// a single field could show up in the 3 places: as a field, a linked record, or a linked list
+			// look up the field value
+			const { value, kind } = this.storage.get(parentID, fieldName)
 
-			// if the field has a value, we're good
-			if (typeof record.getField(fieldName) !== 'undefined') {
+			// if the field is a scalar and has a value, we're good (no need to check a subselection)
+			if (kind === 'scalar' && typeof value !== 'undefined') {
 				continue
 			}
 			// if the field has no value and there are no subselections and we dont have a value, we are missing data
@@ -1068,37 +818,35 @@ export class Cache {
 				return false
 			}
 
-			// if we have a null linked record
-			const linked = record.linkedRecordID(fieldName)
-			if (typeof linked !== 'undefined') {
+			// the link could be an object
+			else if (!Array.isArray(value)) {
 				// if we have a null value we're good
-				if (linked === null) {
+				if (value === null) {
 					continue
 				}
 
 				// if we have a valid id, walk down
-				if (!this.isDataAvailable(selection.fields!, variables, linked)) {
+				if (!this.isDataAvailable(selection.fields!, variables, value as string)) {
 					return false
 				}
 			}
-			// look up the linked list
-			const hasListLinks = record.listLinks[fieldName]
-			if (hasListLinks) {
+			// the link is a list
+			else {
 				// we need to look at every linked record
-				for (const linkedRecord of record.flatLinkedList(fieldName)) {
+				for (const linkedRecord of flattenList(value as LinkedList)) {
 					if (!linkedRecord) {
 						continue
 					}
 
 					// if the linked record doesn't have the field then we are missing data
-					if (!this.isDataAvailable(selection.fields!, variables, linkedRecord.id)) {
+					if (!this.isDataAvailable(selection.fields!, variables, linkedRecord)) {
 						return false
 					}
 				}
 			}
 
 			// if we dont have a linked record or linked list, we dont have the data
-			if (typeof linked === 'undefined' && typeof hasListLinks === 'undefined') {
+			if (typeof value === 'undefined') {
 				return false
 			}
 		}
@@ -1108,33 +856,17 @@ export class Cache {
 	}
 
 	collectGarbage() {
-		// visit every field of every record we know about, and if there are no
-		// active subscribers decrement their reference count
-		for (const id of this._data.keys()) {
-			this.record(id).onGcTick()
+		// increment the lifetimes of unused data
+		this.lifetimes.tick()
+
+		// if there is only one layer in the cache, clean up the data
+		if (this.storage.layerCount === 1) {
+			this.storage.topLayer.applyDeletes()
 		}
 	}
 }
 
-// the list of characters that make up a valid graphql variable name
-const varChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789'
-
-// in order to keep some methods on the class out of the public API we'll wrap some of the low-level or heavily caveated
-// functions in a "proxy"
-export type CacheProxy = {
-	record: Cache['record']
-	notifySubscribers: Cache['notifySubscribers']
-	unsubscribeSelection: Cache['unsubscribeSelection']
-	insertSubscribers: Cache['insertSubscribers']
-	evaluateKey: Cache['evaluateKey']
-	getRecord: Cache['getRecord']
-	getData: Cache['getData']
-	deleteID: Cache['deleteID']
-	computeID: Cache['computeID']
-	isDataAvailable: Cache['isDataAvailable']
-}
-
-// id that we should use to refer to things in root
+// fields on the root of the data store are keyed with a fixed id
 export const rootID = '_ROOT_'
 
 export type LinkedList<_Result = string> = (_Result | null | LinkedList<_Result>)[]

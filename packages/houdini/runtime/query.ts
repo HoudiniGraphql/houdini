@@ -284,15 +284,14 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 				CachePolicy.CacheOnly,
 				CachePolicy.CacheAndNetwork,
 			].includes(artifact.policy!) &&
-			cache.internal.isDataAvailable(artifact.selection, variables)
+			cache._internal_unstable.isDataAvailable(artifact.selection, variables)
 		) {
 			writeData(
 				{
-					data: cache.internal.getData(
-						cache.internal.record(rootID),
-						artifact.selection,
-						variables
-					)! as _Data,
+					data: cache.read({
+						selection: artifact.selection,
+						variables,
+					})! as _Data,
 					errors: [],
 				},
 				variables
