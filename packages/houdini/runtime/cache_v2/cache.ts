@@ -115,6 +115,9 @@ export class Cache {
 		// walk down
 		this._internal_unstable.subscriptions.removeAllSubscribers(id)
 
+		// make sure we remove the id from any lists that it appears in
+		this._internal_unstable.lists.removeIDFromAllLists(id)
+
 		// delete the record from the store
 		this._internal_unstable.storage.delete(id)
 	}

@@ -35,6 +35,14 @@ export class ListManager {
 		// set the list reference
 		this.lists.get(list.name)?.set(list.parentID || rootID, new List(list))
 	}
+
+	removeIDFromAllLists(id: string) {
+		for (const fieldMap of this.lists.values()) {
+			for (const list of fieldMap.values()) {
+				list.removeID(id)
+			}
+		}
+	}
 }
 
 export class List {
@@ -231,15 +239,11 @@ export class List {
 				const edgeID = edge as string
 
 				// look at the edge's node
-				const { value: node } = this.cache._internal_unstable.storage.get(edgeID, 'node')
-				if (!node) {
+				const { value: nodeID } = this.cache._internal_unstable.storage.get(edgeID, 'node')
+				if (!nodeID) {
 					continue
 				}
 
-				const { value: nodeID } = this.cache._internal_unstable.storage.get(
-					node as string,
-					'id'
-				)
 				// if we found the node
 				if (nodeID === id) {
 					targetID = edgeID
@@ -249,13 +253,21 @@ export class List {
 			targetKey = 'edges'
 		}
 
+		// if the id is not contained in the list, dont notify anyone
+		const value = this.cache._internal_unstable.storage.get(parentID, targetKey)
+			.value as LinkedList
+		if (!value.includes(targetID)) {
+			return
+		}
+
 		// get the list of specs that are subscribing to the list
 		const subscribers = this.cache._internal_unstable.subscriptions.get(this.recordID, this.key)
 
 		// disconnect record from any subscriptions associated with the list
 		this.cache._internal_unstable.subscriptions.remove(
 			targetID,
-			// if we're unsubscribing from a connection, only unsubscribe from the target
+			// if we are unsubscribing from a connection, the fields we care about
+			// are tucked away under edges
 			this.connection ? this.selection.edges.fields! : this.selection,
 			subscribers,
 			variables
