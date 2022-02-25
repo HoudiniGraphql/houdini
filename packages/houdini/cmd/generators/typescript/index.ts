@@ -151,7 +151,12 @@ async function generateOperationTypeDefs(
 					readonlyProperty(
 						AST.tsPropertySignature(
 							AST.stringLiteral('result'),
-							AST.tsTypeAnnotation(AST.tsTypeReference(AST.identifier(shapeTypeName)))
+							AST.tsTypeAnnotation(
+								AST.tsUnionType([
+									AST.tsTypeReference(AST.identifier(shapeTypeName)),
+									AST.tsUndefinedKeyword(),
+								])
+							)
 						)
 					),
 				])
