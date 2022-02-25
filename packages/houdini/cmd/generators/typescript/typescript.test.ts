@@ -251,7 +251,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": null,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -285,7 +285,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": null,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -316,7 +316,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": Query$input,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -375,7 +375,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Mutation = {
 		    readonly "input": Mutation$input,
-		    readonly "result": Mutation$result
+		    readonly "result": Mutation$result | undefined
 		};
 
 		export type Mutation$result = {
@@ -436,7 +436,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": Query$input,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -514,7 +514,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": null,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -558,7 +558,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": null,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -604,7 +604,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": null,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -651,7 +651,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": null,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -702,7 +702,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": null,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -764,7 +764,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": null,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -822,7 +822,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": Query$input,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -864,7 +864,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": null,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
@@ -904,7 +904,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Query = {
 		    readonly "input": null,
-		    readonly "result": Query$result
+		    readonly "result": Query$result | undefined
 		};
 
 		export type Query$result = {
