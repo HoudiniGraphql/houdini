@@ -184,7 +184,12 @@ module.exports.resolvers = {
 				createdAt: new Date(),
 			}
 			id++
-			items.unshift(item)
+
+			// add the item to the end of the list even though the UI adds it to the top
+			// in order to simulate filling in an item in a connection that was
+			// added as part of a mutation operation but later found in the same list
+			// while paginating
+			items.push(item)
 
 			// notify any subscribers
 			pubsub.publish('NEW_ITEM', { newItem: { item } })
