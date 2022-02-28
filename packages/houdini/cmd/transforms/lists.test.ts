@@ -438,6 +438,19 @@ test('list flags connections', async function () {
 		        }
 		      }
 		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		        id
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
 		  }
 		}
 
