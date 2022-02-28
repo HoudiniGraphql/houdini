@@ -292,6 +292,62 @@ test('includes `id` in list fragment', async function () {
 	`)
 })
 
+test('connections marked with list directive get cursor information', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+			fragment AllUsers  on User{
+				friendsByCursor @list(name:"User_Friends") {
+					edges { 
+						node { 
+							id
+							firstName
+							friends { 
+								id
+							}
+						}
+					}
+				}
+			}
+		`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		fragment AllUsers on User {
+		  friendsByCursor @list(name: "User_Friends", connection: true) {
+		    edges {
+		      node {
+		        id
+		        firstName
+		        friends {
+		          id
+		        }
+		      }
+		    }
+		    edges {
+		      cursor
+		      node {
+		        __typename
+		        id
+		      }
+		    }
+		    pageInfo {
+		      hasPreviousPage
+		      hasNextPage
+		      startCursor
+		      endCursor
+		    }
+		  }
+		}
+
+	`)
+})
+
 test('includes node selection on connection', async function () {
 	const docs = [
 		mockCollectedDoc(
