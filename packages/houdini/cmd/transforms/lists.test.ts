@@ -333,7 +333,6 @@ test('connections marked with list directive get cursor information', async func
 		      cursor
 		      node {
 		        __typename
-		        id
 		      }
 		    }
 		    pageInfo {
@@ -442,7 +441,6 @@ test('list flags connections', async function () {
 		      cursor
 		      node {
 		        __typename
-		        id
 		      }
 		    }
 		    pageInfo {
