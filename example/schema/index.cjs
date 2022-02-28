@@ -108,7 +108,6 @@ module.exports.resolvers = {
 			if (after) {
 				while (targetItems.length > 0 && (!head || head.id !== after)) {
 					head = targetItems.shift()
-					console.log(head)
 					skipped++
 				}
 			}
