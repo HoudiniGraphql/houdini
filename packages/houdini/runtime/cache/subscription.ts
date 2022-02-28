@@ -202,8 +202,7 @@ export class InMemorySubscriptions {
 
 			// if this field is marked as a list remove it from the cache
 			if (selection.list) {
-				// TODO: no parent?!
-				this.cache._internal_unstable.lists.remove(selection.list.name)
+				this.cache._internal_unstable.lists.remove(selection.list.name, id)
 			}
 
 			// if there is no subselection it doesn't point to a link, move on
@@ -237,7 +236,7 @@ export class InMemorySubscriptions {
 
 		for (const spec of specs) {
 			// if we dont know this field/set combo, there's nothing to do (probably a bug somewhere)
-			if (!this.referenceCounts[id][fieldName]?.has(spec.set)) {
+			if (!this.referenceCounts[id]?.[fieldName]?.has(spec.set)) {
 				continue
 			}
 			const counts = this.referenceCounts[id][fieldName]

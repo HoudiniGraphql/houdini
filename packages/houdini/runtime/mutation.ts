@@ -49,7 +49,7 @@ export function mutation<_Mutation extends Operation<any, any>>(
 			cache.write({
 				selection: artifact.selection,
 				data: result.data,
-				variables: queryVariables(),
+				variables,
 			})
 
 			// unmarshal any scalars on the body
