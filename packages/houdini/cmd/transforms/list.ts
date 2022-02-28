@@ -5,6 +5,7 @@ import * as graphql from 'graphql'
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 import { TypeWrapper, unwrapType } from '../utils'
 import { ArtifactKind } from '../../runtime/types'
+import { pageInfoSelection } from './paginate'
 
 // addListFragments adds fragments for the fields tagged with @list
 export default async function addListFragments(
@@ -119,6 +120,47 @@ export default async function addListFragments(
 								} as graphql.ArgumentNode,
 							],
 						}
+					}
+				}
+			},
+			Field(node, key, parent, path, ancestors) {
+				// if the is marked with @list and is a connection, we need to make sure that we ask for
+				// the cursor fields
+				if (
+					!node.directives?.find(
+						(directive) => directive.name.value === config.listDirective
+					)
+				) {
+					return
+				}
+
+				// the field is a list, is it a connection?
+
+				// look up the parent's type
+				const parentType = parentTypeFromAncestors(config.schema, ancestors)
+				// a non-connection list can just use the selection set of the tagged field
+				// but if this is a connection tagged with list we need to use the selection
+				// of the edges.node field
+				const targetField = node
+				const targetFieldDefinition = parentType.getFields()[
+					targetField.name.value
+				] as graphql.GraphQLField<any, any>
+
+				const { connection } = connectionSelection(
+					config,
+					targetFieldDefinition,
+					parentTypeFromAncestors(config.schema, ancestors) as graphql.GraphQLObjectType,
+					node.selectionSet
+				)
+
+				// if the field is a connection, add the cursor
+				if (connection) {
+					return {
+						...node,
+						selectionSet: {
+							...node.selectionSet,
+							selections: [...node.selectionSet!.selections, ...pageInfoSelection],
+						},
 					}
 				}
 			},

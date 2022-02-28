@@ -156,7 +156,7 @@ module.exports.resolvers = {
 				createdAt: new Date(),
 			}
 			id++
-			items.unshift(item)
+			items.push(item)
 
 			// notify any subscribers
 			pubsub.publish('NEW_ITEM', { newItem: { item } })

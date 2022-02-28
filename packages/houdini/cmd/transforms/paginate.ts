@@ -593,7 +593,7 @@ function objectNode([type, defaultValue]: [
 	return node
 }
 
-const pageInfoSelection = [
+export const pageInfoSelection = [
 	{
 		kind: 'Field',
 		name: {
