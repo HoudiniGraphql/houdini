@@ -1,18 +1,24 @@
 // local imports
 import { SubscriptionSelection, ListWhen, SubscriptionSpec, RefetchUpdateMode } from '../types'
-import { Cache, rootID, LinkedList } from './cache'
+import type { Cache, LinkedList } from './cache'
 import { flattenList } from './stuff'
 
 export class ListManager {
+	rootID: string
+
+	constructor(rootID: string) {
+		this.rootID = rootID
+	}
+
 	// associate list names with the handler that wraps the list
 	private lists: Map<string, Map<string, List>> = new Map()
 
-	get(listName: string, id: string = rootID) {
-		return this.lists.get(listName)?.get(id)
+	get(listName: string, id?: string) {
+		return this.lists.get(listName)?.get(id || this.rootID)
 	}
 
-	remove(listName: string, id: string = rootID) {
-		this.lists.get(listName)?.delete(id)
+	remove(listName: string, id: string) {
+		this.lists.get(listName)?.delete(id || this.rootID)
 	}
 
 	set(list: {
@@ -33,7 +39,9 @@ export class ListManager {
 		}
 
 		// set the list reference
-		this.lists.get(list.name)?.set(list.parentID || rootID, new List(list))
+		this.lists
+			.get(list.name)
+			?.set(list.parentID || this.rootID, new List({ ...list, manager: this }))
 	}
 
 	removeIDFromAllLists(id: string) {
@@ -56,6 +64,7 @@ export class List {
 	readonly name: string
 	readonly parentID: SubscriptionSpec['parentID']
 	private connection: boolean
+	private manager: ListManager
 
 	constructor({
 		name,
@@ -68,7 +77,8 @@ export class List {
 		filters,
 		parentID,
 		connection,
-	}: Parameters<ListManager['set']>[0]) {
+		manager,
+	}: Parameters<ListManager['set']>[0] & { manager: ListManager }) {
 		this.recordID = recordID
 		this.key = key
 		this.listType = listType
@@ -79,6 +89,7 @@ export class List {
 		this.name = name
 		this.parentID = parentID
 		this.connection = connection
+		this.manager = manager
 	}
 
 	// when applies a when condition to a new list pointing to the same spot
@@ -94,6 +105,7 @@ export class List {
 			parentID: this.parentID,
 			name: this.name,
 			connection: this.connection,
+			manager: this.manager,
 		})
 	}
 
@@ -281,7 +293,7 @@ export class List {
 			// trigger the update
 			spec.set(
 				this.cache._internal_unstable.getSelection({
-					parent: spec.parentID || rootID,
+					parent: spec.parentID || this.manager.rootID,
 					selection: spec.selection,
 					variables: spec.variables?.() || {},
 				})

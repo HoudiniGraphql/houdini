@@ -404,7 +404,7 @@ test('list flags connections', async function () {
 	const docs = [
 		mockCollectedDoc(
 			`
-			fragment AllUsers  on User{
+			fragment AllUsers on User {
 				friendsByCursor @list(name:"User_Friends") {
 					edges { 
 						node { 
