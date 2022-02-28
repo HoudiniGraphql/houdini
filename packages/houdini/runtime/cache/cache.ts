@@ -19,7 +19,7 @@ export class Cache {
 			config,
 			storage: new InMemoryStorage(),
 			subscriptions: new InMemorySubscriptions(this),
-			lists: new ListManager(),
+			lists: new ListManager(rootID),
 			lifetimes: new GarbageCollector(this, config.cacheBufferSize),
 		})
 	}
@@ -339,27 +339,27 @@ class CacheInternal {
 				// can be idenfitied as not having a cursor or node value
 				const emptyEdges = !update
 					? []
-					: oldIDs.filter((id) => {
+					: oldIDs.map((id) => {
 							if (!id) {
-								return false
+								return ''
 							}
 
 							// look up the edge record
 							const { value: cursorField } = this.storage.get(id, 'cursor')
 							// if there is a value for the cursor, it needs to remain
 							if (cursorField) {
-								return false
+								return ''
 							}
 
 							// look up the node reference
 							const { value: node } = this.storage.get(id, 'node')
 							// if there one, keep the edge
 							if (!node) {
-								return false
+								return ''
 							}
 
 							// there is no cursor
-							return true
+							return node
 					  })
 
 				// if we are supposed to prepend or append and the mutation is enabled
@@ -414,10 +414,25 @@ class CacheInternal {
 						}
 
 						// only save a previous ID if the id shows up in the new list and was previously empty,
-						oldIDs = oldIDs.filter(
-							(id) => !(newIDs.includes(id as string) && emptyEdges.includes(id))
-						)
+						oldIDs = oldIDs.filter((id) => {
+							if (!id) {
+								return true
+							}
+
+							// look up the node reference
+							const { value } = this.storage.get(id, 'node')
+							const node = value as string
+
+							// if the id is being adding and is part of the empty edges, don't include it
+							if (newNodeIDs.includes(node) && emptyEdges.includes(node)) {
+								return false
+							}
+
+							// the id is not being replaced by a "real" version
+							return true
+						})
 					}
+
 					// if we have to prepend it, do so
 					if (update === 'prepend') {
 						linkedIDs = newIDs.concat(oldIDs as (string | null)[])
