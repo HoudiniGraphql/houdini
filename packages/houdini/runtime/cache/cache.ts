@@ -436,8 +436,6 @@ class CacheInternal {
 					linkedIDs = nestedIDs
 				}
 
-				console.log(linkedIDs)
-
 				// we have to notify the subscribers if a few things happen:
 				// either the data changed (ie we got new content for the same list)
 				// or we got content for a new list which could already be known. If we just look at
