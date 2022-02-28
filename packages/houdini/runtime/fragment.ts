@@ -24,7 +24,7 @@ export function fragment<_Fragment extends Fragment<any>>(
 	const queryVariables = getVariables()
 
 	// @ts-ignore: isn't properly typed yet to know if initialValue has the right values
-	const parentID = cache.id(artifact.rootType, initialValue)
+	const parentID = cache._internal_unstable.id(artifact.rootType, initialValue)
 
 	// a fragment has to subscribe individually because svelte can't detect that a prop has changed
 	// if there is an object passed
