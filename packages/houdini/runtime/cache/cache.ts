@@ -183,6 +183,11 @@ class CacheInternal {
 		toNotify?: SubscriptionSpec[]
 		applyUpdates?: boolean
 	}): SubscriptionSpec[] {
+		// if the cache is disabled, dont do anything
+		if (this._disabled) {
+			return []
+		}
+
 		// data is an object with fields that we need to write to the store
 		for (const [field, value] of Object.entries(data)) {
 			// grab the selection info we care about
@@ -428,7 +433,7 @@ class CacheInternal {
 				}
 				// we're not supposed to apply this write as an update, just use the new value
 				else {
-					linkedIDs = nestedIDs as (string | null | (string | null)[])[]
+					linkedIDs = nestedIDs
 				}
 
 				// we have to notify the subscribers if a few things happen:
@@ -437,8 +442,6 @@ class CacheInternal {
 				// wether the IDs are the same, situations where we have old data that
 				// is still valid would not be triggered
 				const contentChanged = JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)
-
-				let oldSubscribers: { [key: string]: Set<SubscriptionSpec> } = {}
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				for (const subscriber of currentSubcribers) {
@@ -624,8 +627,8 @@ class CacheInternal {
 		return ['id']
 	}
 
-	computeID(type: string, data: { [key: string]: GraphQLValue }) {
-		return data.id
+	computeID(type: string, data: { [key: string]: GraphQLValue }): string | undefined {
+		return data.id as string
 	}
 
 	hydrateNestedList({
