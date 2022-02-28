@@ -92,15 +92,44 @@ id = items.length
 
 module.exports.resolvers = {
 	Query: {
-		items: (_, { completed, ...args } = {}) => {
+		items: (_, { completed, after, first } = {}) => {
+			// apply the filter
 			const filtered = items.filter((item) =>
 				typeof completed === 'boolean'
 					? Boolean(item.completed) === Boolean(completed)
 					: true
 			)
 
-			const connection = connectionFromArray(filtered, args)
-			connection.totalCount = items.length
+			let targetItems = [...filtered]
+
+			// if we have an after to apply, do it
+			let skipped = 0
+			let head = null
+			if (after) {
+				while (targetItems.length > 0 && (!head || head.id !== after)) {
+					head = targetItems.shift()
+					console.log(head)
+					skipped++
+				}
+			}
+
+			// if we have a first to apply
+			if (typeof first !== 'undefined') {
+				targetItems = targetItems.slice(0, first)
+			}
+
+			const connection = {
+				pageInfo: {
+					startCursor: targetItems[0]?.id,
+					endCursor: targetItems[targetItems.length - 1]?.id,
+					hasNextPage: targetItems.length + skipped < filtered.length,
+					hasPreviousPage: skipped > 0,
+				},
+				edges: targetItems.map((item) => ({
+					cursor: item.id,
+					node: item,
+				})),
+			}
 
 			return connection
 		},
@@ -156,7 +185,7 @@ module.exports.resolvers = {
 				createdAt: new Date(),
 			}
 			id++
-			items.push(item)
+			items.unshift(item)
 
 			// notify any subscribers
 			pubsub.publish('NEW_ITEM', { newItem: { item } })
