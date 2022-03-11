@@ -37,10 +37,6 @@
 		"graphql": "15.5.0",
 		"houdini": "^0.12.4",
 		"houdini-common": "^0.12.1",
-=======
-		"houdini": "^0.12.0-alpha.0",
-		"houdini-common": "^0.11.1",
->>>>>>> v0.12.0-alpha.0
 		"mkdirp": "^1.0.4",
 		"prettier": "*",
 		"prettier-plugin-svelte": "^2.1.1",
