@@ -20,6 +20,11 @@ export default async function fragmentProcessor(
 	if (!doc.instance) {
 		return
 	}
+
+	let proxyIdentifier:
+		| [recast.types.namedTypes.Identifier, recast.types.namedTypes.Identifier]
+		| null = null
+
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
 		// with only one definition defining a fragment
@@ -31,15 +36,26 @@ export default async function fragmentProcessor(
 			)
 		},
 		// if we found a tag we want to replace it with an object that the runtime can use
-		async onTag({ artifact, node, tagContent }) {
+		async onTag({ artifact, node, tagContent, parent }) {
+			// make sure that we have imported the document proxy constructor
+			ensureImports(config, doc.instance!.content.body, ['HoudiniDocumentProxy'])
+
 			// the local identifier for the artifact
 			const artifactVariable = artifactIdentifier(artifact)
 
-			// replace the node with an object
+			// instantiate a proxy we can use to update this fragment
+			proxyIdentifier = [
+				AST.identifier(artifact.name + 'Proxy'),
+				(parent as recast.types.namedTypes.CallExpression)
+					.arguments[1] as recast.types.namedTypes.Identifier,
+			]
+
+			// instantiate a handler for the fragment
 			const replacement = AST.objectExpression([
 				AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
 				AST.objectProperty(AST.literal('artifact'), AST.identifier(artifactVariable)),
 				AST.objectProperty(AST.literal('config'), AST.identifier('houdiniConfig')),
+				AST.objectProperty(AST.literal('proxy'), proxyIdentifier![0]),
 			])
 
 			// add an import to the body pointing to the artifact
@@ -64,4 +80,45 @@ export default async function fragmentProcessor(
 			node.replaceWith(replacement)
 		},
 	})
+
+	// if we instantiated a proxy we need to leave down a reactive statement
+	// that invokes the proxy with new information
+	if (!proxyIdentifier) {
+		return
+	}
+
+	// find the first non import statement
+	const propInsertIndex = doc.instance.content.body.findIndex(
+		(expression) => expression.type !== 'ImportDeclaration'
+	)
+
+	// instantiate the proxy we'll use for the fragment
+	doc.instance.content.body.splice(
+		propInsertIndex,
+		0,
+		// @ts-ignore: babel's ast does something weird with comments, we won't use em
+		AST.variableDeclaration('let', [
+			AST.variableDeclarator(
+				proxyIdentifier[0],
+				AST.newExpression(AST.identifier('HoudiniDocumentProxy'), [])
+			),
+		])
+	)
+
+	// we need to add a reactive statement so that we can update the fragment value
+	// if the parent id is swapped
+	doc.instance.content.body.push(
+		// @ts-ignore: babel's ast does something weird with comments, we won't use em
+		AST.labeledStatement(
+			AST.identifier('$'),
+			AST.blockStatement([
+				AST.expressionStatement(
+					AST.callExpression(
+						AST.memberExpression(proxyIdentifier[0], AST.identifier('invoke')),
+						[proxyIdentifier[1]]
+					)
+				),
+			])
+		)
+	)
 }
