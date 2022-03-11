@@ -12,7 +12,7 @@ export function fragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment
 ): Readable<_Fragment['shape']> {
 	// make sure we got a query document
-	if (fragment.kind !== 'HoudiniFragment') {
+	if (fragment.kind !== 'HoudiniFragment' || false) {
 		throw new Error('getFragment can only take fragment documents')
 	}
 
