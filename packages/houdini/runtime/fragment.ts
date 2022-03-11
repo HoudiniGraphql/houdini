@@ -20,7 +20,6 @@ export function fragment<_Fragment extends Fragment<any>>(
 
 	// make sure the store always stays up to date with the fragment value
 	fragment.proxy.listen((val: _Fragment) => {
-		console.log('new value')
 		// update the fragment value to match the new value
 		store.set(val)
 	})
