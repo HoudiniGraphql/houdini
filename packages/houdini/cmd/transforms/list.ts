@@ -252,6 +252,36 @@ export default async function addListFragments(
 							},
 						},
 					},
+					// a fragment to insert or remove an item into the list
+					{
+						name: {
+							value: config.listToggleFragment(name),
+							kind: 'Name',
+						},
+						kind: graphql.Kind.FRAGMENT_DEFINITION,
+						// in order to insert an item into this list, it must
+						// have the same selection as the field
+						selectionSet: {
+							...fragmentSelection,
+							selections: [
+								...fragmentSelection.selections,
+								{
+									kind: 'Field',
+									name: {
+										kind: 'Name',
+										value: 'id',
+									},
+								},
+							],
+						},
+						typeCondition: {
+							kind: 'NamedType',
+							name: {
+								kind: 'Name',
+								value: type.name,
+							},
+						},
+					},
 					// add a fragment to remove from the specific list
 					{
 						kind: graphql.Kind.FRAGMENT_DEFINITION,

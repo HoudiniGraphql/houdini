@@ -289,6 +289,10 @@ export class Config {
 		return `_remove`
 	}
 
+	get toggleFragmentSuffix() {
+		return `_toggle`
+	}
+
 	get deleteDirectiveSuffix() {
 		return `_delete`
 	}
@@ -345,8 +349,16 @@ export class Config {
 		return name + this.insertFragmentSuffix
 	}
 
+	listToggleFragment(name: string): string {
+		return name + this.toggleFragmentSuffix
+	}
+
 	isRemoveFragment(name: string) {
 		return name.endsWith(this.removeFragmentSuffix)
+	}
+
+	isToggleFragment(name: string) {
+		return name.endsWith(this.toggleFragmentSuffix)
 	}
 
 	listRemoveFragment(name: string): string {
@@ -371,7 +383,11 @@ export class Config {
 	}
 
 	isListFragment(name: string): boolean {
-		return name.endsWith(this.insertFragmentSuffix) || name.endsWith(this.removeFragmentSuffix)
+		return (
+			name.endsWith(this.insertFragmentSuffix) ||
+			name.endsWith(this.removeFragmentSuffix) ||
+			name.endsWith(this.toggleFragmentSuffix)
+		)
 	}
 
 	isListOperationDirective(name: string): boolean {
@@ -383,12 +399,14 @@ export class Config {
 	}
 
 	// return 'insert' for All_Users_insert
-	listOperationFromFragment(fragmentName: string): 'insert' | 'remove' {
+	listOperationFromFragment(fragmentName: string): 'insert' | 'remove' | 'toggle' {
 		// check the name against the fragment patterns
 		if (this.isInsertFragment(fragmentName)) {
 			return 'insert'
 		} else if (this.isRemoveFragment(fragmentName)) {
 			return 'remove'
+		} else if (this.isToggleFragment(fragmentName)) {
+			return 'toggle'
 		}
 
 		throw new Error('Could not determine list operation from fragment name: ' + fragmentName)

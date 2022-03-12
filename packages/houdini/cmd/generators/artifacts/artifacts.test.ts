@@ -796,6 +796,98 @@ describe('mutation artifacts', function () {
 	`)
 	})
 
+	test('toggle operation', async function () {
+		const mutationDocs = [
+			mockCollectedDoc(
+				`mutation A {
+					addFriend {
+						friend {
+							...All_Users_toggle
+						}
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`query TestQuery {
+					users(stringValue: "foo") @list(name: "All_Users") {
+						firstName
+					}
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, mutationDocs)
+
+		// load the contents of the file
+		const queryContents = await fs.readFile(
+			path.join(config.artifactPath(mutationDocs[0].document)),
+			'utf-8'
+		)
+		expect(queryContents).toBeTruthy()
+		// parse the contents
+		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+			parser: typeScriptParser,
+		}).program
+		// verify contents
+		expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports = {
+		    name: "A",
+		    kind: "HoudiniMutation",
+		    hash: "2a821dc72c7f92a67ff9fcef569c4cadaf9852662035b32d015c4af67e57aca3",
+
+		    raw: \`mutation A {
+		  addFriend {
+		    friend {
+		      ...All_Users_toggle
+		      id
+		    }
+		  }
+		}
+
+		fragment All_Users_toggle on User {
+		  firstName
+		  id
+		  id
+		}
+		\`,
+
+		    rootType: "Mutation",
+
+		    selection: {
+		        addFriend: {
+		            type: "AddFriendOutput",
+		            keyRaw: "addFriend",
+
+		            fields: {
+		                friend: {
+		                    type: "User",
+		                    keyRaw: "friend",
+
+		                    operations: [{
+		                        action: "toggle",
+		                        list: "All_Users"
+		                    }],
+
+		                    fields: {
+		                        firstName: {
+		                            type: "String",
+		                            keyRaw: "firstName"
+		                        },
+
+		                        id: {
+		                            type: "ID",
+		                            keyRaw: "id"
+		                        }
+		                    }
+		                }
+		            }
+		        }
+		    }
+		};
+	`)
+	})
+
 	test('remove operation', async function () {
 		const mutationDocs = [
 			mockCollectedDoc(
