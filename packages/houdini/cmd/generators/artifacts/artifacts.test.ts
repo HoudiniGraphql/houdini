@@ -802,7 +802,7 @@ describe('mutation artifacts', function () {
 				`mutation A {
 					addFriend {
 						friend {
-							...All_Users_toggle
+							...All_Users_toggle @prepend
 						}
 					}
 				}`
@@ -866,7 +866,8 @@ describe('mutation artifacts', function () {
 
 		                    operations: [{
 		                        action: "toggle",
-		                        list: "All_Users"
+		                        list: "All_Users",
+		                        position: "first"
 		                    }],
 
 		                    fields: {

@@ -216,7 +216,7 @@ function operationObject({
 	}
 
 	// only add the position argument if we are inserting something
-	if (operationKind === 'insert') {
+	if (operationKind === 'insert' || operationKind === 'toggle') {
 		operation.position = position || 'last'
 	}
 
