@@ -1,4 +1,5 @@
 import { GraphQLValue } from '../types'
+import { flattenList } from './stuff'
 
 // NOTE: the current implementation of delete is slow. it should try to compare the
 // type of the id being deleted with the type contained in the linked list so that
@@ -286,6 +287,30 @@ export class Layer {
 	}
 
 	writeLink(id: string, field: string, value: null | string | LinkedList): LayerID {
+		// if any of the values in this link are flagged to be deleted, undelete it
+		const valueList = Array.isArray(value) ? value : [value]
+		for (const value of flattenList(valueList)) {
+			if (!value) {
+				continue
+			}
+
+			const fieldOperations = this.operations[id]?.fields[field]
+
+			// if the operation was globally deleted
+			if (this.operations[value]?.deleted) {
+				// undo the delete
+				// NOTE: this will bring it back to the all lists just because we inserted it
+				// to one containing the link
+				delete this.operations[value].deleted
+				// the value could have been removed specifically from the list
+			} else if (value && fieldOperations?.length > 0) {
+				// if we have a field operation to remove the list, undo the operation
+				this.operations[id].fields[field] = fieldOperations.filter(
+					(op) => op.kind !== 'remove' || op.id !== value
+				)
+			}
+		}
+
 		this.links[id] = {
 			...this.links[id],
 			[field]: value,

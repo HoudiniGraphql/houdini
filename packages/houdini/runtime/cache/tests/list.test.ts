@@ -1605,6 +1605,127 @@ test('append from list', function () {
 	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(2)
 })
 
+test('toggle list', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
+						},
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [{ id: '5' }],
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	const toggleSelection: SubscriptionSelection = {
+		newUser: {
+			type: 'User',
+			keyRaw: 'newUser',
+			operations: [
+				{
+					action: 'toggle',
+					list: 'All_Users',
+					parentID: {
+						kind: 'String',
+						value: cache._internal_unstable.id('User', '1')!,
+					},
+				},
+			],
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+			},
+		},
+	}
+
+	// write some data to a different location with a new user
+	// that should be added to the list
+	cache.write({ selection: toggleSelection, data: { newUser: { id: '3' } } })
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
+		'User:5',
+		'User:3',
+	])
+
+	// toggle the user again to remove the user
+	cache.write({ selection: toggleSelection, data: { newUser: { id: '3' } } })
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
+		'User:5',
+	])
+
+	// toggle the user again to add the user back
+	cache.write({ selection: toggleSelection, data: { newUser: { id: '3' } } })
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
+		'User:5',
+		'User:3',
+	])
+})
+
 test('append when operation', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
