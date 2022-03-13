@@ -1334,3 +1334,86 @@ test('deprecated onLoad hook', async function () {
 		}
 	`)
 })
+
+test('2 queries, one paginated one not', async function () {
+	const doc = await preprocessorTest(
+		`
+		<script>
+			const { data } = query(graphql\`
+				query TestQuery1($test: Boolean!) {
+					viewer {
+						id
+					}
+				}
+			\`)
+
+			const { data: data2 } = paginatedQuery(graphql\`
+				query TestQuery2($test: Boolean!) {
+					viewer {
+						id
+					}
+				}
+			\`)
+		</script>
+	`
+	)
+
+	expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { routeQuery, componentQuery, query } from "$houdini";
+		export let _TestQuery2 = undefined;
+		export let _TestQuery2_Input = undefined;
+		export let _TestQuery2_Source = undefined;
+
+		let _TestQuery2_handler = paginatedQuery({
+		    "config": houdiniConfig,
+		    "initialValue": _TestQuery2,
+		    "variables": _TestQuery2_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQuery2Artifact,
+		    "source": _TestQuery2_Source
+		});
+
+		export let _TestQuery1 = undefined;
+		export let _TestQuery1_Input = undefined;
+		export let _TestQuery1_Source = undefined;
+
+		let _TestQuery1_handler = query({
+		    "config": houdiniConfig,
+		    "initialValue": _TestQuery1,
+		    "variables": _TestQuery1_Input,
+		    "kind": "HoudiniQuery",
+		    "artifact": _TestQuery1Artifact,
+		    "source": _TestQuery1_Source
+		});
+
+		const {
+		    data
+		} = routeQuery({
+		    queryHandler: _TestQuery1_handler,
+		    config: houdiniConfig,
+		    artifact: _TestQuery1Artifact,
+		    variableFunction: TestQuery1Variables,
+		    getProps: () => $$props
+		});
+
+		const {
+		    data: data2
+		} = routeQuery({
+		    queryHandler: _TestQuery2_handler,
+		    config: houdiniConfig,
+		    artifact: _TestQuery2Artifact,
+		    variableFunction: TestQuery2Variables,
+		    getProps: () => $$props
+		});
+
+		$:
+		{
+		    _TestQuery1_handler.onLoad(_TestQuery1, _TestQuery1_Input, _TestQuery1_Source);
+		}
+
+		$:
+		{
+		    _TestQuery2_handler.onLoad(_TestQuery2, _TestQuery2_Input, _TestQuery2_Source);
+		}
+	`)
+})
