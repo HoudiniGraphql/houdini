@@ -464,8 +464,7 @@ test('remove from connection', function () {
 	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(1)
 	// make sure we marked the corresponding edge for deletion
 	expect(
-		cache._internal_unstable.storage.topLayer.operations['User:1.friends.edges[0]#User:2']
-			.deleted
+		cache._internal_unstable.storage.topLayer.operations['User:1.friends.edges[0]'].deleted
 	).toBeTruthy()
 })
 
