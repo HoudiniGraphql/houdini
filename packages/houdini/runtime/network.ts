@@ -289,7 +289,6 @@ export class RequestContext {
 	graphqlErrors(payload: { errors?: GraphQLError[] }) {
 		// if we have a list of errors
 		if (payload.errors) {
-			console.log('registering graphql errors', payload.errors)
 			return this.error(500, payload.errors.map(({ message }) => message).join('\n'))
 		}
 
