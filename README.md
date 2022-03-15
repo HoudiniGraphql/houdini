@@ -208,6 +208,8 @@ If you have updated your schema on the server, you can pull down the most recent
 npx houdini generate --pull-schema
 ```
 
+I know this sounds like a huge burden but we have plans for removing this step from the developer experience, it's just not ready yet. 
+
 ## 📄&nbsp;Config File
 
 All configuration for your houdini application is defined in a single file that is imported by both the runtime and the
