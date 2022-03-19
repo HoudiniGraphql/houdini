@@ -52,7 +52,7 @@ export default async function queryProcessor(
 	const queries: EmbeddedGraphqlDocument[] = []
 
 	// remember the function that the document is passed to
-	let functionName = ''
+	let functionNames: { [queryName: string]: string } = {}
 
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
@@ -106,7 +106,7 @@ export default async function queryProcessor(
 			const callParent = parent as namedTypes.CallExpression
 			if (callParent.type === 'CallExpression' && callParent.callee.type === 'Identifier') {
 				// need to make sure that we call the same function we were passed to
-				functionName = callParent.callee.name
+				functionNames[artifactIdentifier(artifact)] = callParent.callee.name
 				// update the function called for the environment
 				callParent.callee.name = isRoute ? 'routeQuery' : 'componentQuery'
 			}
@@ -141,7 +141,7 @@ export default async function queryProcessor(
 			doc.instance.content.body.unshift(artifactImport(config, document.artifact))
 		}
 	}
-	processInstance(config, isRoute, doc.instance, queries, functionName)
+	processInstance(config, isRoute, doc.instance, queries, functionNames)
 }
 
 function processModule(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
@@ -174,7 +174,7 @@ function processInstance(
 	isRoute: boolean,
 	script: Script,
 	queries: EmbeddedGraphqlDocument[],
-	functionName: string
+	functionNames: { [artifactName: string]: string }
 ) {
 	// make sure we have the imports we need
 	ensureImports(config, script.content.body, ['routeQuery', 'componentQuery', 'query'])
@@ -211,7 +211,6 @@ function processInstance(
 					AST.variableDeclarator(AST.identifier(preloadKey), AST.identifier('undefined')),
 				])
 			),
-			// @ts-ignore: babel's ast does something weird with comments, we won't use em
 			AST.exportNamedDeclaration(
 				AST.variableDeclaration('let', [
 					AST.variableDeclarator(
@@ -231,44 +230,47 @@ function processInstance(
 			AST.variableDeclaration('let', [
 				AST.variableDeclarator(
 					queryHandlerIdentifier(operation),
-					AST.callExpression(AST.identifier(functionName), [
-						AST.objectExpression([
-							AST.objectProperty(
-								AST.stringLiteral('config'),
-								AST.identifier('houdiniConfig')
-							),
-							AST.objectProperty(
-								AST.stringLiteral('initialValue'),
-								AST.identifier(
-									preloadPayloadKey(
-										parsedDocument
-											.definitions[0] as graphql.OperationDefinitionNode
+					AST.callExpression(
+						AST.identifier(functionNames[artifactIdentifier(artifact)]),
+						[
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.stringLiteral('config'),
+									AST.identifier('houdiniConfig')
+								),
+								AST.objectProperty(
+									AST.stringLiteral('initialValue'),
+									AST.identifier(
+										preloadPayloadKey(
+											parsedDocument
+												.definitions[0] as graphql.OperationDefinitionNode
+										)
 									)
-								)
-							),
-							AST.objectProperty(
-								AST.stringLiteral('variables'),
-								AST.identifier(
-									variablesKey(
-										parsedDocument
-											.definitions[0] as graphql.OperationDefinitionNode
+								),
+								AST.objectProperty(
+									AST.stringLiteral('variables'),
+									AST.identifier(
+										variablesKey(
+											parsedDocument
+												.definitions[0] as graphql.OperationDefinitionNode
+										)
 									)
-								)
-							),
-							AST.objectProperty(
-								AST.literal('kind'),
-								AST.stringLiteral(artifact.kind)
-							),
-							AST.objectProperty(
-								AST.literal('artifact'),
-								AST.identifier(artifactIdentifier(artifact))
-							),
-							AST.objectProperty(
-								AST.literal('source'),
-								AST.identifier(preloadSourceKey)
-							),
-						]),
-					])
+								),
+								AST.objectProperty(
+									AST.literal('kind'),
+									AST.stringLiteral(artifact.kind)
+								),
+								AST.objectProperty(
+									AST.literal('artifact'),
+									AST.identifier(artifactIdentifier(artifact))
+								),
+								AST.objectProperty(
+									AST.literal('source'),
+									AST.identifier(preloadSourceKey)
+								),
+							]),
+						]
+					)
 				),
 			])
 		)

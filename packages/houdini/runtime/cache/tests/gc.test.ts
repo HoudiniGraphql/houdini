@@ -3,8 +3,22 @@ import { testConfig } from 'houdini-common'
 // locals
 import { Cache } from '../cache'
 
+const config = testConfig()
+config.cacheBufferSize = 10
+
 test('adequate ticks of garbage collector clear unsubscribed data', function () {
-	const cache = new Cache(testConfig())
+	const cache = new Cache(config)
+
+	const userFields = {
+		id: {
+			type: 'ID',
+			keyRaw: 'id',
+		},
+		firstName: {
+			type: 'String',
+			keyRaw: 'firstName',
+		},
+	}
 
 	cache.write({
 		selection: {
@@ -32,14 +46,14 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: cache.cacheBufferSize })) {
-		cache.collectGarbage()
-		expect(cache.internal.record('User:1').fields).not.toEqual({})
+	for (const _ of Array.from({ length: config.cacheBufferSize })) {
+		cache._internal_unstable.collectGarbage()
+		expect(cache._internal_unstable.isDataAvailable(userFields, {}, 'User:1')).toBeTruthy()
 	}
 
 	// collecting garbage one more time should delete the record from the cache
-	cache.collectGarbage()
-	expect(cache.internal.record('User:1').fields).toEqual({})
+	cache._internal_unstable.collectGarbage()
+	expect(cache._internal_unstable.isDataAvailable(userFields, {}, 'User:1')).toBeFalsy()
 })
 
 test("subscribed data shouldn't be garbage collected", function () {
@@ -89,11 +103,21 @@ test("subscribed data shouldn't be garbage collected", function () {
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: cache.cacheBufferSize + 1 })) {
-		cache.collectGarbage()
+	for (const _ of Array.from({ length: config.cacheBufferSize + 1 })) {
+		cache._internal_unstable.collectGarbage()
 	}
 
-	expect(cache.internal.record('User:1').fields).toEqual({ id: '1' })
+	expect(
+		cache.read({
+			selection: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+			},
+			parent: 'User:1',
+		})
+	).toEqual({ id: '1' })
 })
 
 test('resubscribing to fields marked for garbage collection resets counter', function () {
@@ -126,7 +150,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 
 	// tick the gc 3 times
 	for (const _ of Array.from({ length: 3 })) {
-		cache.collectGarbage()
+		cache._internal_unstable.collectGarbage()
 	}
 
 	const set = jest.fn()
@@ -150,8 +174,8 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: cache.cacheBufferSize })) {
-		cache.collectGarbage()
+	for (const _ of Array.from({ length: config.cacheBufferSize })) {
+		cache._internal_unstable.collectGarbage()
 	}
 
 	// subscribe to the fields
@@ -173,15 +197,36 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: cache.cacheBufferSize })) {
-		cache.collectGarbage()
+	for (const _ of Array.from({ length: config.cacheBufferSize })) {
+		cache._internal_unstable.collectGarbage()
 	}
 
 	// make sure we still have a value
-	expect(cache.internal.record('User:1').fields).toEqual({ id: '1' })
+	expect(
+		cache.read({
+			selection: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+			},
+			parent: 'User:1',
+		})
+	).toEqual({ id: '1' })
 
 	// tick once more to clear the garbage
-	cache.collectGarbage()
+	cache._internal_unstable.collectGarbage()
 
-	expect(cache.internal.record('User:1').fields).toEqual({})
+	expect(
+		cache._internal_unstable.isDataAvailable(
+			{
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+			},
+			{},
+			'User:1'
+		)
+	).toBeFalsy()
 })

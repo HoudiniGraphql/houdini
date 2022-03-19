@@ -5,6 +5,7 @@ import * as graphql from 'graphql'
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 import { TypeWrapper, unwrapType } from '../utils'
 import { ArtifactKind } from '../../runtime/types'
+import { pageInfoSelection } from './paginate'
 
 // addListFragments adds fragments for the fields tagged with @list
 export default async function addListFragments(
@@ -122,6 +123,47 @@ export default async function addListFragments(
 					}
 				}
 			},
+			Field(node, key, parent, path, ancestors) {
+				// if the is marked with @list and is a connection, we need to make sure that we ask for
+				// the cursor fields
+				if (
+					!node.directives?.find(
+						(directive) => directive.name.value === config.listDirective
+					)
+				) {
+					return
+				}
+
+				// the field is a list, is it a connection?
+
+				// look up the parent's type
+				const parentType = parentTypeFromAncestors(config.schema, ancestors)
+				// a non-connection list can just use the selection set of the tagged field
+				// but if this is a connection tagged with list we need to use the selection
+				// of the edges.node field
+				const targetField = node
+				const targetFieldDefinition = parentType.getFields()[
+					targetField.name.value
+				] as graphql.GraphQLField<any, any>
+
+				const { connection } = connectionSelection(
+					config,
+					targetFieldDefinition,
+					parentTypeFromAncestors(config.schema, ancestors) as graphql.GraphQLObjectType,
+					node.selectionSet
+				)
+
+				// if the field is a connection, add the cursor
+				if (connection) {
+					return {
+						...node,
+						selectionSet: {
+							...node.selectionSet,
+							selections: [...node.selectionSet!.selections, ...pageInfoSelection],
+						},
+					}
+				}
+			},
 		})
 	}
 
@@ -202,6 +244,36 @@ export default async function addListFragments(
 						// in order to insert an item into this list, it must
 						// have the same selection as the field
 						selectionSet: fragmentSelection,
+						typeCondition: {
+							kind: 'NamedType',
+							name: {
+								kind: 'Name',
+								value: type.name,
+							},
+						},
+					},
+					// a fragment to insert or remove an item into the list
+					{
+						name: {
+							value: config.listToggleFragment(name),
+							kind: 'Name',
+						},
+						kind: graphql.Kind.FRAGMENT_DEFINITION,
+						// in order to insert an item into this list, it must
+						// have the same selection as the field
+						selectionSet: {
+							...fragmentSelection,
+							selections: [
+								...fragmentSelection.selections,
+								{
+									kind: 'Field',
+									name: {
+										kind: 'Name',
+										value: 'id',
+									},
+								},
+							],
+						},
 						typeCondition: {
 							kind: 'NamedType',
 							name: {

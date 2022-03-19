@@ -1,10 +1,60 @@
 // local imports
 import { SubscriptionSelection, ListWhen, SubscriptionSpec, RefetchUpdateMode } from '../types'
-import { Cache } from './cache'
-import { Record } from './record'
+import type { Cache, LinkedList } from './cache'
+import { flattenList } from './stuff'
 
-export class ListHandler {
-	readonly record: Record
+export class ListManager {
+	rootID: string
+
+	constructor(rootID: string) {
+		this.rootID = rootID
+	}
+
+	// associate list names with the handler that wraps the list
+	private lists: Map<string, Map<string, List>> = new Map()
+
+	get(listName: string, id?: string) {
+		return this.lists.get(listName)?.get(id || this.rootID)
+	}
+
+	remove(listName: string, id: string) {
+		this.lists.get(listName)?.delete(id || this.rootID)
+	}
+
+	set(list: {
+		name: string
+		connection: boolean
+		cache: Cache
+		recordID: string
+		key: string
+		listType: string
+		selection: SubscriptionSelection
+		when?: ListWhen
+		filters?: List['filters']
+		parentID: SubscriptionSpec['parentID']
+	}) {
+		// if we haven't seen this list before
+		if (!this.lists.has(list.name)) {
+			this.lists.set(list.name, new Map())
+		}
+
+		// set the list reference
+		this.lists
+			.get(list.name)
+			?.set(list.parentID || this.rootID, new List({ ...list, manager: this }))
+	}
+
+	removeIDFromAllLists(id: string) {
+		for (const fieldMap of this.lists.values()) {
+			for (const list of fieldMap.values()) {
+				list.removeID(id)
+			}
+		}
+	}
+}
+
+export class List {
+	readonly recordID: string
 	readonly key: string
 	readonly listType: string
 	private cache: Cache
@@ -14,11 +64,12 @@ export class ListHandler {
 	readonly name: string
 	readonly parentID: SubscriptionSpec['parentID']
 	private connection: boolean
+	private manager: ListManager
 
 	constructor({
 		name,
 		cache,
-		record,
+		recordID,
 		key,
 		listType,
 		selection,
@@ -26,19 +77,9 @@ export class ListHandler {
 		filters,
 		parentID,
 		connection,
-	}: {
-		name: string
-		connection: boolean
-		cache: Cache
-		record: Record
-		key: string
-		listType: string
-		selection: SubscriptionSelection
-		when?: ListWhen
-		filters?: ListHandler['filters']
-		parentID?: SubscriptionSpec['parentID']
-	}) {
-		this.record = record
+		manager,
+	}: Parameters<ListManager['set']>[0] & { manager: ListManager }) {
+		this.recordID = recordID
 		this.key = key
 		this.listType = listType
 		this.cache = cache
@@ -48,13 +89,14 @@ export class ListHandler {
 		this.name = name
 		this.parentID = parentID
 		this.connection = connection
+		this.manager = manager
 	}
 
 	// when applies a when condition to a new list pointing to the same spot
-	when(when?: ListWhen): ListHandler {
-		return new ListHandler({
+	when(when?: ListWhen): List {
+		return new List({
 			cache: this.cache,
-			record: this.record,
+			recordID: this.recordID,
 			key: this.key,
 			listType: this.listType,
 			selection: this.selection,
@@ -63,6 +105,7 @@ export class ListHandler {
 			parentID: this.parentID,
 			name: this.name,
 			connection: this.connection,
+			manager: this.manager,
 		})
 	}
 
@@ -81,7 +124,7 @@ export class ListHandler {
 		where: 'first' | 'last'
 	) {
 		// figure out the id of the type we are adding
-		const dataID = this.cache.id(this.listType, data)
+		const dataID = this.cache._internal_unstable.id(this.listType, data)
 
 		// if there are conditions for this operation
 		if (!this.validateWhen() || !dataID) {
@@ -148,22 +191,24 @@ export class ListHandler {
 		}
 
 		// get the list of specs that are subscribing to the list
-		const subscribers = this.record.getSubscribers(this.key)
-
-		// look up the new record in the cache
-		const newRecord = this.cache.internal.record(dataID)
+		const subscribers = this.cache._internal_unstable.subscriptions.get(this.recordID, this.key)
 
 		// walk down the list fields relative to the new record
 		// and make sure all of the list's subscribers are listening
 		// to that object
-		this.cache.internal.insertSubscribers(newRecord, selection, variables, ...subscribers)
+		this.cache._internal_unstable.subscriptions.addMany({
+			parent: dataID,
+			selection,
+			variables,
+			subscribers,
+		})
 
 		// update the cache with the data we just found
 		this.cache.write({
 			selection: insertSelection,
 			data: insertData,
 			variables,
-			parent: this.record.id,
+			parent: this.recordID,
 			applyUpdates: true,
 		})
 	}
@@ -176,69 +221,102 @@ export class ListHandler {
 
 		// if we are removing from a connection, the id we are removing from
 		// has to be computed
-		let parentID = this.record.id
+		let parentID = this.recordID
 		let targetID = id
 		let targetKey = this.key
 
 		// if we are removing a record from a connection we have to walk through
 		// some embedded references first
 		if (this.connection) {
-			const embeddedConnection = this.record.linkedRecord(this.key)
+			const { value: embeddedConnection } = this.cache._internal_unstable.storage.get(
+				this.recordID,
+				this.key
+			)
 			if (!embeddedConnection) {
 				return
 			}
+			const embeddedConnectionID = embeddedConnection as string
+
 			// look at every embedded edge for the one with a node corresponding to the element
 			// we want to delete
-			for (const edge of embeddedConnection.flatLinkedList('edges') || []) {
+			const { value: edges } = this.cache._internal_unstable.storage.get(
+				embeddedConnectionID,
+				'edges'
+			)
+			for (const edge of flattenList(edges as LinkedList) || []) {
 				if (!edge) {
 					continue
 				}
+
+				const edgeID = edge as string
+
 				// look at the edge's node
-				const node = edge.linkedRecord('node')
-				if (!node) {
+				const { value: nodeID } = this.cache._internal_unstable.storage.get(edgeID, 'node')
+				if (!nodeID) {
 					continue
 				}
+
 				// if we found the node
-				if (node.id === id) {
-					targetID = edge.id
+				if (nodeID === id) {
+					targetID = edgeID
 				}
 			}
-			parentID = embeddedConnection.id
+			parentID = embeddedConnectionID
 			targetKey = 'edges'
 		}
 
+		// if the id is not contained in the list, dont notify anyone
+		const value = this.cache._internal_unstable.storage.get(parentID, targetKey)
+			.value as LinkedList
+		if (!value || !value.includes(targetID)) {
+			return
+		}
+
 		// get the list of specs that are subscribing to the list
-		const subscribers = this.record.getSubscribers(this.key)
+		const subscribers = this.cache._internal_unstable.subscriptions.get(this.recordID, this.key)
 
 		// disconnect record from any subscriptions associated with the list
-		this.cache.internal.unsubscribeSelection(
-			this.cache.internal.record(targetID),
-			// if we're unsubscribing from a connection, only unsubscribe from the target
+		this.cache._internal_unstable.subscriptions.remove(
+			targetID,
+			// if we are unsubscribing from a connection, the fields we care about
+			// are tucked away under edges
 			this.connection ? this.selection.edges.fields! : this.selection,
-			variables,
-			...subscribers.map(({ set }) => set)
+			subscribers,
+			variables
 		)
 
 		// remove the target from the parent
-		this.cache.internal.record(parentID).removeFromLinkedList(targetKey, targetID)
+		this.cache._internal_unstable.storage.remove(parentID, targetKey, targetID)
 
 		// notify the subscribers about the change
-		this.cache.internal.notifySubscribers(subscribers, variables)
+		for (const spec of subscribers) {
+			// trigger the update
+			spec.set(
+				this.cache._internal_unstable.getSelection({
+					parent: spec.parentID || this.manager.rootID,
+					selection: spec.selection,
+					variables: spec.variables?.() || {},
+				})
+			)
+		}
 
 		// if we are removing from a connection, delete the embedded edge holding the record
 		if (this.connection) {
-			this.cache.internal.deleteID(targetID)
+			this.cache._internal_unstable.storage.delete(targetID)
 		}
+
+		// return true if we deleted something
+		return true
 	}
 
 	remove(data: {}, variables: {} = {}) {
-		const targetID = this.cache.id(this.listType, data)
+		const targetID = this.cache._internal_unstable.id(this.listType, data)
 		if (!targetID) {
 			return
 		}
 
 		// figure out the id of the type we are adding
-		this.removeID(targetID, variables)
+		return this.removeID(targetID, variables)
 	}
 
 	private validateWhen() {
@@ -271,10 +349,24 @@ export class ListHandler {
 		return ok
 	}
 
+	toggleElement(
+		selection: SubscriptionSelection,
+		data: {},
+		variables: {} = {},
+		where: 'first' | 'last'
+	) {
+		// if we dont have something to remove, then add it instead
+		if (!this.remove(data, variables)) {
+			this.addToList(selection, data, variables, where)
+		}
+	}
+
 	// iterating over the list handler should be the same as iterating over
 	// the underlying linked list
 	*[Symbol.iterator]() {
-		for (let record of this.record.flatLinkedList(this.key)) {
+		for (let record of flattenList(
+			this.cache._internal_unstable.storage.get(this.recordID, this.key).value as LinkedList
+		)) {
 			yield record
 		}
 	}

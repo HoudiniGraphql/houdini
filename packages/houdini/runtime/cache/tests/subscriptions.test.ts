@@ -1,11 +1,11 @@
 // external imports
 import { testConfig } from 'houdini-common'
 // locals
-import { Cache, rootID } from '../cache'
+import { Cache } from '../cache'
 
 const config = testConfig()
 
-test('save root object', function () {
+test('write selection to root', function () {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
@@ -16,93 +16,37 @@ test('save root object', function () {
 			firstName: 'bob',
 		},
 	}
-	cache.write({
-		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
-					},
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
 				},
 			},
 		},
+	}
+	cache.write({
+		selection,
 		data,
 	})
 
 	// make sure we can get back what we wrote
-	expect(cache.internal.getRecord(cache.id('User', data.viewer)!)?.fields).toEqual({
-		id: '1',
-		firstName: 'bob',
-	})
-})
-
-test('partial update existing record', function () {
-	// instantiate a cache we'll test against
-	const cache = new Cache(config)
-
-	// save the data
-	cache.write({
-		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
-					},
-				},
-			},
+	expect(
+		cache.read({
+			selection,
+		})
+	).toEqual({
+		viewer: {
+			id: '1',
+			firstName: 'bob',
 		},
-		data: {
-			viewer: {
-				id: '1',
-				firstName: 'bob',
-			},
-		},
-	})
-
-	cache.write({
-		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					lastName: {
-						type: 'String',
-						keyRaw: 'lastName',
-					},
-				},
-			},
-		},
-		data: {
-			viewer: {
-				id: '1',
-				lastName: 'barker',
-			},
-		},
-	})
-
-	// make sure we can get back what we wrote
-	expect(cache.internal.getRecord(cache.id('User', '1')!)?.fields).toEqual({
-		id: '1',
-		firstName: 'bob',
-		lastName: 'barker',
 	})
 })
 
@@ -110,38 +54,63 @@ test('linked records with updates', function () {
 	// instantiate a cache we'll test against
 	const cache = new Cache(config)
 
-	// save the data
-	cache.write({
-		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
-					},
-					parent: {
-						type: 'User',
-						keyRaw: 'parent',
-						fields: {
-							id: {
-								type: 'ID',
-								keyRaw: 'id',
-							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
-							},
+	// a deeply nested selection link users to other useres
+	const deeplyNestedSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				parent: {
+					type: 'User',
+					keyRaw: 'parent',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
 						},
 					},
 				},
 			},
 		},
+	}
+
+	// the field selection we will use to verify updates
+	const userFields = {
+		id: {
+			type: 'ID',
+			keyRaw: 'id',
+		},
+		firstName: {
+			type: 'String',
+			keyRaw: 'firstName',
+		},
+		parent: {
+			type: 'User',
+			keyRaw: 'parent',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+			},
+		},
+	}
+
+	// write the data as a deeply nested object
+	cache.write({
+		selection: deeplyNestedSelection,
 		data: {
 			viewer: {
 				id: '1',
@@ -155,56 +124,24 @@ test('linked records with updates', function () {
 	})
 
 	// check user 1
-	const user1 = cache.internal.getRecord(cache.id('User', '1')!)
-	expect(user1?.fields).toEqual({
+	expect(cache.read({ selection: userFields, parent: 'User:1' })).toEqual({
 		id: '1',
 		firstName: 'bob',
-	})
-	expect(user1?.linkedRecord('parent')?.fields).toEqual({
-		id: '2',
-		firstName: 'jane',
+		parent: {
+			id: '2',
+		},
 	})
 
 	// check user 2
-	const user2 = cache.internal.getRecord(cache.id('User', '2')!)
-	expect(user2?.fields).toEqual({
+	expect(cache.read({ selection: userFields, parent: 'User:2' })).toEqual({
 		id: '2',
 		firstName: 'jane',
+		parent: null,
 	})
-	expect(user2?.linkedRecord('parent')).toBeFalsy()
 
 	// associate user2 with a new parent
 	cache.write({
-		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
-					},
-					parent: {
-						type: 'User',
-						keyRaw: 'parent',
-						fields: {
-							id: {
-								type: 'ID',
-								keyRaw: 'id',
-							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
-							},
-						},
-					},
-				},
-			},
-		},
+		selection: deeplyNestedSelection,
 		data: {
 			viewer: {
 				id: '2',
@@ -218,13 +155,17 @@ test('linked records with updates', function () {
 	})
 
 	// make sure we updated user 2
-	expect(user2?.fields).toEqual({
+	expect(cache.read({ selection: userFields, parent: 'User:2' })).toEqual({
 		id: '2',
 		firstName: 'jane-prime',
+		parent: {
+			id: '3',
+		},
 	})
-	expect(user2?.linkedRecord('parent')?.fields).toEqual({
+	expect(cache.read({ selection: userFields, parent: 'User:3' })).toEqual({
 		id: '3',
 		firstName: 'mary',
+		parent: null,
 	})
 })
 
@@ -232,38 +173,41 @@ test('linked lists', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
 
-	// add some data to the cache
-	cache.write({
-		selection: {
-			viewer: {
-				type: 'User',
-				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
-					},
-					friends: {
-						type: 'User',
-						keyRaw: 'friends',
-						fields: {
-							id: {
-								type: 'ID',
-								keyRaw: 'id',
-							},
-							firstName: {
-								type: 'String',
-								keyRaw: 'firstName',
-							},
+	// the selection we will read and write
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
 						},
 					},
 				},
 			},
 		},
+	}
+
+	// add some data to the cache
+	cache.write({
+		selection,
 		data: {
 			viewer: {
 				id: '1',
@@ -283,20 +227,20 @@ test('linked lists', function () {
 	})
 
 	// make sure we can get the linked lists back
-	const friendData = cache.internal
-		.getRecord(cache.id('User', '1')!)
-		?.flatLinkedList('friends')
-		.map((data) => data!.fields)
-	expect(friendData).toEqual([
-		{
-			id: '2',
-			firstName: 'jane',
-		},
-		{
-			id: '3',
-			firstName: 'mary',
-		},
-	])
+	expect(cache.read({ selection: selection.viewer.fields, parent: 'User:1' })).toEqual({
+		id: '1',
+		firstName: 'bob',
+		friends: [
+			{
+				id: '2',
+				firstName: 'jane',
+			},
+			{
+				id: '3',
+				firstName: 'mary',
+			},
+		],
+	})
 })
 
 test('list as value with args', function () {
@@ -336,8 +280,18 @@ test('list as value with args', function () {
 
 	// look up the value
 	expect(
-		cache.internal.getRecord(cache.id('User', '1')!)?.fields['favoriteColors(where: "foo")']
-	).toEqual(['red', 'green', 'blue'])
+		cache.read({
+			selection: {
+				favoriteColors: {
+					type: 'String',
+					keyRaw: 'favoriteColors(where: "foo")',
+				},
+			},
+			parent: 'User:1',
+		})
+	).toEqual({
+		favoriteColors: ['red', 'green', 'blue'],
+	})
 })
 
 test('root subscribe - field change', function () {
@@ -478,9 +432,7 @@ test('root subscribe - linked object changed', function () {
 	})
 
 	// make sure we are no longer subscribing to user 1
-	expect(
-		cache.internal.getRecord(cache.id('User', '1')!)?.getSubscribers('firstName')
-	).toHaveLength(0)
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
 })
 
 test("subscribing to null object doesn't explode", function () {
@@ -638,9 +590,7 @@ test('root subscribe - linked list lost entry', function () {
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(
-		cache.internal.getRecord(cache.id('User', '3')!)?.getSubscribers('firstName')
-	).toHaveLength(0)
+	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(0)
 })
 
 test("subscribing to list with null values doesn't explode", function () {
@@ -827,12 +777,8 @@ test('root subscribe - linked list reorder', function () {
 	})
 
 	// we should still be subscribing to both users
-	expect(
-		cache.internal.getRecord(cache.id('User', '2')!)?.getSubscribers('firstName')
-	).toHaveLength(1)
-	expect(
-		cache.internal.getRecord(cache.id('User', '3')!)?.getSubscribers('firstName')
-	).toHaveLength(1)
+	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)
+	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(1)
 })
 
 test('unsubscribe', function () {
@@ -883,17 +829,13 @@ test('unsubscribe', function () {
 	cache.subscribe(spec)
 
 	// make sure we  registered the subscriber
-	expect(
-		cache.internal.getRecord(cache.id('User', '1')!)?.getSubscribers('firstName')
-	).toHaveLength(1)
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
 
 	// unsubscribe
 	cache.unsubscribe(spec)
 
 	// make sure there is no more subscriber
-	expect(
-		cache.internal.getRecord(cache.id('User', '1')!)?.getSubscribers('firstName')
-	).toHaveLength(0)
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
 })
 
 test('subscribe to new list nodes', function () {
@@ -988,7 +930,7 @@ test('subscribe to new list nodes', function () {
 	})
 
 	// the first time set was called, a new entry was added.
-	// the second time it's called, we get a new value for mary-prime
+	// the second time it's called, we get a new value for mary
 	expect(set).toHaveBeenNthCalledWith(2, {
 		viewer: {
 			id: '1',
@@ -1116,9 +1058,7 @@ test('variables in query and subscription', function () {
 	})
 
 	// we shouldn't be subscribing to user 3 any more
-	expect(
-		cache.internal.getRecord(cache.id('User', '3')!)?.getSubscribers('firstName')
-	).toHaveLength(0)
+	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(0)
 })
 
 test('deleting a node removes nested subscriptions', function () {
@@ -1184,13 +1124,13 @@ test('deleting a node removes nested subscriptions', function () {
 	})
 
 	// sanity check
-	expect(cache.internal.getRecord('User:2')?.getSubscribers('firstName')).toHaveLength(1)
+	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)
 
 	// delete the parent
-	cache.delete('User', 'User:1')
+	cache.delete('User:1')
 
 	// sanity check
-	expect(cache.internal.getRecord('User:2')?.getSubscribers('firstName')).toHaveLength(0)
+	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
 })
 
 test('same record twice in a query survives one unsubscribe (reference counting)', function () {
@@ -1269,13 +1209,13 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 	)
 
 	// make sure there is a subscriber for the user's first name
-	expect(cache.internal.getRecord('User:1')?.getSubscribers('firstName')).toHaveLength(1)
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
 
 	// remove the user from the list
 	cache.list('All_Users').remove({ id: '1' })
 
 	// we should still be subscribing to the user's first name
-	expect(cache.internal.getRecord('User:1')?.getSubscribers('firstName')).toHaveLength(1)
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(1)
 })
 
 test('embedded references', function () {
@@ -1450,7 +1390,25 @@ test('writing abstract objects', function () {
 	})
 
 	// make sure we can get back what we wrote
-	expect(cache.internal.getRecord(cache.id('User', data.viewer)!)?.fields).toEqual({
+	expect(
+		cache.read({
+			parent: 'User:1',
+			selection: {
+				__typename: {
+					type: 'String',
+					keyRaw: '__typename',
+				},
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		})
+	).toEqual({
 		__typename: 'User',
 		id: '1',
 		firstName: 'bob',
@@ -1502,7 +1460,25 @@ test('writing abstract lists', function () {
 	})
 
 	// make sure we can get back what we wrote
-	expect(cache.internal.getRecord('User:1')?.fields).toEqual({
+	expect(
+		cache.read({
+			parent: 'User:1',
+			selection: {
+				__typename: {
+					type: 'String',
+					keyRaw: '__typename',
+				},
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		})
+	).toEqual({
 		__typename: 'User',
 		id: '1',
 		firstName: 'bob',
@@ -1543,7 +1519,7 @@ test('can pull enum from cached values', function () {
 	cache.write({ selection, data })
 
 	// pull the data out of the cache
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		node: {
 			id: '1',
 			enumValue: 'Hello',
@@ -1605,7 +1581,7 @@ test('can store and retrieve lists with null values', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -1686,7 +1662,7 @@ test('can store and retrieve lists of lists of records', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -1757,7 +1733,7 @@ test('can store and retrieve links with null values', function () {
 	})
 
 	// make sure we can get the linked record back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		viewer: null,
 	})
 })
@@ -1810,7 +1786,7 @@ test('can write list of just null', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -1901,9 +1877,7 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 	cache.unsubscribe(spec)
 
 	// no one should be subscribing to User:1's first name
-	expect(
-		cache.internal.getRecord(cache.id('User', '1')!)?.getSubscribers('firstName')
-	).toHaveLength(0)
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
 })
 
 test('self-referencing links can be unsubscribed (avoid infinite recursion)', function () {
@@ -2002,46 +1976,9 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 	cache.unsubscribe(spec)
 
 	// no one should be subscribing to User:1's first name
-	expect(
-		cache.internal.getRecord(cache.id('User', '1')!)?.getSubscribers('firstName')
-	).toHaveLength(0)
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
 })
 
-test('can check if data exists in cache', function () {})
+test.todo('can write to and resolve layers')
 
-describe('key evaluation', function () {
-	const table = [
-		{
-			title: 'string',
-			key: 'fieldName',
-			variables: {},
-			expected: 'fieldName',
-		},
-		{
-			title: 'variable',
-			key: 'fieldName(foo: $bar)',
-			variables: { bar: 'baz' },
-			expected: 'fieldName(foo: "baz")',
-		},
-		{
-			title: '$ in string',
-			key: 'fieldName(foo: "$bar")',
-			variables: { bar: 'baz' },
-			expected: 'fieldName(foo: "$bar")',
-		},
-		{
-			title: 'undefined variable',
-			key: 'fieldName(foo: $bar)',
-			variables: {},
-			expected: 'fieldName(foo: undefined)',
-		},
-	]
-
-	for (const row of table) {
-		test(row.title, function () {
-			const cache = new Cache(config)
-
-			expect(cache.internal.evaluateKey(row.key, row.variables)).toEqual(row.expected)
-		})
-	}
-})
+test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")

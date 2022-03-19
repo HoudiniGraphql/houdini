@@ -3,6 +3,7 @@ import { testConfig } from 'houdini-common'
 // locals
 import { Cache, rootID } from '../cache'
 import { SubscriptionSelection } from '../../types'
+import { RefetchUpdateMode } from '../../types'
 
 const config = testConfig()
 
@@ -66,21 +67,38 @@ test('prepend linked lists update', function () {
 
 	// make sure we can get the linked lists back
 	expect(
-		cache.internal
-			.getRecord(cache.id('User', '1')!)
-			?.flatLinkedList('friends')
-			.map((data) => data!.fields)
-	).toEqual([
-		{
-			id: '2',
-			firstName: 'jane',
-		},
-		{
-			id: '3',
-			firstName: 'mary',
-		},
-	])
-
+		cache.read({
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					update: RefetchUpdateMode.prepend,
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+			parent: 'User:1',
+		})
+	).toEqual({
+		friends: [
+			{
+				id: '2',
+				firstName: 'jane',
+			},
+			{
+				id: '3',
+				firstName: 'mary',
+			},
+		],
+	})
 	// add some data to the cache
 	cache.write({
 		selection,
@@ -105,28 +123,46 @@ test('prepend linked lists update', function () {
 
 	// make sure we can get the linked lists back
 	expect(
-		cache.internal
-			.getRecord(cache.id('User', '1')!)
-			?.flatLinkedList('friends')
-			.map((data) => data!.fields)
-	).toEqual([
-		{
-			id: '4',
-			firstName: 'jane',
-		},
-		{
-			id: '5',
-			firstName: 'mary',
-		},
-		{
-			id: '2',
-			firstName: 'jane',
-		},
-		{
-			id: '3',
-			firstName: 'mary',
-		},
-	])
+		cache.read({
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					update: RefetchUpdateMode.prepend,
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+			parent: 'User:1',
+		})
+	).toEqual({
+		friends: [
+			{
+				id: '4',
+				firstName: 'jane',
+			},
+			{
+				id: '5',
+				firstName: 'mary',
+			},
+			{
+				id: '2',
+				firstName: 'jane',
+			},
+			{
+				id: '3',
+				firstName: 'mary',
+			},
+		],
+	})
 })
 
 test('append in list', function () {
@@ -423,15 +459,13 @@ test('remove from connection', function () {
 	})
 
 	// make sure we aren't subscribing to user 2 any more
-	expect(
-		cache.internal.getRecord(cache.id('User', '2')!)?.getSubscribers('firstName')
-	).toHaveLength(0)
+	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
 	// but we're still subscribing to user 3
+	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(1)
+	// make sure we marked the corresponding edge for deletion
 	expect(
-		cache.internal.getRecord(cache.id('User', '3')!)?.getSubscribers('firstName')
-	).toHaveLength(1)
-	// make sure we deleted the edge holding onto this information
-	expect(cache.internal.getRecord('User:1.friends.edges[0]#User:2')).toBeUndefined()
+		cache._internal_unstable.storage.topLayer.operations['User:1.friends.edges[0]'].deleted
+	).toBeTruthy()
 })
 
 test('append in connection', function () {
@@ -1199,9 +1233,7 @@ test('remove from list', function () {
 	})
 
 	// make sure we aren't subscribing to user 2 any more
-	expect(
-		cache.internal.getRecord(cache.id('User', '2')!)?.getSubscribers('firstName')
-	).toHaveLength(0)
+	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
 })
 
 test('delete node', function () {
@@ -1268,8 +1300,7 @@ test('delete node', function () {
 
 	// remove user 2 from the list
 	cache.delete(
-		'User',
-		cache.id('User', {
+		cache._internal_unstable.id('User', {
 			id: '2',
 		})!
 	)
@@ -1283,7 +1314,7 @@ test('delete node', function () {
 	})
 
 	// make sure its empty now
-	expect(cache.internal.getRecord('User:2')).toBeFalsy()
+	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
 })
 
 test('delete node from connection', function () {
@@ -1372,8 +1403,7 @@ test('delete node from connection', function () {
 
 	// remove user 2 from the list
 	cache.delete(
-		'User',
-		cache.id('User', {
+		cache._internal_unstable.id('User', {
 			id: '2',
 		})!
 	)
@@ -1389,7 +1419,7 @@ test('delete node from connection', function () {
 	})
 
 	// make sure its empty now
-	expect(cache.internal.getRecord('User:2')).toBeFalsy()
+	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
 })
 
 test('append operation', function () {
@@ -1442,7 +1472,7 @@ test('append operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1')!,
+			parentID: cache._internal_unstable.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -1461,7 +1491,7 @@ test('append operation', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1')!,
+							value: cache._internal_unstable.id('User', '1')!,
 						},
 					},
 				],
@@ -1481,7 +1511,7 @@ test('append operation', function () {
 	})
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(1)
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(1)
 })
 
 test('append from list', function () {
@@ -1534,7 +1564,7 @@ test('append from list', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1')!,
+			parentID: cache._internal_unstable.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -1553,7 +1583,7 @@ test('append from list', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1')!,
+							value: cache._internal_unstable.id('User', '1')!,
 						},
 					},
 				],
@@ -1571,7 +1601,128 @@ test('append from list', function () {
 	})
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(2)
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(2)
+})
+
+test('toggle list', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: false,
+							type: 'User',
+						},
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [{ id: '5' }],
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	const toggleSelection: SubscriptionSelection = {
+		newUser: {
+			type: 'User',
+			keyRaw: 'newUser',
+			operations: [
+				{
+					action: 'toggle',
+					list: 'All_Users',
+					parentID: {
+						kind: 'String',
+						value: cache._internal_unstable.id('User', '1')!,
+					},
+				},
+			],
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+			},
+		},
+	}
+
+	// write some data to a different location with a new user
+	// that should be added to the list
+	cache.write({ selection: toggleSelection, data: { newUser: { id: '3' } } })
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
+		'User:5',
+		'User:3',
+	])
+
+	// toggle the user again to remove the user
+	cache.write({ selection: toggleSelection, data: { newUser: { id: '3' } } })
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
+		'User:5',
+	])
+
+	// toggle the user again to add the user back
+	cache.write({ selection: toggleSelection, data: { newUser: { id: '3' } } })
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
+		'User:5',
+		'User:3',
+	])
 })
 
 test('append when operation', function () {
@@ -1630,7 +1781,7 @@ test('append when operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1')!,
+			parentID: cache._internal_unstable.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -1649,7 +1800,7 @@ test('append when operation', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1')!,
+							value: cache._internal_unstable.id('User', '1')!,
 						},
 						when: {
 							must: {
@@ -1674,7 +1825,7 @@ test('append when operation', function () {
 	})
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
 })
 
 test('prepend when operation', function () {
@@ -1733,7 +1884,7 @@ test('prepend when operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1')!,
+			parentID: cache._internal_unstable.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -1752,7 +1903,7 @@ test('prepend when operation', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1')!,
+							value: cache._internal_unstable.id('User', '1')!,
 						},
 						position: 'first',
 						when: {
@@ -1778,7 +1929,7 @@ test('prepend when operation', function () {
 	})
 
 	// make sure we just added to the list
-	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
 })
 
 test('prepend operation', function () {
@@ -1851,7 +2002,7 @@ test('prepend operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1')!,
+			parentID: cache._internal_unstable.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -1870,7 +2021,7 @@ test('prepend operation', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1')!,
+							value: cache._internal_unstable.id('User', '1')!,
 						},
 						position: 'first',
 					},
@@ -1891,9 +2042,10 @@ test('prepend operation', function () {
 	})
 
 	// make sure we just added to the list
-	expect(
-		[...cache.list('All_Users', cache.id('User', '1')!)].map((record) => record!.fields.id)
-	).toEqual(['3', '2'])
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toEqual([
+		'User:3',
+		'User:2',
+	])
 })
 
 test('remove operation', function () {
@@ -1961,7 +2113,7 @@ test('remove operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1')!,
+			parentID: cache._internal_unstable.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -1980,7 +2132,7 @@ test('remove operation', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1')!,
+							value: cache._internal_unstable.id('User', '1')!,
 						},
 					},
 				],
@@ -2000,7 +2152,7 @@ test('remove operation', function () {
 	})
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
 })
 
 test('remove operation from list', function () {
@@ -2071,7 +2223,7 @@ test('remove operation from list', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1')!,
+			parentID: cache._internal_unstable.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -2090,7 +2242,7 @@ test('remove operation from list', function () {
 						list: 'All_Users',
 						parentID: {
 							kind: 'String',
-							value: cache.id('User', '1')!,
+							value: cache._internal_unstable.id('User', '1')!,
 						},
 					},
 				],
@@ -2108,7 +2260,7 @@ test('remove operation from list', function () {
 	})
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
 })
 
 test('delete operation', function () {
@@ -2176,7 +2328,7 @@ test('delete operation', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1')!,
+			parentID: cache._internal_unstable.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -2211,9 +2363,9 @@ test('delete operation', function () {
 	})
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
 
-	expect(cache.internal.getRecord('User:2')).toBeFalsy()
+	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
 })
 
 test('delete operation from list', function () {
@@ -2284,7 +2436,7 @@ test('delete operation from list', function () {
 					},
 				},
 			},
-			parentID: cache.id('User', '1')!,
+			parentID: cache._internal_unstable.id('User', '1')!,
 			set: jest.fn(),
 		},
 		{}
@@ -2319,10 +2471,10 @@ test('delete operation from list', function () {
 	})
 
 	// make sure we removed the element from the list
-	expect([...cache.list('All_Users', cache.id('User', '1')!)]).toHaveLength(0)
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
 
-	expect(cache.internal.getRecord('User:2')).toBeFalsy()
-	expect(cache.internal.getRecord('User:3')).toBeFalsy()
+	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
+	expect(cache._internal_unstable.storage.topLayer.operations['User:3'].deleted).toBeTruthy()
 })
 
 test('disabled linked lists update', function () {
@@ -2384,20 +2536,22 @@ test('disabled linked lists update', function () {
 
 	// make sure we can get the linked lists back
 	expect(
-		cache.internal
-			.getRecord(cache.id('User', '1')!)
-			?.flatLinkedList('friends')
-			.map((data) => data!.fields)
-	).toEqual([
-		{
-			id: '2',
-			firstName: 'jane',
-		},
-		{
-			id: '3',
-			firstName: 'mary',
-		},
-	])
+		cache.read({
+			selection: { friends: selection.viewer.fields.friends },
+			parent: 'User:1',
+		})
+	).toEqual({
+		friends: [
+			{
+				id: '2',
+				firstName: 'jane',
+			},
+			{
+				id: '3',
+				firstName: 'mary',
+			},
+		],
+	})
 
 	// add some data to the cache
 	cache.write({
@@ -2422,20 +2576,22 @@ test('disabled linked lists update', function () {
 
 	// make sure we can get the linked lists back
 	expect(
-		cache.internal
-			.getRecord(cache.id('User', '1')!)
-			?.flatLinkedList('friends')
-			.map((data) => data!.fields)
-	).toEqual([
-		{
-			id: '3',
-			firstName: 'jane',
-		},
-		{
-			id: '4',
-			firstName: 'mary',
-		},
-	])
+		cache.read({
+			selection: { friends: selection.viewer.fields.friends },
+			parent: 'User:1',
+		})
+	).toEqual({
+		friends: [
+			{
+				id: '3',
+				firstName: 'jane',
+			},
+			{
+				id: '4',
+				firstName: 'mary',
+			},
+		],
+	})
 })
 
 test('append linked lists update', function () {
@@ -2497,20 +2653,22 @@ test('append linked lists update', function () {
 
 	// make sure we can get the linked lists back
 	expect(
-		cache.internal
-			.getRecord(cache.id('User', '1')!)
-			?.flatLinkedList('friends')
-			.map((data) => data!.fields)
-	).toEqual([
-		{
-			id: '2',
-			firstName: 'jane',
-		},
-		{
-			id: '3',
-			firstName: 'mary',
-		},
-	])
+		cache.read({
+			selection: { friends: selection.viewer.fields.friends },
+			parent: 'User:1',
+		})
+	).toEqual({
+		friends: [
+			{
+				id: '2',
+				firstName: 'jane',
+			},
+			{
+				id: '3',
+				firstName: 'mary',
+			},
+		],
+	})
 
 	// add some data to the cache
 	cache.write({
@@ -2536,28 +2694,30 @@ test('append linked lists update', function () {
 
 	// make sure we can get the linked lists back
 	expect(
-		cache.internal
-			.getRecord(cache.id('User', '1')!)
-			?.flatLinkedList('friends')
-			.map((data) => data!.fields)
-	).toEqual([
-		{
-			id: '2',
-			firstName: 'jane',
-		},
-		{
-			id: '3',
-			firstName: 'mary',
-		},
-		{
-			id: '4',
-			firstName: 'jane',
-		},
-		{
-			id: '5',
-			firstName: 'mary',
-		},
-	])
+		cache.read({
+			selection: { friends: selection.viewer.fields.friends },
+			parent: 'User:1',
+		})
+	).toEqual({
+		friends: [
+			{
+				id: '2',
+				firstName: 'jane',
+			},
+			{
+				id: '3',
+				firstName: 'mary',
+			},
+			{
+				id: '4',
+				firstName: 'jane',
+			},
+			{
+				id: '5',
+				firstName: 'mary',
+			},
+		],
+	})
 })
 
 test('writing a scalar marked with a disabled update overwrites', function () {
@@ -2599,7 +2759,7 @@ test('writing a scalar marked with a disabled update overwrites', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -2620,7 +2780,7 @@ test('writing a scalar marked with a disabled update overwrites', function () {
 	})
 
 	// make sure we can get the updated lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -2668,7 +2828,7 @@ test('writing a scalar marked with a prepend', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -2690,7 +2850,7 @@ test('writing a scalar marked with a prepend', function () {
 	})
 
 	// make sure we can get the updated lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -2738,7 +2898,7 @@ test('writing a scalar marked with an append', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -2760,7 +2920,7 @@ test('writing a scalar marked with an append', function () {
 	})
 
 	// make sure we can get the updated lists back
-	expect(cache.internal.getData(cache.internal.record(rootID), selection, {})).toEqual({
+	expect(cache.read({ selection })).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
