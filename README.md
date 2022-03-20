@@ -16,13 +16,13 @@
 <script>
     import { query, graphql } from '$houdini'
 
-    const { data } = query(graphql\`
+    const { data } = query(graphql`
         query AllTodoItems {
             items {
                 text
             }
         }
-    \`)
+    `)
 <\/script>
 
 {#each $data.items as item}
