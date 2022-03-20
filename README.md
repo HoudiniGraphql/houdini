@@ -23,7 +23,7 @@
             }
         }
     `)
-<\/script>
+</script>
 
 {#each $data.items as item}
     <div>{item.text}</div>
