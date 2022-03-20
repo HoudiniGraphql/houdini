@@ -49,11 +49,15 @@ for the generation of an incredibly lean GraphQL abstraction for your applicatio
 For a detailed example, you can check out the todo list in the [example directory](./example) or the [final version](https://github.com/HoudiniGraphql/intro/tree/final) of the 
 Pokédex application from the [Getting Started guide](https://www.houdinigraphql.com/intro/welcome). 
 
+## 📚&nbsp;&nbsp;Documentation
+
+For documentation, please visit the [api reference](https://www.houdinigraphql.com/api/welcome) on the website.
+
 ## 🚀&nbsp;&nbsp;Getting Started
 
 For an in-depth guide to getting started with Houdini, check out the [guide on the our website](https://www.houdinigraphql.com/intro/welcome).
 
-## Contributing
+## ✏️&nbsp;&nbsp;Contributing
 
 If you are interested in helping out, the [contributing guide](https://www.houdinigraphql.com/guides/contributing) should provide some guidance. If you need something more
 specific, feel free to reach out to @AlecAivazis on the Svelte discord. There's lots to do regardless of how deep you want to dive 🙂
