@@ -60,4 +60,4 @@ For an in-depth guide to getting started with Houdini, check out the [guide on t
 ## ✏️&nbsp;&nbsp;Contributing
 
 If you are interested in helping out, the [contributing guide](https://www.houdinigraphql.com/guides/contributing) should provide some guidance. If you need something more
-specific, feel free to reach out to @AlecAivazis on the Svelte discord. There's lots to do regardless of how deep you want to dive 🙂
+specific, feel free to reach out to @AlecAivazis on the Svelte discord. There's lots to help with regardless of how deep you want to dive or how much time you can spend 🙂
