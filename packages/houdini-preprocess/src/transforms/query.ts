@@ -513,7 +513,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 		const beforeHookReturn = AST.identifier('beforeHookReturn')
 		const afterHookReturn = AST.identifier('afterHookReturn')
 
-		let hookReturn: namedTypes.Identifier
+		let hookReturn = AST.identifier('hookReturn')
 		if (beforeLoadDefinition || onLoadDefinition) {
 			preloadFn.body.body.splice(
 				// jump over the hook call itself and the check for errors
@@ -581,6 +581,35 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 				)
 			)
 		}
+
+		// if the hook return has keys 'props' or 'stuff' we need special handling
+		preloadFn.body.body.splice(
+			-1,
+			0,
+			AST.ifStatement(
+				AST.logicalExpression(
+					'||',
+					AST.memberExpression(hookReturn, AST.identifier('props')),
+					AST.memberExpression(hookReturn, AST.identifier('stuff'))
+				),
+				AST.blockStatement([
+					AST.returnStatement(
+						AST.objectExpression([
+							AST.spreadProperty(hookReturn),
+							AST.objectProperty(
+								AST.identifier('props'),
+								AST.objectExpression([
+									...propsValue.properties,
+									AST.spreadProperty(
+										AST.memberExpression(hookReturn, AST.identifier('props'))
+									),
+								])
+							),
+						])
+					),
+				])
+			)
+		)
 
 		// add the returnValue of the load hooks to the return value of pre(load)
 		propsValue.properties.push(

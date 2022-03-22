@@ -773,6 +773,19 @@ test('beforeLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    if (beforeHookReturn.props || beforeHookReturn.stuff) {
+		        return {
+		            ...beforeHookReturn,
+
+		            props: {
+		                _TestQuery: _TestQuery,
+		                _TestQuery_Input: _TestQuery_Input,
+		                _TestQuery_Source: _TestQuery_Source,
+		                ...beforeHookReturn.props
+		            }
+		        };
+		    }
+
 		    return {
 		        props: {
 		            _TestQuery: _TestQuery,
@@ -889,6 +902,22 @@ test('beforeLoad hook - multiple queries', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    if (beforeHookReturn.props || beforeHookReturn.stuff) {
+		        return {
+		            ...beforeHookReturn,
+
+		            props: {
+		                _TestQuery1: _TestQuery1,
+		                _TestQuery1_Input: _TestQuery1_Input,
+		                _TestQuery1_Source: _TestQuery1_Source,
+		                _TestQuery2: _TestQuery2,
+		                _TestQuery2_Input: _TestQuery2_Input,
+		                _TestQuery2_Source: _TestQuery2_Source,
+		                ...beforeHookReturn.props
+		            }
+		        };
+		    }
+
 		    return {
 		        props: {
 		            _TestQuery1: _TestQuery1,
@@ -991,6 +1020,19 @@ test('afterLoad hook', async function () {
 		    }
 
 		    const afterHookReturn = _houdini_context.returnValue;
+
+		    if (afterHookReturn.props || afterHookReturn.stuff) {
+		        return {
+		            ...afterHookReturn,
+
+		            props: {
+		                _TestQuery: _TestQuery,
+		                _TestQuery_Input: _TestQuery_Input,
+		                _TestQuery_Source: _TestQuery_Source,
+		                ...afterHookReturn.props
+		            }
+		        };
+		    }
 
 		    return {
 		        props: {
@@ -1112,6 +1154,22 @@ test('afterLoad hook - multiple queries', async function () {
 		    }
 
 		    const afterHookReturn = _houdini_context.returnValue;
+
+		    if (afterHookReturn.props || afterHookReturn.stuff) {
+		        return {
+		            ...afterHookReturn,
+
+		            props: {
+		                _TestQuery1: _TestQuery1,
+		                _TestQuery1_Input: _TestQuery1_Input,
+		                _TestQuery1_Source: _TestQuery1_Source,
+		                _TestQuery2: _TestQuery2,
+		                _TestQuery2_Input: _TestQuery2_Input,
+		                _TestQuery2_Source: _TestQuery2_Source,
+		                ...afterHookReturn.props
+		            }
+		        };
+		    }
 
 		    return {
 		        props: {
@@ -1255,6 +1313,19 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        };
 		    }
 
+		    if (hookReturn.props || hookReturn.stuff) {
+		        return {
+		            ...hookReturn,
+
+		            props: {
+		                _TestQuery: _TestQuery,
+		                _TestQuery_Input: _TestQuery_Input,
+		                _TestQuery_Source: _TestQuery_Source,
+		                ...hookReturn.props
+		            }
+		        };
+		    }
+
 		    return {
 		        props: {
 		            _TestQuery: _TestQuery,
@@ -1349,6 +1420,19 @@ test('deprecated onLoad hook', async function () {
 		    if (!_TestQuery.data) {
 		        _houdini_context.graphqlErrors(_TestQuery);
 		        return _houdini_context.returnValue;
+		    }
+
+		    if (beforeHookReturn.props || beforeHookReturn.stuff) {
+		        return {
+		            ...beforeHookReturn,
+
+		            props: {
+		                _TestQuery: _TestQuery,
+		                _TestQuery_Input: _TestQuery_Input,
+		                _TestQuery_Source: _TestQuery_Source,
+		                ...beforeHookReturn.props
+		            }
+		        };
 		    }
 
 		    return {
