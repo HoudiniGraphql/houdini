@@ -1236,12 +1236,31 @@ test('both beforeLoad and afterLoad hooks', async function () {
 
 		    const afterHookReturn = _houdini_context.returnValue;
 
+		    const hookReturn = {
+		        ...beforeHookReturn,
+		        ...afterHookReturn
+		    };
+
+		    if (hookReturn.props) {
+		        hookReturn.props = {
+		            ...beforeHookReturn.props,
+		            ...afterHookReturn.props
+		        };
+		    }
+
+		    if (hookReturn.stuff) {
+		        hookReturn.stuff = {
+		            ...beforeHookReturn.stuff,
+		            ...afterHookReturn.stuff
+		        };
+		    }
+
 		    return {
 		        props: {
 		            _TestQuery: _TestQuery,
 		            _TestQuery_Input: _TestQuery_Input,
 		            _TestQuery_Source: _TestQuery_Source,
-		            ...afterHookReturn
+		            ...hookReturn
 		        }
 		    };
 		}
