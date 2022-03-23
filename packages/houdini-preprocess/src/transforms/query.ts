@@ -330,6 +330,8 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 	// the name of the variable
 	const requestContext = AST.identifier('_houdini_context')
 
+	const retValue = AST.memberExpression(requestContext, AST.identifier('returnValue'))
+
 	// we can start inserting statements at the top of the function
 	let insertIndex = 0
 
@@ -425,11 +427,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 					'!',
 					AST.memberExpression(requestContext, AST.identifier('continue'))
 				),
-				AST.blockStatement([
-					AST.returnStatement(
-						AST.memberExpression(requestContext, AST.identifier('returnValue'))
-					),
-				])
+				AST.blockStatement([AST.returnStatement(retValue)])
 			),
 			// @ts-ignore
 			// perform the fetch and save the value under {preloadKey}
@@ -482,9 +480,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 							[AST.identifier(preloadKey)]
 						)
 					),
-					AST.returnStatement(
-						AST.memberExpression(requestContext, AST.identifier('returnValue'))
-					),
+					AST.returnStatement(retValue),
 				])
 			)
 		)
@@ -514,14 +510,111 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			preloadFn.body.body.splice(insertIndex, 0, ...loadHookStatements('onLoad', ...context))
 		}
 
-		if (afterLoadDefinition) {
-			preloadFn.body.body.splice(-1, 0, ...loadHookStatements('afterLoad', ...context))
+		const beforeHookReturn = AST.identifier('beforeHookReturn')
+		const afterHookReturn = AST.identifier('afterHookReturn')
+
+		let hookReturn = AST.identifier('hookReturn')
+		if (beforeLoadDefinition || onLoadDefinition) {
+			preloadFn.body.body.splice(
+				// jump over the hook call itself and the check for errors
+				insertIndex + 2,
+				0,
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(beforeHookReturn, retValue),
+				])
+			)
+
+			hookReturn = beforeHookReturn
 		}
+
+		if (afterLoadDefinition) {
+			preloadFn.body.body.splice(
+				-1,
+				0,
+				...loadHookStatements('afterLoad', ...context),
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(afterHookReturn, retValue),
+				])
+			)
+
+			hookReturn = afterHookReturn
+		}
+
+		if ((beforeLoadDefinition || onLoadDefinition) && afterLoadDefinition) {
+			hookReturn = AST.identifier('hookReturn')
+
+			preloadFn.body.body.splice(
+				-1,
+				0,
+				// shallow merge before/after returns
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
+						hookReturn,
+						AST.objectExpression([
+							AST.spreadProperty(beforeHookReturn),
+							AST.spreadProperty(afterHookReturn),
+						])
+					),
+				]),
+				// merge specific keys
+				...['props', 'stuff'].map(AST.identifier).map((id) =>
+					AST.ifStatement(
+						// this is true if before and/or after hook returned this key
+						AST.memberExpression(hookReturn, id),
+						AST.blockStatement([
+							AST.expressionStatement(
+								AST.assignmentExpression(
+									'=',
+									AST.memberExpression(hookReturn, id),
+									AST.objectExpression([
+										AST.spreadProperty(
+											AST.memberExpression(beforeHookReturn, id)
+										),
+										AST.spreadProperty(
+											AST.memberExpression(afterHookReturn, id)
+										),
+									])
+								)
+							),
+						])
+					)
+				)
+			)
+		}
+
+		// if the hook return has keys 'props' or 'stuff' we need special handling
+		preloadFn.body.body.splice(
+			-1,
+			0,
+			AST.ifStatement(
+				AST.logicalExpression(
+					'||',
+					AST.memberExpression(hookReturn, AST.identifier('props')),
+					AST.memberExpression(hookReturn, AST.identifier('stuff'))
+				),
+				AST.blockStatement([
+					AST.returnStatement(
+						AST.objectExpression([
+							AST.spreadProperty(hookReturn),
+							AST.objectProperty(
+								AST.identifier('props'),
+								AST.objectExpression([
+									...propsValue.properties,
+									AST.spreadProperty(
+										AST.memberExpression(hookReturn, AST.identifier('props'))
+									),
+								])
+							),
+						])
+					),
+				])
+			)
+		)
 
 		// add the returnValue of the load hooks to the return value of pre(load)
 		propsValue.properties.push(
 			// @ts-ignore
-			AST.spreadProperty(AST.memberExpression(requestContext, AST.identifier('returnValue')))
+			AST.spreadProperty(hookReturn)
 		)
 	}
 }

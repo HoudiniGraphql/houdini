@@ -748,6 +748,8 @@ test('beforeLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    const beforeHookReturn = _houdini_context.returnValue;
+
 		    const _TestQuery_Input = _houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "mode": "sapper",
@@ -771,12 +773,25 @@ test('beforeLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    if (beforeHookReturn.props || beforeHookReturn.stuff) {
+		        return {
+		            ...beforeHookReturn,
+
+		            props: {
+		                _TestQuery: _TestQuery,
+		                _TestQuery_Input: _TestQuery_Input,
+		                _TestQuery_Source: _TestQuery_Source,
+		                ...beforeHookReturn.props
+		            }
+		        };
+		    }
+
 		    return {
 		        props: {
 		            _TestQuery: _TestQuery,
 		            _TestQuery_Input: _TestQuery_Input,
 		            _TestQuery_Source: _TestQuery_Source,
-		            ..._houdini_context.returnValue
+		            ...beforeHookReturn
 		        }
 		    };
 		}
@@ -850,6 +865,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    const beforeHookReturn = _houdini_context.returnValue;
 		    const _TestQuery2_Input = {};
 
 		    if (!_houdini_context.continue) {
@@ -886,6 +902,22 @@ test('beforeLoad hook - multiple queries', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    if (beforeHookReturn.props || beforeHookReturn.stuff) {
+		        return {
+		            ...beforeHookReturn,
+
+		            props: {
+		                _TestQuery1: _TestQuery1,
+		                _TestQuery1_Input: _TestQuery1_Input,
+		                _TestQuery1_Source: _TestQuery1_Source,
+		                _TestQuery2: _TestQuery2,
+		                _TestQuery2_Input: _TestQuery2_Input,
+		                _TestQuery2_Source: _TestQuery2_Source,
+		                ...beforeHookReturn.props
+		            }
+		        };
+		    }
+
 		    return {
 		        props: {
 		            _TestQuery1: _TestQuery1,
@@ -894,7 +926,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		            _TestQuery2: _TestQuery2,
 		            _TestQuery2_Input: _TestQuery2_Input,
 		            _TestQuery2_Source: _TestQuery2_Source,
-		            ..._houdini_context.returnValue
+		            ...beforeHookReturn
 		        }
 		    };
 		}
@@ -987,12 +1019,27 @@ test('afterLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    const afterHookReturn = _houdini_context.returnValue;
+
+		    if (afterHookReturn.props || afterHookReturn.stuff) {
+		        return {
+		            ...afterHookReturn,
+
+		            props: {
+		                _TestQuery: _TestQuery,
+		                _TestQuery_Input: _TestQuery_Input,
+		                _TestQuery_Source: _TestQuery_Source,
+		                ...afterHookReturn.props
+		            }
+		        };
+		    }
+
 		    return {
 		        props: {
 		            _TestQuery: _TestQuery,
 		            _TestQuery_Input: _TestQuery_Input,
 		            _TestQuery_Source: _TestQuery_Source,
-		            ..._houdini_context.returnValue
+		            ...afterHookReturn
 		        }
 		    };
 		}
@@ -1106,6 +1153,24 @@ test('afterLoad hook - multiple queries', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    const afterHookReturn = _houdini_context.returnValue;
+
+		    if (afterHookReturn.props || afterHookReturn.stuff) {
+		        return {
+		            ...afterHookReturn,
+
+		            props: {
+		                _TestQuery1: _TestQuery1,
+		                _TestQuery1_Input: _TestQuery1_Input,
+		                _TestQuery1_Source: _TestQuery1_Source,
+		                _TestQuery2: _TestQuery2,
+		                _TestQuery2_Input: _TestQuery2_Input,
+		                _TestQuery2_Source: _TestQuery2_Source,
+		                ...afterHookReturn.props
+		            }
+		        };
+		    }
+
 		    return {
 		        props: {
 		            _TestQuery1: _TestQuery1,
@@ -1114,7 +1179,7 @@ test('afterLoad hook - multiple queries', async function () {
 		            _TestQuery2: _TestQuery2,
 		            _TestQuery2_Input: _TestQuery2_Input,
 		            _TestQuery2_Source: _TestQuery2_Source,
-		            ..._houdini_context.returnValue
+		            ...afterHookReturn
 		        }
 		    };
 		}
@@ -1188,6 +1253,8 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    const beforeHookReturn = _houdini_context.returnValue;
+
 		    const _TestQuery_Input = _houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "mode": "sapper",
@@ -1225,12 +1292,46 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    const afterHookReturn = _houdini_context.returnValue;
+
+		    const hookReturn = {
+		        ...beforeHookReturn,
+		        ...afterHookReturn
+		    };
+
+		    if (hookReturn.props) {
+		        hookReturn.props = {
+		            ...beforeHookReturn.props,
+		            ...afterHookReturn.props
+		        };
+		    }
+
+		    if (hookReturn.stuff) {
+		        hookReturn.stuff = {
+		            ...beforeHookReturn.stuff,
+		            ...afterHookReturn.stuff
+		        };
+		    }
+
+		    if (hookReturn.props || hookReturn.stuff) {
+		        return {
+		            ...hookReturn,
+
+		            props: {
+		                _TestQuery: _TestQuery,
+		                _TestQuery_Input: _TestQuery_Input,
+		                _TestQuery_Source: _TestQuery_Source,
+		                ...hookReturn.props
+		            }
+		        };
+		    }
+
 		    return {
 		        props: {
 		            _TestQuery: _TestQuery,
 		            _TestQuery_Input: _TestQuery_Input,
 		            _TestQuery_Source: _TestQuery_Source,
-		            ..._houdini_context.returnValue
+		            ...hookReturn
 		        }
 		    };
 		}
@@ -1296,6 +1397,8 @@ test('deprecated onLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    const beforeHookReturn = _houdini_context.returnValue;
+
 		    const _TestQuery_Input = _houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "mode": "sapper",
@@ -1319,12 +1422,25 @@ test('deprecated onLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
+		    if (beforeHookReturn.props || beforeHookReturn.stuff) {
+		        return {
+		            ...beforeHookReturn,
+
+		            props: {
+		                _TestQuery: _TestQuery,
+		                _TestQuery_Input: _TestQuery_Input,
+		                _TestQuery_Source: _TestQuery_Source,
+		                ...beforeHookReturn.props
+		            }
+		        };
+		    }
+
 		    return {
 		        props: {
 		            _TestQuery: _TestQuery,
 		            _TestQuery_Input: _TestQuery_Input,
 		            _TestQuery_Source: _TestQuery_Source,
-		            ..._houdini_context.returnValue
+		            ...beforeHookReturn
 		        }
 		    };
 		}
