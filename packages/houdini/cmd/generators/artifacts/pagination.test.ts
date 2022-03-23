@@ -71,11 +71,13 @@ test('pagination arguments stripped from key', async function () {
 					        friendsByCursor: {
 					            type: "UserConnection",
 					            keyRaw: "friendsByCursor(filter: \\"hello\\")::paginated",
+					            nullable: true,
 
 					            fields: {
 					                edges: {
 					                    type: "UserEdge",
 					                    keyRaw: "edges",
+					                    nullable: true,
 
 					                    fields: {
 					                        cursor: {
@@ -86,6 +88,7 @@ test('pagination arguments stripped from key', async function () {
 					                        node: {
 					                            type: "User",
 					                            keyRaw: "node",
+					                            nullable: true,
 
 					                            fields: {
 					                                __typename: {
@@ -297,11 +300,13 @@ test("sibling aliases don't get marked", async function () {
 					        friendsByCursor: {
 					            type: "UserConnection",
 					            keyRaw: "friendsByCursor(filter: \\"hello\\")::paginated",
+					            nullable: true,
 
 					            fields: {
 					                edges: {
 					                    type: "UserEdge",
 					                    keyRaw: "edges",
+					                    nullable: true,
 
 					                    fields: {
 					                        cursor: {
@@ -312,6 +317,7 @@ test("sibling aliases don't get marked", async function () {
 					                        node: {
 					                            type: "User",
 					                            keyRaw: "node",
+					                            nullable: true,
 
 					                            fields: {
 					                                __typename: {
@@ -322,16 +328,19 @@ test("sibling aliases don't get marked", async function () {
 					                                friendsByCursor: {
 					                                    type: "UserConnection",
 					                                    keyRaw: "friendsByCursor",
+					                                    nullable: true,
 
 					                                    fields: {
 					                                        edges: {
 					                                            type: "UserEdge",
 					                                            keyRaw: "edges",
+					                                            nullable: true,
 
 					                                            fields: {
 					                                                node: {
 					                                                    type: "User",
 					                                                    keyRaw: "node",
+					                                                    nullable: true,
 
 					                                                    fields: {
 					                                                        id: {
@@ -388,31 +397,37 @@ test("sibling aliases don't get marked", async function () {
 					        friends: {
 					            type: "UserConnection",
 					            keyRaw: "friends(first: 10, filter: \\"hello\\")",
+					            nullable: true,
 
 					            fields: {
 					                edges: {
 					                    type: "UserEdge",
 					                    keyRaw: "edges",
+					                    nullable: true,
 
 					                    fields: {
 					                        node: {
 					                            type: "User",
 					                            keyRaw: "node",
+					                            nullable: true,
 
 					                            fields: {
 					                                friendsByCursor: {
 					                                    type: "UserConnection",
 					                                    keyRaw: "friendsByCursor",
+					                                    nullable: true,
 
 					                                    fields: {
 					                                        edges: {
 					                                            type: "UserEdge",
 					                                            keyRaw: "edges",
+					                                            nullable: true,
 
 					                                            fields: {
 					                                                node: {
 					                                                    type: "User",
 					                                                    keyRaw: "node",
+					                                                    nullable: true,
 
 					                                                    fields: {
 					                                                        id: {

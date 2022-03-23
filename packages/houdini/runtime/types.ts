@@ -168,6 +168,7 @@ export type GraphQLValue =
 export type SubscriptionSelection = {
 	[field: string]: {
 		type: string
+		nullable?: boolean
 		keyRaw: string
 		operations?: MutationOperation[]
 		list?: {

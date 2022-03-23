@@ -684,6 +684,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    fields: {
 		                        firstName: {
@@ -770,6 +771,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "insert",
@@ -863,6 +865,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "toggle",
@@ -954,6 +957,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "remove",
@@ -1030,6 +1034,7 @@ describe('mutation artifacts', function () {
 		                userID: {
 		                    type: "ID",
 		                    keyRaw: "userID",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "delete",
@@ -1099,6 +1104,7 @@ describe('mutation artifacts', function () {
 		                userID: {
 		                    type: "ID",
 		                    keyRaw: "userID",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "delete",
@@ -1184,6 +1190,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "insert",
@@ -1281,6 +1288,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "insert",
@@ -1378,6 +1386,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "insert",
@@ -1475,6 +1484,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "insert",
@@ -1573,6 +1583,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "insert",
@@ -1671,6 +1682,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "insert",
@@ -1769,6 +1781,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "insert",
@@ -1867,6 +1880,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "insert",
@@ -2080,6 +2094,7 @@ describe('mutation artifacts', function () {
 		                friend: {
 		                    type: "User",
 		                    keyRaw: "friend",
+		                    nullable: true,
 
 		                    operations: [{
 		                        action: "insert",
@@ -2281,6 +2296,7 @@ describe('mutation artifacts', function () {
 		        usersByCursor: {
 		            type: "UserConnection",
 		            keyRaw: "usersByCursor::paginated",
+		            nullable: true,
 
 		            list: {
 		                name: "All_Users",
@@ -2292,6 +2308,7 @@ describe('mutation artifacts', function () {
 		                edges: {
 		                    type: "UserEdge",
 		                    keyRaw: "edges",
+		                    nullable: true,
 
 		                    fields: {
 		                        cursor: {
@@ -2302,6 +2319,7 @@ describe('mutation artifacts', function () {
 		                        node: {
 		                            type: "User",
 		                            keyRaw: "node",
+		                            nullable: true,
 
 		                            fields: {
 		                                __typename: {
@@ -2757,6 +2775,7 @@ test('operation inputs', async function () {
 		        user: {
 		            type: "User",
 		            keyRaw: "user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg)",
+		            nullable: true,
 
 		            fields: {
 		                id: {

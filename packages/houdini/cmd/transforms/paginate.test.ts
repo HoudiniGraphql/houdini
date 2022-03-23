@@ -491,16 +491,19 @@ test('embeds node pagination query as a separate document', async function () {
 					        node: {
 					            type: "Node",
 					            keyRaw: "node(id: $id)",
+					            nullable: true,
 
 					            fields: {
 					                friendsByForwardsCursor: {
 					                    type: "UserConnection",
 					                    keyRaw: "friendsByForwardsCursor::paginated",
+					                    nullable: true,
 
 					                    fields: {
 					                        edges: {
 					                            type: "UserEdge",
 					                            keyRaw: "edges",
+					                            nullable: true,
 
 					                            fields: {
 					                                cursor: {
@@ -511,6 +514,7 @@ test('embeds node pagination query as a separate document', async function () {
 					                                node: {
 					                                    type: "User",
 					                                    keyRaw: "node",
+					                                    nullable: true,
 
 					                                    fields: {
 					                                        __typename: {
@@ -1095,11 +1099,13 @@ test('generated query has same refetch spec', async function () {
 					        usersByCursor: {
 					            type: "UserConnection",
 					            keyRaw: "usersByCursor::paginated",
+					            nullable: true,
 
 					            fields: {
 					                edges: {
 					                    type: "UserEdge",
 					                    keyRaw: "edges",
+					                    nullable: true,
 
 					                    fields: {
 					                        cursor: {
@@ -1110,6 +1116,7 @@ test('generated query has same refetch spec', async function () {
 					                        node: {
 					                            type: "User",
 					                            keyRaw: "node",
+					                            nullable: true,
 
 					                            fields: {
 					                                __typename: {
