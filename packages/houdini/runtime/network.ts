@@ -197,7 +197,10 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	const environment = getEnvironment()
 	// if there is no environment
 	if (!environment) {
-		return [{ data: {}, errors: [{ message: 'could not find houdini environment' }] }, null]
+		return {
+			data: { data: {}, errors: [{ message: 'could not find houdini environment' }] },
+			source: null,
+		}
 	}
 
 	// enforce cache policies for queries
@@ -211,46 +214,50 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 		// cached data, we need to load data from the cache (if its available). If the policy
 		// prefers network data we need to send a request (the onLoad of the component will
 		// resolve the next data)
-		if (
-			[
-				CachePolicy.CacheOrNetwork,
-				CachePolicy.CacheOnly,
-				CachePolicy.CacheAndNetwork,
-			].includes(artifact.policy!) &&
-			cache._internal_unstable.isDataAvailable(artifact.selection, variables)
-		) {
-			return [
-				{
-					data: cache.read({
-						parent: rootID,
-						selection: artifact.selection,
-						variables,
-					}).data,
-					errors: [],
-				},
-				DataSource.Cache,
-			]
-		}
-		// if the policy is cacheOnly and we got this far, we need to return null
-		else if (artifact.policy === CachePolicy.CacheOnly) {
-			return [
-				{
-					data: null,
-					errors: [],
-				},
-				null,
-			]
+
+		// if the policy says network only, dont do anything here - the mountMount of the query
+		// will handle it
+		if (artifact.policy !== CachePolicy.NetworkOnly) {
+			// look up the current value in the cache
+			const value = cache.read({ selection: artifact.selection, variables })
+
+			// if the policy allows for cached values and we have some
+			if (value.data !== null) {
+				return {
+					data: {
+						data: value.data,
+						errors: [],
+					},
+					source: DataSource.Cache,
+					partial: value.partial,
+				}
+			}
+
+			// if the policy is cacheOnly and we got this far, we need to return null
+			else if (artifact.policy === CachePolicy.CacheOnly) {
+				return {
+					data: {
+						data: null,
+						errors: [],
+					},
+					source: DataSource.Cache,
+					partial: false,
+				}
+			}
 		}
 	}
 
-	return [
-		await environment.sendRequest<_Data>(
+	// the request must be resolved against the network
+
+	return {
+		data: await environment.sendRequest<_Data>(
 			context,
 			{ text: artifact.raw, hash: artifact.hash, variables },
 			session
 		),
-		DataSource.Network,
-	]
+		source: DataSource.Network,
+		partial: false,
+	}
 }
 
 export class RequestContext {
