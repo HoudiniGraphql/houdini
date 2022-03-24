@@ -93,6 +93,7 @@ test('root subscribe - linked object changed', function () {
 				favoriteColors: {
 					type: 'String',
 					keyRaw: 'favoriteColors(where: "foo")',
+					nullable: true,
 				},
 			},
 		},
@@ -188,6 +189,7 @@ test("subscribing to null object doesn't explode", function () {
 					keyRaw: 'firstName',
 				},
 				favoriteColors: {
+					nullable: true,
 					type: 'String',
 					keyRaw: 'favoriteColors(where: "foo")',
 				},
@@ -243,6 +245,7 @@ test('overwriting a reference with null clears its subscribers', function () {
 		viewer: {
 			type: 'User',
 			keyRaw: 'viewer',
+			nullable: true,
 			fields: {
 				id: {
 					type: 'ID',
@@ -314,6 +317,7 @@ test('overwriting a linked list with null clears its subscribers', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
+					nullable: true,
 					fields: {
 						firstName: {
 							type: 'String',
