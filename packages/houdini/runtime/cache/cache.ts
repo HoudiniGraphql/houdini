@@ -637,18 +637,6 @@ class CacheInternal {
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
 
-			// if the value is null
-			if (value === null) {
-				// if the field cannot be null, then the whole object's value is null
-				if (!nullable) {
-					cascadeNull = true
-				}
-
-				target[attributeName] = null
-				hasKeys.push(attributeName)
-				continue
-			}
-
 			// if we dont have a value to process, check that we can return null
 			if (typeof value === 'undefined' || value === null) {
 				// null is still a value so if we had null, we had a value for the key (not partial)
