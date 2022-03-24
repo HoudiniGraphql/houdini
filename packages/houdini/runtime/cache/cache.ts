@@ -688,6 +688,10 @@ class CacheInternal {
 				else if (!nullable) {
 					cascadeNull = true
 				}
+				// we dont have a value for this field and the schema lets it take a null value
+				else {
+					target[attributeName] = null
+				}
 
 				// we're done
 				continue

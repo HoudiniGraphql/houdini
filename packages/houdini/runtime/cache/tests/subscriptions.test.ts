@@ -128,7 +128,6 @@ test('root subscribe - linked object changed', function () {
 			viewer: {
 				id: '2',
 				firstName: 'mary',
-				// ignoring favoriteColors as a sanity check (should get undefined)
 			},
 		},
 	})
@@ -138,7 +137,7 @@ test('root subscribe - linked object changed', function () {
 		viewer: {
 			firstName: 'mary',
 			// this is a sanity-check. the cache wasn't written with that value
-			favoriteColors: undefined,
+			favoriteColors: null,
 			id: '2',
 		},
 	})
@@ -164,6 +163,7 @@ test('root subscribe - linked object changed', function () {
 		viewer: {
 			firstName: 'Michelle',
 			id: '2',
+			favoriteColors: null,
 		},
 	})
 
@@ -230,8 +230,7 @@ test("subscribing to null object doesn't explode", function () {
 	expect(set).toHaveBeenCalledWith({
 		viewer: {
 			firstName: 'mary',
-			// this is a sanity-check. the cache wasn't written with that value
-			favoriteColors: undefined,
+			favoriteColors: null,
 			id: '2',
 		},
 	})
