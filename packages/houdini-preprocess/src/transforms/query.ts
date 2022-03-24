@@ -233,6 +233,13 @@ function processInstance(
 									)
 								),
 								AST.objectProperty(
+									AST.stringLiteral('partial'),
+									AST.memberExpression(
+										AST.identifier(preloadPayloadKey(operation)),
+										AST.identifier('partial')
+									)
+								),
+								AST.objectProperty(
 									AST.literal('kind'),
 									AST.stringLiteral(artifact.kind)
 								),

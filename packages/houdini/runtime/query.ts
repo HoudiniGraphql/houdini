@@ -16,6 +16,7 @@ import cache from './cache'
 import { setVariables } from './context'
 import { executeQuery, RequestPayload } from './network'
 import { marshalInputs, unmarshalSelection } from './scalars'
+import type { FetchQueryResult } from './network'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo, isBrowser } from './adapter.mjs'
@@ -152,19 +153,20 @@ export function query<_Query extends Operation<any, any>>(
 		loading: { subscribe: loading.subscribe },
 		error: readable(null, () => {}),
 		onLoad(
-			newData: RequestPayload<_Query['result']>,
-			newVariables: _Query['input'],
-			source: DataSource
+			newValue: FetchQueryResult<any> & { variables: { [key: string]: any } }
+			// newData: RequestPayload<_Query['result']>,
+			// newVariables: _Query['input'],
+			// source: DataSource
 		) {
 			// we got new data from mounting, write it
-			writeData(newData, newVariables)
+			writeData(newValue.result, newValue.variables)
 
 			// if we are mounting on a browser we might need to perform an additional network request
 			if (isBrowser) {
 				// if the data was loaded from a cached value, and the document cache policy wants a
 				// network request to be sent after the data was loaded, load the data
 				if (
-					source === DataSource.Cache &&
+					newValue.source === DataSource.Cache &&
 					artifact.policy === CachePolicy.CacheAndNetwork
 				) {
 					// this will invoke pagination's refetch because of javascript's magic this binding
@@ -180,7 +182,7 @@ export function query<_Query extends Operation<any, any>>(
 export type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
 	writeData: (data: RequestPayload<_Data>, variables: _Input) => void
-	onLoad: (data: RequestPayload<_Data>, variables: _Input, source: DataSource) => void
+	onLoad: (newValue: FetchQueryResult<_Data> & { variables: _Input }) => void
 	refetch: (newVariables?: _Input) => Promise<void>
 	loading: Readable<boolean>
 	error: Readable<Error | null>

@@ -67,6 +67,7 @@ describe('query preprocessor', function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery.result,
 		    "variables": _TestQuery.variables,
+		    "partial": _TestQuery.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQueryArtifact,
 		    "source": _TestQuery.source
@@ -184,6 +185,7 @@ describe('query preprocessor', function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery2.result,
 		    "variables": _TestQuery2.variables,
+		    "partial": _TestQuery2.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQuery2Artifact,
 		    "source": _TestQuery2.source
@@ -195,6 +197,7 @@ describe('query preprocessor', function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery1.result,
 		    "variables": _TestQuery1.variables,
+		    "partial": _TestQuery1.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQuery1Artifact,
 		    "source": _TestQuery1.source
@@ -316,6 +319,7 @@ describe('query preprocessor', function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery.result,
 		    "variables": _TestQuery.variables,
+		    "partial": _TestQuery.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQueryArtifact,
 		    "source": _TestQuery.source
@@ -401,6 +405,7 @@ describe('query preprocessor', function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery.result,
 		    "variables": _TestQuery.variables,
+		    "partial": _TestQuery.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQueryArtifact,
 		    "source": _TestQuery.source
@@ -458,6 +463,7 @@ describe('query preprocessor', function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery.result,
 		    "variables": _TestQuery.variables,
+		    "partial": _TestQuery.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQueryArtifact,
 		    "source": _TestQuery.source
@@ -507,6 +513,7 @@ describe('query preprocessor', function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery.result,
 		    "variables": _TestQuery.variables,
+		    "partial": _TestQuery.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQueryArtifact,
 		    "source": _TestQuery.source
@@ -556,6 +563,7 @@ describe('query preprocessor', function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery.result,
 		    "variables": _TestQuery.variables,
+		    "partial": _TestQuery.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQueryArtifact,
 		    "source": _TestQuery.source
@@ -603,6 +611,7 @@ describe('query preprocessor', function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery.result,
 		    "variables": _TestQuery.variables,
+		    "partial": _TestQuery.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQueryArtifact,
 		    "source": _TestQuery.source
@@ -657,6 +666,7 @@ describe('query preprocessor', function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery.result,
 		    "variables": _TestQuery.variables,
+		    "partial": _TestQuery.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQueryArtifact,
 		    "source": _TestQuery.source
@@ -1500,6 +1510,7 @@ test('2 queries, one paginated one not', async function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery2.result,
 		    "variables": _TestQuery2.variables,
+		    "partial": _TestQuery2.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQuery2Artifact,
 		    "source": _TestQuery2.source
@@ -1511,6 +1522,7 @@ test('2 queries, one paginated one not', async function () {
 		    "config": houdiniConfig,
 		    "initialValue": _TestQuery1.result,
 		    "variables": _TestQuery1.variables,
+		    "partial": _TestQuery1.partial,
 		    "kind": "HoudiniQuery",
 		    "artifact": _TestQuery1Artifact,
 		    "source": _TestQuery1.source

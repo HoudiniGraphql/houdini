@@ -180,6 +180,12 @@ export async function convertKitPayload(
 	throw new Error('Could not handle response from loader: ' + JSON.stringify(result))
 }
 
+export type FetchQueryResult<_Data> = {
+	result: RequestPayload<_Data | {} | null>
+	source: DataSource | null
+	partial: boolean
+}
+
 export async function fetchQuery<_Data extends GraphQLObject>({
 	context,
 	artifact,
@@ -192,11 +198,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	variables: {}
 	session?: FetchSession
 	cached?: boolean
-}): Promise<{
-	result: RequestPayload<_Data | {} | null>
-	source: DataSource | null
-	partial: boolean
-}> {
+}): Promise<FetchQueryResult<_Data>> {
 	// grab the current environment
 	const environment = getEnvironment()
 	// if there is no environment
