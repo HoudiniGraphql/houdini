@@ -125,7 +125,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 		},
 	}
 
-	const [res] = await fetchQuery<_Data>({
+	const { data: res } = await fetchQuery<_Data>({
 		context: fetchCtx,
 		artifact,
 		session,
@@ -192,7 +192,11 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	variables: {}
 	session?: FetchSession
 	cached?: boolean
-}): Promise<[RequestPayload<_Data | {} | null>, DataSource | null]> {
+}): Promise<{
+	data: RequestPayload<_Data | {} | null>
+	source: DataSource | null
+	partial: boolean
+}> {
 	// grab the current environment
 	const environment = getEnvironment()
 	// if there is no environment
@@ -200,6 +204,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 		return {
 			data: { data: {}, errors: [{ message: 'could not find houdini environment' }] },
 			source: null,
+			partial: false,
 		}
 	}
 
