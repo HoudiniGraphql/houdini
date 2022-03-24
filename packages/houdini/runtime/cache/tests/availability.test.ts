@@ -25,6 +25,7 @@ test('not partial', function () {
 				friends: {
 					type: 'User',
 					keyRaw: 'friends',
+					nullable: true,
 					fields: {
 						id: {
 							type: 'ID',
@@ -148,7 +149,7 @@ test('partial with missing linked record', function () {
 				},
 				parent: {
 					type: 'User',
-					keyRaw: 'friends',
+					keyRaw: 'parent',
 					fields: {
 						id: {
 							type: 'ID',

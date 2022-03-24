@@ -99,6 +99,7 @@ test('linked records with updates', function () {
 		parent: {
 			type: 'User',
 			keyRaw: 'parent',
+			nullable: true,
 			fields: {
 				id: {
 					type: 'ID',
@@ -136,6 +137,7 @@ test('linked records with updates', function () {
 	expect(cache.read({ selection: userFields, parent: 'User:2' }).data).toEqual({
 		id: '2',
 		firstName: 'jane',
+		parent: null,
 	})
 
 	// associate user2 with a new parent
@@ -164,6 +166,7 @@ test('linked records with updates', function () {
 	expect(cache.read({ selection: userFields, parent: 'User:3' }).data).toEqual({
 		id: '3',
 		firstName: 'mary',
+		parent: null,
 	})
 })
 

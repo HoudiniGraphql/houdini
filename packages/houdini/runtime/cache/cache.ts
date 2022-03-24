@@ -638,9 +638,13 @@ class CacheInternal {
 
 		const target = {} as GraphQLObject
 
-		// hold onto a list of values that totally exist (no partial)
+		// hold onto a list of values that we have computed values for
 		let hasKeys = []
-
+		// if we load a related object or array that has a partial value, we dont
+		// care about local partial stuff
+		let forcePartial = false
+		// if we get an empty value for a non-null field, we need to turn the whole object null
+		// that happens after we process every field to determine if its a partial null
 		let cascadeNull = false
 
 		// look at every field in the parentFields
@@ -705,41 +709,84 @@ class CacheInternal {
 					linkedList: value as LinkedList,
 				})
 
+				// save the hydrated list
 				target[attributeName] = listValue.data
 
-				// if the value isn't partial, add it to the list
-				if (!listValue.partial) {
-					hasKeys.push(attributeName)
+				// if the value can't be null our parent has to be null
+				if (target[attributeName] === null && !nullable) {
+					cascadeNull = true
 				}
+
+				// we have a value for the object, pretend its not-partial and let the force flag
+				// decide
+				if (listValue.partial) {
+					forcePartial = true
+				}
+				hasKeys.push(attributeName)
 
 				continue
 			}
 			// otherwise the field is an object
 			else {
+				// if we dont have a value to go down, check that we can return null
+				if (typeof value === 'undefined' || value === null) {
+					// null is still a value so if we had null, we had a value for the key (not partial)
+					if (value === null) {
+						hasKeys.push(attributeName)
+					}
+
+					// set the value to null
+					target[attributeName] = null
+
+					// if the value can't be null our parent has to be null
+					if (!nullable) {
+						cascadeNull = true
+					}
+
+					// we're done with the field
+					continue
+				}
+
+				// look up the related object fields
 				const objectFields = this.getSelection({
 					parent: value as string,
 					selection: fields,
 					variables,
 				})
 
-				// if we dont have a value, use null
-				if (typeof value !== 'undefined') {
-					target[attributeName] = objectFields.data
+				// save the object value
+				target[attributeName] = objectFields.data
+
+				// if the object is actually null and we're not allowed to be
+				// our parent has to return null
+				if (target[attributeName] === null && !nullable) {
+					cascadeNull = true
 				}
 
-				// if the value isn't partial, add it to the list
-				if (!objectFields.partial) {
-					hasKeys.push(attributeName)
+				// we have a value for the object, pretend its not-partial and let the force flag
+				// decide
+				if (objectFields.partial) {
+					forcePartial = true
 				}
+				hasKeys.push(attributeName)
 
+				// we're done
 				continue
 			}
 		}
 
+		// a value is partial if there is at least one key with a value that was
+		// used when building up this object
+		const partial =
+			forcePartial ||
+			(hasKeys.length > 0 &&
+				Object.keys(selection).length > 0 &&
+				hasKeys.length !== Object.keys(selection).length)
+
 		return {
 			data: cascadeNull ? null : target,
 			// our value is considered partial if we dont have a full value for every key
-			partial: hasKeys.length !== Object.keys(selection).length,
+			partial,
 		}
 	}
 
