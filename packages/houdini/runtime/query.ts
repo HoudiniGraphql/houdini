@@ -39,6 +39,9 @@ export function query<_Query extends Operation<any, any>>(
 	// a query is never 'loading'
 	const loading = writable(false)
 
+	// track the partial state
+	let partial = writable(document.partial)
+
 	// this payload has already been marshaled
 	let variables = document.variables
 
@@ -138,7 +141,14 @@ export function query<_Query extends Operation<any, any>>(
 				}
 
 				// Execute the query
-				const result = await executeQuery(artifact, variableBag, sessionStore, false)
+				const { result, partial: partialData } = await executeQuery(
+					artifact,
+					variableBag,
+					sessionStore,
+					false
+				)
+
+				partial.set(partialData)
 
 				// Write the data to the cache
 				writeData(result, variableBag)
@@ -150,6 +160,7 @@ export function query<_Query extends Operation<any, any>>(
 		// the data given by preload
 		writeData,
 		loading: { subscribe: loading.subscribe },
+		partial: { subscribe: partial.subscribe },
 		error: readable(null, () => {}),
 		onLoad(
 			newValue: FetchQueryResult<any> & { variables: { [key: string]: any } }
@@ -194,6 +205,7 @@ export type QueryResponse<_Data, _Input> = {
 	onLoad: (newValue: FetchQueryResult<_Data> & { variables: _Input }) => void
 	refetch: (newVariables?: _Input) => Promise<void>
 	loading: Readable<boolean>
+	partial: Readable<boolean>
 	error: Readable<Error | null>
 }
 

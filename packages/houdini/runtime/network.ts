@@ -107,7 +107,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 	variables: _Input,
 	sessionStore: Readable<any>,
 	cached: boolean
-): Promise<RequestPayload> {
+): Promise<{ result: RequestPayload; partial: boolean }> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?
 	const session = get(sessionStore)
@@ -125,7 +125,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 		},
 	}
 
-	const { result: res } = await fetchQuery<_Data>({
+	const { result: res, partial } = await fetchQuery<_Data>({
 		context: fetchCtx,
 		artifact,
 		session,
@@ -141,7 +141,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 		throw new Error('Encountered empty data response in payload')
 	}
 
-	return res
+	return { result: res, partial }
 }
 
 // convertKitPayload is responsible for taking the result of kit's load

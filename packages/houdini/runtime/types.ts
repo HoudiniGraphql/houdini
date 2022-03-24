@@ -117,6 +117,7 @@ export type TaggedGraphqlQuery = {
 	artifact: QueryArtifact
 	config: Config
 	source: DataSource
+	partial: boolean
 }
 
 type Filter = { [key: string]: string | boolean | number }

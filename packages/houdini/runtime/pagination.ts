@@ -39,10 +39,18 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	}
 
 	// pass the artifact to the base query operation
-	const { data, loading, refetch, ...restOfQueryResponse } = query(document)
+	const { data, loading, refetch, partial, ...restOfQueryResponse } = query(document)
+
+	const paginationPartial = writable(false)
+
+	const partialStore = derived(
+		[partial, paginationPartial],
+		([$partial, $paginationPartial]) => $partial || $paginationPartial
+	)
 
 	return {
 		data,
+		partial: partialStore,
 		...paginationHandlers({
 			initialValue: document.initialValue.data,
 			store: data,
@@ -50,6 +58,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 			queryVariables: () => document.variables,
 			documentLoading: loading,
 			refetch,
+			partial: paginationPartial,
 		}),
 		...restOfQueryResponse,
 	}
@@ -78,9 +87,12 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 		// @ts-ignore: typing esm/cjs interop is hard
 		document.paginationArtifact.default || document.paginationArtifact
 
+	const partial = writable(false)
+
 	return {
 		data,
 		...paginationHandlers({
+			partial,
 			initialValue,
 			store: data,
 			artifact: paginationArtifact,
@@ -103,6 +115,7 @@ function paginationHandlers<_Input>({
 	queryVariables,
 	documentLoading,
 	refetch,
+	partial,
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
@@ -110,6 +123,7 @@ function paginationHandlers<_Input>({
 	queryVariables?: () => {}
 	documentLoading?: Readable<boolean>
 	refetch?: RefetchFn
+	partial: Writable<boolean>
 }): PaginatedHandlers<_Input> {
 	// start with the defaults and no meaningful page info
 	let loadPreviousPage = defaultLoadPreviousPage
@@ -138,6 +152,7 @@ function paginationHandlers<_Input>({
 			queryVariables,
 			loading: paginationLoadingState,
 			refetch,
+			partial,
 		})
 		// always track pageInfo
 		pageInfo = cursor.pageInfo
@@ -162,6 +177,7 @@ function paginationHandlers<_Input>({
 			loading: paginationLoadingState,
 			refetch,
 			store,
+			partial,
 		})
 
 		loadNextPage = offset.loadPage
@@ -189,6 +205,7 @@ function cursorHandlers<_Input>({
 	queryVariables: extraVariables,
 	loading,
 	refetch,
+	partial,
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
@@ -196,6 +213,7 @@ function cursorHandlers<_Input>({
 	queryVariables?: () => {}
 	loading: Writable<boolean>
 	refetch?: RefetchFn
+	partial: Writable<boolean>
 }): PaginatedHandlers<_Input> {
 	// pull out the context accessors
 	const variables = getVariables()
@@ -245,12 +263,14 @@ function cursorHandlers<_Input>({
 		}
 
 		// send the query
-		const result = await executeQuery<GraphQLObject, {}>(
+		const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
 			artifact,
 			queryVariables,
 			sessionStore,
 			false
 		)
+
+		partial.set(partialData)
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -351,12 +371,13 @@ function cursorHandlers<_Input>({
 			loading.set(true)
 
 			// send the query
-			const result = await executeQuery<GraphQLObject, {}>(
+			const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
 				artifact,
 				queryVariables,
 				sessionStore,
 				false
 			)
+			partial.set(partialData)
 
 			// update cache with the result
 			cache.write({
@@ -380,6 +401,7 @@ function offsetPaginationHandler<_Data, _Input>({
 	refetch,
 	initialValue,
 	store,
+	partial,
 }: {
 	artifact: QueryArtifact
 	queryVariables?: {}
@@ -387,6 +409,7 @@ function offsetPaginationHandler<_Data, _Input>({
 	refetch?: RefetchFn
 	initialValue: GraphQLObject
 	store: Readable<GraphQLObject>
+	partial: Writable<boolean>
 }): {
 	loadPage: PaginatedHandlers<_Input>['loadNextPage']
 	refetch: PaginatedHandlers<_Input>['refetch']
@@ -426,12 +449,13 @@ function offsetPaginationHandler<_Data, _Input>({
 			loading.set(true)
 
 			// send the query
-			const result = await executeQuery<GraphQLObject, {}>(
+			const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
 				artifact,
 				queryVariables,
 				sessionStore,
 				false
 			)
+			partial.set(partialData)
 
 			// update cache with the result
 			cache.write({
@@ -473,12 +497,13 @@ function offsetPaginationHandler<_Data, _Input>({
 			loading.set(true)
 
 			// send the query
-			const result = await executeQuery<GraphQLObject, {}>(
+			const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
 				artifact,
 				queryVariables,
 				sessionStore,
 				false
 			)
+			partial.set(partialData)
 
 			// update cache with the result
 			cache.write({
