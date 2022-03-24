@@ -641,8 +641,12 @@ class CacheInternal {
 		// hold onto a list of values that totally exist (no partial)
 		let hasKeys = []
 
+		let cascadeNull = false
+
 		// look at every field in the parentFields
-		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
+		for (const [attributeName, { type, keyRaw, fields, nullable }] of Object.entries(
+			selection
+		)) {
 			const key = evaluateKey(keyRaw, variables)
 
 			// look up the value in our store
@@ -650,6 +654,11 @@ class CacheInternal {
 
 			// if the value is null
 			if (value === null) {
+				// if the field cannot be null, then the whole object's value is null
+				if (!nullable) {
+					cascadeNull = true
+				}
+
 				target[attributeName] = null
 				hasKeys.push(attributeName)
 				continue
@@ -669,6 +678,15 @@ class CacheInternal {
 				else if (typeof value !== 'undefined') {
 					target[attributeName] = value
 					hasKeys.push(attributeName)
+
+					// if the value is null and the can't be nullable
+					if (value === null && !nullable) {
+						cascadeNull = true
+					}
+				}
+				// if the field cannot be null, then the whole object's value is null
+				else if (!nullable) {
+					cascadeNull = true
 				}
 
 				// we're done
@@ -715,7 +733,7 @@ class CacheInternal {
 		}
 
 		return {
-			data: target,
+			data: cascadeNull ? null : target,
 			// our value is considered partial if we dont have a full value for every key
 			partial: hasKeys.length !== Object.keys(selection).length,
 		}

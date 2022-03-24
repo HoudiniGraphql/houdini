@@ -637,6 +637,7 @@ test('can store and retrieve links with null values', function () {
 		viewer: {
 			type: 'User',
 			keyRaw: 'viewer',
+			nullable: true,
 			fields: {
 				id: {
 					type: 'ID',
@@ -732,5 +733,76 @@ test('can write list of just null', function () {
 			firstName: 'bob',
 			friends: [null],
 		},
+	})
+})
+
+test('null-value cascade from field value', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				nullable: false,
+				fields: {
+					id: {
+						keyRaw: 'id',
+						type: 'String',
+						nullable: false,
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					nullable: true,
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+							nullable: false,
+						},
+					},
+				},
+			},
+		}).data
+	).toEqual({
+		viewer: {
+			id: '1',
+		},
+	})
+
+	expect(
+		cache.read({
+			selection: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					nullable: false,
+					fields: {
+						firstName: {
+							keyRaw: 'firstName',
+							type: 'String',
+							nullable: false,
+						},
+					},
+				},
+			},
+		}).data
+	).toEqual({
+		viewer: null,
 	})
 })
