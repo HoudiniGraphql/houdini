@@ -162,12 +162,7 @@ export function query<_Query extends Operation<any, any>>(
 		loading: { subscribe: loading.subscribe },
 		partial: { subscribe: partial.subscribe },
 		error: readable(null, () => {}),
-		onLoad(
-			newValue: FetchQueryResult<any> & { variables: { [key: string]: any } }
-			// newData: RequestPayload<_Query['result']>,
-			// newVariables: _Query['input'],
-			// source: DataSource
-		) {
+		onLoad(newValue: FetchQueryResult<any> & { variables: { [key: string]: any } }) {
 			// we got new data from mounting, write it
 			writeData(newValue.result, newValue.variables)
 

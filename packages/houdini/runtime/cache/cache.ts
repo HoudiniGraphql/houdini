@@ -676,8 +676,7 @@ class CacheInternal {
 				// save the hydrated list
 				target[attributeName] = listValue.data
 
-				// we have a value for the object, pretend its not-partial and let the force flag
-				// decide
+				// the linked value could have partial results
 				if (listValue.partial) {
 					partial = true
 				}
@@ -695,8 +694,7 @@ class CacheInternal {
 				// save the object value
 				target[attributeName] = objectFields.data
 
-				// we have a value for the object, pretend its not-partial and let the force flag
-				// decide
+				// the linked value could have partial results
 				if (objectFields.partial) {
 					partial = true
 				}
