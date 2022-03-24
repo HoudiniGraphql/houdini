@@ -707,27 +707,28 @@ class CacheInternal {
 
 				continue
 			}
-			// otherwise the field is an object
-			else {
-				// if we dont have a value to go down, check that we can return null
-				if (typeof value === 'undefined' || value === null) {
-					// null is still a value so if we had null, we had a value for the key (not partial)
-					if (value === null) {
-						hasKeys.push(attributeName)
-					}
 
-					// set the value to null
-					target[attributeName] = null
-
-					// if the value can't be null our parent has to be null
-					if (!nullable) {
-						cascadeNull = true
-					}
-
-					// we're done with the field
-					continue
+			// if we dont have a value to process, check that we can return null
+			else if (typeof value === 'undefined' || value === null) {
+				// null is still a value so if we had null, we had a value for the key (not partial)
+				if (value === null) {
+					hasKeys.push(attributeName)
 				}
 
+				// set the value to null
+				target[attributeName] = null
+
+				// if the value can't be null our parent has to be null
+				if (!nullable) {
+					cascadeNull = true
+				}
+
+				// we're done with the field
+				continue
+			}
+
+			// otherwise the field is an object
+			else {
 				// look up the related object fields
 				const objectFields = this.getSelection({
 					parent: value as string,
