@@ -540,7 +540,7 @@ class CacheInternal {
 				// there could be a list of elements to perform the operation on
 				const targets = Array.isArray(value) ? value : [value]
 				for (const target of targets) {
-					// only insert an object into a list if we're adding an object with fields
+					// insert an object into a list
 					if (
 						operation.action === 'insert' &&
 						target instanceof Object &&
@@ -553,7 +553,7 @@ class CacheInternal {
 							.addToList(fields, target, variables, operation.position || 'last')
 					}
 
-					// only insert an object into a list if we're adding an object with fields
+					// remove object from list
 					else if (
 						operation.action === 'remove' &&
 						target instanceof Object &&
@@ -566,7 +566,7 @@ class CacheInternal {
 							.remove(target, variables)
 					}
 
-					// delete the target if we have to
+					// delete the target
 					else if (operation.action === 'delete' && operation.type) {
 						if (typeof target !== 'string') {
 							throw new Error('Cannot delete a record with a non-string ID')
