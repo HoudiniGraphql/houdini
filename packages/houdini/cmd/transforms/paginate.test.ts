@@ -497,13 +497,11 @@ test('embeds node pagination query as a separate document', async function () {
 					                friendsByForwardsCursor: {
 					                    type: "UserConnection",
 					                    keyRaw: "friendsByForwardsCursor::paginated",
-					                    nullable: true,
 
 					                    fields: {
 					                        edges: {
 					                            type: "UserEdge",
 					                            keyRaw: "edges",
-					                            nullable: true,
 
 					                            fields: {
 					                                cursor: {
@@ -1099,13 +1097,11 @@ test('generated query has same refetch spec', async function () {
 					        usersByCursor: {
 					            type: "UserConnection",
 					            keyRaw: "usersByCursor::paginated",
-					            nullable: true,
 
 					            fields: {
 					                edges: {
 					                    type: "UserEdge",
 					                    keyRaw: "edges",
-					                    nullable: true,
 
 					                    fields: {
 					                        cursor: {

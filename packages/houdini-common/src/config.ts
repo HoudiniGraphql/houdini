@@ -479,9 +479,9 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
-				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection
-				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnection
-				friendsByForwardsCursor(first: Int, after: String, filter: String): UserConnection
+				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!
+				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnection!
+				friendsByForwardsCursor(first: Int, after: String, filter: String): UserConnection!
 				friendsByOffset(offset: Int, limit: Int, filter: String): [User!]!
 				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
@@ -509,9 +509,9 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 				entities: [Entity!]!
-				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection
-				usersByBackwardsCursor(last: Int, before: String): UserConnection
-				usersByForwardsCursor(first: Int, after: String): UserConnection
+				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection!
+				usersByBackwardsCursor(last: Int, before: String): UserConnection!
+				usersByForwardsCursor(first: Int, after: String): UserConnection!
 				usersByOffset(offset: Int, limit: Int): [User!]!
 				node(id: ID!): Node
 			}
@@ -530,7 +530,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 
 			type UserConnection {
 				pageInfo: PageInfo!
-				edges: [UserEdge]
+				edges: [UserEdge!]!
 			}
 
 			interface Friend {
@@ -557,7 +557,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 			}
 
 			type AddFriendOutput {
-				friend: User
+				friend: User!
 			}
 
 			type BelieveInOutput {
@@ -565,7 +565,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 			}
 
 			type DeleteUserOutput {
-				userID: ID
+				userID: ID!
 			}
 
 			type DeleteCatOutput {
