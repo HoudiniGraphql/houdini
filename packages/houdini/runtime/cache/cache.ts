@@ -616,11 +616,11 @@ class CacheInternal {
 
 		const target = {} as GraphQLObject
 
-		// hold onto a list of values that we have computed values for
-		let hasKeys = []
-		// if we load a related object or array that has a partial value, we dont
-		// care about local partial stuff
-		let forcePartial = false
+		// we need to track if we have a partial data set which means we have _something_ but not everything
+		let hasData = false
+		// if we run into a single missing value we will flip this since it means we have a partial result
+		let partial = false
+
 		// if we get an empty value for a non-null field, we need to turn the whole object null
 		// that happens after we process every field to determine if its a partial null
 		let cascadeNull = false
@@ -634,9 +634,13 @@ class CacheInternal {
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
 
+			// if we dont have a value, we know this result is going to be partial
+			if (typeof value === 'undefined') {
+				partial = true
+			}
 			// as long as the value is not undefined, we have something
-			if (typeof value !== 'undefined') {
-				hasKeys.push(attributeName)
+			else {
+				hasData = true
 			}
 
 			// if we dont have a value to return, use null (we check for non-null fields at the end)
@@ -675,7 +679,7 @@ class CacheInternal {
 				// we have a value for the object, pretend its not-partial and let the force flag
 				// decide
 				if (listValue.partial) {
-					forcePartial = true
+					partial = true
 				}
 			}
 
@@ -694,27 +698,22 @@ class CacheInternal {
 				// we have a value for the object, pretend its not-partial and let the force flag
 				// decide
 				if (objectFields.partial) {
-					forcePartial = true
+					partial = true
 				}
 			}
 
-			// if the value can't be null our parent has to be null
+			// regardless of how the field was processed, if we got a null value assigned
+			// and the field is not nullable, we need to cascade up
 			if (target[attributeName] === null && !nullable) {
 				cascadeNull = true
 			}
 		}
 
-		// a value is considered partial if we are using a partial link or not every field had a value
-		const partial =
-			forcePartial ||
-			(hasKeys.length > 0 &&
-				Object.keys(selection).length > 0 &&
-				hasKeys.length !== Object.keys(selection).length)
-
 		return {
 			data: cascadeNull ? null : target,
-			// our value is considered partial if we dont have a full value for every key
-			partial,
+			// our value is considered true if there is some data but not everything
+			// has a full value
+			partial: hasData && partial,
 		}
 	}
 
