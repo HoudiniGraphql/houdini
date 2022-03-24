@@ -649,8 +649,27 @@ class CacheInternal {
 				continue
 			}
 
+			// if we dont have a value to process, check that we can return null
+			if (typeof value === 'undefined' || value === null) {
+				// null is still a value so if we had null, we had a value for the key (not partial)
+				if (value === null) {
+					hasKeys.push(attributeName)
+				}
+
+				// set the value to null
+				target[attributeName] = null
+
+				// if the value can't be null our parent has to be null
+				if (!nullable) {
+					cascadeNull = true
+				}
+
+				// we're done with the field
+				continue
+			}
+
 			// if the field is a scalar
-			if (!fields) {
+			else if (!fields) {
 				// is the type a custom scalar with a specified unmarshal function
 				if (this.config.scalars?.[type]?.unmarshal) {
 					// pass the primitive value to the unmarshal function
@@ -669,18 +688,11 @@ class CacheInternal {
 						cascadeNull = true
 					}
 				}
-				// if the field cannot be null, then the whole object's value is null
-				else if (!nullable) {
-					cascadeNull = true
-				}
-				// we dont have a value for this field and the schema lets it take a null value
-				else {
-					target[attributeName] = null
-				}
 
 				// we're done
 				continue
 			}
+
 			// if the field is a list of records
 			else if (Array.isArray(value)) {
 				// the linked list could be a deeply nested thing, we need to call getData for each record
@@ -705,25 +717,7 @@ class CacheInternal {
 				}
 				hasKeys.push(attributeName)
 
-				continue
-			}
-
-			// if we dont have a value to process, check that we can return null
-			else if (typeof value === 'undefined' || value === null) {
-				// null is still a value so if we had null, we had a value for the key (not partial)
-				if (value === null) {
-					hasKeys.push(attributeName)
-				}
-
-				// set the value to null
-				target[attributeName] = null
-
-				// if the value can't be null our parent has to be null
-				if (!nullable) {
-					cascadeNull = true
-				}
-
-				// we're done with the field
+				// we're done
 				continue
 			}
 
@@ -757,8 +751,7 @@ class CacheInternal {
 			}
 		}
 
-		// a value is partial if there is at least one key with a value that was
-		// used when building up this object
+		// a value is considered partial if we are using a partial link or not every field had a value
 		const partial =
 			forcePartial ||
 			(hasKeys.length > 0 &&
