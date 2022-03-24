@@ -745,12 +745,10 @@ test('null-value cascade from field value', function () {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
-				nullable: false,
 				fields: {
 					id: {
 						keyRaw: 'id',
 						type: 'String',
-						nullable: false,
 					},
 				},
 			},
@@ -773,7 +771,6 @@ test('null-value cascade from field value', function () {
 						id: {
 							keyRaw: 'id',
 							type: 'String',
-							nullable: false,
 						},
 					},
 				},
@@ -796,7 +793,6 @@ test('null-value cascade from field value', function () {
 						firstName: {
 							keyRaw: 'firstName',
 							type: 'String',
-							nullable: false,
 						},
 					},
 				},
@@ -816,12 +812,10 @@ test('null-value field', function () {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
-				nullable: false,
 				fields: {
 					id: {
 						keyRaw: 'id',
 						type: 'String',
-						nullable: false,
 					},
 				},
 			},
@@ -844,7 +838,6 @@ test('null-value field', function () {
 						id: {
 							keyRaw: 'id',
 							type: 'String',
-							nullable: false,
 						},
 					},
 				},
@@ -890,12 +883,10 @@ test('null-value cascade from object value', function () {
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
-				nullable: false,
 				fields: {
 					id: {
 						keyRaw: 'id',
 						type: 'String',
-						nullable: false,
 					},
 				},
 			},
@@ -919,12 +910,10 @@ test('null-value cascade from object value', function () {
 						id: {
 							keyRaw: 'id',
 							type: 'String',
-							nullable: false,
 						},
 						parent: {
 							keyRaw: 'parent',
 							type: 'User',
-							nullable: false,
 						},
 					},
 				},
