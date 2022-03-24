@@ -70,26 +70,7 @@ export class Cache {
 
 	// reconstruct an object with the fields/relations specified by a selection
 	read(...args: Parameters<CacheInternal['getSelection']>) {
-		const selectionValue = this._internal_unstable.getSelection(...args)
-
-		if (selectionValue.data === null) {
-			return selectionValue
-		}
-
-		// if the data is just an object of undefined, there isn't any data
-		const keys = Object.keys(selectionValue.data || {})
-
-		const unavailable =
-			keys.filter((key) => {
-				const value = selectionValue.data![key]
-				return typeof value === 'undefined'
-			}).length === keys.length
-
-		if (unavailable) {
-			return { data: null, partial: false }
-		}
-
-		return selectionValue
+		return this._internal_unstable.getSelection(...args)
 	}
 
 	// register the provided callbacks with the fields specified by the selection
