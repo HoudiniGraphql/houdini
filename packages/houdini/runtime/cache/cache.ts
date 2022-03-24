@@ -82,7 +82,7 @@ export class Cache {
 		const unavailable =
 			keys.filter((key) => {
 				const value = selectionValue.data![key]
-				return value !== null && typeof value === 'undefined'
+				return typeof value === 'undefined'
 			}).length === keys.length
 
 		if (unavailable) {
