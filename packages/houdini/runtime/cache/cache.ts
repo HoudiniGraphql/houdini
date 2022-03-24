@@ -639,18 +639,10 @@ class CacheInternal {
 				hasKeys.push(attributeName)
 			}
 
-			// if we dont have a value to process, check that we can return null
+			// if we dont have a value to return, use null (we check for non-null fields at the end)
 			if (typeof value === 'undefined' || value === null) {
 				// set the value to null
 				target[attributeName] = null
-
-				// if the value can't be null our parent has to be null
-				if (!nullable) {
-					cascadeNull = true
-				}
-
-				// we're done with the field
-				continue
 			}
 
 			// if the field is a scalar
@@ -666,14 +658,6 @@ class CacheInternal {
 				else {
 					target[attributeName] = value
 				}
-
-				// if the value is null and the field can't be nullable
-				if (target[attributeName] === null && !nullable) {
-					cascadeNull = true
-				}
-
-				// we're done
-				continue
 			}
 
 			// if the field is a list of records
@@ -688,22 +672,14 @@ class CacheInternal {
 				// save the hydrated list
 				target[attributeName] = listValue.data
 
-				// if the value can't be null our parent has to be null
-				if (target[attributeName] === null && !nullable) {
-					cascadeNull = true
-				}
-
 				// we have a value for the object, pretend its not-partial and let the force flag
 				// decide
 				if (listValue.partial) {
 					forcePartial = true
 				}
-
-				// we're done
-				continue
 			}
 
-			// otherwise the field is an object
+			// otherwise the field is a linked object
 			else {
 				// look up the related object fields
 				const objectFields = this.getSelection({
@@ -715,20 +691,16 @@ class CacheInternal {
 				// save the object value
 				target[attributeName] = objectFields.data
 
-				// if the object is actually null and we're not allowed to be
-				// our parent has to return null
-				if (target[attributeName] === null && !nullable) {
-					cascadeNull = true
-				}
-
 				// we have a value for the object, pretend its not-partial and let the force flag
 				// decide
 				if (objectFields.partial) {
 					forcePartial = true
 				}
+			}
 
-				// we're done
-				continue
+			// if the value can't be null our parent has to be null
+			if (target[attributeName] === null && !nullable) {
+				cascadeNull = true
 			}
 		}
 
