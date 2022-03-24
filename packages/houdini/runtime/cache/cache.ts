@@ -664,17 +664,18 @@ class CacheInternal {
 					target[attributeName] = this.config.scalars[type].unmarshal(
 						value
 					) as GraphQLValue
-					hasKeys.push(attributeName)
 				}
 				// the field does not have an unmarshal function
-				else if (typeof value !== 'undefined') {
+				else {
 					target[attributeName] = value
-					hasKeys.push(attributeName)
+				}
 
-					// if the value is null and the can't be nullable
-					if (value === null && !nullable) {
-						cascadeNull = true
-					}
+				// we have a value for the key
+				hasKeys.push(attributeName)
+
+				// if the value is null and the field can't be nullable
+				if (target[attributeName] === null && !nullable) {
+					cascadeNull = true
 				}
 
 				// we're done
