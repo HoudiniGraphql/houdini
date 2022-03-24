@@ -485,11 +485,8 @@ class CacheInternal {
 				const contentChanged = JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
-				for (const subscriber of currentSubcribers) {
-					// if either are true, add the subscriber to the list
-					if (contentChanged) {
-						toNotify.push(subscriber)
-					}
+				if (contentChanged) {
+					toNotify.push(...currentSubcribers)
 				}
 
 				// any ids that don't show up in the new list need to have their subscribers wiped
