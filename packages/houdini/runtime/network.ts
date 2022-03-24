@@ -125,7 +125,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 		},
 	}
 
-	const { data: res } = await fetchQuery<_Data>({
+	const { result: res } = await fetchQuery<_Data>({
 		context: fetchCtx,
 		artifact,
 		session,
@@ -193,7 +193,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	session?: FetchSession
 	cached?: boolean
 }): Promise<{
-	data: RequestPayload<_Data | {} | null>
+	result: RequestPayload<_Data | {} | null>
 	source: DataSource | null
 	partial: boolean
 }> {
@@ -202,7 +202,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	// if there is no environment
 	if (!environment) {
 		return {
-			data: { data: {}, errors: [{ message: 'could not find houdini environment' }] },
+			result: { data: {}, errors: [{ message: 'could not find houdini environment' }] },
 			source: null,
 			partial: false,
 		}
@@ -229,7 +229,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 			// if the policy allows for cached values and we have some
 			if (value.data !== null) {
 				return {
-					data: {
+					result: {
 						data: value.data,
 						errors: [],
 					},
@@ -241,7 +241,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 			// if the policy is cacheOnly and we got this far, we need to return null
 			else if (artifact.policy === CachePolicy.CacheOnly) {
 				return {
-					data: {
+					result: {
 						data: null,
 						errors: [],
 					},
@@ -255,7 +255,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	// the request must be resolved against the network
 
 	return {
-		data: await environment.sendRequest<_Data>(
+		result: await environment.sendRequest<_Data>(
 			context,
 			{ text: artifact.raw, hash: artifact.hash, variables },
 			session
