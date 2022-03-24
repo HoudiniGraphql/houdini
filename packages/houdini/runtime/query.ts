@@ -20,7 +20,6 @@ import type { FetchQueryResult } from './network'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo, isBrowser } from './adapter.mjs'
-import { rootID } from './cache/cache'
 
 export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -170,6 +169,16 @@ export function query<_Query extends Operation<any, any>>(
 					artifact.policy === CachePolicy.CacheAndNetwork
 				) {
 					// this will invoke pagination's refetch because of javascript's magic this binding
+					this.refetch()
+				}
+
+				// if we have a partial result from the cache and we can load the rest of the data
+				// from the network, send the result
+				if (
+					newValue.source === DataSource.Cache &&
+					newValue.partial &&
+					artifact.policy === CachePolicy.CacheOrNetwork
+				) {
 					this.refetch()
 				}
 			}
