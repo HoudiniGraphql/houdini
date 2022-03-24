@@ -1,7 +1,7 @@
 // external imports
 import { testConfig } from 'houdini-common'
 // locals
-import { Cache } from '../cache'
+import { Cache, rootID } from '../cache'
 
 const config = testConfig()
 
@@ -41,7 +41,7 @@ test('write selection to root', function () {
 	expect(
 		cache.read({
 			selection,
-		})
+		}).data
 	).toEqual({
 		viewer: {
 			id: '1',
@@ -124,7 +124,7 @@ test('linked records with updates', function () {
 	})
 
 	// check user 1
-	expect(cache.read({ selection: userFields, parent: 'User:1' })).toEqual({
+	expect(cache.read({ selection: userFields, parent: 'User:1' }).data).toEqual({
 		id: '1',
 		firstName: 'bob',
 		parent: {
@@ -133,10 +133,9 @@ test('linked records with updates', function () {
 	})
 
 	// check user 2
-	expect(cache.read({ selection: userFields, parent: 'User:2' })).toEqual({
+	expect(cache.read({ selection: userFields, parent: 'User:2' }).data).toEqual({
 		id: '2',
 		firstName: 'jane',
-		parent: null,
 	})
 
 	// associate user2 with a new parent
@@ -155,17 +154,16 @@ test('linked records with updates', function () {
 	})
 
 	// make sure we updated user 2
-	expect(cache.read({ selection: userFields, parent: 'User:2' })).toEqual({
+	expect(cache.read({ selection: userFields, parent: 'User:2' }).data).toEqual({
 		id: '2',
 		firstName: 'jane-prime',
 		parent: {
 			id: '3',
 		},
 	})
-	expect(cache.read({ selection: userFields, parent: 'User:3' })).toEqual({
+	expect(cache.read({ selection: userFields, parent: 'User:3' }).data).toEqual({
 		id: '3',
 		firstName: 'mary',
-		parent: null,
 	})
 })
 
@@ -227,7 +225,7 @@ test('linked lists', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.read({ selection: selection.viewer.fields, parent: 'User:1' })).toEqual({
+	expect(cache.read({ selection: selection.viewer.fields, parent: 'User:1' }).data).toEqual({
 		id: '1',
 		firstName: 'bob',
 		friends: [
@@ -288,7 +286,7 @@ test('list as value with args', function () {
 				},
 			},
 			parent: 'User:1',
-		})
+		}).data
 	).toEqual({
 		favoriteColors: ['red', 'green', 'blue'],
 	})
@@ -431,6 +429,30 @@ test('root subscribe - linked object changed', function () {
 		},
 	})
 
+	// write a value to the new record
+	cache.write({
+		selection: {
+			firstName: {
+				type: 'String',
+				keyRaw: 'firstName',
+			},
+		},
+		data: {
+			firstName: 'Michelle',
+		},
+		parent: 'User:2',
+	})
+
+	expect(set).toHaveBeenCalledTimes(2)
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenLastCalledWith({
+		viewer: {
+			firstName: 'Michelle',
+			id: '2',
+		},
+	})
+
 	// make sure we are no longer subscribing to user 1
 	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
 })
@@ -500,6 +522,158 @@ test("subscribing to null object doesn't explode", function () {
 	})
 })
 
+test('overwriting a reference with null clears its subscribers', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				favoriteColors: {
+					type: 'String',
+					keyRaw: 'favoriteColors(where: "foo")',
+				},
+			},
+		},
+	}
+
+	// somehow write a user to the cache with a different id
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '2',
+				firstName: 'mary',
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: null,
+		},
+	})
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenCalledWith({
+		viewer: null,
+	})
+
+	// we shouldn't be subscribing to user 3 any more
+	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
+})
+
+test('overwriting a linked list with null clears its subscribers', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					fields: {
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// add some users that we will subscribe to
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{ id: '2', firstName: 'Jason' },
+					{ id: '3', firstName: 'Nick' },
+				],
+			},
+		},
+	})
+
+	// make sure something is subscribing to the friends field
+	expect(cache._internal_unstable.subscriptions.get('User:1', 'friends')).toHaveLength(1)
+	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(1)
+	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(1)
+
+	// write null over the list
+	cache.write({
+		selection: {
+			id: {
+				type: 'String',
+				keyRaw: 'id',
+			},
+			friends: selection.viewer.fields.friends,
+		},
+		data: {
+			id: '1',
+			friends: null,
+		},
+		parent: 'User:1',
+	})
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenNthCalledWith(2, {
+		viewer: {
+			id: '1',
+			friends: null,
+		},
+	})
+
+	// we shouldn't be subscribing to user 3 any more
+	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
+	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(0)
+})
+
 test('root subscribe - linked list lost entry', function () {
 	// instantiate a cache
 	const cache = new Cache(config)
@@ -531,7 +705,7 @@ test('root subscribe - linked list lost entry', function () {
 		},
 	}
 
-	// start off associated with one object
+	// start off associated with two objects
 	cache.write({
 		selection,
 		data: {
@@ -874,6 +1048,16 @@ test('subscribe to new list nodes', function () {
 		},
 	}
 
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
 	// start off associated with one object
 	cache.write({
 		selection,
@@ -890,26 +1074,40 @@ test('subscribe to new list nodes', function () {
 		},
 	})
 
-	// a function to spy on that will play the role of set
-	const set = jest.fn()
-
-	// subscribe to the fields
-	cache.subscribe({
-		rootType: 'Query',
-		set,
-		selection,
+	// update the user we just added
+	cache.write({
+		selection: {
+			id: {
+				type: 'String',
+				keyRaw: 'id',
+			},
+			firstName: {
+				type: 'String',
+				keyRaw: 'firstName',
+			},
+		},
+		data: {
+			id: '2',
+			firstName: 'jane-prime',
+		},
+		parent: 'User:2',
 	})
 
-	// insert an element into the list (no parent ID)
-	cache.list('All_Users').append(
-		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
-		{
-			id: '3',
-			firstName: 'mary',
-		}
-	)
+	// the first time set was called, a new entry was added.
+	// the second time it's called, we get a new value for jane
+	expect(set).toHaveBeenNthCalledWith(2, {
+		viewer: {
+			id: '1',
+			friends: [
+				{
+					firstName: 'jane-prime',
+					id: '2',
+				},
+			],
+		},
+	})
 
-	// update the user we just added
+	// add a new user
 	cache.write({
 		selection,
 		data: {
@@ -918,25 +1116,44 @@ test('subscribe to new list nodes', function () {
 				friends: [
 					{
 						id: '2',
-						firstName: 'jane',
+						firstName: 'jane-prime',
 					},
 					{
 						id: '3',
-						firstName: 'mary-prime',
+						firstName: 'mary',
 					},
 				],
 			},
 		},
 	})
 
-	// the first time set was called, a new entry was added.
-	// the second time it's called, we get a new value for mary
-	expect(set).toHaveBeenNthCalledWith(2, {
+	// update the user we just added
+	cache.write({
+		selection: {
+			id: {
+				type: 'String',
+				keyRaw: 'id',
+			},
+			firstName: {
+				type: 'String',
+				keyRaw: 'firstName',
+			},
+		},
+		data: {
+			id: '3',
+			firstName: 'mary-prime',
+		},
+		parent: 'User:3',
+	})
+
+	// the third time set was called, a new entry was added.
+	// the fourth time it's called, we get a new value for mary
+	expect(set).toHaveBeenNthCalledWith(4, {
 		viewer: {
 			id: '1',
 			friends: [
 				{
-					firstName: 'jane',
+					firstName: 'jane-prime',
 					id: '2',
 				},
 				{
@@ -1407,7 +1624,7 @@ test('writing abstract objects', function () {
 					keyRaw: 'firstName',
 				},
 			},
-		})
+		}).data
 	).toEqual({
 		__typename: 'User',
 		id: '1',
@@ -1477,7 +1694,7 @@ test('writing abstract lists', function () {
 					keyRaw: 'firstName',
 				},
 			},
-		})
+		}).data
 	).toEqual({
 		__typename: 'User',
 		id: '1',
@@ -1519,7 +1736,7 @@ test('can pull enum from cached values', function () {
 	cache.write({ selection, data })
 
 	// pull the data out of the cache
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		node: {
 			id: '1',
 			enumValue: 'Hello',
@@ -1581,7 +1798,7 @@ test('can store and retrieve lists with null values', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -1662,7 +1879,7 @@ test('can store and retrieve lists of lists of records', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -1733,7 +1950,7 @@ test('can store and retrieve links with null values', function () {
 	})
 
 	// make sure we can get the linked record back
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		viewer: null,
 	})
 })
@@ -1786,7 +2003,7 @@ test('can write list of just null', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',

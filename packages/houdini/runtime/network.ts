@@ -225,7 +225,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 						parent: rootID,
 						selection: artifact.selection,
 						variables,
-					}),
+					}).data,
 					errors: [],
 				},
 				DataSource.Cache,

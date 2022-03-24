@@ -86,7 +86,7 @@ test('prepend linked lists update', function () {
 				},
 			},
 			parent: 'User:1',
-		})
+		}).data
 	).toEqual({
 		friends: [
 			{
@@ -142,7 +142,7 @@ test('prepend linked lists update', function () {
 				},
 			},
 			parent: 'User:1',
-		})
+		}).data
 	).toEqual({
 		friends: [
 			{
@@ -2539,7 +2539,7 @@ test('disabled linked lists update', function () {
 		cache.read({
 			selection: { friends: selection.viewer.fields.friends },
 			parent: 'User:1',
-		})
+		}).data
 	).toEqual({
 		friends: [
 			{
@@ -2579,7 +2579,7 @@ test('disabled linked lists update', function () {
 		cache.read({
 			selection: { friends: selection.viewer.fields.friends },
 			parent: 'User:1',
-		})
+		}).data
 	).toEqual({
 		friends: [
 			{
@@ -2656,7 +2656,7 @@ test('append linked lists update', function () {
 		cache.read({
 			selection: { friends: selection.viewer.fields.friends },
 			parent: 'User:1',
-		})
+		}).data
 	).toEqual({
 		friends: [
 			{
@@ -2697,7 +2697,7 @@ test('append linked lists update', function () {
 		cache.read({
 			selection: { friends: selection.viewer.fields.friends },
 			parent: 'User:1',
-		})
+		}).data
 	).toEqual({
 		friends: [
 			{
@@ -2759,7 +2759,7 @@ test('writing a scalar marked with a disabled update overwrites', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -2780,7 +2780,7 @@ test('writing a scalar marked with a disabled update overwrites', function () {
 	})
 
 	// make sure we can get the updated lists back
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -2828,7 +2828,7 @@ test('writing a scalar marked with a prepend', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -2850,7 +2850,7 @@ test('writing a scalar marked with a prepend', function () {
 	})
 
 	// make sure we can get the updated lists back
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -2898,7 +2898,7 @@ test('writing a scalar marked with an append', function () {
 	})
 
 	// make sure we can get the linked lists back
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',
@@ -2920,7 +2920,7 @@ test('writing a scalar marked with an append', function () {
 	})
 
 	// make sure we can get the updated lists back
-	expect(cache.read({ selection })).toEqual({
+	expect(cache.read({ selection }).data).toEqual({
 		viewer: {
 			id: '1',
 			firstName: 'bob',

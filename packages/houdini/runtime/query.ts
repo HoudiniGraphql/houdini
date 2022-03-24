@@ -283,20 +283,21 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 				CachePolicy.CacheOrNetwork,
 				CachePolicy.CacheOnly,
 				CachePolicy.CacheAndNetwork,
-			].includes(artifact.policy!) &&
-			cache._internal_unstable.isDataAvailable(artifact.selection, variables)
+			].includes(artifact.policy!)
 		) {
-			writeData(
-				{
-					data: cache.read({
-						selection: artifact.selection,
-						variables,
-					})! as _Data,
-					errors: [],
-				},
-				variables
-			)
-			cached = true
+			const cachedValue = cache.read({ selection: artifact.selection, variables })
+
+			// if there is something to write
+			if (cachedValue.data) {
+				writeData(
+					{
+						data: cachedValue.data as _Data,
+						errors: [],
+					},
+					variables
+				)
+				cached = true
+			}
 		}
 		// there was no error while computing the variables
 		else {

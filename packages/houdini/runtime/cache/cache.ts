@@ -59,7 +59,7 @@ export class Cache {
 						parent: spec.parentID || rootID,
 						selection: spec.selection,
 						variables: spec.variables?.() || {},
-					})
+					}).data
 				)
 			}
 		}
@@ -70,7 +70,26 @@ export class Cache {
 
 	// reconstruct an object with the fields/relations specified by a selection
 	read(...args: Parameters<CacheInternal['getSelection']>) {
-		return this._internal_unstable.getSelection(...args)
+		const selectionValue = this._internal_unstable.getSelection(...args)
+
+		if (selectionValue.data === null) {
+			return { data: null, partial: false }
+		}
+
+		// if the data is just an object of undefined, there isn't any data
+		const keys = Object.keys(selectionValue.data || {})
+
+		const unavailable =
+			keys.filter((key) => {
+				const value = selectionValue.data![key]
+				return value !== null && typeof value === 'undefined'
+			}).length === keys.length
+
+		if (unavailable) {
+			return { data: null, partial: false }
+		}
+
+		return selectionValue
 	}
 
 	// register the provided callbacks with the fields specified by the selection
@@ -257,6 +276,24 @@ class CacheInternal {
 				// write value to the layer
 				layer.writeField(parent, key, newValue)
 			}
+			// if we are writing `null` over a link
+			else if (value === null) {
+				// if the previous value was also null, there's nothing to do
+				if (previousValue === null) {
+					continue
+				}
+
+				const previousLinks = flattenList<string>([previousValue as string | string[]])
+
+				for (const link of previousLinks) {
+					this.subscriptions.remove(link, fields, currentSubcribers, variables)
+				}
+
+				layer.writeLink(parent, key, null)
+
+				// add the list of subscribers for this field
+				toNotify.push(...currentSubcribers)
+			}
 			// the field could point to a linked object
 			else if (value instanceof Object && !Array.isArray(value)) {
 				// the previous value is a string holding the id of the object to link to
@@ -293,7 +330,8 @@ class CacheInternal {
 
 				// if the link target of this field changed and it was responsible for the current subscription
 				if (linkedID && displayLayer && linkChange) {
-					// if there was an old subscriber we are forgotten
+					// we need to clear the subscriptions in the previous link
+					// and add them to the new link
 					if (previousValue && typeof previousValue === 'string') {
 						this.subscriptions.remove(
 							previousValue,
@@ -303,8 +341,14 @@ class CacheInternal {
 						)
 					}
 
-					// we need to clear the subscriptions in the previous link
-					// and add them to the new link
+					// copy the subscribers to the new value
+					this.subscriptions.addMany({
+						parent: linkedID,
+						selection: fields,
+						subscribers: currentSubcribers,
+						variables,
+					})
+
 					toNotify.push(...currentSubcribers)
 				}
 
@@ -481,6 +525,20 @@ class CacheInternal {
 					// update the cached value
 					layer.writeLink(parent, key, linkedIDs)
 				}
+
+				// every new id that isn't a prevous relationship needs a new subscriber
+				for (const id of newIDs.filter((id) => !oldIDs.includes(id))) {
+					if (id == null) {
+						continue
+					}
+
+					this.subscriptions.addMany({
+						parent: id,
+						selection: fields,
+						subscribers: currentSubcribers,
+						variables,
+					})
+				}
 			}
 
 			// handle any operations relative to this node
@@ -572,13 +630,16 @@ class CacheInternal {
 		selection: SubscriptionSelection
 		parent?: string
 		variables?: {}
-	}): GraphQLObject | null {
+	}): { data: GraphQLObject | null; partial: boolean } {
 		// we could be asking for values of null
 		if (parent === null) {
-			return null
+			return { data: null, partial: false }
 		}
 
 		const target = {} as GraphQLObject
+
+		// hold onto a list of values that totally exist (no partial)
+		let hasKeys = []
 
 		// look at every field in the parentFields
 		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
@@ -590,6 +651,7 @@ class CacheInternal {
 			// if the value is null
 			if (value === null) {
 				target[attributeName] = null
+				hasKeys.push(attributeName)
 				continue
 			}
 
@@ -601,10 +663,12 @@ class CacheInternal {
 					target[attributeName] = this.config.scalars[type].unmarshal(
 						value
 					) as GraphQLValue
+					hasKeys.push(attributeName)
 				}
 				// the field does not have an unmarshal function
-				else {
+				else if (typeof value !== 'undefined') {
 					target[attributeName] = value
+					hasKeys.push(attributeName)
 				}
 
 				// we're done
@@ -613,27 +677,48 @@ class CacheInternal {
 			// if the field is a list of records
 			else if (Array.isArray(value)) {
 				// the linked list could be a deeply nested thing, we need to call getData for each record
-				target[attributeName] = this.hydrateNestedList({
+				const listValue = this.hydrateNestedList({
 					fields,
 					variables,
 					linkedList: value as LinkedList,
 				})
+
+				target[attributeName] = listValue.data
+
+				// if the value isn't partial, add it to the list
+				if (!listValue.partial) {
+					hasKeys.push(attributeName)
+				}
+
+				continue
 			}
 			// otherwise the field is an object
 			else {
+				const objectFields = this.getSelection({
+					parent: value as string,
+					selection: fields,
+					variables,
+				})
+
 				// if we dont have a value, use null
-				target[attributeName] = !value
-					? null
-					: this.getSelection({
-							parent: value as string,
-							selection: fields,
-							variables,
-					  })
+				if (typeof value !== 'undefined') {
+					target[attributeName] = objectFields.data
+				}
+
+				// if the value isn't partial, add it to the list
+				if (!objectFields.partial) {
+					hasKeys.push(attributeName)
+				}
+
 				continue
 			}
 		}
 
-		return target
+		return {
+			data: target,
+			// our value is considered partial if we dont have a full value for every key
+			partial: hasKeys.length !== Object.keys(selection).length,
+		}
 	}
 
 	// returns the global id of the specified field (used to access the record in the cache)
@@ -668,24 +753,45 @@ class CacheInternal {
 		fields: SubscriptionSelection
 		variables?: {}
 		linkedList: LinkedList
-	}): LinkedList<GraphQLValue> {
+	}): { data: LinkedList<GraphQLValue>; partial: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
 		// to the corresponding record. can't have that now, can we?
-		return linkedList.map((entry) => {
+		const result = []
+		let partialData = false
+
+		for (const entry of linkedList) {
 			// if the entry is an array, keep going
 			if (Array.isArray(entry)) {
-				return this.hydrateNestedList({ fields, variables, linkedList: entry })
+				const nestedValue = this.hydrateNestedList({ fields, variables, linkedList: entry })
+				result.push(nestedValue.data)
+				if (nestedValue.partial) {
+					partialData = true
+				}
+				continue
 			}
 
 			// the entry could be null
 			if (entry === null) {
-				return entry
+				result.push(entry)
+				continue
 			}
 
 			// look up the data for the record
-			return this.getSelection({ parent: entry, selection: fields, variables })
-		})
+			const { data, partial } = this.getSelection({
+				parent: entry,
+				selection: fields,
+				variables,
+			})
+
+			result.push(data)
+
+			if (partial) {
+				partialData = true
+			}
+		}
+
+		return { data: result, partial: partialData }
 	}
 
 	extractNestedListIDs({
@@ -811,11 +917,16 @@ class CacheInternal {
 		target: SubscriptionSelection,
 		variables: {},
 		parentID: string = rootID
-	): boolean {
+	): false | { partial?: boolean } {
 		// if the cache is disabled we dont have to look at anything else
 		if (this._disabled) {
 			return false
 		}
+
+		// if any key of the target has a value, we can return _something_
+		let available = false
+		// hold onto a list of values that totally exist (no partial)
+		let hasKeys = []
 
 		// every field in the selection needs to be present
 		for (const selection of Object.values(target)) {
@@ -826,48 +937,89 @@ class CacheInternal {
 
 			// if the field is a scalar and has a value, we're good (no need to check a subselection)
 			if (kind === 'scalar' && typeof value !== 'undefined') {
+				available = true
+				hasKeys.push(selection.keyRaw)
 				continue
 			}
+
 			// if the field has no value and there are no subselections and we dont have a value, we are missing data
 			else if (!selection.fields) {
-				return false
+				continue
 			}
 
 			// the link could be an object
 			else if (!Array.isArray(value)) {
-				// if we have a null value we're good
+				// if we have a null value we have _some_ data
 				if (value === null) {
+					available = true
 					continue
 				}
 
 				// if we have a valid id, walk down
-				if (!this.isDataAvailable(selection.fields!, variables, value as string)) {
-					return false
+				const isAvailable = this.isDataAvailable(
+					selection.fields!,
+					variables,
+					value as string
+				)
+				if (isAvailable) {
+					available = true
+
+					if (isAvailable.partial) {
+						// if we have a partial result here, we dont need to look at other fields.
+						// there is data that is available, and its a partial result
+						return { partial: true }
+					} else {
+						// just because this reference has all the data doesn't imply every value will
+						hasKeys.push(selection.keyRaw)
+					}
 				}
 			}
 			// the link is a list
 			else {
+				const flat = flattenList(value as LinkedList)
+
 				// we need to look at every linked record
-				for (const linkedRecord of flattenList(value as LinkedList)) {
+				for (const linkedRecord of flat) {
 					if (!linkedRecord) {
 						continue
 					}
 
 					// if the linked record doesn't have the field then we are missing data
-					if (!this.isDataAvailable(selection.fields!, variables, linkedRecord)) {
-						return false
+					const isAvailable = this.isDataAvailable(
+						selection.fields!,
+						variables,
+						linkedRecord
+					)
+
+					if (isAvailable) {
+						available = true
+
+						if (isAvailable.partial) {
+							// if we have a partial result here, we dont need to look at other fields.
+							// there is data that is available, and its a partial result
+							return { partial: true }
+						} else {
+							// just because this reference has all the data doesn't imply every value will
+							hasKeys.push(selection.keyRaw)
+						}
 					}
 				}
-			}
 
-			// if we dont have a linked record or linked list, we dont have the data
-			if (typeof value === 'undefined') {
-				return false
+				// if there are no entries in the list, the data is available
+				if (flat.length === 0) {
+					available = true
+					hasKeys.push(selection.keyRaw)
+				}
 			}
 		}
 
-		// if we got this far, we have the information
-		return true
+		// if none of the data is available, say so
+		if (!available) {
+			return false
+		}
+
+		// if we got this far, we can speak about wether the value has a partial result or not
+		return { partial: hasKeys.length !== Object.values(target).length }
 	}
 
 	collectGarbage() {
