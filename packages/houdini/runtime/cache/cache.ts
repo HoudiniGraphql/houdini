@@ -73,7 +73,7 @@ export class Cache {
 		const selectionValue = this._internal_unstable.getSelection(...args)
 
 		if (selectionValue.data === null) {
-			return { data: null, partial: false }
+			return selectionValue
 		}
 
 		// if the data is just an object of undefined, there isn't any data

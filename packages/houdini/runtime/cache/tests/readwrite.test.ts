@@ -947,3 +947,75 @@ test('null-value cascade from object value', function () {
 		},
 	})
 })
+
+test('null-value cascade to root', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	// write the user data without the nested value
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						keyRaw: 'id',
+						type: 'String',
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	// read the data as if the nested value is required
+	expect(
+		cache.read({
+			selection: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+						},
+						parent: {
+							keyRaw: 'parent',
+							type: 'User',
+						},
+					},
+				},
+			},
+		})
+	).toEqual({
+		data: null,
+		partial: true,
+	})
+
+	// read the data as if the nested value is not required (parent should be null)
+	expect(
+		cache.read({
+			selection: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					nullable: true,
+					fields: {
+						parent: {
+							keyRaw: 'parent',
+							type: 'User',
+						},
+					},
+				},
+			},
+		}).data
+	).toEqual({
+		viewer: null,
+	})
+})
