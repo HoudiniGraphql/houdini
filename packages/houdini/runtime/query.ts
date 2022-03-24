@@ -178,13 +178,9 @@ export function query<_Query extends Operation<any, any>>(
 					this.refetch()
 				}
 
-				// if we have a partial result from the cache and we can load the rest of the data
-				// from the network, send the result
-				if (
-					newValue.source === DataSource.Cache &&
-					newValue.partial &&
-					artifact.policy === CachePolicy.CacheOrNetwork
-				) {
+				// if we have a partial result and we can load the rest of the data
+				// from the network, send the request
+				if (newValue.partial && artifact.policy === CachePolicy.CacheOrNetwork) {
 					this.refetch()
 				}
 			}
