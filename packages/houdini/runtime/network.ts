@@ -222,13 +222,12 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 		// prefers network data we need to send a request (the onLoad of the component will
 		// resolve the next data)
 
-		// if the policy says network only, dont do anything here - the mountMount of the query
-		// will handle it
+		// if the cache policy allows for cached data, look at the caches value first
 		if (artifact.policy !== CachePolicy.NetworkOnly) {
 			// look up the current value in the cache
 			const value = cache.read({ selection: artifact.selection, variables })
 
-			// if the policy allows for cached values and we have some
+			// if we have data, use that
 			if (value.data !== null) {
 				return {
 					result: {
@@ -240,7 +239,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 				}
 			}
 
-			// if the policy is cacheOnly and we got this far, we need to return null
+			// if the policy is cacheOnly and we got this far, we need to return null (no network request will be sent)
 			else if (artifact.policy === CachePolicy.CacheOnly) {
 				return {
 					result: {
@@ -255,7 +254,6 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	}
 
 	// the request must be resolved against the network
-
 	return {
 		result: await environment.sendRequest<_Data>(
 			context,
