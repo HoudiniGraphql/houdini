@@ -634,13 +634,13 @@ class CacheInternal {
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
 
+			// as long as the value is not undefined, we have something
+			if (typeof value !== 'undefined') {
+				hasKeys.push(attributeName)
+			}
+
 			// if we dont have a value to process, check that we can return null
 			if (typeof value === 'undefined' || value === null) {
-				// null is still a value so if we had null, we had a value for the key (not partial)
-				if (value === null) {
-					hasKeys.push(attributeName)
-				}
-
 				// set the value to null
 				target[attributeName] = null
 
@@ -666,9 +666,6 @@ class CacheInternal {
 				else {
 					target[attributeName] = value
 				}
-
-				// we have a value for the key
-				hasKeys.push(attributeName)
 
 				// if the value is null and the field can't be nullable
 				if (target[attributeName] === null && !nullable) {
@@ -701,7 +698,6 @@ class CacheInternal {
 				if (listValue.partial) {
 					forcePartial = true
 				}
-				hasKeys.push(attributeName)
 
 				// we're done
 				continue
@@ -730,7 +726,6 @@ class CacheInternal {
 				if (objectFields.partial) {
 					forcePartial = true
 				}
-				hasKeys.push(attributeName)
 
 				// we're done
 				continue
