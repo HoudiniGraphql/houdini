@@ -331,7 +331,7 @@ describe('typescript', function () {
 
 		export type Query$input = {
 		    id: string,
-		    enum: MyEnum | null | undefined
+		    enum?: MyEnum | null | undefined
 		};
 	`)
 	})
@@ -405,13 +405,13 @@ describe('typescript', function () {
 		};
 
 		export type Mutation$input = {
-		    filter: UserFilter | null | undefined,
+		    filter?: UserFilter | null | undefined,
 		    filterList: (UserFilter)[],
 		    id: string,
 		    firstName: string,
-		    admin: boolean | null | undefined,
-		    age: number | null | undefined,
-		    weight: number | null | undefined
+		    admin?: boolean | null | undefined,
+		    age?: number | null | undefined,
+		    weight?: number | null | undefined
 		};
 	`)
 	})

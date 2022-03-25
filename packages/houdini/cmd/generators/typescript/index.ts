@@ -192,12 +192,14 @@ async function generateOperationTypeDefs(
 					AST.identifier(inputTypeName),
 					AST.tsTypeLiteral(
 						(definition.variableDefinitions || []).map(
-							(definition: graphql.VariableDefinitionNode) =>
+							(definition: graphql.VariableDefinitionNode) => {
 								// add a property describing the variable to the root object
-								AST.tsPropertySignature(
+								return AST.tsPropertySignature(
 									AST.identifier(definition.variable.name.value),
-									AST.tsTypeAnnotation(tsTypeReference(config, definition))
+									AST.tsTypeAnnotation(tsTypeReference(config, definition)),
+									definition.type.kind !== 'NonNullType'
 								)
+							}
 						)
 					)
 				)
