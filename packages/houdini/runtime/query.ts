@@ -131,6 +131,8 @@ export function query<_Query extends Operation<any, any>>(
 		data: { subscribe: store.subscribe },
 		// the refetch function can be used to refetch queries possibly with new variables/arguments
 		async refetch(newVariables?: _Query['input']) {
+			loading.set(true)
+
 			try {
 				// Use the initial/previous variables
 				let variableBag = variables
@@ -155,6 +157,9 @@ export function query<_Query extends Operation<any, any>>(
 			} catch (error) {
 				throw error
 			}
+
+			// track the loading state
+			loading.set(false)
 		},
 		// used primarily by the preprocessor to keep local state in sync with
 		// the data given by preload
