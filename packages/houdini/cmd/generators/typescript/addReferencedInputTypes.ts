@@ -61,9 +61,13 @@ export function addReferencedInputTypes(
 		// walk down the referenced fields and build stuff back up
 		addReferencedInputTypes(config, body, visitedTypes, field.type)
 
+		// check if the type is optional so we can label the value as omitable
 		members.push(
 			AST.tsPropertySignature(
-				AST.identifier(field.name),
+				{
+					...AST.identifier(field.name),
+					optional: graphql.isNullableType(field.type),
+				},
 				AST.tsTypeAnnotation(tsTypeReference(config, field))
 			)
 		)
