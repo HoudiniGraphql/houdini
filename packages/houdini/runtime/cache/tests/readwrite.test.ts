@@ -797,6 +797,10 @@ test('null-value cascade from field value', function () {
 							keyRaw: 'firstName',
 							type: 'String',
 						},
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+						},
 					},
 				},
 			},
@@ -820,12 +824,17 @@ test('null-value field', function () {
 						keyRaw: 'id',
 						type: 'String',
 					},
+					firstName: {
+						keyRaw: 'firstName',
+						type: 'String',
+					},
 				},
 			},
 		},
 		data: {
 			viewer: {
 				id: '1',
+				firstName: null,
 			},
 		},
 	})
@@ -852,6 +861,7 @@ test('null-value field', function () {
 		},
 	})
 
+	console.log('vvvvvvvvvv')
 	expect(
 		cache.read({
 			selection: {
@@ -921,9 +931,12 @@ test('null-value cascade from object value', function () {
 					},
 				},
 			},
-		}).data
+		})
 	).toEqual({
-		viewer: null,
+		partial: true,
+		data: {
+			viewer: null,
+		},
 	})
 
 	// read the data as if the nested value is not required (parent should be null)
@@ -935,6 +948,10 @@ test('null-value cascade from object value', function () {
 					keyRaw: 'viewer',
 					nullable: true,
 					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+						},
 						parent: {
 							keyRaw: 'parent',
 							type: 'User',
@@ -943,10 +960,14 @@ test('null-value cascade from object value', function () {
 					},
 				},
 			},
-		}).data
+		})
 	).toEqual({
-		viewer: {
-			parent: null,
+		partial: true,
+		data: {
+			viewer: {
+				id: '1',
+				parent: null,
+			},
 		},
 	})
 })
@@ -1014,11 +1035,90 @@ test('null-value cascade to root', function () {
 							keyRaw: 'parent',
 							type: 'User',
 						},
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+						},
 					},
 				},
 			},
 		}).data
 	).toEqual({
 		viewer: null,
+	})
+})
+
+test('must have a single value in order to use partial data', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	// write the user data without the nested value
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				nullable: true,
+				fields: {
+					id: {
+						keyRaw: 'id',
+						type: 'String',
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					nullable: true,
+					fields: {
+						parent: {
+							keyRaw: 'parent',
+							type: 'User',
+						},
+					},
+				},
+			},
+		})
+	).toEqual({
+		partial: false,
+		data: null,
+	})
+
+	expect(
+		cache.read({
+			selection: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					nullable: true,
+					fields: {
+						id: {
+							keyRaw: 'id',
+							type: 'String',
+						},
+						parent: {
+							keyRaw: 'parent',
+							type: 'User',
+						},
+					},
+				},
+			},
+		})
+	).toEqual({
+		partial: true,
+		data: {
+			viewer: null,
+		},
 	})
 })

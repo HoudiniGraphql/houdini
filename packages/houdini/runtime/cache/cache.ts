@@ -70,7 +70,16 @@ export class Cache {
 
 	// reconstruct an object with the fields/relations specified by a selection
 	read(...args: Parameters<CacheInternal['getSelection']>) {
-		return this._internal_unstable.getSelection(...args)
+		const { data, partial, hasData } = this._internal_unstable.getSelection(...args)
+
+		if (!hasData) {
+			return { data: null, partial: false }
+		}
+
+		return {
+			data,
+			partial,
+		}
 	}
 
 	// register the provided callbacks with the fields specified by the selection
@@ -608,10 +617,10 @@ class CacheInternal {
 		selection: SubscriptionSelection
 		parent?: string
 		variables?: {}
-	}): { data: GraphQLObject | null; partial: boolean } {
+	}): { data: GraphQLObject | null; partial: boolean; hasData: boolean } {
 		// we could be asking for values of null
 		if (parent === null) {
-			return { data: null, partial: false }
+			return { data: null, partial: false, hasData: true }
 		}
 
 		const target = {} as GraphQLObject
@@ -638,15 +647,16 @@ class CacheInternal {
 			if (typeof value === 'undefined') {
 				partial = true
 			}
-			// as long as the value is not undefined, we have something
-			else {
-				hasData = true
-			}
 
 			// if we dont have a value to return, use null (we check for non-null fields at the end)
 			if (typeof value === 'undefined' || value === null) {
 				// set the value to null
 				target[attributeName] = null
+
+				// if we didn't just write undefined, there is officially some data in this object
+				if (typeof value !== 'undefined') {
+					hasData = true
+				}
 			}
 
 			// if the field is a scalar
@@ -662,6 +672,8 @@ class CacheInternal {
 				else {
 					target[attributeName] = value
 				}
+
+				hasData = true
 			}
 
 			// if the field is a list of records
@@ -679,6 +691,10 @@ class CacheInternal {
 				// the linked value could have partial results
 				if (listValue.partial) {
 					partial = true
+				}
+
+				if (listValue.hasData) {
+					hasData = true
 				}
 			}
 
@@ -698,6 +714,10 @@ class CacheInternal {
 				if (objectFields.partial) {
 					partial = true
 				}
+
+				if (objectFields.hasData) {
+					hasData = true
+				}
 			}
 
 			// regardless of how the field was processed, if we got a null value assigned
@@ -712,6 +732,7 @@ class CacheInternal {
 			// our value is considered true if there is some data but not everything
 			// has a full value
 			partial: hasData && partial,
+			hasData,
 		}
 	}
 
@@ -747,12 +768,13 @@ class CacheInternal {
 		fields: SubscriptionSelection
 		variables?: {}
 		linkedList: LinkedList
-	}): { data: LinkedList<GraphQLValue>; partial: boolean } {
+	}): { data: LinkedList<GraphQLValue>; partial: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
 		// to the corresponding record. can't have that now, can we?
 		const result = []
 		let partialData = false
+		let hasValues = false
 
 		for (const entry of linkedList) {
 			// if the entry is an array, keep going
@@ -772,7 +794,7 @@ class CacheInternal {
 			}
 
 			// look up the data for the record
-			const { data, partial } = this.getSelection({
+			const { data, partial, hasData } = this.getSelection({
 				parent: entry,
 				selection: fields,
 				variables,
@@ -783,9 +805,17 @@ class CacheInternal {
 			if (partial) {
 				partialData = true
 			}
+
+			if (hasData) {
+				hasValues = true
+			}
 		}
 
-		return { data: result, partial: partialData }
+		return {
+			data: result,
+			partial: partialData,
+			hasData: hasValues,
+		}
 	}
 
 	extractNestedListIDs({
