@@ -227,8 +227,11 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 			// look up the current value in the cache
 			const value = cache.read({ selection: artifact.selection, variables })
 
-			// if we have data, use that
-			if (value.data !== null) {
+			// if the result is partial and we dont allow it, dont return the value
+			const allowed = !value.partial || artifact.partial
+
+			// if we have data, use that unless its partial data and we dont allow that
+			if (value.data !== null && allowed) {
 				return {
 					result: {
 						data: value.data,

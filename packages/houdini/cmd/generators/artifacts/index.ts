@@ -194,17 +194,33 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 						(directive) => directive.name.value === config.cacheDirective
 					)
 					if (cacheDirective) {
-						// look for a policy argument
-						const policy = cacheDirective.arguments?.find(
-							(arg) => arg.name.value === config.cachePolicyArg
-						)
+						// look for arguments
+						const args: { [key: string]: graphql.ArgumentNode } =
+							cacheDirective.arguments?.reduce(
+								(acc, arg) => ({
+									...acc,
+									[arg.name.value]: arg,
+								}),
+								{}
+							) || {}
+
+						const policy = args[config.cachePolicyArg]
 						if (policy && policy.value.kind === 'EnumValue') {
 							artifact.policy = policy.value.value
 						} else {
 							artifact.policy = config.defaultCachePolicy
 						}
+
+						// if the user opted-in for partial data
+						const partial = args[config.cachePartialArg]
+						if (partial && partial.value.kind === 'BooleanValue') {
+							artifact.partial = partial.value.value
+						} else {
+							artifact.partial = config.defaultPartial
+						}
 					} else {
 						artifact.policy = config.defaultCachePolicy
+						artifact.partial = config.defaultPartial
 					}
 				}
 

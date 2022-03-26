@@ -65,7 +65,7 @@ export default async function graphqlExtensions(
 			"""
 				@${config.cacheDirective} is used to specify cache rules for a query
 			"""
-			directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy) on QUERY
+			directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${config.cachePartialArg}: Boolean) on QUERY
 
 		`),
 		],

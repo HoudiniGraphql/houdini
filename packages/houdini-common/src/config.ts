@@ -21,6 +21,7 @@ export type ConfigFile = {
 	module?: 'esm' | 'commonjs'
 	cacheBufferSize?: number
 	defaultCachePolicy?: CachePolicy
+	defaultPartial?: boolean
 }
 
 export type ScalarSpec = {
@@ -51,6 +52,7 @@ export class Config {
 	module: 'commonjs' | 'esm' = 'commonjs'
 	cacheBufferSize?: number
 	defaultCachePolicy: CachePolicy
+	defaultPartial: boolean
 
 	constructor({
 		schema,
@@ -66,6 +68,7 @@ export class Config {
 		scalars,
 		cacheBufferSize,
 		defaultCachePolicy = CachePolicy.NetworkOnly,
+		defaultPartial = false,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -152,6 +155,7 @@ export class Config {
 		this.scalars = scalars
 		this.cacheBufferSize = cacheBufferSize
 		this.defaultCachePolicy = defaultCachePolicy
+		this.defaultPartial = defaultPartial
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
@@ -319,6 +323,10 @@ export class Config {
 
 	get cacheDirective() {
 		return 'cache'
+	}
+
+	get cachePartialArg() {
+		return 'partial'
 	}
 
 	get cachePolicyArg() {

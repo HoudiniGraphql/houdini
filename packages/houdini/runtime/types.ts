@@ -38,6 +38,7 @@ export enum ArtifactKind {
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: ArtifactKind.Query
 	policy?: CachePolicy
+	partial?: boolean
 }
 
 export type MutationArtifact = BaseCompiledDocument & {
