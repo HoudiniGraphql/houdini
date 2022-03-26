@@ -277,7 +277,7 @@ export class RequestContext {
 		this.context = ctx
 	}
 
-	error(status: number, message: string | Error) {
+	error(status: number, message: string | Error): any {
 		this.continue = false
 		this.returnValue = {
 			error: message,
@@ -285,7 +285,7 @@ export class RequestContext {
 		}
 	}
 
-	redirect(status: number, location: string) {
+	redirect(status: number, location: string): any {
 		this.continue = false
 		this.returnValue = {
 			redirect: location,
