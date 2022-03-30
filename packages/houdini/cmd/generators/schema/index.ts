@@ -15,5 +15,5 @@ export default async function schemaGenerator(config: Config, docs: CollectedGra
 	}
 
 	// print the updated version of the schema over the existing one
-	await fs.writeFile(config.documentsPath, config.newSchema, 'utf-8')
+	await fs.writeFile(config.definitionsPath, config.newSchema, 'utf-8')
 }
