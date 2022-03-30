@@ -169,7 +169,9 @@ export class Config {
 	}
 
 	get definitionsPath() {
-		return path.join(this.rootDir, this.definitionsFile || 'definitions.gql')
+		return this.definitionsFile
+			? path.join(this.projectRoot, this.definitionsFile)
+			: path.join(this.rootDir, 'definitions.gql')
 	}
 
 	get typeIndexPath() {
