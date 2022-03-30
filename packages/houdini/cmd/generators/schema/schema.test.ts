@@ -21,7 +21,8 @@ test('adds internal documents to schema', async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file and make sure it got the internal documents
-	expect(graphql.parse(await fs.readFile(config.documentsPath, 'utf-8'))).toMatchInlineSnapshot(`
+	expect(graphql.parse(await fs.readFile(config.definitionsPath, 'utf-8')))
+		.toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
 		  CacheOnly
@@ -74,7 +75,8 @@ test('list operations are included', async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file and make sure it got the internal documents
-	expect(graphql.parse(await fs.readFile(config.documentsPath, 'utf-8'))).toMatchInlineSnapshot(`
+	expect(graphql.parse(await fs.readFile(config.definitionsPath, 'utf-8')))
+		.toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
 		  CacheOnly
@@ -141,7 +143,8 @@ test("writing twice doesn't duplicate definitions", async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file and make sure it got the internal documents
-	expect(graphql.parse(await fs.readFile(config.documentsPath, 'utf-8'))).toMatchInlineSnapshot(`
+	expect(graphql.parse(await fs.readFile(config.definitionsPath, 'utf-8')))
+		.toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
 		  CacheOnly
