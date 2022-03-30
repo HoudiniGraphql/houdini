@@ -15,7 +15,7 @@ export type ConfigFile = {
 	apiUrl?: string
 	static?: boolean
 	scalars?: ScalarMap
-	documentsPath?: string
+	definitionsPath?: string
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
 	cacheBufferSize?: number
@@ -50,7 +50,7 @@ export class Config {
 	module: 'commonjs' | 'esm' = 'commonjs'
 	cacheBufferSize?: number
 	defaultCachePolicy: CachePolicy
-	documentsFile?: string
+	definitionsFile?: string
 
 	newSchema: string = ''
 
@@ -66,7 +66,7 @@ export class Config {
 		static: staticSite,
 		scalars,
 		cacheBufferSize,
-		documentsPath,
+		definitionsPath,
 		defaultCachePolicy = CachePolicy.NetworkOnly,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
@@ -129,7 +129,7 @@ export class Config {
 		this.scalars = scalars
 		this.cacheBufferSize = cacheBufferSize
 		this.defaultCachePolicy = defaultCachePolicy
-		this.documentsFile = documentsPath
+		this.definitionsFile = definitionsPath
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
@@ -165,8 +165,8 @@ export class Config {
 		return path.join(this.rootDir, 'runtime')
 	}
 
-	get documentsPath() {
-		return path.join(this.rootDir, this.documentsFile || 'documents.gql')
+	get definitionsPath() {
+		return path.join(this.rootDir, this.definitionsFile || 'definitions.gql')
 	}
 
 	get typeIndexPath() {
