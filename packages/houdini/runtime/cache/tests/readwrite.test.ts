@@ -861,7 +861,6 @@ test('null-value field', function () {
 		},
 	})
 
-	console.log('vvvvvvvvvv')
 	expect(
 		cache.read({
 			selection: {
