@@ -259,6 +259,12 @@ describe('typescript', function () {
 		        readonly firstName: string
 		    } | null
 		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
+		};
 	`)
 	})
 
@@ -293,6 +299,12 @@ describe('typescript', function () {
 		        readonly firstName: string
 		    } | null)[] | null
 		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
+		};
 	`)
 	})
 
@@ -323,6 +335,12 @@ describe('typescript', function () {
 		    readonly user: {
 		        readonly firstName: string
 		    } | null
+		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
 		};
 
 		enum MyEnum {
@@ -384,6 +402,12 @@ describe('typescript', function () {
 		    } | null
 		};
 
+		export type Mutation$afterLoad = {
+		    readonly "data": {
+		        readonly "Mutation": Mutation$result
+		    }
+		};
+
 		type NestedUserFilter = {
 		    id: string,
 		    firstName: string,
@@ -443,6 +467,12 @@ describe('typescript', function () {
 		    readonly user: {
 		        readonly firstName: string
 		    } | null
+		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
 		};
 
 		type NestedUserFilter = {
@@ -524,6 +554,12 @@ describe('typescript', function () {
 		        }
 		    } | null
 		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
+		};
 	`)
 	})
 
@@ -570,6 +606,12 @@ describe('typescript', function () {
 		        readonly __typename: "Cat"
 		    })))[]
 		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
+		};
 	`)
 	})
 
@@ -615,6 +657,12 @@ describe('typescript', function () {
 		        readonly id: string,
 		        readonly __typename: "Cat"
 		    })) | null)[] | null
+		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
 		};
 	`)
 	})
@@ -664,6 +712,12 @@ describe('typescript', function () {
 		        readonly kitty: boolean,
 		        readonly __typename: "Cat"
 		    })))[]
+		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
 		};
 	`)
 	})
@@ -715,6 +769,12 @@ describe('typescript', function () {
 		    } & {
 		        readonly isAnimal: boolean
 		    })) | null)[] | null
+		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
 		};
 	`)
 	})
@@ -771,6 +831,12 @@ describe('typescript', function () {
 		    readonly allItems: ({
 		        readonly createdAt: Date
 		    })[]
+		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
 		};
 	`)
 	})
@@ -831,6 +897,12 @@ describe('typescript', function () {
 		    })[]
 		};
 
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
+		};
+
 		export type Query$input = {
 		    date: Date
 		};
@@ -873,6 +945,12 @@ describe('typescript', function () {
 		        readonly nickname: string | null
 		    } | null)[] | null)[]
 		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
+		};
 	`)
 	})
 
@@ -914,6 +992,12 @@ describe('typescript', function () {
 		            readonly nickname: string | null
 		        } | null
 		    } | null
+		};
+
+		export type Query$afterLoad = {
+		    readonly "data": {
+		        readonly "Query": Query$result
+		    }
 		};
 	`)
 	})

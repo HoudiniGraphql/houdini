@@ -114,6 +114,7 @@ async function generateOperationTypeDefs(
 	// the name of the types we will define
 	const inputTypeName = `${definition.name!.value}$input`
 	const shapeTypeName = `${definition.name!.value}$result`
+	const afterLoadTypeName = `${definition.name!.value}$afterLoad`
 
 	// look up the root type of the document
 	let type: graphql.GraphQLNamedType | null | undefined
@@ -175,6 +176,34 @@ async function generateOperationTypeDefs(
 					visitedTypes,
 					body,
 				})
+			)
+		)
+	)
+
+	// generate type for the afterload function
+	body.push(
+		AST.exportNamedDeclaration(
+			AST.tsTypeAliasDeclaration(
+				AST.identifier(afterLoadTypeName),
+				AST.tsTypeLiteral([
+					readonlyProperty(
+						AST.tsPropertySignature(
+							AST.stringLiteral('data'),
+							AST.tsTypeAnnotation(
+								AST.tsTypeLiteral([
+									readonlyProperty(
+										AST.tsPropertySignature(
+											AST.stringLiteral(definition.name!.value),
+											AST.tsTypeAnnotation(
+												AST.tsTypeReference(AST.identifier(shapeTypeName))
+											)
+										)
+									),
+								])
+							)
+						)
+					),
+				])
 			)
 		)
 	)
