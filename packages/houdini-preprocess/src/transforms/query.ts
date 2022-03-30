@@ -676,7 +676,7 @@ function loadHookStatements(
 								AST.stringLiteral(name === 'afterLoad' ? 'after' : 'before')
 							),
 							AST.objectProperty(
-								AST.literal('mode'),
+								AST.literal('framework'),
 								AST.stringLiteral(config.framework)
 							),
 							AST.objectProperty(AST.literal('hookFn'), AST.identifier(name)),

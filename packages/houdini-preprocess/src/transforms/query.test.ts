@@ -741,7 +741,7 @@ test('beforeLoad hook', async function () {
 
 		    await _houdini_context.invokeLoadHook({
 		        "variant": "before",
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "hookFn": beforeLoad
 		    });
 
@@ -858,7 +858,7 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		    await _houdini_context.invokeLoadHook({
 		        "variant": "before",
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "hookFn": beforeLoad
 		    });
 
@@ -1008,7 +1008,7 @@ test('afterLoad hook', async function () {
 
 		    await _houdini_context.invokeLoadHook({
 		        "variant": "after",
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "hookFn": afterLoad,
 
 		        "data": {
@@ -1141,7 +1141,7 @@ test('afterLoad hook - multiple queries', async function () {
 
 		    await _houdini_context.invokeLoadHook({
 		        "variant": "after",
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "hookFn": afterLoad,
 
 		        "data": {
@@ -1246,7 +1246,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 
 		    await _houdini_context.invokeLoadHook({
 		        "variant": "before",
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "hookFn": beforeLoad
 		    });
 
@@ -1281,7 +1281,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 
 		    await _houdini_context.invokeLoadHook({
 		        "variant": "after",
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "hookFn": afterLoad,
 
 		        "data": {
@@ -1390,7 +1390,7 @@ test('deprecated onLoad hook', async function () {
 
 		    await _houdini_context.invokeLoadHook({
 		        "variant": "before",
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "hookFn": onLoad
 		    });
 
