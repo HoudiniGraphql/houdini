@@ -304,7 +304,7 @@ export class RequestContext {
 		data,
 	}: {
 		variant: 'before' | 'after'
-		mode: 'kit' | 'sapper'
+		module: 'esm' | 'sapper'
 		hookFn: KitBeforeLoad | KitAfterLoad | SapperBeforeLoad | SapperAfterLoad
 		data: Record<string, any>
 	}) {
@@ -360,7 +360,7 @@ export class RequestContext {
 		variableFunction,
 		artifact,
 	}: {
-		mode: 'kit' | 'sapper'
+		module: 'esm' | 'sapper'
 		variableFunction: SapperBeforeLoad | KitBeforeLoad
 		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
 		config: Config

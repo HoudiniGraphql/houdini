@@ -6,6 +6,7 @@ import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../typ
 import { TypeWrapper, unwrapType } from '../utils'
 import { ArtifactKind } from '../../runtime/types'
 import { pageInfoSelection } from './paginate'
+import { mergeSchemas } from '@graphql-tools/merge'
 
 // addListFragments adds fragments for the fields tagged with @list
 export default async function addListFragments(
@@ -195,7 +196,7 @@ export default async function addListFragments(
 	// so we're going to add them to the list of documents, one each
 	const generatedDoc: graphql.DocumentNode = {
 		kind: 'Document',
-		definitions: Object.entries(lists).flatMap<graphql.FragmentDefinitionNode>(
+		definitions: (Object.entries(lists).flatMap<graphql.FragmentDefinitionNode>(
 			([name, { selection, type }]) => {
 				// look up the type
 				const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
@@ -312,10 +313,8 @@ export default async function addListFragments(
 					},
 				]
 			}
-		),
-
-		...listTargets.flatMap<graphql.DirectiveDefinitionNode>((typeName) => [
-			{
+		) as graphql.DefinitionNode[]).concat(
+			...listTargets.map<graphql.DirectiveDefinitionNode>((typeName) => ({
 				kind: 'DirectiveDefinition',
 				name: {
 					kind: 'Name',
@@ -330,9 +329,11 @@ export default async function addListFragments(
 					},
 				],
 				repeatable: true,
-			},
-		]),
+			}))
+		),
 	}
+
+	config.newSchema += '\n' + generatedDoc.definitions.map(graphql.print).join('\n')
 
 	documents.push({
 		name: 'generated::lists',

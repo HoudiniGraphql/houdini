@@ -15,8 +15,7 @@ export type ConfigFile = {
 	apiUrl?: string
 	static?: boolean
 	scalars?: ScalarMap
-	// an old config file could specify mode instead of framework and module
-	mode?: 'kit' | 'sapper'
+	documentsPath?: string
 	framework?: 'kit' | 'sapper' | 'svelte'
 	module?: 'esm' | 'commonjs'
 	cacheBufferSize?: number
@@ -51,6 +50,9 @@ export class Config {
 	module: 'commonjs' | 'esm' = 'commonjs'
 	cacheBufferSize?: number
 	defaultCachePolicy: CachePolicy
+	documentsFile?: string
+
+	newSchema: string = ''
 
 	constructor({
 		schema,
@@ -62,9 +64,9 @@ export class Config {
 		framework = 'sapper',
 		module = 'commonjs',
 		static: staticSite,
-		mode,
 		scalars,
 		cacheBufferSize,
+		documentsPath,
 		defaultCachePolicy = CachePolicy.NetworkOnly,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
@@ -114,31 +116,6 @@ export class Config {
 			}
 		}
 
-		// if we were given a mode instead of framework/module
-		if (mode) {
-			if (!quiet) {
-				// warn the user
-				console.warn('Encountered deprecated config value: mode')
-				console.warn(
-					'This parameter will be removed in a future version. Please update your config with the ' +
-						'following values:'
-				)
-			}
-			if (mode === 'sapper') {
-				if (!quiet) {
-					console.warn(JSON.stringify({ framework: 'sapper', module: 'commonjs' }))
-				}
-				framework = 'sapper'
-				module = 'commonjs'
-			} else {
-				if (!quiet) {
-					console.warn(JSON.stringify({ framework: 'kit', module: 'esm' }))
-				}
-				framework = 'kit'
-				module = 'esm'
-			}
-		}
-
 		// save the values we were given
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
@@ -152,6 +129,7 @@ export class Config {
 		this.scalars = scalars
 		this.cacheBufferSize = cacheBufferSize
 		this.defaultCachePolicy = defaultCachePolicy
+		this.documentsFile = documentsPath
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
@@ -185,6 +163,10 @@ export class Config {
 	// where we will place the runtime
 	get runtimeDirectory() {
 		return path.join(this.rootDir, 'runtime')
+	}
+
+	get documentsPath() {
+		return path.join(this.rootDir, this.documentsFile || 'documents.gql')
 	}
 
 	get typeIndexPath() {
