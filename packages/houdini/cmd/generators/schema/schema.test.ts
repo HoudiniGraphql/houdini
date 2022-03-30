@@ -70,10 +70,6 @@ test('list operations are included', async function () {
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
 
-	// the config to use in tests
-	let config = testConfig()
-	const schemaPath = path.join(path.relative(process.cwd(), config.rootDir), 'schema.graphql')
-
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -139,13 +135,6 @@ test("writing twice doesn't duplicate definitions", async function () {
 		mockCollectedDoc(`query TestQuery { version }`),
 		mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 	]
-
-	// the config to use in tests
-	let config = testConfig()
-	const schemaPath = path.join(path.relative(process.cwd(), config.rootDir), 'schema.graphql')
-	config = testConfig({
-		schemaPath,
-	})
 
 	// execute the generator twice
 	await runPipeline(config, docs)
