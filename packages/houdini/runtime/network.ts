@@ -314,18 +314,18 @@ export class RequestContext {
 	// It also allows to return custom props that should be returned from the corresponding load function.
 	async invokeLoadHook({
 		variant,
-		mode,
+		framework,
 		hookFn,
 		data,
 	}: {
 		variant: 'before' | 'after'
-		mode: 'kit' | 'sapper'
+		framework: 'kit' | 'sapper'
 		hookFn: KitBeforeLoad | KitAfterLoad | SapperBeforeLoad | SapperAfterLoad
 		data: Record<string, any>
 	}) {
 		// call the onLoad function to match the framework
 		let hookCall
-		if (mode === 'kit') {
+		if (framework === 'kit') {
 			if (variant === 'before') {
 				hookCall = (hookFn as KitBeforeLoad).call(this, this.context as BeforeLoadContext)
 			} else {
@@ -371,18 +371,18 @@ export class RequestContext {
 	// the context
 	computeInput({
 		config,
-		mode,
+		framework,
 		variableFunction,
 		artifact,
 	}: {
-		mode: 'kit' | 'sapper'
+		framework: 'kit' | 'sapper'
 		variableFunction: SapperBeforeLoad | KitBeforeLoad
 		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
 		config: Config
 	}) {
 		// call the variable function to match the framework
 		let input =
-			mode === 'kit'
+			framework === 'kit'
 				? // in kit just pass the context directly
 				  (variableFunction as KitBeforeLoad).call(this, this.context)
 				: // we are in sapper mode, so we need to prepare the function context

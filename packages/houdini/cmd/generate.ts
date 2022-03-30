@@ -29,6 +29,9 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 	// we need to create the runtime folder structure
 	await config.createDirectories()
 
+	// reset the newSchema accumulator
+	config.newSchema = ''
+
 	await run(
 		config,
 		[
@@ -50,6 +53,7 @@ export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument
 			generators.runtime,
 			generators.typescript,
 			generators.persistOutput,
+			generators.schema,
 		],
 		docs
 	)

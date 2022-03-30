@@ -412,7 +412,7 @@ test('overlapping query and fragment nested selection', async function () {
 })
 
 test('selections with interfaces', async function () {
-	const cfg = testConfig({ mode: 'kit' })
+	const cfg = testConfig({ module: 'esm' })
 	const mutationDocs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -520,7 +520,7 @@ test('selections with interfaces', async function () {
 })
 
 test('selections with unions', async function () {
-	const cfg = testConfig({ mode: 'kit' })
+	const cfg = testConfig({ module: 'esm' })
 	const mutationDocs = [
 		mockCollectedDoc(
 			`query Friends {
@@ -629,7 +629,7 @@ test('selections with unions', async function () {
 
 describe('mutation artifacts', function () {
 	test('empty operation list', async function () {
-		const cfg = testConfig({ mode: 'kit' })
+		const cfg = testConfig({ module: 'esm' })
 
 		const mutationDocs = [
 			mockCollectedDoc(
@@ -2500,7 +2500,7 @@ describe('mutation artifacts', function () {
 	})
 
 	test('sveltekit', async function () {
-		const cfg = testConfig({ mode: 'kit' })
+		const cfg = testConfig({ module: 'esm' })
 
 		const mutationDocs = [
 			mockCollectedDoc(

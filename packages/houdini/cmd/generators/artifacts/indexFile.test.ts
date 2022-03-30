@@ -20,8 +20,8 @@ const docs: CollectedGraphQLDocument[] = [
 	mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 ]
 
-test('index file - kit', async function () {
-	const config = testConfig({ mode: 'kit' })
+test('index file - esm', async function () {
+	const config = testConfig({ module: 'esm' })
 
 	// execute the generator
 	await runPipeline(config, docs)
@@ -45,7 +45,7 @@ test('index file - kit', async function () {
 
 test('index file - sapper', async function () {
 	// execute the generator
-	await runPipeline(testConfig({ mode: 'sapper' }), docs)
+	await runPipeline(testConfig({ module: 'commonjs' }), docs)
 
 	// open up the index file
 	const queryContents = await fs.readFile(
