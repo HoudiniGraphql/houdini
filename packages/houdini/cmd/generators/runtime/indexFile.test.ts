@@ -18,7 +18,7 @@ const docs: CollectedGraphQLDocument[] = [
 ]
 
 test('runtime index file - sapper', async function () {
-	const config = testConfig({ mode: 'sapper' })
+	const config = testConfig({ module: 'commonjs' })
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -56,7 +56,7 @@ test('runtime index file - sapper', async function () {
 })
 
 test('runtime index file - kit', async function () {
-	const config = testConfig({ mode: 'kit' })
+	const config = testConfig({ module: 'esm' })
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -69,7 +69,7 @@ test('runtime index file - kit', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		export { default as houdiniConfig } from "../config.cjs"
+		export { default as houdiniConfig } from "../../../config.cjs"
 		export * from "./runtime"
 		export * from "./artifacts"
 	`)

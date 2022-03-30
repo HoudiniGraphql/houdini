@@ -130,7 +130,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			mode: 'kit',
+			module: 'esm',
 			artifact,
 			variableFunction() {
 				return {
@@ -175,7 +175,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			mode: 'kit',
+			module: 'esm',
 			artifact,
 			variableFunction() {
 				return {
@@ -202,7 +202,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			mode: 'kit',
+			module: 'esm',
 			artifact,
 			variableFunction() {
 				return {
@@ -229,7 +229,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			mode: 'kit',
+			module: 'esm',
 			artifact,
 			variableFunction() {
 				return {
@@ -248,7 +248,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			mode: 'kit',
+			module: 'esm',
 			artifact,
 			variableFunction() {
 				return {
@@ -271,7 +271,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			mode: 'kit',
+			module: 'esm',
 			artifact,
 			variableFunction() {
 				return {
@@ -298,7 +298,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			mode: 'kit',
+			module: 'esm',
 			artifact,
 			variableFunction() {
 				return {
@@ -317,7 +317,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			mode: 'kit',
+			module: 'esm',
 			artifact,
 			variableFunction() {
 				return {
@@ -336,7 +336,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			mode: 'kit',
+			module: 'esm',
 			artifact,
 			variableFunction() {
 				return {
@@ -355,7 +355,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			mode: 'kit',
+			module: 'esm',
 			artifact,
 			variableFunction() {
 				return {
