@@ -275,7 +275,7 @@ describe('query preprocessor', function () {
 
 		    const _TestQuery_Input = _houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "variableFunction": TestQueryVariables,
 		        "artifact": _TestQueryArtifact
 		    });
@@ -753,7 +753,7 @@ test('beforeLoad hook', async function () {
 
 		    const _TestQuery_Input = _houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "variableFunction": TestQueryVariables,
 		        "artifact": _TestQueryArtifact
 		    });
@@ -985,7 +985,7 @@ test('afterLoad hook', async function () {
 
 		    const _TestQuery_Input = _houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "variableFunction": TestQueryVariables,
 		        "artifact": _TestQueryArtifact
 		    });
@@ -1258,7 +1258,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 
 		    const _TestQuery_Input = _houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "variableFunction": TestQueryVariables,
 		        "artifact": _TestQueryArtifact
 		    });
@@ -1402,7 +1402,7 @@ test('deprecated onLoad hook', async function () {
 
 		    const _TestQuery_Input = _houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "mode": "sapper",
+		        "framework": "sapper",
 		        "variableFunction": TestQueryVariables,
 		        "artifact": _TestQueryArtifact
 		    });
