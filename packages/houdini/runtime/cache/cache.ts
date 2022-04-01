@@ -34,7 +34,7 @@ export class Cache {
 		selection: SubscriptionSelection
 		variables?: {}
 		parent?: string
-		layer?: LayerID
+		layer?: LayerID | null
 		applyUpdates?: boolean
 	}): LayerID {
 		// find the correct layer
