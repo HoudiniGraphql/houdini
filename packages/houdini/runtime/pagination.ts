@@ -222,14 +222,13 @@ function cursorHandlers<_Input>({
 	const sessionStore = getSession()
 
 	// track the current page info in an easy-to-reach store
-	const initialPageInfo = initialValue
-		? extractPageInfo(initialValue, artifact.refetch!.path)
-		: {
-				startCursor: null,
-				endCursor: null,
-				hasNextPage: false,
-				hasPreviousPage: false,
-		  }
+	const initialPageInfo = extractPageInfo(initialValue, artifact.refetch!.path) ?? {
+		startCursor: null,
+		endCursor: null,
+		hasNextPage: false,
+		hasPreviousPage: false,
+	}
+
 	const pageInfo = writable<PageInfo>(initialPageInfo)
 
 	// hold onto the current value

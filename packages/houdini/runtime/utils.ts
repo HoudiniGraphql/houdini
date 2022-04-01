@@ -8,14 +8,33 @@ export type PageInfo = {
 }
 
 export function extractPageInfo(data: GraphQLObject, path: string[]): PageInfo {
+	if (data === null) {
+		return {
+			startCursor: null,
+			endCursor: null,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		}
+	}
+
 	let localPath = [...path]
 	// walk down the object until we get to the end
 	let current = data
 	while (localPath.length > 0) {
+		if (current === null) {
+			break
+		}
 		current = current[localPath.shift() as string] as GraphQLObject
 	}
 
-	return current.pageInfo as PageInfo
+	return (
+		(current?.pageInfo as PageInfo) ?? {
+			startCursor: null,
+			endCursor: null,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		}
+	)
 }
 
 export function countPage(source: string[], value: GraphQLObject): number {
