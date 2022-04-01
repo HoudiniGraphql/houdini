@@ -90,7 +90,7 @@ export function mutation<_Mutation extends Operation<any, any>>(
 			// merge the layer back into the cache
 			cache._internal_unstable.storage.resolveLayer(layer.id)
 
-			// unmarshal any scalars in the response
+			// turn any scalars in the response into their complex form
 			return unmarshalSelection(config, artifact.selection, result.data)
 		} catch (error) {
 			// if the mutation failed, roll the layer back and delete it
