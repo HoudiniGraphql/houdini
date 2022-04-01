@@ -7,6 +7,63 @@ import {
 	SubscriptionArtifact,
 	SubscriptionSelection,
 } from './types'
+
+export function marshalSelection({
+	config,
+	selection,
+	data,
+}: {
+	config: Config
+	selection: SubscriptionSelection
+	data: unknown
+}): {} | null | undefined {
+	if (data === null || typeof data === 'undefined') {
+		return data
+	}
+
+	// if we are looking at a list
+	if (Array.isArray(data)) {
+		// unmarshal every entry in the list
+		return data.map((val) => marshalSelection({ config, selection, data: val }))
+	}
+
+	// we're looking at an object, build it up from the current input
+	return Object.fromEntries(
+		Object.entries(data as {}).map(([fieldName, value]) => {
+			// look up the type for the field
+			const { type, fields } = selection[fieldName]
+			// if we don't have type information for this field, just use it directly
+			// it's most likely a non-custom scalars or enums
+			if (!type) {
+				return [fieldName, value]
+			}
+
+			// if there is a sub selection, walk down the selection
+			if (fields) {
+				return [fieldName, marshalSelection({ config, selection: fields, data: value })]
+			}
+
+			// is the type something that requires marshaling
+			if (config.scalars?.[type]) {
+				const marshalFn = config.scalars[type].marshal
+				if (!marshalFn) {
+					throw new Error(
+						`scalar type ${type} is missing a \`marshal\` function. see https://github.com/AlecAivazis/houdini#%EF%B8%8Fcustom-scalars`
+					)
+				}
+				if (Array.isArray(value)) {
+					return [fieldName, value.map(marshalFn)]
+				}
+				return [fieldName, marshalFn(value)]
+			}
+
+			// if the type doesn't require marshaling and isn't a referenced type
+			// then the type is a scalar that doesn't require marshaling
+			return [fieldName, value]
+		})
+	)
+}
+
 export function marshalInputs<T>({
 	artifact,
 	config,

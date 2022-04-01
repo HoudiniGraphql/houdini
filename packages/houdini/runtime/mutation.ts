@@ -4,7 +4,7 @@ import type { Config } from 'houdini-common'
 import { executeQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact } from './types'
 import cache from './cache'
-import { marshalInputs, unmarshalSelection } from './scalars'
+import { marshalInputs, marshalSelection, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
@@ -38,26 +38,31 @@ export function mutation<_Mutation extends Operation<any, any>>(
 		// pull out an optimistic response if we
 		const optimisticResponse = mutationConfig?.optimisticResponse
 
-		try {
-			// treat a mutation like it has an optimistic layer regardless of
-			// wether there actually _is_ one. This ensures that a query which fires
-			// after this mutation has been sent will overwrite any return values from the mutation
-			//
-			// as far as I can tell, this is an arbitrary decision but it does give a
-			// well-defined ordering to a subtle situation so that seems like a win
-			//
-			const layer = cache._internal_unstable.storage.createLayer(true)
+		// treat a mutation like it has an optimistic layer regardless of
+		// whether there actually _is_ one. This ensures that a query which fires
+		// after this mutation has been sent will overwrite any return values from the mutation
+		//
+		// as far as I can tell, this is an arbitrary decision but it does give a
+		// well-defined ordering to a subtle situation so that seems like a win
+		//
+		const layer = cache._internal_unstable.storage.createLayer(true)
 
-			// if there is an optimistic response then we need to write the value immediately
-			if (optimisticResponse) {
-				cache.write({
+		// if there is an optimistic response then we need to write the value immediately
+		if (optimisticResponse) {
+			cache.write({
+				selection: artifact.selection,
+				// make sure that any scalar values get processed into something we can cache
+				data: marshalSelection({
+					config,
 					selection: artifact.selection,
 					data: optimisticResponse,
-					variables,
-					layer: layer.id,
-				})
-			}
+				})!,
+				variables,
+				layer: layer.id,
+			})
+		}
 
+		try {
 			// trigger the mutation on the server
 			const { result } = await executeQuery<_Mutation['result'], _Mutation['input']>(
 				artifact,
@@ -69,6 +74,9 @@ export function mutation<_Mutation extends Operation<any, any>>(
 				sessionStore,
 				false
 			)
+
+			// clear the layer holding any mutation results
+			layer.clear()
 
 			// write the result of the mutation to the cache
 			cache.write({
@@ -85,6 +93,11 @@ export function mutation<_Mutation extends Operation<any, any>>(
 			// unmarshal any scalars in the response
 			return unmarshalSelection(config, artifact.selection, result.data)
 		} catch (error) {
+			// if the mutation failed, roll the layer back and delete it
+			layer.clear()
+			cache._internal_unstable.storage.resolveLayer(layer.id)
+
+			// bubble the mutation error up to the caller
 			throw error
 		}
 	}
