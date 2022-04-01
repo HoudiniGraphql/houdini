@@ -228,7 +228,7 @@ class CacheInternal {
 			const { value: previousValue, displayLayers } = this.storage.get(parent, key)
 
 			// if the layer we are updating is the top most layer for the field
-			// then its value is "live", it is providing the current value and
+			// then its value is "live". It is providing the current value and
 			// subscribers need to know if the value changed
 			const displayLayer = displayLayers.length === 0 || displayLayers.includes(layer.id)
 
