@@ -357,7 +357,9 @@ function cursorHandlers<_Input>({
 
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
-			const count = countPage(artifact.refetch!.path.concat('edges'), value)
+			const count =
+				countPage(artifact.refetch!.path.concat('edges'), value) ||
+				artifact.refetch!.pageSize
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
