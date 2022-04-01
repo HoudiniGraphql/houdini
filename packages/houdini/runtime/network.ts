@@ -186,6 +186,8 @@ export type FetchQueryResult<_Data> = {
 	partial: boolean
 }
 
+export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
+
 export async function fetchQuery<_Data extends GraphQLObject>({
 	context,
 	artifact,

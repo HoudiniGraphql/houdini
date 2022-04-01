@@ -14,7 +14,7 @@ import {
 } from './types'
 import cache from './cache'
 import { setVariables } from './context'
-import { executeQuery, RequestPayload } from './network'
+import { executeQuery, QueryInputs, RequestPayload } from './network'
 import { marshalInputs, unmarshalSelection } from './scalars'
 import type { FetchQueryResult } from './network'
 
@@ -167,9 +167,12 @@ export function query<_Query extends Operation<any, any>>(
 		loading: { subscribe: loading.subscribe },
 		partial: { subscribe: partial.subscribe },
 		error: readable(null, () => {}),
-		onLoad(newValue: FetchQueryResult<any> & { variables: { [key: string]: any } }) {
+		onLoad(newValue: QueryInputs<any>) {
 			// we got new data from mounting, write it
 			writeData(newValue.result, newValue.variables)
+
+			// keep the partial store in sync
+			partial.set(newValue.partial)
 
 			// if we are mounting on a browser we might need to perform an additional network request
 			if (isBrowser) {

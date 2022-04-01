@@ -7,13 +7,12 @@ import {
 	Fragment,
 	GraphQLObject,
 	QueryArtifact,
-	TaggedGraphqlQuery,
 	FragmentArtifact,
 } from './types'
 import { query, QueryResponse } from './query'
 import { fragment } from './fragment'
 import { getVariables } from './context'
-import { executeQuery } from './network'
+import { executeQuery, QueryInputs } from './network'
 import cache from './cache'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
@@ -39,18 +38,21 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	}
 
 	// pass the artifact to the base query operation
-	const { data, loading, refetch, partial, ...restOfQueryResponse } = query(document)
+	const { data, loading, refetch, partial, onLoad, ...restOfQueryResponse } = query(document)
 
 	const paginationPartial = writable(false)
-
-	const partialStore = derived(
-		[partial, paginationPartial],
-		([$partial, $paginationPartial]) => $partial || $paginationPartial
-	)
+	partial.subscribe((val) => {
+		paginationPartial.set(val)
+	})
 
 	return {
 		data,
-		partial: partialStore,
+		partial: { subscribe: paginationPartial.subscribe },
+		onLoad(newValue: QueryInputs<any>) {
+			onLoad.call(this, newValue)
+			// keep the partial store in sync
+			paginationPartial.set(newValue.partial)
+		},
 		...paginationHandlers({
 			initialValue: document.initialValue.data,
 			store: data,
@@ -505,6 +507,7 @@ function offsetPaginationHandler<_Data, _Input>({
 				sessionStore,
 				false
 			)
+
 			partial.set(partialData)
 
 			// update cache with the result
