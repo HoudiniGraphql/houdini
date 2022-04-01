@@ -194,10 +194,6 @@ function processInstance(
 		const operation = document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 		// figure out the local variable that holds the result
 		const preloadKey = preloadPayloadKey(operation)
-		const preloadSourceKey = preloadsourceKey(operation)
-
-		// the identifier for the query variables
-		const variableIdentifier = variablesKey(operation)
 
 		const { artifact, parsedDocument } = document
 
@@ -209,22 +205,6 @@ function processInstance(
 			AST.exportNamedDeclaration(
 				AST.variableDeclaration('let', [
 					AST.variableDeclarator(AST.identifier(preloadKey), AST.identifier('undefined')),
-				])
-			),
-			AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [
-					AST.variableDeclarator(
-						AST.identifier(variableIdentifier),
-						AST.identifier('undefined')
-					),
-				])
-			),
-			AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [
-					AST.variableDeclarator(
-						AST.identifier(preloadSourceKey),
-						AST.identifier('undefined')
-					),
 				])
 			),
 			AST.variableDeclaration('let', [
@@ -240,20 +220,23 @@ function processInstance(
 								),
 								AST.objectProperty(
 									AST.stringLiteral('initialValue'),
-									AST.identifier(
-										preloadPayloadKey(
-											parsedDocument
-												.definitions[0] as graphql.OperationDefinitionNode
-										)
+									AST.memberExpression(
+										AST.identifier(preloadPayloadKey(operation)),
+										AST.identifier('result')
 									)
 								),
 								AST.objectProperty(
 									AST.stringLiteral('variables'),
-									AST.identifier(
-										variablesKey(
-											parsedDocument
-												.definitions[0] as graphql.OperationDefinitionNode
-										)
+									AST.memberExpression(
+										AST.identifier(preloadPayloadKey(operation)),
+										AST.identifier('variables')
+									)
+								),
+								AST.objectProperty(
+									AST.stringLiteral('partial'),
+									AST.memberExpression(
+										AST.identifier(preloadPayloadKey(operation)),
+										AST.identifier('partial')
 									)
 								),
 								AST.objectProperty(
@@ -266,7 +249,10 @@ function processInstance(
 								),
 								AST.objectProperty(
 									AST.literal('source'),
-									AST.identifier(preloadSourceKey)
+									AST.memberExpression(
+										AST.identifier(preloadPayloadKey(operation)),
+										AST.identifier('source')
+									)
 								),
 							]),
 						]
@@ -289,11 +275,7 @@ function processInstance(
 									queryHandlerIdentifier(operation),
 									AST.identifier('onLoad')
 								),
-								[
-									AST.identifier(preloadKey),
-									AST.identifier(variableIdentifier),
-									AST.identifier(preloadSourceKey),
-								]
+								[AST.identifier(preloadKey)]
 							)
 						),
 					])
@@ -377,7 +359,6 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 
 		// figure out the local variable that holds the result
 		const preloadKey = preloadPayloadKey(operation)
-		const preloadSourceKey = preloadsourceKey(operation)
 
 		// the identifier for the query variables
 		const variableIdentifier = variablesKey(operation)
@@ -433,10 +414,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			// perform the fetch and save the value under {preloadKey}
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
-					AST.arrayPattern([
-						AST.identifier(preloadKey),
-						AST.identifier(preloadSourceKey),
-					]),
+					AST.identifier(preloadKey),
 					AST.awaitExpression(
 						AST.callExpression(AST.identifier('fetchQuery'), [
 							AST.objectExpression([
@@ -471,7 +449,10 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			AST.ifStatement(
 				AST.unaryExpression(
 					'!',
-					AST.memberExpression(AST.identifier(preloadKey), AST.identifier('data'))
+					AST.memberExpression(
+						AST.memberExpression(AST.identifier(preloadKey), AST.identifier('result')),
+						AST.identifier('data')
+					)
 				),
 				AST.blockStatement([
 					AST.expressionStatement(
@@ -487,12 +468,16 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 
 		// add the field to the return value of preload
 		propsValue.properties.push(
-			AST.objectProperty(AST.identifier(preloadKey), AST.identifier(preloadKey)),
 			AST.objectProperty(
-				AST.identifier(variableIdentifier),
-				AST.identifier(variableIdentifier)
-			),
-			AST.objectProperty(AST.identifier(preloadSourceKey), AST.identifier(preloadSourceKey))
+				AST.identifier(preloadKey),
+				AST.objectExpression([
+					AST.spreadProperty(AST.identifier(preloadKey)),
+					AST.objectProperty(
+						AST.identifier('variables'),
+						AST.identifier(variableIdentifier)
+					),
+				])
+			)
 		)
 	}
 

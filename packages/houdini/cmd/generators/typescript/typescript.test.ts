@@ -349,7 +349,7 @@ describe('typescript', function () {
 
 		export type Query$input = {
 		    id: string,
-		    enum: MyEnum | null | undefined
+		    enum?: MyEnum | null | undefined
 		};
 	`)
 	})
@@ -411,9 +411,9 @@ describe('typescript', function () {
 		type NestedUserFilter = {
 		    id: string,
 		    firstName: string,
-		    admin: boolean | null | undefined,
-		    age: number | null | undefined,
-		    weight: number | null | undefined
+		    admin?: boolean | null | undefined,
+		    age?: number | null | undefined,
+		    weight?: number | null | undefined
 		};
 
 		enum MyEnum {
@@ -421,21 +421,21 @@ describe('typescript', function () {
 		}
 
 		type UserFilter = {
-		    middle: NestedUserFilter | null | undefined,
+		    middle?: NestedUserFilter | null | undefined,
 		    listRequired: (string)[],
-		    nullList: (string | null | undefined)[] | null | undefined,
-		    recursive: UserFilter | null | undefined,
-		    enum: MyEnum | null | undefined
+		    nullList?: (string | null | undefined)[] | null | undefined,
+		    recursive?: UserFilter | null | undefined,
+		    enum?: MyEnum | null | undefined
 		};
 
 		export type Mutation$input = {
-		    filter: UserFilter | null | undefined,
+		    filter?: UserFilter | null | undefined,
 		    filterList: (UserFilter)[],
 		    id: string,
 		    firstName: string,
-		    admin: boolean | null | undefined,
-		    age: number | null | undefined,
-		    weight: number | null | undefined
+		    admin?: boolean | null | undefined,
+		    age?: number | null | undefined,
+		    weight?: number | null | undefined
 		};
 	`)
 	})
@@ -478,9 +478,9 @@ describe('typescript', function () {
 		type NestedUserFilter = {
 		    id: string,
 		    firstName: string,
-		    admin: boolean | null | undefined,
-		    age: number | null | undefined,
-		    weight: number | null | undefined
+		    admin?: boolean | null | undefined,
+		    age?: number | null | undefined,
+		    weight?: number | null | undefined
 		};
 
 		enum MyEnum {
@@ -488,11 +488,11 @@ describe('typescript', function () {
 		}
 
 		type UserFilter = {
-		    middle: NestedUserFilter | null | undefined,
+		    middle?: NestedUserFilter | null | undefined,
 		    listRequired: (string)[],
-		    nullList: (string | null | undefined)[] | null | undefined,
-		    recursive: UserFilter | null | undefined,
-		    enum: MyEnum | null | undefined
+		    nullList?: (string | null | undefined)[] | null | undefined,
+		    recursive?: UserFilter | null | undefined,
+		    enum?: MyEnum | null | undefined
 		};
 
 		export type Query$input = {

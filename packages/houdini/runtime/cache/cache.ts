@@ -59,7 +59,7 @@ export class Cache {
 						parent: spec.parentID || rootID,
 						selection: spec.selection,
 						variables: spec.variables?.() || {},
-					})
+					}).data
 				)
 			}
 		}
@@ -70,7 +70,16 @@ export class Cache {
 
 	// reconstruct an object with the fields/relations specified by a selection
 	read(...args: Parameters<CacheInternal['getSelection']>) {
-		return this._internal_unstable.getSelection(...args)
+		const { data, partial, hasData } = this._internal_unstable.getSelection(...args)
+
+		if (!hasData) {
+			return { data: null, partial: false }
+		}
+
+		return {
+			data,
+			partial,
+		}
 	}
 
 	// register the provided callbacks with the fields specified by the selection
@@ -257,6 +266,24 @@ class CacheInternal {
 				// write value to the layer
 				layer.writeField(parent, key, newValue)
 			}
+			// if we are writing `null` over a link
+			else if (value === null) {
+				// if the previous value was also null, there's nothing to do
+				if (previousValue === null) {
+					continue
+				}
+
+				const previousLinks = flattenList<string>([previousValue as string | string[]])
+
+				for (const link of previousLinks) {
+					this.subscriptions.remove(link, fields, currentSubcribers, variables)
+				}
+
+				layer.writeLink(parent, key, null)
+
+				// add the list of subscribers for this field
+				toNotify.push(...currentSubcribers)
+			}
 			// the field could point to a linked object
 			else if (value instanceof Object && !Array.isArray(value)) {
 				// the previous value is a string holding the id of the object to link to
@@ -293,7 +320,8 @@ class CacheInternal {
 
 				// if the link target of this field changed and it was responsible for the current subscription
 				if (linkedID && displayLayer && linkChange) {
-					// if there was an old subscriber we are forgotten
+					// we need to clear the subscriptions in the previous link
+					// and add them to the new link
 					if (previousValue && typeof previousValue === 'string') {
 						this.subscriptions.remove(
 							previousValue,
@@ -303,8 +331,14 @@ class CacheInternal {
 						)
 					}
 
-					// we need to clear the subscriptions in the previous link
-					// and add them to the new link
+					// copy the subscribers to the new value
+					this.subscriptions.addMany({
+						parent: linkedID,
+						selection: fields,
+						subscribers: currentSubcribers,
+						variables,
+					})
+
 					toNotify.push(...currentSubcribers)
 				}
 
@@ -460,11 +494,8 @@ class CacheInternal {
 				const contentChanged = JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
-				for (const subscriber of currentSubcribers) {
-					// if either are true, add the subscriber to the list
-					if (contentChanged) {
-						toNotify.push(subscriber)
-					}
+				if (contentChanged) {
+					toNotify.push(...currentSubcribers)
 				}
 
 				// any ids that don't show up in the new list need to have their subscribers wiped
@@ -480,6 +511,20 @@ class CacheInternal {
 				if (contentChanged || (oldIDs.length === 0 && newIDs.length === 0)) {
 					// update the cached value
 					layer.writeLink(parent, key, linkedIDs)
+				}
+
+				// every new id that isn't a prevous relationship needs a new subscriber
+				for (const id of newIDs.filter((id) => !oldIDs.includes(id))) {
+					if (id == null) {
+						continue
+					}
+
+					this.subscriptions.addMany({
+						parent: id,
+						selection: fields,
+						subscribers: currentSubcribers,
+						variables,
+					})
 				}
 			}
 
@@ -504,7 +549,7 @@ class CacheInternal {
 				// there could be a list of elements to perform the operation on
 				const targets = Array.isArray(value) ? value : [value]
 				for (const target of targets) {
-					// only insert an object into a list if we're adding an object with fields
+					// insert an object into a list
 					if (
 						operation.action === 'insert' &&
 						target instanceof Object &&
@@ -517,7 +562,7 @@ class CacheInternal {
 							.addToList(fields, target, variables, operation.position || 'last')
 					}
 
-					// only insert an object into a list if we're adding an object with fields
+					// remove object from list
 					else if (
 						operation.action === 'remove' &&
 						target instanceof Object &&
@@ -530,7 +575,7 @@ class CacheInternal {
 							.remove(target, variables)
 					}
 
-					// delete the target if we have to
+					// delete the target
 					else if (operation.action === 'delete' && operation.type) {
 						if (typeof target !== 'string') {
 							throw new Error('Cannot delete a record with a non-string ID')
@@ -572,29 +617,50 @@ class CacheInternal {
 		selection: SubscriptionSelection
 		parent?: string
 		variables?: {}
-	}): GraphQLObject | null {
+	}): { data: GraphQLObject | null; partial: boolean; hasData: boolean } {
 		// we could be asking for values of null
 		if (parent === null) {
-			return null
+			return { data: null, partial: false, hasData: true }
 		}
 
 		const target = {} as GraphQLObject
 
+		// we need to track if we have a partial data set which means we have _something_ but not everything
+		let hasData = false
+		// if we run into a single missing value we will flip this since it means we have a partial result
+		let partial = false
+
+		// if we get an empty value for a non-null field, we need to turn the whole object null
+		// that happens after we process every field to determine if its a partial null
+		let cascadeNull = false
+
 		// look at every field in the parentFields
-		for (const [attributeName, { type, keyRaw, fields }] of Object.entries(selection)) {
+		for (const [attributeName, { type, keyRaw, fields, nullable }] of Object.entries(
+			selection
+		)) {
 			const key = evaluateKey(keyRaw, variables)
 
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
 
-			// if the value is null
-			if (value === null) {
+			// if we dont have a value, we know this result is going to be partial
+			if (typeof value === 'undefined') {
+				partial = true
+			}
+
+			// if we dont have a value to return, use null (we check for non-null fields at the end)
+			if (typeof value === 'undefined' || value === null) {
+				// set the value to null
 				target[attributeName] = null
-				continue
+
+				// if we didn't just write undefined, there is officially some data in this object
+				if (typeof value !== 'undefined') {
+					hasData = true
+				}
 			}
 
 			// if the field is a scalar
-			if (!fields) {
+			else if (!fields) {
 				// is the type a custom scalar with a specified unmarshal function
 				if (this.config.scalars?.[type]?.unmarshal) {
 					// pass the primitive value to the unmarshal function
@@ -607,33 +673,67 @@ class CacheInternal {
 					target[attributeName] = value
 				}
 
-				// we're done
-				continue
+				hasData = true
 			}
+
 			// if the field is a list of records
 			else if (Array.isArray(value)) {
 				// the linked list could be a deeply nested thing, we need to call getData for each record
-				target[attributeName] = this.hydrateNestedList({
+				const listValue = this.hydrateNestedList({
 					fields,
 					variables,
 					linkedList: value as LinkedList,
 				})
+
+				// save the hydrated list
+				target[attributeName] = listValue.data
+
+				// the linked value could have partial results
+				if (listValue.partial) {
+					partial = true
+				}
+
+				if (listValue.hasData) {
+					hasData = true
+				}
 			}
-			// otherwise the field is an object
+
+			// otherwise the field is a linked object
 			else {
-				// if we dont have a value, use null
-				target[attributeName] = !value
-					? null
-					: this.getSelection({
-							parent: value as string,
-							selection: fields,
-							variables,
-					  })
-				continue
+				// look up the related object fields
+				const objectFields = this.getSelection({
+					parent: value as string,
+					selection: fields,
+					variables,
+				})
+
+				// save the object value
+				target[attributeName] = objectFields.data
+
+				// the linked value could have partial results
+				if (objectFields.partial) {
+					partial = true
+				}
+
+				if (objectFields.hasData) {
+					hasData = true
+				}
+			}
+
+			// regardless of how the field was processed, if we got a null value assigned
+			// and the field is not nullable, we need to cascade up
+			if (target[attributeName] === null && !nullable) {
+				cascadeNull = true
 			}
 		}
 
-		return target
+		return {
+			data: cascadeNull ? null : target,
+			// our value is considered true if there is some data but not everything
+			// has a full value
+			partial: hasData && partial,
+			hasData,
+		}
 	}
 
 	// returns the global id of the specified field (used to access the record in the cache)
@@ -668,24 +768,54 @@ class CacheInternal {
 		fields: SubscriptionSelection
 		variables?: {}
 		linkedList: LinkedList
-	}): LinkedList<GraphQLValue> {
+	}): { data: LinkedList<GraphQLValue>; partial: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
 		// to the corresponding record. can't have that now, can we?
-		return linkedList.map((entry) => {
+		const result = []
+		let partialData = false
+		let hasValues = false
+
+		for (const entry of linkedList) {
 			// if the entry is an array, keep going
 			if (Array.isArray(entry)) {
-				return this.hydrateNestedList({ fields, variables, linkedList: entry })
+				const nestedValue = this.hydrateNestedList({ fields, variables, linkedList: entry })
+				result.push(nestedValue.data)
+				if (nestedValue.partial) {
+					partialData = true
+				}
+				continue
 			}
 
 			// the entry could be null
 			if (entry === null) {
-				return entry
+				result.push(entry)
+				continue
 			}
 
 			// look up the data for the record
-			return this.getSelection({ parent: entry, selection: fields, variables })
-		})
+			const { data, partial, hasData } = this.getSelection({
+				parent: entry,
+				selection: fields,
+				variables,
+			})
+
+			result.push(data)
+
+			if (partial) {
+				partialData = true
+			}
+
+			if (hasData) {
+				hasValues = true
+			}
+		}
+
+		return {
+			data: result,
+			partial: partialData,
+			hasData: hasValues,
+		}
 	}
 
 	extractNestedListIDs({
@@ -805,69 +935,6 @@ class CacheInternal {
 		}
 
 		return { newIDs, nestedIDs }
-	}
-
-	isDataAvailable(
-		target: SubscriptionSelection,
-		variables: {},
-		parentID: string = rootID
-	): boolean {
-		// if the cache is disabled we dont have to look at anything else
-		if (this._disabled) {
-			return false
-		}
-
-		// every field in the selection needs to be present
-		for (const selection of Object.values(target)) {
-			const fieldName = evaluateKey(selection.keyRaw, variables)
-
-			// look up the field value
-			const { value, kind } = this.storage.get(parentID, fieldName)
-
-			// if the field is a scalar and has a value, we're good (no need to check a subselection)
-			if (kind === 'scalar' && typeof value !== 'undefined') {
-				continue
-			}
-			// if the field has no value and there are no subselections and we dont have a value, we are missing data
-			else if (!selection.fields) {
-				return false
-			}
-
-			// the link could be an object
-			else if (!Array.isArray(value)) {
-				// if we have a null value we're good
-				if (value === null) {
-					continue
-				}
-
-				// if we have a valid id, walk down
-				if (!this.isDataAvailable(selection.fields!, variables, value as string)) {
-					return false
-				}
-			}
-			// the link is a list
-			else {
-				// we need to look at every linked record
-				for (const linkedRecord of flattenList(value as LinkedList)) {
-					if (!linkedRecord) {
-						continue
-					}
-
-					// if the linked record doesn't have the field then we are missing data
-					if (!this.isDataAvailable(selection.fields!, variables, linkedRecord)) {
-						return false
-					}
-				}
-			}
-
-			// if we dont have a linked record or linked list, we dont have the data
-			if (typeof value === 'undefined') {
-				return false
-			}
-		}
-
-		// if we got this far, we have the information
-		return true
 	}
 
 	collectGarbage() {

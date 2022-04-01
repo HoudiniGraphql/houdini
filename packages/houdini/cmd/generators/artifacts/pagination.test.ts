@@ -86,6 +86,7 @@ test('pagination arguments stripped from key', async function () {
 					                        node: {
 					                            type: "User",
 					                            keyRaw: "node",
+					                            nullable: true,
 
 					                            fields: {
 					                                __typename: {
@@ -312,6 +313,7 @@ test("sibling aliases don't get marked", async function () {
 					                        node: {
 					                            type: "User",
 					                            keyRaw: "node",
+					                            nullable: true,
 
 					                            fields: {
 					                                __typename: {
@@ -332,6 +334,7 @@ test("sibling aliases don't get marked", async function () {
 					                                                node: {
 					                                                    type: "User",
 					                                                    keyRaw: "node",
+					                                                    nullable: true,
 
 					                                                    fields: {
 					                                                        id: {
@@ -398,6 +401,7 @@ test("sibling aliases don't get marked", async function () {
 					                        node: {
 					                            type: "User",
 					                            keyRaw: "node",
+					                            nullable: true,
 
 					                            fields: {
 					                                friendsByCursor: {
@@ -413,6 +417,7 @@ test("sibling aliases don't get marked", async function () {
 					                                                node: {
 					                                                    type: "User",
 					                                                    keyRaw: "node",
+					                                                    nullable: true,
 
 					                                                    fields: {
 					                                                        id: {

@@ -58,7 +58,7 @@ test('adds internal documents to schema', async function () {
 		directive @arguments on FRAGMENT_DEFINITION
 
 		"""@cache is used to specify cache rules for a query"""
-		directive @cache(policy: CachePolicy) on QUERY
+		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
 	`)
 })
@@ -112,7 +112,7 @@ test('list operations are included', async function () {
 		directive @arguments on FRAGMENT_DEFINITION
 
 		"""@cache is used to specify cache rules for a query"""
-		directive @cache(policy: CachePolicy) on QUERY
+		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
 		fragment Friends_insert on User {
 		  id
@@ -180,7 +180,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 		directive @arguments on FRAGMENT_DEFINITION
 
 		"""@cache is used to specify cache rules for a query"""
-		directive @cache(policy: CachePolicy) on QUERY
+		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
 	`)
 })

@@ -491,6 +491,7 @@ test('embeds node pagination query as a separate document', async function () {
 					        node: {
 					            type: "Node",
 					            keyRaw: "node(id: $id)",
+					            nullable: true,
 
 					            fields: {
 					                friendsByForwardsCursor: {
@@ -511,6 +512,7 @@ test('embeds node pagination query as a separate document', async function () {
 					                                node: {
 					                                    type: "User",
 					                                    keyRaw: "node",
+					                                    nullable: true,
 
 					                                    fields: {
 					                                        __typename: {
@@ -573,7 +575,8 @@ test('embeds node pagination query as a separate document', async function () {
 					        types: {}
 					    },
 
-					    policy: "NetworkOnly"
+					    policy: "NetworkOnly",
+					    partial: false
 					};
 				`)
 })
@@ -1110,6 +1113,7 @@ test('generated query has same refetch spec', async function () {
 					                        node: {
 					                            type: "User",
 					                            keyRaw: "node",
+					                            nullable: true,
 
 					                            fields: {
 					                                __typename: {
@@ -1167,7 +1171,8 @@ test('generated query has same refetch spec', async function () {
 					        types: {}
 					    },
 
-					    policy: "NetworkOnly"
+					    policy: "NetworkOnly",
+					    partial: false
 					};
 				`)
 })

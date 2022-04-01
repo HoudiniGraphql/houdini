@@ -38,6 +38,7 @@ export enum ArtifactKind {
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: ArtifactKind.Query
 	policy?: CachePolicy
+	partial?: boolean
 }
 
 export type MutationArtifact = BaseCompiledDocument & {
@@ -117,6 +118,7 @@ export type TaggedGraphqlQuery = {
 	artifact: QueryArtifact
 	config: Config
 	source: DataSource
+	partial: boolean
 }
 
 type Filter = { [key: string]: string | boolean | number }
@@ -168,6 +170,7 @@ export type GraphQLValue =
 export type SubscriptionSelection = {
 	[field: string]: {
 		type: string
+		nullable?: boolean
 		keyRaw: string
 		operations?: MutationOperation[]
 		list?: {

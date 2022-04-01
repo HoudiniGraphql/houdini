@@ -30,12 +30,10 @@ export function mutation<_Mutation extends Operation<any, any>>(
 	// grab the session from the adapter
 	const sessionStore = getSession()
 
-	const queryVariables = getVariables()
-
 	// return an async function that sends the mutation go the server
 	return async (variables: _Mutation['input']) => {
 		try {
-			const result = await executeQuery<_Mutation['result'], _Mutation['input']>(
+			const { result } = await executeQuery<_Mutation['result'], _Mutation['input']>(
 				artifact,
 				marshalInputs({
 					input: variables,

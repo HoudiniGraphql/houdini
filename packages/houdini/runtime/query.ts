@@ -14,12 +14,12 @@ import {
 } from './types'
 import cache from './cache'
 import { setVariables } from './context'
-import { executeQuery, RequestPayload } from './network'
+import { executeQuery, QueryInputs, RequestPayload } from './network'
 import { marshalInputs, unmarshalSelection } from './scalars'
+import type { FetchQueryResult } from './network'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession, goTo, isBrowser } from './adapter.mjs'
-import { rootID } from './cache/cache'
 
 export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -38,6 +38,9 @@ export function query<_Query extends Operation<any, any>>(
 
 	// a query is never 'loading'
 	const loading = writable(false)
+
+	// track the partial state
+	let partial = writable(document.partial)
 
 	// this payload has already been marshaled
 	let variables = document.variables
@@ -128,6 +131,8 @@ export function query<_Query extends Operation<any, any>>(
 		data: { subscribe: store.subscribe },
 		// the refetch function can be used to refetch queries possibly with new variables/arguments
 		async refetch(newVariables?: _Query['input']) {
+			loading.set(true)
+
 			try {
 				// Use the initial/previous variables
 				let variableBag = variables
@@ -138,36 +143,52 @@ export function query<_Query extends Operation<any, any>>(
 				}
 
 				// Execute the query
-				const result = await executeQuery(artifact, variableBag, sessionStore, false)
+				const { result, partial: partialData } = await executeQuery(
+					artifact,
+					variableBag,
+					sessionStore,
+					false
+				)
+
+				partial.set(partialData)
 
 				// Write the data to the cache
 				writeData(result, variableBag)
 			} catch (error) {
 				throw error
 			}
+
+			// track the loading state
+			loading.set(false)
 		},
 		// used primarily by the preprocessor to keep local state in sync with
 		// the data given by preload
 		writeData,
 		loading: { subscribe: loading.subscribe },
+		partial: { subscribe: partial.subscribe },
 		error: readable(null, () => {}),
-		onLoad(
-			newData: RequestPayload<_Query['result']>,
-			newVariables: _Query['input'],
-			source: DataSource
-		) {
+		onLoad(newValue: QueryInputs<any>) {
 			// we got new data from mounting, write it
-			writeData(newData, newVariables)
+			writeData(newValue.result, newValue.variables)
+
+			// keep the partial store in sync
+			partial.set(newValue.partial)
 
 			// if we are mounting on a browser we might need to perform an additional network request
 			if (isBrowser) {
 				// if the data was loaded from a cached value, and the document cache policy wants a
 				// network request to be sent after the data was loaded, load the data
 				if (
-					source === DataSource.Cache &&
+					newValue.source === DataSource.Cache &&
 					artifact.policy === CachePolicy.CacheAndNetwork
 				) {
 					// this will invoke pagination's refetch because of javascript's magic this binding
+					this.refetch()
+				}
+
+				// if we have a partial result and we can load the rest of the data
+				// from the network, send the request
+				if (newValue.partial && artifact.policy === CachePolicy.CacheOrNetwork) {
 					this.refetch()
 				}
 			}
@@ -180,9 +201,10 @@ export function query<_Query extends Operation<any, any>>(
 export type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
 	writeData: (data: RequestPayload<_Data>, variables: _Input) => void
-	onLoad: (data: RequestPayload<_Data>, variables: _Input, source: DataSource) => void
+	onLoad: (newValue: FetchQueryResult<_Data> & { variables: _Input }) => void
 	refetch: (newVariables?: _Input) => Promise<void>
 	loading: Readable<boolean>
+	partial: Readable<boolean>
 	error: Readable<Error | null>
 }
 
@@ -283,20 +305,21 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 				CachePolicy.CacheOrNetwork,
 				CachePolicy.CacheOnly,
 				CachePolicy.CacheAndNetwork,
-			].includes(artifact.policy!) &&
-			cache._internal_unstable.isDataAvailable(artifact.selection, variables)
+			].includes(artifact.policy!)
 		) {
-			writeData(
-				{
-					data: cache.read({
-						selection: artifact.selection,
-						variables,
-					})! as _Data,
-					errors: [],
-				},
-				variables
-			)
-			cached = true
+			const cachedValue = cache.read({ selection: artifact.selection, variables })
+
+			// if there is something to write
+			if (cachedValue.data) {
+				writeData(
+					{
+						data: cachedValue.data as _Data,
+						errors: [],
+					},
+					variables
+				)
+				cached = true
+			}
 		}
 		// there was no error while computing the variables
 		else {

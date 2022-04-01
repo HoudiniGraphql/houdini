@@ -86,10 +86,13 @@ export default function selection({
 			const attributeName = field.alias?.value || field.name.value
 			// if we are looking at __typename, its a string (not defined in the schema)
 			let fieldType: graphql.GraphQLType
+			let nullable = false
 			if (field.name.value === '__typename') {
 				fieldType = config.schema.getType('String')!
 			} else {
-				fieldType = getRootType(type.getFields()[field.name.value].type)
+				let typeRef = type.getFields()[field.name.value].type
+				fieldType = getRootType(typeRef)
+				nullable = !graphql.isNonNullType(typeRef)
 			}
 			const typeName = fieldType.toString()
 
@@ -100,6 +103,10 @@ export default function selection({
 			const fieldObj: SubscriptionSelection['field'] = {
 				type: typeName,
 				keyRaw: fieldKey(config, field),
+			}
+
+			if (nullable) {
+				fieldObj.nullable = true
 			}
 
 			// is there an operation for this field

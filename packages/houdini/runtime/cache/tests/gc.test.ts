@@ -48,12 +48,16 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 	// tick the garbage collector enough times to fill up the buffer size
 	for (const _ of Array.from({ length: config.cacheBufferSize })) {
 		cache._internal_unstable.collectGarbage()
-		expect(cache._internal_unstable.isDataAvailable(userFields, {}, 'User:1')).toBeTruthy()
+		expect(cache.read({ selection: userFields, parent: 'User:1' })).toMatchObject({
+			data: { id: '1' },
+		})
 	}
 
 	// collecting garbage one more time should delete the record from the cache
 	cache._internal_unstable.collectGarbage()
-	expect(cache._internal_unstable.isDataAvailable(userFields, {}, 'User:1')).toBeFalsy()
+	expect(cache.read({ selection: userFields, parent: 'User:1' })).toMatchObject({
+		data: null,
+	})
 })
 
 test("subscribed data shouldn't be garbage collected", function () {
@@ -116,7 +120,7 @@ test("subscribed data shouldn't be garbage collected", function () {
 				},
 			},
 			parent: 'User:1',
-		})
+		}).data
 	).toEqual({ id: '1' })
 })
 
@@ -211,22 +215,23 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 				},
 			},
 			parent: 'User:1',
-		})
+		}).data
 	).toEqual({ id: '1' })
 
 	// tick once more to clear the garbage
 	cache._internal_unstable.collectGarbage()
 
 	expect(
-		cache._internal_unstable.isDataAvailable(
-			{
+		cache.read({
+			selection: {
 				id: {
 					type: 'ID',
 					keyRaw: 'id',
 				},
 			},
-			{},
-			'User:1'
-		)
-	).toBeFalsy()
+			parent: 'User:1',
+		})
+	).toMatchObject({
+		data: null,
+	})
 })

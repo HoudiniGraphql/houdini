@@ -20,6 +20,7 @@ export type ConfigFile = {
 	module?: 'esm' | 'commonjs'
 	cacheBufferSize?: number
 	defaultCachePolicy?: CachePolicy
+	defaultPartial?: boolean
 }
 
 export type ScalarSpec = {
@@ -50,8 +51,8 @@ export class Config {
 	module: 'commonjs' | 'esm' = 'commonjs'
 	cacheBufferSize?: number
 	defaultCachePolicy: CachePolicy
+	defaultPartial: boolean
 	definitionsFile?: string
-
 	newSchema: string = ''
 
 	constructor({
@@ -68,6 +69,7 @@ export class Config {
 		cacheBufferSize,
 		definitionsPath,
 		defaultCachePolicy = CachePolicy.NetworkOnly,
+		defaultPartial = false,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -129,6 +131,7 @@ export class Config {
 		this.scalars = scalars
 		this.cacheBufferSize = cacheBufferSize
 		this.defaultCachePolicy = defaultCachePolicy
+		this.defaultPartial = defaultPartial
 		this.definitionsFile = definitionsPath
 
 		// if we are building a sapper project, we want to put the runtime in
@@ -305,6 +308,10 @@ export class Config {
 		return 'cache'
 	}
 
+	get cachePartialArg() {
+		return 'partial'
+	}
+
 	get cachePolicyArg() {
 		return 'policy'
 	}
@@ -463,9 +470,9 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
-				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection
-				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnection
-				friendsByForwardsCursor(first: Int, after: String, filter: String): UserConnection
+				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!
+				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnection!
+				friendsByForwardsCursor(first: Int, after: String, filter: String): UserConnection!
 				friendsByOffset(offset: Int, limit: Int, filter: String): [User!]!
 				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
@@ -493,9 +500,9 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 				entities: [Entity!]!
-				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection
-				usersByBackwardsCursor(last: Int, before: String): UserConnection
-				usersByForwardsCursor(first: Int, after: String): UserConnection
+				usersByCursor(first: Int, after: String, last: Int, before: String): UserConnection!
+				usersByBackwardsCursor(last: Int, before: String): UserConnection!
+				usersByForwardsCursor(first: Int, after: String): UserConnection!
 				usersByOffset(offset: Int, limit: Int): [User!]!
 				node(id: ID!): Node
 			}
@@ -514,7 +521,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 
 			type UserConnection {
 				pageInfo: PageInfo!
-				edges: [UserEdge]
+				edges: [UserEdge!]!
 			}
 
 			interface Friend {
@@ -541,7 +548,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 			}
 
 			type AddFriendOutput {
-				friend: User
+				friend: User!
 			}
 
 			type BelieveInOutput {
@@ -549,7 +556,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 			}
 
 			type DeleteUserOutput {
-				userID: ID
+				userID: ID!
 			}
 
 			type DeleteCatOutput {
