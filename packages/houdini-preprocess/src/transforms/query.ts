@@ -383,7 +383,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 											AST.identifier('houdiniConfig')
 										),
 										AST.objectProperty(
-											AST.literal('mode'),
+											AST.literal('framework'),
 											AST.stringLiteral(config.framework)
 										),
 										AST.objectProperty(
