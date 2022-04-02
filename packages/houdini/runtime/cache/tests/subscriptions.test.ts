@@ -1626,7 +1626,6 @@ test('clearing a display layer updates subscribers', function () {
 			},
 		},
 		layer: layer.id,
-		forceNotify: true,
 	})
 
 	expect(set).toHaveBeenNthCalledWith(2, {
@@ -1636,10 +1635,6 @@ test('clearing a display layer updates subscribers', function () {
 			id: '1',
 		},
 	})
-})
-
-test('subscribers get called when optimistic response updates a different object than the real payload', function () {
-	fail('dont forget me')
 })
 
 test.todo('can write to and resolve layers')

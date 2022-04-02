@@ -2,7 +2,7 @@
 import type { Config } from 'houdini-common'
 // locals
 import { executeQuery } from './network'
-import { Operation, GraphQLTagResult, MutationArtifact } from './types'
+import { Operation, GraphQLTagResult, MutationArtifact, SubscriptionSpec } from './types'
 import cache from './cache'
 import { marshalInputs, marshalSelection, unmarshalSelection } from './scalars'
 
@@ -51,8 +51,9 @@ export function mutation<_Mutation extends Operation<any, any>>(
 		const layer = cache._internal_unstable.storage.createLayer(true)
 
 		// if there is an optimistic response then we need to write the value immediately
+		let toNotify: SubscriptionSpec[] = []
 		if (optimisticResponse) {
-			cache.write({
+			toNotify = cache.write({
 				selection: artifact.selection,
 				// make sure that any scalar values get processed into something we can cache
 				data: marshalSelection({
@@ -86,12 +87,11 @@ export function mutation<_Mutation extends Operation<any, any>>(
 				selection: artifact.selection,
 				data: result.data,
 				variables,
-				// if we had an optimistic response we need to write to the appropriate layer
+				// write to the mutation's layer
 				layer: layer.id,
-				// we should notify the parents even if the content didn't change
-				// this is to avoid a situation where the value before the layer clear is the same as
-				// the response from the mutation but the optimistic result was incorrect and changed the display value
-				forceNotify: true,
+				// notify any subscribers that we updated with the optimistic response
+				// in order to address situations where the optimistic update was wrong
+				notifySubscribers: toNotify,
 			})
 
 			// merge the layer back into the cache

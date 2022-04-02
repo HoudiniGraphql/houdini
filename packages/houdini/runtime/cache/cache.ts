@@ -28,6 +28,7 @@ export class Cache {
 	// any changes will notify subscribers. writing to an optimistic layer will resolve it
 	write({
 		layer: layerID,
+		notifySubscribers = [],
 		...args
 	}: {
 		data: { [key: string]: GraphQLValue }
@@ -36,8 +37,8 @@ export class Cache {
 		parent?: string
 		layer?: LayerID | null
 		applyUpdates?: boolean
-		forceNotify?: boolean
-	}): LayerID {
+		notifySubscribers?: SubscriptionSpec[]
+	}): SubscriptionSpec[] {
 		// find the correct layer
 		const layer = layerID
 			? this._internal_unstable.storage.getLayer(layerID)
@@ -49,7 +50,7 @@ export class Cache {
 		// the same spec will likely need to be updated multiple times, create the unique list by using the set
 		// function's identity
 		const notified: SubscriptionSpec['set'][] = []
-		for (const spec of subscribers) {
+		for (const spec of subscribers.concat(notifySubscribers)) {
 			// if we haven't added the set yet
 			if (!notified.includes(spec.set)) {
 				notified.push(spec.set)
@@ -66,7 +67,7 @@ export class Cache {
 		}
 
 		// return the id to the caller so they can resolve the layer if it was optimistic
-		return layer.id
+		return subscribers
 	}
 
 	// reconstruct an object with the fields/relations specified by a selection
@@ -182,7 +183,6 @@ class CacheInternal {
 		parent = rootID,
 		applyUpdates = false,
 		layer,
-		forceNotify,
 		toNotify = [],
 	}: {
 		data: { [key: string]: GraphQLValue }
@@ -260,7 +260,7 @@ class CacheInternal {
 				// if the value changed on a layer that impacts the current latest value
 				const valueChanged = JSON.stringify(newValue) !== JSON.stringify(previousValue)
 
-				if ((valueChanged || forceNotify) && displayLayer) {
+				if (valueChanged && displayLayer) {
 					// we need to add the fields' subscribers to the set of callbacks
 					// we need to invoke
 					toNotify.push(...currentSubcribers)
@@ -322,7 +322,7 @@ class CacheInternal {
 				layer.writeLink(parent, key, linkedID)
 
 				// if the link target of this field changed and it was responsible for the current subscription
-				if (linkedID && displayLayer && (linkChange || forceNotify)) {
+				if (linkedID && displayLayer && linkChange) {
 					// we need to clear the subscriptions in the previous link
 					// and add them to the new link
 					if (previousValue && typeof previousValue === 'string') {
@@ -357,7 +357,6 @@ class CacheInternal {
 						toNotify,
 						applyUpdates,
 						layer,
-						forceNotify,
 					})
 				}
 			}
@@ -498,7 +497,7 @@ class CacheInternal {
 				const contentChanged = JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
-				if (contentChanged || forceNotify) {
+				if (contentChanged) {
 					toNotify.push(...currentSubcribers)
 				}
 
@@ -834,7 +833,6 @@ class CacheInternal {
 		specs,
 		layer,
 		startingWith,
-		forceNotify,
 	}: {
 		value: GraphQLValue[]
 		recordID: string
@@ -934,7 +932,6 @@ class CacheInternal {
 				toNotify: specs,
 				applyUpdates,
 				layer,
-				forceNotify,
 			})
 
 			newIDs.push(linkedID)
