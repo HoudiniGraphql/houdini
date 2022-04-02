@@ -45,6 +45,7 @@
 	"dependencies": {
 		"@types/mock-fs": "^4.13.0",
 		"global": "^4.4.0",
+		"houdini": "^0.13.7-alpha.2",
 		"remove": "^0.1.5",
 		"rollup-plugin-typescript2": "^0.30.0"
 	}

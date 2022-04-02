@@ -357,6 +357,7 @@ class CacheInternal {
 						toNotify,
 						applyUpdates,
 						layer,
+						forceNotify,
 					})
 				}
 			}
@@ -833,6 +834,7 @@ class CacheInternal {
 		specs,
 		layer,
 		startingWith,
+		forceNotify,
 	}: {
 		value: GraphQLValue[]
 		recordID: string
@@ -845,6 +847,7 @@ class CacheInternal {
 		fields: SubscriptionSelection
 		layer: Layer
 		startingWith: number
+		forceNotify?: boolean
 	}): { nestedIDs: LinkedList; newIDs: (string | null)[] } {
 		// build up the two lists
 		const nestedIDs: LinkedList = []
@@ -931,6 +934,7 @@ class CacheInternal {
 				toNotify: specs,
 				applyUpdates,
 				layer,
+				forceNotify,
 			})
 
 			newIDs.push(linkedID)
