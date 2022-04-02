@@ -17,7 +17,10 @@ export type MutationConfig<_Mutation extends Operation<any, any>> = {
 // invoked
 export function mutation<_Mutation extends Operation<any, any>>(
 	document: GraphQLTagResult
-): (_input: _Mutation['input'], config: MutationConfig<_Mutation>) => Promise<_Mutation['result']> {
+): (
+	_input: _Mutation['input'],
+	config?: MutationConfig<_Mutation>
+) => Promise<_Mutation['result']> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniMutation') {
 		throw new Error('mutation() must be passed a mutation document')
