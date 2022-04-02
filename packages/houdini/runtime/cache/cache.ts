@@ -38,6 +38,7 @@ export class Cache {
 		layer?: LayerID | null
 		applyUpdates?: boolean
 		notifySubscribers?: SubscriptionSpec[]
+		forceNotify?: boolean
 	}): SubscriptionSpec[] {
 		// find the correct layer
 		const layer = layerID
@@ -184,6 +185,7 @@ class CacheInternal {
 		applyUpdates = false,
 		layer,
 		toNotify = [],
+		forceNotify,
 	}: {
 		data: { [key: string]: GraphQLValue }
 		selection: SubscriptionSelection
@@ -260,7 +262,7 @@ class CacheInternal {
 				// if the value changed on a layer that impacts the current latest value
 				const valueChanged = JSON.stringify(newValue) !== JSON.stringify(previousValue)
 
-				if (valueChanged && displayLayer) {
+				if (displayLayer && (valueChanged || forceNotify)) {
 					// we need to add the fields' subscribers to the set of callbacks
 					// we need to invoke
 					toNotify.push(...currentSubcribers)
@@ -322,7 +324,7 @@ class CacheInternal {
 				layer.writeLink(parent, key, linkedID)
 
 				// if the link target of this field changed and it was responsible for the current subscription
-				if (linkedID && displayLayer && linkChange) {
+				if (linkedID && displayLayer && (linkChange || forceNotify)) {
 					// we need to clear the subscriptions in the previous link
 					// and add them to the new link
 					if (previousValue && typeof previousValue === 'string') {
@@ -357,6 +359,7 @@ class CacheInternal {
 						toNotify,
 						applyUpdates,
 						layer,
+						forceNotify: true,
 					})
 				}
 			}
@@ -422,6 +425,7 @@ class CacheInternal {
 					fields,
 					layer,
 					startingWith: applyUpdates && update === 'append' ? oldIDs.length : 0,
+					forceNotify,
 				})
 
 				// if we're supposed to apply this write as an update, we need to figure out how
@@ -497,7 +501,7 @@ class CacheInternal {
 				const contentChanged = JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
-				if (contentChanged) {
+				if (contentChanged || forceNotify) {
 					toNotify.push(...currentSubcribers)
 				}
 
@@ -833,6 +837,7 @@ class CacheInternal {
 		specs,
 		layer,
 		startingWith,
+		forceNotify,
 	}: {
 		value: GraphQLValue[]
 		recordID: string
@@ -869,6 +874,7 @@ class CacheInternal {
 					specs,
 					layer,
 					startingWith,
+					forceNotify,
 				})
 
 				// add the list of new ids to our list
@@ -932,6 +938,7 @@ class CacheInternal {
 				toNotify: specs,
 				applyUpdates,
 				layer,
+				forceNotify,
 			})
 
 			newIDs.push(linkedID)

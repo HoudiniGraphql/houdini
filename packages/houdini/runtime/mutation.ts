@@ -38,9 +38,6 @@ export function mutation<_Mutation extends Operation<any, any>>(
 
 	// return an async function that sends the mutation go the server
 	return async (variables: _Mutation['input'], mutationConfig?: MutationConfig<_Mutation>) => {
-		// pull out an optimistic response if we
-		const optimisticResponse = mutationConfig?.optimisticResponse
-
 		// treat a mutation like it has an optimistic layer regardless of
 		// whether there actually _is_ one. This ensures that a query which fires
 		// after this mutation has been sent will overwrite any return values from the mutation
@@ -51,6 +48,9 @@ export function mutation<_Mutation extends Operation<any, any>>(
 		const layer = cache._internal_unstable.storage.createLayer(true)
 
 		// if there is an optimistic response then we need to write the value immediately
+		const optimisticResponse = mutationConfig?.optimisticResponse
+		// hold onto the list of subscribers that we updated because of the optimistic response
+		// and make sure they are included in the final set of subscribers to notify
 		let toNotify: SubscriptionSpec[] = []
 		if (optimisticResponse) {
 			toNotify = cache.write({
@@ -92,6 +92,9 @@ export function mutation<_Mutation extends Operation<any, any>>(
 				// notify any subscribers that we updated with the optimistic response
 				// in order to address situations where the optimistic update was wrong
 				notifySubscribers: toNotify,
+				// make sure that we notify subscribers for any values that we overwrite
+				// in order to address any race conditions when comparing the previous value
+				forceNotify: true,
 			})
 
 			// merge the layer back into the cache

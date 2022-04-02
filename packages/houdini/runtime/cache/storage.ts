@@ -208,6 +208,7 @@ export class InMemoryStorage {
 
 			// if the layer is optimistic, we can't go further
 			if (layer.optimistic) {
+				layerIndex--
 				break
 			}
 
