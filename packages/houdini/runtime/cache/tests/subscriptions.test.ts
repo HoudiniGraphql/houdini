@@ -1469,6 +1469,175 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 	expect(cache._internal_unstable.subscriptions.get('User:1', 'firstName')).toHaveLength(0)
 })
 
+test('overwriting a value in an optimistic layer triggers subscribers', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				favoriteColors: {
+					type: 'String',
+					keyRaw: 'favoriteColors',
+				},
+			},
+		},
+	}
+
+	// write some data
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				favoriteColors: ['red', 'green', 'blue'],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// create an optimistic layer on top
+	const layer = cache._internal_unstable.storage.createLayer(true)
+
+	// somehow write a user to the cache with the same id, but a different name
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'mary',
+			},
+		},
+		layer: layer.id,
+	})
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			firstName: 'mary',
+			favoriteColors: ['red', 'green', 'blue'],
+			id: '1',
+		},
+	})
+})
+
+test('clearing a display layer updates subscribers', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+				favoriteColors: {
+					type: 'String',
+					keyRaw: 'favoriteColors',
+				},
+			},
+		},
+	}
+
+	// write some data
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+				favoriteColors: ['red', 'green', 'blue'],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		selection,
+		set,
+	})
+
+	// create an optimistic layer on top
+	const layer = cache._internal_unstable.storage.createLayer(true)
+
+	// somehow write a user to the cache with the same id, but a different name
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'mary',
+			},
+		},
+		layer: layer.id,
+	})
+
+	// make sure that set got called with the full response
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			firstName: 'mary',
+			favoriteColors: ['red', 'green', 'blue'],
+			id: '1',
+		},
+	})
+
+	// clear the layer
+	layer.clear()
+
+	// write the with the same values to the layer that were previously in place
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				firstName: 'mary',
+				favoriteColors: ['red', 'green', 'blue'],
+				id: '1',
+			},
+		},
+		layer: layer.id,
+		forceNotify: true,
+	})
+
+	expect(set).toHaveBeenNthCalledWith(2, {
+		viewer: {
+			firstName: 'mary',
+			favoriteColors: ['red', 'green', 'blue'],
+			id: '1',
+		},
+	})
+})
+
 test.todo('can write to and resolve layers')
 
 test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")

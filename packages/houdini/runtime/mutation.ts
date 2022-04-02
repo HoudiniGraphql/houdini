@@ -88,6 +88,10 @@ export function mutation<_Mutation extends Operation<any, any>>(
 				variables,
 				// if we had an optimistic response we need to write to the appropriate layer
 				layer: layer.id,
+				// anything that we right here should notify the parents even if the content didn't change
+				// this is to avoid a situation where the value before the layer clear is the same as
+				// the response from the mutation but the optimistic result was incorrect and changed the display value
+				forceNotify: true,
 			})
 
 			// merge the layer back into the cache
