@@ -1638,6 +1638,10 @@ test('clearing a display layer updates subscribers', function () {
 	})
 })
 
+test('subscribers get called when optimistic response updates a different object than the real payload', function () {
+	fail('dont forget me')
+})
+
 test.todo('can write to and resolve layers')
 
 test.todo("resolving a layer with the same value as the most recent doesn't notify subscribers")
