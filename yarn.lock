@@ -1313,6 +1313,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@changesets/changelog-github@npm:^0.4.4":
+  version: 0.4.4
+  resolution: "@changesets/changelog-github@npm:0.4.4"
+  dependencies:
+    "@changesets/get-github-info": ^0.5.0
+    "@changesets/types": ^5.0.0
+    dotenv: ^8.1.0
+  checksum: 2add2cb36028ab21fa442697b12515dc6aeed9f034b18bac2244ac6bccc8a57eaf6e643e3a07f396e6d210c0d21bf1345b9b460b877a5171ce79f9365c3d84ea
+  languageName: node
+  linkType: hard
+
 "@changesets/cli@npm:^2.22.0":
   version: 2.22.0
   resolution: "@changesets/cli@npm:2.22.0"
@@ -1389,6 +1400,16 @@ __metadata:
     fs-extra: ^7.0.1
     semver: ^5.4.1
   checksum: c1038df9c9e9fffa8277952ffda2b3803830b524d3ae2ba7b49ff9204517cd86e0b6d70284c252798cfc877c79da1e7bd2250e17f9f56f4e4c8e876de14c90e2
+  languageName: node
+  linkType: hard
+
+"@changesets/get-github-info@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@changesets/get-github-info@npm:0.5.0"
+  dependencies:
+    dataloader: ^1.4.0
+    node-fetch: ^2.5.0
+  checksum: e2a35d463f64adfbe2c87356fa37c7a89cf50dbef1d7d130988232f3cddbce1138ea5805f4f4c4d7bde8b19b5b56001ad982f635a4ef0125c2fa5de5ab7196f5
   languageName: node
   linkType: hard
 
@@ -5529,6 +5550,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dataloader@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "dataloader@npm:1.4.0"
+  checksum: 1c698b6d4734b66ba1cf445eb89de92474f04d836d906555038d2839b8ec61f67df0abd1b5f798248235c2e4c01a791345d62c292a0bbe63251efc3b0dba3bca
+  languageName: node
+  linkType: hard
+
 "date-fns@npm:^2.16.1":
   version: 2.23.0
   resolution: "date-fns@npm:2.23.0"
@@ -5832,6 +5860,13 @@ __metadata:
   dependencies:
     is-obj: ^2.0.0
   checksum: 76e6693d8803eeff9cb920988446bf223cf1f6e5b1c0c2fe07a66906392134931a481b11e3c0bd852c5cfc97fad65258bcb4359169ad1d8d624cb3f56932be98
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^8.1.0":
+  version: 8.6.0
+  resolution: "dotenv@npm:8.6.0"
+  checksum: f4649999a157061dd169118f459d88db56380b2eef68e87fa9de7201796e5f6d94fa337658d7e148f404b48652a0eefe11222d9eba0cd464497911ae56cd6f93
   languageName: node
   linkType: hard
 
@@ -7297,6 +7332,7 @@ __metadata:
     "@babel/core": ^7.12.10
     "@babel/preset-env": ^7.12.11
     "@changesets/changelog-git": ^0.1.11
+    "@changesets/changelog-github": ^0.4.4
     "@changesets/cli": ^2.22.0
     "@rollup/plugin-alias": ^3.1.2
     "@rollup/plugin-commonjs": ^19.0.0
