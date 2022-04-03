@@ -16,6 +16,7 @@
 		"format:write": "npm run format -- -w",
 		"format:check": "npm run format -- --check",
 		"postinstall": "husky install",
+		"changeset": "changeset",
 		"release": "yarn build && changeset publish"
 	},
 	"resolutions": {
