@@ -15,7 +15,8 @@
 		"format": "prettier \"packages/**/*.ts\"",
 		"format:write": "npm run format -- -w",
 		"format:check": "npm run format -- --check",
-		"postinstall": "husky install"
+		"postinstall": "husky install",
+		"release": "yarn build && changeset publish"
 	},
 	"resolutions": {
 		"typescript": "3.9.5"

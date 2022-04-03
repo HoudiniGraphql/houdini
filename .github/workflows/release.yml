@@ -1,79 +1,38 @@
-name: Publish Release
-on:
-    workflow_dispatch:
-        inputs:
-            bump:
-                description: 'The kind of version bump. One of: patch, minor, major'
-                required: true
-                default: 'patch'
+name: Release
 
-env:
-    CI: true
+on:
+    push:
+        branches:
+            - main
+
 jobs:
-    publish:
-        name: Publish
-        runs-on: ubuntu-18.04
+    release:
+        name: Release
+        runs-on: ubuntu-latest
         steps:
-            - name: Checkout
+            - name: Checkout Repo
               uses: actions/checkout@v2
               with:
+                  # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
                   fetch-depth: 0
 
-            - name: Attach Head
-              run: |
-                  git checkout ${{ github.event.pull_request.base.ref }}
-
-            - name: Setup Node 14
-              uses: actions/setup-node@v1
+            - name: Setup Node.js 12.x
+              uses: actions/setup-node@v2
               with:
-                  node-version: 14.13
-                  registry-url: 'https://npm.pkg.github.com'
+                  node-version: 12.x
 
-            - name: Use HTTPS registry
-              run: |
-                  npm config set registry https://registry.npmjs.org/
+            - name: Install Dependencies
+              run: yarn
 
-            - name: Set Git Identity
-              run: |
-                  git config --global user.name 'github-actions[bot]'
-                  git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-                  git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
+            - name: Create Release Pull Request or Publish to npm
+              id: changesets
+              uses: changesets/action@v1
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Install and Build
-              run: |
-                  yarn install
-                  yarn build
-                  git checkout yarn.lock
-
-            - name: Set Bump
-              shell: bash -ex {0}
-              run: |
-                  if [ "${{ github.event.inputs.bump }}" = "major" ] ; then
-                    BUMP=major
-                    BUMP_EMOJI=🚀
-                  elif [ "${{ github.event.inputs.bump }}" = "minor" ] ; then
-                    BUMP=minor
-                    BUMP_EMOJI=📦
-                  else
-                    BUMP=patch
-                    BUMP_EMOJI=🔧
-                  fi
-                  echo "BUMP=${BUMP}" >> $GITHUB_ENV
-                  echo "BUMP_EMOJI=${BUMP_EMOJI}" >> $GITHUB_ENV
-
-            - name: Authenticate With Registry
-              run: |
-                  echo "registry=http://registry.npmjs.org/" >> .npmrc
-                  echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> .npmrc
-                  npm whoami
+            - name: Publish
+              # only publish if there are no changesets after the merge
+              if: steps.changesets.outputs.hasChangesets == 'false'
+              run: yarn publish
               env:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-            - name: Publish
-              run: |
-                  yarn lerna publish ${BUMP} --yes --message "$BUMP_EMOJI %s" --ignore-scripts
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
