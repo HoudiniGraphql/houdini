@@ -24,7 +24,7 @@ jobs:
             - name: Install Dependencies
               run: yarn
 
-            - name: Create Release Pull Request or Publish to npm
+            - name: Check Changeset Status
               id: changesets
               uses: changesets/action@v1
               env:
