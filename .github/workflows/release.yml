@@ -27,12 +27,8 @@ jobs:
             - name: Check Changeset Status
               id: changesets
               uses: changesets/action@v1
+              with:
+                  publish: yarn changeset publish
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Publish
-              # only publish if there are no changesets after the merge
-              if: steps.changesets.outputs.hasChangesets == 'false'
-              run: yarn publish
-              env:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
