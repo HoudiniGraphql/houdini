@@ -1,7 +1,7 @@
 import { testConfig } from 'houdini-common'
 import { RequestContext } from './network'
-import { unmarshalSelection } from './scalars'
-import { QueryArtifact } from './types'
+import { marshalSelection, unmarshalSelection } from './scalars'
+import { ArtifactKind, QueryArtifact } from './types'
 
 jest.mock('./cache', function () {
 	return
@@ -10,7 +10,7 @@ jest.mock('./cache', function () {
 // a mock request context
 const ctx = new RequestContext({
 	page: { host: '', path: '', params: {}, query: new URLSearchParams() },
-	context: {},
+	stuff: {},
 	session: null,
 	fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,
 })
@@ -59,7 +59,7 @@ const config = testConfig({
 // the test artifact
 const artifact: QueryArtifact = {
 	name: 'AllItems',
-	kind: 'HoudiniQuery',
+	kind: ArtifactKind.Query,
 	hash: 'hash',
 	raw: 'does not matter',
 	selection: {
@@ -130,7 +130,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			module: 'esm',
+			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -175,7 +175,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			module: 'esm',
+			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -202,7 +202,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			module: 'esm',
+			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -229,7 +229,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			module: 'esm',
+			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -248,7 +248,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			module: 'esm',
+			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -271,7 +271,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			module: 'esm',
+			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -298,7 +298,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			module: 'esm',
+			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -317,7 +317,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			module: 'esm',
+			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -336,7 +336,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			module: 'esm',
+			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -355,7 +355,7 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			module: 'esm',
+			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -459,6 +459,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
+		// @ts-ignore
 		expect(() => unmarshalSelection(badConfig, artifact.selection, data)).toThrow(
 			/scalar type DateTime is missing an `unmarshal` function/
 		)
@@ -613,6 +614,313 @@ describe('unmarshal selection', function () {
 		}
 
 		expect(unmarshalSelection(config, selection, data)).toEqual({
+			enumValue: ['Hello', 'World'],
+		})
+	})
+})
+
+describe('marshal selection', function () {
+	test('list of objects', function () {
+		// the date to compare against
+		const date = new Date()
+
+		const data = {
+			items: [
+				{
+					createdAt: date,
+					creator: {
+						firstName: 'John',
+					},
+				},
+			],
+		}
+
+		expect(
+			marshalSelection({
+				config,
+				selection: artifact.selection,
+				data,
+			})
+		).toEqual({
+			items: [
+				{
+					createdAt: date.getTime(),
+					creator: {
+						firstName: 'John',
+					},
+				},
+			],
+		})
+	})
+
+	test('list of scalars', function () {
+		// the date to compare against
+		const date1 = new Date(1)
+		const date2 = new Date(2)
+
+		const data = {
+			items: [
+				{
+					dates: [date1, date2],
+				},
+			],
+		}
+
+		expect(
+			marshalSelection({
+				config,
+				selection: artifact.selection,
+				data,
+			})
+		).toEqual({
+			items: [
+				{
+					dates: [date1.getTime(), date2.getTime()],
+				},
+			],
+		})
+	})
+
+	test('empty list of scalars', function () {
+		const data = {
+			items: [
+				{
+					dates: [],
+				},
+			],
+		}
+
+		expect(
+			marshalSelection({
+				config,
+				selection: artifact.selection,
+				data,
+			})
+		).toEqual({
+			items: [
+				{
+					dates: [],
+				},
+			],
+		})
+	})
+
+	test('missing marshal function', function () {
+		const data = {
+			items: [
+				{
+					dates: [new Date()],
+				},
+			],
+		}
+
+		const badConfig = {
+			...config,
+			scalars: {
+				...config.scalars,
+				DateTime: {
+					...config.scalars.DateTime,
+					marshal: undefined,
+				},
+			},
+		}
+
+		// @ts-ignore
+		expect(() =>
+			marshalSelection({
+				// @ts-ignore
+				config: badConfig,
+				selection: artifact.selection,
+				data,
+			})
+		).toThrow(/scalar type DateTime is missing a `marshal` function/)
+	})
+
+	test('undefined', function () {
+		const data = {
+			item: undefined,
+		}
+
+		const selection = {
+			item: {
+				type: 'TodoItem',
+				keyRaw: 'item',
+
+				fields: {
+					createdAt: {
+						type: 'DateTime',
+						keyRaw: 'createdAt',
+					},
+				},
+			},
+		}
+
+		expect(
+			marshalSelection({
+				config,
+				selection,
+				data,
+			})
+		).toEqual({
+			item: undefined,
+		})
+	})
+
+	test('null', function () {
+		const data = {
+			item: null,
+		}
+
+		const selection = {
+			item: {
+				type: 'TodoItem',
+				keyRaw: 'item',
+
+				fields: {
+					createdAt: {
+						type: 'DateTime',
+						keyRaw: 'createdAt',
+					},
+				},
+			},
+		}
+
+		expect(
+			marshalSelection({
+				config,
+				selection,
+				data,
+			})
+		).toEqual({
+			item: null,
+		})
+	})
+
+	test('nested objects', function () {
+		// the date to compare against
+		const date = new Date()
+
+		const data = {
+			item: {
+				createdAt: date,
+				creator: {
+					firstName: 'John',
+				},
+			},
+		}
+
+		const selection = {
+			item: {
+				type: 'TodoItem',
+				keyRaw: 'item',
+
+				fields: {
+					createdAt: {
+						type: 'DateTime',
+						keyRaw: 'createdAt',
+					},
+					creator: {
+						type: 'User',
+						keyRaw: 'creator',
+
+						fields: {
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
+
+						list: {
+							name: 'All_Items',
+							type: 'User',
+							connection: false,
+						},
+					},
+				},
+			},
+		}
+
+		expect(
+			marshalSelection({
+				config,
+				selection,
+				data,
+			})
+		).toEqual({
+			item: {
+				createdAt: date.getTime(),
+				creator: {
+					firstName: 'John',
+				},
+			},
+		})
+	})
+
+	test('fields on root', function () {
+		const data = {
+			rootBool: true,
+		}
+
+		const selection = {
+			rootBool: {
+				type: 'Boolean',
+				keyRaw: 'rootBool',
+			},
+		}
+
+		expect(
+			marshalSelection({
+				config,
+				selection,
+				data,
+			})
+		).toEqual({
+			rootBool: true,
+		})
+	})
+
+	test('enums', function () {
+		const data = {
+			enumValue: 'Hello',
+		}
+
+		const selection = {
+			enumValue: {
+				type: 'EnumValue',
+				keyRaw: 'enumValue',
+			},
+		}
+
+		expect(
+			marshalSelection({
+				config,
+				selection,
+				data,
+			})
+		).toEqual({
+			enumValue: 'Hello',
+		})
+	})
+
+	test('list of enums', function () {
+		const data = {
+			enumValue: ['Hello', 'World'],
+		}
+
+		const selection = {
+			enumValue: {
+				type: 'EnumValue',
+				keyRaw: 'enumValue',
+			},
+		}
+
+		expect(
+			marshalSelection({
+				config,
+				selection,
+				data,
+			})
+		).toEqual({
 			enumValue: ['Hello', 'World'],
 		})
 	})

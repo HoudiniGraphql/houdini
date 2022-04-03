@@ -208,6 +208,7 @@ export class InMemoryStorage {
 
 			// if the layer is optimistic, we can't go further
 			if (layer.optimistic) {
+				layerIndex--
 				break
 			}
 
@@ -319,7 +320,18 @@ export class Layer {
 		return this.id
 	}
 
+	isDisplayLayer(displayLayers: number[]) {
+		return (
+			displayLayers.length === 0 ||
+			displayLayers.includes(this.id) ||
+			Math.max(...displayLayers) < this.id
+		)
+	}
+
 	clear() {
+		// before we clear the data of the layer, look for any subscribers that need to be updated
+
+		// now that everything has been notified we can reset the data
 		this.links = {}
 		this.fields = {}
 		this.operations = {}
