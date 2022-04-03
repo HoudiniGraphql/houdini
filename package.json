@@ -45,6 +45,7 @@
 		"typescript": "^4.2.4"
 	},
 	"dependencies": {
+		"@changesets/changelog-git": "^0.1.11",
 		"@changesets/cli": "^2.22.0",
 		"@types/mock-fs": "^4.13.0",
 		"global": "^4.4.0",
