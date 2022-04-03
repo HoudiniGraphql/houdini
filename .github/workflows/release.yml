@@ -1,5 +1,10 @@
-name: Prepare Version
-on: workflow_dispatch
+name: Release
+
+# keep the changelog up to date on every commit to main
+on:
+    push:
+        branches:
+            - main
 
 env:
     CI: true
