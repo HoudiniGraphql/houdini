@@ -1,6 +1,6 @@
 {
 	"name": "houdini-common",
-	"version": "0.13.6",
+	"version": "0.13.7",
 	"description": "",
 	"main": "build/cjs/index.js",
 	"module": "build/esm/index.js",
