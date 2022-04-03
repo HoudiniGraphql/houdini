@@ -1,36 +1,49 @@
-name: Publish
+name: Prepare Version
+on: workflow_dispatch
 
-on:
-    push:
-        branches:
-            - main
-
+env:
+    CI: true
 jobs:
-    release:
-        name: Release
-        runs-on: ubuntu-latest
+    publish:
+        name: Publish
+        runs-on: ubuntu-18.04
         steps:
-            - name: Checkout Repo
+            - name: Checkout
               uses: actions/checkout@v2
               with:
-                  # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
                   fetch-depth: 0
 
-            - name: Setup Node.js 12.x
-              uses: actions/setup-node@v2
+            - name: Attach Head
+              run: |
+                  git checkout ${{ github.event.pull_request.base.ref }}
+
+            - name: Setup Node 14
+              uses: actions/setup-node@v1
               with:
-                  node-version: 12.x
+                  node-version: 14.13
+                  registry-url: 'https://npm.pkg.github.com'
 
-            - name: Install Dependencies
-              run: yarn
+            - name: Use HTTPS registry
+              run: |
+                  npm config set registry https://registry.npmjs.org/
 
-            - name: Check Changeset Status
-              id: changesets
-              uses: changesets/action@v1
-
-            - name: Publish
-              # only publish if there are no changesets after the merge
-              if: steps.changesets.outputs.hasChangesets == 'false'
-              run: yarn publish
+            - name: Set Git Identity
+              run: |
+                  git config --global user.name 'github-actions[bot]'
+                  git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+                  git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
               env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Install and Build
+              run: |
+                  yarn install --froze-lockfile
+                  yarn build
+
+            - name: Create Release Pull Request
+              uses: changesets/action@master
+              with:
+                  publish: yarn release
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
