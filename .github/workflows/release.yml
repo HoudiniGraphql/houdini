@@ -45,10 +45,11 @@ jobs:
                   yarn install --immutable
                   yarn build
 
-            - name: Create Release Pull Request
+            - name: Create Release Pull Request or Deploy
               uses: changesets/action@v1
               with:
                   publish: yarn release
+                  title: '📦 Version Update'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
