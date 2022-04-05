@@ -581,6 +581,44 @@ test('embeds node pagination query as a separate document', async function () {
 				`)
 })
 
+test('embeds custom pagination query as a separate document', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                fragment UserGhost on User {
+                    ghosts(first: 10) @paginate {
+                        edges {
+                            node {
+                                id
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({
+		types: {
+			Ghost: {
+				keys: ['name', 'aka'],
+				refetch: {
+					queryField: 'ghost',
+					arguments: (ghost) => ({
+						name: ghost.name,
+						aka: ghost.aka,
+					}),
+				},
+			},
+		},
+	})
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	await expect(docs[1]).toMatchArtifactSnapshot()
+})
+
 test('query with forwards cursor paginate', async function () {
 	const docs = [
 		mockCollectedDoc(

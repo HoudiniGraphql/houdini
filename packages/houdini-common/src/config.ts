@@ -28,7 +28,10 @@ export type ConfigFile = {
 export type TypeConfig = {
 	[typeName: string]: {
 		keys?: string[]
-		refetch?: (data: any) => { field: string; arguments: { [key: string]: any } }
+		refetch?: {
+			queryField: string
+			arguments?: (data: any) => { [key: string]: any }
+		}
 	}
 }
 
@@ -514,6 +517,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				aka: String!
 				believers: [User!]!
 				friends: [Ghost!]!
+				friendsConnection(first: Int, after: String): GhostConnection!
 				legends: [Legend!]!
 			}
 
@@ -531,6 +535,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				user: User!
 				version: Int!
 				ghost: Ghost!
+				ghosts: GhostConnection!
 				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 				entities: [Entity!]!
@@ -556,6 +561,16 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 			type UserConnection {
 				pageInfo: PageInfo!
 				edges: [UserEdge!]!
+			}
+
+			type GhostEdge {
+				cursor: String!
+				node: Ghost
+			}
+
+			type GhostConnection {
+				pageInfo: PageInfo!
+				edges: [GhostEdge!]!
 			}
 
 			interface Friend {
