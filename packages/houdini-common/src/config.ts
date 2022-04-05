@@ -21,6 +21,8 @@ export type ConfigFile = {
 	cacheBufferSize?: number
 	defaultCachePolicy?: CachePolicy
 	defaultPartial?: boolean
+	defaultKeys?: string[]
+	keys?: { [typeName: string]: string[] }
 }
 
 export type ScalarSpec = {
@@ -54,6 +56,8 @@ export class Config {
 	defaultPartial: boolean
 	definitionsFile?: string
 	newSchema: string = ''
+	defaultKeys: string[] = ['id']
+	keys?: { [typeName: string]: string[] } = {}
 
 	constructor({
 		schema,
@@ -70,6 +74,8 @@ export class Config {
 		definitionsPath,
 		defaultCachePolicy = CachePolicy.NetworkOnly,
 		defaultPartial = false,
+		defaultKeys,
+		keys,
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -133,6 +139,14 @@ export class Config {
 		this.defaultCachePolicy = defaultCachePolicy
 		this.defaultPartial = defaultPartial
 		this.definitionsFile = definitionsPath
+
+		// hold onto the key config
+		if (defaultKeys) {
+			this.defaultKeys = defaultKeys
+		}
+		if (keys) {
+			this.keys = keys
+		}
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
