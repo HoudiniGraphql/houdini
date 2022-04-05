@@ -22,7 +22,14 @@ export type ConfigFile = {
 	defaultCachePolicy?: CachePolicy
 	defaultPartial?: boolean
 	defaultKeys?: string[]
-	keys?: { [typeName: string]: string[] }
+	types?: TypeConfig
+}
+
+export type TypeConfig = {
+	[typeName: string]: {
+		keys?: string[]
+		refetch?: (data: any) => { field: string; arguments: { [key: string]: any } }
+	}
 }
 
 export type ScalarSpec = {
@@ -57,7 +64,7 @@ export class Config {
 	definitionsFile?: string
 	newSchema: string = ''
 	defaultKeys: string[] = ['id']
-	keys: { [typeName: string]: string[] } = {}
+	typeConfig: TypeConfig = {}
 
 	constructor({
 		schema,
@@ -75,7 +82,7 @@ export class Config {
 		defaultCachePolicy = CachePolicy.NetworkOnly,
 		defaultPartial = false,
 		defaultKeys,
-		keys,
+		types = {},
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -144,9 +151,7 @@ export class Config {
 		if (defaultKeys) {
 			this.defaultKeys = defaultKeys
 		}
-		if (keys) {
-			this.keys = keys
-		}
+		this.typeConfig = types
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
@@ -209,7 +214,7 @@ export class Config {
 	}
 
 	keyFieldsForType(type: string) {
-		return this.keys[type] || this.defaultKeys
+		return this.typeConfig[type]?.keys || this.defaultKeys
 	}
 
 	computeID(type: string, data: any): string {
@@ -602,8 +607,10 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 		`,
 		framework: 'sapper',
 		quiet: true,
-		keys: {
-			Ghost: ['name', 'aka'],
+		types: {
+			Ghost: {
+				keys: ['name', 'aka'],
+			},
 		},
 		...config,
 	})
