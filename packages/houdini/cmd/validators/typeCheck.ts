@@ -204,10 +204,18 @@ export default async function typeCheck(
 				)
 
 				// make sure there is an id field
-				if (!type.getFields()['id']) {
+				const missingIDFields = config
+					.keyFieldsForType(type.name)
+					.filter((fieldName) => !type.getFields()[fieldName])
+
+				if (missingIDFields.length > 0) {
 					errors.push(
 						new HoudiniErrorTodo(
-							`@${config.listDirective} can only be applied to types with an id field.`
+							`@${
+								config.listDirective
+							} can only be applied to types with the necessary id fields: ${missingIDFields.join(
+								', '
+							)}.`
 						)
 					)
 					return

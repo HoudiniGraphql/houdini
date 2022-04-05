@@ -760,11 +760,11 @@ class CacheInternal {
 
 	// the list of fields that we need in order to compute an objects id
 	idFields(type: string): string[] {
-		return ['id']
+		return this.config.keyFieldsForType(type)
 	}
 
 	computeID(type: string, data: { [key: string]: GraphQLValue }): string | undefined {
-		return data.id as string
+		return this.config.computeID(type, data)
 	}
 
 	hydrateNestedList({

@@ -57,7 +57,7 @@ export class Config {
 	definitionsFile?: string
 	newSchema: string = ''
 	defaultKeys: string[] = ['id']
-	keys?: { [typeName: string]: string[] } = {}
+	keys: { [typeName: string]: string[] } = {}
 
 	constructor({
 		schema,
@@ -206,6 +206,16 @@ export class Config {
 	// the path that the runtime can use to import an artifact
 	artifactImportPath(name: string): string {
 		return `$houdini/${this.artifactDirectoryName}/${name}`
+	}
+
+	keyFieldsForType(type: string) {
+		return this.keys[type] || this.defaultKeys
+	}
+
+	computeID(type: string, data: any): string {
+		return this.keyFieldsForType(type)
+			.map((key) => data[key])
+			.join('__')
 	}
 
 	// a string identifier for the document (must be unique)
@@ -499,6 +509,11 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				aka: String!
 				believers: [User!]!
 				friends: [Ghost!]!
+				legends: [Legend!]!
+			}
+
+			type Legend { 
+				name: String
 			}
 
 			type Cat implements Friend & Node {
@@ -587,6 +602,9 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 		`,
 		framework: 'sapper',
 		quiet: true,
+		keys: {
+			Ghost: ['name', 'aka'],
+		},
 		...config,
 	})
 }
