@@ -13,6 +13,18 @@ jobs:
         name: Publish
         runs-on: ubuntu-18.04
         steps:
+            - name: Creating .npmrc
+              run: |
+                  cat << EOF > "$HOME/.npmrc"
+                      email=$NPM_EMAIL
+                      name=$NPM_NAME
+                      //registry.npmjs.org/:_authToken=$NPM_TOKEN
+                  EOF
+              env:
+                  NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
+                  NPM_NAME: ${{ secrets.NPM_NAME }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
             - name: Checkout
               uses: actions/checkout@v2
               with:
@@ -40,10 +52,8 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Install and Build
-              run: |
-                  yarn install 
-                  yarn build
+            - name: Install Dependencies
+              run: yarn install
 
             - name: Create Release Pull Request or Deploy
               uses: changesets/action@v1
