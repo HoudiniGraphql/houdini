@@ -236,6 +236,23 @@ describe('in memory layers', function () {
 		expect(storage.topLayer.fields['User:1']).toBeUndefined()
 	})
 
+	test('create and resolve on base layer', function () {
+		// note: this situation happens if a mutation fires before any queries
+		// are sent to the server to create a non-optimistic layer
+
+		const storage = new InMemoryStorage()
+
+		// create an optimistic layer
+		const layer = storage.createLayer(true)
+
+		layer.writeField('User:1', 'firstName', 'bob')
+
+		// resolve the layer
+		storage.resolveLayer(layer.id)
+
+		expect(storage.get('User:1', 'firstName').value).toEqual('bob')
+	})
+
 	test.todo('links are reset when layer is cleared')
 
 	describe('operations', function () {
