@@ -38,11 +38,6 @@ jobs:
               uses: actions/setup-node@v1
               with:
                   node-version: 14.13
-                  registry-url: https://registry.npmjs.org
-
-            - name: Use HTTPS registry
-              run: |
-                  npm config set registry https://registry.npmjs.org/
 
             - name: Set Git Identity
               run: |
