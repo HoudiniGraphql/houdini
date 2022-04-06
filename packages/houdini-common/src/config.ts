@@ -28,7 +28,7 @@ export type ConfigFile = {
 export type TypeConfig = {
 	[typeName: string]: {
 		keys?: string[]
-		refetch?: {
+		refetch: {
 			queryField: string
 			arguments?: (data: any) => { [key: string]: any }
 		}
@@ -640,6 +640,9 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 		types: {
 			Ghost: {
 				keys: ['name', 'aka'],
+				refetch: {
+					queryField: 'ghost',
+				},
 			},
 		},
 		...config,
