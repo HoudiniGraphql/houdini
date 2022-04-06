@@ -67,7 +67,15 @@ export class Config {
 	definitionsFile?: string
 	newSchema: string = ''
 	defaultKeys: string[] = ['id']
-	typeConfig: TypeConfig = {}
+	typeConfig: TypeConfig = {
+		Node: {
+			keys: ['id'],
+			refetch: {
+				queryField: 'node',
+				arguments: (node) => ({ id: node.id }),
+			},
+		},
+	}
 
 	constructor({
 		schema,
@@ -154,7 +162,12 @@ export class Config {
 		if (defaultKeys) {
 			this.defaultKeys = defaultKeys
 		}
-		this.typeConfig = types
+		if (types) {
+			this.typeConfig = {
+				...this.typeConfig,
+				...types,
+			}
+		}
 
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
@@ -508,6 +521,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				friendsByOffset(offset: Int, limit: Int, filter: String): [User!]!
 				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
+				believesInConnection(first: Int, after: String, filter: String): GhostConnection!
 				cats: [Cat!]!
 				field(filter: String): String
 			}

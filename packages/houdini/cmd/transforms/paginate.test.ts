@@ -586,10 +586,10 @@ test('embeds custom pagination query as a separate document', async function () 
 		mockCollectedDoc(
 			`
                 fragment UserGhost on User {
-                    ghosts(first: 10) @paginate {
+                    believesInConnection(first: 10) @paginate {
                         edges {
                             node {
-                                id
+								name
                             }
                         }
                     }
@@ -616,7 +616,143 @@ test('embeds custom pagination query as a separate document', async function () 
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	await expect(docs[1]).toMatchArtifactSnapshot()
+	await expect(docs[1]).toMatchArtifactSnapshot(`
+					module.exports = {
+					    name: "UserGhost_Pagination_Query",
+					    kind: "HoudiniQuery",
+					    hash: "21066bcf3168770e2f3cd1c996928c3c1ff92c8b2531101c1cdf6fb6947a67f3",
+
+					    refetch: {
+					        update: "append",
+					        path: ["believesInConnection"],
+					        method: "cursor",
+					        pageSize: 10,
+					        embedded: true
+					    },
+
+					    raw: \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
+					  node(id: $id) {
+					    ...UserGhost_jrGTj
+					  }
+					}
+
+					fragment UserGhost_jrGTj on User {
+					  believesInConnection(first: $first, after: $after) {
+					    edges {
+					      node {
+					        name
+					      }
+					    }
+					    edges {
+					      cursor
+					      node {
+					        __typename
+					      }
+					    }
+					    pageInfo {
+					      hasPreviousPage
+					      hasNextPage
+					      startCursor
+					      endCursor
+					    }
+					  }
+					}
+					\`,
+
+					    rootType: "Query",
+
+					    selection: {
+					        node: {
+					            type: "Node",
+					            keyRaw: "node(id: $id)",
+					            nullable: true,
+
+					            fields: {
+					                believesInConnection: {
+					                    type: "GhostConnection",
+					                    keyRaw: "believesInConnection::paginated",
+
+					                    fields: {
+					                        edges: {
+					                            type: "GhostEdge",
+					                            keyRaw: "edges",
+
+					                            fields: {
+					                                cursor: {
+					                                    type: "String",
+					                                    keyRaw: "cursor"
+					                                },
+
+					                                node: {
+					                                    type: "Ghost",
+					                                    keyRaw: "node",
+					                                    nullable: true,
+
+					                                    fields: {
+					                                        __typename: {
+					                                            type: "String",
+					                                            keyRaw: "__typename"
+					                                        },
+
+					                                        name: {
+					                                            type: "String",
+					                                            keyRaw: "name"
+					                                        }
+					                                    }
+					                                }
+					                            },
+
+					                            update: "append"
+					                        },
+
+					                        pageInfo: {
+					                            type: "PageInfo",
+					                            keyRaw: "pageInfo",
+
+					                            fields: {
+					                                hasPreviousPage: {
+					                                    type: "Boolean",
+					                                    keyRaw: "hasPreviousPage"
+					                                },
+
+					                                hasNextPage: {
+					                                    type: "Boolean",
+					                                    keyRaw: "hasNextPage"
+					                                },
+
+					                                startCursor: {
+					                                    type: "String",
+					                                    keyRaw: "startCursor"
+					                                },
+
+					                                endCursor: {
+					                                    type: "String",
+					                                    keyRaw: "endCursor"
+					                                }
+					                            }
+					                        }
+					                    }
+					                }
+					            },
+
+					            abstract: true
+					        }
+					    },
+
+					    input: {
+					        fields: {
+					            first: "Int",
+					            after: "String",
+					            id: "ID"
+					        },
+
+					        types: {}
+					    },
+
+					    policy: "NetworkOnly",
+					    partial: false
+					};
+				`)
 })
 
 test('query with forwards cursor paginate', async function () {

@@ -16,9 +16,9 @@ import { CollectedGraphQLDocument, RefetchUpdateMode } from '../types'
 //   add the necessary arguments to the field, referencing variables that will be injected
 //   and compute what kind of pagination (toggling an object of flags)
 // - if the @paginate directive was found, add the @arguments directive to the fragment
-//   definition and use any fields that were previously set as the default value. that
-//   will cause the fragment arguments directive to inline the default values if one isn't
-//   given, preserving the original definition for the first query
+//   definition to pass new pagination arguments and use any fields that were previously
+//   set as the default value. That will cause the fragment arguments directive to inline
+//   the default values if one isn't given, preserving the original definition for the first query
 // - generate the query with the fragment embedded using @with to pass query variables through
 
 type PaginationFlags = {
@@ -162,7 +162,7 @@ export default async function paginate(
 			}
 
 			// remember if we found a fragment or operation
-			let fragment = false
+			let fragment = ''
 
 			doc.document = graphql.visit(doc.document, {
 				// if we are dealing with a query, we'll need to add the variables to the definition
@@ -216,7 +216,7 @@ export default async function paginate(
 				},
 				// if we are dealing with a fragment definition we'll need to add the arguments directive if it doesn't exist
 				FragmentDefinition(node) {
-					fragment = true
+					fragment = node.typeCondition.name.value
 
 					fragmentName = node.name.value
 					refetchQueryName = config.paginationQueryName(fragmentName)
@@ -325,6 +325,16 @@ export default async function paginate(
 					],
 				},
 			] as graphql.SelectionNode[]
+
+			// we are going to add arguments for every key the type is configured with
+			const keys = config.keyFieldsForType(nodeQuery ? 'Node' : fragment).map((key) => {
+				// look up the type for each key
+				const type = config.schema.getType(fragment)
+
+				return {
+					name: key,
+				}
+			})
 
 			const queryDoc: graphql.DocumentNode = {
 				kind: 'Document',
