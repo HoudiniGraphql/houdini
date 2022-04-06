@@ -93,6 +93,27 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 
 	const partial = writable(false)
 
+	const { targetType } = paginationArtifact.refetch || {}
+	const typeConfig = document.config.typeConfig[targetType || '']
+	if (!typeConfig) {
+		throw new Error(
+			`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
+		)
+	}
+
+	let queryVariables = () => ({})
+	// if the query is embedded we have to figure out the correct variables to pass
+	if (paginationArtifact.refetch!.embedded) {
+		// if we have a specific function to use when computing the variables
+		if (typeConfig.refetch?.arguments) {
+			queryVariables = () => typeConfig.refetch!.arguments?.(initialValue) || {}
+		} else {
+			const keys = document.config.keyFieldsForType(targetType || '')
+			// @ts-ignore
+			queryVariables = () => Object.fromEntries(keys.map((key) => [key, initialValue[key]]))
+		}
+	}
+
 	return {
 		data,
 		...paginationHandlers({
@@ -101,14 +122,7 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 			initialValue,
 			store: data,
 			artifact: paginationArtifact,
-			queryVariables: paginationArtifact.refetch!.embedded
-				? () => ({
-						id: cache._internal_unstable.computeID(
-							fragmentArtifact.rootType,
-							initialValue
-						),
-				  })
-				: () => ({}),
+			queryVariables,
 		}),
 	}
 }
