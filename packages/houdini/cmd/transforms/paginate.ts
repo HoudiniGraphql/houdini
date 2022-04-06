@@ -275,6 +275,26 @@ export default async function paginate(
 			// we need to add a document to perform the query if we are paginating on a
 			// fragment
 
+			// figure out the 'target' type of the refetch
+			let targetType = config.schema.getQueryType()?.name || ''
+			if (fragment) {
+				const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
+				if (nodeInterface) {
+					const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
+
+					if (
+						objects.find((obj) => obj.name === fragment) ||
+						interfaces.find((int) => int.name === fragment)
+					) {
+						targetType = 'Node'
+					} else {
+						targetType = fragment
+					}
+				} else {
+					targetType = fragment
+				}
+			}
+
 			// add the paginate info to the collected document
 			doc.refetch = {
 				update: refetchUpdate,
@@ -282,6 +302,7 @@ export default async function paginate(
 				method: flags.first.enabled || flags.last.enabled ? 'cursor' : 'offset',
 				pageSize: 0,
 				embedded: nodeQuery,
+				targetType,
 			}
 
 			// add the correct default page size
@@ -331,15 +352,15 @@ export default async function paginate(
 			const keys = config
 				.keyFieldsForType(!nodeQuery ? config.schema.getQueryType()?.name || '' : fragment)
 				.flatMap((key) => {
+					// if we are looking at the query, don't add anything
+					if (fragment === config.schema.getQueryType()?.name) {
+						return []
+					}
+
 					// look up the type for each key
 					const fragmentType = config.schema.getType(fragment) as
 						| graphql.GraphQLObjectType
 						| graphql.GraphQLInterfaceType
-
-					// if we are looking at the query, don't add anything
-					if (fragmentType.name === config.schema.getQueryType()?.name) {
-						return []
-					}
 
 					const { type, wrappers } = unwrapType(
 						config,

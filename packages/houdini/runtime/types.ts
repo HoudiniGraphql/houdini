@@ -78,6 +78,7 @@ export type BaseCompiledDocument = {
 		pageSize: number
 		start?: string | number
 		embedded: boolean
+		targetType: string
 	}
 }
 

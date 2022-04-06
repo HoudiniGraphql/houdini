@@ -60,7 +60,8 @@ test('adds pagination info to full', async function () {
 		    ],
 		    "method": "cursor",
 		    "pageSize": 10,
-		    "embedded": false
+		    "embedded": false,
+		    "targetType": "Query"
 		}
 	`)
 })
@@ -94,7 +95,8 @@ test('paginated fragments on node pull data from one field deeper', async functi
 		    ],
 		    "method": "cursor",
 		    "pageSize": 10,
-		    "embedded": true
+		    "embedded": true,
+		    "targetType": "Node"
 		}
 	`)
 })
@@ -453,7 +455,8 @@ test('embeds node pagination query as a separate document', async function () {
 					        path: ["friendsByForwardsCursor"],
 					        method: "cursor",
 					        pageSize: 10,
-					        embedded: true
+					        embedded: true,
+					        targetType: "Node"
 					    },
 
 					    raw: \`query UserFriends_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
@@ -627,7 +630,8 @@ test('embeds custom pagination query as a separate document', async function () 
 					        path: ["friendsConnection"],
 					        method: "cursor",
 					        pageSize: 10,
-					        embedded: true
+					        embedded: true,
+					        targetType: "Ghost"
 					    },
 
 					    raw: \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $name: String!, $aka: String!) {
@@ -1132,7 +1136,8 @@ test('refetch specification with backwards pagination', async function () {
 		    ],
 		    "method": "cursor",
 		    "pageSize": 10,
-		    "embedded": false
+		    "embedded": false,
+		    "targetType": "Query"
 		}
 	`)
 })
@@ -1167,6 +1172,7 @@ test('refetch entry with initial backwards', async function () {
 		    "method": "cursor",
 		    "pageSize": 10,
 		    "embedded": false,
+		    "targetType": "Query",
 		    "start": "1234"
 		}
 	`)
@@ -1202,6 +1208,7 @@ test('refetch entry with initial forwards', async function () {
 		    "method": "cursor",
 		    "pageSize": 10,
 		    "embedded": false,
+		    "targetType": "Query",
 		    "start": "1234"
 		}
 	`)
@@ -1240,6 +1247,7 @@ test('generated query has same refetch spec', async function () {
 					        method: "cursor",
 					        pageSize: 10,
 					        embedded: false,
+					        targetType: "Query",
 					        start: "1234"
 					    },
 
@@ -1380,7 +1388,8 @@ test('refetch specification with offset pagination', async function () {
 		    ],
 		    "method": "offset",
 		    "pageSize": 10,
-		    "embedded": false
+		    "embedded": false,
+		    "targetType": "Query"
 		}
 	`)
 })
@@ -1411,6 +1420,7 @@ test('refetch specification with initial offset', async function () {
 		    "method": "offset",
 		    "pageSize": 10,
 		    "embedded": false,
+		    "targetType": "Query",
 		    "start": 10
 		}
 	`)
