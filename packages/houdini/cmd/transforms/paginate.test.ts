@@ -585,7 +585,7 @@ test('embeds custom pagination query as a separate document', async function () 
 	const docs = [
 		mockCollectedDoc(
 			`
-                fragment Ghost on Ghost {
+                fragment UserGhost on Ghost {
                     friendsConnection(first: 10) @paginate {
                         edges {
                             node {
@@ -620,24 +620,24 @@ test('embeds custom pagination query as a separate document', async function () 
 					module.exports = {
 					    name: "UserGhost_Pagination_Query",
 					    kind: "HoudiniQuery",
-					    hash: "3fb59f8393aff91ab7d5f7f057b1c0e24760838048692e2d9aa6250ffe1cf667",
+					    hash: "556aae8efcbbbcc3878b62227e9931435c6fb277057ed4c5b6a5cebdbcd1a10f",
 
 					    refetch: {
 					        update: "append",
-					        path: ["believesInConnection"],
+					        path: ["friendsConnection"],
 					        method: "cursor",
 					        pageSize: 10,
 					        embedded: true
 					    },
 
 					    raw: \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $name: String!, $aka: String!) {
-					  node(id: $id) {
+					  ghost(name: $name, aka: $aka) {
 					    ...UserGhost_jrGTj
 					  }
 					}
 
-					fragment UserGhost_jrGTj on User {
-					  believesInConnection(first: $first, after: $after) {
+					fragment UserGhost_jrGTj on Ghost {
+					  friendsConnection(first: $first, after: $after) {
 					    edges {
 					      node {
 					        name
@@ -663,15 +663,14 @@ test('embeds custom pagination query as a separate document', async function () 
 					    rootType: "Query",
 
 					    selection: {
-					        node: {
-					            type: "Node",
-					            keyRaw: "node(id: $id)",
-					            nullable: true,
+					        ghost: {
+					            type: "Ghost",
+					            keyRaw: "ghost(name: $name, aka: $aka)",
 
 					            fields: {
-					                believesInConnection: {
+					                friendsConnection: {
 					                    type: "GhostConnection",
-					                    keyRaw: "believesInConnection::paginated",
+					                    keyRaw: "friendsConnection::paginated",
 
 					                    fields: {
 					                        edges: {
@@ -739,9 +738,7 @@ test('embeds custom pagination query as a separate document', async function () 
 					                        }
 					                    }
 					                }
-					            },
-
-					            abstract: true
+					            }
 					        }
 					    },
 
@@ -749,7 +746,8 @@ test('embeds custom pagination query as a separate document', async function () 
 					        fields: {
 					            first: "Int",
 					            after: "String",
-					            id: "ID"
+					            name: "String",
+					            aka: "String"
 					        },
 
 					        types: {}
