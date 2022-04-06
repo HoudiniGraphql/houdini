@@ -823,13 +823,15 @@ function nodeDirectives(config: Config, directives: string[]) {
 
 	// check if there's a node interface
 	const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
-	if (nodeInterface || customTypes.length > 1) {
+	if (nodeInterface) {
 		const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
 		possibleNodes.push(
 			...objects.map((object) => object.name),
-			...interfaces.map((object) => object.name),
-			...customTypes
+			...interfaces.map((object) => object.name)
 		)
+	}
+	if (customTypes.length > 1) {
+		possibleNodes.push(...customTypes)
 	}
 
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {

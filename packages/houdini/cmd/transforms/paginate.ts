@@ -330,21 +330,28 @@ export default async function paginate(
 			// we are going to add arguments for every key the type is configured with
 			const keys = config
 				.keyFieldsForType(!nodeQuery ? config.schema.getQueryType()?.name || '' : fragment)
-				.map((key) => {
+				.flatMap((key) => {
 					// look up the type for each key
 					const fragmentType = config.schema.getType(fragment) as
 						| graphql.GraphQLObjectType
 						| graphql.GraphQLInterfaceType
+
+					// if we are looking at the query, don't add anything
+					if (fragmentType.name === config.schema.getQueryType()?.name) {
+						return []
+					}
 
 					const { type, wrappers } = unwrapType(
 						config,
 						fragmentType.getFields()[key].type
 					)
 
-					return {
-						name: key,
-						type: wrapType({ type, wrappers }),
-					}
+					return [
+						{
+							name: key,
+							type: wrapType({ type, wrappers }),
+						},
+					]
 				})
 
 			const queryDoc: graphql.DocumentNode = {
@@ -414,7 +421,7 @@ export default async function paginate(
 											name: {
 												kind: 'Name',
 												value:
-													config.typeConfig[fragment].refetch
+													config.typeConfig[fragment]?.refetch
 														?.queryField || 'node',
 											},
 											arguments: keys.map((key) => ({
