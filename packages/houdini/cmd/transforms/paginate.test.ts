@@ -585,8 +585,8 @@ test('embeds custom pagination query as a separate document', async function () 
 	const docs = [
 		mockCollectedDoc(
 			`
-                fragment UserGhost on User {
-                    believesInConnection(first: 10) @paginate {
+                fragment Ghost on Ghost {
+                    friendsConnection(first: 10) @paginate {
                         edges {
                             node {
 								name
@@ -620,7 +620,7 @@ test('embeds custom pagination query as a separate document', async function () 
 					module.exports = {
 					    name: "UserGhost_Pagination_Query",
 					    kind: "HoudiniQuery",
-					    hash: "21066bcf3168770e2f3cd1c996928c3c1ff92c8b2531101c1cdf6fb6947a67f3",
+					    hash: "3fb59f8393aff91ab7d5f7f057b1c0e24760838048692e2d9aa6250ffe1cf667",
 
 					    refetch: {
 					        update: "append",
@@ -630,7 +630,7 @@ test('embeds custom pagination query as a separate document', async function () 
 					        embedded: true
 					    },
 
-					    raw: \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
+					    raw: \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $name: String!, $aka: String!) {
 					  node(id: $id) {
 					    ...UserGhost_jrGTj
 					  }
@@ -641,6 +641,7 @@ test('embeds custom pagination query as a separate document', async function () 
 					    edges {
 					      node {
 					        name
+					        aka
 					      }
 					    }
 					    edges {
@@ -697,6 +698,11 @@ test('embeds custom pagination query as a separate document', async function () 
 					                                        name: {
 					                                            type: "String",
 					                                            keyRaw: "name"
+					                                        },
+
+					                                        aka: {
+					                                            type: "String",
+					                                            keyRaw: "aka"
 					                                        }
 					                                    }
 					                                }

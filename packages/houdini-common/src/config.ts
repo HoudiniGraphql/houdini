@@ -537,6 +537,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 
 			type Legend { 
 				name: String
+				believers(first: Int, after: String): GhostConnection
 			}
 
 			type Cat implements Friend & Node {

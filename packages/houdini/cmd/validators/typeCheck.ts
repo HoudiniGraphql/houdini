@@ -819,14 +819,16 @@ function nodeDirectives(config: Config, directives: string[]) {
 	const queryType = config.schema.getQueryType()
 
 	let possibleNodes = [queryType?.name || '']
+	const customTypes = Object.keys(config.typeConfig)
+
 	// check if there's a node interface
 	const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
-	if (nodeInterface) {
+	if (nodeInterface || customTypes.length > 1) {
 		const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
 		possibleNodes.push(
 			...objects.map((object) => object.name),
 			...interfaces.map((object) => object.name),
-			'Node'
+			...customTypes
 		)
 	}
 

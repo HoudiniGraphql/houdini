@@ -329,7 +329,14 @@ export default async function paginate(
 			// we are going to add arguments for every key the type is configured with
 			const keys = config.keyFieldsForType(nodeQuery ? 'Node' : fragment).map((key) => {
 				// look up the type for each key
-				const type = config.schema.getType(fragment)
+				const type = config.schema.getType(fragment) as
+					| graphql.GraphQLObjectType
+					| graphql.GraphQLInterfaceType
+
+				//
+
+				// const fieldType = type.getFields()[key].type
+				// console.log(fragment, fieldType)
 
 				return {
 					name: key,
