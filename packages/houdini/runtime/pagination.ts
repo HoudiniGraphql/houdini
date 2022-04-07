@@ -105,8 +105,8 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	// if the query is embedded we have to figure out the correct variables to pass
 	if (paginationArtifact.refetch!.embedded) {
 		// if we have a specific function to use when computing the variables
-		if (typeConfig.refetch?.arguments) {
-			queryVariables = () => typeConfig.refetch!.arguments?.(initialValue) || {}
+		if (typeConfig.resolve?.arguments) {
+			queryVariables = () => typeConfig.resolve!.arguments?.(initialValue) || {}
 		} else {
 			const keys = document.config.keyFieldsForType(targetType || '')
 			// @ts-ignore
@@ -301,14 +301,14 @@ function cursorHandlers<_Input>({
 		if (artifact.refetch!.embedded) {
 			const { targetType } = artifact.refetch!
 			// make sure we have a type config for the pagination target type
-			if (!config.typeConfig[targetType]?.refetch) {
+			if (!config.typeConfig[targetType]?.resolve) {
 				throw new Error(
-					`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
+					`Missing type resolve configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
 				)
 			}
 
 			// make sure that we pull the value out of the correct query field
-			resultPath.unshift(config.typeConfig[targetType].refetch!.queryField)
+			resultPath.unshift(config.typeConfig[targetType].resolve!.queryField)
 		}
 
 		// we need to find the connection object holding the current page info

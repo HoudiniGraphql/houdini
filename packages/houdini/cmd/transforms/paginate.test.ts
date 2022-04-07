@@ -606,7 +606,7 @@ test('embeds custom pagination query as a separate document', async function () 
 		types: {
 			Ghost: {
 				keys: ['name', 'aka'],
-				refetch: {
+				resolve: {
 					queryField: 'ghost',
 					arguments: (ghost) => ({
 						name: ghost.name,
