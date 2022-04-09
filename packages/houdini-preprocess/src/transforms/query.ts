@@ -221,21 +221,21 @@ function processInstance(
 								AST.objectProperty(
 									AST.stringLiteral('initialValue'),
 									AST.memberExpression(
-										AST.identifier(preloadPayloadKey(operation)),
+										AST.identifier(preloadKey),
 										AST.identifier('result')
 									)
 								),
 								AST.objectProperty(
 									AST.stringLiteral('variables'),
 									AST.memberExpression(
-										AST.identifier(preloadPayloadKey(operation)),
+										AST.identifier(preloadKey),
 										AST.identifier('variables')
 									)
 								),
 								AST.objectProperty(
 									AST.stringLiteral('partial'),
 									AST.memberExpression(
-										AST.identifier(preloadPayloadKey(operation)),
+										AST.identifier(preloadKey),
 										AST.identifier('partial')
 									)
 								),
@@ -250,7 +250,7 @@ function processInstance(
 								AST.objectProperty(
 									AST.literal('source'),
 									AST.memberExpression(
-										AST.identifier(preloadPayloadKey(operation)),
+										AST.identifier(preloadKey),
 										AST.identifier('source')
 									)
 								),
@@ -702,8 +702,11 @@ function afterLoadQueryData(queries: EmbeddedGraphqlDocument[]) {
 					(definitions[0] as graphql.OperationDefinitionNode)?.name?.value || null
 				),
 				AST.memberExpression(
-					AST.identifier(
-						preloadPayloadKey(definitions[0] as graphql.OperationDefinitionNode)
+					AST.memberExpression(
+						AST.identifier(
+							preloadPayloadKey(definitions[0] as graphql.OperationDefinitionNode)
+						),
+						AST.identifier('result')
 					),
 					AST.identifier('data')
 				)

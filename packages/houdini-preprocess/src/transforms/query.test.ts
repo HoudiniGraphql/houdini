@@ -1020,7 +1020,7 @@ test('afterLoad hook', async function () {
 		        "hookFn": afterLoad,
 
 		        "data": {
-		            "TestQuery": _TestQuery.data
+		            "TestQuery": _TestQuery.result.data
 		        }
 		    });
 
@@ -1157,8 +1157,8 @@ test('afterLoad hook - multiple queries', async function () {
 		        "hookFn": afterLoad,
 
 		        "data": {
-		            "TestQuery1": _TestQuery1.data,
-		            "TestQuery2": _TestQuery2.data
+		            "TestQuery1": _TestQuery1.result.data,
+		            "TestQuery2": _TestQuery2.result.data
 		        }
 		    });
 
@@ -1305,7 +1305,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        "hookFn": afterLoad,
 
 		        "data": {
-		            "TestQuery": _TestQuery.data
+		            "TestQuery": _TestQuery.result.data
 		        }
 		    });
 

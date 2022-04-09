@@ -7299,7 +7299,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.13.6, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.13.9, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
@@ -7393,8 +7393,8 @@ __metadata:
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
     graphql: 15.5.0
-    houdini: ^0.12.4
-    houdini-common: ^0.13.6
+    houdini: ^0.13.9
+    houdini-common: ^0.13.9
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -7405,7 +7405,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.13.7-alpha.2, houdini@workspace:packages/houdini":
+"houdini@^0.13.7-alpha.2, houdini@^0.13.9, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
@@ -7426,7 +7426,7 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.13.6
+    houdini-common: ^0.13.9
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4

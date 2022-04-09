@@ -194,6 +194,11 @@ export class InMemoryStorage {
 			throw new Error('could not find layer with id: ' + id)
 		}
 
+		// if we are resolving the base layer make sure we start at zero
+		if (startingIndex === -1) {
+			startingIndex = 0
+		}
+
 		// if the starting layer is optimistic then we can't write to it
 		if (this.data[startingIndex].optimistic) {
 			startingIndex++
