@@ -1,5 +1,15 @@
 # houdini-preprocess
 
+## 0.13.9
+
+### Patch Changes
+
+-   [#266](https://github.com/HoudiniGraphql/houdini/pull/266) [`b26cb5e`](https://github.com/HoudiniGraphql/houdini/commit/b26cb5e032ffb87c40b3c43cef73c211cf2fd3de) Thanks [@fehnomenal](https://github.com/fehnomenal)! - Fix `afterLoad` data
+
+-   Updated dependencies []:
+    -   houdini@0.13.9
+    -   houdini-common@0.13.9
+
 ## 0.13.8
 
 ### Patch Changes
