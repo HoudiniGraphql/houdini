@@ -29,10 +29,6 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery = await fetchQuery({
 		        "context": context,
 		        "artifact": _TestQueryArtifact,
@@ -124,10 +120,6 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery2 = await fetchQuery({
 		        "context": context,
 		        "artifact": _TestQuery2Artifact,
@@ -141,10 +133,6 @@ describe('query preprocessor', function () {
 		    }
 
 		    const _TestQuery1_Input = {};
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
 
 		    const _TestQuery1 = await fetchQuery({
 		        "context": context,
@@ -371,10 +359,6 @@ describe('query preprocessor', function () {
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
 
 		    const _TestQuery = await fetchQuery({
 		        "context": context,
@@ -869,10 +853,6 @@ test('beforeLoad hook - multiple queries', async function () {
 		    const beforeHookReturn = _houdini_context.returnValue;
 		    const _TestQuery2_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery2 = await fetchQuery({
 		        "context": context,
 		        "artifact": _TestQuery2Artifact,
@@ -886,10 +866,6 @@ test('beforeLoad hook - multiple queries', async function () {
 		    }
 
 		    const _TestQuery1_Input = {};
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
 
 		    const _TestQuery1 = await fetchQuery({
 		        "context": context,
@@ -1117,10 +1093,6 @@ test('afterLoad hook - multiple queries', async function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery2 = await fetchQuery({
 		        "context": context,
 		        "artifact": _TestQuery2Artifact,
@@ -1134,10 +1106,6 @@ test('afterLoad hook - multiple queries', async function () {
 		    }
 
 		    const _TestQuery1_Input = {};
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
 
 		    const _TestQuery1 = await fetchQuery({
 		        "context": context,

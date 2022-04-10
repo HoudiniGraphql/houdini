@@ -355,6 +355,8 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 
 	// every query that we found needs to be triggered in this function
 	for (const document of queries) {
+		let nextIndex = insertIndex
+
 		const operation = document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 
 		// figure out the local variable that holds the result
@@ -363,14 +365,16 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 		// the identifier for the query variables
 		const variableIdentifier = variablesKey(operation)
 
+		const hasVariables = Boolean(operation.variableDefinitions?.length)
+
 		// add a local variable right before the return statement
 		preloadFn.body.body.splice(
-			insertIndex,
+			nextIndex++,
 			0,
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier(variableIdentifier),
-					operation.variableDefinitions && operation.variableDefinitions.length > 0
+					hasVariables
 						? AST.callExpression(
 								AST.memberExpression(
 									requestContext,
@@ -401,15 +405,27 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 						  )
 						: AST.objectExpression([])
 				),
-			]),
-			// if we ran into a problem computing the variables
-			AST.ifStatement(
-				AST.unaryExpression(
-					'!',
-					AST.memberExpression(requestContext, AST.identifier('continue'))
-				),
-				AST.blockStatement([AST.returnStatement(retValue)])
-			),
+			])
+		)
+
+		if (hasVariables) {
+			preloadFn.body.body.splice(
+				nextIndex++,
+				0,
+				// if we ran into a problem computing the variables
+				AST.ifStatement(
+					AST.unaryExpression(
+						'!',
+						AST.memberExpression(requestContext, AST.identifier('continue'))
+					),
+					AST.blockStatement([AST.returnStatement(retValue)])
+				)
+			)
+		}
+
+		preloadFn.body.body.splice(
+			nextIndex++,
+			0,
 			// @ts-ignore
 			// perform the fetch and save the value under {preloadKey}
 			AST.variableDeclaration('const', [
