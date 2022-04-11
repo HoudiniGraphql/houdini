@@ -781,9 +781,15 @@ class CacheInternal {
 	}
 
 	computeID(type: string, data: any): string {
-		return this.idFields(type)
-			.map((key) => data[key])
-			.join('__')
+		const fields = this.idFields(type)
+
+		let id = ''
+
+		for (const field of fields) {
+			id += data[field] + '__'
+		}
+
+		return id
 	}
 
 	hydrateNestedList({
