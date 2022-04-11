@@ -2536,7 +2536,7 @@ test('disabled linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { friends: selection.viewer.fields.friends },
+			selection: { friends: selection.viewer.fields!.friends },
 			parent: 'User:1',
 		}).data
 	).toEqual({
@@ -2576,7 +2576,7 @@ test('disabled linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { friends: selection.viewer.fields.friends },
+			selection: { friends: selection.viewer.fields!.friends },
 			parent: 'User:1',
 		}).data
 	).toEqual({
@@ -2653,7 +2653,7 @@ test('append linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { friends: selection.viewer.fields.friends },
+			selection: { friends: selection.viewer.fields!.friends },
 			parent: 'User:1',
 		}).data
 	).toEqual({
@@ -2694,7 +2694,7 @@ test('append linked lists update', function () {
 	// make sure we can get the linked lists back
 	expect(
 		cache.read({
-			selection: { friends: selection.viewer.fields.friends },
+			selection: { friends: selection.viewer.fields!.friends },
 			parent: 'User:1',
 		}).data
 	).toEqual({

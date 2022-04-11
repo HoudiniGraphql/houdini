@@ -3,7 +3,7 @@ import { testConfigFile } from '~/common'
 import { Cache } from '../cache'
 
 const config = testConfigFile()
-config.cacheBufferSize = 10
+config.cacheBufferSize! = 10
 
 test('adequate ticks of garbage collector clear unsubscribed data', function () {
 	const cache = new Cache(config)
@@ -45,7 +45,7 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: config.cacheBufferSize })) {
+	for (const _ of Array.from({ length: config.cacheBufferSize! })) {
 		cache._internal_unstable.collectGarbage()
 		expect(cache.read({ selection: userFields, parent: 'User:1' })).toMatchObject({
 			data: { id: '1' },
@@ -106,7 +106,7 @@ test("subscribed data shouldn't be garbage collected", function () {
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: config.cacheBufferSize + 1 })) {
+	for (const _ of Array.from({ length: config.cacheBufferSize! + 1 })) {
 		cache._internal_unstable.collectGarbage()
 	}
 
@@ -177,7 +177,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: config.cacheBufferSize })) {
+	for (const _ of Array.from({ length: config.cacheBufferSize! })) {
 		cache._internal_unstable.collectGarbage()
 	}
 
@@ -200,7 +200,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
-	for (const _ of Array.from({ length: config.cacheBufferSize })) {
+	for (const _ of Array.from({ length: config.cacheBufferSize! })) {
 		cache._internal_unstable.collectGarbage()
 	}
 
