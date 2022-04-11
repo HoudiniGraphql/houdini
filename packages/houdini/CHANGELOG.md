@@ -1,5 +1,14 @@
 # houdini
 
+## 0.13.11
+
+### Patch Changes
+
+-   [#263](https://github.com/HoudiniGraphql/houdini/pull/263) [`c5cce52`](https://github.com/HoudiniGraphql/houdini/commit/c5cce5217149bc1b2be1f48cb734fb451b03a28f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added support for non-standard IDs and paginated fragment queries
+
+-   Updated dependencies [[`c5cce52`](https://github.com/HoudiniGraphql/houdini/commit/c5cce5217149bc1b2be1f48cb734fb451b03a28f)]:
+    -   houdini-common@0.13.11
+
 ## 0.13.10
 
 ### Patch Changes

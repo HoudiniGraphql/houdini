@@ -1,5 +1,13 @@
 # houdini-preprocess
 
+## 0.13.11
+
+### Patch Changes
+
+-   Updated dependencies [[`c5cce52`](https://github.com/HoudiniGraphql/houdini/commit/c5cce5217149bc1b2be1f48cb734fb451b03a28f)]:
+    -   houdini@0.13.11
+    -   houdini-common@0.13.11
+
 ## 0.13.10
 
 ### Patch Changes
