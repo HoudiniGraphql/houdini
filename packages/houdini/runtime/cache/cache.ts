@@ -789,7 +789,7 @@ class CacheInternal {
 			id += data[field] + '__'
 		}
 
-		return id
+		return id.slice(0, -2)
 	}
 
 	hydrateNestedList({
