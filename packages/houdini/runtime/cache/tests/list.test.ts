@@ -1,11 +1,11 @@
 // external imports
-import { testConfig } from 'houdini-common'
+import { testConfigFile } from 'houdini-common'
 // locals
 import { Cache, rootID } from '../cache'
 import { SubscriptionSelection } from '../../types'
 import { RefetchUpdateMode } from '../../types'
 
-const config = testConfig()
+const config = testConfigFile()
 
 test('prepend linked lists update', function () {
 	// instantiate the cache

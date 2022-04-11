@@ -1,9 +1,9 @@
 // external imports
-import { testConfig } from 'houdini-common'
+import { testConfigFile } from 'houdini-common'
 // locals
 import { Cache } from '../cache'
 
-const config = testConfig()
+const config = testConfigFile()
 
 test('not partial', function () {
 	// instantiate the cache

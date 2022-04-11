@@ -1,9 +1,9 @@
 // external imports
-import { testConfig } from 'houdini-common'
+import { testConfigFile } from 'houdini-common'
 // locals
 import { Cache, rootID } from '../cache'
 
-const config = testConfig()
+const config = testConfigFile()
 
 test('write selection to root', function () {
 	// instantiate a cache we'll test against

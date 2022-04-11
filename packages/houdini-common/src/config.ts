@@ -506,9 +506,8 @@ export async function getConfig(): Promise<Config> {
 	return _config
 }
 
-export function testConfig(config: Partial<ConfigFile> = {}) {
-	return new Config({
-		filepath: path.join(process.cwd(), 'config.cjs'),
+export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
+	return {
 		sourceGlob: '123',
 		schema: `
 			type User implements Node {
@@ -646,6 +645,13 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 			},
 		},
 		...config,
+	}
+}
+
+export function testConfig(config: Partial<ConfigFile> = {}) {
+	return new Config({
+		filepath: path.join(process.cwd(), 'config.cjs'),
+		...testConfigFile(config),
 	})
 }
 

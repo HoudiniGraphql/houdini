@@ -1,5 +1,5 @@
 // external imports
-import type { Config } from 'houdini-common'
+import type { ConfigFile } from 'houdini-common'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
 import { GarbageCollector } from './gc'
 import { List, ListManager } from './lists'
@@ -13,15 +13,32 @@ export class Cache {
 	// label accomplishes this but would not prevent someone using vanilla js
 	_internal_unstable: CacheInternal
 
-	constructor(config: Config) {
+	constructor(config: ConfigFile) {
 		this._internal_unstable = new CacheInternal({
 			cache: this,
-			config,
+			config: this.applyConfigDefaults(config),
 			storage: new InMemoryStorage(),
 			subscriptions: new InMemorySubscriptions(this),
 			lists: new ListManager(rootID),
 			lifetimes: new GarbageCollector(this, config.cacheBufferSize),
 		})
+	}
+
+	applyConfigDefaults(config: ConfigFile): ConfigFile {
+		return {
+			...config,
+			defaultKeys: config.defaultKeys || ['id'],
+			types: {
+				Node: {
+					keys: ['id'],
+					resolve: {
+						queryField: 'node',
+						arguments: (node: any) => ({ id: node.id }),
+					},
+				},
+				...config.types,
+			},
+		}
 	}
 
 	// walk down the selection and save the values that we encounter.
@@ -139,7 +156,7 @@ class CacheInternal {
 	// for server-side requests we need to be able to flag the cache as disabled so we dont write to it
 	private _disabled = false
 
-	config: Config
+	config: ConfigFile
 	storage: InMemoryStorage
 	subscriptions: InMemorySubscriptions
 	lists: ListManager
@@ -155,7 +172,7 @@ class CacheInternal {
 		lifetimes,
 	}: {
 		storage: InMemoryStorage
-		config: Config
+		config: ConfigFile
 		subscriptions: InMemorySubscriptions
 		lists: ListManager
 		cache: Cache
@@ -760,11 +777,13 @@ class CacheInternal {
 
 	// the list of fields that we need in order to compute an objects id
 	idFields(type: string): string[] {
-		return this.config.keyFieldsForType(type)
+		return this.config.types?.[type]?.keys || this.config.defaultKeys!
 	}
 
-	computeID(type: string, data: { [key: string]: GraphQLValue }): string | undefined {
-		return this.config.computeID(type, data)
+	computeID(type: string, data: any): string {
+		return this.idFields(type)
+			.map((key) => data[key])
+			.join('__')
 	}
 
 	hydrateNestedList({
