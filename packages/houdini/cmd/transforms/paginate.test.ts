@@ -60,7 +60,8 @@ test('adds pagination info to full', async function () {
 		    ],
 		    "method": "cursor",
 		    "pageSize": 10,
-		    "embedded": false
+		    "embedded": false,
+		    "targetType": "Query"
 		}
 	`)
 })
@@ -94,7 +95,8 @@ test('paginated fragments on node pull data from one field deeper', async functi
 		    ],
 		    "method": "cursor",
 		    "pageSize": 10,
-		    "embedded": true
+		    "embedded": true,
+		    "targetType": "Node"
 		}
 	`)
 })
@@ -453,7 +455,8 @@ test('embeds node pagination query as a separate document', async function () {
 					        path: ["friendsByForwardsCursor"],
 					        method: "cursor",
 					        pageSize: 10,
-					        embedded: true
+					        embedded: true,
+					        targetType: "Node"
 					    },
 
 					    raw: \`query UserFriends_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
@@ -570,6 +573,185 @@ test('embeds node pagination query as a separate document', async function () {
 					            first: "Int",
 					            after: "String",
 					            id: "ID"
+					        },
+
+					        types: {}
+					    },
+
+					    policy: "NetworkOnly",
+					    partial: false
+					};
+				`)
+})
+
+test('embeds custom pagination query as a separate document', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+                fragment UserGhost on Ghost {
+                    friendsConnection(first: 10) @paginate {
+                        edges {
+                            node {
+								name
+                            }
+                        }
+                    }
+                }
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig({
+		types: {
+			Ghost: {
+				keys: ['name', 'aka'],
+				resolve: {
+					queryField: 'ghost',
+					arguments: (ghost) => ({
+						name: ghost.name,
+						aka: ghost.aka,
+					}),
+				},
+			},
+		},
+	})
+	await runPipeline(config, docs)
+
+	// load the contents of the file
+	await expect(docs[1]).toMatchArtifactSnapshot(`
+					module.exports = {
+					    name: "UserGhost_Pagination_Query",
+					    kind: "HoudiniQuery",
+					    hash: "556aae8efcbbbcc3878b62227e9931435c6fb277057ed4c5b6a5cebdbcd1a10f",
+
+					    refetch: {
+					        update: "append",
+					        path: ["friendsConnection"],
+					        method: "cursor",
+					        pageSize: 10,
+					        embedded: true,
+					        targetType: "Ghost"
+					    },
+
+					    raw: \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $name: String!, $aka: String!) {
+					  ghost(name: $name, aka: $aka) {
+					    ...UserGhost_jrGTj
+					  }
+					}
+
+					fragment UserGhost_jrGTj on Ghost {
+					  friendsConnection(first: $first, after: $after) {
+					    edges {
+					      node {
+					        name
+					        aka
+					      }
+					    }
+					    edges {
+					      cursor
+					      node {
+					        __typename
+					      }
+					    }
+					    pageInfo {
+					      hasPreviousPage
+					      hasNextPage
+					      startCursor
+					      endCursor
+					    }
+					  }
+					}
+					\`,
+
+					    rootType: "Query",
+
+					    selection: {
+					        ghost: {
+					            type: "Ghost",
+					            keyRaw: "ghost(name: $name, aka: $aka)",
+
+					            fields: {
+					                friendsConnection: {
+					                    type: "GhostConnection",
+					                    keyRaw: "friendsConnection::paginated",
+
+					                    fields: {
+					                        edges: {
+					                            type: "GhostEdge",
+					                            keyRaw: "edges",
+
+					                            fields: {
+					                                cursor: {
+					                                    type: "String",
+					                                    keyRaw: "cursor"
+					                                },
+
+					                                node: {
+					                                    type: "Ghost",
+					                                    keyRaw: "node",
+					                                    nullable: true,
+
+					                                    fields: {
+					                                        __typename: {
+					                                            type: "String",
+					                                            keyRaw: "__typename"
+					                                        },
+
+					                                        name: {
+					                                            type: "String",
+					                                            keyRaw: "name"
+					                                        },
+
+					                                        aka: {
+					                                            type: "String",
+					                                            keyRaw: "aka"
+					                                        }
+					                                    }
+					                                }
+					                            },
+
+					                            update: "append"
+					                        },
+
+					                        pageInfo: {
+					                            type: "PageInfo",
+					                            keyRaw: "pageInfo",
+
+					                            fields: {
+					                                hasPreviousPage: {
+					                                    type: "Boolean",
+					                                    keyRaw: "hasPreviousPage"
+					                                },
+
+					                                hasNextPage: {
+					                                    type: "Boolean",
+					                                    keyRaw: "hasNextPage"
+					                                },
+
+					                                startCursor: {
+					                                    type: "String",
+					                                    keyRaw: "startCursor"
+					                                },
+
+					                                endCursor: {
+					                                    type: "String",
+					                                    keyRaw: "endCursor"
+					                                }
+					                            }
+					                        }
+					                    }
+					                }
+					            }
+					        }
+					    },
+
+					    input: {
+					        fields: {
+					            first: "Int",
+					            after: "String",
+					            name: "String",
+					            aka: "String"
 					        },
 
 					        types: {}
@@ -954,7 +1136,8 @@ test('refetch specification with backwards pagination', async function () {
 		    ],
 		    "method": "cursor",
 		    "pageSize": 10,
-		    "embedded": false
+		    "embedded": false,
+		    "targetType": "Query"
 		}
 	`)
 })
@@ -989,6 +1172,7 @@ test('refetch entry with initial backwards', async function () {
 		    "method": "cursor",
 		    "pageSize": 10,
 		    "embedded": false,
+		    "targetType": "Query",
 		    "start": "1234"
 		}
 	`)
@@ -1024,6 +1208,7 @@ test('refetch entry with initial forwards', async function () {
 		    "method": "cursor",
 		    "pageSize": 10,
 		    "embedded": false,
+		    "targetType": "Query",
 		    "start": "1234"
 		}
 	`)
@@ -1062,6 +1247,7 @@ test('generated query has same refetch spec', async function () {
 					        method: "cursor",
 					        pageSize: 10,
 					        embedded: false,
+					        targetType: "Query",
 					        start: "1234"
 					    },
 
@@ -1202,7 +1388,8 @@ test('refetch specification with offset pagination', async function () {
 		    ],
 		    "method": "offset",
 		    "pageSize": 10,
-		    "embedded": false
+		    "embedded": false,
+		    "targetType": "Query"
 		}
 	`)
 })
@@ -1233,6 +1420,7 @@ test('refetch specification with initial offset', async function () {
 		    "method": "offset",
 		    "pageSize": 10,
 		    "embedded": false,
+		    "targetType": "Query",
 		    "start": 10
 		}
 	`)

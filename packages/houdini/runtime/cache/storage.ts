@@ -411,7 +411,7 @@ export class Layer {
 		// we have to apply operations before we move fields so we can clean up existing
 		// data if we have a delete before we copy over the values
 		for (const [id, ops] of Object.entries(layer.operations)) {
-			const fields: OperationMap['id']['fields'] = {}
+			const fields: OperationMap['fieldName']['fields'] = {}
 
 			// merge the two operation maps
 			for (const opMap of [this.operations[id], layer.operations[id]].filter(Boolean)) {

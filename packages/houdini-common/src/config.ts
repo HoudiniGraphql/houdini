@@ -21,6 +21,18 @@ export type ConfigFile = {
 	cacheBufferSize?: number
 	defaultCachePolicy?: CachePolicy
 	defaultPartial?: boolean
+	defaultKeys?: string[]
+	types?: TypeConfig
+}
+
+export type TypeConfig = {
+	[typeName: string]: {
+		keys?: string[]
+		resolve: {
+			queryField: string
+			arguments?: (data: any) => { [key: string]: any }
+		}
+	}
 }
 
 export type ScalarSpec = {
@@ -54,6 +66,16 @@ export class Config {
 	defaultPartial: boolean
 	definitionsFile?: string
 	newSchema: string = ''
+	defaultKeys: string[] = ['id']
+	typeConfig: TypeConfig = {
+		Node: {
+			keys: ['id'],
+			resolve: {
+				queryField: 'node',
+				arguments: (node) => ({ id: node.id }),
+			},
+		},
+	}
 
 	constructor({
 		schema,
@@ -70,6 +92,8 @@ export class Config {
 		definitionsPath,
 		defaultCachePolicy = CachePolicy.NetworkOnly,
 		defaultPartial = false,
+		defaultKeys,
+		types = {},
 	}: ConfigFile & { filepath: string }) {
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
@@ -134,6 +158,17 @@ export class Config {
 		this.defaultPartial = defaultPartial
 		this.definitionsFile = definitionsPath
 
+		// hold onto the key config
+		if (defaultKeys) {
+			this.defaultKeys = defaultKeys
+		}
+		if (types) {
+			this.typeConfig = {
+				...this.typeConfig,
+				...types,
+			}
+		}
+
 		// if we are building a sapper project, we want to put the runtime in
 		// src/node_modules so that we can access @sapper/app and interact
 		// with the application stores directly
@@ -192,6 +227,16 @@ export class Config {
 	// the path that the runtime can use to import an artifact
 	artifactImportPath(name: string): string {
 		return `$houdini/${this.artifactDirectoryName}/${name}`
+	}
+
+	keyFieldsForType(type: string) {
+		return this.typeConfig[type]?.keys || this.defaultKeys
+	}
+
+	computeID(type: string, data: any): string {
+		return this.keyFieldsForType(type)
+			.map((key) => data[key])
+			.join('__')
 	}
 
 	// a string identifier for the document (must be unique)
@@ -461,9 +506,8 @@ export async function getConfig(): Promise<Config> {
 	return _config
 }
 
-export function testConfig(config: Partial<ConfigFile> = {}) {
-	return new Config({
-		filepath: path.join(process.cwd(), 'config.cjs'),
+export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
+	return {
 		sourceGlob: '123',
 		schema: `
 			type User implements Node {
@@ -476,6 +520,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				friendsByOffset(offset: Int, limit: Int, filter: String): [User!]!
 				friendsInterface: [Friend!]!
 				believesIn: [Ghost!]!
+				believesInConnection(first: Int, after: String, filter: String): GhostConnection!
 				cats: [Cat!]!
 				field(filter: String): String
 			}
@@ -485,6 +530,13 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				aka: String!
 				believers: [User!]!
 				friends: [Ghost!]!
+				friendsConnection(first: Int, after: String): GhostConnection!
+				legends: [Legend!]!
+			}
+
+			type Legend { 
+				name: String
+				believers(first: Int, after: String): GhostConnection
 			}
 
 			type Cat implements Friend & Node {
@@ -497,6 +549,7 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 				user: User!
 				version: Int!
 				ghost: Ghost!
+				ghosts: GhostConnection!
 				friends: [Friend!]!
 				users(boolValue: Boolean, intValue: Int, floatValue: Float, stringValue: String!): [User!]!
 				entities: [Entity!]!
@@ -522,6 +575,16 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 			type UserConnection {
 				pageInfo: PageInfo!
 				edges: [UserEdge!]!
+			}
+
+			type GhostEdge {
+				cursor: String!
+				node: Ghost
+			}
+
+			type GhostConnection {
+				pageInfo: PageInfo!
+				edges: [GhostEdge!]!
 			}
 
 			interface Friend {
@@ -573,7 +636,22 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 		`,
 		framework: 'sapper',
 		quiet: true,
+		types: {
+			Ghost: {
+				keys: ['name', 'aka'],
+				resolve: {
+					queryField: 'ghost',
+				},
+			},
+		},
 		...config,
+	}
+}
+
+export function testConfig(config: Partial<ConfigFile> = {}) {
+	return new Config({
+		filepath: path.join(process.cwd(), 'config.cjs'),
+		...testConfigFile(config),
 	})
 }
 

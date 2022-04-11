@@ -1,10 +1,10 @@
 // external imports
-import { testConfig } from 'houdini-common'
+import { testConfigFile } from 'houdini-common'
 // locals
 import { Cache, rootID } from '../cache'
 import { SubscriptionSelection } from '../../types'
 
-const config = testConfig({
+const config = testConfigFile({
 	scalars: {
 		DateTime: {
 			type: 'Date',

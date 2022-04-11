@@ -1,9 +1,9 @@
 // externals
-import { testConfig } from 'houdini-common'
+import { testConfigFile } from 'houdini-common'
 // locals
 import { Cache } from '../cache'
 
-const config = testConfig()
+const config = testConfigFile()
 config.cacheBufferSize = 10
 
 test('adequate ticks of garbage collector clear unsubscribed data', function () {
@@ -61,7 +61,7 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 })
 
 test("subscribed data shouldn't be garbage collected", function () {
-	const cache = new Cache(testConfig())
+	const cache = new Cache(testConfigFile())
 
 	cache.write({
 		selection: {
@@ -125,7 +125,7 @@ test("subscribed data shouldn't be garbage collected", function () {
 })
 
 test('resubscribing to fields marked for garbage collection resets counter', function () {
-	const cache = new Cache(testConfig())
+	const cache = new Cache(testConfigFile())
 
 	cache.write({
 		selection: {

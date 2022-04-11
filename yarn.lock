@@ -6190,8 +6190,8 @@ __metadata:
     concurrently: ^6.2.1
     graphql: 15.5.0
     graphql-relay: ^0.8.0
-    houdini: ^0.12.4
-    houdini-preprocess: ^0.12.4
+    houdini: ^0.13.9
+    houdini-preprocess: ^0.13.9
     subscriptions-transport-ws: ^0.9.18
     svelte: ^3.38.2
     svelte-preprocess: ^4.0.0
@@ -7313,18 +7313,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-common@npm:^0.12.1":
-  version: 0.12.1
-  resolution: "houdini-common@npm:0.12.1"
-  dependencies:
-    "@babel/parser": ^7.13.4
-    mkdirp: ^1.0.4
-  peerDependencies:
-    graphql: ^15.x
-  checksum: cdab4f111e9592561a5a193b6df1c1781fe1b4125fd2a5f092275a7c87aff0024f9629de4d8e780348cf3f9f9a7f809a3ae82413277ed2dccdde5fad4c70c731
-  languageName: node
-  linkType: hard
-
 "houdini-monorepo@workspace:.":
   version: 0.0.0-use.local
   resolution: "houdini-monorepo@workspace:."
@@ -7360,26 +7348,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini-preprocess@npm:^0.12.4":
-  version: 0.12.4
-  resolution: "houdini-preprocess@npm:0.12.4"
-  dependencies:
-    "@types/mkdirp": ^1.0.1
-    babylon: ^7.0.0-beta.47
-    estree-walker: ^2.0.2
-    graphql: 15.5.0
-    houdini: ^0.12.4
-    houdini-common: ^0.12.1
-    mkdirp: ^1.0.4
-    prettier: "*"
-    prettier-plugin-svelte: ^2.1.1
-    recast: ^0.20.4
-    svelte: ^3.17.3
-  checksum: 5cb0fe8f0046de531ed51b5da520e0a15e2b3a7b526d127c4f5dd67df309719d5503defcf7a4b14712b09e57745b36044d7ebd9af829c335a287890bc165addc
-  languageName: node
-  linkType: hard
-
-"houdini-preprocess@workspace:packages/houdini-preprocess":
+"houdini-preprocess@^0.13.9, houdini-preprocess@workspace:packages/houdini-preprocess":
   version: 0.0.0-use.local
   resolution: "houdini-preprocess@workspace:packages/houdini-preprocess"
   dependencies:
@@ -7439,30 +7408,6 @@ __metadata:
     houdini: build/cmd.js
   languageName: unknown
   linkType: soft
-
-"houdini@npm:^0.12.4":
-  version: 0.12.4
-  resolution: "houdini@npm:0.12.4"
-  dependencies:
-    "@graphql-tools/merge": ^6.2.7
-    "@types/inquirer": ^7.3.1
-    babylon: ^7.0.0-beta.47
-    commander: ^7.1.0
-    estree-walker: ^2.0.2
-    glob: ^7.1.6
-    graphql: ^15.5.0
-    houdini-common: ^0.12.1
-    inquirer: ^7.3.3
-    mkdirp: ^1.0.4
-    node-fetch: ^2.6.1
-    recast: ^0.20.4
-    rollup-plugin-preserve-shebangs: ^0.2.0
-    svelte: ^3.34.0
-  bin:
-    houdini: build/cmd.js
-  checksum: e25a96bceb4c511bf6612ba1f4ecdfe8ea3cb8019ee09832d16f8a3e20a3a8ba798ca9348fcdcc48980ca71b354a050aaf44d1ccac0aeebcafb09ac9190a9211
-  languageName: node
-  linkType: hard
 
 "html-encoding-sniffer@npm:^2.0.1":
   version: 2.0.1

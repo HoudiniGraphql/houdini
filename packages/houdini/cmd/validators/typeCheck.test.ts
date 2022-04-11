@@ -761,6 +761,90 @@ const table: Row[] = [
 			`,
 		],
 	},
+	{
+		title: "@paginate can't be in a fragment containing a non Node or configured type",
+		pass: false,
+		documents: [
+			`
+			fragment UserPaginatedA on Legend {
+				believers (first: 10) @paginate { 
+					edges { 
+						node { 
+							name
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedA on Legend {
+				believers (first: 10) @paginate { 
+					edges { 
+						node { 
+							name
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@paginate can fall on a fragment of a Node',
+		pass: true,
+		documents: [
+			`
+			fragment UserPaginatedA on User {
+				believesInConnection (first: 10) @paginate { 
+					edges { 
+						node { 
+							name
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment UserPaginatedB on User {
+				believesInConnection (first: 10) @paginate { 
+					edges { 
+						node { 
+							name
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
+	{
+		title: '@paginate can fall on a fragment of a configured type',
+		pass: true,
+		documents: [
+			`
+			fragment GhostPaginatedA on Ghost {
+				friendsConnection (first: 10) @paginate { 
+					edges { 
+						node { 
+							name
+						}
+					}
+				}
+			}
+			`,
+			`
+			fragment GhostPaginatedB on Ghost {
+				friendsConnection (first: 10) @paginate { 
+					edges { 
+						node { 
+							name
+						}
+					}
+				}
+			}
+			`,
+		],
+	},
 ]
 
 type Row =

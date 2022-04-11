@@ -35,21 +35,38 @@ export default async function addID(
 						return
 					}
 
+					// look up the key fields for a given type
+					const keyFields = config.keyFieldsForType(fieldType.name)
+
 					// if there is no id field of the type
-					if (!fieldType.getFields()['id']) {
+					if (keyFields.find((key) => !fieldType.getFields()[key])) {
 						return
 					}
 
-					// if there is already a selection for id
-					if (
-						node.selectionSet.selections.find(
-							(selection) =>
-								selection.kind === 'Field' &&
-								!selection.alias &&
-								selection.name.value === 'id'
-						)
-					) {
-						return
+					// add the id fields for the given type
+					const selections = [...node.selectionSet.selections]
+
+					for (const keyField of keyFields) {
+						// if there is already a selection for id, ignore it
+						if (
+							node.selectionSet.selections.find(
+								(selection) =>
+									selection.kind === 'Field' &&
+									!selection.alias &&
+									selection.name.value === keyField
+							)
+						) {
+							continue
+						}
+
+						// add a selection for the field to the selection set
+						selections.push({
+							kind: 'Field',
+							name: {
+								kind: 'Name',
+								value: keyField,
+							},
+						})
 					}
 
 					// add the __typename selection to the field's selection set
@@ -57,16 +74,7 @@ export default async function addID(
 						...node,
 						selectionSet: {
 							...node.selectionSet,
-							selections: [
-								...node.selectionSet.selections,
-								{
-									kind: 'Field',
-									name: {
-										kind: 'Name',
-										value: 'id',
-									},
-								},
-							],
+							selections,
 						},
 					}
 				}

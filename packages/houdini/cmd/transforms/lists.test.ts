@@ -462,7 +462,7 @@ test('cannot use list directive if id is not a valid field', async function () {
 			query AllGhosts {
 				ghost {
 					friends {
-						friends @list(name: "Ghost_Friends"){
+						legends @list(name: "Ghost_Friends"){
 							name
 						}
 					}

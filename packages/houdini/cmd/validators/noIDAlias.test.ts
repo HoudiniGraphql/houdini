@@ -32,6 +32,24 @@ const table: Row[] = [
             `,
 		],
 	},
+	{
+		title: 'check types with multiple ids',
+		pass: false,
+		documents: [
+			`
+                query QueryA {
+                    ghost { 
+						name: believers { 
+							id
+						}
+						aka: friends { 
+							name
+						}
+					}
+                }
+            `,
+		],
+	},
 ]
 
 type Row =

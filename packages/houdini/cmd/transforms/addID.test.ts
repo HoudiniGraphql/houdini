@@ -40,7 +40,9 @@ test("doesn't add id if there isn't one", async function () {
 			`
 				query Friends {
                     ghost { 
-                        aka
+                        legends { 
+							name
+						}
                     }
 				}
 			`
@@ -54,6 +56,38 @@ test("doesn't add id if there isn't one", async function () {
 	expect(docs[0].document).toMatchInlineSnapshot(`
 		query Friends {
 		  ghost {
+		    legends {
+		      name
+		    }
+		    name
+		    aka
+		  }
+		}
+
+	`)
+})
+
+test('adds custom id fields to selection sets of objects with them', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+				query Friends {
+                    ghost { 
+                        name
+                    }
+				}
+			`
+		),
+	]
+
+	// run the pipeline
+	const config = testConfig()
+	await runPipeline(config, docs)
+
+	expect(docs[0].document).toMatchInlineSnapshot(`
+		query Friends {
+		  ghost {
+		    name
 		    aka
 		  }
 		}

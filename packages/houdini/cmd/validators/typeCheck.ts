@@ -204,10 +204,18 @@ export default async function typeCheck(
 				)
 
 				// make sure there is an id field
-				if (!type.getFields()['id']) {
+				const missingIDFields = config
+					.keyFieldsForType(type.name)
+					.filter((fieldName) => !type.getFields()[fieldName])
+
+				if (missingIDFields.length > 0) {
 					errors.push(
 						new HoudiniErrorTodo(
-							`@${config.listDirective} can only be applied to types with an id field.`
+							`@${
+								config.listDirective
+							} can only be applied to types with the necessary id fields: ${missingIDFields.join(
+								', '
+							)}.`
 						)
 					)
 					return
@@ -811,15 +819,19 @@ function nodeDirectives(config: Config, directives: string[]) {
 	const queryType = config.schema.getQueryType()
 
 	let possibleNodes = [queryType?.name || '']
+	const customTypes = Object.keys(config.typeConfig)
+
 	// check if there's a node interface
 	const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
 	if (nodeInterface) {
 		const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
 		possibleNodes.push(
 			...objects.map((object) => object.name),
-			...interfaces.map((object) => object.name),
-			'Node'
+			...interfaces.map((object) => object.name)
 		)
+	}
+	if (customTypes.length > 1) {
+		possibleNodes.push(...customTypes)
 	}
 
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {

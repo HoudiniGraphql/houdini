@@ -4,6 +4,7 @@ import { Config, parentTypeFromAncestors } from 'houdini-common'
 import { ArtifactKind } from '../../runtime/types'
 // locals
 import { CollectedGraphQLDocument, RefetchUpdateMode } from '../types'
+import { unwrapType, wrapType } from '../utils'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination
 // to be embedded in the query that will be used to fetch additional data. That means it
@@ -16,9 +17,9 @@ import { CollectedGraphQLDocument, RefetchUpdateMode } from '../types'
 //   add the necessary arguments to the field, referencing variables that will be injected
 //   and compute what kind of pagination (toggling an object of flags)
 // - if the @paginate directive was found, add the @arguments directive to the fragment
-//   definition and use any fields that were previously set as the default value. that
-//   will cause the fragment arguments directive to inline the default values if one isn't
-//   given, preserving the original definition for the first query
+//   definition to pass new pagination arguments and use any fields that were previously
+//   set as the default value. That will cause the fragment arguments directive to inline
+//   the default values if one isn't given, preserving the original definition for the first query
 // - generate the query with the fragment embedded using @with to pass query variables through
 
 type PaginationFlags = {
@@ -162,7 +163,7 @@ export default async function paginate(
 			}
 
 			// remember if we found a fragment or operation
-			let fragment = false
+			let fragment = ''
 
 			doc.document = graphql.visit(doc.document, {
 				// if we are dealing with a query, we'll need to add the variables to the definition
@@ -216,7 +217,7 @@ export default async function paginate(
 				},
 				// if we are dealing with a fragment definition we'll need to add the arguments directive if it doesn't exist
 				FragmentDefinition(node) {
-					fragment = true
+					fragment = node.typeCondition.name.value
 
 					fragmentName = node.name.value
 					refetchQueryName = config.paginationQueryName(fragmentName)
@@ -274,6 +275,26 @@ export default async function paginate(
 			// we need to add a document to perform the query if we are paginating on a
 			// fragment
 
+			// figure out the 'target' type of the refetch
+			let targetType = config.schema.getQueryType()?.name || ''
+			if (fragment) {
+				const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
+				if (nodeInterface) {
+					const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
+
+					if (
+						objects.find((obj) => obj.name === fragment) ||
+						interfaces.find((int) => int.name === fragment)
+					) {
+						targetType = 'Node'
+					} else {
+						targetType = fragment
+					}
+				} else {
+					targetType = fragment
+				}
+			}
+
 			// add the paginate info to the collected document
 			doc.refetch = {
 				update: refetchUpdate,
@@ -281,6 +302,7 @@ export default async function paginate(
 				method: flags.first.enabled || flags.last.enabled ? 'cursor' : 'offset',
 				pageSize: 0,
 				embedded: nodeQuery,
+				targetType,
 			}
 
 			// add the correct default page size
@@ -326,6 +348,33 @@ export default async function paginate(
 				},
 			] as graphql.SelectionNode[]
 
+			// we are going to add arguments for every key the type is configured with
+			const keys = config
+				.keyFieldsForType(!nodeQuery ? config.schema.getQueryType()?.name || '' : fragment)
+				.flatMap((key) => {
+					// if we are looking at the query, don't add anything
+					if (fragment === config.schema.getQueryType()?.name) {
+						return []
+					}
+
+					// look up the type for each key
+					const fragmentType = config.schema.getType(fragment) as
+						| graphql.GraphQLObjectType
+						| graphql.GraphQLInterfaceType
+
+					const { type, wrappers } = unwrapType(
+						config,
+						fragmentType.getFields()[key].type
+					)
+
+					return [
+						{
+							name: key,
+							type: wrapType({ type, wrappers }),
+						},
+					]
+				})
+
 			const queryDoc: graphql.DocumentNode = {
 				kind: 'Document',
 				definitions: [
@@ -368,28 +417,20 @@ export default async function paginate(
 							.concat(
 								!nodeQuery
 									? []
-									: [
-											{
-												kind: 'VariableDefinition',
-												type: {
-													kind: 'NonNullType',
-													type: {
-														kind: 'NamedType',
+									: keys.map(
+											(key) =>
+												({
+													kind: 'VariableDefinition',
+													type: key.type,
+													variable: {
+														kind: 'Variable',
 														name: {
 															kind: 'Name',
-															value: 'ID',
+															value: key.name,
 														},
 													},
-												},
-												variable: {
-													kind: 'Variable',
-													name: {
-														kind: 'Name',
-														value: 'id',
-													},
-												},
-											},
-									  ]
+												} as graphql.VariableDefinitionNode)
+									  )
 							),
 						selectionSet: {
 							kind: 'SelectionSet',
@@ -400,24 +441,24 @@ export default async function paginate(
 											kind: 'Field',
 											name: {
 												kind: 'Name',
-												value: 'node',
+												value:
+													config.typeConfig[fragment]?.resolve
+														?.queryField || 'node',
 											},
-											arguments: [
-												{
-													kind: 'Argument',
+											arguments: keys.map((key) => ({
+												kind: 'Argument',
+												name: {
+													kind: 'Name',
+													value: key.name,
+												},
+												value: {
+													kind: 'Variable',
 													name: {
 														kind: 'Name',
-														value: 'id',
-													},
-													value: {
-														kind: 'Variable',
-														name: {
-															kind: 'Name',
-															value: 'id',
-														},
+														value: key.name,
 													},
 												},
-											],
+											})),
 											selectionSet: {
 												kind: 'SelectionSet',
 												selections: fragmentSpreadSelection,

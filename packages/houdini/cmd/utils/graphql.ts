@@ -30,11 +30,45 @@ export function unwrapType(
 	// get the named type
 	const namedType = config.schema.getType(type.name.value || type.name)
 	if (!namedType) {
-		throw new Error('Could not unwrap type: ' + type)
+		throw new Error('Could not unwrap type: ' + JSON.stringify(type))
 	}
 
 	// don't add any wrappers
 	return { type: namedType, wrappers }
+}
+
+export function wrapType({
+	type,
+	wrappers,
+}: {
+	type: graphql.GraphQLNamedType
+	wrappers: TypeWrapper[]
+}): graphql.TypeNode {
+	const head = wrappers[0]
+	const tail = wrappers.slice(1)
+
+	let kind: graphql.TypeNode['kind'] = 'NamedType'
+	if (head === TypeWrapper.List) {
+		kind = 'ListType'
+	} else if (head === TypeWrapper.NonNull) {
+		kind = 'NonNullType'
+	}
+
+	if (kind === 'NamedType') {
+		return {
+			kind,
+			name: {
+				kind: 'Name',
+				value: type.name,
+			},
+		}
+	}
+
+	return {
+		kind,
+		// @ts-ignore
+		type: wrapType({ type, wrappers: tail }),
+	}
 }
 
 export enum TypeWrapper {

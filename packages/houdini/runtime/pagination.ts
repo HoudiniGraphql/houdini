@@ -18,6 +18,7 @@ import cache from './cache'
 import { getSession } from './adapter.mjs'
 // this has to be in a separate file since config isn't defined in cache/index.ts
 import { countPage, extractPageInfo, PageInfo } from './utils'
+import type { Config } from 'houdini-common'
 
 type RefetchFn = (vars: any) => Promise<void>
 
@@ -54,6 +55,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 			paginationPartial.set(newValue.partial)
 		},
 		...paginationHandlers({
+			config: document.config,
 			initialValue: document.initialValue.data,
 			store: data,
 			artifact,
@@ -91,21 +93,36 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 
 	const partial = writable(false)
 
+	const { targetType } = paginationArtifact.refetch || {}
+	const typeConfig = document.config.typeConfig[targetType || '']
+	if (!typeConfig) {
+		throw new Error(
+			`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
+		)
+	}
+
+	let queryVariables = () => ({})
+	// if the query is embedded we have to figure out the correct variables to pass
+	if (paginationArtifact.refetch!.embedded) {
+		// if we have a specific function to use when computing the variables
+		if (typeConfig.resolve?.arguments) {
+			queryVariables = () => typeConfig.resolve!.arguments?.(initialValue) || {}
+		} else {
+			const keys = document.config.keyFieldsForType(targetType || '')
+			// @ts-ignore
+			queryVariables = () => Object.fromEntries(keys.map((key) => [key, initialValue[key]]))
+		}
+	}
+
 	return {
 		data,
 		...paginationHandlers({
+			config: document.config,
 			partial,
 			initialValue,
 			store: data,
 			artifact: paginationArtifact,
-			queryVariables: paginationArtifact.refetch!.embedded
-				? () => ({
-						id: cache._internal_unstable.computeID(
-							fragmentArtifact.rootType,
-							initialValue
-						),
-				  })
-				: () => ({}),
+			queryVariables,
 		}),
 	}
 }
@@ -118,6 +135,7 @@ function paginationHandlers<_Input>({
 	documentLoading,
 	refetch,
 	partial,
+	config,
 }: {
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
@@ -126,6 +144,7 @@ function paginationHandlers<_Input>({
 	documentLoading?: Readable<boolean>
 	refetch?: RefetchFn
 	partial: Writable<boolean>
+	config: Config
 }): PaginatedHandlers<_Input> {
 	// start with the defaults and no meaningful page info
 	let loadPreviousPage = defaultLoadPreviousPage
@@ -155,6 +174,7 @@ function paginationHandlers<_Input>({
 			loading: paginationLoadingState,
 			refetch,
 			partial,
+			config,
 		})
 		// always track pageInfo
 		pageInfo = cursor.pageInfo
@@ -201,6 +221,7 @@ function paginationHandlers<_Input>({
 }
 
 function cursorHandlers<_Input>({
+	config,
 	initialValue,
 	artifact,
 	store,
@@ -209,6 +230,7 @@ function cursorHandlers<_Input>({
 	refetch,
 	partial,
 }: {
+	config: Config
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
@@ -277,7 +299,16 @@ function cursorHandlers<_Input>({
 		// make sure we look down one more for the updated page info
 		const resultPath = [...artifact.refetch!.path]
 		if (artifact.refetch!.embedded) {
-			resultPath.unshift('node')
+			const { targetType } = artifact.refetch!
+			// make sure we have a type config for the pagination target type
+			if (!config.typeConfig[targetType]?.resolve) {
+				throw new Error(
+					`Missing type resolve configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
+				)
+			}
+
+			// make sure that we pull the value out of the correct query field
+			resultPath.unshift(config.typeConfig[targetType].resolve!.queryField)
 		}
 
 		// we need to find the connection object holding the current page info
