@@ -29,10 +29,6 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery = await fetchQuery({
 		        "context": context,
 		        "artifact": _TestQueryArtifact,
@@ -124,34 +120,30 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
-		    const _TestQuery2 = await fetchQuery({
+		    const _TestQuery2Promise = fetchQuery({
 		        "context": context,
 		        "artifact": _TestQuery2Artifact,
 		        "variables": _TestQuery2_Input,
 		        "session": context.session
 		    });
 
-		    if (!_TestQuery2.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery2);
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery1_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
-		    const _TestQuery1 = await fetchQuery({
+		    const _TestQuery1Promise = fetchQuery({
 		        "context": context,
 		        "artifact": _TestQuery1Artifact,
 		        "variables": _TestQuery1_Input,
 		        "session": context.session
 		    });
+
+		    const _TestQuery2 = await _TestQuery2Promise;
+
+		    if (!_TestQuery2.result.data) {
+		        _houdini_context.graphqlErrors(_TestQuery2);
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery1 = await _TestQuery1Promise;
 
 		    if (!_TestQuery1.result.data) {
 		        _houdini_context.graphqlErrors(_TestQuery1);
@@ -371,10 +363,6 @@ describe('query preprocessor', function () {
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
 
 		    const _TestQuery = await fetchQuery({
 		        "context": context,
@@ -869,34 +857,30 @@ test('beforeLoad hook - multiple queries', async function () {
 		    const beforeHookReturn = _houdini_context.returnValue;
 		    const _TestQuery2_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
-		    const _TestQuery2 = await fetchQuery({
+		    const _TestQuery2Promise = fetchQuery({
 		        "context": context,
 		        "artifact": _TestQuery2Artifact,
 		        "variables": _TestQuery2_Input,
 		        "session": context.session
 		    });
 
-		    if (!_TestQuery2.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery2);
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery1_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
-		    const _TestQuery1 = await fetchQuery({
+		    const _TestQuery1Promise = fetchQuery({
 		        "context": context,
 		        "artifact": _TestQuery1Artifact,
 		        "variables": _TestQuery1_Input,
 		        "session": context.session
 		    });
+
+		    const _TestQuery2 = await _TestQuery2Promise;
+
+		    if (!_TestQuery2.result.data) {
+		        _houdini_context.graphqlErrors(_TestQuery2);
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery1 = await _TestQuery1Promise;
 
 		    if (!_TestQuery1.result.data) {
 		        _houdini_context.graphqlErrors(_TestQuery1);
@@ -1117,34 +1101,30 @@ test('afterLoad hook - multiple queries', async function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
-		    const _TestQuery2 = await fetchQuery({
+		    const _TestQuery2Promise = fetchQuery({
 		        "context": context,
 		        "artifact": _TestQuery2Artifact,
 		        "variables": _TestQuery2_Input,
 		        "session": context.session
 		    });
 
-		    if (!_TestQuery2.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery2);
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery1_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
-		    const _TestQuery1 = await fetchQuery({
+		    const _TestQuery1Promise = fetchQuery({
 		        "context": context,
 		        "artifact": _TestQuery1Artifact,
 		        "variables": _TestQuery1_Input,
 		        "session": context.session
 		    });
+
+		    const _TestQuery2 = await _TestQuery2Promise;
+
+		    if (!_TestQuery2.result.data) {
+		        _houdini_context.graphqlErrors(_TestQuery2);
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery1 = await _TestQuery1Promise;
 
 		    if (!_TestQuery1.result.data) {
 		        _houdini_context.graphqlErrors(_TestQuery1);

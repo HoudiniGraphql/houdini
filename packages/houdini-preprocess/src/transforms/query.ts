@@ -5,6 +5,7 @@ import { ExportNamedDeclaration, ReturnStatement, Statement } from '@babel/types
 import { Config, Script } from 'houdini-common'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { ObjectExpressionKind } from 'ast-types/gen/kinds'
+import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
 import { TransformDocument } from '../types'
@@ -353,8 +354,15 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 	}
 	let propsValue = propsProperty.value as namedTypes.ObjectExpression
 
+	// only split into promise and await if there are multiple queries
+	const needsPromises = queries.length > 1
+	// a list of statements to await the query promises and check the results for errors
+	const awaitsAndChecks: StatementKind[] = []
+
 	// every query that we found needs to be triggered in this function
 	for (const document of queries) {
+		let nextIndex = insertIndex
+
 		const operation = document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 
 		// figure out the local variable that holds the result
@@ -363,14 +371,16 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 		// the identifier for the query variables
 		const variableIdentifier = variablesKey(operation)
 
+		const hasVariables = Boolean(operation.variableDefinitions?.length)
+
 		// add a local variable right before the return statement
 		preloadFn.body.body.splice(
-			insertIndex,
+			nextIndex++,
 			0,
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier(variableIdentifier),
-					operation.variableDefinitions && operation.variableDefinitions.length > 0
+					hasVariables
 						? AST.callExpression(
 								AST.memberExpression(
 									requestContext,
@@ -401,70 +411,101 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 						  )
 						: AST.objectExpression([])
 				),
-			]),
-			// if we ran into a problem computing the variables
-			AST.ifStatement(
-				AST.unaryExpression(
-					'!',
-					AST.memberExpression(requestContext, AST.identifier('continue'))
-				),
-				AST.blockStatement([AST.returnStatement(retValue)])
-			),
-			// @ts-ignore
-			// perform the fetch and save the value under {preloadKey}
-			AST.variableDeclaration('const', [
-				AST.variableDeclarator(
-					AST.identifier(preloadKey),
-					AST.awaitExpression(
-						AST.callExpression(AST.identifier('fetchQuery'), [
-							AST.objectExpression([
-								AST.objectProperty(
-									AST.literal('context'),
-									AST.identifier('context')
-								),
-								AST.objectProperty(
-									AST.literal('artifact'),
-									AST.identifier(artifactIdentifier(document.artifact))
-								),
-								AST.objectProperty(
-									AST.literal('variables'),
-									AST.identifier(variableIdentifier)
-								),
-								AST.objectProperty(
-									AST.literal('session'),
+			])
+		)
 
-									AST.memberExpression(
-										AST.identifier('context'),
-										AST.identifier('session')
-									)
-								),
-							]),
-						])
-					)
-				),
-				,
-			]),
-
-			// we need to look for errors in the response
-			AST.ifStatement(
-				AST.unaryExpression(
-					'!',
-					AST.memberExpression(
-						AST.memberExpression(AST.identifier(preloadKey), AST.identifier('result')),
-						AST.identifier('data')
-					)
-				),
-				AST.blockStatement([
-					AST.expressionStatement(
-						AST.callExpression(
-							AST.memberExpression(requestContext, AST.identifier('graphqlErrors')),
-							[AST.identifier(preloadKey)]
-						)
+		if (hasVariables) {
+			preloadFn.body.body.splice(
+				nextIndex++,
+				0,
+				// if we ran into a problem computing the variables
+				AST.ifStatement(
+					AST.unaryExpression(
+						'!',
+						AST.memberExpression(requestContext, AST.identifier('continue'))
 					),
-					AST.returnStatement(retValue),
+					AST.blockStatement([AST.returnStatement(retValue)])
+				)
+			)
+		}
+
+		const fetchCall = AST.callExpression(AST.identifier('fetchQuery'), [
+			AST.objectExpression([
+				AST.objectProperty(AST.literal('context'), AST.identifier('context')),
+				AST.objectProperty(
+					AST.literal('artifact'),
+					AST.identifier(artifactIdentifier(document.artifact))
+				),
+				AST.objectProperty(AST.literal('variables'), AST.identifier(variableIdentifier)),
+				AST.objectProperty(
+					AST.literal('session'),
+
+					AST.memberExpression(AST.identifier('context'), AST.identifier('session'))
+				),
+			]),
+		])
+
+		const errorCheck = AST.ifStatement(
+			AST.unaryExpression(
+				'!',
+				AST.memberExpression(
+					AST.memberExpression(AST.identifier(preloadKey), AST.identifier('result')),
+					AST.identifier('data')
+				)
+			),
+			AST.blockStatement([
+				AST.expressionStatement(
+					AST.callExpression(
+						AST.memberExpression(requestContext, AST.identifier('graphqlErrors')),
+						[AST.identifier(preloadKey)]
+					)
+				),
+				AST.returnStatement(retValue),
+			])
+		)
+
+		if (needsPromises) {
+			// local variable for holding the query promise
+			const preloadPromiseKey = `${preloadKey}Promise`
+
+			preloadFn.body.body.splice(
+				nextIndex++,
+				0,
+				// a variable holding the query promise
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(AST.identifier(preloadPromiseKey), fetchCall),
 				])
 			)
-		)
+
+			awaitsAndChecks.splice(
+				0,
+				0,
+				// await the promise
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
+						AST.identifier(preloadKey),
+						AST.awaitExpression(AST.identifier(preloadPromiseKey))
+					),
+				]),
+				// we need to look for errors in the response
+				errorCheck
+			)
+		} else {
+			preloadFn.body.body.splice(
+				nextIndex++,
+				0,
+				// @ts-ignore
+				// perform the fetch and save the value under {preloadKey}
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
+						AST.identifier(preloadKey),
+						AST.awaitExpression(fetchCall)
+					),
+				]),
+				// we need to look for errors in the response
+				errorCheck
+			)
+		}
 
 		// add the field to the return value of preload
 		propsValue.properties.push(
@@ -480,6 +521,9 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			)
 		)
 	}
+
+	// add all awaits and checks
+	preloadFn.body.body.splice(-1, 0, ...awaitsAndChecks)
 
 	// add calls to user before/after load functions
 	if (beforeLoadDefinition || afterLoadDefinition || onLoadDefinition) {
