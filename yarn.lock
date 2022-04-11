@@ -7299,7 +7299,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini-common@^0.13.9, houdini-common@workspace:packages/houdini-common":
+"houdini-common@^0.14.0, houdini-common@workspace:packages/houdini-common":
   version: 0.0.0-use.local
   resolution: "houdini-common@workspace:packages/houdini-common"
   dependencies:
@@ -7322,6 +7322,18 @@ __metadata:
   peerDependencies:
     graphql: ^15.x
   checksum: cdab4f111e9592561a5a193b6df1c1781fe1b4125fd2a5f092275a7c87aff0024f9629de4d8e780348cf3f9f9a7f809a3ae82413277ed2dccdde5fad4c70c731
+  languageName: node
+  linkType: hard
+
+"houdini-common@npm:^0.13.9":
+  version: 0.13.9
+  resolution: "houdini-common@npm:0.13.9"
+  dependencies:
+    "@babel/parser": ^7.13.4
+    mkdirp: ^1.0.4
+  peerDependencies:
+    graphql: ^15.x
+  checksum: 03cc7a38769d9f5198d66323156a1b299abc45401ae6ae3c92c00fdc087784be24483c5cf05ba638cf012129e8745046ea0a3c2a2ffb01f86fd747a7ff933ed4
   languageName: node
   linkType: hard
 
@@ -7393,8 +7405,8 @@ __metadata:
     babylon: ^7.0.0-beta.47
     estree-walker: ^2.0.2
     graphql: 15.5.0
-    houdini: ^0.13.9
-    houdini-common: ^0.13.9
+    houdini: ^0.14.0
+    houdini-common: ^0.14.0
     jest: ^26.6.3
     mkdirp: ^1.0.4
     prettier: "*"
@@ -7405,7 +7417,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"houdini@^0.13.7-alpha.2, houdini@^0.13.9, houdini@workspace:packages/houdini":
+"houdini@^0.14.0, houdini@workspace:packages/houdini":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:packages/houdini"
   dependencies:
@@ -7426,7 +7438,7 @@ __metadata:
     estree-walker: ^2.0.2
     glob: ^7.1.6
     graphql: ^15.5.0
-    houdini-common: ^0.13.9
+    houdini-common: ^0.14.0
     inquirer: ^7.3.3
     jest: ^26.6.3
     mkdirp: ^1.0.4
@@ -7461,6 +7473,30 @@ __metadata:
   bin:
     houdini: build/cmd.js
   checksum: e25a96bceb4c511bf6612ba1f4ecdfe8ea3cb8019ee09832d16f8a3e20a3a8ba798ca9348fcdcc48980ca71b354a050aaf44d1ccac0aeebcafb09ac9190a9211
+  languageName: node
+  linkType: hard
+
+"houdini@npm:^0.13.7-alpha.2":
+  version: 0.13.9
+  resolution: "houdini@npm:0.13.9"
+  dependencies:
+    "@graphql-tools/merge": ^6.2.7
+    "@types/inquirer": ^7.3.1
+    babylon: ^7.0.0-beta.47
+    commander: ^7.1.0
+    estree-walker: ^2.0.2
+    glob: ^7.1.6
+    graphql: ^15.5.0
+    houdini-common: ^0.13.9
+    inquirer: ^7.3.3
+    mkdirp: ^1.0.4
+    node-fetch: ^2.6.1
+    recast: ^0.20.4
+    rollup-plugin-preserve-shebangs: ^0.2.0
+    svelte: ^3.34.0
+  bin:
+    houdini: build/cmd.js
+  checksum: 0da8a6f97d9029c9c5b7fa114ed94dad27d640e144dceac655d29cd0ecff0e3098a7bca4ecf68f4607f093721b9b2caad1b6b5f76dd164ccc5a3a3b7d6c14d07
   languageName: node
   linkType: hard
 
