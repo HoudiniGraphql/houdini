@@ -1,5 +1,15 @@
 # houdini-preprocess
 
+## 0.13.10
+
+### Patch Changes
+
+-   [#269](https://github.com/HoudiniGraphql/houdini/pull/269) [`bfcd003`](https://github.com/HoudiniGraphql/houdini/commit/bfcd00357e92b47caec988baa919c5c84ddcc333) Thanks [@fehnomenal](https://github.com/fehnomenal)! - Execute multiple queries in parallel
+
+-   Updated dependencies []:
+    -   houdini@0.13.10
+    -   houdini-common@0.13.10
+
 ## 0.13.9
 
 ### Patch Changes
