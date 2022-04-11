@@ -1,8 +1,8 @@
 // externals
 import { Readable, writable } from 'svelte/store'
 import { onMount, onDestroy } from 'svelte'
-import type { Config } from '~/common'
 // locals
+import type { Config } from '~/common'
 import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
 import { getEnvironment } from './network'
 import cache from './cache'

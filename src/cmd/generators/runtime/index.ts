@@ -1,6 +1,5 @@
-// externals
-import { Config } from '~/common'
 // locals
+import { Config } from '~/common'
 import { CollectedGraphQLDocument } from '../../types'
 import generateAdapter from './adapter'
 import copyRuntime from './copyRuntime'

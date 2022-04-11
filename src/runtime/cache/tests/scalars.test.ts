@@ -1,6 +1,5 @@
-// external imports
-import { testConfigFile } from '~/common'
 // locals
+import { testConfigFile } from '~/common'
 import { Cache, rootID } from '../cache'
 import { SubscriptionSelection } from '../../types'
 

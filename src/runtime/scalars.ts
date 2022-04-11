@@ -1,6 +1,5 @@
-// externals
-import type { Config } from '~/common'
 // locals
+import type { Config } from '~/common'
 import {
 	MutationArtifact,
 	QueryArtifact,

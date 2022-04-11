@@ -1,8 +1,8 @@
 // externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { Config } from '~/common'
 // locals
+import { Config } from '~/common'
 import { walkTaggedDocuments, artifactImport, artifactIdentifier, ensureImports } from '../utils'
 import { TransformDocument } from '../types'
 

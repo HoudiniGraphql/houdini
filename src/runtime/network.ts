@@ -1,7 +1,7 @@
 // externals
 import { get, Readable } from 'svelte/store'
-import type { Config } from '~/common'
 // locals
+import type { Config } from '~/common'
 import {
 	CachePolicy,
 	DataSource,

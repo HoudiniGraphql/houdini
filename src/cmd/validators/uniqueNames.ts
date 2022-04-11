@@ -1,6 +1,5 @@
-// externals
-import { Config } from '~/common'
 // locals
+import { Config } from '~/common'
 import { CollectedGraphQLDocument, HoudiniInfoError } from '../types'
 
 // uniqueDocumentNames verifies that the documents all have unique names

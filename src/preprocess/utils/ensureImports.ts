@@ -1,8 +1,9 @@
 // externals
 import * as recast from 'recast'
 import { Statement } from '@babel/types'
-import { Config } from '~/common'
 // locals
+import { Config } from '~/common'
+
 const AST = recast.types.builders
 
 export default function ensureImports(config: Config, body: Statement[], identifiers: string[]) {

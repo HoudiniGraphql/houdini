@@ -1,17 +1,16 @@
 // externals
-import { Config } from '~/common'
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
+import { Config } from '~/common'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections, writeFile } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { tsTypeReference } from './typeReference'
 import { readonlyProperty } from './types'
 import { fragmentKey, inlineType } from './inlineType'
-import { ArtifactKind } from '../../../runtime/types'
 
 const AST = recast.types.builders
 

@@ -1,4 +1,4 @@
-// external imports
+// local imports
 import type { ConfigFile } from '~/common'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
 import { GarbageCollector } from './gc'

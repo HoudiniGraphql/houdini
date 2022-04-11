@@ -1,9 +1,9 @@
 // externals
-import { Config, getRootType, hashDocument, parentTypeFromAncestors } from '~/common'
 import * as graphql from 'graphql'
 import { CollectedGraphQLDocument } from '../../types'
 import * as recast from 'recast'
 // locals
+import { Config, getRootType, hashDocument, parentTypeFromAncestors } from '~/common'
 import { moduleExport, writeFile } from '../../utils'
 import selection from './selection'
 import { operationsByPath, FilterMap } from './operations'

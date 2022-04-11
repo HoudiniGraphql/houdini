@@ -4,6 +4,8 @@ import { asyncWalk } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
 import { BaseNode } from 'estree'
 import { Program } from '@babel/types'
+import * as recast from 'recast'
+// locals
 import { Config } from '~/common'
 import {
 	CompiledDocumentKind,
@@ -12,8 +14,6 @@ import {
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
 } from '~/runtime/types'
-import * as recast from 'recast'
-// locals
 import { TransformDocument } from '../types'
 import { ensureImports } from '.'
 

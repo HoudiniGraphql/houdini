@@ -1,7 +1,6 @@
-// external imports
-import { testConfigFile } from '~/common'
 // locals
-import { Cache, rootID } from '../cache'
+import { testConfigFile } from '~/common'
+import { Cache } from '../cache'
 import { SubscriptionSelection } from '../../types'
 import { RefetchUpdateMode } from '../../types'
 

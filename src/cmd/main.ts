@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 // external imports
-import { getConfig, readConfigFile } from '~/common'
 import { Command } from 'commander'
 import path from 'path'
 import util from 'util'
 // local imports
+import { getConfig, readConfigFile } from '~/common'
 import generate from './generate'
 import init from './init'
 import { writeSchema } from './utils/writeSchema'

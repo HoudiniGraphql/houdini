@@ -1,5 +1,7 @@
+// externals
 import * as recast from 'recast'
 import { ExpressionKind } from 'ast-types/gen/kinds'
+// locals
 import { Config } from '~/common'
 
 const AST = recast.types.builders

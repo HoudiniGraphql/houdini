@@ -1,8 +1,8 @@
 // externals
 import * as recast from 'recast'
 import * as graphql from 'graphql'
-import { Config } from '~/common'
 // locals
+import { Config } from '~/common'
 import { TransformDocument } from '../types'
 import { walkTaggedDocuments, artifactImport, artifactIdentifier, ensureImports } from '../utils'
 const AST = recast.types.builders

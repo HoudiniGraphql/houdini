@@ -1,8 +1,8 @@
 // externals
 import { Readable, writable, readable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
-import type { Config } from '~/common'
 // locals
+import type { Config } from '~/common'
 import {
 	Operation,
 	GraphQLTagResult,

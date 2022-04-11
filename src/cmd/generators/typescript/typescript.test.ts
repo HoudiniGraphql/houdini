@@ -1,11 +1,9 @@
 // external imports
-import path from 'path'
-import { testConfig } from '~/common'
-import * as graphql from 'graphql'
 import fs from 'fs/promises'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
+import { testConfig } from '~/common'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'

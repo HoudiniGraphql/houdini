@@ -1,11 +1,11 @@
 // external imports
 import path from 'path'
-import { testConfig } from '~/common'
 import fs from 'fs/promises'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
+import { testConfig } from '~/common'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { CollectedGraphQLDocument } from '../../types'

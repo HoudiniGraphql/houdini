@@ -1,8 +1,8 @@
 // externals
 import * as graphql from 'graphql'
-import { Config, parentTypeFromAncestors } from '~/common'
 import { ArtifactKind } from '../../runtime/types'
 // locals
+import { Config, parentTypeFromAncestors } from '~/common'
 import { CollectedGraphQLDocument, RefetchUpdateMode } from '../types'
 import { unwrapType, wrapType } from '../utils'
 

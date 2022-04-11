@@ -1,10 +1,9 @@
 // externals
-import { namedTypes } from 'ast-types/gen/namedTypes'
-import { Config, parentTypeFromAncestors } from '~/common'
-import { ListWhen, MutationOperation } from '../../../runtime'
+import { MutationOperation } from '../../../runtime'
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { convertValue } from './utils'
+import { Config, parentTypeFromAncestors } from '~/common'
 
 const AST = recast.types.builders
 

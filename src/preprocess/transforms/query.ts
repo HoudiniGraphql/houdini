@@ -2,12 +2,12 @@
 import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { ExportNamedDeclaration, ReturnStatement, Statement } from '@babel/types'
-import { Config, Script } from '~/common'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { ObjectExpressionKind } from 'ast-types/gen/kinds'
 import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
+import { Config, Script } from '~/common'
 import { TransformDocument } from '../types'
 import {
 	walkTaggedDocuments,

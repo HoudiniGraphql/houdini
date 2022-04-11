@@ -1,8 +1,8 @@
 //externals
-import { Config, hashDocument } from '~/common'
 import * as graphql from 'graphql'
 import { writeFile } from 'fs/promises'
 // internals
+import { Config, hashDocument } from '~/common'
 import { CollectedGraphQLDocument } from '../../types'
 
 // the persist output generator is responsible for generating a queryMap.json

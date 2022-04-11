@@ -1,6 +1,5 @@
-// externals
-import { getConfig } from '~/common'
 // locals
+import { getConfig } from '~/common'
 import applyTransforms from './transforms'
 
 // the main entry point for the preprocessor
