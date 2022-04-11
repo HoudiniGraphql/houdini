@@ -56,6 +56,7 @@ jobs:
                   version: yarn version
                   publish: yarn release
                   title: '📦 Version Update'
+                  commit: '📦 v{VERSION}'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
