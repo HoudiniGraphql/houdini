@@ -1,11 +1,18 @@
 {
 	"name": "houdini",
-	"private": true,
+	"version": "0.13.10",
 	"description": "The disappearing graphql client for SvelteKit",
 	"workspaces": [
 		"example",
 		"."
 	],
+	"bin": "build/cmd.js",
+	"exports": {
+		"./preprocess": {
+			"import": "./build/preprocess-esm.js",
+			"require": "./build/preprocess-cjs.js"
+		}
+	},
 	"type": "module",
 	"scripts": {
 		"tests": "node --experimental-vm-modules node_modules/.bin/jest",
