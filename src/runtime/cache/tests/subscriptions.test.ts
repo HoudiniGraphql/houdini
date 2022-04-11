@@ -1,5 +1,5 @@
 // locals
-import { testConfigFile } from '~/common'
+import { testConfigFile } from '../../../common'
 import { Cache } from '../cache'
 
 const config = testConfigFile()

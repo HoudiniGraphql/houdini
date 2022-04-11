@@ -1,4 +1,4 @@
-import type { Config } from '~/common'
+import type { Config } from '../common'
 import { HoudiniDocumentProxy } from './proxy'
 
 export enum CachePolicy {

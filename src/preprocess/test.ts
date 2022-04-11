@@ -1,7 +1,7 @@
 // external imports
 import * as recast from 'recast'
 // local imports
-import { Config } from '~/common'
+import { Config } from '../common'
 import applyTransforms from './transforms'
 import * as types from './types'
 

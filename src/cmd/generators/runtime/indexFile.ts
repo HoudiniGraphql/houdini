@@ -1,7 +1,7 @@
 // externals
 import path from 'path'
 // locals
-import { Config } from '~/common'
+import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { cjsIndexFilePreamble, exportStarFrom, exportDefaultFrom, writeFile } from '../../utils'
 

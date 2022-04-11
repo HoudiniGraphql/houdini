@@ -2,7 +2,7 @@
 import * as recast from 'recast'
 import path from 'path'
 // locals
-import { Config } from '~/common'
+import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { cjsIndexFilePreamble, exportDefaultFrom, writeFile } from '../../utils'
 

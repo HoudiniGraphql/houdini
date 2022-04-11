@@ -1,7 +1,7 @@
 // externals
 import * as recast from 'recast'
-import { runPipeline, Config, Transform, parseFile, findScriptInnerBounds } from '~/common'
 // locals
+import { runPipeline, Config, Transform, parseFile, findScriptInnerBounds } from '../../common'
 import * as types from '../types'
 import fragmentProcessor from './fragment'
 import queryProcessor from './query'

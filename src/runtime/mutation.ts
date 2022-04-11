@@ -1,5 +1,5 @@
 // locals
-import type { Config } from '~/common'
+import type { Config } from '../common'
 import { executeQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact, SubscriptionSpec } from './types'
 import cache from './cache'

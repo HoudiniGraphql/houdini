@@ -1,7 +1,7 @@
 // externals
 import * as graphql from 'graphql'
 // locals
-import { Config } from '~/common'
+import { Config } from '../../common'
 import { CollectedGraphQLDocument } from '../types'
 import { collectFragments, FragmentDependency } from './composeQueries'
 import { murmurHash } from '../utils'

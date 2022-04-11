@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 import fs from 'fs'
-import path from 'path'
+import * as path from 'path'
 import mkdirp from 'mkdirp'
 import os from 'os'
 // locals

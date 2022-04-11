@@ -33,13 +33,6 @@ for (const which of ['cmd', 'runtime', 'preprocess']) {
 			target: ['es2020'],
 			platform: 'node',
 			format: target,
-			plugins: [
-				alias({
-					'~/common': path.resolve('./src/common/index.ts'),
-					'~/runtime': path.resolve('./src/runtime/index.ts'),
-					'~/preprocess': path.resolve('./src/preprocess/index.ts'),
-				}),
-			],
 		})
 	}
 }

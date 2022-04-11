@@ -7,7 +7,7 @@ import { ObjectExpressionKind } from 'ast-types/gen/kinds'
 import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
-import { Config, Script } from '~/common'
+import { Config, Script } from '../../common'
 import { TransformDocument } from '../types'
 import {
 	walkTaggedDocuments,

@@ -2,7 +2,7 @@
 import * as recast from 'recast'
 import { Statement } from '@babel/types'
 // locals
-import { Config } from '~/common'
+import { Config } from '../../common'
 
 const AST = recast.types.builders
 

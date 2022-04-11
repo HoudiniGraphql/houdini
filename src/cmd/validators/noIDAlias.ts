@@ -1,7 +1,7 @@
 // externals
 import * as graphql from 'graphql'
 // locals
-import { Config, parentTypeFromAncestors } from '~/common'
+import { Config, parentTypeFromAncestors } from '../../common'
 import { CollectedGraphQLDocument, HoudiniInfoError } from '../types'
 
 // noIDAlias verifies that the user did not alias any field as id which would conflict

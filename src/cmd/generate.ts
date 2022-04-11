@@ -6,7 +6,7 @@ import * as graphql from 'graphql'
 import { promisify } from 'util'
 import { Program } from '@babel/types'
 // locals
-import { Config, runPipeline as run, parseFile, ParsedSvelteFile } from '~/common'
+import { Config, runPipeline as run, parseFile, ParsedSvelteFile } from '../common'
 import { CollectedGraphQLDocument, ArtifactKind } from './types'
 import * as transforms from './transforms'
 import * as generators from './generators'

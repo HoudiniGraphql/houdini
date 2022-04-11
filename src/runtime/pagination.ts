@@ -18,7 +18,7 @@ import cache from './cache'
 import { getSession } from './adapter.mjs.js'
 // this has to be in a separate file since config isn't defined in cache/index.ts
 import { countPage, extractPageInfo, PageInfo } from './utils'
-import type { Config } from '~/common'
+import type { Config } from '../common'
 
 type RefetchFn = (vars: any) => Promise<void>
 

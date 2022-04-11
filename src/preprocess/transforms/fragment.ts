@@ -2,7 +2,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
-import { Config } from '~/common'
+import { Config } from '../../common'
 import { walkTaggedDocuments, artifactImport, artifactIdentifier, ensureImports } from '../utils'
 import { TransformDocument } from '../types'
 

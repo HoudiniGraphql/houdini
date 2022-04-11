@@ -1,6 +1,6 @@
 const recast = require('recast')
 const graphql = require('graphql')
-const { testConfig } = require('~/common')
+const { testConfig } = require('./src/common')
 const mockFs = require('mock-fs')
 const path = require('path')
 const { toMatchInlineSnapshot } = require('jest-snapshot')
@@ -62,12 +62,8 @@ beforeEach(() => {
 		},
 		// the runtime generator copies files relative to __dirname. we need our tests
 		// to point to the same filestructure that will exist
-		[`packages/houdini/build/runtime-esm`]: mockFs.load(
-			path.resolve(__dirname, 'packages', 'houdini', 'build', 'runtime-esm')
-		),
-		[`packages/houdini/build/runtime-cjs`]: mockFs.load(
-			path.resolve(__dirname, 'packages', 'houdini', 'build', 'runtime-cjs')
-		),
+		[`build/runtime-esm`]: mockFs.load(path.resolve(__dirname, 'build', 'runtime-esm')),
+		[`build/runtime-cjs`]: mockFs.load(path.resolve(__dirname, 'build', 'runtime-cjs')),
 	})
 })
 

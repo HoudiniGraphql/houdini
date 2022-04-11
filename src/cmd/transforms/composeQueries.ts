@@ -1,7 +1,7 @@
 // externals
-import graphql, { visit as walkGraphQL, Kind as GraphqlKinds, print } from 'graphql'
-import { Config } from '~/common'
+import graphql, { Kind as GraphqlKinds } from 'graphql'
 // locals
+import { Config } from '../../common'
 import { CollectedGraphQLDocument } from '../types'
 
 export type FragmentDependency = {

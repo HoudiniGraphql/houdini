@@ -1,8 +1,7 @@
 // externals
 import * as graphql from 'graphql'
 // locals
-import { testConfig } from '~/common'
-
+import { testConfig } from '../../common'
 import { TypeWrapper, unwrapType } from './graphql'
 
 describe('unwrapType', () => {

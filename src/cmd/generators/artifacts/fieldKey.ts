@@ -1,6 +1,6 @@
 // external imports
 import * as graphql from 'graphql'
-import { Config } from '~/common'
+import { Config } from '../../../common'
 
 // we need to generate a static key that we can use to index this field in the cache.
 // this needs to be a unique hash driven by the field's attribute and arguments
@@ -12,9 +12,9 @@ export default function fieldKey(config: Config, field: graphql.FieldNode): stri
 
 	// field might not have a location so print and re-parse before we look at serialized values
 	const printed = graphql.print(field)
-	const secondParse = (graphql.parse(`{${printed}}`)
-		.definitions[0] as graphql.OperationDefinitionNode).selectionSet
-		.selections[0] as graphql.FieldNode
+	const secondParse = (
+		graphql.parse(`{${printed}}`).definitions[0] as graphql.OperationDefinitionNode
+	).selectionSet.selections[0] as graphql.FieldNode
 
 	// if the field is paginated, we need to strip away any args
 	const paginated = !!field.directives?.find(

@@ -2,7 +2,7 @@
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 // local imports
-import { testConfig } from '~/common'
+import { testConfig } from '../../../common'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'

@@ -1,4 +1,4 @@
-import { testConfig } from '~/common'
+import { testConfig } from '../common'
 import { RequestContext } from './network'
 import { marshalSelection, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact } from './types'
@@ -12,7 +12,7 @@ const ctx = new RequestContext({
 	page: { host: '', path: '', params: {}, query: new URLSearchParams() },
 	stuff: {},
 	session: null,
-	fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,
+	fetch: (() => {}) as unknown as (input: RequestInfo, init?: RequestInit) => Promise<any>,
 })
 
 const config = testConfig({
@@ -453,7 +453,7 @@ describe('unmarshal selection', function () {
 			scalars: {
 				...config.scalars,
 				DateTime: {
-					...config.scalars.DateTime,
+					...config.scalars!.DateTime,
 					unmarshal: undefined,
 				},
 			},
@@ -719,7 +719,7 @@ describe('marshal selection', function () {
 			scalars: {
 				...config.scalars,
 				DateTime: {
-					...config.scalars.DateTime,
+					...config.scalars!.DateTime,
 					marshal: undefined,
 				},
 			},

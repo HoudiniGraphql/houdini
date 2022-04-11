@@ -1,7 +1,7 @@
 // externals
 import * as graphql from 'graphql'
-import { testConfig } from '~/common'
 // locals
+import { testConfig } from '../common'
 import { CollectedGraphQLDocument, HoudiniError } from './types'
 import { runPipeline } from './generate'
 import { ArtifactKind } from '../runtime/types'

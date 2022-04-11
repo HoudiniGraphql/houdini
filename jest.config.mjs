@@ -4,6 +4,9 @@ export default {
 	snapshotSerializers: ['ts-ast-serializer'],
 	setupFilesAfterEnv: ['./jest.setup.js'],
 	moduleNameMapper: {
-		'~/(.*)': '<rootDir>/src/$1',
+		'^~/(.*)$': '<rootDir>/src/$1',
+	},
+	transform: {
+		'\\.js$': ['babel-jest', { configFile: './babel.config.cjs' }],
 	},
 }

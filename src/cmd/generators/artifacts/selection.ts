@@ -1,8 +1,8 @@
 // externals
-import { Config, getRootType } from '~/common'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
+import { Config, getRootType } from '../../../common'
 import fieldKey from './fieldKey'
 import { CollectedGraphQLDocument } from '../../types'
 import type { MutationOperation, SubscriptionSelection } from '../../../runtime'

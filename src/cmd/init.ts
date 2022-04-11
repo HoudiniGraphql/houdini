@@ -1,7 +1,7 @@
 import path from 'path'
 import inquirer from 'inquirer'
 import fs from 'fs/promises'
-import { Config, getConfig } from '~/common'
+import { Config, getConfig } from '../common'
 import { writeSchema } from './utils/writeSchema'
 import generate from './generate'
 

@@ -6,14 +6,14 @@ import { BaseNode } from 'estree'
 import { Program } from '@babel/types'
 import * as recast from 'recast'
 // locals
-import { Config } from '~/common'
+import { Config } from '../../common'
 import {
 	CompiledDocumentKind,
 	CompiledFragmentKind,
 	CompiledMutationKind,
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
-} from '~/runtime/types'
+} from '../../runtime/types'
 import { TransformDocument } from '../types'
 import { ensureImports } from '.'
 

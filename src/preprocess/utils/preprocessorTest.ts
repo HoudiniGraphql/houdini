@@ -2,7 +2,7 @@
 import * as svelte from 'svelte/compiler'
 import path from 'path'
 // local imports
-import { testConfig, ConfigFile } from '~/common'
+import { testConfig, ConfigFile } from '../../common'
 import runTransforms from '../transforms'
 
 export default async function preprocessorTest(

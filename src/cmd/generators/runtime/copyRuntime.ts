@@ -1,10 +1,10 @@
 // externals
 import path from 'path'
 import fs from 'fs/promises'
-import { Config } from '~/common'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 // locals
+import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 
@@ -47,7 +47,9 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 	if ((await fs.stat(source)).isDirectory()) {
 		// look in the contents of the source directory
 		await Promise.all(
-			(await fs.readdir(source)).map(async (child) => {
+			(
+				await fs.readdir(source)
+			).map(async (child) => {
 				// figure out the full path of the source
 				const childPath = path.join(source, child)
 

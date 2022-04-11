@@ -1,6 +1,6 @@
 import * as recast from 'recast'
 import { Statement } from '@babel/types'
-import { Config } from '~/common'
+import { Config } from '../../common'
 import artifactIdentifier from './artifactIdentifier'
 
 const AST = recast.types.builders

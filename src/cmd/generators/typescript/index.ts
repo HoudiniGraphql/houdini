@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
-import { Config } from '~/common'
+import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections, writeFile } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'

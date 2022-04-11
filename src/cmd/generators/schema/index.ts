@@ -1,10 +1,10 @@
 // externals
-import { mergeSchemas } from '@graphql-tools/merge'
+import { mergeSchemas } from '@graphql-tools/schema'
 import { buildSchema, DefinitionNode, print } from 'graphql'
-import { Config, findScriptInnerBounds } from '~/common'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 // locals
+import { Config, findScriptInnerBounds } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 
 // schemaGenerator updates the schema file to contain all of the generated

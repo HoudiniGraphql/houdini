@@ -1,5 +1,5 @@
 // locals
-import { testConfigFile } from '~/common'
+import { testConfigFile } from '../../../common'
 import { Cache } from '../cache'
 import { SubscriptionSelection } from '../../types'
 import { RefetchUpdateMode } from '../../types'

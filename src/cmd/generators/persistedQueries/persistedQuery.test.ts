@@ -1,8 +1,8 @@
 // external imports
 import fs from 'fs/promises'
 import path from 'path'
-import { testConfig } from '~/common'
 // local imports
+import { testConfig } from '../../../common'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { CollectedGraphQLDocument } from '../../types'

@@ -1,5 +1,5 @@
 // externals
-import { Config, Maybe, Script } from '~/common'
+import { Config, Maybe, Script } from '../common'
 
 export type TransformDocument = {
 	instance: Maybe<Script>
