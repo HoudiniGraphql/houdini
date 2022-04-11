@@ -1,5 +1,12 @@
 # houdini
 
+## 0.13.10
+
+### Patch Changes
+
+-   Updated dependencies []:
+    -   houdini-common@0.13.10
+
 ## 0.13.9
 
 ### Patch Changes
