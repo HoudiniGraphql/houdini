@@ -1,9 +1,0 @@
-{
-	"extends": "../../tsconfig",
-	"exclude": ["node_modules", "src/test.ts", "**/*.test.ts"],
-	"paths": {},
-	"compilerOptions": {
-		"moduleResolution": "node",
-		"module": "es2020"
-	}
-}

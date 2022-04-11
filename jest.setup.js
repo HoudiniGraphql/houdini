@@ -1,6 +1,6 @@
 const recast = require('recast')
 const graphql = require('graphql')
-const { testConfig } = require('houdini-common')
+const { testConfig } = require('~/common')
 const mockFs = require('mock-fs')
 const path = require('path')
 const { toMatchInlineSnapshot } = require('jest-snapshot')

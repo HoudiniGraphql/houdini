@@ -7,6 +7,12 @@
 		"downlevelIteration": true,
 		"target": "es5",
 		"sourceMap": false,
-		"declaration": true
+		"declaration": true,
+		"paths": {
+			"~/common": ["./src/common"],
+			"~/runtime": ["./src/runtime"],
+			"~/runtime/*": ["./src/runtime/*"]
+		},
+		"typeRoots": ["./node_modules/@types", "."]
 	}
 }
