@@ -1,5 +1,5 @@
 import preprocess from 'svelte-preprocess'
-import houdini from 'houdini-preprocess'
+import houdini from 'houdini/preprocess'
 import path from 'path'
 
 /** @type {import('@sveltejs/kit').Config} */
