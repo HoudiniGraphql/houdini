@@ -7,7 +7,7 @@ import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 
 // @ts-ignore
-const currentDir = global.__dirname || path.dirname(__filename)
+const currentDir = path.dirname(__filename)
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested

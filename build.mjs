@@ -13,15 +13,15 @@ const entryPoints = {
 // build each package
 for (const which of ['cmd', 'runtime', 'preprocess']) {
 	for (const target of ['esm', 'cjs']) {
-		let outConfig = { outfile: `./build/${which}.js` }
+		let outConfig = { outfile: `./build/${which}.cjs` }
 		if (which === 'runtime') {
 			outConfig = { outdir: `./build/runtime-${target}` }
 		} else if (which === 'preprocess') {
 			outConfig = { outfile: `./build/preprocess-${target}/index.js` }
 		}
 
-		// ignore commonjs cmd
-		if (which === 'cmd' && target === 'cjs') {
+		// compile the cli as common js
+		if (which === 'cmd' && target === 'esm') {
 			continue
 		}
 
@@ -30,9 +30,18 @@ for (const which of ['cmd', 'runtime', 'preprocess']) {
 			entryPoints: entryPoints[which],
 			...outConfig,
 			bundle: which !== 'runtime',
-			target: ['es2020'],
+			target: which === 'runtime' ? ['es2020'] : 'node16',
 			platform: 'node',
 			format: target,
+			banner:
+				target === 'cjs'
+					? undefined
+					: {
+							js: [
+								`import { createRequire as topLevelCreateRequire } from 'module'`,
+								`const require = topLevelCreateRequire(import.meta.url)`,
+							].join('\n'),
+					  },
 		})
 	}
 }
@@ -40,6 +49,7 @@ for (const which of ['cmd', 'runtime', 'preprocess']) {
 await Promise.all([
 	fs.copy('./build/runtime', './build/runtime-cjs'),
 	fs.copy('./build/runtime', './build/runtime-esm'),
+	// give module types to the various packages
 	fs.writeFile(
 		'./build/preprocess-esm/package.json',
 		JSON.stringify({ type: 'module' }, null, 4),
@@ -50,6 +60,7 @@ await Promise.all([
 		JSON.stringify({ type: 'commonjs' }, null, 4),
 		'utf-8'
 	),
+	fs.writeFile('./build/package.json', JSON.stringify({ type: 'commonjs' }, null, 4), 'utf-8'),
 ])
 
 async function getAllFiles(dir, files = []) {

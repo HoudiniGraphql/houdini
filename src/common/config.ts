@@ -1,7 +1,6 @@
 import * as graphql from 'graphql'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
-import mkdirp from 'mkdirp'
 import os from 'os'
 // locals
 import { CachePolicy } from './types'
@@ -277,9 +276,9 @@ export class Config {
 
 	async createDirectories(): Promise<void> {
 		await Promise.all([
-			mkdirp(this.artifactDirectory),
-			mkdirp(this.artifactTypeDirectory),
-			mkdirp(this.runtimeDirectory),
+			fs.mkdirp(this.artifactDirectory),
+			fs.mkdirp(this.artifactTypeDirectory),
+			fs.mkdirp(this.runtimeDirectory),
 		])
 	}
 
