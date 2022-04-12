@@ -1,6 +1,6 @@
 // external imports
 import * as svelte from 'svelte/compiler'
-import path from 'path'
+import { default as path } from 'path'
 // local imports
 import { testConfig, ConfigFile } from '../../common'
 import runTransforms from '../transforms'

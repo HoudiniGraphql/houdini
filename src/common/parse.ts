@@ -35,15 +35,15 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 	// look at the instance and module of the parsed result to find the correct bounds
 	for (const which of ['instance', 'module'] as ('instance' | 'module')[]) {
 		// figure out which we're parsing
-		const script = parsed[which]
+		const script = parsed[which]!
 		if (!script) {
 			continue
 		}
 
 		// now that we have the bounds we can find the appropriate string to parse
 		const [greaterThanIndex, lessThanIndex] = findScriptInnerBounds({
-			start: parsed[which].start,
-			end: parsed[which].end - 1,
+			start: parsed[which]!.start,
+			end: parsed[which]!.end - 1,
 			text: str,
 		})
 
@@ -54,9 +54,9 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 				plugins: ['typescript'],
 				sourceType: 'module',
 			}).program,
-			start: parsed[which].start,
+			start: parsed[which]!.start,
 			// end has to exist to get this far
-			end: parsed[which].end! - 1,
+			end: parsed[which]!.end! - 1,
 		}
 	}
 
