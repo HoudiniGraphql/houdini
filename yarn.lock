@@ -7812,7 +7812,7 @@ __metadata:
     ts-ast-serializer: ^1.0.1
     ts-jest: next
     ts-node: ^9.1.1
-    typescript: ^4.0.0
+    typescript: ^4.6.3
   bin:
     houdini: build/cmd.js
   languageName: unknown
@@ -13837,7 +13837,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.0.0":
+"typescript@npm:^4.0.0, typescript@npm:^4.6.3":
   version: 4.6.3
   resolution: "typescript@npm:4.6.3"
   bin:
@@ -13847,7 +13847,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^4.0.0#~builtin<compat/typescript>":
+"typescript@patch:typescript@^4.0.0#~builtin<compat/typescript>, typescript@patch:typescript@^4.6.3#~builtin<compat/typescript>":
   version: 4.6.3
   resolution: "typescript@patch:typescript@npm%3A4.6.3#~builtin<compat/typescript>::version=4.6.3&hash=bda367"
   bin:

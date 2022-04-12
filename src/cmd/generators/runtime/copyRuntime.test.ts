@@ -1,9 +1,7 @@
 // external imports
 import path from 'path'
 import fs from 'fs/promises'
-import typeScriptParser from 'recast/parsers/typescript'
-import { ProgramKind } from 'ast-types/gen/kinds'
-import * as recast from 'recast'
+import * as ts from 'typescript'
 // local imports
 import { testConfig } from '../../../common'
 import '../../../../jest.setup'
@@ -20,12 +18,10 @@ test('cache index runtime imports config file - commonjs', async function () {
 		'utf-8'
 	)
 	expect(fileContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(fileContents, {
-		parser: typeScriptParser,
-	}).program
 	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(
+		ts.transpileModule(fileContents, { compilerOptions: { module: ts.ModuleKind.CommonJS } })
+	).toMatchInlineSnapshot(`
 		var config = require('../../../../../config.cjs');
 		Object.defineProperty(exports, "__esModule", { value: true });
 		var cache_1 = require("./cache");
@@ -53,12 +49,10 @@ test('cache index runtime imports config file - kit', async function () {
 		'utf-8'
 	)
 	expect(fileContents).toBeTruthy()
-	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(fileContents, {
-		parser: typeScriptParser,
-	}).program
 	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
+	expect(
+		ts.transpileModule(fileContents, { compilerOptions: { module: ts.ModuleKind.CommonJS } })
+	).toMatchInlineSnapshot(`
 		import config from "../../../config.cjs"
 		import { Cache } from './cache';
 		let cache;
