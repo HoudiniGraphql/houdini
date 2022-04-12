@@ -2,6 +2,7 @@ import esbuild from 'esbuild'
 import alias from 'esbuild-plugin-alias'
 import path from 'path'
 import fs from 'fs/promises'
+import fsExtra from 'fs-extra'
 
 // figure out the correct inputs for each target we have to build
 const entryPoints = {
@@ -36,6 +37,11 @@ for (const which of ['cmd', 'runtime', 'preprocess']) {
 		})
 	}
 }
+
+await Promise.all([
+	fsExtra.copy('./build/runtime', './build/runtime-cjs'),
+	fsExtra.copy('./build/runtime', './build/runtime-esm'),
+])
 
 async function getAllFiles(dir, files = []) {
 	// look at every child of the directory

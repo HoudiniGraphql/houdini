@@ -1,5 +1,8 @@
 {
+	"include": ["./src/runtime/**/*"],
+	"output": "./build/runtime-types",
 	"compilerOptions": {
+		"outDir": "build",
 		"strict": true,
 		"esModuleInterop": true,
 		"lib": ["esnext", "dom"],
@@ -7,6 +10,7 @@
 		"downlevelIteration": true,
 		"target": "es5",
 		"sourceMap": true,
-		"declaration": true
+		"declaration": true,
+		"emitDeclarationOnly": true
 	}
 }
