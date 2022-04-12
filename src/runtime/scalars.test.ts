@@ -2,6 +2,7 @@ import { testConfig } from '../common'
 import { RequestContext } from './network'
 import { marshalSelection, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact } from './types'
+import { jest } from '@jest/globals'
 
 jest.mock('./cache', function () {
 	return

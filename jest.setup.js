@@ -1,11 +1,13 @@
-const recast = require('recast')
-const graphql = require('graphql')
-const { testConfig } = require('./src/common')
-const mockFs = require('mock-fs')
-const path = require('path')
-const { toMatchInlineSnapshot } = require('jest-snapshot')
-const fs = require('fs/promises')
-const typeScriptParser = require('recast/parsers/typescript')
+import recast from 'recast'
+import graphql from 'graphql'
+import { testConfig } from './src/common'
+import mockFs from 'mock-fs'
+import path from 'path'
+import snapshots from 'jest-snapshot'
+import fs from 'fs/promises'
+import typeScriptParser from 'recast/parsers/typescript'
+
+const { toMatchInlineSnapshot } = snapshots
 
 process.env.TEST = 'true'
 
@@ -60,10 +62,10 @@ beforeEach(() => {
 			[path.relative(config.rootDir, config.artifactDirectory)]: {},
 			[path.relative(config.rootDir, config.runtimeDirectory)]: {},
 		},
-		// the runtime generator copies files relative to __dirname. we need our tests
+		// the runtime generator copies files relative to import.meta.url. we need our tests
 		// to point to the same filestructure that will exist
-		[`build/runtime-esm`]: mockFs.load(path.resolve(__dirname, 'build', 'runtime-esm')),
-		[`build/runtime-cjs`]: mockFs.load(path.resolve(__dirname, 'build', 'runtime-cjs')),
+		[`build/runtime-esm`]: mockFs.load(path.resolve('build', 'runtime-esm')),
+		[`build/runtime-cjs`]: mockFs.load(path.resolve('build', 'runtime-cjs')),
 	})
 })
 

@@ -1,7 +1,7 @@
 // external imports
 import path from 'path'
 import fs from 'fs/promises'
-import * as typeScriptParser from 'recast/parsers/typescript'
+import typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports

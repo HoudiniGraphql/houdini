@@ -25,7 +25,7 @@ export default async function compile(config: Config) {
 // - validate their structure
 // - perform a series of transformations
 // - write the corresponding artifacts to disk
-export const runPipeline = async (config: Config, docs: CollectedGraphQLDocument[]) => {
+export async function runPipeline(config: Config, docs: CollectedGraphQLDocument[]) {
 	// we need to create the runtime folder structure
 	await config.createDirectories()
 

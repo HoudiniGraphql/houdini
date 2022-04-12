@@ -6,6 +6,7 @@
 		"example",
 		"."
 	],
+	"type": "module",
 	"bin": "build/cmd.js",
 	"exports": {
 		"./preprocess": {

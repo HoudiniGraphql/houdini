@@ -1,3 +1,5 @@
+// externals
+import { jest } from '@jest/globals'
 // locals
 import { testConfigFile } from '../../../common'
 import { Cache } from '../cache'
