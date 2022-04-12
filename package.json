@@ -17,12 +17,8 @@
 	"scripts": {
 		"tests": "node node_modules/.bin/jest",
 		"tests:watch": "node node_modules/.bin/jest  --watch",
-		"build": "npm run build:runtime-types && node build.mjs",
-		"build:runtime-types": "tsc --p tsconfig.json",
+		"build": "npm run clean && tsc --p tsconfig.json && node ./build.mjs",
 		"clean": "rm -rf build",
-		"format": "prettier \"src/**/*.ts\"",
-		"format:write": "npm run format -- -w",
-		"format:check": "npm run format -- --check",
 		"postinstall": "husky install",
 		"changeset": "changeset",
 		"version": "changeset version && yarn",
