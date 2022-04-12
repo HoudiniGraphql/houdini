@@ -15,8 +15,8 @@
 		}
 	},
 	"scripts": {
-		"tests": "node --experimental-vm-modules node_modules/.bin/jest",
-		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
+		"tests": "node node_modules/.bin/jest",
+		"tests:watch": "node node_modules/.bin/jest  --watch",
 		"build": "node build.mjs",
 		"clean": "rm -rf build",
 		"format": "prettier \"src/**/*.ts\"",
@@ -48,11 +48,12 @@
 		"prettier": "^2.0.5",
 		"pretty-quick": "^3.1.1",
 		"ts-ast-serializer": "^1.0.1",
-		"ts-jest": "next",
+		"ts-jest": "^26.0.0",
 		"ts-node": "^9.1.1",
 		"typescript": "^4.6.3"
 	},
 	"dependencies": {
+		"@babel/parser": "^7.13.4",
 		"@changesets/changelog-git": "^0.1.11",
 		"@changesets/cli": "^2.22.0",
 		"@graphql-tools/schema": "^8.3.7",
@@ -69,7 +70,6 @@
 		"recast": "^0.20.4",
 		"remove": "^0.1.5",
 		"rollup-plugin-typescript2": "^0.30.0",
-		"svelte": "^3.34.0",
-		"@babel/parser": "^7.13.4"
+		"svelte": "^3.34.0"
 	}
 }

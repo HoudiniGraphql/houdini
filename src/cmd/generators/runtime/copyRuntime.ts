@@ -1,20 +1,18 @@
 // externals
 import path from 'path'
 import fs from 'fs/promises'
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
 // locals
 import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 
 // @ts-ignore
-const currentDir = global.__dirname || dirname(fileURLToPath(import.meta.url))
+const currentDir = global.__dirname || path.dirname(__filename)
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
 	// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
-	const relative = process.env.TEST ? '../../../..' : '../'
+	const relative = process.env.TEST ? '../../../../' : '../'
 
 	// we want to copy the typescript source code for the templates and then compile the files according
 	// to the requirements of the platform
@@ -47,9 +45,7 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 	if ((await fs.stat(source)).isDirectory()) {
 		// look in the contents of the source directory
 		await Promise.all(
-			(
-				await fs.readdir(source)
-			).map(async (child) => {
+			(await fs.readdir(source)).map(async (child) => {
 				// figure out the full path of the source
 				const childPath = path.join(source, child)
 

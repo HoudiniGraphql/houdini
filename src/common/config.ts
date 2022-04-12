@@ -634,7 +634,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				id: ID!
 			}
 		`,
-		framework: 'sapper',
+		framework: 'kit',
 		quiet: true,
 		types: {
 			Ghost: {

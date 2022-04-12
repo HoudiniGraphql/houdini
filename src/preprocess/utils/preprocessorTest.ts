@@ -23,7 +23,7 @@ export default async function preprocessorTest(
         }
 	`
 	// build up the document we'll pass to the processor
-	const config = testConfig({ schema, ...cfg })
+	const config = testConfig({ schema, framework: 'sapper', ...cfg })
 
 	const doc = {
 		content,

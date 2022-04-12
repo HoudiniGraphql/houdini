@@ -1,7 +1,7 @@
 // external imports
 import fs from 'fs/promises'
 import * as recast from 'recast'
-import typeScriptParser from 'recast/parsers/typescript'
+import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
 import { testConfig } from '../../../common'
 import '../../../../jest.setup'

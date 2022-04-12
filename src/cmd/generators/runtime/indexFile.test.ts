@@ -1,7 +1,7 @@
 // external imports
 import path from 'path'
 import fs from 'fs/promises'
-import typeScriptParser from 'recast/parsers/typescript'
+import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
@@ -18,7 +18,7 @@ const docs: CollectedGraphQLDocument[] = [
 ]
 
 test('runtime index file - sapper', async function () {
-	const config = testConfig({ module: 'commonjs' })
+	const config = testConfig({ module: 'commonjs', framework: 'sapper' })
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -56,7 +56,7 @@ test('runtime index file - sapper', async function () {
 })
 
 test('runtime index file - kit', async function () {
-	const config = testConfig({ module: 'esm' })
+	const config = testConfig({ module: 'esm', framework: 'kit' })
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -69,7 +69,7 @@ test('runtime index file - kit', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		export { default as houdiniConfig } from "../../../config.cjs"
+		export { default as houdiniConfig } from "../config.cjs"
 		export * from "./runtime"
 		export * from "./artifacts"
 	`)

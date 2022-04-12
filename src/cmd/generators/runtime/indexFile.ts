@@ -14,7 +14,6 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 	const artifactDir =
 		'./' + path.relative(config.rootDir, config.artifactDirectory).split(path.sep).join('/')
 	const configPath = path.relative(config.rootDir, config.filepath).split(path.sep).join('/')
-
 	// if we are rendering an index file for sapper we need to compile it for commonjs
 	let body = ''
 	if (config.module === 'commonjs') {

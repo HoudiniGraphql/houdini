@@ -1,7 +1,9 @@
 // external imports
 import path from 'path'
 import fs from 'fs/promises'
-import * as ts from 'typescript'
+import * as typeScriptParser from 'recast/parsers/typescript'
+import { ProgramKind } from 'ast-types/gen/kinds'
+import * as recast from 'recast'
 // local imports
 import { testConfig } from '../../../common'
 import '../../../../jest.setup'
@@ -17,24 +19,46 @@ test('cache index runtime imports config file - commonjs', async function () {
 		path.join(config.runtimeDirectory, 'cache', 'index.js'),
 		'utf-8'
 	)
+
 	expect(fileContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(fileContents, {
+		parser: typeScriptParser,
+	}).program
 	// verify contents
-	expect(
-		ts.transpileModule(fileContents, { compilerOptions: { module: ts.ModuleKind.CommonJS } })
-	).toMatchInlineSnapshot(`
-		var config = require('../../../../../config.cjs');
-		Object.defineProperty(exports, "__esModule", { value: true });
-		var cache_1 = require("./cache");
-		var cache;
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		var config = require('../../../../../config.cjs');var __defProp = Object.defineProperty;
+		var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+		var __getOwnPropNames = Object.getOwnPropertyNames;
+		var __hasOwnProp = Object.prototype.hasOwnProperty;
+		var __export = (target, all) => {
+		  for (var name in all)
+		    __defProp(target, name, { get: all[name], enumerable: true });
+		};
+		var __copyProps = (to, from, except, desc) => {
+		  if (from && typeof from === "object" || typeof from === "function") {
+		    for (let key of __getOwnPropNames(from))
+		      if (!__hasOwnProp.call(to, key) && key !== except)
+		        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+		  }
+		  return to;
+		};
+		var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+		var cache_exports = {};
+		__export(cache_exports, {
+		  default: () => cache_default
+		});
+		module.exports = __toCommonJS(cache_exports);
+		var import_cache = require("./cache");
+		let cache;
 		try {
-		    // @ts-ignore: config will be defined by the generator
-		    cache = new cache_1.Cache(config || {});
+		  cache = new import_cache.Cache(config || {});
+		} catch {
+		  cache = new import_cache.Cache({});
 		}
-		catch (_a) {
-		    // @ts-ignore
-		    cache = new cache_1.Cache({});
-		}
-		exports.default = cache;
+		var cache_default = cache;
+		// Annotate the CommonJS export names for ESM import in node:
+		0 && (module.exports = {});
 	`)
 })
 
@@ -49,21 +73,23 @@ test('cache index runtime imports config file - kit', async function () {
 		'utf-8'
 	)
 	expect(fileContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(fileContents, {
+		parser: typeScriptParser,
+	}).program
 	// verify contents
-	expect(
-		ts.transpileModule(fileContents, { compilerOptions: { module: ts.ModuleKind.CommonJS } })
-	).toMatchInlineSnapshot(`
+	expect(parsedQuery).toMatchInlineSnapshot(`
 		import config from "../../../config.cjs"
-		import { Cache } from './cache';
+		import { Cache } from "./cache";
 		let cache;
 		try {
-		    // @ts-ignore: config will be defined by the generator
-		    cache = new Cache(config || {});
+		  cache = new Cache(config || {});
+		} catch {
+		  cache = new Cache({});
 		}
-		catch {
-		    // @ts-ignore
-		    cache = new Cache({});
-		}
-		export default cache;
+		var cache_default = cache;
+		export {
+		  cache_default as default
+		};
 	`)
 })

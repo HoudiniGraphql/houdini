@@ -1,7 +1,7 @@
 // external imports
 import path from 'path'
 import fs from 'fs/promises'
-import typeScriptParser from 'recast/parsers/typescript'
+import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
@@ -41,7 +41,6 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		'utf-8'
 	)
 	expect(queryContents).toBeTruthy()
-	// parse the contents
 	const parsedQuery: ProgramKind = recast.parse(queryContents, {
 		parser: typeScriptParser,
 	}).program

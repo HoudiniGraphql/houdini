@@ -1,8 +1,7 @@
 // externals
 import * as graphql from 'graphql'
-import { asyncWalk } from 'estree-walker'
+import { asyncWalk, BaseNode } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
-import { BaseNode } from 'estree'
 import { Program } from '@babel/types'
 import * as recast from 'recast'
 // locals
