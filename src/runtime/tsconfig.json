@@ -2,6 +2,7 @@
 	"extends": "../../tsconfig.json",
 	"include": ["./**/*.ts"],
 	"compilerOptions": {
-		"outDir": "../../build"
+		"outDir": "../../build",
+		"emitDeclarationOnly": true
 	}
 }

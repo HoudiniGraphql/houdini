@@ -1,8 +1,7 @@
 import esbuild from 'esbuild'
 import alias from 'esbuild-plugin-alias'
 import path from 'path'
-import fs from 'fs/promises'
-import fsExtra from 'fs-extra'
+import fs from 'fs-extra'
 
 // figure out the correct inputs for each target we have to build
 const entryPoints = {
@@ -18,7 +17,7 @@ for (const which of ['cmd', 'runtime', 'preprocess']) {
 		if (which === 'runtime') {
 			outConfig = { outdir: `./build/runtime-${target}` }
 		} else if (which === 'preprocess') {
-			outConfig = { outfile: `./build/preprocess-${target}.js` }
+			outConfig = { outfile: `./build/preprocess-${target}/index.js` }
 		}
 
 		// ignore commonjs cmd
@@ -39,8 +38,18 @@ for (const which of ['cmd', 'runtime', 'preprocess']) {
 }
 
 await Promise.all([
-	fsExtra.copy('./build/runtime', './build/runtime-cjs'),
-	fsExtra.copy('./build/runtime', './build/runtime-esm'),
+	fs.copy('./build/runtime', './build/runtime-cjs'),
+	fs.copy('./build/runtime', './build/runtime-esm'),
+	fs.writeFile(
+		'./build/preprocess-esm/package.json',
+		JSON.stringify({ type: 'module' }, null, 4),
+		'utf-8'
+	),
+	fs.writeFile(
+		'./build/preprocess-cjs/package.json',
+		JSON.stringify({ type: 'commonjs' }, null, 4),
+		'utf-8'
+	),
 ])
 
 async function getAllFiles(dir, files = []) {

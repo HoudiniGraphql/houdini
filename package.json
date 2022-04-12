@@ -10,8 +10,8 @@
 	"bin": "build/cmd.js",
 	"exports": {
 		"./preprocess": {
-			"import": "./build/preprocess-esm.js",
-			"require": "./build/preprocess-cjs.js"
+			"import": "./build/preprocess-esm/index.js",
+			"require": "./build/preprocess-cjs/index.js"
 		}
 	},
 	"scripts": {

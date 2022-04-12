@@ -9,7 +9,6 @@
 		"target": "es5",
 		"sourceMap": true,
 		"declaration": true,
-		"emitDeclarationOnly": true,
 		"typeRoots": ["./node_modules/@types", "./jest.d.ts"]
 	}
 }
