@@ -15,7 +15,7 @@ import { getVariables } from './context'
 import { executeQuery, QueryInputs } from './network'
 import cache from './cache'
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession } from './adapter.mjs.js'
+import { getSession } from './adapter.mjs'
 // this has to be in a separate file since config isn't defined in cache/index.ts
 import { countPage, extractPageInfo, PageInfo } from './utils'
 import { ConfigFile, keyFieldsForType } from './config'

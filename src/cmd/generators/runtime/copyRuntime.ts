@@ -1,13 +1,14 @@
 // externals
 import path from 'path'
 import fs from 'fs/promises'
+import { fileURLToPath } from 'url'
 // locals
 import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 
 // @ts-ignore
-const currentDir = path.dirname(__filename)
+const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
 
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested

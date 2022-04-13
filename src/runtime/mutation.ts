@@ -6,7 +6,7 @@ import cache from './cache'
 import { marshalInputs, marshalSelection, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession } from './adapter.mjs.js'
+import { getSession } from './adapter.mjs'
 
 export type MutationConfig<_Mutation extends Operation<any, any>> = {
 	optimisticResponse: _Mutation['result']

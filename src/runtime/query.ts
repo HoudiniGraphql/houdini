@@ -19,7 +19,7 @@ import { marshalInputs, unmarshalSelection } from './scalars'
 import type { FetchQueryResult } from './network'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession, goTo, isBrowser } from './adapter.mjs.js'
+import { getSession, goTo, isBrowser } from './adapter.mjs'
 
 export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
