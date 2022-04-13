@@ -2,7 +2,6 @@ import typescript from 'rollup-plugin-typescript2'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
-import { preserveShebangs } from 'rollup-plugin-preserve-shebangs'
 
 // grab the environment variables
 const { TARGET, WHICH } = process.env
@@ -33,7 +32,6 @@ export default {
 	},
 	external: ['graphql', './adapter.mjs', '$houdini'],
 	plugins: [
-		preserveShebangs(),
 		json(),
 		typescript({
 			declarationDir: `build/${WHICH}-${TARGET}`,
