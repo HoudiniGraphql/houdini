@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 // external imports
 import { Command } from 'commander'
 import path from 'path'

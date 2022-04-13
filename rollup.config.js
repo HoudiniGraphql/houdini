@@ -14,6 +14,7 @@ const out = {
 	cmd: {
 		file: 'build/cmd.js',
 		exports: 'named',
+		banner: '#! /usr/bin/env node',
 	},
 	preprocess: {
 		dir: `build/${WHICH.toLowerCase()}-${TARGET.toLowerCase()}`,
