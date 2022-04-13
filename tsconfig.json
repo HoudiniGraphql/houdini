@@ -1,14 +1,16 @@
 {
+	"exclude": ["**/*.test.ts"],
 	"compilerOptions": {
-		"outDir": "build",
 		"strict": true,
 		"esModuleInterop": true,
 		"lib": ["esnext", "dom"],
 		"skipLibCheck": true,
 		"downlevelIteration": true,
 		"target": "es5",
-		"sourceMap": true,
-		"declaration": true,
-		"typeRoots": ["./node_modules/@types", "./jest.d.ts"]
-	}
+		"sourceMap": false,
+		"declaration": false,
+		"moduleResolution": "node",
+		"module": "es2020"
+	},
+	"typeRoots": ["./node_modules/@types", "./jest.d.ts"]
 }

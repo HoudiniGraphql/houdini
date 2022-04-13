@@ -7,7 +7,7 @@
 		"."
 	],
 	"type": "module",
-	"bin": "build/cmd.js",
+	"bin": "./build/cmd.js",
 	"exports": {
 		"./preprocess": {
 			"import": "./build/preprocess-esm/index.js",
@@ -17,7 +17,16 @@
 	"scripts": {
 		"tests": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest",
 		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
-		"build": "rm -rf build && tsc -p ./src/runtime && node ./build.mjs",
+		"build": "concurrently \"npm run build:runtime\" \"npm run build:cmd\" \"npm run build:preprocess\" && npm run build:typeModule",
+		"build:runtime": "concurrently \"npm run build:runtime:esm\" \"npm run build:runtime:cjs\"",
+		"build:runtime:cjs": "tsc --p tsconfig.runtime.cjs.json",
+		"build:runtime:esm": "tsc --p tsconfig.runtime.esm.json",
+		"build:preprocess": "concurrently \"npm run build:preprocess:esm\" \"npm run build:preprocess:cjs\"",
+		"build:preprocess:cjs": "TARGET=esm WHICH=preprocess rollup --config rollup.config.js",
+		"build:preprocess:esm": "TARGET=cjs WHICH=preprocess rollup --config rollup.config.js",
+		"build:cmd": "concurrently \"npm run build:cmd:esm\"",
+		"build:cmd:esm": "TARGET=esm WHICH=cmd rollup --config rollup.config.js",
+		"build:typeModule": "./typeModule.sh",
 		"postinstall": "husky install",
 		"changeset": "changeset",
 		"version": "changeset version && yarn",
@@ -31,6 +40,9 @@
 		"@babel/preset-env": "^7.12.11",
 		"@babel/preset-typescript": "^7.16.7",
 		"@changesets/changelog-github": "^0.4.4",
+		"@rollup/plugin-commonjs": "beta",
+		"@rollup/plugin-json": "^4.1.0",
+		"@rollup/plugin-node-resolve": "^13.2.0",
 		"@types/fs-extra": "^9.0.13",
 		"@types/inquirer": "^7.3.1",
 		"@types/jest": "^26.0.23",
@@ -38,6 +50,7 @@
 		"babel-jest": "^26.6.3",
 		"babel-plugin-search-and-replace": "1.1.0",
 		"babel-plugin-transform-import-meta": "^2.1.1",
+		"concurrently": "^7.1.0",
 		"esbuild": "0.13.2",
 		"esbuild-plugin-alias": "^0.2.1",
 		"esbuild-plugin-replace": "^1.2.0",
@@ -50,6 +63,9 @@
 		"npm": "^8.6.0",
 		"prettier": "^2.0.5",
 		"pretty-quick": "^3.1.1",
+		"rollup": "2.68.0",
+		"rollup-plugin-preserve-shebangs": "^0.2.0",
+		"rollup-plugin-typescript2": "^0.31.2",
 		"ts-ast-serializer": "^1.0.1",
 		"ts-jest": "^26.0.0",
 		"ts-node": "^9.1.1",
@@ -72,7 +88,6 @@
 		"node-fetch": "^2.6.1",
 		"recast": "^0.20.4",
 		"remove": "^0.1.5",
-		"rollup-plugin-typescript2": "^0.30.0",
 		"svelte": "^3.34.0"
 	}
 }
