@@ -7,7 +7,7 @@
 		"skipLibCheck": true,
 		"downlevelIteration": true,
 		"target": "es5",
-		"sourceMap": false,
+		"sourceMap": true,
 		"declaration": false,
 		"moduleResolution": "node",
 		"module": "es2020"
