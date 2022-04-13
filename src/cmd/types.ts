@@ -1,7 +1,6 @@
 import type * as graphql from 'graphql'
 
-export type { ConfigFile } from '../common'
-
+export type { ConfigFile } from '../runtime/config'
 export * from '../runtime/types'
 import { BaseCompiledDocument, ArtifactKind } from '../runtime/types'
 

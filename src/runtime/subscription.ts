@@ -2,7 +2,7 @@
 import { Readable, writable } from 'svelte/store'
 import { onMount, onDestroy } from 'svelte'
 // locals
-import type { Config } from '../common'
+import type { ConfigFile } from './config'
 import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
 import { getEnvironment } from './network'
 import cache from './cache'
@@ -27,7 +27,7 @@ export function subscription<_Subscription extends Operation<any, any>>(
 	// @ts-ignore: typing esm/cjs interop is hard
 	const artifact: SubscriptionArtifact = document.artifact.default || document.artifact
 	// @ts-ignore: typing esm/cjs interop is hard
-	const config: Config = document.config.default || document.config
+	const config: ConfigFile = document.config.default || document.config
 
 	// pull out the current environment
 	const env = getEnvironment()

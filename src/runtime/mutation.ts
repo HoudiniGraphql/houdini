@@ -1,5 +1,5 @@
 // locals
-import type { Config } from '../common'
+import type { ConfigFile } from './config'
 import { executeQuery } from './network'
 import { Operation, GraphQLTagResult, MutationArtifact, SubscriptionSpec } from './types'
 import cache from './cache'
@@ -30,7 +30,7 @@ export function mutation<_Mutation extends Operation<any, any>>(
 	// @ts-ignore: typing esm/cjs interop is hard
 	const artifact: MutationArtifact = document.artifact.default || document.artifact
 	// @ts-ignore: typing esm/cjs interop is hard
-	const config: Config = document.config.default || document.config
+	const config: ConfigFile = document.config.default || document.config
 
 	// grab the session from the adapter
 	const sessionStore = getSession()

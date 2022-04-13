@@ -18,7 +18,7 @@ import cache from './cache'
 import { getSession } from './adapter.mjs.js'
 // this has to be in a separate file since config isn't defined in cache/index.ts
 import { countPage, extractPageInfo, PageInfo } from './utils'
-import type { Config } from '../common'
+import { ConfigFile, keyFieldsForType } from './config'
 
 type RefetchFn = (vars: any) => Promise<void>
 
@@ -94,7 +94,7 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	const partial = writable(false)
 
 	const { targetType } = paginationArtifact.refetch || {}
-	const typeConfig = document.config.typeConfig[targetType || '']
+	const typeConfig = document.config.types?.[targetType || '']
 	if (!typeConfig) {
 		throw new Error(
 			`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
@@ -108,7 +108,7 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 		if (typeConfig.resolve?.arguments) {
 			queryVariables = () => typeConfig.resolve!.arguments?.(initialValue) || {}
 		} else {
-			const keys = document.config.keyFieldsForType(targetType || '')
+			const keys = keyFieldsForType(document.config, targetType || '')
 			// @ts-ignore
 			queryVariables = () => Object.fromEntries(keys.map((key) => [key, initialValue[key]]))
 		}
@@ -144,7 +144,7 @@ function paginationHandlers<_Input>({
 	documentLoading?: Readable<boolean>
 	refetch?: RefetchFn
 	partial: Writable<boolean>
-	config: Config
+	config: ConfigFile
 }): PaginatedHandlers<_Input> {
 	// start with the defaults and no meaningful page info
 	let loadPreviousPage = defaultLoadPreviousPage
@@ -230,7 +230,7 @@ function cursorHandlers<_Input>({
 	refetch,
 	partial,
 }: {
-	config: Config
+	config: ConfigFile
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
@@ -301,14 +301,14 @@ function cursorHandlers<_Input>({
 		if (artifact.refetch!.embedded) {
 			const { targetType } = artifact.refetch!
 			// make sure we have a type config for the pagination target type
-			if (!config.typeConfig[targetType]?.resolve) {
+			if (!config.types?.[targetType]?.resolve) {
 				throw new Error(
 					`Missing type resolve configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
 				)
 			}
 
 			// make sure that we pull the value out of the correct query field
-			resultPath.unshift(config.typeConfig[targetType].resolve!.queryField)
+			resultPath.unshift(config.types[targetType].resolve!.queryField)
 		}
 
 		// we need to find the connection object holding the current page info

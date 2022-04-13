@@ -444,7 +444,7 @@ export default async function paginate(
 											name: {
 												kind: 'Name',
 												value:
-													config.typeConfig[fragment]?.resolve
+													config.typeConfig?.[fragment]?.resolve
 														?.queryField || 'node',
 											},
 											['arguments']: keys.map((key) => ({

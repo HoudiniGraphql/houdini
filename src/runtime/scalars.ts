@@ -1,5 +1,5 @@
 // locals
-import type { Config } from '../common'
+import type { ConfigFile } from './config'
 import {
 	MutationArtifact,
 	QueryArtifact,
@@ -12,7 +12,7 @@ export function marshalSelection({
 	selection,
 	data,
 }: {
-	config: Config
+	config: ConfigFile
 	selection: SubscriptionSelection
 	data: unknown
 }): {} | null | undefined {
@@ -70,7 +70,7 @@ export function marshalInputs<T>({
 	rootType = '@root',
 }: {
 	artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
-	config: Config
+	config: ConfigFile
 	input: unknown
 	rootType?: string
 }): {} | null | undefined {
@@ -124,7 +124,7 @@ export function marshalInputs<T>({
 }
 
 export function unmarshalSelection(
-	config: Config,
+	config: ConfigFile,
 	selection: SubscriptionSelection,
 	data: unknown
 ): {} | null | undefined {
@@ -180,7 +180,7 @@ export function unmarshalSelection(
 }
 
 // we can't use config.isScalar because that would require bundling in ~/common
-export function isScalar(config: Config, type: string) {
+export function isScalar(config: ConfigFile, type: string) {
 	return ['String', 'Boolean', 'Float', 'ID', 'Int']
 		.concat(Object.keys(config.scalars || {}))
 		.includes(type)

@@ -1,7 +1,7 @@
 // externals
 import { get, Readable } from 'svelte/store'
 // locals
-import type { Config } from '../common'
+import type { ConfigFile } from './config'
 import {
 	CachePolicy,
 	DataSource,
@@ -380,7 +380,7 @@ export class RequestContext {
 		framework: 'kit' | 'sapper'
 		variableFunction: SapperBeforeLoad | KitBeforeLoad
 		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
-		config: Config
+		config: ConfigFile
 	}) {
 		// call the variable function to match the framework
 		let input =

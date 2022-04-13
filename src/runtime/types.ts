@@ -1,4 +1,4 @@
-import type { Config } from '../common'
+import type { ConfigFile } from './config'
 import { HoudiniDocumentProxy } from './proxy'
 
 export enum CachePolicy {
@@ -92,7 +92,7 @@ export type GraphQLTagResult =
 export type TaggedGraphqlFragment = {
 	kind: 'HoudiniFragment'
 	artifact: FragmentArtifact
-	config: Config
+	config: ConfigFile
 	paginationArtifact?: QueryArtifact
 	proxy: HoudiniDocumentProxy
 }
@@ -101,14 +101,14 @@ export type TaggedGraphqlFragment = {
 export type TaggedGraphqlMutation = {
 	kind: 'HoudiniMutation'
 	artifact: MutationArtifact
-	config: Config
+	config: ConfigFile
 }
 
 // the result of tagging an operation
 export type TaggedGraphqlSubscription = {
 	kind: 'HoudiniSubscription'
 	artifact: SubscriptionArtifact
-	config: Config
+	config: ConfigFile
 }
 
 // the result of tagging an operation
@@ -117,7 +117,7 @@ export type TaggedGraphqlQuery = {
 	initialValue: any
 	variables: { [key: string]: any }
 	artifact: QueryArtifact
-	config: Config
+	config: ConfigFile
 	source: DataSource
 	partial: boolean
 }

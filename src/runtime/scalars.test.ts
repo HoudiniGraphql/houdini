@@ -1,4 +1,4 @@
-import { testConfig } from '../common'
+import { testConfig, testConfigFile } from '../common'
 import { RequestContext } from './network'
 import { marshalSelection, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact } from './types'
@@ -13,10 +13,10 @@ const ctx = new RequestContext({
 	page: { host: '', path: '', params: {}, query: new URLSearchParams() },
 	stuff: {},
 	session: null,
-	fetch: (() => {}) as unknown as (input: RequestInfo, init?: RequestInit) => Promise<any>,
+	fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,
 })
 
-const config = testConfig({
+const config = testConfigFile({
 	schema: `
 		scalar DateTime
 

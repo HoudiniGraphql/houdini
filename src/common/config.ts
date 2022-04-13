@@ -4,46 +4,7 @@ import path from 'path'
 import os from 'os'
 // locals
 import { CachePolicy } from './types'
-
-// the values we can take in from the config file
-export type ConfigFile = {
-	sourceGlob: string
-	schemaPath?: string
-	schema?: string
-	quiet?: boolean
-	apiUrl?: string
-	static?: boolean
-	scalars?: ScalarMap
-	definitionsPath?: string
-	framework?: 'kit' | 'sapper' | 'svelte'
-	module?: 'esm' | 'commonjs'
-	cacheBufferSize?: number
-	defaultCachePolicy?: CachePolicy
-	defaultPartial?: boolean
-	defaultKeys?: string[]
-	types?: TypeConfig
-}
-
-export type TypeConfig = {
-	[typeName: string]: {
-		keys?: string[]
-		resolve: {
-			queryField: string
-			arguments?: (data: any) => { [key: string]: any }
-		}
-	}
-}
-
-export type ScalarSpec = {
-	// the type to use at runtime
-	type: string
-	// the function to call that serializes the type for the API
-	marshal: (val: any) => any
-	// the function to call that turns the API's response into _ClientType
-	unmarshal: (val: any) => any
-}
-
-type ScalarMap = { [typeName: string]: ScalarSpec }
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/config'
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -57,7 +18,7 @@ export class Config {
 	sourceGlob: string
 	quiet: boolean
 	static?: boolean
-	scalars?: ScalarMap
+	scalars?: ConfigFile['scalars']
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
 	module: 'commonjs' | 'esm' = 'commonjs'
 	cacheBufferSize?: number
@@ -66,34 +27,31 @@ export class Config {
 	definitionsFile?: string
 	newSchema: string = ''
 	defaultKeys: string[] = ['id']
-	typeConfig: TypeConfig = {
-		Node: {
-			keys: ['id'],
-			resolve: {
-				queryField: 'node',
-				arguments: (node) => ({ id: node.id }),
-			},
-		},
-	}
+	typeConfig: ConfigFile['types']
+	configFile: ConfigFile
 
-	constructor({
-		schema,
-		schemaPath,
-		sourceGlob,
-		apiUrl,
-		quiet = false,
-		filepath,
-		framework = 'sapper',
-		module = 'commonjs',
-		static: staticSite,
-		scalars,
-		cacheBufferSize,
-		definitionsPath,
-		defaultCachePolicy = CachePolicy.NetworkOnly,
-		defaultPartial = false,
-		defaultKeys,
-		types = {},
-	}: ConfigFile & { filepath: string }) {
+	constructor({ filepath, ...configFile }: ConfigFile & { filepath: string }) {
+		this.configFile = defaultConfigValues(configFile)
+
+		// apply defaults and pull out the values
+		let {
+			schema,
+			schemaPath,
+			sourceGlob,
+			apiUrl,
+			quiet = false,
+			framework = 'sapper',
+			module = 'commonjs',
+			static: staticSite,
+			scalars,
+			cacheBufferSize,
+			definitionsPath,
+			defaultCachePolicy = CachePolicy.NetworkOnly,
+			defaultPartial = false,
+			defaultKeys,
+			types = {},
+		} = this.configFile
+
 		// make sure we got some kind of schema
 		if (!schema && !schemaPath) {
 			throw new Error('Please provide one of schema or schema path')
@@ -229,13 +187,11 @@ export class Config {
 	}
 
 	keyFieldsForType(type: string) {
-		return this.typeConfig[type]?.keys || this.defaultKeys
+		return keyFieldsForType(this.configFile, type)
 	}
 
 	computeID(type: string, data: any): string {
-		return this.keyFieldsForType(type)
-			.map((key) => data[key])
-			.join('__')
+		return computeID(this.configFile, type, data)
 	}
 
 	// a string identifier for the document (must be unique)

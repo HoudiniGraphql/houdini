@@ -2,7 +2,7 @@
 import { Readable, writable, readable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
 // locals
-import type { Config } from '../common'
+import type { ConfigFile } from './config'
 import {
 	Operation,
 	GraphQLTagResult,
@@ -34,7 +34,7 @@ export function query<_Query extends Operation<any, any>>(
 	// @ts-ignore: typing esm/cjs interop is hard
 	const artifact: QueryArtifact = document.artifact.default || document.artifact
 	// @ts-ignore: typing esm/cjs interop is hard
-	const config: Config = document.config.default || document.config
+	const config: ConfigFile = document.config.default || document.config
 
 	// a query is never 'loading'
 	const loading = writable(false)
@@ -231,7 +231,7 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 	variableFunction,
 	getProps,
 }: {
-	config: Config
+	config: ConfigFile
 	artifact: QueryArtifact
 	queryHandler: QueryResponse<_Data, _Input>
 	variableFunction: ((...args: any[]) => _Input) | null

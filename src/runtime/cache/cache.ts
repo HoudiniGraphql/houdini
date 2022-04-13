@@ -1,11 +1,12 @@
 // local imports
-import type { ConfigFile } from '../../common'
+import type { ConfigFile } from '../config'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
 import { GarbageCollector } from './gc'
 import { List, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
+import { computeID, keyFieldsForType } from '../config'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -777,19 +778,11 @@ class CacheInternal {
 
 	// the list of fields that we need in order to compute an objects id
 	idFields(type: string): string[] {
-		return this.config.types?.[type]?.keys || this.config.defaultKeys!
+		return keyFieldsForType(this.config, type)
 	}
 
 	computeID(type: string, data: any): string {
-		const fields = this.idFields(type)
-
-		let id = ''
-
-		for (const field of fields) {
-			id += data[field] + '__'
-		}
-
-		return id.slice(0, -2)
+		return computeID(this.config, type, data)
 	}
 
 	hydrateNestedList({
