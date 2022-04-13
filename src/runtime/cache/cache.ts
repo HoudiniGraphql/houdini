@@ -1,5 +1,5 @@
 // local imports
-import type { ConfigFile } from '../config'
+import { ConfigFile, defaultConfigValues } from '../config'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
 import { GarbageCollector } from './gc'
 import { List, ListManager } from './lists'
@@ -17,29 +17,12 @@ export class Cache {
 	constructor(config: ConfigFile) {
 		this._internal_unstable = new CacheInternal({
 			cache: this,
-			config: this.applyConfigDefaults(config),
+			config: defaultConfigValues(config),
 			storage: new InMemoryStorage(),
 			subscriptions: new InMemorySubscriptions(this),
 			lists: new ListManager(rootID),
 			lifetimes: new GarbageCollector(this, config.cacheBufferSize),
 		})
-	}
-
-	applyConfigDefaults(config: ConfigFile): ConfigFile {
-		return {
-			...config,
-			defaultKeys: config.defaultKeys || ['id'],
-			types: {
-				Node: {
-					keys: ['id'],
-					resolve: {
-						queryField: 'node',
-						arguments: (node: any) => ({ id: node.id }),
-					},
-				},
-				...config.types,
-			},
-		}
 	}
 
 	// walk down the selection and save the values that we encounter.
