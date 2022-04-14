@@ -31,7 +31,7 @@
 		"format:write": "npm run format -- -w",
 		"format:check": "npm run format -- --check",
 		"changeset": "changeset",
-		"version": "changeset version && yarn",
+		"version": "changeset version",
 		"release": "yarn build && changeset publish"
 	},
 	"resolutions": {
