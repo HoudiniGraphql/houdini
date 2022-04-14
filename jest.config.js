@@ -1,7 +1,15 @@
 export default {
-	preset: 'ts-jest',
-	projects: ['<rootDir>/packages/*'],
+	preset: 'ts-jest', // or other ESM presets
 	moduleFileExtensions: ['js', 'ts'],
 	snapshotSerializers: ['ts-ast-serializer'],
-	setupFilesAfterEnv: ['./jest.setup.js'],
+
+	moduleNameMapper: {
+		'^~/(.*)$': '<rootDir>/src/$1',
+	},
+
+	globals: {
+		'ts-jest': {
+			babelConfig: true,
+		},
+	},
 }

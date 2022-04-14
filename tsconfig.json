@@ -1,4 +1,5 @@
 {
+	"exclude": ["**/*.test.ts"],
 	"compilerOptions": {
 		"strict": true,
 		"esModuleInterop": true,
@@ -6,7 +7,10 @@
 		"skipLibCheck": true,
 		"downlevelIteration": true,
 		"target": "es5",
-		"sourceMap": false,
-		"declaration": true
-	}
+		"sourceMap": true,
+		"declaration": false,
+		"moduleResolution": "node",
+		"module": "es2020"
+	},
+	"typeRoots": ["./node_modules/@types", "./jest.d.ts"]
 }

@@ -17,7 +17,6 @@ __tests__
 example/.svelte-kit
 example/functions
 example/$houdini
-packages/houdini/README.md
 
 yarn-error.log
 

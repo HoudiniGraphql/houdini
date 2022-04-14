@@ -1,6 +1,5 @@
 const recast = require('recast')
 const graphql = require('graphql')
-const { testConfig } = require('houdini-common')
 const mockFs = require('mock-fs')
 const path = require('path')
 const { toMatchInlineSnapshot } = require('jest-snapshot')
@@ -8,9 +7,6 @@ const fs = require('fs/promises')
 const typeScriptParser = require('recast/parsers/typescript')
 
 process.env.TEST = 'true'
-
-// the config to use in tests
-const config = testConfig()
 
 expect.addSnapshotSerializer({
 	test: (val) => val && Object.keys(recast.types.namedTypes).includes(val.type),
@@ -41,9 +37,9 @@ expect.extend({
 
 		// assuming that the value we were given is a collected document, figure
 		// out the path holding the artifact
-		const path = config.artifactPath(value.document)
+		const artifactPath = path.join('$houdini/artifacts', documentName(value.document) + '.js')
 
-		const artifactContents = await fs.readFile(path, 'utf-8')
+		const artifactContents = await fs.readFile(artifactPath, 'utf-8')
 
 		// parse the contents
 		const parsed = recast.parse(artifactContents, {
@@ -56,20 +52,43 @@ expect.extend({
 
 beforeEach(() => {
 	mockFs({
-		[path.relative(process.cwd(), config.rootDir)]: {
-			[path.relative(config.rootDir, config.artifactDirectory)]: {},
-			[path.relative(config.rootDir, config.runtimeDirectory)]: {},
+		$houdini: {
+			artifacts: {},
+			runtime: {},
 		},
-		// the runtime generator copies files relative to __dirname. we need our tests
+		// the runtime generator copies files relative to import.meta.url. we need our tests
 		// to point to the same filestructure that will exist
-		[`packages/houdini/build/runtime-esm`]: mockFs.load(
-			path.resolve(__dirname, 'packages', 'houdini', 'build', 'runtime-esm')
-		),
-		[`packages/houdini/build/runtime-cjs`]: mockFs.load(
-			path.resolve(__dirname, 'packages', 'houdini', 'build', 'runtime-cjs')
-		),
+		[`build/runtime-esm`]: mockFs.load(path.resolve('build', 'runtime-esm')),
+		[`build/runtime-cjs`]: mockFs.load(path.resolve('build', 'runtime-cjs')),
 	})
 })
 
 // make sure the runtime directory is clear before each test
 afterEach(mockFs.restore)
+
+function documentName(document) {
+	// if there is an operation in the document
+	const operation = document.definitions.find(({ kind }) => graphql.Kind.OPERATION_DEFINITION)
+	if (operation) {
+		// if the operation does not have a name
+		if (!operation.name) {
+			// we can't give them a file
+			throw new Error('encountered operation with no name: ' + graphql.print(document))
+		}
+
+		// use the operation name for the artifact
+		return operation.name.value
+	}
+
+	// look for a fragment definition
+	const fragmentDefinitions = document.definitions.filter(
+		({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
+	)
+	if (fragmentDefinitions.length) {
+		// join all of the fragment definitions into one
+		return fragmentDefinitions.map((fragment) => fragment.name).join('_')
+	}
+
+	// we don't know how to generate a name for this document
+	throw new Error('Could not generate artifact name for document: ' + graphql.print(document))
+}
