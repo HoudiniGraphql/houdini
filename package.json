@@ -30,7 +30,6 @@
 		"format": "prettier \"src/**/*.ts\"",
 		"format:write": "npm run format -- -w",
 		"format:check": "npm run format -- --check",
-		"postinstall": "husky install",
 		"changeset": "changeset",
 		"version": "changeset version && yarn",
 		"release": "yarn build && changeset publish"
