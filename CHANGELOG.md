@@ -1,5 +1,11 @@
 # houdini
 
+## 0.14.1
+
+### Patch Changes
+
+-   [#275](https://github.com/HoudiniGraphql/houdini/pull/275) [`baf233b`](https://github.com/HoudiniGraphql/houdini/commit/baf233b10f447006386ef0b2de1a3a53edecf6c0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed edge cases involving adding, removing, and deleting records back to back from in-memory cache"
+
 ## 0.14.0
 
 ### Breaking Changes
