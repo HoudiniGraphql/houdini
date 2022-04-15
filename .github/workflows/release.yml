@@ -48,7 +48,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Install Dependencies
-              run: yarn install --no-immutable
+              run: YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
 
             - name: Create Release Pull Request or Deploy
               uses: changesets/action@v1
