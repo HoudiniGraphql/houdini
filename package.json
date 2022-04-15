@@ -86,5 +86,6 @@
 		"recast": "^0.20.4",
 		"remove": "^0.1.5",
 		"svelte": "^3.34.0"
-	}
+	},
+	"packageManager": "yarn@3.2.0"
 }
