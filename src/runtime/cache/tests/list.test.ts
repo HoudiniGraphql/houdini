@@ -3065,3 +3065,42 @@ test('writing a scalar marked with an append', function () {
 		},
 	})
 })
+
+test('list operations fail silently', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// write some data to a different location with a new user
+	// that should be added to the list
+	expect(() =>
+		cache.write({
+			selection: {
+				newUser: {
+					type: 'User',
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+							parentID: {
+								kind: 'String',
+								value: cache._internal_unstable.id('User', '1')!,
+							},
+						},
+					],
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+					},
+				},
+			},
+			data: {
+				newUser: {
+					id: '3',
+				},
+			},
+		})
+	).not.toThrow()
+})

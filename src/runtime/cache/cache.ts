@@ -554,6 +554,11 @@ class CacheInternal {
 					}
 				}
 
+				// if the necessary list doesn't exist, don't do anything
+				if (operation.list && !this.lists.get(operation.list, parentID)) {
+					continue
+				}
+
 				// there could be a list of elements to perform the operation on
 				const targets = Array.isArray(value) ? value : [value]
 				for (const target of targets) {
