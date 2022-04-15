@@ -18,10 +18,10 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Use Node.js 14.13
+            - name: Setup Node
               uses: actions/setup-node@v1
               with:
-                  node-version: 14.13
+                  node-version: 16.14.2
 
             - name: Checkout source
               uses: actions/checkout@master
@@ -41,10 +41,10 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Use Node.js 14.13
+            - name: Setup Node
               uses: actions/setup-node@v1
               with:
-                  node-version: 14.13
+                  node-version: 16.14.2
 
             - name: Checkout source
               uses: actions/checkout@master
@@ -67,10 +67,10 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Use Node.js 14.13
+            - name: Setup Node
               uses: actions/setup-node@v1
               with:
-                  node-version: 14.13
+                  node-version: 16.14.2
 
             - name: Checkout source
               uses: actions/checkout@master
