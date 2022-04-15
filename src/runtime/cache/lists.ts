@@ -92,9 +92,10 @@ export class List {
 		this.manager = manager
 	}
 
-	// when applies a when condition to a new list pointing to the same spot
-	when(when?: ListWhen): List {
-		return new List({
+	// looks for the collection of all of the lists in the cache that satisfies a when
+	// condition
+	when(when?: ListWhen): ListCollection {
+		const listConfig = {
 			cache: this.cache,
 			recordID: this.recordID,
 			key: this.key,
@@ -106,7 +107,14 @@ export class List {
 			name: this.name,
 			connection: this.connection,
 			manager: this.manager,
-		})
+		}
+
+		// build up the collection of Lists that satisfy the conditions
+		const collection = new ListCollection([])
+
+		collection.lists.push(new List(listConfig))
+
+		return collection
 	}
 
 	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
@@ -374,6 +382,46 @@ export class List {
 			this.cache._internal_unstable.storage.get(this.recordID, this.key).value as LinkedList
 		)) {
 			yield record
+		}
+	}
+}
+
+export class ListCollection {
+	lists: List[] = []
+
+	constructor(lists: List[]) {
+		this.lists = lists
+	}
+
+	append(...args: Parameters<List['append']>) {
+		this.lists.forEach((list) => list.append(...args))
+	}
+
+	prepend(...args: Parameters<List['prepend']>) {
+		this.lists.forEach((list) => list.prepend(...args))
+	}
+
+	addToList(...args: Parameters<List['addToList']>) {
+		this.lists.forEach((list) => list.addToList(...args))
+	}
+
+	removeID(...args: Parameters<List['removeID']>) {
+		this.lists.forEach((list) => list.removeID(...args))
+	}
+
+	remove(...args: Parameters<List['remove']>) {
+		this.lists.forEach((list) => list.remove(...args))
+	}
+
+	toggleElement(...args: Parameters<List['toggleElement']>) {
+		this.lists.forEach((list) => list.toggleElement(...args))
+	}
+
+	// iterating over the collection should be the same as iterating over
+	// the underlying list
+	*[Symbol.iterator]() {
+		for (let list of this.lists) {
+			yield list
 		}
 	}
 }

@@ -3104,3 +3104,125 @@ test('list operations fail silently', function () {
 		})
 	).not.toThrow()
 })
+
+test('when conditions look for all matching lists', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					// the key takes an argument so that we can have multiple
+					// lists tracked in the cache
+					keyRaw: 'friends(filter: true, foo: $bar)',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		variables: {
+			foo: 'hello',
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'yves',
+					},
+				],
+			},
+		},
+	})
+
+	// write the same value with a different key
+	cache.write({
+		selection,
+		variables: {
+			foo: 'world',
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'yves',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+		variables: () => ({
+			foo: 'hello',
+		}),
+	})
+
+	// insert an element into the list (no parent ID)
+	cache
+		.list('All_Users')
+		.when({ must: { filter: true } })
+		.append(
+			{
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+			{
+				id: '3',
+				firstName: 'mathew',
+			}
+		)
+
+	expect(cache.read({ selection, variables: { foo: 'hello' } }).data).toEqual({
+		viewer: {
+			friends: [
+				{
+					firstName: 'yves',
+					id: '2',
+				},
+				{
+					firstName: 'mathew',
+					id: '3',
+				},
+			],
+			id: '1',
+		},
+	})
+})
