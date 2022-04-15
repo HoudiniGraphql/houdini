@@ -89,7 +89,13 @@ export class InMemoryStorage {
 			const layer = this.data[i]
 			const [layerValue, kind] = layer.get(id, field)
 			const layerOperations = layer.getOperations(id, field) || []
-			layer.deletedIDs.forEach((v) => operations.remove.add(v))
+			layer.deletedIDs.forEach((v) => {
+				// if the layer wants to undo a delete for the id
+				if (layer.operations[v]?.undoDeletesInList?.includes(field)) {
+					return
+				}
+				operations.remove.add(v)
+			})
 
 			// if the layer does not contain a value for the field, move on
 			if (typeof layerValue === 'undefined' && layerOperations.length === 0) {
@@ -309,11 +315,13 @@ export class Layer {
 			const fieldOperations = this.operations[id]?.fields[field]
 
 			// if the operation was globally deleted
-			if (this.operations[value]?.deleted) {
+			if (this.operations[value]?.deleted || this.deletedIDs.has(value)) {
 				// undo the delete
-				// NOTE: this will bring it back to the all lists just because we inserted it
-				// to one containing the link
-				delete this.operations[value].deleted
+				this.operations[value] = {
+					...this.operations[value],
+					undoDeletesInList: [...(this.operations[id]?.undoDeletesInList || []), field],
+				}
+
 				// the value could have been removed specifically from the list
 			} else if (value && fieldOperations?.length > 0) {
 				// if we have a field operation to remove the list, undo the operation
@@ -392,6 +400,8 @@ export class Layer {
 			[id]: {
 				...this.operations[id],
 				deleted: true,
+				// reapply any delete undos
+				undoDeletesInList: [],
 			},
 		}
 
@@ -501,6 +511,7 @@ type LinkMap = EntityMap<string | null | LinkedList>
 type OperationMap = {
 	[id: string]: {
 		deleted?: boolean
+		undoDeletesInList?: string[]
 		fields: { [field: string]: ListOperation[] }
 	}
 }
