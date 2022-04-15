@@ -18,18 +18,20 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Use Node.js 14.13
+            - name: Setup Node
               uses: actions/setup-node@v1
               with:
-                  node-version: 14.13
+                  node-version: 16.14.2
 
             - name: Checkout source
               uses: actions/checkout@master
               with:
                   ref: ${{ github.ref }}
 
-            - name: Install dependencies
+            - name: Install Dependencies
               run: yarn install
+              env:
+                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
             - name: Check prettier
               run: yarn format:check
@@ -39,18 +41,20 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Use Node.js 14.13
+            - name: Setup Node
               uses: actions/setup-node@v1
               with:
-                  node-version: 14.13
+                  node-version: 16.14.2
 
             - name: Checkout source
               uses: actions/checkout@master
               with:
                   ref: ${{ github.ref }}
 
-            - name: Install dependencies
+            - name: Install Dependencies
               run: yarn install
+              env:
+                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
             - name: Build packages
               run: yarn build
@@ -63,18 +67,20 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Use Node.js 14.13
+            - name: Setup Node
               uses: actions/setup-node@v1
               with:
-                  node-version: 14.13
+                  node-version: 16.14.2
 
             - name: Checkout source
               uses: actions/checkout@master
               with:
                   ref: ${{ github.ref }}
 
-            - name: Install dependencies
+            - name: Install Dependencies
               run: yarn install
+              env:
+                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
             - name: Build packages
               run: yarn build
