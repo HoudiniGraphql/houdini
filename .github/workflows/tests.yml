@@ -28,8 +28,10 @@ jobs:
               with:
                   ref: ${{ github.ref }}
 
-            - name: Install dependencies
+            - name: Install Dependencies
               run: yarn install
+              env:
+                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
             - name: Check prettier
               run: yarn format:check
@@ -49,8 +51,10 @@ jobs:
               with:
                   ref: ${{ github.ref }}
 
-            - name: Install dependencies
+            - name: Install Dependencies
               run: yarn install
+              env:
+                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
             - name: Build packages
               run: yarn build
@@ -73,8 +77,10 @@ jobs:
               with:
                   ref: ${{ github.ref }}
 
-            - name: Install dependencies
+            - name: Install Dependencies
               run: yarn install
+              env:
+                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
             - name: Build packages
               run: yarn build
