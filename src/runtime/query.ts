@@ -120,7 +120,7 @@ export function query<_Query extends Operation<any, any>>(
 		}
 
 		// update the local store
-		store.set(unmarshalSelection(config, artifact.selection, newData.data))
+		store.set(unmarshalSelection(config, artifact.selection, newData.data) || {})
 
 		// save the new variables
 		variables = newVariables || {}
