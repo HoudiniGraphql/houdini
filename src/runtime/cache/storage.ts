@@ -58,6 +58,12 @@ export class InMemoryStorage {
 		throw new Error('Could not find layer with id: ' + id)
 	}
 
+	replaceID(replacement: { from: string; to: string }) {
+		for (const layer of this.data) {
+			layer.replaceID(replacement)
+		}
+	}
+
 	get(
 		id: string,
 		field: string
@@ -83,7 +89,13 @@ export class InMemoryStorage {
 			const layer = this.data[i]
 			const [layerValue, kind] = layer.get(id, field)
 			const layerOperations = layer.getOperations(id, field) || []
-			layer.deletedIDs.forEach((v) => operations.remove.add(v))
+			layer.deletedIDs.forEach((v) => {
+				// if the layer wants to undo a delete for the id
+				if (layer.operations[v]?.undoDeletesInList?.includes(field)) {
+					return
+				}
+				operations.remove.add(v)
+			})
 
 			// if the layer does not contain a value for the field, move on
 			if (typeof layerValue === 'undefined' && layerOperations.length === 0) {
@@ -303,11 +315,13 @@ export class Layer {
 			const fieldOperations = this.operations[id]?.fields[field]
 
 			// if the operation was globally deleted
-			if (this.operations[value]?.deleted) {
+			if (this.operations[value]?.deleted || this.deletedIDs.has(value)) {
 				// undo the delete
-				// NOTE: this will bring it back to the all lists just because we inserted it
-				// to one containing the link
-				delete this.operations[value].deleted
+				this.operations[value] = {
+					...this.operations[value],
+					undoDeletesInList: [...(this.operations[id]?.undoDeletesInList || []), field],
+				}
+
 				// the value could have been removed specifically from the list
 			} else if (value && fieldOperations?.length > 0) {
 				// if we have a field operation to remove the list, undo the operation
@@ -343,7 +357,17 @@ export class Layer {
 		this.deletedIDs = new Set<string>()
 	}
 
-	applyDeletes() {
+	replaceID({ from, to }: { from: string; to: string }) {
+		// any fields that existing in from, assign to to
+		this.fields[to] = this.fields[from]
+		this.links[to] = this.links[from]
+		this.operations[to] = this.operations[from] || { fields: {} }
+		if (this.deletedIDs.has(from)) {
+			this.deletedIDs.add(to)
+		}
+	}
+
+	removeUndefinedFields() {
 		// any field that's marked as undefined needs to be deleted
 		for (const [id, fields] of Object.entries(this.fields)) {
 			for (const [field, value] of Object.entries(fields)) {
@@ -376,6 +400,8 @@ export class Layer {
 			[id]: {
 				...this.operations[id],
 				deleted: true,
+				// reapply any delete undos
+				undoDeletesInList: [],
 			},
 		}
 
@@ -429,7 +455,7 @@ export class Layer {
 			}
 
 			// if we are applying
-			if (ops.deleted) {
+			if (ops?.deleted) {
 				delete this.fields[id]
 				delete this.links[id]
 			}
@@ -437,6 +463,9 @@ export class Layer {
 
 		// copy the field values
 		for (const [id, values] of Object.entries(layer.fields)) {
+			if (!values) {
+				continue
+			}
 			// we do have a record matching this id, copy the individual fields
 			for (const [field, value] of Object.entries(values)) {
 				this.writeField(id, field, value)
@@ -445,6 +474,9 @@ export class Layer {
 
 		// copy the link values
 		for (const [id, values] of Object.entries(layer.links)) {
+			if (!values) {
+				continue
+			}
 			// we do have a record matching this id, copy the individual links
 			for (const [field, value] of Object.entries(values)) {
 				this.writeLink(id, field, value)
@@ -479,6 +511,7 @@ type LinkMap = EntityMap<string | null | LinkedList>
 type OperationMap = {
 	[id: string]: {
 		deleted?: boolean
+		undoDeletesInList?: string[]
 		fields: { [field: string]: ListOperation[] }
 	}
 }

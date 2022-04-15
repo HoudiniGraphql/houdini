@@ -919,7 +919,7 @@ class CacheInternal {
 				innerType = typename as string
 			}
 
-			// build up an
+			// if this isn't an embedded reference, use the entry's id in the link list
 			if (!embedded) {
 				const id = this.id(innerType, entry as {})
 				if (id) {
@@ -955,7 +955,7 @@ class CacheInternal {
 
 		// if there is only one layer in the cache, clean up the data
 		if (this.storage.layerCount === 1) {
-			this.storage.topLayer.applyDeletes()
+			this.storage.topLayer.removeUndefinedFields()
 		}
 	}
 }
