@@ -50,7 +50,7 @@ jobs:
             - name: Install Dependencies
               run: yarn install
               env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+                  YARN_ENABLE_IMMUTABLE_INSTALLS: 'false'
 
             - name: Create Release Pull Request or Deploy
               uses: changesets/action@v1
