@@ -463,10 +463,146 @@ test('remove from connection', function () {
 	expect(cache._internal_unstable.subscriptions.get('User:2', 'firstName')).toHaveLength(0)
 	// but we're still subscribing to user 3
 	expect(cache._internal_unstable.subscriptions.get('User:3', 'firstName')).toHaveLength(1)
-	// make sure we marked the corresponding edge for deletion
-	expect(
-		cache._internal_unstable.storage.topLayer.operations['User:1.friends.edges[0]'].deleted
-	).toBeTruthy()
+})
+
+test('element removed from list can be added back', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: true,
+						type: 'User',
+					},
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'Node',
+									keyRaw: 'node',
+									abstract: true,
+									fields: {
+										__typename: {
+											type: 'String',
+											keyRaw: '__typename',
+										},
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane2',
+							},
+						},
+						{
+							node: {
+								__typename: 'User',
+								id: '3',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection: selection,
+	})
+
+	// remove user 2 from the list
+	cache.list('All_Users').remove({
+		id: '2',
+	})
+
+	cache.list('All_Users').append(
+		{
+			id: {
+				keyRaw: 'id',
+				type: 'String',
+			},
+			firstName: {
+				keyRaw: 'firstName',
+				type: 'String',
+			},
+		},
+		{
+			__typename: 'User',
+			id: '2',
+			firstName: 'jane2',
+		},
+		{}
+	)
+
+	expect(set).toHaveBeenNthCalledWith(2, {
+		viewer: {
+			id: '1',
+			friends: {
+				edges: [
+					{
+						node: {
+							__typename: 'User',
+							id: '3',
+							firstName: 'jane',
+						},
+					},
+					{
+						node: {
+							__typename: 'User',
+							id: '2',
+							firstName: 'jane2',
+						},
+					},
+				],
+			},
+		},
+	})
 })
 
 test('append in connection', function () {

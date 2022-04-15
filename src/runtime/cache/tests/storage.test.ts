@@ -181,6 +181,30 @@ describe('in memory layers', function () {
 		expect(storage.get('User:1', 'firstName').value).toBeUndefined()
 	})
 
+	test('can overwrite deletes for a specific link list', function () {
+		const storage = new InMemoryStorage()
+
+		// add a base layer with some value
+		storage.writeLink('User:1', 'friends', ['User:2'])
+
+		// add an optimistic layer that deletes the first entry
+		const layer = storage.createLayer(true)
+		layer.delete('User:2')
+
+		// make sure its removed
+		expect(storage.get('User:1', 'friends').value).toEqual([])
+
+		// resolve the optimistic layer
+		storage.resolveLayer(layer.id)
+		// sanity check
+		expect(storage.get('User:1', 'friends').value).toEqual([])
+
+		// add the entry back to the list
+		storage.writeLink('User:1', 'friends', ['User:2'])
+
+		expect(storage.get('User:1', 'friends').value).toEqual(['User:2'])
+	})
+
 	test('deleting specific fields removes the field', function () {
 		const storage = new InMemoryStorage()
 
@@ -196,7 +220,7 @@ describe('in memory layers', function () {
 
 		// delete the value
 		storage.deleteField('User:1', 'firstName')
-		storage.topLayer.applyDeletes()
+		storage.topLayer.removeUndefinedFields()
 
 		// look up the value now that it's been deleted
 		expect(storage.get('User:1', 'firstName')).toEqual({
@@ -223,7 +247,7 @@ describe('in memory layers', function () {
 
 		// delete the value
 		storage.deleteField('User:1', 'firstName')
-		storage.topLayer.applyDeletes()
+		storage.topLayer.removeUndefinedFields()
 
 		// look up the value now that it's been deleted
 		expect(storage.get('User:1', 'firstName')).toEqual({

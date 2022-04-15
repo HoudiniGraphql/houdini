@@ -58,6 +58,12 @@ export class InMemoryStorage {
 		throw new Error('Could not find layer with id: ' + id)
 	}
 
+	replaceID(replacement: { from: string; to: string }) {
+		for (const layer of this.data) {
+			layer.replaceID(replacement)
+		}
+	}
+
 	get(
 		id: string,
 		field: string
@@ -343,7 +349,17 @@ export class Layer {
 		this.deletedIDs = new Set<string>()
 	}
 
-	applyDeletes() {
+	replaceID({ from, to }: { from: string; to: string }) {
+		// any fields that existing in from, assign to to
+		this.fields[to] = this.fields[from]
+		this.links[to] = this.links[from]
+		this.operations[to] = this.operations[from] || { fields: {} }
+		if (this.deletedIDs.has(from)) {
+			this.deletedIDs.add(to)
+		}
+	}
+
+	removeUndefinedFields() {
 		// any field that's marked as undefined needs to be deleted
 		for (const [id, fields] of Object.entries(this.fields)) {
 			for (const [field, value] of Object.entries(fields)) {
@@ -429,7 +445,7 @@ export class Layer {
 			}
 
 			// if we are applying
-			if (ops.deleted) {
+			if (ops?.deleted) {
 				delete this.fields[id]
 				delete this.links[id]
 			}
@@ -437,6 +453,9 @@ export class Layer {
 
 		// copy the field values
 		for (const [id, values] of Object.entries(layer.fields)) {
+			if (!values) {
+				continue
+			}
 			// we do have a record matching this id, copy the individual fields
 			for (const [field, value] of Object.entries(values)) {
 				this.writeField(id, field, value)
@@ -445,6 +464,9 @@ export class Layer {
 
 		// copy the link values
 		for (const [id, values] of Object.entries(layer.links)) {
+			if (!values) {
+				continue
+			}
 			// we do have a record matching this id, copy the individual links
 			for (const [field, value] of Object.entries(values)) {
 				this.writeLink(id, field, value)

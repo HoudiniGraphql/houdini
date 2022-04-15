@@ -253,7 +253,7 @@ export class List {
 		}
 
 		// if the id is not contained in the list, dont notify anyone
-		const value = this.cache._internal_unstable.storage.get(parentID, targetKey)
+		let value = this.cache._internal_unstable.storage.get(parentID, targetKey)
 			.value as LinkedList
 		if (!value || !value.includes(targetID)) {
 			return
@@ -275,6 +275,30 @@ export class List {
 		// remove the target from the parent
 		this.cache._internal_unstable.storage.remove(parentID, targetKey, targetID)
 
+		// if we are removing an id from a connection then the id we were given points to an edge
+		if (this.connection) {
+			// grab the index we are removing
+			const [, field, index] = targetID.match(/(.*)\[(\d+)\]$/) || []
+			if (!field || !index) {
+				throw new Error('Could not find id of edge')
+			}
+			const newIDs = []
+
+			// every element in the linked list after the element we removed needs to have an updated id
+			for (let i = parseInt(index) + 1; i < value.length; i++) {
+				const to = `${field}[${i - 1}]`
+				newIDs.push(to)
+				this.cache._internal_unstable.storage.replaceID({
+					from: `${field}[${i}]`,
+					to,
+				})
+			}
+
+			value = value.slice(0, parseInt(index)).concat(newIDs)
+
+			this.cache._internal_unstable.storage.writeLink(parentID, targetKey, value)
+		}
+
 		// notify the subscribers about the change
 		for (const spec of subscribers) {
 			// trigger the update
@@ -285,11 +309,6 @@ export class List {
 					variables: spec.variables?.() || {},
 				}).data
 			)
-		}
-
-		// if we are removing from a connection, delete the embedded edge holding the record
-		if (this.connection) {
-			this.cache._internal_unstable.storage.delete(targetID)
 		}
 
 		// return true if we deleted something
