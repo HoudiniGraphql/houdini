@@ -2,7 +2,7 @@
 import { ConfigFile, defaultConfigValues } from '../config'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
 import { GarbageCollector } from './gc'
-import { List, ListManager } from './lists'
+import { List, ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
@@ -108,7 +108,7 @@ export class Cache {
 	}
 
 	// return the list handler to mutate a named list in the cache
-	list(name: string, parentID?: string): List {
+	list(name: string, parentID?: string): ListCollection {
 		const handler = this._internal_unstable.lists.get(name, parentID)
 		if (!handler) {
 			throw new Error(

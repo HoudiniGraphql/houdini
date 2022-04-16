@@ -957,7 +957,7 @@ test('variables in query and subscription', function () {
 	)
 
 	// make sure we have a cached value for friends(filter: "foo")
-	expect(cache.list('All_Users').key).toEqual('friends(filter: "foo")')
+	expect(cache.list('All_Users').lists[0].key).toEqual('friends(filter: "foo")')
 
 	// somehow write a user to the cache with a new friends list
 	cache.write({
