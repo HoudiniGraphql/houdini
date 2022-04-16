@@ -210,8 +210,6 @@ export class List {
 			return
 		}
 
-		console.log('removing id', id)
-
 		// if we are removing from a connection, the id we are removing from
 		// has to be computed
 		let parentID = this.recordID
@@ -256,8 +254,6 @@ export class List {
 			}
 			parentID = embeddedConnectionID
 			targetKey = 'edges'
-
-			console.log(parentID, targetID)
 		}
 
 		// if the id is not contained in the list, dont notify anyone
