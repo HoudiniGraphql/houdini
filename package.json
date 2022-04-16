@@ -33,7 +33,9 @@
 		"changeset": "changeset",
 		"version": "changeset version",
 		"release": "yarn build && changeset publish",
-		"postinstall": "node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\""
+		"posinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
+		"prepack": "pinst --disable",
+		"postpack": "pinst --enable"
 	},
 	"resolutions": {
 		"typescript": "3.9.5"
@@ -59,6 +61,7 @@
 		"jest": "^26.6.3",
 		"mock-fs": "^4.13.0",
 		"npm": "^8.6.0",
+		"pinst": "^3.0.0",
 		"prettier": "^2.0.5",
 		"pretty-quick": "^3.1.1",
 		"rollup": "2.68.0",
