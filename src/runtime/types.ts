@@ -183,7 +183,7 @@ export type SubscriptionSelection = {
 		filters?: {
 			[key: string]: {
 				kind: 'Boolean' | 'String' | 'Float' | 'Int' | 'Variable'
-				value: string
+				value: string | number | boolean
 			}
 		}
 		fields?: SubscriptionSelection

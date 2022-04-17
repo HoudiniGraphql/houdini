@@ -9,6 +9,7 @@ import { flattenList } from './stuff'
 export class InMemoryStorage {
 	private data: Layer[]
 	private idCount = 0
+	private rank = 0
 
 	constructor() {
 		this.data = []
@@ -16,6 +17,10 @@ export class InMemoryStorage {
 
 	get layerCount(): number {
 		return this.data.length
+	}
+
+	get nextRank(): number {
+		return this.rank++
 	}
 
 	// create a layer and return its id
@@ -290,7 +295,7 @@ export class Layer {
 		}
 
 		// there could be a mutation for the specific field
-		if (this.operations[id]?.fields[field]) {
+		if (this.operations[id]?.fields?.[field]) {
 			return this.operations[id].fields[field]
 		}
 	}
@@ -434,6 +439,11 @@ export class Layer {
 	}
 
 	writeLayer(layer: Layer): void {
+		// if we are merging into ourselves, we're done
+		if (layer.id === this.id) {
+			return
+		}
+
 		// we have to apply operations before we move fields so we can clean up existing
 		// data if we have a delete before we copy over the values
 		for (const [id, ops] of Object.entries(layer.operations)) {

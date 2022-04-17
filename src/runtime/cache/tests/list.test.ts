@@ -2614,6 +2614,151 @@ test('delete operation from list', function () {
 	expect(cache._internal_unstable.storage.topLayer.operations['User:3'].deleted).toBeTruthy()
 })
 
+test('delete operation from connection', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						list: {
+							name: 'All_Users',
+							connection: true,
+							type: 'User',
+						},
+						fields: {
+							edges: {
+								type: 'UserEdge',
+								keyRaw: 'edges',
+								fields: {
+									node: {
+										type: 'Node',
+										keyRaw: 'node',
+										abstract: true,
+										fields: {
+											__typename: {
+												type: 'String',
+												keyRaw: '__typename',
+											},
+											id: {
+												type: 'ID',
+												keyRaw: 'id',
+											},
+											firstName: {
+												type: 'String',
+												keyRaw: 'firstName',
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [{ node: { id: '2', firstName: 'jane', __typename: 'User' } }],
+				},
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: {
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: true,
+						type: 'User',
+					},
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								node: {
+									type: 'Node',
+									keyRaw: 'node',
+									abstract: true,
+									fields: {
+										__typename: {
+											type: 'String',
+											keyRaw: '__typename',
+										},
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// write some data to a different location with a new user
+	// that should be added to the list
+	cache.write({
+		selection: {
+			deleteUser: {
+				type: 'User',
+				keyRaw: 'deleteUser',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+						operations: [
+							{
+								action: 'delete',
+								type: 'User',
+							},
+						],
+					},
+				},
+			},
+		},
+		data: {
+			deleteUser: {
+				id: '2',
+			},
+		},
+	})
+
+	// make sure we removed the element from the list
+	expect([...cache.list('All_Users', cache._internal_unstable.id('User', '1')!)]).toHaveLength(0)
+	expect(cache._internal_unstable.storage.topLayer.operations['User:2'].deleted).toBeTruthy()
+})
+
 test('disabled linked lists update', function () {
 	// instantiate the cache
 	const cache = new Cache(config)
@@ -3062,6 +3207,192 @@ test('writing a scalar marked with an append', function () {
 			id: '1',
 			firstName: 'bob',
 			friends: [1, 2],
+		},
+	})
+})
+
+test('list operations fail silently', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	// write some data to a different location with a new user
+	// that should be added to the list
+	expect(() =>
+		cache.write({
+			selection: {
+				newUser: {
+					type: 'User',
+					keyRaw: 'newUser',
+					operations: [
+						{
+							action: 'insert',
+							list: 'All_Users',
+							parentID: {
+								kind: 'String',
+								value: cache._internal_unstable.id('User', '1')!,
+							},
+						},
+					],
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+					},
+				},
+			},
+			data: {
+				newUser: {
+					id: '3',
+				},
+			},
+		})
+	).not.toThrow()
+})
+
+test('when conditions look for all matching lists', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection: SubscriptionSelection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					// the key takes an argument so that we can have multiple
+					// lists tracked in the cache
+					keyRaw: 'friends(filter: true, foo: $var)',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					filters: {
+						foo: {
+							kind: 'Variable',
+							value: 'var',
+						},
+						filter: {
+							kind: 'Boolean',
+							value: true,
+						},
+					},
+
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		variables: {
+			var: 'hello',
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'yves',
+					},
+				],
+			},
+		},
+	})
+
+	// write the same value with a different key
+	cache.write({
+		selection,
+		variables: {
+			var: 'world',
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'yves',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields twice
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			set,
+			selection,
+		},
+		{
+			var: 'world',
+		}
+	)
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			set,
+			selection,
+		},
+		{
+			var: 'hello',
+		}
+	)
+
+	// insert an element into the list (no parent ID)
+	cache
+		.list('All_Users')
+		.when({ must: { filter: true } })
+		.append(
+			{
+				id: { type: 'ID', keyRaw: 'id' },
+				firstName: { type: 'String', keyRaw: 'firstName' },
+			},
+			{
+				id: '3',
+				firstName: 'mathew',
+			},
+			{
+				var: 'hello',
+			}
+		)
+
+	expect(cache.read({ selection, variables: { var: 'world' } }).data).toEqual({
+		viewer: {
+			friends: [
+				{
+					firstName: 'yves',
+					id: '2',
+				},
+				{
+					firstName: 'mathew',
+					id: '3',
+				},
+			],
+			id: '1',
 		},
 	})
 })

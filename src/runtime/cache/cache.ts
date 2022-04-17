@@ -2,7 +2,7 @@
 import { ConfigFile, defaultConfigValues } from '../config'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
 import { GarbageCollector } from './gc'
-import { List, ListManager } from './lists'
+import { List, ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
@@ -108,7 +108,7 @@ export class Cache {
 	}
 
 	// return the list handler to mutate a named list in the cache
-	list(name: string, parentID?: string): List {
+	list(name: string, parentID?: string): ListCollection {
 		const handler = this._internal_unstable.lists.get(name, parentID)
 		if (!handler) {
 			throw new Error(
@@ -399,7 +399,7 @@ class CacheInternal {
 								return ''
 							}
 
-							// there is no cursor
+							// there is no cursor so the edge is empty
 							return node
 					  })
 
@@ -425,7 +425,6 @@ class CacheInternal {
 					variables: variables,
 					fields,
 					layer,
-					startingWith: applyUpdates && update === 'append' ? oldIDs.length : 0,
 					forceNotify,
 				})
 
@@ -552,6 +551,11 @@ class CacheInternal {
 
 						parentID = id
 					}
+				}
+
+				// if the necessary list doesn't exist, don't do anything
+				if (operation.list && !this.lists.get(operation.list, parentID)) {
+					continue
 				}
 
 				// there could be a list of elements to perform the operation on
@@ -837,7 +841,6 @@ class CacheInternal {
 		applyUpdates,
 		specs,
 		layer,
-		startingWith,
 		forceNotify,
 	}: {
 		value: GraphQLValue[]
@@ -850,14 +853,11 @@ class CacheInternal {
 		applyUpdates: boolean
 		fields: SubscriptionSelection
 		layer: Layer
-		startingWith: number
 		forceNotify?: boolean
 	}): { nestedIDs: LinkedList; newIDs: (string | null)[] } {
 		// build up the two lists
 		const nestedIDs: LinkedList = []
 		const newIDs = []
-
-		let id = 0
 
 		for (const [i, entry] of value.entries()) {
 			// if we found another list
@@ -874,7 +874,6 @@ class CacheInternal {
 					applyUpdates,
 					specs,
 					layer,
-					startingWith,
 					forceNotify,
 				})
 
@@ -896,7 +895,8 @@ class CacheInternal {
 			const entryObj = entry as GraphQLObject
 
 			// start off building up the embedded id
-			let linkedID = `${recordID}.${key}[${startingWith + id++}]`
+			// @ts-ignore
+			let linkedID = `${recordID}.${key}[${this.storage.nextRank}]`
 
 			// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
 			// required to compute the entity's id

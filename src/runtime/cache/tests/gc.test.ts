@@ -24,16 +24,7 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
-					},
-				},
+				fields: userFields,
 			},
 		},
 		data: {
@@ -233,4 +224,95 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	).toMatchObject({
 		data: null,
 	})
+})
+
+test('ticks of gc delete list handlers', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					// the key takes an argument so that we can have multiple
+					// lists tracked in the cache
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: false,
+						type: 'User',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		variables: {
+			var: 'hello',
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'yves',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	cache.subscribe(
+		{
+			rootType: 'Query',
+			set,
+			selection,
+		},
+		{
+			var: 'hello',
+		}
+	)
+
+	cache.unsubscribe(
+		{
+			rootType: 'Query',
+			set,
+			selection,
+		},
+		{
+			var: 'hello',
+		}
+	)
+
+	// tick the garbage collector enough times to trigger garbage collection
+	for (const _ of Array.from({ length: config.cacheBufferSize! + 1 })) {
+		cache._internal_unstable.collectGarbage()
+	}
+
+	// make sure we dont have a handler for the list
+	expect(cache._internal_unstable.lists.get('All_Users')).toBeUndefined()
 })

@@ -1,6 +1,6 @@
 // local imports
 import { SubscriptionSelection, ListWhen, SubscriptionSpec, RefetchUpdateMode } from '../types'
-import type { Cache, LinkedList } from './cache'
+import { Cache, LinkedList, rootID } from './cache'
 import { flattenList } from './stuff'
 
 export class ListManager {
@@ -11,7 +11,9 @@ export class ListManager {
 	}
 
 	// associate list names with the handler that wraps the list
-	private lists: Map<string, Map<string, List>> = new Map()
+	lists: Map<string, Map<string, ListCollection>> = new Map()
+
+	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
 	get(listName: string, id?: string) {
 		return this.lists.get(listName)?.get(id || this.rootID)
@@ -21,7 +23,7 @@ export class ListManager {
 		this.lists.get(listName)?.delete(id || this.rootID)
 	}
 
-	set(list: {
+	add(list: {
 		name: string
 		connection: boolean
 		cache: Cache
@@ -38,10 +40,35 @@ export class ListManager {
 			this.lists.set(list.name, new Map())
 		}
 
-		// set the list reference
-		this.lists
-			.get(list.name)
-			?.set(list.parentID || this.rootID, new List({ ...list, manager: this }))
+		// if we haven't seen the list before, add a new colleciton
+		const name = list.name
+		const parentID = list.parentID || this.rootID
+
+		// if we already have a handler for the key, don't do anything
+		if (this.lists.get(name)?.get(parentID)?.includes(list.key)) {
+			return
+		}
+
+		if (!this.lists.has(name)) {
+			this.lists.set(name, new Map())
+		}
+		if (!this.lists.get(name)!.has(parentID)) {
+			this.lists.get(name)!.set(parentID, new ListCollection([]))
+		}
+
+		if (!this.listsByField.has(list.recordID)) {
+			this.listsByField.set(list.recordID, new Map())
+		}
+		if (!this.listsByField.get(list.recordID)!.has(list.key)) {
+			this.listsByField.get(list.recordID)?.set(list.key, [])
+		}
+
+		// create the list handler
+		const handler = new List({ ...list, manager: this })
+
+		// add the list to the collection
+		this.lists.get(list.name)!.get(parentID)!.lists.push(handler)
+		this.listsByField.get(list.recordID)!.get(list.key)!.push(handler)
 	}
 
 	removeIDFromAllLists(id: string) {
@@ -50,6 +77,24 @@ export class ListManager {
 				list.removeID(id)
 			}
 		}
+	}
+
+	deleteField(parentID: string, field: string) {
+		// if we have no lists associated with the parent/field combo, don't do anything
+		if (!this.listsByField.get(parentID)?.has(field)) {
+			return
+		}
+
+		// grab the list of fields associated with the parent/field combo
+		for (const list of this.listsByField.get(parentID)!.get(field)!) {
+			this.lists.get(list.name)?.get(list.parentID)?.deleteListWithKey(field)
+			if (this.lists.get(list.name)?.get(list.parentID)?.lists.length === 0) {
+				this.lists.get(list.name)?.delete(list.parentID)
+			}
+		}
+
+		// delete the lists by field lookups
+		this.listsByField.get(parentID)!.delete(field)
 	}
 }
 
@@ -62,7 +107,7 @@ export class List {
 	private _when?: ListWhen
 	private filters?: { [key: string]: number | boolean | string }
 	readonly name: string
-	readonly parentID: SubscriptionSpec['parentID']
+	readonly parentID: string
 	private connection: boolean
 	private manager: ListManager
 
@@ -78,7 +123,7 @@ export class List {
 		parentID,
 		connection,
 		manager,
-	}: Parameters<ListManager['set']>[0] & { manager: ListManager }) {
+	}: Parameters<ListManager['add']>[0] & { manager: ListManager }) {
 		this.recordID = recordID
 		this.key = key
 		this.listType = listType
@@ -87,26 +132,15 @@ export class List {
 		this._when = when
 		this.filters = filters
 		this.name = name
-		this.parentID = parentID
+		this.parentID = parentID || rootID
 		this.connection = connection
 		this.manager = manager
 	}
 
-	// when applies a when condition to a new list pointing to the same spot
-	when(when?: ListWhen): List {
-		return new List({
-			cache: this.cache,
-			recordID: this.recordID,
-			key: this.key,
-			listType: this.listType,
-			selection: this.selection,
-			when,
-			filters: this.filters,
-			parentID: this.parentID,
-			name: this.name,
-			connection: this.connection,
-			manager: this.manager,
-		})
+	// looks for the collection of all of the lists in the cache that satisfies a when
+	// condition
+	when(when?: ListWhen): ListCollection {
+		return this.manager.lists.get(this.name)!.get(this.parentID)!.when(when)
 	}
 
 	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
@@ -275,30 +309,6 @@ export class List {
 		// remove the target from the parent
 		this.cache._internal_unstable.storage.remove(parentID, targetKey, targetID)
 
-		// if we are removing an id from a connection then the id we were given points to an edge
-		if (this.connection) {
-			// grab the index we are removing
-			const [, field, index] = targetID.match(/(.*)\[(\d+)\]$/) || []
-			if (!field || !index) {
-				throw new Error('Could not find id of edge')
-			}
-			const newIDs = []
-
-			// every element in the linked list after the element we removed needs to have an updated id
-			for (let i = parseInt(index) + 1; i < value.length; i++) {
-				const to = `${field}[${i - 1}]`
-				newIDs.push(to)
-				this.cache._internal_unstable.storage.replaceID({
-					from: `${field}[${i}]`,
-					to,
-				})
-			}
-
-			value = value.slice(0, parseInt(index)).concat(newIDs)
-
-			this.cache._internal_unstable.storage.writeLink(parentID, targetKey, value)
-		}
-
 		// notify the subscribers about the change
 		for (const spec of subscribers) {
 			// trigger the update
@@ -325,27 +335,28 @@ export class List {
 		return this.removeID(targetID, variables)
 	}
 
-	private validateWhen() {
+	validateWhen(when?: ListWhen) {
 		// if this when doesn't apply, we should look at others to see if we should update those behind the scenes
+		let filters = when || this._when
 
 		let ok = true
 		// if there are conditions for this operation
-		if (this._when) {
+		if (filters) {
 			// we only NEED there to be target filters for must's
 			const targets = this.filters
 
 			// check must's first
-			if (this._when.must && targets) {
-				ok = Object.entries(this._when.must).reduce<boolean>(
+			if (filters.must && targets) {
+				ok = Object.entries(filters.must).reduce<boolean>(
 					(prev, [key, value]) => Boolean(prev && targets[key] == value),
 					ok
 				)
 			}
 			// if there are no targets, nothing could be true that can we compare against
-			if (this._when.must_not) {
+			if (filters.must_not) {
 				ok =
 					!targets ||
-					Object.entries(this._when.must_not).reduce<boolean>(
+					Object.entries(filters.must_not).reduce<boolean>(
 						(prev, [key, value]) => Boolean(prev && targets[key] != value),
 						ok
 					)
@@ -370,10 +381,81 @@ export class List {
 	// iterating over the list handler should be the same as iterating over
 	// the underlying linked list
 	*[Symbol.iterator]() {
-		for (let record of flattenList(
-			this.cache._internal_unstable.storage.get(this.recordID, this.key).value as LinkedList
-		)) {
+		let entries: string[] = []
+
+		// grab the underlying value from the cache
+		let value = this.cache._internal_unstable.storage.get(this.recordID, this.key).value as
+			| LinkedList
+			| string
+
+		if (!this.connection) {
+			entries = flattenList(value as LinkedList)
+		} else {
+			// connections need to reference the edges field for the list of entries
+			entries = this.cache._internal_unstable.storage.get(value as string, 'edges')
+				.value as string[]
+		}
+
+		for (let record of entries) {
 			yield record
+		}
+	}
+}
+
+export class ListCollection {
+	lists: List[] = []
+
+	constructor(lists: List[]) {
+		this.lists = lists
+	}
+
+	append(...args: Parameters<List['append']>) {
+		this.lists.forEach((list) => list.append(...args))
+	}
+
+	prepend(...args: Parameters<List['prepend']>) {
+		this.lists.forEach((list) => list.prepend(...args))
+	}
+
+	addToList(...args: Parameters<List['addToList']>) {
+		this.lists.forEach((list) => list.addToList(...args))
+	}
+
+	removeID(...args: Parameters<List['removeID']>) {
+		this.lists.forEach((list) => list.removeID(...args))
+	}
+
+	remove(...args: Parameters<List['remove']>) {
+		this.lists.forEach((list) => list.remove(...args))
+	}
+
+	toggleElement(...args: Parameters<List['toggleElement']>) {
+		this.lists.forEach((list) => list.toggleElement(...args))
+	}
+
+	when(when?: ListWhen): ListCollection {
+		return new ListCollection(
+			this.lists.filter((list) => {
+				return list.validateWhen(when)
+			})
+		)
+	}
+
+	includes(key: string) {
+		return !!this.lists.find((list) => list.key === key)
+	}
+
+	deleteListWithKey(key: string) {
+		return (this.lists = this.lists.filter((list) => list.key !== key))
+	}
+
+	// iterating over the collection should be the same as iterating over
+	// the underlying list
+	*[Symbol.iterator]() {
+		for (let list of this.lists) {
+			for (const entry of list) {
+				yield entry
+			}
 		}
 	}
 }

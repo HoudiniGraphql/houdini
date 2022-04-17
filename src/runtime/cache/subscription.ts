@@ -49,7 +49,7 @@ export class InMemorySubscriptions {
 				// if this field is marked as a list, register it. this will overwrite existing list handlers
 				// so that they can get up to date filters
 				if (list && fields) {
-					this.cache._internal_unstable.lists.set({
+					this.cache._internal_unstable.lists.add({
 						name: list.name,
 						connection: list.connection,
 						parentID: spec.parentID,
@@ -62,7 +62,7 @@ export class InMemorySubscriptions {
 							(acc, [key, { kind, value }]) => {
 								return {
 									...acc,
-									[key]: kind !== 'Variable' ? value : variables[value],
+									[key]: kind !== 'Variable' ? value : variables[value as string],
 								}
 							},
 							{}
@@ -199,11 +199,6 @@ export class InMemorySubscriptions {
 
 			// remove the subscribers for the field
 			this.removeSubscribers(id, key, targets)
-
-			// if this field is marked as a list remove it from the cache
-			if (selection.list) {
-				this.cache._internal_unstable.lists.remove(selection.list.name, id)
-			}
 
 			// if there is no subselection it doesn't point to a link, move on
 			if (!selection.fields) {
