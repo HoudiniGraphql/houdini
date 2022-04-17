@@ -88,6 +88,9 @@ export class ListManager {
 		// grab the list of fields associated with the parent/field combo
 		for (const list of this.listsByField.get(parentID)!.get(field)!) {
 			this.lists.get(list.name)?.get(list.parentID)?.deleteListWithKey(field)
+			if (this.lists.get(list.name)?.get(list.parentID)?.lists.length === 0) {
+				this.lists.get(list.name)?.delete(list.parentID)
+			}
 		}
 
 		// delete the lists by field lookups
