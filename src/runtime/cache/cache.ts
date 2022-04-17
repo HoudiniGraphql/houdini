@@ -8,10 +8,6 @@ import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
 import { computeID, keyFieldsForType } from '../config'
 
-// we need to generate an id when handling embedded lists in a response. rather than use the list index which isn't
-// stable in the face of list operations, or something like crypto.randomUUID which is slower than just some globally incrementing id
-let embeddedID = 0
-
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
 	// a second class to avoid users from relying on unstable APIs. typescript's private
@@ -900,7 +896,7 @@ class CacheInternal {
 
 			// start off building up the embedded id
 			// @ts-ignore
-			let linkedID = `${recordID}.${key}[${embeddedID++}]`
+			let linkedID = `${recordID}.${key}[${this.storage.nextRank}]`
 
 			// figure out if this is an embedded list or a linked one by looking for all of the fields marked as
 			// required to compute the entity's id

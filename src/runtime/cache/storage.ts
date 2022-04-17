@@ -9,6 +9,7 @@ import { flattenList } from './stuff'
 export class InMemoryStorage {
 	private data: Layer[]
 	private idCount = 0
+	private rank = 0
 
 	constructor() {
 		this.data = []
@@ -16,6 +17,10 @@ export class InMemoryStorage {
 
 	get layerCount(): number {
 		return this.data.length
+	}
+
+	get nextRank(): number {
+		return this.rank++
 	}
 
 	// create a layer and return its id
