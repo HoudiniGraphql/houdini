@@ -24,16 +24,7 @@ test('adequate ticks of garbage collector clear unsubscribed data', function () 
 			viewer: {
 				type: 'User',
 				keyRaw: 'viewer',
-				fields: {
-					id: {
-						type: 'ID',
-						keyRaw: 'id',
-					},
-					firstName: {
-						type: 'String',
-						keyRaw: 'firstName',
-					},
-				},
+				fields: userFields,
 			},
 		},
 		data: {
@@ -233,4 +224,42 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 	).toMatchObject({
 		data: null,
 	})
+})
+
+test('ticks of gc delete list handlers', function () {
+	const cache = new Cache(config)
+	const userFields = {
+		id: {
+			type: 'ID',
+			keyRaw: 'id',
+		},
+		firstName: {
+			type: 'String',
+			keyRaw: 'firstName',
+		},
+	}
+
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: userFields,
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				firstName: 'bob',
+			},
+		},
+	})
+
+	// tick the garbage collector enough times to fill up the buffer size
+	for (const _ of Array.from({ length: config.cacheBufferSize! })) {
+		cache._internal_unstable.collectGarbage()
+		expect(cache.read({ selection: userFields, parent: 'User:1' })).toMatchObject({
+			data: { id: '1' },
+		})
+	}
 })

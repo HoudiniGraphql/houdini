@@ -38,6 +38,8 @@ export class GarbageCollector {
 				// if the lifetime is older than the maximum value, delete the value
 				if (fieldMap.get(field)! > this.cacheBufferSize) {
 					this.cache._internal_unstable.storage.deleteField(id, field)
+					// if there is a list associated with this field, the handler needs to be deleted
+					this.cache._internal_unstable.lists.deleteField(id, field)
 
 					// delete the entry in lifetime map
 					fieldMap.delete(field)

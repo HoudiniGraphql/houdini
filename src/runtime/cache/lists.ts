@@ -13,6 +13,8 @@ export class ListManager {
 	// associate list names with the handler that wraps the list
 	lists: Map<string, Map<string, ListCollection>> = new Map()
 
+	private listsByField: Map<string, Map<string, List[]>> = new Map()
+
 	get(listName: string, id?: string) {
 		return this.lists.get(listName)?.get(id || this.rootID)
 	}
@@ -42,18 +44,31 @@ export class ListManager {
 		const name = list.name
 		const parentID = list.parentID || this.rootID
 
+		// if we already have a handler for the key, don't do anything
+		if (this.lists.get(name)?.get(parentID)?.includes(list.key)) {
+			return
+		}
+
 		if (!this.lists.has(name)) {
 			this.lists.set(name, new Map())
 		}
-		if (!this.lists.get(name)!.get(parentID)) {
+		if (!this.lists.get(name)!.has(parentID)) {
 			this.lists.get(name)!.set(parentID, new ListCollection([]))
 		}
 
-		// set the list reference
-		this.lists
-			.get(list.name)!
-			.get(parentID)!
-			.lists.push(new List({ ...list, manager: this }))
+		if (!this.listsByField.has(list.recordID)) {
+			this.listsByField.set(list.recordID, new Map())
+		}
+		if (!this.listsByField.get(list.recordID)!.has(list.key)) {
+			this.listsByField.get(list.recordID)?.set(list.key, [])
+		}
+
+		// create the list handler
+		const handler = new List({ ...list, manager: this })
+
+		// add the list to the collection
+		this.lists.get(list.name)!.get(parentID)!.lists.push(handler)
+		this.listsByField.get(list.recordID)!.get(list.key)!.push(handler)
 	}
 
 	removeIDFromAllLists(id: string) {
@@ -62,6 +77,21 @@ export class ListManager {
 				list.removeID(id)
 			}
 		}
+	}
+
+	deleteField(parentID: string, field: string) {
+		// if we have no lists associated with the parent/field combo, don't do anything
+		if (!this.listsByField.get(parentID)?.has(field)) {
+			return
+		}
+
+		// grab the list of fields associated with the parent/field combo
+		for (const list of this.listsByField.get(parentID)!.get(field)!) {
+			this.lists.get(list.name)?.get(list.parentID)?.deleteListWithKey(field)
+		}
+
+		// delete the lists by field lookups
+		this.listsByField.get(parentID)!.delete(field)
 	}
 }
 
@@ -74,7 +104,7 @@ export class List {
 	private _when?: ListWhen
 	private filters?: { [key: string]: number | boolean | string }
 	readonly name: string
-	readonly parentID: SubscriptionSpec['parentID']
+	readonly parentID: string
 	private connection: boolean
 	private manager: ListManager
 
@@ -99,7 +129,7 @@ export class List {
 		this._when = when
 		this.filters = filters
 		this.name = name
-		this.parentID = parentID
+		this.parentID = parentID || rootID
 		this.connection = connection
 		this.manager = manager
 	}
@@ -107,10 +137,7 @@ export class List {
 	// looks for the collection of all of the lists in the cache that satisfies a when
 	// condition
 	when(when?: ListWhen): ListCollection {
-		return this.manager.lists
-			.get(this.name)!
-			.get(this.parentID || rootID)!
-			.when(when)
+		return this.manager.lists.get(this.name)!.get(this.parentID)!.when(when)
 	}
 
 	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
@@ -409,6 +436,14 @@ export class ListCollection {
 				return list.validateWhen(when)
 			})
 		)
+	}
+
+	includes(key: string) {
+		return !!this.lists.find((list) => list.key === key)
+	}
+
+	deleteListWithKey(key: string) {
+		return (this.lists = this.lists.filter((list) => list.key !== key))
 	}
 
 	// iterating over the collection should be the same as iterating over

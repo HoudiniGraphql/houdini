@@ -5163,7 +5163,7 @@ __metadata:
     concurrently: ^6.2.1
     graphql: 15.5.0
     graphql-relay: ^0.8.0
-    houdini: ^0.13.9
+    houdini: ^0.14.0
     subscriptions-transport-ws: ^0.9.18
     svelte: ^3.38.2
     svelte-preprocess: ^4.0.0
@@ -6081,7 +6081,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini@^0.13.9, houdini@workspace:.":
+"houdini@^0.14.0, houdini@workspace:.":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:."
   dependencies:
