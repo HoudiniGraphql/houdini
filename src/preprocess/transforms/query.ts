@@ -205,7 +205,7 @@ function processInstance(
 			// @ts-ignore: babel's ast does something weird with comments, we won't use em
 			AST.exportNamedDeclaration(
 				AST.variableDeclaration('let', [
-					AST.variableDeclarator(AST.identifier(preloadKey), AST.identifier('undefined')),
+					AST.variableDeclarator(AST.identifier(preloadKey), AST.objectExpression([])),
 				])
 			),
 			AST.variableDeclaration('let', [

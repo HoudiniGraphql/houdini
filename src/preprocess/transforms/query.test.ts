@@ -57,7 +57,7 @@ describe('query preprocessor', function () {
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery = undefined;
+		export let _TestQuery = {};
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
@@ -171,7 +171,7 @@ describe('query preprocessor', function () {
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery2 = undefined;
+		export let _TestQuery2 = {};
 
 		let _TestQuery2_handler = query({
 		    "config": houdiniConfig,
@@ -183,7 +183,7 @@ describe('query preprocessor', function () {
 		    "source": _TestQuery2.source
 		});
 
-		export let _TestQuery1 = undefined;
+		export let _TestQuery1 = {};
 
 		let _TestQuery1_handler = query({
 		    "config": houdiniConfig,
@@ -305,7 +305,7 @@ describe('query preprocessor', function () {
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery = undefined;
+		export let _TestQuery = {};
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
@@ -388,7 +388,7 @@ describe('query preprocessor', function () {
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery = undefined;
+		export let _TestQuery = {};
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
@@ -446,7 +446,7 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		export let _TestQuery = undefined;
+		export let _TestQuery = {};
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
@@ -496,7 +496,7 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		export let _TestQuery = undefined;
+		export let _TestQuery = {};
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
@@ -546,7 +546,7 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		export let _TestQuery = undefined;
+		export let _TestQuery = {};
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
@@ -594,7 +594,7 @@ describe('query preprocessor', function () {
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery = undefined;
+		export let _TestQuery = {};
 
 		let _TestQuery_handler = paginatedQuery({
 		    "config": houdiniConfig,
@@ -649,7 +649,7 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		export let _TestQuery = undefined;
+		export let _TestQuery = {};
 
 		let _TestQuery_handler = query({
 		    "config": houdiniConfig,
@@ -1485,7 +1485,7 @@ test('2 queries, one paginated one not', async function () {
 
 	expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery2 = undefined;
+		export let _TestQuery2 = {};
 
 		let _TestQuery2_handler = paginatedQuery({
 		    "config": houdiniConfig,
@@ -1497,7 +1497,7 @@ test('2 queries, one paginated one not', async function () {
 		    "source": _TestQuery2.source
 		});
 
-		export let _TestQuery1 = undefined;
+		export let _TestQuery1 = {};
 
 		let _TestQuery1_handler = query({
 		    "config": houdiniConfig,
