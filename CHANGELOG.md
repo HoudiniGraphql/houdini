@@ -1,5 +1,11 @@
 # houdini
 
+## 0.14.3
+
+### Patch Changes
+
+-   [#283](https://github.com/HoudiniGraphql/houdini/pull/283) [`dd20142`](https://github.com/HoudiniGraphql/houdini/commit/dd201422f0359f44cf18b338ed4ecd0d13799149) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed bug in component queries associated with the unloaded response from `load`.
+
 ## 0.14.2
 
 ### Patch Changes
