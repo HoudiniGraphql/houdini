@@ -19,5 +19,11 @@ export default async function storesGenerator(config: Config, docs: CollectedGra
 		.join(`\n`)
 	await writeFile(path.join(config.rootDir, 'stores', `index.js`), dataIndex)
 
+	const dataIndexDTs = `export type Result<DataType> = {
+	from: 'CACHE' | 'NETWORK'
+	data?: DataType
+}`
+	await writeFile(path.join(config.rootDir, 'stores', `index.d.ts`), dataIndexDTs)
+
 	console.log('✅ Stores')
 }

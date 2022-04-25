@@ -15,7 +15,7 @@ export async function generateIndividualStore(config: Config, doc: CollectedGrap
 	const queriesStoreDTs: string[] = []
 
 	if (doc.kind === ArtifactKind.Query) {
-		const storeName = `${prefix}${doc.name}` // "KQL_AllItems"
+		const storeName = `${prefix}${doc.name}` // "KQL$$_AllItems"
 
 		// STORE
 		const queryStoreGenerated = `function ${storeName}Store() {
@@ -34,7 +34,7 @@ export async function generateIndividualStore(config: Config, doc: CollectedGrap
 
     // 2/ Not from Cache
     // ...
-    toReturn = { ...toReturn, ...{ data: 1, from: 'NETWORK' } }
+    toReturn = { ...toReturn, ...{ data: { value: 1 }, from: 'NETWORK' } }
 
     set(toReturn)
     return toReturn
@@ -58,25 +58,15 @@ export const ${storeName} = ${storeName}Store()`
 		// STORE END
 
 		// TYPES
-		const queryStoreGeneratedDTs = `export type ${storeName} = {
-  subscribe: (
-    this: void,
-    run: Subscriber<{
-      from: string
-      data: any
-    }>,
-    invalidate?: Invalidator<{
-      from: string
-      data: any
-    }>
-  ) => Unsubscriber
-  query: () => {
-    data: number
-    from: 'CACHE' | 'NETWORK'
-  }
+		const queryStoreGeneratedDTs = `import type { Result } from './index'
+
+type ${storeName}_data = {
+  value: number
 }
 
-export declare const ${storeName}: ${storeName}`
+export declare const ${storeName}: SvelteStore<Result<${storeName}_data>> & {
+  query: () => Result<${storeName}_data>
+}`
 		queriesStoreDTs.push(queryStoreGeneratedDTs)
 		// TYPES END
 
