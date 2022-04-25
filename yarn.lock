@@ -6126,7 +6126,7 @@ __metadata:
     remove: ^0.1.5
     rollup: 2.68.0
     rollup-plugin-typescript2: ^0.31.2
-    svelte: ^3.34.0
+    svelte: ^3.47.0
     ts-ast-serializer: ^1.0.1
     ts-jest: ^26.0.0
     ts-node: ^9.1.1
@@ -10933,17 +10933,17 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
-"svelte@npm:^3.34.0":
-  version: 3.35.0
-  resolution: "svelte@npm:3.35.0"
-  checksum: 80e0d5da1d23eb6f87aaa668e607536728e1b8c4803569e2314bc93e1b0a4d7ec0a0cf3b54c882c5a69dbda99b4d79583460b1db102d5802bd550b45cd6ff8c5
-  languageName: node
-  linkType: hard
-
 "svelte@npm:^3.38.2":
   version: 3.38.2
   resolution: "svelte@npm:3.38.2"
   checksum: e76e7c1408961160e55d5bf93745276804122da8f2896da7b877203cbe7e947f7654695a8bc3fdaf9506465c9cbc1daa3d68ee56811a56476ed7bb17b2c9ff94
+  languageName: node
+  linkType: hard
+
+"svelte@npm:^3.47.0":
+  version: 3.47.0
+  resolution: "svelte@npm:3.47.0"
+  checksum: 247892585543ab0fc4781e36d5469ad0ce8afd4c6c440639cb0c99564a0b435ee0838482443665a905e11b7f500a1cf68475bec6a938b668e1e73c2e0badfc4e
   languageName: node
   linkType: hard
 
