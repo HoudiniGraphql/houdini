@@ -54,6 +54,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			generators.typescript,
 			generators.persistOutput,
 			generators.schema,
+			generators.stores,
 		],
 		docs
 	)

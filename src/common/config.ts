@@ -155,6 +155,15 @@ export class Config {
 		return this.artifactDirectory
 	}
 
+	// the directory where we put all of the stores
+	get storesDirectory() {
+		return path.join(this.rootDir, this.storesDirectoryName)
+	}
+
+	private get storesDirectoryName() {
+		return 'stores'
+	}
+
 	// where we will place the runtime
 	get runtimeDirectory() {
 		return path.join(this.rootDir, 'runtime')
@@ -235,6 +244,7 @@ export class Config {
 			fs.mkdirp(this.artifactDirectory),
 			fs.mkdirp(this.artifactTypeDirectory),
 			fs.mkdirp(this.runtimeDirectory),
+			fs.mkdirp(this.storesDirectory),
 		])
 	}
 
