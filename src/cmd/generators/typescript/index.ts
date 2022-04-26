@@ -180,29 +180,55 @@ async function generateOperationTypeDefs(
 	)
 
 	// generate type for the afterload function
+	const properties: ReturnType<typeof readonlyProperty>[] = [
+		readonlyProperty(
+			AST.tsPropertySignature(
+				AST.stringLiteral('data'),
+				AST.tsTypeAnnotation(
+					AST.tsTypeLiteral([
+						readonlyProperty(
+							AST.tsPropertySignature(
+								AST.stringLiteral(definition.name!.value),
+								AST.tsTypeAnnotation(
+									AST.tsTypeReference(AST.identifier(shapeTypeName))
+								)
+							)
+						),
+					])
+				)
+			)
+		),
+	]
+
+	if (hasInputs) {
+		properties.splice(
+			0,
+			0,
+			readonlyProperty(
+				AST.tsPropertySignature(
+					AST.stringLiteral('input'),
+					AST.tsTypeAnnotation(
+						AST.tsTypeLiteral([
+							readonlyProperty(
+								AST.tsPropertySignature(
+									AST.stringLiteral(definition.name!.value),
+									AST.tsTypeAnnotation(
+										AST.tsTypeReference(AST.identifier(inputTypeName))
+									)
+								)
+							),
+						])
+					)
+				)
+			)
+		)
+	}
+
 	body.push(
 		AST.exportNamedDeclaration(
 			AST.tsTypeAliasDeclaration(
 				AST.identifier(afterLoadTypeName),
-				AST.tsTypeLiteral([
-					readonlyProperty(
-						AST.tsPropertySignature(
-							AST.stringLiteral('data'),
-							AST.tsTypeAnnotation(
-								AST.tsTypeLiteral([
-									readonlyProperty(
-										AST.tsPropertySignature(
-											AST.stringLiteral(definition.name!.value),
-											AST.tsTypeAnnotation(
-												AST.tsTypeReference(AST.identifier(shapeTypeName))
-											)
-										)
-									),
-								])
-							)
-						)
-					),
-				])
+				AST.tsTypeLiteral(properties)
 			)
 		)
 	)

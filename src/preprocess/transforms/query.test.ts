@@ -1003,6 +1003,10 @@ test('afterLoad hook', async function () {
 		        "framework": "sapper",
 		        "hookFn": afterLoad,
 
+		        "input": {
+		            "TestQuery": _TestQuery_Input
+		        },
+
 		        "data": {
 		            "TestQuery": _TestQuery.result.data
 		        }
@@ -1135,6 +1139,11 @@ test('afterLoad hook - multiple queries', async function () {
 		        "variant": "after",
 		        "framework": "sapper",
 		        "hookFn": afterLoad,
+
+		        "input": {
+		            "TestQuery1": _TestQuery1_Input,
+		            "TestQuery2": _TestQuery2_Input
+		        },
 
 		        "data": {
 		            "TestQuery1": _TestQuery1.result.data,
@@ -1283,6 +1292,10 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        "variant": "after",
 		        "framework": "sapper",
 		        "hookFn": afterLoad,
+
+		        "input": {
+		            "TestQuery": _TestQuery_Input
+		        },
 
 		        "data": {
 		            "TestQuery": _TestQuery.result.data

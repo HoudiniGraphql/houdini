@@ -713,6 +713,10 @@ function loadHookStatements(
 							...(name === 'afterLoad'
 								? [
 										AST.objectProperty(
+											AST.literal('input'),
+											afterLoadQueryInput(queries)
+										),
+										AST.objectProperty(
 											AST.literal('data'),
 											afterLoadQueryData(queries)
 										),
@@ -736,6 +740,19 @@ function loadHookStatements(
 			])
 		),
 	]
+}
+
+function afterLoadQueryInput(queries: EmbeddedGraphqlDocument[]) {
+	return AST.objectExpression(
+		queries.map(({ parsedDocument: { definitions } }) =>
+			AST.objectProperty(
+				AST.literal(
+					(definitions[0] as graphql.OperationDefinitionNode)?.name?.value || null
+				),
+				AST.identifier(variablesKey(definitions[0] as graphql.OperationDefinitionNode))
+			)
+		)
+	)
 }
 
 function afterLoadQueryData(queries: EmbeddedGraphqlDocument[]) {

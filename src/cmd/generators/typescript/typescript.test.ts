@@ -336,6 +336,9 @@ describe('typescript', function () {
 		};
 
 		export type Query$afterLoad = {
+		    readonly "input": {
+		        readonly "Query": Query$input
+		    },
 		    readonly "data": {
 		        readonly "Query": Query$result
 		    }
@@ -401,6 +404,9 @@ describe('typescript', function () {
 		};
 
 		export type Mutation$afterLoad = {
+		    readonly "input": {
+		        readonly "Mutation": Mutation$input
+		    },
 		    readonly "data": {
 		        readonly "Mutation": Mutation$result
 		    }
@@ -468,6 +474,9 @@ describe('typescript', function () {
 		};
 
 		export type Query$afterLoad = {
+		    readonly "input": {
+		        readonly "Query": Query$input
+		    },
 		    readonly "data": {
 		        readonly "Query": Query$result
 		    }
@@ -896,6 +905,9 @@ describe('typescript', function () {
 		};
 
 		export type Query$afterLoad = {
+		    readonly "input": {
+		        readonly "Query": Query$input
+		    },
 		    readonly "data": {
 		        readonly "Query": Query$result
 		    }
