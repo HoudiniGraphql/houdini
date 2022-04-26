@@ -403,15 +403,6 @@ describe('typescript', function () {
 		    } | null
 		};
 
-		export type Mutation$afterLoad = {
-		    readonly "input": {
-		        readonly "Mutation": Mutation$input
-		    },
-		    readonly "data": {
-		        readonly "Mutation": Mutation$result
-		    }
-		};
-
 		type NestedUserFilter = {
 		    id: string,
 		    firstName: string,

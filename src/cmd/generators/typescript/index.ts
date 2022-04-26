@@ -224,14 +224,16 @@ async function generateOperationTypeDefs(
 		)
 	}
 
-	body.push(
-		AST.exportNamedDeclaration(
-			AST.tsTypeAliasDeclaration(
-				AST.identifier(afterLoadTypeName),
-				AST.tsTypeLiteral(properties)
+	if (definition.operation === 'query') {
+		body.push(
+			AST.exportNamedDeclaration(
+				AST.tsTypeAliasDeclaration(
+					AST.identifier(afterLoadTypeName),
+					AST.tsTypeLiteral(properties)
+				)
 			)
 		)
-	)
+	}
 
 	// if there are variables in this query
 	if (hasInputs && definition.variableDefinitions && definition.variableDefinitions.length > 0) {
