@@ -69,6 +69,7 @@ export type FetchContext = {
 
 export type BeforeLoadContext = FetchContext
 export type AfterLoadContext = FetchContext & {
+	input: Record<string, any>
 	data: Record<string, any>
 }
 
@@ -318,11 +319,13 @@ export class RequestContext {
 		variant,
 		framework,
 		hookFn,
+		input,
 		data,
 	}: {
 		variant: 'before' | 'after'
 		framework: 'kit' | 'sapper'
 		hookFn: KitBeforeLoad | KitAfterLoad | SapperBeforeLoad | SapperAfterLoad
+		input: Record<string, any>
 		data: Record<string, any>
 	}) {
 		// call the onLoad function to match the framework
@@ -333,6 +336,7 @@ export class RequestContext {
 			} else {
 				hookCall = (hookFn as KitAfterLoad).call(this, {
 					...this.context,
+					input,
 					data,
 				} as AfterLoadContext)
 			}
@@ -349,7 +353,8 @@ export class RequestContext {
 					this,
 					this.context.page,
 					this.context.session,
-					data
+					data,
+					input
 				)
 			}
 		}
@@ -406,7 +411,8 @@ type SapperBeforeLoad = (
 type SapperAfterLoad = (
 	page: FetchContext['page'],
 	session: FetchContext['session'],
-	data: Record<string, any>
+	data: Record<string, any>,
+	input: Record<string, any>
 ) => Record<string, any>
 
 type KitBeforeLoad = (ctx: BeforeLoadContext) => Record<string, any>
