@@ -320,6 +320,11 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 				)
 				cached = true
 			}
+			// nothing cached
+			else {
+				// load the query
+				reload(variables)
+			}
 		}
 		// there was no error while computing the variables
 		else {
