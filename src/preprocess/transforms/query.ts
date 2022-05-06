@@ -108,6 +108,14 @@ export default async function queryProcessor(
 										AST.identifier('getProps'),
 										AST.arrowFunctionExpression([], AST.identifier('$$props'))
 									),
+									AST.objectProperty(
+										AST.identifier('getPage'),
+										AST.arrowFunctionExpression([], AST.identifier('$page'))
+									),
+									AST.objectProperty(
+										AST.identifier('getSession'),
+										AST.arrowFunctionExpression([], AST.identifier('$session'))
+									),
 							  ])
 					)
 				)
@@ -195,6 +203,11 @@ function processInstance(
 		['routeQuery', 'componentQuery', 'query'],
 		'$houdini'
 	)
+
+	if (!isRoute) {
+		// component queries need access to the page and session stores
+		ensureImports(config, script.content.body, ['page', 'session'], '$app/stores')
+	}
 
 	// add props to the component for every query while we're here
 
