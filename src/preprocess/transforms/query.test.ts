@@ -75,8 +75,7 @@ describe('query preprocessor', function () {
 		    queryHandler: _TestQuery_handler,
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
-		    variableFunction: null,
-		    getProps: () => $$props
+		    variableFunction: null
 		});
 
 		$:
@@ -201,8 +200,7 @@ describe('query preprocessor', function () {
 		    queryHandler: _TestQuery1_handler,
 		    config: houdiniConfig,
 		    artifact: _TestQuery1Artifact,
-		    variableFunction: null,
-		    getProps: () => $$props
+		    variableFunction: null
 		});
 
 		const {
@@ -211,8 +209,7 @@ describe('query preprocessor', function () {
 		    queryHandler: _TestQuery2_handler,
 		    config: houdiniConfig,
 		    artifact: _TestQuery2Artifact,
-		    variableFunction: null,
-		    getProps: () => $$props
+		    variableFunction: null
 		});
 
 		$:
@@ -323,8 +320,7 @@ describe('query preprocessor', function () {
 		    queryHandler: _TestQuery_handler,
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
-		    variableFunction: TestQueryVariables,
-		    getProps: () => $$props
+		    variableFunction: TestQueryVariables
 		});
 
 		$:
@@ -406,8 +402,7 @@ describe('query preprocessor', function () {
 		    queryHandler: _TestQuery_handler,
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
-		    variableFunction: null,
-		    getProps: () => $$props
+		    variableFunction: null
 		});
 
 		$:
@@ -612,8 +607,7 @@ describe('query preprocessor', function () {
 		    queryHandler: _TestQuery_handler,
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
-		    variableFunction: TestQueryVariables,
-		    getProps: () => $$props
+		    variableFunction: TestQueryVariables
 		});
 
 		$:
@@ -1528,8 +1522,7 @@ test('2 queries, one paginated one not', async function () {
 		    queryHandler: _TestQuery1_handler,
 		    config: houdiniConfig,
 		    artifact: _TestQuery1Artifact,
-		    variableFunction: TestQuery1Variables,
-		    getProps: () => $$props
+		    variableFunction: TestQuery1Variables
 		});
 
 		const {
@@ -1538,8 +1531,7 @@ test('2 queries, one paginated one not', async function () {
 		    queryHandler: _TestQuery2_handler,
 		    config: houdiniConfig,
 		    artifact: _TestQuery2Artifact,
-		    variableFunction: TestQuery2Variables,
-		    getProps: () => $$props
+		    variableFunction: TestQuery2Variables
 		});
 
 		$:

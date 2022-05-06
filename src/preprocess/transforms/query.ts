@@ -82,24 +82,35 @@ export default async function queryProcessor(
 			node.replaceWith(
 				// a non-route needs a little more information than the handler to fetch
 				// the query on mount
-				AST.objectExpression([
-					AST.objectProperty(AST.identifier('queryHandler'), handlerIdentifier),
-					AST.objectProperty(AST.identifier('config'), AST.identifier('houdiniConfig')),
-					AST.objectProperty(
-						AST.identifier('artifact'),
-						AST.identifier(artifactIdentifier(artifact))
-					),
-					AST.objectProperty(
-						AST.identifier('variableFunction'),
-						operation.variableDefinitions && operation.variableDefinitions.length > 0
-							? AST.identifier(queryInputFunction(artifact.name))
-							: AST.nullLiteral()
-					),
-					AST.objectProperty(
-						AST.identifier('getProps'),
-						AST.arrowFunctionExpression([], AST.identifier('$$props'))
-					),
-				])
+				AST.objectExpression(
+					[
+						AST.objectProperty(AST.identifier('queryHandler'), handlerIdentifier),
+						AST.objectProperty(
+							AST.identifier('config'),
+							AST.identifier('houdiniConfig')
+						),
+						AST.objectProperty(
+							AST.identifier('artifact'),
+							AST.identifier(artifactIdentifier(artifact))
+						),
+						AST.objectProperty(
+							AST.identifier('variableFunction'),
+							operation.variableDefinitions &&
+								operation.variableDefinitions.length > 0
+								? AST.identifier(queryInputFunction(artifact.name))
+								: AST.nullLiteral()
+						),
+					].concat(
+						...(isRoute
+							? []
+							: [
+									AST.objectProperty(
+										AST.identifier('getProps'),
+										AST.arrowFunctionExpression([], AST.identifier('$$props'))
+									),
+							  ])
+					)
+				)
 			)
 
 			// we also need to wrap the template tag in a function that knows how to convert the query
