@@ -6,13 +6,18 @@ import { Config } from '../../common'
 
 const AST = recast.types.builders
 
-export default function ensureImports(config: Config, body: Statement[], identifiers: string[]) {
+export default function ensureImports(
+	config: Config,
+	body: Statement[],
+	identifiers: string[],
+	sourceModule: string
+) {
 	const toImport = identifiers.filter(
 		(identifier) =>
 			!body.find(
 				(statement) =>
 					statement.type === 'ImportDeclaration' &&
-					statement.source.value === '$houdini' &&
+					statement.source.value === sourceModule &&
 					statement.specifiers.find(
 						(importSpecifier) =>
 							importSpecifier.type === 'ImportSpecifier' &&
@@ -28,7 +33,7 @@ export default function ensureImports(config: Config, body: Statement[], identif
 		body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
-			source: AST.stringLiteral('$houdini'),
+			source: AST.stringLiteral(sourceModule),
 			// @ts-ignore
 			specifiers: toImport.map((identifier) =>
 				AST.importSpecifier(AST.identifier(identifier), AST.identifier(identifier))
