@@ -25,6 +25,10 @@ export function getSession() {
     return stores().session
 }
 
+export function getPage() {
+	return stores().page
+}
+
 export function goTo(location, options) {
     go(location, options)
 }
@@ -40,6 +44,10 @@ export function getSession() {
     return getStores().session
 }
 
+export function getPage() {
+	return getStores().page
+}
+
 export function goTo(location, options) {
     go(location, options)
 }
@@ -49,6 +57,10 @@ export const isBrowser = browser
 
 const svelteAdapter = `
 export function getSession() {
+	return {}
+}
+
+export function getPage() {
 	return {}
 }
 

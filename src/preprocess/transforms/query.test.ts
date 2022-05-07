@@ -439,7 +439,6 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { page, session } from "$app/stores";
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		export let _TestQuery = {};
@@ -461,9 +460,7 @@ describe('query preprocessor', function () {
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: null,
-		    getProps: () => $$props,
-		    getPage: () => $page,
-		    getSession: () => $session
+		    getProps: () => $$props
 		});
 	`)
 	})
@@ -492,7 +489,6 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { page, session } from "$app/stores";
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		export let _TestQuery = {};
@@ -514,9 +510,7 @@ describe('query preprocessor', function () {
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: null,
-		    getProps: () => $$props,
-		    getPage: () => $page,
-		    getSession: () => $session
+		    getProps: () => $$props
 		});
 	`)
 	})
@@ -545,7 +539,6 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { page, session } from "$app/stores";
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		export let _TestQuery = {};
@@ -567,9 +560,7 @@ describe('query preprocessor', function () {
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: TestQueryVariables,
-		    getProps: () => $$props,
-		    getPage: () => $page,
-		    getSession: () => $session
+		    getProps: () => $$props
 		});
 	`)
 	})
@@ -650,7 +641,6 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { page, session } from "$app/stores";
 		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		export let _TestQuery = {};
@@ -672,9 +662,7 @@ describe('query preprocessor', function () {
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact,
 		    variableFunction: null,
-		    getProps: () => $$props,
-		    getPage: () => $page,
-		    getSession: () => $session
+		    getProps: () => $$props
 		});
 	`)
 	})
