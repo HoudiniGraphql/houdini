@@ -56,12 +56,17 @@ export const isBrowser = browser
 `
 
 const svelteAdapter = `
+import { readable, writable } from 'svelte/store'
+
+const session = writable({})
+const page = readable({})
+
 export function getSession() {
-	return {}
+	return session
 }
 
 export function getPage() {
-	return {}
+	return page
 }
 
 export function goTo(location, options) {
