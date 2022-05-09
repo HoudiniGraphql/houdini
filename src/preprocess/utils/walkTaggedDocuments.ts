@@ -111,7 +111,7 @@ export default async function walkTaggedDocuments(
 					}
 				}
 				// add the imports if they're not there
-				ensureImports(config, doc.module!.content.body, ['houdiniConfig'], '$houdini')
+				ensureImports(config, doc.module!.content.body, ['houdiniConfig'])
 
 				// invoker the walker's callback with the right context
 				await walker.onTag({

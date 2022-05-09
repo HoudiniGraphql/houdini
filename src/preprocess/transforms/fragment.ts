@@ -38,7 +38,7 @@ export default async function fragmentProcessor(
 		// if we found a tag we want to replace it with an object that the runtime can use
 		async onTag({ artifact, node, tagContent, parent }) {
 			// make sure that we have imported the document proxy constructor
-			ensureImports(config, doc.instance!.content.body, ['HoudiniDocumentProxy'], '$houdini')
+			ensureImports(config, doc.instance!.content.body, ['HoudiniDocumentProxy'])
 
 			// the local identifier for the artifact
 			const artifactVariable = artifactIdentifier(artifact)

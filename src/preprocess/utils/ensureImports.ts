@@ -10,7 +10,7 @@ export default function ensureImports(
 	config: Config,
 	body: Statement[],
 	identifiers: string[],
-	sourceModule: string
+	sourceModule: string = '$houdini'
 ) {
 	const toImport = identifiers.filter(
 		(identifier) =>

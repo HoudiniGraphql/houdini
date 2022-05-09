@@ -170,7 +170,7 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	}
 
 	// add the imports if they're not there
-	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext'], '$houdini')
+	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext'])
 
 	// add the kit preload function
 	addKitLoad(config, script.content.body, queries)
@@ -189,12 +189,7 @@ function processInstance(
 	functionNames: { [artifactName: string]: string }
 ) {
 	// make sure we have the imports we need
-	ensureImports(
-		config,
-		script.content.body,
-		['routeQuery', 'componentQuery', 'query'],
-		'$houdini'
-	)
+	ensureImports(config, script.content.body, ['routeQuery', 'componentQuery', 'query'])
 
 	// add props to the component for every query while we're here
 
@@ -666,7 +661,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 
 function addSapperPreload(config: Config, body: Statement[]) {
 	// make sure we have the utility that will do the conversion
-	ensureImports(config, body, ['convertKitPayload'], '$houdini')
+	ensureImports(config, body, ['convertKitPayload'])
 
 	// look for a preload definition
 	let preloadDefinition = findExportedFunction(body, 'preload')
