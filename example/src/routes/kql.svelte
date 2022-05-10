@@ -3,16 +3,14 @@
 	import { onMount } from 'svelte'
 
 	export async function load(args) {
-		// Todo: 1/ in server mode => ERROR => Cannot read properties of null (reading 'fetchQuery')
-		await KQL_AllItems.load({}, args)
+		await KQL_AllItems.load(args)
 		return {}
 	}
 </script>
 
 <script lang="ts">
 	onMount(async () => {
-		// Todo: 2/ in client mode => ERROR => this.fetch is not a function
-		await KQL_AllItems.query({})
+		await KQL_AllItems.query()
 	})
 </script>
 

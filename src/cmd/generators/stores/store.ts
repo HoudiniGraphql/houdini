@@ -37,15 +37,15 @@ function ${storeName}Store() {
 
   function query(args) {
     // use the last known context for the query
-    return queryLocal(args, context)
+    return queryLocal(context, args)
   }
 
-  function load(args, ctx) {
+  function load(ctx, args) {
     context = new RequestContext(ctx)
-    return queryLocal(args, ctx)
+    return queryLocal(ctx, args)
   }
 
-  async function queryLocal(params, ctx) {
+  async function queryLocal(ctx, params) {
     // get the current session
     const session = {}
     // the current context
@@ -150,8 +150,8 @@ type ${storeName}_data = {
 }
 
 export declare const ${storeName}: SvelteStore<Result<${storeName}_data>> & {
-  query: (args: {}) => Result<${storeName}_data>
-  load: (args: {}, context: {}) => Result<${storeName}_data>
+  query: (args?: {}) => Result<${storeName}_data>
+  load: (context: {}, args?: {}) => Result<${storeName}_data>
 }`
 		queriesStoreDTs.push(queryStoreGeneratedDTs)
 		// TYPES END
