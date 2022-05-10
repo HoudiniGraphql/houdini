@@ -42,7 +42,7 @@ function ${storeName}Store() {
 
   function load(ctx, args) {
     context = new RequestContext(ctx)
-    return queryLocal(ctx, args)
+    return queryLocal(context, args)
   }
 
   async function queryLocal(ctx, params) {
