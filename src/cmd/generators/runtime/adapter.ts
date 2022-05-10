@@ -25,6 +25,10 @@ export function getSession() {
     return stores().session
 }
 
+export function getPage() {
+	return stores().page
+}
+
 export function goTo(location, options) {
     go(location, options)
 }
@@ -40,6 +44,10 @@ export function getSession() {
     return getStores().session
 }
 
+export function getPage() {
+	return getStores().page
+}
+
 export function goTo(location, options) {
     go(location, options)
 }
@@ -48,8 +56,17 @@ export const isBrowser = browser
 `
 
 const svelteAdapter = `
+import { readable, writable } from 'svelte/store'
+
+const session = writable({})
+const page = readable({})
+
 export function getSession() {
-	return {}
+	return session
+}
+
+export function getPage() {
+	return page
 }
 
 export function goTo(location, options) {

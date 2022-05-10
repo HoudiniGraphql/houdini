@@ -336,6 +336,9 @@ describe('typescript', function () {
 		};
 
 		export type Query$afterLoad = {
+		    readonly "input": {
+		        readonly "Query": Query$input
+		    },
 		    readonly "data": {
 		        readonly "Query": Query$result
 		    }
@@ -400,12 +403,6 @@ describe('typescript', function () {
 		    } | null
 		};
 
-		export type Mutation$afterLoad = {
-		    readonly "data": {
-		        readonly "Mutation": Mutation$result
-		    }
-		};
-
 		type NestedUserFilter = {
 		    id: string,
 		    firstName: string,
@@ -468,6 +465,9 @@ describe('typescript', function () {
 		};
 
 		export type Query$afterLoad = {
+		    readonly "input": {
+		        readonly "Query": Query$input
+		    },
 		    readonly "data": {
 		        readonly "Query": Query$result
 		    }
@@ -896,6 +896,9 @@ describe('typescript', function () {
 		};
 
 		export type Query$afterLoad = {
+		    readonly "input": {
+		        readonly "Query": Query$input
+		    },
 		    readonly "data": {
 		        readonly "Query": Query$result
 		    }

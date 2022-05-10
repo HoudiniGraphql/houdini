@@ -1,6 +1,6 @@
 {
 	"name": "houdini",
-	"version": "0.14.3",
+	"version": "0.14.5",
 	"description": "The disappearing graphql client for SvelteKit",
 	"workspaces": [
 		"example",
@@ -88,7 +88,7 @@
 		"node-fetch": "^2.6.1",
 		"recast": "^0.20.4",
 		"remove": "^0.1.5",
-		"svelte": "^3.34.0"
+		"svelte": "^3.47.0"
 	},
 	"packageManager": "yarn@3.2.0"
 }
