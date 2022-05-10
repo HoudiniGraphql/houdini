@@ -3,7 +3,7 @@
 	"private": true,
 	"version": "0.13.0",
 	"scripts": {
-		"dev": "concurrently \"yarn web\" \"yarn api\"",
+		"dev": "concurrently \"yarn web\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
 		"build": "svelte-kit build",
 		"start": "svelte-kit start",
 		"generate": "rm -rf \"\\$houdini\" && houdini generate",
