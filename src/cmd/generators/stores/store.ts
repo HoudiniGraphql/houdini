@@ -16,7 +16,7 @@ export async function generateIndividualStore(config: Config, doc: CollectedGrap
 		// STORE
 		const queryStoreGenerated = `import { onDestroy, onMount } from 'svelte'
 import { writable } from 'svelte/store'
-import { CachePolicy, fetchQuery } from '../'
+import { CachePolicy, fetchQuery, RequestContext } from '../'
 import { ${artifactName} as artifact } from '../artifacts'
 import cache from '../runtime/cache'
 
@@ -32,18 +32,30 @@ function ${storeName}Store() {
   // the last known variables
   let variables = {}
 
-  async function queryLocal(params) {
+  // the last known page context
+  let context = {}
+
+  function query(args) {
+    // use the last known context for the query
+    return queryLocal(args, context)
+  }
+
+  function load(args, ctx) {
+    context = new RequestContext(ctx)
+    return queryLocal(args, ctx)
+  }
+
+  async function queryLocal(params, ctx) {
     // get the current session
     const session = {}
     // the current context
-    const context = {}
     //fetch => to check: https://github.com/sveltejs/kit/issues/2979
 
     // default params values if no params are passed
     params = params ?? { variables: {} }
 
     let toReturn = await fetchQuery({
-      context,
+      context: ctx,
       artifact,
       variables: params.variables,
       session,
@@ -111,9 +123,15 @@ function ${storeName}Store() {
     subscribe,
 
     /**
-     * Will trigger the query
+     * Will trigger the query at any time
      */
-    query: queryLocal,
+    query,
+
+    /**
+     * Trigger the query on load
+     */
+    load,
+
 
     // We don't want to give the option to set or update the store manually
     // set, update
@@ -132,7 +150,8 @@ type ${storeName}_data = {
 }
 
 export declare const ${storeName}: SvelteStore<Result<${storeName}_data>> & {
-  query: () => Result<${storeName}_data>
+  query: (args: {}) => Result<${storeName}_data>
+  load: (args: {}, context: {}) => Result<${storeName}_data>
 }`
 		queriesStoreDTs.push(queryStoreGeneratedDTs)
 		// TYPES END
