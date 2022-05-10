@@ -6,37 +6,104 @@ import { writeFile } from '../../utils'
 export async function generateIndividualStore(config: Config, doc: CollectedGraphQLDocument) {
 	const prefix = 'KQL_'
 
-	const imports = [
-		// `import { browser } from '$app/env'`,
-		`import { writable } from 'svelte/store'`,
-	]
-
 	const queriesStore: string[] = []
 	const queriesStoreDTs: string[] = []
 
 	if (doc.kind === ArtifactKind.Query) {
-		const storeName = `${prefix}${doc.name}` // "KQL$$_AllItems"
+		const storeName = `${prefix}${doc.name}` // "1 => KQL_All$Items"
+		const artifactName = `${doc.name}` // "2 => All$Items"
 
 		// STORE
-		const queryStoreGenerated = `function ${storeName}Store() {
-  const operationName = '${storeName}'
-  const { subscribe, set, update } = writable({ from: 'NO_DATA', data: null })
+		const queryStoreGenerated = `import { onDestroy, onMount } from 'svelte'
+import { writable } from 'svelte/store'
+import { CachePolicy, fetchQuery } from '../'
+import { ${artifactName} as artifact } from '../artifacts'
+import cache from '../runtime/cache'
 
-  async function queryLocal() {
-    // 0/ Prepare the result
-    let toReturn = {
-      from: 'CACHE',
-      data: null,
+// NOTES:
+// - reactive statement invoking onLoad doesn't need to exist because queryLocal
+//   is invoked for every load
+// - refetch is just calling query
+// - cache policies aren't implemented yet
+
+function ${storeName}Store() {
+  const { subscribe, set } = writable({ from: 'NO_DATA', data: null })
+
+  // the last known variables
+  let variables = {}
+
+  async function queryLocal(params) {
+    // get the current session
+    const session = {}
+    // the current context
+    const context = {}
+    //fetch => to check: https://github.com/sveltejs/kit/issues/2979
+
+    // default params values if no params are passed
+    params = params ?? { variables: {} }
+
+    let toReturn = await fetchQuery({
+      context,
+      artifact,
+      variables: params.variables,
+      session,
+      cached: artifact.policy !== CachePolicy.NetworkOnly,
+    })
+
+    // TODO: only write to the cache when the cache policy says this is a valid response
+    // maybe not?
+
+    // when the store mounts we need to setup a subscription for new values from the cache
+    let subscriptionSpec = null
+
+    onMount(() => {
+      // if we're already subscribing, don't do anything
+      if (subscriptionSpec) {
+        return
+      }
+
+      subscriptionSpec = {
+        rootType: artifact.rootType,
+        selection: artifact.selection,
+        variables: () => params.variables,
+        set: store.set,
+      }
+
+      cache.subscribe(subscriptionSpec, variables)
+    })
+
+    onDestroy(() => {
+      if (subscriptionSpec) {
+        cache.unsubscribe(subscriptionSpec, variables)
+        subscriptionSpec = null
+      }
+    })
+
+    // TODO: be smarter than JSON.stringify
+    const updated = JSON.stringify(variables) !== JSON.stringify(params.variables)
+
+    // if the variables changed we need to unsubscribe from the old fields and
+    // listen to the new ones
+    if (updated && subscriptionSpec) {
+      cache.unsubscribe(subscriptionSpec, variables)
     }
 
-    // 1/ From Cache?
-    // ...
+    // update the cache with the data that we just ran into
+    cache.write({
+      selection: artifact.selection,
+      data,
+      variables: params.variables,
+    })
 
-    // 2/ Not from Cache
-    // ...
-    toReturn = { ...toReturn, ...{ data: { value: 1 }, from: 'NETWORK' } }
+    if (updated && subscriptionSpec) {
+      cache.subscribe(subscriptionSpec, newVariables)
+    }
+
+    // update the variable tracker
+    variables = params.variables
 
     set(toReturn)
+
     return toReturn
   }
 
@@ -46,7 +113,7 @@ export async function generateIndividualStore(config: Config, doc: CollectedGrap
     /**
      * Will trigger the query
      */
-    query: queryLocal(),
+    query: queryLocal,
 
     // We don't want to give the option to set or update the store manually
     // set, update
@@ -70,11 +137,15 @@ export declare const ${storeName}: SvelteStore<Result<${storeName}_data>> & {
 		queriesStoreDTs.push(queryStoreGeneratedDTs)
 		// TYPES END
 
-		const data = imports.join(`\n`) + `\n` + queriesStore.join(`\n`)
-		await writeFile(path.join(config.rootDir, 'stores', `${storeName}.js`), data)
+		await writeFile(
+			path.join(config.rootDir, 'stores', `${storeName}.js`),
+			queriesStore.join(`\n`)
+		)
 
-		const dataDTs = queriesStoreDTs.join(`\n`)
-		await writeFile(path.join(config.rootDir, 'stores', `${storeName}.d.ts`), dataDTs)
+		await writeFile(
+			path.join(config.rootDir, 'stores', `${storeName}.d.ts`),
+			queriesStoreDTs.join(`\n`)
+		)
 
 		console.log(`✅ ${storeName} store`)
 
