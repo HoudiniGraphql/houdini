@@ -1,5 +1,5 @@
 // externals
-import { Readable, writable, readable } from 'svelte/store'
+import { Readable, get, writable, readable } from 'svelte/store'
 import { onDestroy, onMount } from 'svelte'
 // locals
 import type { ConfigFile } from './config'
@@ -19,7 +19,7 @@ import { marshalInputs, unmarshalSelection } from './scalars'
 import type { FetchQueryResult } from './network'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession, goTo, isBrowser } from './adapter.mjs'
+import { getSession, getPage, goTo, isBrowser } from './adapter.mjs'
 
 export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -286,7 +286,12 @@ export const componentQuery = <_Data extends GraphQLObject, _Input>({
 		variables = marshalInputs({
 			artifact,
 			config,
-			input: variableFunction?.call(variableContext, { props: getProps() }) || {},
+			input:
+				variableFunction?.call(variableContext, {
+					page: get(getPage()),
+					session: get(getSession()),
+					props: getProps(),
+				}) || {},
 		}) as _Input
 	}
 
