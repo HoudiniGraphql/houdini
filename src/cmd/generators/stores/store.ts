@@ -10,88 +10,72 @@ export async function generateIndividualStore(config: Config, doc: CollectedGrap
 	const queriesStoreDTs: string[] = []
 
 	if (doc.kind === ArtifactKind.Query) {
-		const storeName = `${prefix}${doc.name}` // "1 => KQL_All$Items"
-		const artifactName = `${doc.name}` // "2 => All$Items"
+		const storeName = `${prefix}${doc.name}` // "1 => KQL_All$Items" => ${storeName}
+		const artifactName = `${doc.name}` // "2 => All$Items" => ${artifactName}
 
 		// STORE
-		const queryStoreGenerated = `import { onDestroy, onMount } from 'svelte'
-import { writable } from 'svelte/store'
-import { CachePolicy, fetchQuery, RequestContext } from '../'
+		const queryStoreGenerated = `import { writable } from 'svelte/store'
 import { ${artifactName} as artifact } from '../artifacts'
+import { CachePolicy, fetchQuery, RequestContext } from '../runtime'
+import { getPage, getSession, isBrowser } from '../runtime/adapter.mjs'
 import cache from '../runtime/cache'
 
-// NOTES:
-// - reactive statement invoking onLoad doesn't need to exist because queryLocal
-//   is invoked for every load
-// - refetch is just calling query
-// - cache policies aren't implemented yet
+// TODO:
+// - [ ] cache policies aren't implemented yet
+// - [ ] smarter than JSON.stringify to compare if it's updated
+// - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
 
 function ${storeName}Store() {
   const { subscribe, set } = writable({ from: 'NO_DATA', data: null })
 
-  // the last known variables
+  // Track subscriptions
+  let subscriptionSpec = null
+
+  // Current variables tracker
   let variables = {}
 
-  // the last known page context
-  let context = {}
-
-  function query(args) {
-    // use the last known context for the query
-    return queryLocal(context, args)
+  async function queryLoad(ctx, params) {
+    const context = new RequestContext(ctx)
+    return await queryLocal(context, params)
   }
 
-  function load(ctx, args) {
-    context = new RequestContext(ctx)
-    return queryLocal(context, args)
+  async function query(params) {
+    const context = new RequestContext({
+      page: getPage(),
+      fetch: fetch,
+      session: getSession(),
+    })
+
+    return await queryLocal(context, params)
   }
 
-  async function queryLocal(ctx, params) {
-    // get the current session
-    const session = {}
-    // the current context
-    //fetch => to check: https://github.com/sveltejs/kit/issues/2979
-
+  async function queryLocal(context, params) {
     // default params values if no params are passed
     params = params ?? { variables: {} }
 
     let toReturn = await fetchQuery({
-      context: ctx,
+      context,
       artifact,
       variables: params.variables,
-      session,
+      session: context.session,
       cached: artifact.policy !== CachePolicy.NetworkOnly,
     })
 
-    // TODO: only write to the cache when the cache policy says this is a valid response
-    // maybe not?
-
-    // when the store mounts we need to setup a subscription for new values from the cache
-    let subscriptionSpec = null
-
-    onMount(() => {
+    // setup a subscription for new values from the cache
+    if (isBrowser) {
       // if we're already subscribing, don't do anything
       if (subscriptionSpec) {
         return
       }
-
       subscriptionSpec = {
         rootType: artifact.rootType,
         selection: artifact.selection,
         variables: () => params.variables,
-        set: store.set,
+        set: set,
       }
-
       cache.subscribe(subscriptionSpec, variables)
-    })
+    }
 
-    onDestroy(() => {
-      if (subscriptionSpec) {
-        cache.unsubscribe(subscriptionSpec, variables)
-        subscriptionSpec = null
-      }
-    })
-
-    // TODO: be smarter than JSON.stringify
     const updated = JSON.stringify(variables) !== JSON.stringify(params.variables)
 
     // if the variables changed we need to unsubscribe from the old fields and
@@ -103,7 +87,7 @@ function ${storeName}Store() {
     // update the cache with the data that we just ran into
     cache.write({
       selection: artifact.selection,
-      data,
+      data: toReturn.result.data,
       variables: params.variables,
     })
 
@@ -111,7 +95,7 @@ function ${storeName}Store() {
       cache.subscribe(subscriptionSpec, newVariables)
     }
 
-    // update the variable tracker
+    // update Current variables tracker
     variables = params.variables
 
     set(toReturn)
@@ -120,39 +104,58 @@ function ${storeName}Store() {
   }
 
   return {
-    subscribe,
+    subscribe: (...args) => {
+      subscribe(...args)
+
+      // Handle unsubscribe
+      return () => {
+        if (subscriptionSpec) {
+          cache.unsubscribe(subscriptionSpec, variables)
+          subscriptionSpec = null
+        }
+      }
+    },
 
     /**
-     * Will trigger the query at any time
+     * Trigger the query form load function
+     */
+    queryLoad,
+
+    /**
+     * Trigger the query form client side (a component for example)
      */
     query,
-
-    /**
-     * Trigger the query on load
-     */
-    load,
-
 
     // We don't want to give the option to set or update the store manually
     // set, update
   }
 }
 
-export const ${storeName} = ${storeName}Store()`
+export const ${storeName} = ${storeName}Store()
+    `
 		queriesStore.push(queryStoreGenerated)
 		// STORE END
 
 		// TYPES
-		const queryStoreGeneratedDTs = `import type { Result } from './index'
+		const queryStoreGeneratedDTs = `import type { LoadInput } from '@sveltejs/kit'
+import type { Result } from './index'
 
 type ${storeName}_data = {
   value: number
 }
 
+type ${storeName}_params = {
+  variables: {}
+}
+
 export declare const ${storeName}: SvelteStore<Result<${storeName}_data>> & {
-  query: (args?: {}) => Result<${storeName}_data>
-  load: (context: {}, args?: {}) => Result<${storeName}_data>
-}`
+  query: (params?: ${storeName}_params) => Promise<Result<${storeName}_data>>
+  queryLoad: (
+    loadInput: LoadInput,
+    params?: ${storeName}_params
+  ) => Promise<Result<${storeName}_data>>
+}    
+    `
 		queriesStoreDTs.push(queryStoreGeneratedDTs)
 		// TYPES END
 

@@ -23,7 +23,10 @@ export default async function storesGenerator(config: Config, docs: CollectedGra
 	from: 'CACHE' | 'NETWORK'
 	data?: DataType
 }`
-	await writeFile(path.join(config.rootDir, 'stores', `index.d.ts`), dataIndexDTs)
+	await writeFile(
+		path.join(config.rootDir, 'stores', `index.d.ts`),
+		dataIndexDTs + `\n` + dataIndex
+	)
 
 	console.log('✅ Stores')
 }

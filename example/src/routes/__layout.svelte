@@ -19,6 +19,9 @@
 </svelte:head>
 
 <section class="todoapp">
+	<a href="/all">Original</a>
+	<a href="/kql">Store</a>
+	<hr />
 	<slot />
 </section>
 

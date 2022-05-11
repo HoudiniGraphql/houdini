@@ -4,7 +4,7 @@
 <script context="module">
 	export async function load() {
 		return {
-			redirect: 'all',
+			redirect: 'kql',
 			status: 302,
 		}
 	}

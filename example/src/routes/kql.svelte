@@ -1,17 +1,16 @@
 <script context="module" lang="ts">
-	import { KQL_AllItems } from '$houdini/stores/KQL_AllItems' // Todo lighten the import to from '$houdini'
-	import { onMount } from 'svelte'
+	import { browser } from '$app/env'
+	import { KQL_AllItems } from '$houdini'
+	import type { LoadInput } from '@sveltejs/kit'
 
-	export async function load(args) {
-		await KQL_AllItems.load(args)
+	export async function load(loadInput: LoadInput) {
+		// await KQL_AllItems.queryLoad(loadInput)
 		return {}
 	}
 </script>
 
 <script lang="ts">
-	onMount(async () => {
-		await KQL_AllItems.query()
-	})
+	$: browser && KQL_AllItems.query()
 </script>
 
 <h1>Store 👇</h1>
