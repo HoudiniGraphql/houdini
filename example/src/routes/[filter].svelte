@@ -1,30 +1,31 @@
 <script context="module" lang="ts">
-	export function AllItemsVariables({ page }) {
+	export function AllItemsVariables({ params }) {
 		// if there is no filter assigned, dont enforce one in the query
-		if (!page.params.filter || page.params.filter === 'all') {
+		if (!params.filter || params.filter === 'all') {
 			return {}
 		}
 
 		// make sure we recognize the value
-		if (!['active', 'completed', 'all'].includes(page.params.filter)) {
+		if (!['active', 'completed', 'all'].includes(params.filter)) {
 			return this.error(400, "filter must be one of 'active' or 'completed'")
 		}
 
 		return {
-			completed: page.params.filter === 'completed',
+			completed: params.filter === 'completed',
 		}
 	}
 </script>
 
 <script lang="ts">
 	import { page } from '$app/stores'
-	import { graphql, mutation, paginatedQuery, subscription, type AddItem, type AllItems } from '$houdini'
+	import type { AddItem, AllItems } from '$houdini'
+	import { graphql, mutation, paginatedQuery, subscription } from '$houdini'
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { derived } from 'svelte/store'
 
 	// load the items
 	const { data, pageInfo, loadNextPage } = paginatedQuery<AllItems>(graphql`
-		query AllItems($completed: Boolean) @cache(policy: CacheAndNetwork) {
+		query AllItems($completed: Boolean) @cache(policy: CacheOrNetwork) {
 			filteredItems: items(completed: $completed, first: 2)
 				@paginate(name: "Filtered_Items") {
 				edges {
@@ -73,9 +74,9 @@
 
 	// figure out the current page
 	const currentPage = derived(page, ($page) => {
-		if ($page.path.includes('active')) {
+		if ($page.url.pathname.includes('active')) {
 			return 'active'
-		} else if ($page.path.includes('completed')) {
+		} else if ($page.url.pathname.includes('completed')) {
 			return 'completed'
 		}
 		return 'all'
