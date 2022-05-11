@@ -1,6 +1,7 @@
-import { Environment, SubscriptionHandler } from '$houdini'
-import { SubscriptionClient } from 'subscriptions-transport-ws'
 import { browser } from '$app/env'
+import type { SubscriptionHandler } from '$houdini'
+import { Environment } from '$houdini'
+import { SubscriptionClient } from 'subscriptions-transport-ws'
 
 const API_URL = 'localhost:4000/graphql'
 
