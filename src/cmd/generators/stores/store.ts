@@ -26,7 +26,7 @@ import cache from '../runtime/cache'
 // - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
 
 function ${storeName}Store() {
-  const { subscribe, set } = writable({ from: 'NO_DATA', data: null })
+  const { subscribe, set } = writable({ partial: false, result: null, source: null })
 
   // Track subscriptions
   let subscriptionSpec = null
@@ -41,9 +41,9 @@ function ${storeName}Store() {
 
   async function query(params) {
     const context = new RequestContext({
-      page: getPage(),
+      //page: getPage(), // getStores issue!
       fetch: fetch,
-      session: getSession(),
+      //session: getSession(),
     })
 
     return await queryLocal(context, params)
@@ -74,29 +74,29 @@ function ${storeName}Store() {
         set: set,
       }
       cache.subscribe(subscriptionSpec, variables)
+
+      const updated = JSON.stringify(variables) !== JSON.stringify(params.variables)
+
+      // if the variables changed we need to unsubscribe from the old fields and
+      // listen to the new ones
+      if (updated && subscriptionSpec) {
+        cache.unsubscribe(subscriptionSpec, variables)
+      }
+
+      // update the cache with the data that we just ran into
+      cache.write({
+        selection: artifact.selection,
+        data: toReturn.result.data,
+        variables: params.variables,
+      })
+
+      if (updated && subscriptionSpec) {
+        cache.subscribe(subscriptionSpec, params.variables)
+      }
+
+      // update Current variables tracker
+      variables = params.variables
     }
-
-    const updated = JSON.stringify(variables) !== JSON.stringify(params.variables)
-
-    // if the variables changed we need to unsubscribe from the old fields and
-    // listen to the new ones
-    if (updated && subscriptionSpec) {
-      cache.unsubscribe(subscriptionSpec, variables)
-    }
-
-    // update the cache with the data that we just ran into
-    cache.write({
-      selection: artifact.selection,
-      data: toReturn.result.data,
-      variables: params.variables,
-    })
-
-    if (updated && subscriptionSpec) {
-      cache.subscribe(subscriptionSpec, newVariables)
-    }
-
-    // update Current variables tracker
-    variables = params.variables
 
     set(toReturn)
 
@@ -132,20 +132,19 @@ function ${storeName}Store() {
 }
 
 export const ${storeName} = ${storeName}Store()
-    `
+`
 		queriesStore.push(queryStoreGenerated)
 		// STORE END
 
 		// TYPES
-		const queryStoreGeneratedDTs = `import type { LoadInput } from '@sveltejs/kit'
+		const queryStoreGeneratedDTs = `import type { ${artifactName}$input, ${artifactName}$result } from '$houdini'
+import type { LoadInput } from '@sveltejs/kit'
 import type { Result } from './index'
 
-type ${storeName}_data = {
-  value: number
-}
+type ${storeName}_data = ${artifactName}$result | undefined
 
 type ${storeName}_params = {
-  variables: {}
+  variables: ${artifactName}$input
 }
 
 export declare const ${storeName}: SvelteStore<Result<${storeName}_data>> & {
@@ -154,8 +153,8 @@ export declare const ${storeName}: SvelteStore<Result<${storeName}_data>> & {
     loadInput: LoadInput,
     params?: ${storeName}_params
   ) => Promise<Result<${storeName}_data>>
-}    
-    `
+}
+`
 		queriesStoreDTs.push(queryStoreGeneratedDTs)
 		// TYPES END
 

@@ -17,9 +17,9 @@
 </script>
 
 <script lang="ts">
-	import { paginatedQuery, graphql, mutation, subscription, AddItem, AllItems } from '$houdini'
-	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { page } from '$app/stores'
+	import { graphql, mutation, paginatedQuery, subscription, type AddItem, type AllItems } from '$houdini'
+	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { derived } from 'svelte/store'
 
 	// load the items
