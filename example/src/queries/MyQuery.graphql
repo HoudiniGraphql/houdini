@@ -1,0 +1,11 @@
+query MyQuery($completed: Boolean) {
+	items(completed: $completed, first: 2) {
+		edges {
+			node {
+				id
+				completed
+				...ItemEntry_item
+			}
+		}
+	}
+}

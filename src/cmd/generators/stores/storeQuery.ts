@@ -157,7 +157,7 @@ function ${storeName}Store() {
 
   return {
     subscribe: (...args) => {
-      subscribe(...args)
+      const parentUnsubscribe = subscribe(...args)
 
       // Handle unsubscribe
       return () => {
@@ -165,6 +165,8 @@ function ${storeName}Store() {
           cache.unsubscribe(subscriptionSpec, variables)
           subscriptionSpec = null
         }
+
+        parentUnsubscribe()
       }
     },
 
