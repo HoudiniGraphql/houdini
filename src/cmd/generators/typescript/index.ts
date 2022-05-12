@@ -96,7 +96,10 @@ export default async function typescriptGenerator(
 					null
 				)
 			})
-			.concat([AST.exportAllDeclaration(AST.literal('./runtime'), null)])
+			.concat([
+				AST.exportAllDeclaration(AST.literal('./runtime'), null),
+				AST.exportAllDeclaration(AST.literal('./stores'), null),
+			])
 	)
 
 	// write the contents

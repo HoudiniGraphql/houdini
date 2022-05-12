@@ -1,18 +1,34 @@
 <script context="module" lang="ts">
-	import { KQL_AllItems } from '$houdini/stores/KQL_AllItems' // Todo lighten the import to from '$houdini'
-	import { onMount } from 'svelte'
+	// import { browser } from '$app/env'
+	import { GQL_AllItems } from '$houdini'
+	import type { LoadInput } from '@sveltejs/kit'
 
-	export async function load(args) {
-		await KQL_AllItems.load(args)
+	export async function load(loadInput: LoadInput) {
+		// Option 1: in Load (SSR)
+		await GQL_AllItems.queryLoad(loadInput, { variables: { completed: true } })
 		return {}
 	}
 </script>
 
 <script lang="ts">
-	onMount(async () => {
-		await KQL_AllItems.query()
-	})
+	// Option 2: in component (CSR)
+	// $: browser && GQL_AllItems.query()
+
+	async function all() {
+		await GQL_AllItems.query()
+	}
+	async function active() {
+		await GQL_AllItems.query({ variables: { completed: false } })
+	}
+	async function completed() {
+		let ttt = await GQL_AllItems.query({ variables: { completed: true } })
+	}
 </script>
 
-<h1>Store 👇</h1>
-{JSON.stringify($KQL_AllItems, null, 2)}
+<h1>Store</h1>
+
+<button on:click={all}>All</button>
+<button on:click={active}>Active</button>
+<button on:click={completed}>Completed</button>
+<hr />
+{JSON.stringify($GQL_AllItems, null, 2)}

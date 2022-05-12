@@ -518,6 +518,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export * from "./artifacts/Query";
 		export * from "./runtime";
+		export * from "./stores";
 	`)
 	})
 

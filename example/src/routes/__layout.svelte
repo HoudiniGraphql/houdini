@@ -1,15 +1,15 @@
 <script context="module">
-	import env from '../environment'
+	import { browser } from '$app/env'
 	import { setEnvironment } from '$houdini'
 	import cache from '$houdini/runtime/cache'
-	import { browser } from '$app/env'
+	import { houdiniClient } from '$lib/graphql/houdiniClient_2'
 
 	if (browser) {
 		// @ts-ignore
 		window.cache = cache
 	}
 
-	setEnvironment(env)
+	setEnvironment(houdiniClient)
 </script>
 
 <svelte:head>
@@ -19,6 +19,10 @@
 </svelte:head>
 
 <section class="todoapp">
+	<a href="/all">Original</a>
+	<a href="/kql">Store</a>
+	<a href="/nothing">Nothing</a>
+	<hr />
 	<slot />
 </section>
 
