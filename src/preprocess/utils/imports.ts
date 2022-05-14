@@ -1,12 +1,35 @@
-// externals
 import * as recast from 'recast'
 import { Statement } from '@babel/types'
-// locals
 import { Config } from '../../common'
+import { storeIdentifier } from './identifiers'
 
 const AST = recast.types.builders
 
-export default function ensureImports(
+export function artifactImport(config: Config, { name }: { name: string }): Statement {
+	return {
+		type: 'ImportDeclaration',
+		// @ts-ignore
+		source: AST.literal(config.artifactImportPath(name)),
+		specifiers: [
+			// @ts-ignore
+			AST.importDefaultSpecifier(storeIdentifier({ name })),
+		],
+	}
+}
+
+export function storeImport(config: Config, { name }: { name: string }): Statement {
+	return {
+		type: 'ImportDeclaration',
+		// @ts-ignore
+		source: AST.literal(config.storeImportPath(name)),
+		specifiers: [
+			// @ts-ignore
+			AST.importDefaultSpecifier(storeIdentifier({ name })),
+		],
+	}
+}
+
+export function ensureImports(
 	config: Config,
 	body: Statement[],
 	identifiers: string[],

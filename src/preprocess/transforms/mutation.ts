@@ -34,10 +34,7 @@ export default async function mutationProcessor(
 			node.replaceWith(
 				AST.objectExpression([
 					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-					AST.objectProperty(
-						AST.literal('artifact'),
-						AST.identifier(artifactIdentifier(artifact))
-					),
+					AST.objectProperty(AST.literal('artifact'), artifactIdentifier(artifact)),
 					AST.objectProperty(
 						AST.stringLiteral('config'),
 						AST.identifier('houdiniConfig')

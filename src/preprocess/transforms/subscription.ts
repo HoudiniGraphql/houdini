@@ -41,7 +41,7 @@ export default async function subscriptionProcessor(
 			node.replaceWith(
 				AST.objectExpression([
 					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-					AST.objectProperty(AST.literal('artifact'), AST.identifier(artifactVariable)),
+					AST.objectProperty(AST.literal('artifact'), artifactVariable),
 					AST.objectProperty(AST.literal('config'), AST.identifier('houdiniConfig')),
 				])
 			)

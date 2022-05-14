@@ -5,12 +5,10 @@ import { writeFile } from '../../utils'
 import { log, logGreen } from '../../../common/log'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {
-	const prefix = 'GQL_'
-
 	const queriesStore: string[] = []
 	const queriesStoreDTs: string[] = []
 
-	const storeName = `${prefix}${doc.name}` // "1 => GQL_All$Items" => ${storeName}
+	const storeName = config.storeName(doc) // "1 => GQL_All$Items" => ${storeName}
 	const artifactName = `${doc.name}` // "2 => All$Items" => ${artifactName}
 
 	// STORE
@@ -148,7 +146,10 @@ function ${storeName}Store() {
 
     set({
       ...toReturn,
-      result: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
+      result: {
+        ...toReturn.result,
+        data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
+      },
       isFetching: false,
     })
 
@@ -171,7 +172,7 @@ function ${storeName}Store() {
     },
 
     // For SSR
-    queryLoad,
+    load,
 
     // For CSR
     query,
@@ -202,7 +203,7 @@ export declare const ${storeName}: SvelteStore<Result<${storeName}_data>> & {
   /**
    * Trigger the query form load function
    */
-  queryLoad: (
+  load: (
     loadInput: LoadInput,
     params?: ${storeName}_params
   ) => Promise<Result<${storeName}_data>>

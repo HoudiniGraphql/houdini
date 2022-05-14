@@ -195,6 +195,15 @@ export class Config {
 		return `$houdini/${this.artifactDirectoryName}/${name}`
 	}
 
+	// the path that the runtime can use to import a store
+	storeImportPath(name: string): string {
+		return `$houdini/${this.storesDirectoryName}/${this.storeName({ name })}`
+	}
+
+	storeName({ name }: { name: string }) {
+		return `GQL_${name}`
+	}
+
 	keyFieldsForType(type: string) {
 		return keyFieldsForType(this.configFile, type)
 	}

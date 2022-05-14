@@ -5,7 +5,7 @@
 
 	export async function load(loadInput: LoadInput) {
 		// Option 1: in Load (SSR)
-		await GQL_AllItems.queryLoad(loadInput, { variables: { completed: true } })
+		await GQL_AllItems.load(loadInput, { variables: { completed: true } })
 		return {}
 	}
 </script>
