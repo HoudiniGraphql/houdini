@@ -17,6 +17,7 @@ import {
 	ensureImports,
 	storeIdentifier,
 } from '../utils'
+import { ArtifactKind } from '../../runtime'
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
@@ -53,9 +54,6 @@ export default async function queryProcessor(
 	// note: we'll  replace the tags as we discover them with something the runtime library can use
 	const queries: EmbeddedGraphqlDocument[] = []
 
-	// remember the function that the document is passed to
-	let functionNames: { [queryName: string]: string } = {}
-
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
 		// with only one definition defining a fragment
@@ -81,6 +79,10 @@ export default async function queryProcessor(
 				// the query on mount
 				AST.objectExpression(
 					[
+						AST.objectProperty(
+							AST.identifier('kind'),
+							AST.stringLiteral(ArtifactKind.Query)
+						),
 						AST.objectProperty(AST.identifier('store'), storeIdentifier(artifact)),
 						AST.objectProperty(
 							AST.identifier('component'),

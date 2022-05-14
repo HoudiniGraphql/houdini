@@ -2488,6 +2488,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sveltejs/kit@npm:^1.0.0-next.330":
+  version: 1.0.0-next.330
+  resolution: "@sveltejs/kit@npm:1.0.0-next.330"
+  dependencies:
+    "@sveltejs/vite-plugin-svelte": ^1.0.0-next.32
+    chokidar: ^3.5.3
+    sade: ^1.7.4
+    vite: ^2.9.0
+  peerDependencies:
+    svelte: ^3.44.0
+  bin:
+    svelte-kit: svelte-kit.js
+  checksum: 15f4bb4975c6b5e12f98c61eabc6988bd66fd04c9a5295a4f5d2b388951aa14f6b0b4724f0cd7563d775ba3deeee2eb6b315beb6a3fdec7d89c935a8086324d1
+  languageName: node
+  linkType: hard
+
 "@sveltejs/vite-plugin-svelte@npm:^1.0.0-next.32":
   version: 1.0.0-next.43
   resolution: "@sveltejs/vite-plugin-svelte@npm:1.0.0-next.43"
@@ -6372,6 +6388,7 @@ __metadata:
     "@rollup/plugin-commonjs": beta
     "@rollup/plugin-json": ^4.1.0
     "@rollup/plugin-node-resolve": ^13.2.0
+    "@sveltejs/kit": ^1.0.0-next.330
     "@types/fs-extra": ^9.0.13
     "@types/glob": ^7.2.0
     "@types/inquirer": ^7.3.1

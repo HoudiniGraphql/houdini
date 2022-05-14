@@ -1,5 +1,7 @@
+import { Readable } from 'svelte/store'
 import type { ConfigFile } from './config'
 import { HoudiniDocumentProxy } from './proxy'
+import type { LoadInput } from '@sveltejs/kit'
 
 export enum CachePolicy {
 	CacheOrNetwork = 'CacheOrNetwork',
@@ -96,6 +98,30 @@ export type TaggedGraphqlFragment = {
 	paginationArtifact?: QueryArtifact
 	proxy: HoudiniDocumentProxy
 }
+export type QueryResult<DataType> = {
+	isFetching: boolean
+	partial: boolean
+	source?: DataSource | null
+	data?: DataType | null
+	error: Error | null
+}
+
+export type StoreParams<_Input> = {
+	variables?: _Input
+	policy?: CachePolicy
+}
+
+export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
+	/**
+	 * Trigger the query form load function
+	 */
+	load: (loadInput: LoadInput, params?: StoreParams<_Input>) => Promise<QueryResult<_Data>>
+
+	/**
+	 * Trigger the query form client side (a component for example)
+	 */
+	query: (params?: StoreParams<_Input>) => Promise<QueryResult<_Data>>
+}
 
 // the result of tagging an operation
 export type TaggedGraphqlMutation = {
@@ -114,12 +140,8 @@ export type TaggedGraphqlSubscription = {
 // the result of tagging an operation
 export type TaggedGraphqlQuery = {
 	kind: 'HoudiniQuery'
-	initialValue: any
-	variables: { [key: string]: any }
-	artifact: QueryArtifact
-	config: ConfigFile
-	source: DataSource
-	partial: boolean
+	component: boolean
+	store: QueryStore<any, any>
 }
 
 type Filter = { [key: string]: string | boolean | number }

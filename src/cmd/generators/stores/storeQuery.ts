@@ -189,8 +189,7 @@ export const ${storeName} = ${storeName}Store()
 
 	// TYPES
 	const queryStoreGeneratedDTs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
-import type { LoadInput } from '@sveltejs/kit'
-import type { Result } from './index'
+import { QueryStore } from '../runtime/types'
 
 type ${storeName}_data = ${artifactName}$result | undefined
 
@@ -199,20 +198,7 @@ type ${storeName}_params = {
   policy?: CachePolicy
 }
 
-export declare const ${storeName}: SvelteStore<Result<${storeName}_data>> & {
-  /**
-   * Trigger the query form load function
-   */
-  load: (
-    loadInput: LoadInput,
-    params?: ${storeName}_params
-  ) => Promise<Result<${storeName}_data>>
-
-  /**
-   * Trigger the query form client side (a component for example)
-   */
-  query: (params?: ${storeName}_params) => Promise<Result<${storeName}_data>>
-}
+export declare const ${storeName}: QueryStore<${storeName}_data, ${artifactName}$input>
   `
 	queriesStoreDTs.push(queryStoreGeneratedDTs)
 	// TYPES END
