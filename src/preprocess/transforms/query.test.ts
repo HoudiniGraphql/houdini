@@ -33,7 +33,7 @@ describe('query preprocessor', function () {
 		    });
 
 		    if (!_TestQuery.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery);
+		        _houdini_context.graphqlErrors(_TestQuery.result);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -151,14 +151,14 @@ describe('query preprocessor', function () {
 		    const _TestQuery2 = await _TestQuery2Promise;
 
 		    if (!_TestQuery2.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery2);
+		        _houdini_context.graphqlErrors(_TestQuery2.result);
 		        return _houdini_context.returnValue;
 		    }
 
 		    const _TestQuery1 = await _TestQuery1Promise;
 
 		    if (!_TestQuery1.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery1);
+		        _houdini_context.graphqlErrors(_TestQuery1.result);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -240,7 +240,7 @@ describe('query preprocessor', function () {
 		    });
 
 		    if (!_TestQuery.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery);
+		        _houdini_context.graphqlErrors(_TestQuery.result);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -295,7 +295,7 @@ describe('query preprocessor', function () {
 		    });
 
 		    if (!_TestQuery.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery);
+		        _houdini_context.graphqlErrors(_TestQuery.result);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -562,7 +562,7 @@ test('beforeLoad hook', async function () {
 		    });
 
 		    if (!_TestQuery.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery);
+		        _houdini_context.graphqlErrors(_TestQuery.result);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -648,14 +648,14 @@ test('beforeLoad hook - multiple queries', async function () {
 		    const _TestQuery2 = await _TestQuery2Promise;
 
 		    if (!_TestQuery2.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery2);
+		        _houdini_context.graphqlErrors(_TestQuery2.result);
 		        return _houdini_context.returnValue;
 		    }
 
 		    const _TestQuery1 = await _TestQuery1Promise;
 
 		    if (!_TestQuery1.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery1);
+		        _houdini_context.graphqlErrors(_TestQuery1.result);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -728,7 +728,7 @@ test('afterLoad hook', async function () {
 		    });
 
 		    if (!_TestQuery.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery);
+		        _houdini_context.graphqlErrors(_TestQuery.result);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -821,14 +821,14 @@ test('afterLoad hook - multiple queries', async function () {
 		    const _TestQuery2 = await _TestQuery2Promise;
 
 		    if (!_TestQuery2.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery2);
+		        _houdini_context.graphqlErrors(_TestQuery2.result);
 		        return _houdini_context.returnValue;
 		    }
 
 		    const _TestQuery1 = await _TestQuery1Promise;
 
 		    if (!_TestQuery1.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery1);
+		        _houdini_context.graphqlErrors(_TestQuery1.result);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -931,7 +931,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		    });
 
 		    if (!_TestQuery.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery);
+		        _houdini_context.graphqlErrors(_TestQuery.result);
 		        return _houdini_context.returnValue;
 		    }
 
@@ -1024,7 +1024,7 @@ test('deprecated onLoad hook', async function () {
 		    });
 
 		    if (!_TestQuery.result.data) {
-		        _houdini_context.graphqlErrors(_TestQuery);
+		        _houdini_context.graphqlErrors(_TestQuery.result);
 		        return _houdini_context.returnValue;
 		    }
 

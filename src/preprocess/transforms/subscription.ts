@@ -59,7 +59,7 @@ export default async function subscriptionProcessor(
 				source: AST.literal(config.artifactImportPath(artifact.name)),
 				specifiers: [
 					// @ts-ignore
-					importStatement(AST.identifier(artifactVariable)),
+					importStatement(artifactVariable),
 				],
 			})
 		},

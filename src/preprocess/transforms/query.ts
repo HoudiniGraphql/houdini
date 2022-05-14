@@ -312,7 +312,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 				AST.expressionStatement(
 					AST.callExpression(
 						AST.memberExpression(requestContext, AST.identifier('graphqlErrors')),
-						[AST.identifier(preloadKey)]
+						[AST.memberExpression(AST.identifier(preloadKey), AST.identifier('result'))]
 					)
 				),
 				AST.returnStatement(retValue),
