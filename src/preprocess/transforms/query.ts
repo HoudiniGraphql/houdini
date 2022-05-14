@@ -75,31 +75,16 @@ export default async function queryProcessor(
 			// add the document to the list
 			queries.push(tag)
 
-			// dry up some values
-			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-			const handlerIdentifier = queryHandlerIdentifier(operation)
-
 			// the "actual" value of a template tag depends on wether its a route or component
 			node.replaceWith(
 				// a non-route needs a little more information than the handler to fetch
 				// the query on mount
 				AST.objectExpression(
 					[
-						AST.objectProperty(AST.identifier('queryHandler'), handlerIdentifier),
+						AST.objectProperty(AST.identifier('store'), storeIdentifier(artifact)),
 						AST.objectProperty(
-							AST.identifier('config'),
-							AST.identifier('houdiniConfig')
-						),
-						AST.objectProperty(
-							AST.identifier('artifact'),
-							artifactIdentifier(artifact)
-						),
-						AST.objectProperty(
-							AST.identifier('variableFunction'),
-							operation.variableDefinitions &&
-								operation.variableDefinitions.length > 0
-								? AST.identifier(queryInputFunction(artifact.name))
-								: AST.nullLiteral()
+							AST.identifier('component'),
+							AST.booleanLiteral(!isRoute)
 						),
 					].concat(
 						...(isRoute
@@ -113,16 +98,6 @@ export default async function queryProcessor(
 					)
 				)
 			)
-
-			// we also need to wrap the template tag in a function that knows how to convert the query
-			// handler into a value that's useful for the operation context (route vs component)
-			const callParent = parent as namedTypes.CallExpression
-			if (callParent.type === 'CallExpression' && callParent.callee.type === 'Identifier') {
-				// need to make sure that we call the same function we were passed to
-				functionNames[artifactIdentifier(artifact).name] = callParent.callee.name
-				// update the function called for the environment
-				callParent.callee.name = isRoute ? 'routeQuery' : 'componentQuery'
-			}
 		},
 	})
 
@@ -152,123 +127,6 @@ export default async function queryProcessor(
 		// every document will need to be imported
 		for (const document of queries) {
 			doc.instance.content.body.unshift(storeImport(config, document.artifact))
-		}
-	}
-	processInstance(config, isRoute, doc.instance, queries, functionNames)
-}
-
-function processInstance(
-	config: Config,
-	isRoute: boolean,
-	script: Script,
-	queries: EmbeddedGraphqlDocument[],
-	functionNames: { [artifactName: string]: string }
-) {
-	// make sure we have the imports we need
-	ensureImports(config, script.content.body, ['routeQuery', 'componentQuery', 'query'])
-
-	// add props to the component for every query while we're here
-
-	// find the first non import statement
-	const propInsertIndex = script.content.body.findIndex(
-		(expression) => expression.type !== 'ImportDeclaration'
-	)
-
-	// this happens for every document in the page, make sure we handle that correctly.
-
-	// every query document we ran into creates a local variable as well as a new key in the returned value of
-	// the preload function as well as a prop declaration in the instance script
-	for (const document of queries) {
-		const operation = document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-		// figure out the local variable that holds the result
-		const preloadKey = preloadPayloadKey(operation)
-
-		const { artifact, parsedDocument } = document
-
-		// prop declarations needs to be added to the top of the document
-		script.content.body.splice(
-			propInsertIndex,
-			0,
-			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [
-					AST.variableDeclarator(AST.identifier(preloadKey), AST.objectExpression([])),
-				])
-			),
-			AST.variableDeclaration('let', [
-				AST.variableDeclarator(
-					queryHandlerIdentifier(operation),
-					AST.callExpression(
-						AST.identifier(functionNames[artifactIdentifier(artifact).name]),
-						[
-							AST.objectExpression([
-								AST.objectProperty(
-									AST.stringLiteral('config'),
-									AST.identifier('houdiniConfig')
-								),
-								AST.objectProperty(
-									AST.stringLiteral('initialValue'),
-									AST.memberExpression(
-										AST.identifier(preloadKey),
-										AST.identifier('result')
-									)
-								),
-								AST.objectProperty(
-									AST.stringLiteral('variables'),
-									AST.memberExpression(
-										AST.identifier(preloadKey),
-										AST.identifier('variables')
-									)
-								),
-								AST.objectProperty(
-									AST.stringLiteral('partial'),
-									AST.memberExpression(
-										AST.identifier(preloadKey),
-										AST.identifier('partial')
-									)
-								),
-								AST.objectProperty(
-									AST.literal('kind'),
-									AST.stringLiteral(artifact.kind)
-								),
-								AST.objectProperty(
-									AST.literal('artifact'),
-									artifactIdentifier(artifact)
-								),
-								AST.objectProperty(
-									AST.literal('source'),
-									AST.memberExpression(
-										AST.identifier(preloadKey),
-										AST.identifier('source')
-									)
-								),
-							]),
-						]
-					)
-				),
-			])
-		)
-
-		// reactive statements to synchronize state with query updates need to be at the bottom (where everything
-		// will have a definition)
-		if (isRoute) {
-			script.content.body.push(
-				// @ts-ignore: babel's ast does something weird with comments, we won't use em
-				AST.labeledStatement(
-					AST.identifier('$'),
-					AST.blockStatement([
-						AST.expressionStatement(
-							AST.callExpression(
-								AST.memberExpression(
-									queryHandlerIdentifier(operation),
-									AST.identifier('onLoad')
-								),
-								[AST.identifier(preloadKey)]
-							)
-						),
-					])
-				)
-			)
 		}
 	}
 }

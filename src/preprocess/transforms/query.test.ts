@@ -45,32 +45,12 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery = {};
-
-		let _TestQuery_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery.result,
-		    "variables": _TestQuery.variables,
-		    "partial": _TestQuery.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact,
-		    "source": _TestQuery.source
-		});
-
 		const {
 		    data
-		} = routeQuery({
-		    queryHandler: _TestQuery_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    variableFunction: null
+		} = query({
+		    store: _TestQueryStore,
+		    component: false
 		});
-
-		$:
-		{
-		    _TestQuery_handler.onLoad(_TestQuery);
-		}
 	`)
 	})
 
@@ -109,58 +89,19 @@ describe('query preprocessor', function () {
 		export async function load() {}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery2 = {};
-
-		let _TestQuery2_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery2.result,
-		    "variables": _TestQuery2.variables,
-		    "partial": _TestQuery2.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQuery2Artifact,
-		    "source": _TestQuery2.source
-		});
-
-		export let _TestQuery1 = {};
-
-		let _TestQuery1_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery1.result,
-		    "variables": _TestQuery1.variables,
-		    "partial": _TestQuery1.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQuery1Artifact,
-		    "source": _TestQuery1.source
-		});
-
 		const {
 		    data: data1
-		} = routeQuery({
-		    queryHandler: _TestQuery1_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQuery1Artifact,
-		    variableFunction: null
+		} = query({
+		    store: _TestQuery1Store,
+		    component: false
 		});
 
 		const {
 		    data: data2
-		} = routeQuery({
-		    queryHandler: _TestQuery2_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQuery2Artifact,
-		    variableFunction: null
+		} = query({
+		    store: _TestQuery2Store,
+		    component: false
 		});
-
-		$:
-		{
-		    _TestQuery1_handler.onLoad(_TestQuery1);
-		}
-
-		$:
-		{
-		    _TestQuery2_handler.onLoad(_TestQuery2);
-		}
 	`)
 	})
 
@@ -229,58 +170,19 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery2 = {};
-
-		let _TestQuery2_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery2.result,
-		    "variables": _TestQuery2.variables,
-		    "partial": _TestQuery2.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQuery2Artifact,
-		    "source": _TestQuery2.source
-		});
-
-		export let _TestQuery1 = {};
-
-		let _TestQuery1_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery1.result,
-		    "variables": _TestQuery1.variables,
-		    "partial": _TestQuery1.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQuery1Artifact,
-		    "source": _TestQuery1.source
-		});
-
 		const {
 		    data: data1
-		} = routeQuery({
-		    queryHandler: _TestQuery1_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQuery1Artifact,
-		    variableFunction: null
+		} = query({
+		    store: _TestQuery1Store,
+		    component: false
 		});
 
 		const {
 		    data: data2
-		} = routeQuery({
-		    queryHandler: _TestQuery2_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQuery2Artifact,
-		    variableFunction: null
+		} = query({
+		    store: _TestQuery2Store,
+		    component: false
 		});
-
-		$:
-		{
-		    _TestQuery1_handler.onLoad(_TestQuery1);
-		}
-
-		$:
-		{
-		    _TestQuery2_handler.onLoad(_TestQuery2);
-		}
 	`)
 	})
 
@@ -350,32 +252,12 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery = {};
-
-		let _TestQuery_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery.result,
-		    "variables": _TestQuery.variables,
-		    "partial": _TestQuery.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact,
-		    "source": _TestQuery.source
-		});
-
 		const {
 		    data
-		} = routeQuery({
-		    queryHandler: _TestQuery_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    variableFunction: TestQueryVariables
+		} = query({
+		    store: _TestQueryStore,
+		    component: false
 		});
-
-		$:
-		{
-		    _TestQuery_handler.onLoad(_TestQuery);
-		}
 	`)
 	})
 
@@ -421,32 +303,12 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery = {};
-
-		let _TestQuery_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery.result,
-		    "variables": _TestQuery.variables,
-		    "partial": _TestQuery.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact,
-		    "source": _TestQuery.source
-		});
-
 		const {
 		    data
-		} = routeQuery({
-		    queryHandler: _TestQuery_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    variableFunction: null
+		} = query({
+		    store: _TestQueryStore,
+		    component: false
 		});
-
-		$:
-		{
-		    _TestQuery_handler.onLoad(_TestQuery);
-		}
 	`)
 	})
 
@@ -477,27 +339,13 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryStore from "$houdini/stores/GQL_TestQuery";
-		export let _TestQuery = {};
-
-		let _TestQuery_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery.result,
-		    "variables": _TestQuery.variables,
-		    "partial": _TestQuery.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact,
-		    "source": _TestQuery.source
-		});
 
 		const {
 		    data
-		} = componentQuery({
-		    queryHandler: _TestQuery_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    variableFunction: null,
+		} = query({
+		    store: _TestQueryStore,
+		    component: true,
 		    getProps: () => $$props
 		});
 	`)
@@ -527,27 +375,13 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryStore from "$houdini/stores/GQL_TestQuery";
-		export let _TestQuery = {};
-
-		let _TestQuery_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery.result,
-		    "variables": _TestQuery.variables,
-		    "partial": _TestQuery.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact,
-		    "source": _TestQuery.source
-		});
 
 		const {
 		    data
-		} = componentQuery({
-		    queryHandler: _TestQuery_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    variableFunction: null,
+		} = query({
+		    store: _TestQueryStore,
+		    component: true,
 		    getProps: () => $$props
 		});
 	`)
@@ -577,27 +411,13 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryStore from "$houdini/stores/GQL_TestQuery";
-		export let _TestQuery = {};
-
-		let _TestQuery_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery.result,
-		    "variables": _TestQuery.variables,
-		    "partial": _TestQuery.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact,
-		    "source": _TestQuery.source
-		});
 
 		const {
 		    data
-		} = componentQuery({
-		    queryHandler: _TestQuery_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    variableFunction: TestQueryVariables,
+		} = query({
+		    store: _TestQueryStore,
+		    component: true,
 		    getProps: () => $$props
 		});
 	`)
@@ -626,32 +446,12 @@ describe('query preprocessor', function () {
 		`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery = {};
-
-		let _TestQuery_handler = paginatedQuery({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery.result,
-		    "variables": _TestQuery.variables,
-		    "partial": _TestQuery.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact,
-		    "source": _TestQuery.source
-		});
-
 		const {
 		    data
-		} = routeQuery({
-		    queryHandler: _TestQuery_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    variableFunction: TestQueryVariables
+		} = paginatedQuery({
+		    store: _TestQueryStore,
+		    component: false
 		});
-
-		$:
-		{
-		    _TestQuery_handler.onLoad(_TestQuery);
-		}
 	`)
 	})
 
@@ -679,27 +479,13 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
 		import _TestQueryStore from "$houdini/stores/GQL_TestQuery";
-		export let _TestQuery = {};
-
-		let _TestQuery_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery.result,
-		    "variables": _TestQuery.variables,
-		    "partial": _TestQuery.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQueryArtifact,
-		    "source": _TestQuery.source
-		});
 
 		const {
 		    data
-		} = componentQuery({
-		    queryHandler: _TestQuery_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    variableFunction: null,
+		} = query({
+		    store: _TestQueryStore,
+		    component: true,
 		    getProps: () => $$props
 		});
 	`)
@@ -1275,57 +1061,18 @@ test('2 queries, one paginated one not', async function () {
 	)
 
 	expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { routeQuery, componentQuery, query } from "$houdini";
-		export let _TestQuery2 = {};
-
-		let _TestQuery2_handler = paginatedQuery({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery2.result,
-		    "variables": _TestQuery2.variables,
-		    "partial": _TestQuery2.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQuery2Artifact,
-		    "source": _TestQuery2.source
-		});
-
-		export let _TestQuery1 = {};
-
-		let _TestQuery1_handler = query({
-		    "config": houdiniConfig,
-		    "initialValue": _TestQuery1.result,
-		    "variables": _TestQuery1.variables,
-		    "partial": _TestQuery1.partial,
-		    "kind": "HoudiniQuery",
-		    "artifact": _TestQuery1Artifact,
-		    "source": _TestQuery1.source
-		});
-
 		const {
 		    data
-		} = routeQuery({
-		    queryHandler: _TestQuery1_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQuery1Artifact,
-		    variableFunction: TestQuery1Variables
+		} = query({
+		    store: _TestQuery1Store,
+		    component: false
 		});
 
 		const {
 		    data: data2
-		} = routeQuery({
-		    queryHandler: _TestQuery2_handler,
-		    config: houdiniConfig,
-		    artifact: _TestQuery2Artifact,
-		    variableFunction: TestQuery2Variables
+		} = paginatedQuery({
+		    store: _TestQuery2Store,
+		    component: false
 		});
-
-		$:
-		{
-		    _TestQuery1_handler.onLoad(_TestQuery1);
-		}
-
-		$:
-		{
-		    _TestQuery2_handler.onLoad(_TestQuery2);
-		}
 	`)
 })
