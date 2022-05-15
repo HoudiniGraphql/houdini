@@ -5,7 +5,7 @@ export * from './types'
 export * from './proxy'
 export * from './config'
 
-export { query, routeQuery, componentQuery } from './query'
+export { query } from './query'
 export { mutation } from './mutation'
 export { fragment } from './fragment'
 export { subscription } from './subscription'

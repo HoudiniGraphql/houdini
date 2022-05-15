@@ -16,8 +16,9 @@ import {
 	artifactIdentifier,
 	ensureImports,
 	storeIdentifier,
+	artifactImport,
 } from '../utils'
-import { ArtifactKind } from '../../runtime'
+import { ArtifactKind } from '../../runtime/types'
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
@@ -69,6 +70,7 @@ export default async function queryProcessor(
 		onTag(tag: EmbeddedGraphqlDocument) {
 			// pull out what we need
 			const { node, parsedDocument, parent, artifact, tagContent } = tag
+			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 
 			// add the document to the list
 			queries.push(tag)
@@ -87,6 +89,21 @@ export default async function queryProcessor(
 						AST.objectProperty(
 							AST.identifier('component'),
 							AST.booleanLiteral(!isRoute)
+						),
+						AST.objectProperty(
+							AST.identifier('variableFunction'),
+							operation.variableDefinitions &&
+								operation.variableDefinitions.length > 0
+								? AST.identifier(queryInputFunction(artifact.name))
+								: AST.nullLiteral()
+						),
+						AST.objectProperty(
+							AST.identifier('config'),
+							AST.identifier('houdiniConfig')
+						),
+						AST.objectProperty(
+							AST.identifier('artifact'),
+							artifactIdentifier(artifact)
 						),
 					].concat(
 						...(isRoute
@@ -125,10 +142,10 @@ export default async function queryProcessor(
 	if (isRoute) {
 		processModule(config, doc.module!, queries)
 	} else {
-		// we need to make sure to import all of the artifacts in the instance script
-		// every document will need to be imported
+		// we need to make sure to import all of the artifacts and stores in the instance script
 		for (const document of queries) {
 			doc.instance.content.body.unshift(storeImport(config, document.artifact))
+			doc.instance.content.body.unshift(artifactImport(config, document.artifact))
 		}
 	}
 }

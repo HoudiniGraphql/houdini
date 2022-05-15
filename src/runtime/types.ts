@@ -142,6 +142,10 @@ export type TaggedGraphqlQuery = {
 	kind: 'HoudiniQuery'
 	component: boolean
 	store: QueryStore<any, any>
+	config: ConfigFile
+	variableFunction: ((...args: any[]) => any) | null
+	artifact: QueryArtifact
+	getProps: () => any
 }
 
 type Filter = { [key: string]: string | boolean | number }

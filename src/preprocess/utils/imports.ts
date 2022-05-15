@@ -1,7 +1,7 @@
 import * as recast from 'recast'
 import { Statement } from '@babel/types'
 import { Config } from '../../common'
-import { storeIdentifier } from './identifiers'
+import { artifactIdentifier, storeIdentifier } from './identifiers'
 
 const AST = recast.types.builders
 
@@ -12,7 +12,7 @@ export function artifactImport(config: Config, { name }: { name: string }): Stat
 		source: AST.literal(config.artifactImportPath(name)),
 		specifiers: [
 			// @ts-ignore
-			AST.importDefaultSpecifier(storeIdentifier({ name })),
+			AST.importDefaultSpecifier(artifactIdentifier({ name })),
 		],
 	}
 }

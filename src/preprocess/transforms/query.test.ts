@@ -48,8 +48,12 @@ describe('query preprocessor', function () {
 		const {
 		    data
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQueryStore,
-		    component: false
+		    component: false,
+		    variableFunction: null,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact
 		});
 	`)
 	})
@@ -92,15 +96,23 @@ describe('query preprocessor', function () {
 		const {
 		    data: data1
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQuery1Store,
-		    component: false
+		    component: false,
+		    variableFunction: null,
+		    config: houdiniConfig,
+		    artifact: _TestQuery1Artifact
 		});
 
 		const {
 		    data: data2
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQuery2Store,
-		    component: false
+		    component: false,
+		    variableFunction: null,
+		    config: houdiniConfig,
+		    artifact: _TestQuery2Artifact
 		});
 	`)
 	})
@@ -173,15 +185,23 @@ describe('query preprocessor', function () {
 		const {
 		    data: data1
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQuery1Store,
-		    component: false
+		    component: false,
+		    variableFunction: null,
+		    config: houdiniConfig,
+		    artifact: _TestQuery1Artifact
 		});
 
 		const {
 		    data: data2
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQuery2Store,
-		    component: false
+		    component: false,
+		    variableFunction: null,
+		    config: houdiniConfig,
+		    artifact: _TestQuery2Artifact
 		});
 	`)
 	})
@@ -255,8 +275,12 @@ describe('query preprocessor', function () {
 		const {
 		    data
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQueryStore,
-		    component: false
+		    component: false,
+		    variableFunction: TestQueryVariables,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact
 		});
 	`)
 	})
@@ -306,8 +330,12 @@ describe('query preprocessor', function () {
 		const {
 		    data
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQueryStore,
-		    component: false
+		    component: false,
+		    variableFunction: null,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact
 		});
 	`)
 	})
@@ -339,13 +367,18 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import _TestQueryStore from "$houdini/stores/GQL_TestQuery";
 
 		const {
 		    data
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQueryStore,
 		    component: true,
+		    variableFunction: null,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact,
 		    getProps: () => $$props
 		});
 	`)
@@ -375,13 +408,18 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import _TestQueryStore from "$houdini/stores/GQL_TestQuery";
 
 		const {
 		    data
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQueryStore,
 		    component: true,
+		    variableFunction: null,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact,
 		    getProps: () => $$props
 		});
 	`)
@@ -411,13 +449,18 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import _TestQueryStore from "$houdini/stores/GQL_TestQuery";
 
 		const {
 		    data
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQueryStore,
 		    component: true,
+		    variableFunction: TestQueryVariables,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact,
 		    getProps: () => $$props
 		});
 	`)
@@ -449,8 +492,12 @@ describe('query preprocessor', function () {
 		const {
 		    data
 		} = paginatedQuery({
+		    kind: "HoudiniQuery",
 		    store: _TestQueryStore,
-		    component: false
+		    component: false,
+		    variableFunction: TestQueryVariables,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact
 		});
 	`)
 	})
@@ -479,13 +526,18 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import _TestQueryStore from "$houdini/stores/GQL_TestQuery";
 
 		const {
 		    data
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQueryStore,
 		    component: true,
+		    variableFunction: null,
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact,
 		    getProps: () => $$props
 		});
 	`)
@@ -1064,15 +1116,23 @@ test('2 queries, one paginated one not', async function () {
 		const {
 		    data
 		} = query({
+		    kind: "HoudiniQuery",
 		    store: _TestQuery1Store,
-		    component: false
+		    component: false,
+		    variableFunction: TestQuery1Variables,
+		    config: houdiniConfig,
+		    artifact: _TestQuery1Artifact
 		});
 
 		const {
 		    data: data2
 		} = paginatedQuery({
+		    kind: "HoudiniQuery",
 		    store: _TestQuery2Store,
-		    component: false
+		    component: false,
+		    variableFunction: TestQuery2Variables,
+		    config: houdiniConfig,
+		    artifact: _TestQuery2Artifact
 		});
 	`)
 })
