@@ -1,0 +1,12 @@
+query GetTodo($completed: Boolean) {
+	items(completed: $completed, first: 2) {
+		edges {
+			node {
+				# id
+				# completed
+				...baseTodo # fragment from another gql file
+				...ItemEntry_item # fragment from inline file
+			}
+		}
+	}
+}

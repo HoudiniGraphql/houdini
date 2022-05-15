@@ -1,0 +1,4 @@
+fragment baseTodo on TodoItem {
+	id
+	completed
+}
