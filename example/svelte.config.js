@@ -1,7 +1,8 @@
+import watchAndRun from '@kitql/vite-plugin-watch-and-run'
 import adapter from '@sveltejs/adapter-auto'
-import preprocess from 'svelte-preprocess'
 import houdini from 'houdini/preprocess'
 import path from 'path'
+import preprocess from 'svelte-preprocess'
 
 /** @type {import('@sveltejs/kit').Config} */
 export default {
@@ -24,6 +25,14 @@ export default {
 					allow: ['..'],
 				},
 			},
+			plugins: [
+				// watchAndRun([
+				// 	{
+				// 		watch: '**/*.(gql|graphql|svelte)',
+				// 		run: 'npm run generate',
+				// 	},
+				// ]),
+			],
 		},
 	},
 }

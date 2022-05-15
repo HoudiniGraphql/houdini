@@ -24,6 +24,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@kitql/vite-plugin-watch-and-run": "^0.3.0",
 		"apollo-server": "^2.24.0",
 		"graphql-relay": "^0.8.0",
 		"subscriptions-transport-ws": "^0.9.18"

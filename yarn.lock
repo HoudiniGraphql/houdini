@@ -2001,10 +2001,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kitql/helper@npm:^0.3.0":
+"@kitql/helper@npm:0.3.0, @kitql/helper@npm:^0.3.0":
   version: 0.3.0
   resolution: "@kitql/helper@npm:0.3.0"
   checksum: bcdfbd3df4d9ad11035c79cc311717fd40b7261b3a3715e268f48cfbb48706bc0e7e2f214aa1781f7346539aa6ad33dde3a72f8e1aeb5fbb3a833ff05d56b154
+  languageName: node
+  linkType: hard
+
+"@kitql/vite-plugin-watch-and-run@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@kitql/vite-plugin-watch-and-run@npm:0.3.0"
+  dependencies:
+    "@kitql/helper": 0.3.0
+    micromatch: 4.0.5
+  checksum: 46c6290f42bc241be104034c2aca50de6b0842f6f4b3eb62057d027bd1f4c0dd5b60c33e137d37065f88fea2f5b579cfeecbaa9c063b9519ed46893b9c77902d
   languageName: node
   linkType: hard
 
@@ -5441,6 +5451,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "example-kit@workspace:example"
   dependencies:
+    "@kitql/vite-plugin-watch-and-run": ^0.3.0
     "@sveltejs/adapter-auto": 1.0.0-next.40
     "@sveltejs/kit": 1.0.0-next.326
     apollo-server: ^2.24.0
@@ -8358,6 +8369,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"micromatch@npm:4.0.5, micromatch@npm:^4.0.4":
+  version: 4.0.5
+  resolution: "micromatch@npm:4.0.5"
+  dependencies:
+    braces: ^3.0.2
+    picomatch: ^2.3.1
+  checksum: 02a17b671c06e8fefeeb6ef996119c1e597c942e632a21ef589154f23898c9c6a9858526246abb14f8bca6e77734aa9dcf65476fca47cedfb80d9577d52843fc
+  languageName: node
+  linkType: hard
+
 "micromatch@npm:^3.1.4":
   version: 3.1.10
   resolution: "micromatch@npm:3.1.10"
@@ -8386,16 +8407,6 @@ __metadata:
     braces: ^3.0.1
     picomatch: ^2.0.5
   checksum: 39590a96d9ffad21f0afac044d0a5af4f33715a16fdd82c53a01c8f5ff6f70832a31b53e52972dac3deff8bf9f0bed0207d1c34e54ab3306a5e4c4efd5f7d249
-  languageName: node
-  linkType: hard
-
-"micromatch@npm:^4.0.4":
-  version: 4.0.5
-  resolution: "micromatch@npm:4.0.5"
-  dependencies:
-    braces: ^3.0.2
-    picomatch: ^2.3.1
-  checksum: 02a17b671c06e8fefeeb6ef996119c1e597c942e632a21ef589154f23898c9c6a9858526246abb14f8bca6e77734aa9dcf65476fca47cedfb80d9577d52843fc
   languageName: node
   linkType: hard
 
