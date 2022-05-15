@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 // locals
 import { Config } from '../../common'
 import { TransformDocument } from '../types'
-import { walkTaggedDocuments, artifactImport, artifactIdentifier, ensureImports } from '../utils'
+import { walkTaggedDocuments, artifactIdentifier, storeImport, storeIdentifier } from '../utils'
 const AST = recast.types.builders
 
 export default async function mutationProcessor(
@@ -34,15 +34,11 @@ export default async function mutationProcessor(
 			node.replaceWith(
 				AST.objectExpression([
 					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-					AST.objectProperty(AST.literal('artifact'), artifactIdentifier(artifact)),
-					AST.objectProperty(
-						AST.stringLiteral('config'),
-						AST.identifier('houdiniConfig')
-					),
+					AST.objectProperty(AST.stringLiteral('store'), storeIdentifier(artifact)),
 				])
 			)
 
-			doc.instance?.content.body.unshift(artifactImport(config, artifact))
+			doc.instance?.content.body.unshift(storeImport(config, artifact))
 		},
 	})
 }

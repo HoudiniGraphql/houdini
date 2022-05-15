@@ -9,17 +9,29 @@ import { readable } from 'svelte/store'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
 
-export type MutationConfig<_Mutation extends Operation<any, any>> = {
-	optimisticResponse: _Mutation['result']
+export type MutationConfig<_Result, _Input> = {
+	optimisticResponse: _Result
+}
+
+export function mutation<_Mutation extends Operation<any, any>>(document: GraphQLTagResult) {
+	// make sure we got a query document
+	if (document.kind !== 'HoudiniMutation') {
+		throw new Error('mutation() must be passed a mutation document')
+	}
+
+	return (
+		variables: _Mutation['input'],
+		mutationConfig?: MutationConfig<_Mutation['result'], _Mutation['input']>
+	) => document.store.mutate<_Mutation['result'], _Mutation['input']>(variables, mutationConfig)
 }
 
 // mutation returns a handler that will send the mutation to the server when
 // invoked
-export function mutation<_Mutation extends Operation<any, any>>(
+export function mutationOld<_Mutation extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): (
 	_input: _Mutation['input'],
-	config?: MutationConfig<_Mutation>
+	config?: MutationConfig<_Mutation['result'], _Mutation['input']>
 ) => Promise<_Mutation['result']> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniMutation') {
@@ -37,7 +49,10 @@ export function mutation<_Mutation extends Operation<any, any>>(
 	const sessionStore = getSession()
 
 	// return an async function that sends the mutation go the server
-	return async (variables: _Mutation['input'], mutationConfig?: MutationConfig<_Mutation>) => {
+	return async (
+		variables: _Mutation['input'],
+		mutationConfig?: MutationConfig<_Mutation['result'], _Mutation['input']>
+	) => {
 		// treat a mutation like it has an optimistic layer regardless of
 		// whether there actually _is_ one. This ensures that a query which fires
 		// after this mutation has been sent will overwrite any return values from the mutation
@@ -72,6 +87,7 @@ export function mutation<_Mutation extends Operation<any, any>>(
 				artifact,
 				marshalInputs({
 					input: variables,
+					// @ts-ignore: document.artifact is no longer defined
 					artifact: document.artifact,
 					config: config,
 				}) as _Mutation['input'],

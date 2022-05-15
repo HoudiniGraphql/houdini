@@ -20,13 +20,12 @@ describe('mutation preprocessor', function () {
 
 		// make sure we added the right stuff
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import _AddUserStore from "$houdini/artifacts/AddUser";
+		import _AddUserStore from "$houdini/stores/GQL_AddUser";
 		import { mutation } from "$houdini";
 
 		const data = mutation({
 		    "kind": "HoudiniMutation",
-		    "artifact": _AddUserArtifact,
-		    "config": houdiniConfig
+		    "store": _AddUserStore
 		});
 	`)
 	})

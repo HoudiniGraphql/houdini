@@ -2,6 +2,7 @@ import { Readable } from 'svelte/store'
 import type { ConfigFile } from './config'
 import { HoudiniDocumentProxy } from './proxy'
 import type { LoadInput } from '@sveltejs/kit'
+import { MutationConfig } from './mutation'
 
 export enum CachePolicy {
 	CacheOrNetwork = 'CacheOrNetwork',
@@ -126,8 +127,17 @@ export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
 // the result of tagging an operation
 export type TaggedGraphqlMutation = {
 	kind: 'HoudiniMutation'
-	artifact: MutationArtifact
-	config: ConfigFile
+	store: MutationStore<any, any>
+}
+
+export type MutationStore<_Result, _Input> = Readable<{
+	data?: _Result | null
+	error: Error | null
+}> & {
+	mutate: <_Result, _Input>(
+		i: _Input,
+		mutationConfig?: MutationConfig<_Result, _Input>
+	) => Promise<_Result>
 }
 
 // the result of tagging an operation
