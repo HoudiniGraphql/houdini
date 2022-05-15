@@ -182,8 +182,7 @@ function ${storeName}Store() {
     // For CSR
     query,
 
-    // We don't want to give the option to set or update the store manually
-    // set, update
+    
   }
 }
 

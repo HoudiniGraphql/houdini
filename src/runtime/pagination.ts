@@ -1,5 +1,5 @@
 // externals
-import { derived, readable, Readable, Writable, writable } from 'svelte/store'
+import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
 // locals
 import {
 	Operation,
@@ -56,8 +56,7 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 			documentLoading: loading,
 			refetch,
 			partial: paginationPartial,
-			// TODO: fix these values
-			initialValue: {},
+			initialValue: get(data),
 			queryVariables: () => ({}),
 		}),
 		...restOfQueryResponse,

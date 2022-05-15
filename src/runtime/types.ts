@@ -105,6 +105,7 @@ export type QueryResult<DataType> = {
 	source?: DataSource | null
 	data?: DataType | null
 	error: Error | null
+	variables: {}
 }
 
 export type StoreParams<_Input> = {
