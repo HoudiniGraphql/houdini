@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	// import { browser } from '$app/env'
-	import { GQL_AllItems } from '$houdini'
+	import { CachePolicy, GQL_AllItems } from '$houdini'
 	import type { LoadInput } from '@sveltejs/kit'
 
 	export async function load(loadInput: LoadInput) {
@@ -21,7 +21,10 @@
 		await GQL_AllItems.query({ variables: { completed: false } })
 	}
 	async function completed() {
-		let ttt = await GQL_AllItems.query({ variables: { completed: true } })
+		let allItems = await GQL_AllItems.query({
+			variables: { completed: true },
+			policy: CachePolicy.NetworkOnly,
+		})
 	}
 </script>
 

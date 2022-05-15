@@ -43,5 +43,5 @@ export type Result<DataType> = {
 		dataIndexDTs + `\n` + dataIndex
 	)
 
-	log.info('✅ ...Stores generated')
+	log.info('🎩 ...Stores generated')
 }

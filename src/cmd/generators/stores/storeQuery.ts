@@ -25,7 +25,7 @@ import { stry } from '@kitql/helper'
 // - [x] smarter than JSON.stringify to compare if it's updated
 // - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
 // - [ ] cache policies aren't implemented yet
-// - [ ] params.policy > artifact.policy
+// - [x] params.policy > artifact.policy
 // - [ ] context client side (getPage, getSession) => GetStores issue
 
 function ${storeName}Store() {
@@ -42,7 +42,8 @@ function ${storeName}Store() {
   // Current variables tracker
   let variables = {}
 
-  async function queryLoad(ctx, params) {
+  async function load(ctx, params) {
+    console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
     const context = new RequestContext(ctx)
     return await queryLocal(context, params)
   }
@@ -62,8 +63,12 @@ function ${storeName}Store() {
       return { ...c, isFetching: true }
     })
 
-    // default params values if no params are passed
-    params = params ?? { variables: {} }
+    // params management
+    params = params ?? {}
+    // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
+    if (!params.policy) {
+      params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+    }
 
     const newVariables = marshalInputs({
       artifact,
@@ -76,7 +81,7 @@ function ${storeName}Store() {
       artifact,
       variables: newVariables,
       session: context.session,
-      cached: artifact.policy !== CachePolicy.NetworkOnly,
+      cached: params.policy !== CachePolicy.NetworkOnly,
     })
 
     // setup a subscription for new values from the cache
@@ -105,7 +110,7 @@ function ${storeName}Store() {
       // network request to be sent after the data was loaded, load the data
       if (
         toReturn.source === DataSource.Cache &&
-        artifact.policy === CachePolicy.CacheAndNetwork
+        params.policy === CachePolicy.CacheAndNetwork
       ) {
         // this will invoke pagination's refetch because of javascript's magic this binding
         fetchQuery({
@@ -119,7 +124,7 @@ function ${storeName}Store() {
 
       // if we have a partial result and we can load the rest of the data
       // from the network, send the request
-      if (toReturn.partial && artifact.policy === CachePolicy.CacheOrNetwork) {
+      if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
         fetchQuery({
           context,
           artifact,
@@ -192,11 +197,6 @@ export const ${storeName} = ${storeName}Store()
 import { QueryStore } from '../runtime/types'
 
 type ${storeName}_data = ${artifactName}$result | undefined
-
-type ${storeName}_params = {
-  variables?: ${artifactName}$input
-  policy?: CachePolicy
-}
 
 export declare const ${storeName}: QueryStore<${storeName}_data, ${artifactName}$input>
   `
