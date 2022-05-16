@@ -39,7 +39,9 @@ test('pagination arguments stripped from key', async function () {
 					        method: "cursor",
 					        pageSize: 10,
 					        embedded: true,
-					        targetType: "Node"
+					        targetType: "Node",
+					        paginated: true,
+					        direction: "forward"
 					    },
 
 					    raw: \`fragment PaginatedFragment on User {
@@ -166,7 +168,9 @@ test('offset based pagination marks appropriate field', async function () {
 					        method: "offset",
 					        pageSize: 10,
 					        embedded: true,
-					        targetType: "Node"
+					        targetType: "Node",
+					        paginated: true,
+					        direction: "forward"
 					    },
 
 					    raw: \`fragment PaginatedFragment on User {
@@ -247,7 +251,9 @@ test("sibling aliases don't get marked", async function () {
 					        method: "cursor",
 					        pageSize: 10,
 					        embedded: true,
-					        targetType: "Node"
+					        targetType: "Node",
+					        paginated: true,
+					        direction: "forward"
 					    },
 
 					    raw: \`fragment PaginatedFragment on User {

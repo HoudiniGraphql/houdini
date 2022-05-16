@@ -25,42 +25,10 @@ type RefetchFn<_Data = any, _Input = any> = (vars: _Input) => Promise<_Data>
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): QueryResponse<_Query['result'], _Query['input']> & PaginatedHandlers<_Query['input']> {
-	// make sure we got a query document
-	if (document.kind !== 'HoudiniQuery') {
-		throw new Error('paginatedQuery() must be passed a query document')
-	}
-
-	// @ts-ignore: typing esm/cjs interop is hard
-	const artifact: QueryArtifact = document.artifact.default || document.artifact
-
-	// if there's no refetch config for the artifact there's a problem
-	if (!artifact.refetch) {
-		throw new Error('paginatedQuery must be passed a query with @paginate.')
-	}
-
-	// pass the artifact to the base query operation
-	const { data, loading, refetch, partial, ...restOfQueryResponse } = query(document)
-
-	const paginationPartial = writable(false)
-	partial.subscribe((val) => {
-		paginationPartial.set(val)
-	})
-
-	return {
-		data,
-		partial: { subscribe: paginationPartial.subscribe },
-		...paginationHandlers<_Query>({
-			config: document.config,
-			store: data,
-			artifact,
-			documentLoading: loading,
-			refetch,
-			partial: paginationPartial,
-			initialValue: get(data),
-			queryVariables: () => ({}),
-		}),
-		...restOfQueryResponse,
-	}
+	// TODO: fix type checking paginated
+	// @ts-ignore: the query store will only include the methods when it needs to
+	// and the userland type checking happens as part of the query type generation
+	return query(document)
 }
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
@@ -570,9 +538,5 @@ function defaultLoadPreviousPage(): Promise<void> {
 }
 
 function missingPageSizeError(fnName: string) {
-	return new Error(
-		'Loading a page with no page size. If you are paginating a field with a variable page size, ' +
-			`you have to pass a value to \`${fnName}\`. If you don't care to have the page size vary, ` +
-			'consider passing a fixed value to the field instead.'
-	)
+	return
 }

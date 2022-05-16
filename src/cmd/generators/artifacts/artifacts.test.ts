@@ -2257,7 +2257,9 @@ describe('mutation artifacts', function () {
 		        method: "cursor",
 		        pageSize: 10,
 		        embedded: false,
-		        targetType: "Query"
+		        targetType: "Query",
+		        paginated: true,
+		        direction: "forward"
 		    },
 
 		    raw: \`query TestQuery($first: Int = 10, $after: String) {
