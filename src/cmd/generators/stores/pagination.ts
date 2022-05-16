@@ -79,7 +79,7 @@ const offsetMethods = `
             sessionStore,
             false
         )
-        partial.set(partialData)
+        update(s => ({...s, partial: partialData}))
 
         // update cache with the result
         cache.write({
