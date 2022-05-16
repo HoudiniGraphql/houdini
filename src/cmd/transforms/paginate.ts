@@ -303,6 +303,8 @@ export default async function paginate(
 				pageSize: 0,
 				embedded: nodeQuery,
 				targetType,
+				paginated: true,
+				direction: flags.last.enabled ? 'backwards' : 'forward',
 			}
 
 			// add the correct default page size

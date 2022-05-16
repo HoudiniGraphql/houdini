@@ -3,6 +3,7 @@ import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 import { log, logGreen } from '../../../common/log'
+import pagination from './pagination'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {
 	const queriesStore: string[] = []
@@ -10,6 +11,8 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 
 	const storeName = config.storeName(doc) // "1 => GQL_All$Items" => ${storeName}
 	const artifactName = `${doc.name}` // "2 => All$Items" => ${artifactName}
+
+	const paginationExtras = pagination(doc)
 
 	// STORE
 	const queryStoreGenerated = `import { writable } from 'svelte/store'
@@ -20,6 +23,9 @@ import cache from '../runtime/cache'
 import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 import { houdiniConfig } from '$houdini'
 import { stry } from '@kitql/helper'
+
+// optional pagination imports
+${paginationExtras.imports}
 
 // TODO:
 // - [x] smarter than JSON.stringify to compare if it's updated
@@ -41,6 +47,8 @@ function ${storeName}Store() {
 
   // Current variables tracker
   let variables = {}
+
+	const sessionStore = getSession()
 
   async function load(ctx, params) {
     console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
@@ -161,6 +169,8 @@ function ${storeName}Store() {
     return toReturn
   }
 
+  ${paginationExtras.preamble}
+
   return {
     subscribe: (...args) => {
       const parentUnsubscribe = subscribe(...args)
@@ -182,7 +192,7 @@ function ${storeName}Store() {
     // For CSR
     query,
 
-    
+    ${paginationExtras.methods}
   }
 }
 
@@ -197,7 +207,7 @@ import { QueryStore } from '../runtime/types'
 
 type ${storeName}_data = ${artifactName}$result | undefined
 
-export declare const ${storeName}: QueryStore<${storeName}_data, ${artifactName}$input>
+export declare const ${storeName}: QueryStore<${storeName}_data, ${artifactName}$input> ${paginationExtras.types}
   `
 	queriesStoreDTs.push(queryStoreGeneratedDTs)
 	// TYPES END

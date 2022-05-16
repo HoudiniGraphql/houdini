@@ -82,6 +82,8 @@ export type BaseCompiledDocument = {
 		start?: string | number
 		embedded: boolean
 		targetType: string
+		paginated: boolean
+		direction?: 'forward' | 'backwards'
 	}
 }
 
