@@ -205,9 +205,7 @@ export const ${storeName} = ${storeName}Store()
 	const storeDataDTsGenerated = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
 import { QueryStore } from '../runtime/types'
 
-type ${storeName}_data = ${artifactName}$result | undefined
-
-export declare const ${storeName}: QueryStore<${storeName}_data, ${artifactName}$input> ${paginationExtras.types}
+export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${artifactName}$input> ${paginationExtras.types}
   `
 	storeDataDTs.push(storeDataDTsGenerated)
 	// TYPES END
