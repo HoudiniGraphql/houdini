@@ -55,6 +55,7 @@ beforeEach(() => {
 		$houdini: {
 			artifacts: {},
 			runtime: {},
+			stores: {},
 		},
 		// the runtime generator copies files relative to import.meta.url. we need our tests
 		// to point to the same filestructure that will exist

@@ -32,7 +32,7 @@ export default function pagination(
 	return {
 		preamble,
 		types: types ? `& ${types}` : '',
-		methods: methods ? `...{${methods}}` : '',
+		methods: methods ? `...{${methods}    }` : '',
 		imports,
 	}
 }
@@ -40,7 +40,7 @@ export default function pagination(
 // Offset Pagination
 
 const offsetImports = `
-import { countPage } from '../runtime/utils
+import { countPage } from '../runtime/utils'
 `
 
 const offsetPreamble = `
@@ -49,9 +49,9 @@ const offsetPreamble = `
 `
 
 const offsetMethods = `
-    loadPage: async (limit) => {
+      loadPage: async (limit) => {
         // build up the variables to pass to the query
-        const queryVariables: Record<string, any> = {
+        const queryVariables = {
             ...variables,
             offset: currentOffset,
         }
@@ -61,7 +61,7 @@ const offsetMethods = `
 
         // if we made it this far without a limit argument and there's no default page size,
         // they made a mistake
-        if (!queryVariables.limit && !artifact.refetch!.pageSize) {
+        if (!queryVariables.limit && !artifact.refetch.pageSize) {
             throw new Error(
                 'Loading a page with no page size. If you are paginating a field with a variable page size, ' +
                     \`you have to pass a value to loadNextPage. If you don't care to have the page size vary, \` +
@@ -70,7 +70,7 @@ const offsetMethods = `
         }
 
         // set the loading state to true
-        update(s => ({...s, isFetching: true}) 
+        update(s => ({...s, isFetching: true}))
 
         // send the query
         const { result, partial: partialData } = await executeQuery(
@@ -90,12 +90,12 @@ const offsetMethods = `
         })
 
         // add the page size to the offset so we load the next page next time
-        const pageSize = queryVariables.limit || artifact.refetch!.pageSize
+        const pageSize = queryVariables.limit || artifact.refetch.pageSize
         currentOffset += pageSize
 
         // we're not loading any more
         update(s => ({...s, isFetching: false}))
-    },
+      },
 `
 
 const offsetTypes = `
@@ -106,12 +106,12 @@ const offsetTypes = `
 
 const cursorImports = `
 import { extractPageInfo, PageInfo, countPage } from '../runtime/utils'
-import { executeQuery } from '../runtime/network
+import { executeQuery } from '../runtime/network'
 `
 
 const cursorPreamble = `
     // track the current page info in an easy-to-reach store
-    const initialPageInfo = extractPageInfo(initialValue, artifact.refetch!.path) ?? {
+    const initialPageInfo = extractPageInfo(initialValue, artifact.refetch.path) ?? {
         startCursor: null,
         endCursor: null,
         hasNextPage: false,
@@ -122,7 +122,7 @@ const cursorPreamble = `
 
     // hold onto the current value
     subscribe((val) => {
-        pageInfo.set(extractPageInfo(val.result.data, artifact.refetch!.path))
+        pageInfo.set(extractPageInfo(val.result.data, artifact.refetch.path))
     })
 
     // dry up the page-loading logic
@@ -130,22 +130,18 @@ const cursorPreamble = `
         pageSizeVar,
         input,
         functionName,
-    }: {
-        pageSizeVar: string
-        functionName: string
-        input: {}
     }) => {
         // set the loading state to true
-        update(s => ({...s, isFetching: true})
+        update(s => ({...s, isFetching: true}))
 
         // build up the variables to pass to the query
-        const queryVariables: Record<string, any> = {
+        const queryVariables = {
             ...variables,
             ...input,
         }
 
         // if we don't have a value for the page size, tell the user
-        if (!queryVariables[pageSizeVar] && !artifact.refetch!.pageSize) {
+        if (!queryVariables[pageSizeVar] && !artifact.refetch.pageSize) {
             throw new Error(
                 'Loading a page with no page size. If you are paginating a field with a variable page size, ' +
                     \`you have to pass a value to \${functionName}. If you don't care to have the page size vary, \` +
@@ -154,7 +150,7 @@ const cursorPreamble = `
         }
 
         // send the query
-        const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
+        const { result, partial: partialData } = await executeQuery(
             artifact,
             queryVariables,
             sessionStore,
@@ -166,9 +162,9 @@ const cursorPreamble = `
 
         // if the query is embedded in a node field (paginated fragments)
         // make sure we look down one more for the updated page info
-        const resultPath = [...artifact.refetch!.path]
-        if (artifact.refetch!.embedded) {
-            const { targetType } = artifact.refetch!
+        const resultPath = [...artifact.refetch.path]
+        if (artifact.refetch.embedded) {
+            const { targetType } = artifact.refetch
             // make sure we have a type config for the pagination target type
             if (!config.types?.[targetType]?.resolve) {
                 throw new Error(
@@ -177,7 +173,7 @@ const cursorPreamble = `
             }
 
             // make sure that we pull the value out of the correct query field
-            resultPath.unshift(config.types[targetType].resolve!.queryField)
+            resultPath.unshift(config.types[targetType].resolve.queryField)
         }
 
         // we need to find the connection object holding the current page info
@@ -192,38 +188,38 @@ const cursorPreamble = `
         })
 
         // we're not loading any more
-        update(s => ({...s, isFetching: false })
+        update(s => ({...s, isFetching: false }))
     }
 `
 
 const forwardCursorMethods = `
-    loadNextPage: (pageCount) => {
-        const value = get({subscribe}).result.data
+      loadNextPage: (pageCount) => {
+          const value = get({subscribe}).result.data
 
-        // we need to find the connection object holding the current page info
-        const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
+          // we need to find the connection object holding the current page info
+          const currentPageInfo = extractPageInfo(value, artifact.refetch.path)
 
-        // if there is no next page, we're done
-        if (!currentPageInfo.hasNextPage) {
-            return
-        }
+          // if there is no next page, we're done
+          if (!currentPageInfo.hasNextPage) {
+              return
+          }
 
-        // only specify the page count if we're given one
-        const input: Record<string, any> = {
-            after: currentPageInfo.endCursor,
-        }
-        if (pageCount) {
-            input.first = pageCount
-        }
+          // only specify the page count if we're given one
+          const input = {
+              after: currentPageInfo.endCursor,
+          }
+          if (pageCount) {
+              input.first = pageCount
+          }
 
-        // load the page
-        return loadPage({
-            pageSizeVar: 'first',
-            functionName: 'loadNextPage',
-            input,
-        })
-    },
-    pageInfo: { subscribe: pageInfo.subscribe },
+          // load the page
+          return loadPage({
+              pageSizeVar: 'first',
+              functionName: 'loadNextPage',
+              input,
+          })
+      },
+      pageInfo: { subscribe: pageInfo.subscribe },
 `
 
 const forwardCursorTypes = `{
@@ -232,33 +228,33 @@ const forwardCursorTypes = `{
 }`
 
 const backwardsCursorMethods = `
-    loadPreviousPage: (pageCount) => {
-        const value = get({subscribe}).result.data
+      loadPreviousPage: (pageCount) => {
+          const value = get({subscribe}).result.data
 
-        // we need to find the connection object holding the current page info
-        const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
+          // we need to find the connection object holding the current page info
+          const currentPageInfo = extractPageInfo(value, artifact.refetch.path)
 
-        // if there is no next page, we're done
-        if (!currentPageInfo.hasPreviousPage) {
-            return
-        }
+          // if there is no next page, we're done
+          if (!currentPageInfo.hasPreviousPage) {
+              return
+          }
 
-        // only specify the page count if we're given one
-        const input: Record<string, any> = {
-            before: currentPageInfo.startCursor,
-        }
-        if (pageCount) {
-            input.last = pageCount
-        }
+          // only specify the page count if we're given one
+          const input = {
+              before: currentPageInfo.startCursor,
+          }
+          if (pageCount) {
+              input.last = pageCount
+          }
 
-        // load the page
-        return loadPage({
-            pageSizeVar: 'last',
-            functionName: 'loadPreviousPage',
-            input,
-        })
-    },
-    pageInfo: { subscribe: pageInfo.subscribe },
+          // load the page
+          return loadPage({
+              pageSizeVar: 'last',
+              functionName: 'loadPreviousPage',
+              input,
+          })
+      },
+      pageInfo: { subscribe: pageInfo.subscribe },
 `
 
 const backwardsCursorTypes = `{
