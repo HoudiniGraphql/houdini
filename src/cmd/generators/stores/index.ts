@@ -1,9 +1,10 @@
 import path from 'path'
 import { Config } from '../../../common'
+import { log } from '../../../common/log'
 import { ArtifactKind, CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
+import { generateIndividualStoreMutation } from './storeMutation'
 import { generateIndividualStoreQuery } from './storeQuery'
-import { log } from '../../../common/log'
 
 export default async function storesGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	const listOfStores: (string | null)[] = []
@@ -15,7 +16,7 @@ export default async function storesGenerator(config: Config, docs: CollectedGra
 			if (doc.kind === ArtifactKind.Query) {
 				listOfStores.push(await generateIndividualStoreQuery(config, doc))
 			} else if (doc.kind === ArtifactKind.Mutation) {
-				log.error('Mutation Store => Not implemented yet!')
+				listOfStores.push(await generateIndividualStoreMutation(config, doc))
 			} else if (doc.kind === ArtifactKind.Subcription) {
 				log.error('Subscription => Not implemented yet!')
 			}
