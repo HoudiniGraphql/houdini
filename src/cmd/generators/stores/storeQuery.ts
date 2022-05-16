@@ -6,8 +6,8 @@ import { log, logGreen } from '../../../common/log'
 import pagination from './pagination'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {
-	const queriesStore: string[] = []
-	const queriesStoreDTs: string[] = []
+	const storeData: string[] = []
+	const storeDataDTs: string[] = []
 
 	const storeName = config.storeName(doc) // "1 => GQL_All$Items" => ${storeName}
 	const artifactName = `${doc.name}` // "2 => All$Items" => ${artifactName}
@@ -15,7 +15,7 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	const paginationExtras = pagination(doc)
 
 	// STORE
-	const queryStoreGenerated = `import { writable } from 'svelte/store'
+	const storeDataGenerated = `import { writable } from 'svelte/store'
 import { ${artifactName} as artifact } from '../artifacts'
 import { CachePolicy, fetchQuery, RequestContext, DataSource } from '../runtime'
 import { getPage, getSession, isBrowser } from '../runtime/adapter.mjs'
@@ -198,25 +198,25 @@ function ${storeName}Store() {
 
 export const ${storeName} = ${storeName}Store()  
 `
-	queriesStore.push(queryStoreGenerated)
+	storeData.push(storeDataGenerated)
 	// STORE END
 
 	// TYPES
-	const queryStoreGeneratedDTs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
+	const storeDataDTsGenerated = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
 import { QueryStore } from '../runtime/types'
 
 type ${storeName}_data = ${artifactName}$result | undefined
 
 export declare const ${storeName}: QueryStore<${storeName}_data, ${artifactName}$input> ${paginationExtras.types}
   `
-	queriesStoreDTs.push(queryStoreGeneratedDTs)
+	storeDataDTs.push(storeDataDTsGenerated)
 	// TYPES END
 
-	await writeFile(path.join(config.rootDir, 'stores', `${storeName}.js`), queriesStore.join(`\n`))
+	await writeFile(path.join(config.rootDir, 'stores', `${storeName}.js`), storeData.join(`\n`))
 
 	await writeFile(
 		path.join(config.rootDir, 'stores', `${storeName}.d.ts`),
-		queriesStoreDTs.join(`\n`)
+		storeDataDTs.join(`\n`)
 	)
 
 	log.info(`✅ ${logGreen(storeName)} query store`)
