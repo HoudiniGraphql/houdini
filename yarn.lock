@@ -534,6 +534,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/parser@npm:^7.17.2":
+  version: 7.17.12
+  resolution: "@babel/parser@npm:7.17.12"
+  bin:
+    parser: ./bin/babel-parser.js
+  checksum: 5c6f498040b2941fabdf2158683c482c8336af2d7d4c5be95ac9648993a1e03a22c4d18566897d4009e4ce5756a03f144bb37f8ceac176cc5bba99f4eb8ca33e
+  languageName: node
+  linkType: hard
+
 "@babel/plugin-proposal-async-generator-functions@npm:^7.12.13":
   version: 7.12.13
   resolution: "@babel/plugin-proposal-async-generator-functions@npm:7.12.13"
@@ -6086,7 +6095,7 @@ __metadata:
   resolution: "houdini@workspace:."
   dependencies:
     "@babel/core": ^7.12.10
-    "@babel/parser": ^7.13.4
+    "@babel/parser": ^7.17.2
     "@babel/preset-env": ^7.12.11
     "@babel/preset-typescript": ^7.16.7
     "@changesets/changelog-git": ^0.1.11
