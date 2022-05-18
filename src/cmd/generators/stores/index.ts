@@ -9,7 +9,9 @@ import { generateIndividualStoreQuery } from './storeQuery'
 export default async function storesGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	const listOfStores: (string | null)[] = []
 
-	log.info('🎩 Generating Stores...')
+	if (!config.quiet) {
+		log.info('🎩 Generating Stores...')
+	}
 
 	await Promise.all(
 		docs.map(async (doc) => {
@@ -44,5 +46,7 @@ export type Result<DataType> = {
 		dataIndexDTs + `\n` + dataIndex
 	)
 
-	log.info('🎩 ...Stores generated')
+	if (!config.quiet) {
+		log.info('🎩 ...Stores generated')
+	}
 }
