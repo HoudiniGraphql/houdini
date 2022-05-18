@@ -12,4 +12,6 @@ export default {
 			babelConfig: true,
 		},
 	},
+
+	testMatch: ['**/?(*.)+(spec|test).[jt]s?(x)', '!**/example/tests/**'],
 }

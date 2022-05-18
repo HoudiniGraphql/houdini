@@ -52,16 +52,16 @@ test('basic store', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { writable } from 'svelte/store'
-					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, fetchQuery, RequestContext, DataSource } from '../runtime'
-					import { getPage, getSession, isBrowser } from '../runtime/adapter.mjs'
-					import cache from '../runtime/cache'
-					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 					import { houdiniConfig } from '$houdini'
 					import { stry } from '@kitql/helper'
+					import { writable } from 'svelte/store'
+					import { TestQuery as artifact } from '../artifacts'
+					import { CachePolicy, DataSource, fetchQuery, RequestContext } from '../runtime'
+					import { getSession, isBrowser } from '../runtime/adapter.mjs'
+					import cache from '../runtime/cache'
+					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 
-					// optional pagination imports
+					// optional pagination imports 
 
 
 					// TODO:
@@ -265,16 +265,16 @@ test('forward cursor pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { writable } from 'svelte/store'
-					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, fetchQuery, RequestContext, DataSource } from '../runtime'
-					import { getPage, getSession, isBrowser } from '../runtime/adapter.mjs'
-					import cache from '../runtime/cache'
-					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 					import { houdiniConfig } from '$houdini'
 					import { stry } from '@kitql/helper'
+					import { writable } from 'svelte/store'
+					import { TestQuery as artifact } from '../artifacts'
+					import { CachePolicy, DataSource, fetchQuery, RequestContext } from '../runtime'
+					import { getSession, isBrowser } from '../runtime/adapter.mjs'
+					import cache from '../runtime/cache'
+					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 
-					// optional pagination imports
+					// optional pagination imports 
 
 					import { extractPageInfo, PageInfo, countPage } from '../runtime/utils'
 					import { executeQuery } from '../runtime/network'
@@ -590,16 +590,16 @@ test('backwards cursor pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { writable } from 'svelte/store'
-					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, fetchQuery, RequestContext, DataSource } from '../runtime'
-					import { getPage, getSession, isBrowser } from '../runtime/adapter.mjs'
-					import cache from '../runtime/cache'
-					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 					import { houdiniConfig } from '$houdini'
 					import { stry } from '@kitql/helper'
+					import { writable } from 'svelte/store'
+					import { TestQuery as artifact } from '../artifacts'
+					import { CachePolicy, DataSource, fetchQuery, RequestContext } from '../runtime'
+					import { getSession, isBrowser } from '../runtime/adapter.mjs'
+					import cache from '../runtime/cache'
+					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 
-					// optional pagination imports
+					// optional pagination imports 
 
 					import { extractPageInfo, PageInfo, countPage } from '../runtime/utils'
 					import { executeQuery } from '../runtime/network'
@@ -911,16 +911,16 @@ test('offset pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { writable } from 'svelte/store'
-					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, fetchQuery, RequestContext, DataSource } from '../runtime'
-					import { getPage, getSession, isBrowser } from '../runtime/adapter.mjs'
-					import cache from '../runtime/cache'
-					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 					import { houdiniConfig } from '$houdini'
 					import { stry } from '@kitql/helper'
+					import { writable } from 'svelte/store'
+					import { TestQuery as artifact } from '../artifacts'
+					import { CachePolicy, DataSource, fetchQuery, RequestContext } from '../runtime'
+					import { getSession, isBrowser } from '../runtime/adapter.mjs'
+					import cache from '../runtime/cache'
+					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 
-					// optional pagination imports
+					// optional pagination imports 
 
 					import { countPage } from '../runtime/utils'
 
