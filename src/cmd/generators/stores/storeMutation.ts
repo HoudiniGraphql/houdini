@@ -163,7 +163,9 @@ export declare const ${storeName}: MutationStore<${artifactName}$result | undefi
 		storeDataDTs.join(`\n`)
 	)
 
-	log.info(`✅ ${logGreen(storeName)} mutation store`)
+	if (!config.quiet) {
+		log.info(`✅ ${logGreen(storeName)} mutation store`)
+	}
 
 	return storeName
 }

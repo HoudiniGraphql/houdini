@@ -11,12 +11,15 @@ import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { serializeValue } from './utils'
 import { ArtifactKind } from '../../../runtime/types'
+import { log, logGreen } from '../../../common/log'
 
 const AST = recast.types.builders
 
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
 export default async function artifactGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
+	log.info('🎩 Generating Artifacts...')
+
 	// put together the type information for the filter for every list
 	const filterTypes: FilterMap = {}
 
@@ -234,9 +237,11 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 
 				// log the file location to confirm
 				if (!config.quiet) {
-					console.log(name)
+					log.info(`✅ ${logGreen(name)} artifact`)
 				}
 			})
 		)
 	)
+
+	log.info('🎩 ...Artifacts generated')
 }
