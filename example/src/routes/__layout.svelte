@@ -21,7 +21,7 @@
 <section class="todoapp">
 	<a href="/all">Original</a>
 	<a href="/kql">Store</a>
-	<a href="/nothing">Nothing</a>
+	<a href="/about">About</a>
 	<hr />
 	<slot />
 </section>

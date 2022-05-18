@@ -14,17 +14,21 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 
 	const paginationExtras = pagination(doc)
 
+	// TODO: To remove, it was tmp from JYC
+	const paginationExtrasDTs = `import type { PageInfo } from '$houdini/runtime/utils'
+import type { Readable } from 'svelte/store'`
+
 	// STORE
-	const storeDataGenerated = `import { writable } from 'svelte/store'
+	const storeDataGenerated = `import { houdiniConfig } from '$houdini'
+import { stry } from '@kitql/helper'
+import { writable } from 'svelte/store'
 import { ${artifactName} as artifact } from '../artifacts'
-import { CachePolicy, fetchQuery, RequestContext, DataSource } from '../runtime'
-import { getPage, getSession, isBrowser } from '../runtime/adapter.mjs'
+import { CachePolicy, DataSource, fetchQuery, RequestContext } from '../runtime'
+import { getSession, isBrowser } from '../runtime/adapter.mjs'
 import cache from '../runtime/cache'
 import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
-import { houdiniConfig } from '$houdini'
-import { stry } from '@kitql/helper'
 
-// optional pagination imports
+// optional pagination imports 
 ${paginationExtras.imports}
 
 // TODO:
@@ -203,6 +207,7 @@ export const ${storeName} = ${storeName}Store()
 
 	// TYPES
 	const storeDataDTsGenerated = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
+${paginationExtrasDTs}
 import { QueryStore } from '../runtime/types'
 
 export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${artifactName}$input> ${paginationExtras.types}

@@ -11,105 +11,147 @@ export async function generateIndividualStoreMutation(
 	const storeData: string[] = []
 	const storeDataDTs: string[] = []
 
-	const storeName = config.storeName(doc) // "1 => GQL_All$Items" => ${storeName}
-	const artifactName = `${doc.name}` // "2 => All$Items" => ${artifactName}
+	const storeName = config.storeName(doc) // "1 => GQL_Add$Item" => ${storeName}
+	const artifactName = `${doc.name}` // "2 => Add$Item" => ${artifactName}
 
 	// STORE
-	const storeDataGenerated = `import { writable } from 'svelte/store'
+	const storeDataGenerated = `import { houdiniConfig } from '$houdini'
+import { writable } from 'svelte/store'
 import { ${artifactName} as artifact } from '../artifacts'
-import { CachePolicy, fetchQuery, RequestContext, DataSource } from '../runtime'
-import { getPage, getSession, isBrowser } from '../runtime/adapter.mjs'
+import { executeQuery } from '../runtime'
+import { getSession } from '../runtime/adapter.mjs'
 import cache from '../runtime/cache'
-import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
-import { houdiniConfig } from '$houdini'
-import { stry } from '@kitql/helper'
+import { marshalInputs, marshalSelection, unmarshalSelection } from '../runtime/scalars'
 
 function ${storeName}Store() {
-  const { subscribe, set, update } = writable({
-    partial: false,
-    result: null,
-    source: null,
-    isFetching: false,
-  })
+	const { subscribe, set, update } = writable({
+		partial: false,
+		result: null,
+		source: null,
+		isFetching: false,
+	})
 
-  // Current variables tracker
-  let variables = {}
+	// Track subscriptions
+	let subscriptionSpec = null
 
-  async function mutate(params) {
-    const context = new RequestContext({
-      //page: getPage(),
-      fetch: fetch,
-      //session: getSession(),
-    })
+	// Current variables tracker
+	let variables = {}
 
-    return await mutateLocal(context, params)
-  }
+	async function mutate(params) {
+		update((c) => {
+			return { ...c, isFetching: true }
+		})
 
-  async function mutateLocal(context, params) {
-    update((c) => {
-      return { ...c, isFetching: true }
-    })
+		// params management
+		params = params ?? {}
 
-    // params management
-    params = params ?? {}
+		// grab the session from the adapter
+		const sessionStore = getSession()
 
-    const newVariables = marshalInputs({
-      artifact,
-      config: houdiniConfig,
-      input: params.variables,
-    })
+		// treat a mutation like it has an optimistic layer regardless of
+		// whether there actually _is_ one. This ensures that a query which fires
+		// after this mutation has been sent will overwrite any return values from the mutation
+		//
+		// as far as I can tell, this is an arbitrary decision but it does give a
+		// well-defined ordering to a subtle situation so that seems like a win
+		//
+		const layer = cache._internal_unstable.storage.createLayer(true)
 
-    let toReturn = await fetchQuery({
-      context,
-      artifact,
-      variables: newVariables,
-      session: context.session,
-      cached: params.policy !== CachePolicy.NetworkOnly,
-    })
+		// if there is an optimistic response then we need to write the value immediately
+		const optimisticResponse = params?.optimisticResponse
+		// hold onto the list of subscribers that we updated because of the optimistic response
+		// and make sure they are included in the final set of subscribers to notify
+		let subscriptionSpec = []
+		if (optimisticResponse) {
+			subscriptionSpec = cache.write({
+				selection: artifact.selection,
+				// make sure that any scalar values get processed into something we can cache
+				data: marshalSelection({
+					config: houdiniConfig,
+					selection: artifact.selection,
+					data: optimisticResponse,
+				}),
+				variables,
+				layer: layer.id,
+			})
+		}
 
-    set({
-      ...toReturn,
-      result: {
-        ...toReturn.result,
-        data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
-      },
-      isFetching: false,
-    })
+		try {
+			// trigger the mutation on the server
+			const { result } = await executeQuery(
+				artifact,
+				marshalInputs({
+					input: variables,
+					// @ts-ignore: document.artifact is no longer defined
+					artifact: document.artifact,
+					config: houdiniConfig,
+				}),
+				sessionStore,
+				false
+			)
 
-    return toReturn
-  }
+			// clear the layer holding any mutation results
+			layer.clear()
 
-  return {
-    subscribe: (...args) => {
-      const parentUnsubscribe = subscribe(...args)
+			// write the result of the mutation to the cache
+			cache.write({
+				selection: artifact.selection,
+				data: result.data,
+				variables,
+				// write to the mutation's layer
+				layer: layer.id,
+				// notify any subscribers that we updated with the optimistic response
+				// in order to address situations where the optimistic update was wrong
+				notifySubscribers: subscriptionSpec,
+				// make sure that we notify subscribers for any values that we overwrite
+				// in order to address any race conditions when comparing the previous value
+				forceNotify: true,
+			})
 
-      // Handle unsubscribe
-      return () => {
-        if (subscriptionSpec) {
-          cache.unsubscribe(subscriptionSpec, variables)
-          subscriptionSpec = null
-        }
+			// merge the layer back into the cache
+			cache._internal_unstable.storage.resolveLayer(layer.id)
 
-        parentUnsubscribe()
-      }
-    },
+			// turn any scalars in the response into their complex form
+			return unmarshalSelection(houdiniConfig, artifact.selection, result.data)
+		} catch (error) {
+			// if the mutation failed, roll the layer back and delete it
+			layer.clear()
+			cache._internal_unstable.storage.resolveLayer(layer.id)
 
-    mutate,
-  }
+			// bubble the mutation error up to the caller
+			throw error
+		}
+	}
+
+	return {
+		subscribe: (...args) => {
+			const parentUnsubscribe = subscribe(...args)
+
+			// Handle unsubscribe
+			return () => {
+				if (subscriptionSpec) {
+					cache.unsubscribe(subscriptionSpec, variables)
+					subscriptionSpec = null
+				}
+
+				parentUnsubscribe()
+			}
+		},
+
+		mutate,
+	}
 }
 
-export const ${storeName} = ${storeName}Store()  
+export const ${storeName} = ${storeName}Store()	
 `
 	storeData.push(storeDataGenerated)
 	// STORE END
 
 	// TYPES
-	const storeDataDTsGenerated = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
-import { QueryStore } from '../runtime/types'
+	const storeDataDTsGenerated = `import type { ${artifactName}$input, ${artifactName}$result } from '$houdini'
+import type { MutationStore } from '../runtime/types'
 
-type ${storeName}_data = ${artifactName}$result | undefined
-
-export declare const ${storeName}: QueryStore<${storeName}_data, ${artifactName}$input>
+export declare const ${storeName}: MutationStore<${artifactName}$result | undefined, ${artifactName}$input>
   `
 	storeDataDTs.push(storeDataDTsGenerated)
 	// TYPES END
