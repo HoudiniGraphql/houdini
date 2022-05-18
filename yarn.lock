@@ -2273,6 +2273,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@playwright/test@npm:^1.21.0":
+  version: 1.22.0
+  resolution: "@playwright/test@npm:1.22.0"
+  dependencies:
+    playwright-core: 1.22.0
+  bin:
+    playwright: cli.js
+  checksum: 153197ea7c2c7dd94a2f504b9bf181b1585ce89ebbd7d7715c5072bf949c95fd8db56f028e44e01e1dc5a96b8e1caa00edc8728c3c9e86dd4f6f572bdacee79f
+  languageName: node
+  linkType: hard
+
 "@protobufjs/aspromise@npm:^1.1.1, @protobufjs/aspromise@npm:^1.1.2":
   version: 1.1.2
   resolution: "@protobufjs/aspromise@npm:1.1.2"
@@ -5452,13 +5463,14 @@ __metadata:
   resolution: "example-kit@workspace:example"
   dependencies:
     "@kitql/vite-plugin-watch-and-run": ^0.3.0
+    "@playwright/test": ^1.21.0
     "@sveltejs/adapter-auto": 1.0.0-next.40
     "@sveltejs/kit": 1.0.0-next.326
     apollo-server: ^2.24.0
     concurrently: 7.1.0
     graphql: 15.5.0
     graphql-relay: ^0.8.0
-    houdini: ^0.14.0
+    houdini: ^0.14.5
     subscriptions-transport-ws: ^0.9.18
     svelte: 3.48.0
     svelte-preprocess: 4.10.6
@@ -6383,7 +6395,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini@^0.14.0, houdini@workspace:.":
+"houdini@^0.14.5, houdini@workspace:.":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:."
   dependencies:
@@ -9630,6 +9642,15 @@ __metadata:
   dependencies:
     find-up: ^4.0.0
   checksum: 9863e3f35132bf99ae1636d31ff1e1e3501251d480336edb1c211133c8d58906bed80f154a1d723652df1fda91e01c7442c2eeaf9dc83157c7ae89087e43c8d6
+  languageName: node
+  linkType: hard
+
+"playwright-core@npm:1.22.0":
+  version: 1.22.0
+  resolution: "playwright-core@npm:1.22.0"
+  bin:
+    playwright: cli.js
+  checksum: e4eb2069961204d49818fb5575cf7310e7bd90c0b1dd2a84229c29e47a0257a02069f4bb3b802651f30efada850daf1555097748c27ca9a1b1151c67bce0cfe0
   languageName: node
   linkType: hard
 
