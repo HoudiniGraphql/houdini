@@ -14,7 +14,7 @@ import { marshalInputs } from './scalars'
 import cache from './cache'
 import { rootID } from './cache/cache'
 
-export class Environment {
+export class HoudiniClient {
 	private fetch: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
 
@@ -28,14 +28,18 @@ export class Environment {
 	}
 }
 
-let currentEnv: Environment | null = null
+let currentClient: HoudiniClient | null = null
 
-export function setEnvironment(env: Environment) {
-	currentEnv = env
+export function createClient(env: HoudiniClient) {
+	currentClient = env
 }
 
-export function getEnvironment(): Environment | null {
-	return currentEnv
+export function getCurrentClient(): HoudiniClient | null {
+	// TODO
+	// config of the import location?
+	// import * as houdiniClient from '$lib/graphql/houdiniClient';
+	// If the file is not here => Generation error?
+	return currentClient
 }
 
 export type SubscriptionHandler = {
@@ -203,7 +207,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	cached?: boolean
 }): Promise<FetchQueryResult<_Data>> {
 	// grab the current environment
-	const environment = getEnvironment()
+	const environment = currentClient
 	// if there is no environment
 	if (!environment) {
 		return {

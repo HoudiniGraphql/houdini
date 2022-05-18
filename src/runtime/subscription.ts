@@ -4,7 +4,7 @@ import { onMount, onDestroy } from 'svelte'
 // locals
 import type { ConfigFile } from './config'
 import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
-import { getEnvironment } from './network'
+import { getCurrentClient } from './network'
 import cache from './cache'
 import { marshalInputs, unmarshalSelection } from './scalars'
 
@@ -30,7 +30,7 @@ export function subscription<_Subscription extends Operation<any, any>>(
 	const config: ConfigFile = document.config.default || document.config
 
 	// pull out the current environment
-	const env = getEnvironment()
+	const env = getCurrentClient()
 	// if there isn't one, yell loudly
 	if (!env) {
 		throw new Error('Could not find network environment')

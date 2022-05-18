@@ -1,6 +1,6 @@
 <script context="module">
 	import { browser } from '$app/env'
-	import { setEnvironment } from '$houdini'
+	import { createClient } from '$houdini'
 	import cache from '$houdini/runtime/cache'
 	import { houdiniClient } from '$lib/graphql/houdiniClient_2'
 
@@ -9,7 +9,7 @@
 		window.cache = cache
 	}
 
-	setEnvironment(houdiniClient)
+	createClient(houdiniClient)
 </script>
 
 <svelte:head>

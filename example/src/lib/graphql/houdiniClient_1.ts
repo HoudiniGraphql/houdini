@@ -1,4 +1,4 @@
-import { Environment } from '$houdini'
+import { HoudiniClient } from '$houdini'
 import { buildFetchQueryFn } from './buildFetchQueryFn'
 import { getSubscriptionHandler } from './getSubscriptionHandler'
 
@@ -10,4 +10,4 @@ const fetchQueryFn = buildFetchQueryFn({
 
 let socketClient = getSubscriptionHandler({ url: 'ws://' + API_URL })
 
-export const houdiniClient = new Environment(fetchQueryFn, socketClient)
+export const houdiniClient = new HoudiniClient(fetchQueryFn, socketClient)

@@ -1,6 +1,6 @@
 import { browser } from '$app/env'
 import type { SubscriptionHandler } from '$houdini'
-import { Environment } from '$houdini'
+import { HoudiniClient } from '$houdini'
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 
 const API_URL = 'localhost:4000/graphql'
@@ -44,4 +44,4 @@ if (browser) {
 	}
 }
 
-export const houdiniClient = new Environment(fetchQuery, socketClient)
+export const houdiniClient = new HoudiniClient(fetchQuery, socketClient)
