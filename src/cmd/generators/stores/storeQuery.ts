@@ -52,7 +52,7 @@ function ${storeName}Store() {
   // Current variables tracker
   let variables = {}
 
-	const sessionStore = getSession()
+	// const sessionStore = getSession()
 
   async function load(ctx, params) {
     console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')

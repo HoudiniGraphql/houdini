@@ -105,11 +105,14 @@ const offsetTypes = `
 // Cursor Pagination
 
 const cursorImports = `
-import { extractPageInfo, PageInfo, countPage } from '../runtime/utils'
+import { extractPageInfo, countPage } from '../runtime/utils'
 import { executeQuery } from '../runtime/network'
+import { get } from 'svelte/store'
 `
 
 const cursorPreamble = `
+    const initialValue = get({ subscribe })
+
     // track the current page info in an easy-to-reach store
     const initialPageInfo = extractPageInfo(initialValue, artifact.refetch.path) ?? {
         startCursor: null,
@@ -118,11 +121,13 @@ const cursorPreamble = `
         hasPreviousPage: false,
     }
 
-    const pageInfo = writable<PageInfo>(initialPageInfo)
+    const pageInfo = writable(initialPageInfo)
 
     // hold onto the current value
     subscribe((val) => {
-        pageInfo.set(extractPageInfo(val.result.data, artifact.refetch.path))
+        if (val.result?.data) {
+            pageInfo.set(extractPageInfo(val.result.data, artifact.refetch.path))
+        }
     })
 
     // dry up the page-loading logic
