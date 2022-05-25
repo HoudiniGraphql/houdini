@@ -85,7 +85,7 @@ test('basic store', async function () {
 					  // Current variables tracker
 					  let variables = {}
 
-						const sessionStore = getSession()
+						// const sessionStore = getSession()
 
 					  async function load(ctx, params) {
 					    console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
@@ -276,8 +276,9 @@ test('forward cursor pagination', async function () {
 
 					// optional pagination imports 
 
-					import { extractPageInfo, PageInfo, countPage } from '../runtime/utils'
+					import { extractPageInfo, countPage } from '../runtime/utils'
 					import { executeQuery } from '../runtime/network'
+					import { get } from 'svelte/store'
 
 
 					// TODO:
@@ -301,7 +302,7 @@ test('forward cursor pagination', async function () {
 					  // Current variables tracker
 					  let variables = {}
 
-						const sessionStore = getSession()
+						// const sessionStore = getSession()
 
 					  async function load(ctx, params) {
 					    console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
@@ -423,6 +424,8 @@ test('forward cursor pagination', async function () {
 					  }
 
 					  
+					    const initialValue = get({ subscribe })
+
 					    // track the current page info in an easy-to-reach store
 					    const initialPageInfo = extractPageInfo(initialValue, artifact.refetch.path) ?? {
 					        startCursor: null,
@@ -431,11 +434,13 @@ test('forward cursor pagination', async function () {
 					        hasPreviousPage: false,
 					    }
 
-					    const pageInfo = writable<PageInfo>(initialPageInfo)
+					    const pageInfo = writable(initialPageInfo)
 
 					    // hold onto the current value
 					    subscribe((val) => {
-					        pageInfo.set(extractPageInfo(val.result.data, artifact.refetch.path))
+					        if (val.result?.data) {
+					            pageInfo.set(extractPageInfo(val.result.data, artifact.refetch.path))
+					        }
 					    })
 
 					    // dry up the page-loading logic
@@ -601,8 +606,9 @@ test('backwards cursor pagination', async function () {
 
 					// optional pagination imports 
 
-					import { extractPageInfo, PageInfo, countPage } from '../runtime/utils'
+					import { extractPageInfo, countPage } from '../runtime/utils'
 					import { executeQuery } from '../runtime/network'
+					import { get } from 'svelte/store'
 
 
 					// TODO:
@@ -626,7 +632,7 @@ test('backwards cursor pagination', async function () {
 					  // Current variables tracker
 					  let variables = {}
 
-						const sessionStore = getSession()
+						// const sessionStore = getSession()
 
 					  async function load(ctx, params) {
 					    console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
@@ -748,6 +754,8 @@ test('backwards cursor pagination', async function () {
 					  }
 
 					  
+					    const initialValue = get({ subscribe })
+
 					    // track the current page info in an easy-to-reach store
 					    const initialPageInfo = extractPageInfo(initialValue, artifact.refetch.path) ?? {
 					        startCursor: null,
@@ -756,11 +764,13 @@ test('backwards cursor pagination', async function () {
 					        hasPreviousPage: false,
 					    }
 
-					    const pageInfo = writable<PageInfo>(initialPageInfo)
+					    const pageInfo = writable(initialPageInfo)
 
 					    // hold onto the current value
 					    subscribe((val) => {
-					        pageInfo.set(extractPageInfo(val.result.data, artifact.refetch.path))
+					        if (val.result?.data) {
+					            pageInfo.set(extractPageInfo(val.result.data, artifact.refetch.path))
+					        }
 					    })
 
 					    // dry up the page-loading logic
@@ -946,7 +956,7 @@ test('offset pagination', async function () {
 					  // Current variables tracker
 					  let variables = {}
 
-						const sessionStore = getSession()
+						// const sessionStore = getSession()
 
 					  async function load(ctx, params) {
 					    console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
