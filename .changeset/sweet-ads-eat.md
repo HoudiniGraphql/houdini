@@ -1,5 +1,5 @@
 ---
-"@fake-scope/fake-pkg": patch
+'houdini': patch
 ---
 
 add support for typescript 4.5
