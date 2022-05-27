@@ -39,165 +39,163 @@ ${paginationExtras.imports}
 // - [ ] context client side (getPage, getSession) => GetStores issue
 
 function ${storeName}Store() {
-  const { subscribe, set, update } = writable({
-    partial: false,
-    result: null,
-    source: null,
-    isFetching: false,
-  })
-
-  // Track subscriptions
-  let subscriptionSpec = null
-
-  // Current variables tracker
-  let variables = {}
-
-	// const sessionStore = getSession()
-
-  async function load(ctx, params) {
-    console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
-    const context = new RequestContext(ctx)
-    return await queryLocal(context, params)
-  }
-
-  async function query(params) {
-    const context = new RequestContext({
-      //page: getPage(),
-      fetch: fetch,
-      //session: getSession(),
+    const { subscribe, set, update } = writable({
+        partial: false,
+        result: null,
+        source: null,
+        isFetching: false,
     })
 
-    return await queryLocal(context, params)
-  }
+    // Track subscriptions
+    let subscriptionSpec = null
 
-  async function queryLocal(context, params) {
-    update((c) => {
-      return { ...c, isFetching: true }
-    })
+    // Current variables tracker
+    let variables = {}
 
-    // params management
-    params = params ?? {}
-    // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
-    if (!params.policy) {
-      params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+    // const sessionStore = getSession()
+
+    async function load(ctx, params) {
+        console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
+        const context = new RequestContext(ctx)
+        return await queryLocal(context, params)
     }
 
-    const newVariables = marshalInputs({
-      artifact,
-      config: houdiniConfig,
-      input: params.variables,
-    })
-
-    let toReturn = await fetchQuery({
-      context,
-      artifact,
-      variables: newVariables,
-      session: context.session,
-      cached: params.policy !== CachePolicy.NetworkOnly,
-    })
-
-    // setup a subscription for new values from the cache
-    if (isBrowser) {
-      // if we're already subscribing, don't do anything
-      // if (subscriptionSpec) {
-      // 	return
-      // }
-      subscriptionSpec = {
-        rootType: artifact.rootType,
-        selection: artifact.selection,
-        variables: () => newVariables,
-        set: set,
-      }
-      cache.subscribe(subscriptionSpec, variables)
-
-      const updated = stry(variables, 0) !== stry(newVariables, 0)
-
-      // if the variables changed we need to unsubscribe from the old fields and
-      // listen to the new ones
-      if (updated && subscriptionSpec) {
-        cache.unsubscribe(subscriptionSpec, variables)
-      }
-
-      // if the data was loaded from a cached value, and the document cache policy wants a
-      // network request to be sent after the data was loaded, load the data
-      if (
-        toReturn.source === DataSource.Cache &&
-        params.policy === CachePolicy.CacheAndNetwork
-      ) {
-        // this will invoke pagination's refetch because of javascript's magic this binding
-        fetchQuery({
-          context,
-          artifact,
-          variables: newVariables,
-          session: context.session,
-          cached: false,
+    async function query(params) {
+        const context = new RequestContext({
+            //page: getPage(),
+            fetch: fetch,
+            //session: getSession(),
         })
-      }
 
-      // if we have a partial result and we can load the rest of the data
-      // from the network, send the request
-      if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
-        fetchQuery({
-          context,
-          artifact,
-          variables: newVariables,
-          session: context.session,
-          cached: false,
-        })
-      }
-
-      // update the cache with the data that we just ran into
-      cache.write({
-        selection: artifact.selection,
-        data: toReturn.result.data,
-        variables: newVariables,
-      })
-
-      if (updated && subscriptionSpec) {
-        cache.subscribe(subscriptionSpec, newVariables)
-      }
-
-      // update Current variables tracker
-      variables = newVariables
+        return await queryLocal(context, params)
     }
 
-    set({
-      ...toReturn,
-      result: {
-        ...toReturn.result,
-        data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
-      },
-      isFetching: false,
-    })
+    async function queryLocal(context, params) {
+        update((c) => {
+            return { ...c, isFetching: true }
+        })
 
-    return toReturn
-  }
-
-  ${paginationExtras.preamble}
-
-  return {
-    subscribe: (...args) => {
-      const parentUnsubscribe = subscribe(...args)
-
-      // Handle unsubscribe
-      return () => {
-        if (subscriptionSpec) {
-          cache.unsubscribe(subscriptionSpec, variables)
-          subscriptionSpec = null
+        // params management
+        params = params ?? {}
+       
+        // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
+        if (!params.policy) {
+            params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
         }
 
-        parentUnsubscribe()
-      }
-    },
+        const newVariables = marshalInputs({
+            artifact,
+            config: houdiniConfig,
+            input: params.variables,
+        })
 
-    // For SSR
-    load,
+        let toReturn = await fetchQuery({
+            context,
+            artifact,
+            variables: newVariables,
+            session: context.session,
+            cached: params.policy !== CachePolicy.NetworkOnly,
+        })
 
-    // For CSR
-    query,
+        // setup a subscription for new values from the cache
+        if (isBrowser) {
+            
+            subscriptionSpec = {
+                rootType: artifact.rootType,
+                selection: artifact.selection,
+                variables: () => newVariables,
+                set: set,
+            }
+            cache.subscribe(subscriptionSpec, variables)
 
-    ${paginationExtras.methods}
-  }
+            const updated = stry(variables, 0) !== stry(newVariables, 0)
+
+            // if the variables changed we need to unsubscribe from the old fields and
+            // listen to the new ones
+            if (updated && subscriptionSpec) {
+                cache.unsubscribe(subscriptionSpec, variables)
+            }
+
+            // if the data was loaded from a cached value, and the document cache policy wants a
+            // network request to be sent after the data was loaded, load the data
+            if (
+                toReturn.source === DataSource.Cache &&
+                params.policy === CachePolicy.CacheAndNetwork
+            ) {
+                // this will invoke pagination's refetch because of javascript's magic this binding
+                fetchQuery({
+                    context,
+                    artifact,
+                    variables: newVariables,
+                    session: context.session,
+                    cached: false,
+                })
+            }
+
+            // if we have a partial result and we can load the rest of the data
+            // from the network, send the request
+            if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
+                fetchQuery({
+                    context,
+                    artifact,
+                    variables: newVariables,
+                    session: context.session,
+                    cached: false,
+                })
+            }
+
+            // update the cache with the data that we just ran into
+            cache.write({
+                selection: artifact.selection,
+                data: toReturn.result.data,
+                variables: newVariables,
+            })
+
+            if (updated && subscriptionSpec) {
+                cache.subscribe(subscriptionSpec, newVariables)
+            }
+
+            // update Current variables tracker
+            variables = newVariables
+        }
+
+        set({
+            ...toReturn,
+            result: {
+                ...toReturn.result,
+                data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
+            },
+            isFetching: false,
+        })
+
+        return toReturn
+    }
+
+    ${paginationExtras.preamble}
+
+    return {
+        subscribe: (...args) => {
+            const parentUnsubscribe = subscribe(...args)
+
+            // Handle unsubscribe
+            return () => {
+                if (subscriptionSpec) {
+                    cache.unsubscribe(subscriptionSpec, variables)
+                    subscriptionSpec = null
+                }
+        
+                parentUnsubscribe()
+            }
+        },
+
+        // For SSR
+        load,
+
+        // For CSR
+        query,
+
+        ${paginationExtras.methods}
+    }
 }
 
 export const ${storeName} = ${storeName}Store()  

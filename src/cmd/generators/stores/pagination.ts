@@ -49,7 +49,7 @@ const offsetPreamble = `
 `
 
 const offsetMethods = `
-      loadPage: async (limit) => {
+    loadPage: async (limit) => {
         // build up the variables to pass to the query
         const queryVariables = {
             ...variables,
@@ -95,8 +95,47 @@ const offsetMethods = `
 
         // we're not loading any more
         update(s => ({...s, isFetching: false}))
-      },
-`
+    },
+    async query(input) {
+        // if the input is different than the query variables then we just do everything like normal
+        if (input && JSON.stringify(variables) !== JSON.stringify(input)) {
+            return query(input)
+        }
+
+        // we are updating the current set of items, count the number of items that currently exist
+        // and ask for the full data set
+        const count = countPage(artifact.refetch.path, value)
+
+        // build up the variables to pass to the query
+        const queryVariables = {
+            ...variables,
+            limit: count,
+        }
+
+        // set the loading state to true
+        update(s => ({...s, isFetching: true }))
+
+        // send the query
+        const { result, partial: partialData } = await executeQuery(
+            artifact,
+            queryVariables,
+            sessionStore,
+            false
+        )
+
+        update(s => ({...s, partial: partialData }))
+
+        // update cache with the result
+        cache.write({
+            selection: artifact.selection,
+            data: result.data,
+            variables: queryVariables,
+            applyUpdates: true,
+        })
+
+        // we're not loading any more
+        update(s => ({...s, isFetching: false }))
+    },`
 
 const offsetTypes = `
     loadNextPage(limit?: number) => Promise<void>
@@ -197,34 +236,80 @@ const cursorPreamble = `
     }
 `
 
+const cursorRefetch = `
+        async query(input) {
+            // if the input is different than the query variables then we just do everything like normal
+            if (input && JSON.stringify(variables) !== JSON.stringify(input)) {
+                return query(input)
+            }
+
+            // we are updating the current set of items, count the number of items that currently exist
+            // and ask for the full data set
+            const count =
+                countPage(artifact.refetch.path.concat('edges'), value) ||
+                artifact.refetch.pageSize
+
+            // build up the variables to pass to the query
+            const queryVariables = {
+                ...variables,
+                // reverse cursors need the last entries in the list
+                [artifact.refetch.update === 'prepend' ? 'last' : 'first']: count,
+            }
+
+            // set the loading state to true
+            update(s => ({...s, isFetching: true }))
+
+            // send the query
+            const { result, partial: partialData } = await executeQuery(
+                artifact,
+                queryVariables,
+                sessionStore,
+                false
+            )
+            update(s => ({...s, partial: partialData }))
+
+            // update cache with the result
+            cache.write({
+                selection: artifact.selection,
+                data: result.data,
+                variables: queryVariables,
+                // overwrite the current data
+                applyUpdates: false,
+            })
+
+            // we're not loading any more
+            update(s => ({...s, isFetching: false }))
+        },`
+
 const forwardCursorMethods = `
-      loadNextPage: (pageCount) => {
-          const value = get({subscribe}).result.data
-
-          // we need to find the connection object holding the current page info
-          const currentPageInfo = extractPageInfo(value, artifact.refetch.path)
-
-          // if there is no next page, we're done
-          if (!currentPageInfo.hasNextPage) {
-              return
-          }
-
-          // only specify the page count if we're given one
-          const input = {
-              after: currentPageInfo.endCursor,
-          }
-          if (pageCount) {
-              input.first = pageCount
-          }
-
-          // load the page
-          return loadPage({
-              pageSizeVar: 'first',
-              functionName: 'loadNextPage',
-              input,
-          })
-      },
-      pageInfo: { subscribe: pageInfo.subscribe },
+        loadNextPage: (pageCount) => {
+            const value = get({subscribe}).result.data
+  
+            // we need to find the connection object holding the current page info
+            const currentPageInfo = extractPageInfo(value, artifact.refetch.path)
+  
+            // if there is no next page, we're done
+            if (!currentPageInfo.hasNextPage) {
+                return
+            }
+  
+            // only specify the page count if we're given one
+            const input = {
+                after: currentPageInfo.endCursor,
+            }
+            if (pageCount) {
+                input.first = pageCount
+            }
+  
+            // load the page
+            return loadPage({
+                pageSizeVar: 'first',
+                functionName: 'loadNextPage',
+                input,
+            })
+        },
+        pageInfo: { subscribe: pageInfo.subscribe },
+        ${cursorRefetch}
 `
 
 const forwardCursorTypes = `{
@@ -233,33 +318,34 @@ const forwardCursorTypes = `{
 }`
 
 const backwardsCursorMethods = `
-      loadPreviousPage: (pageCount) => {
-          const value = get({subscribe}).result.data
-
-          // we need to find the connection object holding the current page info
-          const currentPageInfo = extractPageInfo(value, artifact.refetch.path)
-
-          // if there is no next page, we're done
-          if (!currentPageInfo.hasPreviousPage) {
-              return
-          }
-
-          // only specify the page count if we're given one
-          const input = {
-              before: currentPageInfo.startCursor,
-          }
-          if (pageCount) {
-              input.last = pageCount
-          }
-
-          // load the page
-          return loadPage({
-              pageSizeVar: 'last',
-              functionName: 'loadPreviousPage',
-              input,
-          })
-      },
-      pageInfo: { subscribe: pageInfo.subscribe },
+        loadPreviousPage: (pageCount) => {
+            const value = get({subscribe}).result.data
+  
+            // we need to find the connection object holding the current page info
+            const currentPageInfo = extractPageInfo(value, artifact.refetch.path)
+  
+            // if there is no next page, we're done
+            if (!currentPageInfo.hasPreviousPage) {
+                return
+            }
+  
+            // only specify the page count if we're given one
+            const input = {
+                before: currentPageInfo.startCursor,
+            }
+            if (pageCount) {
+                input.last = pageCount
+            }
+  
+            // load the page
+            return loadPage({
+                pageSizeVar: 'last',
+                functionName: 'loadPreviousPage',
+                input,
+            })
+        },
+        pageInfo: { subscribe: pageInfo.subscribe },
+        ${cursorRefetch}
 `
 
 const backwardsCursorTypes = `{
