@@ -72,165 +72,163 @@ test('basic store', async function () {
 					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
-					  const { subscribe, set, update } = writable({
-					    partial: false,
-					    result: null,
-					    source: null,
-					    isFetching: false,
-					  })
-
-					  // Track subscriptions
-					  let subscriptionSpec = null
-
-					  // Current variables tracker
-					  let variables = {}
-
-						// const sessionStore = getSession()
-
-					  async function load(ctx, params) {
-					    console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
-					    const context = new RequestContext(ctx)
-					    return await queryLocal(context, params)
-					  }
-
-					  async function query(params) {
-					    const context = new RequestContext({
-					      //page: getPage(),
-					      fetch: fetch,
-					      //session: getSession(),
+					    const { subscribe, set, update } = writable({
+					        partial: false,
+					        result: null,
+					        source: null,
+					        isFetching: false,
 					    })
 
-					    return await queryLocal(context, params)
-					  }
+					    // Track subscriptions
+					    let subscriptionSpec = null
 
-					  async function queryLocal(context, params) {
-					    update((c) => {
-					      return { ...c, isFetching: true }
-					    })
+					    // Current variables tracker
+					    let variables = {}
 
-					    // params management
-					    params = params ?? {}
-					    // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
-					    if (!params.policy) {
-					      params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+					    // const sessionStore = getSession()
+
+					    async function load(ctx, params) {
+					        console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
+					        const context = new RequestContext(ctx)
+					        return await queryLocal(context, params)
 					    }
 
-					    const newVariables = marshalInputs({
-					      artifact,
-					      config: houdiniConfig,
-					      input: params.variables,
-					    })
-
-					    let toReturn = await fetchQuery({
-					      context,
-					      artifact,
-					      variables: newVariables,
-					      session: context.session,
-					      cached: params.policy !== CachePolicy.NetworkOnly,
-					    })
-
-					    // setup a subscription for new values from the cache
-					    if (isBrowser) {
-					      // if we're already subscribing, don't do anything
-					      // if (subscriptionSpec) {
-					      // 	return
-					      // }
-					      subscriptionSpec = {
-					        rootType: artifact.rootType,
-					        selection: artifact.selection,
-					        variables: () => newVariables,
-					        set: set,
-					      }
-					      cache.subscribe(subscriptionSpec, variables)
-
-					      const updated = stry(variables, 0) !== stry(newVariables, 0)
-
-					      // if the variables changed we need to unsubscribe from the old fields and
-					      // listen to the new ones
-					      if (updated && subscriptionSpec) {
-					        cache.unsubscribe(subscriptionSpec, variables)
-					      }
-
-					      // if the data was loaded from a cached value, and the document cache policy wants a
-					      // network request to be sent after the data was loaded, load the data
-					      if (
-					        toReturn.source === DataSource.Cache &&
-					        params.policy === CachePolicy.CacheAndNetwork
-					      ) {
-					        // this will invoke pagination's refetch because of javascript's magic this binding
-					        fetchQuery({
-					          context,
-					          artifact,
-					          variables: newVariables,
-					          session: context.session,
-					          cached: false,
+					    async function query(params) {
+					        const context = new RequestContext({
+					            //page: getPage(),
+					            fetch: fetch,
+					            //session: getSession(),
 					        })
-					      }
 
-					      // if we have a partial result and we can load the rest of the data
-					      // from the network, send the request
-					      if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
-					        fetchQuery({
-					          context,
-					          artifact,
-					          variables: newVariables,
-					          session: context.session,
-					          cached: false,
-					        })
-					      }
-
-					      // update the cache with the data that we just ran into
-					      cache.write({
-					        selection: artifact.selection,
-					        data: toReturn.result.data,
-					        variables: newVariables,
-					      })
-
-					      if (updated && subscriptionSpec) {
-					        cache.subscribe(subscriptionSpec, newVariables)
-					      }
-
-					      // update Current variables tracker
-					      variables = newVariables
+					        return await queryLocal(context, params)
 					    }
 
-					    set({
-					      ...toReturn,
-					      result: {
-					        ...toReturn.result,
-					        data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
-					      },
-					      isFetching: false,
-					    })
+					    async function queryLocal(context, params) {
+					        update((c) => {
+					            return { ...c, isFetching: true }
+					        })
 
-					    return toReturn
-					  }
-
-					  
-
-					  return {
-					    subscribe: (...args) => {
-					      const parentUnsubscribe = subscribe(...args)
-
-					      // Handle unsubscribe
-					      return () => {
-					        if (subscriptionSpec) {
-					          cache.unsubscribe(subscriptionSpec, variables)
-					          subscriptionSpec = null
+					        // params management
+					        params = params ?? {}
+					       
+					        // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
+					        if (!params.policy) {
+					            params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
 					        }
 
-					        parentUnsubscribe()
-					      }
-					    },
+					        const newVariables = marshalInputs({
+					            artifact,
+					            config: houdiniConfig,
+					            input: params.variables,
+					        })
 
-					    // For SSR
-					    load,
+					        let toReturn = await fetchQuery({
+					            context,
+					            artifact,
+					            variables: newVariables,
+					            session: context.session,
+					            cached: params.policy !== CachePolicy.NetworkOnly,
+					        })
 
-					    // For CSR
-					    query,
+					        // setup a subscription for new values from the cache
+					        if (isBrowser) {
+					            
+					            subscriptionSpec = {
+					                rootType: artifact.rootType,
+					                selection: artifact.selection,
+					                variables: () => newVariables,
+					                set: set,
+					            }
+					            cache.subscribe(subscriptionSpec, variables)
+
+					            const updated = stry(variables, 0) !== stry(newVariables, 0)
+
+					            // if the variables changed we need to unsubscribe from the old fields and
+					            // listen to the new ones
+					            if (updated && subscriptionSpec) {
+					                cache.unsubscribe(subscriptionSpec, variables)
+					            }
+
+					            // if the data was loaded from a cached value, and the document cache policy wants a
+					            // network request to be sent after the data was loaded, load the data
+					            if (
+					                toReturn.source === DataSource.Cache &&
+					                params.policy === CachePolicy.CacheAndNetwork
+					            ) {
+					                // this will invoke pagination's refetch because of javascript's magic this binding
+					                fetchQuery({
+					                    context,
+					                    artifact,
+					                    variables: newVariables,
+					                    session: context.session,
+					                    cached: false,
+					                })
+					            }
+
+					            // if we have a partial result and we can load the rest of the data
+					            // from the network, send the request
+					            if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
+					                fetchQuery({
+					                    context,
+					                    artifact,
+					                    variables: newVariables,
+					                    session: context.session,
+					                    cached: false,
+					                })
+					            }
+
+					            // update the cache with the data that we just ran into
+					            cache.write({
+					                selection: artifact.selection,
+					                data: toReturn.result.data,
+					                variables: newVariables,
+					            })
+
+					            if (updated && subscriptionSpec) {
+					                cache.subscribe(subscriptionSpec, newVariables)
+					            }
+
+					            // update Current variables tracker
+					            variables = newVariables
+					        }
+
+					        set({
+					            ...toReturn,
+					            result: {
+					                ...toReturn.result,
+					                data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
+					            },
+					            isFetching: false,
+					        })
+
+					        return toReturn
+					    }
 
 					    
-					  }
+
+					    return {
+					        subscribe: (...args) => {
+					            const parentUnsubscribe = subscribe(...args)
+
+					            // Handle unsubscribe
+					            return () => {
+					                if (subscriptionSpec) {
+					                    cache.unsubscribe(subscriptionSpec, variables)
+					                    subscriptionSpec = null
+					                }
+					        
+					                parentUnsubscribe()
+					            }
+					        },
+
+					        // For SSR
+					        load,
+
+					        // For CSR
+					        query,
+
+					        
+					    }
 					}
 
 					export const GQL_TestQuery = GQL_TestQueryStore()
@@ -289,141 +287,139 @@ test('forward cursor pagination', async function () {
 					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
-					  const { subscribe, set, update } = writable({
-					    partial: false,
-					    result: null,
-					    source: null,
-					    isFetching: false,
-					  })
-
-					  // Track subscriptions
-					  let subscriptionSpec = null
-
-					  // Current variables tracker
-					  let variables = {}
-
-						// const sessionStore = getSession()
-
-					  async function load(ctx, params) {
-					    console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
-					    const context = new RequestContext(ctx)
-					    return await queryLocal(context, params)
-					  }
-
-					  async function query(params) {
-					    const context = new RequestContext({
-					      //page: getPage(),
-					      fetch: fetch,
-					      //session: getSession(),
+					    const { subscribe, set, update } = writable({
+					        partial: false,
+					        result: null,
+					        source: null,
+					        isFetching: false,
 					    })
 
-					    return await queryLocal(context, params)
-					  }
+					    // Track subscriptions
+					    let subscriptionSpec = null
 
-					  async function queryLocal(context, params) {
-					    update((c) => {
-					      return { ...c, isFetching: true }
-					    })
+					    // Current variables tracker
+					    let variables = {}
 
-					    // params management
-					    params = params ?? {}
-					    // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
-					    if (!params.policy) {
-					      params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+					    // const sessionStore = getSession()
+
+					    async function load(ctx, params) {
+					        console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
+					        const context = new RequestContext(ctx)
+					        return await queryLocal(context, params)
 					    }
 
-					    const newVariables = marshalInputs({
-					      artifact,
-					      config: houdiniConfig,
-					      input: params.variables,
-					    })
-
-					    let toReturn = await fetchQuery({
-					      context,
-					      artifact,
-					      variables: newVariables,
-					      session: context.session,
-					      cached: params.policy !== CachePolicy.NetworkOnly,
-					    })
-
-					    // setup a subscription for new values from the cache
-					    if (isBrowser) {
-					      // if we're already subscribing, don't do anything
-					      // if (subscriptionSpec) {
-					      // 	return
-					      // }
-					      subscriptionSpec = {
-					        rootType: artifact.rootType,
-					        selection: artifact.selection,
-					        variables: () => newVariables,
-					        set: set,
-					      }
-					      cache.subscribe(subscriptionSpec, variables)
-
-					      const updated = stry(variables, 0) !== stry(newVariables, 0)
-
-					      // if the variables changed we need to unsubscribe from the old fields and
-					      // listen to the new ones
-					      if (updated && subscriptionSpec) {
-					        cache.unsubscribe(subscriptionSpec, variables)
-					      }
-
-					      // if the data was loaded from a cached value, and the document cache policy wants a
-					      // network request to be sent after the data was loaded, load the data
-					      if (
-					        toReturn.source === DataSource.Cache &&
-					        params.policy === CachePolicy.CacheAndNetwork
-					      ) {
-					        // this will invoke pagination's refetch because of javascript's magic this binding
-					        fetchQuery({
-					          context,
-					          artifact,
-					          variables: newVariables,
-					          session: context.session,
-					          cached: false,
+					    async function query(params) {
+					        const context = new RequestContext({
+					            //page: getPage(),
+					            fetch: fetch,
+					            //session: getSession(),
 					        })
-					      }
 
-					      // if we have a partial result and we can load the rest of the data
-					      // from the network, send the request
-					      if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
-					        fetchQuery({
-					          context,
-					          artifact,
-					          variables: newVariables,
-					          session: context.session,
-					          cached: false,
-					        })
-					      }
-
-					      // update the cache with the data that we just ran into
-					      cache.write({
-					        selection: artifact.selection,
-					        data: toReturn.result.data,
-					        variables: newVariables,
-					      })
-
-					      if (updated && subscriptionSpec) {
-					        cache.subscribe(subscriptionSpec, newVariables)
-					      }
-
-					      // update Current variables tracker
-					      variables = newVariables
+					        return await queryLocal(context, params)
 					    }
 
-					    set({
-					      ...toReturn,
-					      result: {
-					        ...toReturn.result,
-					        data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
-					      },
-					      isFetching: false,
-					    })
+					    async function queryLocal(context, params) {
+					        update((c) => {
+					            return { ...c, isFetching: true }
+					        })
 
-					    return toReturn
-					  }
+					        // params management
+					        params = params ?? {}
+					       
+					        // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
+					        if (!params.policy) {
+					            params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+					        }
 
-					  
+					        const newVariables = marshalInputs({
+					            artifact,
+					            config: houdiniConfig,
+					            input: params.variables,
+					        })
+
+					        let toReturn = await fetchQuery({
+					            context,
+					            artifact,
+					            variables: newVariables,
+					            session: context.session,
+					            cached: params.policy !== CachePolicy.NetworkOnly,
+					        })
+
+					        // setup a subscription for new values from the cache
+					        if (isBrowser) {
+					            
+					            subscriptionSpec = {
+					                rootType: artifact.rootType,
+					                selection: artifact.selection,
+					                variables: () => newVariables,
+					                set: set,
+					            }
+					            cache.subscribe(subscriptionSpec, variables)
+
+					            const updated = stry(variables, 0) !== stry(newVariables, 0)
+
+					            // if the variables changed we need to unsubscribe from the old fields and
+					            // listen to the new ones
+					            if (updated && subscriptionSpec) {
+					                cache.unsubscribe(subscriptionSpec, variables)
+					            }
+
+					            // if the data was loaded from a cached value, and the document cache policy wants a
+					            // network request to be sent after the data was loaded, load the data
+					            if (
+					                toReturn.source === DataSource.Cache &&
+					                params.policy === CachePolicy.CacheAndNetwork
+					            ) {
+					                // this will invoke pagination's refetch because of javascript's magic this binding
+					                fetchQuery({
+					                    context,
+					                    artifact,
+					                    variables: newVariables,
+					                    session: context.session,
+					                    cached: false,
+					                })
+					            }
+
+					            // if we have a partial result and we can load the rest of the data
+					            // from the network, send the request
+					            if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
+					                fetchQuery({
+					                    context,
+					                    artifact,
+					                    variables: newVariables,
+					                    session: context.session,
+					                    cached: false,
+					                })
+					            }
+
+					            // update the cache with the data that we just ran into
+					            cache.write({
+					                selection: artifact.selection,
+					                data: toReturn.result.data,
+					                variables: newVariables,
+					            })
+
+					            if (updated && subscriptionSpec) {
+					                cache.subscribe(subscriptionSpec, newVariables)
+					            }
+
+					            // update Current variables tracker
+					            variables = newVariables
+					        }
+
+					        set({
+					            ...toReturn,
+					            result: {
+					                ...toReturn.result,
+					                data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
+					            },
+					            isFetching: false,
+					        })
+
+					        return toReturn
+					    }
+
+					    
 					    const initialValue = get({ subscribe })
 
 					    // track the current page info in an easy-to-reach store
@@ -510,57 +506,101 @@ test('forward cursor pagination', async function () {
 					    }
 
 
-					  return {
-					    subscribe: (...args) => {
-					      const parentUnsubscribe = subscribe(...args)
+					    return {
+					        subscribe: (...args) => {
+					            const parentUnsubscribe = subscribe(...args)
 
-					      // Handle unsubscribe
-					      return () => {
-					        if (subscriptionSpec) {
-					          cache.unsubscribe(subscriptionSpec, variables)
-					          subscriptionSpec = null
-					        }
+					            // Handle unsubscribe
+					            return () => {
+					                if (subscriptionSpec) {
+					                    cache.unsubscribe(subscriptionSpec, variables)
+					                    subscriptionSpec = null
+					                }
+					        
+					                parentUnsubscribe()
+					            }
+					        },
 
-					        parentUnsubscribe()
-					      }
-					    },
+					        // For SSR
+					        load,
 
-					    // For SSR
-					    load,
+					        // For CSR
+					        query,
 
-					    // For CSR
-					    query,
+					        ...{
+					        loadNextPage: (pageCount) => {
+					            const value = get({subscribe}).result.data
+					  
+					            // we need to find the connection object holding the current page info
+					            const currentPageInfo = extractPageInfo(value, artifact.refetch.path)
+					  
+					            // if there is no next page, we're done
+					            if (!currentPageInfo.hasNextPage) {
+					                return
+					            }
+					  
+					            // only specify the page count if we're given one
+					            const input = {
+					                after: currentPageInfo.endCursor,
+					            }
+					            if (pageCount) {
+					                input.first = pageCount
+					            }
+					  
+					            // load the page
+					            return loadPage({
+					                pageSizeVar: 'first',
+					                functionName: 'loadNextPage',
+					                input,
+					            })
+					        },
+					        pageInfo: { subscribe: pageInfo.subscribe },
+					        
+					        async query(input) {
+					            // if the input is different than the query variables then we just do everything like normal
+					            if (input && JSON.stringify(variables) !== JSON.stringify(input)) {
+					                return query(input)
+					            }
 
-					    ...{
-					      loadNextPage: (pageCount) => {
-					          const value = get({subscribe}).result.data
+					            // we are updating the current set of items, count the number of items that currently exist
+					            // and ask for the full data set
+					            const count =
+					                countPage(artifact.refetch.path.concat('edges'), value) ||
+					                artifact.refetch.pageSize
 
-					          // we need to find the connection object holding the current page info
-					          const currentPageInfo = extractPageInfo(value, artifact.refetch.path)
+					            // build up the variables to pass to the query
+					            const queryVariables = {
+					                ...variables,
+					                // reverse cursors need the last entries in the list
+					                [artifact.refetch.update === 'prepend' ? 'last' : 'first']: count,
+					            }
 
-					          // if there is no next page, we're done
-					          if (!currentPageInfo.hasNextPage) {
-					              return
-					          }
+					            // set the loading state to true
+					            update(s => ({...s, isFetching: true }))
 
-					          // only specify the page count if we're given one
-					          const input = {
-					              after: currentPageInfo.endCursor,
-					          }
-					          if (pageCount) {
-					              input.first = pageCount
-					          }
+					            // send the query
+					            const { result, partial: partialData } = await executeQuery(
+					                artifact,
+					                queryVariables,
+					                sessionStore,
+					                false
+					            )
+					            update(s => ({...s, partial: partialData }))
 
-					          // load the page
-					          return loadPage({
-					              pageSizeVar: 'first',
-					              functionName: 'loadNextPage',
-					              input,
-					          })
-					      },
-					      pageInfo: { subscribe: pageInfo.subscribe },
+					            // update cache with the result
+					            cache.write({
+					                selection: artifact.selection,
+					                data: result.data,
+					                variables: queryVariables,
+					                // overwrite the current data
+					                applyUpdates: false,
+					            })
+
+					            // we're not loading any more
+					            update(s => ({...s, isFetching: false }))
+					        },
 					    }
-					  }
+					    }
 					}
 
 					export const GQL_TestQuery = GQL_TestQueryStore()
@@ -619,141 +659,139 @@ test('backwards cursor pagination', async function () {
 					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
-					  const { subscribe, set, update } = writable({
-					    partial: false,
-					    result: null,
-					    source: null,
-					    isFetching: false,
-					  })
-
-					  // Track subscriptions
-					  let subscriptionSpec = null
-
-					  // Current variables tracker
-					  let variables = {}
-
-						// const sessionStore = getSession()
-
-					  async function load(ctx, params) {
-					    console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
-					    const context = new RequestContext(ctx)
-					    return await queryLocal(context, params)
-					  }
-
-					  async function query(params) {
-					    const context = new RequestContext({
-					      //page: getPage(),
-					      fetch: fetch,
-					      //session: getSession(),
+					    const { subscribe, set, update } = writable({
+					        partial: false,
+					        result: null,
+					        source: null,
+					        isFetching: false,
 					    })
 
-					    return await queryLocal(context, params)
-					  }
+					    // Track subscriptions
+					    let subscriptionSpec = null
 
-					  async function queryLocal(context, params) {
-					    update((c) => {
-					      return { ...c, isFetching: true }
-					    })
+					    // Current variables tracker
+					    let variables = {}
 
-					    // params management
-					    params = params ?? {}
-					    // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
-					    if (!params.policy) {
-					      params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+					    // const sessionStore = getSession()
+
+					    async function load(ctx, params) {
+					        console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
+					        const context = new RequestContext(ctx)
+					        return await queryLocal(context, params)
 					    }
 
-					    const newVariables = marshalInputs({
-					      artifact,
-					      config: houdiniConfig,
-					      input: params.variables,
-					    })
-
-					    let toReturn = await fetchQuery({
-					      context,
-					      artifact,
-					      variables: newVariables,
-					      session: context.session,
-					      cached: params.policy !== CachePolicy.NetworkOnly,
-					    })
-
-					    // setup a subscription for new values from the cache
-					    if (isBrowser) {
-					      // if we're already subscribing, don't do anything
-					      // if (subscriptionSpec) {
-					      // 	return
-					      // }
-					      subscriptionSpec = {
-					        rootType: artifact.rootType,
-					        selection: artifact.selection,
-					        variables: () => newVariables,
-					        set: set,
-					      }
-					      cache.subscribe(subscriptionSpec, variables)
-
-					      const updated = stry(variables, 0) !== stry(newVariables, 0)
-
-					      // if the variables changed we need to unsubscribe from the old fields and
-					      // listen to the new ones
-					      if (updated && subscriptionSpec) {
-					        cache.unsubscribe(subscriptionSpec, variables)
-					      }
-
-					      // if the data was loaded from a cached value, and the document cache policy wants a
-					      // network request to be sent after the data was loaded, load the data
-					      if (
-					        toReturn.source === DataSource.Cache &&
-					        params.policy === CachePolicy.CacheAndNetwork
-					      ) {
-					        // this will invoke pagination's refetch because of javascript's magic this binding
-					        fetchQuery({
-					          context,
-					          artifact,
-					          variables: newVariables,
-					          session: context.session,
-					          cached: false,
+					    async function query(params) {
+					        const context = new RequestContext({
+					            //page: getPage(),
+					            fetch: fetch,
+					            //session: getSession(),
 					        })
-					      }
 
-					      // if we have a partial result and we can load the rest of the data
-					      // from the network, send the request
-					      if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
-					        fetchQuery({
-					          context,
-					          artifact,
-					          variables: newVariables,
-					          session: context.session,
-					          cached: false,
-					        })
-					      }
-
-					      // update the cache with the data that we just ran into
-					      cache.write({
-					        selection: artifact.selection,
-					        data: toReturn.result.data,
-					        variables: newVariables,
-					      })
-
-					      if (updated && subscriptionSpec) {
-					        cache.subscribe(subscriptionSpec, newVariables)
-					      }
-
-					      // update Current variables tracker
-					      variables = newVariables
+					        return await queryLocal(context, params)
 					    }
 
-					    set({
-					      ...toReturn,
-					      result: {
-					        ...toReturn.result,
-					        data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
-					      },
-					      isFetching: false,
-					    })
+					    async function queryLocal(context, params) {
+					        update((c) => {
+					            return { ...c, isFetching: true }
+					        })
 
-					    return toReturn
-					  }
+					        // params management
+					        params = params ?? {}
+					       
+					        // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
+					        if (!params.policy) {
+					            params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+					        }
 
-					  
+					        const newVariables = marshalInputs({
+					            artifact,
+					            config: houdiniConfig,
+					            input: params.variables,
+					        })
+
+					        let toReturn = await fetchQuery({
+					            context,
+					            artifact,
+					            variables: newVariables,
+					            session: context.session,
+					            cached: params.policy !== CachePolicy.NetworkOnly,
+					        })
+
+					        // setup a subscription for new values from the cache
+					        if (isBrowser) {
+					            
+					            subscriptionSpec = {
+					                rootType: artifact.rootType,
+					                selection: artifact.selection,
+					                variables: () => newVariables,
+					                set: set,
+					            }
+					            cache.subscribe(subscriptionSpec, variables)
+
+					            const updated = stry(variables, 0) !== stry(newVariables, 0)
+
+					            // if the variables changed we need to unsubscribe from the old fields and
+					            // listen to the new ones
+					            if (updated && subscriptionSpec) {
+					                cache.unsubscribe(subscriptionSpec, variables)
+					            }
+
+					            // if the data was loaded from a cached value, and the document cache policy wants a
+					            // network request to be sent after the data was loaded, load the data
+					            if (
+					                toReturn.source === DataSource.Cache &&
+					                params.policy === CachePolicy.CacheAndNetwork
+					            ) {
+					                // this will invoke pagination's refetch because of javascript's magic this binding
+					                fetchQuery({
+					                    context,
+					                    artifact,
+					                    variables: newVariables,
+					                    session: context.session,
+					                    cached: false,
+					                })
+					            }
+
+					            // if we have a partial result and we can load the rest of the data
+					            // from the network, send the request
+					            if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
+					                fetchQuery({
+					                    context,
+					                    artifact,
+					                    variables: newVariables,
+					                    session: context.session,
+					                    cached: false,
+					                })
+					            }
+
+					            // update the cache with the data that we just ran into
+					            cache.write({
+					                selection: artifact.selection,
+					                data: toReturn.result.data,
+					                variables: newVariables,
+					            })
+
+					            if (updated && subscriptionSpec) {
+					                cache.subscribe(subscriptionSpec, newVariables)
+					            }
+
+					            // update Current variables tracker
+					            variables = newVariables
+					        }
+
+					        set({
+					            ...toReturn,
+					            result: {
+					                ...toReturn.result,
+					                data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
+					            },
+					            isFetching: false,
+					        })
+
+					        return toReturn
+					    }
+
+					    
 					    const initialValue = get({ subscribe })
 
 					    // track the current page info in an easy-to-reach store
@@ -840,57 +878,101 @@ test('backwards cursor pagination', async function () {
 					    }
 
 
-					  return {
-					    subscribe: (...args) => {
-					      const parentUnsubscribe = subscribe(...args)
+					    return {
+					        subscribe: (...args) => {
+					            const parentUnsubscribe = subscribe(...args)
 
-					      // Handle unsubscribe
-					      return () => {
-					        if (subscriptionSpec) {
-					          cache.unsubscribe(subscriptionSpec, variables)
-					          subscriptionSpec = null
-					        }
+					            // Handle unsubscribe
+					            return () => {
+					                if (subscriptionSpec) {
+					                    cache.unsubscribe(subscriptionSpec, variables)
+					                    subscriptionSpec = null
+					                }
+					        
+					                parentUnsubscribe()
+					            }
+					        },
 
-					        parentUnsubscribe()
-					      }
-					    },
+					        // For SSR
+					        load,
 
-					    // For SSR
-					    load,
+					        // For CSR
+					        query,
 
-					    // For CSR
-					    query,
+					        ...{
+					        loadPreviousPage: (pageCount) => {
+					            const value = get({subscribe}).result.data
+					  
+					            // we need to find the connection object holding the current page info
+					            const currentPageInfo = extractPageInfo(value, artifact.refetch.path)
+					  
+					            // if there is no next page, we're done
+					            if (!currentPageInfo.hasPreviousPage) {
+					                return
+					            }
+					  
+					            // only specify the page count if we're given one
+					            const input = {
+					                before: currentPageInfo.startCursor,
+					            }
+					            if (pageCount) {
+					                input.last = pageCount
+					            }
+					  
+					            // load the page
+					            return loadPage({
+					                pageSizeVar: 'last',
+					                functionName: 'loadPreviousPage',
+					                input,
+					            })
+					        },
+					        pageInfo: { subscribe: pageInfo.subscribe },
+					        
+					        async query(input) {
+					            // if the input is different than the query variables then we just do everything like normal
+					            if (input && JSON.stringify(variables) !== JSON.stringify(input)) {
+					                return query(input)
+					            }
 
-					    ...{
-					      loadPreviousPage: (pageCount) => {
-					          const value = get({subscribe}).result.data
+					            // we are updating the current set of items, count the number of items that currently exist
+					            // and ask for the full data set
+					            const count =
+					                countPage(artifact.refetch.path.concat('edges'), value) ||
+					                artifact.refetch.pageSize
 
-					          // we need to find the connection object holding the current page info
-					          const currentPageInfo = extractPageInfo(value, artifact.refetch.path)
+					            // build up the variables to pass to the query
+					            const queryVariables = {
+					                ...variables,
+					                // reverse cursors need the last entries in the list
+					                [artifact.refetch.update === 'prepend' ? 'last' : 'first']: count,
+					            }
 
-					          // if there is no next page, we're done
-					          if (!currentPageInfo.hasPreviousPage) {
-					              return
-					          }
+					            // set the loading state to true
+					            update(s => ({...s, isFetching: true }))
 
-					          // only specify the page count if we're given one
-					          const input = {
-					              before: currentPageInfo.startCursor,
-					          }
-					          if (pageCount) {
-					              input.last = pageCount
-					          }
+					            // send the query
+					            const { result, partial: partialData } = await executeQuery(
+					                artifact,
+					                queryVariables,
+					                sessionStore,
+					                false
+					            )
+					            update(s => ({...s, partial: partialData }))
 
-					          // load the page
-					          return loadPage({
-					              pageSizeVar: 'last',
-					              functionName: 'loadPreviousPage',
-					              input,
-					          })
-					      },
-					      pageInfo: { subscribe: pageInfo.subscribe },
+					            // update cache with the result
+					            cache.write({
+					                selection: artifact.selection,
+					                data: result.data,
+					                variables: queryVariables,
+					                // overwrite the current data
+					                applyUpdates: false,
+					            })
+
+					            // we're not loading any more
+					            update(s => ({...s, isFetching: false }))
+					        },
 					    }
-					  }
+					    }
 					}
 
 					export const GQL_TestQuery = GQL_TestQueryStore()
@@ -943,168 +1025,166 @@ test('offset pagination', async function () {
 					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
-					  const { subscribe, set, update } = writable({
-					    partial: false,
-					    result: null,
-					    source: null,
-					    isFetching: false,
-					  })
-
-					  // Track subscriptions
-					  let subscriptionSpec = null
-
-					  // Current variables tracker
-					  let variables = {}
-
-						// const sessionStore = getSession()
-
-					  async function load(ctx, params) {
-					    console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
-					    const context = new RequestContext(ctx)
-					    return await queryLocal(context, params)
-					  }
-
-					  async function query(params) {
-					    const context = new RequestContext({
-					      //page: getPage(),
-					      fetch: fetch,
-					      //session: getSession(),
+					    const { subscribe, set, update } = writable({
+					        partial: false,
+					        result: null,
+					        source: null,
+					        isFetching: false,
 					    })
 
-					    return await queryLocal(context, params)
-					  }
+					    // Track subscriptions
+					    let subscriptionSpec = null
 
-					  async function queryLocal(context, params) {
-					    update((c) => {
-					      return { ...c, isFetching: true }
-					    })
+					    // Current variables tracker
+					    let variables = {}
 
-					    // params management
-					    params = params ?? {}
-					    // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
-					    if (!params.policy) {
-					      params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+					    // const sessionStore = getSession()
+
+					    async function load(ctx, params) {
+					        console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
+					        const context = new RequestContext(ctx)
+					        return await queryLocal(context, params)
 					    }
 
-					    const newVariables = marshalInputs({
-					      artifact,
-					      config: houdiniConfig,
-					      input: params.variables,
-					    })
-
-					    let toReturn = await fetchQuery({
-					      context,
-					      artifact,
-					      variables: newVariables,
-					      session: context.session,
-					      cached: params.policy !== CachePolicy.NetworkOnly,
-					    })
-
-					    // setup a subscription for new values from the cache
-					    if (isBrowser) {
-					      // if we're already subscribing, don't do anything
-					      // if (subscriptionSpec) {
-					      // 	return
-					      // }
-					      subscriptionSpec = {
-					        rootType: artifact.rootType,
-					        selection: artifact.selection,
-					        variables: () => newVariables,
-					        set: set,
-					      }
-					      cache.subscribe(subscriptionSpec, variables)
-
-					      const updated = stry(variables, 0) !== stry(newVariables, 0)
-
-					      // if the variables changed we need to unsubscribe from the old fields and
-					      // listen to the new ones
-					      if (updated && subscriptionSpec) {
-					        cache.unsubscribe(subscriptionSpec, variables)
-					      }
-
-					      // if the data was loaded from a cached value, and the document cache policy wants a
-					      // network request to be sent after the data was loaded, load the data
-					      if (
-					        toReturn.source === DataSource.Cache &&
-					        params.policy === CachePolicy.CacheAndNetwork
-					      ) {
-					        // this will invoke pagination's refetch because of javascript's magic this binding
-					        fetchQuery({
-					          context,
-					          artifact,
-					          variables: newVariables,
-					          session: context.session,
-					          cached: false,
+					    async function query(params) {
+					        const context = new RequestContext({
+					            //page: getPage(),
+					            fetch: fetch,
+					            //session: getSession(),
 					        })
-					      }
 
-					      // if we have a partial result and we can load the rest of the data
-					      // from the network, send the request
-					      if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
-					        fetchQuery({
-					          context,
-					          artifact,
-					          variables: newVariables,
-					          session: context.session,
-					          cached: false,
-					        })
-					      }
-
-					      // update the cache with the data that we just ran into
-					      cache.write({
-					        selection: artifact.selection,
-					        data: toReturn.result.data,
-					        variables: newVariables,
-					      })
-
-					      if (updated && subscriptionSpec) {
-					        cache.subscribe(subscriptionSpec, newVariables)
-					      }
-
-					      // update Current variables tracker
-					      variables = newVariables
+					        return await queryLocal(context, params)
 					    }
 
-					    set({
-					      ...toReturn,
-					      result: {
-					        ...toReturn.result,
-					        data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
-					      },
-					      isFetching: false,
-					    })
+					    async function queryLocal(context, params) {
+					        update((c) => {
+					            return { ...c, isFetching: true }
+					        })
 
-					    return toReturn
-					  }
+					        // params management
+					        params = params ?? {}
+					       
+					        // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
+					        if (!params.policy) {
+					            params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+					        }
 
-					  
+					        const newVariables = marshalInputs({
+					            artifact,
+					            config: houdiniConfig,
+					            input: params.variables,
+					        })
+
+					        let toReturn = await fetchQuery({
+					            context,
+					            artifact,
+					            variables: newVariables,
+					            session: context.session,
+					            cached: params.policy !== CachePolicy.NetworkOnly,
+					        })
+
+					        // setup a subscription for new values from the cache
+					        if (isBrowser) {
+					            
+					            subscriptionSpec = {
+					                rootType: artifact.rootType,
+					                selection: artifact.selection,
+					                variables: () => newVariables,
+					                set: set,
+					            }
+					            cache.subscribe(subscriptionSpec, variables)
+
+					            const updated = stry(variables, 0) !== stry(newVariables, 0)
+
+					            // if the variables changed we need to unsubscribe from the old fields and
+					            // listen to the new ones
+					            if (updated && subscriptionSpec) {
+					                cache.unsubscribe(subscriptionSpec, variables)
+					            }
+
+					            // if the data was loaded from a cached value, and the document cache policy wants a
+					            // network request to be sent after the data was loaded, load the data
+					            if (
+					                toReturn.source === DataSource.Cache &&
+					                params.policy === CachePolicy.CacheAndNetwork
+					            ) {
+					                // this will invoke pagination's refetch because of javascript's magic this binding
+					                fetchQuery({
+					                    context,
+					                    artifact,
+					                    variables: newVariables,
+					                    session: context.session,
+					                    cached: false,
+					                })
+					            }
+
+					            // if we have a partial result and we can load the rest of the data
+					            // from the network, send the request
+					            if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
+					                fetchQuery({
+					                    context,
+					                    artifact,
+					                    variables: newVariables,
+					                    session: context.session,
+					                    cached: false,
+					                })
+					            }
+
+					            // update the cache with the data that we just ran into
+					            cache.write({
+					                selection: artifact.selection,
+					                data: toReturn.result.data,
+					                variables: newVariables,
+					            })
+
+					            if (updated && subscriptionSpec) {
+					                cache.subscribe(subscriptionSpec, newVariables)
+					            }
+
+					            // update Current variables tracker
+					            variables = newVariables
+					        }
+
+					        set({
+					            ...toReturn,
+					            result: {
+					                ...toReturn.result,
+					                data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
+					            },
+					            isFetching: false,
+					        })
+
+					        return toReturn
+					    }
+
+					    
 					    // we need to track the most recent offset for this handler
 					    let currentOffset = (artifact.refetch?.start as number) || 0
 
 
-					  return {
-					    subscribe: (...args) => {
-					      const parentUnsubscribe = subscribe(...args)
+					    return {
+					        subscribe: (...args) => {
+					            const parentUnsubscribe = subscribe(...args)
 
-					      // Handle unsubscribe
-					      return () => {
-					        if (subscriptionSpec) {
-					          cache.unsubscribe(subscriptionSpec, variables)
-					          subscriptionSpec = null
-					        }
+					            // Handle unsubscribe
+					            return () => {
+					                if (subscriptionSpec) {
+					                    cache.unsubscribe(subscriptionSpec, variables)
+					                    subscriptionSpec = null
+					                }
+					        
+					                parentUnsubscribe()
+					            }
+					        },
 
-					        parentUnsubscribe()
-					      }
-					    },
+					        // For SSR
+					        load,
 
-					    // For SSR
-					    load,
+					        // For CSR
+					        query,
 
-					    // For CSR
-					    query,
-
-					    ...{
-					      loadPage: async (limit) => {
+					        ...{
+					    loadPage: async (limit) => {
 					        // build up the variables to pass to the query
 					        const queryVariables = {
 					            ...variables,
@@ -1150,9 +1230,48 @@ test('offset pagination', async function () {
 
 					        // we're not loading any more
 					        update(s => ({...s, isFetching: false}))
-					      },
+					    },
+					    async query(input) {
+					        // if the input is different than the query variables then we just do everything like normal
+					        if (input && JSON.stringify(variables) !== JSON.stringify(input)) {
+					            return query(input)
+					        }
+
+					        // we are updating the current set of items, count the number of items that currently exist
+					        // and ask for the full data set
+					        const count = countPage(artifact.refetch.path, value)
+
+					        // build up the variables to pass to the query
+					        const queryVariables = {
+					            ...variables,
+					            limit: count,
+					        }
+
+					        // set the loading state to true
+					        update(s => ({...s, isFetching: true }))
+
+					        // send the query
+					        const { result, partial: partialData } = await executeQuery(
+					            artifact,
+					            queryVariables,
+					            sessionStore,
+					            false
+					        )
+
+					        update(s => ({...s, partial: partialData }))
+
+					        // update cache with the result
+					        cache.write({
+					            selection: artifact.selection,
+					            data: result.data,
+					            variables: queryVariables,
+					            applyUpdates: true,
+					        })
+
+					        // we're not loading any more
+					        update(s => ({...s, isFetching: false }))
+					    },    }
 					    }
-					  }
 					}
 
 					export const GQL_TestQuery = GQL_TestQueryStore()
