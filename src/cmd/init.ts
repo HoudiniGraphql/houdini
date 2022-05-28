@@ -143,7 +143,7 @@ const configFile = ({
 	// the actual config contents
 	const configObj = `{
 	schemaPath: '${schemaPath}',
-	sourceGlob: 'src/**/*.svelte',
+	sourceGlob: 'src/**/*.{svelte,gql}',
 	module: '${module}',
 	framework: '${framework}',
 	apiUrl: '${url}'
