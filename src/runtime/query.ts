@@ -1,17 +1,16 @@
 // externals
-import { Readable, derived, get, writable } from 'svelte/store'
+import { derived, get, Readable, writable } from 'svelte/store'
 import { marshalInputs } from './scalars'
 // locals
 import {
-	Operation,
 	GraphQLTagResult,
-	StoreParams,
+	Operation,
 	QueryResult,
+	QueryStoreParams,
 	TaggedGraphqlQuery,
-	CachePolicy,
 } from './types'
 // @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession, getPage, goTo, isBrowser } from './adapter.mjs'
+import { getPage, getSession, goTo } from './adapter.mjs'
 
 export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -42,7 +41,7 @@ export function query<_Query extends Operation<any, any>>(
 // use as a proxy to the query for refetches, writing to the cache, etc
 export type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
-	refetch: (newVariables?: StoreParams<_Input>) => Promise<QueryResult<_Data>>
+	refetch: (newVariables?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
 	loading: Readable<boolean>
 	partial: Readable<boolean>
 	error: Readable<Error | null>
