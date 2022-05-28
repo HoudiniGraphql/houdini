@@ -97,8 +97,7 @@ export type GraphQLTagResult =
 export type TaggedGraphqlFragment = {
 	kind: 'HoudiniFragment'
 	artifact: FragmentArtifact
-	config: ConfigFile
-	paginationArtifact?: QueryArtifact
+	store: FragmentStore<any>
 	proxy: HoudiniDocumentProxy
 }
 export type QueryResult<DataType> = {
@@ -113,6 +112,10 @@ export type QueryResult<DataType> = {
 export type StoreParams<_Input> = {
 	variables?: _Input
 	policy?: CachePolicy
+}
+
+export type FragmentStore<_Shape> = Readable<_Shape> & {
+	update: (parent: _Shape) => void
 }
 
 export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {

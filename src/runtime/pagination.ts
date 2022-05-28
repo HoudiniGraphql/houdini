@@ -35,59 +35,64 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	document: GraphQLTagResult,
 	initialValue: _Fragment
 ): { data: Readable<_Fragment['shape']> } & PaginatedHandlers<any> {
-	// make sure we got a query document
-	if (document.kind !== 'HoudiniFragment') {
-		throw new Error('paginatedFragment() must be passed a fragment document')
-	}
-	// if we don't have a pagination fragment there is a problem
-	if (!document.paginationArtifact) {
-		throw new Error('paginatedFragment must be passed a fragment with @paginate')
-	}
+	// TODO: fix type checking paginated
+	// @ts-ignore: the query store will only include the methods when it needs to
+	// and the userland type checking happens as part of the query type generation
+	return fragment(document, initialValue)
 
-	// pass the inputs to the normal fragment function
-	const data = fragment(document, initialValue)
+	// // make sure we got a query document
+	// if (document.kind !== 'HoudiniFragment') {
+	// 	throw new Error('paginatedFragment() must be passed a fragment document')
+	// }
+	// // if we don't have a pagination fragment there is a problem
+	// if (!document.paginationArtifact) {
+	// 	throw new Error('paginatedFragment must be passed a fragment with @paginate')
+	// }
 
-	// @ts-ignore: typing esm/cjs interop is hard
-	const fragmentArtifact: FragmentArtifact = document.artifact.default || document.artifact
+	// // pass the inputs to the normal fragment function
+	// const data = fragment(document, initialValue)
 
-	const paginationArtifact: QueryArtifact =
-		// @ts-ignore: typing esm/cjs interop is hard
-		document.paginationArtifact.default || document.paginationArtifact
+	// // @ts-ignore: typing esm/cjs interop is hard
+	// const fragmentArtifact: FragmentArtifact = document.artifact.default || document.artifact
 
-	const partial = writable(false)
+	// const paginationArtifact: QueryArtifact =
+	// 	// @ts-ignore: typing esm/cjs interop is hard
+	// 	document.paginationArtifact.default || document.paginationArtifact
 
-	const { targetType } = paginationArtifact.refetch || {}
-	const typeConfig = document.config.types?.[targetType || '']
-	if (!typeConfig) {
-		throw new Error(
-			`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
-		)
-	}
+	// const partial = writable(false)
 
-	let queryVariables = () => ({})
-	// if the query is embedded we have to figure out the correct variables to pass
-	if (paginationArtifact.refetch!.embedded) {
-		// if we have a specific function to use when computing the variables
-		if (typeConfig.resolve?.arguments) {
-			queryVariables = () => typeConfig.resolve!.arguments?.(initialValue) || {}
-		} else {
-			const keys = keyFieldsForType(document.config, targetType || '')
-			// @ts-ignore
-			queryVariables = () => Object.fromEntries(keys.map((key) => [key, initialValue[key]]))
-		}
-	}
+	// const { targetType } = paginationArtifact.refetch || {}
+	// const typeConfig = document.config.types?.[targetType || '']
+	// if (!typeConfig) {
+	// 	throw new Error(
+	// 		`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
+	// 	)
+	// }
 
-	return {
-		data,
-		...paginationHandlers({
-			config: document.config,
-			partial,
-			initialValue,
-			store: data,
-			artifact: paginationArtifact,
-			queryVariables,
-		}),
-	}
+	// let queryVariables = () => ({})
+	// // if the query is embedded we have to figure out the correct variables to pass
+	// if (paginationArtifact.refetch!.embedded) {
+	// 	// if we have a specific function to use when computing the variables
+	// 	if (typeConfig.resolve?.arguments) {
+	// 		queryVariables = () => typeConfig.resolve!.arguments?.(initialValue) || {}
+	// 	} else {
+	// 		const keys = keyFieldsForType(document.config, targetType || '')
+	// 		// @ts-ignore
+	// 		queryVariables = () => Object.fromEntries(keys.map((key) => [key, initialValue[key]]))
+	// 	}
+	// }
+
+	// return {
+	// 	data,
+	// 	...paginationHandlers({
+	// 		config: document.config,
+	// 		partial,
+	// 		initialValue,
+	// 		store: data,
+	// 		artifact: paginationArtifact,
+	// 		queryVariables,
+	// 	}),
+	// }
 }
 
 function paginationHandlers<_Query extends Operation<any, any>>({

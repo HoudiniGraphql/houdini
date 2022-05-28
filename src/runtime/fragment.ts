@@ -5,24 +5,25 @@ import { onMount } from 'svelte'
 import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
 import cache from './cache'
 import { getVariables } from './context'
+import { FragmentStore } from '.'
 
 // fragment returns the requested data from the reference
 export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
 	initialValue: _Fragment
-): Readable<_Fragment['shape']> {
+): Omit<FragmentStore<_Fragment['shape']>, 'update'> {
 	// make sure we got a query document
 	if (fragment.kind !== 'HoudiniFragment' || false) {
 		throw new Error('getFragment can only take fragment documents')
 	}
 
-	const store = writable(initialValue)
-
 	// make sure the store always stays up to date with the fragment value
 	fragment.proxy.listen((val: _Fragment) => {
 		// update the fragment value to match the new value
-		store.set(val)
+		fragment.store.update(val)
 	})
+
+	return fragment.store
 
 	// the following block of comments is from a time when fragments had their own subscriptions
 	// since a query subscribes to its full selection this isn't necessary but will be in the future
@@ -95,6 +96,4 @@ export function fragment<_Fragment extends Fragment<any>>(
 	// 		cache.subscribe(spec, variables)
 	// 	}
 	// })
-
-	return { subscribe: store.subscribe }
 }
