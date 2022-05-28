@@ -7,33 +7,33 @@ import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 
 export async function generateSubscriptionStore(config: Config, doc: CollectedGraphQLDocument) {
-	const storeName = config.storeName(doc)
+	const storeName = config.storeName(doc) // "1 => GQL_Item$Update" => ${storeName}
+	const artifactName = `${doc.name}` // "2 => Item$Update" => ${artifactName}
 
 	// the content of the store
-	const storeContent = `import { houdiniConfig } from '$houdini'
-import { writable } from 'svelte/store'    
-import { getCurrentClient } from '../runtime/network'
+	const storeContent = `import { writable } from 'svelte/store'
+import { ${artifactName} as artifact } from '../artifacts'
 import cache from '../runtime/cache'
+import { getCurrentClient } from '../runtime/network'
 import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
-import { ${doc.name} as artifact } from '../artifacts'
 
 // a store that holds the latest value
 const result = writable(null)
 
 // pull the query text out of the compiled artifact
-const { raw: text, selection } = (artifact.default || artifact)
+const { raw: text, selection } = artifact.default || artifact
 
 // the function to call to unregister the subscription
 let clearSubscription = () => {}
 
 export const ${storeName} = {
-    subscribe(variables) {
-        // pull out the current environment
-        const env = getCurrentClient()
-        // if there isn't one, yell loudly
-        if (!env) {
-            throw new Error('Could not find network environment')
-        }
+	subscribe(variables) {
+		// pull out the current environment
+		const env = getCurrentClient()
+		// if there isn't one, yell loudly
+		if (!env) {
+			throw new Error('Could not find network environment')
+		}
 		// we need to make sure that the user provided a socket connection
 		if (!env.socket) {
 			throw new Error(
@@ -42,21 +42,21 @@ export const ${storeName} = {
 			)
 		}
 
-        // clear any existing subscription
-        clearSubscription()
+		// clear any existing subscription
+		clearSubscription()
 
-        // marshal the inputs into their raw values
-        const variables = marshalInputs({
-            input: variables || {},
-            config: config,
-            artifact: document.artifact,
-        }) as _Subscription['input']
+		// marshal the inputs into their raw values
+		const marshaledVariables = marshalInputs({
+			input: variables || {},
+			config: config,
+			artifact: document.artifact,
+		})
 
 		// start listening for updates from the server
 		clearSubscription = env.socket.subscribe(
 			{
 				query: text,
-				variables: variables,
+				variables: marshaledVariables,
 			},
 			{
 				next({ data, errors }) {
@@ -78,15 +78,15 @@ export const ${storeName} = {
 						result.set(unmarshalSelection(config, artifact.selection, data))
 					}
 				},
-				error(data: _Subscription['result']) {},
+				error(data) {},
 				complete() {},
 			}
 		)
-    },
-    unsubscribe() { 
-        clearSubscription()
-    }
-}
+	},
+	unsubscribe() {
+		clearSubscription()
+	},
+}	
 `
 
 	// the type definitions for the store
