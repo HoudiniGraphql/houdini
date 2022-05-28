@@ -12,7 +12,7 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	const storeName = config.storeName(doc) // "1 => GQL_All$Items" => ${storeName}
 	const artifactName = `${doc.name}` // "2 => All$Items" => ${artifactName}
 
-	const paginationExtras = pagination(doc)
+	const paginationExtras = pagination(config, doc)
 
 	// TODO: To remove, it was tmp from JYC
 	const paginationExtrasDTs = `import type { PageInfo } from '$houdini/runtime/utils'
@@ -193,6 +193,9 @@ function ${storeName}Store() {
 
         // For CSR
         query,
+
+        // For internal usage only.
+        setPartial: (partial) => update(s => ({...s, partial })),
 
         ${paginationExtras.methods}
     }

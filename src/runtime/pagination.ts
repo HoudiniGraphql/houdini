@@ -1,14 +1,7 @@
 // externals
 import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
 // locals
-import {
-	Operation,
-	GraphQLTagResult,
-	Fragment,
-	GraphQLObject,
-	QueryArtifact,
-	FragmentArtifact,
-} from './types'
+import { Operation, GraphQLTagResult, Fragment, GraphQLObject, QueryArtifact } from './types'
 import { query, QueryResponse } from './query'
 import { fragment } from './fragment'
 import { getVariables } from './context'
@@ -19,6 +12,7 @@ import { getSession } from './adapter.mjs'
 // this has to be in a separate file since config isn't defined in cache/index.ts
 import { countPage, extractPageInfo, PageInfo } from './utils'
 import { ConfigFile, keyFieldsForType } from './config'
+import { QueryStore } from '.'
 
 type RefetchFn<_Data = any, _Input = any> = (vars: _Input) => Promise<_Data>
 
@@ -35,74 +29,106 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	document: GraphQLTagResult,
 	initialValue: _Fragment
 ): { data: Readable<_Fragment['shape']> } & PaginatedHandlers<any> {
+	// make sure we got a query document
+	if (document.kind !== 'HoudiniFragment') {
+		throw new Error('paginatedFragment() must be passed a fragment document')
+	}
+	// if we don't have a pagination fragment there is a problem
+	if (!document.artifact.refetch?.paginated) {
+		throw new Error('paginatedFragment must be passed a fragment with @paginate')
+	}
+
 	// TODO: fix type checking paginated
 	// @ts-ignore: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
 	return fragment(document, initialValue)
-
-	// // make sure we got a query document
-	// if (document.kind !== 'HoudiniFragment') {
-	// 	throw new Error('paginatedFragment() must be passed a fragment document')
-	// }
-	// // if we don't have a pagination fragment there is a problem
-	// if (!document.paginationArtifact) {
-	// 	throw new Error('paginatedFragment must be passed a fragment with @paginate')
-	// }
-
-	// // pass the inputs to the normal fragment function
-	// const data = fragment(document, initialValue)
-
-	// // @ts-ignore: typing esm/cjs interop is hard
-	// const fragmentArtifact: FragmentArtifact = document.artifact.default || document.artifact
-
-	// const paginationArtifact: QueryArtifact =
-	// 	// @ts-ignore: typing esm/cjs interop is hard
-	// 	document.paginationArtifact.default || document.paginationArtifact
-
-	// const partial = writable(false)
-
-	// const { targetType } = paginationArtifact.refetch || {}
-	// const typeConfig = document.config.types?.[targetType || '']
-	// if (!typeConfig) {
-	// 	throw new Error(
-	// 		`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
-	// 	)
-	// }
-
-	// let queryVariables = () => ({})
-	// // if the query is embedded we have to figure out the correct variables to pass
-	// if (paginationArtifact.refetch!.embedded) {
-	// 	// if we have a specific function to use when computing the variables
-	// 	if (typeConfig.resolve?.arguments) {
-	// 		queryVariables = () => typeConfig.resolve!.arguments?.(initialValue) || {}
-	// 	} else {
-	// 		const keys = keyFieldsForType(document.config, targetType || '')
-	// 		// @ts-ignore
-	// 		queryVariables = () => Object.fromEntries(keys.map((key) => [key, initialValue[key]]))
-	// 	}
-	// }
-
-	// return {
-	// 	data,
-	// 	...paginationHandlers({
-	// 		config: document.config,
-	// 		partial,
-	// 		initialValue,
-	// 		store: data,
-	// 		artifact: paginationArtifact,
-	// 		queryVariables,
-	// 	}),
-	// }
 }
 
-function paginationHandlers<_Query extends Operation<any, any>>({
+export function fragmentHandlers({
+	config,
+	paginationArtifact,
+	initialValue,
+	store,
+}: {
+	config: ConfigFile
+	paginationArtifact: QueryArtifact
+	initialValue: {}
+	store: Readable<GraphQLObject>
+}) {
+	const partial = writable(false)
+
+	const { targetType } = paginationArtifact.refetch || {}
+	const typeConfig = config.types?.[targetType || '']
+	if (!typeConfig) {
+		throw new Error(
+			`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
+		)
+	}
+
+	let queryVariables = () => ({})
+	// if the query is embedded we have to figure out the correct variables to pass
+	if (paginationArtifact.refetch!.embedded) {
+		// if we have a specific function to use when computing the variables
+		if (typeConfig.resolve?.arguments) {
+			queryVariables = () => typeConfig.resolve!.arguments?.(initialValue) || {}
+		} else {
+			const keys = keyFieldsForType(config, targetType || '')
+			// @ts-ignore
+			queryVariables = () => Object.fromEntries(keys.map((key) => [key, initialValue[key]]))
+		}
+	}
+
+	return paginationHandlers({
+		config,
+		setPartial: partial.set,
+		initialValue,
+		store,
+		artifact: paginationArtifact,
+		queryVariables,
+	})
+}
+
+export function queryHandlers({
+	config,
+	artifact,
+	store,
+	queryVariables,
+}: {
+	config: ConfigFile
+	artifact: QueryArtifact
+	store: QueryStore<any, any>
+	queryVariables: () => GraphQLObject
+}) {
+	// if there's no refetch config for the artifact there's a problem
+	if (!artifact.refetch) {
+		throw new Error('paginatedQuery must be passed a query with @paginate.')
+	}
+
+	// create some derived stores from the query meta data
+	const loading = derived([store], ([$store]) => $store.isFetching)
+	const data = derived([store], ([$store]) => $store.data)
+
+	// return the handlers
+	return paginationHandlers({
+		documentLoading: loading,
+		initialValue: get(store).data || {},
+		artifact,
+		store: data,
+		queryVariables,
+		refetch: store.query,
+		setPartial: store.setPartial,
+		config,
+	})
+}
+
+export function paginationHandlers<_Query extends Operation<any, any>>({
 	initialValue,
 	artifact,
 	store,
 	queryVariables,
 	documentLoading,
 	refetch,
-	partial,
+	setPartial,
 	config,
 }: {
 	initialValue: GraphQLObject
@@ -111,7 +137,7 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 	queryVariables?: () => {}
 	documentLoading?: Readable<boolean>
 	refetch?: RefetchFn<_Query['result'], _Query['input']>
-	partial: Writable<boolean>
+	setPartial: (val: boolean) => void
 	config: ConfigFile
 }): PaginatedHandlers<_Query['input']> {
 	// start with the defaults and no meaningful page info
@@ -141,7 +167,7 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 			queryVariables,
 			loading: paginationLoadingState,
 			refetch,
-			partial,
+			setPartial,
 			config,
 		})
 		// always track pageInfo
@@ -167,7 +193,7 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 			loading: paginationLoadingState,
 			refetch,
 			store,
-			partial,
+			setPartial,
 		})
 
 		loadNextPage = offset.loadPage
@@ -196,7 +222,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 	queryVariables: extraVariables,
 	loading,
 	refetch,
-	partial,
+	setPartial,
 }: {
 	config: ConfigFile
 	initialValue: GraphQLObject
@@ -205,7 +231,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 	queryVariables?: () => {}
 	loading: Writable<boolean>
 	refetch?: RefetchFn
-	partial: Writable<boolean>
+	setPartial: (val: boolean) => void
 }): PaginatedHandlers<_Query> {
 	// pull out the context accessors
 	const variables = getVariables()
@@ -261,7 +287,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 			false
 		)
 
-		partial.set(partialData)
+		setPartial(partialData)
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -379,7 +405,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 				sessionStore,
 				false
 			)
-			partial.set(partialData)
+			setPartial(partialData)
 
 			// update cache with the result
 			cache.write({
@@ -403,7 +429,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	refetch,
 	initialValue,
 	store,
-	partial,
+	setPartial,
 }: {
 	artifact: QueryArtifact
 	queryVariables?: {}
@@ -411,7 +437,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	refetch?: RefetchFn
 	initialValue: GraphQLObject
 	store: Readable<GraphQLObject>
-	partial: Writable<boolean>
+	setPartial: (val: boolean) => void
 }): {
 	loadPage: PaginatedHandlers<_Query>['loadNextPage']
 	refetch: PaginatedHandlers<_Query>['refetch']
@@ -457,7 +483,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 				sessionStore,
 				false
 			)
-			partial.set(partialData)
+			setPartial(partialData)
 
 			// update cache with the result
 			cache.write({
@@ -506,7 +532,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 				false
 			)
 
-			partial.set(partialData)
+			setPartial(partialData)
 
 			// update cache with the result
 			cache.write({

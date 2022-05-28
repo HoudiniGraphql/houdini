@@ -59,6 +59,7 @@ export default async function fragmentProcessor(
 				AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
 				AST.objectProperty(AST.stringLiteral('store'), storeIdentifier(artifact)),
 				AST.objectProperty(AST.literal('proxy'), proxyIdentifier![0]),
+				AST.objectProperty(AST.identifier('config'), AST.identifier('houdiniConfig')),
 			])
 
 			// // add an import to the body pointing to the artifact

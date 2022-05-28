@@ -128,6 +128,11 @@ export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
 	 * Trigger the query form client side (a component for example)
 	 */
 	query: (params?: StoreParams<_Input>) => Promise<QueryResult<_Data>>
+
+	/**
+	 * Set the partial status for the query (DO NOT USE)
+	 */
+	setPartial: (val: boolean) => void
 }
 
 // the result of tagging an operation

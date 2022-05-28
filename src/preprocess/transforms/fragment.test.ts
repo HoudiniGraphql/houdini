@@ -26,7 +26,8 @@ describe('fragment preprocessor', function () {
 		const data = fragment({
 		    "kind": "HoudiniFragment",
 		    "store": _TestFragmentStore,
-		    "proxy": TestFragmentProxy
+		    "proxy": TestFragmentProxy,
+		    config: houdiniConfig
 		}, reference);
 
 		$:
@@ -61,7 +62,8 @@ describe('fragment preprocessor', function () {
 		const data = fragment({
 		    "kind": "HoudiniFragment",
 		    "store": _TestFragmentStore,
-		    "proxy": TestFragmentProxy
+		    "proxy": TestFragmentProxy,
+		    config: houdiniConfig
 		}, reference);
 
 		$:
