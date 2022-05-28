@@ -109,9 +109,14 @@ export type QueryResult<DataType> = {
 	variables: {}
 }
 
-export type StoreParams<_Input> = {
+export type QueryStoreParams<_Input> = {
 	variables?: _Input
 	policy?: CachePolicy
+}
+
+export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
+	subscribe: (input: _Input) => void
+	unsubscribe: () => void
 }
 
 export type FragmentStore<_Shape> = Readable<_Shape> & {
@@ -122,12 +127,12 @@ export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
 	/**
 	 * Trigger the query form load function
 	 */
-	load: (loadInput: LoadInput, params?: StoreParams<_Input>) => Promise<QueryResult<_Data>>
+	load: (loadInput: LoadInput, params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
 
 	/**
 	 * Trigger the query form client side (a component for example)
 	 */
-	query: (params?: StoreParams<_Input>) => Promise<QueryResult<_Data>>
+	query: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
 
 	/**
 	 * Set the partial status for the query (DO NOT USE)
@@ -154,7 +159,7 @@ export type MutationStore<_Result, _Input> = Readable<{
 // the result of tagging an operation
 export type TaggedGraphqlSubscription = {
 	kind: 'HoudiniSubscription'
-	artifact: SubscriptionArtifact
+	store: SubscriptionStore<any, any>
 	config: ConfigFile
 }
 

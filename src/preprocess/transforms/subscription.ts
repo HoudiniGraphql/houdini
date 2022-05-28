@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
 import { Config } from '../../common'
-import { walkTaggedDocuments, artifactIdentifier, ensureImports } from '../utils'
+import { walkTaggedDocuments, storeIdentifier } from '../utils'
 import { TransformDocument } from '../types'
 
 const AST = recast.types.builders
@@ -34,14 +34,14 @@ export default async function subscriptionProcessor(
 		},
 		// we want to replace it with an object that the runtime can use
 		async onTag({ artifact, node }) {
-			// the local identifier for the artifact
-			const artifactVariable = artifactIdentifier(artifact)
+			// the local identifier for the store
+			const storeVariable = storeIdentifier(artifact)
 
 			// replace the node with an object
 			node.replaceWith(
 				AST.objectExpression([
 					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-					AST.objectProperty(AST.literal('artifact'), artifactVariable),
+					AST.objectProperty(AST.literal('store'), storeVariable),
 					AST.objectProperty(AST.literal('config'), AST.identifier('houdiniConfig')),
 				])
 			)
@@ -52,14 +52,14 @@ export default async function subscriptionProcessor(
 					? AST.importDefaultSpecifier
 					: AST.importNamespaceSpecifier
 
-			// add an import to the body pointing to the artifact
+			// add an import to the body pointing to the store
 			doc.instance?.content.body.unshift({
 				type: 'ImportDeclaration',
 				// @ts-ignore
-				source: AST.literal(config.artifactImportPath(artifact.name)),
+				source: AST.literal(config.storeImportPath(artifact.name)),
 				specifiers: [
 					// @ts-ignore
-					importStatement(artifactVariable),
+					importStatement(storeVariable),
 				],
 			})
 		},
