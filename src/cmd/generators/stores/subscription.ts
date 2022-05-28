@@ -100,7 +100,7 @@ export const ${storeName} = {
 	])
 
 	// notify the user we generated the store
-	log.success(`${logGreen(storeName)} subscription store`, { level: 2 })
+	log.success(`${logGreen(storeName)} subscription store`, { level: 3 })
 
 	// return the store name to the generator so the index file can be created
 	return storeName

@@ -148,7 +148,7 @@ export declare const ${storeName}: MutationStore<${artifactName}$result | undefi
 		storeDataDTs.join(`\n`)
 	)
 
-	log.success(`${logGreen(storeName)} mutation store`, { level: 2 })
+	log.success(`${logGreen(storeName)} mutation store`, { level: 3 })
 
 	return storeName
 }

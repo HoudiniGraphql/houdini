@@ -18,7 +18,7 @@ const AST = recast.types.builders
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
 export default async function artifactGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
-	log.info('Generating Artifacts...', { level: 1 })
+	log.info('Generating Artifacts...', { level: 2 })
 
 	// put together the type information for the filter for every list
 	const filterTypes: FilterMap = {}
@@ -236,10 +236,10 @@ export default async function artifactGenerator(config: Config, docs: CollectedG
 				await writeFile(config.artifactPath(document), recast.print(file).code)
 
 				// log the file location to confirm
-				log.success(`${logGreen(name)} artifact`, { level: 2 })
+				log.success(`${logGreen(name)} artifact`, { level: 3 })
 			})
 		)
 	)
 
-	log.info('...Artifacts generated', { level: 1 })
+	log.info('...Artifacts generated', { level: 2 })
 }

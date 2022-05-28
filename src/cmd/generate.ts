@@ -30,7 +30,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	// we need to create the runtime folder structure
 	await config.createDirectories()
 
-	log.setLevel(config.quiet ? null : 2)
+	log.setLevel(config.quiet ? null : 3)
 
 	// reset the newSchema accumulator
 	config.newSchema = ''

@@ -55,7 +55,7 @@ export declare const ${storeName}: Readable<${doc.name}$data> & {
 	])
 
 	// notify the user we generated the store
-	log.success(`${logGreen(storeName)} fragment store`, { level: 2 })
+	log.success(`${logGreen(storeName)} fragment store`, { level: 3 })
 
 	// return the store name to the generator so the index file can be created
 	return storeName
