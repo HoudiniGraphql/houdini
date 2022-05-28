@@ -25,25 +25,14 @@ import { marshalInputs, marshalSelection, unmarshalSelection } from '../runtime/
 
 function ${storeName}Store() {
 	const { subscribe, set, update } = writable({
-		partial: false,
 		result: null,
-		source: null,
 		isFetching: false,
 	})
 
-	// Track subscriptions
-	let subscriptionSpec = null
-
-	// Current variables tracker
-	let variables = {}
-
-	async function mutate(params) {
+	async function mutate(variables, config) {
 		update((c) => {
 			return { ...c, isFetching: true }
 		})
-
-		// params management
-		params = params ?? {}
 
 		// grab the session from the adapter
 		const sessionStore = getSession()
@@ -58,12 +47,12 @@ function ${storeName}Store() {
 		const layer = cache._internal_unstable.storage.createLayer(true)
 
 		// if there is an optimistic response then we need to write the value immediately
-		const optimisticResponse = params?.optimisticResponse
+		const optimisticResponse = config?.optimisticResponse
 		// hold onto the list of subscribers that we updated because of the optimistic response
 		// and make sure they are included in the final set of subscribers to notify
-		let subscriptionSpec = []
+		let toNotify = []
 		if (optimisticResponse) {
-			subscriptionSpec = cache.write({
+			toNotify = cache.write({
 				selection: artifact.selection,
 				// make sure that any scalar values get processed into something we can cache
 				data: marshalSelection({
@@ -82,8 +71,7 @@ function ${storeName}Store() {
 				artifact,
 				marshalInputs({
 					input: variables,
-					// @ts-ignore: document.artifact is no longer defined
-					artifact: document.artifact,
+					artifact,
 					config: houdiniConfig,
 				}),
 				sessionStore,
@@ -102,7 +90,7 @@ function ${storeName}Store() {
 				layer: layer.id,
 				// notify any subscribers that we updated with the optimistic response
 				// in order to address situations where the optimistic update was wrong
-				notifySubscribers: subscriptionSpec,
+				notifySubscribers: toNotify,
 				// make sure that we notify subscribers for any values that we overwrite
 				// in order to address any race conditions when comparing the previous value
 				forceNotify: true,
@@ -112,7 +100,17 @@ function ${storeName}Store() {
 			cache._internal_unstable.storage.resolveLayer(layer.id)
 
 			// turn any scalars in the response into their complex form
-			return unmarshalSelection(houdiniConfig, artifact.selection, result.data)
+			const value = unmarshalSelection(houdiniConfig, artifact.selection, result.data)
+
+			// update the store value with the result
+			update(s => ({
+				...s,
+				result: value,
+				isFetching: false,
+			}))
+
+			// return the value to the caller
+			return value
 		} catch (error) {
 			// if the mutation failed, roll the layer back and delete it
 			layer.clear()
@@ -124,20 +122,7 @@ function ${storeName}Store() {
 	}
 
 	return {
-		subscribe: (...args) => {
-			const parentUnsubscribe = subscribe(...args)
-
-			// Handle unsubscribe
-			return () => {
-				if (subscriptionSpec) {
-					cache.unsubscribe(subscriptionSpec, variables)
-					subscriptionSpec = null
-				}
-
-				parentUnsubscribe()
-			}
-		},
-
+		subscribe,
 		mutate,
 	}
 }
