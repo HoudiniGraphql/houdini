@@ -127,7 +127,10 @@ export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
 	/**
 	 * Trigger the query form load function
 	 */
-	load: (loadInput: LoadInput, params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
+	queryLoad: (
+		loadInput: LoadInput,
+		params?: QueryStoreParams<_Input>
+	) => Promise<QueryResult<_Data>>
 
 	/**
 	 * Trigger the query form client side (a component for example)
