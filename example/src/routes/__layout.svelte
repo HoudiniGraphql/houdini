@@ -1,7 +1,7 @@
 <script context="module">
 	import { browser } from '$app/env'
 	import cache from '$houdini/runtime/cache'
-	import { houdiniClient } from '$lib/graphql/houdiniClient'
+	import { houdiniClient } from '../client'
 
 	if (browser) {
 		// @ts-ignore

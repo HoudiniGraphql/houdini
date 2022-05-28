@@ -62,7 +62,6 @@ test('basic store', async function () {
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 
 					// optional pagination imports 
-					import { queryHandlers } from '../runtime/pagination'
 
 
 					// TODO:
@@ -203,13 +202,6 @@ test('basic store', async function () {
 					    }
 
 					    
-					    const handlers = queryHandlers({
-					        config: houdiniConfig,
-					        artifact,
-					        store: { subscribe },
-					        queryVariables: () => variables 
-					    })
-					        
 
 					    return {
 					        subscribe: (...args) => {

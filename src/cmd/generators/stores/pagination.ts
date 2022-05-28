@@ -8,8 +8,12 @@ export default function pagination(config: Config, doc: CollectedGraphQLDocument
 	let preamble = ''
 	let imports = ''
 
+	// if there is no pagination directive in the content, don't do anything
+	if (!doc.refetch?.paginated) {
+	}
+
 	// if the document points to a fragment, we will need to import the pagination artifact
-	if (doc.kind === ArtifactKind.Fragment) {
+	else if (doc.kind === ArtifactKind.Fragment) {
 		// make sure that we import the pagination artifact
 		// and the fragment handlers
 		imports = `import _PaginationArtifact from '${config.artifactImportPath(
