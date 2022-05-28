@@ -1,6 +1,5 @@
 <script context="module">
 	import { browser } from '$app/env'
-	import { createClient } from '$houdini'
 	import cache from '$houdini/runtime/cache'
 	import { houdiniClient } from '$lib/graphql/houdiniClient_2'
 
@@ -9,7 +8,7 @@
 		window.cache = cache
 	}
 
-	createClient(houdiniClient)
+	houdiniClient.init()
 </script>
 
 <svelte:head>
@@ -20,7 +19,7 @@
 
 <section class="todoapp">
 	<a href="/all">Original</a>
-	<a href="/kql">Store</a>
+	<a href="/stores">Stores</a>
 	<a href="/about">About</a>
 	<hr />
 	<slot />
