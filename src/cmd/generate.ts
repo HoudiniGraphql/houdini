@@ -11,6 +11,7 @@ import { CollectedGraphQLDocument, ArtifactKind } from './types'
 import * as transforms from './transforms'
 import * as generators from './generators'
 import * as validators from './validators'
+import { log } from '../common/log'
 
 // the main entry point of the compile script
 export default async function compile(config: Config) {
@@ -28,6 +29,8 @@ export default async function compile(config: Config) {
 export async function runPipeline(config: Config, docs: CollectedGraphQLDocument[]) {
 	// we need to create the runtime folder structure
 	await config.createDirectories()
+
+	log.setLevel(config.quiet ? null : 2)
 
 	// reset the newSchema accumulator
 	config.newSchema = ''
@@ -58,6 +61,8 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		],
 		docs
 	)
+
+	log.info('Houdini generators completed')
 }
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {

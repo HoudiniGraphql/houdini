@@ -215,9 +215,7 @@ export declare const ${storeName}: QueryStore<${artifactName}$result | undefined
 		storeDataDTs.join(`\n`)
 	)
 
-	if (!config.quiet) {
-		log.info(`✅ ${logGreen(storeName)} query store`)
-	}
+	log.success(`${logGreen(storeName)} query store`, { level: 2 })
 
 	return storeName
 }

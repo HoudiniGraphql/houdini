@@ -73,7 +73,7 @@
 		"@changesets/changelog-git": "^0.1.11",
 		"@changesets/cli": "^2.22.0",
 		"@graphql-tools/schema": "^8.3.7",
-		"@kitql/helper": "^0.3.0",
+		"@kitql/helper": "0.3.4",
 		"@sveltejs/kit": "^1.0.0-next.330",
 		"@types/mock-fs": "^4.13.0",
 		"babylon": "^7.0.0-beta.47",
