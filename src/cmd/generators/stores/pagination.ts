@@ -38,13 +38,15 @@ const handlers = fragmentHandlers({
 
 		// create the query handlers
 		preamble = `
-    const handlers = queryHandlers({
-        config: houdiniConfig,
-        artifact,
-        store: { subscribe },
-        queryVariables: () => variables 
-    })
-        `
+const handlers =
+		isBrowser &&
+		queryHandlers({
+			config: houdiniConfig,
+			artifact,
+			store: { subscribe },
+			queryVariables: () => variables
+		})
+`
 	}
 
 	// which functions we pull from the handlers depends on the pagination method

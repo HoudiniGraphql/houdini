@@ -414,13 +414,15 @@ test('forward cursor pagination', async function () {
 					    }
 
 					    
-					    const handlers = queryHandlers({
-					        config: houdiniConfig,
-					        artifact,
-					        store: { subscribe },
-					        queryVariables: () => variables 
-					    })
-					        
+					const handlers =
+							isBrowser &&
+							queryHandlers({
+								config: houdiniConfig,
+								artifact,
+								store: { subscribe },
+								queryVariables: () => variables
+							})
+
 
 					    return {
 					        subscribe: (...args) => {
@@ -638,13 +640,15 @@ test('backwards cursor pagination', async function () {
 					    }
 
 					    
-					    const handlers = queryHandlers({
-					        config: houdiniConfig,
-					        artifact,
-					        store: { subscribe },
-					        queryVariables: () => variables 
-					    })
-					        
+					const handlers =
+							isBrowser &&
+							queryHandlers({
+								config: houdiniConfig,
+								artifact,
+								store: { subscribe },
+								queryVariables: () => variables
+							})
+
 
 					    return {
 					        subscribe: (...args) => {
@@ -858,13 +862,15 @@ test('offset pagination', async function () {
 					    }
 
 					    
-					    const handlers = queryHandlers({
-					        config: houdiniConfig,
-					        artifact,
-					        store: { subscribe },
-					        queryVariables: () => variables 
-					    })
-					        
+					const handlers =
+							isBrowser &&
+							queryHandlers({
+								config: houdiniConfig,
+								artifact,
+								store: { subscribe },
+								queryVariables: () => variables
+							})
+
 
 					    return {
 					        subscribe: (...args) => {
