@@ -54,8 +54,7 @@ function ${storeName}Store() {
 
     // const sessionStore = getSession()
 
-    async function load(ctx, params) {
-        console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
+    async function queryLoad(ctx, params) {
         const context = new RequestContext(ctx)
         return await queryLocal(context, params)
     }
@@ -189,7 +188,7 @@ function ${storeName}Store() {
         },
 
         // For SSR
-        load,
+        queryLoad,
 
         // For CSR
         query,

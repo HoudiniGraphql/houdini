@@ -88,8 +88,7 @@ test('basic store', async function () {
 
 					    // const sessionStore = getSession()
 
-					    async function load(ctx, params) {
-					        console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
+					    async function queryLoad(ctx, params) {
 					        const context = new RequestContext(ctx)
 					        return await queryLocal(context, params)
 					    }
@@ -230,7 +229,7 @@ test('basic store', async function () {
 					        },
 
 					        // For SSR
-					        load,
+					        queryLoad,
 
 					        // For CSR
 					        query,
@@ -310,8 +309,7 @@ test('forward cursor pagination', async function () {
 
 					    // const sessionStore = getSession()
 
-					    async function load(ctx, params) {
-					        console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
+					    async function queryLoad(ctx, params) {
 					        const context = new RequestContext(ctx)
 					        return await queryLocal(context, params)
 					    }
@@ -452,7 +450,7 @@ test('forward cursor pagination', async function () {
 					        },
 
 					        // For SSR
-					        load,
+					        queryLoad,
 
 					        // For CSR
 					        query,
@@ -537,8 +535,7 @@ test('backwards cursor pagination', async function () {
 
 					    // const sessionStore = getSession()
 
-					    async function load(ctx, params) {
-					        console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
+					    async function queryLoad(ctx, params) {
 					        const context = new RequestContext(ctx)
 					        return await queryLocal(context, params)
 					    }
@@ -679,7 +676,7 @@ test('backwards cursor pagination', async function () {
 					        },
 
 					        // For SSR
-					        load,
+					        queryLoad,
 
 					        // For CSR
 					        query,
@@ -760,8 +757,7 @@ test('offset pagination', async function () {
 
 					    // const sessionStore = getSession()
 
-					    async function load(ctx, params) {
-					        console.log('fn "load" to rename (queryLoad for autocomplete, loadQuery for better en 😜)')
+					    async function queryLoad(ctx, params) {
 					        const context = new RequestContext(ctx)
 					        return await queryLocal(context, params)
 					    }
@@ -902,7 +898,7 @@ test('offset pagination', async function () {
 					        },
 
 					        // For SSR
-					        load,
+					        queryLoad,
 
 					        // For CSR
 					        query,
