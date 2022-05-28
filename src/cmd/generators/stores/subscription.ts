@@ -28,17 +28,17 @@ let clearSubscription = () => {}
 
 export const ${storeName} = {
 	subscribe(variables) {
-		// pull out the current environment
+		// pull out the current client
 		const env = getCurrentClient()
 		// if there isn't one, yell loudly
 		if (!env) {
-			throw new Error('Could not find network environment')
+			throw new Error('Could not find Houdini Client')
 		}
 		// we need to make sure that the user provided a socket connection
 		if (!env.socket) {
 			throw new Error(
-				'The current environment is not configured to handle subscriptions. Make sure you ' +
-					'passed a client to its constructor.'
+				'The current Houdini Client is not configured to handle subscriptions. Make sure you ' +
+					'passed a socketClient to HoudiniClient constructor.'
 			)
 		}
 

@@ -75,8 +75,8 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	const sourceDir = path.join(targetPath, 'src')
 	// the config file path
 	const configPath = path.join(targetPath, 'houdini.config.js')
-	// where we put the environment
-	const environmentPath = path.join(sourceDir, 'environment.js')
+	// where we put the houdiniClient
+	const houdiniClientPath = path.join(sourceDir, 'houdiniClient.js')
 
 	await Promise.all([
 		// Get the schema from the url and write it to file
@@ -93,8 +93,8 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 			})
 		),
 
-		// write the environment file
-		fs.writeFile(environmentPath, networkFile(answers.url)),
+		// write the houdiniClient file
+		fs.writeFile(houdiniClientPath, networkFile(answers.url)),
 	])
 
 	// generate an empty runtime
@@ -109,10 +109,8 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	console.log('Welcome to Houdini!')
 }
 
-const networkFile = (url: string) => `import { Environment } from '$houdini'
-
-export default new Environment(async function ({ text, variables = {} }) {
-	// send the request to the api
+const networkFile = (url: string) => `// For Query & Mutation
+async function fetchQuery({ text, variables = {} }, session) {
 	const result = await this.fetch('${url}', {
 		method: 'POST',
 		headers: {
@@ -123,10 +121,11 @@ export default new Environment(async function ({ text, variables = {} }) {
 			variables,
 		}),
 	})
-
-	// parse the result as json
 	return await result.json()
-})
+}
+
+// Export the Houdini client
+export const houdiniClient = new HoudiniClient(fetchQuery)
 `
 
 const configFile = ({
