@@ -34,12 +34,12 @@ const handlers = fragmentHandlers({
 
 		// create the query handlers
 		preamble = `
-const handlers = queryHandlers({
-    config: houdiniConfig,
-    artifact,
-    store: { subscribe },
-    queryVariables: () => variables 
-})
+    const handlers = queryHandlers({
+        config: houdiniConfig,
+        artifact,
+        store: { subscribe },
+        queryVariables: () => variables 
+    })
         `
 	}
 
@@ -53,7 +53,9 @@ const handlers = queryHandlers({
 loadNextPage(limit?: number) => Promise<void>
     `
 		methods = `
-    loadNextPage: handlers.loadNextPage,
+        loadNextPage: handlers.loadNextPage,
+        query: handlers.refetch,
+        loading: handlers.loading,
 `
 	}
 	// cursor pagination
@@ -65,8 +67,10 @@ loadNextPage(limit?: number) => Promise<void>
     pageInfo: Readable<PageInfo>
 }`
 			methods = `
-    loadNextPage: handlers.loadNextPage,
-    pageInfo: handlers.pageInfo,
+        loadNextPage: handlers.loadNextPage,
+        pageInfo: handlers.pageInfo,
+        query: handlers.refetch,
+        loading: handlers.loading,
 `
 
 			// backwards cursor pagination
@@ -76,8 +80,10 @@ loadNextPage(limit?: number) => Promise<void>
     pageInfo: Readable<PageInfo>
 }`
 			methods = `
-    loadPreviousPage: handlers.loadPreviousPage,
-    pageInfo: handlers.pageInfo,
+loadPreviousPage: handlers.loadPreviousPage,
+pageInfo: handlers.pageInfo,
+query: handlers.refetch,
+loading: handlers.loading,
 `
 		}
 	}
@@ -85,7 +91,7 @@ loadNextPage(limit?: number) => Promise<void>
 	return {
 		preamble,
 		types: types ? `& ${types}` : '',
-		methods: methods ? `...{${methods}    }` : '',
+		methods: methods ? `...{${methods.replaceAll('\n', '\n    ')}    }` : '',
 		imports,
 	}
 }

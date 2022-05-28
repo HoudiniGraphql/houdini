@@ -206,12 +206,12 @@ test('basic store', async function () {
 					    }
 
 					    
-					const handlers = queryHandlers({
-					    config: houdiniConfig,
-					    artifact,
-					    store: { subscribe },
-					    queryVariables: () => variables 
-					})
+					    const handlers = queryHandlers({
+					        config: houdiniConfig,
+					        artifact,
+					        store: { subscribe },
+					        queryVariables: () => variables 
+					    })
 					        
 
 					    return {
@@ -428,12 +428,12 @@ test('forward cursor pagination', async function () {
 					    }
 
 					    
-					const handlers = queryHandlers({
-					    config: houdiniConfig,
-					    artifact,
-					    store: { subscribe },
-					    queryVariables: () => variables 
-					})
+					    const handlers = queryHandlers({
+					        config: houdiniConfig,
+					        artifact,
+					        store: { subscribe },
+					        queryVariables: () => variables 
+					    })
 					        
 
 					    return {
@@ -461,9 +461,11 @@ test('forward cursor pagination', async function () {
 					        setPartial: (partial) => update(s => ({...s, partial })),
 
 					        ...{
-					    loadNextPage: handlers.loadNextPage,
-					    pageInfo: handlers.pageInfo,
-					    }
+					            loadNextPage: handlers.loadNextPage,
+					            pageInfo: handlers.pageInfo,
+					            query: handlers.refetch,
+					            loading: handlers.loading,
+					        }
 					    }
 					}
 
@@ -653,12 +655,12 @@ test('backwards cursor pagination', async function () {
 					    }
 
 					    
-					const handlers = queryHandlers({
-					    config: houdiniConfig,
-					    artifact,
-					    store: { subscribe },
-					    queryVariables: () => variables 
-					})
+					    const handlers = queryHandlers({
+					        config: houdiniConfig,
+					        artifact,
+					        store: { subscribe },
+					        queryVariables: () => variables 
+					    })
 					        
 
 					    return {
@@ -688,7 +690,9 @@ test('backwards cursor pagination', async function () {
 					        ...{
 					    loadPreviousPage: handlers.loadPreviousPage,
 					    pageInfo: handlers.pageInfo,
-					    }
+					    query: handlers.refetch,
+					    loading: handlers.loading,
+					        }
 					    }
 					}
 
@@ -874,12 +878,12 @@ test('offset pagination', async function () {
 					    }
 
 					    
-					const handlers = queryHandlers({
-					    config: houdiniConfig,
-					    artifact,
-					    store: { subscribe },
-					    queryVariables: () => variables 
-					})
+					    const handlers = queryHandlers({
+					        config: houdiniConfig,
+					        artifact,
+					        store: { subscribe },
+					        queryVariables: () => variables 
+					    })
 					        
 
 					    return {
@@ -907,8 +911,10 @@ test('offset pagination', async function () {
 					        setPartial: (partial) => update(s => ({...s, partial })),
 
 					        ...{
-					    loadNextPage: handlers.loadNextPage,
-					    }
+					            loadNextPage: handlers.loadNextPage,
+					            query: handlers.refetch,
+					            loading: handlers.loading,
+					        }
 					    }
 					}
 
