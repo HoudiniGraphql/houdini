@@ -45,7 +45,7 @@ import type { ${doc.name}$data, ${doc.name} } from '$houdini'
 
 export declare const ${storeName}: Readable<${doc.name}$data> & {
     update: (value: ${doc.name}) => void
-}
+} ${paginationExtras.types}
 `
 
 	// write the store contents to disk

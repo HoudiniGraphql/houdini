@@ -12,7 +12,6 @@ import {
 } from './types'
 import { marshalInputs } from './scalars'
 import cache from './cache'
-import { rootID } from './cache/cache'
 
 export class HoudiniClient {
 	private fetch: RequestHandler<any>
@@ -35,14 +34,18 @@ export class HoudiniClient {
 export class Environment extends HoudiniClient {
 	constructor(...args: ConstructorParameters<typeof HoudiniClient>) {
 		super(...args)
-		console.warn('Environment has been renamed HoudiniClient')
+		console.warn(
+			'Environment has been renamed to HoudiniClient. For more information, please visit the 0.15.0 migration guide: <link>'
+		)
 	}
 }
 
 let currentClient: HoudiniClient | null = null
 
 export function setEnvironment(env: HoudiniClient) {
-	console.warn('You should use houdiniClient.init()')
+	console.warn(
+		'setEnvironment is now replaced by environment.init(). For more information, please visit the 0.15.0 migration guide: <link>'
+	)
 	env.init()
 }
 
