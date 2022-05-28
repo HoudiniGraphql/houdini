@@ -6,6 +6,7 @@ import { writeFile } from '../../utils'
 import { generateFragmentStore } from './fragment'
 import { generateIndividualStoreMutation } from './mutation'
 import { generateIndividualStoreQuery } from './query'
+import { generateSubscriptionStore } from './subscription'
 
 export default async function storesGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	const listOfStores: (string | null)[] = []
@@ -26,7 +27,7 @@ export default async function storesGenerator(config: Config, docs: CollectedGra
 			} else if (doc.kind === ArtifactKind.Mutation) {
 				listOfStores.push(await generateIndividualStoreMutation(config, doc))
 			} else if (doc.kind === ArtifactKind.Subcription) {
-				log.error('Subscription => Not implemented yet!')
+				listOfStores.push(await generateSubscriptionStore(config, doc))
 			} else if (doc.kind === ArtifactKind.Fragment) {
 				listOfStores.push(await generateFragmentStore(config, doc))
 			}

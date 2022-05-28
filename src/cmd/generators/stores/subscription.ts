@@ -6,7 +6,7 @@ import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 
-export async function generateFragmentStore(config: Config, doc: CollectedGraphQLDocument) {
+export async function generateSubscriptionStore(config: Config, doc: CollectedGraphQLDocument) {
 	const storeName = config.storeName(doc)
 
 	// the content of the store
