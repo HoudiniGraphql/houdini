@@ -26,19 +26,27 @@ export class HoudiniClient {
 	sendRequest<_Data>(ctx: FetchContext, params: FetchParams, session?: FetchSession) {
 		return this.fetch.call(ctx, params, session)
 	}
+
+	init() {
+		currentClient = this
+	}
+}
+
+export class Environment extends HoudiniClient {
+	constructor(...args: ConstructorParameters<typeof HoudiniClient>) {
+		super(...args)
+		console.warn('Environment has been renamed HoudiniClient')
+	}
 }
 
 let currentClient: HoudiniClient | null = null
 
-export function createClient(env: HoudiniClient) {
-	currentClient = env
+export function setEnvironment(env: HoudiniClient) {
+	console.warn('You should use houdiniClient.init()')
+	env.init()
 }
 
 export function getCurrentClient(): HoudiniClient | null {
-	// TODO
-	// config of the import location?
-	// import * as houdiniClient from '$lib/graphql/houdiniClient';
-	// If the file is not here => Generation error?
 	return currentClient
 }
 
