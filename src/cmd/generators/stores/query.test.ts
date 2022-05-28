@@ -66,10 +66,7 @@ test('basic store', async function () {
 
 
 					// TODO:
-					// - [x] smarter than JSON.stringify to compare if it's updated
 					// - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
-					// - [ ] cache policies aren't implemented yet
-					// - [x] params.policy > artifact.policy
 					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
@@ -86,14 +83,15 @@ test('basic store', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
-					    // const sessionStore = getSession()
-
+					    
 					    async function queryLoad(ctx, params) {
 					        const context = new RequestContext(ctx)
 					        return await queryLocal(context, params)
 					    }
-
+					    
 					    async function query(params) {
+					        // const sessionStore = getSession()
+					        
 					        const context = new RequestContext({
 					            //page: getPage(),
 					            fetch: fetch,
@@ -287,10 +285,7 @@ test('forward cursor pagination', async function () {
 
 
 					// TODO:
-					// - [x] smarter than JSON.stringify to compare if it's updated
 					// - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
-					// - [ ] cache policies aren't implemented yet
-					// - [x] params.policy > artifact.policy
 					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
@@ -307,14 +302,15 @@ test('forward cursor pagination', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
-					    // const sessionStore = getSession()
-
+					    
 					    async function queryLoad(ctx, params) {
 					        const context = new RequestContext(ctx)
 					        return await queryLocal(context, params)
 					    }
-
+					    
 					    async function query(params) {
+					        // const sessionStore = getSession()
+					        
 					        const context = new RequestContext({
 					            //page: getPage(),
 					            fetch: fetch,
@@ -513,10 +509,7 @@ test('backwards cursor pagination', async function () {
 
 
 					// TODO:
-					// - [x] smarter than JSON.stringify to compare if it's updated
 					// - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
-					// - [ ] cache policies aren't implemented yet
-					// - [x] params.policy > artifact.policy
 					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
@@ -533,14 +526,15 @@ test('backwards cursor pagination', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
-					    // const sessionStore = getSession()
-
+					    
 					    async function queryLoad(ctx, params) {
 					        const context = new RequestContext(ctx)
 					        return await queryLocal(context, params)
 					    }
-
+					    
 					    async function query(params) {
+					        // const sessionStore = getSession()
+					        
 					        const context = new RequestContext({
 					            //page: getPage(),
 					            fetch: fetch,
@@ -735,10 +729,7 @@ test('offset pagination', async function () {
 
 
 					// TODO:
-					// - [x] smarter than JSON.stringify to compare if it's updated
 					// - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
-					// - [ ] cache policies aren't implemented yet
-					// - [x] params.policy > artifact.policy
 					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
@@ -755,14 +746,15 @@ test('offset pagination', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
-					    // const sessionStore = getSession()
-
+					    
 					    async function queryLoad(ctx, params) {
 					        const context = new RequestContext(ctx)
 					        return await queryLocal(context, params)
 					    }
-
+					    
 					    async function query(params) {
+					        // const sessionStore = getSession()
+					        
 					        const context = new RequestContext({
 					            //page: getPage(),
 					            fetch: fetch,

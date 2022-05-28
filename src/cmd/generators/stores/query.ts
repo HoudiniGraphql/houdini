@@ -14,10 +14,6 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 
 	const paginationExtras = pagination(config, doc)
 
-	// TODO: To remove, it was tmp from JYC
-	const paginationExtrasDTs = `import type { PageInfo } from '$houdini/runtime/utils'
-import type { Readable } from 'svelte/store'`
-
 	// STORE
 	const storeDataGenerated = `import { houdiniConfig } from '$houdini'
 import { stry } from '@kitql/helper'
@@ -32,10 +28,7 @@ import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 ${paginationExtras.imports}
 
 // TODO:
-// - [x] smarter than JSON.stringify to compare if it's updated
 // - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
-// - [ ] cache policies aren't implemented yet
-// - [x] params.policy > artifact.policy
 // - [ ] context client side (getPage, getSession) => GetStores issue
 
 function ${storeName}Store() {
@@ -52,14 +45,15 @@ function ${storeName}Store() {
     // Current variables tracker
     let variables = {}
 
-    // const sessionStore = getSession()
-
+    
     async function queryLoad(ctx, params) {
         const context = new RequestContext(ctx)
         return await queryLocal(context, params)
     }
-
+    
     async function query(params) {
+        // const sessionStore = getSession()
+        
         const context = new RequestContext({
             //page: getPage(),
             fetch: fetch,
@@ -207,7 +201,6 @@ export const ${storeName} = ${storeName}Store()
 
 	// TYPES
 	const storeDataDTsGenerated = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
-${paginationExtrasDTs}
 import { QueryStore } from '../runtime/types'
 
 export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${artifactName}$input> ${paginationExtras.types}
