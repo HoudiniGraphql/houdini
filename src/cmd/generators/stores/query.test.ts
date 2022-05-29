@@ -66,7 +66,6 @@ test('basic store', async function () {
 
 					// TODO:
 					// - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
-					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
 					    const { subscribe, set, update } = writable({
@@ -83,22 +82,22 @@ test('basic store', async function () {
 					    let variables = {}
 
 					    
-					    async function queryLoad(ctx, params) {
-					        const context = new RequestContext(ctx)
-					        return await queryLocal(context, params)
-					    }
-					    
-					    async function query(params) {
-					        // const sessionStore = getSession()
-					        
-					        const context = new RequestContext({
-					            //page: getPage(),
-					            fetch: fetch,
-					            //session: getSession(),
-					        })
+					    async function queryLoad(params) {
+							const context = new RequestContext(params.context)
+							return await queryLocal(context, params)
+						}
 
-					        return await queryLocal(context, params)
-					    }
+						async function query(params) {
+							const { session, page } = params.context
+
+							const context = new RequestContext({
+								fetch: fetch,
+								page,
+								session,
+							})
+
+							return await queryLocal(context, params)
+						}
 
 					    async function queryLocal(context, params) {
 					        update((c) => {
@@ -278,7 +277,6 @@ test('forward cursor pagination', async function () {
 
 					// TODO:
 					// - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
-					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
 					    const { subscribe, set, update } = writable({
@@ -295,22 +293,22 @@ test('forward cursor pagination', async function () {
 					    let variables = {}
 
 					    
-					    async function queryLoad(ctx, params) {
-					        const context = new RequestContext(ctx)
-					        return await queryLocal(context, params)
-					    }
-					    
-					    async function query(params) {
-					        // const sessionStore = getSession()
-					        
-					        const context = new RequestContext({
-					            //page: getPage(),
-					            fetch: fetch,
-					            //session: getSession(),
-					        })
+					    async function queryLoad(params) {
+							const context = new RequestContext(params.context)
+							return await queryLocal(context, params)
+						}
 
-					        return await queryLocal(context, params)
-					    }
+						async function query(params) {
+							const { session, page } = params.context
+
+							const context = new RequestContext({
+								fetch: fetch,
+								page,
+								session,
+							})
+
+							return await queryLocal(context, params)
+						}
 
 					    async function queryLocal(context, params) {
 					        update((c) => {
@@ -415,7 +413,6 @@ test('forward cursor pagination', async function () {
 
 					    
 					const handlers =
-							isBrowser &&
 							queryHandlers({
 								config: houdiniConfig,
 								artifact,
@@ -504,7 +501,6 @@ test('backwards cursor pagination', async function () {
 
 					// TODO:
 					// - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
-					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
 					    const { subscribe, set, update } = writable({
@@ -521,22 +517,22 @@ test('backwards cursor pagination', async function () {
 					    let variables = {}
 
 					    
-					    async function queryLoad(ctx, params) {
-					        const context = new RequestContext(ctx)
-					        return await queryLocal(context, params)
-					    }
-					    
-					    async function query(params) {
-					        // const sessionStore = getSession()
-					        
-					        const context = new RequestContext({
-					            //page: getPage(),
-					            fetch: fetch,
-					            //session: getSession(),
-					        })
+					    async function queryLoad(params) {
+							const context = new RequestContext(params.context)
+							return await queryLocal(context, params)
+						}
 
-					        return await queryLocal(context, params)
-					    }
+						async function query(params) {
+							const { session, page } = params.context
+
+							const context = new RequestContext({
+								fetch: fetch,
+								page,
+								session,
+							})
+
+							return await queryLocal(context, params)
+						}
 
 					    async function queryLocal(context, params) {
 					        update((c) => {
@@ -641,7 +637,6 @@ test('backwards cursor pagination', async function () {
 
 					    
 					const handlers =
-							isBrowser &&
 							queryHandlers({
 								config: houdiniConfig,
 								artifact,
@@ -726,7 +721,6 @@ test('offset pagination', async function () {
 
 					// TODO:
 					// - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
-					// - [ ] context client side (getPage, getSession) => GetStores issue
 
 					function GQL_TestQueryStore() {
 					    const { subscribe, set, update } = writable({
@@ -743,22 +737,22 @@ test('offset pagination', async function () {
 					    let variables = {}
 
 					    
-					    async function queryLoad(ctx, params) {
-					        const context = new RequestContext(ctx)
-					        return await queryLocal(context, params)
-					    }
-					    
-					    async function query(params) {
-					        // const sessionStore = getSession()
-					        
-					        const context = new RequestContext({
-					            //page: getPage(),
-					            fetch: fetch,
-					            //session: getSession(),
-					        })
+					    async function queryLoad(params) {
+							const context = new RequestContext(params.context)
+							return await queryLocal(context, params)
+						}
 
-					        return await queryLocal(context, params)
-					    }
+						async function query(params) {
+							const { session, page } = params.context
+
+							const context = new RequestContext({
+								fetch: fetch,
+								page,
+								session,
+							})
+
+							return await queryLocal(context, params)
+						}
 
 					    async function queryLocal(context, params) {
 					        update((c) => {
@@ -863,7 +857,6 @@ test('offset pagination', async function () {
 
 					    
 					const handlers =
-							isBrowser &&
 							queryHandlers({
 								config: houdiniConfig,
 								artifact,
