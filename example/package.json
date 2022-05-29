@@ -6,19 +6,17 @@
 		"prepare": "svelte-kit sync",
 		"generate": "rm -rf \"\\$houdini\" && houdini generate",
 		"dev": "npm run prepare && concurrently \"yarn web\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
-		"test": "playwright test",
 		"build": "svelte-kit build",
 		"start": "svelte-kit preview",
 		"web": "svelte-kit dev",
-		"api": "node api.cjs"
+		"api": "node api.mjs"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.21.0",
 		"@sveltejs/adapter-auto": "1.0.0-next.48",
 		"@sveltejs/kit": "1.0.0-next.345",
 		"concurrently": "7.1.0",
-		"graphql": "15.5.0",
-		"houdini": "^0.14.5",
+		"graphql": "16.5.0",
+		"houdini": "0.14.5",
 		"svelte": "3.48.0",
 		"svelte-preprocess": "4.10.6",
 		"tslib": "2.4.0",
@@ -26,9 +24,11 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@kitql/vite-plugin-watch-and-run": "^0.3.0",
-		"apollo-server": "^2.24.0",
-		"graphql-relay": "^0.8.0",
-		"subscriptions-transport-ws": "^0.9.18"
+		"@graphql-yoga/node": "2.8.0",
+		"@kitql/vite-plugin-watch-and-run": "0.3.0",
+		"graphql-relay": "0.8.0",
+		"graphql-tag": "2.12.6",
+		"graphql-ws": "5.8.2",
+		"subscriptions-transport-ws": "0.9.18"
 	}
 }

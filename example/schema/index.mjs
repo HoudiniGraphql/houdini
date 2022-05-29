@@ -1,11 +1,10 @@
-const gql = require('graphql-tag')
-const { PubSub, withFilter } = require('apollo-server')
-const { GraphQLScalarType, Kind } = require('graphql')
-const { connectionFromArray } = require('graphql-relay')
+import gql from 'graphql-tag'
+import { GraphQLScalarType, Kind } from 'graphql'
+import { createPubSub, filter } from '@graphql-yoga/node'
 
-const pubsub = new PubSub()
+const pubSub = createPubSub()
 
-module.exports.typeDefs = gql`
+export const typeDefs = gql`
 	scalar DateTime
 
 	type Error {
@@ -88,9 +87,9 @@ let items = [
 	{ id: '6', text: 'Buy a third unicorn', createdAt: new Date() },
 ]
 
-id = items.length
+let id = items.length
 
-module.exports.resolvers = {
+export const resolvers = {
 	Query: {
 		items: (_, { completed, after, first } = {}) => {
 			// apply the filter
@@ -118,6 +117,7 @@ module.exports.resolvers = {
 			}
 
 			const connection = {
+				totalCount: filtered.length,
 				pageInfo: {
 					startCursor: targetItems[0]?.id,
 					endCursor: targetItems[targetItems.length - 1]?.id,
@@ -145,7 +145,7 @@ module.exports.resolvers = {
 			item.completed = true
 
 			// notify any subscribers
-			pubsub.publish('ITEM_UPDATE', { itemUpdate: { item } })
+			pubSub.publish('ITEM_UPDATE', { itemUpdate: { item } })
 
 			return {
 				error: null,
@@ -160,7 +160,7 @@ module.exports.resolvers = {
 			item.completed = false
 
 			// notify any subscribers
-			pubsub.publish('ITEM_UPDATE', { itemUpdate: { item } })
+			pubSub.publish('ITEM_UPDATE', { item })
 
 			return {
 				error: null,
@@ -192,7 +192,7 @@ module.exports.resolvers = {
 			items.push(item)
 
 			// notify any subscribers
-			pubsub.publish('NEW_ITEM', { newItem: { item } })
+			pubSub.publish('NEW_ITEM', { item })
 
 			return { item, error: null }
 		},
@@ -202,15 +202,20 @@ module.exports.resolvers = {
 	},
 	Subscription: {
 		itemUpdate: {
-			subscribe: withFilter(
-				() => pubsub.asyncIterator('ITEM_UPDATE'),
-				(payload, variables) => {
-					return payload.itemUpdate.item.id === variables.id
-				}
-			),
+			subscribe: (_, args) =>
+				pipe(
+					pubSub.subscribe('ITEM_UPDATE'),
+					filter((payload) => {
+						return payload.itemUpdate.item.id === args.id
+					})
+				),
+			resolve: (payload) => payload,
 		},
 		newItem: {
-			subscribe: () => pubsub.asyncIterator('NEW_ITEM'),
+			subscribe: () => pubSub.subscribe('NEW_ITEM'),
+			resolve: (payload) => {
+				return payload
+			},
 		},
 	},
 	DateTime: new GraphQLScalarType({
