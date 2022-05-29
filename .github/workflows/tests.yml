@@ -62,6 +62,9 @@ jobs:
             - name: Tests
               run: yarn tests
 
+            - name: Integration Tests
+              run: yarn integration:tests
+
     generate:
         name: Generate runtime for example application
         runs-on: ubuntu-latest

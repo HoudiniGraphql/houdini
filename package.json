@@ -4,6 +4,7 @@
 	"description": "The disappearing graphql client for SvelteKit",
 	"workspaces": [
 		"example",
+		"integration",
 		"."
 	],
 	"type": "module",
@@ -35,7 +36,10 @@
 		"release": "yarn build && changeset publish",
 		"postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
 		"prepack": "pinst --disable",
-		"postpack": "pinst --enable"
+		"postpack": "pinst --enable",
+		"example:dev": "yarn workspace example-kit dev",
+		"integration:dev": "yarn workspace integration dev",
+		"integration:tests": "yarn workspace integration tests"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.12.10",
