@@ -30,10 +30,15 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	// we need to create the runtime folder structure
 	await config.createDirectories()
 
-	log.setLevel(config.quiet ? null : 3)
-
 	// reset the newSchema accumulator
 	config.newSchema = ''
+
+	// we need to hold onto some stats for the generated artifacts
+	const artifactStats = {
+		total: [],
+		changed: [],
+		new: [],
+	}
 
 	await run(
 		config,
@@ -52,7 +57,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			transforms.paginate,
 			transforms.fragmentVariables,
 			transforms.composeQueries,
-			generators.artifacts,
+			generators.artifacts(artifactStats),
 			generators.runtime,
 			generators.typescript,
 			generators.persistOutput,
@@ -62,7 +67,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		docs
 	)
 
-	log.info('Houdini generators completed')
+	console.log(artifactStats)
 }
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {

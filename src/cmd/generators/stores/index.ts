@@ -11,8 +11,6 @@ import { generateSubscriptionStore } from './subscription'
 export default async function storesGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	const listOfStores: (string | null)[] = []
 
-	log.info('Generating Stores...', { level: 2 })
-
 	await Promise.all(
 		docs.map(async (doc) => {
 			// if the doc is not meant to be generated, skip it
@@ -52,6 +50,4 @@ export type Result<DataType> = {
 		path.join(config.rootDir, 'stores', `index.d.ts`),
 		dataIndexDTs + `\n` + dataIndex
 	)
-
-	log.info('...Stores generated', { level: 2 })
 }

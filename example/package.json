@@ -4,7 +4,7 @@
 	"version": "0.13.0",
 	"scripts": {
 		"prepare": "svelte-kit sync",
-		"generate": "rm -rf \"\\$houdini\" && houdini generate",
+		"generate": "houdini generate",
 		"dev": "npm run prepare && concurrently \"yarn web\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
 		"build": "svelte-kit build",
 		"start": "svelte-kit preview",
