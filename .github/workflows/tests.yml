@@ -62,8 +62,41 @@ jobs:
             - name: Tests
               run: yarn tests
 
+    integration:
+        name: Integration Tests
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Setup Node
+              uses: actions/setup-node@v1
+              with:
+                  node-version: 16.14.2
+
+            - name: Checkout source
+              uses: actions/checkout@master
+              with:
+                  ref: ${{ github.ref }}
+
+            - name: Install Dependencies
+              run: yarn install
+              env:
+                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+
+            - name: Build packages
+              run: yarn build
+
+            - name: Install Playwright
+              run: npx playwright install --with-deps
+
             - name: Integration Tests
               run: yarn integration:tests
+
+            - name: Upload test results
+              if: always()
+              uses: actions/upload-artifact@v2
+              with:
+                  name: playwright-report
+                  path: playwright-report
 
     generate:
         name: Generate runtime for example application

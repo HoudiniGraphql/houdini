@@ -7,6 +7,8 @@ export default {
 		'^~/(.*)$': '<rootDir>/src/$1',
 	},
 
+	modulePathIgnorePatterns: ['<rootDir>/integration/'],
+
 	globals: {
 		'ts-jest': {
 			babelConfig: true,
