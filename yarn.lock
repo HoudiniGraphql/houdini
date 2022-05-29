@@ -1833,7 +1833,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-yoga/node@npm:2.8.0":
+"@graphql-yoga/node@npm:2.8.0, @graphql-yoga/node@npm:^2.8.0":
   version: 2.8.0
   resolution: "@graphql-yoga/node@npm:2.8.0"
   dependencies:
@@ -2137,7 +2137,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kitql/helper@npm:0.3.4":
+"@kitql/helper@npm:0.3.4, @kitql/helper@npm:^0.3.4":
   version: 0.3.4
   resolution: "@kitql/helper@npm:0.3.4"
   checksum: 6e79908f5ee0c0a99c04dbca997da683a0ef319152376b07e6255169cdb2c9e95e0b3b752fad66da7ff1af6e320e90f3da4cfe9d57f49d53361e1dd21c5a652f
@@ -6314,7 +6314,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-tag@npm:2.12.6":
+"graphql-tag@npm:2.12.6, graphql-tag@npm:^2.12.6":
   version: 2.12.6
   resolution: "graphql-tag@npm:2.12.6"
   dependencies:
@@ -6325,7 +6325,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-ws@npm:5.8.2":
+"graphql-ws@npm:5.8.2, graphql-ws@npm:^5.8.2":
   version: 5.8.2
   resolution: "graphql-ws@npm:5.8.2"
   peerDependencies:
@@ -6811,6 +6811,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "integration@workspace:integration"
   dependencies:
+    "@graphql-yoga/node": ^2.8.0
+    "@kitql/helper": ^0.3.4
     "@playwright/test": ^1.21.0
     "@sveltejs/adapter-auto": next
     "@sveltejs/kit": next
@@ -6819,6 +6821,8 @@ __metadata:
     eslint: ^8.12.0
     eslint-config-prettier: ^8.3.0
     eslint-plugin-svelte3: ^4.0.0
+    graphql-tag: ^2.12.6
+    graphql-ws: ^5.8.2
     prettier: ^2.5.1
     prettier-plugin-svelte: ^2.5.0
     svelte: ^3.44.0
