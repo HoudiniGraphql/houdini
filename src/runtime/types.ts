@@ -1,7 +1,7 @@
 import { Readable } from 'svelte/store'
 import type { ConfigFile } from './config'
 import { HoudiniDocumentProxy } from './proxy'
-import type { LoadInput } from '@sveltejs/kit'
+import type { LoadEvent } from '@sveltejs/kit'
 import { MutationConfig } from './mutation'
 
 export enum CachePolicy {
@@ -109,9 +109,19 @@ export type QueryResult<DataType> = {
 	variables: {}
 }
 
-export type QueryStoreParams<_Input> = {
+export type QueryStoreParams<_Input, _contextType = HoudiniContextEvent> = {
 	variables?: _Input
 	policy?: CachePolicy
+	// Todo: context adapter (Server (loadEvent) / client(houdiniContext))
+	context: _contextType
+}
+
+export type HoudiniContextEvent = {
+	session: Readable<any>
+	variables: () => {}
+	page: any
+
+	context: any
 }
 
 export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
@@ -127,10 +137,7 @@ export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
 	/**
 	 * Trigger the query form load function
 	 */
-	queryLoad: (
-		loadInput: LoadInput,
-		params?: QueryStoreParams<_Input>
-	) => Promise<QueryResult<_Data>>
+	queryLoad: (params?: QueryStoreParams<_Input, LoadEvent>) => Promise<QueryResult<_Data>>
 
 	/**
 	 * Trigger the query form client side (a component for example)

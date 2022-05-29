@@ -1,11 +1,11 @@
 <script context="module" lang="ts">
 	// import { browser } from '$app/env'
 	import { CachePolicy, GQL_AllItems } from '$houdini'
-	import type { LoadInput } from '@sveltejs/kit'
+	import type { LoadEvent } from '@sveltejs/kit'
 
-	export async function load(loadInput: LoadInput) {
+	export async function load(context: LoadEvent) {
 		// Option 1: in Load (SSR)
-		await GQL_AllItems.queryLoad(loadInput, { variables: { completed: true } })
+		await GQL_AllItems.queryLoad({ variables: { completed: true }, context })
 		return {}
 	}
 </script>

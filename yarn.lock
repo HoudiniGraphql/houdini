@@ -2537,43 +2537,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:^1.0.0-next.330":
-  version: 1.0.0-next.330
-  resolution: "@sveltejs/kit@npm:1.0.0-next.330"
-  dependencies:
-    "@sveltejs/vite-plugin-svelte": ^1.0.0-next.32
-    chokidar: ^3.5.3
-    sade: ^1.7.4
-    vite: ^2.9.0
-  peerDependencies:
-    svelte: ^3.44.0
-  bin:
-    svelte-kit: svelte-kit.js
-  checksum: 15f4bb4975c6b5e12f98c61eabc6988bd66fd04c9a5295a4f5d2b388951aa14f6b0b4724f0cd7563d775ba3deeee2eb6b315beb6a3fdec7d89c935a8086324d1
-  languageName: node
-  linkType: hard
-
-"@sveltejs/vite-plugin-svelte@npm:^1.0.0-next.32":
-  version: 1.0.0-next.43
-  resolution: "@sveltejs/vite-plugin-svelte@npm:1.0.0-next.43"
-  dependencies:
-    "@rollup/pluginutils": ^4.2.1
-    debug: ^4.3.4
-    deepmerge: ^4.2.2
-    kleur: ^4.1.4
-    magic-string: ^0.26.1
-    svelte-hmr: ^0.14.11
-  peerDependencies:
-    diff-match-patch: ^1.0.5
-    svelte: ^3.44.0
-    vite: ^2.9.0
-  peerDependenciesMeta:
-    diff-match-patch:
-      optional: true
-  checksum: 83738b0859423b13c3af2751e9b3c17d76cb459d9ab2de17f968c7e6984654975e3a5fa00e50ab756aebf8f09d1a71733335c6f731cb51762092e306000d3573
-  languageName: node
-  linkType: hard
-
 "@sveltejs/vite-plugin-svelte@npm:^1.0.0-next.44":
   version: 1.0.0-next.45
   resolution: "@sveltejs/vite-plugin-svelte@npm:1.0.0-next.45"
@@ -6799,7 +6762,7 @@ __metadata:
     "@rollup/plugin-commonjs": beta
     "@rollup/plugin-json": ^4.1.0
     "@rollup/plugin-node-resolve": ^13.2.0
-    "@sveltejs/kit": ^1.0.0-next.330
+    "@sveltejs/kit": 1.0.0-next.345
     "@types/fs-extra": ^9.0.13
     "@types/glob": ^7.2.0
     "@types/inquirer": ^7.3.1
@@ -8640,15 +8603,6 @@ __metadata:
   dependencies:
     sourcemap-codec: ^1.4.8
   checksum: 9a0e55a15c7303fc360f9572a71cffba1f61451bc92c5602b1206c9d17f492403bf96f946dfce7483e66822d6b74607262e24392e87b0ac27b786e69a40e9b1a
-  languageName: node
-  linkType: hard
-
-"magic-string@npm:^0.26.1":
-  version: 0.26.1
-  resolution: "magic-string@npm:0.26.1"
-  dependencies:
-    sourcemap-codec: ^1.4.8
-  checksum: 23f21f5734346ddfbabd7b9834e3ecda3521e3e1db81166c1513b45b729489bbed1eafa8cd052c7db7fdc7c68ebc5c03bc00dd5a23697edda15dbecaf8c98397
   languageName: node
   linkType: hard
 
@@ -12715,35 +12669,6 @@ resolve@^1.19.0:
     core-util-is: 1.0.2
     extsprintf: ^1.2.0
   checksum: c431df0bedf2088b227a4e051e0ff4ca54df2c114096b0c01e1cbaadb021c30a04d7dd5b41ab277bcd51246ca135bf931d4c4c796ecae7a4fef6d744ecef36ea
-  languageName: node
-  linkType: hard
-
-"vite@npm:^2.9.0":
-  version: 2.9.8
-  resolution: "vite@npm:2.9.8"
-  dependencies:
-    esbuild: ^0.14.27
-    fsevents: ~2.3.2
-    postcss: ^8.4.13
-    resolve: ^1.22.0
-    rollup: ^2.59.0
-  peerDependencies:
-    less: "*"
-    sass: "*"
-    stylus: "*"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    less:
-      optional: true
-    sass:
-      optional: true
-    stylus:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: 7de3450bec4caa06f4540d1d252563ef0b7e1bdd167d04abf03db72cfd8c9a93879e18861283bc7d075e1d094b78b71770ca36f9b965bdf28c66665eafdc29dc
   languageName: node
   linkType: hard
 

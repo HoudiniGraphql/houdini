@@ -39,7 +39,6 @@ const handlers = fragmentHandlers({
 		// create the query handlers
 		preamble = `
 const handlers =
-		isBrowser &&
 		queryHandlers({
 			config: houdiniConfig,
 			artifact,

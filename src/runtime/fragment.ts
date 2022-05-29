@@ -1,11 +1,7 @@
 // externals
-import { readable, Readable, writable } from 'svelte/store'
-import { onMount } from 'svelte'
 // locals
-import type { Fragment, FragmentArtifact, GraphQLTagResult, SubscriptionSpec } from './types'
-import cache from './cache'
-import { getVariables } from './context'
 import { FragmentStore } from '.'
+import type { Fragment, GraphQLTagResult } from './types'
 
 // fragment returns the requested data from the reference
 export function fragment<_Fragment extends Fragment<any>>(

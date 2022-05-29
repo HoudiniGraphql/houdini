@@ -8,7 +8,7 @@ export type PageInfo = {
 }
 
 export function extractPageInfo(data: GraphQLObject, path: string[]): PageInfo {
-	if (data === null) {
+	if (!data) {
 		return {
 			startCursor: null,
 			endCursor: null,

@@ -29,7 +29,6 @@ ${paginationExtras.imports}
 
 // TODO:
 // - [ ] track: https://github.com/sveltejs/kit/issues/2979 is see if we could have a better load without context!
-// - [ ] context client side (getPage, getSession) => GetStores issue
 
 function ${storeName}Store() {
     const { subscribe, set, update } = writable({
@@ -46,22 +45,22 @@ function ${storeName}Store() {
     let variables = {}
 
     
-    async function queryLoad(ctx, params) {
-        const context = new RequestContext(ctx)
-        return await queryLocal(context, params)
-    }
-    
-    async function query(params) {
-        // const sessionStore = getSession()
-        
-        const context = new RequestContext({
-            //page: getPage(),
-            fetch: fetch,
-            //session: getSession(),
-        })
+    async function queryLoad(params) {
+		const context = new RequestContext(params.context)
+		return await queryLocal(context, params)
+	}
 
-        return await queryLocal(context, params)
-    }
+	async function query(params) {
+		const { session, page } = params.context
+
+		const context = new RequestContext({
+			fetch: fetch,
+			page,
+			session,
+		})
+
+		return await queryLocal(context, params)
+	}
 
     async function queryLocal(context, params) {
         update((c) => {

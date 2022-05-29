@@ -1,20 +1,21 @@
 // externals
 import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
 // locals
-import { Operation, GraphQLTagResult, Fragment, GraphQLObject, QueryArtifact } from './types'
-import { query, QueryResponse } from './query'
-import { fragment } from './fragment'
-import { getVariables } from './context'
-import { executeQuery, QueryInputs } from './network'
 import cache from './cache'
-// @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession } from './adapter.mjs'
+import { fragment } from './fragment'
+import { executeQuery } from './network'
+import { query, QueryResponse } from './query'
+import { Fragment, GraphQLObject, GraphQLTagResult, Operation, QueryArtifact } from './types'
 // this has to be in a separate file since config isn't defined in cache/index.ts
-import { countPage, extractPageInfo, PageInfo } from './utils'
+import { HoudiniContextEvent, QueryStore } from '.'
 import { ConfigFile, keyFieldsForType } from './config'
-import { QueryStore } from '.'
+import { countPage, extractPageInfo, PageInfo } from './utils'
 
-type RefetchFn<_Data = any, _Input = any> = (vars: _Input) => Promise<_Data>
+//Todo: houdiniContext Type
+type RefetchFn<_Data = any, _Input = any> = (
+	houdiniContext: HoudiniContextEvent,
+	vars: _Input
+) => Promise<_Data>
 
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -141,8 +142,12 @@ export function paginationHandlers<_Query extends Operation<any, any>>({
 	config: ConfigFile
 }): PaginatedHandlers<_Query['input']> {
 	// start with the defaults and no meaningful page info
-	let loadPreviousPage = defaultLoadPreviousPage
-	let loadNextPage = defaultLoadNextPage
+	let loadPreviousPage: PaginatedHandlers<_Query>['loadPreviousPage'] = async (
+		...args: Parameters<PaginatedHandlers<_Query>['loadPreviousPage']>
+	) => {}
+	let loadNextPage: PaginatedHandlers<_Query>['loadNextPage'] = async (
+		...args: Parameters<PaginatedHandlers<_Query>['loadNextPage']>
+	) => {}
 	let pageInfo = readable<PageInfo>(
 		{
 			startCursor: null,
@@ -233,10 +238,6 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 	refetch?: RefetchFn
 	setPartial: (val: boolean) => void
 }): PaginatedHandlers<_Query> {
-	// pull out the context accessors
-	const variables = getVariables()
-	const sessionStore = getSession()
-
 	// track the current page info in an easy-to-reach store
 	const initialPageInfo = extractPageInfo(initialValue, artifact.refetch!.path) ?? {
 		startCursor: null,
@@ -256,10 +257,12 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 
 	// dry up the page-loading logic
 	const loadPage = async ({
+		houdiniContext,
 		pageSizeVar,
 		input,
 		functionName,
 	}: {
+		houdiniContext: HoudiniContextEvent
 		pageSizeVar: string
 		functionName: string
 		input: {}
@@ -270,7 +273,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 		// build up the variables to pass to the query
 		const queryVariables: Record<string, any> = {
 			...extraVariables,
-			...variables(),
+			...houdiniContext.variables(),
 			...input,
 		}
 
@@ -283,7 +286,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 		const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
 			artifact,
 			queryVariables,
-			sessionStore,
+			houdiniContext.session,
 			false
 		)
 
@@ -322,7 +325,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 
 	return {
 		loading,
-		loadNextPage: async (pageCount?: number) => {
+		loadNextPage: async (houdiniContext: HoudiniContextEvent, pageCount?: number) => {
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
 
@@ -341,12 +344,13 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 
 			// load the page
 			return await loadPage({
+				houdiniContext,
 				pageSizeVar: 'first',
 				functionName: 'loadNextPage',
 				input,
 			})
 		},
-		loadPreviousPage: async (pageCount?: number) => {
+		loadPreviousPage: async (houdiniContext: HoudiniContextEvent, pageCount?: number) => {
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
 
@@ -365,20 +369,21 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 
 			// load the page
 			return await loadPage({
+				houdiniContext,
 				pageSizeVar: 'last',
 				functionName: 'loadPreviousPage',
 				input,
 			})
 		},
 		pageInfo: { subscribe: pageInfo.subscribe },
-		async refetch(input: any) {
+		async refetch(houdiniContext: HoudiniContextEvent, input: any) {
 			// if this document shouldn't be refetched, don't do anything
 			if (!refetch) {
 				return
 			}
 			// if the input is different than the query variables then we just do everything like normal
-			if (input && JSON.stringify(variables()) !== JSON.stringify(input)) {
-				return refetch(input)
+			if (input && JSON.stringify(houdiniContext.variables()) !== JSON.stringify(input)) {
+				return refetch(houdiniContext, input)
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
@@ -389,7 +394,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...variables(),
+				...houdiniContext.variables(),
 				...extraVariables,
 				// reverse cursors need the last entries in the list
 				[artifact.refetch!.update === 'prepend' ? 'last' : 'first']: count,
@@ -402,7 +407,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 			const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
 				artifact,
 				queryVariables,
-				sessionStore,
+				houdiniContext.session,
 				false
 			)
 			setPartial(partialData)
@@ -445,10 +450,6 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	// we need to track the most recent offset for this handler
 	let currentOffset = (artifact.refetch?.start as number) || 0
 
-	// grab the context getters
-	const variables = getVariables()
-	const sessionStore = getSession()
-
 	// hold onto the current value
 	let value = initialValue
 	store.subscribe((val) => {
@@ -456,10 +457,11 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	})
 
 	return {
-		loadPage: async (limit?: number) => {
+		// Todo: houdiniContext Type
+		loadPage: async (houdiniContext: HoudiniContextEvent, limit?: number) => {
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...variables(),
+				...houdiniContext.variables(),
 				...extraVariables,
 				offset: currentOffset,
 			}
@@ -480,7 +482,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 			const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
 				artifact,
 				queryVariables,
-				sessionStore,
+				houdiniContext.session,
 				false
 			)
 			setPartial(partialData)
@@ -500,14 +502,14 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 			// we're not loading any more
 			loading.set(false)
 		},
-		async refetch(input: any) {
+		async refetch(houdiniContext: HoudiniContextEvent, input: any) {
 			// if this document shouldn't be refetched, don't do anything
 			if (!refetch) {
 				return
 			}
 			// if the input is different than the query variables then we just do everything like normal
-			if (input && JSON.stringify(variables()) !== JSON.stringify(input)) {
-				return refetch(input)
+			if (input && JSON.stringify(houdiniContext.variables()) !== JSON.stringify(input)) {
+				return refetch(houdiniContext, input)
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
@@ -516,7 +518,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...variables(),
+				...houdiniContext.variables(),
 				...extraVariables,
 				limit: count,
 			}
@@ -528,7 +530,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 			const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
 				artifact,
 				queryVariables,
-				sessionStore,
+				houdiniContext.session,
 				false
 			)
 
@@ -549,23 +551,20 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 }
 
 type PaginatedHandlers<_Query extends Operation<any, any>> = {
-	loadNextPage(pageCount?: number, after?: string | number): Promise<void>
-	loadPreviousPage(pageCount?: number, before?: string): Promise<void>
+	// TODO: houdiniContext Type (houdiniContext: HoudiniContextEvent)
+	loadNextPage(
+		houdiniContext: HoudiniContextEvent,
+		pageCount?: number,
+		after?: string | number
+	): Promise<void>
+	loadPreviousPage(
+		houdiniContext: HoudiniContextEvent,
+		pageCount?: number,
+		before?: string
+	): Promise<void>
 	loading: Readable<boolean>
 	pageInfo: Readable<PageInfo>
 	refetch: RefetchFn<_Query['result'], _Query['input']>
-}
-
-function defaultLoadNextPage(): Promise<void> {
-	throw new Error(
-		'loadNextPage() only works on fields marked @paginate that implement forward cursor or offset pagination.'
-	)
-}
-
-function defaultLoadPreviousPage(): Promise<void> {
-	throw new Error(
-		'loadPreviousPage() only works on fields marked @paginate that implement backward cursor pagination.'
-	)
 }
 
 function missingPageSizeError(fnName: string) {
