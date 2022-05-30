@@ -309,12 +309,12 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 		const fetchCall = AST.callExpression(
 			AST.memberExpression(storeIdentifier(document.artifact), AST.identifier('queryLoad')),
 			[
-				AST.identifier('context'),
 				AST.objectExpression([
 					AST.objectProperty(
 						AST.literal('variables'),
 						AST.identifier(variableIdentifier)
 					),
+					AST.objectProperty(AST.literal('context'), AST.identifier('context')),
 				]),
 			]
 		)
