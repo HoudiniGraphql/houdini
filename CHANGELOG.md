@@ -1,5 +1,11 @@
 # houdini
 
+## 0.14.6
+
+### Patch Changes
+
+-   [#299](https://github.com/HoudiniGraphql/houdini/pull/299) [`83032d8`](https://github.com/HoudiniGraphql/houdini/commit/83032d8d671968688255cbe2c507e7252cfb747d) Thanks [@rmarscher](https://github.com/rmarscher)! - add support for typescript 4.5
+
 ## 0.14.5
 
 ### Patch Changes

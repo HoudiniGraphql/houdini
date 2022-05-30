@@ -1,6 +1,6 @@
 {
 	"name": "houdini",
-	"version": "0.14.5",
+	"version": "0.14.6",
 	"description": "The disappearing graphql client for SvelteKit",
 	"workspaces": [
 		"example",
@@ -74,7 +74,7 @@
 		"typescript": "^4.6.3"
 	},
 	"dependencies": {
-		"@babel/parser": "^7.13.4",
+		"@babel/parser": "^7.17.2",
 		"@changesets/changelog-git": "^0.1.11",
 		"@changesets/cli": "^2.22.0",
 		"@graphql-tools/schema": "^8.3.7",
