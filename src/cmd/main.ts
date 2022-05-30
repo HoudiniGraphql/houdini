@@ -4,6 +4,7 @@ import path from 'path'
 import util from 'util'
 // local imports
 import { getConfig, LogLevel, readConfigFile } from '../common'
+import { ConfigFile } from '../runtime'
 import generate from './generate'
 import init from './init'
 import { writeSchema } from './utils/writeSchema'
@@ -22,7 +23,7 @@ program
 		'header to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
 	.option(
-		'-ll, --log-level [level]',
+		'-l, --log [level]',
 		`the log level for the generate command. One of ${JSON.stringify(Object.values(LogLevel))}`
 	)
 	.action(
@@ -31,7 +32,7 @@ program
 				pullSchema: boolean
 				persistOutput?: string
 				pullHeader: string[]
-				logLevel?: string
+				log?: string
 			} = {
 				pullSchema: false,
 				pullHeader: [],
@@ -39,6 +40,12 @@ program
 		) => {
 			// grab the config file
 			let config
+
+			// build up extra config values from command line arguments
+			const extraConfig: Partial<ConfigFile> = {}
+			if (args.log) {
+				extraConfig.logLevel = args.log
+			}
 
 			try {
 				// Pull the newest schema if the flag is set
@@ -64,7 +71,7 @@ program
 				}
 
 				// Load config
-				config = await getConfig(args)
+				config = await getConfig(extraConfig)
 				if (args.persistOutput) {
 					config.persistedQueryPath = args.persistOutput
 				}
