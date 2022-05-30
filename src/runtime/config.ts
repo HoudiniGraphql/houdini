@@ -28,7 +28,7 @@ export type ConfigFile = {
 	defaultPartial?: boolean
 	defaultKeys?: string[]
 	types?: TypeConfig
-	logLevel?: number
+	logLevel?: string
 }
 
 export type TypeConfig = {

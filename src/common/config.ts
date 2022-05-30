@@ -29,7 +29,7 @@ export class Config {
 	defaultKeys: string[] = ['id']
 	typeConfig: ConfigFile['types']
 	configFile: ConfigFile
-	logLevel: number
+	logLevel: LogLevel
 
 	constructor({ filepath, ...configFile }: ConfigFile & { filepath: string }) {
 		this.configFile = defaultConfigValues(configFile)
@@ -101,6 +101,16 @@ export class Config {
 			}
 		}
 
+		// validate the log level value
+		if (logLevel && !Object.values(LogLevel).includes(logLevel as LogLevel)) {
+			console.warn(
+				`Invalid log level provided. Valid values are: ${JSON.stringify(
+					Object.values(LogLevel)
+				)}`
+			)
+			logLevel = LogLevel.Default
+		}
+
 		// save the values we were given
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
@@ -115,14 +125,16 @@ export class Config {
 		this.defaultCachePolicy = defaultCachePolicy
 		this.defaultPartial = defaultPartial
 		this.definitionsFile = definitionsPath
-		this.logLevel = logLevel || LogLevel.Smart
+		this.logLevel = (logLevel as LogLevel) || LogLevel.Default
 
 		// if the user asked for `quiet` logging notify them its been deprecated
 		if (quiet) {
 			console.warn(
-				'The quiet configuration parameter has been deprecated. Please use logLevel=0. For more information please see the 0.15.0 migration guide: <link>.'
+				`The quiet configuration parameter has been deprecated. Please use logLevel: ${JSON.stringify(
+					LogLevel.Quiet
+				)}. For more information please see the 0.15.0 migration guide: <link>.`
 			)
-			this.logLevel = LogLevel.Quiet
+			this.logLevel = LogLevel.Default
 		}
 
 		// hold onto the key config
@@ -644,7 +656,7 @@ type Partial<T> = {
 }
 
 export enum LogLevel {
-	Full = 2,
-	Smart = 1,
-	Quiet = 0,
+	Full = 'full',
+	Default = 'default',
+	Quiet = 'quiet',
 }
