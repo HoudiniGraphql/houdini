@@ -73,8 +73,11 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	)
 
 	// what we tell the user depends on the configured log level
+
+	// don't log anything if its quiet
 	if (config.logLevel === LogLevel.Quiet) {
-	} else if (config.logLevel === LogLevel.Smart) {
+		//
+	} else if (config.logLevel === LogLevel.Default) {
 	} else if (config.logLevel === LogLevel.Full) {
 		for (const artifact of artifactStats.total) {
 			// figure out the emoji to use
