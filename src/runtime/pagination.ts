@@ -7,9 +7,10 @@ import { executeQuery } from './network'
 import { query, QueryResponse } from './query'
 import { Fragment, GraphQLObject, GraphQLTagResult, Operation, QueryArtifact } from './types'
 // this has to be in a separate file since config isn't defined in cache/index.ts
-import { HoudiniContextEvent, QueryStore } from '.'
+import { FragmentStore, HoudiniContextEvent, QueryStore } from '.'
 import { ConfigFile, keyFieldsForType } from './config'
 import { countPage, extractPageInfo, PageInfo } from './utils'
+import { context } from './context'
 
 //Todo: houdiniContext Type
 type RefetchFn<_Data = any, _Input = any> = (
@@ -19,17 +20,18 @@ type RefetchFn<_Data = any, _Input = any> = (
 
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
-): QueryResponse<_Query['result'], _Query['input']> & PaginatedHandlers<_Query['input']> {
+): QueryResponse<_Query['result'], _Query['input']> &
+	PaginatedDocumentHandlers<_Query['result'], _Query['input']> {
 	// TODO: fix type checking paginated
 	// @ts-ignore: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
-	return query(document)
+	return wrapPaginationStore(query(document))
 }
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	document: GraphQLTagResult,
 	initialValue: _Fragment
-): { data: Readable<_Fragment['shape']> } & PaginatedHandlers<any> {
+): { data: Readable<_Fragment['shape']> } & PaginatedDocumentHandlers<_Fragment['shape'], {}> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniFragment') {
 		throw new Error('paginatedFragment() must be passed a fragment document')
@@ -42,7 +44,33 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	// TODO: fix type checking paginated
 	// @ts-ignore: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
-	return fragment(document, initialValue)
+	return wrapPaginationStore(fragment(document, initialValue))
+}
+
+function wrapPaginationStore<_Data, _Input>(
+	store: QueryStore<_Data, _Input> | FragmentStore<_Data>
+) {
+	// @ts-ignore
+	const { loadNextPage, loadPreviousPage, refetch, ...rest } = store
+
+	// grab the current houdini context
+	const houdiniContext = context()
+
+	const result = rest
+	if (loadNextPage) {
+		// @ts-ignore
+		result.loadNextPage = (...args) => loadNextPage(houdiniContext, ...args)
+	}
+	if (loadPreviousPage) {
+		// @ts-ignore
+		result.loadPreviousPage = (...args) => loadPreviousPage(houdiniContext, ...args)
+	}
+	if (refetch) {
+		// @ts-ignore
+		result.refetch = (...args) => refetch(houdiniContext, ...args)
+	}
+
+	return result
 }
 
 export function fragmentHandlers({
@@ -549,9 +577,15 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 		},
 	}
 }
+type PaginatedDocumentHandlers<_Data, _Input> = {
+	loadNextPage(pageCount?: number, after?: string | number): Promise<void>
+	loadPreviousPage(pageCount?: number, before?: string): Promise<void>
+	loading: Readable<boolean>
+	pageInfo: Readable<PageInfo>
+	refetch: (vars: _Input) => Promise<_Data>
+}
 
 type PaginatedHandlers<_Query extends Operation<any, any>> = {
-	// TODO: houdiniContext Type (houdiniContext: HoudiniContextEvent)
 	loadNextPage(
 		houdiniContext: HoudiniContextEvent,
 		pageCount?: number,

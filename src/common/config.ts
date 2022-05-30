@@ -5,7 +5,6 @@ import os from 'os'
 // locals
 import { CachePolicy } from './types'
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/config'
-import config from '../../integration/playwright.config'
 
 // a place to hold conventions and magic strings
 export class Config {

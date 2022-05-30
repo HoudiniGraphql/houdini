@@ -129,8 +129,12 @@ export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
 	unsubscribe: () => void
 }
 
-export type FragmentStore<_Shape> = Readable<_Shape> & {
-	update: (parent: _Shape) => void
+export type FragmentStore<_Shape> = {
+	load: (
+		value: any
+	) => Readable<_Shape> & {
+		update: (parent: _Shape) => void
+	}
 }
 
 export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {

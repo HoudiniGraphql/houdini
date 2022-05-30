@@ -110,8 +110,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	console.log('Welcome to Houdini!')
 }
 
-const networkFile = (url: string) => `// For Query & Mutation
-async function fetchQuery({ text, variables = {} }, session) {
+const networkFile = (url: string) => `async function fetchQuery({ text, variables = {} }, session) {
 	const result = await this.fetch('${url}', {
 		method: 'POST',
 		headers: {

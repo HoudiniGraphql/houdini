@@ -7,19 +7,22 @@ import type { Fragment, GraphQLTagResult } from './types'
 export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
 	initialValue: _Fragment
-): Omit<FragmentStore<_Fragment['shape']>, 'update'> {
+): Omit<ReturnType<FragmentStore<_Fragment['shape']>['load']>, 'update'> {
 	// make sure we got a query document
 	if (fragment.kind !== 'HoudiniFragment' || false) {
 		throw new Error('getFragment can only take fragment documents')
 	}
 
+	// load the fragment store for the value
+	const store = fragment.store.load(initialValue)
+
 	// make sure the store always stays up to date with the fragment value
 	fragment.proxy.listen((val: _Fragment) => {
 		// update the fragment value to match the new value
-		fragment.store.update(val)
+		store.update(val)
 	})
 
-	return fragment.store
+	return store
 
 	// the following block of comments is from a time when fragments had their own subscriptions
 	// since a query subscribes to its full selection this isn't necessary but will be in the future
