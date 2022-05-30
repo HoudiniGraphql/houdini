@@ -25,9 +25,11 @@ import { marshalInputs, marshalSelection, unmarshalSelection } from '../runtime/
 
 function ${storeName}Store() {
 	const { subscribe, set, update } = writable({
-		result: null,
-		isFetching: false,
-	})
+			data: null,
+			errors: null,
+			isFetching: false,
+			variables: null
+	});
 
 	async function mutate(variables, config) {
 		update((c) => {
@@ -66,7 +68,7 @@ function ${storeName}Store() {
 		}
 
 		try {
-			// trigger the mutation on the server
+			// trigger the mutation
 			const { result } = await executeQuery(
 				artifact,
 				marshalInputs({
@@ -99,18 +101,19 @@ function ${storeName}Store() {
 			// merge the layer back into the cache
 			cache._internal_unstable.storage.resolveLayer(layer.id)
 
-			// turn any scalars in the response into their complex form
-			const value = unmarshalSelection(houdiniConfig, artifact.selection, result.data)
-
-			// update the store value with the result
-			update(s => ({
-				...s,
-				result: value,
+			// prepare store data
+			const storeData = {
+				data: unmarshalSelection(houdiniConfig, artifact.selection, result.data)
+				errors: result.errors,
 				isFetching: false,
-			}))
+				variables: newVariables
+			}
+
+			// update the store value
+			set(storeData)
 
 			// return the value to the caller
-			return value
+			return storeData
 		} catch (error) {
 			// if the mutation failed, roll the layer back and delete it
 			layer.clear()

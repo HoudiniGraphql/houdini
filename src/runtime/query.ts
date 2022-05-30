@@ -24,7 +24,7 @@ export function query<_Query extends Operation<any, any>>(
 	const data = derived(document.store, ($store) => $store.data)
 	const loading = derived(document.store, ($store) => $store.isFetching)
 	const partial = derived(document.store, ($store) => $store.partial)
-	const error = derived(document.store, ($store) => $store.error)
+	const error = derived(document.store, ($store) => $store.errors)
 
 	return {
 		data,
@@ -61,7 +61,7 @@ function componentQuery<_Query extends Operation<any, any>>(
 	const localError = writable<Error | null>(null)
 	const error = derived(
 		[localError, document.store],
-		([$localError, $store]) => $localError || $store.error
+		([$localError, $store]) => $localError || $store.errors
 	)
 
 	// the function invoked by `this.error` inside of the variable function

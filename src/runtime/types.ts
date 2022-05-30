@@ -105,7 +105,7 @@ export type QueryResult<DataType> = {
 	partial: boolean
 	source?: DataSource | null
 	data?: DataType | null
-	error: Error | null
+	errors: Error | null
 	variables: {}
 }
 
@@ -144,7 +144,8 @@ export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
 	queryLoad: (params?: QueryStoreParams<_Input, LoadEvent>) => Promise<QueryResult<_Data>>
 
 	/**
-	 * Trigger the query form client side (a component for example)
+	 * Trigger the query form client side (a component for example).
+	 * `query` doesn't return anything as you should use the store directly.
 	 */
 	query: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
 
@@ -162,7 +163,7 @@ export type TaggedGraphqlMutation = {
 
 export type MutationStore<_Result, _Input> = Readable<{
 	data?: _Result | null
-	error: Error | null
+	errors: Error | null
 }> & {
 	mutate: <_Result, _Input>(
 		i: _Input,

@@ -56,7 +56,7 @@ test('basic store', async function () {
 					import { stry } from '@kitql/helper'
 					import { writable } from 'svelte/store'
 					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, DataSource, fetchQuery, RequestContext } from '../runtime'
+					import { CachePolicy, DataSource, fetchQuery, RequestContext, errorsToGraphQLLayout } from '../runtime'
 					import { getSession, isBrowser } from '../runtime/adapter.mjs'
 					import cache from '../runtime/cache'
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
@@ -69,11 +69,13 @@ test('basic store', async function () {
 
 					function GQL_TestQueryStore() {
 					    const { subscribe, set, update } = writable({
-					        partial: false,
-					        result: null,
-					        source: null,
+					        data: null,
+					        errors: null,
 					        isFetching: false,
-					    })
+					        partial: false,
+					        source: null,
+					        variables: null
+					    });
 
 					    // Track subscriptions
 					    let subscriptionSpec = null
@@ -96,7 +98,7 @@ test('basic store', async function () {
 								session,
 							})
 
-							return await queryLocal(context, params)
+							await queryLocal(context, params)
 						}
 
 					    async function queryLocal(context, params) {
@@ -115,16 +117,40 @@ test('basic store', async function () {
 					        const newVariables = marshalInputs({
 					            artifact,
 					            config: houdiniConfig,
-					            input: params.variables,
+					            input: {...variables, ...params.variables }
 					        })
 
-					        let toReturn = await fetchQuery({
+					        if (artifact.input && Object.keys(newVariables).length === 0) {
+					            update((s) => ({
+					              ...s,
+					              errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					              isFetching: false,
+					              partial: false,
+					              variables: newVariables
+					            }));
+					            throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        }
+
+					        const { result, source, partial } = await fetchQuery({
 					            context,
 					            artifact,
 					            variables: newVariables,
 					            session: context.session,
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
+
+					        if (result.errors) {
+					            update((s) => ({
+					                ...s,
+					                errors: result.errors,
+					                isFetching: false,
+					                partial: false,
+					                data: result.data,
+					                source,
+					                variables: newVariables
+					            }));
+					            throw new Error(result.errors);
+					        }
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
@@ -133,7 +159,7 @@ test('basic store', async function () {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
 					                variables: () => newVariables,
-					                set: set,
+					                set: (data) => update((s) => ({ ...s, data }))
 					            }
 					            cache.subscribe(subscriptionSpec, variables)
 
@@ -148,7 +174,7 @@ test('basic store', async function () {
 					            // if the data was loaded from a cached value, and the document cache policy wants a
 					            // network request to be sent after the data was loaded, load the data
 					            if (
-					                toReturn.source === DataSource.Cache &&
+					                source === DataSource.Cache &&
 					                params.policy === CachePolicy.CacheAndNetwork
 					            ) {
 					                // this will invoke pagination's refetch because of javascript's magic this binding
@@ -163,7 +189,7 @@ test('basic store', async function () {
 
 					            // if we have a partial result and we can load the rest of the data
 					            // from the network, send the request
-					            if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
+					            if (partial && params.policy === CachePolicy.CacheOrNetwork) {
 					                fetchQuery({
 					                    context,
 					                    artifact,
@@ -176,7 +202,7 @@ test('basic store', async function () {
 					            // update the cache with the data that we just ran into
 					            cache.write({
 					                selection: artifact.selection,
-					                data: toReturn.result.data,
+					                data: result.data,
 					                variables: newVariables,
 					            })
 
@@ -188,16 +214,21 @@ test('basic store', async function () {
 					            variables = newVariables
 					        }
 
-					        set({
-					            ...toReturn,
-					            result: {
-					                ...toReturn.result,
-					                data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
-					            },
+					        // prepare store data
+					        const storeData = {
+					            data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
+					            error: result.errors,
 					            isFetching: false,
-					        })
+					            partial: partial,
+					            source: source,
+					            variables: newVariables
+					        }
 
-					        return toReturn
+					        // update the store value
+					        set(storeData)
+
+					        // return the value to the caller
+					        return storeData
 					    }
 
 					    
@@ -266,7 +297,7 @@ test('forward cursor pagination', async function () {
 					import { stry } from '@kitql/helper'
 					import { writable } from 'svelte/store'
 					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, DataSource, fetchQuery, RequestContext } from '../runtime'
+					import { CachePolicy, DataSource, fetchQuery, RequestContext, errorsToGraphQLLayout } from '../runtime'
 					import { getSession, isBrowser } from '../runtime/adapter.mjs'
 					import cache from '../runtime/cache'
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
@@ -280,11 +311,13 @@ test('forward cursor pagination', async function () {
 
 					function GQL_TestQueryStore() {
 					    const { subscribe, set, update } = writable({
-					        partial: false,
-					        result: null,
-					        source: null,
+					        data: null,
+					        errors: null,
 					        isFetching: false,
-					    })
+					        partial: false,
+					        source: null,
+					        variables: null
+					    });
 
 					    // Track subscriptions
 					    let subscriptionSpec = null
@@ -307,7 +340,7 @@ test('forward cursor pagination', async function () {
 								session,
 							})
 
-							return await queryLocal(context, params)
+							await queryLocal(context, params)
 						}
 
 					    async function queryLocal(context, params) {
@@ -326,16 +359,40 @@ test('forward cursor pagination', async function () {
 					        const newVariables = marshalInputs({
 					            artifact,
 					            config: houdiniConfig,
-					            input: params.variables,
+					            input: {...variables, ...params.variables }
 					        })
 
-					        let toReturn = await fetchQuery({
+					        if (artifact.input && Object.keys(newVariables).length === 0) {
+					            update((s) => ({
+					              ...s,
+					              errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					              isFetching: false,
+					              partial: false,
+					              variables: newVariables
+					            }));
+					            throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        }
+
+					        const { result, source, partial } = await fetchQuery({
 					            context,
 					            artifact,
 					            variables: newVariables,
 					            session: context.session,
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
+
+					        if (result.errors) {
+					            update((s) => ({
+					                ...s,
+					                errors: result.errors,
+					                isFetching: false,
+					                partial: false,
+					                data: result.data,
+					                source,
+					                variables: newVariables
+					            }));
+					            throw new Error(result.errors);
+					        }
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
@@ -344,7 +401,7 @@ test('forward cursor pagination', async function () {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
 					                variables: () => newVariables,
-					                set: set,
+					                set: (data) => update((s) => ({ ...s, data }))
 					            }
 					            cache.subscribe(subscriptionSpec, variables)
 
@@ -359,7 +416,7 @@ test('forward cursor pagination', async function () {
 					            // if the data was loaded from a cached value, and the document cache policy wants a
 					            // network request to be sent after the data was loaded, load the data
 					            if (
-					                toReturn.source === DataSource.Cache &&
+					                source === DataSource.Cache &&
 					                params.policy === CachePolicy.CacheAndNetwork
 					            ) {
 					                // this will invoke pagination's refetch because of javascript's magic this binding
@@ -374,7 +431,7 @@ test('forward cursor pagination', async function () {
 
 					            // if we have a partial result and we can load the rest of the data
 					            // from the network, send the request
-					            if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
+					            if (partial && params.policy === CachePolicy.CacheOrNetwork) {
 					                fetchQuery({
 					                    context,
 					                    artifact,
@@ -387,7 +444,7 @@ test('forward cursor pagination', async function () {
 					            // update the cache with the data that we just ran into
 					            cache.write({
 					                selection: artifact.selection,
-					                data: toReturn.result.data,
+					                data: result.data,
 					                variables: newVariables,
 					            })
 
@@ -399,16 +456,21 @@ test('forward cursor pagination', async function () {
 					            variables = newVariables
 					        }
 
-					        set({
-					            ...toReturn,
-					            result: {
-					                ...toReturn.result,
-					                data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
-					            },
+					        // prepare store data
+					        const storeData = {
+					            data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
+					            error: result.errors,
 					            isFetching: false,
-					        })
+					            partial: partial,
+					            source: source,
+					            variables: newVariables
+					        }
 
-					        return toReturn
+					        // update the store value
+					        set(storeData)
+
+					        // return the value to the caller
+					        return storeData
 					    }
 
 					    
@@ -490,7 +552,7 @@ test('backwards cursor pagination', async function () {
 					import { stry } from '@kitql/helper'
 					import { writable } from 'svelte/store'
 					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, DataSource, fetchQuery, RequestContext } from '../runtime'
+					import { CachePolicy, DataSource, fetchQuery, RequestContext, errorsToGraphQLLayout } from '../runtime'
 					import { getSession, isBrowser } from '../runtime/adapter.mjs'
 					import cache from '../runtime/cache'
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
@@ -504,11 +566,13 @@ test('backwards cursor pagination', async function () {
 
 					function GQL_TestQueryStore() {
 					    const { subscribe, set, update } = writable({
-					        partial: false,
-					        result: null,
-					        source: null,
+					        data: null,
+					        errors: null,
 					        isFetching: false,
-					    })
+					        partial: false,
+					        source: null,
+					        variables: null
+					    });
 
 					    // Track subscriptions
 					    let subscriptionSpec = null
@@ -531,7 +595,7 @@ test('backwards cursor pagination', async function () {
 								session,
 							})
 
-							return await queryLocal(context, params)
+							await queryLocal(context, params)
 						}
 
 					    async function queryLocal(context, params) {
@@ -550,16 +614,40 @@ test('backwards cursor pagination', async function () {
 					        const newVariables = marshalInputs({
 					            artifact,
 					            config: houdiniConfig,
-					            input: params.variables,
+					            input: {...variables, ...params.variables }
 					        })
 
-					        let toReturn = await fetchQuery({
+					        if (artifact.input && Object.keys(newVariables).length === 0) {
+					            update((s) => ({
+					              ...s,
+					              errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					              isFetching: false,
+					              partial: false,
+					              variables: newVariables
+					            }));
+					            throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        }
+
+					        const { result, source, partial } = await fetchQuery({
 					            context,
 					            artifact,
 					            variables: newVariables,
 					            session: context.session,
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
+
+					        if (result.errors) {
+					            update((s) => ({
+					                ...s,
+					                errors: result.errors,
+					                isFetching: false,
+					                partial: false,
+					                data: result.data,
+					                source,
+					                variables: newVariables
+					            }));
+					            throw new Error(result.errors);
+					        }
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
@@ -568,7 +656,7 @@ test('backwards cursor pagination', async function () {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
 					                variables: () => newVariables,
-					                set: set,
+					                set: (data) => update((s) => ({ ...s, data }))
 					            }
 					            cache.subscribe(subscriptionSpec, variables)
 
@@ -583,7 +671,7 @@ test('backwards cursor pagination', async function () {
 					            // if the data was loaded from a cached value, and the document cache policy wants a
 					            // network request to be sent after the data was loaded, load the data
 					            if (
-					                toReturn.source === DataSource.Cache &&
+					                source === DataSource.Cache &&
 					                params.policy === CachePolicy.CacheAndNetwork
 					            ) {
 					                // this will invoke pagination's refetch because of javascript's magic this binding
@@ -598,7 +686,7 @@ test('backwards cursor pagination', async function () {
 
 					            // if we have a partial result and we can load the rest of the data
 					            // from the network, send the request
-					            if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
+					            if (partial && params.policy === CachePolicy.CacheOrNetwork) {
 					                fetchQuery({
 					                    context,
 					                    artifact,
@@ -611,7 +699,7 @@ test('backwards cursor pagination', async function () {
 					            // update the cache with the data that we just ran into
 					            cache.write({
 					                selection: artifact.selection,
-					                data: toReturn.result.data,
+					                data: result.data,
 					                variables: newVariables,
 					            })
 
@@ -623,16 +711,21 @@ test('backwards cursor pagination', async function () {
 					            variables = newVariables
 					        }
 
-					        set({
-					            ...toReturn,
-					            result: {
-					                ...toReturn.result,
-					                data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
-					            },
+					        // prepare store data
+					        const storeData = {
+					            data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
+					            error: result.errors,
 					            isFetching: false,
-					        })
+					            partial: partial,
+					            source: source,
+					            variables: newVariables
+					        }
 
-					        return toReturn
+					        // update the store value
+					        set(storeData)
+
+					        // return the value to the caller
+					        return storeData
 					    }
 
 					    
@@ -710,7 +803,7 @@ test('offset pagination', async function () {
 					import { stry } from '@kitql/helper'
 					import { writable } from 'svelte/store'
 					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, DataSource, fetchQuery, RequestContext } from '../runtime'
+					import { CachePolicy, DataSource, fetchQuery, RequestContext, errorsToGraphQLLayout } from '../runtime'
 					import { getSession, isBrowser } from '../runtime/adapter.mjs'
 					import cache from '../runtime/cache'
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
@@ -724,11 +817,13 @@ test('offset pagination', async function () {
 
 					function GQL_TestQueryStore() {
 					    const { subscribe, set, update } = writable({
-					        partial: false,
-					        result: null,
-					        source: null,
+					        data: null,
+					        errors: null,
 					        isFetching: false,
-					    })
+					        partial: false,
+					        source: null,
+					        variables: null
+					    });
 
 					    // Track subscriptions
 					    let subscriptionSpec = null
@@ -751,7 +846,7 @@ test('offset pagination', async function () {
 								session,
 							})
 
-							return await queryLocal(context, params)
+							await queryLocal(context, params)
 						}
 
 					    async function queryLocal(context, params) {
@@ -770,16 +865,40 @@ test('offset pagination', async function () {
 					        const newVariables = marshalInputs({
 					            artifact,
 					            config: houdiniConfig,
-					            input: params.variables,
+					            input: {...variables, ...params.variables }
 					        })
 
-					        let toReturn = await fetchQuery({
+					        if (artifact.input && Object.keys(newVariables).length === 0) {
+					            update((s) => ({
+					              ...s,
+					              errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					              isFetching: false,
+					              partial: false,
+					              variables: newVariables
+					            }));
+					            throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        }
+
+					        const { result, source, partial } = await fetchQuery({
 					            context,
 					            artifact,
 					            variables: newVariables,
 					            session: context.session,
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
+
+					        if (result.errors) {
+					            update((s) => ({
+					                ...s,
+					                errors: result.errors,
+					                isFetching: false,
+					                partial: false,
+					                data: result.data,
+					                source,
+					                variables: newVariables
+					            }));
+					            throw new Error(result.errors);
+					        }
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
@@ -788,7 +907,7 @@ test('offset pagination', async function () {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
 					                variables: () => newVariables,
-					                set: set,
+					                set: (data) => update((s) => ({ ...s, data }))
 					            }
 					            cache.subscribe(subscriptionSpec, variables)
 
@@ -803,7 +922,7 @@ test('offset pagination', async function () {
 					            // if the data was loaded from a cached value, and the document cache policy wants a
 					            // network request to be sent after the data was loaded, load the data
 					            if (
-					                toReturn.source === DataSource.Cache &&
+					                source === DataSource.Cache &&
 					                params.policy === CachePolicy.CacheAndNetwork
 					            ) {
 					                // this will invoke pagination's refetch because of javascript's magic this binding
@@ -818,7 +937,7 @@ test('offset pagination', async function () {
 
 					            // if we have a partial result and we can load the rest of the data
 					            // from the network, send the request
-					            if (toReturn.partial && params.policy === CachePolicy.CacheOrNetwork) {
+					            if (partial && params.policy === CachePolicy.CacheOrNetwork) {
 					                fetchQuery({
 					                    context,
 					                    artifact,
@@ -831,7 +950,7 @@ test('offset pagination', async function () {
 					            // update the cache with the data that we just ran into
 					            cache.write({
 					                selection: artifact.selection,
-					                data: toReturn.result.data,
+					                data: result.data,
 					                variables: newVariables,
 					            })
 
@@ -843,16 +962,21 @@ test('offset pagination', async function () {
 					            variables = newVariables
 					        }
 
-					        set({
-					            ...toReturn,
-					            result: {
-					                ...toReturn.result,
-					                data: unmarshalSelection(houdiniConfig, artifact.selection, toReturn.result.data),
-					            },
+					        // prepare store data
+					        const storeData = {
+					            data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
+					            error: result.errors,
 					            isFetching: false,
-					        })
+					            partial: partial,
+					            source: source,
+					            variables: newVariables
+					        }
 
-					        return toReturn
+					        // update the store value
+					        set(storeData)
+
+					        // return the value to the caller
+					        return storeData
 					    }
 
 					    
