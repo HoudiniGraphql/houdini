@@ -25,10 +25,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('SSR Page', () => {
-  test('We are on the right page', async ({ page }) => {
-    expect(await page.textContent('h1')).toBe('SSR');
-  });
-
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
     // Wait a bit... to be sure we don't have a client request comming
     await sleep(500);
