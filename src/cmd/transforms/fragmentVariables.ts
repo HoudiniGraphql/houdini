@@ -64,6 +64,7 @@ export default async function fragmentVariables(
 		originalDocument: doc,
 		generate: false,
 		filename: 'generated::fragmentVariables',
+		originalString: '',
 	})
 }
 

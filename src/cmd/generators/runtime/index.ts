@@ -4,6 +4,7 @@ import { CollectedGraphQLDocument } from '../../types'
 import generateAdapter from './adapter'
 import copyRuntime from './copyRuntime'
 import writeIndexFile from './indexFile'
+import meta from './meta'
 
 // the runtime generator is responsible for generating a majority of the runtime that the client will use.
 // this includes things like query, fragment, mutation, etc. They are generated here instead of
@@ -17,5 +18,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 		generateAdapter(config),
 		// and the index file at the root of the runtime
 		writeIndexFile(config, docs),
+		// add the meta file
+		meta(config),
 	])
 }

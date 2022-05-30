@@ -2,6 +2,8 @@ import typescript from 'rollup-plugin-typescript2'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
+import replace from '@rollup/plugin-replace'
+import packgeJSON from './package.json'
 
 // grab the environment variables
 const { TARGET, WHICH } = process.env
@@ -38,5 +40,8 @@ export default {
 		}),
 		commonjs(),
 		nodeResolve({ preferBuiltins: true }),
+		replace({
+			HOUDINI_VERSION: packgeJSON.version,
+		}),
 	],
 }

@@ -45,6 +45,16 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		console.log('🎩 Generating runtime...')
 	}
 
+	// the last version the runtime was generated with
+	let previousVersion = ''
+	try {
+		const content = JSON.parse(await fs.readFile(config.metaFilePath, 'utf-8'))
+		previousVersion = content.version
+	} catch {}
+
+	// if the previous version is different from the current version
+	const versionChanged = previousVersion !== 'HOUDINI_VERSION'
+
 	await run(
 		config,
 		[
@@ -72,10 +82,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		docs
 	)
 
-	// what we tell the user depends on the configured log level
-
 	// don't log anything if its quiet
 	if (config.logLevel === LogLevel.Quiet) {
+	} else if (previousVersion && versionChanged) {
+		console.log('ℹ️  Detected new version of Houdini. Regenerating all documents...')
 	} else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
 		// count the number of unchanged
 		const unchanged =
@@ -256,6 +266,7 @@ async function processGraphQLDocument(
 		filename: filepath,
 		originalDocument: parsedDoc,
 		generate: true,
+		originalString: document,
 	}
 }
 

@@ -341,6 +341,7 @@ export default async function addListFragments(
 		document: generatedDoc,
 		originalDocument: generatedDoc,
 		filename: 'generated::lists',
+		originalString: '',
 	})
 }
 

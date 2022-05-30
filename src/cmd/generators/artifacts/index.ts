@@ -235,23 +235,27 @@ export default function artifactGenerator(stats: {
 					// the artifact should be the default export of the file
 					const file = AST.program([
 						moduleExport(config, 'default', serializeValue(artifact)),
+						AST.expressionStatement(
+							AST.stringLiteral(`HoudiniHash=${hashDocument(doc.originalDocument)}`)
+						),
 					])
 
 					const artifactPath = config.artifactPath(document)
 
 					// check if the file exists (indicating a new document)
+					let existingArtifact = ''
 					try {
-						await fs.stat(config.artifactPath(document))
+						existingArtifact = await fs.readFile(artifactPath, 'utf-8')
 					} catch (e) {
 						stats.new.push(artifact.name)
 					}
 
 					// write the result to the artifact path we're configured to write to
-					// if we wrote something then it changed
-					if (
-						(await writeFile(artifactPath, recast.print(file).code)) &&
-						!stats.new.includes(artifact.name)
-					) {
+					await writeFile(artifactPath, recast.print(file).code)
+
+					// check if the artifact exists
+					const match = existingArtifact.match(/"HoudiniHash=(\w+)"/)
+					if (match && match[1] !== hashDocument(doc.originalString)) {
 						stats.changed.push(artifact.name)
 					}
 

@@ -483,6 +483,7 @@ export default async function paginate(
 				originalDocument: queryDoc,
 				generate: true,
 				refetch: doc.refetch,
+				originalString: '',
 			})
 		}
 	}

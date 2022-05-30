@@ -181,6 +181,10 @@ export class Config {
 		return path.join(this.rootDir, this.storesDirectoryName)
 	}
 
+	get metaFilePath() {
+		return path.join(this.rootDir, 'meta.json')
+	}
+
 	private get storesDirectoryName() {
 		return 'stores'
 	}
@@ -631,7 +635,6 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			}
 		`,
 		framework: 'kit',
-		quiet: true,
 		types: {
 			Ghost: {
 				keys: ['name', 'aka'],
@@ -640,6 +643,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				},
 			},
 		},
+		logLevel: LogLevel.Quiet,
 		...config,
 	}
 }
