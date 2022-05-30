@@ -3,7 +3,7 @@ import { Command } from 'commander'
 import path from 'path'
 import util from 'util'
 // local imports
-import { getConfig, readConfigFile } from '../common'
+import { getConfig, LogLevel, readConfigFile } from '../common'
 import generate from './generate'
 import init from './init'
 import { writeSchema } from './utils/writeSchema'
@@ -21,9 +21,18 @@ program
 		'-ph, --pull-header <headers...>',
 		'header to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
+	.option(
+		'-ll, --log-level [level]',
+		`the log level for the generate command. One of ${JSON.stringify(Object.values(LogLevel))}`
+	)
 	.action(
 		async (
-			args: { pullSchema: boolean; persistOutput?: string; pullHeader: string[] } = {
+			args: {
+				pullSchema: boolean
+				persistOutput?: string
+				pullHeader: string[]
+				logLevel?: string
+			} = {
 				pullSchema: false,
 				pullHeader: [],
 			}
@@ -55,10 +64,11 @@ program
 				}
 
 				// Load config
-				config = await getConfig()
+				config = await getConfig(args)
 				if (args.persistOutput) {
 					config.persistedQueryPath = args.persistOutput
 				}
+
 				await generate(config)
 			} catch (e) {
 				console.error(util.inspect(e, { showHidden: false, depth: null, colors: true }))

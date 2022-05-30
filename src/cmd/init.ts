@@ -101,8 +101,9 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	console.log('Creating necessary files...')
 
 	// make sure we don't log anything else
-	const config = await getConfig()
-	config.logLevel = LogLevel.Quiet
+	const config = await getConfig({
+		logLevel: LogLevel.Quiet,
+	})
 	await generate(config)
 
 	// we're done!

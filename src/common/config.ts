@@ -487,7 +487,7 @@ export async function readConfigFile(configPath: string = DEFAULT_CONFIG_PATH): 
 let _config: Config
 
 // get the project's current configuration
-export async function getConfig(): Promise<Config> {
+export async function getConfig(extraConfig: Partial<ConfigFile>): Promise<Config> {
 	if (_config) {
 		return _config
 	}
@@ -497,6 +497,7 @@ export async function getConfig(): Promise<Config> {
 	const config = await readConfigFile(configPath)
 	_config = new Config({
 		...config,
+		...extraConfig,
 		filepath: configPath,
 	})
 	return _config
