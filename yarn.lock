@@ -2137,7 +2137,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kitql/helper@npm:0.3.4, @kitql/helper@npm:^0.3.4":
+"@kitql/helper@npm:0.3.4":
   version: 0.3.4
   resolution: "@kitql/helper@npm:0.3.4"
   checksum: 6e79908f5ee0c0a99c04dbca997da683a0ef319152376b07e6255169cdb2c9e95e0b3b752fad66da7ff1af6e320e90f3da4cfe9d57f49d53361e1dd21c5a652f
@@ -5586,7 +5586,7 @@ __metadata:
     graphql-relay: 0.8.0
     graphql-tag: 2.12.6
     graphql-ws: 5.8.2
-    houdini: 0.14.6
+    houdini: "workspace:^"
     subscriptions-transport-ws: 0.9.18
     svelte: 3.48.0
     svelte-preprocess: 4.10.6
@@ -6346,7 +6346,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:16.5.0":
+"graphql@npm:16.5.0, graphql@npm:^16.5.0":
   version: 16.5.0
   resolution: "graphql@npm:16.5.0"
   checksum: a82a926d085818934d04fdf303a269af170e79de943678bd2726370a96194f9454ade9d6d76c2de69afbd7b9f0b4f8061619baecbbddbe82125860e675ac219e
@@ -6492,7 +6492,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini@0.14.6, houdini@workspace:.":
+"houdini@workspace:., houdini@workspace:^":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:."
   dependencies:
@@ -6825,19 +6825,22 @@ __metadata:
   resolution: "integration@workspace:integration"
   dependencies:
     "@graphql-yoga/node": ^2.8.0
-    "@kitql/helper": ^0.3.4
     "@playwright/test": ^1.21.0
     "@sveltejs/adapter-auto": next
     "@sveltejs/kit": next
     "@typescript-eslint/eslint-plugin": ^5.10.1
     "@typescript-eslint/parser": ^5.10.1
+    concurrently: 7.1.0
     eslint: ^8.12.0
     eslint-config-prettier: ^8.3.0
     eslint-plugin-svelte3: ^4.0.0
+    graphql: ^16.5.0
     graphql-tag: ^2.12.6
     graphql-ws: ^5.8.2
+    houdini: "workspace:^"
     prettier: ^2.5.1
     prettier-plugin-svelte: ^2.5.0
+    subscriptions-transport-ws: ^0.11.0
     svelte: ^3.44.0
     svelte-check: ^2.2.6
     svelte-preprocess: ^4.10.1
@@ -11332,6 +11335,21 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
+"subscriptions-transport-ws@npm:^0.11.0":
+  version: 0.11.0
+  resolution: "subscriptions-transport-ws@npm:0.11.0"
+  dependencies:
+    backo2: ^1.0.2
+    eventemitter3: ^3.1.0
+    iterall: ^1.2.1
+    symbol-observable: ^1.0.4
+    ws: ^5.2.0 || ^6.0.0 || ^7.0.0
+  peerDependencies:
+    graphql: ^15.7.2 || ^16.0.0
+  checksum: cc2e98d5c9d89c44d2e15eca188781c6ebae13d1661c42a99cee9d2897aebe2a22bc118eefff83244a79c88ee4ea24d46973ebf26ae7cb47ac1857fb8ee2c947
+  languageName: node
+  linkType: hard
+
 "supports-color@npm:^5.3.0":
   version: 5.5.0
   resolution: "supports-color@npm:5.5.0"
@@ -12485,6 +12503,21 @@ resolve@^1.19.0:
   dependencies:
     async-limiter: ~1.0.0
   checksum: 3da93525921e6098aa9b6a370745ef3de9bb3f00427ecbb4755b671fce4810eb21cc1c80847fb639635ac72f0bb08d49b83a4a74896daf2f79e864d8cead1e13
+  languageName: node
+  linkType: hard
+
+"ws@npm:^5.2.0 || ^6.0.0 || ^7.0.0":
+  version: 7.5.8
+  resolution: "ws@npm:7.5.8"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ^5.0.2
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 49479ccf3ddab6500c5906fbcc316e9c8cd44b0ffb3903a6c1caf9b38cb9e06691685722a4c642cfa7d4c6eb390424fc3142cd4f8b940cfc7a9ce9761b1cd65b
   languageName: node
   linkType: hard
 

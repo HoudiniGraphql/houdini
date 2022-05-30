@@ -1,0 +1,21 @@
+"""
+Date custom scalar type
+"""
+scalar DateTime
+
+type Mutation {
+  addUser(birthDate: DateTime!, name: String!): User!
+}
+
+type Query {
+  avgYearsBirthDate: Float!
+  user(id: ID!): User!
+  userWithDelay(id: ID!): User!
+  usersList: [User!]!
+}
+
+type User {
+  birthDate: DateTime!
+  id: ID!
+  name: String!
+}
