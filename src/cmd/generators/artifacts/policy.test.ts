@@ -72,6 +72,8 @@ test('cache policy is persisted in artifact', async function () {
 					    policy: "CacheAndNetwork",
 					    partial: false
 					};
+
+					"HoudiniHash=08a3bafdc782d255deb9894e8bb198e5a47681e8fc4d1d1bff0c075d93c2362d";
 				`)
 })
 
@@ -145,6 +147,8 @@ test('can change default cache policy', async function () {
 					    policy: "NetworkOnly",
 					    partial: false
 					};
+
+					"HoudiniHash=07860fa33d7e0f709a61716b22c5fada0f5074d95da404e8cac9d3b245843773";
 				`)
 })
 
@@ -213,6 +217,8 @@ test('partial opt-in is persisted', async function () {
 					    policy: "CacheAndNetwork",
 					    partial: true
 					};
+
+					"HoudiniHash=4fb7cd5b288356c5bd7b09bd128cab1d399cb2aab2fe8c57bce318d423282a2f";
 				`)
 })
 
@@ -286,5 +292,7 @@ test('can set default partial opt-in', async function () {
 					    policy: "CacheAndNetwork",
 					    partial: true
 					};
+
+					"HoudiniHash=08a3bafdc782d255deb9894e8bb198e5a47681e8fc4d1d1bff0c075d93c2362d";
 				`)
 })

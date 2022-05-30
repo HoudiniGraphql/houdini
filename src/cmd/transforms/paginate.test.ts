@@ -586,6 +586,8 @@ test('embeds node pagination query as a separate document', async function () {
 					    policy: "NetworkOnly",
 					    partial: false
 					};
+
+					"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 				`)
 })
 
@@ -767,6 +769,8 @@ test('embeds custom pagination query as a separate document', async function () 
 					    policy: "NetworkOnly",
 					    partial: false
 					};
+
+					"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 				`)
 })
 
@@ -1375,6 +1379,8 @@ test('generated query has same refetch spec', async function () {
 					    policy: "NetworkOnly",
 					    partial: false
 					};
+
+					"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 				`)
 })
 

@@ -81,6 +81,8 @@ test('pass argument values to generated fragments', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=fb97ee7e3f483801de403f425fcd2b4ed5c1357ffc3d73394e34c23b278552b1";
 	`)
 })
 
@@ -155,6 +157,8 @@ test("nullable arguments with no values don't show up in the query", async funct
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
 	`)
 })
 
@@ -229,6 +233,8 @@ test("fragment arguments with default values don't rename the fragment", async f
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
 	`)
 })
 
@@ -323,6 +329,8 @@ test('thread query variables to inner fragments', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=7add8faa7fad1d3ba59adacc533e8e1ab6f92b4805a48b14665eb35591e96bb0";
 	`)
 })
 
@@ -409,6 +417,8 @@ test('inner fragment with intermediate default value', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
 	`)
 })
 
@@ -495,6 +505,8 @@ test("default values don't overwrite unless explicitly passed", async function (
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
 	`)
 })
 
@@ -569,6 +581,8 @@ test('default arguments', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=774e85c1a749388df97ed5768006535072408ceea2a7bba3c835553e2d65e5bd";
 	`)
 })
 
@@ -643,5 +657,7 @@ test('multiple with directives - no overlap', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=10b3cd7304221a7e9337b66dd1b083c11cafad428fe02bc0b889f2eb5fe524ff";
 	`)
 })
