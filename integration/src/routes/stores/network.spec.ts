@@ -18,8 +18,9 @@ test.describe('NETWORK Page', () => {
     expect(ele).toContain('<ul></ul>');
   });
 
-  test('Getting the right data in a network mode', async ({ page }) => {
+  test('Getting the right data in a network mode (CSR)', async ({ page }) => {
     await page.goto('/stores/network');
+
     const res = await page.waitForResponse('http://localhost:4000/graphql');
     const json = await res.json();
     expect(stry(json, 0)).toBe(
