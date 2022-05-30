@@ -139,7 +139,7 @@ test('basic store', async function () {
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
 
-					        if (result.errors) {
+					        if (result.errors && result.errors.length > 0) {
 					            update((s) => ({
 					                ...s,
 					                errors: result.errors,
@@ -381,7 +381,7 @@ test('forward cursor pagination', async function () {
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
 
-					        if (result.errors) {
+					        if (result.errors && result.errors.length > 0) {
 					            update((s) => ({
 					                ...s,
 					                errors: result.errors,
@@ -636,7 +636,7 @@ test('backwards cursor pagination', async function () {
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
 
-					        if (result.errors) {
+					        if (result.errors && result.errors.length > 0) {
 					            update((s) => ({
 					                ...s,
 					                errors: result.errors,
@@ -887,7 +887,7 @@ test('offset pagination', async function () {
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
 
-					        if (result.errors) {
+					        if (result.errors && result.errors.length > 0) {
 					            update((s) => ({
 					                ...s,
 					                errors: result.errors,

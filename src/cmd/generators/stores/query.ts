@@ -103,7 +103,7 @@ function ${storeName}Store() {
             cached: params.policy !== CachePolicy.NetworkOnly,
         })
 
-        if (result.errors) {
+        if (result.errors && result.errors.length > 0) {
             update((s) => ({
                 ...s,
                 errors: result.errors,
