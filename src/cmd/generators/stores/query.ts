@@ -1,8 +1,9 @@
+import * as graphql from 'graphql'
 import path from 'path'
 import { Config } from '../../../common'
+import { log, logGreen } from '../../../common/log'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
-import { log, logGreen } from '../../../common/log'
 import pagination from './pagination'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {
@@ -229,11 +230,21 @@ export const ${storeName} = ${storeName}Store()
 	storeData.push(storeDataGenerated)
 	// STORE END
 
+	// look for the operation
+	const operations = doc.document.definitions.filter(
+		({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
+	) as graphql.OperationDefinitionNode[]
+	const inputs = operations[0]?.variableDefinitions
+	const withVariableInputs = inputs && inputs.length > 0
+	const VariableInputsType = withVariableInputs ? `${artifactName}$input` : 'null'
+
 	// TYPES
 	const storeDataDTsGenerated = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
 import { QueryStore } from '../runtime/types'
 
-export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${artifactName}$input> ${paginationExtras.types}
+export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}> 
+    
+${paginationExtras.types}
   `
 	storeDataDTs.push(storeDataDTsGenerated)
 	// TYPES END
