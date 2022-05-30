@@ -610,12 +610,13 @@ function validateFragmentArguments(
 				// every argument corresponds to one defined in the fragment
 				else {
 					// zip together the provided argument with the one in the fragment definition
-					const zipped: [graphql.ArgumentNode, string][] = appliedArgumentNames.map(
-						(name) => [
-							appliedArguments[name],
-							fragmentArguments[fragmentName].find((arg) => arg.name === name)!.type,
-						]
-					)
+					const zipped: [
+						graphql.ArgumentNode,
+						string
+					][] = appliedArgumentNames.map((name) => [
+						appliedArguments[name],
+						fragmentArguments[fragmentName].find((arg) => arg.name === name)!.type,
+					])
 
 					for (const [applied, target] of zipped) {
 						// TODO: validate these types

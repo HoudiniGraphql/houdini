@@ -13,7 +13,7 @@ const ctx = new RequestContext({
 	page: { host: '', path: '', params: {}, query: new URLSearchParams() },
 	stuff: {},
 	session: null,
-	fetch: (() => {}) as unknown as (input: RequestInfo, init?: RequestInit) => Promise<any>,
+	fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,
 })
 
 const config = testConfigFile({
