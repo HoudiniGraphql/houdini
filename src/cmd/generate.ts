@@ -6,7 +6,7 @@ import * as graphql from 'graphql'
 import { promisify } from 'util'
 import { Program } from '@babel/types'
 // locals
-import { Config, runPipeline as run, parseFile, ParsedSvelteFile } from '../common'
+import { Config, runPipeline as run, parseFile, ParsedSvelteFile, LogLevel } from '../common'
 import { CollectedGraphQLDocument, ArtifactKind } from './types'
 import * as transforms from './transforms'
 import * as generators from './generators'
@@ -40,6 +40,11 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		new: [],
 	}
 
+	// notify the user we are starting the generation process
+	if (config.logLevel !== LogLevel.Quiet) {
+		console.log('🎩 Generating runtime...')
+	}
+
 	await run(
 		config,
 		[
@@ -67,7 +72,23 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		docs
 	)
 
-	console.log(artifactStats)
+	// what we tell the user depends on the configured log level
+	if (config.logLevel === LogLevel.Quiet) {
+	} else if (config.logLevel === LogLevel.Smart) {
+	} else if (config.logLevel === LogLevel.Full) {
+		for (const artifact of artifactStats.total) {
+			// figure out the emoji to use
+			let emoji = '✅'
+			if (artifactStats.changed.includes(artifact)) {
+				emoji = '✏️ '
+			} else if (artifactStats.new.includes(artifact)) {
+				emoji = '✨'
+			}
+
+			// log the name
+			console.log(`${emoji} ${artifact}`)
+		}
+	}
 }
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {

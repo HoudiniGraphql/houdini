@@ -12,7 +12,6 @@ import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { serializeValue } from './utils'
 import { ArtifactKind } from '../../../runtime/types'
-import { log, logGreen } from '../../../common/log'
 
 const AST = recast.types.builders
 
@@ -244,7 +243,6 @@ export default function artifactGenerator(stats: {
 					try {
 						await fs.stat(config.artifactPath(document))
 					} catch (e) {
-						console.log(e)
 						stats.new.push(artifact.name)
 					}
 

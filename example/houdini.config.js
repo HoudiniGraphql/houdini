@@ -5,6 +5,7 @@ const config = {
 	framework: 'kit',
 	module: 'esm',
 	apiUrl: 'http://localhost:4000/graphql',
+	logLevel: 3,
 	scalars: {
 		DateTime: {
 			type: 'Date',

@@ -1,7 +1,7 @@
 import path from 'path'
 import inquirer from 'inquirer'
 import fs from 'fs/promises'
-import { Config, getConfig } from '../common'
+import { Config, getConfig, LogLevel } from '../common'
 import { writeSchema } from './utils/writeSchema'
 import generate from './generate'
 
@@ -102,7 +102,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 
 	// make sure we don't log anything else
 	const config = await getConfig()
-	config.quiet = true
+	config.logLevel = LogLevel.Quiet
 	await generate(config)
 
 	// we're done!

@@ -16,7 +16,6 @@ export class Config {
 	schemaPath?: string
 	persistedQueryPath?: string
 	sourceGlob: string
-	quiet: boolean
 	static?: boolean
 	scalars?: ConfigFile['scalars']
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
@@ -29,6 +28,7 @@ export class Config {
 	defaultKeys: string[] = ['id']
 	typeConfig: ConfigFile['types']
 	configFile: ConfigFile
+	logLevel: number
 
 	constructor({ filepath, ...configFile }: ConfigFile & { filepath: string }) {
 		this.configFile = defaultConfigValues(configFile)
@@ -50,6 +50,7 @@ export class Config {
 			defaultPartial = false,
 			defaultKeys,
 			types = {},
+			logLevel,
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -104,7 +105,6 @@ export class Config {
 		this.apiUrl = apiUrl
 		this.filepath = filepath
 		this.sourceGlob = sourceGlob
-		this.quiet = quiet
 		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(filepath)
@@ -114,6 +114,7 @@ export class Config {
 		this.defaultCachePolicy = defaultCachePolicy
 		this.defaultPartial = defaultPartial
 		this.definitionsFile = definitionsPath
+		this.logLevel = logLevel || LogLevel.Smart
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -631,4 +632,10 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 
 type Partial<T> = {
 	[P in keyof T]?: T[P]
+}
+
+export enum LogLevel {
+	Full = 3,
+	Smart = 2,
+	Quiet = 1,
 }
