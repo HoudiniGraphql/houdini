@@ -40,7 +40,6 @@
 				edges {
 					node {
 						id
-						text
 						completed
 					}
 				}

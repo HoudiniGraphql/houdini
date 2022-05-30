@@ -4,10 +4,10 @@
 		mutation,
 		graphql,
 		subscription,
-		ItemEntry_item,
-		CompleteItem,
-		UncompleteItem,
-		DeleteItem
+		type ItemEntry_item,
+		type CompleteItem,
+		type UncompleteItem,
+		type DeleteItem,
 	} from '$houdini'
 
 	// the reference we're passed from our parents
@@ -72,7 +72,7 @@
 			}
 		`,
 		{
-			id: $data.id
+			id: $data.id,
 		}
 	)
 
@@ -90,14 +90,34 @@
 	}
 </script>
 
+<li class:completed={$data.completed}>
+	<div class="view">
+		<input
+			name={$data.text}
+			class="toggle"
+			type="checkbox"
+			checked={$data.completed}
+			on:click={handleClick}
+		/>
+		<label for={$data.text} class="row">
+			{$data.text}
+			<span class="timestamp">
+				{$data.createdAt.toLocaleDateString('en-US')}
+			</span>
+		</label>
+		<button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
+	</div>
+</li>
+
 <style>
-	.timestamp { 
+	.timestamp {
 		font-size: 14px;
 		margin-top: 4px;
 		margin-right: 50px;
 	}
 
-	.destroy, input {
+	.destroy,
+	input {
 		cursor: pointer;
 	}
 
@@ -107,22 +127,3 @@
 		justify-content: space-between;
 	}
 </style>
-
-<li class:completed={$data.completed}>
-	<div class="view" >
-		<input
-			name={$data.text}
-			class="toggle"
-			type="checkbox"
-			checked={$data.completed}
-			on:click={handleClick}
-		/>
-		<label for={$data.text} class="row">
-			{$data.text} 
-			<span class="timestamp">
-				{$data.createdAt.toLocaleDateString("en-US")}
-			</span>
-		</label>
-		<button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
-	</div>
-</li>

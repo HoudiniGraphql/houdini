@@ -236,7 +236,7 @@ export default function artifactGenerator(stats: {
 					const file = AST.program([
 						moduleExport(config, 'default', serializeValue(artifact)),
 						AST.expressionStatement(
-							AST.stringLiteral(`HoudiniHash=${hashDocument(doc.originalDocument)}`)
+							AST.stringLiteral(`HoudiniHash=${hashDocument(doc.originalString)}`)
 						),
 					])
 
