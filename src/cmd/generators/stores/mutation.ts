@@ -1,6 +1,5 @@
 import path from 'path'
 import { Config } from '../../../common'
-import { log, logGreen } from '../../../common/log'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 
@@ -11,6 +10,7 @@ export async function generateIndividualStoreMutation(
 	const storeData: string[] = []
 	const storeDataDTs: string[] = []
 
+	const fileName = doc.name
 	const storeName = config.storeName(doc) // "1 => GQL_Add$Item" => ${storeName}
 	const artifactName = `${doc.name}` // "2 => Add$Item" => ${artifactName}
 
@@ -130,7 +130,9 @@ function ${storeName}Store() {
 	}
 }
 
-export const ${storeName} = ${storeName}Store()	
+export default store = ${storeName}Store()
+
+export const ${storeName} = store
 `
 	storeData.push(storeDataGenerated)
 	// STORE END
@@ -144,14 +146,12 @@ export declare const ${storeName}: MutationStore<${artifactName}$result | undefi
 	storeDataDTs.push(storeDataDTsGenerated)
 	// TYPES END
 
-	await writeFile(path.join(config.rootDir, 'stores', `${storeName}.js`), storeData.join(`\n`))
+	await writeFile(path.join(config.rootDir, 'stores', `${fileName}.js`), storeData.join(`\n`))
 
 	await writeFile(
-		path.join(config.rootDir, 'stores', `${storeName}.d.ts`),
+		path.join(config.rootDir, 'stores', `${fileName}.d.ts`),
 		storeDataDTs.join(`\n`)
 	)
 
-	log.success(`${logGreen(storeName)} mutation store`, { level: 3 })
-
-	return storeName
+	return fileName
 }

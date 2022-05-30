@@ -29,9 +29,9 @@ test('generates a store for every query', async function () {
 	const files = await fs.readdir(config.storesDirectory)
 
 	// and they have the right names
-	expect(files).toEqual(expect.arrayContaining(['GQL_TestQuery1.js', 'GQL_TestQuery2.js']))
+	expect(files).toEqual(expect.arrayContaining(['TestQuery1.js', 'TestQuery2.js']))
 	// and type definitions exist
-	expect(files).toEqual(expect.arrayContaining(['GQL_TestQuery1.d.ts', 'GQL_TestQuery2.d.ts']))
+	expect(files).toEqual(expect.arrayContaining(['TestQuery1.d.ts', 'TestQuery2.d.ts']))
 })
 
 test('basic store', async function () {
@@ -40,10 +40,7 @@ test('basic store', async function () {
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(
-		path.join(config.storesDirectory, config.storeName({ name: 'TestQuery' }) + '.js'),
-		'utf-8'
-	)
+	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
 
 	// parse the contents
 	const parsed = recast.parse(contents, {
@@ -61,7 +58,7 @@ test('basic store', async function () {
 					import cache from '../runtime/cache'
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 
-					// optional pagination imports 
+					// optional pagination imports
 
 
 					// TODO:
@@ -83,7 +80,7 @@ test('basic store', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
-					    
+
 					    async function queryLoad(params) {
 							const context = new RequestContext(params.context)
 							return await queryLocal(context, params)
@@ -108,7 +105,7 @@ test('basic store', async function () {
 
 					        // params management
 					        params = params ?? {}
-					       
+
 					        // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
 					        if (!params.policy) {
 					            params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
@@ -154,7 +151,7 @@ test('basic store', async function () {
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-					            
+
 					            subscriptionSpec = {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
@@ -243,7 +240,7 @@ test('basic store', async function () {
 					                    cache.unsubscribe(subscriptionSpec, variables)
 					                    subscriptionSpec = null
 					                }
-					        
+
 					                parentUnsubscribe()
 					            }
 					        },
@@ -261,30 +258,29 @@ test('basic store', async function () {
 					    }
 					}
 
-					export const GQL_TestQuery = GQL_TestQueryStore()
+					export default store = GQL_TestQueryStore()
+
+					export const GQL_TestQuery = store
 				`)
 })
 
 test('forward cursor pagination', async function () {
 	const docs = [
-		mockCollectedDoc(`query TestQuery { 
-		usersByForwardsCursor(first: 10) @paginate { 
-			edges { 
-				node { 
+		mockCollectedDoc(`query TestQuery {
+		usersByForwardsCursor(first: 10) @paginate {
+			edges {
+				node {
 					id
 				}
 			}
-		} 
+		}
 	}`),
 	]
 
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(
-		path.join(config.storesDirectory, config.storeName({ name: 'TestQuery' }) + '.js'),
-		'utf-8'
-	)
+	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
 
 	// parse the contents
 	const parsed = recast.parse(contents, {
@@ -302,7 +298,7 @@ test('forward cursor pagination', async function () {
 					import cache from '../runtime/cache'
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 
-					// optional pagination imports 
+					// optional pagination imports
 					import { queryHandlers } from '../runtime/pagination'
 
 
@@ -325,7 +321,7 @@ test('forward cursor pagination', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
-					    
+
 					    async function queryLoad(params) {
 							const context = new RequestContext(params.context)
 							return await queryLocal(context, params)
@@ -350,7 +346,7 @@ test('forward cursor pagination', async function () {
 
 					        // params management
 					        params = params ?? {}
-					       
+
 					        // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
 					        if (!params.policy) {
 					            params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
@@ -396,7 +392,7 @@ test('forward cursor pagination', async function () {
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-					            
+
 					            subscriptionSpec = {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
@@ -493,7 +489,7 @@ test('forward cursor pagination', async function () {
 					                    cache.unsubscribe(subscriptionSpec, variables)
 					                    subscriptionSpec = null
 					                }
-					        
+
 					                parentUnsubscribe()
 					            }
 					        },
@@ -516,30 +512,29 @@ test('forward cursor pagination', async function () {
 					    }
 					}
 
-					export const GQL_TestQuery = GQL_TestQueryStore()
+					export default store = GQL_TestQueryStore()
+
+					export const GQL_TestQuery = store
 				`)
 })
 
 test('backwards cursor pagination', async function () {
 	const docs = [
-		mockCollectedDoc(`query TestQuery { 
-		usersByBackwardsCursor(last: 10) @paginate { 
-			edges { 
-				node { 
+		mockCollectedDoc(`query TestQuery {
+		usersByBackwardsCursor(last: 10) @paginate {
+			edges {
+				node {
 					id
 				}
 			}
-		} 
+		}
 	}`),
 	]
 
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(
-		path.join(config.storesDirectory, config.storeName({ name: 'TestQuery' }) + '.js'),
-		'utf-8'
-	)
+	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
 
 	// parse the contents
 	const parsed = recast.parse(contents, {
@@ -557,7 +552,7 @@ test('backwards cursor pagination', async function () {
 					import cache from '../runtime/cache'
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 
-					// optional pagination imports 
+					// optional pagination imports
 					import { queryHandlers } from '../runtime/pagination'
 
 
@@ -580,7 +575,7 @@ test('backwards cursor pagination', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
-					    
+
 					    async function queryLoad(params) {
 							const context = new RequestContext(params.context)
 							return await queryLocal(context, params)
@@ -605,7 +600,7 @@ test('backwards cursor pagination', async function () {
 
 					        // params management
 					        params = params ?? {}
-					       
+
 					        // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
 					        if (!params.policy) {
 					            params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
@@ -651,7 +646,7 @@ test('backwards cursor pagination', async function () {
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-					            
+
 					            subscriptionSpec = {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
@@ -748,7 +743,7 @@ test('backwards cursor pagination', async function () {
 					                    cache.unsubscribe(subscriptionSpec, variables)
 					                    subscriptionSpec = null
 					                }
-					        
+
 					                parentUnsubscribe()
 					            }
 					        },
@@ -771,26 +766,25 @@ test('backwards cursor pagination', async function () {
 					    }
 					}
 
-					export const GQL_TestQuery = GQL_TestQueryStore()
+					export default store = GQL_TestQueryStore()
+
+					export const GQL_TestQuery = store
 				`)
 })
 
 test('offset pagination', async function () {
 	const docs = [
-		mockCollectedDoc(`query TestQuery { 
-		usersByOffset(limit: 10) @paginate { 
+		mockCollectedDoc(`query TestQuery {
+		usersByOffset(limit: 10) @paginate {
 			id
-		} 
+		}
 	}`),
 	]
 
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(
-		path.join(config.storesDirectory, config.storeName({ name: 'TestQuery' }) + '.js'),
-		'utf-8'
-	)
+	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
 
 	// parse the contents
 	const parsed = recast.parse(contents, {
@@ -808,7 +802,7 @@ test('offset pagination', async function () {
 					import cache from '../runtime/cache'
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 
-					// optional pagination imports 
+					// optional pagination imports
 					import { queryHandlers } from '../runtime/pagination'
 
 
@@ -831,7 +825,7 @@ test('offset pagination', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
-					    
+
 					    async function queryLoad(params) {
 							const context = new RequestContext(params.context)
 							return await queryLocal(context, params)
@@ -856,7 +850,7 @@ test('offset pagination', async function () {
 
 					        // params management
 					        params = params ?? {}
-					       
+
 					        // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
 					        if (!params.policy) {
 					            params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
@@ -902,7 +896,7 @@ test('offset pagination', async function () {
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-					            
+
 					            subscriptionSpec = {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
@@ -999,7 +993,7 @@ test('offset pagination', async function () {
 					                    cache.unsubscribe(subscriptionSpec, variables)
 					                    subscriptionSpec = null
 					                }
-					        
+
 					                parentUnsubscribe()
 					            }
 					        },
@@ -1021,6 +1015,8 @@ test('offset pagination', async function () {
 					    }
 					}
 
-					export const GQL_TestQuery = GQL_TestQueryStore()
+					export default store = GQL_TestQueryStore()
+
+					export const GQL_TestQuery = store
 				`)
 })

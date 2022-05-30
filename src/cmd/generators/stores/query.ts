@@ -10,6 +10,7 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	const storeData: string[] = []
 	const storeDataDTs: string[] = []
 
+	const fileName = doc.name
 	const storeName = config.storeName(doc) // "1 => GQL_All$Items" => ${storeName}
 	const artifactName = `${doc.name}` // "2 => All$Items" => ${artifactName}
 
@@ -25,7 +26,7 @@ import { getSession, isBrowser } from '../runtime/adapter.mjs'
 import cache from '../runtime/cache'
 import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
 
-// optional pagination imports 
+// optional pagination imports
 ${paginationExtras.imports}
 
 // TODO:
@@ -47,7 +48,7 @@ function ${storeName}Store() {
     // Current variables tracker
     let variables = {}
 
-    
+
     async function queryLoad(params) {
 		const context = new RequestContext(params.context)
 		return await queryLocal(context, params)
@@ -72,7 +73,7 @@ function ${storeName}Store() {
 
         // params management
         params = params ?? {}
-       
+
         // If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
         if (!params.policy) {
             params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
@@ -118,7 +119,7 @@ function ${storeName}Store() {
 
         // setup a subscription for new values from the cache
         if (isBrowser) {
-            
+
             subscriptionSpec = {
                 rootType: artifact.rootType,
                 selection: artifact.selection,
@@ -207,7 +208,7 @@ function ${storeName}Store() {
                     cache.unsubscribe(subscriptionSpec, variables)
                     subscriptionSpec = null
                 }
-        
+
                 parentUnsubscribe()
             }
         },
@@ -225,7 +226,9 @@ function ${storeName}Store() {
     }
 }
 
-export const ${storeName} = ${storeName}Store()  
+export default store = ${storeName}Store()
+
+export const ${storeName} = store
 `
 	storeData.push(storeDataGenerated)
 	// STORE END
@@ -239,24 +242,22 @@ export const ${storeName} = ${storeName}Store()
 	const VariableInputsType = withVariableInputs ? `${artifactName}$input` : 'null'
 
 	// TYPES
-	const storeDataDTsGenerated = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
+	const storeDataDTsGenerated = `import type { Readable } from 'svelte/store'
+import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
 import { QueryStore } from '../runtime/types'
+${paginationExtras.typeImports}
 
-export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}> 
-    
-${paginationExtras.types}
+export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}> ${paginationExtras.types}
   `
 	storeDataDTs.push(storeDataDTsGenerated)
 	// TYPES END
 
-	await writeFile(path.join(config.rootDir, 'stores', `${storeName}.js`), storeData.join(`\n`))
+	await writeFile(path.join(config.rootDir, 'stores', `${fileName}.js`), storeData.join(`\n`))
 
 	await writeFile(
-		path.join(config.rootDir, 'stores', `${storeName}.d.ts`),
+		path.join(config.rootDir, 'stores', `${fileName}.d.ts`),
 		storeDataDTs.join(`\n`)
 	)
 
-	log.success(`${logGreen(storeName)} query store`, { level: 3 })
-
-	return storeName
+	return fileName
 }

@@ -1,12 +1,12 @@
 // externals
 import path from 'path'
 // locals
-import { log, logGreen } from '../../../common/log'
 import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 
 export async function generateSubscriptionStore(config: Config, doc: CollectedGraphQLDocument) {
+	const fileName = doc.name
 	const storeName = config.storeName(doc) // "1 => GQL_Item$Update" => ${storeName}
 	const artifactName = `${doc.name}` // "2 => Item$Update" => ${artifactName}
 
@@ -86,7 +86,9 @@ export const ${storeName} = {
 	unsubscribe() {
 		clearSubscription()
 	},
-}	
+}
+
+export default ${storeName}
 `
 
 	// the type definitions for the store
@@ -95,13 +97,10 @@ export const ${storeName} = {
 
 	// write the store contents to disk
 	await Promise.all([
-		writeFile(path.join(config.rootDir, 'stores', `${storeName}.d.ts`), typeDefs),
-		writeFile(path.join(config.storesDirectory, `${storeName}.js`), storeContent),
+		writeFile(path.join(config.rootDir, 'stores', `${fileName}.d.ts`), typeDefs),
+		writeFile(path.join(config.storesDirectory, `${fileName}.js`), storeContent),
 	])
 
-	// notify the user we generated the store
-	log.success(`${logGreen(storeName)} subscription store`, { level: 3 })
-
 	// return the store name to the generator so the index file can be created
-	return storeName
+	return fileName
 }
