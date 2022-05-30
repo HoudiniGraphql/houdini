@@ -6501,7 +6501,34 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini@0.14.5, houdini@workspace:.":
+"houdini@npm:0.14.5":
+  version: 0.14.5
+  resolution: "houdini@npm:0.14.5"
+  dependencies:
+    "@babel/parser": ^7.13.4
+    "@changesets/changelog-git": ^0.1.11
+    "@changesets/cli": ^2.22.0
+    "@graphql-tools/schema": ^8.3.7
+    "@types/mock-fs": ^4.13.0
+    babylon: ^7.0.0-beta.47
+    commander: ^7.1.0
+    estree-walker: ^2.0.2
+    glob: ^8.0.1
+    global: ^4.4.0
+    graphql: ^15.5.0
+    inquirer: ^8.2.2
+    mkdirp: ^1.0.4
+    node-fetch: ^2.6.1
+    recast: ^0.20.4
+    remove: ^0.1.5
+    svelte: ^3.47.0
+  bin:
+    houdini: build/cmd.js
+  checksum: 48c0fa74c3a3ae53d520ecc06e91e0c7d3531d5ea0f314c76cd2e3ee559d27f63dc2ec77fdb95a224b9b5ea923b7c88a0aa9bc84002b0e55737739b8560eddf6
+  languageName: node
+  linkType: hard
+
+"houdini@workspace:.":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:."
   dependencies:
