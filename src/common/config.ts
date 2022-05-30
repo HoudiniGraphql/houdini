@@ -5,6 +5,7 @@ import os from 'os'
 // locals
 import { CachePolicy } from './types'
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/config'
+import config from '../../integration/playwright.config'
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -115,6 +116,14 @@ export class Config {
 		this.defaultPartial = defaultPartial
 		this.definitionsFile = definitionsPath
 		this.logLevel = logLevel || LogLevel.Smart
+
+		// if the user asked for `quiet` logging notify them its been deprecated
+		if (quiet) {
+			console.warn(
+				'The quiet configuration parameter has been deprecated. Please use logLevel=0. For more information please see the 0.15.0 migration guide: <link>.'
+			)
+			this.logLevel = LogLevel.Quiet
+		}
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -509,7 +518,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				legends: [Legend!]!
 			}
 
-			type Legend { 
+			type Legend {
 				name: String
 				believers(first: Int, after: String): GhostConnection
 			}
@@ -635,7 +644,7 @@ type Partial<T> = {
 }
 
 export enum LogLevel {
-	Full = 3,
-	Smart = 2,
-	Quiet = 1,
+	Full = 2,
+	Smart = 1,
+	Quiet = 0,
 }
