@@ -76,12 +76,33 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 	// don't log anything if its quiet
 	if (config.logLevel === LogLevel.Quiet) {
-		//
-	} else if (config.logLevel === LogLevel.Default) {
+	} else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
+		// count the number of unchanged
+		const unchanged =
+			artifactStats.total.length - artifactStats.changed.length - artifactStats.new.length
+
+		// if we have any unchanged artifacts
+		if (unchanged > 0) {
+			console.log(`📃 Unchanged: ${unchanged}`)
+		}
+
+		if (artifactStats.changed.length > 0) {
+			console.log(`✏️  Changed: ${artifactStats.changed.length}`)
+			if (config.logLevel === LogLevel.Summary) {
+				logFirst5(artifactStats.changed)
+			}
+		}
+
+		if (artifactStats.new.length > 0) {
+			console.log(`✨ New: ${artifactStats.new.length}`)
+			if (config.logLevel === LogLevel.Summary) {
+				logFirst5(artifactStats.new)
+			}
+		}
 	} else if (config.logLevel === LogLevel.Full) {
 		for (const artifact of artifactStats.total) {
 			// figure out the emoji to use
-			let emoji = '✅'
+			let emoji = '📃'
 			if (artifactStats.changed.includes(artifact)) {
 				emoji = '✏️ '
 			} else if (artifactStats.new.includes(artifact)) {
@@ -235,5 +256,16 @@ async function processGraphQLDocument(
 		filename: filepath,
 		originalDocument: parsedDoc,
 		generate: true,
+	}
+}
+
+function logFirst5(values: string[]) {
+	// grab the first 5 changed documents
+	for (const artifact of values.slice(0, 5)) {
+		console.log(`    ${artifact}`)
+	}
+	// if there are more than 5 just tell them how many
+	if (values.length > 5) {
+		console.log(`    ... ${values.length - 5} more`)
 	}
 }

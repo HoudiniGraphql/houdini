@@ -102,13 +102,13 @@ export class Config {
 		}
 
 		// validate the log level value
-		if (logLevel && !Object.values(LogLevel).includes(logLevel as LogLevel)) {
+		if (logLevel && !Object.values(LogLevel).includes(logLevel.toLowerCase() as LogLevel)) {
 			console.warn(
 				`Invalid log level provided. Valid values are: ${JSON.stringify(
 					Object.values(LogLevel)
 				)}`
 			)
-			logLevel = LogLevel.Default
+			logLevel = LogLevel.Summary
 		}
 
 		// save the values we were given
@@ -125,7 +125,7 @@ export class Config {
 		this.defaultCachePolicy = defaultCachePolicy
 		this.defaultPartial = defaultPartial
 		this.definitionsFile = definitionsPath
-		this.logLevel = (logLevel as LogLevel) || LogLevel.Default
+		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 
 		// if the user asked for `quiet` logging notify them its been deprecated
 		if (quiet) {
@@ -134,7 +134,7 @@ export class Config {
 					LogLevel.Quiet
 				)}. For more information please see the 0.15.0 migration guide: <link>.`
 			)
-			this.logLevel = LogLevel.Default
+			this.logLevel = LogLevel.Summary
 		}
 
 		// hold onto the key config
@@ -657,6 +657,7 @@ type Partial<T> = {
 
 export enum LogLevel {
 	Full = 'full',
-	Default = 'default',
+	Summary = 'summary',
+	ShortSummary = 'short-summary',
 	Quiet = 'quiet',
 }
