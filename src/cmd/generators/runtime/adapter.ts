@@ -34,6 +34,8 @@ export function goTo(location, options) {
 }
 
 export const isBrowser = process.browser
+
+export const clientStarted = false; // Not tested in Sapper.
 `
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
@@ -54,6 +56,16 @@ export function goTo(location, options) {
 }
 
 export const isBrowser = browser
+
+/**
+ *  After \`clientStarted = true\`, only client side navigation will happen.
+ */
+export let clientStarted = false; // Will be true on a client side navigation
+if (browser) {
+  addEventListener('sveltekit:start', () => {
+    clientStarted = true;
+  });
+}
 `
 
 const svelteAdapter = `
@@ -75,4 +87,6 @@ export function goTo(location, options) {
 }
 
 export const isBrowser = true
+
+export const clientStarted = true
 `

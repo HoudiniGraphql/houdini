@@ -25,7 +25,7 @@ import {
     DataSource, errorsToGraphQLLayout, fetchQuery,
     RequestContext
 } from '../runtime';
-import { isBrowser, getPage, getSession } from '../runtime/adapter.mjs';
+import { clientStarted, getPage, getSession, isBrowser } from '../runtime/adapter.mjs';
 import cache from '../runtime/cache';
 import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
@@ -78,7 +78,11 @@ function ${storeName}Store() {
 
         // if we have event, we should be in the load function
         if (params.event) {
-            return await queryLoad(params);
+            if (clientStarted && !params.blocking) {
+                queryLoad(params); // No await on purpose, we are in a client navigation.
+            } else {
+                return await queryLoad(params);
+            }
         } else {
             // event is missing and we are in the browser... we will get a "Function called outside component initialization"... Would be nice to warn the user!
 
