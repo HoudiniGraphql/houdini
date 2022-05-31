@@ -258,7 +258,9 @@ test('basic store', async function () {
 					    }
 					}
 
-					export default store = GQL_TestQueryStore()
+					const store = GQL_TestQueryStore()
+
+					export default store
 
 					export const GQL_TestQuery = store
 				`)
@@ -512,7 +514,9 @@ test('forward cursor pagination', async function () {
 					    }
 					}
 
-					export default store = GQL_TestQueryStore()
+					const store = GQL_TestQueryStore()
+
+					export default store
 
 					export const GQL_TestQuery = store
 				`)
@@ -766,7 +770,9 @@ test('backwards cursor pagination', async function () {
 					    }
 					}
 
-					export default store = GQL_TestQueryStore()
+					const store = GQL_TestQueryStore()
+
+					export default store
 
 					export const GQL_TestQuery = store
 				`)
@@ -1015,7 +1021,9 @@ test('offset pagination', async function () {
 					    }
 					}
 
-					export default store = GQL_TestQueryStore()
+					const store = GQL_TestQueryStore()
+
+					export default store
 
 					export const GQL_TestQuery = store
 				`)
