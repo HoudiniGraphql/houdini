@@ -143,7 +143,7 @@ export function queryHandlers({
 		artifact,
 		store: data,
 		queryVariables,
-		refetch: store.fetch2,
+		refetch: store.fetch,
 		setPartial: store.setPartial,
 		config,
 	})

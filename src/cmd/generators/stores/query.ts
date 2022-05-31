@@ -51,7 +51,7 @@ function ${storeName}Store() {
     // Current variables tracker
     let variables = {}
 
-    async function fetch2(params) {
+    async function fetch(params) {
         params = params ?? {};
 
         if (!isBrowser && !params.event) {
@@ -249,7 +249,7 @@ function ${storeName}Store() {
             }
         },
 
-        fetch2,
+        fetch,
 
         // For internal usage only.
         setPartial: (partial) => update(s => ({...s, partial })),

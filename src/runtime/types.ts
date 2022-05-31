@@ -145,7 +145,7 @@ export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
 	/**
 	 * Trigger the query form load function
 	 */
-	fetch2: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
+	fetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
 
 	/**
 	 * Set the partial status for the query (DO NOT USE)

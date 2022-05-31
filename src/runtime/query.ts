@@ -28,7 +28,7 @@ export function query<_Query extends Operation<any, any>>(
 
 	return {
 		data,
-		refetch: document.store.fetch2,
+		refetch: document.store.fetch,
 		error,
 		loading,
 		partial,
@@ -103,7 +103,7 @@ function componentQuery<_Query extends Operation<any, any>>(
 		}
 
 		// load the data with the new variables
-		document.store.fetch2(variables)
+		document.store.fetch(variables)
 	}
 
 	return {
