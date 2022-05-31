@@ -1,12 +1,21 @@
 <script context="module">
   import { houdiniClient } from '$lib/graphql/houdiniClient';
+  import { routes } from '$lib/utils/routes';
   houdiniClient.init();
 </script>
 
+<script lang="ts">
+  let routesKvp = Object.keys(routes).map((key: string) => {
+    return { key, value: (routes as any)[key] };
+  });
+</script>
+
 <nav>
-  <a href="/">Home</a>
-  <a href="/stores/ssr">1/ Stores / SSR</a>
-  <a href="/stores/network">1/ Stores / NETWORK</a>
+  {#each routesKvp as { key, value }}
+    <div>
+      <a href={value}>{key}</a>
+    </div>
+  {/each}
 </nav>
 
 <slot />

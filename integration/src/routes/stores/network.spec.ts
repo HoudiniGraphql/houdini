@@ -1,7 +1,6 @@
-import { stry } from '@kitql/helper';
+import { routes } from '$lib/utils/routes.ts';
+import { expectGraphQLResponse } from '$lib/utils/testsHelper.ts';
 import { expect, test } from '@playwright/test';
-
-test.beforeEach(async ({ page }) => {});
 
 test.describe('NETWORK Page', () => {
   test('we have no li element(s) in <ul></ul> (no data from SSR)', async ({ page, browser }) => {
@@ -12,18 +11,17 @@ test.describe('NETWORK Page', () => {
         body: testData
       })
     );
-    await page.goto('/stores/network');
+    await page.goto(routes.Stores_Network);
 
     const ele = await page.content();
     expect(ele).toContain('<ul></ul>');
   });
 
   test('Getting the right data in a network mode (CSR)', async ({ page }) => {
-    await page.goto('/stores/network');
+    await page.goto(routes.Stores_Network);
 
-    const res = await page.waitForResponse('http://localhost:4000/graphql');
-    const json = await res.json();
-    expect(stry(json, 0)).toBe(
+    const str = await expectGraphQLResponse(page);
+    expect(str).toBe(
       '{"data":{"usersList":[{"id":"1","name":"Bruce Willis","birthDate":-466732800000},{"id":"2","name":"Samuel Jackson","birthDate":-663638400000}]}}'
     );
   });

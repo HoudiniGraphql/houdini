@@ -1,7 +1,7 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 
 const config: PlaywrightTestConfig = {
-  reporter: [['list'], ['html', { open: 'never' }], ['github']],
+  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }], ['github']] : [['list']],
   use: {
     screenshot: 'only-on-failure'
   },
