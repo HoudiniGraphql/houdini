@@ -1,8 +1,10 @@
-<script lang="ts">
+<script context="module" lang="ts">
   import { browser } from '$app/env';
   import { GQL_usersList } from '$houdini';
+</script>
 
-  $: browser && GQL_usersList.query({ context: {} });
+<script lang="ts">
+  $: browser && GQL_usersList.fetch2();
 </script>
 
 <h1>NETWORK</h1>

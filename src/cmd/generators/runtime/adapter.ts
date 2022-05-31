@@ -37,15 +37,16 @@ export const isBrowser = process.browser
 `
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
-import { getStores } from '$app/stores'
+import { page, session } from '$app/stores';
+import { get } from 'svelte/store';
 import { browser } from '$app/env'
 
 export function getSession() {
-    return getStores().session
+    return get(session)
 }
 
 export function getPage() {
-	return getStores().page
+	return get(page)
 }
 
 export function goTo(location, options) {

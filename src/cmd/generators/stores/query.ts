@@ -1,7 +1,6 @@
 import * as graphql from 'graphql'
 import path from 'path'
 import { Config } from '../../../common'
-import { log, logGreen } from '../../../common/log'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 import pagination from './pagination'
@@ -17,14 +16,18 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	const paginationExtras = pagination(config, doc)
 
 	// STORE
-	const storeDataGenerated = `import { houdiniConfig } from '$houdini'
-import { stry } from '@kitql/helper'
-import { writable } from 'svelte/store'
-import { ${artifactName} as artifact } from '../artifacts'
-import { CachePolicy, DataSource, fetchQuery, RequestContext, errorsToGraphQLLayout } from '../runtime'
-import { getSession, isBrowser } from '../runtime/adapter.mjs'
-import cache from '../runtime/cache'
-import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
+	const storeDataGenerated = `import { houdiniConfig } from '$houdini';
+import { logCyan, logRed, logYellow, stry } from '@kitql/helper';
+import { writable } from 'svelte/store';
+import { ${artifactName} as artifact } from '../artifacts';
+import {
+    CachePolicy,
+    DataSource, errorsToGraphQLLayout, fetchQuery,
+    RequestContext
+} from '../runtime';
+import { isBrowser, getPage, getSession } from '../runtime/adapter.mjs';
+import cache from '../runtime/cache';
+import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
 // optional pagination imports
 ${paginationExtras.imports}
@@ -48,22 +51,55 @@ function ${storeName}Store() {
     // Current variables tracker
     let variables = {}
 
+    async function fetch2(params) {
+        params = params ?? {};
+
+        if (!isBrowser && !params.event) {
+            // prettier-ignore
+            console.error(
+            \`\${logRed('I think that either')}:
+
+            \${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
+                    It should be something like:
+                
+                <script context="module" lang="ts">
+                import type { LoadEvent } from '@sveltejs/kit';
+                
+                export async function load(\${logYellow('event')}: LoadEvent) {
+                    \${logYellow('await')} \${logCyan('${storeName}')}.fetch({ \${logYellow('event')}, variables: { ... } });
+                    return {};
+                }
+                </script>
+                
+                \${logRed('2/')} you should run this in a browser only.\`
+            );
+            throw new Error('Error, check logs for help.');
+        }
+
+        // if we have event, we should be in the load function
+        if (params.event) {
+            return await queryLoad(params);
+        } else {
+            // event is missing and we are in the browser... we will get a "Function called outside component initialization"... Would be nice to warn the user!
+
+            // else
+            return await query(params);
+        }
+    }
 
     async function queryLoad(params) {
-		const context = new RequestContext(params.context)
+		const context = new RequestContext(params.event)
 		return await queryLocal(context, params)
 	}
 
 	async function query(params) {
-		const { session, page } = params.context
-
 		const context = new RequestContext({
 			fetch: fetch,
-			page,
-			session,
+			page: getPage(),
+			session: getSession(),
 		})
 
-		await queryLocal(context, params)
+		return await queryLocal(context, params)
 	}
 
     async function queryLocal(context, params) {
@@ -213,11 +249,7 @@ function ${storeName}Store() {
             }
         },
 
-        // For SSR
-        queryLoad,
-
-        // For CSR
-        query,
+        fetch2,
 
         // For internal usage only.
         setPartial: (partial) => update(s => ({...s, partial })),

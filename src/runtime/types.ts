@@ -109,19 +109,23 @@ export type QueryResult<DataType> = {
 	variables: {}
 }
 
-export type QueryStoreParams<_Input, _contextType = HoudiniContextEvent> = {
+export type QueryStoreParams<_Input> = {
 	variables?: _Input
 	policy?: CachePolicy
-	// Todo: context adapter (Server (loadEvent) / client(houdiniContext))
-	context: _contextType
+
+	/**
+	 * You know what you are doing and you want a REAL await (even on a client side navigation in load function)
+	 */
+	blocking?: boolean
+
+	event?: LoadEvent
 }
 
-export type HoudiniContextEvent = {
+export type HoudiniClientContext = {
+	page: any
 	session: Readable<any>
 	variables: () => {}
-	page: any
-
-	context: any
+	// context: any
 }
 
 export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
@@ -141,13 +145,7 @@ export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
 	/**
 	 * Trigger the query form load function
 	 */
-	queryLoad: (params?: QueryStoreParams<_Input, LoadEvent>) => Promise<QueryResult<_Data>>
-
-	/**
-	 * Trigger the query form client side (a component for example).
-	 * `query` doesn't return anything as you should use the store directly.
-	 */
-	query: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
+	fetch2: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
 
 	/**
 	 * Set the partial status for the query (DO NOT USE)

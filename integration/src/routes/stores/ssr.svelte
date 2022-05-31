@@ -2,8 +2,8 @@
   import { GQL_usersList } from '$houdini';
   import type { LoadEvent } from '@sveltejs/kit';
 
-  export async function load(load: LoadEvent) {
-    await GQL_usersList.queryLoad({ context: load });
+  export async function load(event: LoadEvent) {
+    await GQL_usersList.fetch2({ event });
     return {};
   }
 </script>

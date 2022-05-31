@@ -71,13 +71,13 @@ export type FetchParams = {
 }
 
 export type FetchContext = {
+	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
 	page: {
 		host: string
 		path: string
 		params: Record<string, string | string[]>
 		query: URLSearchParams
 	}
-	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
 	session: any
 	stuff: Record<string, any>
 }

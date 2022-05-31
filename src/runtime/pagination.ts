@@ -7,14 +7,13 @@ import { executeQuery } from './network'
 import { query, QueryResponse } from './query'
 import { Fragment, GraphQLObject, GraphQLTagResult, Operation, QueryArtifact } from './types'
 // this has to be in a separate file since config isn't defined in cache/index.ts
-import { FragmentStore, HoudiniContextEvent, QueryStore } from '.'
+import { FragmentStore, HoudiniClientContext, QueryStore, getHoudiniClientContext } from '.'
 import { ConfigFile, keyFieldsForType } from './config'
 import { countPage, extractPageInfo, PageInfo } from './utils'
-import { context } from './context'
 
 //Todo: houdiniContext Type
 type RefetchFn<_Data = any, _Input = any> = (
-	houdiniContext: HoudiniContextEvent,
+	houdiniContext: HoudiniClientContext,
 	vars: _Input
 ) => Promise<_Data>
 
@@ -54,7 +53,7 @@ function wrapPaginationStore<_Data, _Input>(
 	const { loadNextPage, loadPreviousPage, refetch, ...rest } = store
 
 	// grab the current houdini context
-	const houdiniContext = context()
+	const houdiniContext = getHoudiniClientContext()
 
 	const result = rest
 	if (loadNextPage) {
@@ -144,7 +143,7 @@ export function queryHandlers({
 		artifact,
 		store: data,
 		queryVariables,
-		refetch: store.query,
+		refetch: store.fetch2,
 		setPartial: store.setPartial,
 		config,
 	})
@@ -290,7 +289,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 		input,
 		functionName,
 	}: {
-		houdiniContext: HoudiniContextEvent
+		houdiniContext: HoudiniClientContext
 		pageSizeVar: string
 		functionName: string
 		input: {}
@@ -353,7 +352,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 
 	return {
 		loading,
-		loadNextPage: async (houdiniContext: HoudiniContextEvent, pageCount?: number) => {
+		loadNextPage: async (houdiniContext: HoudiniClientContext, pageCount?: number) => {
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
 
@@ -378,7 +377,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 				input,
 			})
 		},
-		loadPreviousPage: async (houdiniContext: HoudiniContextEvent, pageCount?: number) => {
+		loadPreviousPage: async (houdiniContext: HoudiniClientContext, pageCount?: number) => {
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
 
@@ -404,7 +403,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 			})
 		},
 		pageInfo: { subscribe: pageInfo.subscribe },
-		async refetch(houdiniContext: HoudiniContextEvent, input: any) {
+		async refetch(houdiniContext: HoudiniClientContext, input: any) {
 			// if this document shouldn't be refetched, don't do anything
 			if (!refetch) {
 				return
@@ -486,7 +485,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 
 	return {
 		// Todo: houdiniContext Type
-		loadPage: async (houdiniContext: HoudiniContextEvent, limit?: number) => {
+		loadPage: async (houdiniContext: HoudiniClientContext, limit?: number) => {
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
 				...houdiniContext.variables(),
@@ -530,7 +529,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 			// we're not loading any more
 			loading.set(false)
 		},
-		async refetch(houdiniContext: HoudiniContextEvent, input: any) {
+		async refetch(houdiniContext: HoudiniClientContext, input: any) {
 			// if this document shouldn't be refetched, don't do anything
 			if (!refetch) {
 				return
@@ -587,12 +586,12 @@ type PaginatedDocumentHandlers<_Data, _Input> = {
 
 type PaginatedHandlers<_Query extends Operation<any, any>> = {
 	loadNextPage(
-		houdiniContext: HoudiniContextEvent,
+		houdiniContext: HoudiniClientContext,
 		pageCount?: number,
 		after?: string | number
 	): Promise<void>
 	loadPreviousPage(
-		houdiniContext: HoudiniContextEvent,
+		houdiniContext: HoudiniClientContext,
 		pageCount?: number,
 		before?: string
 	): Promise<void>
