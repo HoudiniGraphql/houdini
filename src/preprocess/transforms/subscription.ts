@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
 import { Config } from '../../common'
-import { walkTaggedDocuments, storeIdentifier } from '../utils'
+import { ensureStoreImport, walkTaggedDocuments } from '../utils'
 import { TransformDocument } from '../types'
 
 const AST = recast.types.builders
@@ -35,13 +35,17 @@ export default async function subscriptionProcessor(
 		// we want to replace it with an object that the runtime can use
 		async onTag({ artifact, node }) {
 			// the local identifier for the store
-			const storeVariable = storeIdentifier(artifact)
+			const storeVariable = ensureStoreImport({
+				config,
+				artifact,
+				body: doc.instance!.content.body,
+			})
 
 			// replace the node with an object
 			node.replaceWith(
 				AST.objectExpression([
 					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-					AST.objectProperty(AST.literal('store'), storeVariable),
+					AST.objectProperty(AST.literal('store'), AST.identifier(storeVariable)),
 					AST.objectProperty(AST.literal('config'), AST.identifier('houdiniConfig')),
 				])
 			)
@@ -51,17 +55,6 @@ export default async function subscriptionProcessor(
 				config.module === 'commonjs'
 					? AST.importDefaultSpecifier
 					: AST.importNamespaceSpecifier
-
-			// add an import to the body pointing to the store
-			doc.instance?.content.body.unshift({
-				type: 'ImportDeclaration',
-				// @ts-ignore
-				source: AST.literal(config.storeImportPath(artifact.name)),
-				specifiers: [
-					// @ts-ignore
-					importStatement(storeVariable),
-				],
-			})
 		},
 	})
 }

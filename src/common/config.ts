@@ -222,7 +222,7 @@ export class Config {
 
 	// the path that the runtime can use to import a store
 	storeImportPath(name: string): string {
-		return `$houdini/${this.storesDirectoryName}/${this.storeName({ name })}`
+		return `$houdini/${this.storesDirectoryName}/${name}`
 	}
 
 	storeName({ name }: { name: string }) {

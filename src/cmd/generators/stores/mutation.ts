@@ -103,7 +103,7 @@ function ${storeName}Store() {
 
 			// prepare store data
 			const storeData = {
-				data: unmarshalSelection(houdiniConfig, artifact.selection, result.data)
+				data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
 				errors: result.errors,
 				isFetching: false,
 				variables: newVariables

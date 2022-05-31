@@ -12,11 +12,9 @@ import { TransformDocument } from '../types'
 import {
 	walkTaggedDocuments,
 	EmbeddedGraphqlDocument,
-	storeImport,
-	artifactIdentifier,
 	ensureImports,
-	storeIdentifier,
-	artifactImport,
+	ensureArtifactImport,
+	ensureStoreImport,
 } from '../utils'
 import { ArtifactKind } from '../../runtime/types'
 const AST = recast.types.builders
@@ -55,6 +53,9 @@ export default async function queryProcessor(
 	// note: we'll  replace the tags as we discover them with something the runtime library can use
 	const queries: EmbeddedGraphqlDocument[] = []
 
+	let artifactImportID = ''
+	let storeImportID = ''
+
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
 		// with only one definition defining a fragment
@@ -75,6 +76,18 @@ export default async function queryProcessor(
 			// add the document to the list
 			queries.push(tag)
 
+			storeImportID = ensureStoreImport({
+				config,
+				body: isRoute ? doc.module!.content.body : doc.instance!.content.body,
+				artifact,
+			})
+
+			artifactImportID = ensureArtifactImport({
+				config,
+				body: isRoute ? doc.module!.content.body : doc.instance!.content.body,
+				artifact: artifact,
+			})
+
 			// the "actual" value of a template tag depends on wether its a route or component
 			node.replaceWith(
 				// a non-route needs a little more information than the handler to fetch
@@ -85,7 +98,7 @@ export default async function queryProcessor(
 							AST.identifier('kind'),
 							AST.stringLiteral(ArtifactKind.Query)
 						),
-						AST.objectProperty(AST.identifier('store'), storeIdentifier(artifact)),
+						AST.objectProperty(AST.identifier('store'), AST.identifier(storeImportID)),
 						AST.objectProperty(
 							AST.identifier('component'),
 							AST.booleanLiteral(!isRoute)
@@ -103,7 +116,7 @@ export default async function queryProcessor(
 						),
 						AST.objectProperty(
 							AST.identifier('artifact'),
-							artifactIdentifier(artifact)
+							AST.identifier(artifactImportID)
 						),
 					].concat(
 						...(isRoute
@@ -140,17 +153,23 @@ export default async function queryProcessor(
 
 	// if we are processing a route, use those processors
 	if (isRoute) {
-		processModule(config, doc.module!, queries)
-	} else {
-		// we need to make sure to import all of the artifacts and stores in the instance script
-		for (const document of queries) {
-			doc.instance.content.body.unshift(storeImport(config, document.artifact))
-			doc.instance.content.body.unshift(artifactImport(config, document.artifact))
-		}
+		processModule({ config, script: doc.module!, queries, artifactImportID, storeImportID })
 	}
 }
 
-function processModule(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
+function processModule({
+	config,
+	script,
+	queries,
+	artifactImportID,
+	storeImportID,
+}: {
+	config: Config
+	script: Script
+	queries: EmbeddedGraphqlDocument[]
+	artifactImportID: string
+	storeImportID: string
+}) {
 	// the main thing we are responsible for here is to add the module bits of the
 	// hoisted query. this means doing the actual fetch, checking errors, and returning
 	// the props to the rendered components.
@@ -158,10 +177,12 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	// in order to reduce complexity in this code generation, we are going to build
 	// the load function for sveltekit and then wrap it up for sapper if we need to
 
-	// every document will need to be imported
-	for (const document of queries) {
-		script.content.body.unshift(storeImport(config, document.artifact))
-	}
+	ensureImports({
+		config,
+		body: script.content.body,
+		import: ['RequestContext'],
+		sourceModule: '$houdini/runtime',
+	})
 
 	// if there is already a load function, don't do anything
 	if (findExportedFunction(script.content.body, 'load')) {
@@ -169,7 +190,13 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	}
 
 	// add the kit preload function
-	addKitLoad(config, script.content.body, queries)
+	addKitLoad({
+		config,
+		body: script.content.body,
+		queries,
+		artifactImportID,
+		storeImportID,
+	})
 
 	// if we are processing this file for sapper, we need to add the actual preload function
 	if (config.framework === 'sapper') {
@@ -177,7 +204,19 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	}
 }
 
-function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlDocument[]) {
+function addKitLoad({
+	config,
+	body,
+	queries,
+	artifactImportID,
+	storeImportID,
+}: {
+	config: Config
+	body: Statement[]
+	queries: EmbeddedGraphqlDocument[]
+	artifactImportID: string
+	storeImportID: string
+}) {
 	// look for any hooks
 	let beforeLoadDefinition = findExportedFunction(body, 'beforeLoad')
 	let afterLoadDefinition = findExportedFunction(body, 'afterLoad')
@@ -281,7 +320,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 										),
 										AST.objectProperty(
 											AST.literal('artifact'),
-											artifactIdentifier(document.artifact)
+											AST.identifier(artifactImportID)
 										),
 									]),
 								]
@@ -307,7 +346,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 		}
 
 		const fetchCall = AST.callExpression(
-			AST.memberExpression(storeIdentifier(document.artifact), AST.identifier('queryLoad')),
+			AST.memberExpression(AST.identifier(storeImportID), AST.identifier('queryLoad')),
 			[
 				AST.objectExpression([
 					AST.objectProperty(
@@ -407,7 +446,12 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 
 function addSapperPreload(config: Config, body: Statement[]) {
 	// make sure we have the utility that will do the conversion
-	ensureImports(config, body, ['convertKitPayload'])
+	ensureImports({
+		config,
+		body,
+		import: ['convertKitPayload'],
+		sourceModule: '$houdini/runtime',
+	})
 
 	// look for a preload definition
 	let preloadDefinition = findExportedFunction(body, 'preload')

@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
 import { Config } from '../../common'
-import { walkTaggedDocuments, ensureImports, storeIdentifier, storeImport } from '../utils'
+import { walkTaggedDocuments, ensureImports, ensureStoreImport } from '../utils'
 import { TransformDocument } from '../types'
 
 const AST = recast.types.builders
@@ -38,7 +38,12 @@ export default async function fragmentProcessor(
 		// if we found a tag we want to replace it with an object that the runtime can use
 		async onTag({ artifact, node, tagContent, parent }) {
 			// make sure that we have imported the document proxy constructor
-			ensureImports(config, doc.instance!.content.body, ['HoudiniDocumentProxy'])
+			ensureImports({
+				config,
+				body: doc.instance!.content.body,
+				import: ['HoudiniDocumentProxy'],
+				sourceModule: '$houdini/runtime',
+			})
 
 			// instantiate a proxy we can use to update this fragment
 			proxyIdentifier = [
@@ -47,16 +52,20 @@ export default async function fragmentProcessor(
 					.arguments[1] as recast.types.namedTypes.Identifier,
 			]
 
+			// // add an import to the body pointing to the artifact
+			const storeID = ensureStoreImport({
+				config,
+				body: doc.instance!.content.body,
+				artifact,
+			})
+
 			// instantiate a handler for the fragment
 			const replacement = AST.objectExpression([
 				AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-				AST.objectProperty(AST.stringLiteral('store'), storeIdentifier(artifact)),
+				AST.objectProperty(AST.stringLiteral('store'), AST.identifier(storeID)),
 				AST.objectProperty(AST.literal('proxy'), proxyIdentifier![0]),
 				AST.objectProperty(AST.identifier('config'), AST.identifier('houdiniConfig')),
 			])
-
-			// // add an import to the body pointing to the artifact
-			doc.instance!.content.body.unshift(storeImport(config, artifact))
 
 			// // if the fragment is paginated we need to add a reference to the pagination query
 			// if (tagContent.includes(`@${config.paginateDirective}`)) {

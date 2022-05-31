@@ -1,52 +1,78 @@
+// externals
 import * as recast from 'recast'
 import { Statement } from '@babel/types'
+// locals
 import { Config } from '../../common'
-import { artifactIdentifier, storeIdentifier } from './identifiers'
 
 const AST = recast.types.builders
 
-export function artifactImport(config: Config, { name }: { name: string }): Statement {
-	return {
-		type: 'ImportDeclaration',
-		// @ts-ignore
-		source: AST.literal(config.artifactImportPath(name)),
-		specifiers: [
-			// @ts-ignore
-			AST.importDefaultSpecifier(artifactIdentifier({ name })),
-		],
-	}
+export function ensureStoreImport({
+	config,
+	artifact,
+	body,
+	local,
+}: {
+	config: Config
+	artifact: { name: string }
+	body: Statement[]
+	local?: string
+}) {
+	return ensureImports({
+		config,
+		body,
+		sourceModule: config.storeImportPath(artifact.name),
+		import: local || `_${artifact.name}Store`,
+	})
 }
 
-export function storeImport(config: Config, { name }: { name: string }): Statement {
-	return {
-		type: 'ImportDeclaration',
-		// @ts-ignore
-		source: AST.literal(config.storeImportPath(name)),
-		specifiers: [
-			// @ts-ignore
-			AST.importDefaultSpecifier(storeIdentifier({ name })),
-		],
-	}
+export function ensureArtifactImport({
+	config,
+	artifact,
+	body,
+	local,
+}: {
+	config: Config
+	artifact: { name: string }
+	body: Statement[]
+	local?: string
+}) {
+	return ensureImports({
+		config,
+		body,
+		sourceModule: config.artifactImportPath(artifact.name),
+		import: local || `_${artifact.name}Artifact`,
+	})
 }
 
-export function ensureImports(
-	config: Config,
-	body: Statement[],
-	identifiers: string[],
-	sourceModule: string = '$houdini'
-) {
-	const toImport = identifiers.filter(
+export function ensureImports<_Count extends string[] | string>({
+	config,
+	body,
+	import: importID,
+	sourceModule,
+}: {
+	config: Config
+	body: Statement[]
+	import: _Count
+	sourceModule: string
+}): _Count {
+	const idList = Array.isArray(importID) ? importID : [importID]
+
+	// figure out the list of things to import
+	const toImport = idList.filter(
 		(identifier) =>
 			!body.find(
 				(statement) =>
 					statement.type === 'ImportDeclaration' &&
-					statement.source.value === sourceModule &&
 					statement.specifiers.find(
 						(importSpecifier) =>
-							importSpecifier.type === 'ImportSpecifier' &&
-							importSpecifier.imported.type === 'Identifier' &&
-							importSpecifier.imported.name === identifier &&
-							importSpecifier.local.name === identifier
+							(importSpecifier.type === 'ImportSpecifier' &&
+								importSpecifier.imported.type === 'Identifier' &&
+								importSpecifier.imported.name === identifier &&
+								importSpecifier.local.name === identifier) ||
+							(importSpecifier.type === 'ImportDefaultSpecifier' &&
+								importSpecifier.local.type === 'Identifier' &&
+								importSpecifier.local.name === identifier &&
+								importSpecifier.local.name === identifier)
 					)
 			)
 	)
@@ -59,8 +85,12 @@ export function ensureImports(
 			source: AST.stringLiteral(sourceModule),
 			// @ts-ignore
 			specifiers: toImport.map((identifier) =>
-				AST.importSpecifier(AST.identifier(identifier), AST.identifier(identifier))
+				!Array.isArray(importID)
+					? AST.importDefaultSpecifier(AST.identifier(identifier))
+					: AST.importSpecifier(AST.identifier(identifier), AST.identifier(identifier))
 			),
 		})
 	}
+
+	return Array.isArray(importID) ? toImport : toImport[0]
 }
