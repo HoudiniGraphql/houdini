@@ -5,7 +5,7 @@ import { routes } from './routes.ts';
 export async function expectNoGraphQLRequest(page: any) {
   let nbError = 0;
   try {
-    await page.waitForRequest(routes.GraphQL, { timeout: 500 });
+    await page.waitForRequest(routes.GraphQL, { timeout: 555 });
   } catch (error: any) {
     expect(error.name).toBe('TimeoutError');
     nbError++;
@@ -14,7 +14,7 @@ export async function expectNoGraphQLRequest(page: any) {
 }
 
 export async function expectGraphQLResponse(page: any) {
-  const res = await page.waitForResponse(routes.GraphQL, { timeout: 500 });
+  const res = await page.waitForResponse(routes.GraphQL, { timeout: 999 });
   const json = await res.json();
   const str = stry(json, 0);
   expect(str).not.toBeNull();
