@@ -49,14 +49,18 @@ test('basic store', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { houdiniConfig } from '$houdini'
-					import { stry } from '@kitql/helper'
-					import { writable } from 'svelte/store'
-					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, DataSource, fetchQuery, RequestContext, errorsToGraphQLLayout } from '../runtime'
-					import { getSession, isBrowser } from '../runtime/adapter.mjs'
-					import cache from '../runtime/cache'
-					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
+					import { houdiniConfig } from '$houdini';
+					import { logCyan, logRed, logYellow, stry } from '@kitql/helper';
+					import { writable } from 'svelte/store';
+					import { TestQuery as artifact } from '../artifacts';
+					import {
+					    CachePolicy,
+					    DataSource, errorsToGraphQLLayout, fetchQuery,
+					    RequestContext
+					} from '../runtime';
+					import { isBrowser, getPage, getSession } from '../runtime/adapter.mjs';
+					import cache from '../runtime/cache';
+					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
 					// optional pagination imports
 
@@ -80,22 +84,55 @@ test('basic store', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
+					    async function fetchLocal(params) {
+					        params = params ?? {};
+
+					        if (!isBrowser && !params.event) {
+					            // prettier-ignore
+					            console.error(
+					            \`\${logRed('I think that either')}:
+
+					            \${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
+					                    It should be something like:
+					                
+					                <script context="module" lang="ts">
+					                import type { LoadEvent } from '@sveltejs/kit';
+					                
+					                export async function load(\${logYellow('event')}: LoadEvent) {
+					                    \${logYellow('await')} \${logCyan('GQL_TestQuery')}.fetch({ \${logYellow('event')}, variables: { ... } });
+					                    return {};
+					                }
+					                </script>
+					                
+					                \${logRed('2/')} you should run this in a browser only.\`
+					            );
+					            throw new Error('Error, check logs for help.');
+					        }
+
+					        // if we have event, we should be in the load function
+					        if (params.event) {
+					            return await queryLoad(params);
+					        } else {
+					            // event is missing and we are in the browser... we will get a "Function called outside component initialization"... Would be nice to warn the user!
+
+					            // else
+					            return await query(params);
+					        }
+					    }
 
 					    async function queryLoad(params) {
-							const context = new RequestContext(params.context)
+							const context = new RequestContext(params.event)
 							return await queryLocal(context, params)
 						}
 
 						async function query(params) {
-							const { session, page } = params.context
-
 							const context = new RequestContext({
 								fetch: fetch,
-								page,
-								session,
+								page: getPage(),
+								session: getSession(),
 							})
 
-							await queryLocal(context, params)
+							return await queryLocal(context, params)
 						}
 
 					    async function queryLocal(context, params) {
@@ -245,11 +282,7 @@ test('basic store', async function () {
 					            }
 					        },
 
-					        // For SSR
-					        queryLoad,
-
-					        // For CSR
-					        query,
+					        fetch: fetchLocal,
 
 					        // For internal usage only.
 					        setPartial: (partial) => update(s => ({...s, partial })),
@@ -291,14 +324,18 @@ test('forward cursor pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { houdiniConfig } from '$houdini'
-					import { stry } from '@kitql/helper'
-					import { writable } from 'svelte/store'
-					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, DataSource, fetchQuery, RequestContext, errorsToGraphQLLayout } from '../runtime'
-					import { getSession, isBrowser } from '../runtime/adapter.mjs'
-					import cache from '../runtime/cache'
-					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
+					import { houdiniConfig } from '$houdini';
+					import { logCyan, logRed, logYellow, stry } from '@kitql/helper';
+					import { writable } from 'svelte/store';
+					import { TestQuery as artifact } from '../artifacts';
+					import {
+					    CachePolicy,
+					    DataSource, errorsToGraphQLLayout, fetchQuery,
+					    RequestContext
+					} from '../runtime';
+					import { isBrowser, getPage, getSession } from '../runtime/adapter.mjs';
+					import cache from '../runtime/cache';
+					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
 					// optional pagination imports
 					import { queryHandlers } from '../runtime/pagination'
@@ -323,22 +360,55 @@ test('forward cursor pagination', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
+					    async function fetchLocal(params) {
+					        params = params ?? {};
+
+					        if (!isBrowser && !params.event) {
+					            // prettier-ignore
+					            console.error(
+					            \`\${logRed('I think that either')}:
+
+					            \${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
+					                    It should be something like:
+					                
+					                <script context="module" lang="ts">
+					                import type { LoadEvent } from '@sveltejs/kit';
+					                
+					                export async function load(\${logYellow('event')}: LoadEvent) {
+					                    \${logYellow('await')} \${logCyan('GQL_TestQuery')}.fetch({ \${logYellow('event')}, variables: { ... } });
+					                    return {};
+					                }
+					                </script>
+					                
+					                \${logRed('2/')} you should run this in a browser only.\`
+					            );
+					            throw new Error('Error, check logs for help.');
+					        }
+
+					        // if we have event, we should be in the load function
+					        if (params.event) {
+					            return await queryLoad(params);
+					        } else {
+					            // event is missing and we are in the browser... we will get a "Function called outside component initialization"... Would be nice to warn the user!
+
+					            // else
+					            return await query(params);
+					        }
+					    }
 
 					    async function queryLoad(params) {
-							const context = new RequestContext(params.context)
+							const context = new RequestContext(params.event)
 							return await queryLocal(context, params)
 						}
 
 						async function query(params) {
-							const { session, page } = params.context
-
 							const context = new RequestContext({
 								fetch: fetch,
-								page,
-								session,
+								page: getPage(),
+								session: getSession(),
 							})
 
-							await queryLocal(context, params)
+							return await queryLocal(context, params)
 						}
 
 					    async function queryLocal(context, params) {
@@ -496,11 +566,7 @@ test('forward cursor pagination', async function () {
 					            }
 					        },
 
-					        // For SSR
-					        queryLoad,
-
-					        // For CSR
-					        query,
+					        fetch: fetchLocal,
 
 					        // For internal usage only.
 					        setPartial: (partial) => update(s => ({...s, partial })),
@@ -547,14 +613,18 @@ test('backwards cursor pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { houdiniConfig } from '$houdini'
-					import { stry } from '@kitql/helper'
-					import { writable } from 'svelte/store'
-					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, DataSource, fetchQuery, RequestContext, errorsToGraphQLLayout } from '../runtime'
-					import { getSession, isBrowser } from '../runtime/adapter.mjs'
-					import cache from '../runtime/cache'
-					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
+					import { houdiniConfig } from '$houdini';
+					import { logCyan, logRed, logYellow, stry } from '@kitql/helper';
+					import { writable } from 'svelte/store';
+					import { TestQuery as artifact } from '../artifacts';
+					import {
+					    CachePolicy,
+					    DataSource, errorsToGraphQLLayout, fetchQuery,
+					    RequestContext
+					} from '../runtime';
+					import { isBrowser, getPage, getSession } from '../runtime/adapter.mjs';
+					import cache from '../runtime/cache';
+					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
 					// optional pagination imports
 					import { queryHandlers } from '../runtime/pagination'
@@ -579,22 +649,55 @@ test('backwards cursor pagination', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
+					    async function fetchLocal(params) {
+					        params = params ?? {};
+
+					        if (!isBrowser && !params.event) {
+					            // prettier-ignore
+					            console.error(
+					            \`\${logRed('I think that either')}:
+
+					            \${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
+					                    It should be something like:
+					                
+					                <script context="module" lang="ts">
+					                import type { LoadEvent } from '@sveltejs/kit';
+					                
+					                export async function load(\${logYellow('event')}: LoadEvent) {
+					                    \${logYellow('await')} \${logCyan('GQL_TestQuery')}.fetch({ \${logYellow('event')}, variables: { ... } });
+					                    return {};
+					                }
+					                </script>
+					                
+					                \${logRed('2/')} you should run this in a browser only.\`
+					            );
+					            throw new Error('Error, check logs for help.');
+					        }
+
+					        // if we have event, we should be in the load function
+					        if (params.event) {
+					            return await queryLoad(params);
+					        } else {
+					            // event is missing and we are in the browser... we will get a "Function called outside component initialization"... Would be nice to warn the user!
+
+					            // else
+					            return await query(params);
+					        }
+					    }
 
 					    async function queryLoad(params) {
-							const context = new RequestContext(params.context)
+							const context = new RequestContext(params.event)
 							return await queryLocal(context, params)
 						}
 
 						async function query(params) {
-							const { session, page } = params.context
-
 							const context = new RequestContext({
 								fetch: fetch,
-								page,
-								session,
+								page: getPage(),
+								session: getSession(),
 							})
 
-							await queryLocal(context, params)
+							return await queryLocal(context, params)
 						}
 
 					    async function queryLocal(context, params) {
@@ -752,11 +855,7 @@ test('backwards cursor pagination', async function () {
 					            }
 					        },
 
-					        // For SSR
-					        queryLoad,
-
-					        // For CSR
-					        query,
+					        fetch: fetchLocal,
 
 					        // For internal usage only.
 					        setPartial: (partial) => update(s => ({...s, partial })),
@@ -799,14 +898,18 @@ test('offset pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { houdiniConfig } from '$houdini'
-					import { stry } from '@kitql/helper'
-					import { writable } from 'svelte/store'
-					import { TestQuery as artifact } from '../artifacts'
-					import { CachePolicy, DataSource, fetchQuery, RequestContext, errorsToGraphQLLayout } from '../runtime'
-					import { getSession, isBrowser } from '../runtime/adapter.mjs'
-					import cache from '../runtime/cache'
-					import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
+					import { houdiniConfig } from '$houdini';
+					import { logCyan, logRed, logYellow, stry } from '@kitql/helper';
+					import { writable } from 'svelte/store';
+					import { TestQuery as artifact } from '../artifacts';
+					import {
+					    CachePolicy,
+					    DataSource, errorsToGraphQLLayout, fetchQuery,
+					    RequestContext
+					} from '../runtime';
+					import { isBrowser, getPage, getSession } from '../runtime/adapter.mjs';
+					import cache from '../runtime/cache';
+					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
 					// optional pagination imports
 					import { queryHandlers } from '../runtime/pagination'
@@ -831,22 +934,55 @@ test('offset pagination', async function () {
 					    // Current variables tracker
 					    let variables = {}
 
+					    async function fetchLocal(params) {
+					        params = params ?? {};
+
+					        if (!isBrowser && !params.event) {
+					            // prettier-ignore
+					            console.error(
+					            \`\${logRed('I think that either')}:
+
+					            \${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
+					                    It should be something like:
+					                
+					                <script context="module" lang="ts">
+					                import type { LoadEvent } from '@sveltejs/kit';
+					                
+					                export async function load(\${logYellow('event')}: LoadEvent) {
+					                    \${logYellow('await')} \${logCyan('GQL_TestQuery')}.fetch({ \${logYellow('event')}, variables: { ... } });
+					                    return {};
+					                }
+					                </script>
+					                
+					                \${logRed('2/')} you should run this in a browser only.\`
+					            );
+					            throw new Error('Error, check logs for help.');
+					        }
+
+					        // if we have event, we should be in the load function
+					        if (params.event) {
+					            return await queryLoad(params);
+					        } else {
+					            // event is missing and we are in the browser... we will get a "Function called outside component initialization"... Would be nice to warn the user!
+
+					            // else
+					            return await query(params);
+					        }
+					    }
 
 					    async function queryLoad(params) {
-							const context = new RequestContext(params.context)
+							const context = new RequestContext(params.event)
 							return await queryLocal(context, params)
 						}
 
 						async function query(params) {
-							const { session, page } = params.context
-
 							const context = new RequestContext({
 								fetch: fetch,
-								page,
-								session,
+								page: getPage(),
+								session: getSession(),
 							})
 
-							await queryLocal(context, params)
+							return await queryLocal(context, params)
 						}
 
 					    async function queryLocal(context, params) {
@@ -1004,11 +1140,7 @@ test('offset pagination', async function () {
 					            }
 					        },
 
-					        // For SSR
-					        queryLoad,
-
-					        // For CSR
-					        query,
+					        fetch: fetchLocal,
 
 					        // For internal usage only.
 					        setPartial: (partial) => update(s => ({...s, partial })),
