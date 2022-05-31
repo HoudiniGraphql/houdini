@@ -1,5 +1,5 @@
-import { routes } from '$lib/utils/routes.ts';
-import { expectGraphQLResponse } from '$lib/utils/testsHelper.ts';
+import { routes } from '$lib/utils/routes.js';
+import { expectGraphQLResponse } from '$lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('NETWORK Page', () => {

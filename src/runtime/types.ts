@@ -1,7 +1,7 @@
 import { Readable } from 'svelte/store'
 import type { ConfigFile } from './config'
 import { HoudiniDocumentProxy } from './proxy'
-import type { LoadEvent } from '@sveltejs/kit'
+import type { LoadEvent, Page } from '@sveltejs/kit'
 import { MutationConfig } from './mutation'
 
 export enum CachePolicy {
@@ -117,9 +117,22 @@ export type QueryStoreParams<_Input> = {
 	 * You know what you are doing and you want a REAL await (even on a client side navigation in load function)
 	 */
 	blocking?: boolean
+} & (
+	| // or event in load function
+	{
+			event: LoadEvent
 
-	event?: LoadEvent
-}
+			$page?: never
+			$session?: never
+	  }
+	// or $page? && $session? in a component
+	| {
+			event?: never
+
+			$page?: Page<Record<string, string>>
+			$session?: App.Session
+	  }
+)
 
 export type HoudiniClientContext = {
 	page: any

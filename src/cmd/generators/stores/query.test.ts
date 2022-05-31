@@ -58,7 +58,7 @@ test('basic store', async function () {
 					    DataSource, errorsToGraphQLLayout, fetchQuery,
 					    RequestContext
 					} from '../runtime';
-					import { clientStarted, getPage, getSession, isBrowser } from '../runtime/adapter.mjs';
+					import { clientStarted, isBrowser } from '../runtime/adapter.mjs';
 					import cache from '../runtime/cache';
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
@@ -131,10 +131,10 @@ test('basic store', async function () {
 
 						async function query(params) {
 							const context = new RequestContext({
-								fetch: fetch,
-								page: getPage(),
-								session: getSession(),
-							})
+					            fetch: fetch,
+					            page: params.$page,
+					            session: params.$session
+					        });
 
 							return await queryLocal(context, params)
 						}
@@ -187,6 +187,7 @@ test('basic store', async function () {
 					                source,
 					                variables: newVariables
 					            }));
+					            console.error(stry(result.errors));
 					            throw new Error(result.errors);
 					        }
 
@@ -337,7 +338,7 @@ test('forward cursor pagination', async function () {
 					    DataSource, errorsToGraphQLLayout, fetchQuery,
 					    RequestContext
 					} from '../runtime';
-					import { clientStarted, getPage, getSession, isBrowser } from '../runtime/adapter.mjs';
+					import { clientStarted, isBrowser } from '../runtime/adapter.mjs';
 					import cache from '../runtime/cache';
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
@@ -411,10 +412,10 @@ test('forward cursor pagination', async function () {
 
 						async function query(params) {
 							const context = new RequestContext({
-								fetch: fetch,
-								page: getPage(),
-								session: getSession(),
-							})
+					            fetch: fetch,
+					            page: params.$page,
+					            session: params.$session
+					        });
 
 							return await queryLocal(context, params)
 						}
@@ -467,6 +468,7 @@ test('forward cursor pagination', async function () {
 					                source,
 					                variables: newVariables
 					            }));
+					            console.error(stry(result.errors));
 					            throw new Error(result.errors);
 					        }
 
@@ -630,7 +632,7 @@ test('backwards cursor pagination', async function () {
 					    DataSource, errorsToGraphQLLayout, fetchQuery,
 					    RequestContext
 					} from '../runtime';
-					import { clientStarted, getPage, getSession, isBrowser } from '../runtime/adapter.mjs';
+					import { clientStarted, isBrowser } from '../runtime/adapter.mjs';
 					import cache from '../runtime/cache';
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
@@ -704,10 +706,10 @@ test('backwards cursor pagination', async function () {
 
 						async function query(params) {
 							const context = new RequestContext({
-								fetch: fetch,
-								page: getPage(),
-								session: getSession(),
-							})
+					            fetch: fetch,
+					            page: params.$page,
+					            session: params.$session
+					        });
 
 							return await queryLocal(context, params)
 						}
@@ -760,6 +762,7 @@ test('backwards cursor pagination', async function () {
 					                source,
 					                variables: newVariables
 					            }));
+					            console.error(stry(result.errors));
 					            throw new Error(result.errors);
 					        }
 
@@ -919,7 +922,7 @@ test('offset pagination', async function () {
 					    DataSource, errorsToGraphQLLayout, fetchQuery,
 					    RequestContext
 					} from '../runtime';
-					import { clientStarted, getPage, getSession, isBrowser } from '../runtime/adapter.mjs';
+					import { clientStarted, isBrowser } from '../runtime/adapter.mjs';
 					import cache from '../runtime/cache';
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
@@ -993,10 +996,10 @@ test('offset pagination', async function () {
 
 						async function query(params) {
 							const context = new RequestContext({
-								fetch: fetch,
-								page: getPage(),
-								session: getSession(),
-							})
+					            fetch: fetch,
+					            page: params.$page,
+					            session: params.$session
+					        });
 
 							return await queryLocal(context, params)
 						}
@@ -1049,6 +1052,7 @@ test('offset pagination', async function () {
 					                source,
 					                variables: newVariables
 					            }));
+					            console.error(stry(result.errors));
 					            throw new Error(result.errors);
 					        }
 

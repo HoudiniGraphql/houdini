@@ -25,7 +25,7 @@ import {
     DataSource, errorsToGraphQLLayout, fetchQuery,
     RequestContext
 } from '../runtime';
-import { clientStarted, getPage, getSession, isBrowser } from '../runtime/adapter.mjs';
+import { clientStarted, isBrowser } from '../runtime/adapter.mjs';
 import cache from '../runtime/cache';
 import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
 
@@ -98,10 +98,10 @@ function ${storeName}Store() {
 
 	async function query(params) {
 		const context = new RequestContext({
-			fetch: fetch,
-			page: getPage(),
-			session: getSession(),
-		})
+            fetch: fetch,
+            page: params.$page,
+            session: params.$session
+        });
 
 		return await queryLocal(context, params)
 	}
@@ -154,6 +154,7 @@ function ${storeName}Store() {
                 source,
                 variables: newVariables
             }));
+            console.error(stry(result.errors));
             throw new Error(result.errors);
         }
 
