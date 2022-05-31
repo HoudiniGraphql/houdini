@@ -226,7 +226,9 @@ function ${storeName}Store() {
     }
 }
 
-export default store = ${storeName}Store()
+const store = ${storeName}Store()
+
+export default store
 
 export const ${storeName} = store
 `
