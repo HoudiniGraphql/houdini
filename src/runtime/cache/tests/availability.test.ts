@@ -285,3 +285,123 @@ test('partial missing data inside of linked list', function () {
 		partial: true,
 	})
 })
+
+test('missing cursor of item in connection from operation should not trigger null cascade', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'User',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				friends: {
+					type: 'User',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Users',
+						connection: true,
+						type: 'User',
+					},
+					fields: {
+						edges: {
+							type: 'UserEdge',
+							keyRaw: 'edges',
+							fields: {
+								cursor: {
+									type: 'Node',
+									keyRaw: 'cursor',
+									nullable: false,
+								},
+								node: {
+									type: 'Node',
+									keyRaw: 'node',
+									abstract: true,
+									fields: {
+										__typename: {
+											type: 'String',
+											keyRaw: '__typename',
+										},
+										id: {
+											type: 'ID',
+											keyRaw: 'id',
+										},
+										firstName: {
+											type: 'String',
+											keyRaw: 'firstName',
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// add some elements to the list already
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				friends: {
+					edges: [
+						{
+							node: {
+								__typename: 'User',
+								id: '2',
+								firstName: 'jane',
+							},
+						},
+					],
+				},
+			},
+		},
+	})
+
+	cache.subscribe({
+		set: jest.fn(),
+		selection,
+		rootType: 'Query',
+	})
+
+	// add some data to the cache with an incomplete set of values for an element
+	// inside of a list
+	cache.list('All_Users').prepend(
+		{
+			__typename: {
+				type: 'String',
+				keyRaw: '__typename',
+			},
+			id: {
+				type: 'ID',
+				keyRaw: 'id',
+			},
+			firstName: {
+				type: 'String',
+				keyRaw: 'firstName',
+			},
+		},
+		{
+			__typename: 'User',
+			id: '2',
+			firstName: 'Sally',
+		}
+	)
+
+	expect(cache.read({ selection })).not.toMatchObject({
+		data: {
+			viewer: {
+				friends: {
+					edges: expect.arrayContaining([null]),
+				},
+			},
+		},
+	})
+})
