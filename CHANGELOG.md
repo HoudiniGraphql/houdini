@@ -1,5 +1,11 @@
 # houdini
 
+## 0.14.7
+
+### Patch Changes
+
+-   [#306](https://github.com/HoudiniGraphql/houdini/pull/306) [`fe79ff3`](https://github.com/HoudiniGraphql/houdini/commit/fe79ff337aa922d19fdb6f36182fa365c85a2093) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed bug when loading data inserted with mutation
+
 ## 0.14.6
 
 ### Patch Changes
