@@ -657,6 +657,10 @@ class CacheInternal {
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
 
+			// in order to avoid falsey identifying the `cursor` field of a connection edge
+			// as missing null data (and therefor cascading null to the response) we need to
+			// count the number of steps since we saw a connection field and if we are at the
+			// appropriate level and we run into a null cursor, we avoid the null cascade
 			let nextStep = stepsFromConnection
 			// if we are counting steps
 			if (nextStep !== null) {
