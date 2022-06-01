@@ -625,10 +625,12 @@ class CacheInternal {
 		selection,
 		parent = rootID,
 		variables,
+		stepsFromConnection = null,
 	}: {
 		selection: SubscriptionSelection
 		parent?: string
 		variables?: {}
+		stepsFromConnection?: number | null
 	}): { data: GraphQLObject | null; partial: boolean; hasData: boolean } {
 		// we could be asking for values of null
 		if (parent === null) {
@@ -647,7 +649,7 @@ class CacheInternal {
 		let cascadeNull = false
 
 		// look at every field in the parentFields
-		for (const [attributeName, { type, keyRaw, fields, nullable }] of Object.entries(
+		for (const [attributeName, { type, keyRaw, fields, nullable, list }] of Object.entries(
 			selection
 		)) {
 			const key = evaluateKey(keyRaw, variables)
@@ -655,12 +657,34 @@ class CacheInternal {
 			// look up the value in our store
 			const { value } = this.storage.get(parent, key)
 
+			let nextStep = stepsFromConnection
+			// if we are counting steps
+			if (nextStep !== null) {
+				// if we are too many steps passed the connection to care, reset the counter
+				if (nextStep >= 2) {
+					nextStep = null
+				} else {
+					nextStep += 1
+				}
+			}
+
+			// if the field is marked as a connection, start the counter
+			if (list?.connection) {
+				nextStep = 0
+			}
+
+			// if we run into a null cursor that is inside of a connection then
+			// we know its a generated value and should not count towards the partial
+			// status
+			const embeddedCursor = key === 'cursor' && stepsFromConnection === 1
+
 			// if we dont have a value, we know this result is going to be partial
 			if (typeof value === 'undefined') {
 				partial = true
 			}
 
 			// if we dont have a value to return, use null (we check for non-null fields at the end)
+			// ignore embedded cursors, they will get handled with the other scalars
 			if (typeof value === 'undefined' || value === null) {
 				// set the value to null
 				target[attributeName] = null
@@ -695,6 +719,7 @@ class CacheInternal {
 					fields,
 					variables,
 					linkedList: value as LinkedList,
+					stepsFromConnection: nextStep,
 				})
 
 				// save the hydrated list
@@ -717,6 +742,7 @@ class CacheInternal {
 					parent: value as string,
 					selection: fields,
 					variables,
+					stepsFromConnection: nextStep,
 				})
 
 				// save the object value
@@ -734,7 +760,7 @@ class CacheInternal {
 
 			// regardless of how the field was processed, if we got a null value assigned
 			// and the field is not nullable, we need to cascade up
-			if (target[attributeName] === null && !nullable) {
+			if (target[attributeName] === null && !nullable && !embeddedCursor) {
 				cascadeNull = true
 			}
 		}
@@ -776,10 +802,12 @@ class CacheInternal {
 		fields,
 		variables,
 		linkedList,
+		stepsFromConnection,
 	}: {
 		fields: SubscriptionSelection
 		variables?: {}
 		linkedList: LinkedList
+		stepsFromConnection: number | null
 	}): { data: LinkedList<GraphQLValue>; partial: boolean; hasData: boolean } {
 		// the linked list could be a deeply nested thing, we need to call getData for each record
 		// we can't mutate the lists because that would change the id references in the listLinks map
@@ -791,7 +819,12 @@ class CacheInternal {
 		for (const entry of linkedList) {
 			// if the entry is an array, keep going
 			if (Array.isArray(entry)) {
-				const nestedValue = this.hydrateNestedList({ fields, variables, linkedList: entry })
+				const nestedValue = this.hydrateNestedList({
+					fields,
+					variables,
+					linkedList: entry,
+					stepsFromConnection,
+				})
 				result.push(nestedValue.data)
 				if (nestedValue.partial) {
 					partialData = true
@@ -810,6 +843,7 @@ class CacheInternal {
 				parent: entry,
 				selection: fields,
 				variables,
+				stepsFromConnection,
 			})
 
 			result.push(data)
