@@ -57,7 +57,7 @@ test.describe('SSR Page', () => {
     await expectNoGraphQLRequest(page);
   });
 
-  test('From HOME, navigate to SSR page (a graphql query must happen)', async ({ page }) => {
+  test('From HOME, navigate to page (a graphql query must happen)', async ({ page }) => {
     await page.goto(routes.Home);
 
     await clientSideNavigation(page, routes.Stores_SSR);

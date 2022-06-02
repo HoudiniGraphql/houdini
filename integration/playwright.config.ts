@@ -7,7 +7,7 @@ const config: PlaywrightTestConfig = {
   },
   webServer: {
     command: 'npm run generate && npm run build && npm run preview',
-    port: 3000
+    port: 3007
   }
 };
 

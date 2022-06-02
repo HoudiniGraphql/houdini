@@ -9,7 +9,7 @@
     "dev": "npm run prepare && concurrently \"yarn web\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
     "build": "svelte-kit build",
     "package": "svelte-kit package",
-    "previewWeb": "cross-env TZ=utc svelte-kit preview",
+    "previewWeb": "cross-env TZ=utc svelte-kit preview -p 3007",
     "preview": "npm run prepare && concurrently \"yarn previewWeb\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
     "prepare": "svelte-kit sync",
     "tests": "playwright test",
