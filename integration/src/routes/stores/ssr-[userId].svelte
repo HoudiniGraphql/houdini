@@ -26,7 +26,7 @@
 <button on:click={() => refresh(null)}>Fetch (no variable)</button>
 <button on:click={() => refresh('1')}>Fetch 1</button>
 <button on:click={() => refresh('2')}>Fetch 2</button>
-<button on:click={() => refresh('3')}>Fetch 3</button>
+<button on:click={() => refresh('77')}>Fetch 7</button>
 
 {#if $GQL_user.isFetching}
   <p>Loading...</p>

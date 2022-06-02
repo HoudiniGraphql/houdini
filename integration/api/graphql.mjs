@@ -29,7 +29,13 @@ export const typeDefs = gql`
 // example data
 const list = [
   { id: '1', name: 'Bruce Willis', birthDate: new Date(1955, 2, 19) },
-  { id: '2', name: 'Samuel Jackson', birthDate: new Date(1948, 11, 21) }
+  { id: '2', name: 'Samuel Jackson', birthDate: new Date(1948, 11, 21) },
+  { id: '3', name: 'Morgan Freeman', birthDate: new Date(1937, 5, 0) },
+  { id: '4', name: 'Tom Hanks', birthDate: new Date(1956, 6, 9) },
+  { id: '5', name: 'Will Smith', birthDate: new Date(1968, 8, 25) },
+  { id: '6', name: 'Harrison Ford', birthDate: new Date(1942, 6, 13) },
+  { id: '7', name: 'Eddie Murphy', birthDate: new Date(1961, 3, 3) },
+  { id: '8', name: 'Clint Eastwood', birthDate: new Date(1930, 5, 31) }
 ];
 
 export const resolvers = {
