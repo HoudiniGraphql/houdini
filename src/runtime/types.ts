@@ -4,6 +4,8 @@ import { HoudiniDocumentProxy } from './proxy'
 import type { LoadEvent, Page } from '@sveltejs/kit'
 import { MutationConfig } from './mutation'
 
+export { ConfigFile } from './config'
+
 export enum CachePolicy {
 	CacheOrNetwork = 'CacheOrNetwork',
 	CacheOnly = 'CacheOnly',

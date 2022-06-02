@@ -5,7 +5,7 @@
 
 	export async function load(context: LoadEvent) {
 		// Option 1: in Load (SSR)
-		await GQL_AllItems.queryLoad({ variables: { completed: true }, context })
+		await GQL_AllItems.fetch({ variables: { completed: true } })
 		return {}
 	}
 </script>
@@ -15,13 +15,13 @@
 	// $: browser && GQL_AllItems.query()
 
 	async function all() {
-		await GQL_AllItems.query()
+		await GQL_AllItems.fetch()
 	}
 	async function active() {
-		await GQL_AllItems.query({ variables: { completed: false } })
+		await GQL_AllItems.fetch({ variables: { completed: false } })
 	}
 	async function completed() {
-		let allItems = await GQL_AllItems.query({
+		let allItems = await GQL_AllItems.fetch({
 			variables: { completed: true },
 			policy: CachePolicy.NetworkOnly,
 		})

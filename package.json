@@ -10,11 +10,15 @@
 	"type": "module",
 	"bin": "./build/cmd.js",
 	"exports": {
+		".": {
+			"types": "./build/cmd/index.d.ts"
+		},
 		"./preprocess": {
 			"import": "./build/preprocess-esm/index.js",
 			"require": "./build/preprocess-cjs/index.js"
 		}
 	},
+	"types": "./build/cmd/index.d.ts",
 	"scripts": {
 		"tests": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest",
 		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
@@ -25,8 +29,9 @@
 		"build:preprocess": "concurrently \"npm run build:preprocess:esm\" \"npm run build:preprocess:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
 		"build:preprocess:cjs": "TARGET=esm WHICH=preprocess rollup --config rollup.config.js",
 		"build:preprocess:esm": "TARGET=cjs WHICH=preprocess rollup --config rollup.config.js",
-		"build:cmd": "concurrently \"npm run build:cmd:esm\" -n \"esm,cjs\" -c \"green,yellow\"",
-		"build:cmd:esm": "TARGET=esm WHICH=cmd rollup --config rollup.config.js",
+		"build:cmd": "concurrently \"npm run build:cmd:main\" \"npm run build:cmd:types\" -n \"exe,typ\" -c \"green,yellow\"",
+		"build:cmd:main": "TARGET=esm WHICH=cmd rollup --config rollup.config.js",
+		"build:cmd:types": "tsc --p tsconfig.root.json",
 		"build:typeModule": "./typeModule.sh",
 		"format": "prettier \"src/**/*.ts\"",
 		"format:write": "npm run format -- -w",
