@@ -89,7 +89,7 @@ jobs:
               run: npx playwright install --with-deps
 
             - name: Integration Tests
-              run: yarn integration:tests
+              run: yarn tests:integration
 
             - name: Upload test results
               if: always()
