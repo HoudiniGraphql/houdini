@@ -31,13 +31,13 @@ function ${storeName}Store() {
 			variables: null
 	});
 
-	async function mutate(variables, config) {
+	async function mutate({ variables, context, ...config }) {
 		update((c) => {
 			return { ...c, isFetching: true }
 		})
 
 		// grab the session from the adapter
-		const sessionStore = getSession()
+		const sessionStore = context.session
 
 		// treat a mutation like it has an optimistic layer regardless of
 		// whether there actually _is_ one. This ensures that a query which fires
@@ -106,7 +106,7 @@ function ${storeName}Store() {
 				data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
 				errors: result.errors,
 				isFetching: false,
-				variables: newVariables
+				variables
 			}
 
 			// update the store value

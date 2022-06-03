@@ -358,25 +358,6 @@ function addKitLoad({
 			]
 		)
 
-		const errorCheck = AST.ifStatement(
-			AST.unaryExpression(
-				'!',
-				AST.memberExpression(
-					AST.memberExpression(AST.identifier(preloadKey), AST.identifier('result')),
-					AST.identifier('data')
-				)
-			),
-			AST.blockStatement([
-				AST.expressionStatement(
-					AST.callExpression(
-						AST.memberExpression(requestContext, AST.identifier('graphqlErrors')),
-						[AST.memberExpression(AST.identifier(preloadKey), AST.identifier('result'))]
-					)
-				),
-				AST.returnStatement(retValue),
-			])
-		)
-
 		if (needsPromises) {
 			// local variable for holding the query promise
 			const preloadPromiseKey = `${preloadKey}Promise`
@@ -399,9 +380,7 @@ function addKitLoad({
 						AST.identifier(preloadKey),
 						AST.awaitExpression(AST.identifier(preloadPromiseKey))
 					),
-				]),
-				// we need to look for errors in the response
-				errorCheck
+				])
 			)
 		} else {
 			preloadFn.body.body.splice(
@@ -414,9 +393,7 @@ function addKitLoad({
 						AST.identifier(preloadKey),
 						AST.awaitExpression(fetchCall)
 					),
-				]),
-				// we need to look for errors in the response
-				errorCheck
+				])
 			)
 		}
 	}

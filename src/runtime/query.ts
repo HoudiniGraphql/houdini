@@ -27,6 +27,7 @@ export function query<_Query extends Operation<any, any>>(
 	const error = derived(document.store, ($store) => $store.errors)
 
 	return {
+		...document.store,
 		data,
 		refetch: document.store.fetch,
 		error,

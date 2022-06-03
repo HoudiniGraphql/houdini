@@ -61,16 +61,16 @@ function ${storeName}Store() {
 
             \${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
                     It should be something like:
-                
+
                 <script context="module" lang="ts">
                 import type { LoadEvent } from '@sveltejs/kit';
-                
+
                 export async function load(\${logYellow('event')}: LoadEvent) {
                     \${logYellow('await')} \${logCyan('${storeName}')}.fetch({ \${logYellow('event')}, variables: { ... } });
                     return {};
                 }
                 </script>
-                
+
                 \${logRed('2/')} you should run this in a browser only.\`
             );
             throw new Error('Error, check logs for help.');
@@ -91,16 +91,16 @@ function ${storeName}Store() {
         }
     }
 
-    async function queryLoad(params) {
+    function queryLoad(params) {
 		const context = new RequestContext(params.event)
-		return await queryLocal(context, params)
+		return queryLocal(context, params)
 	}
 
 	async function query(params) {
 		const context = new RequestContext({
             fetch: fetch,
-            page: params.$page,
-            session: params.$session
+            page: params.context.page,
+            session: params.context.session
         });
 
 		return await queryLocal(context, params)
@@ -125,16 +125,16 @@ function ${storeName}Store() {
             input: {...variables, ...params.variables }
         })
 
-        if (artifact.input && Object.keys(newVariables).length === 0) {
-            update((s) => ({
-              ...s,
-              errors: errorsToGraphQLLayout('${storeName} variables are not matching'),
-              isFetching: false,
-              partial: false,
-              variables: newVariables
-            }));
-            throw new Error(\`${storeName} variables are not matching\`);
-        }
+        // if (artifact.input && Object.keys(newVariables).length === 0) {
+        //     update((s) => ({
+        //       ...s,
+        //       errors: errorsToGraphQLLayout('${storeName} variables are not matching'),
+        //       isFetching: false,
+        //       partial: false,
+        //       variables: newVariables
+        //     }));
+        //     throw new Error(\`${storeName} variables are not matching\`);
+        // }
 
         const { result, source, partial } = await fetchQuery({
             context,

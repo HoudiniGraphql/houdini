@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
   import { page, session } from '$app/stores';
-  import { CachePolicy, GQL_user } from '$houdini';
+  import { CachePolicy, GQL_user, getContext } from '$houdini';
   import { stry } from '@kitql/helper';
   import type { LoadEvent } from '@sveltejs/kit';
 
@@ -12,11 +12,13 @@
 </script>
 
 <script lang="ts">
+  const context = getContext();
+
   async function refresh(id: string | null) {
     if (id) {
       await GQL_user.fetch({ variables: { id } });
     } else {
-      await GQL_user.fetch({ policy: CachePolicy.NetworkOnly, $page, $session });
+      await GQL_user.fetch({ policy: CachePolicy.NetworkOnly, context });
     }
   }
 </script>

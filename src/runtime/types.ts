@@ -124,23 +124,20 @@ export type QueryStoreParams<_Input> = {
 	{
 			event: LoadEvent
 
-			$page?: never
-			$session?: never
+			context?: never
 	  }
 	// or $page? && $session? in a component
 	| {
 			event?: never
 
-			$page?: Page<Record<string, string>>
-			$session?: App.Session
+			context?: LoadContext
 	  }
 )
 
-export type HoudiniClientContext = {
+export type LoadContext = {
 	page: any
 	session: Readable<any>
 	variables: () => {}
-	// context: any
 }
 
 export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
@@ -179,8 +176,7 @@ export type MutationStore<_Result, _Input> = Readable<{
 	errors: Error | null
 }> & {
 	mutate: <_Result, _Input>(
-		i: _Input,
-		mutationConfig?: MutationConfig<_Result, _Input>
+		params: { variables: _Input; context: LoadContext } & MutationConfig<_Result, _Input>
 	) => Promise<_Result>
 }
 

@@ -7,9 +7,10 @@ import { marshalInputs, marshalSelection, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
+import { getContext } from './context'
 
 export type MutationConfig<_Result, _Input> = {
-	optimisticResponse: _Result
+	optimisticResponse?: _Result
 }
 
 export function mutation<_Mutation extends Operation<any, any>>(document: GraphQLTagResult) {
@@ -18,10 +19,17 @@ export function mutation<_Mutation extends Operation<any, any>>(document: GraphQ
 		throw new Error('mutation() must be passed a mutation document')
 	}
 
+	const context = getContext()
+
 	return (
 		variables: _Mutation['input'],
 		mutationConfig?: MutationConfig<_Mutation['result'], _Mutation['input']>
-	) => document.store.mutate<_Mutation['result'], _Mutation['input']>(variables, mutationConfig)
+	) =>
+		document.store.mutate<_Mutation['result'], _Mutation['input']>({
+			variables,
+			...mutationConfig,
+			context,
+		})
 }
 
 // mutation returns a handler that will send the mutation to the server when

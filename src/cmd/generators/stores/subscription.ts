@@ -11,7 +11,8 @@ export async function generateSubscriptionStore(config: Config, doc: CollectedGr
 	const artifactName = `${doc.name}` // "2 => Item$Update" => ${artifactName}
 
 	// the content of the store
-	const storeContent = `import { writable } from 'svelte/store'
+	const storeContent = `import { houdiniConfig } from '$houdini'
+import { writable } from 'svelte/store'
 import { ${artifactName} as artifact } from '../artifacts'
 import cache from '../runtime/cache'
 import { getCurrentClient } from '../runtime/network'
@@ -48,8 +49,8 @@ export const ${storeName} = {
 		// marshal the inputs into their raw values
 		const marshaledVariables = marshalInputs({
 			input: variables || {},
-			config: config,
-			artifact: document.artifact,
+			config: houdiniConfig,
+			artifact,
 		})
 
 		// start listening for updates from the server
