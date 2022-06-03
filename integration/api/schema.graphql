@@ -5,13 +5,13 @@ scalar DateTime
 
 type Mutation {
   addUser(birthDate: DateTime!, name: String!, delay: Int): User!
+  updateUser(id: ID!, name: String!): User!
 }
 
 type Query {
   avgYearsBirthDate: Float!
   user(id: ID!): User!
-  userWithDelay(id: ID!): User!
-  usersList: [User!]!
+  usersList(limit: Int): [User!]!
 }
 
 type User {

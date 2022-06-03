@@ -16,7 +16,7 @@
   }
 </script>
 
-<h1>SSR</h1>
+<h1>Mutation</h1>
 
 <button id="mutate" on:click={add}>Add User</button>
 

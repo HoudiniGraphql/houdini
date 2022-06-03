@@ -83,18 +83,27 @@ function ${storeName}Store() {
       set(storeData);
 		}
 
+		const newVariables = marshalInputs({
+      input: variables,
+      artifact,
+      config: houdiniConfig
+    });
+
 		try {
 			// trigger the mutation
-			const { result } = await executeQuery(
-				artifact,
-				marshalInputs({
-					input: variables,
-					artifact,
-					config: houdiniConfig,
-				}),
-				sessionStore,
-				false
-			)
+      const { result } = await executeQuery(artifact, newVariables, sessionStore, false);
+
+      if (result.errors && result.errors.length > 0) {
+        update((s) => ({
+          ...s,
+          errors: result.errors,
+          isFetching: false,
+          isOptimisticResponse: false,
+          data: result.data,
+          variables: newVariables
+        }));
+        throw new Error(result.errors);
+      }
 
 			// clear the layer holding any mutation results
 			layer.clear()
@@ -132,6 +141,15 @@ function ${storeName}Store() {
 			// return the value to the caller
 			return storeData
 		} catch (error) {
+			update((s) => ({
+        ...s,
+        errors: error,
+        isFetching: false,
+        isOptimisticResponse: false,
+        data: null,
+        variables: newVariables
+      }));
+			
 			// if the mutation failed, roll the layer back and delete it
 			layer.clear()
 			cache._internal_unstable.storage.resolveLayer(layer.id)

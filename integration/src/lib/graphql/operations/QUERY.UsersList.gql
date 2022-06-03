@@ -1,5 +1,5 @@
-query usersList {
-  usersList {
+query usersList($limit: Int) {
+  usersList(limit: $limit) {
     id
     name
     ...UserInfo

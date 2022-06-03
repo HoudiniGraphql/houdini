@@ -9,14 +9,14 @@ export const typeDefs = gql`
   scalar DateTime
 
   type Query {
-    usersList: [User!]!
+    usersList(limit: Int = 4): [User!]!
     user(id: ID!): User!
-    userWithDelay(id: ID!): User!
     avgYearsBirthDate: Float!
   }
 
   type Mutation {
     addUser(name: String!, birthDate: DateTime!, delay: Int): User!
+    updateUser(id: ID!, name: String!): User!
   }
 
   type User {
@@ -41,17 +41,9 @@ const list = [
 export const resolvers = {
   Query: {
     usersList: (_, args) => {
-      return list;
+      return list.slice(0, args.limit);
     },
     user: (_, args) => {
-      const user = list.find((c) => c.id === args.id);
-      if (!user) {
-        throw new GraphQLYogaError('User not found', { code: 404 });
-      }
-      return user;
-    },
-    userWithDelay: async (_, args) => {
-      await sleep(2000);
       const user = list.find((c) => c.id === args.id);
       if (!user) {
         throw new GraphQLYogaError('User not found', { code: 404 });
@@ -68,7 +60,6 @@ export const resolvers = {
       if (args.delay) {
         await sleep(args.delay);
       }
-
       const user = {
         id: (list.length + 1).toString(),
         name: args.name,
@@ -76,6 +67,14 @@ export const resolvers = {
       };
       list.push(user);
       return user;
+    },
+    updateUser: async (_, args) => {
+      const userIndex = list.findIndex((c) => c.id === args.id);
+      if (userIndex === -1) {
+        throw new GraphQLYogaError('User not found', { code: 404 });
+      }
+      list[userIndex] = { ...list[userIndex], name: args.name };
+      return list[userIndex];
     }
   },
 

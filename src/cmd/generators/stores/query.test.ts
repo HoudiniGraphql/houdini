@@ -164,16 +164,17 @@ test('basic store', async function () {
 					            input: params.variables
 					        })
 
-					        if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
-					            update((s) => ({
-					                ...s,
-					                errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					                isFetching: false,
-					                partial: false,
-					                variables: newVariables
-					            }));
-					            throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        }
+					        // Todo: We need to know what is mandatory, what not... so let's comment for now!
+					        // if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
+					        //     update((s) => ({
+					        //         ...s,
+					        //         errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					        //         isFetching: false,
+					        //         partial: false,
+					        //         variables: newVariables
+					        //     }));
+					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        // }
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -451,16 +452,17 @@ test('forward cursor pagination', async function () {
 					            input: params.variables
 					        })
 
-					        if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
-					            update((s) => ({
-					                ...s,
-					                errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					                isFetching: false,
-					                partial: false,
-					                variables: newVariables
-					            }));
-					            throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        }
+					        // Todo: We need to know what is mandatory, what not... so let's comment for now!
+					        // if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
+					        //     update((s) => ({
+					        //         ...s,
+					        //         errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					        //         isFetching: false,
+					        //         partial: false,
+					        //         variables: newVariables
+					        //     }));
+					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        // }
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -751,16 +753,17 @@ test('backwards cursor pagination', async function () {
 					            input: params.variables
 					        })
 
-					        if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
-					            update((s) => ({
-					                ...s,
-					                errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					                isFetching: false,
-					                partial: false,
-					                variables: newVariables
-					            }));
-					            throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        }
+					        // Todo: We need to know what is mandatory, what not... so let's comment for now!
+					        // if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
+					        //     update((s) => ({
+					        //         ...s,
+					        //         errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					        //         isFetching: false,
+					        //         partial: false,
+					        //         variables: newVariables
+					        //     }));
+					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        // }
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -1047,16 +1050,17 @@ test('offset pagination', async function () {
 					            input: params.variables
 					        })
 
-					        if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
-					            update((s) => ({
-					                ...s,
-					                errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					                isFetching: false,
-					                partial: false,
-					                variables: newVariables
-					            }));
-					            throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        }
+					        // Todo: We need to know what is mandatory, what not... so let's comment for now!
+					        // if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
+					        //     update((s) => ({
+					        //         ...s,
+					        //         errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					        //         isFetching: false,
+					        //         partial: false,
+					        //         variables: newVariables
+					        //     }));
+					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        // }
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
