@@ -25,7 +25,7 @@ export function mutation<_Mutation extends Operation<any, any>>(document: GraphQ
 		variables: _Mutation['input'],
 		mutationConfig?: MutationConfig<_Mutation['result'], _Mutation['input']>
 	) =>
-		document.store.mutate<_Mutation['result'], _Mutation['input']>({
+		document.store.mutate({
 			variables,
 			...mutationConfig,
 			context,

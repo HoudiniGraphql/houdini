@@ -4,7 +4,7 @@ Date custom scalar type
 scalar DateTime
 
 type Mutation {
-  addUser(birthDate: DateTime!, name: String!): User!
+  addUser(birthDate: DateTime!, name: String!, delay: Int): User!
 }
 
 type Query {

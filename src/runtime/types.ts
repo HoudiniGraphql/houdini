@@ -111,6 +111,13 @@ export type QueryResult<DataType> = {
 	variables: {}
 }
 
+export type MutationResult<DataType> = {
+	isFetching: boolean
+	data?: DataType | null
+	errors: Error | null
+	variables: {}
+}
+
 export type QueryStoreParams<_Input> = {
 	variables?: _Input
 	policy?: CachePolicy
@@ -187,13 +194,10 @@ export type TaggedGraphqlMutation = {
 	store: MutationStore<any, any>
 }
 
-export type MutationStore<_Result, _Input> = Readable<{
-	data?: _Result | null
-	errors: Error | null
-}> & {
-	mutate: <_Result, _Input>(
-		params: { variables: _Input; context: LoadContext } & MutationConfig<_Result, _Input>
-	) => Promise<_Result>
+export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result>> & {
+	mutate: (
+		params: { variables: _Input; context?: HoudiniContext } & MutationConfig<_Result, _Input>
+	) => Promise<MutationResult<_Result>>
 }
 
 // the result of tagging an operation

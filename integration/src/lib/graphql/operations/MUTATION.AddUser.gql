@@ -1,0 +1,7 @@
+mutation AddUser($name: String!, $birthDate: DateTime!, $delay: Int) {
+  addUser(name: $name, birthDate: $birthDate, delay: $delay) {
+    id
+    name
+    birthDate
+  }
+}

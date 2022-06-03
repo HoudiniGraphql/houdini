@@ -16,7 +16,7 @@ export const typeDefs = gql`
   }
 
   type Mutation {
-    addUser(name: String!, birthDate: DateTime!): User!
+    addUser(name: String!, birthDate: DateTime!, delay: Int): User!
   }
 
   type User {
@@ -64,7 +64,11 @@ export const resolvers = {
   },
 
   Mutation: {
-    addUser: (_, args) => {
+    addUser: async (_, args) => {
+      if (args.delay) {
+        await sleep(args.delay);
+      }
+
       const user = {
         id: (list.length + 1).toString(),
         name: args.name,

@@ -32,6 +32,11 @@ function ${storeName}Store() {
 	});
 
 	async function mutate({ variables, context, ...config }) {
+
+		if(!context){
+			context = {}
+		}
+
 		update((c) => {
 			return { ...c, isFetching: true }
 		})
