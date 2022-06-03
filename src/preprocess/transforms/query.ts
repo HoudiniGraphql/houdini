@@ -354,6 +354,7 @@ function addKitLoad({
 						AST.identifier(variableIdentifier)
 					),
 					AST.objectProperty(AST.literal('event'), AST.identifier('context')),
+					AST.objectProperty(AST.literal('blocking'), AST.booleanLiteral(true)),
 				]),
 			]
 		)

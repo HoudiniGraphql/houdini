@@ -32,7 +32,8 @@ describe('query preprocessor', function () {
 
 		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    return _houdini_context.returnValue;
@@ -156,14 +157,16 @@ describe('query preprocessor', function () {
 
 		    const _TestQuery2Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    const _TestQuery1_Input = {};
 
 		    const _TestQuery1Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery1_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    const _TestQuery2 = await _TestQuery2Promise;
@@ -253,7 +256,8 @@ describe('query preprocessor', function () {
 
 		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    return _houdini_context.returnValue;
@@ -310,7 +314,8 @@ describe('query preprocessor', function () {
 
 		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    return _houdini_context.returnValue;
@@ -603,7 +608,8 @@ test('beforeLoad hook', async function () {
 
 		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    return _houdini_context.returnValue;
@@ -680,14 +686,16 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		    const _TestQuery2Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    const _TestQuery1_Input = {};
 
 		    const _TestQuery1Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery1_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    const _TestQuery2 = await _TestQuery2Promise;
@@ -760,7 +768,8 @@ test('afterLoad hook', async function () {
 
 		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    await _houdini_context.invokeLoadHook({
@@ -844,14 +853,16 @@ test('afterLoad hook - multiple queries', async function () {
 
 		    const _TestQuery2Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    const _TestQuery1_Input = {};
 
 		    const _TestQuery1Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery1_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    const _TestQuery2 = await _TestQuery2Promise;
@@ -955,7 +966,8 @@ test('both beforeLoad and afterLoad hooks', async function () {
 
 		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    await _houdini_context.invokeLoadHook({
@@ -1046,7 +1058,8 @@ test('deprecated onLoad hook', async function () {
 
 		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "event": context
+		        "event": context,
+		        "blocking": true
 		    });
 
 		    return _houdini_context.returnValue;
