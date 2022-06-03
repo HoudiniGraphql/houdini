@@ -4,7 +4,7 @@
 <script context="module">
 	export async function load() {
 		return {
-			redirect: 'stores',
+			redirect: '/all',
 			status: 302,
 		}
 	}
