@@ -10,7 +10,6 @@ import { Fragment, GraphQLObject, GraphQLTagResult, Operation, QueryArtifact } f
 import { FragmentStore, LoadContext, QueryResult, QueryStore, QueryStoreParams } from '.'
 import { getContext } from './context'
 import { ConfigFile, keyFieldsForType } from './config'
-import { countPage, extractPageInfo, PageInfo } from './utils'
 
 //Todo: houdiniContext Type
 type RefetchFn<_Data = any, _Input = any> = (
@@ -626,4 +625,59 @@ type PaginatedHandlers<_Query extends Operation<any, any>> = {
 
 function missingPageSizeError(fnName: string) {
 	return
+}
+
+export type PageInfo = {
+	startCursor: string | null
+	endCursor: string | null
+	hasNextPage: boolean
+	hasPreviousPage: boolean
+}
+
+export function extractPageInfo(data: GraphQLObject, path: string[]): PageInfo {
+	if (!data) {
+		return {
+			startCursor: null,
+			endCursor: null,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		}
+	}
+
+	let localPath = [...path]
+	// walk down the object until we get to the end
+	let current = data
+	while (localPath.length > 0) {
+		if (current === null) {
+			break
+		}
+		current = current[localPath.shift() as string] as GraphQLObject
+	}
+
+	return (
+		(current?.pageInfo as PageInfo) ?? {
+			startCursor: null,
+			endCursor: null,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		}
+	)
+}
+
+export function countPage(source: string[], value: GraphQLObject): number {
+	let data = value
+	for (const field of source) {
+		const obj = data[field] as GraphQLObject | GraphQLObject[]
+		if (obj && !Array.isArray(obj)) {
+			data = obj
+		} else if (!data) {
+			throw new Error('Could not count page size')
+		}
+
+		if (Array.isArray(obj)) {
+			return obj.length
+		}
+	}
+
+	return 0
 }
