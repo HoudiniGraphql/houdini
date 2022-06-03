@@ -157,7 +157,6 @@ function ${storeName}Store() {
                 source,
                 variables: newVariables
             }));
-            console.error(stry(result.errors));
             throw new Error(result.errors);
         }
 
