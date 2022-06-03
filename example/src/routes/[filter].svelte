@@ -58,16 +58,16 @@
 		}
 	`)
 
-	subscription(graphql`
-		subscription NewItem {
-			newItem {
-				item {
-					...All_Items_insert
-					...Filtered_Items_insert @prepend(when_not: { completed: true })
-				}
-			}
-		}
-	`)
+	// subscription(graphql`
+	// 	subscription NewItem {
+	// 		newItem {
+	// 			item {
+	// 				...All_Items_insert
+	// 				...Filtered_Items_insert @prepend(when_not: { completed: true })
+	// 			}
+	// 		}
+	// 	}
+	// `)
 
 	$: numberOfItems = $data.allItems.edges.length
 	$: itemsLeft = $data.allItems.edges.filter(({ node: item }) => !item.completed).length

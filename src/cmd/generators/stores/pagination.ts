@@ -41,7 +41,7 @@ const handlers = fragmentHandlers({
 
 		// create the query handlers
 		preamble = `
-const handlers =
+	const handlers =
 		queryHandlers({
 			config: houdiniConfig,
 			artifact,

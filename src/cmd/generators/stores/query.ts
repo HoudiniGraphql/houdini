@@ -125,6 +125,8 @@ function ${storeName}Store() {
             input: {...variables, ...params.variables }
         })
 
+        console.log({ newVariables })
+
         // if (artifact.input && Object.keys(newVariables).length === 0) {
         //     update((s) => ({
         //       ...s,
@@ -160,7 +162,6 @@ function ${storeName}Store() {
 
         // setup a subscription for new values from the cache
         if (isBrowser) {
-
             subscriptionSpec = {
                 rootType: artifact.rootType,
                 selection: artifact.selection,
@@ -215,10 +216,10 @@ function ${storeName}Store() {
             if (updated && subscriptionSpec) {
                 cache.subscribe(subscriptionSpec, newVariables)
             }
-
-            // update Current variables tracker
-            variables = newVariables
         }
+
+        // update Current variables tracker
+        variables = newVariables
 
         // prepare store data
         const storeData = {

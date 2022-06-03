@@ -297,21 +297,23 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 		loading.set(true)
 
 		// build up the variables to pass to the query
-		const queryVariables: Record<string, any> = {
-			...extraVariables,
+		const loadVariables: Record<string, any> = {
+			...extraVariables?.(),
 			...houdiniContext.variables(),
 			...input,
 		}
 
+		console.log('load page', loadVariables, houdiniContext.variables())
+
 		// if we don't have a value for the page size, tell the user
-		if (!queryVariables[pageSizeVar] && !artifact.refetch!.pageSize) {
+		if (!loadVariables[pageSizeVar] && !artifact.refetch!.pageSize) {
 			throw missingPageSizeError(functionName)
 		}
 
 		// send the query
 		const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
 			artifact,
-			queryVariables,
+			loadVariables,
 			houdiniContext.session,
 			false
 		)
@@ -341,7 +343,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 		cache.write({
 			selection: artifact.selection,
 			data: result.data,
-			variables: queryVariables,
+			variables: loadVariables,
 			applyUpdates: true,
 		})
 

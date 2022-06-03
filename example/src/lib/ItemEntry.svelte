@@ -58,23 +58,23 @@
 	`)
 
 	// make sure the todo items stay up to date
-	subscription(
-		graphql`
-			subscription ItemUpdate($id: ID!) {
-				itemUpdate(id: $id) {
-					item {
-						id
-						completed
-						text
-						createdAt
-					}
-				}
-			}
-		`,
-		{
-			id: $data.id,
-		}
-	)
+	// subscription(
+	// 	graphql`
+	// 		subscription ItemUpdate($id: ID!) {
+	// 			itemUpdate(id: $id) {
+	// 				item {
+	// 					id
+	// 					completed
+	// 					text
+	// 					createdAt
+	// 				}
+	// 			}
+	// 		}
+	// 	`,
+	// 	{
+	// 		id: $data.id,
+	// 	}
+	// )
 
 	async function handleClick() {
 		// if the item is already checked
