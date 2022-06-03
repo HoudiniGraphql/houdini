@@ -7,7 +7,7 @@ import { marshalInputs, marshalSelection, unmarshalSelection } from './scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
-import { getContext } from './context'
+import { getHoudiniContext } from './context'
 
 export type MutationConfig<_Result, _Input> = {
 	optimisticResponse?: _Result
@@ -19,7 +19,7 @@ export function mutation<_Mutation extends Operation<any, any>>(document: GraphQ
 		throw new Error('mutation() must be passed a mutation document')
 	}
 
-	const context = getContext()
+	const context = getHoudiniContext()
 
 	return (
 		variables: _Mutation['input'],

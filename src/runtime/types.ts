@@ -120,19 +120,35 @@ export type QueryStoreParams<_Input> = {
 	 */
 	blocking?: boolean
 } & (
-	| // or event in load function
-	{
+	| {
+			/**
+			 * Directly the `even` param coming from the `load` function
+			 */
 			event: LoadEvent
 
+			/**
+			 * Only when you are in a component, not here.
+			 */
 			context?: never
 	  }
-	// or $page? && $session? in a component
 	| {
+			/**
+			 * Only in a <script context="module"> `load` function, not here.
+			 */
 			event?: never
-
-			context?: LoadContext
+			/**
+			 * The HoudiniContext object to get from getHoudiniContext.
+			 * Something like this: `const context = getHoudiniContext()`
+			 */
+			context?: HoudiniContext
 	  }
 )
+
+export type HoudiniContext = {
+	page: Page<Record<string, string>>
+	session: Readable<any>
+	variables: () => {}
+}
 
 export type LoadContext = {
 	page: any

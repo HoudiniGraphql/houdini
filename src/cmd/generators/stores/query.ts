@@ -53,7 +53,10 @@ function ${storeName}Store() {
 
     async function fetchLocal(params) {
         params = params ?? {};
-
+        if (!params.context) {
+            params.context = {};
+        }
+        
         if (!isBrowser && !params.event) {
             // prettier-ignore
             console.error(
@@ -128,16 +131,16 @@ function ${storeName}Store() {
             input: params.variables
         })
 
-        // if (artifact.input && Object.keys(newVariables).length === 0) {
-        //     update((s) => ({
-        //       ...s,
-        //       errors: errorsToGraphQLLayout('${storeName} variables are not matching'),
-        //       isFetching: false,
-        //       partial: false,
-        //       variables: newVariables
-        //     }));
-        //     throw new Error(\`${storeName} variables are not matching\`);
-        // }
+        if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
+            update((s) => ({
+                ...s,
+                errors: errorsToGraphQLLayout('${storeName} variables are not matching'),
+                isFetching: false,
+                partial: false,
+                variables: newVariables
+            }));
+            throw new Error(\`${storeName} variables are not matching\`);
+        }
 
         const { result, source, partial } = await fetchQuery({
             context,

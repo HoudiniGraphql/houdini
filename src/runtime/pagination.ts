@@ -6,7 +6,7 @@ import { executeQuery } from './network'
 import { GraphQLObject, Operation, QueryArtifact } from './types'
 // this has to be in a separate file since config isn't defined in cache/index.ts
 import { FragmentStore, QueryResult, QueryStore, QueryStoreParams } from '.'
-import { getContext } from './context'
+import { getHoudiniContext } from './context'
 import { ConfigFile, keyFieldsForType } from './config'
 import { LoadContext } from './types'
 import { countPage, extractPageInfo } from './utils'
@@ -23,20 +23,20 @@ export function wrapPaginationStore<_Data, _Input>(
 	const { loadNextPage, loadPreviousPage, refetch, ...rest } = store
 
 	// grab the current houdini context
-	const houdiniContext = getContext()
+	const context = getHoudiniContext()
 
 	const result = rest
 	if (loadNextPage) {
 		// @ts-ignore
-		result.loadNextPage = (...args) => loadNextPage(houdiniContext, ...args)
+		result.loadNextPage = (...args) => loadNextPage(context, ...args)
 	}
 	if (loadPreviousPage) {
 		// @ts-ignore
-		result.loadPreviousPage = (...args) => loadPreviousPage(houdiniContext, ...args)
+		result.loadPreviousPage = (...args) => loadPreviousPage(context, ...args)
 	}
 	if (refetch) {
 		// @ts-ignore
-		result.refetch = (...args) => refetch(houdiniContext, ...args)
+		result.refetch = (...args) => refetch(context, ...args)
 	}
 
 	return result

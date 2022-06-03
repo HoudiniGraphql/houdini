@@ -9,7 +9,7 @@ export { query, paginatedQuery } from './query'
 export { mutation } from './mutation'
 export { fragment, paginatedFragment } from './fragment'
 export { subscription } from './subscription'
-export { getContext } from './context'
+export { getHoudiniContext } from './context'
 export { errorsToGraphQLLayout } from './errors'
 
 // this template tag gets removed by the preprocessor so it should never be invoked.
