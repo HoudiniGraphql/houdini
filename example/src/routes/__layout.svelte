@@ -18,10 +18,6 @@
 </svelte:head>
 
 <section class="todoapp">
-	<a href="/all">Original</a>
-	<a href="/stores">Stores</a>
-	<a href="/about">About</a>
-	<hr />
 	<slot />
 </section>
 

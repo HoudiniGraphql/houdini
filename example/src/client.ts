@@ -21,16 +21,15 @@ async function fetchQuery({ text, variables = {} }, session: App.Session) {
 // For subscription (client only)
 let socketClient: SubscriptionHandler | null = null
 if (browser) {
-	const client = new SubscriptionClient('ws://localhost:4000/graphql', {
-		reconnect: true,
-	})
-
-	socketClient = {
-		subscribe(payload, handlers) {
-			const { unsubscribe } = client.request(payload).subscribe(handlers)
-			return unsubscribe
-		},
-	}
+	// const client = new SubscriptionClient('ws://localhost:4000/graphql', {
+	// 	reconnect: true,
+	// })
+	// socketClient = {
+	// 	subscribe(payload, handlers) {
+	// 		const { unsubscribe } = client.request(payload).subscribe(handlers)
+	// 		return unsubscribe
+	// 	},
+	// }
 }
 
 // Export the Houdini client

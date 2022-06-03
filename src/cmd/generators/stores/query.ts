@@ -237,7 +237,9 @@ function ${storeName}Store() {
         return storeData
     }
 
-    ${paginationExtras.preamble}
+    const setPartial = (partial) => update(s => ({...s, partial }))
+
+${paginationExtras.preamble}
 
     return {
         subscribe: (...args) => {
@@ -257,7 +259,7 @@ function ${storeName}Store() {
         fetch: fetchLocal,
 
         // For internal usage only.
-        setPartial: (partial) => update(s => ({...s, partial })),
+        setPartial,
 
         ${paginationExtras.methods}
     }

@@ -4,10 +4,10 @@
 		mutation,
 		graphql,
 		subscription,
-		ItemEntry_item,
-		CompleteItem,
-		UncompleteItem,
-		DeleteItem,
+		type ItemEntry_item,
+		type CompleteItem,
+		type UncompleteItem,
+		type DeleteItem,
 	} from '$houdini'
 
 	// the reference we're passed from our parents

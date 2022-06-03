@@ -45,7 +45,7 @@ const handlers =
 		queryHandlers({
 			config: houdiniConfig,
 			artifact,
-			store: { subscribe },
+			store: { subscribe, setPartial },
 			queryVariables: () => variables
 		})
 `
