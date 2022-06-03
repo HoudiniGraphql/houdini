@@ -94,16 +94,16 @@ test('basic store', async function () {
 
 					            \${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
 					                    It should be something like:
-					                
+
 					                <script context="module" lang="ts">
 					                import type { LoadEvent } from '@sveltejs/kit';
-					                
+
 					                export async function load(\${logYellow('event')}: LoadEvent) {
 					                    \${logYellow('await')} \${logCyan('GQL_TestQuery')}.fetch({ \${logYellow('event')}, variables: { ... } });
 					                    return {};
 					                }
 					                </script>
-					                
+
 					                \${logRed('2/')} you should run this in a browser only.\`
 					            );
 					            throw new Error('Error, check logs for help.');
@@ -124,19 +124,22 @@ test('basic store', async function () {
 					        }
 					    }
 
-					    async function queryLoad(params) {
+					    function queryLoad(params) {
 							const context = new RequestContext(params.event)
-							return await queryLocal(context, params)
+							return queryLocal(context, params)
 						}
 
 						async function query(params) {
 							const context = new RequestContext({
 					            fetch: fetch,
-					            page: params.$page,
-					            session: params.$session
+					            page: params.context.page,
+					            session: params.context.session
 					        });
 
-							return await queryLocal(context, params)
+							return await queryLocal(context, {
+					            ...params,
+					            variables: {...variables, ...params.variables }
+					        })
 						}
 
 					    async function queryLocal(context, params) {
@@ -155,19 +158,19 @@ test('basic store', async function () {
 					        const newVariables = marshalInputs({
 					            artifact,
 					            config: houdiniConfig,
-					            input: {...variables, ...params.variables }
+					            input: params.variables
 					        })
 
-					        if (artifact.input && Object.keys(newVariables).length === 0) {
-					            update((s) => ({
-					              ...s,
-					              errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					              isFetching: false,
-					              partial: false,
-					              variables: newVariables
-					            }));
-					            throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        }
+					        // if (artifact.input && Object.keys(newVariables).length === 0) {
+					        //     update((s) => ({
+					        //       ...s,
+					        //       errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					        //       isFetching: false,
+					        //       partial: false,
+					        //       variables: newVariables
+					        //     }));
+					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        // }
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -187,13 +190,11 @@ test('basic store', async function () {
 					                source,
 					                variables: newVariables
 					            }));
-					            console.error(stry(result.errors));
 					            throw new Error(result.errors);
 					        }
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-
 					            subscriptionSpec = {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
@@ -202,7 +203,7 @@ test('basic store', async function () {
 					            }
 					            cache.subscribe(subscriptionSpec, variables)
 
-					            const updated = stry(variables, 0) !== stry(newVariables, 0)
+					            const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
 
 					            // if the variables changed we need to unsubscribe from the old fields and
 					            // listen to the new ones
@@ -248,10 +249,10 @@ test('basic store', async function () {
 					            if (updated && subscriptionSpec) {
 					                cache.subscribe(subscriptionSpec, newVariables)
 					            }
-
-					            // update Current variables tracker
-					            variables = newVariables
 					        }
+
+					        // update Current variables tracker
+					        variables = newVariables
 
 					        // prepare store data
 					        const storeData = {
@@ -270,7 +271,9 @@ test('basic store', async function () {
 					        return storeData
 					    }
 
-					    
+					    const setPartial = (partial) => update(s => ({...s, partial }))
+
+
 
 					    return {
 					        subscribe: (...args) => {
@@ -290,7 +293,7 @@ test('basic store', async function () {
 					        fetch: fetchLocal,
 
 					        // For internal usage only.
-					        setPartial: (partial) => update(s => ({...s, partial })),
+					        setPartial,
 
 					        
 					    }
@@ -375,16 +378,16 @@ test('forward cursor pagination', async function () {
 
 					            \${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
 					                    It should be something like:
-					                
+
 					                <script context="module" lang="ts">
 					                import type { LoadEvent } from '@sveltejs/kit';
-					                
+
 					                export async function load(\${logYellow('event')}: LoadEvent) {
 					                    \${logYellow('await')} \${logCyan('GQL_TestQuery')}.fetch({ \${logYellow('event')}, variables: { ... } });
 					                    return {};
 					                }
 					                </script>
-					                
+
 					                \${logRed('2/')} you should run this in a browser only.\`
 					            );
 					            throw new Error('Error, check logs for help.');
@@ -405,19 +408,22 @@ test('forward cursor pagination', async function () {
 					        }
 					    }
 
-					    async function queryLoad(params) {
+					    function queryLoad(params) {
 							const context = new RequestContext(params.event)
-							return await queryLocal(context, params)
+							return queryLocal(context, params)
 						}
 
 						async function query(params) {
 							const context = new RequestContext({
 					            fetch: fetch,
-					            page: params.$page,
-					            session: params.$session
+					            page: params.context.page,
+					            session: params.context.session
 					        });
 
-							return await queryLocal(context, params)
+							return await queryLocal(context, {
+					            ...params,
+					            variables: {...variables, ...params.variables }
+					        })
 						}
 
 					    async function queryLocal(context, params) {
@@ -436,19 +442,19 @@ test('forward cursor pagination', async function () {
 					        const newVariables = marshalInputs({
 					            artifact,
 					            config: houdiniConfig,
-					            input: {...variables, ...params.variables }
+					            input: params.variables
 					        })
 
-					        if (artifact.input && Object.keys(newVariables).length === 0) {
-					            update((s) => ({
-					              ...s,
-					              errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					              isFetching: false,
-					              partial: false,
-					              variables: newVariables
-					            }));
-					            throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        }
+					        // if (artifact.input && Object.keys(newVariables).length === 0) {
+					        //     update((s) => ({
+					        //       ...s,
+					        //       errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					        //       isFetching: false,
+					        //       partial: false,
+					        //       variables: newVariables
+					        //     }));
+					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        // }
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -468,13 +474,11 @@ test('forward cursor pagination', async function () {
 					                source,
 					                variables: newVariables
 					            }));
-					            console.error(stry(result.errors));
 					            throw new Error(result.errors);
 					        }
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-
 					            subscriptionSpec = {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
@@ -483,7 +487,7 @@ test('forward cursor pagination', async function () {
 					            }
 					            cache.subscribe(subscriptionSpec, variables)
 
-					            const updated = stry(variables, 0) !== stry(newVariables, 0)
+					            const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
 
 					            // if the variables changed we need to unsubscribe from the old fields and
 					            // listen to the new ones
@@ -529,10 +533,10 @@ test('forward cursor pagination', async function () {
 					            if (updated && subscriptionSpec) {
 					                cache.subscribe(subscriptionSpec, newVariables)
 					            }
-
-					            // update Current variables tracker
-					            variables = newVariables
 					        }
+
+					        // update Current variables tracker
+					        variables = newVariables
 
 					        // prepare store data
 					        const storeData = {
@@ -551,12 +555,14 @@ test('forward cursor pagination', async function () {
 					        return storeData
 					    }
 
-					    
-					const handlers =
+					    const setPartial = (partial) => update(s => ({...s, partial }))
+
+
+						const handlers =
 							queryHandlers({
 								config: houdiniConfig,
 								artifact,
-								store: { subscribe },
+								store: { subscribe, setPartial },
 								queryVariables: () => variables
 							})
 
@@ -579,7 +585,7 @@ test('forward cursor pagination', async function () {
 					        fetch: fetchLocal,
 
 					        // For internal usage only.
-					        setPartial: (partial) => update(s => ({...s, partial })),
+					        setPartial,
 
 					        ...{
 					            loadNextPage: handlers.loadNextPage,
@@ -669,16 +675,16 @@ test('backwards cursor pagination', async function () {
 
 					            \${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
 					                    It should be something like:
-					                
+
 					                <script context="module" lang="ts">
 					                import type { LoadEvent } from '@sveltejs/kit';
-					                
+
 					                export async function load(\${logYellow('event')}: LoadEvent) {
 					                    \${logYellow('await')} \${logCyan('GQL_TestQuery')}.fetch({ \${logYellow('event')}, variables: { ... } });
 					                    return {};
 					                }
 					                </script>
-					                
+
 					                \${logRed('2/')} you should run this in a browser only.\`
 					            );
 					            throw new Error('Error, check logs for help.');
@@ -699,19 +705,22 @@ test('backwards cursor pagination', async function () {
 					        }
 					    }
 
-					    async function queryLoad(params) {
+					    function queryLoad(params) {
 							const context = new RequestContext(params.event)
-							return await queryLocal(context, params)
+							return queryLocal(context, params)
 						}
 
 						async function query(params) {
 							const context = new RequestContext({
 					            fetch: fetch,
-					            page: params.$page,
-					            session: params.$session
+					            page: params.context.page,
+					            session: params.context.session
 					        });
 
-							return await queryLocal(context, params)
+							return await queryLocal(context, {
+					            ...params,
+					            variables: {...variables, ...params.variables }
+					        })
 						}
 
 					    async function queryLocal(context, params) {
@@ -730,19 +739,19 @@ test('backwards cursor pagination', async function () {
 					        const newVariables = marshalInputs({
 					            artifact,
 					            config: houdiniConfig,
-					            input: {...variables, ...params.variables }
+					            input: params.variables
 					        })
 
-					        if (artifact.input && Object.keys(newVariables).length === 0) {
-					            update((s) => ({
-					              ...s,
-					              errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					              isFetching: false,
-					              partial: false,
-					              variables: newVariables
-					            }));
-					            throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        }
+					        // if (artifact.input && Object.keys(newVariables).length === 0) {
+					        //     update((s) => ({
+					        //       ...s,
+					        //       errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					        //       isFetching: false,
+					        //       partial: false,
+					        //       variables: newVariables
+					        //     }));
+					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        // }
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -762,13 +771,11 @@ test('backwards cursor pagination', async function () {
 					                source,
 					                variables: newVariables
 					            }));
-					            console.error(stry(result.errors));
 					            throw new Error(result.errors);
 					        }
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-
 					            subscriptionSpec = {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
@@ -777,7 +784,7 @@ test('backwards cursor pagination', async function () {
 					            }
 					            cache.subscribe(subscriptionSpec, variables)
 
-					            const updated = stry(variables, 0) !== stry(newVariables, 0)
+					            const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
 
 					            // if the variables changed we need to unsubscribe from the old fields and
 					            // listen to the new ones
@@ -823,10 +830,10 @@ test('backwards cursor pagination', async function () {
 					            if (updated && subscriptionSpec) {
 					                cache.subscribe(subscriptionSpec, newVariables)
 					            }
-
-					            // update Current variables tracker
-					            variables = newVariables
 					        }
+
+					        // update Current variables tracker
+					        variables = newVariables
 
 					        // prepare store data
 					        const storeData = {
@@ -845,12 +852,14 @@ test('backwards cursor pagination', async function () {
 					        return storeData
 					    }
 
-					    
-					const handlers =
+					    const setPartial = (partial) => update(s => ({...s, partial }))
+
+
+						const handlers =
 							queryHandlers({
 								config: houdiniConfig,
 								artifact,
-								store: { subscribe },
+								store: { subscribe, setPartial },
 								queryVariables: () => variables
 							})
 
@@ -873,7 +882,7 @@ test('backwards cursor pagination', async function () {
 					        fetch: fetchLocal,
 
 					        // For internal usage only.
-					        setPartial: (partial) => update(s => ({...s, partial })),
+					        setPartial,
 
 					        ...{
 					    loadPreviousPage: handlers.loadPreviousPage,
@@ -959,16 +968,16 @@ test('offset pagination', async function () {
 
 					            \${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
 					                    It should be something like:
-					                
+
 					                <script context="module" lang="ts">
 					                import type { LoadEvent } from '@sveltejs/kit';
-					                
+
 					                export async function load(\${logYellow('event')}: LoadEvent) {
 					                    \${logYellow('await')} \${logCyan('GQL_TestQuery')}.fetch({ \${logYellow('event')}, variables: { ... } });
 					                    return {};
 					                }
 					                </script>
-					                
+
 					                \${logRed('2/')} you should run this in a browser only.\`
 					            );
 					            throw new Error('Error, check logs for help.');
@@ -989,19 +998,22 @@ test('offset pagination', async function () {
 					        }
 					    }
 
-					    async function queryLoad(params) {
+					    function queryLoad(params) {
 							const context = new RequestContext(params.event)
-							return await queryLocal(context, params)
+							return queryLocal(context, params)
 						}
 
 						async function query(params) {
 							const context = new RequestContext({
 					            fetch: fetch,
-					            page: params.$page,
-					            session: params.$session
+					            page: params.context.page,
+					            session: params.context.session
 					        });
 
-							return await queryLocal(context, params)
+							return await queryLocal(context, {
+					            ...params,
+					            variables: {...variables, ...params.variables }
+					        })
 						}
 
 					    async function queryLocal(context, params) {
@@ -1020,19 +1032,19 @@ test('offset pagination', async function () {
 					        const newVariables = marshalInputs({
 					            artifact,
 					            config: houdiniConfig,
-					            input: {...variables, ...params.variables }
+					            input: params.variables
 					        })
 
-					        if (artifact.input && Object.keys(newVariables).length === 0) {
-					            update((s) => ({
-					              ...s,
-					              errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					              isFetching: false,
-					              partial: false,
-					              variables: newVariables
-					            }));
-					            throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        }
+					        // if (artifact.input && Object.keys(newVariables).length === 0) {
+					        //     update((s) => ({
+					        //       ...s,
+					        //       errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
+					        //       isFetching: false,
+					        //       partial: false,
+					        //       variables: newVariables
+					        //     }));
+					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
+					        // }
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -1052,13 +1064,11 @@ test('offset pagination', async function () {
 					                source,
 					                variables: newVariables
 					            }));
-					            console.error(stry(result.errors));
 					            throw new Error(result.errors);
 					        }
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-
 					            subscriptionSpec = {
 					                rootType: artifact.rootType,
 					                selection: artifact.selection,
@@ -1067,7 +1077,7 @@ test('offset pagination', async function () {
 					            }
 					            cache.subscribe(subscriptionSpec, variables)
 
-					            const updated = stry(variables, 0) !== stry(newVariables, 0)
+					            const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
 
 					            // if the variables changed we need to unsubscribe from the old fields and
 					            // listen to the new ones
@@ -1113,10 +1123,10 @@ test('offset pagination', async function () {
 					            if (updated && subscriptionSpec) {
 					                cache.subscribe(subscriptionSpec, newVariables)
 					            }
-
-					            // update Current variables tracker
-					            variables = newVariables
 					        }
+
+					        // update Current variables tracker
+					        variables = newVariables
 
 					        // prepare store data
 					        const storeData = {
@@ -1135,12 +1145,14 @@ test('offset pagination', async function () {
 					        return storeData
 					    }
 
-					    
-					const handlers =
+					    const setPartial = (partial) => update(s => ({...s, partial }))
+
+
+						const handlers =
 							queryHandlers({
 								config: houdiniConfig,
 								artifact,
-								store: { subscribe },
+								store: { subscribe, setPartial },
 								queryVariables: () => variables
 							})
 
@@ -1163,7 +1175,7 @@ test('offset pagination', async function () {
 					        fetch: fetchLocal,
 
 					        // For internal usage only.
-					        setPartial: (partial) => update(s => ({...s, partial })),
+					        setPartial,
 
 					        ...{
 					            loadNextPage: handlers.loadNextPage,

@@ -5,11 +5,10 @@ export * from './types'
 export * from './proxy'
 export * from './config'
 
-export { query } from './query'
+export { query, paginatedQuery } from './query'
 export { mutation } from './mutation'
-export { fragment } from './fragment'
+export { fragment, paginatedFragment } from './fragment'
 export { subscription } from './subscription'
-export { paginatedQuery, paginatedFragment } from './pagination'
 export { getContext } from './context'
 export { errorsToGraphQLLayout } from './errors'
 

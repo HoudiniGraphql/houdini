@@ -1,7 +1,9 @@
 // externals
 // locals
+import { Readable } from 'svelte/store'
 import { FragmentStore } from '.'
 import type { Fragment, GraphQLTagResult } from './types'
+import { wrapPaginationStore, PaginatedDocumentHandlers } from './pagination'
 
 // fragment returns the requested data from the reference
 export function fragment<_Fragment extends Fragment<any>>(
@@ -95,4 +97,23 @@ export function fragment<_Fragment extends Fragment<any>>(
 	// 		cache.subscribe(spec, variables)
 	// 	}
 	// })
+}
+
+export function paginatedFragment<_Fragment extends Fragment<any>>(
+	document: GraphQLTagResult,
+	initialValue: _Fragment
+): { data: Readable<_Fragment['shape']> } & PaginatedDocumentHandlers<_Fragment['shape'], {}> {
+	// make sure we got a query document
+	if (document.kind !== 'HoudiniFragment') {
+		throw new Error('paginatedFragment() must be passed a fragment document')
+	}
+	// if we don't have a pagination fragment there is a problem
+	if (!document.artifact.refetch?.paginated) {
+		throw new Error('paginatedFragment must be passed a fragment with @paginate')
+	}
+
+	// TODO: fix type checking paginated
+	// @ts-ignore: the query store will only include the methods when it needs to
+	// and the userland type checking happens as part of the query type generation
+	return wrapPaginationStore(fragment(document, initialValue))
 }

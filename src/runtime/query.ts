@@ -11,6 +11,7 @@ import {
 } from './types'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getPage, getSession, goTo } from './adapter.mjs'
+import { wrapPaginationStore, PaginatedDocumentHandlers } from './pagination'
 
 export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -113,3 +114,13 @@ function componentQuery<_Query extends Operation<any, any>>(
 }
 
 type ErrorWithCode = Error & { code: number }
+
+export function paginatedQuery<_Query extends Operation<any, any>>(
+	document: GraphQLTagResult
+): QueryResponse<_Query['result'], _Query['input']> &
+	PaginatedDocumentHandlers<_Query['result'], _Query['input']> {
+	// TODO: fix type checking paginated
+	// @ts-ignore: the query store will only include the methods when it needs to
+	// and the userland type checking happens as part of the query type generation
+	return wrapPaginationStore(query(document))
+}

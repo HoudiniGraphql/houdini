@@ -1,4 +1,4 @@
-import { extractPageInfo, countPage } from './pagination'
+import { extractPageInfo, countPage } from './utils'
 
 test('can extract current page info', function () {
 	const data = {

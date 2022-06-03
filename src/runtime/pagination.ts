@@ -2,50 +2,21 @@
 import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
 // locals
 import cache from './cache'
-import { fragment } from './fragment'
 import { executeQuery } from './network'
-import { query, QueryResponse } from './query'
-import { Fragment, GraphQLObject, GraphQLTagResult, Operation, QueryArtifact } from './types'
+import { GraphQLObject, Operation, QueryArtifact } from './types'
 // this has to be in a separate file since config isn't defined in cache/index.ts
-import { FragmentStore, LoadContext, QueryResult, QueryStore, QueryStoreParams } from '.'
+import { FragmentStore, QueryResult, QueryStore, QueryStoreParams } from '.'
 import { getContext } from './context'
 import { ConfigFile, keyFieldsForType } from './config'
+import { LoadContext } from './types'
+import { countPage, extractPageInfo } from './utils'
 
 //Todo: houdiniContext Type
 type RefetchFn<_Data = any, _Input = any> = (
 	params?: QueryStoreParams<_Input>
 ) => Promise<QueryResult<_Data>>
 
-export function paginatedQuery<_Query extends Operation<any, any>>(
-	document: GraphQLTagResult
-): QueryResponse<_Query['result'], _Query['input']> &
-	PaginatedDocumentHandlers<_Query['result'], _Query['input']> {
-	// TODO: fix type checking paginated
-	// @ts-ignore: the query store will only include the methods when it needs to
-	// and the userland type checking happens as part of the query type generation
-	return wrapPaginationStore(query(document))
-}
-
-export function paginatedFragment<_Fragment extends Fragment<any>>(
-	document: GraphQLTagResult,
-	initialValue: _Fragment
-): { data: Readable<_Fragment['shape']> } & PaginatedDocumentHandlers<_Fragment['shape'], {}> {
-	// make sure we got a query document
-	if (document.kind !== 'HoudiniFragment') {
-		throw new Error('paginatedFragment() must be passed a fragment document')
-	}
-	// if we don't have a pagination fragment there is a problem
-	if (!document.artifact.refetch?.paginated) {
-		throw new Error('paginatedFragment must be passed a fragment with @paginate')
-	}
-
-	// TODO: fix type checking paginated
-	// @ts-ignore: the query store will only include the methods when it needs to
-	// and the userland type checking happens as part of the query type generation
-	return wrapPaginationStore(fragment(document, initialValue))
-}
-
-function wrapPaginationStore<_Data, _Input>(
+export function wrapPaginationStore<_Data, _Input>(
 	store: QueryStore<_Data, _Input> | FragmentStore<_Data>
 ) {
 	// @ts-ignore
@@ -599,7 +570,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 		},
 	}
 }
-type PaginatedDocumentHandlers<_Data, _Input> = {
+export type PaginatedDocumentHandlers<_Data, _Input> = {
 	loadNextPage(pageCount?: number, after?: string | number): Promise<void>
 	loadPreviousPage(pageCount?: number, before?: string): Promise<void>
 	loading: Readable<boolean>
@@ -607,7 +578,7 @@ type PaginatedDocumentHandlers<_Data, _Input> = {
 	refetch: (vars: _Input) => Promise<_Data>
 }
 
-type PaginatedHandlers<_Query extends Operation<any, any>> = {
+export type PaginatedHandlers<_Query extends Operation<any, any>> = {
 	loadNextPage(
 		houdiniContext: LoadContext,
 		pageCount?: number,
@@ -632,52 +603,4 @@ export type PageInfo = {
 	endCursor: string | null
 	hasNextPage: boolean
 	hasPreviousPage: boolean
-}
-
-export function extractPageInfo(data: GraphQLObject, path: string[]): PageInfo {
-	if (!data) {
-		return {
-			startCursor: null,
-			endCursor: null,
-			hasNextPage: false,
-			hasPreviousPage: false,
-		}
-	}
-
-	let localPath = [...path]
-	// walk down the object until we get to the end
-	let current = data
-	while (localPath.length > 0) {
-		if (current === null) {
-			break
-		}
-		current = current[localPath.shift() as string] as GraphQLObject
-	}
-
-	return (
-		(current?.pageInfo as PageInfo) ?? {
-			startCursor: null,
-			endCursor: null,
-			hasNextPage: false,
-			hasPreviousPage: false,
-		}
-	)
-}
-
-export function countPage(source: string[], value: GraphQLObject): number {
-	let data = value
-	for (const field of source) {
-		const obj = data[field] as GraphQLObject | GraphQLObject[]
-		if (obj && !Array.isArray(obj)) {
-			data = obj
-		} else if (!data) {
-			throw new Error('Could not count page size')
-		}
-
-		if (Array.isArray(obj)) {
-			return obj.length
-		}
-	}
-
-	return 0
 }
