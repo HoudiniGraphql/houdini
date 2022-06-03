@@ -303,8 +303,6 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 			...input,
 		}
 
-		console.log('load page', loadVariables, houdiniContext.variables())
-
 		// if we don't have a value for the page size, tell the user
 		if (!loadVariables[pageSizeVar] && !artifact.refetch!.pageSize) {
 			throw missingPageSizeError(functionName)

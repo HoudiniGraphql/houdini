@@ -103,7 +103,10 @@ function ${storeName}Store() {
             session: params.context.session
         });
 
-		return await queryLocal(context, params)
+		return await queryLocal(context, {
+            ...params,
+            variables: {...variables, ...params.variables }
+        })
 	}
 
     async function queryLocal(context, params) {
@@ -122,10 +125,8 @@ function ${storeName}Store() {
         const newVariables = marshalInputs({
             artifact,
             config: houdiniConfig,
-            input: {...variables, ...params.variables }
+            input: params.variables
         })
-
-        console.log({ newVariables })
 
         // if (artifact.input && Object.keys(newVariables).length === 0) {
         //     update((s) => ({
@@ -170,7 +171,7 @@ function ${storeName}Store() {
             }
             cache.subscribe(subscriptionSpec, variables)
 
-            const updated = stry(variables, 0) !== stry(newVariables, 0)
+            const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
 
             // if the variables changed we need to unsubscribe from the old fields and
             // listen to the new ones
