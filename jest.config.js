@@ -7,7 +7,7 @@ export default {
 		'^~/(.*)$': '<rootDir>/src/$1',
 	},
 
-	modulePathIgnorePatterns: ['<rootDir>/integration/'],
+	modulePathIgnorePatterns: ['<rootDir>/integration/', '<rootDir>/build'],
 
 	globals: {
 		'ts-jest': {
