@@ -30,9 +30,9 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
-		    const _TestQuery = await _TestQueryStore.queryLoad({
+		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    if (!_TestQuery.result.data) {
@@ -159,16 +159,16 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    const _TestQuery2Promise = _TestQuery2Store.queryLoad({
+		    const _TestQuery2Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery2Store.queryLoad({
+		    const _TestQuery1Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery1_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    const _TestQuery2 = await _TestQuery2Promise;
@@ -268,9 +268,9 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.queryLoad({
+		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    if (!_TestQuery.result.data) {
@@ -330,9 +330,9 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
-		    const _TestQuery = await _TestQueryStore.queryLoad({
+		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    if (!_TestQuery.result.data) {
@@ -628,9 +628,9 @@ test('beforeLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.queryLoad({
+		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    if (!_TestQuery.result.data) {
@@ -710,16 +710,16 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		    const _TestQuery2_Input = {};
 
-		    const _TestQuery2Promise = _TestQuery2Store.queryLoad({
+		    const _TestQuery2Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery2Store.queryLoad({
+		    const _TestQuery1Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery1_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    const _TestQuery2 = await _TestQuery2Promise;
@@ -802,9 +802,9 @@ test('afterLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.queryLoad({
+		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    if (!_TestQuery.result.data) {
@@ -891,16 +891,16 @@ test('afterLoad hook - multiple queries', async function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    const _TestQuery2Promise = _TestQuery2Store.queryLoad({
+		    const _TestQuery2Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery2Store.queryLoad({
+		    const _TestQuery1Promise = _TestQuery2Store.fetch({
 		        "variables": _TestQuery1_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    const _TestQuery2 = await _TestQuery2Promise;
@@ -1013,9 +1013,9 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.queryLoad({
+		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    if (!_TestQuery.result.data) {
@@ -1109,9 +1109,9 @@ test('deprecated onLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.queryLoad({
+		    const _TestQuery = await _TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
-		        "context": context
+		        "event": context
 		    });
 
 		    if (!_TestQuery.result.data) {

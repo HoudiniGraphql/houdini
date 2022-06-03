@@ -346,14 +346,14 @@ function addKitLoad({
 		}
 
 		const fetchCall = AST.callExpression(
-			AST.memberExpression(AST.identifier(storeImportID), AST.identifier('queryLoad')),
+			AST.memberExpression(AST.identifier(storeImportID), AST.identifier('fetch')),
 			[
 				AST.objectExpression([
 					AST.objectProperty(
 						AST.literal('variables'),
 						AST.identifier(variableIdentifier)
 					),
-					AST.objectProperty(AST.literal('context'), AST.identifier('context')),
+					AST.objectProperty(AST.literal('event'), AST.identifier('context')),
 				]),
 			]
 		)

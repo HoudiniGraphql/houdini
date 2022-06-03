@@ -3,9 +3,9 @@
 	import { CachePolicy, GQL_AllItems } from '$houdini'
 	import type { LoadEvent } from '@sveltejs/kit'
 
-	export async function load(context: LoadEvent) {
+	export async function load(event: LoadEvent) {
 		// Option 1: in Load (SSR)
-		await GQL_AllItems.fetch({ variables: { completed: true } })
+		await GQL_AllItems.fetch({ variables: { completed: true }, event })
 		return {}
 	}
 </script>
