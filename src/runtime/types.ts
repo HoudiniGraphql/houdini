@@ -113,6 +113,7 @@ export type QueryResult<DataType> = {
 
 export type MutationResult<DataType> = {
 	isFetching: boolean
+	isOptimisticResponse: boolean
 	data?: DataType | null
 	errors: Error | null
 	variables: {}

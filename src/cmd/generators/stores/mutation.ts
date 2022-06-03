@@ -28,11 +28,11 @@ function ${storeName}Store() {
 			data: null,
 			errors: null,
 			isFetching: false,
+			isOptimisticResponse: false,
 			variables: null
 	});
 
 	async function mutate({ variables, context, ...config }) {
-
 		if(!context){
 			context = {}
 		}
@@ -70,6 +70,17 @@ function ${storeName}Store() {
 				variables,
 				layer: layer.id,
 			})
+
+			const storeData = {
+        data: unmarshalSelection(houdiniConfig, artifact.selection, optimisticResponse),
+        errors: null,
+        isFetching: true,
+        isOptimisticResponse: true,
+        variables
+      };
+
+      // update the store value
+      set(storeData);
 		}
 
 		try {
@@ -109,8 +120,9 @@ function ${storeName}Store() {
 			// prepare store data
 			const storeData = {
 				data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
-				errors: result.errors,
+				errors: result.errors ?? null,
 				isFetching: false,
+				isOptimisticResponse: false,
 				variables
 			}
 
