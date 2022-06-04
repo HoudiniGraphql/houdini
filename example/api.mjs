@@ -61,14 +61,8 @@ subscription SubToNewItem {
 			execute: (args) => args.rootValue.execute(args),
 			subscribe: (args) => args.rootValue.subscribe(args),
 			onSubscribe: async (ctx, msg) => {
-				const {
-					schema,
-					execute,
-					subscribe,
-					contextFactory,
-					parse,
-					validate,
-				} = yogaApp.getEnveloped(ctx)
+				const { schema, execute, subscribe, contextFactory, parse, validate } =
+					yogaApp.getEnveloped(ctx)
 
 				const args = {
 					schema,

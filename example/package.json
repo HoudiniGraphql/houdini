@@ -28,7 +28,6 @@
 		"@kitql/vite-plugin-watch-and-run": "0.3.0",
 		"graphql-relay": "0.8.0",
 		"graphql-tag": "2.12.6",
-		"graphql-ws": "5.8.2",
-		"subscriptions-transport-ws": "0.9.18"
+		"graphql-ws": "5.8.2"
 	}
 }

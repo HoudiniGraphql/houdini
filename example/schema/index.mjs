@@ -1,6 +1,6 @@
-import gql from 'graphql-tag'
+import { createPubSub } from '@graphql-yoga/node'
 import { GraphQLScalarType, Kind } from 'graphql'
-import { createPubSub, filter } from '@graphql-yoga/node'
+import gql from 'graphql-tag'
 
 const pubSub = createPubSub()
 
@@ -31,7 +31,7 @@ export const typeDefs = gql`
 	}
 
 	type Subscription {
-		itemUpdate(id: ID!): ItemUpdate!
+		# itemUpdate(id: ID!): ItemUpdate!
 		newItem: ItemUpdate!
 	}
 
@@ -145,7 +145,7 @@ export const resolvers = {
 			item.completed = true
 
 			// notify any subscribers
-			pubSub.publish('ITEM_UPDATE', { itemUpdate: { item } })
+			pubSub.publish('ITEM_UPDATE', { item })
 
 			return {
 				error: null,
@@ -201,16 +201,17 @@ export const resolvers = {
 		completed: ({ completed }) => Boolean(completed),
 	},
 	Subscription: {
-		itemUpdate: {
-			subscribe: (_, args) =>
-				pipe(
-					pubSub.subscribe('ITEM_UPDATE'),
-					filter((payload) => {
-						return payload.itemUpdate.item.id === args.id
-					})
-				),
-			resolve: (payload) => payload,
-		},
+		// itemUpdate: {
+		// 	subscribe: (_, args) =>
+		// 		pipe(
+		// 			pubSub.subscribe('ITEM_UPDATE'),
+		// 			filter((payload) => {
+		// 				console.log(`payload`, payload)
+		// 				return payload.itemUpdate.item.id === args.id
+		// 			})
+		// 		),
+		// 	resolve: (payload) => payload,
+		// },
 		newItem: {
 			subscribe: () => pubSub.subscribe('NEW_ITEM'),
 			resolve: (payload) => {
