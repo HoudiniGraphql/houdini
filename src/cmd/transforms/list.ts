@@ -195,124 +195,126 @@ export default async function addListFragments(
 	// so we're going to add them to the list of documents, one each
 	const generatedDoc: graphql.DocumentNode = {
 		kind: 'Document',
-		definitions: (Object.entries(lists).flatMap<graphql.FragmentDefinitionNode>(
-			([name, { selection, type }]) => {
-				// look up the type
-				const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
+		definitions: (
+			Object.entries(lists).flatMap<graphql.FragmentDefinitionNode>(
+				([name, { selection, type }]) => {
+					// look up the type
+					const schemaType = config.schema.getType(type.name) as graphql.GraphQLObjectType
 
-				// if there is no selection set
-				if (!selection) {
-					throw new HoudiniErrorTodo('Lists must have a selection')
-				}
+					// if there is no selection set
+					if (!selection) {
+						throw new HoudiniErrorTodo('Lists must have a selection')
+					}
 
-				// we need a copy of the field's selection set that we can mutate
-				const fragmentSelection: graphql.SelectionSetNode = {
-					kind: 'SelectionSet',
-					selections: [...selection.selections],
-				}
+					// we need a copy of the field's selection set that we can mutate
+					const fragmentSelection: graphql.SelectionSetNode = {
+						kind: 'SelectionSet',
+						selections: [...selection.selections],
+					}
 
-				// is there no id selection
-				if (
-					schemaType &&
-					fragmentSelection &&
-					!fragmentSelection?.selections.find(
-						(field) => field.kind === 'Field' && field.name.value === 'id'
-					)
-				) {
-					// add the id field to the selection
-					fragmentSelection.selections = [
-						...fragmentSelection.selections,
+					// is there no id selection
+					if (
+						schemaType &&
+						fragmentSelection &&
+						!fragmentSelection?.selections.find(
+							(field) => field.kind === 'Field' && field.name.value === 'id'
+						)
+					) {
+						// add the id field to the selection
+						fragmentSelection.selections = [
+							...fragmentSelection.selections,
+							{
+								kind: 'Field',
+								name: {
+									kind: 'Name',
+									value: 'id',
+								},
+							},
+						]
+					}
+
+					// we at least want to create fragment to indicate inserts in lists
+					return [
+						// a fragment to insert items into this list
 						{
-							kind: 'Field',
 							name: {
+								value: config.listInsertFragment(name),
 								kind: 'Name',
-								value: 'id',
+							},
+							kind: graphql.Kind.FRAGMENT_DEFINITION,
+							// in order to insert an item into this list, it must
+							// have the same selection as the field
+							selectionSet: fragmentSelection,
+							typeCondition: {
+								kind: 'NamedType',
+								name: {
+									kind: 'Name',
+									value: type.name,
+								},
+							},
+						},
+						// a fragment to insert or remove an item into the list
+						{
+							name: {
+								value: config.listToggleFragment(name),
+								kind: 'Name',
+							},
+							kind: graphql.Kind.FRAGMENT_DEFINITION,
+							// in order to insert an item into this list, it must
+							// have the same selection as the field
+							selectionSet: {
+								...fragmentSelection,
+								selections: [
+									...fragmentSelection.selections,
+									{
+										kind: 'Field',
+										name: {
+											kind: 'Name',
+											value: 'id',
+										},
+									},
+								],
+							},
+							typeCondition: {
+								kind: 'NamedType',
+								name: {
+									kind: 'Name',
+									value: type.name,
+								},
+							},
+						},
+						// add a fragment to remove from the specific list
+						{
+							kind: graphql.Kind.FRAGMENT_DEFINITION,
+							name: {
+								value: config.listRemoveFragment(name),
+								kind: 'Name',
+							},
+							// deleting an entity just takes its id and the parent
+							selectionSet: {
+								kind: 'SelectionSet',
+								selections: [
+									{
+										kind: 'Field',
+										name: {
+											kind: 'Name',
+											value: 'id',
+										},
+									},
+								],
+							},
+							typeCondition: {
+								kind: 'NamedType',
+								name: {
+									kind: 'Name',
+									value: type.name,
+								},
 							},
 						},
 					]
 				}
-
-				// we at least want to create fragment to indicate inserts in lists
-				return [
-					// a fragment to insert items into this list
-					{
-						name: {
-							value: config.listInsertFragment(name),
-							kind: 'Name',
-						},
-						kind: graphql.Kind.FRAGMENT_DEFINITION,
-						// in order to insert an item into this list, it must
-						// have the same selection as the field
-						selectionSet: fragmentSelection,
-						typeCondition: {
-							kind: 'NamedType',
-							name: {
-								kind: 'Name',
-								value: type.name,
-							},
-						},
-					},
-					// a fragment to insert or remove an item into the list
-					{
-						name: {
-							value: config.listToggleFragment(name),
-							kind: 'Name',
-						},
-						kind: graphql.Kind.FRAGMENT_DEFINITION,
-						// in order to insert an item into this list, it must
-						// have the same selection as the field
-						selectionSet: {
-							...fragmentSelection,
-							selections: [
-								...fragmentSelection.selections,
-								{
-									kind: 'Field',
-									name: {
-										kind: 'Name',
-										value: 'id',
-									},
-								},
-							],
-						},
-						typeCondition: {
-							kind: 'NamedType',
-							name: {
-								kind: 'Name',
-								value: type.name,
-							},
-						},
-					},
-					// add a fragment to remove from the specific list
-					{
-						kind: graphql.Kind.FRAGMENT_DEFINITION,
-						name: {
-							value: config.listRemoveFragment(name),
-							kind: 'Name',
-						},
-						// deleting an entity just takes its id and the parent
-						selectionSet: {
-							kind: 'SelectionSet',
-							selections: [
-								{
-									kind: 'Field',
-									name: {
-										kind: 'Name',
-										value: 'id',
-									},
-								},
-							],
-						},
-						typeCondition: {
-							kind: 'NamedType',
-							name: {
-								kind: 'Name',
-								value: type.name,
-							},
-						},
-					},
-				]
-			}
-		) as graphql.DefinitionNode[]).concat(
+			) as graphql.DefinitionNode[]
+		).concat(
 			...listTargets.map<graphql.DirectiveDefinitionNode>((typeName) => ({
 				kind: 'DirectiveDefinition',
 				name: {
@@ -388,8 +390,9 @@ export function connectionSelection(
 
 	// now that we have the correct selection, we have to lookup node type
 	// we need to make sure that there is an edges field
-	const edgeField = (unwrapType(config, field.type)
-		.type as graphql.GraphQLObjectType).getFields()['edges']
+	const edgeField = (
+		unwrapType(config, field.type).type as graphql.GraphQLObjectType
+	).getFields()['edges']
 	const { wrappers, type: edgeFieldType } = unwrapType(config, edgeField.type)
 	// wrappers are in reverse order (last one is the top level, and there's a nullable entry)
 	// so a nullable list of non-null elements looks like [NonNull, List, Nullable].

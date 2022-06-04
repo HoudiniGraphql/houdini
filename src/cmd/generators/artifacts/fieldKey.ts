@@ -12,9 +12,9 @@ export default function fieldKey(config: Config, field: graphql.FieldNode): stri
 
 	// field might not have a location so print and re-parse before we look at serialized values
 	const printed = graphql.print(field)
-	const secondParse = (graphql.parse(`{${printed}}`)
-		.definitions[0] as graphql.OperationDefinitionNode).selectionSet
-		.selections[0] as graphql.FieldNode
+	const secondParse = (
+		graphql.parse(`{${printed}}`).definitions[0] as graphql.OperationDefinitionNode
+	).selectionSet.selections[0] as graphql.FieldNode
 
 	// if the field is paginated, we need to strip away any args
 	const paginated = !!field.directives?.find(

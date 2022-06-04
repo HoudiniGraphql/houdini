@@ -41,7 +41,7 @@ export function selectionTypeInfo(
 			`Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`
 		)
 	}
-	const fieldType = (graphql.getNamedType(field.type) as unknown) as graphql.GraphQLNamedType
+	const fieldType = graphql.getNamedType(field.type) as unknown as graphql.GraphQLNamedType
 	if (!fieldType) {
 		throw new Error(
 			`Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`
