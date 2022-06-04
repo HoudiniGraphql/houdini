@@ -10,6 +10,6 @@
   `);
 </script>
 
-<div>
+<div id="result">
   {$data?.user.name}
 </div>

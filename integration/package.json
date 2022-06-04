@@ -42,7 +42,6 @@
   "dependencies": {
     "@graphql-yoga/node": "^2.8.0",
     "graphql-tag": "^2.12.6",
-    "graphql-ws": "^5.8.2",
-    "subscriptions-transport-ws": "^0.11.0"
+    "graphql-ws": "^5.8.2"
   }
 }

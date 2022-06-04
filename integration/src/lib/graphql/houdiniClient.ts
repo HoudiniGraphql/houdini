@@ -1,7 +1,4 @@
-import { browser } from '$app/env';
-import type { SubscriptionHandler } from '$houdini';
 import { HoudiniClient } from '$houdini';
-import { SubscriptionClient } from 'subscriptions-transport-ws';
 
 // For Query & Mutation
 async function fetchQuery({ text, variables = {} }, session: App.Session) {
