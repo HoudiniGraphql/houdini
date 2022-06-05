@@ -124,8 +124,7 @@ const networkFile = (url: string) => `async function fetchQuery({ text, variable
 	return await result.json()
 }
 
-// Export the Houdini client
-export const houdiniClient = new HoudiniClient(fetchQuery)
+export default new HoudiniClient(fetchQuery)
 `
 
 const configFile = ({
