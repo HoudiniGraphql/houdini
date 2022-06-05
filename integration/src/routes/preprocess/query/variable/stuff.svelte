@@ -7,10 +7,10 @@
 </script>
 
 <script lang="ts">
-  import { query, graphql, type PreprocessorTestQuery1 } from '$houdini';
+  import { query, graphql, type PreprocessorStuffQuery } from '$houdini';
 
-  const { data } = query<PreprocessorTestQuery1>(graphql`
-    query PreprocessorTestQuery2($id: ID!) {
+  const { data } = query<PreprocessorStuffQuery>(graphql`
+    query PreprocessorStuffQuery($id: ID!) {
       user(id: $id) {
         name
       }
