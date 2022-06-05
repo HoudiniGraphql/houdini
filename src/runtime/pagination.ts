@@ -436,7 +436,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	setPartial,
 }: {
 	artifact: QueryArtifact
-	queryVariables?: {}
+	queryVariables: () => {}
 	loading: Writable<boolean>
 	refetch: RefetchFn
 	initialValue: GraphQLObject
@@ -447,7 +447,10 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	refetch: PaginatedHandlers<_Query>['refetch']
 } {
 	// we need to track the most recent offset for this handler
-	let currentOffset = (artifact.refetch?.start as number) || 0
+	let currentOffset =
+		(artifact.refetch?.start as number) ||
+		countPage(artifact.refetch!.path, initialValue) ||
+		artifact.refetch!.pageSize
 
 	// hold onto the current value
 	let value = initialValue
@@ -474,6 +477,8 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 				throw missingPageSizeError('loadNextPage')
 			}
 
+			console.log(queryVariables)
+
 			// set the loading state to true
 			loading.set(true)
 
@@ -484,7 +489,8 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 				houdiniContext.session,
 				false
 			)
-			setPartial(partialData)
+
+			console.log(result)
 
 			// update cache with the result
 			cache.write({
@@ -502,39 +508,34 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 			loading.set(false)
 		},
 		async refetch(params?: QueryStoreParams<_Query['input']>) {
-			const { variables, context } = params ?? {}
-			if (!context) {
-				throw new Error('Missing context')
-			}
+			const { variables } = params ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && JSON.stringify(context.variables()) !== JSON.stringify(variables)) {
+			if (variables && JSON.stringify(extraVariables()) !== JSON.stringify(variables)) {
 				return refetch(params)
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
-			const count = countPage(artifact.refetch!.path, value)
+			const count = countPage(artifact.refetch!.path, value) || artifact.refetch!.pageSize
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...context.variables(),
-				...extraVariables,
-				limit: count,
+				...extraVariables(),
+			}
+			if (count) {
+				queryVariables.limit = count
 			}
 
 			// set the loading state to true
 			loading.set(true)
 
 			// send the query
-			const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
-				artifact,
-				queryVariables,
-				context.session,
-				false
-			)
+			const result = await refetch({
+				...params,
+				variables: queryVariables,
+			})
 
-			setPartial(partialData)
 			// we're not loading any more
 			loading.set(false)
 
@@ -543,9 +544,9 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 				selection: artifact.selection,
 				data: result.data,
 				variables: queryVariables,
-				applyUpdates: true,
+				applyUpdates: false,
 				isFetching: false,
-				partial: partialData,
+				partial: false,
 				errors: null,
 			}
 			cache.write(returnValue)

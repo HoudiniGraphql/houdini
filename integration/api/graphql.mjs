@@ -10,7 +10,7 @@ export const typeDefs = gql`
   scalar DateTime
 
   type Query {
-    usersList(limit: Int = 4): [User!]!
+    usersList(limit: Int = 4, offset: Int): [User!]!
     user(id: ID!): User!
     avgYearsBirthDate: Float!
     usersConnection(first: Int, after: String, last: Int, before: String): UserConnection!
@@ -67,7 +67,7 @@ const list = [
 export const resolvers = {
   Query: {
     usersList: (_, args) => {
-      return list.slice(args.offset || 0, args.limit);
+      return [...list].splice(args.offset || 0, args.limit);
     },
     usersConnection(_, args) {
       return connectionFromArray(list, args);
@@ -83,7 +83,10 @@ export const resolvers = {
       return list.map((c) => c.birthDate.getFullYear()).reduce((a, b) => a + b) / list.length;
     },
     node(_, { id }) {
-      return list.find((u) => u.id === id);
+      return {
+        ...list.find((u) => u.id === id),
+        __typename: 'User'
+      };
     }
   },
 

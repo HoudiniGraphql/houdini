@@ -29,6 +29,8 @@ test.describe('offset paginatedQuery', () => {
     // wait for the api response
     const response = await expectGraphQLResponse(page, 'button[id=refetch]');
 
-    expect(response).toBe('xxx');
+    expect(response).toBe(
+      '{"data":{"usersList":[{"name":"Bruce Willis","id":"1"},{"name":"Samuel Jackson","id":"2"},{"name":"Morgan Freeman","id":"3"},{"name":"Tom Hanks","id":"4"}]}}'
+    );
   });
 });

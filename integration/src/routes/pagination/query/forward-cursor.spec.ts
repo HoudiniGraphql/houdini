@@ -23,6 +23,8 @@ test.describe('forwards cursor paginatedQuery', () => {
   test('refetch', async ({ page }) => {
     await page.goto(routes.Pagination_query_forward_cursor);
 
+    await expectNoGraphQLRequest(page);
+
     // wait for the api response
     let response = await expectGraphQLResponse(page, 'button[id=next]');
     expect(response).not.toContain('"name":"Bruce Willis","id":"1"');
@@ -33,7 +35,6 @@ test.describe('forwards cursor paginatedQuery', () => {
     // wait for the api response
     response = await expectGraphQLResponse(page, 'button[id=refetch]');
 
-    // make sure the refetch contained information for the full list
     expect(response).toContain('"name":"Bruce Willis","id":"1"');
     expect(response).toContain('"name":"Samuel Jackson","id":"2"');
     expect(response).toContain('"name":"Morgan Freeman","id":"3"');
