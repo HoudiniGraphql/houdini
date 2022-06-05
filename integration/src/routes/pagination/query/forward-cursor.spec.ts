@@ -32,12 +32,18 @@ test.describe('forwards cursor paginatedQuery', () => {
     // wait for the api response
     await expectGraphQLResponse(page);
 
+    // make sure that the starting cursor didn't change
+    const div = await page.locator('div[id=pageInfo]').textContent();
+    // TODO: this shouldn't pass but does. If you click manually, the startCursor value is different
+    expect(div).toContain('"startCursor":"YXJyYXljb25uZWN0aW9uOjA="');
+
     // click on the refetch button
     page.locator('button[id=refetch]').click();
 
     // wait for the api response
     const response = await expectGraphQLResponse(page);
 
+    // TODO: this should pass but doesn't. The value from expectGraphQLResponse returns the old value
     // make sure the refetch contained information for the full list
     expect(response).toContain('"name":"Bruce Willis","id":"1"');
     expect(response).toContain('"name":"Samuel Jackson","id":"2"');
