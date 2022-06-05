@@ -3,8 +3,8 @@ import {
   clientSideNavigation,
   expectGraphQLResponse,
   expectNoGraphQLRequest
-} from '../../../../lib/utils/testsHelper.ts';
-import { routes } from '../../../../lib/utils/routes.ts';
+} from '../../../../lib/utils/testsHelper.js';
+import { routes } from '../../../../lib/utils/routes.js';
 
 test.describe('query preprocessor variables', () => {
   test('default value', async ({ page }) => {

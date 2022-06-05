@@ -1,6 +1,6 @@
 import { stry } from '@kitql/helper';
 import { expect } from '@playwright/test';
-import { routes } from './routes.ts';
+import { routes } from './routes.js';
 
 export async function expectNoGraphQLRequest(page: any) {
   let nbError = 0;

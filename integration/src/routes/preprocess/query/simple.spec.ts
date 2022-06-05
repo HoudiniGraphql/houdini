@@ -3,8 +3,8 @@ import {
   expectGraphQLResponse,
   expectNoGraphQLRequest,
   clientSideNavigation
-} from '../../../lib/utils/testsHelper.ts';
-import { routes } from '../../../lib/utils/routes.ts';
+} from '../../../lib/utils/testsHelper.js';
+import { routes } from '../../../lib/utils/routes.js';
 
 test.describe('query preprocessor', () => {
   test('happy path query - SRR', async ({ page }) => {

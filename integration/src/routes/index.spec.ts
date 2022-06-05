@@ -1,4 +1,4 @@
-import { routes } from '../lib/utils/routes.ts';
+import { routes } from '../lib/utils/routes.js';
 import { expect, test } from '@playwright/test';
 
 test('Integration has the right title, we can start 🚀', async ({ page }) => {

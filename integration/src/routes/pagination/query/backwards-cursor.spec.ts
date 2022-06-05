@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.ts';
-import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
+import { routes } from '../../../lib/utils/routes.js';
+import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.js';
 
 test.describe('backwards cursor paginatedQuery', () => {
   test('loadPreviousPage', async ({ page }) => {

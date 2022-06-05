@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { routes } from '../../lib/utils/routes.ts';
-import { expectGraphQLResponse } from '../../lib/utils/testsHelper.ts';
+import { routes } from '../../lib/utils/routes.js';
+import { expectGraphQLResponse } from '../../lib/utils/testsHelper.js';
 
 test.describe('NETWORK Page', () => {
   test('we have no li element(s) in <ul></ul> (no data from SSR)', async ({ page, browser }) => {

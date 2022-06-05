@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { routes } from '../../lib/utils/routes.ts';
+import { routes } from '../../lib/utils/routes.js';
 import {
   clientSideNavigation,
   expectGraphQLResponse,
   expectNoGraphQLRequest
-} from '../../lib/utils/testsHelper.ts';
+} from '../../lib/utils/testsHelper.js';
 
 // test.beforeEach(async ({ page }) => {
 //   page.on('request', (request) => {

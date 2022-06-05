@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.ts';
-import { expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
+import { routes } from '../../../lib/utils/routes.js';
+import { expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.js';
 
 test.describe('query preprocessor', () => {
   test('multiple queries', async ({ page }) => {
