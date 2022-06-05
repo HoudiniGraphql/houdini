@@ -12,5 +12,8 @@ export const routes = {
   Preprocess_query_variable_1: '/preprocess/query/variable/1',
   Preprocess_query_variable_2: '/preprocess/query/variable/2',
 
-  Pagination_query_forward_cursor: '/pagination/query/forward-cursor'
+  Pagination_query_forward_cursor: '/pagination/query/forward-cursor',
+
+  Stuff_set_user_1: '/stuff/set/user/1',
+  Preprocess_query_variable_stuff: '/preprocess/query/variable/stuff'
 };

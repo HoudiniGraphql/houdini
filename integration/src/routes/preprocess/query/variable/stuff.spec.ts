@@ -1,12 +1,14 @@
+import { routes } from '../../../../lib/utils/routes.ts';
 import { expect, test } from '@playwright/test';
-import { expectGraphQLResponse } from '../../../../lib/utils/testsHelper.ts';
+import { expectGraphQLResponse, clientSideNavigation } from '../../../../lib/utils/testsHelper.ts';
 
 test.describe('query preprocessor variables', () => {
   test('can include stuff', async ({ page }) => {
     // set a context value
-    await page.goto('/stuff/set/user/1');
+    await page.goto(routes.Stuff_set_user_1);
 
-    await page.goto('/preprocess/query/variables/context');
+    // TODO JYC & Alec: to check together?
+    clientSideNavigation(page, routes.Preprocess_query_variable_stuff);
 
     // We should have the data without a GraphQL Response in the client
     await expectGraphQLResponse(page);
