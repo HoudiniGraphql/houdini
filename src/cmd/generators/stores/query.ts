@@ -161,7 +161,7 @@ function ${storeName}Store() {
                 source,
                 variables: newVariables
             }));
-            throw new Error(result.errors);
+            throw result.errors;
         }
 
         // setup a subscription for new values from the cache

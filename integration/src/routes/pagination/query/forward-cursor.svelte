@@ -1,12 +1,5 @@
 <script lang="ts">
-  import {
-    paginatedQuery,
-    graphql,
-    type ForwardCursorPaginationQuery,
-    GQL_ForwardCursorPaginationQuery,
-    CachePolicy,
-    getHoudiniContext
-  } from '$houdini';
+  import { paginatedQuery, graphql, type ForwardCursorPaginationQuery } from '$houdini';
 
   const { data, loadNextPage, refetch, pageInfo } =
     paginatedQuery<ForwardCursorPaginationQuery>(graphql`
