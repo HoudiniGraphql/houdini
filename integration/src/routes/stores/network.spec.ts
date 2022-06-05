@@ -20,7 +20,7 @@ test.describe('NETWORK Page', () => {
   test('Getting the right data in a network mode (CSR)', async ({ page }) => {
     await page.goto(routes.Stores_Network);
 
-    const str = await expectGraphQLResponse(page);
+    const str = await expectGraphQLResponse(page, null);
     expect(str).toBe(
       '{"data":{"usersList":[{"id":"1","name":"Bruce Willis","birthDate":-466732800000},{"id":"2","name":"Samuel Jackson","birthDate":-663638400000},{"id":"3","name":"Morgan Freeman","birthDate":-1028419200000},{"id":"4","name":"Tom Hanks","birthDate":-425433600000}]}}'
     );

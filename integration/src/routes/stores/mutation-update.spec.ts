@@ -33,12 +33,12 @@ test.describe('Mutation Update Page', () => {
     }
 
     // 2 Updated data
-    const buttonUpdate = page.locator(`button[id="mutate"]`);
-    buttonUpdate.click();
     // 2.1 One request should happen
-    await expectGraphQLResponse(page);
+    await expectGraphQLResponse(page, 'button[id="mutate"]');
+
     // 2.1 No second one!
     await expectNoGraphQLRequest(page);
+
     li = page.locator('li');
     for (let i = 0; i < count; ++i) {
       const text = await li.nth(i).textContent();
@@ -46,8 +46,7 @@ test.describe('Mutation Update Page', () => {
     }
 
     // 3 Revert data
-    const buttonRevert = page.locator(`button[id="revert"]`);
-    await buttonRevert.click();
+    await expectGraphQLResponse(page, 'button[id="revert"]');
     li = page.locator('li');
     for (let i = 0; i < count; ++i) {
       const text = await li.nth(i).textContent();

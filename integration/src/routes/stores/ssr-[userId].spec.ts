@@ -2,7 +2,8 @@ import { routes } from '../../lib/utils/routes.js';
 import {
   clientSideNavigation,
   expectGraphQLResponse,
-  expectNoGraphQLRequest
+  expectNoGraphQLRequest,
+  navSelector
 } from '../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
@@ -36,9 +37,7 @@ test.describe('SSR-[userId] Page', () => {
   test('From HOME, navigate to page (a graphql query must happen)', async ({ page }) => {
     await page.goto(routes.Home);
 
-    clientSideNavigation(page, routes.Stores_SSR_UserId_2);
-
-    const str = await expectGraphQLResponse(page);
+    const str = await expectGraphQLResponse(page, navSelector(routes.Stores_SSR_UserId_2));
     expect(str).toBe('{"data":{"user":{"id":"2","name":"Samuel Jackson"}}}');
   });
 
@@ -48,34 +47,27 @@ test.describe('SSR-[userId] Page', () => {
     let textResult = await page.locator('p').textContent();
     expect(textResult, 'Content of <p> element').toBe('2 - Samuel Jackson');
 
-    const buttonRefreshNull = page.locator(`button[id="refresh-null"]`);
-    const buttonRefresh1 = page.locator(`button[id="refresh-1"]`);
-    const buttonRefresh2 = page.locator(`button[id="refresh-2"]`);
-    const buttonRefresh77 = page.locator(`button[id="refresh-77"]`);
-
     // 1 Check another data (id = 1)
-    buttonRefresh1.click();
-    let str = await expectGraphQLResponse(page);
+    let str = await expectGraphQLResponse(page, 'button[id="refresh-1"]');
     expect(str).toBe('{"data":{"user":{"id":"1","name":"Bruce Willis"}}}');
     textResult = await page.locator('p').textContent();
     expect(textResult, 'Content of <p> element').toBe('1 - Bruce Willis');
 
     // 2 go back to (id = 2) with default policy (CacheOrNetwork) => No request should happen and Data should be updated
-    buttonRefresh2.click();
+    await page.locator(`button[id="refresh-2"]`).click();
     await expectNoGraphQLRequest(page);
     textResult = await page.locator('p').textContent();
     expect(textResult, 'Content of <p> element').toBe('2 - Samuel Jackson');
 
     // 3 Refresh without variables (so should take the last one, here 2) with policy NetworkOnly to have a graphql request
-    buttonRefreshNull.click();
-    str = await expectGraphQLResponse(page);
+
+    str = await expectGraphQLResponse(page, `button[id="refresh-null"]`);
     expect(str).toBe('{"data":{"user":{"id":"2","name":"Samuel Jackson"}}}');
     textResult = await page.locator('p').textContent();
     expect(textResult, 'Content of <p> element').toBe('2 - Samuel Jackson');
 
     // 4 Check id 77 (that doens't exist)
-    buttonRefresh77.click();
-    str = await expectGraphQLResponse(page);
+    str = await expectGraphQLResponse(page, `button[id="refresh-77"]`);
     expect(str).toBe(
       '{"data":null,"errors":[{"message":"User not found","locations":[{"line":2,"column":3}],"path":["user"],"extensions":{"code":404}}]}'
     );

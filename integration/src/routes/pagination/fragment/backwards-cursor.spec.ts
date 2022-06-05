@@ -12,11 +12,8 @@ test.describe('backwards cursor paginatedFragment', () => {
     let div = await page.locator('div[id=result]').textContent();
     expect(div).toBe('Clint Eastwood, Eddie Murphy Jackson');
 
-    // load the previous page
-    await page.locator('button').click();
-
     // wait for the api response
-    await expectGraphQLResponse(page);
+    await expectGraphQLResponse(page, 'button[id=previous]');
 
     // make sure we got the new content
     div = await page.locator('div[id=result]').textContent();
@@ -26,17 +23,11 @@ test.describe('backwards cursor paginatedFragment', () => {
   test('refetch', async ({ page }) => {
     await page.goto(routes.Pagination_fragment_backwards_cursor);
 
-    // load the previous page
-    await page.locator('button[id=previous]').click();
+    // wait for the api response
+    await expectGraphQLResponse(page, 'button[id=previous]');
 
     // wait for the api response
-    await expectGraphQLResponse(page);
-
-    // click on the refetch button
-    await page.locator('button[id=refetch]').click();
-
-    // wait for the api response
-    const response = await expectGraphQLResponse(page);
+    const response = await expectGraphQLResponse(page, 'button[id=refetch]');
 
     expect(response).toBe('xxx');
   });
@@ -46,10 +37,8 @@ test.describe('backwards cursor paginatedFragment', () => {
 
     // load the previous 4 pages
     for (let i = 0; i < 4; i++) {
-      // click the button
-      await page.locator('button[id=previous]').click();
       // wait for the request to resolve
-      await expectGraphQLResponse(page);
+      await expectGraphQLResponse(page, 'button[id=previous]');
       // check the page info
       const content = await page.locator('div[id=result]').textContent();
       expect(content).toBe('xxx');

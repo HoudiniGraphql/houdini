@@ -12,11 +12,8 @@ test.describe('backwards cursor paginatedQuery', () => {
     let div = await page.locator('div[id=result]').textContent();
     expect(div).toBe('Eddie Murphy, Clint Eastwood');
 
-    // load the next page
-    await page.locator('button[id=previous]').click();
-
     // wait for the api response
-    await expectGraphQLResponse(page);
+    await expectGraphQLResponse(page, 'button[id=previous]');
 
     // make sure we got the new content
     div = await page.locator('div[id=result]').textContent();
@@ -26,17 +23,11 @@ test.describe('backwards cursor paginatedQuery', () => {
   test('refetch', async ({ page }) => {
     await page.goto(routes.Pagination_query_forward_cursor);
 
-    // load the next page
-    page.locator('button[id=previous]').click();
+    // wait for the api response
+    await expectGraphQLResponse(page, 'button[id=previous]');
 
     // wait for the api response
-    await expectGraphQLResponse(page);
-
-    // click on the refetch button
-    page.locator('button[id=refetch]').click();
-
-    // wait for the api response
-    const response = await expectGraphQLResponse(page);
+    const response = await expectGraphQLResponse(page, 'button[id=refetch]');
 
     // TODO JYC & Alec:
     // 1/ refetch is not working as expected I think because no network query are happening taking from the cache?!
@@ -55,10 +46,8 @@ test.describe('backwards cursor paginatedQuery', () => {
 
     // load the previous 3 pages
     for (let i = 0; i < 3; i++) {
-      // click the button
-      await page.locator('button[id=previous]').click();
       // wait for the request to resolve
-      await expectGraphQLResponse(page);
+      await expectGraphQLResponse(page, 'button[id=previous]');
       // check the page info
       const content = await page.locator('div[id=result]').textContent();
       expect(content).toBe(data[i]);

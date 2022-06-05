@@ -12,11 +12,8 @@ test.describe('offset paginatedQuery', () => {
     let div = await page.locator('div[id=result]').textContent();
     expect(div).toBe('Bruce Willis, Samuel Jackson');
 
-    // load the next page
-    await page.locator('button[id=next]').click();
-
     // wait for the api response
-    await expectGraphQLResponse(page);
+    await expectGraphQLResponse(page, 'button[id=next]');
 
     // make sure we got the new content
     div = await page.locator('div[id=result]').textContent();
@@ -26,17 +23,11 @@ test.describe('offset paginatedQuery', () => {
   test('offset refetch', async ({ page }) => {
     await page.goto(routes.Pagination_query_offset);
 
-    // load the next page
-    await page.locator('button[id=next]').click();
+    // wait for the api response
+    await expectGraphQLResponse(page, 'button[id=next]');
 
     // wait for the api response
-    await expectGraphQLResponse(page);
-
-    // click on the refetch button
-    await page.locator('button[id=refetch]').click();
-
-    // wait for the api response
-    const response = await expectGraphQLResponse(page);
+    const response = await expectGraphQLResponse(page, 'button[id=refetch]');
 
     expect(response).toBe('xxx');
   });

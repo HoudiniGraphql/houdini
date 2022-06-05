@@ -1,12 +1,5 @@
 <script lang="ts">
-  import {
-    paginatedQuery,
-    graphql,
-    type ForwardCursorPaginationQuery,
-    GQL_ForwardCursorPaginationQuery,
-    CachePolicy,
-    getHoudiniContext
-  } from '$houdini';
+  import { graphql, paginatedQuery, type ForwardCursorPaginationQuery } from '$houdini';
 
   const { data, loadNextPage, refetch, pageInfo } =
     paginatedQuery<ForwardCursorPaginationQuery>(graphql`
@@ -28,6 +21,9 @@
 
 <div id="pageInfo">
   {JSON.stringify($pageInfo)}
+</div>
+<div>
+  {JSON.stringify($data)}
 </div>
 
 <button id="next" on:click={() => loadNextPage()}>next</button>

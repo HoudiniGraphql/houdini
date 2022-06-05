@@ -3,7 +3,8 @@ import { routes } from '../../lib/utils/routes.js';
 import {
   clientSideNavigation,
   expectGraphQLResponse,
-  expectNoGraphQLRequest
+  expectNoGraphQLRequest,
+  navSelector
 } from '../../lib/utils/testsHelper.js';
 
 // test.beforeEach(async ({ page }) => {
@@ -51,8 +52,7 @@ test.describe('SSR Page', () => {
   test('From HOME, navigate to page (a graphql query must happen)', async ({ page }) => {
     await page.goto(routes.Home);
 
-    clientSideNavigation(page, routes.Stores_SSR);
-    const str = await expectGraphQLResponse(page);
+    const str = await expectGraphQLResponse(page, navSelector(routes.Stores_SSR));
     expect(str).toBe(
       '{"data":{"usersList":[{"id":"1","name":"Bruce Willis","birthDate":-466732800000},{"id":"2","name":"Samuel Jackson","birthDate":-663638400000},{"id":"3","name":"Morgan Freeman","birthDate":-1028419200000},{"id":"4","name":"Tom Hanks","birthDate":-425433600000}]}}'
     );

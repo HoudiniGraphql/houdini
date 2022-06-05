@@ -12,13 +12,10 @@ test.describe('forwards cursor paginatedQuery', () => {
     let div = await page.locator('div[id=result]').textContent();
     expect(div).toBe('Bruce Willis, Samuel Jackson');
 
-    // load the next page
-    await page.locator('button[id=next]').click();
-
     // wait for the api response
-    await expectGraphQLResponse(page);
+    await expectGraphQLResponse(page, 'button[id=next]');
 
-    // make sure we got the new content
+    // // make sure we got the new content
     div = await page.locator('div[id=result]').textContent();
     expect(div).toBe('Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
   });
@@ -26,17 +23,15 @@ test.describe('forwards cursor paginatedQuery', () => {
   test('refetch', async ({ page }) => {
     await page.goto(routes.Pagination_query_forward_cursor);
 
-    // load the next page
-    page.locator('button[id=next]').click();
+    // wait for the api response
+    let response = await expectGraphQLResponse(page, 'button[id=next]');
+    expect(response).not.toContain('"name":"Bruce Willis","id":"1"');
+    expect(response).not.toContain('"name":"Samuel Jackson","id":"2"');
+    expect(response).toContain('"name":"Morgan Freeman","id":"3"');
+    expect(response).toContain('"name":"Tom Hanks","id":"4"');
 
     // wait for the api response
-    await expectGraphQLResponse(page);
-
-    // click on the refetch button
-    page.locator('button[id=refetch]').click();
-
-    // wait for the api response
-    const response = await expectGraphQLResponse(page);
+    response = await expectGraphQLResponse(page, 'button[id=refetch]');
 
     // make sure the refetch contained information for the full list
     expect(response).toContain('"name":"Bruce Willis","id":"1"');
@@ -56,10 +51,9 @@ test.describe('forwards cursor paginatedQuery', () => {
 
     // load the next 3 pages
     for (let i = 0; i < 3; i++) {
-      // click the button
-      await page.locator('button[id=next]').click();
       // wait for the request to resolve
-      await expectGraphQLResponse(page);
+      await expectGraphQLResponse(page, 'button[id=next]');
+
       // check the page info
       const content = await page.locator('div[id=result]').textContent();
       expect(content).toBe(data[i]);

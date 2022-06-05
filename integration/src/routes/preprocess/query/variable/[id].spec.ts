@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 import {
   clientSideNavigation,
   expectGraphQLResponse,
-  expectNoGraphQLRequest
+  expectNoGraphQLRequest,
+  navSelector
 } from '../../../../lib/utils/testsHelper.js';
 import { routes } from '../../../../lib/utils/routes.js';
 
@@ -16,10 +17,8 @@ test.describe('query preprocessor variables', () => {
     let div = await page.locator('div[id=result]').textContent();
     expect(div).toBe('Bruce Willis');
 
-    clientSideNavigation(page, routes.Preprocess_query_variable_2);
-
     // We should have the data without a GraphQL request in the client
-    await expectGraphQLResponse(page);
+    await expectGraphQLResponse(page, navSelector(routes.Preprocess_query_variable_2));
 
     div = await page.locator('div[id=result]').textContent();
     expect(div).toBe('Samuel Jackson');
