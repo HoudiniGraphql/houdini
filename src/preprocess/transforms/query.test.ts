@@ -163,7 +163,7 @@ describe('query preprocessor', function () {
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery2Store.fetch({
+		    const _TestQuery1Promise = _TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": true
@@ -692,7 +692,7 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery2Store.fetch({
+		    const _TestQuery1Promise = _TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": true
@@ -859,7 +859,7 @@ test('afterLoad hook - multiple queries', async function () {
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery2Store.fetch({
+		    const _TestQuery1Promise = _TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": true

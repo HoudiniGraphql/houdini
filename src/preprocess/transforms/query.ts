@@ -53,8 +53,8 @@ export default async function queryProcessor(
 	// note: we'll  replace the tags as we discover them with something the runtime library can use
 	const queries: EmbeddedGraphqlDocument[] = []
 
-	let artifactImportID = ''
-	let storeImportID = ''
+	let artifactImportIDs: { [name: string]: string } = {}
+	let storeImportIDs: { [name: string]: string } = {}
 
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
@@ -76,13 +76,13 @@ export default async function queryProcessor(
 			// add the document to the list
 			queries.push(tag)
 
-			storeImportID = ensureStoreImport({
+			storeImportIDs[artifact.name] = ensureStoreImport({
 				config,
 				body: isRoute ? doc.module!.content.body : doc.instance!.content.body,
 				artifact,
 			})
 
-			artifactImportID = ensureArtifactImport({
+			artifactImportIDs[artifact.name] = ensureArtifactImport({
 				config,
 				body: isRoute ? doc.module!.content.body : doc.instance!.content.body,
 				artifact: artifact,
@@ -98,7 +98,10 @@ export default async function queryProcessor(
 							AST.identifier('kind'),
 							AST.stringLiteral(ArtifactKind.Query)
 						),
-						AST.objectProperty(AST.identifier('store'), AST.identifier(storeImportID)),
+						AST.objectProperty(
+							AST.identifier('store'),
+							AST.identifier(storeImportIDs[artifact.name])
+						),
 						AST.objectProperty(
 							AST.identifier('component'),
 							AST.booleanLiteral(!isRoute)
@@ -116,7 +119,7 @@ export default async function queryProcessor(
 						),
 						AST.objectProperty(
 							AST.identifier('artifact'),
-							AST.identifier(artifactImportID)
+							AST.identifier(artifactImportIDs[artifact.name])
 						),
 					].concat(
 						...(isRoute
@@ -153,7 +156,7 @@ export default async function queryProcessor(
 
 	// if we are processing a route, use those processors
 	if (isRoute) {
-		processModule({ config, script: doc.module!, queries, artifactImportID, storeImportID })
+		processModule({ config, script: doc.module!, queries, artifactImportIDs, storeImportIDs })
 	}
 }
 
@@ -161,14 +164,14 @@ function processModule({
 	config,
 	script,
 	queries,
-	artifactImportID,
-	storeImportID,
+	artifactImportIDs,
+	storeImportIDs,
 }: {
 	config: Config
 	script: Script
 	queries: EmbeddedGraphqlDocument[]
-	artifactImportID: string
-	storeImportID: string
+	artifactImportIDs: { [name: string]: string }
+	storeImportIDs: { [name: string]: string }
 }) {
 	// the main thing we are responsible for here is to add the module bits of the
 	// hoisted query. this means doing the actual fetch, checking errors, and returning
@@ -194,8 +197,8 @@ function processModule({
 		config,
 		body: script.content.body,
 		queries,
-		artifactImportID,
-		storeImportID,
+		artifactImportIDs,
+		storeImportIDs,
 	})
 
 	// if we are processing this file for sapper, we need to add the actual preload function
@@ -208,14 +211,14 @@ function addKitLoad({
 	config,
 	body,
 	queries,
-	artifactImportID,
-	storeImportID,
+	artifactImportIDs,
+	storeImportIDs,
 }: {
 	config: Config
 	body: Statement[]
 	queries: EmbeddedGraphqlDocument[]
-	artifactImportID: string
-	storeImportID: string
+	artifactImportIDs: { [name: string]: string }
+	storeImportIDs: { [name: string]: string }
 }) {
 	// look for any hooks
 	let beforeLoadDefinition = findExportedFunction(body, 'beforeLoad')
@@ -320,7 +323,9 @@ function addKitLoad({
 										),
 										AST.objectProperty(
 											AST.literal('artifact'),
-											AST.identifier(artifactImportID)
+											AST.identifier(
+												artifactImportIDs[document.artifact.name]
+											)
 										),
 									]),
 								]
@@ -346,7 +351,10 @@ function addKitLoad({
 		}
 
 		const fetchCall = AST.callExpression(
-			AST.memberExpression(AST.identifier(storeImportID), AST.identifier('fetch')),
+			AST.memberExpression(
+				AST.identifier(storeImportIDs[document.artifact.name]),
+				AST.identifier('fetch')
+			),
 			[
 				AST.objectExpression([
 					AST.objectProperty(

@@ -5,9 +5,13 @@
 </script>
 
 <script lang="ts">
+  import { page } from '$app/stores';
+
   let routesKvp = Object.keys(routes).map((key: string) => {
     return { key, value: (routes as any)[key] };
   });
+
+  const currentLocation = $page.url.pathname;
 </script>
 
 <nav>
