@@ -1,5 +1,12 @@
 <script lang="ts">
-  import { paginatedQuery, graphql, type ForwardCursorPaginationQuery } from '$houdini';
+  import {
+    paginatedQuery,
+    graphql,
+    type ForwardCursorPaginationQuery,
+    GQL_ForwardCursorPaginationQuery,
+    CachePolicy,
+    getHoudiniContext
+  } from '$houdini';
 
   const { data, loadNextPage, refetch, pageInfo } =
     paginatedQuery<ForwardCursorPaginationQuery>(graphql`
@@ -13,6 +20,11 @@
         }
       }
     `);
+
+  const context = getHoudiniContext();
+  function refetch2() {
+    GQL_ForwardCursorPaginationQuery.fetch({ context, policy: CachePolicy.NetworkOnly });
+  }
 </script>
 
 <div id="result">
@@ -26,3 +38,4 @@
 <button id="next" on:click={() => loadNextPage()}>next</button>
 
 <button id="refetch" on:click={() => refetch()}>refetch</button>
+<button id="refetch2" on:click={() => refetch2()}>refetch2</button>
