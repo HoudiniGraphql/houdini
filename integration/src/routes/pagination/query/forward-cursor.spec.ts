@@ -71,6 +71,7 @@ test.describe('forwards cursor paginatedQuery', () => {
     const contentInfo = await page.locator('div[id=pageInfo]').textContent();
     expect(contentInfo).toContain(`\"hasNextPage\":false`);
 
+    // TODO JYC & Alec: Make sure it's like this
     // If we click the next button again, nothing happen has hasNextPage is false
     await page.locator('button[id=next]').click();
     await expectNoGraphQLRequest(page);

@@ -1,61 +1,79 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../../lib/utils/routes.ts';
 import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
 
 test.describe('backwards cursor paginatedQuery', () => {
   test('loadPreviousPage', async ({ page }) => {
-    await page.goto('/pagination/query/backwards-cursor');
+    await page.goto(routes.Pagination_query_backwards_cursor);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
 
     let div = await page.locator('div[id=result]').textContent();
-    expect(div).toBe('Clint Eastwood, Eddie Murphy Jackson');
+    expect(div).toBe('Eddie Murphy, Clint Eastwood');
 
     // load the next page
-    await page.locator('button').click();
+    await page.locator('button[id=previous]').click();
 
     // wait for the api response
     await expectGraphQLResponse(page);
 
     // make sure we got the new content
     div = await page.locator('div[id=result]').textContent();
-    expect(div).toBe('Clint Eastwood, Eddie Murphy Jackson, Harrison Ford, Will Smith');
+    expect(div).toBe('Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood');
   });
 
   test('refetch', async ({ page }) => {
-    await page.goto('/pagination/query/backwards-cursor');
+    await page.goto(routes.Pagination_query_forward_cursor);
 
     // load the next page
-    await page.locator('button[id=next]').click();
+    page.locator('button[id=previous]').click();
 
     // wait for the api response
     await expectGraphQLResponse(page);
 
     // click on the refetch button
-    await page.locator('button[id=refetch]').click();
+    page.locator('button[id=refetch]').click();
 
     // wait for the api response
     const response = await expectGraphQLResponse(page);
 
-    expect(response).toMatchSnapshot();
+    // TODO JYC & Alec:
+    // 1/ refetch is not working as expected I think because no network query are happening taking from the cache?!
+    // 2/ in store mode, we loose track of variables I think.
+    expect(response).toBe('xxx');
   });
 
   test('page info tracks connection state', async ({ page }) => {
-    await page.goto('/pagination/query/backwards-cursor');
+    await page.goto(routes.Pagination_query_backwards_cursor);
 
-    // load the next 4 pages
-    for (let i = 0; i < 4; i++) {
+    const data = [
+      'Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood',
+      'Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood',
+      'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks, Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood'
+    ];
+
+    // load the previous 3 pages
+    for (let i = 0; i < 3; i++) {
       // click the button
-      await page.locator('button[id=next]').click();
+      await page.locator('button[id=previous]').click();
       // wait for the request to resolve
       await expectGraphQLResponse(page);
       // check the page info
       const content = await page.locator('div[id=result]').textContent();
-      expect(content).resolves.toMatchSnapshot();
+      expect(content).toBe(data[i]);
     }
 
     // make sure we have all of the data loaded
     const content = await page.locator('div[id=result]').textContent();
-    expect(content).resolves.toMatchSnapshot();
+    expect(content).toBe(data[2]);
+
+    const contentInfo = await page.locator('div[id=pageInfo]').textContent();
+    expect(contentInfo).toContain(`\"hasPreviousPage\":false`);
+
+    // TODO JYC & Alec: Make sure it's like this
+    // If we click the next button again, nothing happen has hasNextPage is false
+    await page.locator('button[id=previous]').click();
+    await expectNoGraphQLRequest(page);
   });
 });
