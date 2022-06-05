@@ -1,5 +1,6 @@
 // local imports
-import { CachePolicy, testConfig } from '../../../common'
+import { testConfig } from '../../../common'
+import { CachePolicy } from '../../types'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
