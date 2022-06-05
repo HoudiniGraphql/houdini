@@ -83,7 +83,10 @@ export const resolvers = {
       return list.map((c) => c.birthDate.getFullYear()).reduce((a, b) => a + b) / list.length;
     },
     node(_, { id }) {
-      return list.find((u) => u.id === id);
+      return {
+        ...list.find((u) => u.id === id),
+        __typename: 'User'
+      };
     }
   },
 
