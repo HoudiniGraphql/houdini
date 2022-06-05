@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectNoGraphQLRequest } from '../../lib/utils/testsHelper.ts';
+import { expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
 
 test.describe('Fragment Preprocessor', () => {
   test('updates with parent store', async ({ page }) => {

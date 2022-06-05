@@ -1,4 +1,4 @@
-<script context="module">
+<script context="module" lang="ts">
   export function PreprocessorTestQuery2Variables({ stuff }: { stuff: { user?: string } }) {
     return {
       id: stuff.user
