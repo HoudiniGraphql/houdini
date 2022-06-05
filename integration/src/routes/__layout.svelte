@@ -22,4 +22,6 @@
   {/each}
 </nav>
 
+<hr />
+
 <slot />

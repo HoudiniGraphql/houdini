@@ -1,10 +1,14 @@
 import { expect, test } from '@playwright/test';
-import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
+import {
+  expectGraphQLResponse,
+  expectNoGraphQLRequest,
+  clientSideNavigation
+} from '../../../lib/utils/testsHelper.ts';
 import { routes } from '../../../lib/utils/routes.ts';
 
 test.describe('query preprocessor', () => {
   test('happy path query - SRR', async ({ page }) => {
-    await page.goto('/preprocess/query/simple');
+    await page.goto(routes.Preprocess_query_simple);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
@@ -14,8 +18,11 @@ test.describe('query preprocessor', () => {
   });
 
   test('happy path query - Network', async ({ page }) => {
+    // Go to home
     await page.goto(routes.Home);
-    await page.goto('/preprocess/query/simple');
+
+    // Go to the test page in a client side navigation (clicking on the menu)
+    await clientSideNavigation(page, routes.Preprocess_query_simple);
 
     const result = await expectGraphQLResponse(page);
     expect(result).toBe('{"data":{"user":{"id":"1","name":"Bruce Willis"}}}');
