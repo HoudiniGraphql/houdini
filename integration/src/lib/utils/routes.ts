@@ -9,6 +9,8 @@ export const routes = {
   Stores_Mutation_Update: '/stores/mutation-update',
 
   Preprocess_query_simple: '/preprocess/query/simple',
+  Preprocess_query_variable_1: '/preprocess/query/variable/1',
+  Preprocess_query_variable_2: '/preprocess/query/variable/2',
 
   Pagination_query_forward_cursor: '/pagination/query/forward-cursor'
 };
