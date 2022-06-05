@@ -37,9 +37,6 @@
 		"prepack": "pinst --disable",
 		"postpack": "pinst --enable"
 	},
-	"resolutions": {
-		"typescript": "3.9.5"
-	},
 	"devDependencies": {
 		"@babel/core": "^7.12.10",
 		"@babel/preset-env": "^7.12.11",
@@ -69,6 +66,7 @@
 		"ts-ast-serializer": "^1.0.1",
 		"ts-jest": "^26.0.0",
 		"ts-node": "^9.1.1",
+		"tslib": "^2.4.0",
 		"typescript": "^4.6.3"
 	},
 	"dependencies": {
