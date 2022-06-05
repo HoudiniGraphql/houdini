@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
 
-test.describe('pagination', () => {
-  test('offset', async ({ page }) => {
+test.describe('offset paginatedQuery', () => {
+  test('loadNextPage', async ({ page }) => {
     await page.goto('/pagination/query/offset');
 
     // We should have the data without a GraphQL request in the client

@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
 
-test.describe('pagination', () => {
-  test('backwards cursor', async ({ page }) => {
+test.describe('backwards cursor paginatedQuery', () => {
+  test('loadPreviousPage', async ({ page }) => {
     await page.goto('/pagination/query/backwards-cursor');
 
     // We should have the data without a GraphQL request in the client
@@ -22,7 +22,7 @@ test.describe('pagination', () => {
     expect(div).toBe('Clint Eastwood, Eddie Murphy Jackson, Harrison Ford, Will Smith');
   });
 
-  test('forward cursor refetch', async ({ page }) => {
+  test('refetch', async ({ page }) => {
     await page.goto('/pagination/query/backwards-cursor');
 
     // load the next page

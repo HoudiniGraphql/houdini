@@ -7,7 +7,7 @@ import {
 import { routes } from '../../../lib/utils/routes.ts';
 
 test.describe('query preprocessor', () => {
-  test('happy path query - SRR', async ({ page }) => {
+  test('multiple queries', async ({ page }) => {
     await page.goto(routes.Preprocess_query_simple);
 
     // We should have the data without a GraphQL request in the client

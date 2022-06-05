@@ -3,8 +3,8 @@ import { expect, test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.ts';
 import { expectNoGraphQLRequest } from '../../lib/utils/testsHelper.ts';
 
-test.describe('Mutation Page', () => {
-  test('No GraphQL request & default data in the store', async ({ page }) => {
+test.describe('Fragment Preprocessor', () => {
+  test('updates with parent store', async ({ page }) => {
     await page.goto('/preprocess/mutation/mutation');
 
     // We should have the data without a GraphQL request in the client
