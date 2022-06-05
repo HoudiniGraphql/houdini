@@ -575,7 +575,7 @@ export type PaginatedDocumentHandlers<_Data, _Input> = {
 	loadPreviousPage(pageCount?: number, before?: string): Promise<void>
 	loading: Readable<boolean>
 	pageInfo: Readable<PageInfo>
-	refetch: (vars: _Input) => Promise<_Data>
+	refetch: (vars?: _Input) => Promise<_Data>
 }
 
 export type PaginatedHandlers<_Query extends Operation<any, any>> = {

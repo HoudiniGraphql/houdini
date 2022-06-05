@@ -11,11 +11,36 @@ type Mutation {
 type Query {
   avgYearsBirthDate: Float!
   user(id: ID!): User!
-  usersList(limit: Int): [User!]!
+  usersList(limit: Int, offset: Int): [User!]!
+  usersConnection(first: Int, after: String, last: Int, after: String): UserConnection!
+  node(id: ID!): Node
 }
 
-type User {
+type User implements Node {
   birthDate: DateTime!
   id: ID!
   name: String!
+  friendsList(limit: Int, offset: Int): [User!]!
+  friendsConnection(first: Int, after: String, last: Int, after: String): UserConnection!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  node: User
+  cursor: String
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+interface Node {
+  id: ID!
 }

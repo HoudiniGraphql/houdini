@@ -6316,6 +6316,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"graphql-relay@npm:^0.10.0":
+  version: 0.10.0
+  resolution: "graphql-relay@npm:0.10.0"
+  peerDependencies:
+    graphql: ^16.2.0
+  checksum: 74b2b608ed7c18cc405d53fa7e482a68442a4dc7c0748bba029c59e1d23c6c6e5b8193c775eb73f6bb0dce49501f66af0453eb0b0f0362374cef9f97528852c0
+  languageName: node
+  linkType: hard
+
 "graphql-tag@npm:2.12.6, graphql-tag@npm:^2.12.6":
   version: 2.12.6
   resolution: "graphql-tag@npm:2.12.6"
@@ -6826,6 +6835,7 @@ __metadata:
     eslint-config-prettier: ^8.3.0
     eslint-plugin-svelte3: ^4.0.0
     graphql: ^16.5.0
+    graphql-relay: ^0.10.0
     graphql-tag: ^2.12.6
     graphql-ws: ^5.8.2
     houdini: "workspace:^"

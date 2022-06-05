@@ -2,6 +2,7 @@ import gql from 'graphql-tag';
 import { GraphQLScalarType, Kind } from 'graphql';
 import { createPubSub, GraphQLYogaError } from '@graphql-yoga/node';
 import { sleep } from '@kitql/helper';
+import { connectionFromArray } from 'graphql-relay';
 
 const pubSub = createPubSub();
 
@@ -12,6 +13,8 @@ export const typeDefs = gql`
     usersList(limit: Int = 4): [User!]!
     user(id: ID!): User!
     avgYearsBirthDate: Float!
+    usersConnection(first: Int, after: String, last: Int, after: String): UserConnection!
+    node(id: ID!): Node
   }
 
   type Mutation {
@@ -19,10 +22,33 @@ export const typeDefs = gql`
     updateUser(id: ID!, name: String!): User!
   }
 
-  type User {
+  type User implements Node {
     id: ID!
     name: String!
     birthDate: DateTime!
+    friendsList(limit: Int, offset: Int): [User!]!
+    friendsConnection(first: Int, after: String, last: Int, after: String): UserConnection!
+  }
+
+  type UserConnection {
+    edges: [UserEdge!]!
+    pageInfo: PageInfo!
+  }
+
+  type UserEdge {
+    node: User
+    cursor: String
+  }
+
+  type PageInfo {
+    endCursor: String
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+  }
+
+  interface Node {
+    id: ID!
   }
 `;
 
@@ -41,7 +67,10 @@ const list = [
 export const resolvers = {
   Query: {
     usersList: (_, args) => {
-      return list.slice(0, args.limit);
+      return list.slice(args.offset || 0, args.limit);
+    },
+    usersConnection(_, args) {
+      return connectionFromArray(list, args);
     },
     user: (_, args) => {
       const user = list.find((c) => c.id === args.id);
@@ -52,6 +81,18 @@ export const resolvers = {
     },
     avgYearsBirthDate: () => {
       return list.map((c) => c.birthDate.getFullYear()).reduce((a, b) => a + b) / list.length;
+    },
+    node(_, { id }) {
+      return list.find((u) => u.id === id);
+    }
+  },
+
+  User: {
+    friendsList: (_, args) => {
+      return list.slice(args.offset || 0, args.limit);
+    },
+    friendsConnection(_, args) {
+      return connectionFromArray(list, args);
     }
   },
 
