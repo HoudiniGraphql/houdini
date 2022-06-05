@@ -45,7 +45,7 @@ const handlers = fragmentHandlers({
 		queryHandlers({
 			config: houdiniConfig,
 			artifact,
-			store: { subscribe, setPartial },
+			store: { subscribe, setPartial, fetch: fetchLocal },
 			queryVariables: () => variables
 		})
 `
@@ -62,7 +62,7 @@ loadNextPage(limit?: number) => Promise<void>
     `
 		methods = `
         loadNextPage: handlers.loadNextPage,
-        query: handlers.refetch,
+        fetch: handlers.refetch,
         loading: handlers.loading,
 `
 	}
@@ -77,7 +77,7 @@ loadNextPage(limit?: number) => Promise<void>
 			methods = `
         loadNextPage: handlers.loadNextPage,
         pageInfo: handlers.pageInfo,
-        query: handlers.refetch,
+        fetch: handlers.refetch,
         loading: handlers.loading,
 `
 
@@ -90,7 +90,7 @@ loadNextPage(limit?: number) => Promise<void>
 			methods = `
 loadPreviousPage: handlers.loadPreviousPage,
 pageInfo: handlers.pageInfo,
-query: handlers.refetch,
+fetch: handlers.refetch,
 loading: handlers.loading,
 `
 		}

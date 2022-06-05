@@ -38,10 +38,11 @@ test.describe('forwards cursor paginatedQuery', () => {
     // wait for the api response
     const response = await expectGraphQLResponse(page);
 
-    // TODO JYC & Alec:
-    // 1/ refetch is not working as expected I think because no network query are happening taking from the cache?!
-    // 2/ in store mode, we loose track of variables I think.
-    expect(response).toBe('xxx');
+    // make sure the refetch contained information for the full list
+    expect(response).toContain('"name":"Bruce Willis","id":"1"');
+    expect(response).toContain('"name":"Samuel Jackson","id":"2"');
+    expect(response).toContain('"name":"Morgan Freeman","id":"3"');
+    expect(response).toContain('"name":"Tom Hanks","id":"4"');
   });
 
   test('page info tracks connection state', async ({ page }) => {

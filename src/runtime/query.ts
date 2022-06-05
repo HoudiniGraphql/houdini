@@ -35,8 +35,14 @@ export function query<_Query extends Operation<any, any>>(
 	return {
 		...document.store,
 		data,
-		refetch: (variables?: _Query['input'], config?: RefetchConfig) =>
-			document.store.fetch({ context, variables, ...config }),
+		refetch: (variables?: _Query['input'], config?: RefetchConfig) => {
+			return document.store.fetch({
+				context,
+				variables,
+				policy: CachePolicy.NetworkOnly,
+				...config,
+			})
+		},
 		error,
 		loading,
 		partial,

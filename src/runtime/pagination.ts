@@ -11,7 +11,6 @@ import { ConfigFile, keyFieldsForType } from './config'
 import { LoadContext } from './types'
 import { countPage, extractPageInfo } from './utils'
 
-//Todo: houdiniContext Type
 type RefetchFn<_Data = any, _Input = any> = (
 	params?: QueryStoreParams<_Input>
 ) => Promise<QueryResult<_Data>>
@@ -20,7 +19,7 @@ export function wrapPaginationStore<_Data, _Input>(
 	store: QueryStore<_Data, _Input> | FragmentStore<_Data>
 ) {
 	// @ts-ignore
-	const { loadNextPage, loadPreviousPage, refetch, ...rest } = store
+	const { loadNextPage, loadPreviousPage, ...rest } = store
 
 	// grab the current houdini context
 	const context = getHoudiniContext()
@@ -33,10 +32,6 @@ export function wrapPaginationStore<_Data, _Input>(
 	if (loadPreviousPage) {
 		// @ts-ignore
 		result.loadPreviousPage = (...args) => loadPreviousPage(context, ...args)
-	}
-	if (refetch) {
-		// @ts-ignore
-		result.refetch = (...args) => refetch(context, ...args)
 	}
 
 	return result
@@ -83,6 +78,9 @@ export function fragmentHandlers({
 		store,
 		artifact: paginationArtifact,
 		queryVariables,
+		refetch: async () => {
+			return {} as any
+		},
 	})
 }
 
@@ -114,6 +112,7 @@ export function queryHandlers({
 		store: data,
 		queryVariables,
 		refetch: store.fetch,
+		// @ts-expect-error: setPartial exists but isn't typed to avoid confusing the user
 		setPartial: store.setPartial,
 		config,
 	})
@@ -132,9 +131,9 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
-	queryVariables?: () => {}
+	queryVariables: () => {}
 	documentLoading?: Readable<boolean>
-	refetch?: RefetchFn<_Query['result'], _Query['input']>
+	refetch: RefetchFn<_Query['result'], _Query['input']>
 	setPartial: (val: boolean) => void
 	config: ConfigFile
 }): PaginatedHandlers<_Query['input']> {
@@ -230,9 +229,9 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
-	queryVariables?: () => {}
+	queryVariables: () => {}
 	loading: Writable<boolean>
-	refetch?: RefetchFn
+	refetch: RefetchFn
 	setPartial: (val: boolean) => void
 }): PaginatedHandlers<_Query> {
 	// track the current page info in an easy-to-reach store
@@ -374,17 +373,10 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 		},
 		pageInfo: { subscribe: pageInfo.subscribe },
 		async refetch(params?: QueryStoreParams<_Query['input']>) {
-			// if this document shouldn't be refetched, don't do anything
-			if (!refetch) {
-				throw new Error("Can't refetch that which isn't meant for it")
-			}
-			const { variables, context } = params ?? {}
-			if (!context) {
-				throw new Error('Missing context')
-			}
+			const { variables } = params ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && JSON.stringify(context.variables()) !== JSON.stringify(variables)) {
+			if (variables && JSON.stringify(extraVariables()) !== JSON.stringify(variables)) {
 				return refetch(params)
 			}
 
@@ -396,23 +388,22 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...context.variables(),
-				...extraVariables,
+				...extraVariables(),
+			}
+
+			if (count) {
 				// reverse cursors need the last entries in the list
-				[artifact.refetch!.update === 'prepend' ? 'last' : 'first']: count,
+				queryVariables[artifact.refetch!.update === 'prepend' ? 'last' : 'first'] = count
 			}
 
 			// set the loading state to true
 			loading.set(true)
 
 			// send the query
-			const { result, partial: partialData } = await executeQuery<GraphQLObject, {}>(
-				artifact,
-				queryVariables,
-				context.session,
-				false
-			)
-			setPartial(partialData)
+			const result = await refetch({
+				...params,
+				variables: queryVariables,
+			})
 
 			// update cache with the result
 			const returnValue = {
@@ -422,7 +413,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 				// overwrite the current data
 				applyUpdates: false,
 				isFetching: false,
-				partial: partialData,
+				partial: false,
 				errors: null,
 			}
 			cache.write(returnValue)
@@ -447,7 +438,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	artifact: QueryArtifact
 	queryVariables?: {}
 	loading: Writable<boolean>
-	refetch?: RefetchFn
+	refetch: RefetchFn
 	initialValue: GraphQLObject
 	store: Readable<GraphQLObject>
 	setPartial: (val: boolean) => void
@@ -511,10 +502,6 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 			loading.set(false)
 		},
 		async refetch(params?: QueryStoreParams<_Query['input']>) {
-			// if this document shouldn't be refetched, don't do anything
-			if (!refetch) {
-				throw new Error("Can't refetch that which isn't meant for it")
-			}
 			const { variables, context } = params ?? {}
 			if (!context) {
 				throw new Error('Missing context')

@@ -182,11 +182,6 @@ export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
 	 * Trigger the query form load function
 	 */
 	fetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
-
-	/**
-	 * Set the partial status for the query (DO NOT USE)
-	 */
-	setPartial: (val: boolean) => void
 }
 
 // the result of tagging an operation

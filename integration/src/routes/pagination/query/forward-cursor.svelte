@@ -20,11 +20,6 @@
         }
       }
     `);
-
-  const context = getHoudiniContext();
-  function refetch2() {
-    refetch({}, { policy: CachePolicy.NetworkOnly });
-  }
 </script>
 
 <div id="result">
@@ -38,4 +33,3 @@
 <button id="next" on:click={() => loadNextPage()}>next</button>
 
 <button id="refetch" on:click={() => refetch()}>refetch</button>
-<button id="refetch2" on:click={() => refetch2()}>refetch2</button>
