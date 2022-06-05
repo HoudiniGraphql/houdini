@@ -44,15 +44,14 @@ test.describe('SSR Page', () => {
   }) => {
     await page.goto(routes.Stores_SSR);
 
-    await clientSideNavigation(page, routes.Stores_Network);
+    clientSideNavigation(page, routes.Stores_Network);
     await expectNoGraphQLRequest(page);
   });
 
   test('From HOME, navigate to page (a graphql query must happen)', async ({ page }) => {
     await page.goto(routes.Home);
 
-    await clientSideNavigation(page, routes.Stores_SSR);
-
+    clientSideNavigation(page, routes.Stores_SSR);
     const str = await expectGraphQLResponse(page);
     expect(str).toBe(
       '{"data":{"usersList":[{"id":"1","name":"Bruce Willis","birthDate":-466732800000},{"id":"2","name":"Samuel Jackson","birthDate":-663638400000},{"id":"3","name":"Morgan Freeman","birthDate":-1028419200000},{"id":"4","name":"Tom Hanks","birthDate":-425433600000}]}}'

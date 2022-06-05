@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../../lib/utils/routes.ts';
 import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
 
 test.describe('forwards cursor paginatedFragment', () => {
   test('loadNextPage', async ({ page }) => {
-    await page.goto('/pagination/fragment/forward-cursor');
+    await page.goto(routes.Pagination_fragment_forward_cursor);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
@@ -23,7 +24,7 @@ test.describe('forwards cursor paginatedFragment', () => {
   });
 
   test('refetch', async ({ page }) => {
-    await page.goto('/pagination/fragment/forward-cursor');
+    await page.goto(routes.Pagination_fragment_forward_cursor);
 
     // load the next page
     await page.locator('button[id=next]').click();
@@ -37,11 +38,11 @@ test.describe('forwards cursor paginatedFragment', () => {
     // wait for the api response
     const response = await expectGraphQLResponse(page);
 
-    expect(response).toMatchSnapshot();
+    expect(response).toBe('xxx');
   });
 
   test('page info tracks connection state', async ({ page }) => {
-    await page.goto('/pagination/fragment/forward-cursor');
+    await page.goto(routes.Pagination_fragment_forward_cursor);
 
     // load the next 4 pages
     for (let i = 0; i < 4; i++) {
@@ -51,11 +52,11 @@ test.describe('forwards cursor paginatedFragment', () => {
       await expectGraphQLResponse(page);
       // check the page info
       const content = await page.locator('div[id=result]').textContent();
-      expect(content).resolves.toMatchSnapshot();
+      expect(content).resolves.toBe('xxx');
     }
 
     // make sure we have all of the data loaded
     const content = await page.locator('div[id=result]').textContent();
-    expect(content).resolves.toMatchSnapshot();
+    expect(content).resolves.toBe('xxx');
   });
 });

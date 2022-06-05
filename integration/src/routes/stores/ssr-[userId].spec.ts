@@ -36,7 +36,7 @@ test.describe('SSR-[userId] Page', () => {
   test('From HOME, navigate to page (a graphql query must happen)', async ({ page }) => {
     await page.goto(routes.Home);
 
-    await clientSideNavigation(page, routes.Stores_SSR_UserId_2);
+    clientSideNavigation(page, routes.Stores_SSR_UserId_2);
 
     const str = await expectGraphQLResponse(page);
     expect(str).toBe('{"data":{"user":{"id":"2","name":"Samuel Jackson"}}}');

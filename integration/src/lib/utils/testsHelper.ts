@@ -24,9 +24,9 @@ export async function expectGraphQLResponse(page: any) {
 /**
  * Only routes that are in the nav menu
  */
-export async function clientSideNavigation(page: any, route: string) {
+export function clientSideNavigation(page: any, route: string) {
   // Get the a link
   const linkToPage = page.locator(`a[href="${route}"]`);
   // Trigger a client side navigation
-  await linkToPage.click();
+  linkToPage.click();
 }

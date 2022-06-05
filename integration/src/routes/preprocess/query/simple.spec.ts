@@ -22,7 +22,7 @@ test.describe('query preprocessor', () => {
     await page.goto(routes.Home);
 
     // Go to the test page in a client side navigation (clicking on the menu)
-    await clientSideNavigation(page, routes.Preprocess_query_simple);
+    clientSideNavigation(page, routes.Preprocess_query_simple);
 
     const result = await expectGraphQLResponse(page);
     expect(result).toBe('{"data":{"user":{"id":"1","name":"Bruce Willis"}}}');

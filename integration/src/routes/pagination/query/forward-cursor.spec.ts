@@ -45,7 +45,7 @@ test.describe('forwards cursor paginatedQuery', () => {
   });
 
   test('page info tracks connection state', async ({ page }) => {
-    await page.goto('/pagination/query/forward-cursor');
+    await page.goto(routes.Pagination_query_forward_cursor);
 
     const data = [
       'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks',

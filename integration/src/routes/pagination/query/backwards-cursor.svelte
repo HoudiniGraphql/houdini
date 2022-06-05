@@ -23,6 +23,6 @@
   {JSON.stringify($pageInfo)}
 </div>
 
-<button id="previous" on:click={() => loadPreviousPage()}>next</button>
+<button id="previous" on:click={() => loadPreviousPage()}>previous</button>
 
 <button id="refetch" on:click={() => refetch()}>refetch</button>

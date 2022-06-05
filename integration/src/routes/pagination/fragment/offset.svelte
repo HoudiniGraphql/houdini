@@ -18,7 +18,7 @@
   const {
     data: userData,
     pageInfo,
-    loadPreviousPage,
+    loadNextPage,
     refetch
   } = paginatedFragment<OffsetFragment>(
     graphql`
@@ -40,6 +40,6 @@
   {JSON.stringify($pageInfo)}
 </div>
 
-<button id="next" on:click={() => loadPreviousPage()}>next</button>
+<button id="next" on:click={() => loadNextPage()}>next</button>
 
 <button id="refetch" on:click={() => refetch()}>refetch</button>

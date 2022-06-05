@@ -11,9 +11,18 @@ export const routes = {
   Preprocess_query_simple: '/preprocess/query/simple',
   Preprocess_query_variable_1: '/preprocess/query/variable/1',
   Preprocess_query_variable_2: '/preprocess/query/variable/2',
+  Preprocess_query_multiple: '/preprocess/query/multiple',
+
+  Preprocess_mutation_mutation: '/preprocess/mutation/mutation',
+  Preprocess_fragment_update: '/preprocess/fragment/update',
 
   Pagination_query_forward_cursor: '/pagination/query/forward-cursor',
   Pagination_query_backwards_cursor: '/pagination/query/backwards-cursor',
+  Pagination_query_offset: '/pagination/query/offset',
+
+  Pagination_fragment_forward_cursor: '/pagination/fragment/forward-cursor',
+  Pagination_fragment_backwards_cursor: '/pagination/fragment/backwards-cursor',
+  Pagination_fragment_offset: '/pagination/fragment/offset',
 
   Stuff_set_user_1: '/stuff/set/user/1',
   Preprocess_query_variable_stuff: '/preprocess/query/variable/stuff'

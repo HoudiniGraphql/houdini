@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../../lib/utils/routes.ts';
 import { expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
 
 test.describe('query preprocessor', () => {
   test('multiple queries', async ({ page }) => {
-    await page.goto('/preprocess/query/multiple');
+    await page.goto(routes.Preprocess_query_multiple);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);

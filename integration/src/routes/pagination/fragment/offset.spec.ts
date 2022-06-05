@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../../lib/utils/routes.ts';
 import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
 
 test.describe('offset paginatedFragment', () => {
   test('loadNextPage', async ({ page }) => {
-    await page.goto('/pagination/fragment/offset');
+    await page.goto(routes.Pagination_fragment_offset);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
@@ -23,7 +24,7 @@ test.describe('offset paginatedFragment', () => {
   });
 
   test('offset refetch', async ({ page }) => {
-    await page.goto('/pagination/fragment/offset');
+    await page.goto(routes.Pagination_fragment_offset);
 
     // load the next page
     await page.locator('button[id=next]').click();
@@ -37,6 +38,6 @@ test.describe('offset paginatedFragment', () => {
     // wait for the api response
     const response = await expectGraphQLResponse(page);
 
-    expect(response).toMatchSnapshot();
+    expect(response).toBe('xxx');
   });
 });

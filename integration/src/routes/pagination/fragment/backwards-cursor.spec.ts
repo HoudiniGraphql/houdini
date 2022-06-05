@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../../lib/utils/routes.ts';
 import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
 
 test.describe('backwards cursor paginatedFragment', () => {
   test('loadPreviousPage', async ({ page }) => {
-    await page.goto('/pagination/fragment/backwards-cursor');
+    await page.goto(routes.Pagination_fragment_backwards_cursor);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
@@ -11,7 +12,7 @@ test.describe('backwards cursor paginatedFragment', () => {
     let div = await page.locator('div[id=result]').textContent();
     expect(div).toBe('Clint Eastwood, Eddie Murphy Jackson');
 
-    // load the next page
+    // load the previous page
     await page.locator('button').click();
 
     // wait for the api response
@@ -23,10 +24,10 @@ test.describe('backwards cursor paginatedFragment', () => {
   });
 
   test('refetch', async ({ page }) => {
-    await page.goto('/pagination/fragment/backwards-cursor');
+    await page.goto(routes.Pagination_fragment_backwards_cursor);
 
-    // load the next page
-    await page.locator('button[id=next]').click();
+    // load the previous page
+    await page.locator('button[id=previous]').click();
 
     // wait for the api response
     await expectGraphQLResponse(page);
@@ -37,25 +38,25 @@ test.describe('backwards cursor paginatedFragment', () => {
     // wait for the api response
     const response = await expectGraphQLResponse(page);
 
-    expect(response).toMatchSnapshot();
+    expect(response).toBe('xxx');
   });
 
   test('page info tracks connection state', async ({ page }) => {
-    await page.goto('/pagination/fragment/backwards-cursor');
+    await page.goto(routes.Pagination_fragment_backwards_cursor);
 
-    // load the next 4 pages
+    // load the previous 4 pages
     for (let i = 0; i < 4; i++) {
       // click the button
-      await page.locator('button[id=next]').click();
+      await page.locator('button[id=previous]').click();
       // wait for the request to resolve
       await expectGraphQLResponse(page);
       // check the page info
       const content = await page.locator('div[id=result]').textContent();
-      expect(content).resolves.toMatchSnapshot();
+      expect(content).toBe('xxx');
     }
 
     // make sure we have all of the data loaded
     const content = await page.locator('div[id=result]').textContent();
-    expect(content).resolves.toMatchSnapshot();
+    expect(content).toBe('xxx');
   });
 });
