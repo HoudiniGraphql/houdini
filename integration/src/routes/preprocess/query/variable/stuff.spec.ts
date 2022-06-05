@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectGraphQLResponse } from '../../../lib/utils/testsHelper.ts';
-import { routes } from '../../../lib/utils/routes.ts';
+import { expectGraphQLResponse } from '../../../../lib/utils/testsHelper.ts';
 
 test.describe('query preprocessor variables', () => {
   test('can include stuff', async ({ page }) => {

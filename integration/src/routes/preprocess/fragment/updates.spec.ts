@@ -1,6 +1,4 @@
-import { sleep, stry } from '@kitql/helper';
 import { expect, test } from '@playwright/test';
-import { routes } from '../../lib/utils/routes.ts';
 import { expectNoGraphQLRequest } from '../../lib/utils/testsHelper.ts';
 
 test.describe('Fragment Preprocessor', () => {

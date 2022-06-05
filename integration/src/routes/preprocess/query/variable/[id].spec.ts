@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.ts';
-import { routes } from '../../../lib/utils/routes.ts';
+import {
+  expectGraphQLResponse,
+  expectNoGraphQLRequest
+} from '../../../../lib/utils/testsHelper.ts';
 
 test.describe('query preprocessor variables', () => {
   test('default value', async ({ page }) => {
