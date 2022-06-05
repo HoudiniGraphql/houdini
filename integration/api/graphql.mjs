@@ -13,7 +13,7 @@ export const typeDefs = gql`
     usersList(limit: Int = 4): [User!]!
     user(id: ID!): User!
     avgYearsBirthDate: Float!
-    usersConnection(first: Int, after: String, last: Int, after: String): UserConnection!
+    usersConnection(first: Int, after: String, last: Int, before: String): UserConnection!
     node(id: ID!): Node
   }
 
@@ -27,7 +27,7 @@ export const typeDefs = gql`
     name: String!
     birthDate: DateTime!
     friendsList(limit: Int, offset: Int): [User!]!
-    friendsConnection(first: Int, after: String, last: Int, after: String): UserConnection!
+    friendsConnection(first: Int, after: String, last: Int, before: String): UserConnection!
   }
 
   type UserConnection {
