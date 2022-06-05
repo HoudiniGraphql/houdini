@@ -5,13 +5,20 @@ import { routes } from './routes.js';
 
 export async function expectNoGraphQLRequest(page: Page) {
   let nbError = 0;
+  let info;
   try {
-    await page.waitForRequest(routes.GraphQL, { timeout: 777 }); // It's the request... It should be fairly fast. (Magic number to find it easily)
+    info = await page.waitForRequest(routes.GraphQL, { timeout: 777 }); // It's the request... It should be fairly fast. (Magic number to find it easily)
   } catch (error: any) {
     expect(error.name).toBe('TimeoutError');
     nbError++;
   }
-  expect(nbError, 'number of expected error, so a GraphQL request happend!').toBe(1);
+  if (nbError === 0) {
+    console.error(`The body of the query that shouldn't happen: `, info?.postDataJSON());
+  }
+  expect(
+    nbError,
+    'A GraphQL request happend, and it should NOT be the case! (We Expected 1 error)'
+  ).toBe(1);
 }
 
 /**
