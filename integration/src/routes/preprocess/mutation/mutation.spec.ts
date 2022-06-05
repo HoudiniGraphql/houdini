@@ -21,4 +21,12 @@ test.describe('Mutation Page', () => {
     // revert the mutation
     await page.locator('div[id=revert]').click();
   });
+
+  test('mutation inputs get marshaled into complex values', function () {
+    throw new Error('not yet implemented');
+  });
+
+  test('mutation values get unmarshaled into complex values', function () {
+    throw new Error('not yet implemented');
+  });
 });
