@@ -3,7 +3,7 @@ import fs from 'fs-extra'
 import path from 'path'
 import os from 'os'
 // locals
-import { CachePolicy } from './types'
+import { CachePolicy } from '../runtime/types'
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/config'
 
 // a place to hold conventions and magic strings

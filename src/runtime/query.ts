@@ -12,6 +12,8 @@ import {
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getPage, getSession, goTo } from './adapter.mjs'
 import { wrapPaginationStore, PaginatedDocumentHandlers } from './pagination'
+import { getHoudiniContext } from './context'
+import { CachePolicy } from '.'
 
 export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -27,10 +29,14 @@ export function query<_Query extends Operation<any, any>>(
 	const partial = derived(document.store, ($store) => $store.partial)
 	const error = derived(document.store, ($store) => $store.errors)
 
+	// load the current houdini context
+	const context = getHoudiniContext()
+
 	return {
 		...document.store,
 		data,
-		refetch: document.store.fetch,
+		refetch: (variables?: _Query['input'], config?: RefetchConfig) =>
+			document.store.fetch({ context, variables, ...config }),
 		error,
 		loading,
 		partial,
@@ -43,10 +49,14 @@ export function query<_Query extends Operation<any, any>>(
 // use as a proxy to the query for refetches, writing to the cache, etc
 export type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
-	refetch: (newVariables?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
+	refetch: (input?: _Input, config?: RefetchConfig) => Promise<QueryResult<_Data>>
 	loading: Readable<boolean>
 	partial: Readable<boolean>
 	error: Readable<Error | null>
+}
+
+type RefetchConfig = {
+	policy?: CachePolicy
 }
 
 // perform the necessary logic for a component query to function

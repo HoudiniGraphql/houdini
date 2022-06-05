@@ -48,7 +48,7 @@ import type { ${doc.name}$data, ${doc.name} } from '$houdini'
 ${paginationExtras.typeImports}
 
 export declare const ${storeName}: Readable<${doc.name}$data> & {
-    update: (value: ${doc.name}) => void
+    load: (value: ${doc.name}) => void
 } ${paginationExtras.types}
 `
 
