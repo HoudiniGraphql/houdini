@@ -6,6 +6,7 @@ const WebSocketServer = ws.Server;
 
 async function main() {
   const yogaApp = createServer({
+    logging: true,
     schema: {
       typeDefs,
       resolvers
@@ -70,6 +71,9 @@ mutation AddUser {
         const errors = validate(args.schema, args.document);
         if (errors.length) return errors;
         return args;
+      },
+      onError(args) {
+        console.log(args);
       }
     },
     wsServer

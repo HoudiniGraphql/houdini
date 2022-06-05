@@ -23,7 +23,7 @@
 
   const context = getHoudiniContext();
   function refetch2() {
-    GQL_ForwardCursorPaginationQuery.fetch({ context, policy: CachePolicy.NetworkOnly });
+    refetch({}, { policy: CachePolicy.NetworkOnly });
   }
 </script>
 
