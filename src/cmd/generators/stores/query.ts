@@ -26,8 +26,11 @@ import {
     RequestContext
 } from '../runtime';
 import { clientStarted, isBrowser } from '../runtime/adapter.mjs';
+import { defaultConfigValues } from '../runtime/config'
 import cache from '../runtime/cache';
 import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
+
+const config = defaultConfigValues(houdiniConfig)
 
 // optional pagination imports
 ${paginationExtras.imports}
@@ -127,7 +130,7 @@ function ${storeName}Store() {
 
         const newVariables = marshalInputs({
             artifact,
-            config: houdiniConfig,
+            config,
             input: params.variables
         })
 
@@ -227,7 +230,7 @@ function ${storeName}Store() {
 
         // prepare store data
         const storeData = {
-            data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
+            data: unmarshalSelection(config, artifact.selection, result.data),
             error: result.errors,
             isFetching: false,
             partial: partial,

@@ -18,7 +18,7 @@
   const {
     data: userData,
     pageInfo,
-    loadPreviousPage,
+    loadNextPage,
     refetch
   } = paginatedFragment<ForwardsCursorFragment>(
     graphql`
@@ -44,6 +44,6 @@
   {JSON.stringify($pageInfo)}
 </div>
 
-<button id="previous" on:click={() => loadPreviousPage()}>previous</button>
+<button id="next" on:click={() => loadNextPage()}>next</button>
 
 <button id="refetch" on:click={() => refetch()}>refetch</button>

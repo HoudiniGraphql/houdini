@@ -17,7 +17,6 @@
 
   const {
     data: userData,
-    pageInfo,
     loadNextPage,
     refetch
   } = paginatedFragment<OffsetFragment>(
@@ -34,10 +33,6 @@
 
 <div id="result">
   {$userData?.friendsList.map((node) => node?.name).join(', ')}
-</div>
-
-<div id="pageInfo">
-  {JSON.stringify($pageInfo)}
 </div>
 
 <button id="next" on:click={() => loadNextPage()}>next</button>

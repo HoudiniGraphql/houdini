@@ -28,7 +28,7 @@ import { fragmentHandlers } from '../runtime/pagination'
 		// create the handlers we'll use for paginating the fragment
 		preamble = `
 const handlers = fragmentHandlers({
-    config: houdiniConfig,
+    config,
     paginationArtifact: _PaginationArtifact.default || _PaginationArtifact,
     initialValue,
     store: fragmentStore,
@@ -43,7 +43,7 @@ const handlers = fragmentHandlers({
 		preamble = `
 	const handlers =
 		queryHandlers({
-			config: houdiniConfig,
+			config,
 			artifact,
 			store: { subscribe, setPartial, fetch: fetchLocal },
 			queryVariables: () => variables

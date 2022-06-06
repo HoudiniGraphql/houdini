@@ -15,8 +15,11 @@ export async function generateFragmentStore(config: Config, doc: CollectedGraphQ
 
 	// the content of the store
 	const storeContent = `import { houdiniConfig } from '$houdini'
+import { defaultConfigValues } from '../runtime/config'
 import { writable } from 'svelte/store'
 ${paginationExtras.imports}
+
+const config = defaultConfigValues(houdiniConfig)
 
 // a fragment store exists in multiple places in a given application so we
 // can't just return a store directly, the user has to load the version of the
