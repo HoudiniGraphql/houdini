@@ -7,19 +7,19 @@ test.describe('Mutation Update Page', () => {
     await page.goto(routes.Stores_Mutation_Update);
 
     const data = [
-      '1 - Bruce Willis',
-      '2 - Samuel Jackson',
-      '3 - Morgan Freeman',
-      '4 - Tom Hanks',
-      '5 - Will Smith'
+      'store-user-query:1 - Bruce Willis',
+      'store-user-query:2 - Samuel Jackson',
+      'store-user-query:3 - Morgan Freeman',
+      'store-user-query:4 - Tom Hanks',
+      'store-user-query:5 - Will Smith'
     ];
 
     const dataUpdated = [
-      '1 - Bruce Willis',
-      '2 - Samuel Jackson',
-      '3 - Morgan Freeman',
-      '4 - Tom Hanks',
-      '5 - tmp name update'
+      'store-user-query:1 - Bruce Willis',
+      'store-user-query:2 - Samuel Jackson',
+      'store-user-query:3 - Morgan Freeman',
+      'store-user-query:4 - Tom Hanks',
+      'store-user-query:5 - tmp name update'
     ];
 
     // 1 Right data

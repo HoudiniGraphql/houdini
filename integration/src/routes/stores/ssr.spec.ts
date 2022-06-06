@@ -28,7 +28,12 @@ test.describe('SSR Page', () => {
   test('Right Data in <li> elements (SSR)', async ({ page }) => {
     await page.goto(routes.Stores_SSR);
 
-    const data = ['1 - Bruce Willis', '2 - Samuel Jackson', '3 - Morgan Freeman', '4 - Tom Hanks'];
+    const data = [
+      'store-user-query:1 - Bruce Willis',
+      'store-user-query:2 - Samuel Jackson',
+      'store-user-query:3 - Morgan Freeman',
+      'store-user-query:4 - Tom Hanks'
+    ];
 
     const li = page.locator('li');
     const count = await li.count();
@@ -54,7 +59,7 @@ test.describe('SSR Page', () => {
 
     const str = await expectGraphQLResponse(page, navSelector(routes.Stores_SSR));
     expect(str).toBe(
-      '{"data":{"usersList":[{"id":"1","name":"Bruce Willis","birthDate":-466732800000},{"id":"2","name":"Samuel Jackson","birthDate":-663638400000},{"id":"3","name":"Morgan Freeman","birthDate":-1028419200000},{"id":"4","name":"Tom Hanks","birthDate":-425433600000}]}}'
+      '{"data":{"usersList":[{"id":"store-user-query:1","name":"Bruce Willis","birthDate":-466732800000},{"id":"store-user-query:2","name":"Samuel Jackson","birthDate":-663638400000},{"id":"store-user-query:3","name":"Morgan Freeman","birthDate":-1028419200000},{"id":"store-user-query:4","name":"Tom Hanks","birthDate":-425433600000}]}}'
     );
   });
 });

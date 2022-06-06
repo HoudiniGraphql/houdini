@@ -30,7 +30,7 @@ test.describe('offset paginatedQuery', () => {
     const response = await expectGraphQLResponse(page, 'button[id=refetch]');
 
     expect(response).toBe(
-      '{"data":{"usersList":[{"name":"Bruce Willis","id":"1"},{"name":"Samuel Jackson","id":"2"},{"name":"Morgan Freeman","id":"3"},{"name":"Tom Hanks","id":"4"}]}}'
+      '{"data":{"usersList":[{"name":"Bruce Willis","id":"pagination-query-offset:1"},{"name":"Samuel Jackson","id":"pagination-query-offset:2"},{"name":"Morgan Freeman","id":"pagination-query-offset:3"},{"name":"Tom Hanks","id":"pagination-query-offset:4"}]}}'
     );
   });
 });

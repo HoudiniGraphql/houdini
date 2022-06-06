@@ -23,7 +23,9 @@ test.describe('query preprocessor', () => {
     await page.goto(routes.Home);
 
     const result = await expectGraphQLResponse(page, navSelector(routes.Preprocess_query_simple));
-    expect(result).toBe('{"data":{"user":{"id":"1","name":"Bruce Willis"}}}');
+    expect(result).toBe(
+      '{"data":{"user":{"id":"preprocess-query-simple:1","name":"Bruce Willis"}}}'
+    );
 
     const div = await page.locator('div[id=result]').textContent();
     expect(div).toBe('Bruce Willis');

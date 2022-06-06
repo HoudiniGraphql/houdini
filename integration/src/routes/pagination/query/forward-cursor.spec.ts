@@ -27,18 +27,22 @@ test.describe('forwards cursor paginatedQuery', () => {
 
     // wait for the api response
     let response = await expectGraphQLResponse(page, 'button[id=next]');
-    expect(response).not.toContain('"name":"Bruce Willis","id":"1"');
-    expect(response).not.toContain('"name":"Samuel Jackson","id":"2"');
-    expect(response).toContain('"name":"Morgan Freeman","id":"3"');
-    expect(response).toContain('"name":"Tom Hanks","id":"4"');
+    expect(response).not.toContain(
+      '"name":"Bruce Willis","id":"pagination-query-forwards-cursor:1"'
+    );
+    expect(response).not.toContain(
+      '"name":"Samuel Jackson","id":"pagination-query-forwards-cursor:2"'
+    );
+    expect(response).toContain('"name":"Morgan Freeman","id":"pagination-query-forwards-cursor:3"');
+    expect(response).toContain('"name":"Tom Hanks","id":"pagination-query-forwards-cursor:4"');
 
     // wait for the api response
     response = await expectGraphQLResponse(page, 'button[id=refetch]');
 
-    expect(response).toContain('"name":"Bruce Willis","id":"1"');
-    expect(response).toContain('"name":"Samuel Jackson","id":"2"');
-    expect(response).toContain('"name":"Morgan Freeman","id":"3"');
-    expect(response).toContain('"name":"Tom Hanks","id":"4"');
+    expect(response).toContain('"name":"Bruce Willis","id":"pagination-query-forwards-cursor:1"');
+    expect(response).toContain('"name":"Samuel Jackson","id":"pagination-query-forwards-cursor:2"');
+    expect(response).toContain('"name":"Morgan Freeman","id":"pagination-query-forwards-cursor:3"');
+    expect(response).toContain('"name":"Tom Hanks","id":"pagination-query-forwards-cursor:4"');
   });
 
   test('page info tracks connection state', async ({ page }) => {
