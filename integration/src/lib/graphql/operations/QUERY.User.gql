@@ -1,5 +1,5 @@
 query user($id: ID!) {
-  user(id: $id) {
+  user(id: $id, snapshot: "store-user-query") {
     id
     name
   }

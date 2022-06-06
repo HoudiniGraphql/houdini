@@ -4,7 +4,7 @@
   const { data, loadPreviousPage, refetch, pageInfo } =
     paginatedQuery<BackwardsCursorPaginationQuery>(graphql`
       query BackwardsCursorPaginationQuery {
-        usersConnection(last: 2) @paginate {
+        usersConnection(last: 2, snapshot: "pagination-query-backwards-cursor") @paginate {
           edges {
             node {
               name

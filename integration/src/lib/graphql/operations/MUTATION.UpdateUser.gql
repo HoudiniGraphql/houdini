@@ -1,5 +1,5 @@
 mutation UpdateUser($id: ID!, $name: String!) {
-  updateUser(id: $id, name: $name) {
+  updateUser(id: $id, name: $name, snapshot: "store-user-query") {
     id
     name
     birthDate

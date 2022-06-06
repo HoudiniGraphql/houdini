@@ -4,34 +4,12 @@ Date custom scalar type
 scalar DateTime
 
 type Mutation {
-  addUser(birthDate: DateTime!, name: String!, delay: Int): User!
-  updateUser(id: ID!, name: String!): User!
+  addUser(birthDate: DateTime!, delay: Int, name: String!, snapshot: String!): User!
+  updateUser(id: ID!, name: String!, snapshot: String!): User!
 }
 
-type Query {
-  avgYearsBirthDate: Float!
-  user(id: ID!): User!
-  usersList(limit: Int, offset: Int): [User!]!
-  usersConnection(first: Int, after: String, last: Int, before: String): UserConnection!
-  node(id: ID!): Node
-}
-
-type User implements Node {
-  birthDate: DateTime!
+interface Node {
   id: ID!
-  name: String!
-  friendsList(limit: Int, offset: Int): [User!]!
-  friendsConnection(first: Int, after: String, last: Int, before: String): UserConnection!
-}
-
-type UserConnection {
-  edges: [UserEdge!]!
-  pageInfo: PageInfo!
-}
-
-type UserEdge {
-  node: User
-  cursor: String
 }
 
 type PageInfo {
@@ -41,6 +19,34 @@ type PageInfo {
   startCursor: String
 }
 
-interface Node {
+type Query {
+  avgYearsBirthDate: Float!
+  node(id: ID!): Node
+  user(id: ID!, snapshot: String!): User!
+  usersConnection(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    snapshot: String!
+  ): UserConnection!
+  usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
+}
+
+type User implements Node {
+  birthDate: DateTime!
+  friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
+  friendsList(limit: Int, offset: Int): [User!]!
   id: ID!
+  name: String!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  cursor: String
+  node: User
 }

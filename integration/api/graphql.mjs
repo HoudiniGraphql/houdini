@@ -10,16 +10,22 @@ export const typeDefs = gql`
   scalar DateTime
 
   type Query {
-    usersList(limit: Int = 4, offset: Int): [User!]!
-    user(id: ID!): User!
+    usersList(snapshot: String!, limit: Int = 4, offset: Int): [User!]!
+    user(snapshot: String!, id: ID!): User!
     avgYearsBirthDate: Float!
-    usersConnection(first: Int, after: String, last: Int, before: String): UserConnection!
+    usersConnection(
+      snapshot: String!
+      first: Int
+      after: String
+      last: Int
+      before: String
+    ): UserConnection!
     node(id: ID!): Node
   }
 
   type Mutation {
-    addUser(name: String!, birthDate: DateTime!, delay: Int): User!
-    updateUser(id: ID!, name: String!): User!
+    addUser(snapshot: String!, name: String!, birthDate: DateTime!, delay: Int): User!
+    updateUser(id: ID!, name: String!, snapshot: String!): User!
   }
 
   type User implements Node {
@@ -53,7 +59,7 @@ export const typeDefs = gql`
 `;
 
 // example data
-const list = [
+const data = [
   { id: '1', name: 'Bruce Willis', birthDate: new Date(1955, 2, 19) },
   { id: '2', name: 'Samuel Jackson', birthDate: new Date(1948, 11, 21) },
   { id: '3', name: 'Morgan Freeman', birthDate: new Date(1937, 5, 0) },
@@ -63,17 +69,26 @@ const list = [
   { id: '7', name: 'Eddie Murphy', birthDate: new Date(1961, 3, 3) },
   { id: '8', name: 'Clint Eastwood', birthDate: new Date(1930, 5, 31) }
 ];
+const snapshots = {};
+
+function getSnapshot(snapshot) {
+  if (!snapshots[snapshot]) {
+    snapshots[snapshot] = data.map((user) => ({ ...user, id: `${snapshot}-${user.id}` }));
+  }
+
+  return snapshots[snapshot];
+}
 
 export const resolvers = {
   Query: {
     usersList: (_, args) => {
-      return [...list].splice(args.offset || 0, args.limit);
+      return [...getSnapshot(args.snapshot)].splice(args.offset || 0, args.limit);
     },
     usersConnection(_, args) {
-      return connectionFromArray(list, args);
+      return connectionFromArray(getSnapshot(args.snapshot), args);
     },
     user: (_, args) => {
-      const user = list.find((c) => c.id === args.id);
+      const user = getSnapshot(args.snapshot).find((c) => c.id === args.id);
       if (!user) {
         throw new GraphQLYogaError('User not found', { code: 404 });
       }
@@ -82,9 +97,11 @@ export const resolvers = {
     avgYearsBirthDate: () => {
       return list.map((c) => c.birthDate.getFullYear()).reduce((a, b) => a + b) / list.length;
     },
-    node(_, { id }) {
+    node(_, { id: nodeID }) {
+      const [snapshot, id] = nodeID.split(':');
+
       return {
-        ...list.find((u) => u.id === id),
+        ...getSnapshot(snapshot).find((u) => u.id === id),
         __typename: 'User'
       };
     }
@@ -92,15 +109,16 @@ export const resolvers = {
 
   User: {
     friendsList: (_, args) => {
-      return list.slice(args.offset || 0, args.limit);
+      return data.slice(args.offset || 0, args.limit);
     },
     friendsConnection(_, args) {
-      return connectionFromArray(list, args);
+      return connectionFromArray(data, args);
     }
   },
 
   Mutation: {
     addUser: async (_, args) => {
+      const list = getSnapshot(args.snapshot);
       if (args.delay) {
         await sleep(args.delay);
       }
@@ -113,6 +131,7 @@ export const resolvers = {
       return user;
     },
     updateUser: async (_, args) => {
+      const list = getSnapshot(args.snapshot);
       const userIndex = list.findIndex((c) => c.id === args.id);
       if (userIndex === -1) {
         throw new GraphQLYogaError('User not found', { code: 404 });

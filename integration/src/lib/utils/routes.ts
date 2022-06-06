@@ -22,8 +22,5 @@ export const routes = {
 
   Pagination_fragment_forward_cursor: '/pagination/fragment/forward-cursor',
   Pagination_fragment_backwards_cursor: '/pagination/fragment/backwards-cursor',
-  Pagination_fragment_offset: '/pagination/fragment/offset',
-
-  Stuff_set_user_1: '/stuff/set/user/1',
-  Preprocess_query_variable_stuff: '/preprocess/query/variable/stuff'
+  Pagination_fragment_offset: '/pagination/fragment/offset'
 };

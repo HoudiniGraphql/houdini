@@ -1,5 +1,5 @@
 mutation AddUser($name: String!, $birthDate: DateTime!, $delay: Int) {
-  addUser(name: $name, birthDate: $birthDate, delay: $delay) {
+  addUser(name: $name, birthDate: $birthDate, delay: $delay, snapshot: "store-user-query") {
     id
     name
     birthDate

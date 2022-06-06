@@ -3,7 +3,7 @@
 
   const { data } = query<UserFive>(graphql`
     query UserFive {
-      node(id: "5") {
+      node(id: "preprocess-mutation:5") {
         ... on User {
           name
         }
@@ -13,7 +13,7 @@
 
   const mutate = mutation<InlineUpdateUser>(graphql`
     mutation InlineUpdateUser($id: ID!, $name: String!) {
-      updateUser(id: $id, name: $name) {
+      updateUser(id: $id, name: $name, snapshot: "preprocess-mutation") {
         id
         name
         birthDate

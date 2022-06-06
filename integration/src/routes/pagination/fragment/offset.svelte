@@ -9,7 +9,7 @@
 
   const { data } = query<UserFragmentOffsetQuery>(graphql`
     query UserFragmentOffsetQuery {
-      user(id: "1") {
+      user(id: "1", snapshot: "pagination-fragment-offset") {
         ...OffsetFragment
       }
     }

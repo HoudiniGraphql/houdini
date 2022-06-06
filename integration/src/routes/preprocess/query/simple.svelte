@@ -3,7 +3,7 @@
 
   const { data } = query<PreprocessorTestQuery1>(graphql`
     query PreprocessorTestQuery1 {
-      user(id: "1") {
+      user(id: "1", snapshot: "preprocess-query-simple") {
         name
       }
     }

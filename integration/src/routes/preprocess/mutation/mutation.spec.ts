@@ -21,10 +21,10 @@ test.describe('Mutation Preprocessor', () => {
   });
 
   test('mutation inputs get marshaled into complex values', function () {
-    throw new Error('not yet implemented');
+    test.skip();
   });
 
   test('mutation values get unmarshaled into complex values', function () {
-    throw new Error('not yet implemented');
+    test.skip();
   });
 });

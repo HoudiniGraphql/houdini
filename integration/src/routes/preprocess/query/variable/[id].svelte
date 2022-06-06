@@ -11,7 +11,7 @@
 
   const { data } = query<PreprocessorTestQueryVars>(graphql`
     query PreprocessorTestQueryVars($id: ID!) {
-      user(id: $id) {
+      user(id: $id, snapshot: "preprocess-query-variable") {
         name
       }
     }

@@ -1,7 +1,7 @@
 <script context="module">
   export function FragmentUpdateTestQueryVariables() {
     return {
-      id: '1'
+      id: 'preprocess-fragment:1'
     };
   }
 </script>
@@ -37,4 +37,4 @@
 
 <div id="result">{$user?.name}</div>
 
-<button id="refetch" on:click={() => refetch({ id: '2' })}>refetch</button>
+<button id="refetch" on:click={() => refetch({ id: 'preprocess-fragment:2' })}>refetch</button>

@@ -8,7 +8,7 @@
 
   const { data: data1 } = query<PreprocessorTestQuery3>(graphql`
     query PreprocessorTestQuery3 {
-      user(id: "1") {
+      user(id: "1", snapshot: "preprocess-query-multiple") {
         name
       }
     }
@@ -16,7 +16,7 @@
 
   const { data: data2 } = query<PreprocessorTestQuery4>(graphql`
     query PreprocessorTestQuery4 {
-      user(id: "2") {
+      user(id: "2", snapshot: "preprocess-query-multiple") {
         name
       }
     }

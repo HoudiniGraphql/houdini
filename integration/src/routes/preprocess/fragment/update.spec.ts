@@ -13,7 +13,7 @@ test.describe('Fragment Preprocessor', () => {
     expect(div).toEqual('Bruce Willis');
 
     // load the new data
-    await page.locator('div[id=refetch]').click();
+    await page.locator('button[id=refetch]').click();
 
     // make sure the fragment store updated
     div = await page.locator('div[id=result]').textContent();

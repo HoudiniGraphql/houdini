@@ -9,7 +9,7 @@
 
   const { data } = query<UserFragmentForwardsCursorQuery>(graphql`
     query UserFragmentForwardsCursorQuery {
-      user(id: "1") {
+      user(id: "1", snapshot: "pagination-fragment-forwards-cursor") {
         ...ForwardsCursorFragment
       }
     }
