@@ -194,7 +194,7 @@ test('basic store', async function () {
 					                source,
 					                variables: newVariables
 					            }));
-					            throw new Error(result.errors);
+					            throw result.errors;
 					        }
 
 					        // setup a subscription for new values from the cache
@@ -482,7 +482,7 @@ test('forward cursor pagination', async function () {
 					                source,
 					                variables: newVariables
 					            }));
-					            throw new Error(result.errors);
+					            throw result.errors;
 					        }
 
 					        // setup a subscription for new values from the cache
@@ -570,7 +570,7 @@ test('forward cursor pagination', async function () {
 							queryHandlers({
 								config: houdiniConfig,
 								artifact,
-								store: { subscribe, setPartial },
+								store: { subscribe, setPartial, fetch: fetchLocal },
 								queryVariables: () => variables
 							})
 
@@ -598,7 +598,7 @@ test('forward cursor pagination', async function () {
 					        ...{
 					            loadNextPage: handlers.loadNextPage,
 					            pageInfo: handlers.pageInfo,
-					            query: handlers.refetch,
+					            fetch: handlers.refetch,
 					            loading: handlers.loading,
 					        }
 					    }
@@ -783,7 +783,7 @@ test('backwards cursor pagination', async function () {
 					                source,
 					                variables: newVariables
 					            }));
-					            throw new Error(result.errors);
+					            throw result.errors;
 					        }
 
 					        // setup a subscription for new values from the cache
@@ -871,7 +871,7 @@ test('backwards cursor pagination', async function () {
 							queryHandlers({
 								config: houdiniConfig,
 								artifact,
-								store: { subscribe, setPartial },
+								store: { subscribe, setPartial, fetch: fetchLocal },
 								queryVariables: () => variables
 							})
 
@@ -899,7 +899,7 @@ test('backwards cursor pagination', async function () {
 					        ...{
 					    loadPreviousPage: handlers.loadPreviousPage,
 					    pageInfo: handlers.pageInfo,
-					    query: handlers.refetch,
+					    fetch: handlers.refetch,
 					    loading: handlers.loading,
 					        }
 					    }
@@ -1080,7 +1080,7 @@ test('offset pagination', async function () {
 					                source,
 					                variables: newVariables
 					            }));
-					            throw new Error(result.errors);
+					            throw result.errors;
 					        }
 
 					        // setup a subscription for new values from the cache
@@ -1168,7 +1168,7 @@ test('offset pagination', async function () {
 							queryHandlers({
 								config: houdiniConfig,
 								artifact,
-								store: { subscribe, setPartial },
+								store: { subscribe, setPartial, fetch: fetchLocal },
 								queryVariables: () => variables
 							})
 
@@ -1195,7 +1195,7 @@ test('offset pagination', async function () {
 
 					        ...{
 					            loadNextPage: handlers.loadNextPage,
-					            query: handlers.refetch,
+					            fetch: handlers.refetch,
 					            loading: handlers.loading,
 					        }
 					    }
