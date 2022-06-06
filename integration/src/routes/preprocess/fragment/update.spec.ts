@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.js';
+import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.js';
 
 test.describe('Fragment Preprocessor', () => {
   test('updates with parent store', async ({ page }) => {
@@ -13,7 +13,7 @@ test.describe('Fragment Preprocessor', () => {
     expect(div).toEqual('Bruce Willis');
 
     // load the new data
-    await page.locator('button[id=refetch]').click();
+    await expectGraphQLResponse(page, 'button[id=refetch]');
 
     // make sure the fragment store updated
     div = await page.locator('div[id=result]').textContent();
