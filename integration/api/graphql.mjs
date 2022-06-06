@@ -11,7 +11,7 @@ export const typeDefs = gql`
 
   type Query {
     usersList(snapshot: String!, limit: Int = 4, offset: Int): [User!]!
-    user(snapshot: String!, id: ID!): User!
+    user(snapshot: String!, id: ID!, tmp: Boolean): User!
     avgYearsBirthDate: Float!
     usersConnection(
       snapshot: String!

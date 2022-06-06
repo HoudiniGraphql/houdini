@@ -22,7 +22,7 @@ type PageInfo {
 type Query {
   avgYearsBirthDate: Float!
   node(id: ID!): Node
-  user(id: ID!, snapshot: String!): User!
+  user(id: ID!, snapshot: String!, tmp: Boolean): User!
   usersConnection(
     after: String
     before: String

@@ -16,11 +16,15 @@
 
   async function refresh(id: string | null) {
     if (id) {
-      await GQL_user.fetch({ variables: { id } });
+      await GQL_user.fetch({ variables: { id, tmp: false } });
     } else {
       // context not usefull here, but we can put it!
       await GQL_user.fetch({ context, policy: CachePolicy.NetworkOnly });
     }
+  }
+
+  async function refresh2WithVariableDifferentOrder() {
+    await GQL_user.fetch({ variables: { tmp: false, id: '2' } });
   }
 </script>
 
@@ -30,6 +34,7 @@
 <button id="refresh-1" on:click={() => refresh('1')}>Fetch 1</button>
 <button id="refresh-2" on:click={() => refresh('2')}>Fetch 2</button>
 <button id="refresh-77" on:click={() => refresh('77')}>Fetch 77</button>
+<button id="refresh-2Star" on:click={() => refresh2WithVariableDifferentOrder()}>Fetch 2*</button>
 
 {#if $GQL_user.isFetching}
   <p>Loading...</p>

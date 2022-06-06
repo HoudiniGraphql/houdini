@@ -72,4 +72,15 @@ test.describe('SSR-[userId] Page', () => {
       '{"data":null,"errors":[{"message":"User not found","locations":[{"line":2,"column":3}],"path":["user"],"extensions":{"code":404}}]}'
     );
   });
+
+  test('Check that variables order doesnt matter', async ({ page }) => {
+    await page.goto(routes.Stores_SSR_UserId_2);
+
+    // Adding { tmp: false } => Should retrigger
+    await expectGraphQLResponse(page, 'button[id="refresh-2"]');
+
+    // Switch the order of variables, should not retrigger
+    await page.locator(`button[id="refresh-2Star"]`).click();
+    await expectNoGraphQLRequest(page);
+  });
 });
