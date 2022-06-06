@@ -73,7 +73,7 @@ const snapshots = {};
 
 function getSnapshot(snapshot) {
   if (!snapshots[snapshot]) {
-    snapshots[snapshot] = data.map((user) => ({ ...user, id: `${snapshot}-${user.id}` }));
+    snapshots[snapshot] = data.map((user) => ({ ...user, id: `${snapshot}:${user.id}` }));
   }
 
   return snapshots[snapshot];
@@ -88,7 +88,7 @@ export const resolvers = {
       return connectionFromArray(getSnapshot(args.snapshot), args);
     },
     user: (_, args) => {
-      const user = getSnapshot(args.snapshot).find((c) => c.id === `${args.snapshot}-${args.id}`);
+      const user = getSnapshot(args.snapshot).find((c) => c.id === `${args.snapshot}:${args.id}`);
       if (!user) {
         throw new GraphQLYogaError('User not found', { code: 404 });
       }
@@ -101,7 +101,7 @@ export const resolvers = {
       const [snapshot, id] = nodeID.split(':');
 
       return {
-        ...getSnapshot(snapshot).find((u) => u.id === id),
+        ...getSnapshot(snapshot).find((u) => u.id === nodeID),
         __typename: 'User'
       };
     }
