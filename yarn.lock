@@ -6544,6 +6544,7 @@ __metadata:
     ts-ast-serializer: ^1.0.1
     ts-jest: ^26.0.0
     ts-node: ^9.1.1
+    tslib: ^2.4.0
     typescript: ^4.6.3
   bin:
     houdini: ./build/cmd.js
@@ -11769,7 +11770,7 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
-"tslib@npm:2.4.0, tslib@npm:~2.4.0":
+"tslib@npm:2.4.0, tslib@npm:^2.4.0, tslib@npm:~2.4.0":
   version: 2.4.0
   resolution: "tslib@npm:2.4.0"
   checksum: 8c4aa6a3c5a754bf76aefc38026134180c053b7bd2f81338cb5e5ebf96fefa0f417bff221592bf801077f5bf990562f6264fecbc42cd3309b33872cb6fc3b113
