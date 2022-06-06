@@ -132,7 +132,7 @@ export const resolvers = {
     },
     updateUser: async (_, args) => {
       const list = getSnapshot(args.snapshot);
-      const userIndex = list.findIndex((c) => c.id === args.id);
+      const userIndex = list.findIndex((c) => c.id === `${args.snapshot}:${args.id}`);
       if (userIndex === -1) {
         throw new GraphQLYogaError('User not found', { code: 404 });
       }
