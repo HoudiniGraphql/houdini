@@ -275,6 +275,83 @@ test('internal directives are scrubbed', async function () {
 	`)
 })
 
+test('variables only used by internal directives are scrubbed', async function () {
+	// execute the generator
+	await runPipeline(config, [
+		mockCollectedDoc(`fragment A on User { firstName }`),
+		mockCollectedDoc(
+			`query TestQuery($parentID: ID!) {
+				user {
+					...A @prepend(parentID: $parentID)
+				}
+			}`
+		),
+	])
+
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(config.artifactPath(docs[0].document)),
+		'utf-8'
+	)
+	expect(queryContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		parser: typeScriptParser,
+	}).program
+
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		module.exports = {
+		    name: "TestQuery",
+		    kind: "HoudiniQuery",
+		    hash: "d602ba63b61c244225db2524918578e52cc0c1b06a512b56064deb7d176f8e30",
+
+		    raw: \`query TestQuery {
+		  user {
+		    ...A
+		    id
+		  }
+		}
+
+		fragment A on User {
+		  firstName
+		}
+		\`,
+
+		    rootType: "Query",
+
+		    selection: {
+		        user: {
+		            type: "User",
+		            keyRaw: "user",
+
+		            fields: {
+		                firstName: {
+		                    type: "String",
+		                    keyRaw: "firstName"
+		                },
+
+		                id: {
+		                    type: "ID",
+		                    keyRaw: "id"
+		                }
+		            }
+		        }
+		    },
+
+		    input: {
+		        fields: {
+		            parentID: "ID"
+		        },
+
+		        types: {}
+		    },
+
+		    policy: "NetworkOnly",
+		    partial: false
+		};
+	`)
+})
+
 test('overlapping query and fragment selection', async function () {
 	// execute the generator
 	await runPipeline(config, [

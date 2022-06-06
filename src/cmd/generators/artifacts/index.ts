@@ -15,6 +15,8 @@ import { ArtifactKind } from '../../../runtime/types'
 
 const AST = recast.types.builders
 
+type NodeWithArguments = graphql.FieldNode | graphql.DirectiveNode
+
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
 export default function artifactGenerator(stats: {
@@ -102,17 +104,42 @@ export default function artifactGenerator(stats: {
 						return
 					}
 
-					// before we can print the document, we need to strip all references to internal directives
-					let rawString = graphql.print(
-						graphql.visit(document, {
-							Directive(node) {
-								// if the directive is one of the internal ones, remove it
-								if (config.isInternalDirective(node)) {
+					// before we can print the document, we need to strip:
+					// 1. all references to internal directives
+					// 2. all variables only used by internal directives
+					const usedVariableNames = new Set<string>()
+					let documentWithoutInternalDirectives = graphql.visit(document, {
+						Directive(node) {
+							// if the directive is one of the internal ones, remove it
+							if (config.isInternalDirective(node)) {
+								return null
+							}
+						},
+
+						Variable(node, _key, parent) {
+							const variableIsBeingDefined =
+								parent &&
+								!(parent instanceof Array) &&
+								parent.kind === 'VariableDefinition'
+
+							if (!variableIsBeingDefined) {
+								usedVariableNames.add(node.name.value)
+							}
+						},
+					})
+					let documentWithoutExtraVariables = graphql.visit(
+						documentWithoutInternalDirectives,
+						{
+							VariableDefinition(variableDefinitionNode) {
+								const name = variableDefinitionNode.variable.name.value
+
+								if (!usedVariableNames.has(name)) {
 									return null
 								}
 							},
-						})
+						}
 					)
+					let rawString = graphql.print(documentWithoutExtraVariables)
 
 					// figure out the document kind
 					let docKind = doc.kind
