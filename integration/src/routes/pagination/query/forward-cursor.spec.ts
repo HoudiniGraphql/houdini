@@ -45,6 +45,10 @@ test.describe('forwards cursor paginatedQuery', () => {
     expect(response).toContain('"name":"Tom Hanks","id":"pagination-query-forwards-cursor:4"');
   });
 
+  test('refetch with input "first" having a default value', function () {
+    test.skip();
+  });
+
   test('page info tracks connection state', async ({ page }) => {
     await page.goto(routes.Pagination_query_forward_cursor);
 
