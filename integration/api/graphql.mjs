@@ -99,9 +99,10 @@ export const resolvers = {
     },
     node(_, { id: nodeID }) {
       const [snapshot, id] = nodeID.split(':');
-
+      const list = getSnapshot(snapshot);
+      const user = list.find((u) => u.id === nodeID);
       return {
-        ...getSnapshot(snapshot).find((u) => u.id === nodeID),
+        ...user,
         __typename: 'User'
       };
     }
