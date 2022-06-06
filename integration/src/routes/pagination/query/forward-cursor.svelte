@@ -1,10 +1,3 @@
-<!-- <script context="module" lang="ts">
-  export function ForwardCursorPaginationQueryVariables({ params }: { params: { id?: string } }) {
-    return {
-      first: 2
-    };
-  }
-</script> -->
 <script lang="ts">
   import { graphql, paginatedQuery, type ForwardCursorPaginationQuery } from '$houdini';
 
@@ -20,19 +13,6 @@
         }
       }
     `);
-
-  // const { data, loadNextPage, refetch, pageInfo } =
-  //   paginatedQuery<ForwardCursorPaginationQuery>(graphql`
-  //     query ForwardCursorPaginationQuery($first: Int!) {
-  //       usersConnection(first: $first, snapshot: "pagination-query-forwards-cursor") @paginate {
-  //         edges {
-  //           node {
-  //             name
-  //           }
-  //         }
-  //       }
-  //     }
-  //   `);
 </script>
 
 <div id="result">
