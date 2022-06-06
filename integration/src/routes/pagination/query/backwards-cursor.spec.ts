@@ -21,7 +21,7 @@ test.describe('backwards cursor paginatedQuery', () => {
   });
 
   test('refetch', async ({ page }) => {
-    await page.goto(routes.Pagination_query_forward_cursor);
+    await page.goto(routes.Pagination_query_backwards_cursor);
 
     // wait for the api response
     await expectGraphQLResponse(page, 'button[id=previous]');
@@ -29,10 +29,9 @@ test.describe('backwards cursor paginatedQuery', () => {
     // wait for the api response
     const response = await expectGraphQLResponse(page, 'button[id=refetch]');
 
-    // TODO JYC & Alec:
-    // 1/ refetch is not working as expected I think because no network query are happening taking from the cache?!
-    // 2/ in store mode, we loose track of variables I think.
-    expect(response).toBe('xxx');
+    expect(response).toBe(
+      '{"data":{"usersConnection":{"edges":[{"node":{"name":"Will Smith","id":"5","__typename":"User"},"cursor":"YXJyYXljb25uZWN0aW9uOjQ="},{"node":{"name":"Harrison Ford","id":"6","__typename":"User"},"cursor":"YXJyYXljb25uZWN0aW9uOjU="},{"node":{"name":"Eddie Murphy","id":"7","__typename":"User"},"cursor":"YXJyYXljb25uZWN0aW9uOjY="},{"node":{"name":"Clint Eastwood","id":"8","__typename":"User"},"cursor":"YXJyYXljb25uZWN0aW9uOjc="}],"pageInfo":{"endCursor":"YXJyYXljb25uZWN0aW9uOjc=","hasNextPage":false,"hasPreviousPage":true,"startCursor":"YXJyYXljb25uZWN0aW9uOjQ="}}}}'
+    );
   });
 
   test('page info tracks connection state', async ({ page }) => {
