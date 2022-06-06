@@ -349,6 +349,8 @@ test('variables only used by internal directives are scrubbed', async function (
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=efafd620e8ee6999336778e8467eb5184c1d92e71393723cc857f4235d2a66b0";
 	`)
 })
 
