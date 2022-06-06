@@ -48,8 +48,6 @@ export function fragmentHandlers({
 	initialValue: {}
 	store: Readable<GraphQLObject>
 }) {
-	const partial = writable(false)
-
 	const { targetType } = paginationArtifact.refetch || {}
 	const typeConfig = config.types?.[targetType || '']
 	if (!typeConfig) {
@@ -73,7 +71,6 @@ export function fragmentHandlers({
 
 	return paginationHandlers({
 		config,
-		setPartial: partial.set,
 		initialValue,
 		store,
 		artifact: paginationArtifact,
@@ -112,8 +109,6 @@ export function queryHandlers({
 		store: data,
 		queryVariables,
 		refetch: store.fetch,
-		// @ts-expect-error: setPartial exists but isn't typed to avoid confusing the user
-		setPartial: store.setPartial,
 		config,
 	})
 }
@@ -125,7 +120,6 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 	queryVariables,
 	documentLoading,
 	refetch,
-	setPartial,
 	config,
 }: {
 	initialValue: GraphQLObject
@@ -134,7 +128,6 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 	queryVariables: () => {}
 	documentLoading?: Readable<boolean>
 	refetch: RefetchFn<_Query['result'], _Query['input']>
-	setPartial: (val: boolean) => void
 	config: ConfigFile
 }): PaginatedHandlers<_Query['input']> {
 	// start with the defaults and no meaningful page info
@@ -168,7 +161,6 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 			queryVariables,
 			loading: paginationLoadingState,
 			refetch,
-			setPartial,
 			config,
 		})
 		// always track pageInfo
@@ -194,7 +186,6 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 			loading: paginationLoadingState,
 			refetch,
 			store,
-			setPartial,
 		})
 
 		loadNextPage = offset.loadPage
@@ -223,7 +214,6 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 	queryVariables: extraVariables,
 	loading,
 	refetch,
-	setPartial,
 }: {
 	config: ConfigFile
 	initialValue: GraphQLObject
@@ -232,7 +222,6 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 	queryVariables: () => {}
 	loading: Writable<boolean>
 	refetch: RefetchFn
-	setPartial: (val: boolean) => void
 }): PaginatedHandlers<_Query> {
 	// track the current page info in an easy-to-reach store
 	const initialPageInfo = extractPageInfo(initialValue, artifact.refetch!.path) ?? {
@@ -285,8 +274,6 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 			houdiniContext.session,
 			false
 		)
-
-		setPartial(partialData)
 
 		// if the query is embedded in a node field (paginated fragments)
 		// make sure we look down one more for the updated page info
@@ -433,7 +420,6 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	refetch,
 	initialValue,
 	store,
-	setPartial,
 }: {
 	artifact: QueryArtifact
 	queryVariables: () => {}
@@ -441,7 +427,6 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	refetch: RefetchFn
 	initialValue: GraphQLObject
 	store: Readable<GraphQLObject>
-	setPartial: (val: boolean) => void
 }): {
 	loadPage: PaginatedHandlers<_Query>['loadNextPage']
 	refetch: PaginatedHandlers<_Query>['refetch']
@@ -477,8 +462,6 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 				throw missingPageSizeError('loadNextPage')
 			}
 
-			console.log(queryVariables)
-
 			// set the loading state to true
 			loading.set(true)
 
@@ -489,8 +472,6 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 				houdiniContext.session,
 				false
 			)
-
-			console.log(result)
 
 			// update cache with the result
 			cache.write({

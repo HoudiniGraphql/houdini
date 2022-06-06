@@ -8,17 +8,16 @@ test.describe('Mutation Preprocessor', () => {
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
-
     let div = await page.locator('div[id=result]').textContent();
-    expect(div).toEqual('Bruce Willis');
+    expect(div).toEqual('Will Smith');
 
     // trigger the mutation
-    await page.locator('div[id=mutate]').click();
+    await page.locator('button[id=mutate]').click();
     div = await page.locator('div[id=result]').textContent();
     expect(div).toEqual('tmp name update');
 
     // revert the mutation
-    await page.locator('div[id=revert]').click();
+    await page.locator('button[id=revert]').click();
   });
 
   test('mutation inputs get marshaled into complex values', function () {
