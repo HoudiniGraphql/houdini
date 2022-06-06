@@ -88,7 +88,7 @@ export const resolvers = {
       return connectionFromArray(getSnapshot(args.snapshot), args);
     },
     user: (_, args) => {
-      const user = getSnapshot(args.snapshot).find((c) => c.id === args.id);
+      const user = getSnapshot(args.snapshot).find((c) => c.id === `${args.snapshot}-${args.id}`);
       if (!user) {
         throw new GraphQLYogaError('User not found', { code: 404 });
       }

@@ -3,7 +3,12 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
 import { Config } from '../../common'
-import { walkTaggedDocuments, ensureImports, ensureStoreImport } from '../utils'
+import {
+	walkTaggedDocuments,
+	ensureImports,
+	ensureStoreImport,
+	ensureArtifactImport,
+} from '../utils'
 import { TransformDocument } from '../types'
 
 const AST = recast.types.builders
@@ -59,10 +64,17 @@ export default async function fragmentProcessor(
 				artifact,
 			})
 
+			const artifactID = ensureArtifactImport({
+				config,
+				body: doc.instance!.content.body,
+				artifact,
+			})
+
 			// instantiate a handler for the fragment
 			const replacement = AST.objectExpression([
 				AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
 				AST.objectProperty(AST.stringLiteral('store'), AST.identifier(storeID)),
+				AST.objectProperty(AST.stringLiteral('artifact'), AST.identifier(artifactID)),
 				AST.objectProperty(AST.literal('proxy'), proxyIdentifier![0]),
 				AST.objectProperty(AST.identifier('config'), AST.identifier('houdiniConfig')),
 			])

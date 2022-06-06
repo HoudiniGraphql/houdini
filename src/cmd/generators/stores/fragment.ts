@@ -14,7 +14,7 @@ export async function generateFragmentStore(config: Config, doc: CollectedGraphQ
 	const paginationExtras = pagination(config, doc)
 
 	// the content of the store
-	const storeContent = `
+	const storeContent = `import { houdiniConfig } from '$houdini'
 import { writable } from 'svelte/store'
 ${paginationExtras.imports}
 
