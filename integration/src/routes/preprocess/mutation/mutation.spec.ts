@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.js';
+import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.js';
 
 test.describe('Mutation Preprocessor', () => {
   test('happy path', async ({ page }) => {
@@ -12,7 +12,7 @@ test.describe('Mutation Preprocessor', () => {
     expect(div).toEqual('Will Smith');
 
     // trigger the mutation
-    await page.locator('button[id=mutate]').click();
+    await expectGraphQLResponse(page, 'button[id=mutate]');
     div = await page.locator('div[id=result]').textContent();
     expect(div).toEqual('tmp name update');
 
