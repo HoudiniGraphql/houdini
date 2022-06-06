@@ -4,7 +4,7 @@ import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/util
 
 test.describe('forwards cursor paginatedQuery', () => {
   test('loadNextPage', async ({ page }) => {
-    await page.goto(routes.Pagination_query_forward_cursor);
+    await page.goto(routes.Pagination_fragment_forward_cursor);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
@@ -21,7 +21,7 @@ test.describe('forwards cursor paginatedQuery', () => {
   });
 
   test('refetch', async ({ page }) => {
-    await page.goto(routes.Pagination_query_forward_cursor);
+    await page.goto(routes.Pagination_fragment_forward_cursor);
 
     await expectNoGraphQLRequest(page);
 
@@ -50,7 +50,7 @@ test.describe('forwards cursor paginatedQuery', () => {
   });
 
   test('page info tracks connection state', async ({ page }) => {
-    await page.goto(routes.Pagination_query_forward_cursor);
+    await page.goto(routes.Pagination_fragment_forward_cursor);
 
     const data = [
       'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks',
