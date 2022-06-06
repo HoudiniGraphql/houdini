@@ -1,5 +1,11 @@
 # houdini
 
+## 0.14.8
+
+### Patch Changes
+
+-   [#310](https://github.com/HoudiniGraphql/houdini/pull/310) [`5cba9e2`](https://github.com/HoudiniGraphql/houdini/commit/5cba9e25a314fc6378e48a3114a91cc1fb8d7557) Thanks [@alexlafroscia](https://github.com/alexlafroscia)! - scrub variables only used by internal directives from query
+
 ## 0.14.7
 
 ### Patch Changes
