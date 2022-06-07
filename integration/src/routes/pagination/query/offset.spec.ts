@@ -20,7 +20,7 @@ test.describe('offset paginatedQuery', () => {
     expect(div).toBe('Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
   });
 
-  test('offset refetch', async ({ page }) => {
+  test('refetch', async ({ page }) => {
     await page.goto(routes.Pagination_query_offset);
 
     // wait for the api response

@@ -183,7 +183,7 @@ export function queryStore<_Data, _Input>({
 			// this is happening in the browser so we dont' have access to the
 			// current load parameters
 			const context: FetchContext = {
-				fetch: fetch,
+				fetch: window.fetch.bind(window),
 				session: params.context?.session!,
 				stuff: params.context?.stuff!,
 			}
@@ -227,7 +227,7 @@ export function queryStore<_Data, _Input>({
 			onMount(() => {
 				// we might have a followup request to fulfill the store's needs
 				const loadContext = {
-					fetch,
+					fetch: window.fetch.bind(window),
 					page: context.page,
 					session: context.session,
 					stuff: context.stuff,
