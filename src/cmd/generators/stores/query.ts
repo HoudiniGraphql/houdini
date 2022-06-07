@@ -21,18 +21,15 @@ import { queryStore } from '../runtime/stores'
 import { ${artifactName} as artifact } from '../artifacts/${artifactName}'
 import { defaultConfigValues } from '../runtime/lib'
 // optional pagination imports
-${paginationExtras.imports}
 
 const config = defaultConfigValues(houdiniConfig)
-
-${paginationExtras.preamble}
 
 // create the query store
 export const ${storeName} = queryStore({
     artifact,
     config,
-    extraMethods: ${paginationExtras.methods}
-    storeName: ${JSON.stringify(storeName)}
+    storeName: ${JSON.stringify(storeName)},
+    paginated: ${JSON.stringify(Boolean(doc.refetch?.paginated))},
 })
 
 export default ${storeName}

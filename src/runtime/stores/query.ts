@@ -22,13 +22,12 @@ export function queryStore<_Data, _Input>({
 	config,
 	artifact,
 	storeName,
-	extraMethods,
+	paginated,
 }: {
 	config: ConfigFile
 	artifact: QueryArtifact
 	paginated: boolean
 	storeName: string
-	extraMethods: {}
 }) {
 	// build up the core query store data
 	const { subscribe, set, update } = writable<QueryResult<_Data, _Input>>({
@@ -49,7 +48,8 @@ export function queryStore<_Data, _Input>({
 	let latestSource: DataSource | null = null
 	let latestPartial: boolean | null = false
 
-	async function queryLocal(context: FetchContext, params: QueryStoreParams<_Input>) {
+	// Perform the actual load
+	async function load(context: FetchContext, params: QueryStoreParams<_Input>) {
 		update((c) => {
 			return { ...c, isFetching: true }
 		})
@@ -142,14 +142,16 @@ export function queryStore<_Data, _Input>({
 			const parentUnsubscribe = subscribe(...args)
 
 			const context = getHoudiniContext()
-			const loadContext = {
-				fetch,
-				page: context.page,
-				session: context.session,
-				stuff: context.stuff,
-			}
 
 			onMount(() => {
+				// we might have a followup request to fulfill the store's needs
+				const loadContext = {
+					fetch,
+					page: context.page,
+					session: context.session,
+					stuff: context.stuff,
+				}
+
 				// if the data was loaded from a cached value, and the document cache policy wants a
 				// network request to be sent after the data was loaded, load the data
 				if (
@@ -208,37 +210,37 @@ export function queryStore<_Data, _Input>({
 				params.context = {} as HoudiniFetchContext
 			}
 
+			// if fetch is happening on the server, it must get a load event
 			if (!isBrowser && !params.event) {
 				// prettier-ignore
 				console.error(`
-                ${logRed('I think that either')}:
-                ${logRed('1/')} you forgot to provide \${logYellow('event')}! As we are in context="module" (SSR) here.
-                        It should be something like:
-    
-                    <script context="module" lang="ts">
-                    import type { LoadEvent } from '@sveltejs/kit';
-    
-                    export async function load(\${logYellow('event')}: LoadEvent) {
-                        \${logYellow('await')} \${logCyan('${storeName}')}.fetch({ \${logYellow('event')}, variables: { ... } });
-                        return {};
-                    }
-                    </script>
-    
-                ${logRed('2/')} you should run this in a browser only.`
+                ${logRed(`Missing load event in server-side ${storeName}.fetch`)}. 
+      I think you forgot to provide \${logYellow('event')} to ${storeName}.fetch. You can get this value 
+      from the load function: 
+
+      <script context="module" lang="ts">
+      import type { LoadEvent } from '@sveltejs/kit';
+
+      export async function load(\${logYellow('event')}: LoadEvent) {
+        await \${logCyan('${storeName}')}.fetch({ \${logYellow('event')}, variables: { ... } });
+        return {};
+      }
+      </script> 
+`
                 );
 
 				throw new Error('Error, check logs for help.')
 			}
 
-			// if we have event, we should be in the load function
+			// if we have event, it's safe to assume this is inside of a load function
 			if (params.event) {
 				// we're in a `load` function, use the event params
-				const load = queryLocal(params.event, params)
+				const loadPromise = load(params.event, params)
 
 				// return the result if the client isn't ready or we
 				// need to block with the request
 				if (!clientStarted || params.blocking) {
-					return await load
+					return await loadPromise
 				}
 			}
 			// the fetch is executing on the client,
@@ -251,13 +253,11 @@ export function queryStore<_Data, _Input>({
 					stuff: params.context?.stuff!,
 				}
 
-				return await queryLocal(context, {
+				return await load(context, {
 					...params,
 					variables: { ...variables, ...params.variables } as _Input,
 				})
 			}
 		},
-
-		...extraMethods,
 	}
 }
