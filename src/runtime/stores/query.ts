@@ -125,7 +125,7 @@ export function queryStore<_Data, _Input>({
 		// prepare store data
 		const storeData = {
 			data: unmarshalSelection(config, artifact.selection, result.data)! as _Data,
-			errors: result.errors,
+			errors: null,
 			isFetching: false,
 			partial: partial,
 			source: source,
