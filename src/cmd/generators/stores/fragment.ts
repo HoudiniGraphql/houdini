@@ -33,7 +33,10 @@ export const ${storeName} = fragmentStore({
     artifact,
     config: defaultConfigValues(houdiniConfig),
     paginatedArtifact: ${paginated ? '_PaginationArtifact' : 'null'},
-    paginationMethods: ${JSON.stringify(paginationExtras.methods, null, 4)},
+    paginationMethods: ${JSON.stringify(paginationExtras.methods, null, 4).replaceAll(
+		'\n',
+		'\n    '
+	)},
 })
 
 export default ${storeName}

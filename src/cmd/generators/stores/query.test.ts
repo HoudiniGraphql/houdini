@@ -51,7 +51,7 @@ test('basic store', async function () {
 	await expect(parsed).toMatchInlineSnapshot(`
 					import { houdiniConfig } from '$houdini';
 					import { queryStore } from '../runtime/stores'
-					import { TestQuery as artifact } from '../artifacts/TestQuery'
+					import artifact from '../artifacts/TestQuery'
 					import { defaultConfigValues } from '../runtime/lib'
 
 					// create the query store
@@ -94,7 +94,7 @@ test('forward cursor pagination', async function () {
 	await expect(parsed).toMatchInlineSnapshot(`
 					import { houdiniConfig } from '$houdini';
 					import { queryStore } from '../runtime/stores'
-					import { TestQuery as artifact } from '../artifacts/TestQuery'
+					import artifact from '../artifacts/TestQuery'
 					import { defaultConfigValues } from '../runtime/lib'
 
 					// create the query store
@@ -103,7 +103,12 @@ test('forward cursor pagination', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
-					    paginationMethods: {"loadNextPage":"loadNextPage","pageInfo":"pageInfo","fetch":"refetch","loading":"loading"}
+					    paginationMethods: {
+					        "loadNextPage": "loadNextPage",
+					        "pageInfo": "pageInfo",
+					        "fetch": "refetch",
+					        "loading": "loading"
+					    }
 					})
 
 					export default GQL_TestQuery
@@ -137,7 +142,7 @@ test('backwards cursor pagination', async function () {
 	await expect(parsed).toMatchInlineSnapshot(`
 					import { houdiniConfig } from '$houdini';
 					import { queryStore } from '../runtime/stores'
-					import { TestQuery as artifact } from '../artifacts/TestQuery'
+					import artifact from '../artifacts/TestQuery'
 					import { defaultConfigValues } from '../runtime/lib'
 
 					// create the query store
@@ -146,7 +151,12 @@ test('backwards cursor pagination', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
-					    paginationMethods: {"loadPreviousPage":"loadPreviousPage","pageInfo":"pageInfo","fetch":"refetch","loading":"loading"}
+					    paginationMethods: {
+					        "loadPreviousPage": "loadPreviousPage",
+					        "pageInfo": "pageInfo",
+					        "fetch": "refetch",
+					        "loading": "loading"
+					    }
 					})
 
 					export default GQL_TestQuery
@@ -176,7 +186,7 @@ test('offset pagination', async function () {
 	await expect(parsed).toMatchInlineSnapshot(`
 					import { houdiniConfig } from '$houdini';
 					import { queryStore } from '../runtime/stores'
-					import { TestQuery as artifact } from '../artifacts/TestQuery'
+					import artifact from '../artifacts/TestQuery'
 					import { defaultConfigValues } from '../runtime/lib'
 
 					// create the query store
@@ -185,7 +195,11 @@ test('offset pagination', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
-					    paginationMethods: {"loadNextPage":"loadNextPage","fetch":"refetch","loading":"loading"}
+					    paginationMethods: {
+					        "loadNextPage": "loadNextPage",
+					        "fetch": "refetch",
+					        "loading": "loading"
+					    }
 					})
 
 					export default GQL_TestQuery

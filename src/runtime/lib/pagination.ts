@@ -64,9 +64,9 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 			queryVariables = () => (typeConfig.resolve!.arguments?.(initialValue) || {}) as _Input
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')
-			// @ts-ignore
 			queryVariables = () =>
-				Object.fromEntries(keys.map((key) => [key, initialValuie[key]])) as _Input
+				// @ts-ignore
+				Object.fromEntries(keys.map((key) => [key, initialValue[key]])) as _Input
 		}
 	}
 
