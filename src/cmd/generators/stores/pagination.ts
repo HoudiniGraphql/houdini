@@ -45,7 +45,7 @@ const handlers = fragmentHandlers({
 		queryHandlers({
 			config,
 			artifact,
-			store: { subscribe, setPartial, fetch: fetchLocal },
+			store: { subscribe, fetch: fetchLocal },
 			queryVariables: () => variables
 		})
 `
