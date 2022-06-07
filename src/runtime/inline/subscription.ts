@@ -1,12 +1,8 @@
 // externals
-import { Readable, writable } from 'svelte/store'
+import { Readable } from 'svelte/store'
 import { onMount, onDestroy } from 'svelte'
 // locals
-import type { ConfigFile } from './config'
-import { Operation, GraphQLTagResult, SubscriptionArtifact } from './types'
-import { getCurrentClient } from './network'
-import cache from './cache'
-import { marshalInputs, unmarshalSelection } from './scalars'
+import { Operation, GraphQLTagResult } from '../types'
 
 // subscription holds open a live connection to the server. it returns a store
 // containing the requested data. Houdini will also update the cache with any

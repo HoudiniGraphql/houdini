@@ -1,4 +1,4 @@
-import { SubscriptionSpec, SubscriptionSelection } from '../types'
+import type { SubscriptionSpec, SubscriptionSelection } from '../lib/types'
 import { evaluateKey, flattenList } from './stuff'
 import { Cache, LinkedList } from './cache'
 import { GraphQLValue } from '..'

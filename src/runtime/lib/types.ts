@@ -2,7 +2,7 @@ import { Readable } from 'svelte/store'
 import type { ConfigFile } from './config'
 import { HoudiniDocumentProxy } from './proxy'
 import type { LoadEvent, Page } from '@sveltejs/kit'
-import { MutationConfig } from './mutation'
+import { MutationConfig } from '../inline/mutation'
 
 export type { ConfigFile } from './config'
 
@@ -102,21 +102,22 @@ export type TaggedGraphqlFragment = {
 	store: FragmentStore<any>
 	proxy: HoudiniDocumentProxy
 }
-export type QueryResult<DataType> = {
+
+export type QueryResult<_Data, _Input> = {
+	data: _Data | null
+	errors: { message: string }[] | null
 	isFetching: boolean
 	partial: boolean
-	source?: DataSource | null
-	data?: DataType | null
-	errors: Error | null
-	variables: {}
+	source: DataSource | null
+	variables: _Input | null
 }
 
-export type MutationResult<DataType> = {
+export type MutationResult<_Data, _Input> = {
+	data: _Data | null
+	errors: { message: string }[] | null
 	isFetching: boolean
 	isOptimisticResponse: boolean
-	data?: DataType | null
-	errors: Error | null
-	variables: {}
+	variables: _Input | null
 }
 
 export type QueryStoreParams<_Input> = {
@@ -124,7 +125,9 @@ export type QueryStoreParams<_Input> = {
 	policy?: CachePolicy
 
 	/**
-	 * You know what you are doing and you want a REAL await (even on a client side navigation in load function)
+	 * Set to true if you want the promise to pause while it's resolving.
+	 * Only enable this if you know what you are doing. This will cause route
+	 * transitions to pause while loading data.
 	 */
 	blocking?: boolean
 } & (
@@ -145,17 +148,19 @@ export type QueryStoreParams<_Input> = {
 			 */
 			event?: never
 			/**
-			 * The HoudiniContext object to get from getHoudiniContext.
-			 * Something like this: `const context = getHoudiniContext()`
+			 * An object containing all of the current metadata necessary for a
+			 * client-side fetch. Must be called in component initialization with
+			 * something like this: `const context = getHoudiniFetchContext()`
 			 */
-			context?: HoudiniContext
+			context?: HoudiniFetchContext
 	  }
 )
 
-export type HoudiniContext = {
+export type HoudiniFetchContext = {
 	page: Page<Record<string, string>>
 	session: Readable<any>
 	variables: () => {}
+	stuff: App.Stuff
 }
 
 export type LoadContext = {
@@ -177,11 +182,11 @@ export type FragmentStore<_Shape> = {
 	}
 }
 
-export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data>> & {
+export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data, _Input>> & {
 	/**
 	 * Trigger the query form load function
 	 */
-	fetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data>>
+	fetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
 }
 
 // the result of tagging an operation
@@ -190,10 +195,13 @@ export type TaggedGraphqlMutation = {
 	store: MutationStore<any, any>
 }
 
-export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result>> & {
+export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result, _Input>> & {
 	mutate: (
-		params: { variables: _Input; context?: HoudiniContext } & MutationConfig<_Result, _Input>
-	) => Promise<MutationResult<_Result>>
+		params: { variables: _Input; context?: HoudiniFetchContext } & MutationConfig<
+			_Result,
+			_Input
+		>
+	) => Promise<MutationResult<_Result, _Input>>
 }
 
 // the result of tagging an operation

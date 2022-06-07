@@ -2,20 +2,21 @@
 import { setContext, getContext as svelteContext } from 'svelte'
 import { readable } from 'svelte/store'
 // local imports
-import { HoudiniContext } from './types'
+import { HoudiniFetchContext } from './types'
 // @ts-ignore
 import { getPage, getSession } from './adapter.mjs'
 import { logCyan, logRed, logYellow } from '@kitql/helper'
 
 export const setVariables = (vars: () => {}) => setContext('variables', vars)
 
-export const getHoudiniContext = (): HoudiniContext => {
+export const getHoudiniContext = (): HoudiniFetchContext => {
 	try {
 		const session = getSession()
 		return {
 			page: getPage(),
 			session: session.subscribe ? session : readable(session),
 			variables: svelteContext('variables') || (() => ({})),
+			stuff: {},
 		}
 	} catch (e) {
 		console.error(

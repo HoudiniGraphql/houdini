@@ -1,8 +1,9 @@
-import { testConfig, testConfigFile } from '../common'
+import { testConfig, testConfigFile } from '../../common'
 import { RequestContext } from './network'
 import { marshalSelection, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact } from './types'
 import { jest } from '@jest/globals'
+import type { Page } from '@sveltejs/kit'
 
 jest.mock('./cache', function () {
 	return
@@ -10,7 +11,8 @@ jest.mock('./cache', function () {
 
 // a mock request context
 const ctx = new RequestContext({
-	page: { host: '', path: '', params: {}, query: new URLSearchParams() },
+	// @ts-ignore
+	page: {} as any,
 	stuff: {},
 	session: null,
 	fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,

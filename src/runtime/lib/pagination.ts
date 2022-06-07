@@ -1,19 +1,20 @@
 // externals
 import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
 // locals
-import cache from './cache'
+import cache from '../cache'
 import { executeQuery } from './network'
 import { GraphQLObject, Operation, QueryArtifact } from './types'
 // this has to be in a separate file since config isn't defined in cache/index.ts
-import { FragmentStore, QueryResult, QueryStore, QueryStoreParams } from '.'
+import { FragmentStore, QueryResult, QueryStore, QueryStoreParams } from '..'
 import { getHoudiniContext } from './context'
 import { ConfigFile, keyFieldsForType } from './config'
 import { LoadContext } from './types'
 import { countPage, extractPageInfo } from './utils'
+import { DataSource } from '.'
 
 type RefetchFn<_Data = any, _Input = any> = (
 	params?: QueryStoreParams<_Input>
-) => Promise<QueryResult<_Data>>
+) => Promise<QueryResult<_Data, _Input>>
 
 export function wrapPaginationStore<_Data, _Input>(
 	store: QueryStore<_Data, _Input> | FragmentStore<_Data>
@@ -402,8 +403,9 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 				// overwrite the current data
 				applyUpdates: false,
 				isFetching: false,
-				partial: false,
+				partial: result.partial,
 				errors: null,
+				source: result.source,
 			}
 			cache.write(returnValue)
 
@@ -528,8 +530,9 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 				variables: queryVariables,
 				applyUpdates: false,
 				isFetching: false,
-				partial: false,
+				partial: result.partial,
 				errors: null,
+				source: result.source,
 			}
 			cache.write(returnValue)
 

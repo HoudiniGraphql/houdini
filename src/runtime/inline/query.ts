@@ -1,19 +1,18 @@
 // externals
 import { derived, get, Readable, writable } from 'svelte/store'
-import { marshalInputs } from './scalars'
 // locals
+import { marshalInputs } from '../lib/scalars'
 import {
 	GraphQLTagResult,
 	Operation,
 	QueryResult,
-	QueryStoreParams,
+	CachePolicy,
 	TaggedGraphqlQuery,
-} from './types'
+} from '../lib/types'
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getPage, getSession, goTo } from './adapter.mjs'
-import { wrapPaginationStore, PaginatedDocumentHandlers } from './pagination'
-import { getHoudiniContext } from './context'
-import { CachePolicy } from '.'
+import { wrapPaginationStore, PaginatedDocumentHandlers } from '../lib/pagination'
+import { getHoudiniContext } from '../lib/context'
 
 export function query<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
@@ -27,7 +26,7 @@ export function query<_Query extends Operation<any, any>>(
 	const data = derived(document.store, ($store) => $store.data)
 	const loading = derived(document.store, ($store) => $store.isFetching)
 	const partial = derived(document.store, ($store) => $store.partial)
-	const error = derived(document.store, ($store) => $store.errors)
+	const errors = derived(document.store, ($store) => $store.errors)
 
 	// load the current houdini context
 	const context = getHoudiniContext()
@@ -43,7 +42,7 @@ export function query<_Query extends Operation<any, any>>(
 				...config,
 			})
 		},
-		error,
+		errors,
 		loading,
 		partial,
 		// if the document was mounted in a non-route component, we need to do special things
@@ -55,10 +54,10 @@ export function query<_Query extends Operation<any, any>>(
 // use as a proxy to the query for refetches, writing to the cache, etc
 export type QueryResponse<_Data, _Input> = {
 	data: Readable<_Data>
-	refetch: (input?: _Input, config?: RefetchConfig) => Promise<QueryResult<_Data>>
+	refetch: (input?: _Input, config?: RefetchConfig) => Promise<QueryResult<_Data, _Input>>
 	loading: Readable<boolean>
 	partial: Readable<boolean>
-	error: Readable<Error | null>
+	errors: Readable<{ message: string }[] | null>
 }
 
 type RefetchConfig = {
@@ -69,14 +68,14 @@ type RefetchConfig = {
 function componentQuery<_Query extends Operation<any, any>>(
 	document: TaggedGraphqlQuery
 ): {
-	error: Readable<Error | null>
+	error: Readable<{ message: string }[] | null>
 } {
 	// compute the variables for the request
 	let variables: _Query['input']
 	let variableError: ErrorWithCode | null = null
 
 	// we need to augment the error state
-	const localError = writable<Error | null>(null)
+	const localError = writable<{ message: string }[] | null>(null)
 	const error = derived(
 		[localError, document.store],
 		([$localError, $store]) => $localError || $store.errors

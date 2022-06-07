@@ -3,8 +3,8 @@ import fs from 'fs-extra'
 import path from 'path'
 import os from 'os'
 // locals
-import { CachePolicy } from '../runtime/types'
-import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/config'
+import { CachePolicy } from '../runtime/lib/types'
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime'
 
 // a place to hold conventions and magic strings
 export class Config {

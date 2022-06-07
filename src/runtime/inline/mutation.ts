@@ -1,13 +1,18 @@
 // locals
-import type { ConfigFile } from './config'
-import { executeQuery } from './network'
-import { Operation, GraphQLTagResult, MutationArtifact, SubscriptionSpec } from './types'
-import cache from './cache'
-import { marshalInputs, marshalSelection, unmarshalSelection } from './scalars'
+import cache from '../cache'
+import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
 
 // @ts-ignore: this file will get generated and does not exist in the source code
 import { getSession } from './adapter.mjs'
-import { getHoudiniContext } from './context'
+import {
+	getHoudiniContext,
+	Operation,
+	GraphQLTagResult,
+	MutationArtifact,
+	SubscriptionSpec,
+	executeQuery,
+} from '../lib'
+import type { ConfigFile } from '../lib/types'
 
 export type MutationConfig<_Result, _Input> = {
 	optimisticResponse?: _Result

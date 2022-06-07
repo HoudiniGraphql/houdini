@@ -12,82 +12,13 @@ export async function generateSubscriptionStore(config: Config, doc: CollectedGr
 
 	// the content of the store
 	const storeContent = `import { houdiniConfig } from '$houdini'
-import { writable } from 'svelte/store'
-import { ${artifactName} as artifact } from '../artifacts'
-import cache from '../runtime/cache'
-import { getCurrentClient } from '../runtime/network'
-import { marshalInputs, unmarshalSelection } from '../runtime/scalars'
+import { ${artifactName} as artifact } from '../artifacts/${artifactName}'
+import { subscriptionStore } from '../runtime/stores'
 
-// a store that holds the latest value
-const result = writable(null)
-
-// pull the query text out of the compiled artifact
-const { raw: text, selection } = artifact.default || artifact
-
-// the function to call to unregister the subscription
-let clearSubscription = () => {}
-
-export const ${storeName} = {
-	subscribe(variables) {
-		// pull out the current client
-		const env = getCurrentClient()
-		// if there isn't one, yell loudly
-		if (!env) {
-			throw new Error('Could not find Houdini Client')
-		}
-		// we need to make sure that the user provided a socket connection
-		if (!env.socket) {
-			throw new Error(
-				'The current Houdini Client is not configured to handle subscriptions. Make sure you ' +
-					'passed a socketClient to HoudiniClient constructor.'
-			)
-		}
-
-		// clear any existing subscription
-		clearSubscription()
-
-		// marshal the inputs into their raw values
-		const marshaledVariables = marshalInputs({
-			input: variables || {},
-			config: houdiniConfig,
-			artifact,
-		})
-
-		// start listening for updates from the server
-		clearSubscription = env.socket.subscribe(
-			{
-				query: text,
-				variables: marshaledVariables,
-			},
-			{
-				next({ data, errors }) {
-					// make sure there were no errors
-					if (errors) {
-						throw errors
-					}
-
-					// if we got a result
-					if (data) {
-						// update the cache with the result
-						cache.write({
-							selection,
-							data,
-							variables: marshaledVariables,
-						})
-
-						// update the local store
-						result.set(unmarshalSelection(config, artifact.selection, data))
-					}
-				},
-				error(data) {},
-				complete() {},
-			}
-		)
-	},
-	unsubscribe() {
-		clearSubscription()
-	},
-}
+const ${storeName} = subscriptionStore({
+	config: houdiniConfig,
+	artifact,
+})
 
 export default ${storeName}
 `

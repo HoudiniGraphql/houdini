@@ -9,7 +9,7 @@ export default function pagination(config: Config, doc: CollectedGraphQLDocument
 	let imports = ''
 	let typeImports = !doc.refetch?.paginated
 		? ''
-		: `import type { PageInfo } from '../runtime/utils'`
+		: `import type { PageInfo } from '../runtime/lib/utils'`
 
 	// if there is no pagination directive in the content, don't do anything
 	if (!doc.refetch?.paginated) {
@@ -36,7 +36,7 @@ const handlers = fragmentHandlers({
 `
 	} else if (doc.kind === ArtifactKind.Query) {
 		// make sure we import the handler util
-		imports = `import { queryHandlers } from '../runtime/pagination'
+		imports = `import { queryHandlers } from '../runtime/lib/pagination'
 `
 
 		// create the query handlers
@@ -99,7 +99,7 @@ loading: handlers.loading,
 	return {
 		preamble,
 		types: types ? `& ${types}` : '',
-		methods: methods ? `...{${methods.replaceAll('\n', '\n    ')}    }` : '',
+		methods: methods ? `{${methods.replaceAll('\n', '\n    ')}    }` : '{}',
 		imports,
 		typeImports,
 	}

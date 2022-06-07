@@ -1,4 +1,4 @@
-import { GraphQLValue } from '../types'
+import type { GraphQLValue } from '../lib/types'
 import { flattenList } from './stuff'
 
 // NOTE: the current implementation of delete is slow. it should try to compare the

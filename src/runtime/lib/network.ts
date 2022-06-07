@@ -1,5 +1,6 @@
 // externals
 import { get, Readable } from 'svelte/store'
+import { LoadEvent } from '@sveltejs/kit'
 // locals
 import type { ConfigFile } from './config'
 import {
@@ -11,7 +12,8 @@ import {
 	SubscriptionArtifact,
 } from './types'
 import { marshalInputs } from './scalars'
-import cache from './cache'
+import cache from '../cache'
+import { Page } from '@sveltejs/kit'
 
 export class HoudiniClient {
 	private fetch: RequestHandler<any>
@@ -72,18 +74,12 @@ export type FetchParams = {
 
 export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
-	page: {
-		host: string
-		path: string
-		params: Record<string, string | string[]>
-		query: URLSearchParams
-	}
 	session: any
-	stuff: Record<string, any>
+	stuff: App.Stuff
 }
 
-export type BeforeLoadContext = FetchContext
-export type AfterLoadContext = FetchContext & {
+export type BeforeLoadContext = LoadEvent
+export type AfterLoadContext = LoadEvent & {
 	input: Record<string, any>
 	data: Record<string, any>
 }
@@ -121,12 +117,12 @@ export type RequestHandler<_Data> = (
 export async function executeQuery<_Data extends GraphQLObject, _Input>(
 	artifact: QueryArtifact | MutationArtifact,
 	variables: _Input,
-	sessionStore: Readable<any>,
+	sessionStore: Readable<any> | null,
 	cached: boolean
 ): Promise<{ result: RequestPayload; partial: boolean }> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?
-	const session = get(sessionStore)
+	const session = sessionStore !== null ? get(sessionStore) : sessionStore
 
 	// Simulate the fetch/load context
 	const fetchCtx = {
@@ -142,6 +138,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 	}
 
 	const { result: res, partial } = await fetchQuery<_Data>({
+		// @ts-ignore
 		context: fetchCtx,
 		artifact,
 		session,
@@ -163,16 +160,16 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 // convertKitPayload is responsible for taking the result of kit's load
 export async function convertKitPayload(
 	context: RequestContext,
-	loader: (ctx: FetchContext) => Promise<KitLoadResponse>,
-	page: FetchContext['page'],
+	loader: (ctx: LoadEvent) => Promise<KitLoadResponse>,
+	page: Page,
 	session: FetchContext['session']
 ) {
 	// invoke the loader
 	const result = await loader({
-		page,
 		session,
-		stuff: {},
 		fetch: context.fetch,
+		...page,
+		props: {},
 	})
 
 	// if the response contains an error
@@ -287,12 +284,12 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 }
 
 export class RequestContext {
-	context: FetchContext
+	private loadEvent: LoadEvent
 	continue: boolean = true
 	returnValue: {} = {}
 
-	constructor(ctx: FetchContext) {
-		this.context = ctx
+	constructor(ctx: LoadEvent) {
+		this.loadEvent = ctx
 	}
 
 	error(status: number, message: string | Error): any {
@@ -314,7 +311,7 @@ export class RequestContext {
 	fetch(input: RequestInfo, init?: RequestInit) {
 		// make sure to bind the window object to the fetch in a browser
 		const fetch =
-			typeof window !== 'undefined' ? this.context.fetch.bind(window) : this.context.fetch
+			typeof window !== 'undefined' ? this.loadEvent.fetch.bind(window) : this.loadEvent.fetch
 
 		return fetch(input, init)
 	}
@@ -347,10 +344,10 @@ export class RequestContext {
 		let hookCall
 		if (framework === 'kit') {
 			if (variant === 'before') {
-				hookCall = (hookFn as KitBeforeLoad).call(this, this.context as BeforeLoadContext)
+				hookCall = (hookFn as KitBeforeLoad).call(this, this.loadEvent as BeforeLoadContext)
 			} else {
 				hookCall = (hookFn as KitAfterLoad).call(this, {
-					...this.context,
+					...this.loadEvent,
 					input,
 					data,
 				} as AfterLoadContext)
@@ -360,14 +357,16 @@ export class RequestContext {
 			if (variant === 'before') {
 				hookCall = (hookFn as SapperBeforeLoad).call(
 					this,
-					this.context.page,
-					this.context.session
+					// @ts-ignore
+					this.loadEvent,
+					this.loadEvent.session
 				)
 			} else {
 				hookCall = (hookFn as SapperAfterLoad).call(
 					this,
-					this.context.page,
-					this.context.session,
+					// @ts-ignore
+					this.loadEvent,
+					this.loadEvent.session,
 					data,
 					input
 				)
@@ -406,12 +405,13 @@ export class RequestContext {
 		let input =
 			framework === 'kit'
 				? // in kit just pass the context directly
-				  (variableFunction as KitBeforeLoad).call(this, this.context)
+				  (variableFunction as KitBeforeLoad).call(this, this.loadEvent)
 				: // we are in sapper mode, so we need to prepare the function context
 				  (variableFunction as SapperBeforeLoad).call(
 						this,
-						this.context.page,
-						this.context.session
+						// @ts-ignore
+						this.loadEvent,
+						this.loadEvent.session
 				  )
 
 		// and pass page and session
@@ -419,13 +419,11 @@ export class RequestContext {
 	}
 }
 
-type SapperBeforeLoad = (
-	page: FetchContext['page'],
-	session: FetchContext['session']
-) => Record<string, any>
+type SapperBeforeLoad = (page: Page, session: LoadEvent['session']) => Record<string, any>
+
 type SapperAfterLoad = (
-	page: FetchContext['page'],
-	session: FetchContext['session'],
+	page: Page,
+	session: LoadEvent['session'],
 	data: Record<string, any>,
 	input: Record<string, any>
 ) => Record<string, any>
