@@ -4,7 +4,7 @@
 </script>
 
 <script lang="ts">
-  $: browser && GQL_usersList.fetch({ policy: CachePolicy.NetworkOnly });
+  $: browser && GQL_usersList.fetch();
 </script>
 
 <h1>NETWORK</h1>
