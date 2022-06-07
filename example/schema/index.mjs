@@ -31,7 +31,7 @@ export const typeDefs = gql`
 	}
 
 	type Subscription {
-		# itemUpdate(id: ID!): ItemUpdate!
+		itemUpdate(id: ID!): ItemUpdate!
 		newItem: ItemUpdate!
 	}
 

@@ -6,17 +6,14 @@ import { writeFile } from '../../utils'
 import pagination from './pagination'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {
-	const storeData: string[] = []
-	const storeDataDTs: string[] = []
-
 	const fileName = doc.name
 	const storeName = config.storeName(doc)
 	const artifactName = `${doc.name}`
 
 	const paginationExtras = pagination(config, doc)
 
-	// STORE
-	const storeDataGenerated = `import { houdiniConfig } from '$houdini';
+	// store definition
+	const storeData = `import { houdiniConfig } from '$houdini';
 import { queryStore } from '../runtime/stores'
 import artifact from '../artifacts/${artifactName}'
 import { defaultConfigValues } from '../runtime/lib'
@@ -35,8 +32,6 @@ export const ${storeName} = queryStore({
 
 export default ${storeName}
 `
-	storeData.push(storeDataGenerated)
-	// STORE END
 
 	// look for the operation
 	const operations = doc.document.definitions.filter(
@@ -46,23 +41,20 @@ export default ${storeName}
 	const withVariableInputs = inputs && inputs.length > 0
 	const VariableInputsType = withVariableInputs ? `${artifactName}$input` : 'null'
 
-	// TYPES
-	const storeDataDTsGenerated = `import type { Readable } from 'svelte/store'
-import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
+	// type definitions
+	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
 import { QueryStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
 
 export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}> ${paginationExtras.types}
-  `
-	storeDataDTs.push(storeDataDTsGenerated)
-	// TYPES END
 
-	await writeFile(path.join(config.rootDir, 'stores', `${fileName}.js`), storeData.join(`\n`))
+export default ${storeName}
+`
 
-	await writeFile(
-		path.join(config.rootDir, 'stores', `${fileName}.d.ts`),
-		storeDataDTs.join(`\n`)
-	)
+	await Promise.all([
+		writeFile(path.join(config.storesDirectory, `${fileName}.js`), storeData),
+		writeFile(path.join(config.storesDirectory, `${fileName}.d.ts`), typeDefs),
+	])
 
 	return fileName
 }

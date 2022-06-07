@@ -5,9 +5,7 @@ export default function pagination(config: Config, doc: CollectedGraphQLDocument
 	// figure out the extra methods and their types when there's pagination
 	let methods = {}
 	let types = ''
-	let typeImports = !doc.refetch?.paginated
-		? ''
-		: `import type { PageInfo } from '../runtime/lib/utils'`
+	let typeImports = ''
 
 	// which functions we pull from the handlers depends on the pagination method
 	// specified by the artifact
@@ -15,9 +13,9 @@ export default function pagination(config: Config, doc: CollectedGraphQLDocument
 
 	// offset pagination
 	if (paginationMethod === 'offset') {
-		types = `
-loadNextPage(limit?: number) => Promise<void>
-    `
+		types = `{
+	loadNextPage: (limit?: number) => Promise<void>
+}`
 		methods = {
 			loadNextPage: 'loadNextPage',
 			fetch: 'refetch',
@@ -26,10 +24,13 @@ loadNextPage(limit?: number) => Promise<void>
 	}
 	// cursor pagination
 	else if (paginationMethod === 'cursor') {
+		typeImports = `import type { PageInfo } from '../runtime/lib/utils'
+import type { Readable } from 'svelte/store'
+`
 		// forwards cursor pagination
 		if (doc.refetch?.direction === 'forward') {
 			types = `{
-    loadNextPage(pageCount?: number, after?: string | number): Promise<void>
+    loadNextPage: (pageCount?: number, after?: string | number) => Promise<void>
     pageInfo: Readable<PageInfo>
 }`
 			methods = {
@@ -42,7 +43,7 @@ loadNextPage(limit?: number) => Promise<void>
 			// backwards cursor pagination
 		} else {
 			types = `{
-    loadPreviousPage(pageCount?: number, before?: string): Promise<void>
+    loadPreviousPage: (pageCount?: number, before?: string) => Promise<void>
     pageInfo: Readable<PageInfo>
 }`
 			methods = {

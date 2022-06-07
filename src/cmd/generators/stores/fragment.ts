@@ -43,19 +43,18 @@ export default ${storeName}
 `
 
 	// the type definitions for the store
-	const typeDefs = `
-import type { Readable } from 'svelte/store'
-import type { ${doc.name}$data, ${doc.name} } from '$houdini'
+	const typeDefs = `import type { ${doc.name}$data } from '$houdini'
+import { FragmentStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
 
-export declare const ${storeName}: Readable<${doc.name}$data> & {
-    load: (value: ${doc.name}) => void
-} ${paginationExtras.types}
+export declare const ${storeName}: FragmentStore<${doc.name}$data> ${paginationExtras.types}
+
+export default ${storeName}
 `
 
 	// write the store contents to disk
 	await Promise.all([
-		writeFile(path.join(config.rootDir, 'stores', `${fileName}.d.ts`), typeDefs),
+		writeFile(path.join(config.storesDirectory, `${fileName}.d.ts`), typeDefs),
 		writeFile(path.join(config.storesDirectory, `${fileName}.js`), storeContent),
 	])
 
