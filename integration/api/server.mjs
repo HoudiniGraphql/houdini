@@ -71,9 +71,6 @@ mutation AddUser {
         const errors = validate(args.schema, args.document);
         if (errors.length) return errors;
         return args;
-      },
-      onError(args) {
-        console.log(args);
       }
     },
     wsServer

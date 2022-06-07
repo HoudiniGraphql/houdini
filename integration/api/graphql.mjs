@@ -25,7 +25,7 @@ export const typeDefs = gql`
 
   type Mutation {
     addUser(snapshot: String!, name: String!, birthDate: DateTime!, delay: Int): User!
-    updateUser(id: ID!, name: String!, snapshot: String!): User!
+    updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime): User!
   }
 
   type User implements Node {
@@ -141,7 +141,12 @@ export const resolvers = {
       if (userIndex === -1) {
         throw new GraphQLYogaError('User not found', { code: 404 });
       }
-      list[userIndex] = { ...list[userIndex], name: args.name };
+      if (args.birthDate) {
+        list[userIndex].birthDate = args.birthDate;
+      }
+      if (args.name) {
+        list[userIndex].name = args.name;
+      }
       return list[userIndex];
     }
   },

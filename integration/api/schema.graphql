@@ -5,7 +5,7 @@ scalar DateTime
 
 type Mutation {
   addUser(birthDate: DateTime!, delay: Int, name: String!, snapshot: String!): User!
-  updateUser(id: ID!, name: String!, snapshot: String!): User!
+  updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime): User!
 }
 
 interface Node {

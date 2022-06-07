@@ -7,6 +7,7 @@ export const routes = {
   Stores_SSR_UserId_2: '/stores/ssr-2',
   Stores_Mutation: '/stores/mutation',
   Stores_Mutation_Update: '/stores/mutation-update',
+  Stores_Mutation_Scalars: '/stores/mutation-scalars',
 
   Preprocess_query_simple: '/preprocess/query/simple',
   Preprocess_query_variable_1: '/preprocess/query/variable/1',

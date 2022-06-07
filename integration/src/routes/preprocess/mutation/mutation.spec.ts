@@ -19,12 +19,4 @@ test.describe('Mutation Preprocessor', () => {
     // revert the mutation
     await page.locator('button[id=revert]').click();
   });
-
-  test('mutation inputs get marshaled into complex values', function () {
-    test.skip();
-  });
-
-  test('mutation values get unmarshaled into complex values', function () {
-    test.skip();
-  });
 });
