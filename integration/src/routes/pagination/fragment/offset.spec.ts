@@ -19,16 +19,4 @@ test.describe('offset paginatedFragment', () => {
     div = await page.locator('div[id=result]').textContent();
     expect(div).toBe('Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
   });
-
-  test('offset refetch', async ({ page }) => {
-    await page.goto(routes.Pagination_fragment_offset);
-
-    // wait for the api response
-    await expectGraphQLResponse(page, 'button[id=next]');
-
-    // wait for the api response
-    const response = await expectGraphQLResponse(page, 'button[id=refetch]');
-
-    expect(response).toBe('xxx');
-  });
 });

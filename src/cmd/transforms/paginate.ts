@@ -379,6 +379,8 @@ export default async function paginate(
 					]
 				})
 
+			const typeConfig = config.typeConfig?.[fragment]
+
 			const queryDoc: graphql.DocumentNode = {
 				kind: 'Document',
 				definitions: [
@@ -445,9 +447,7 @@ export default async function paginate(
 											kind: 'Field',
 											name: {
 												kind: 'Name',
-												value:
-													config.typeConfig?.[fragment]?.resolve
-														?.queryField || 'node',
+												value: typeConfig?.resolve?.queryField || 'node',
 											},
 											['arguments']: keys.map((key) => ({
 												kind: 'Argument',
@@ -466,12 +466,18 @@ export default async function paginate(
 											selectionSet: {
 												kind: 'SelectionSet',
 												selections: [
+													// make sure we look up the type of the result
 													{
 														kind: 'Field',
 														name: { kind: 'Name', value: '__typename' },
 													},
+													// make sure every key field is present
+													...(typeConfig?.keys || ['id']).map((key) => ({
+														kind: 'Field',
+														name: { kind: 'Name', value: key },
+													})),
 													...fragmentSpreadSelection,
-												],
+												] as graphql.SelectionNode[],
 											},
 										},
 								  ],

@@ -15,11 +15,7 @@
     }
   `);
 
-  const {
-    data: userData,
-    loadNextPage,
-    refetch
-  } = paginatedFragment<OffsetFragment>(
+  const { data: userData, loadNextPage } = paginatedFragment<OffsetFragment>(
     graphql`
       fragment OffsetFragment on User {
         friendsList(limit: 2) @paginate {
@@ -36,5 +32,3 @@
 </div>
 
 <button id="next" on:click={() => loadNextPage()}>next</button>
-
-<button id="refetch" on:click={() => refetch()}>refetch</button>

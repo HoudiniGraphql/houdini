@@ -18,8 +18,7 @@
   const {
     data: userData,
     pageInfo,
-    loadNextPage,
-    refetch
+    loadNextPage
   } = paginatedFragment<ForwardsCursorFragment>(
     graphql`
       fragment ForwardsCursorFragment on User {
@@ -34,8 +33,6 @@
     `,
     $data!.user
   );
-
-  $: console.log($userData);
 </script>
 
 <div id="result">
@@ -47,5 +44,3 @@
 </div>
 
 <button id="next" on:click={() => loadNextPage()}>next</button>
-
-<button id="refetch" on:click={() => refetch()}>refetch</button>

@@ -73,7 +73,11 @@ const snapshots = {};
 
 function getSnapshot(snapshot) {
   if (!snapshots[snapshot]) {
-    snapshots[snapshot] = data.map((user) => ({ ...user, id: `${snapshot}:${user.id}` }));
+    snapshots[snapshot] = data.map((user) => ({
+      ...user,
+      id: `${snapshot}:${user.id}`,
+      snapshot
+    }));
   }
 
   return snapshots[snapshot];
@@ -109,11 +113,11 @@ export const resolvers = {
   },
 
   User: {
-    friendsList: (_, args) => {
-      return data.slice(args.offset || 0, args.limit);
+    friendsList: (user, args) => {
+      return [...getSnapshot(user.snapshot)].splice(args.offset || 0, args.limit);
     },
-    friendsConnection(_, args) {
-      return connectionFromArray(data, args);
+    friendsConnection(user, args) {
+      return connectionFromArray(getSnapshot(user.snapshot), args);
     }
   },
 

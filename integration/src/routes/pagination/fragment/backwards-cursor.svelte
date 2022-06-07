@@ -18,8 +18,7 @@
   const {
     data: userData,
     pageInfo,
-    loadPreviousPage,
-    refetch
+    loadPreviousPage
   } = paginatedFragment<BackwardsCursorFragment>(
     graphql`
       fragment BackwardsCursorFragment on User {
@@ -45,5 +44,3 @@
 </div>
 
 <button id="previous" on:click={() => loadPreviousPage()}>previous</button>
-
-<button id="refetch" on:click={() => refetch()}>refetch</button>

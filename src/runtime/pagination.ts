@@ -446,12 +446,11 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	})
 
 	return {
-		// Todo: houdiniContext Type
 		loadPage: async (houdiniContext: LoadContext, limit?: number) => {
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
 				...houdiniContext.variables(),
-				...extraVariables,
+				...extraVariables(),
 				offset: currentOffset,
 			}
 			if (limit) {

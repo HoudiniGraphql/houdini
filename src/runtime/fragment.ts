@@ -9,7 +9,9 @@ import { wrapPaginationStore, PaginatedDocumentHandlers } from './pagination'
 export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
 	initialValue: _Fragment
-): Omit<ReturnType<FragmentStore<_Fragment['shape']>['load']>, 'update'> {
+): Omit<ReturnType<FragmentStore<_Fragment['shape']>['load']>, 'update'> & {
+	data: Readable<_Fragment['shape']>
+} {
 	// make sure we got a query document
 	if (fragment.kind !== 'HoudiniFragment' || false) {
 		throw new Error('getFragment can only take fragment documents')
@@ -24,7 +26,10 @@ export function fragment<_Fragment extends Fragment<any>>(
 		store.update(val)
 	})
 
-	return store
+	return {
+		...store,
+		data: { subscribe: store.subscribe },
+	}
 
 	// the following block of comments is from a time when fragments had their own subscriptions
 	// since a query subscribes to its full selection this isn't necessary but will be in the future
@@ -102,7 +107,10 @@ export function fragment<_Fragment extends Fragment<any>>(
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	document: GraphQLTagResult,
 	initialValue: _Fragment
-): { data: Readable<_Fragment['shape']> } & PaginatedDocumentHandlers<_Fragment['shape'], {}> {
+): { data: Readable<_Fragment['shape']> } & Omit<
+	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
+	'refetch'
+> {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniFragment') {
 		throw new Error('paginatedFragment() must be passed a fragment document')
