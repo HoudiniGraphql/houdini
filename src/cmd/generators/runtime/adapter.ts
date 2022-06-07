@@ -42,7 +42,7 @@ export function goTo(location, options) {
 
 export const isBrowser = process.browser
 
-export const clientStarted = false; // Not tested in Sapper.
+export const clientStarted = true; // Not tested in Sapper.
 `
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
