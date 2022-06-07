@@ -1,18 +1,10 @@
-<script context="module" lang="ts">
-  export function ForwardCursorPaginationQueryVariables() {
-    return {
-      first: 2 // default value!
-    };
-  }
-</script>
-
 <script lang="ts">
   import { graphql, paginatedQuery, type ForwardCursorPaginationQuery } from '$houdini';
 
   const { data, loadNextPage, refetch, pageInfo } =
     paginatedQuery<ForwardCursorPaginationQuery>(graphql`
-      query ForwardCursorPaginationQuery($first: Int!) {
-        usersConnection(first: $first, snapshot: "pagination-query-forwards-cursor") @paginate {
+      query ForwardCursorPaginationQuery {
+        usersConnection(first: 2, snapshot: "pagination-query-forwards-cursor") @paginate {
           edges {
             node {
               name
