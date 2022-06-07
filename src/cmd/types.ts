@@ -11,7 +11,8 @@ export type CollectedGraphQLDocument = {
 	name: string
 	document: graphql.DocumentNode
 	originalDocument: graphql.DocumentNode
-	generate: boolean
+	generateArtifact: boolean
+	generateStore: boolean
 	originalString: string
 	refetch?: BaseCompiledDocument['refetch']
 }

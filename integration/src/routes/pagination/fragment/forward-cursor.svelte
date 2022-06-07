@@ -34,6 +34,8 @@
     `,
     $data!.user
   );
+
+  $: console.log($userData);
 </script>
 
 <div id="result">

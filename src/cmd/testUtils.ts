@@ -86,7 +86,8 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 		document: parsed,
 		originalDocument: parsed,
 		filename: `${name}.ts`,
-		generate: true,
+		generateArtifact: true,
+		generateStore: true,
 		originalString: query,
 	}
 }

@@ -14,7 +14,7 @@ export default async function storesGenerator(config: Config, docs: CollectedGra
 	await Promise.all(
 		docs.map(async (doc) => {
 			// if the doc is not meant to be generated, skip it
-			if (!doc.generate) {
+			if (!doc.generateStore) {
 				return
 			}
 

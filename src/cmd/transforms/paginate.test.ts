@@ -451,7 +451,7 @@ test('embeds node pagination query as a separate document', async function () {
 					module.exports = {
 					    name: "UserFriends_Pagination_Query",
 					    kind: "HoudiniQuery",
-					    hash: "59992fa37d2b9bacc20bcfc5f747b2ec89fe53c65278bc4e56d81a21ec6a0c88",
+					    hash: "cdc648e541d1037d2fbd3acd29185e1df36d8ca4ac83f0cd83963f8dc3a57c4a",
 
 					    refetch: {
 					        update: "append",
@@ -466,6 +466,7 @@ test('embeds node pagination query as a separate document', async function () {
 
 					    raw: \`query UserFriends_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
 					  node(id: $id) {
+					    __typename
 					    ...UserFriends_jrGTj
 					  }
 					}
@@ -502,6 +503,11 @@ test('embeds node pagination query as a separate document', async function () {
 					            nullable: true,
 
 					            fields: {
+					                __typename: {
+					                    type: "String",
+					                    keyRaw: "__typename"
+					                },
+
 					                friendsByForwardsCursor: {
 					                    type: "UserConnection",
 					                    keyRaw: "friendsByForwardsCursor::paginated",
@@ -630,7 +636,7 @@ test('embeds custom pagination query as a separate document', async function () 
 					module.exports = {
 					    name: "UserGhost_Pagination_Query",
 					    kind: "HoudiniQuery",
-					    hash: "556aae8efcbbbcc3878b62227e9931435c6fb277057ed4c5b6a5cebdbcd1a10f",
+					    hash: "f1b4042303074cca1e525c7fe243ff0baeb54d30af932bca8ae95ecac1ffa690",
 
 					    refetch: {
 					        update: "append",
@@ -645,6 +651,7 @@ test('embeds custom pagination query as a separate document', async function () 
 
 					    raw: \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $name: String!, $aka: String!) {
 					  ghost(name: $name, aka: $aka) {
+					    __typename
 					    ...UserGhost_jrGTj
 					  }
 					}
@@ -681,6 +688,11 @@ test('embeds custom pagination query as a separate document', async function () 
 					            keyRaw: "ghost(name: $name, aka: $aka)",
 
 					            fields: {
+					                __typename: {
+					                    type: "String",
+					                    keyRaw: "__typename"
+					                },
+
 					                friendsConnection: {
 					                    type: "GhostConnection",
 					                    keyRaw: "friendsConnection::paginated",

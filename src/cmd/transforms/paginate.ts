@@ -465,7 +465,13 @@ export default async function paginate(
 											})),
 											selectionSet: {
 												kind: 'SelectionSet',
-												selections: fragmentSpreadSelection,
+												selections: [
+													{
+														kind: 'Field',
+														name: { kind: 'Name', value: '__typename' },
+													},
+													...fragmentSpreadSelection,
+												],
 											},
 										},
 								  ],
@@ -481,7 +487,8 @@ export default async function paginate(
 				name: refetchQueryName,
 				document: queryDoc,
 				originalDocument: queryDoc,
-				generate: true,
+				generateArtifact: true,
+				generateStore: false,
 				refetch: doc.refetch,
 				originalString: '',
 			})

@@ -1,5 +1,5 @@
 // external imports
-import path from 'path'
+import path, { parse } from 'path'
 import fs from 'fs/promises'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
@@ -10,7 +10,7 @@ import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
-import { readFile } from 'fs/promises'
+import { readFile, stat } from 'fs/promises'
 
 // the config to use in tests
 const config = testConfig()
@@ -52,6 +52,7 @@ test('basic store', async function () {
 					import { houdiniConfig } from '$houdini';
 					import { logCyan, logRed, logYellow, stry } from '@kitql/helper';
 					import { writable } from 'svelte/store';
+					import { onMount } from 'svelte'
 					import { TestQuery as artifact } from '../artifacts';
 					import {
 					    CachePolicy,
@@ -59,8 +60,11 @@ test('basic store', async function () {
 					    RequestContext
 					} from '../runtime';
 					import { clientStarted, isBrowser } from '../runtime/adapter.mjs';
+					import { defaultConfigValues } from '../runtime/config'
 					import cache from '../runtime/cache';
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
+
+					const config = defaultConfigValues(houdiniConfig)
 
 					// optional pagination imports
 
@@ -89,7 +93,7 @@ test('basic store', async function () {
 					        if (!params.context) {
 					            params.context = {};
 					        }
-					        
+
 					        if (!isBrowser && !params.event) {
 					            // prettier-ignore
 					            console.error(
@@ -145,6 +149,9 @@ test('basic store', async function () {
 					        })
 						}
 
+					    let latestSource = null
+					    let latestPartial = false
+
 					    async function queryLocal(context, params) {
 					        update((c) => {
 					            return { ...c, isFetching: true }
@@ -160,21 +167,11 @@ test('basic store', async function () {
 
 					        const newVariables = marshalInputs({
 					            artifact,
-					            config: houdiniConfig,
+					            config,
 					            input: params.variables
 					        })
 
-					        // Todo: We need to know what is mandatory, what not... so let's comment for now!
-					        // if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
-					        //     update((s) => ({
-					        //         ...s,
-					        //         errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					        //         isFetching: false,
-					        //         partial: false,
-					        //         variables: newVariables
-					        //     }));
-					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        // }
+					        // Todo: validate inputs before we query the api
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -183,6 +180,10 @@ test('basic store', async function () {
 					            session: context.session,
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
+
+					        // keep the trackers up to date
+					        latestSource = source
+					        latestPartial = partial
 
 					        if (result.errors && result.errors.length > 0) {
 					            update((s) => ({
@@ -199,48 +200,12 @@ test('basic store', async function () {
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-					            subscriptionSpec = {
-					                rootType: artifact.rootType,
-					                selection: artifact.selection,
-					                variables: () => newVariables,
-					                set: (data) => update((s) => ({ ...s, data }))
-					            }
-					            cache.subscribe(subscriptionSpec, variables)
-
 					            const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
 
 					            // if the variables changed we need to unsubscribe from the old fields and
 					            // listen to the new ones
 					            if (updated && subscriptionSpec) {
 					                cache.unsubscribe(subscriptionSpec, variables)
-					            }
-
-					            // if the data was loaded from a cached value, and the document cache policy wants a
-					            // network request to be sent after the data was loaded, load the data
-					            if (
-					                source === DataSource.Cache &&
-					                params.policy === CachePolicy.CacheAndNetwork
-					            ) {
-					                // this will invoke pagination's refetch because of javascript's magic this binding
-					                fetchQuery({
-					                    context,
-					                    artifact,
-					                    variables: newVariables,
-					                    session: context.session,
-					                    cached: false,
-					                })
-					            }
-
-					            // if we have a partial result and we can load the rest of the data
-					            // from the network, send the request
-					            if (partial && params.policy === CachePolicy.CacheOrNetwork) {
-					                fetchQuery({
-					                    context,
-					                    artifact,
-					                    variables: newVariables,
-					                    session: context.session,
-					                    cached: false,
-					                })
 					            }
 
 					            // update the cache with the data that we just ran into
@@ -260,7 +225,7 @@ test('basic store', async function () {
 
 					        // prepare store data
 					        const storeData = {
-					            data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
+					            data: unmarshalSelection(config, artifact.selection, result.data),
 					            error: result.errors,
 					            isFetching: false,
 					            partial: partial,
@@ -275,13 +240,47 @@ test('basic store', async function () {
 					        return storeData
 					    }
 
-					    const setPartial = (partial) => update(s => ({...s, partial }))
-
 
 
 					    return {
 					        subscribe: (...args) => {
 					            const parentUnsubscribe = subscribe(...args)
+
+					            onMount(() => {
+					                // if the data was loaded from a cached value, and the document cache policy wants a
+					                // network request to be sent after the data was loaded, load the data
+					                if (latestSource === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
+					                    // this will invoke pagination's refetch because of javascript's magic this binding
+					                    fetchQuery({
+					                        context,
+					                        artifact,
+					                        variables: variables,
+					                        session: context.session,
+					                        cached: false
+					                    });
+					                }
+
+					                // if we have a partial result and we can load the rest of the data
+					                // from the network, send the request
+					                if (latestPartial && artifact.policy === CachePolicy.CacheOrNetwork) {
+					                    fetchQuery({
+					                        context,
+					                        artifact,
+					                        variables: variables,
+					                        session: context.session,
+					                        cached: false
+					                    });
+					                }
+
+					                // subscribe to cache updates
+					                subscriptionSpec = {
+					                    rootType: artifact.rootType,
+					                    selection: artifact.selection,
+					                    variables: () => variables,
+					                    set: (data) => update((s) => ({ ...s, data }))
+					                }
+					                cache.subscribe(subscriptionSpec, variables)
+					            });
 
 					            // Handle unsubscribe
 					            return () => {
@@ -290,14 +289,14 @@ test('basic store', async function () {
 					                    subscriptionSpec = null
 					                }
 
+					                latestSource = null
+					                latestPartial = null
+
 					                parentUnsubscribe()
 					            }
 					        },
 
 					        fetch: fetchLocal,
-
-					        // For internal usage only.
-					        setPartial,
 
 					        
 					    }
@@ -339,6 +338,7 @@ test('forward cursor pagination', async function () {
 					import { houdiniConfig } from '$houdini';
 					import { logCyan, logRed, logYellow, stry } from '@kitql/helper';
 					import { writable } from 'svelte/store';
+					import { onMount } from 'svelte'
 					import { TestQuery as artifact } from '../artifacts';
 					import {
 					    CachePolicy,
@@ -346,8 +346,11 @@ test('forward cursor pagination', async function () {
 					    RequestContext
 					} from '../runtime';
 					import { clientStarted, isBrowser } from '../runtime/adapter.mjs';
+					import { defaultConfigValues } from '../runtime/config'
 					import cache from '../runtime/cache';
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
+
+					const config = defaultConfigValues(houdiniConfig)
 
 					// optional pagination imports
 					import { queryHandlers } from '../runtime/pagination'
@@ -377,7 +380,7 @@ test('forward cursor pagination', async function () {
 					        if (!params.context) {
 					            params.context = {};
 					        }
-					        
+
 					        if (!isBrowser && !params.event) {
 					            // prettier-ignore
 					            console.error(
@@ -433,6 +436,9 @@ test('forward cursor pagination', async function () {
 					        })
 						}
 
+					    let latestSource = null
+					    let latestPartial = false
+
 					    async function queryLocal(context, params) {
 					        update((c) => {
 					            return { ...c, isFetching: true }
@@ -448,21 +454,11 @@ test('forward cursor pagination', async function () {
 
 					        const newVariables = marshalInputs({
 					            artifact,
-					            config: houdiniConfig,
+					            config,
 					            input: params.variables
 					        })
 
-					        // Todo: We need to know what is mandatory, what not... so let's comment for now!
-					        // if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
-					        //     update((s) => ({
-					        //         ...s,
-					        //         errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					        //         isFetching: false,
-					        //         partial: false,
-					        //         variables: newVariables
-					        //     }));
-					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        // }
+					        // Todo: validate inputs before we query the api
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -471,6 +467,10 @@ test('forward cursor pagination', async function () {
 					            session: context.session,
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
+
+					        // keep the trackers up to date
+					        latestSource = source
+					        latestPartial = partial
 
 					        if (result.errors && result.errors.length > 0) {
 					            update((s) => ({
@@ -487,48 +487,12 @@ test('forward cursor pagination', async function () {
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-					            subscriptionSpec = {
-					                rootType: artifact.rootType,
-					                selection: artifact.selection,
-					                variables: () => newVariables,
-					                set: (data) => update((s) => ({ ...s, data }))
-					            }
-					            cache.subscribe(subscriptionSpec, variables)
-
 					            const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
 
 					            // if the variables changed we need to unsubscribe from the old fields and
 					            // listen to the new ones
 					            if (updated && subscriptionSpec) {
 					                cache.unsubscribe(subscriptionSpec, variables)
-					            }
-
-					            // if the data was loaded from a cached value, and the document cache policy wants a
-					            // network request to be sent after the data was loaded, load the data
-					            if (
-					                source === DataSource.Cache &&
-					                params.policy === CachePolicy.CacheAndNetwork
-					            ) {
-					                // this will invoke pagination's refetch because of javascript's magic this binding
-					                fetchQuery({
-					                    context,
-					                    artifact,
-					                    variables: newVariables,
-					                    session: context.session,
-					                    cached: false,
-					                })
-					            }
-
-					            // if we have a partial result and we can load the rest of the data
-					            // from the network, send the request
-					            if (partial && params.policy === CachePolicy.CacheOrNetwork) {
-					                fetchQuery({
-					                    context,
-					                    artifact,
-					                    variables: newVariables,
-					                    session: context.session,
-					                    cached: false,
-					                })
 					            }
 
 					            // update the cache with the data that we just ran into
@@ -548,7 +512,7 @@ test('forward cursor pagination', async function () {
 
 					        // prepare store data
 					        const storeData = {
-					            data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
+					            data: unmarshalSelection(config, artifact.selection, result.data),
 					            error: result.errors,
 					            isFetching: false,
 					            partial: partial,
@@ -563,14 +527,12 @@ test('forward cursor pagination', async function () {
 					        return storeData
 					    }
 
-					    const setPartial = (partial) => update(s => ({...s, partial }))
-
 
 						const handlers =
 							queryHandlers({
-								config: houdiniConfig,
+								config,
 								artifact,
-								store: { subscribe, setPartial, fetch: fetchLocal },
+								store: { subscribe, fetch: fetchLocal },
 								queryVariables: () => variables
 							})
 
@@ -579,6 +541,42 @@ test('forward cursor pagination', async function () {
 					        subscribe: (...args) => {
 					            const parentUnsubscribe = subscribe(...args)
 
+					            onMount(() => {
+					                // if the data was loaded from a cached value, and the document cache policy wants a
+					                // network request to be sent after the data was loaded, load the data
+					                if (latestSource === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
+					                    // this will invoke pagination's refetch because of javascript's magic this binding
+					                    fetchQuery({
+					                        context,
+					                        artifact,
+					                        variables: variables,
+					                        session: context.session,
+					                        cached: false
+					                    });
+					                }
+
+					                // if we have a partial result and we can load the rest of the data
+					                // from the network, send the request
+					                if (latestPartial && artifact.policy === CachePolicy.CacheOrNetwork) {
+					                    fetchQuery({
+					                        context,
+					                        artifact,
+					                        variables: variables,
+					                        session: context.session,
+					                        cached: false
+					                    });
+					                }
+
+					                // subscribe to cache updates
+					                subscriptionSpec = {
+					                    rootType: artifact.rootType,
+					                    selection: artifact.selection,
+					                    variables: () => variables,
+					                    set: (data) => update((s) => ({ ...s, data }))
+					                }
+					                cache.subscribe(subscriptionSpec, variables)
+					            });
+
 					            // Handle unsubscribe
 					            return () => {
 					                if (subscriptionSpec) {
@@ -586,14 +584,14 @@ test('forward cursor pagination', async function () {
 					                    subscriptionSpec = null
 					                }
 
+					                latestSource = null
+					                latestPartial = null
+
 					                parentUnsubscribe()
 					            }
 					        },
 
 					        fetch: fetchLocal,
-
-					        // For internal usage only.
-					        setPartial,
 
 					        ...{
 					            loadNextPage: handlers.loadNextPage,
@@ -640,6 +638,7 @@ test('backwards cursor pagination', async function () {
 					import { houdiniConfig } from '$houdini';
 					import { logCyan, logRed, logYellow, stry } from '@kitql/helper';
 					import { writable } from 'svelte/store';
+					import { onMount } from 'svelte'
 					import { TestQuery as artifact } from '../artifacts';
 					import {
 					    CachePolicy,
@@ -647,8 +646,11 @@ test('backwards cursor pagination', async function () {
 					    RequestContext
 					} from '../runtime';
 					import { clientStarted, isBrowser } from '../runtime/adapter.mjs';
+					import { defaultConfigValues } from '../runtime/config'
 					import cache from '../runtime/cache';
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
+
+					const config = defaultConfigValues(houdiniConfig)
 
 					// optional pagination imports
 					import { queryHandlers } from '../runtime/pagination'
@@ -678,7 +680,7 @@ test('backwards cursor pagination', async function () {
 					        if (!params.context) {
 					            params.context = {};
 					        }
-					        
+
 					        if (!isBrowser && !params.event) {
 					            // prettier-ignore
 					            console.error(
@@ -734,6 +736,9 @@ test('backwards cursor pagination', async function () {
 					        })
 						}
 
+					    let latestSource = null
+					    let latestPartial = false
+
 					    async function queryLocal(context, params) {
 					        update((c) => {
 					            return { ...c, isFetching: true }
@@ -749,21 +754,11 @@ test('backwards cursor pagination', async function () {
 
 					        const newVariables = marshalInputs({
 					            artifact,
-					            config: houdiniConfig,
+					            config,
 					            input: params.variables
 					        })
 
-					        // Todo: We need to know what is mandatory, what not... so let's comment for now!
-					        // if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
-					        //     update((s) => ({
-					        //         ...s,
-					        //         errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					        //         isFetching: false,
-					        //         partial: false,
-					        //         variables: newVariables
-					        //     }));
-					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        // }
+					        // Todo: validate inputs before we query the api
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -772,6 +767,10 @@ test('backwards cursor pagination', async function () {
 					            session: context.session,
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
+
+					        // keep the trackers up to date
+					        latestSource = source
+					        latestPartial = partial
 
 					        if (result.errors && result.errors.length > 0) {
 					            update((s) => ({
@@ -788,48 +787,12 @@ test('backwards cursor pagination', async function () {
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-					            subscriptionSpec = {
-					                rootType: artifact.rootType,
-					                selection: artifact.selection,
-					                variables: () => newVariables,
-					                set: (data) => update((s) => ({ ...s, data }))
-					            }
-					            cache.subscribe(subscriptionSpec, variables)
-
 					            const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
 
 					            // if the variables changed we need to unsubscribe from the old fields and
 					            // listen to the new ones
 					            if (updated && subscriptionSpec) {
 					                cache.unsubscribe(subscriptionSpec, variables)
-					            }
-
-					            // if the data was loaded from a cached value, and the document cache policy wants a
-					            // network request to be sent after the data was loaded, load the data
-					            if (
-					                source === DataSource.Cache &&
-					                params.policy === CachePolicy.CacheAndNetwork
-					            ) {
-					                // this will invoke pagination's refetch because of javascript's magic this binding
-					                fetchQuery({
-					                    context,
-					                    artifact,
-					                    variables: newVariables,
-					                    session: context.session,
-					                    cached: false,
-					                })
-					            }
-
-					            // if we have a partial result and we can load the rest of the data
-					            // from the network, send the request
-					            if (partial && params.policy === CachePolicy.CacheOrNetwork) {
-					                fetchQuery({
-					                    context,
-					                    artifact,
-					                    variables: newVariables,
-					                    session: context.session,
-					                    cached: false,
-					                })
 					            }
 
 					            // update the cache with the data that we just ran into
@@ -849,7 +812,7 @@ test('backwards cursor pagination', async function () {
 
 					        // prepare store data
 					        const storeData = {
-					            data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
+					            data: unmarshalSelection(config, artifact.selection, result.data),
 					            error: result.errors,
 					            isFetching: false,
 					            partial: partial,
@@ -864,14 +827,12 @@ test('backwards cursor pagination', async function () {
 					        return storeData
 					    }
 
-					    const setPartial = (partial) => update(s => ({...s, partial }))
-
 
 						const handlers =
 							queryHandlers({
-								config: houdiniConfig,
+								config,
 								artifact,
-								store: { subscribe, setPartial, fetch: fetchLocal },
+								store: { subscribe, fetch: fetchLocal },
 								queryVariables: () => variables
 							})
 
@@ -880,6 +841,42 @@ test('backwards cursor pagination', async function () {
 					        subscribe: (...args) => {
 					            const parentUnsubscribe = subscribe(...args)
 
+					            onMount(() => {
+					                // if the data was loaded from a cached value, and the document cache policy wants a
+					                // network request to be sent after the data was loaded, load the data
+					                if (latestSource === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
+					                    // this will invoke pagination's refetch because of javascript's magic this binding
+					                    fetchQuery({
+					                        context,
+					                        artifact,
+					                        variables: variables,
+					                        session: context.session,
+					                        cached: false
+					                    });
+					                }
+
+					                // if we have a partial result and we can load the rest of the data
+					                // from the network, send the request
+					                if (latestPartial && artifact.policy === CachePolicy.CacheOrNetwork) {
+					                    fetchQuery({
+					                        context,
+					                        artifact,
+					                        variables: variables,
+					                        session: context.session,
+					                        cached: false
+					                    });
+					                }
+
+					                // subscribe to cache updates
+					                subscriptionSpec = {
+					                    rootType: artifact.rootType,
+					                    selection: artifact.selection,
+					                    variables: () => variables,
+					                    set: (data) => update((s) => ({ ...s, data }))
+					                }
+					                cache.subscribe(subscriptionSpec, variables)
+					            });
+
 					            // Handle unsubscribe
 					            return () => {
 					                if (subscriptionSpec) {
@@ -887,14 +884,14 @@ test('backwards cursor pagination', async function () {
 					                    subscriptionSpec = null
 					                }
 
+					                latestSource = null
+					                latestPartial = null
+
 					                parentUnsubscribe()
 					            }
 					        },
 
 					        fetch: fetchLocal,
-
-					        // For internal usage only.
-					        setPartial,
 
 					        ...{
 					    loadPreviousPage: handlers.loadPreviousPage,
@@ -937,6 +934,7 @@ test('offset pagination', async function () {
 					import { houdiniConfig } from '$houdini';
 					import { logCyan, logRed, logYellow, stry } from '@kitql/helper';
 					import { writable } from 'svelte/store';
+					import { onMount } from 'svelte'
 					import { TestQuery as artifact } from '../artifacts';
 					import {
 					    CachePolicy,
@@ -944,8 +942,11 @@ test('offset pagination', async function () {
 					    RequestContext
 					} from '../runtime';
 					import { clientStarted, isBrowser } from '../runtime/adapter.mjs';
+					import { defaultConfigValues } from '../runtime/config'
 					import cache from '../runtime/cache';
 					import { marshalInputs, unmarshalSelection } from '../runtime/scalars';
+
+					const config = defaultConfigValues(houdiniConfig)
 
 					// optional pagination imports
 					import { queryHandlers } from '../runtime/pagination'
@@ -975,7 +976,7 @@ test('offset pagination', async function () {
 					        if (!params.context) {
 					            params.context = {};
 					        }
-					        
+
 					        if (!isBrowser && !params.event) {
 					            // prettier-ignore
 					            console.error(
@@ -1031,6 +1032,9 @@ test('offset pagination', async function () {
 					        })
 						}
 
+					    let latestSource = null
+					    let latestPartial = false
+
 					    async function queryLocal(context, params) {
 					        update((c) => {
 					            return { ...c, isFetching: true }
@@ -1046,21 +1050,11 @@ test('offset pagination', async function () {
 
 					        const newVariables = marshalInputs({
 					            artifact,
-					            config: houdiniConfig,
+					            config,
 					            input: params.variables
 					        })
 
-					        // Todo: We need to know what is mandatory, what not... so let's comment for now!
-					        // if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
-					        //     update((s) => ({
-					        //         ...s,
-					        //         errors: errorsToGraphQLLayout('GQL_TestQuery variables are not matching'),
-					        //         isFetching: false,
-					        //         partial: false,
-					        //         variables: newVariables
-					        //     }));
-					        //     throw new Error(\`GQL_TestQuery variables are not matching\`);
-					        // }
+					        // Todo: validate inputs before we query the api
 
 					        const { result, source, partial } = await fetchQuery({
 					            context,
@@ -1069,6 +1063,10 @@ test('offset pagination', async function () {
 					            session: context.session,
 					            cached: params.policy !== CachePolicy.NetworkOnly,
 					        })
+
+					        // keep the trackers up to date
+					        latestSource = source
+					        latestPartial = partial
 
 					        if (result.errors && result.errors.length > 0) {
 					            update((s) => ({
@@ -1085,48 +1083,12 @@ test('offset pagination', async function () {
 
 					        // setup a subscription for new values from the cache
 					        if (isBrowser) {
-					            subscriptionSpec = {
-					                rootType: artifact.rootType,
-					                selection: artifact.selection,
-					                variables: () => newVariables,
-					                set: (data) => update((s) => ({ ...s, data }))
-					            }
-					            cache.subscribe(subscriptionSpec, variables)
-
 					            const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
 
 					            // if the variables changed we need to unsubscribe from the old fields and
 					            // listen to the new ones
 					            if (updated && subscriptionSpec) {
 					                cache.unsubscribe(subscriptionSpec, variables)
-					            }
-
-					            // if the data was loaded from a cached value, and the document cache policy wants a
-					            // network request to be sent after the data was loaded, load the data
-					            if (
-					                source === DataSource.Cache &&
-					                params.policy === CachePolicy.CacheAndNetwork
-					            ) {
-					                // this will invoke pagination's refetch because of javascript's magic this binding
-					                fetchQuery({
-					                    context,
-					                    artifact,
-					                    variables: newVariables,
-					                    session: context.session,
-					                    cached: false,
-					                })
-					            }
-
-					            // if we have a partial result and we can load the rest of the data
-					            // from the network, send the request
-					            if (partial && params.policy === CachePolicy.CacheOrNetwork) {
-					                fetchQuery({
-					                    context,
-					                    artifact,
-					                    variables: newVariables,
-					                    session: context.session,
-					                    cached: false,
-					                })
 					            }
 
 					            // update the cache with the data that we just ran into
@@ -1146,7 +1108,7 @@ test('offset pagination', async function () {
 
 					        // prepare store data
 					        const storeData = {
-					            data: unmarshalSelection(houdiniConfig, artifact.selection, result.data),
+					            data: unmarshalSelection(config, artifact.selection, result.data),
 					            error: result.errors,
 					            isFetching: false,
 					            partial: partial,
@@ -1161,14 +1123,12 @@ test('offset pagination', async function () {
 					        return storeData
 					    }
 
-					    const setPartial = (partial) => update(s => ({...s, partial }))
-
 
 						const handlers =
 							queryHandlers({
-								config: houdiniConfig,
+								config,
 								artifact,
-								store: { subscribe, setPartial, fetch: fetchLocal },
+								store: { subscribe, fetch: fetchLocal },
 								queryVariables: () => variables
 							})
 
@@ -1177,6 +1137,42 @@ test('offset pagination', async function () {
 					        subscribe: (...args) => {
 					            const parentUnsubscribe = subscribe(...args)
 
+					            onMount(() => {
+					                // if the data was loaded from a cached value, and the document cache policy wants a
+					                // network request to be sent after the data was loaded, load the data
+					                if (latestSource === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
+					                    // this will invoke pagination's refetch because of javascript's magic this binding
+					                    fetchQuery({
+					                        context,
+					                        artifact,
+					                        variables: variables,
+					                        session: context.session,
+					                        cached: false
+					                    });
+					                }
+
+					                // if we have a partial result and we can load the rest of the data
+					                // from the network, send the request
+					                if (latestPartial && artifact.policy === CachePolicy.CacheOrNetwork) {
+					                    fetchQuery({
+					                        context,
+					                        artifact,
+					                        variables: variables,
+					                        session: context.session,
+					                        cached: false
+					                    });
+					                }
+
+					                // subscribe to cache updates
+					                subscriptionSpec = {
+					                    rootType: artifact.rootType,
+					                    selection: artifact.selection,
+					                    variables: () => variables,
+					                    set: (data) => update((s) => ({ ...s, data }))
+					                }
+					                cache.subscribe(subscriptionSpec, variables)
+					            });
+
 					            // Handle unsubscribe
 					            return () => {
 					                if (subscriptionSpec) {
@@ -1184,14 +1180,14 @@ test('offset pagination', async function () {
 					                    subscriptionSpec = null
 					                }
 
+					                latestSource = null
+					                latestPartial = null
+
 					                parentUnsubscribe()
 					            }
 					        },
 
 					        fetch: fetchLocal,
-
-					        // For internal usage only.
-					        setPartial,
 
 					        ...{
 					            loadNextPage: handlers.loadNextPage,
@@ -1207,4 +1203,25 @@ test('offset pagination', async function () {
 
 					export const GQL_TestQuery = store
 				`)
+})
+
+test('does not generate pagination store', async function () {
+	const docs = [
+		mockCollectedDoc(`query TestQuery {
+		usersByBackwardsCursor(last: 10) @paginate {
+			edges {
+				node {
+					id
+				}
+			}
+		}
+	}`),
+	]
+
+	// run the generator
+	await runPipeline(config, docs)
+
+	await expect(
+		stat(path.join(config.storesDirectory, config.paginationQueryName('TestQuery') + '.js'))
+	).rejects.toBeTruthy()
 })
