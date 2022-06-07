@@ -19,6 +19,7 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	const storeDataGenerated = `import { houdiniConfig } from '$houdini';
 import { logCyan, logRed, logYellow, stry } from '@kitql/helper';
 import { writable } from 'svelte/store';
+import { onMount } from 'svelte'
 import { ${artifactName} as artifact } from '../artifacts';
 import {
     CachePolicy,
@@ -59,7 +60,7 @@ function ${storeName}Store() {
         if (!params.context) {
             params.context = {};
         }
-        
+
         if (!isBrowser && !params.event) {
             // prettier-ignore
             console.error(
@@ -115,6 +116,9 @@ function ${storeName}Store() {
         })
 	}
 
+    let latestSource = null
+    let latestPartial = false
+
     async function queryLocal(context, params) {
         update((c) => {
             return { ...c, isFetching: true }
@@ -134,17 +138,7 @@ function ${storeName}Store() {
             input: params.variables
         })
 
-        // Todo: We need to know what is mandatory, what not... so let's comment for now!
-        // if (artifact.input && Object.keys(params?.variables ?? {}).length === 0) {
-        //     update((s) => ({
-        //         ...s,
-        //         errors: errorsToGraphQLLayout('${storeName} variables are not matching'),
-        //         isFetching: false,
-        //         partial: false,
-        //         variables: newVariables
-        //     }));
-        //     throw new Error(\`${storeName} variables are not matching\`);
-        // }
+        // Todo: validate inputs before we query the api
 
         const { result, source, partial } = await fetchQuery({
             context,
@@ -153,6 +147,10 @@ function ${storeName}Store() {
             session: context.session,
             cached: params.policy !== CachePolicy.NetworkOnly,
         })
+
+        // keep the trackers up to date
+        latestSource = source
+        latestPartial = partial
 
         if (result.errors && result.errors.length > 0) {
             update((s) => ({
@@ -169,48 +167,12 @@ function ${storeName}Store() {
 
         // setup a subscription for new values from the cache
         if (isBrowser) {
-            subscriptionSpec = {
-                rootType: artifact.rootType,
-                selection: artifact.selection,
-                variables: () => newVariables,
-                set: (data) => update((s) => ({ ...s, data }))
-            }
-            cache.subscribe(subscriptionSpec, variables)
-
             const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
 
             // if the variables changed we need to unsubscribe from the old fields and
             // listen to the new ones
             if (updated && subscriptionSpec) {
                 cache.unsubscribe(subscriptionSpec, variables)
-            }
-
-            // if the data was loaded from a cached value, and the document cache policy wants a
-            // network request to be sent after the data was loaded, load the data
-            if (
-                source === DataSource.Cache &&
-                params.policy === CachePolicy.CacheAndNetwork
-            ) {
-                // this will invoke pagination's refetch because of javascript's magic this binding
-                fetchQuery({
-                    context,
-                    artifact,
-                    variables: newVariables,
-                    session: context.session,
-                    cached: false,
-                })
-            }
-
-            // if we have a partial result and we can load the rest of the data
-            // from the network, send the request
-            if (partial && params.policy === CachePolicy.CacheOrNetwork) {
-                fetchQuery({
-                    context,
-                    artifact,
-                    variables: newVariables,
-                    session: context.session,
-                    cached: false,
-                })
             }
 
             // update the cache with the data that we just ran into
@@ -253,6 +215,42 @@ ${paginationExtras.preamble}
         subscribe: (...args) => {
             const parentUnsubscribe = subscribe(...args)
 
+            onMount(() => {
+                // if the data was loaded from a cached value, and the document cache policy wants a
+                // network request to be sent after the data was loaded, load the data
+                if (latestSource === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
+                    // this will invoke pagination's refetch because of javascript's magic this binding
+                    fetchQuery({
+                        context,
+                        artifact,
+                        variables: variables,
+                        session: context.session,
+                        cached: false
+                    });
+                }
+
+                // if we have a partial result and we can load the rest of the data
+                // from the network, send the request
+                if (latestPartial && artifact.policy === CachePolicy.CacheOrNetwork) {
+                    fetchQuery({
+                        context,
+                        artifact,
+                        variables: variables,
+                        session: context.session,
+                        cached: false
+                    });
+                }
+
+                // subscribe to cache updates
+                subscriptionSpec = {
+                    rootType: artifact.rootType,
+                    selection: artifact.selection,
+                    variables: () => variables,
+                    set: (data) => update((s) => ({ ...s, data }))
+                }
+                cache.subscribe(subscriptionSpec, variables)
+            });
+
             // Handle unsubscribe
             return () => {
                 if (subscriptionSpec) {
@@ -260,14 +258,14 @@ ${paginationExtras.preamble}
                     subscriptionSpec = null
                 }
 
+                latestSource = null
+                latestPartial = null
+
                 parentUnsubscribe()
             }
         },
 
         fetch: fetchLocal,
-
-        // For internal usage only.
-        setPartial,
 
         ${paginationExtras.methods}
     }
