@@ -362,7 +362,12 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 		async refetch(params?: QueryStoreParams<_Query['input']>) {
 			const { variables } = params ?? {}
 
-			console.log('fetching with', variables)
+			console.log(
+				'fetching with',
+				variables,
+				extraVariables(),
+				variables && JSON.stringify(extraVariables()) !== JSON.stringify(variables)
+			)
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && JSON.stringify(extraVariables()) !== JSON.stringify(variables)) {
 				return refetch(params)

@@ -207,8 +207,6 @@ function ${storeName}Store() {
         return storeData
     }
 
-    const setPartial = (partial) => update(s => ({...s, partial }))
-
 ${paginationExtras.preamble}
 
     return {
