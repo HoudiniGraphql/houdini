@@ -17,7 +17,7 @@ export async function generateFragmentStore(config: Config, doc: CollectedGraphQ
 
 	// the content of the store
 	const storeContent = `import { houdiniConfig } from '$houdini'
-import { defaultConfigValues } from '../runtime/config'
+import { defaultConfigValues } from '../runtime/lib/config'
 import { fragmentStore } from '../runtime/stores'
 import artifact from '../artifacts/${artifactName}'
 

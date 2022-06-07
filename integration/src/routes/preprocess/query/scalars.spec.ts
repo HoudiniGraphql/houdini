@@ -17,9 +17,6 @@ test.describe('query preprocessor variables', () => {
     let json = JSON.parse(result ?? '');
     expect(json.data.user.birthDate).toBe(-466732800000);
 
-    const divId = await page.locator('div[id=result-id]').textContent();
-    expect(divId).toBe('Not a date!');
-
     const divDate = await page.locator('div[id=result-date]').textContent();
     expect(divDate).toBe('1955-03-19T00:00:00.000Z'); // ISO compare to not have timezone issues
   });

@@ -1,10 +1,10 @@
 <script context="module" lang="ts">
   import { browser } from '$app/env';
-  import { GQL_usersList } from '$houdini';
+  import { CachePolicy, GQL_usersList } from '$houdini';
 </script>
 
 <script lang="ts">
-  $: browser && GQL_usersList.fetch();
+  $: browser && GQL_usersList.fetch({ policy: CachePolicy.NetworkOnly });
 </script>
 
 <h1>NETWORK</h1>

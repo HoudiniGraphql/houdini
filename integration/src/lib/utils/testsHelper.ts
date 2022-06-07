@@ -29,7 +29,7 @@ export async function expectNoGraphQLRequest(page: Page) {
 export async function expectGraphQLResponse(page: Page, selector: string | null) {
   const [res] = await Promise.all([
     // Wait for the response
-    page.waitForResponse(routes.GraphQL, { timeout: 1999 }), // It's the response... It can take a bit of time in the CI... (Magic number to find it easily)
+    page.waitForResponse(routes.GraphQL, { timeout: 1999 }),
     // Triggers the response
     selector ? page.click(selector) : null
   ]);
