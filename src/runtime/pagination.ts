@@ -362,12 +362,12 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 		async refetch(params?: QueryStoreParams<_Query['input']>) {
 			const { variables } = params ?? {}
 
-			console.log(
-				'fetching with',
-				variables,
-				extraVariables(),
-				variables && JSON.stringify(extraVariables()) !== JSON.stringify(variables)
-			)
+			// build up the variables to pass to the query
+			const queryVariables: Record<string, any> = {
+				...extraVariables(),
+				...variables,
+			}
+
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && JSON.stringify(extraVariables()) !== JSON.stringify(variables)) {
 				return refetch(params)
@@ -379,12 +379,8 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 				countPage(artifact.refetch!.path.concat('edges'), value) ||
 				artifact.refetch!.pageSize
 
-			// build up the variables to pass to the query
-			const queryVariables: Record<string, any> = {
-				...extraVariables(),
-			}
-
-			if (count) {
+			// only include the count value if its not the refetch page size (generated with default value)
+			if (count && count !== artifact.refetch!.pageSize) {
 				// reverse cursors need the last entries in the list
 				queryVariables[artifact.refetch!.update === 'prepend' ? 'last' : 'first'] = count
 			}
@@ -510,7 +506,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 			const queryVariables: Record<string, any> = {
 				...extraVariables(),
 			}
-			if (count) {
+			if (count !== artifact.refetch!.pageSize) {
 				queryVariables.limit = count
 			}
 
