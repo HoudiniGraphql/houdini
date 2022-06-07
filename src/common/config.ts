@@ -4,7 +4,7 @@ import path from 'path'
 import os from 'os'
 // locals
 import { CachePolicy } from '../runtime/lib/types'
-import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime'
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 
 // a place to hold conventions and magic strings
 export class Config {

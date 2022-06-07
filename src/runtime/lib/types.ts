@@ -157,7 +157,7 @@ export type QueryStoreParams<_Input> = {
 )
 
 export type HoudiniFetchContext = {
-	page: Page<Record<string, string>>
+	page: Page
 	session: Readable<any>
 	variables: () => {}
 	stuff: App.Stuff

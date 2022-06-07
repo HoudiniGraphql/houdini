@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 // locals
 import { Config } from '../../common'
 import { CollectedGraphQLDocument } from '../types'
-import { CachePolicy } from '../../runtime/types'
+import { CachePolicy } from '../../runtime/lib/types'
 
 // graphqlExtensions adds a few different things to the graphql schema
 export default async function graphqlExtensions(

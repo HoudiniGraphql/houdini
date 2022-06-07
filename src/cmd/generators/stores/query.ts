@@ -10,26 +10,24 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	const storeDataDTs: string[] = []
 
 	const fileName = doc.name
-	const storeName = config.storeName(doc) // "1 => GQL_All$Items" => ${storeName}
-	const artifactName = `${doc.name}` // "2 => All$Items" => ${artifactName}
+	const storeName = config.storeName(doc)
+	const artifactName = `${doc.name}`
 
 	const paginationExtras = pagination(config, doc)
 
 	// STORE
 	const storeDataGenerated = `import { houdiniConfig } from '$houdini';
 import { queryStore } from '../runtime/stores'
-import { ${artifactName} as artifact } from '../artifacts/${artifactName}'
+import artifact from '../artifacts/${artifactName}'
 import { defaultConfigValues } from '../runtime/lib'
-// optional pagination imports
-
-const config = defaultConfigValues(houdiniConfig)
 
 // create the query store
 export const ${storeName} = queryStore({
     artifact,
-    config,
+    config: defaultConfigValues(houdiniConfig),
     storeName: ${JSON.stringify(storeName)},
     paginated: ${JSON.stringify(Boolean(doc.refetch?.paginated))},
+    paginationMethods: ${JSON.stringify(paginationExtras.methods, null, 4)}
 })
 
 export default ${storeName}

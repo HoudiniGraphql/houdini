@@ -3,14 +3,13 @@ import { derived, get, readable, Readable, Writable, writable } from 'svelte/sto
 // locals
 import cache from '../cache'
 import { executeQuery } from './network'
-import { GraphQLObject, Operation, QueryArtifact } from './types'
+import { GraphQLObject, QueryArtifact } from './types'
 // this has to be in a separate file since config isn't defined in cache/index.ts
 import { FragmentStore, QueryResult, QueryStore, QueryStoreParams } from '..'
 import { getHoudiniContext } from './context'
 import { ConfigFile, keyFieldsForType } from './config'
 import { LoadContext } from './types'
 import { countPage, extractPageInfo } from './utils'
-import { DataSource } from '.'
 
 type RefetchFn<_Data = any, _Input = any> = (
 	params?: QueryStoreParams<_Input>
@@ -38,7 +37,7 @@ export function wrapPaginationStore<_Data, _Input>(
 	return result
 }
 
-export function fragmentHandlers({
+export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 	config,
 	paginationArtifact,
 	initialValue,
@@ -46,7 +45,7 @@ export function fragmentHandlers({
 }: {
 	config: ConfigFile
 	paginationArtifact: QueryArtifact
-	initialValue: {}
+	initialValue: _Data
 	store: Readable<GraphQLObject>
 }) {
 	const { targetType } = paginationArtifact.refetch || {}
@@ -57,20 +56,21 @@ export function fragmentHandlers({
 		)
 	}
 
-	let queryVariables = () => ({})
+	let queryVariables = () => ({} as _Input)
 	// if the query is embedded we have to figure out the correct variables to pass
 	if (paginationArtifact.refetch!.embedded) {
 		// if we have a specific function to use when computing the variables
 		if (typeConfig.resolve?.arguments) {
-			queryVariables = () => typeConfig.resolve!.arguments?.(initialValue) || {}
+			queryVariables = () => (typeConfig.resolve!.arguments?.(initialValue) || {}) as _Input
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')
 			// @ts-ignore
-			queryVariables = () => Object.fromEntries(keys.map((key) => [key, initialValue[key]]))
+			queryVariables = () =>
+				Object.fromEntries(keys.map((key) => [key, initialValuie[key]])) as _Input
 		}
 	}
 
-	return paginationHandlers({
+	return paginationHandlers<_Data, _Input>({
 		config,
 		initialValue,
 		store,
@@ -82,7 +82,7 @@ export function fragmentHandlers({
 	})
 }
 
-export function queryHandlers({
+export function queryHandlers<_Data extends GraphQLObject, _Input>({
 	config,
 	artifact,
 	store,
@@ -91,7 +91,7 @@ export function queryHandlers({
 	config: ConfigFile
 	artifact: QueryArtifact
 	store: QueryStore<any, any>
-	queryVariables: () => GraphQLObject
+	queryVariables: () => _Input
 }) {
 	// if there's no refetch config for the artifact there's a problem
 	if (!artifact.refetch) {
@@ -103,7 +103,7 @@ export function queryHandlers({
 	const data = derived([store], ([$store]) => $store.data)
 
 	// return the handlers
-	return paginationHandlers({
+	return paginationHandlers<_Data, _Input>({
 		documentLoading: loading,
 		initialValue: get(store).data || {},
 		artifact,
@@ -114,7 +114,7 @@ export function queryHandlers({
 	})
 }
 
-function paginationHandlers<_Query extends Operation<any, any>>({
+function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	initialValue,
 	artifact,
 	store,
@@ -126,17 +126,17 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
-	queryVariables: () => {}
+	queryVariables: () => _Input
 	documentLoading?: Readable<boolean>
-	refetch: RefetchFn<_Query['result'], _Query['input']>
+	refetch: RefetchFn<_Data, _Input>
 	config: ConfigFile
-}): PaginatedHandlers<_Query['input']> {
+}): PaginatedHandlers<_Data, _Input> {
 	// start with the defaults and no meaningful page info
-	let loadPreviousPage: PaginatedHandlers<_Query>['loadPreviousPage'] = async (
-		...args: Parameters<PaginatedHandlers<_Query>['loadPreviousPage']>
+	let loadPreviousPage: PaginatedHandlers<_Data, _Input>['loadPreviousPage'] = async (
+		...args: Parameters<PaginatedHandlers<_Data, _Input>['loadPreviousPage']>
 	) => {}
-	let loadNextPage: PaginatedHandlers<_Query>['loadNextPage'] = async (
-		...args: Parameters<PaginatedHandlers<_Query>['loadNextPage']>
+	let loadNextPage: PaginatedHandlers<_Data, _Input>['loadNextPage'] = async (
+		...args: Parameters<PaginatedHandlers<_Data, _Input>['loadNextPage']>
 	) => {}
 	let pageInfo = readable<PageInfo>(
 		{
@@ -151,11 +151,11 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 	// loading state
 	let paginationLoadingState = writable(false)
 
-	let refetchQuery: RefetchFn<_Query['result'], _Query['input']>
+	let refetchQuery: RefetchFn<_Data, _Input>
 	// if the artifact supports cursor based pagination
 	if (artifact.refetch?.method === 'cursor') {
 		// generate the cursor handlers
-		const cursor = cursorHandlers({
+		const cursor = cursorHandlers<_Data, _Input>({
 			initialValue,
 			artifact,
 			store,
@@ -180,7 +180,7 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 	}
 	// the artifact supports offset-based pagination, only loadNextPage is valid
 	else {
-		const offset = offsetPaginationHandler({
+		const offset = offsetPaginationHandler<_Data, _Input>({
 			initialValue,
 			artifact,
 			queryVariables,
@@ -207,7 +207,7 @@ function paginationHandlers<_Query extends Operation<any, any>>({
 	return { loadNextPage, loadPreviousPage, pageInfo, loading, refetch: refetchQuery }
 }
 
-function cursorHandlers<_Query extends Operation<any, any>>({
+function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	config,
 	initialValue,
 	artifact,
@@ -220,10 +220,10 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 	initialValue: GraphQLObject
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
-	queryVariables: () => {}
+	queryVariables: () => _Input
 	loading: Writable<boolean>
 	refetch: RefetchFn
-}): PaginatedHandlers<_Query> {
+}): PaginatedHandlers<_Data, _Input> {
 	// track the current page info in an easy-to-reach store
 	const initialPageInfo = extractPageInfo(initialValue, artifact.refetch!.path) ?? {
 		startCursor: null,
@@ -360,7 +360,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 			})
 		},
 		pageInfo: { subscribe: pageInfo.subscribe },
-		async refetch(params?: QueryStoreParams<_Query['input']>) {
+		async refetch(params?: QueryStoreParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = params ?? {}
 
 			// build up the variables to pass to the query
@@ -399,7 +399,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 			const returnValue = {
 				selection: artifact.selection,
 				data: result.data,
-				variables: queryVariables,
+				variables: queryVariables as _Input,
 				// overwrite the current data
 				applyUpdates: false,
 				isFetching: false,
@@ -417,7 +417,7 @@ function cursorHandlers<_Query extends Operation<any, any>>({
 	}
 }
 
-function offsetPaginationHandler<_Query extends Operation<any, any>>({
+function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 	artifact,
 	queryVariables: extraVariables,
 	loading,
@@ -426,14 +426,14 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 	store,
 }: {
 	artifact: QueryArtifact
-	queryVariables: () => {}
+	queryVariables: () => _Input
 	loading: Writable<boolean>
 	refetch: RefetchFn
 	initialValue: GraphQLObject
 	store: Readable<GraphQLObject>
 }): {
-	loadPage: PaginatedHandlers<_Query>['loadNextPage']
-	refetch: PaginatedHandlers<_Query>['refetch']
+	loadPage: PaginatedHandlers<_Data, _Input>['loadNextPage']
+	refetch: PaginatedHandlers<_Data, _Input>['refetch']
 } {
 	// we need to track the most recent offset for this handler
 	let currentOffset =
@@ -491,7 +491,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 			// we're not loading any more
 			loading.set(false)
 		},
-		async refetch(params?: QueryStoreParams<_Query['input']>) {
+		async refetch(params?: QueryStoreParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = params ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
@@ -527,7 +527,7 @@ function offsetPaginationHandler<_Query extends Operation<any, any>>({
 			const returnValue = {
 				selection: artifact.selection,
 				data: result.data,
-				variables: queryVariables,
+				variables: queryVariables as _Input,
 				applyUpdates: false,
 				isFetching: false,
 				partial: result.partial,
@@ -551,7 +551,7 @@ export type PaginatedDocumentHandlers<_Data, _Input> = {
 	refetch: (vars?: _Input) => Promise<_Data>
 }
 
-export type PaginatedHandlers<_Query extends Operation<any, any>> = {
+export type PaginatedHandlers<_Data, _Input> = {
 	loadNextPage(
 		houdiniContext: LoadContext,
 		pageCount?: number,
@@ -564,7 +564,7 @@ export type PaginatedHandlers<_Query extends Operation<any, any>> = {
 	): Promise<void>
 	loading: Readable<boolean>
 	pageInfo: Readable<PageInfo>
-	refetch: RefetchFn<_Query['result'], _Query['input']>
+	refetch: RefetchFn<_Data, _Input>
 }
 
 function missingPageSizeError(fnName: string) {

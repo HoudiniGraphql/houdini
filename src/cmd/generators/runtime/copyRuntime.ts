@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url'
 import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
+import generateAdapter from './adapter'
 
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
@@ -26,6 +27,9 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 
 	// copy the compiled source code to the target directory
 	await recursiveCopy(config, source, config.runtimeDirectory)
+
+	// generate the adapter to normalize interactions with the framework
+	await generateAdapter(config)
 }
 
 async function recursiveCopy(config: Config, source: string, target: string, notRoot?: boolean) {

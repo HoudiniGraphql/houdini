@@ -11,7 +11,7 @@ import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { serializeValue } from './utils'
-import { ArtifactKind } from '../../../runtime/types'
+import { ArtifactKind } from '../../../runtime/lib/types'
 
 const AST = recast.types.builders
 

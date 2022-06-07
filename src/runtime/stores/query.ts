@@ -3,8 +3,7 @@ import { logRed } from '@kitql/helper'
 import { Readable, writable } from 'svelte/store'
 import { onMount } from 'svelte'
 import { CachePolicy, DataSource, fetchQuery } from '..'
-// @ts-expect-error: created by runtime generator
-import { clientStarted, isBrowser } from '../adapter.mjs'
+import { clientStarted, isBrowser } from '../adapter'
 import {
 	FetchContext,
 	getHoudiniContext,
@@ -17,17 +16,20 @@ import type { ConfigFile } from '../lib/types'
 import cache from '../cache'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import { QueryArtifact } from '../lib/types'
+import { PaginatedHandlers, queryHandlers } from '../lib/pagination'
 
 export function queryStore<_Data, _Input>({
 	config,
 	artifact,
 	storeName,
+	paginationMethods,
 	paginated,
 }: {
 	config: ConfigFile
 	artifact: QueryArtifact
 	paginated: boolean
 	storeName: string
+	paginationMethods: { [key: string]: keyof PaginatedHandlers<_Data, _Input> }
 }) {
 	// build up the core query store data
 	const { subscribe, set, update } = writable<QueryResult<_Data, _Input>>({
@@ -137,6 +139,85 @@ export function queryStore<_Data, _Input>({
 		return storeData
 	}
 
+	async function fetchData(params?: QueryStoreParams<_Input>) {
+		params = params ?? {}
+		if (!params.context) {
+			params.context = {} as HoudiniFetchContext
+		}
+
+		// if fetch is happening on the server, it must get a load event
+		if (!isBrowser && !params.event) {
+			// prettier-ignore
+			console.error(`
+            ${logRed(`Missing load event in server-side ${storeName}.fetch`)}. 
+  I think you forgot to provide \${logYellow('event')} to ${storeName}.fetch. You can get this value 
+  from the load function: 
+
+  <script context="module" lang="ts">
+  import type { LoadEvent } from '@sveltejs/kit';
+
+  export async function load(\${logYellow('event')}: LoadEvent) {
+    await \${logCyan('${storeName}')}.fetch({ \${logYellow('event')}, variables: { ... } });
+    return {};
+  }
+  </script> 
+`
+            );
+
+			throw new Error('Error, check logs for help.')
+		}
+
+		// if we have event, it's safe to assume this is inside of a load function
+		if (params.event) {
+			// we're in a `load` function, use the event params
+			const loadPromise = load(params.event, params)
+
+			// return the result if the client isn't ready or we
+			// need to block with the request
+			if (!clientStarted || params.blocking) {
+				return await loadPromise
+			}
+		}
+		// the fetch is executing on the client,
+		else {
+			// this is happening in the browser so we dont' have access to the
+			// current load parameters
+			const context: FetchContext = {
+				fetch: fetch,
+				session: params.context?.session!,
+				stuff: params.context?.stuff!,
+			}
+
+			return await load(context, {
+				...params,
+				variables: { ...variables, ...params.variables } as _Input,
+			})
+		}
+	}
+
+	// build up the methods we want to use
+	let extraMethods: {} = {}
+	if (paginated) {
+		const handlers = queryHandlers({
+			config,
+			artifact,
+			store: {
+				subscribe,
+				async fetch(params) {
+					return (await fetchData({
+						...params,
+						blocking: true,
+					}))!
+				},
+			},
+			queryVariables: () => variables,
+		})
+
+		extraMethods = Object.fromEntries(
+			Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])
+		)
+	}
+
 	return {
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
 			const parentUnsubscribe = subscribe(...args)
@@ -204,60 +285,8 @@ export function queryStore<_Data, _Input>({
 			}
 		},
 
-		async fetch(params: QueryStoreParams<_Input>) {
-			params = params ?? {}
-			if (!params.context) {
-				params.context = {} as HoudiniFetchContext
-			}
+		fetch: fetchData,
 
-			// if fetch is happening on the server, it must get a load event
-			if (!isBrowser && !params.event) {
-				// prettier-ignore
-				console.error(`
-                ${logRed(`Missing load event in server-side ${storeName}.fetch`)}. 
-      I think you forgot to provide \${logYellow('event')} to ${storeName}.fetch. You can get this value 
-      from the load function: 
-
-      <script context="module" lang="ts">
-      import type { LoadEvent } from '@sveltejs/kit';
-
-      export async function load(\${logYellow('event')}: LoadEvent) {
-        await \${logCyan('${storeName}')}.fetch({ \${logYellow('event')}, variables: { ... } });
-        return {};
-      }
-      </script> 
-`
-                );
-
-				throw new Error('Error, check logs for help.')
-			}
-
-			// if we have event, it's safe to assume this is inside of a load function
-			if (params.event) {
-				// we're in a `load` function, use the event params
-				const loadPromise = load(params.event, params)
-
-				// return the result if the client isn't ready or we
-				// need to block with the request
-				if (!clientStarted || params.blocking) {
-					return await loadPromise
-				}
-			}
-			// the fetch is executing on the client,
-			else {
-				// this is happening in the browser so we dont' have access to the
-				// current load parameters
-				const context: FetchContext = {
-					fetch: fetch,
-					session: params.context?.session!,
-					stuff: params.context?.stuff!,
-				}
-
-				return await load(context, {
-					...params,
-					variables: { ...variables, ...params.variables } as _Input,
-				})
-			}
-		},
+		...extraMethods,
 	}
 }

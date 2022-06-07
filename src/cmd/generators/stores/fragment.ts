@@ -11,23 +11,29 @@ export async function generateFragmentStore(config: Config, doc: CollectedGraphQ
 	const storeName = config.storeName(doc)
 	const fileName = doc.name
 
+	const artifactName = `${doc.name}`
+	const paginated = !!doc.refetch?.paginated
 	const paginationExtras = pagination(config, doc)
 
 	// the content of the store
 	const storeContent = `import { houdiniConfig } from '$houdini'
 import { defaultConfigValues } from '../runtime/config'
 import { fragmentStore } from '../runtime/stores'
-import { writable } from 'svelte/store'
-${paginationExtras.imports}
+import artifact from '../artifacts/${artifactName}'
 
-const config = defaultConfigValues(houdiniConfig)
-
-${paginationExtras.preamble}
+${
+	!paginated
+		? ''
+		: `import _PaginationArtifact from '${config.artifactImportPath(
+				config.paginationQueryName(doc.name)
+		  )}'`
+} 
 
 export const ${storeName} = fragmentStore({
     artifact,
-    config,
-    extraMethods: ${paginationExtras.methods}
+    config: defaultConfigValues(houdiniConfig),
+    paginatedArtifact: ${paginated ? '_PaginationArtifact' : 'null'},
+    paginationMethods: ${JSON.stringify(paginationExtras.methods, null, 4)},
 })
 
 export default ${storeName}

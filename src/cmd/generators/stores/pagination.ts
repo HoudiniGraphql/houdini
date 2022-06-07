@@ -3,53 +3,11 @@ import { ArtifactKind, CollectedGraphQLDocument } from '../../types'
 
 export default function pagination(config: Config, doc: CollectedGraphQLDocument) {
 	// figure out the extra methods and their types when there's pagination
-	let methods = ''
+	let methods = {}
 	let types = ''
-	let preamble = ''
-	let imports = ''
 	let typeImports = !doc.refetch?.paginated
 		? ''
 		: `import type { PageInfo } from '../runtime/lib/utils'`
-
-	// if there is no pagination directive in the content, don't do anything
-	if (!doc.refetch?.paginated) {
-	}
-
-	// if the document points to a fragment, we will need to import the pagination artifact
-	else if (doc.kind === ArtifactKind.Fragment) {
-		// make sure that we import the pagination artifact
-		// and the fragment handlers
-		imports = `import _PaginationArtifact from '${config.artifactImportPath(
-			config.paginationQueryName(doc.name)
-		)}'
-import { fragmentHandlers } from '../runtime/pagination'
-`
-
-		// create the handlers we'll use for paginating the fragment
-		preamble = `
-const handlers = fragmentHandlers({
-    config,
-    paginationArtifact: _PaginationArtifact.default || _PaginationArtifact,
-    initialValue,
-    store: fragmentStore,
-})
-`
-	} else if (doc.kind === ArtifactKind.Query) {
-		// make sure we import the handler util
-		imports = `import { queryHandlers } from '../runtime/lib/pagination'
-`
-
-		// create the query handlers
-		preamble = `
-	const handlers =
-		queryHandlers({
-			config,
-			artifact,
-			store: { subscribe, fetch: fetchLocal },
-			queryVariables: () => variables
-		})
-`
-	}
 
 	// which functions we pull from the handlers depends on the pagination method
 	// specified by the artifact
@@ -60,11 +18,11 @@ const handlers = fragmentHandlers({
 		types = `
 loadNextPage(limit?: number) => Promise<void>
     `
-		methods = `
-        loadNextPage: handlers.loadNextPage,
-        fetch: handlers.refetch,
-        loading: handlers.loading,
-`
+		methods = {
+			loadNextPage: 'loadNextPage',
+			fetch: 'refetch',
+			loading: 'loading',
+		}
 	}
 	// cursor pagination
 	else if (paginationMethod === 'cursor') {
@@ -74,12 +32,12 @@ loadNextPage(limit?: number) => Promise<void>
     loadNextPage(pageCount?: number, after?: string | number): Promise<void>
     pageInfo: Readable<PageInfo>
 }`
-			methods = `
-        loadNextPage: handlers.loadNextPage,
-        pageInfo: handlers.pageInfo,
-        fetch: handlers.refetch,
-        loading: handlers.loading,
-`
+			methods = {
+				loadNextPage: 'loadNextPage',
+				pageInfo: 'pageInfo',
+				fetch: 'refetch',
+				loading: 'loading',
+			}
 
 			// backwards cursor pagination
 		} else {
@@ -87,20 +45,18 @@ loadNextPage(limit?: number) => Promise<void>
     loadPreviousPage(pageCount?: number, before?: string): Promise<void>
     pageInfo: Readable<PageInfo>
 }`
-			methods = `
-loadPreviousPage: handlers.loadPreviousPage,
-pageInfo: handlers.pageInfo,
-fetch: handlers.refetch,
-loading: handlers.loading,
-`
+			methods = {
+				loadPreviousPage: 'loadPreviousPage',
+				pageInfo: 'pageInfo',
+				fetch: 'refetch',
+				loading: 'loading',
+			}
 		}
 	}
 
 	return {
-		preamble,
 		types: types ? `& ${types}` : '',
-		methods: methods ? `{${methods.replaceAll('\n', '\n    ')}    }` : '{}',
-		imports,
+		methods,
 		typeImports,
 	}
 }

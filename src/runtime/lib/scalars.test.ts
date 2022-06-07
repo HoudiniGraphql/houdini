@@ -1,11 +1,10 @@
-import { testConfig, testConfigFile } from '../../common'
+import { testConfigFile } from '../../common'
 import { RequestContext } from './network'
 import { marshalSelection, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact } from './types'
 import { jest } from '@jest/globals'
-import type { Page } from '@sveltejs/kit'
 
-jest.mock('./cache', function () {
+jest.mock('../cache', function () {
 	return
 })
 
@@ -14,7 +13,7 @@ const ctx = new RequestContext({
 	// @ts-ignore
 	page: {} as any,
 	stuff: {},
-	session: null,
+	session: {},
 	fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,
 })
 

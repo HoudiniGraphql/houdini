@@ -1,12 +1,19 @@
 // external imports
 import path from 'path'
+import fs from 'fs/promises'
 // local imports
 import { Config } from '../../../common'
 import { writeFile } from '../../utils'
 
 export default async function generateAdapter(config: Config) {
 	// the location of the adapter
-	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.mjs')
+	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.js')
+
+	// delete the existing adapter
+	try {
+		await fs.stat(adapterLocation)
+		await fs.rm(adapterLocation)
+	} catch {}
 
 	// figure out which adapter we need to lay down
 	const adapter = {

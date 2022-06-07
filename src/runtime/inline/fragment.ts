@@ -1,9 +1,9 @@
 // externals
 // locals
 import { Readable } from 'svelte/store'
-import { FragmentStore } from '.'
-import type { Fragment, GraphQLTagResult } from './types'
-import { wrapPaginationStore, PaginatedDocumentHandlers } from './pagination'
+import { FragmentStore } from '..'
+import type { Fragment, GraphQLTagResult } from '../lib/types'
+import { wrapPaginationStore, PaginatedDocumentHandlers } from '../lib/pagination'
 
 // fragment returns the requested data from the reference
 export function fragment<_Fragment extends Fragment<any>>(

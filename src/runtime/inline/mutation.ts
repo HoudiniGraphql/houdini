@@ -1,9 +1,7 @@
 // locals
 import cache from '../cache'
 import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
-
-// @ts-ignore: this file will get generated and does not exist in the source code
-import { getSession } from './adapter.mjs'
+import { getSession } from '../adapter'
 import {
 	getHoudiniContext,
 	Operation,

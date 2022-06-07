@@ -14,8 +14,6 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	await Promise.all([
 		// copy the runtime to the appropriate place
 		copyRuntime(config, docs),
-		// generate the adapter to normalize interactions with the framework
-		generateAdapter(config),
 		// and the index file at the root of the runtime
 		writeIndexFile(config, docs),
 		// add the meta file

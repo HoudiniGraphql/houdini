@@ -14,7 +14,7 @@ test.describe('mutation store', function () {
     // make sure that the result updated with unmarshaled data
     const div = await page.locator('div[id=result]').textContent();
     expect(div).toEqual(
-      '{"updateUser":{"id":"store-user-query:5","name":"Will Smith","birthDate":"1986-11-07T00:00:00.000Z"}}'
+      '{"updateUser":{"id":"store-user-query:6","name":"Harrison Ford","birthDate":"1986-11-07T00:00:00.000Z"}}'
     );
   });
 });

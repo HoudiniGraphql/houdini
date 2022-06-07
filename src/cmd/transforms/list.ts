@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 import { Config, parentTypeFromAncestors } from '../../common'
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 import { TypeWrapper, unwrapType } from '../utils'
-import { ArtifactKind } from '../../runtime/types'
+import { ArtifactKind } from '../../runtime/lib/types'
 import { pageInfoSelection } from './paginate'
 
 // addListFragments adds fragments for the fields tagged with @list

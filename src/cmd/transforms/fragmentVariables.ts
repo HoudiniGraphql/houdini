@@ -5,7 +5,7 @@ import * as graphql from 'graphql'
 import { CollectedGraphQLDocument } from '../types'
 import { collectFragments, FragmentDependency } from './composeQueries'
 import { murmurHash } from '../utils'
-import { ArtifactKind } from '../../runtime/types'
+import { ArtifactKind } from '../../runtime/lib/types'
 
 const GraphqlKinds = graphql.Kind
 

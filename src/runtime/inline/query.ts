@@ -9,8 +9,7 @@ import {
 	CachePolicy,
 	TaggedGraphqlQuery,
 } from '../lib/types'
-// @ts-ignore: this file will get generated and does not exist in the source code
-import { getPage, getSession, goTo } from './adapter.mjs'
+import { getPage, getSession, goTo } from '../adapter'
 import { wrapPaginationStore, PaginatedDocumentHandlers } from '../lib/pagination'
 import { getHoudiniContext } from '../lib/context'
 
@@ -72,7 +71,7 @@ function componentQuery<_Query extends Operation<any, any>>(
 } {
 	// compute the variables for the request
 	let variables: _Query['input']
-	let variableError: ErrorWithCode | null = null
+	let variableError: Error[] | null = null
 
 	// we need to augment the error state
 	const localError = writable<{ message: string }[] | null>(null)
@@ -84,8 +83,7 @@ function componentQuery<_Query extends Operation<any, any>>(
 	// the function invoked by `this.error` inside of the variable function
 	const setVariableError = (code: number, msg: string) => {
 		// create an error
-		variableError = new Error(msg) as ErrorWithCode
-		variableError.code = code
+		variableError = [new Error(msg)]
 		// return no variables to assign
 		return null
 	}
@@ -96,6 +94,9 @@ function componentQuery<_Query extends Operation<any, any>>(
 		error: setVariableError,
 	}
 
+	const session = getSession()
+	const page = getPage()
+
 	$: {
 		// clear any previous variable error
 		variableError = null
@@ -105,8 +106,8 @@ function componentQuery<_Query extends Operation<any, any>>(
 			config: document.config,
 			input:
 				document.variableFunction?.call(variableContext, {
-					page: get(getPage()),
-					session: get(getSession()),
+					page,
+					session: session ? get(session) : null,
 					props: document.getProps?.(),
 				}) || {},
 		}) as _Query['input']

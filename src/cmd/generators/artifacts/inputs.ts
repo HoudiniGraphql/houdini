@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 // locals
 import { Config } from '../../../common'
 import { unwrapType } from '../../utils'
-import type { InputObject } from '../../../runtime/types'
+import type { InputObject } from '../../../runtime/lib/types'
 
 const AST = recast.types.builders
 

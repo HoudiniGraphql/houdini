@@ -16,11 +16,12 @@ export async function generateIndividualStoreMutation(
 
 	// STORE
 	const storeDataGenerated = `import { houdiniConfig } from '$houdini'
-import { ${artifactName} as artifact } from '../artifacts/${artifactName}'
-import { mutationStore } from '../stores'
+import artifact from '../artifacts/${artifactName}'
+import { mutationStore } from '../runtime/stores'
+import { defaultConfigValues } from '../runtime/lib'
 
 export const ${storeName} = mutationStore({
-	config: houdiniConfig,
+    config: defaultConfigValues(houdiniConfig),
 	artifact,
 })
 

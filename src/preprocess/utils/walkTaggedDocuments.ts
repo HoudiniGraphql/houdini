@@ -12,7 +12,7 @@ import {
 	CompiledMutationKind,
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
-} from '../../runtime/types'
+} from '../../runtime/lib/types'
 import { TransformDocument } from '../types'
 import { ensureImports } from '.'
 

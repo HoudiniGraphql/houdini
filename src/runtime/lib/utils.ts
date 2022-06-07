@@ -37,14 +37,14 @@ export function extractPageInfo(data: GraphQLObject, path: string[]): PageInfo {
 	)
 }
 
-export function countPage(source: string[], value: GraphQLObject): number {
+export function countPage<_Data extends GraphQLObject>(source: string[], value: _Data): number {
 	let data = value
 	if (value === null) {
 		return 0
 	}
 
 	for (const field of source) {
-		const obj = data[field] as GraphQLObject | GraphQLObject[]
+		const obj = data[field] as _Data | _Data[]
 		if (obj && !Array.isArray(obj)) {
 			data = obj
 		} else if (!data) {

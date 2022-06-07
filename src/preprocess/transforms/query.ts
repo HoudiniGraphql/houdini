@@ -1,9 +1,8 @@
 // externals
 import * as recast from 'recast'
 import * as graphql from 'graphql'
-import { ExportNamedDeclaration, ReturnStatement, Statement } from '@babel/types'
+import { ExportNamedDeclaration, Statement } from '@babel/types'
 import { namedTypes } from 'ast-types/gen/namedTypes'
-import { ObjectExpressionKind } from 'ast-types/gen/kinds'
 import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
@@ -16,7 +15,7 @@ import {
 	ensureArtifactImport,
 	ensureStoreImport,
 } from '../utils'
-import { ArtifactKind } from '../../runtime/types'
+import { ArtifactKind } from '../../runtime/lib/types'
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.

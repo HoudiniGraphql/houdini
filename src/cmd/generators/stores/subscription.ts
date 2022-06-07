@@ -12,11 +12,12 @@ export async function generateSubscriptionStore(config: Config, doc: CollectedGr
 
 	// the content of the store
 	const storeContent = `import { houdiniConfig } from '$houdini'
-import { ${artifactName} as artifact } from '../artifacts/${artifactName}'
+import artifact from '../artifacts/${artifactName}'
 import { subscriptionStore } from '../runtime/stores'
+import { defaultConfigValues } from '../runtime/lib'
 
-const ${storeName} = subscriptionStore({
-	config: houdiniConfig,
+export const ${storeName} = subscriptionStore({
+    config: defaultConfigValues(houdiniConfig),
 	artifact,
 })
 
