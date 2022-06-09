@@ -22,13 +22,15 @@ export class InMemorySubscriptions {
 		spec,
 		selection,
 		variables,
+		parentType,
 	}: {
 		parent: string
 		spec: SubscriptionSpec
 		selection: SubscriptionSelection
 		variables: { [key: string]: GraphQLValue }
+		parentType?: string
 	}) {
-		for (const { keyRaw, fields, list, filters } of Object.values(selection)) {
+		for (const { keyRaw, fields, list, filters, type } of Object.values(selection)) {
 			const key = evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the field
@@ -58,6 +60,7 @@ export class InMemorySubscriptions {
 						name: list.name,
 						connection: list.connection,
 						recordID: parent,
+						recordType: parentType,
 						listType: list.type,
 						key,
 						selection: fields,
@@ -86,6 +89,7 @@ export class InMemorySubscriptions {
 						spec,
 						selection: fields,
 						variables,
+						parentType: type,
 					})
 				}
 			}

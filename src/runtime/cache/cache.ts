@@ -790,6 +790,10 @@ class CacheInternal {
 			return null
 		}
 
+		if (!type) {
+			return id
+		}
+
 		return type + ':' + id
 	}
 

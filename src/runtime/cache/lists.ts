@@ -45,8 +45,8 @@ export class ListManager {
 
 		// the provided id won't match the cache's ID so we have to compute the internal ID, using
 		// one of the matches to figure out the type of the list element
-		const { listType } = head.lists[0]
-		const parentID = id ? this.cache._internal_unstable.id(listType, id)! : this.rootID
+		const { recordType } = head.lists[0]
+		const parentID = id ? this.cache._internal_unstable.id(recordType || '', id)! : this.rootID
 
 		// return the list pointing to the correct parent
 		return this.lists.get(listName)?.get(parentID)
@@ -60,6 +60,7 @@ export class ListManager {
 		name: string
 		connection: boolean
 		recordID: SubscriptionSpec['parentID']
+		recordType?: string
 		key: string
 		listType: string
 		selection: SubscriptionSelection
@@ -131,6 +132,7 @@ export class ListManager {
 
 export class List {
 	readonly recordID: string
+	readonly recordType?: string
 	readonly key: string
 	readonly listType: string
 	private cache: Cache
@@ -144,6 +146,7 @@ export class List {
 	constructor({
 		name,
 		recordID,
+		recordType,
 		key,
 		listType,
 		selection,
@@ -153,6 +156,7 @@ export class List {
 		manager,
 	}: Parameters<ListManager['add']>[0] & { manager: ListManager }) {
 		this.recordID = recordID || rootID
+		this.recordType = recordType
 		this.key = key
 		this.listType = listType
 		this.cache = manager.cache
