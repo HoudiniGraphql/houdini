@@ -1,0 +1,9 @@
+{
+	"mode": "pre",
+	"tag": "next",
+	"initialVersions": {
+		"houdini": "0.14.7",
+		"example-kit": "0.13.0"
+	},
+	"changesets": []
+}
