@@ -25,11 +25,12 @@ export class InMemorySubscriptions {
 		parentType,
 	}: {
 		parent: string
+		parentType?: string
 		spec: SubscriptionSpec
 		selection: SubscriptionSelection
 		variables: { [key: string]: GraphQLValue }
-		parentType?: string
 	}) {
+		const recordType = parentType || spec.rootType
 		for (const { keyRaw, fields, list, filters, type } of Object.values(selection)) {
 			const key = evaluateKey(keyRaw, variables)
 
@@ -46,21 +47,16 @@ export class InMemorySubscriptions {
 				)
 				let children = !Array.isArray(linkedRecord)
 					? [linkedRecord]
-					: flattenList(linkedRecord)
-
-				// if we're not related to anything, we're done
-				if (!children || !fields) {
-					continue
-				}
+					: flattenList(linkedRecord) || []
 
 				// if this field is marked as a list, register it. this will overwrite existing list handlers
 				// so that they can get up to date filters
-				if (list) {
+				if (fields && list) {
 					this.cache._internal_unstable.lists.add({
 						name: list.name,
 						connection: list.connection,
 						recordID: parent,
-						recordType: parentType,
+						recordType: recordType,
 						listType: list.type,
 						key,
 						selection: fields,
@@ -82,7 +78,6 @@ export class InMemorySubscriptions {
 					if (!child) {
 						continue
 					}
-
 					// make sure the children update this subscription
 					this.add({
 						parent: child as string,
