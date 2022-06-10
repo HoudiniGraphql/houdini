@@ -20,7 +20,7 @@ export class Cache {
 			config: defaultConfigValues(config),
 			storage: new InMemoryStorage(),
 			subscriptions: new InMemorySubscriptions(this),
-			lists: new ListManager(rootID),
+			lists: new ListManager(this, rootID),
 			lifetimes: new GarbageCollector(this, config.cacheBufferSize),
 		})
 	}
@@ -108,12 +108,12 @@ export class Cache {
 	}
 
 	// return the list handler to mutate a named list in the cache
-	list(name: string, parentID?: string): ListCollection {
+	list(name: string, parentID?: string | {}): ListCollection {
 		const handler = this._internal_unstable.lists.get(name, parentID)
 		if (!handler) {
 			throw new Error(
 				`Cannot find list with name: ${name}${
-					parentID ? 'under parent ' + parentID : ''
+					parentID ? ' under parent ' + parentID : ''
 				}. ` + 'Is it possible that the query is not mounted?'
 			)
 		}
@@ -779,7 +779,7 @@ class CacheInternal {
 	}
 
 	// returns the global id of the specified field (used to access the record in the cache)
-	id(type: string, data: { id?: string } | null): string | null
+	id(type: string, data: {} | null): string | null
 	// this is like id but it trusts the value used for the id and just joins it with the
 	// type to form the global id
 	id(type: string, id: string): string | null
@@ -788,6 +788,10 @@ class CacheInternal {
 		const id = typeof data === 'string' ? data : this.computeID(type, data)
 		if (!id) {
 			return null
+		}
+
+		if (!type) {
+			return id
 		}
 
 		return type + ':' + id
