@@ -27,7 +27,7 @@ export default ${storeName}
 
 	// type definitions
 	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result } from '$houdini'
-import type { MutationStore } from '../runtime/types'
+import type { MutationStore } from '../runtime/lib/types'
 
 export declare const ${storeName}: MutationStore<${artifactName}$result | undefined, ${artifactName}$input>
 
