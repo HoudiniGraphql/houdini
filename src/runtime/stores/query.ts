@@ -1,9 +1,10 @@
 // externals
-import { logRed } from '@kitql/helper'
-import { Readable, writable } from 'svelte/store'
+import { logCyan, logRed, logYellow } from '@kitql/helper'
 import { onMount } from 'svelte'
+import { Readable, writable } from 'svelte/store'
 import { CachePolicy, DataSource, fetchQuery } from '..'
 import { clientStarted, isBrowser } from '../adapter'
+import cache from '../cache'
 import {
 	FetchContext,
 	getHoudiniContext,
@@ -12,11 +13,10 @@ import {
 	QueryStoreParams,
 	SubscriptionSpec,
 } from '../lib'
-import type { ConfigFile } from '../lib/types'
-import cache from '../cache'
-import { marshalInputs, unmarshalSelection } from '../lib/scalars'
-import { QueryArtifact } from '../lib/types'
 import { PaginatedHandlers, queryHandlers } from '../lib/pagination'
+import { marshalInputs, unmarshalSelection } from '../lib/scalars'
+import type { ConfigFile } from '../lib/types'
+import { QueryArtifact } from '../lib/types'
 
 export function queryStore<_Data, _Input>({
 	config,
@@ -148,23 +148,21 @@ export function queryStore<_Data, _Input>({
 		// if fetch is happening on the server, it must get a load event
 		if (!isBrowser && !params.event) {
 			// prettier-ignore
-			console.error(`
-            ${logRed(`Missing load event in server-side ${storeName}.fetch`)}. 
-  I think you forgot to provide \${logYellow('event')} to ${storeName}.fetch. You can get this value 
-  from the load function: 
+			console.error(`${logRed(`Missing load event in server-side ${storeName}.fetch`)}. 
+  I think you forgot to provide ${logYellow('event')} to ${storeName} fetch function. 
+	You can get this value from the load function like 👇 
 
   <script context="module" lang="ts">
-  import type { LoadEvent } from '@sveltejs/kit';
+		import type { LoadEvent } from '@sveltejs/kit';
 
-  export async function load(\${logYellow('event')}: LoadEvent) {
-    await \${logCyan('${storeName}')}.fetch({ \${logYellow('event')}, variables: { ... } });
-    return {};
-  }
+		export async function load(${logYellow('event')}: LoadEvent) {
+			await ${logCyan('${storeName}')}.fetch({ ${logYellow('event')}, variables: { ... } });
+			return {};
+		}
   </script> 
-`
-            );
+`);
 
-			throw new Error('Error, check logs for help.')
+			throw new Error('Error, check above logs for help. 👆')
 		}
 
 		// if we have event, it's safe to assume this is inside of a load function
