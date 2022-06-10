@@ -5,6 +5,9 @@ import os from 'os'
 // locals
 import { CachePolicy } from '../runtime/lib/types'
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
+import { mergeSchemas } from '@graphql-tools/schema'
+import { glob } from 'glob'
+import { promisify } from 'util'
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -54,50 +57,15 @@ export class Config {
 		} = this.configFile
 
 		// make sure we got some kind of schema
-		if (!schema && !schemaPath) {
+		if (!schema) {
 			throw new Error('Please provide one of schema or schema path')
 		}
 
 		// if we're given a schema string
-		if (schema) {
+		if (typeof schema === 'string') {
 			this.schema = graphql.buildSchema(schema)
 		} else {
-			// we know schemaPath isn't null
-			schemaPath = schemaPath!
-			// if the schema is not a relative path, the config file is out of date
-			if (path.isAbsolute(schemaPath)) {
-				// compute the new value for schema
-				const relPath = path.relative(process.cwd(), schemaPath)
-
-				// build up an error with no stack trace so the message isn't so noisy
-				const error = new Error(
-					"Invalid config value: 'schemaPath' must now be passed as a relative directory. Please change " +
-						`its value to "./${relPath}" and remove the path import.`
-				)
-				error.stack = ''
-
-				// don't let anything continue
-				throw error
-			}
-
-			// interpret the schema path as relative to cwd
-			const localSchemaPath = path.resolve(process.cwd(), schemaPath)
-			if (!fs.existsSync(localSchemaPath)) {
-				throw new Error(`Schema file does not exist! Create it using houdini generate -p`)
-			}
-
-			// if the schema points to an sdl file
-			if (localSchemaPath.endsWith('gql') || localSchemaPath.endsWith('graphql')) {
-				this.schema = graphql.buildSchema(
-					fs.readFileSync(localSchemaPath as string, 'utf-8')
-				)
-			}
-			// the schema must point to a json blob with the inspection data
-			else {
-				this.schema = graphql.buildClientSchema(
-					JSON.parse(fs.readFileSync(localSchemaPath as string, 'utf-8'))
-				)
-			}
+			this.schema = schema!
 		}
 
 		// validate the log level value
@@ -471,7 +439,9 @@ export class Config {
 const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'houdini.config.js')
 
 // helper function to load the config file
-export async function readConfigFile(configPath: string = DEFAULT_CONFIG_PATH): Promise<any> {
+export async function readConfigFile(
+	configPath: string = DEFAULT_CONFIG_PATH
+): Promise<ConfigFile> {
 	// on windows, we need to prepend the right protocol before we
 	// can import from an absolute path
 	let importPath = configPath
@@ -489,6 +459,51 @@ export async function readConfigFile(configPath: string = DEFAULT_CONFIG_PATH): 
 // a place to store the current configuration
 let _config: Config
 
+async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema> {
+	// if the schema is not a relative path, the config file is out of date
+	if (path.isAbsolute(schemaPath)) {
+		// compute the new value for schema
+		const relPath = path.relative(process.cwd(), schemaPath)
+
+		// build up an error with no stack trace so the message isn't so noisy
+		const error = new Error(
+			"Invalid config value: 'schemaPath' must now be passed as a relative directory. Please change " +
+				`its value to "./${relPath}".`
+		)
+		error.stack = ''
+
+		// don't let anything continue
+		throw error
+	}
+
+	// if the path is a glob, load each file
+	if (glob.hasMagic(schemaPath)) {
+		// the first step we have to do is grab a list of every file in the source tree
+		const sourceFiles = await promisify(glob)(schemaPath)
+
+		return mergeSchemas({
+			typeDefs: await Promise.all(
+				sourceFiles.map(async (filepath) => fs.readFile(filepath, 'utf-8'))
+			),
+		})
+	}
+
+	// the path has no glob magic, make sure its a real file
+	if (!fs.stat(schemaPath)) {
+		throw new Error(`Schema file does not exist! Create it using houdini generate -p`)
+	}
+
+	const contents = await fs.readFile(schemaPath, 'utf-8')
+
+	// if the schema points to an sdl file
+	if (schemaPath.endsWith('gql') || schemaPath.endsWith('graphql')) {
+		return graphql.buildSchema(contents)
+	}
+
+	// the schema must point to a json blob with the inspection data
+	return graphql.buildClientSchema(JSON.parse(contents))
+}
+
 // get the project's current configuration
 export async function getConfig(extraConfig?: Partial<ConfigFile>): Promise<Config> {
 	if (_config) {
@@ -498,7 +513,15 @@ export async function getConfig(extraConfig?: Partial<ConfigFile>): Promise<Conf
 	// add the filepath and save the result
 	const configPath = DEFAULT_CONFIG_PATH
 	const config = await readConfigFile(configPath)
+
+	// look up the schema
+	let schema = config.schema
+	if (config.schemaPath) {
+		schema = await loadSchemaFile(config.schemaPath)
+	}
+
 	_config = new Config({
+		schema,
 		...config,
 		...extraConfig,
 		filepath: configPath,
