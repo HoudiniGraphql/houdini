@@ -314,5 +314,5 @@ test('ticks of gc delete list handlers', function () {
 	}
 
 	// make sure we dont have a handler for the list
-	expect(cache._internal_unstable.lists.get('All_Users')).toBeUndefined()
+	expect(cache._internal_unstable.lists.get('All_Users')).toBeNull()
 })

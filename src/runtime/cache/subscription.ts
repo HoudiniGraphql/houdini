@@ -1,7 +1,7 @@
 import type { SubscriptionSpec, SubscriptionSelection } from '../lib/types'
 import { evaluateKey, flattenList } from './stuff'
 import { Cache, LinkedList } from './cache'
-import { GraphQLValue } from '..'
+import type { GraphQLValue } from '../types'
 
 // manage the subscriptions
 export class InMemorySubscriptions {
@@ -22,13 +22,16 @@ export class InMemorySubscriptions {
 		spec,
 		selection,
 		variables,
+		parentType,
 	}: {
 		parent: string
+		parentType?: string
 		spec: SubscriptionSpec
 		selection: SubscriptionSelection
 		variables: { [key: string]: GraphQLValue }
 	}) {
-		for (const { keyRaw, fields, list, filters } of Object.values(selection)) {
+		const recordType = parentType || spec.rootType
+		for (const { keyRaw, fields, list, filters, type } of Object.values(selection)) {
 			const key = evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the field
@@ -44,17 +47,16 @@ export class InMemorySubscriptions {
 				)
 				let children = !Array.isArray(linkedRecord)
 					? [linkedRecord]
-					: flattenList(linkedRecord)
+					: flattenList(linkedRecord) || []
 
 				// if this field is marked as a list, register it. this will overwrite existing list handlers
 				// so that they can get up to date filters
-				if (list && fields) {
+				if (fields && list) {
 					this.cache._internal_unstable.lists.add({
 						name: list.name,
 						connection: list.connection,
-						parentID: spec.parentID,
-						cache: this.cache,
 						recordID: parent,
+						recordType: recordType,
 						listType: list.type,
 						key,
 						selection: fields,
@@ -70,24 +72,19 @@ export class InMemorySubscriptions {
 					})
 				}
 
-				// if we're not related to anything, we're done
-				if (!children || !fields) {
-					continue
-				}
-
 				// add the subscriber to every child
 				for (const child of children) {
 					// avoid null children
 					if (!child) {
 						continue
 					}
-
 					// make sure the children update this subscription
 					this.add({
 						parent: child as string,
 						spec,
 						selection: fields,
 						variables,
+						parentType: type,
 					})
 				}
 			}
@@ -203,6 +200,10 @@ export class InMemorySubscriptions {
 			// if there is no subselection it doesn't point to a link, move on
 			if (!selection.fields) {
 				continue
+			}
+
+			// if there is a link associated with this field we need to destroy the handler
+			if (selection.list) {
 			}
 
 			const { value: previousValue } = this.cache._internal_unstable.storage.get(id, key)

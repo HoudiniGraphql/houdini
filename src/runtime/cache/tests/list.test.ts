@@ -3395,3 +3395,86 @@ test('when conditions look for all matching lists', function () {
 		},
 	})
 })
+
+test('parentID must be passed if there are multiple instances of a list handler', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const friendsSelection = {
+		friends: {
+			type: 'User',
+			keyRaw: 'friends',
+			list: {
+				name: 'All_Users',
+				connection: false,
+				type: 'User',
+			},
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				firstName: {
+					type: 'String',
+					keyRaw: 'firstName',
+				},
+			},
+		},
+	}
+
+	// create a list we will add to
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				fields: {
+					id: {
+						type: 'ID',
+						keyRaw: 'id',
+					},
+					...friendsSelection,
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [
+					{
+						id: '2',
+						firstName: 'Jean',
+					},
+				],
+			},
+		},
+	})
+
+	// subscribe to the data to register the list
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: friendsSelection,
+			parentID: cache._internal_unstable.id('User', '1')!,
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// subscribe to the connection with a different parentID
+	cache.subscribe(
+		{
+			rootType: 'User',
+			selection: friendsSelection,
+			parentID: cache._internal_unstable.id('User', '2')!,
+			set: jest.fn(),
+		},
+		{}
+	)
+
+	// looking up the list without a parent id should fail
+	expect(() => cache.list('All_Users')).toThrow()
+	expect(cache.list('All_Users', '1')!.lists[0].recordID).toEqual(
+		cache._internal_unstable.id('User', '1')
+	)
+})

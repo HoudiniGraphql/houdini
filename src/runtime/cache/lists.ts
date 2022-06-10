@@ -5,9 +5,11 @@ import { flattenList } from './stuff'
 
 export class ListManager {
 	rootID: string
+	cache: Cache
 
-	constructor(rootID: string) {
+	constructor(cache: Cache, rootID: string) {
 		this.rootID = rootID
+		this.cache = cache
 	}
 
 	// associate list names with the handler that wraps the list
@@ -15,8 +17,39 @@ export class ListManager {
 
 	private listsByField: Map<string, Map<string, List[]>> = new Map()
 
-	get(listName: string, id?: string) {
-		return this.lists.get(listName)?.get(id || this.rootID)
+	get(listName: string, id?: string | {}) {
+		const matches = this.lists.get(listName)
+
+		// if we don't have a list by that name, we're done
+		if (!matches || matches.size === 0) {
+			return null
+		}
+
+		const head = [...matches.values()][0]
+
+		// if there is only one list with that name, return it
+		if (matches?.size === 1) {
+			return head
+		}
+
+		// there are multiple versions of the list so the user must
+		// have provided an id. If they meant to refer to the root object
+		// it would have been caught in the size === 1 check above since
+		// root's ID is fixed
+		if (!id) {
+			throw new Error(
+				`Found multiple instances of "${listName}". Please provide a ` +
+					`parentID that corresponds to the object containing the field marked with @list or @paginate.`
+			)
+		}
+
+		// the provided id won't match the cache's ID so we have to compute the internal ID, using
+		// one of the matches to figure out the type of the list element
+		const { recordType } = head.lists[0]
+		const parentID = id ? this.cache._internal_unstable.id(recordType || '', id)! : this.rootID
+
+		// return the list pointing to the correct parent
+		return this.lists.get(listName)?.get(parentID)
 	}
 
 	remove(listName: string, id: string) {
@@ -26,14 +59,13 @@ export class ListManager {
 	add(list: {
 		name: string
 		connection: boolean
-		cache: Cache
-		recordID: string
+		recordID: SubscriptionSpec['parentID']
+		recordType?: string
 		key: string
 		listType: string
 		selection: SubscriptionSelection
 		when?: ListWhen
 		filters?: List['filters']
-		parentID: SubscriptionSpec['parentID']
 	}) {
 		// if we haven't seen this list before
 		if (!this.lists.has(list.name)) {
@@ -42,7 +74,7 @@ export class ListManager {
 
 		// if we haven't seen the list before, add a new colleciton
 		const name = list.name
-		const parentID = list.parentID || this.rootID
+		const parentID = list.recordID || this.rootID
 
 		// if we already have a handler for the key, don't do anything
 		if (this.lists.get(name)?.get(parentID)?.includes(list.key)) {
@@ -56,11 +88,11 @@ export class ListManager {
 			this.lists.get(name)!.set(parentID, new ListCollection([]))
 		}
 
-		if (!this.listsByField.has(list.recordID)) {
-			this.listsByField.set(list.recordID, new Map())
+		if (!this.listsByField.has(parentID)) {
+			this.listsByField.set(parentID, new Map())
 		}
-		if (!this.listsByField.get(list.recordID)!.has(list.key)) {
-			this.listsByField.get(list.recordID)?.set(list.key, [])
+		if (!this.listsByField.get(parentID)!.has(list.key)) {
+			this.listsByField.get(parentID)?.set(list.key, [])
 		}
 
 		// create the list handler
@@ -68,7 +100,7 @@ export class ListManager {
 
 		// add the list to the collection
 		this.lists.get(list.name)!.get(parentID)!.lists.push(handler)
-		this.listsByField.get(list.recordID)!.get(list.key)!.push(handler)
+		this.listsByField.get(parentID)!.get(list.key)!.push(handler)
 	}
 
 	removeIDFromAllLists(id: string) {
@@ -87,9 +119,9 @@ export class ListManager {
 
 		// grab the list of fields associated with the parent/field combo
 		for (const list of this.listsByField.get(parentID)!.get(field)!) {
-			this.lists.get(list.name)?.get(list.parentID)?.deleteListWithKey(field)
-			if (this.lists.get(list.name)?.get(list.parentID)?.lists.length === 0) {
-				this.lists.get(list.name)?.delete(list.parentID)
+			this.lists.get(list.name)?.get(list.recordID)?.deleteListWithKey(field)
+			if (this.lists.get(list.name)?.get(list.recordID)?.lists.length === 0) {
+				this.lists.get(list.name)?.delete(list.recordID)
 			}
 		}
 
@@ -100,6 +132,7 @@ export class ListManager {
 
 export class List {
 	readonly recordID: string
+	readonly recordType?: string
 	readonly key: string
 	readonly listType: string
 	private cache: Cache
@@ -107,32 +140,30 @@ export class List {
 	private _when?: ListWhen
 	private filters?: { [key: string]: number | boolean | string }
 	readonly name: string
-	readonly parentID: string
 	private connection: boolean
 	private manager: ListManager
 
 	constructor({
 		name,
-		cache,
 		recordID,
+		recordType,
 		key,
 		listType,
 		selection,
 		when,
 		filters,
-		parentID,
 		connection,
 		manager,
 	}: Parameters<ListManager['add']>[0] & { manager: ListManager }) {
-		this.recordID = recordID
+		this.recordID = recordID || rootID
+		this.recordType = recordType
 		this.key = key
 		this.listType = listType
-		this.cache = cache
+		this.cache = manager.cache
 		this.selection = selection
 		this._when = when
 		this.filters = filters
 		this.name = name
-		this.parentID = parentID || rootID
 		this.connection = connection
 		this.manager = manager
 	}
@@ -140,7 +171,7 @@ export class List {
 	// looks for the collection of all of the lists in the cache that satisfies a when
 	// condition
 	when(when?: ListWhen): ListCollection {
-		return this.manager.lists.get(this.name)!.get(this.parentID)!.when(when)
+		return this.manager.lists.get(this.name)!.get(this.recordID)!.when(when)
 	}
 
 	append(selection: SubscriptionSelection, data: {}, variables: {} = {}) {
