@@ -20,7 +20,8 @@ export const getHoudiniContext = (): HoudiniFetchContext => {
 	} catch (e) {
 		console.error(
 			`${logRed('getHoudiniContext() was not called in the right place.')}:
-  You should do something like (because context should be filled at the start of the component)
+  You should do something like the following. Make sure getHoudiniContext is 
+  called at the top of your component (outside any event handlers or function definitions).
 
   <script lang="ts">
     const ${logYellow('context')} = getHoudiniContext();
