@@ -1,5 +1,11 @@
 # houdini
 
+## 0.15.0-next.0
+
+### Minor Changes
+
+-   [#315](https://github.com/HoudiniGraphql/houdini/pull/315) [`4cf4b7f`](https://github.com/HoudiniGraphql/houdini/commit/4cf4b7f93d893ede734c7a067f03b14499cc9773) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - parentID directive and arguments are now relative to object containing the decorated field
+
 ## 0.14.8
 
 ### Patch Changes
