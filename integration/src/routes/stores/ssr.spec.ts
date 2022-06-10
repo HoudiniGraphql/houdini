@@ -25,6 +25,13 @@ test.describe('SSR Page', () => {
     await expectNoGraphQLRequest(page);
   });
 
+  test('expect the hello result (from another *.graphql file)', async ({ page }) => {
+    await page.goto(routes.Stores_SSR);
+
+    const content = await page.locator('div[id=result]').textContent();
+    expect(content).toBe('Hello World! // From Houdini!');
+  });
+
   test('Right Data in <li> elements (SSR)', async ({ page }) => {
     await page.goto(routes.Stores_SSR);
 
