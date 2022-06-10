@@ -1,7 +1,7 @@
 // externals
 import * as graphql from 'graphql'
 import { Config, parentTypeFromAncestors } from '../../common'
-import { ArtifactKind } from '../../runtime/types'
+import { ArtifactKind } from '../../runtime/lib/types'
 // locals
 import { CollectedGraphQLDocument, RefetchUpdateMode } from '../types'
 import { unwrapType, wrapType } from '../utils'
@@ -303,6 +303,8 @@ export default async function paginate(
 				pageSize: 0,
 				embedded: nodeQuery,
 				targetType,
+				paginated: true,
+				direction: flags.last.enabled ? 'backwards' : 'forward',
 			}
 
 			// add the correct default page size
@@ -377,6 +379,8 @@ export default async function paginate(
 					]
 				})
 
+			const typeConfig = config.typeConfig?.[fragment]
+
 			const queryDoc: graphql.DocumentNode = {
 				kind: 'Document',
 				definitions: [
@@ -443,9 +447,7 @@ export default async function paginate(
 											kind: 'Field',
 											name: {
 												kind: 'Name',
-												value:
-													config.typeConfig?.[fragment]?.resolve
-														?.queryField || 'node',
+												value: typeConfig?.resolve?.queryField || 'node',
 											},
 											['arguments']: keys.map((key) => ({
 												kind: 'Argument',
@@ -463,7 +465,19 @@ export default async function paginate(
 											})),
 											selectionSet: {
 												kind: 'SelectionSet',
-												selections: fragmentSpreadSelection,
+												selections: [
+													// make sure we look up the type of the result
+													{
+														kind: 'Field',
+														name: { kind: 'Name', value: '__typename' },
+													},
+													// make sure every key field is present
+													...(typeConfig?.keys || ['id']).map((key) => ({
+														kind: 'Field',
+														name: { kind: 'Name', value: key },
+													})),
+													...fragmentSpreadSelection,
+												] as graphql.SelectionNode[],
 											},
 										},
 								  ],
@@ -479,8 +493,10 @@ export default async function paginate(
 				name: refetchQueryName,
 				document: queryDoc,
 				originalDocument: queryDoc,
-				generate: true,
+				generateArtifact: true,
+				generateStore: false,
 				refetch: doc.refetch,
+				originalString: '',
 			})
 		}
 	}

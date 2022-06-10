@@ -1,5 +1,4 @@
 import * as graphql from 'graphql'
-import fs from 'fs/promises'
 import fetch from 'node-fetch'
 import { writeFile } from './writeFile'
 

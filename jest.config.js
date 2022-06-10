@@ -7,9 +7,13 @@ export default {
 		'^~/(.*)$': '<rootDir>/src/$1',
 	},
 
+	modulePathIgnorePatterns: ['<rootDir>/integration/', '<rootDir>/build'],
+
 	globals: {
 		'ts-jest': {
 			babelConfig: true,
 		},
 	},
+
+	testMatch: ['**/?(*.)+(spec|test).[jt]s?(x)', '!**/example/tests/**'],
 }

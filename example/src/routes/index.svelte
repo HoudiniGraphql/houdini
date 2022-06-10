@@ -4,8 +4,8 @@
 <script context="module">
 	export async function load() {
 		return {
-			redirect: 'all',
-			status: 302
+			redirect: '/all',
+			status: 302,
 		}
 	}
 </script>

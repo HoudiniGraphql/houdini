@@ -3,12 +3,13 @@
 	"private": true,
 	"version": "0.13.0",
 	"scripts": {
-		"dev": "concurrently \"yarn web\" \"yarn api\"",
+		"prepare": "svelte-kit sync",
+		"generate": "houdini generate",
+		"dev": "npm run prepare && concurrently \"yarn web\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
 		"build": "svelte-kit build",
-		"start": "svelte-kit start",
-		"generate": "rm -rf \"\\$houdini\" && houdini generate",
+		"start": "svelte-kit preview",
 		"web": "svelte-kit dev",
-		"api": "node api.cjs"
+		"api": "node api.mjs"
 	},
 	"devDependencies": {
 		"@sveltejs/kit": "1.0.0-next.107",
@@ -22,8 +23,10 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"apollo-server": "^2.24.0",
-		"graphql-relay": "^0.8.0",
-		"subscriptions-transport-ws": "^0.9.18"
+		"@graphql-yoga/node": "2.8.0",
+		"@kitql/vite-plugin-watch-and-run": "0.3.0",
+		"graphql-relay": "0.8.0",
+		"graphql-tag": "2.12.6",
+		"graphql-ws": "5.8.2"
 	}
 }

@@ -39,7 +39,9 @@ test('pagination arguments stripped from key', async function () {
 					        method: "cursor",
 					        pageSize: 10,
 					        embedded: true,
-					        targetType: "Node"
+					        targetType: "Node",
+					        paginated: true,
+					        direction: "forward"
 					    },
 
 					    raw: \`fragment PaginatedFragment on User {
@@ -135,6 +137,8 @@ test('pagination arguments stripped from key', async function () {
 					        }
 					    }
 					};
+
+					"HoudiniHash=07f77134a0c1b4f15f75077d133a91a35472ac050e799e9ad652c8b4dfb93ef9";
 				`)
 })
 
@@ -166,7 +170,9 @@ test('offset based pagination marks appropriate field', async function () {
 					        method: "offset",
 					        pageSize: 10,
 					        embedded: true,
-					        targetType: "Node"
+					        targetType: "Node",
+					        paginated: true,
+					        direction: "forward"
 					    },
 
 					    raw: \`fragment PaginatedFragment on User {
@@ -193,6 +199,8 @@ test('offset based pagination marks appropriate field', async function () {
 					        }
 					    }
 					};
+
+					"HoudiniHash=80c97a259c558a65e1998f7e817c6e433b2c3b5d6cad4c2ae2803324fe8e5f58";
 				`)
 })
 
@@ -247,7 +255,9 @@ test("sibling aliases don't get marked", async function () {
 					        method: "cursor",
 					        pageSize: 10,
 					        embedded: true,
-					        targetType: "Node"
+					        targetType: "Node",
+					        paginated: true,
+					        direction: "forward"
 					    },
 
 					    raw: \`fragment PaginatedFragment on User {
@@ -445,5 +455,7 @@ test("sibling aliases don't get marked", async function () {
 					        }
 					    }
 					};
+
+					"HoudiniHash=e891a137778914d25c73bc1919ff2943a9ba2cf0ee35c7566bf0694939a189cf";
 				`)
 })

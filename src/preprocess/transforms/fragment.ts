@@ -3,7 +3,12 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
 import { Config } from '../../common'
-import { walkTaggedDocuments, artifactImport, artifactIdentifier, ensureImports } from '../utils'
+import {
+	walkTaggedDocuments,
+	ensureImports,
+	ensureStoreImport,
+	ensureArtifactImport,
+} from '../utils'
 import { TransformDocument } from '../types'
 
 const AST = recast.types.builders
@@ -38,10 +43,12 @@ export default async function fragmentProcessor(
 		// if we found a tag we want to replace it with an object that the runtime can use
 		async onTag({ artifact, node, tagContent, parent }) {
 			// make sure that we have imported the document proxy constructor
-			ensureImports(config, doc.instance!.content.body, ['HoudiniDocumentProxy'])
-
-			// the local identifier for the artifact
-			const artifactVariable = artifactIdentifier(artifact)
+			ensureImports({
+				config,
+				body: doc.instance!.content.body,
+				import: ['HoudiniDocumentProxy'],
+				sourceModule: '$houdini/runtime',
+			})
 
 			// instantiate a proxy we can use to update this fragment
 			proxyIdentifier = [
@@ -50,32 +57,43 @@ export default async function fragmentProcessor(
 					.arguments[1] as recast.types.namedTypes.Identifier,
 			]
 
+			// // add an import to the body pointing to the artifact
+			const storeID = ensureStoreImport({
+				config,
+				body: doc.instance!.content.body,
+				artifact,
+			})
+
+			const artifactID = ensureArtifactImport({
+				config,
+				body: doc.instance!.content.body,
+				artifact,
+			})
+
 			// instantiate a handler for the fragment
 			const replacement = AST.objectExpression([
 				AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-				AST.objectProperty(AST.literal('artifact'), AST.identifier(artifactVariable)),
-				AST.objectProperty(AST.literal('config'), AST.identifier('houdiniConfig')),
+				AST.objectProperty(AST.stringLiteral('store'), AST.identifier(storeID)),
+				AST.objectProperty(AST.stringLiteral('artifact'), AST.identifier(artifactID)),
 				AST.objectProperty(AST.literal('proxy'), proxyIdentifier![0]),
+				AST.objectProperty(AST.identifier('config'), AST.identifier('houdiniConfig')),
 			])
 
-			// add an import to the body pointing to the artifact
-			doc.instance!.content.body.unshift(artifactImport(config, artifact))
+			// // if the fragment is paginated we need to add a reference to the pagination query
+			// if (tagContent.includes(`@${config.paginateDirective}`)) {
+			// 	// add the import to the pagination query
+			// 	doc.instance!.content.body.unshift(
+			// 		artifactImport(config, { name: config.paginationQueryName(artifact.name) })
+			// 	)
 
-			// if the fragment is paginated we need to add a reference to the pagination query
-			if (tagContent.includes(`@${config.paginateDirective}`)) {
-				// add the import to the pagination query
-				doc.instance!.content.body.unshift(
-					artifactImport(config, { name: config.paginationQueryName(artifact.name) })
-				)
-
-				// and a reference in the tag replacement
-				replacement.properties.push(
-					AST.objectProperty(
-						AST.literal('paginationArtifact'),
-						AST.identifier(config.paginationQueryName(artifact.name))
-					)
-				)
-			}
+			// 	// and a reference in the tag replacement
+			// 	replacement.properties.push(
+			// 		AST.objectProperty(
+			// 			AST.literal('paginationArtifact'),
+			// 			AST.identifier(config.paginationQueryName(artifact.name))
+			// 		)
+			// 	)
+			// }
 
 			node.replaceWith(replacement)
 		},

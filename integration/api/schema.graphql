@@ -1,0 +1,52 @@
+"""
+Date custom scalar type
+"""
+scalar DateTime
+
+type Mutation {
+  addUser(birthDate: DateTime!, delay: Int, name: String!, snapshot: String!): User!
+  updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime): User!
+}
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  endCursor: String
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+}
+
+type Query {
+  avgYearsBirthDate: Float!
+  node(id: ID!): Node
+  user(id: ID!, snapshot: String!, tmp: Boolean): User!
+  usersConnection(
+    after: String
+    before: String
+    first: Int
+    last: Int
+    snapshot: String!
+  ): UserConnection!
+  usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
+}
+
+type User implements Node {
+  birthDate: DateTime!
+  friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
+  friendsList(limit: Int, offset: Int): [User!]!
+  id: ID!
+  name: String!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  cursor: String
+  node: User
+}

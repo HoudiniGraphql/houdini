@@ -62,8 +62,8 @@ jobs:
             - name: Tests
               run: yarn tests
 
-    generate:
-        name: Generate runtime for example application
+    integration:
+        name: Integration Tests
         runs-on: ubuntu-latest
 
         steps:
@@ -85,5 +85,15 @@ jobs:
             - name: Build packages
               run: yarn build
 
-            - name: Generate runtime
-              run: cd example && yarn generate
+            - name: Install Playwright
+              run: npx playwright install --with-deps
+
+            - name: Integration Tests
+              run: yarn tests:integration
+
+            - name: Upload test results
+              if: always()
+              uses: actions/upload-artifact@v2
+              with:
+                  name: playwright-report
+                  path: integration/playwright-report

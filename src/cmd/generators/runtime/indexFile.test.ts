@@ -72,5 +72,6 @@ test('runtime index file - kit', async function () {
 		export { default as houdiniConfig } from "../config.cjs"
 		export * from "./runtime"
 		export * from "./artifacts"
+		export * from "./stores"
 	`)
 })

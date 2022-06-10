@@ -60,7 +60,9 @@ test('adds pagination info to full', async function () {
 		    "method": "cursor",
 		    "pageSize": 10,
 		    "embedded": false,
-		    "targetType": "Query"
+		    "targetType": "Query",
+		    "paginated": true,
+		    "direction": "forward"
 		}
 	`)
 })
@@ -95,7 +97,9 @@ test('paginated fragments on node pull data from one field deeper', async functi
 		    "method": "cursor",
 		    "pageSize": 10,
 		    "embedded": true,
-		    "targetType": "Node"
+		    "targetType": "Node",
+		    "paginated": true,
+		    "direction": "forward"
 		}
 	`)
 })
@@ -447,7 +451,7 @@ test('embeds node pagination query as a separate document', async function () {
 					module.exports = {
 					    name: "UserFriends_Pagination_Query",
 					    kind: "HoudiniQuery",
-					    hash: "59992fa37d2b9bacc20bcfc5f747b2ec89fe53c65278bc4e56d81a21ec6a0c88",
+					    hash: "bb5131f921805b85c17e7b882f4ad66a9dad452d0f66534a1c8b8f9942adec48",
 
 					    refetch: {
 					        update: "append",
@@ -455,11 +459,15 @@ test('embeds node pagination query as a separate document', async function () {
 					        method: "cursor",
 					        pageSize: 10,
 					        embedded: true,
-					        targetType: "Node"
+					        targetType: "Node",
+					        paginated: true,
+					        direction: "forward"
 					    },
 
 					    raw: \`query UserFriends_Pagination_Query($first: Int = 10, $after: String, $id: ID!) {
 					  node(id: $id) {
+					    __typename
+					    id
 					    ...UserFriends_jrGTj
 					  }
 					}
@@ -496,6 +504,16 @@ test('embeds node pagination query as a separate document', async function () {
 					            nullable: true,
 
 					            fields: {
+					                __typename: {
+					                    type: "String",
+					                    keyRaw: "__typename"
+					                },
+
+					                id: {
+					                    type: "ID",
+					                    keyRaw: "id"
+					                },
+
 					                friendsByForwardsCursor: {
 					                    type: "UserConnection",
 					                    keyRaw: "friendsByForwardsCursor::paginated",
@@ -580,6 +598,8 @@ test('embeds node pagination query as a separate document', async function () {
 					    policy: "NetworkOnly",
 					    partial: false
 					};
+
+					"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 				`)
 })
 
@@ -622,7 +642,7 @@ test('embeds custom pagination query as a separate document', async function () 
 					module.exports = {
 					    name: "UserGhost_Pagination_Query",
 					    kind: "HoudiniQuery",
-					    hash: "556aae8efcbbbcc3878b62227e9931435c6fb277057ed4c5b6a5cebdbcd1a10f",
+					    hash: "55c27b299d485bf73adfaa418b77ac03d918e2ce579730d328208318c6af0da5",
 
 					    refetch: {
 					        update: "append",
@@ -630,11 +650,16 @@ test('embeds custom pagination query as a separate document', async function () 
 					        method: "cursor",
 					        pageSize: 10,
 					        embedded: true,
-					        targetType: "Ghost"
+					        targetType: "Ghost",
+					        paginated: true,
+					        direction: "forward"
 					    },
 
 					    raw: \`query UserGhost_Pagination_Query($first: Int = 10, $after: String, $name: String!, $aka: String!) {
 					  ghost(name: $name, aka: $aka) {
+					    __typename
+					    name
+					    aka
 					    ...UserGhost_jrGTj
 					  }
 					}
@@ -671,6 +696,21 @@ test('embeds custom pagination query as a separate document', async function () 
 					            keyRaw: "ghost(name: $name, aka: $aka)",
 
 					            fields: {
+					                __typename: {
+					                    type: "String",
+					                    keyRaw: "__typename"
+					                },
+
+					                name: {
+					                    type: "String",
+					                    keyRaw: "name"
+					                },
+
+					                aka: {
+					                    type: "String",
+					                    keyRaw: "aka"
+					                },
+
 					                friendsConnection: {
 					                    type: "GhostConnection",
 					                    keyRaw: "friendsConnection::paginated",
@@ -759,6 +799,8 @@ test('embeds custom pagination query as a separate document', async function () 
 					    policy: "NetworkOnly",
 					    partial: false
 					};
+
+					"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 				`)
 })
 
@@ -1136,7 +1178,9 @@ test('refetch specification with backwards pagination', async function () {
 		    "method": "cursor",
 		    "pageSize": 10,
 		    "embedded": false,
-		    "targetType": "Query"
+		    "targetType": "Query",
+		    "paginated": true,
+		    "direction": "backwards"
 		}
 	`)
 })
@@ -1172,6 +1216,8 @@ test('refetch entry with initial backwards', async function () {
 		    "pageSize": 10,
 		    "embedded": false,
 		    "targetType": "Query",
+		    "paginated": true,
+		    "direction": "backwards",
 		    "start": "1234"
 		}
 	`)
@@ -1208,6 +1254,8 @@ test('refetch entry with initial forwards', async function () {
 		    "pageSize": 10,
 		    "embedded": false,
 		    "targetType": "Query",
+		    "paginated": true,
+		    "direction": "forward",
 		    "start": "1234"
 		}
 	`)
@@ -1247,6 +1295,8 @@ test('generated query has same refetch spec', async function () {
 					        pageSize: 10,
 					        embedded: false,
 					        targetType: "Query",
+					        paginated: true,
+					        direction: "forward",
 					        start: "1234"
 					    },
 
@@ -1359,6 +1409,8 @@ test('generated query has same refetch spec', async function () {
 					    policy: "NetworkOnly",
 					    partial: false
 					};
+
+					"HoudiniHash=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
 				`)
 })
 
@@ -1388,7 +1440,9 @@ test('refetch specification with offset pagination', async function () {
 		    "method": "offset",
 		    "pageSize": 10,
 		    "embedded": false,
-		    "targetType": "Query"
+		    "targetType": "Query",
+		    "paginated": true,
+		    "direction": "forward"
 		}
 	`)
 })
@@ -1420,6 +1474,8 @@ test('refetch specification with initial offset', async function () {
 		    "pageSize": 10,
 		    "embedded": false,
 		    "targetType": "Query",
+		    "paginated": true,
+		    "direction": "forward",
 		    "start": 10
 		}
 	`)

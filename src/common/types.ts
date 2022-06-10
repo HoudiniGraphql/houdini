@@ -7,10 +7,3 @@ export type Script = {
 	start: number
 	end: number
 }
-
-export enum CachePolicy {
-	CacheOrNetwork = 'CacheOrNetwork',
-	CacheOnly = 'CacheOnly',
-	NetworkOnly = 'NetworkOnly',
-	CacheAndNetwork = 'CacheAndNetwork',
-}

@@ -1,0 +1,10 @@
+{
+	"extends": "./tsconfig",
+	"include": ["./src/**/*.ts"],
+	"compilerOptions": {
+		"outDir": "build",
+		"sourceMap": false,
+		"module": "commonjs",
+		"declaration": true
+	}
+}

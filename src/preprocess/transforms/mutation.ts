@@ -4,7 +4,8 @@ import * as graphql from 'graphql'
 // locals
 import { Config } from '../../common'
 import { TransformDocument } from '../types'
-import { walkTaggedDocuments, artifactImport, artifactIdentifier, ensureImports } from '../utils'
+import { walkTaggedDocuments, ensureStoreImport } from '../utils'
+
 const AST = recast.types.builders
 
 export default async function mutationProcessor(
@@ -30,22 +31,19 @@ export default async function mutationProcessor(
 		// if we found a tag in the document we want to replace it with an object
 		// that the runtime can use
 		onTag({ artifact, node }) {
+			const storeID = ensureStoreImport({
+				config,
+				body: doc.instance!.content.body,
+				artifact,
+			})
+
 			// replace the graphql node with the object
 			node.replaceWith(
 				AST.objectExpression([
 					AST.objectProperty(AST.stringLiteral('kind'), AST.stringLiteral(artifact.kind)),
-					AST.objectProperty(
-						AST.literal('artifact'),
-						AST.identifier(artifactIdentifier(artifact))
-					),
-					AST.objectProperty(
-						AST.stringLiteral('config'),
-						AST.identifier('houdiniConfig')
-					),
+					AST.objectProperty(AST.stringLiteral('store'), AST.identifier(storeID)),
 				])
 			)
-
-			doc.instance?.content.body.unshift(artifactImport(config, artifact))
 		},
 	})
 }

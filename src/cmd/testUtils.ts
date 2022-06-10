@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 import { testConfig } from '../common'
 import { CollectedGraphQLDocument, HoudiniError } from './types'
 import { runPipeline } from './generate'
-import { ArtifactKind } from '../runtime/types'
+import { ArtifactKind } from '../runtime/lib/types'
 
 export function pipelineTest(
 	title: string,
@@ -86,6 +86,8 @@ export function mockCollectedDoc(query: string): CollectedGraphQLDocument {
 		document: parsed,
 		originalDocument: parsed,
 		filename: `${name}.ts`,
-		generate: true,
+		generateArtifact: true,
+		generateStore: true,
+		originalString: query,
 	}
 }

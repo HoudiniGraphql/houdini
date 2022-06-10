@@ -1,0 +1,7 @@
+query usersList($limit: Int) {
+  usersList(limit: $limit, snapshot: "store-user-query") {
+    id
+    name
+    ...UserInfo
+  }
+}

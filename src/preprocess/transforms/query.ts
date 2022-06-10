@@ -1,9 +1,8 @@
 // externals
 import * as recast from 'recast'
 import * as graphql from 'graphql'
-import { ExportNamedDeclaration, ReturnStatement, Statement } from '@babel/types'
+import { ExportNamedDeclaration, Statement } from '@babel/types'
 import { namedTypes } from 'ast-types/gen/namedTypes'
-import { ObjectExpressionKind } from 'ast-types/gen/kinds'
 import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
@@ -12,10 +11,11 @@ import { TransformDocument } from '../types'
 import {
 	walkTaggedDocuments,
 	EmbeddedGraphqlDocument,
-	artifactImport,
-	artifactIdentifier,
 	ensureImports,
+	ensureArtifactImport,
+	ensureStoreImport,
 } from '../utils'
+import { ArtifactKind } from '../../runtime/lib/types'
 const AST = recast.types.builders
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
@@ -52,8 +52,8 @@ export default async function queryProcessor(
 	// note: we'll  replace the tags as we discover them with something the runtime library can use
 	const queries: EmbeddedGraphqlDocument[] = []
 
-	// remember the function that the document is passed to
-	let functionNames: { [queryName: string]: string } = {}
+	let artifactImportIDs: { [name: string]: string } = {}
+	let storeImportIDs: { [name: string]: string } = {}
 
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
@@ -70,13 +70,22 @@ export default async function queryProcessor(
 		onTag(tag: EmbeddedGraphqlDocument) {
 			// pull out what we need
 			const { node, parsedDocument, parent, artifact, tagContent } = tag
+			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 
 			// add the document to the list
 			queries.push(tag)
 
-			// dry up some values
-			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-			const handlerIdentifier = queryHandlerIdentifier(operation)
+			storeImportIDs[artifact.name] = ensureStoreImport({
+				config,
+				body: isRoute ? doc.module!.content.body : doc.instance!.content.body,
+				artifact,
+			})
+
+			artifactImportIDs[artifact.name] = ensureArtifactImport({
+				config,
+				body: isRoute ? doc.module!.content.body : doc.instance!.content.body,
+				artifact: artifact,
+			})
 
 			// the "actual" value of a template tag depends on wether its a route or component
 			node.replaceWith(
@@ -84,14 +93,17 @@ export default async function queryProcessor(
 				// the query on mount
 				AST.objectExpression(
 					[
-						AST.objectProperty(AST.identifier('queryHandler'), handlerIdentifier),
 						AST.objectProperty(
-							AST.identifier('config'),
-							AST.identifier('houdiniConfig')
+							AST.identifier('kind'),
+							AST.stringLiteral(ArtifactKind.Query)
 						),
 						AST.objectProperty(
-							AST.identifier('artifact'),
-							AST.identifier(artifactIdentifier(artifact))
+							AST.identifier('store'),
+							AST.identifier(storeImportIDs[artifact.name])
+						),
+						AST.objectProperty(
+							AST.identifier('component'),
+							AST.booleanLiteral(!isRoute)
 						),
 						AST.objectProperty(
 							AST.identifier('variableFunction'),
@@ -99,6 +111,14 @@ export default async function queryProcessor(
 								operation.variableDefinitions.length > 0
 								? AST.identifier(queryInputFunction(artifact.name))
 								: AST.nullLiteral()
+						),
+						AST.objectProperty(
+							AST.identifier('config'),
+							AST.identifier('houdiniConfig')
+						),
+						AST.objectProperty(
+							AST.identifier('artifact'),
+							AST.identifier(artifactImportIDs[artifact.name])
 						),
 					].concat(
 						...(isRoute
@@ -112,16 +132,6 @@ export default async function queryProcessor(
 					)
 				)
 			)
-
-			// we also need to wrap the template tag in a function that knows how to convert the query
-			// handler into a value that's useful for the operation context (route vs component)
-			const callParent = parent as namedTypes.CallExpression
-			if (callParent.type === 'CallExpression' && callParent.callee.type === 'Identifier') {
-				// need to make sure that we call the same function we were passed to
-				functionNames[artifactIdentifier(artifact)] = callParent.callee.name
-				// update the function called for the environment
-				callParent.callee.name = isRoute ? 'routeQuery' : 'componentQuery'
-			}
 		},
 	})
 
@@ -145,18 +155,23 @@ export default async function queryProcessor(
 
 	// if we are processing a route, use those processors
 	if (isRoute) {
-		processModule(config, doc.module!, queries)
-	} else {
-		// we need to make sure to import all of the artifacts in the instance script
-		// every document will need to be imported
-		for (const document of queries) {
-			doc.instance.content.body.unshift(artifactImport(config, document.artifact))
-		}
+		processModule({ config, script: doc.module!, queries, artifactImportIDs, storeImportIDs })
 	}
-	processInstance(config, isRoute, doc.instance, queries, functionNames)
 }
 
-function processModule(config: Config, script: Script, queries: EmbeddedGraphqlDocument[]) {
+function processModule({
+	config,
+	script,
+	queries,
+	artifactImportIDs,
+	storeImportIDs,
+}: {
+	config: Config
+	script: Script
+	queries: EmbeddedGraphqlDocument[]
+	artifactImportIDs: { [name: string]: string }
+	storeImportIDs: { [name: string]: string }
+}) {
 	// the main thing we are responsible for here is to add the module bits of the
 	// hoisted query. this means doing the actual fetch, checking errors, and returning
 	// the props to the rendered components.
@@ -164,16 +179,26 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	// in order to reduce complexity in this code generation, we are going to build
 	// the load function for sveltekit and then wrap it up for sapper if we need to
 
-	// every document will need to be imported
-	for (const document of queries) {
-		script.content.body.unshift(artifactImport(config, document.artifact))
+	ensureImports({
+		config,
+		body: script.content.body,
+		import: ['RequestContext'],
+		sourceModule: '$houdini/runtime',
+	})
+
+	// if there is already a load function, don't do anything
+	if (findExportedFunction(script.content.body, 'load')) {
+		return
 	}
 
-	// add the imports if they're not there
-	ensureImports(config, script.content.body, ['fetchQuery', 'RequestContext'])
-
 	// add the kit preload function
-	addKitLoad(config, script.content.body, queries)
+	addKitLoad({
+		config,
+		body: script.content.body,
+		queries,
+		artifactImportIDs,
+		storeImportIDs,
+	})
 
 	// if we are processing this file for sapper, we need to add the actual preload function
 	if (config.framework === 'sapper') {
@@ -181,148 +206,49 @@ function processModule(config: Config, script: Script, queries: EmbeddedGraphqlD
 	}
 }
 
-function processInstance(
-	config: Config,
-	isRoute: boolean,
-	script: Script,
-	queries: EmbeddedGraphqlDocument[],
-	functionNames: { [artifactName: string]: string }
-) {
-	// make sure we have the imports we need
-	ensureImports(config, script.content.body, ['routeQuery', 'componentQuery', 'query'])
-
-	// add props to the component for every query while we're here
-
-	// find the first non import statement
-	const propInsertIndex = script.content.body.findIndex(
-		(expression) => expression.type !== 'ImportDeclaration'
-	)
-
-	// this happens for every document in the page, make sure we handle that correctly.
-
-	// every query document we ran into creates a local variable as well as a new key in the returned value of
-	// the preload function as well as a prop declaration in the instance script
-	for (const document of queries) {
-		const operation = document.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-		// figure out the local variable that holds the result
-		const preloadKey = preloadPayloadKey(operation)
-
-		const { artifact, parsedDocument } = document
-
-		// prop declarations needs to be added to the top of the document
-		script.content.body.splice(
-			propInsertIndex,
-			0,
-			// @ts-ignore: babel's ast does something weird with comments, we won't use em
-			AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [
-					AST.variableDeclarator(AST.identifier(preloadKey), AST.objectExpression([])),
-				])
-			),
-			AST.variableDeclaration('let', [
-				AST.variableDeclarator(
-					queryHandlerIdentifier(operation),
-					AST.callExpression(
-						AST.identifier(functionNames[artifactIdentifier(artifact)]),
-						[
-							AST.objectExpression([
-								AST.objectProperty(
-									AST.stringLiteral('config'),
-									AST.identifier('houdiniConfig')
-								),
-								AST.objectProperty(
-									AST.stringLiteral('initialValue'),
-									AST.memberExpression(
-										AST.identifier(preloadKey),
-										AST.identifier('result')
-									)
-								),
-								AST.objectProperty(
-									AST.stringLiteral('variables'),
-									AST.memberExpression(
-										AST.identifier(preloadKey),
-										AST.identifier('variables')
-									)
-								),
-								AST.objectProperty(
-									AST.stringLiteral('partial'),
-									AST.memberExpression(
-										AST.identifier(preloadKey),
-										AST.identifier('partial')
-									)
-								),
-								AST.objectProperty(
-									AST.literal('kind'),
-									AST.stringLiteral(artifact.kind)
-								),
-								AST.objectProperty(
-									AST.literal('artifact'),
-									AST.identifier(artifactIdentifier(artifact))
-								),
-								AST.objectProperty(
-									AST.literal('source'),
-									AST.memberExpression(
-										AST.identifier(preloadKey),
-										AST.identifier('source')
-									)
-								),
-							]),
-						]
-					)
-				),
-			])
-		)
-
-		// reactive statements to synchronize state with query updates need to be at the bottom (where everything
-		// will have a definition)
-		if (isRoute) {
-			script.content.body.push(
-				// @ts-ignore: babel's ast does something weird with comments, we won't use em
-				AST.labeledStatement(
-					AST.identifier('$'),
-					AST.blockStatement([
-						AST.expressionStatement(
-							AST.callExpression(
-								AST.memberExpression(
-									queryHandlerIdentifier(operation),
-									AST.identifier('onLoad')
-								),
-								[AST.identifier(preloadKey)]
-							)
-						),
-					])
-				)
-			)
-		}
-	}
-}
-
-function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlDocument[]) {
-	// look for a preload definition
-	let preloadDefinition = findExportedFunction(body, 'load')
-	// if there isn't one, add it
-	if (preloadDefinition) {
-		throw new Error('Cannot have a query where there is already a load() defined')
-	}
-
+function addKitLoad({
+	config,
+	body,
+	queries,
+	artifactImportIDs,
+	storeImportIDs,
+}: {
+	config: Config
+	body: Statement[]
+	queries: EmbeddedGraphqlDocument[]
+	artifactImportIDs: { [name: string]: string }
+	storeImportIDs: { [name: string]: string }
+}) {
+	// look for any hooks
 	let beforeLoadDefinition = findExportedFunction(body, 'beforeLoad')
 	let afterLoadDefinition = findExportedFunction(body, 'afterLoad')
 	let onLoadDefinition = findExportedFunction(body, 'onLoad')
+
+	// if there are any hooks, warn the user they will be gone soon
+	if (beforeLoadDefinition || afterLoadDefinition || onLoadDefinition) {
+		console.warn(
+			'Query hooks are deprecated and will be removed soon. For more information please see the 0.15.0 migration doc: <link>.'
+		)
+	}
+
+	// the name of the variable
+	const requestContext = AST.identifier('_houdini_context')
 
 	const preloadFn = AST.functionDeclaration(
 		AST.identifier('load'),
 		[AST.identifier('context')],
 		// return an object
-		AST.blockStatement([AST.returnStatement(AST.objectExpression([]))])
+		AST.blockStatement([
+			AST.returnStatement(
+				AST.memberExpression(requestContext, AST.identifier('returnValue'))
+			),
+		])
 	)
 	// mark the function as async
 	preloadFn.async = true
 
 	// export the function from the module
 	body.push(AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration)
-
-	// the name of the variable
-	const requestContext = AST.identifier('_houdini_context')
 
 	const retValue = AST.memberExpression(requestContext, AST.identifier('returnValue'))
 
@@ -345,25 +271,6 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 
 	// we just added one to the return index
 	insertIndex++
-	// grab the return statement so we can add stuff to it later
-	let returnValue = (preloadFn.body.body[insertIndex] as ReturnStatement)
-		.argument as ObjectExpressionKind
-
-	// hold onto the props object in
-	let propsProperty = returnValue.properties.find(
-		(prop) =>
-			prop.type === 'ObjectProperty' &&
-			prop.key.type === 'StringLiteral' &&
-			prop.key.value === 'props'
-	) as namedTypes.ObjectProperty
-	if (!propsProperty) {
-		// define the property so we can pull out the inner object
-		propsProperty = AST.objectProperty(AST.identifier('props'), AST.objectExpression([]))
-
-		// add the property to the return value
-		returnValue.properties.push(propsProperty)
-	}
-	let propsValue = propsProperty.value as namedTypes.ObjectExpression
 
 	// only split into promise and await if there are multiple queries
 	const needsPromises = queries.length > 1
@@ -415,7 +322,9 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 										),
 										AST.objectProperty(
 											AST.literal('artifact'),
-											AST.identifier(artifactIdentifier(document.artifact))
+											AST.identifier(
+												artifactImportIDs[document.artifact.name]
+											)
 										),
 									]),
 								]
@@ -440,39 +349,21 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			)
 		}
 
-		const fetchCall = AST.callExpression(AST.identifier('fetchQuery'), [
-			AST.objectExpression([
-				AST.objectProperty(AST.literal('context'), AST.identifier('context')),
-				AST.objectProperty(
-					AST.literal('artifact'),
-					AST.identifier(artifactIdentifier(document.artifact))
-				),
-				AST.objectProperty(AST.literal('variables'), AST.identifier(variableIdentifier)),
-				AST.objectProperty(
-					AST.literal('session'),
-
-					AST.memberExpression(AST.identifier('context'), AST.identifier('session'))
-				),
-			]),
-		])
-
-		const errorCheck = AST.ifStatement(
-			AST.unaryExpression(
-				'!',
-				AST.memberExpression(
-					AST.memberExpression(AST.identifier(preloadKey), AST.identifier('result')),
-					AST.identifier('data')
-				)
+		const fetchCall = AST.callExpression(
+			AST.memberExpression(
+				AST.identifier(storeImportIDs[document.artifact.name]),
+				AST.identifier('fetch')
 			),
-			AST.blockStatement([
-				AST.expressionStatement(
-					AST.callExpression(
-						AST.memberExpression(requestContext, AST.identifier('graphqlErrors')),
-						[AST.identifier(preloadKey)]
-					)
-				),
-				AST.returnStatement(retValue),
-			])
+			[
+				AST.objectExpression([
+					AST.objectProperty(
+						AST.literal('variables'),
+						AST.identifier(variableIdentifier)
+					),
+					AST.objectProperty(AST.literal('event'), AST.identifier('context')),
+					AST.objectProperty(AST.literal('blocking'), AST.booleanLiteral(true)),
+				]),
+			]
 		)
 
 		if (needsPromises) {
@@ -497,9 +388,7 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 						AST.identifier(preloadKey),
 						AST.awaitExpression(AST.identifier(preloadPromiseKey))
 					),
-				]),
-				// we need to look for errors in the response
-				errorCheck
+				])
 			)
 		} else {
 			preloadFn.body.body.splice(
@@ -512,25 +401,9 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 						AST.identifier(preloadKey),
 						AST.awaitExpression(fetchCall)
 					),
-				]),
-				// we need to look for errors in the response
-				errorCheck
-			)
-		}
-
-		// add the field to the return value of preload
-		propsValue.properties.push(
-			AST.objectProperty(
-				AST.identifier(preloadKey),
-				AST.objectExpression([
-					AST.spreadProperty(AST.identifier(preloadKey)),
-					AST.objectProperty(
-						AST.identifier('variables'),
-						AST.identifier(variableIdentifier)
-					),
 				])
 			)
-		)
+		}
 	}
 
 	// add all awaits and checks
@@ -550,118 +423,20 @@ function addKitLoad(config: Config, body: Statement[], queries: EmbeddedGraphqlD
 			preloadFn.body.body.splice(insertIndex, 0, ...loadHookStatements('onLoad', ...context))
 		}
 
-		const beforeHookReturn = AST.identifier('beforeHookReturn')
-		const afterHookReturn = AST.identifier('afterHookReturn')
-
-		let hookReturn = AST.identifier('hookReturn')
-		if (beforeLoadDefinition || onLoadDefinition) {
-			preloadFn.body.body.splice(
-				// jump over the hook call itself and the check for errors
-				insertIndex + 2,
-				0,
-				AST.variableDeclaration('const', [
-					AST.variableDeclarator(beforeHookReturn, retValue),
-				])
-			)
-
-			hookReturn = beforeHookReturn
-		}
-
 		if (afterLoadDefinition) {
-			preloadFn.body.body.splice(
-				-1,
-				0,
-				...loadHookStatements('afterLoad', ...context),
-				AST.variableDeclaration('const', [
-					AST.variableDeclarator(afterHookReturn, retValue),
-				])
-			)
-
-			hookReturn = afterHookReturn
+			preloadFn.body.body.splice(-1, 0, ...loadHookStatements('afterLoad', ...context))
 		}
-
-		if ((beforeLoadDefinition || onLoadDefinition) && afterLoadDefinition) {
-			hookReturn = AST.identifier('hookReturn')
-
-			preloadFn.body.body.splice(
-				-1,
-				0,
-				// shallow merge before/after returns
-				AST.variableDeclaration('const', [
-					AST.variableDeclarator(
-						hookReturn,
-						AST.objectExpression([
-							AST.spreadProperty(beforeHookReturn),
-							AST.spreadProperty(afterHookReturn),
-						])
-					),
-				]),
-				// merge specific keys
-				...['props', 'stuff'].map(AST.identifier).map((id) =>
-					AST.ifStatement(
-						// this is true if before and/or after hook returned this key
-						AST.memberExpression(hookReturn, id),
-						AST.blockStatement([
-							AST.expressionStatement(
-								AST.assignmentExpression(
-									'=',
-									AST.memberExpression(hookReturn, id),
-									AST.objectExpression([
-										AST.spreadProperty(
-											AST.memberExpression(beforeHookReturn, id)
-										),
-										AST.spreadProperty(
-											AST.memberExpression(afterHookReturn, id)
-										),
-									])
-								)
-							),
-						])
-					)
-				)
-			)
-		}
-
-		// if the hook return has keys 'props' or 'stuff' we need special handling
-		preloadFn.body.body.splice(
-			-1,
-			0,
-			AST.ifStatement(
-				AST.logicalExpression(
-					'||',
-					AST.memberExpression(hookReturn, AST.identifier('props')),
-					AST.memberExpression(hookReturn, AST.identifier('stuff'))
-				),
-				AST.blockStatement([
-					AST.returnStatement(
-						AST.objectExpression([
-							AST.spreadProperty(hookReturn),
-							AST.objectProperty(
-								AST.identifier('props'),
-								AST.objectExpression([
-									...propsValue.properties,
-									AST.spreadProperty(
-										AST.memberExpression(hookReturn, AST.identifier('props'))
-									),
-								])
-							),
-						])
-					),
-				])
-			)
-		)
-
-		// add the returnValue of the load hooks to the return value of pre(load)
-		propsValue.properties.push(
-			// @ts-ignore
-			AST.spreadProperty(hookReturn)
-		)
 	}
 }
 
 function addSapperPreload(config: Config, body: Statement[]) {
 	// make sure we have the utility that will do the conversion
-	ensureImports(config, body, ['convertKitPayload'])
+	ensureImports({
+		config,
+		body,
+		import: ['convertKitPayload'],
+		sourceModule: '$houdini/runtime',
+	})
 
 	// look for a preload definition
 	let preloadDefinition = findExportedFunction(body, 'preload')
@@ -738,18 +513,6 @@ function loadHookStatements(
 				)
 			)
 		),
-		// if any hook function returned an error or redirect
-		AST.ifStatement(
-			AST.unaryExpression(
-				'!',
-				AST.memberExpression(requestContext, AST.identifier('continue'))
-			),
-			AST.blockStatement([
-				AST.returnStatement(
-					AST.memberExpression(requestContext, AST.identifier('returnValue'))
-				),
-			])
-		),
 	]
 }
 
@@ -789,10 +552,6 @@ function afterLoadQueryData(queries: EmbeddedGraphqlDocument[]) {
 
 function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
 	return `_${operation.name?.value}`
-}
-
-function preloadsourceKey(operation: graphql.OperationDefinitionNode): string {
-	return `_${operation.name?.value}_Source`
 }
 
 function queryHandlerIdentifier(operation: graphql.OperationDefinitionNode): namedTypes.Identifier {

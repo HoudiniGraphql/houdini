@@ -1,12 +1,19 @@
 // external imports
 import path from 'path'
+import fs from 'fs/promises'
 // local imports
 import { Config } from '../../../common'
 import { writeFile } from '../../utils'
 
 export default async function generateAdapter(config: Config) {
 	// the location of the adapter
-	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.mjs')
+	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.js')
+
+	// delete the existing adapter
+	try {
+		await fs.stat(adapterLocation)
+		await fs.rm(adapterLocation)
+	} catch {}
 
 	// figure out which adapter we need to lay down
 	const adapter = {
@@ -34,18 +41,21 @@ export function goTo(location, options) {
 }
 
 export const isBrowser = process.browser
+
+export const clientStarted = true; // Not tested in Sapper.
 `
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
-import { getStores } from '$app/stores'
+import { page, session } from '$app/stores';
+import { get } from 'svelte/store';
 import { browser } from '$app/env'
 
 export function getSession() {
-    return getStores().session
+    return get(session)
 }
 
 export function getPage() {
-	return getStores().page
+	return get(page)
 }
 
 export function goTo(location, options) {
@@ -53,6 +63,16 @@ export function goTo(location, options) {
 }
 
 export const isBrowser = browser
+
+/**
+ *  After \`clientStarted = true\`, only client side navigation will happen.
+ */
+export let clientStarted = false; // Will be true on a client side navigation
+if (browser) {
+  addEventListener('sveltekit:start', () => {
+    clientStarted = true;
+  });
+}
 `
 
 const svelteAdapter = `
@@ -74,4 +94,6 @@ export function goTo(location, options) {
 }
 
 export const isBrowser = true
+
+export const clientStarted = true
 `

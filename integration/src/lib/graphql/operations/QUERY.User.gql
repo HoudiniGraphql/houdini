@@ -1,0 +1,6 @@
+query user($id: ID!, $tmp: Boolean) {
+  user(id: $id, tmp: $tmp, snapshot: "store-user-query") {
+    id
+    name
+  }
+}

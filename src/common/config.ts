@@ -3,8 +3,8 @@ import fs from 'fs-extra'
 import path from 'path'
 import os from 'os'
 // locals
-import { CachePolicy } from './types'
-import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/config'
+import { CachePolicy } from '../runtime/lib/types'
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -16,7 +16,6 @@ export class Config {
 	schemaPath?: string
 	persistedQueryPath?: string
 	sourceGlob: string
-	quiet: boolean
 	static?: boolean
 	scalars?: ConfigFile['scalars']
 	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
@@ -29,6 +28,7 @@ export class Config {
 	defaultKeys: string[] = ['id']
 	typeConfig: ConfigFile['types']
 	configFile: ConfigFile
+	logLevel: LogLevel
 
 	constructor({ filepath, ...configFile }: ConfigFile & { filepath: string }) {
 		this.configFile = defaultConfigValues(configFile)
@@ -50,6 +50,7 @@ export class Config {
 			defaultPartial = false,
 			defaultKeys,
 			types = {},
+			logLevel,
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -99,12 +100,21 @@ export class Config {
 			}
 		}
 
+		// validate the log level value
+		if (logLevel && !Object.values(LogLevel).includes(logLevel.toLowerCase() as LogLevel)) {
+			console.warn(
+				`Invalid log level provided. Valid values are: ${JSON.stringify(
+					Object.values(LogLevel)
+				)}`
+			)
+			logLevel = LogLevel.Summary
+		}
+
 		// save the values we were given
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
 		this.filepath = filepath
 		this.sourceGlob = sourceGlob
-		this.quiet = quiet
 		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(filepath)
@@ -114,6 +124,17 @@ export class Config {
 		this.defaultCachePolicy = defaultCachePolicy
 		this.defaultPartial = defaultPartial
 		this.definitionsFile = definitionsPath
+		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
+
+		// if the user asked for `quiet` logging notify them its been deprecated
+		if (quiet) {
+			console.warn(
+				`The quiet configuration parameter has been deprecated. Please use logLevel: ${JSON.stringify(
+					LogLevel.Quiet
+				)}. For more information please see the 0.15.0 migration guide: <link>.`
+			)
+			this.logLevel = LogLevel.Summary
+		}
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -155,6 +176,19 @@ export class Config {
 		return this.artifactDirectory
 	}
 
+	// the directory where we put all of the stores
+	get storesDirectory() {
+		return path.join(this.rootDir, this.storesDirectoryName)
+	}
+
+	get metaFilePath() {
+		return path.join(this.rootDir, 'meta.json')
+	}
+
+	private get storesDirectoryName() {
+		return 'stores'
+	}
+
 	// where we will place the runtime
 	get runtimeDirectory() {
 		return path.join(this.rootDir, 'runtime')
@@ -184,6 +218,15 @@ export class Config {
 	// the path that the runtime can use to import an artifact
 	artifactImportPath(name: string): string {
 		return `$houdini/${this.artifactDirectoryName}/${name}`
+	}
+
+	// the path that the runtime can use to import a store
+	storeImportPath(name: string): string {
+		return `$houdini/${this.storesDirectoryName}/${name}`
+	}
+
+	storeName({ name }: { name: string }) {
+		return `GQL_${name}`
 	}
 
 	keyFieldsForType(type: string) {
@@ -235,6 +278,7 @@ export class Config {
 			fs.mkdirp(this.artifactDirectory),
 			fs.mkdirp(this.artifactTypeDirectory),
 			fs.mkdirp(this.runtimeDirectory),
+			fs.mkdirp(this.storesDirectory),
 		])
 	}
 
@@ -446,7 +490,7 @@ export async function readConfigFile(configPath: string = DEFAULT_CONFIG_PATH): 
 let _config: Config
 
 // get the project's current configuration
-export async function getConfig(): Promise<Config> {
+export async function getConfig(extraConfig?: Partial<ConfigFile>): Promise<Config> {
 	if (_config) {
 		return _config
 	}
@@ -456,6 +500,7 @@ export async function getConfig(): Promise<Config> {
 	const config = await readConfigFile(configPath)
 	_config = new Config({
 		...config,
+		...extraConfig,
 		filepath: configPath,
 	})
 	return _config
@@ -489,7 +534,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				legends: [Legend!]!
 			}
 
-			type Legend { 
+			type Legend {
 				name: String
 				believers(first: Int, after: String): GhostConnection
 			}
@@ -590,7 +635,6 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			}
 		`,
 		framework: 'kit',
-		quiet: true,
 		types: {
 			Ghost: {
 				keys: ['name', 'aka'],
@@ -599,6 +643,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				},
 			},
 		},
+		logLevel: LogLevel.Quiet,
 		...config,
 	}
 }
@@ -612,4 +657,11 @@ export function testConfig(config: Partial<ConfigFile> = {}) {
 
 type Partial<T> = {
 	[P in keyof T]?: T[P]
+}
+
+export enum LogLevel {
+	Full = 'full',
+	Summary = 'summary',
+	ShortSummary = 'short-summary',
+	Quiet = 'quiet',
 }

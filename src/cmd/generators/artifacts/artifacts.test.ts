@@ -68,6 +68,8 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=4e7afee5e8aa689ee7f58f61f60955769c29fe630b05a32ca2a5d8f61620afe3";
 	`)
 
 	const fragmentContents = await fs.readFile(
@@ -100,6 +102,8 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=7af5be069af3b67c394042bdd7c12f46058ba9d372d38e67f5613fc3d0a2aaff";
 	`)
 })
 
@@ -167,6 +171,8 @@ test('selection includes fragments', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=c8c8290bb733a727894c836300cd22e8ece993f2b7c2108998f1d63a595e6b5f";
 	`)
 
 	const fragmentContents = await fs.readFile(
@@ -199,6 +205,8 @@ test('selection includes fragments', async function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=7af5be069af3b67c394042bdd7c12f46058ba9d372d38e67f5613fc3d0a2aaff";
 	`)
 })
 
@@ -262,6 +270,8 @@ test('internal directives are scrubbed', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=44c6f321536709f2a75b34d7bf4a4db2387bed848fd2956e592a13817d1399ff";
 	`)
 })
 
@@ -339,6 +349,8 @@ test('variables only used by internal directives are scrubbed', async function (
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=efafd620e8ee6999336778e8467eb5184c1d92e71393723cc857f4235d2a66b0";
 	`)
 })
 
@@ -403,6 +415,8 @@ test('overlapping query and fragment selection', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=234b7407fd0adcee65c73e0a206119449dee083c784bddff5bf4a9ef726a1dba";
 	`)
 })
 
@@ -484,6 +498,8 @@ test('overlapping query and fragment nested selection', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=a7f167e15c06d8c7ea633e038190ebf0a27242880451f59b4bd30adba4ac5139";
 	`)
 })
 
@@ -592,6 +608,8 @@ test('selections with interfaces', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=09afcd76aca08a3f81221edfb55d165b5241ae8fae5fc1dd42f54f5dec35eb25";
 	`)
 })
 
@@ -700,6 +718,8 @@ test('selections with unions', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=f11d375eb2ec0b5373b2e717f97a1464c3c2ec470f9b17ad5693c1ff98c9c121";
 	`)
 })
 
@@ -784,6 +804,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=2203fdd50e58f77227a36975144992028bedf3cb08264335f5b3af73913f0b2f";
 	`)
 	})
 
@@ -876,6 +898,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=c2cee63cc2dfd5eabad47ed394b64c91f6e19378bbf018b80c6e3391c3a56e5b";
 	`)
 	})
 
@@ -969,6 +993,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=cc9a6fb32e9b6a79e2a3c46885d07b11078f84dcb8c52555fb96e3ff6f87f8b2";
 	`)
 	})
 
@@ -1054,6 +1080,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=a33810e6e3850879918dc77009577f72a2cab24664911bb0a1e57b47c6b7d104";
 	`)
 	})
 
@@ -1123,6 +1151,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=02916c12509a82eb42926c996cc383fde93bc550a72887cd6cf259a1164543da";
 	`)
 	})
 
@@ -1198,6 +1228,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=da85d1acef7d12c0a3185f625a7f77a22a4d2ec90fc91d1a919aefd9209db113";
 	`)
 	})
 
@@ -1295,6 +1327,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=75b2d544c45b48e48203138c3a204afdaa382c1673acaba9db9511ee6c929553";
 	`)
 	})
 
@@ -1392,6 +1426,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=d585c80adc7fbc932f9cda5a3053b922baf1affa035b7c0b239cc38f65e6e4ed";
 	`)
 	})
 
@@ -1489,6 +1525,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=269dd0acb58d7a44b0df6d6a53ed1beaeb5aca5cc216d8011b29425d2eed6584";
 	`)
 	})
 
@@ -1587,6 +1625,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=5bbd672c18c5febf61cf8335145d6f837b1e711ec3f1a1d5b81241767444c8ed";
 	`)
 	})
 
@@ -1685,6 +1725,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=8b57b4d6231aeadc73661b6096f815d1f59fa9bb44e62b363d72c7dfcd78048f";
 	`)
 	})
 
@@ -1783,6 +1825,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=c6990945263aa9f52111e9cc0d89b6ccad2a258ca5356f6cf23a7e9424354aa7";
 	`)
 	})
 
@@ -1881,6 +1925,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=d7fca173168e1a7c842115c468d62ff9d347724c0a8fa20a3408771eef5c7cf9";
 	`)
 	})
 
@@ -1979,6 +2025,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=cc5ca165e8418fe5ac352c3067402d6aca3c1e76c25efdad5d076dbf294e2554";
 	`)
 	})
 
@@ -2095,6 +2143,8 @@ describe('mutation artifacts', function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
 	`)
 	})
 
@@ -2193,6 +2243,8 @@ describe('mutation artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=a29794de026215f4e9266358741cf0ab3876640e1230e3dc190907d5cc7c1c37";
 	`)
 	})
 
@@ -2281,6 +2333,8 @@ describe('mutation artifacts', function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=85351c80364eb41f7eae70628dd67dedfc2057a39ef3967c9e9b739e568b0f42";
 	`)
 	})
 
@@ -2334,7 +2388,9 @@ describe('mutation artifacts', function () {
 		        method: "cursor",
 		        pageSize: 10,
 		        embedded: false,
-		        targetType: "Query"
+		        targetType: "Query",
+		        paginated: true,
+		        direction: "forward"
 		    },
 
 		    raw: \`query TestQuery($first: Int = 10, $after: String) {
@@ -2466,6 +2522,8 @@ describe('mutation artifacts', function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=9f93f422fad4d3be52e00128e09b425948d22b929653b5768fa743ed5fda78ba";
 	`)
 	})
 
@@ -2573,6 +2631,8 @@ describe('mutation artifacts', function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
 	`)
 	})
 
@@ -2682,6 +2742,8 @@ describe('mutation artifacts', function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=f0b0082b38e66bc9fcefcd11741b874cacb74a1a939221c1618b499df139b356";
 	`)
 	})
 })
@@ -2758,6 +2820,8 @@ test('custom scalar shows up in artifact', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=5eb3e999f486aba5c66170642f3d99537b7c17d793a9d8553533e3d949860213";
 	`)
 })
 
@@ -2889,6 +2953,8 @@ test('operation inputs', async function () {
 		    policy: "NetworkOnly",
 		    partial: false
 		};
+
+		"HoudiniHash=88c4ba560cbbe391ebfa655630a896a1a9933408dd8d20be26cf6685a2089a5a";
 	`)
 })
 
@@ -2964,6 +3030,8 @@ describe('subscription artifacts', function () {
 		        }
 		    }
 		};
+
+		"HoudiniHash=df5bc6be33a8a16e9353ff30c07e45d5e54531ab53157208255fdfec52c7b168";
 	`)
 	})
 })
