@@ -150,19 +150,19 @@ export function queryStore<_Data, _Input>({
 			// prettier-ignore
 			console.error(`${logRed(`Missing load event in server-side ${storeName}.fetch`)}. 
   I think you forgot to provide ${logYellow('event')} to ${storeName} fetch function. 
-	You can get this value from the load function like 👇 
+  You can get this value from the load function like:
 
   <script context="module" lang="ts">
-		import type { LoadEvent } from '@sveltejs/kit';
+    import type { LoadEvent } from '@sveltejs/kit';
 
-		export async function load(${logYellow('event')}: LoadEvent) {
-			await ${logCyan('${storeName}')}.fetch({ ${logYellow('event')}, variables: { ... } });
-			return {};
-		}
+    export async function load(${logYellow('event')}: LoadEvent) {
+      await ${logCyan(storeName)}.fetch({ ${logYellow('event')}, variables: { ... } });
+      return {};
+    }
   </script> 
 `);
 
-			throw new Error('Error, check above logs for help. 👆')
+			throw new Error('Error, check above logs for help.')
 		}
 
 		// if we have event, it's safe to assume this is inside of a load function

@@ -20,14 +20,12 @@ export const getHoudiniContext = (): HoudiniFetchContext => {
 	} catch (e) {
 		console.error(
 			`${logRed('getHoudiniContext() was not called in the right place.')}:
-      You should do something like 👇 (because context should be filled at the start of the component)
+  You should do something like (because context should be filled at the start of the component)
 
-      <script lang="ts">
-        const ${logYellow('context')} = getHoudiniContext();
-        await GQL_${logCyan('[YOUR_STORE]')}.mutate({ ${logYellow(
-				'context'
-			)}, variables: { ... } });
-      </script>`
+  <script lang="ts">
+    const ${logYellow('context')} = getHoudiniContext();
+    await GQL_${logCyan('[YOUR_STORE]')}.mutate({ ${logYellow('context')}, variables: { ... } });
+  </script>`
 		)
 		throw new Error(e as any)
 	}
