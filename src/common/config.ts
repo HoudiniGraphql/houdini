@@ -460,10 +460,6 @@ export async function readConfigFile(
 let _config: Config
 
 async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema> {
-	if (!fs.stat(schemaPath)) {
-		throw new Error(`Schema file does not exist! Create it using houdini generate -p`)
-	}
-
 	// if the schema is not a relative path, the config file is out of date
 	if (path.isAbsolute(schemaPath)) {
 		// compute the new value for schema
@@ -490,6 +486,11 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 				sourceFiles.map(async (filepath) => fs.readFile(filepath, 'utf-8'))
 			),
 		})
+	}
+
+	// the path has no glob magic, make sure its a real file
+	if (!fs.stat(schemaPath)) {
+		throw new Error(`Schema file does not exist! Create it using houdini generate -p`)
 	}
 
 	const contents = await fs.readFile(schemaPath, 'utf-8')
