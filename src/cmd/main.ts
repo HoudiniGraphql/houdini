@@ -1,5 +1,6 @@
 // external imports
 import { Command } from 'commander'
+import { glob } from 'glob'
 import path from 'path'
 import util from 'util'
 // local imports
@@ -57,17 +58,28 @@ program
 							'Your config should contain a valid apiUrl to pull the latest schema.'
 						)
 					}
-					// The target path -> current working directory by default. Should we allow passing custom paths?
-					const targetPath = process.cwd()
-					// Write the schema
-					await writeSchema(
-						config.apiUrl,
-						config.schemaPath
-							? config.schemaPath
-							: path.resolve(targetPath, 'schema.json'),
-						args.pullHeader
-					)
-					console.log(`Pulled latest schema from ${config.apiUrl}`)
+
+					// if the schema path is a glob, tell the user this flag doesn't do anything
+					if (config.schemaPath && glob.hasMagic(config.schemaPath)) {
+						console.warn(
+							'--pull-schema is not supported when the schemaPath is a glob. Remember, if your ' +
+								"schema is already available locally you don't need this flag."
+						)
+					}
+					// the schema path isn't a glob
+					else {
+						// The target path -> current working directory by default. Should we allow passing custom paths?
+						const targetPath = process.cwd()
+						// Write the schema
+						await writeSchema(
+							config.apiUrl,
+							config.schemaPath
+								? config.schemaPath
+								: path.resolve(targetPath, 'schema.json'),
+							args.pullHeader
+						)
+						console.log(`Pulled latest schema from ${config.apiUrl}`)
+					}
 				}
 
 				// Load config
