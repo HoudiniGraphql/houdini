@@ -1,4 +1,5 @@
 import { CachePolicy } from './types'
+import type { GraphQLSchema } from 'graphql'
 
 export type ScalarSpec = {
 	// the type to use at runtime
@@ -15,7 +16,7 @@ type ScalarMap = { [typeName: string]: ScalarSpec }
 export type ConfigFile = {
 	sourceGlob: string
 	schemaPath?: string
-	schema?: string
+	schema?: string | GraphQLSchema
 	quiet?: boolean
 	apiUrl?: string
 	static?: boolean
