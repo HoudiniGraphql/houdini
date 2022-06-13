@@ -26,12 +26,16 @@ export async function expectNoGraphQLRequest(page: Page) {
  * @param selector example: "button[id=next]"
  * @returns
  */
-export async function expectGraphQLResponse(page: Page, selector: string | null) {
+export async function expectGraphQLResponse(
+  page: Page,
+  selector: string | null,
+  action: 'click' | 'hover' = 'click'
+) {
   const [res] = await Promise.all([
     // Wait for the response
     page.waitForResponse(routes.GraphQL, { timeout: 1999 }),
     // Triggers the response
-    selector ? page.click(selector) : null
+    selector ? (action === 'click' ? page.click(selector) : page.hover(selector)) : null
   ]);
 
   const json = await res.json();

@@ -5,6 +5,7 @@ export const routes = {
   Stores_SSR: '/stores/ssr',
   Stores_Network: '/stores/network',
   Stores_SSR_UserId_2: '/stores/ssr-2',
+  Stores_Prefetch_UserId_2: '/stores/prefetch-2',
   Stores_Mutation: '/stores/mutation',
   Stores_Mutation_Update: '/stores/mutation-update',
   Stores_Mutation_Scalars: '/stores/mutation-scalars',
