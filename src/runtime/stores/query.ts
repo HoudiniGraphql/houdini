@@ -46,12 +46,17 @@ export function queryStore<_Data, _Input>({
 
 	// Current variables tracker
 	let variables: {} = {}
+	let tracking: {} | null = null
 
 	let latestSource: DataSource | null = null
 	let latestPartial: boolean | null = false
 
 	// Perform the actual load
-	async function load(context: FetchContext, params: QueryStoreParams<_Input>) {
+	async function load(
+		context: FetchContext,
+		params: QueryStoreParams<_Input>,
+		background: boolean
+	) {
 		update((c) => {
 			return { ...c, isFetching: true }
 		})
@@ -80,6 +85,11 @@ export function queryStore<_Data, _Input>({
 			cached: params.policy !== CachePolicy.NetworkOnly,
 		})
 
+		update((s) => ({
+			...s,
+			isFetching: false,
+		}))
+
 		// keep the trackers up to date
 		latestSource = source
 		latestPartial = partial
@@ -98,8 +108,10 @@ export function queryStore<_Data, _Input>({
 		}
 
 		// setup a subscription for new values from the cache
-		if (isBrowser) {
+
+		if (isBrowser && !background) {
 			const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
+
 			// if the variables changed we need to unsubscribe from the old fields and
 			// listen to the new ones
 			if (updated && subscriptionSpec) {
@@ -110,7 +122,7 @@ export function queryStore<_Data, _Input>({
 			subscriptionSpec = {
 				rootType: artifact.rootType,
 				selection: artifact.selection,
-				variables: () => variables,
+				variables: () => newVariables,
 				set: (data) => {
 					update((s) => ({ ...s, data }))
 				},
@@ -118,15 +130,9 @@ export function queryStore<_Data, _Input>({
 
 			// make sure we subscribe to the new values
 			cache.subscribe(subscriptionSpec, newVariables)
+		}
 
-			// if we didn't get any data back there's nothing to write to the cache
-			if (!result.data) {
-				return
-			}
-
-			// update Current variables tracker
-			variables = newVariables
-
+		if (result.data) {
 			// update the cache with the data that we just ran into
 			cache.write({
 				selection: artifact.selection,
@@ -135,8 +141,10 @@ export function queryStore<_Data, _Input>({
 			})
 		}
 
-		// update Current variables tracker
-		variables = newVariables
+		if (!background) {
+			// update Current variables tracker
+			variables = newVariables
+		}
 
 		// return the value to the caller
 		const storeValue = {
@@ -148,7 +156,7 @@ export function queryStore<_Data, _Input>({
 			variables: newVariables,
 		}
 
-		if (!isBrowser) {
+		if (!isBrowser || JSON.stringify(newVariables) === JSON.stringify(tracking)) {
 			set(storeValue)
 		}
 
@@ -183,8 +191,14 @@ export function queryStore<_Data, _Input>({
 
 		// if we have event, it's safe to assume this is inside of a load function
 		if (params.event) {
+			// if we aren't tracking anything yet, we need to track the first thing
+			// we are loaded with
+			if (!tracking) {
+				tracking = params.variables || {}
+			}
+
 			// we're in a `load` function, use the event params
-			const loadPromise = load(params.event, params)
+			const loadPromise = load(params.event, params, true)
 
 			// return the result if the client isn't ready or we
 			// need to block with the request
@@ -202,10 +216,14 @@ export function queryStore<_Data, _Input>({
 				stuff: params.context?.stuff!,
 			}
 
-			return await load(context, {
-				...params,
-				variables: { ...variables, ...params.variables } as _Input,
-			})
+			return await load(
+				context,
+				{
+					...params,
+					variables: { ...variables, ...params.variables } as _Input,
+				},
+				false
+			)
 		}
 	}
 
@@ -290,6 +308,21 @@ export function queryStore<_Data, _Input>({
 		},
 
 		fetch: fetchData,
+
+		listen(toTrack: _Input) {
+			// if the tracked variables hasn't changed, don't do anything
+			if (JSON.stringify(toTrack) === JSON.stringify(tracking)) {
+				return
+			}
+
+			const context = getHoudiniContext()
+
+			// fetch the new data, update subscribers, etc.
+			fetchData({ context, variables: toTrack })
+
+			// we are now tracking the new set of variables
+			tracking = toTrack
+		},
 
 		...extraMethods,
 	}
