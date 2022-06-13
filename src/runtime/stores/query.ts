@@ -100,30 +100,46 @@ export function queryStore<_Data, _Input>({
 		// setup a subscription for new values from the cache
 		if (isBrowser) {
 			const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
-
 			// if the variables changed we need to unsubscribe from the old fields and
 			// listen to the new ones
 			if (updated && subscriptionSpec) {
 				cache.unsubscribe(subscriptionSpec, variables || {})
 			}
 
+			// subscribe to cache updates
+			subscriptionSpec = {
+				rootType: artifact.rootType,
+				selection: artifact.selection,
+				variables: () => variables,
+				set: (data) => {
+					update((s) => ({ ...s, data }))
+				},
+			}
+
+			// make sure we subscribe to the new values
+			cache.subscribe(subscriptionSpec, newVariables)
+
+			// if we didn't get any data back there's nothing to write to the cache
+			if (!result.data) {
+				return
+			}
+
+			// update Current variables tracker
+			variables = newVariables
+
 			// update the cache with the data that we just ran into
 			cache.write({
 				selection: artifact.selection,
-				data: result.data!,
-				variables: newVariables!,
+				data: result.data,
+				variables: newVariables,
 			})
-
-			if (updated && subscriptionSpec) {
-				cache.subscribe(subscriptionSpec, newVariables)
-			}
 		}
 
 		// update Current variables tracker
 		variables = newVariables
 
-		// prepare store data
-		const storeData = {
+		// return the value to the caller
+		const storeValue = {
 			data: unmarshalSelection(config, artifact.selection, result.data)! as _Data,
 			errors: null,
 			isFetching: false,
@@ -132,11 +148,11 @@ export function queryStore<_Data, _Input>({
 			variables: newVariables,
 		}
 
-		// update the store value
-		set(storeData)
+		if (!isBrowser) {
+			set(storeValue)
+		}
 
-		// return the value to the caller
-		return storeData
+		return storeValue
 	}
 
 	async function fetchData(params?: QueryStoreParams<_Input>) {
@@ -221,7 +237,6 @@ export function queryStore<_Data, _Input>({
 			const parentUnsubscribe = subscribe(...args)
 
 			const context = getHoudiniContext()
-
 			onMount(() => {
 				// we might have a followup request to fulfill the store's needs
 				const loadContext = {
@@ -258,15 +273,6 @@ export function queryStore<_Data, _Input>({
 						cached: false,
 					})
 				}
-
-				// subscribe to cache updates
-				subscriptionSpec = {
-					rootType: artifact.rootType,
-					selection: artifact.selection,
-					variables: () => variables,
-					set: (data) => update((s) => ({ ...s, data })),
-				}
-				cache.subscribe(subscriptionSpec, variables)
 			})
 
 			// Handle unsubscribe
