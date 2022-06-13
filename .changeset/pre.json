@@ -3,7 +3,13 @@
 	"tag": "next",
 	"initialVersions": {
 		"houdini": "0.14.7",
-		"example-kit": "0.13.0"
+		"example-kit": "0.13.0",
+		"integration": "0.0.1"
 	},
-	"changesets": ["empty-socks-design"]
+	"changesets": [
+		"empty-socks-design",
+		"few-donkeys-teach",
+		"thin-readers-matter",
+		"wicked-lamps-smoke"
+	]
 }

@@ -1,5 +1,17 @@
 # houdini
 
+## 0.15.0-next.1
+
+### Minor Changes
+
+-   [#291](https://github.com/HoudiniGraphql/houdini/pull/291) [`17cd57e`](https://github.com/HoudiniGraphql/houdini/commit/17cd57eac72596823d2a4dddec85b6ac1a1d09dd) Thanks [@jycouet](https://github.com/jycouet)! - Added store-based APIs :tada:
+
+### Patch Changes
+
+-   [#321](https://github.com/HoudiniGraphql/houdini/pull/321) [`47bb94e`](https://github.com/HoudiniGraphql/houdini/commit/47bb94ea4b6c36210f1d2b7812613287fbe82e61) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - config.schemaPath can be a glob pointing to multiple files
+
+*   [#326](https://github.com/HoudiniGraphql/houdini/pull/326) [`dc4bf44`](https://github.com/HoudiniGraphql/houdini/commit/dc4bf44ff7507f2a8c58b50c651e9ac155a3ad8c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed type generated for mutation results
+
 ## 0.15.0-next.0
 
 ### Minor Changes
