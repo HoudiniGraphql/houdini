@@ -1,62 +1,14 @@
-import gql from 'graphql-tag';
-import { GraphQLScalarType, Kind } from 'graphql';
 import { createPubSub, GraphQLYogaError } from '@graphql-yoga/node';
 import { sleep } from '@kitql/helper';
+import { GraphQLScalarType, Kind } from 'graphql';
 import { connectionFromArray } from 'graphql-relay';
+
+import fs from 'fs-extra';
 
 const pubSub = createPubSub();
 
-export const typeDefs = gql`
-  scalar DateTime
-
-  type Query {
-    usersList(snapshot: String!, limit: Int = 4, offset: Int): [User!]!
-    user(snapshot: String!, id: ID!, tmp: Boolean): User!
-    avgYearsBirthDate: Float!
-    usersConnection(
-      snapshot: String!
-      first: Int
-      after: String
-      last: Int
-      before: String
-    ): UserConnection!
-    node(id: ID!): Node
-  }
-
-  type Mutation {
-    addUser(snapshot: String!, name: String!, birthDate: DateTime!, delay: Int): User!
-    updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime): User!
-  }
-
-  type User implements Node {
-    id: ID!
-    name: String!
-    birthDate: DateTime!
-    friendsList(limit: Int, offset: Int): [User!]!
-    friendsConnection(first: Int, after: String, last: Int, before: String): UserConnection!
-  }
-
-  type UserConnection {
-    edges: [UserEdge!]!
-    pageInfo: PageInfo!
-  }
-
-  type UserEdge {
-    node: User
-    cursor: String
-  }
-
-  type PageInfo {
-    endCursor: String
-    hasNextPage: Boolean!
-    hasPreviousPage: Boolean!
-    startCursor: String
-  }
-
-  interface Node {
-    id: ID!
-  }
-`;
+const sourceFiles = ['api/schema.graphql', 'api/schema-hello.graphql'];
+export const typeDefs = sourceFiles.map((filepath) => fs.readFileSync(filepath, 'utf-8'));
 
 // example data
 const data = [
@@ -85,6 +37,9 @@ function getSnapshot(snapshot) {
 
 export const resolvers = {
   Query: {
+    hello: () => {
+      return 'Hello World! // From Houdini!';
+    },
     usersList: (_, args) => {
       return [...getSnapshot(args.snapshot)].splice(args.offset || 0, args.limit);
     },
