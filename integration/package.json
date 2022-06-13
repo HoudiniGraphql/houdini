@@ -2,6 +2,7 @@
   "name": "integration",
   "version": "0.0.1",
   "type": "module",
+  "private": true,
   "scripts": {
     "generate": "houdini generate",
     "web": "cross-env TZ=utc svelte-kit dev",
