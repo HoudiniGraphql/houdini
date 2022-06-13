@@ -155,10 +155,12 @@ async function generateOperationTypeDefs(
 						AST.tsPropertySignature(
 							AST.stringLiteral('result'),
 							AST.tsTypeAnnotation(
-								AST.tsUnionType([
-									AST.tsTypeReference(AST.identifier(shapeTypeName)),
-									AST.tsUndefinedKeyword(),
-								])
+								definition.operation === 'mutation'
+									? AST.tsTypeReference(AST.identifier(shapeTypeName))
+									: AST.tsUnionType([
+											AST.tsTypeReference(AST.identifier(shapeTypeName)),
+											AST.tsUndefinedKeyword(),
+									  ])
 							)
 						)
 					),
