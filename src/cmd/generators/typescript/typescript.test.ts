@@ -394,7 +394,7 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 		export type Mutation = {
 		    readonly "input": Mutation$input,
-		    readonly "result": Mutation$result | undefined
+		    readonly "result": Mutation$result
 		};
 
 		export type Mutation$result = {
