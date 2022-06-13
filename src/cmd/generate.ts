@@ -84,8 +84,14 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 	// don't log anything if its quiet
 	if (config.logLevel === LogLevel.Quiet) {
-	} else if (previousVersion && versionChanged) {
+	} else if (versionChanged) {
 		console.log('ℹ️  Detected new version of Houdini. Regenerating all documents...')
+		console.log(
+			'ℹ️  Welcome to the pre-release version for 0.15.0! Documentation can be found here: https://docs-git-0150-aaivazis.vercel.app/.'
+		)
+		console.log(
+			"ℹ️  For a description of what's changed, visit this guide: https://docs-git-0150-aaivazis.vercel.app/guides/migrating-to-0.15.0"
+		)
 	} else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
 		// count the number of unchanged
 		const unchanged =
