@@ -16,7 +16,7 @@ export function mutation<_Mutation extends Operation<any, any>>(document: GraphQ
 	return async (
 		variables: _Mutation['input'],
 		mutationConfig?: MutationConfig<_Mutation['result'], _Mutation['input']>
-	) => {
+	): Promise<_Mutation['result']> => {
 		const { data } = await document.store.mutate({
 			variables,
 			...mutationConfig,
