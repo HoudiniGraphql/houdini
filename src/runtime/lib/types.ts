@@ -1,7 +1,8 @@
 import { Readable } from 'svelte/store'
 import type { ConfigFile } from './config'
 import { HoudiniDocumentProxy } from './proxy'
-import type { LoadEvent, Page } from '@sveltejs/kit'
+import type { LoadEvent } from '@sveltejs/kit'
+
 import { MutationConfig } from '../inline/mutation'
 
 export type { ConfigFile } from './config'
@@ -157,14 +158,14 @@ export type QueryStoreParams<_Input> = {
 )
 
 export type HoudiniFetchContext = {
-	page: Page
+	url: URL
 	session: Readable<any>
 	variables: () => {}
 	stuff: App.Stuff
 }
 
 export type LoadContext = {
-	page: any
+	url: URL
 	session: Readable<any>
 	variables: () => {}
 }

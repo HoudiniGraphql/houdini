@@ -12,7 +12,7 @@ export const getHoudiniContext = (): HoudiniFetchContext => {
 	try {
 		const session = getSession()
 		return {
-			page: getPage(),
+			url: getPage().url,
 			session: session?.subscribe ? session : readable(session),
 			variables: svelteContext('variables') || (() => ({})),
 			stuff: {},

@@ -76,6 +76,7 @@ export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
 	session: any
 	stuff: App.Stuff
+	url: any
 }
 
 export type BeforeLoadContext = LoadEvent

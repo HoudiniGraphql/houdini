@@ -1,7 +1,7 @@
 <script context="module" lang="ts">
   import { page } from '$app/stores';
   import { GQL_user } from '$houdini';
-  import { stry } from '@kitql/helper';
+  import { sleep, stry } from '@kitql/helper';
   import type { LoadEvent } from '@sveltejs/kit';
 
   export async function load(event: LoadEvent) {
@@ -16,6 +16,7 @@
 <a sveltekit:prefetch id="previous" href="/stores/prefetch-1">Previous</a>
 <a sveltekit:prefetch id="current" href="/stores/prefetch-2">Current (n° 2)</a>
 <a sveltekit:prefetch id="next" href="/stores/prefetch-3">Next</a>
+<a sveltekit:prefetch id="load77" href="/stores/prefetch-77">Error</a>
 
 <div id="result">
   <pre>

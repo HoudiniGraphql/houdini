@@ -132,8 +132,14 @@ export function queryStore<_Data, _Input>({
 			variables: newVariables,
 		}
 
+		const contextPathname = context.url?.pathname
+		const clientPathname = isBrowser ? window?.location?.pathname : null
+
+		console.log(`bla`, contextPathname === clientPathname, contextPathname, clientPathname)
 		// update the store value
-		set(storeData)
+		if (contextPathname === clientPathname) {
+			set(storeData)
+		}
 
 		// return the value to the caller
 		return storeData
@@ -184,6 +190,7 @@ export function queryStore<_Data, _Input>({
 				fetch: window.fetch.bind(window),
 				session: params.context?.session!,
 				stuff: params.context?.stuff!,
+				url: params.context?.url,
 			}
 
 			return await load(context, {
@@ -226,7 +233,7 @@ export function queryStore<_Data, _Input>({
 				// we might have a followup request to fulfill the store's needs
 				const loadContext = {
 					fetch: window.fetch.bind(window),
-					page: context.page,
+					url: context.url,
 					session: context.session,
 					stuff: context.stuff,
 				}
