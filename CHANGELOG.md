@@ -1,5 +1,11 @@
 # houdini
 
+## 0.15.0-next.3
+
+### Patch Changes
+
+-   [#333](https://github.com/HoudiniGraphql/houdini/pull/333) [`eac4eb3`](https://github.com/HoudiniGraphql/houdini/commit/eac4eb309eecef78b82f5a683585cb7b8729d9cf) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - More mutation typefixes
+
 ## 0.15.0-next.2
 
 ### Patch Changes
