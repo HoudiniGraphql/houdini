@@ -1,5 +1,11 @@
 # houdini
 
+## 0.15.0-next.2
+
+### Patch Changes
+
+-   [#331](https://github.com/HoudiniGraphql/houdini/pull/331) [`41cd95a`](https://github.com/HoudiniGraphql/houdini/commit/41cd95a577e418b6937039da963f82c95bd79854) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed return type of inline mutation
+
 ## 0.15.0-next.1
 
 ### Minor Changes
