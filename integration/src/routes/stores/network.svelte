@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
   import { browser } from '$app/env';
-  import { CachePolicy, GQL_usersList } from '$houdini';
+  import { GQL_usersList } from '$houdini';
 </script>
 
 <script lang="ts">

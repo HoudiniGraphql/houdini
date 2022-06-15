@@ -54,3 +54,12 @@ export async function clientSideNavigation(page: Page, route: string) {
   // Trigger a client side navigation
   await linkToPage.click();
 }
+
+export async function expectElementToBe(
+  page: Page,
+  toBe: String,
+  selector: string = 'div[id=result]'
+) {
+  const result = await page.locator(selector).textContent();
+  expect(result, `element "${selector}" should contain`).toBe(toBe);
+}

@@ -1,6 +1,6 @@
-<script context="module">
+<script context="module" lang="ts">
   /** @type {import('@sveltejs/kit').Load} */
-  export function load({ error, status }) {
+  export function load({ error, status }: any) {
     console.log(`error`, error);
     return {
       props: {
@@ -10,8 +10,8 @@
   }
 </script>
 
-<script>
-  export let title;
+<script lang="ts">
+  export let title: string;
 </script>
 
 <h1>{title}</h1>

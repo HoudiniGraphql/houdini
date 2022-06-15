@@ -1,11 +1,6 @@
 import { expect, test } from '@playwright/test';
-import {
-  expectGraphQLResponse,
-  expectNoGraphQLRequest,
-  clientSideNavigation,
-  navSelector
-} from '../../../lib/utils/testsHelper.js';
 import { routes } from '../../../lib/utils/routes.js';
+import { expectGraphQLResponse, navSelector } from '../../../lib/utils/testsHelper.js';
 
 test.describe('query preprocessor variables', () => {
   test('query values get unmarshaled into complex values', async function ({ page }) {

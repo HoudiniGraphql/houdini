@@ -1,11 +1,13 @@
 import { HoudiniClient } from '$houdini';
 
 // For Query & Mutation
-async function fetchQuery({ text, variables = {} }, session: App.Session) {
+async function fetchQuery({ text = '', variables = {} }, session: App.Session) {
+  // @ts-ignore
   const result = await this.fetch('http://localhost:4000/graphql', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session?.token}`
     },
     body: JSON.stringify({
       query: text,
