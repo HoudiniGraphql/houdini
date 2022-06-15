@@ -184,9 +184,14 @@ export type FragmentStore<_Shape> = {
 
 export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data, _Input>> & {
 	/**
-	 * Trigger the query form load function
+	 * prefetch the data in a load function
 	 */
-	fetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
+	prefetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
+
+	/**
+	 * prefetch the data in a load function
+	 */
+	load: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
 }
 
 // the result of tagging an operation

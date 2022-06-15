@@ -1,24 +1,25 @@
 <script context="module" lang="ts">
+  import { browser } from '$app/env';
   import { page } from '$app/stores';
-  import { GQL_user } from '$houdini';
+  import { GQL_user, type user$input } from '$houdini';
   import { stry } from '@kitql/helper';
   import type { LoadEvent } from '@sveltejs/kit';
 
   export async function load(event: LoadEvent) {
-    const id = event.params.userId;
-    await GQL_user.fetch({ event, variables: { id } });
+    const variables = { id: event.params.userId };
+    await GQL_user.prefetch({ event, variables });
     return {
       props: {
-        variables: { id }
+        variables
       }
     };
   }
 </script>
 
 <script lang="ts">
-  export let variables: {};
+  export let variables: user$input;
 
-  $: GQL_user.listen(variables);
+  $: browser && GQL_user.load({ variables });
 </script>
 
 <h1>SSR - [userId: {$page.params.userId}]</h1>

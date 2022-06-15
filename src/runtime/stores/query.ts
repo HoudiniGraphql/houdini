@@ -1,5 +1,5 @@
 // externals
-import { logCyan, logRed, logYellow } from '@kitql/helper'
+import { logCyan, logRed, logYellow, stry } from '@kitql/helper'
 import { onMount } from 'svelte'
 import { Readable, writable } from 'svelte/store'
 import { CachePolicy, DataSource, fetchQuery } from '..'
@@ -17,6 +17,22 @@ import { PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import type { ConfigFile } from '../lib/types'
 import { QueryArtifact } from '../lib/types'
+
+function transformParam<_Input>(artifact: QueryArtifact, params?: QueryStoreParams<_Input>) {
+	// params management
+	params = params ?? {}
+
+	if (!params.context) {
+		params.context = {} as HoudiniFetchContext
+	}
+
+	// If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
+	if (!params.policy) {
+		params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+	}
+
+	return params
+}
 
 export function queryStore<_Data, _Input>({
 	config,
@@ -46,7 +62,7 @@ export function queryStore<_Data, _Input>({
 
 	// Current variables tracker
 	let variables: {} = {}
-	let tracking: {} | null = null
+	let tracking: {} | undefined | null = null
 
 	let latestSource: DataSource | null = null
 	let latestPartial: boolean | null = false
@@ -55,18 +71,13 @@ export function queryStore<_Data, _Input>({
 	async function load(
 		context: FetchContext,
 		params: QueryStoreParams<_Input>,
-		background: boolean
+		background: boolean,
+		withStoreSync: boolean
 	) {
-		update((c) => {
-			return { ...c, isFetching: true }
-		})
-
-		// params management
-		params = params ?? {}
-
-		// If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
-		if (!params.policy) {
-			params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+		if (withStoreSync) {
+			update((c) => {
+				return { ...c, isFetching: true }
+			})
 		}
 
 		const newVariables = (marshalInputs({
@@ -85,25 +96,29 @@ export function queryStore<_Data, _Input>({
 			cached: params.policy !== CachePolicy.NetworkOnly,
 		})
 
-		update((s) => ({
-			...s,
-			isFetching: false,
-		}))
+		if (withStoreSync) {
+			update((s) => ({
+				...s,
+				isFetching: false,
+			}))
+		}
 
 		// keep the trackers up to date
 		latestSource = source
 		latestPartial = partial
 
 		if (result.errors && result.errors.length > 0) {
-			update((s) => ({
-				...s,
-				errors: result.errors,
-				isFetching: false,
-				partial: false,
-				data: result.data as _Data,
-				source,
-				variables: newVariables,
-			}))
+			if (withStoreSync) {
+				update((s) => ({
+					...s,
+					errors: result.errors,
+					isFetching: false,
+					partial: false,
+					data: result.data as _Data,
+					source,
+					variables: newVariables,
+				}))
+			}
 			throw result.errors
 		}
 
@@ -124,7 +139,9 @@ export function queryStore<_Data, _Input>({
 				selection: artifact.selection,
 				variables: () => newVariables,
 				set: (data) => {
-					update((s) => ({ ...s, data }))
+					if (withStoreSync) {
+						update((s) => ({ ...s, data }))
+					}
 				},
 			}
 
@@ -156,18 +173,15 @@ export function queryStore<_Data, _Input>({
 			variables: newVariables,
 		}
 
-		if (!isBrowser || JSON.stringify(newVariables) === JSON.stringify(tracking)) {
+		if (withStoreSync) {
 			set(storeValue)
 		}
 
 		return storeValue
 	}
 
-	async function fetchData(params?: QueryStoreParams<_Input>) {
-		params = params ?? {}
-		if (!params.context) {
-			params.context = {} as HoudiniFetchContext
-		}
+	async function fetchData(params: QueryStoreParams<_Input>) {
+		params = transformParam(artifact, params)
 
 		// if fetch is happening on the server, it must get a load event
 		if (!isBrowser && !params.event) {
@@ -193,12 +207,13 @@ export function queryStore<_Data, _Input>({
 		if (params.event) {
 			// if we aren't tracking anything yet, we need to track the first thing
 			// we are loaded with
-			if (!tracking) {
-				tracking = params.variables || {}
-			}
+			// NO => We want to track only outside of the load function
+			// if (!tracking) {
+			// 	tracking = params.variables || {}
+			// }
 
 			// we're in a `load` function, use the event params
-			const loadPromise = load(params.event, params, true)
+			const loadPromise = load(params.event, params, true, false)
 
 			// return the result if the client isn't ready or we
 			// need to block with the request
@@ -206,7 +221,7 @@ export function queryStore<_Data, _Input>({
 				return await loadPromise
 			}
 		}
-		// the fetch is executing on the client,
+		// if we don't have event, it's safe to assume this is outside of a load function
 		else {
 			// this is happening in the browser so we dont' have access to the
 			// current load parameters
@@ -222,7 +237,8 @@ export function queryStore<_Data, _Input>({
 					...params,
 					variables: { ...variables, ...params.variables } as _Input,
 				},
-				false
+				false,
+				true
 			)
 		}
 	}
@@ -235,7 +251,13 @@ export function queryStore<_Data, _Input>({
 			artifact,
 			store: {
 				subscribe,
-				async fetch(params) {
+				async prefetch(params) {
+					return (await fetchData({
+						...params,
+						blocking: true,
+					}))!
+				},
+				async load(params) {
 					return (await fetchData({
 						...params,
 						blocking: true,
@@ -307,21 +329,25 @@ export function queryStore<_Data, _Input>({
 			}
 		},
 
-		fetch: fetchData,
+		prefetch: fetchData,
 
-		listen(toTrack: _Input) {
-			// if the tracked variables hasn't changed, don't do anything
-			if (JSON.stringify(toTrack) === JSON.stringify(tracking)) {
-				return
+		load(params?: QueryStoreParams<_Input>) {
+			params = transformParam(artifact, params)
+
+			if (params.policy === CachePolicy.NetworkOnly) {
+				// We want to continue to load the data from the network anyway
+			} else {
+				// if the tracked variables hasn't changed, don't do anything
+				if (stry(params?.variables) === stry(tracking)) {
+					return
+				}
 			}
 
-			const context = getHoudiniContext()
-
 			// fetch the new data, update subscribers, etc.
-			fetchData({ context, variables: toTrack })
+			fetchData(params)
 
 			// we are now tracking the new set of variables
-			tracking = toTrack
+			tracking = params?.variables
 		},
 
 		...extraMethods,

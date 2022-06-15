@@ -3,7 +3,7 @@
   import type { LoadEvent } from '@sveltejs/kit';
 
   export async function load(event: LoadEvent) {
-    await GQL_usersList.fetch({ event, variables: { limit: 5 } });
+    await GQL_usersList.prefetch({ event, variables: { limit: 5 } });
     return {};
   }
 </script>
