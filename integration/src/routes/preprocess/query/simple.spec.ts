@@ -3,6 +3,7 @@ import { routes } from '../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
   expectNoGraphQLRequest,
+  expectToBe,
   navSelector
 } from '../../../lib/utils/testsHelper.js';
 
@@ -13,8 +14,7 @@ test.describe('query preprocessor', () => {
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
 
-    const div = await page.locator('div[id=result]').textContent();
-    expect(div).toBe('Bruce Willis');
+    await expectToBe(page, 'Bruce Willis');
   });
 
   test('happy path query - Network', async ({ page }) => {
@@ -26,7 +26,6 @@ test.describe('query preprocessor', () => {
       '{"data":{"user":{"id":"preprocess-query-simple:1","name":"Bruce Willis"}}}'
     );
 
-    const div = await page.locator('div[id=result]').textContent();
-    expect(div).toBe('Bruce Willis');
+    await expectToBe(page, 'Bruce Willis');
   });
 });

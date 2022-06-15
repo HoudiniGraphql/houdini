@@ -4,6 +4,7 @@ import {
   clientSideNavigation,
   expectGraphQLResponse,
   expectNoGraphQLRequest,
+  expectToBe,
   navSelector
 } from '../../lib/utils/testsHelper.js';
 
@@ -28,8 +29,7 @@ test.describe('SSR Page', () => {
   test('expect the hello result (from another *.graphql file)', async ({ page }) => {
     await page.goto(routes.Stores_SSR);
 
-    const content = await page.locator('div[id=result]').textContent();
-    expect(content).toBe('Hello World! // From Houdini!');
+    await expectToBe(page, 'Hello World! // From Houdini!');
   });
 
   test('Right Data in <li> elements (SSR)', async ({ page }) => {
@@ -64,8 +64,8 @@ test.describe('SSR Page', () => {
   test('From HOME, navigate to page (a graphql query must happen)', async ({ page }) => {
     await page.goto(routes.Home);
 
-    const str = await expectGraphQLResponse(page, navSelector(routes.Stores_SSR));
-    expect(str).toBe(
+    const response = await expectGraphQLResponse(page, navSelector(routes.Stores_SSR));
+    expect(response).toBe(
       '{"data":{"usersList":[{"id":"store-user-query:1","name":"Bruce Willis","birthDate":-466732800000},{"id":"store-user-query:2","name":"Samuel Jackson","birthDate":-663638400000},{"id":"store-user-query:3","name":"Morgan Freeman","birthDate":-1028419200000},{"id":"store-user-query:4","name":"Tom Hanks","birthDate":-425433600000}]}}'
     );
   });

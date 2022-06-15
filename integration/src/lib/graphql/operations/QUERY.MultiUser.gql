@@ -1,0 +1,6 @@
+query MultiUser($id: ID!, $tmp: Boolean) {
+  user(id: $id, tmp: $tmp, snapshot: "store-multi-user") {
+    id
+    name
+  }
+}

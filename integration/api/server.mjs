@@ -47,6 +47,7 @@ mutation AddUser {
       execute: (args) => args.rootValue.execute(args),
       subscribe: (args) => args.rootValue.subscribe(args),
       onSubscribe: async (ctx, msg) => {
+        // prettier-ignore
         const {
           schema,
           execute,

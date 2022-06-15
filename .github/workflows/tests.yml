@@ -91,6 +91,13 @@ jobs:
             - name: Integration Tests
               run: yarn tests:integration
 
+            # needs to run after build & houdini generate
+            - name: Integration lint
+              run: yarn workspace integration lint
+
+            - name: Integration check
+              run: yarn workspace integration check
+
             - name: Upload test results
               if: always()
               uses: actions/upload-artifact@v2
