@@ -117,12 +117,12 @@ export type RequestHandler<_Data> = (
 export async function executeQuery<_Data extends GraphQLObject, _Input>(
 	artifact: QueryArtifact | MutationArtifact,
 	variables: _Input,
-	sessionStore: Readable<any> | null,
+	session: any | null,
 	cached: boolean
 ): Promise<{ result: RequestPayload; partial: boolean }> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?
-	const session = sessionStore !== null ? get(sessionStore) : sessionStore
+	// const session = sessionStore !== null ? get(sessionStore) : sessionStore
 
 	// Simulate the fetch/load context
 	const fetchCtx = {

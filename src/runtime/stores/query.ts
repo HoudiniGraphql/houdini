@@ -131,9 +131,8 @@ export function queryStore<_Data, _Input>({
 		}
 
 		// setup a subscription for new values from the cache
-
 		if (isBrowser && !background) {
-			const updated = JSON.stringify(variables) !== JSON.stringify(newVariables)
+			const updated = stry(variables, 0) !== stry(newVariables, 0)
 
 			// if the variables changed we need to unsubscribe from the old fields and
 			// listen to the new ones
@@ -296,7 +295,7 @@ export function queryStore<_Data, _Input>({
 				// we might have a followup request to fulfill the store's needs
 				const loadContext = {
 					fetch: window.fetch.bind(window),
-					page: context.page,
+					url: context.url,
 					session: context.session,
 					stuff: context.stuff,
 				}

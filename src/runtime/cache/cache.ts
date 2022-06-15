@@ -6,6 +6,7 @@ import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
 import { computeID, keyFieldsForType, ConfigFile, defaultConfigValues } from '../lib/config'
+import { stry } from '@kitql/helper'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -209,7 +210,7 @@ class CacheInternal {
 					'Could not find field listing in selection for ' +
 						field +
 						' @ ' +
-						JSON.stringify(selection) +
+						stry(selection, 0) +
 						''
 				)
 			}
@@ -259,7 +260,7 @@ class CacheInternal {
 				}
 
 				// if the value changed on a layer that impacts the current latest value
-				const valueChanged = JSON.stringify(newValue) !== JSON.stringify(previousValue)
+				const valueChanged = stry(newValue) !== stry(previousValue)
 
 				if (displayLayer && (valueChanged || forceNotify)) {
 					// we need to add the fields' subscribers to the set of callbacks
@@ -496,7 +497,7 @@ class CacheInternal {
 				// or we got content for a new list which could already be known. If we just look at
 				// wether the IDs are the same, situations where we have old data that
 				// is still valid would not be triggered
-				const contentChanged = JSON.stringify(linkedIDs) !== JSON.stringify(oldIDs)
+				const contentChanged = stry(linkedIDs, 0) !== stry(oldIDs, 0)
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				if (contentChanged || forceNotify) {
