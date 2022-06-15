@@ -6,7 +6,7 @@ declare namespace App {
   // interface Locals {}
   // interface Platform {}
   interface Session {
-    token: String;
+    token?: String | null;
   }
   // interface Stuff {}
 }
