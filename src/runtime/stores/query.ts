@@ -227,13 +227,6 @@ export function queryStore<_Data, _Input>({
 
 		// if we have event, it's safe to assume this is inside of a load function
 		if (params.event) {
-			// if we aren't tracking anything yet, we need to track the first thing
-			// we are loaded with
-			// NO => We want to track only outside of the load function
-			// if (!tracking) {
-			// 	tracking = params.variables || {}
-			// }
-
 			// we're in a `load` function, use the event params
 			const loadPromise = load(params.event, params, true, false)
 
