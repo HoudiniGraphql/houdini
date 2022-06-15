@@ -11,8 +11,8 @@
     fragment,
     graphql,
     query,
-    type UserFragmentTestFragment,
-    type FragmentUpdateTestQuery
+    type FragmentUpdateTestQuery,
+    type UserFragmentTestFragment
   } from '$houdini';
 
   const { data, refetch } = query<FragmentUpdateTestQuery>(graphql`
@@ -31,6 +31,7 @@
         name
       }
     `,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
     $data?.node!
   );
 </script>

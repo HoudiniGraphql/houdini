@@ -1,34 +1,34 @@
 <script context="module" lang="ts">
   import { browser } from '$app/env';
   import { page } from '$app/stores';
-  import { CachePolicy, getHoudiniContext, GQL_user, type user$input } from '$houdini';
+  import { CachePolicy, getHoudiniContext, GQL_User, type User$input } from '$houdini';
   import { stry } from '@kitql/helper';
   import type { LoadEvent } from '@sveltejs/kit';
 
   export async function load(event: LoadEvent) {
     const variables = { id: event.params.userId, tmp: false };
-    await GQL_user.prefetch({ event, variables });
+    await GQL_User.prefetch({ event, variables });
     return { props: { variables } };
   }
 </script>
 
 <script lang="ts">
-  export let variables: user$input;
+  export let variables: User$input;
   const context = getHoudiniContext();
 
-  $: browser && GQL_user.fetch({ variables });
+  $: browser && GQL_User.fetch({ variables });
 
   async function refresh(id: string | null) {
     if (id) {
-      await GQL_user.fetch({ variables: { id, tmp: false } });
+      await GQL_User.fetch({ variables: { id, tmp: false } });
     } else {
       // context not usefull here, but we can put it!
-      await GQL_user.fetch({ context, policy: CachePolicy.NetworkOnly });
+      await GQL_User.fetch({ context, policy: CachePolicy.NetworkOnly });
     }
   }
 
   async function refresh2WithVariableDifferentOrder() {
-    await GQL_user.fetch({ variables: { tmp: false, id: '2' } });
+    await GQL_User.fetch({ variables: { tmp: false, id: '2' } });
   }
 </script>
 
@@ -40,14 +40,14 @@
 <button id="refresh-77" on:click={() => refresh('77')}>Fetch 77</button>
 <button id="refresh-2Star" on:click={() => refresh2WithVariableDifferentOrder()}>Fetch 2*</button>
 
-{#if $GQL_user.isFetching}
+{#if $GQL_User.isFetching}
   <p>Loading...</p>
-{:else if $GQL_user.errors}
+{:else if $GQL_User.errors}
   <pre>
-    {stry($GQL_user.errors)}
+    {stry($GQL_User.errors)}
   </pre>
 {:else}
   <div id="result">
-    {$GQL_user.data?.user.id} - {$GQL_user.data?.user.name}
+    {$GQL_User.data?.user.id} - {$GQL_User.data?.user.name}
   </div>
 {/if}

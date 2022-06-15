@@ -9,7 +9,7 @@ test.describe('Mutation Page', () => {
 
     await expectNoGraphQLRequest(page);
 
-    let defaultStoreValues = {
+    const defaultStoreValues = {
       data: null,
       errors: null,
       isFetching: false,
@@ -27,7 +27,7 @@ test.describe('Mutation Page', () => {
     // 1 Optimistic Response
     // Await the click to have optimisticResponse data in the store
     await buttonAdd.click();
-    let optiStoreValues = {
+    const optiStoreValues = {
       data: {
         addUser: {
           birthDate: '1986-11-07T00:00:00.000Z',

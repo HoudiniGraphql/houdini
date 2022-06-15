@@ -44,7 +44,7 @@ test.describe('forwards cursor paginatedFragment', () => {
     // make sure we have all of the data loaded
     await expectToBe(page, data[2]);
 
-    await expectToContain(page, `\"hasNextPage\":false`);
+    await expectToContain(page, `"hasNextPage":false`);
 
     await page.locator('button[id=next]').click();
     await expectNoGraphQLRequest(page);

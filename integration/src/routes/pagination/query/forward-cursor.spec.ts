@@ -69,7 +69,7 @@ test.describe('forwards cursor paginatedQuery', () => {
     // make sure we have all of the data loaded
     await expectToBe(page, data[2]);
 
-    await expectToContain(page, `\"hasNextPage\":false`);
+    await expectToContain(page, `"hasNextPage":false`);
 
     await expectNoGraphQLRequest(page, 'button[id=next]');
   });

@@ -85,6 +85,12 @@ jobs:
               env:
                   YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
+            - name: Integration lint
+              run: yarn workspace integration lint
+
+            - name: Integration check
+              run: yarn workspace integration check
+
             - name: Build packages
               run: yarn build
 

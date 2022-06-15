@@ -73,7 +73,7 @@ export async function clientSideNavigation(page: Page, route: string) {
 export async function expectToBe(
   page: Page,
   toBe: string,
-  selector: string = 'div[id=result]',
+  selector = 'div[id=result]',
   trimed = true
 ) {
   const result = await page.locator(selector).textContent({ timeout: 2997 });
@@ -83,11 +83,7 @@ export async function expectToBe(
 /**
  * @param selector @default div[id=pageInfo]
  */
-export async function expectToContain(
-  page: Page,
-  toBe: string,
-  selector: string = 'div[id=pageInfo]'
-) {
+export async function expectToContain(page: Page, toBe: string, selector = 'div[id=pageInfo]') {
   const result = await page.locator(selector).textContent({ timeout: 2998 });
   expect(result, `element "${selector}" must CONTAIN 👇`).toContain(toBe);
 }

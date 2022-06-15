@@ -1,13 +1,13 @@
 <script context="module" lang="ts">
   import { browser } from '$app/env';
   import { page } from '$app/stores';
-  import { GQL_user, type user$input } from '$houdini';
+  import { GQL_User, type User$input } from '$houdini';
   import { stry } from '@kitql/helper';
   import type { LoadEvent } from '@sveltejs/kit';
 
   export async function load(event: LoadEvent) {
     const variables = { id: event.params.userId };
-    await GQL_user.prefetch({ event, variables });
+    await GQL_User.prefetch({ event, variables });
     return {
       props: {
         variables
@@ -17,9 +17,9 @@
 </script>
 
 <script lang="ts">
-  export let variables: user$input;
+  export let variables: User$input;
 
-  $: browser && GQL_user.fetch({ variables });
+  $: browser && GQL_User.fetch({ variables });
 </script>
 
 <h1>SSR - [userId: {$page.params.userId}]</h1>
@@ -30,6 +30,6 @@
 
 <div id="result">
   <pre>
-    {stry($GQL_user, 0)}
+    {stry($GQL_User, 0)}
   </pre>
 </div>

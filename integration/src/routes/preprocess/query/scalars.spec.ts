@@ -8,8 +8,8 @@ test.describe('query preprocessor variables', () => {
 
     // We want the query in the frontend, so we navigate to the page
     // to zoom on scalar test & data
-    let result = await expectGraphQLResponse(page, navSelector(routes.Preprocess_query_scalars));
-    let json = JSON.parse(result ?? '');
+    const result = await expectGraphQLResponse(page, navSelector(routes.Preprocess_query_scalars));
+    const json = JSON.parse(result ?? '');
     expect(json.data.user.birthDate).toBe(-466732800000);
 
     // ISO compare to not have timezone issues

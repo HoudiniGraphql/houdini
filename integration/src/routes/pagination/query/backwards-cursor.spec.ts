@@ -56,7 +56,7 @@ test.describe('backwards cursor paginatedQuery', () => {
     // make sure we have all of the data loaded
     await expectToBe(page, data[2]);
 
-    await expectToContain(page, `\"hasPreviousPage\":false`);
+    await expectToContain(page, `"hasPreviousPage":false`);
 
     await expectNoGraphQLRequest(page, 'button[id=previous]');
   });
