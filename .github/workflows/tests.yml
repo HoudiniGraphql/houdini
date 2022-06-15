@@ -36,11 +36,11 @@ jobs:
             - name: Check prettier
               run: yarn format:check
 
-            # - name: Integration lint
-            #   run: yarn workspace integration lint
+            - name: Integration lint
+              run: yarn workspace integration lint
 
-            # - name: Integration check
-            #   run: yarn workspace integration check
+            - name: Integration check
+              run: yarn workspace integration check
 
     tests:
         name: Tests
