@@ -36,6 +36,9 @@ jobs:
             - name: Check prettier
               run: yarn format:check
 
+            - name: Integration linting
+              run: yarn workspace integration check
+
     tests:
         name: Tests
         runs-on: ubuntu-latest

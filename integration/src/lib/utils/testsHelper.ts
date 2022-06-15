@@ -1,13 +1,21 @@
 import { stry } from '@kitql/helper';
-import { expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { routes } from './routes.js';
 
-export async function expectNoGraphQLRequest(page: Page) {
+export async function expectNoGraphQLRequest(
+  page: Page,
+  selector: string | null = null,
+  action: 'click' | 'hover' = 'click'
+) {
   let nbError = 0;
   let info;
   try {
-    info = await page.waitForRequest(routes.GraphQL, { timeout: 777 }); // It's the request... It should be fairly fast. (Magic number to find it easily)
+    const [res] = await Promise.all([
+      page.waitForRequest(routes.GraphQL, { timeout: 777 }), // It's the request... It should be fairly fast. (Magic number to find it easily)
+      selector ? (action === 'click' ? page.click(selector) : page.hover(selector)) : null
+    ]);
+    info = res;
   } catch (error: any) {
     expect(error.name).toBe('TimeoutError');
     nbError++;
@@ -59,11 +67,27 @@ export async function clientSideNavigation(page: Page, route: string) {
   await linkToPage.click();
 }
 
-export async function expectElementToBe(
+/**
+ * @param selector @default div[id=result]
+ */
+export async function expectToBe(
   page: Page,
-  toBe: String,
-  selector: string = 'div[id=result]'
+  toBe: string,
+  selector: string = 'div[id=result]',
+  trimed = true
 ) {
-  const result = await page.locator(selector).textContent();
-  expect(result, `element "${selector}" should contain`).toBe(toBe);
+  const result = await page.locator(selector).textContent({ timeout: 2997 });
+  expect(trimed ? result?.trim() : result, `element "${selector}" must BE 👇`).toBe(toBe);
+}
+
+/**
+ * @param selector @default div[id=pageInfo]
+ */
+export async function expectToContain(
+  page: Page,
+  toBe: string,
+  selector: string = 'div[id=pageInfo]'
+) {
+  const result = await page.locator(selector).textContent({ timeout: 2998 });
+  expect(result, `element "${selector}" must CONTAIN 👇`).toContain(toBe);
 }

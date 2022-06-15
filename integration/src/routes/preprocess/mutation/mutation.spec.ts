@@ -1,6 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.js';
+import {
+  expectGraphQLResponse,
+  expectNoGraphQLRequest,
+  expectToBe
+} from '../../../lib/utils/testsHelper.js';
 
 test.describe('Mutation Preprocessor', () => {
   test('happy path', async ({ page }) => {
@@ -8,13 +12,11 @@ test.describe('Mutation Preprocessor', () => {
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
-    let div = await page.locator('div[id=result]').textContent();
-    expect(div).toEqual('Will Smith');
+    await expectToBe(page, 'Will Smith');
 
     // trigger the mutation
     await expectGraphQLResponse(page, 'button[id=mutate]');
-    div = await page.locator('div[id=result]').textContent();
-    expect(div).toEqual('tmp name update');
+    await expectToBe(page, 'tmp name update');
 
     // revert the mutation
     await page.locator('button[id=revert]').click();

@@ -1,14 +1,14 @@
 import { sleep, stry } from '@kitql/helper';
 import { expect, test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import { expectNoGraphQLRequest } from '../../lib/utils/testsHelper.js';
+import { expectNoGraphQLRequest, expectToBe } from '../../lib/utils/testsHelper.js';
 
 test.describe('Mutation Page', () => {
   test('No GraphQL request & default data in the store', async ({ page }) => {
     await page.goto(routes.Stores_Mutation);
 
     await expectNoGraphQLRequest(page);
-    let pre = await page.locator('pre').textContent();
+
     let defaultStoreValues = {
       data: null,
       errors: null,
@@ -16,7 +16,7 @@ test.describe('Mutation Page', () => {
       isOptimisticResponse: false,
       variables: null
     };
-    expect(pre?.trim(), 'Content of <pre> element').toBe(stry(defaultStoreValues));
+    await expectToBe(page, stry(defaultStoreValues) ?? '', 'pre');
   });
 
   test('Add User + Optimistic + Result', async ({ page }) => {
@@ -27,7 +27,6 @@ test.describe('Mutation Page', () => {
     // 1 Optimistic Response
     // Await the click to have optimisticResponse data in the store
     await buttonAdd.click();
-    let pre = await page.locator('pre').textContent();
     let optiStoreValues = {
       data: {
         addUser: {
@@ -45,11 +44,11 @@ test.describe('Mutation Page', () => {
         name: 'JYC'
       }
     };
-    expect(pre?.trim(), 'Content of <pre> element').toBe(stry(optiStoreValues));
+    await expectToBe(page, stry(optiStoreValues) ?? '', 'pre');
 
     // 2 Real Response
     await sleep(2000); // The fake delai is of 2 sec
-    pre = await page.locator('pre').textContent();
+    const pre = await page.locator('pre').textContent();
     expect(pre?.trim(), 'Content of <pre> element').not.toContain('...optimisticResponse...'); // So it's the real response (id can change... That's why we don't compare a full result)
     expect(pre?.trim(), 'Content of <pre> element').toContain('"isOptimisticResponse": false');
   });

@@ -6,7 +6,7 @@
   import type { LoadEvent } from '@sveltejs/kit';
 
   export async function load(event: LoadEvent) {
-    const variables = { id: event.params.userId };
+    const variables = { id: event.params.userId, tmp: false };
     await GQL_user.prefetch({ event, variables });
     return { props: { variables } };
   }
@@ -47,7 +47,7 @@
     {stry($GQL_user.errors)}
   </pre>
 {:else}
-  <p>
+  <div id="result">
     {$GQL_user.data?.user.id} - {$GQL_user.data?.user.name}
-  </p>
+  </div>
 {/if}
