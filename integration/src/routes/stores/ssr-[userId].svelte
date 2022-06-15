@@ -16,19 +16,19 @@
   export let variables: user$input;
   const context = getHoudiniContext();
 
-  $: browser && GQL_user.load({ variables });
+  $: browser && GQL_user.fetch({ variables });
 
   async function refresh(id: string | null) {
     if (id) {
-      await GQL_user.load({ variables: { id, tmp: false } });
+      await GQL_user.fetch({ variables: { id, tmp: false } });
     } else {
       // context not usefull here, but we can put it!
-      await GQL_user.load({ context, policy: CachePolicy.NetworkOnly });
+      await GQL_user.fetch({ context, policy: CachePolicy.NetworkOnly });
     }
   }
 
   async function refresh2WithVariableDifferentOrder() {
-    await GQL_user.load({ variables: { tmp: false, id: '2' } });
+    await GQL_user.fetch({ variables: { tmp: false, id: '2' } });
   }
 </script>
 

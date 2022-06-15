@@ -10,7 +10,7 @@
 </script>
 
 <script lang="ts">
-  $: browser && GQL_usersList.load();
+  $: browser && GQL_usersList.fetch();
 </script>
 
 <h1>SSR</h1>

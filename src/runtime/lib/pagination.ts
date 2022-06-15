@@ -109,7 +109,7 @@ export function queryHandlers<_Data extends GraphQLObject, _Input>({
 		artifact,
 		store: data,
 		queryVariables,
-		refetch: store.load,
+		refetch: store.fetch,
 		config,
 	})
 }

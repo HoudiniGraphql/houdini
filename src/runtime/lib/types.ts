@@ -189,9 +189,9 @@ export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data, _Input>> & {
 	prefetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
 
 	/**
-	 * prefetch the data in a load function
+	 * Synchronize data with prefetch values or fetch them if they are not yet here.
 	 */
-	load: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
+	fetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
 }
 
 // the result of tagging an operation

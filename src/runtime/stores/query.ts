@@ -186,18 +186,32 @@ export function queryStore<_Data, _Input>({
 		// if fetch is happening on the server, it must get a load event
 		if (!isBrowser && !params.event) {
 			// prettier-ignore
-			console.error(`${logRed(`Missing load event in server-side ${storeName}.fetch`)}. 
-  I think you forgot to provide ${logYellow('event')} to ${storeName} fetch function. 
-  You can get this value from the load function like:
+			console.error(`
+	${logRed(`Missing event args in load function`)}. 
 
+	Two options:
+	${logCyan("1/ Prefetching & SSR")}
   <script context="module" lang="ts">
     import type { LoadEvent } from '@sveltejs/kit';
 
     export async function load(${logYellow('event')}: LoadEvent) {
-      await ${logCyan(storeName)}.fetch({ ${logYellow('event')}, variables: { ... } });
-      return {};
+			const variables = { ... };
+      await ${logCyan(storeName)}.prefetch({ ${logYellow('event')}, variables });
+      return { props: { variables } };
     }
   </script> 
+
+	<script lang="ts">
+		import { type ${logCyan(storeName)}$input } from '$houdini'
+		export let variables: ${logCyan(storeName)}$input;
+		
+		$: browser && ${logCyan(storeName)}.fetch({ variables });
+	</script> 
+
+	${logCyan("2/ Client only")}
+	<script lang="ts">
+		$: browser && ${logCyan(storeName)}.fetch({ variables: { ... } });
+	</script> 
 `);
 
 			throw new Error('Error, check above logs for help.')
@@ -257,7 +271,7 @@ export function queryStore<_Data, _Input>({
 						blocking: true,
 					}))!
 				},
-				async load(params) {
+				async fetch(params) {
 					return (await fetchData({
 						...params,
 						blocking: true,
@@ -331,8 +345,17 @@ export function queryStore<_Data, _Input>({
 
 		prefetch: fetchData,
 
-		load(params?: QueryStoreParams<_Input>) {
+		fetch(params?: QueryStoreParams<_Input>) {
 			params = transformParam(artifact, params)
+
+			if (params.event) {
+				// prettier-ignore
+				console.error(`
+	${logCyan(storeName)}.fetch({ ${logYellow('event')} }) ${logRed(`should never be used in the load function!`)}. 
+	Please use ${logCyan(storeName)}.prefetch({ ${logYellow('event')} }) instead.`);
+
+				throw new Error('Error, check above logs for help.')
+			}
 
 			if (params.policy === CachePolicy.NetworkOnly) {
 				// We want to continue to load the data from the network anyway

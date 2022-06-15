@@ -34,7 +34,7 @@ export function query<_Query extends Operation<any, any>>(
 		...document.store,
 		data,
 		refetch: (variables?: _Query['input'], config?: RefetchConfig) => {
-			return document.store.load({
+			return document.store.fetch({
 				context,
 				variables,
 				policy: CachePolicy.NetworkOnly,
@@ -121,7 +121,7 @@ function componentQuery<_Query extends Operation<any, any>>(
 		}
 
 		// load the data with the new variables
-		document.store.load(variables)
+		document.store.fetch(variables)
 	}
 
 	return {

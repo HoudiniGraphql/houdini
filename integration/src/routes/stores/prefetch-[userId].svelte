@@ -19,7 +19,7 @@
 <script lang="ts">
   export let variables: user$input;
 
-  $: browser && GQL_user.load({ variables });
+  $: browser && GQL_user.fetch({ variables });
 </script>
 
 <h1>SSR - [userId: {$page.params.userId}]</h1>
