@@ -12,6 +12,7 @@
 
 <script lang="ts">
   $: browser && GQL_usersList.fetch();
+  $: browser && GQL_Hello.fetch();
 </script>
 
 <h1>SSR</h1>
