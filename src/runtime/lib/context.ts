@@ -1,21 +1,19 @@
 // external imports
-import { setContext, getContext as svelteContext } from 'svelte'
-import { readable } from 'svelte/store'
-// local imports
-import { HoudiniFetchContext } from './types'
-import { getPage, getSession } from '../adapter'
 import { logCyan, logRed, logYellow } from '@kitql/helper'
+import { getContext as svelteContext, setContext } from 'svelte'
+// local imports
+import { getPage, getSession } from '../adapter'
+import { HoudiniFetchContext } from './types'
 
 export const setVariables = (vars: () => {}) => setContext('variables', vars)
 
 export const getHoudiniContext = (): HoudiniFetchContext => {
 	try {
 		const session = getSession()
+		const url = getPage().url
 		return {
-			page: getPage(),
+			url,
 			session,
-			// session: session !== null ? session : readable({}),
-			// session: session?.subscribe ? session : readable(session),
 			variables: svelteContext('variables') || (() => ({})),
 			stuff: {},
 		}

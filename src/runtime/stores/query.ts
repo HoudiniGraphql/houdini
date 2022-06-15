@@ -226,7 +226,7 @@ export function queryStore<_Data, _Input>({
 				// we might have a followup request to fulfill the store's needs
 				const loadContext = {
 					fetch: window.fetch.bind(window),
-					page: context.page,
+					url: context.url,
 					session: context.session,
 					stuff: context.stuff,
 				}
