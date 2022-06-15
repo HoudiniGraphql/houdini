@@ -30,13 +30,20 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
-		    const _TestQuery = await _TestQueryStore.fetch({
+		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true
 		    });
 
-		    return _houdini_context.returnValue;
+		    return {
+		        ..._houdini_context.returnValue,
+
+		        props: {
+		            ..._houdini_context.returnValue.props,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
+		    };
 		}
 
 		export function preload(page, session) {
@@ -44,6 +51,16 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && _TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
+
 		const {
 		    data
 		} = query({
@@ -95,6 +112,24 @@ describe('query preprocessor', function () {
 		export async function load() {}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery2_Input = {};
+
+		$:
+		isBrowser && _TestQuery2Store.fetch({
+		    "variables": _TestQuery2_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
+
+		export let _TestQuery1_Input = {};
+
+		$:
+		isBrowser && _TestQuery1Store.fetch({
+		    "variables": _TestQuery1_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
+
 		const {
 		    data: data1
 		} = query({
@@ -155,7 +190,7 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    const _TestQuery2Promise = _TestQuery2Store.fetch({
+		    const _TestQuery2Promise = _TestQuery2Store.prefetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
 		        "blocking": true
@@ -163,7 +198,7 @@ describe('query preprocessor', function () {
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery1Store.fetch({
+		    const _TestQuery1Promise = _TestQuery1Store.prefetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": true
@@ -171,7 +206,16 @@ describe('query preprocessor', function () {
 
 		    const _TestQuery2 = await _TestQuery2Promise;
 		    const _TestQuery1 = await _TestQuery1Promise;
-		    return _houdini_context.returnValue;
+
+		    return {
+		        ..._houdini_context.returnValue,
+
+		        props: {
+		            ..._houdini_context.returnValue.props,
+		            _TestQuery1_Input: _TestQuery1_Input,
+		            _TestQuery2_Input: _TestQuery2_Input
+		        }
+		    };
 		}
 
 		export function preload(page, session) {
@@ -179,6 +223,24 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery2_Input = {};
+
+		$:
+		isBrowser && _TestQuery2Store.fetch({
+		    "variables": _TestQuery2_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
+
+		export let _TestQuery1_Input = {};
+
+		$:
+		isBrowser && _TestQuery1Store.fetch({
+		    "variables": _TestQuery1_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
+
 		const {
 		    data: data1
 		} = query({
@@ -254,13 +316,20 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.fetch({
+		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true
 		    });
 
-		    return _houdini_context.returnValue;
+		    return {
+		        ..._houdini_context.returnValue,
+
+		        props: {
+		            ..._houdini_context.returnValue.props,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
+		    };
 		}
 
 		export function preload(page, session) {
@@ -268,6 +337,16 @@ describe('query preprocessor', function () {
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && _TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
+
 		const {
 		    data
 		} = query({
@@ -312,16 +391,33 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
-		    const _TestQuery = await _TestQueryStore.fetch({
+		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true
 		    });
 
-		    return _houdini_context.returnValue;
+		    return {
+		        ..._houdini_context.returnValue,
+
+		        props: {
+		            ..._houdini_context.returnValue.props,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
+		    };
 		}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && _TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
+
 		const {
 		    data
 		} = query({
@@ -362,8 +458,17 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import _TestQueryStore from "$houdini/stores/TestQuery";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && _TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
 
 		const {
 		    data
@@ -403,8 +508,17 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import _TestQueryStore from "$houdini/stores/TestQuery";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && _TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
 
 		const {
 		    data
@@ -444,8 +558,17 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import _TestQueryStore from "$houdini/stores/TestQuery";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && _TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
 
 		const {
 		    data
@@ -484,6 +607,16 @@ describe('query preprocessor', function () {
 		`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && _TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
+
 		const {
 		    data
 		} = paginatedQuery({
@@ -521,8 +654,17 @@ describe('query preprocessor', function () {
 			`import { houdiniConfig } from "$houdini";`
 		)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import _TestQueryStore from "$houdini/stores/TestQuery";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && _TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
 
 		const {
 		    data
@@ -606,13 +748,20 @@ test('beforeLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.fetch({
+		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true
 		    });
 
-		    return _houdini_context.returnValue;
+		    return {
+		        ..._houdini_context.returnValue,
+
+		        props: {
+		            ..._houdini_context.returnValue.props,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
+		    };
 		}
 
 		export function preload(page, session) {
@@ -684,7 +833,7 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		    const _TestQuery2_Input = {};
 
-		    const _TestQuery2Promise = _TestQuery2Store.fetch({
+		    const _TestQuery2Promise = _TestQuery2Store.prefetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
 		        "blocking": true
@@ -692,7 +841,7 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery1Store.fetch({
+		    const _TestQuery1Promise = _TestQuery1Store.prefetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": true
@@ -700,7 +849,16 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		    const _TestQuery2 = await _TestQuery2Promise;
 		    const _TestQuery1 = await _TestQuery1Promise;
-		    return _houdini_context.returnValue;
+
+		    return {
+		        ..._houdini_context.returnValue,
+
+		        props: {
+		            ..._houdini_context.returnValue.props,
+		            _TestQuery1_Input: _TestQuery1_Input,
+		            _TestQuery2_Input: _TestQuery2_Input
+		        }
+		    };
 		}
 
 		export function preload(page, session) {
@@ -766,7 +924,7 @@ test('afterLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.fetch({
+		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true
@@ -786,7 +944,14 @@ test('afterLoad hook', async function () {
 		        }
 		    });
 
-		    return _houdini_context.returnValue;
+		    return {
+		        ..._houdini_context.returnValue,
+
+		        props: {
+		            ..._houdini_context.returnValue.props,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
+		    };
 		}
 
 		export function preload(page, session) {
@@ -851,7 +1016,7 @@ test('afterLoad hook - multiple queries', async function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    const _TestQuery2Promise = _TestQuery2Store.fetch({
+		    const _TestQuery2Promise = _TestQuery2Store.prefetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
 		        "blocking": true
@@ -859,7 +1024,7 @@ test('afterLoad hook - multiple queries', async function () {
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery1Store.fetch({
+		    const _TestQuery1Promise = _TestQuery1Store.prefetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": true
@@ -884,7 +1049,15 @@ test('afterLoad hook - multiple queries', async function () {
 		        }
 		    });
 
-		    return _houdini_context.returnValue;
+		    return {
+		        ..._houdini_context.returnValue,
+
+		        props: {
+		            ..._houdini_context.returnValue.props,
+		            _TestQuery1_Input: _TestQuery1_Input,
+		            _TestQuery2_Input: _TestQuery2_Input
+		        }
+		    };
 		}
 
 		export function preload(page, session) {
@@ -964,7 +1137,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.fetch({
+		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true
@@ -984,7 +1157,14 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        }
 		    });
 
-		    return _houdini_context.returnValue;
+		    return {
+		        ..._houdini_context.returnValue,
+
+		        props: {
+		            ..._houdini_context.returnValue.props,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
+		    };
 		}
 
 		export function preload(page, session) {
@@ -1056,13 +1236,20 @@ test('deprecated onLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.fetch({
+		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true
 		    });
 
-		    return _houdini_context.returnValue;
+		    return {
+		        ..._houdini_context.returnValue,
+
+		        props: {
+		            ..._houdini_context.returnValue.props,
+		            _TestQuery_Input: _TestQuery_Input
+		        }
+		    };
 		}
 
 		export function preload(page, session) {
@@ -1098,10 +1285,27 @@ test('2 queries, one paginated one not', async function () {
 	)
 
 	expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
 		import _TestQuery2Store from "$houdini/stores/TestQuery2";
 		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
 		import _TestQuery1Store from "$houdini/stores/TestQuery1";
+		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+		export let _TestQuery2_Input = {};
+
+		$:
+		isBrowser && _TestQuery2Store.fetch({
+		    "variables": _TestQuery2_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
+
+		export let _TestQuery1_Input = {};
+
+		$:
+		isBrowser && _TestQuery1Store.fetch({
+		    "variables": _TestQuery1_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
 
 		const {
 		    data

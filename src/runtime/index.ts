@@ -2,6 +2,7 @@ import { GraphQLTagResult } from './lib/types'
 
 export * from './lib'
 export * from './inline'
+export * from './adapter'
 
 // this template tag gets removed by the preprocessor so it should never be invoked.
 // this function needs to return the same value as what the preprocessor leaves behind for type consistency

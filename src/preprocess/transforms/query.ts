@@ -157,6 +157,9 @@ export default async function queryProcessor(
 	if (isRoute) {
 		processModule({ config, script: doc.module!, queries, artifactImportIDs, storeImportIDs })
 	}
+
+	// add the necessary bits to the instance script
+	processInstance({ config, script: doc.instance, queries, storeImportIDs })
 }
 
 function processModule({
@@ -240,7 +243,32 @@ function addKitLoad({
 		// return an object
 		AST.blockStatement([
 			AST.returnStatement(
-				AST.memberExpression(requestContext, AST.identifier('returnValue'))
+				AST.objectExpression([
+					AST.spreadElement(
+						AST.memberExpression(requestContext, AST.identifier('returnValue'))
+					),
+					AST.objectProperty(
+						AST.identifier('props'),
+						AST.objectExpression([
+							AST.spreadElement(
+								AST.memberExpression(
+									AST.memberExpression(
+										requestContext,
+										AST.identifier('returnValue')
+									),
+									AST.identifier('props')
+								)
+							),
+							...queries.map((query) => {
+								const identifier = AST.identifier(
+									variablesKey(query.parsedDocument.definitions[0])
+								)
+
+								return AST.objectProperty(identifier, identifier)
+							}),
+						])
+					),
+				])
 			),
 		])
 	)
@@ -352,7 +380,7 @@ function addKitLoad({
 		const fetchCall = AST.callExpression(
 			AST.memberExpression(
 				AST.identifier(storeImportIDs[document.artifact.name]),
-				AST.identifier('fetch')
+				AST.identifier('prefetch')
 			),
 			[
 				AST.objectExpression([
@@ -523,7 +551,7 @@ function afterLoadQueryInput(queries: EmbeddedGraphqlDocument[]) {
 				AST.literal(
 					(definitions[0] as graphql.OperationDefinitionNode)?.name?.value || null
 				),
-				AST.identifier(variablesKey(definitions[0] as graphql.OperationDefinitionNode))
+				AST.identifier(variablesKey(definitions[0]))
 			)
 		)
 	)
@@ -550,16 +578,102 @@ function afterLoadQueryData(queries: EmbeddedGraphqlDocument[]) {
 	)
 }
 
+function processInstance({
+	config,
+	script,
+	queries,
+	storeImportIDs,
+}: {
+	config: Config
+	script: Script
+	queries: EmbeddedGraphqlDocument[]
+	storeImportIDs: { [operationName: string]: string }
+}) {
+	// make sure we imported the
+	ensureImports({
+		config,
+		body: script.content.body,
+		import: ['getHoudiniContext', 'isBrowser'],
+		sourceModule: '$houdini/runtime',
+	})
+
+	// any prop declarations and statements need to come after the first import
+	let propInsertIndex = script.content.body.findIndex(
+		(expression) => expression.type !== 'ImportDeclaration'
+	)
+
+	const contextIdentifier = AST.identifier('_houdini_context_generated_DONT_USE')
+
+	// pull out the houdini context
+	script.content.body.splice(
+		propInsertIndex,
+		0,
+		// @ts-expect-error: babel <-> recast comments are incompatible
+		AST.variableDeclaration('const', [
+			AST.variableDeclarator(
+				contextIdentifier,
+				AST.callExpression(AST.identifier('getHoudiniContext'), [])
+			),
+		])
+	)
+
+	// increment the insert counter so context variable is defined
+	propInsertIndex++
+
+	// add the necessary bits for every query in the page
+	for (const query of queries) {
+		const operation = query.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+		const inputPropName = variablesKey(operation)
+		const localStoreName = storeImportIDs[operation.name?.value || '']
+		if (!localStoreName) {
+			// this should never happen
+			throw new Error('did not import store for query?')
+		}
+
+		// make sure we have a prop for every input
+		script.content.body.splice(
+			propInsertIndex,
+			0,
+			// @ts-expect-error: recast does not mesh with babel's comment AST. ignore it.
+			AST.exportNamedDeclaration(
+				AST.variableDeclaration('let', [
+					AST.variableDeclarator(AST.identifier(inputPropName), AST.objectExpression([])),
+				])
+			),
+			AST.labeledStatement(
+				AST.identifier('$'),
+				AST.expressionStatement(
+					AST.logicalExpression(
+						'&&',
+						AST.identifier('isBrowser'),
+						AST.callExpression(
+							AST.memberExpression(
+								AST.identifier(localStoreName),
+								AST.identifier('fetch')
+							),
+							[
+								AST.objectExpression([
+									AST.objectProperty(
+										AST.literal('variables'),
+										AST.identifier(inputPropName)
+									),
+									AST.objectProperty(AST.literal('context'), contextIdentifier),
+								]),
+							]
+						)
+					)
+				)
+			)
+		)
+	}
+}
+
 function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
 	return `_${operation.name?.value}`
 }
 
-function queryHandlerIdentifier(operation: graphql.OperationDefinitionNode): namedTypes.Identifier {
-	return AST.identifier(`_${operation.name?.value}_handler`)
-}
-
-function variablesKey(operation: graphql.OperationDefinitionNode): string {
-	return `_${operation.name?.value}_Input`
+function variablesKey(operation: graphql.DefinitionNode): string {
+	return `_${(operation as graphql.OperationDefinitionNode).name?.value}_Input`
 }
 
 function queryInputFunction(name: string) {
