@@ -1,5 +1,11 @@
 # houdini
 
+## 0.15.0-next.4
+
+### Patch Changes
+
+-   [#329](https://github.com/HoudiniGraphql/houdini/pull/329) [`d65c657`](https://github.com/HoudiniGraphql/houdini/commit/d65c6577d10dad56f13661d1b5c3d9e808979431) Thanks [@jycouet](https://github.com/jycouet)! - Fix bug when prefetching a route that's already mounted
+
 ## 0.15.0-next.3
 
 ### Patch Changes
