@@ -47,6 +47,9 @@ export function queryStore<_Data, _Input>({
 	storeName: string
 	paginationMethods: { [key: string]: keyof PaginatedHandlers<_Data, _Input> }
 }) {
+	// the first prefetch
+	let hasLoaded = false
+
 	// build up the core query store data
 	const { subscribe, set, update } = writable<QueryResult<_Data, _Input>>({
 		data: null,
@@ -74,6 +77,11 @@ export function queryStore<_Data, _Input>({
 		background: boolean,
 		withStoreSync: boolean
 	) {
+		if (!withStoreSync && !hasLoaded) {
+			withStoreSync = true
+			hasLoaded = true
+		}
+
 		if (withStoreSync) {
 			update((c) => {
 				return { ...c, isFetching: true }
@@ -338,6 +346,7 @@ export function queryStore<_Data, _Input>({
 
 				latestSource = null
 				latestPartial = null
+				hasLoaded = false
 
 				parentUnsubscribe()
 			}

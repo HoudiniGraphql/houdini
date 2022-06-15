@@ -25,13 +25,13 @@
     }
   `);
 
-  const user = fragment<UserFragmentTestFragment>(
+  let user = fragment<UserFragmentTestFragment>(
     graphql`
       fragment UserFragmentTestFragment on User {
         name
       }
     `,
-    $data!.node!
+    $data?.node!
   );
 </script>
 
