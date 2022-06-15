@@ -18,7 +18,7 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 	paginationMethods: { [key: string]: keyof PaginatedHandlers<_Data, _Input> }
 }) {
 	return {
-		load(initialValue: _Data) {
+		get(initialValue: _Data) {
 			// at the moment a fragment store doesn't really do anything
 			// but we're going to keep it wrapped in a store so we can eventually
 			// optimize the updates

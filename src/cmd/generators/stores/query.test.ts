@@ -55,13 +55,17 @@ test('basic store', async function () {
 					import { defaultConfigValues } from '../runtime/lib'
 
 					// create the query store
-					export const GQL_TestQuery = queryStore({
+					const factory = () => queryStore({
 					    artifact,
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: false,
 					    paginationMethods: {}
 					})
+
+					export const GQL_TestQuery = factory()
+
+					export const TestQueryStore = factory
 
 					export default GQL_TestQuery
 				`)
@@ -98,7 +102,7 @@ test('forward cursor pagination', async function () {
 					import { defaultConfigValues } from '../runtime/lib'
 
 					// create the query store
-					export const GQL_TestQuery = queryStore({
+					const factory = () => queryStore({
 					    artifact,
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
@@ -110,6 +114,10 @@ test('forward cursor pagination', async function () {
 					        "loading": "loading"
 					    }
 					})
+
+					export const GQL_TestQuery = factory()
+
+					export const TestQueryStore = factory
 
 					export default GQL_TestQuery
 				`)
@@ -146,7 +154,7 @@ test('backwards cursor pagination', async function () {
 					import { defaultConfigValues } from '../runtime/lib'
 
 					// create the query store
-					export const GQL_TestQuery = queryStore({
+					const factory = () => queryStore({
 					    artifact,
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
@@ -158,6 +166,10 @@ test('backwards cursor pagination', async function () {
 					        "loading": "loading"
 					    }
 					})
+
+					export const GQL_TestQuery = factory()
+
+					export const TestQueryStore = factory
 
 					export default GQL_TestQuery
 				`)
@@ -190,7 +202,7 @@ test('offset pagination', async function () {
 					import { defaultConfigValues } from '../runtime/lib'
 
 					// create the query store
-					export const GQL_TestQuery = queryStore({
+					const factory = () => queryStore({
 					    artifact,
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
@@ -201,6 +213,10 @@ test('offset pagination', async function () {
 					        "loading": "loading"
 					    }
 					})
+
+					export const GQL_TestQuery = factory()
+
+					export const TestQueryStore = factory
 
 					export default GQL_TestQuery
 				`)

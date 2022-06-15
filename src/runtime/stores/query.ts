@@ -18,6 +18,22 @@ import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import type { ConfigFile } from '../lib/types'
 import { QueryArtifact } from '../lib/types'
 
+function transformParam<_Input>(artifact: QueryArtifact, params?: QueryStoreParams<_Input>) {
+	// params management
+	params = params ?? {}
+
+	if (!params.context) {
+		params.context = {} as HoudiniFetchContext
+	}
+
+	// If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
+	if (!params.policy) {
+		params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+	}
+
+	return params
+}
+
 export function queryStore<_Data, _Input>({
 	config,
 	artifact,
@@ -31,6 +47,9 @@ export function queryStore<_Data, _Input>({
 	storeName: string
 	paginationMethods: { [key: string]: keyof PaginatedHandlers<_Data, _Input> }
 }) {
+	// the first prefetch
+	let hasLoaded = false
+
 	// build up the core query store data
 	const { subscribe, set, update } = writable<QueryResult<_Data, _Input>>({
 		data: null,
@@ -46,22 +65,27 @@ export function queryStore<_Data, _Input>({
 
 	// Current variables tracker
 	let variables: {} = {}
+	let tracking: {} | undefined | null = null
 
 	let latestSource: DataSource | null = null
 	let latestPartial: boolean | null = false
 
 	// Perform the actual load
-	async function load(context: FetchContext, params: QueryStoreParams<_Input>) {
-		update((c) => {
-			return { ...c, isFetching: true }
-		})
+	async function load(
+		context: FetchContext,
+		params: QueryStoreParams<_Input>,
+		background: boolean,
+		withStoreSync: boolean
+	) {
+		if (!withStoreSync && !hasLoaded) {
+			withStoreSync = true
+			hasLoaded = true
+		}
 
-		// params management
-		params = params ?? {}
-
-		// If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
-		if (!params.policy) {
-			params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
+		if (withStoreSync) {
+			update((c) => {
+				return { ...c, isFetching: true }
+			})
 		}
 
 		const newVariables = (marshalInputs({
@@ -80,25 +104,34 @@ export function queryStore<_Data, _Input>({
 			cached: params.policy !== CachePolicy.NetworkOnly,
 		})
 
+		if (withStoreSync) {
+			update((s) => ({
+				...s,
+				isFetching: false,
+			}))
+		}
+
 		// keep the trackers up to date
 		latestSource = source
 		latestPartial = partial
 
 		if (result.errors && result.errors.length > 0) {
-			update((s) => ({
-				...s,
-				errors: result.errors,
-				isFetching: false,
-				partial: false,
-				data: result.data as _Data,
-				source,
-				variables: newVariables,
-			}))
+			if (withStoreSync) {
+				update((s) => ({
+					...s,
+					errors: result.errors,
+					isFetching: false,
+					partial: false,
+					data: result.data as _Data,
+					source,
+					variables: newVariables,
+				}))
+			}
 			throw result.errors
 		}
 
 		// setup a subscription for new values from the cache
-		if (isBrowser) {
+		if (isBrowser && !background) {
 			const updated = stry(variables, 0) !== stry(newVariables, 0)
 
 			// if the variables changed we need to unsubscribe from the old fields and
@@ -107,23 +140,38 @@ export function queryStore<_Data, _Input>({
 				cache.unsubscribe(subscriptionSpec, variables || {})
 			}
 
+			// subscribe to cache updates
+			subscriptionSpec = {
+				rootType: artifact.rootType,
+				selection: artifact.selection,
+				variables: () => newVariables,
+				set: (data) => {
+					if (withStoreSync) {
+						update((s) => ({ ...s, data }))
+					}
+				},
+			}
+
+			// make sure we subscribe to the new values
+			cache.subscribe(subscriptionSpec, newVariables)
+		}
+
+		if (result.data) {
 			// update the cache with the data that we just ran into
 			cache.write({
 				selection: artifact.selection,
-				data: result.data!,
-				variables: newVariables!,
+				data: result.data,
+				variables: newVariables,
 			})
-
-			if (updated && subscriptionSpec) {
-				cache.subscribe(subscriptionSpec, newVariables)
-			}
 		}
 
-		// update Current variables tracker
-		variables = newVariables
+		if (!background) {
+			// update Current variables tracker
+			variables = newVariables
+		}
 
-		// prepare store data
-		const storeData = {
+		// return the value to the caller
+		const storeValue = {
 			data: unmarshalSelection(config, artifact.selection, result.data)! as _Data,
 			errors: null,
 			isFetching: false,
@@ -132,34 +180,45 @@ export function queryStore<_Data, _Input>({
 			variables: newVariables,
 		}
 
-		// update the store value
-		set(storeData)
+		if (withStoreSync) {
+			set(storeValue)
+		}
 
-		// return the value to the caller
-		return storeData
+		return storeValue
 	}
 
-	async function fetchData(params?: QueryStoreParams<_Input>) {
-		params = params ?? {}
-		if (!params.context) {
-			params.context = {} as HoudiniFetchContext
-		}
+	async function fetchData(params: QueryStoreParams<_Input>) {
+		params = transformParam(artifact, params)
 
 		// if fetch is happening on the server, it must get a load event
 		if (!isBrowser && !params.event) {
 			// prettier-ignore
-			console.error(`${logRed(`Missing load event in server-side ${storeName}.fetch`)}. 
-  I think you forgot to provide ${logYellow('event')} to ${storeName} fetch function. 
-  You can get this value from the load function like:
+			console.error(`
+	${logRed(`Missing event args in load function`)}. 
 
+	Two options:
+	${logCyan("1/ Prefetching & SSR")}
   <script context="module" lang="ts">
     import type { LoadEvent } from '@sveltejs/kit';
 
     export async function load(${logYellow('event')}: LoadEvent) {
-      await ${logCyan(storeName)}.fetch({ ${logYellow('event')}, variables: { ... } });
-      return {};
+			const variables = { ... };
+      await ${logCyan(storeName)}.prefetch({ ${logYellow('event')}, variables });
+      return { props: { variables } };
     }
   </script> 
+
+	<script lang="ts">
+		import { type ${logCyan(storeName)}$input } from '$houdini'
+		export let variables: ${logCyan(storeName)}$input;
+		
+		$: browser && ${logCyan(storeName)}.fetch({ variables });
+	</script> 
+
+	${logCyan("2/ Client only")}
+	<script lang="ts">
+		$: browser && ${logCyan(storeName)}.fetch({ variables: { ... } });
+	</script> 
 `);
 
 			throw new Error('Error, check above logs for help.')
@@ -168,7 +227,7 @@ export function queryStore<_Data, _Input>({
 		// if we have event, it's safe to assume this is inside of a load function
 		if (params.event) {
 			// we're in a `load` function, use the event params
-			const loadPromise = load(params.event, params)
+			const loadPromise = load(params.event, params, true, false)
 
 			// return the result if the client isn't ready or we
 			// need to block with the request
@@ -176,7 +235,7 @@ export function queryStore<_Data, _Input>({
 				return await loadPromise
 			}
 		}
-		// the fetch is executing on the client,
+		// if we don't have event, it's safe to assume this is outside of a load function
 		else {
 			// this is happening in the browser so we dont' have access to the
 			// current load parameters
@@ -186,10 +245,15 @@ export function queryStore<_Data, _Input>({
 				stuff: params.context?.stuff!,
 			}
 
-			return await load(context, {
-				...params,
-				variables: { ...variables, ...params.variables } as _Input,
-			})
+			return await load(
+				context,
+				{
+					...params,
+					variables: { ...variables, ...params.variables } as _Input,
+				},
+				false,
+				true
+			)
 		}
 	}
 
@@ -201,6 +265,12 @@ export function queryStore<_Data, _Input>({
 			artifact,
 			store: {
 				subscribe,
+				async prefetch(params) {
+					return (await fetchData({
+						...params,
+						blocking: true,
+					}))!
+				},
 				async fetch(params) {
 					return (await fetchData({
 						...params,
@@ -221,7 +291,6 @@ export function queryStore<_Data, _Input>({
 			const parentUnsubscribe = subscribe(...args)
 
 			const context = getHoudiniContext()
-
 			onMount(() => {
 				// we might have a followup request to fulfill the store's needs
 				const loadContext = {
@@ -258,15 +327,6 @@ export function queryStore<_Data, _Input>({
 						cached: false,
 					})
 				}
-
-				// subscribe to cache updates
-				subscriptionSpec = {
-					rootType: artifact.rootType,
-					selection: artifact.selection,
-					variables: () => variables,
-					set: (data) => update((s) => ({ ...s, data })),
-				}
-				cache.subscribe(subscriptionSpec, variables)
 			})
 
 			// Handle unsubscribe
@@ -278,12 +338,41 @@ export function queryStore<_Data, _Input>({
 
 				latestSource = null
 				latestPartial = null
+				hasLoaded = false
 
 				parentUnsubscribe()
 			}
 		},
 
-		fetch: fetchData,
+		prefetch: fetchData,
+
+		fetch(params?: QueryStoreParams<_Input>) {
+			params = transformParam(artifact, params)
+
+			if (params.event) {
+				// prettier-ignore
+				console.error(`
+	${logCyan(storeName)}.fetch({ ${logYellow('event')} }) ${logRed(`should never be used in the load function!`)}. 
+	Please use ${logCyan(storeName)}.prefetch({ ${logYellow('event')} }) instead.`);
+
+				throw new Error('Error, check above logs for help.')
+			}
+
+			if (params.policy === CachePolicy.NetworkOnly) {
+				// We want to continue to load the data from the network anyway
+			} else {
+				// if the tracked variables hasn't changed, don't do anything
+				if (stry(params?.variables) === stry(tracking)) {
+					return
+				}
+			}
+
+			// fetch the new data, update subscribers, etc.
+			fetchData(params)
+
+			// we are now tracking the new set of variables
+			tracking = params?.variables
+		},
 
 		...extraMethods,
 	}

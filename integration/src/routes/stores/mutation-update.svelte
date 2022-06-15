@@ -1,16 +1,20 @@
 <script context="module" lang="ts">
-  import { GQL_usersList } from '$houdini';
+  import { browser } from '$app/env';
+  import { GQL_UpdateUser, GQL_usersList, type usersList$input } from '$houdini';
+  import { stry } from '@kitql/helper';
   import type { LoadEvent } from '@sveltejs/kit';
 
   export async function load(event: LoadEvent) {
-    await GQL_usersList.fetch({ event, variables: { limit: 5 } });
-    return {};
+    const variables = { limit: 5 };
+    await GQL_usersList.prefetch({ event, variables });
+    return { props: { variables } };
   }
 </script>
 
 <script lang="ts">
-  import { GQL_UpdateUser } from '$houdini';
-  import { stry } from '@kitql/helper';
+  export let variables: usersList$input;
+
+  $: browser && GQL_usersList.prefetch({ variables });
 
   async function update() {
     await GQL_UpdateUser.mutate({

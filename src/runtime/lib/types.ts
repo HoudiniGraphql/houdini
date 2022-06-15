@@ -175,7 +175,7 @@ export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
 }
 
 export type FragmentStore<_Shape> = {
-	load: (
+	get: (
 		value: any
 	) => Readable<_Shape> & {
 		update: (parent: _Shape) => void
@@ -184,7 +184,12 @@ export type FragmentStore<_Shape> = {
 
 export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data, _Input>> & {
 	/**
-	 * Trigger the query form load function
+	 * prefetch the data in a load function
+	 */
+	prefetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
+
+	/**
+	 * Synchronize data with prefetch values or fetch them if they are not yet here.
 	 */
 	fetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
 }

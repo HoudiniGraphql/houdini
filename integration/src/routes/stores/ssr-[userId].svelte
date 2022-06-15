@@ -1,18 +1,22 @@
 <script context="module" lang="ts">
+  import { browser } from '$app/env';
   import { page } from '$app/stores';
-  import { CachePolicy, GQL_user, getHoudiniContext } from '$houdini';
+  import { CachePolicy, getHoudiniContext, GQL_user, type user$input } from '$houdini';
   import { stry } from '@kitql/helper';
   import type { LoadEvent } from '@sveltejs/kit';
 
   export async function load(event: LoadEvent) {
-    const id = event.params.userId;
-    await GQL_user.fetch({ event, variables: { id } });
-    return {};
+    const variables = { id: event.params.userId };
+    await GQL_user.prefetch({ event, variables });
+    return { props: { variables } };
   }
 </script>
 
 <script lang="ts">
+  export let variables: user$input;
   const context = getHoudiniContext();
+
+  $: browser && GQL_user.fetch({ variables });
 
   async function refresh(id: string | null) {
     if (id) {

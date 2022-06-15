@@ -56,7 +56,6 @@ export class Cache {
 			// if we haven't added the set yet
 			if (!notified.includes(spec.set)) {
 				notified.push(spec.set)
-
 				// trigger the update
 				spec.set(
 					this._internal_unstable.getSelection({

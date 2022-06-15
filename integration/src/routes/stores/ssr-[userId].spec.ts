@@ -59,17 +59,16 @@ test.describe('SSR-[userId] Page', () => {
     expect(textResult, 'Content of <p> element').toBe('store-user-query:2 - Samuel Jackson');
 
     // 3 Refresh without variables (so should take the last one, here 2) with policy NetworkOnly to have a graphql request
-
     str = await expectGraphQLResponse(page, `button[id="refresh-null"]`);
     expect(str).toBe('{"data":{"user":{"id":"store-user-query:2","name":"Samuel Jackson"}}}');
     textResult = await page.locator('p').textContent();
     expect(textResult, 'Content of <p> element').toBe('store-user-query:2 - Samuel Jackson');
 
-    // 4 Check id 77 (that doens't exist)
-    str = await expectGraphQLResponse(page, `button[id="refresh-77"]`);
-    expect(str).toBe(
-      '{"data":null,"errors":[{"message":"User not found","locations":[{"line":2,"column":3}],"path":["user"],"extensions":{"code":404}}]}'
-    );
+    // // 4 Check id 77 (that doens't exist)
+    // str = await expectGraphQLResponse(page, `button[id="refresh-77"]`);
+    // expect(str).toBe(
+    //   '{"data":null,"errors":[{"message":"User not found","locations":[{"line":2,"column":3}],"path":["user"],"extensions":{"code":404}}]}'
+    // );
   });
 
   test('Check that variables order doesnt matter', async ({ page }) => {

@@ -19,7 +19,7 @@ import artifact from '../artifacts/${artifactName}'
 import { defaultConfigValues } from '../runtime/lib'
 
 // create the query store
-export const ${storeName} = queryStore({
+const factory = () => queryStore({
     artifact,
     config: defaultConfigValues(houdiniConfig),
     storeName: ${JSON.stringify(storeName)},
@@ -29,6 +29,10 @@ export const ${storeName} = queryStore({
 		'\n    '
 	)}
 })
+
+export const ${storeName} = factory()
+
+export const ${doc.name}Store = factory
 
 export default ${storeName}
 `
@@ -47,6 +51,8 @@ import { QueryStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
 
 export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}> ${paginationExtras.types}
+
+export declare const ${doc.name}Store: () => typeof ${storeName}
 
 export default ${storeName}
 `

@@ -9,7 +9,7 @@ import { wrapPaginationStore, PaginatedDocumentHandlers } from '../lib/paginatio
 export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
 	initialValue: _Fragment
-): Omit<ReturnType<FragmentStore<_Fragment['shape']>['load']>, 'update'> & {
+): Omit<ReturnType<FragmentStore<_Fragment['shape']>['get']>, 'update'> & {
 	data: Readable<_Fragment['shape']>
 } {
 	// make sure we got a query document
@@ -18,7 +18,7 @@ export function fragment<_Fragment extends Fragment<any>>(
 	}
 
 	// load the fragment store for the value
-	const store = fragment.store.load(initialValue)
+	const store = fragment.store.get(initialValue)
 
 	// make sure the store always stays up to date with the fragment value
 	fragment.proxy.listen((val: _Fragment) => {
