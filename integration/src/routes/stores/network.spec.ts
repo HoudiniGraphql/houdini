@@ -3,7 +3,7 @@ import { routes } from '../../lib/utils/routes.js';
 import { expectGraphQLResponse } from '../../lib/utils/testsHelper.js';
 
 test.describe('NETWORK Page', () => {
-  test('we have no li element(s) in <ul></ul> (no data from SSR)', async ({ page, browser }) => {
+  test('we have no li element(s) in <ul></ul> (no data from SSR)', async ({ page }) => {
     const testData = ''; // To replace real data coming from the network
     await page.route('**/graphql', (route) =>
       route.fulfill({

@@ -31,6 +31,7 @@ type Query {
     snapshot: String!
   ): UserConnection!
   usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
+  session: String
 }
 
 type User implements Node {

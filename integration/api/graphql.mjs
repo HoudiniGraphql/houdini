@@ -43,6 +43,18 @@ export const resolvers = {
     usersList: (_, args) => {
       return [...getSnapshot(args.snapshot)].splice(args.offset || 0, args.limit);
     },
+    session: (_, args, info) => {
+      let token = null;
+      info.request.headers.forEach((value, key) => {
+        if (key === 'authorization') {
+          token = value.replace('Bearer ', '');
+        }
+      });
+      if (token) {
+        return token;
+      }
+      throw new GraphQLYogaError('No authorization found', { code: 403 });
+    },
     usersConnection(_, args) {
       return connectionFromArray(getSnapshot(args.snapshot), args);
     },

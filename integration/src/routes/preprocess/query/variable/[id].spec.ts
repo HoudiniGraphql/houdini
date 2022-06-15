@@ -1,11 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../../../lib/utils/routes.js';
 import {
-  clientSideNavigation,
   expectGraphQLResponse,
   expectNoGraphQLRequest,
   navSelector
 } from '../../../../lib/utils/testsHelper.js';
-import { routes } from '../../../../lib/utils/routes.js';
 
 test.describe('query preprocessor variables', () => {
   test('default value', async ({ page }) => {

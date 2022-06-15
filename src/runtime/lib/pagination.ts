@@ -10,6 +10,7 @@ import { getHoudiniContext } from './context'
 import { ConfigFile, keyFieldsForType } from './config'
 import { LoadContext } from './types'
 import { countPage, extractPageInfo } from './utils'
+import { stry } from '@kitql/helper'
 
 type RefetchFn<_Data = any, _Input = any> = (
 	params?: QueryStoreParams<_Input>
@@ -370,7 +371,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && JSON.stringify(extraVariables()) !== JSON.stringify(variables)) {
+			if (variables && stry(extraVariables(), 0) !== stry(variables, 0)) {
 				return refetch(params)
 			}
 
@@ -495,7 +496,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 			const { variables } = params ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && JSON.stringify(extraVariables()) !== JSON.stringify(variables)) {
+			if ((variables && stry(extraVariables(), 0) !== stry(variables), 0)) {
 				return refetch(params)
 			}
 

@@ -13,7 +13,9 @@ export const getHoudiniContext = (): HoudiniFetchContext => {
 		const session = getSession()
 		return {
 			page: getPage(),
-			session: session?.subscribe ? session : readable(session),
+			session,
+			// session: session !== null ? session : readable({}),
+			// session: session?.subscribe ? session : readable(session),
 			variables: svelteContext('variables') || (() => ({})),
 			stuff: {},
 		}
