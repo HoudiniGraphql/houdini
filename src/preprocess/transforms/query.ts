@@ -227,13 +227,6 @@ function addKitLoad({
 	let afterLoadDefinition = findExportedFunction(body, 'afterLoad')
 	let onLoadDefinition = findExportedFunction(body, 'onLoad')
 
-	// if there are any hooks, warn the user they will be gone soon
-	if (beforeLoadDefinition || afterLoadDefinition || onLoadDefinition) {
-		console.warn(
-			'Query hooks are deprecated and will be removed soon. For more information please see the 0.15.0 migration doc: <link>.'
-		)
-	}
-
 	// the name of the variable
 	const requestContext = AST.identifier('_houdini_context')
 
