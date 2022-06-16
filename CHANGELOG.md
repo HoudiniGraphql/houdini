@@ -1,5 +1,11 @@
 # houdini
 
+## 0.15.0-next.5
+
+### Patch Changes
+
+-   [#339](https://github.com/HoudiniGraphql/houdini/pull/339) [`1293374`](https://github.com/HoudiniGraphql/houdini/commit/12933746b879aaedc019d2f8458a38740f561bdf) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove deprecation warning (its no longer deprecated)
+
 ## 0.15.0-next.4
 
 ### Patch Changes
