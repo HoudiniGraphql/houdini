@@ -46,8 +46,8 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 }: {
 	config: ConfigFile
 	paginationArtifact: QueryArtifact
-	initialValue: _Data
-	store: Readable<GraphQLObject>
+	initialValue: _Data | null
+	store: Readable<GraphQLObject | null>
 }) {
 	const { targetType } = paginationArtifact.refetch || {}
 	const typeConfig = config.types?.[targetType || '']
@@ -71,10 +71,29 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 		}
 	}
 
+	// if there is a null value, the pagination handlers don't do anything
+	if (initialValue === null) {
+		return {
+			async loadNextPage(
+				houdiniContext: LoadContext,
+				pageCount?: number,
+				after?: string | number
+			): Promise<void> {},
+			async loadPreviousPage(
+				houdiniContext: LoadContext,
+				pageCount?: number,
+				before?: string
+			): Promise<void> {},
+			loading: readable(false),
+			pageInfo: readable(null),
+			refetch: () => {},
+		}
+	}
+
 	return paginationHandlers<_Data, _Input>({
 		config,
-		initialValue,
-		store,
+		initialValue: initialValue,
+		store: store as Readable<GraphQLObject>,
 		artifact: paginationArtifact,
 		queryVariables,
 		refetch: async () => {
