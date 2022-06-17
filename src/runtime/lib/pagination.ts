@@ -92,7 +92,7 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 
 	return paginationHandlers<_Data, _Input>({
 		config,
-		initialValue: initialValue,
+		initialValue,
 		store: store as Readable<GraphQLObject>,
 		artifact: paginationArtifact,
 		queryVariables,
