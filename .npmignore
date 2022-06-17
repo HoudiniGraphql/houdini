@@ -1,0 +1,5 @@
+./integration/
+./example/
+./.changeset/
+./.github/
+*.test.ts
