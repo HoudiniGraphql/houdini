@@ -176,7 +176,7 @@ export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
 
 export type FragmentStore<_Shape> = {
 	get: (
-		value: any
+		value: any | null
 	) => Readable<_Shape> & {
 		update: (parent: _Shape) => void
 	}
