@@ -9,8 +9,8 @@ import { wrapPaginationStore, PaginatedDocumentHandlers } from '../lib/paginatio
 export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
 	initialValue: _Fragment | null
-): Omit<ReturnType<FragmentStore<_Fragment['shape']>['get']>, 'update'> & {
-	data: Readable<_Fragment['shape']>
+): Omit<ReturnType<FragmentStore<Required<_Fragment>['shape']>['get']>, 'update'> & {
+	data: Readable<Required<_Fragment>['shape']> | null
 } {
 	// make sure we got a query document
 	if (fragment.kind !== 'HoudiniFragment' || false) {
