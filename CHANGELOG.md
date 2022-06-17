@@ -1,5 +1,13 @@
 # houdini
 
+## 0.15.0-next.6
+
+### Patch Changes
+
+-   [#342](https://github.com/HoudiniGraphql/houdini/pull/342) [`973db72`](https://github.com/HoudiniGraphql/houdini/commit/973db723ed9a155c43cac01cb08f55fe389714c2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Only generate load with navigation block when user defines afterLoad
+
+*   [#341](https://github.com/HoudiniGraphql/houdini/pull/341) [`a0b6030`](https://github.com/HoudiniGraphql/houdini/commit/a0b6030324816765b6c5cf451dd09586fbd886ec) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - allow null values passed to fragment
+
 ## 0.15.0-next.5
 
 ### Patch Changes
