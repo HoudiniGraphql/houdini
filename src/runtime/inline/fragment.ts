@@ -8,7 +8,7 @@ import { wrapPaginationStore, PaginatedDocumentHandlers } from '../lib/paginatio
 // fragment returns the requested data from the reference
 export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
-	initialValue: _Fragment
+	initialValue: _Fragment | null
 ): Omit<ReturnType<FragmentStore<_Fragment['shape']>['get']>, 'update'> & {
 	data: Readable<_Fragment['shape']>
 } {
