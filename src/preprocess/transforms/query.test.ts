@@ -33,7 +33,7 @@ describe('query preprocessor', function () {
 		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
-		        "blocking": true
+		        "blocking": false
 		    });
 
 		    return {
@@ -193,7 +193,7 @@ describe('query preprocessor', function () {
 		    const _TestQuery2Promise = _TestQuery2Store.prefetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
-		        "blocking": true
+		        "blocking": false
 		    });
 
 		    const _TestQuery1_Input = {};
@@ -201,7 +201,7 @@ describe('query preprocessor', function () {
 		    const _TestQuery1Promise = _TestQuery1Store.prefetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
-		        "blocking": true
+		        "blocking": false
 		    });
 
 		    const _TestQuery2 = await _TestQuery2Promise;
@@ -319,7 +319,7 @@ describe('query preprocessor', function () {
 		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
-		        "blocking": true
+		        "blocking": false
 		    });
 
 		    return {
@@ -394,7 +394,7 @@ describe('query preprocessor', function () {
 		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
-		        "blocking": true
+		        "blocking": false
 		    });
 
 		    return {
@@ -751,7 +751,7 @@ test('beforeLoad hook', async function () {
 		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
-		        "blocking": true
+		        "blocking": false
 		    });
 
 		    return {
@@ -836,7 +836,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		    const _TestQuery2Promise = _TestQuery2Store.prefetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
-		        "blocking": true
+		        "blocking": false
 		    });
 
 		    const _TestQuery1_Input = {};
@@ -844,7 +844,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		    const _TestQuery1Promise = _TestQuery1Store.prefetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
-		        "blocking": true
+		        "blocking": false
 		    });
 
 		    const _TestQuery2 = await _TestQuery2Promise;
@@ -1239,7 +1239,7 @@ test('deprecated onLoad hook', async function () {
 		    const _TestQuery = await _TestQueryStore.prefetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
-		        "blocking": true
+		        "blocking": false
 		    });
 
 		    return {
