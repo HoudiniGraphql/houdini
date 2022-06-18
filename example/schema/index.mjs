@@ -201,17 +201,16 @@ export const resolvers = {
 		completed: ({ completed }) => Boolean(completed),
 	},
 	Subscription: {
-		// itemUpdate: {
-		// 	subscribe: (_, args) =>
-		// 		pipe(
-		// 			pubSub.subscribe('ITEM_UPDATE'),
-		// 			filter((payload) => {
-		// 				console.log(`payload`, payload)
-		// 				return payload.itemUpdate.item.id === args.id
-		// 			})
-		// 		),
-		// 	resolve: (payload) => payload,
-		// },
+		itemUpdate: {
+			subscribe: (_, args) =>
+				pipe(
+					pubSub.subscribe('ITEM_UPDATE'),
+					filter((payload) => {
+						return payload.itemUpdate.item.id === args.id
+					})
+				),
+			resolve: (payload) => payload,
+		},
 		newItem: {
 			subscribe: () => pubSub.subscribe('NEW_ITEM'),
 			resolve: (payload) => {
