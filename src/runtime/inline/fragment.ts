@@ -5,6 +5,8 @@ import { FragmentStore } from '..'
 import type { Fragment, GraphQLTagResult } from '../lib/types'
 import { wrapPaginationStore, PaginatedDocumentHandlers } from '../lib/pagination'
 
+// function overloads meant to only return a nullable value
+// if the reference type was nullable
 export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
 	ref: _Fragment
