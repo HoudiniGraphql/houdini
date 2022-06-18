@@ -23,7 +23,8 @@ export function subscriptionStore<_Data, _Input>({
 	let clearSubscription = () => {}
 
 	return {
-		subscribe(variables: _Input) {
+		subscribe: result.subscribe,
+		listen(variables: _Input) {
 			// pull out the current client
 			const env = getCurrentClient()
 			// if there isn't one, yell loudly
@@ -81,7 +82,7 @@ export function subscriptionStore<_Data, _Input>({
 				}
 			)
 		},
-		unsubscribe() {
+		unlisten() {
 			clearSubscription()
 		},
 	}

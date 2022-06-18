@@ -170,8 +170,8 @@ export type LoadContext = {
 }
 
 export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
-	subscribe: (input: _Input) => void
-	unsubscribe: () => void
+	listen: (input: _Input) => void
+	unlisten: () => void
 }
 
 export type FragmentStore<_Shape> = {

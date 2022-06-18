@@ -20,11 +20,11 @@ export function subscription<_Subscription extends Operation<any, any>>(
 
 	// the websocket connection only exists on the client
 	onMount(() => {
-		document.store.subscribe(variables)
+		document.store.listen(variables)
 	})
 
 	onDestroy(() => {
-		document.store.unsubscribe()
+		document.store.unlisten()
 	})
 
 	return { data: { subscribe: document.store.subscribe } }

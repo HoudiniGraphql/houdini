@@ -1,4 +1,4 @@
-import { createPubSub } from '@graphql-yoga/node'
+import { createPubSub, pipe, filter } from '@graphql-yoga/node'
 import { GraphQLScalarType, Kind } from 'graphql'
 import gql from 'graphql-tag'
 
@@ -202,13 +202,14 @@ export const resolvers = {
 	},
 	Subscription: {
 		itemUpdate: {
-			subscribe: (_, args) =>
-				pipe(
+			subscribe: (_, args) => {
+				return pipe(
 					pubSub.subscribe('ITEM_UPDATE'),
 					filter((payload) => {
-						return payload.itemUpdate.item.id === args.id
+						return payload.item.id === args.id
 					})
-				),
+				)
+			},
 			resolve: (payload) => payload,
 		},
 		newItem: {
