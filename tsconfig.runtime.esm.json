@@ -16,6 +16,7 @@
 		"forceConsistentCasingInFileNames": true,
 		"baseUrl": ".",
 		"allowJs": true,
-		"checkJs": true
+		"checkJs": true,
+		"strict": true
 	}
 }
