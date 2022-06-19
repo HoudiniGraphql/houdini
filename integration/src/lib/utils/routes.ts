@@ -20,6 +20,7 @@ export const routes = {
   Preprocess_query_variable_2: '/preprocess/query/variable/2',
   Preprocess_query_multiple: '/preprocess/query/multiple',
   Preprocess_query_scalars: '/preprocess/query/scalars',
+  Preprocess_query_component: '/preprocess/query/component',
 
   Preprocess_mutation_mutation: '/preprocess/mutation/mutation',
   Preprocess_fragment_update: '/preprocess/fragment/update',
