@@ -31,7 +31,7 @@
         }
       }
     `,
-    $data!.user
+    $data ? $data.user : null
   );
 </script>
 

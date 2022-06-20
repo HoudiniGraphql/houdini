@@ -7,7 +7,7 @@ export type PageInfo = {
 	hasPreviousPage: boolean
 }
 
-export function extractPageInfo(data: GraphQLObject, path: string[]): PageInfo {
+export function extractPageInfo(data: GraphQLObject | null, path: string[]): PageInfo {
 	if (data === null) {
 		return {
 			startCursor: null,
@@ -37,9 +37,12 @@ export function extractPageInfo(data: GraphQLObject, path: string[]): PageInfo {
 	)
 }
 
-export function countPage<_Data extends GraphQLObject>(source: string[], value: _Data): number {
+export function countPage<_Data extends GraphQLObject>(
+	source: string[],
+	value: _Data | null
+): number {
 	let data = value
-	if (value === null) {
+	if (value === null || data === null) {
 		return 0
 	}
 

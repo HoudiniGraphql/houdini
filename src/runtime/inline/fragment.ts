@@ -119,7 +119,21 @@ export function fragment<_Fragment extends Fragment<any>>(
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	document: GraphQLTagResult,
+	initialValue: _Fragment | null
+): { data: Readable<_Fragment['shape'] | null> } & Omit<
+	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
+	'refetch'
+>
+export function paginatedFragment<_Fragment extends Fragment<any>>(
+	document: GraphQLTagResult,
 	initialValue: _Fragment
+): { data: Readable<_Fragment['shape']> } & Omit<
+	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
+	'refetch'
+>
+export function paginatedFragment<_Fragment extends Fragment<any>>(
+	document: GraphQLTagResult,
+	initialValue: _Fragment | null
 ): { data: Readable<_Fragment['shape']> } & Omit<
 	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
 	'refetch'

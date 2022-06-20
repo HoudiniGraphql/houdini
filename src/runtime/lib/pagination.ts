@@ -62,31 +62,17 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 	if (paginationArtifact.refetch!.embedded) {
 		// if we have a specific function to use when computing the variables
 		if (typeConfig.resolve?.arguments) {
-			queryVariables = () => (typeConfig.resolve!.arguments?.(initialValue) || {}) as _Input
+			queryVariables = () => {
+				const value = get(store)
+				return (typeConfig.resolve!.arguments?.(value) || {}) as _Input
+			}
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')
-			queryVariables = () =>
+			queryVariables = () => {
+				const value = get(store)
 				// @ts-ignore
-				Object.fromEntries(keys.map((key) => [key, initialValue[key]])) as _Input
-		}
-	}
-
-	// if there is a null value, the pagination handlers don't do anything
-	if (initialValue === null) {
-		return {
-			async loadNextPage(
-				houdiniContext: LoadContext,
-				pageCount?: number,
-				after?: string | number
-			): Promise<void> {},
-			async loadPreviousPage(
-				houdiniContext: LoadContext,
-				pageCount?: number,
-				before?: string
-			): Promise<void> {},
-			loading: readable(false),
-			pageInfo: readable(null),
-			refetch: () => {},
+				return Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
+			}
 		}
 	}
 
@@ -143,7 +129,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	refetch,
 	config,
 }: {
-	initialValue: GraphQLObject
+	initialValue: GraphQLObject | null
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
 	queryVariables: () => _Input
@@ -237,7 +223,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	refetch,
 }: {
 	config: ConfigFile
-	initialValue: GraphQLObject
+	initialValue: GraphQLObject | null
 	artifact: QueryArtifact
 	store: Readable<GraphQLObject>
 	queryVariables: () => _Input
@@ -449,7 +435,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 	queryVariables: () => _Input
 	loading: Writable<boolean>
 	refetch: RefetchFn
-	initialValue: GraphQLObject
+	initialValue: GraphQLObject | null
 	store: Readable<GraphQLObject>
 }): {
 	loadPage: PaginatedHandlers<_Data, _Input>['loadNextPage']
