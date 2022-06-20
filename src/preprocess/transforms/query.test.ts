@@ -595,6 +595,7 @@ describe('query preprocessor', function () {
 		    artifact: _TestQueryArtifact,
 
 		    input: TestQueryVariables.call(_houdini_context_generated_DONT_USE, {
+		        props: $$props,
 		        session: _houdini_context_generated_DONT_USE.session
 		    })
 		});

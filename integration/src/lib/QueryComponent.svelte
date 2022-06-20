@@ -9,7 +9,7 @@
 <script lang="ts">
   import { query, graphql, type FragmentQueryVars } from '$houdini';
 
-  export const id: string = '';
+  export const id = '';
 
   const { data } = query<FragmentQueryVars>(graphql`
     query FragmentQueryVars($id: ID!) {
