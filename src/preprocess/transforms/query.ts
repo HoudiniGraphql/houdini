@@ -736,10 +736,10 @@ function processInstance({
 										[
 											contextIdentifier,
 											AST.objectExpression([
-												// AST.objectProperty(
-												// 	AST.identifier('props'),
-												// 	AST.identifier('$$props')
-												// ),
+												AST.objectProperty(
+													AST.identifier('props'),
+													AST.identifier('$$props')
+												),
 												AST.objectProperty(
 													AST.identifier('session'),
 													AST.memberExpression(

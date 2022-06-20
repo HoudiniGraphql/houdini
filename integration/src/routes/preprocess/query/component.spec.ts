@@ -8,9 +8,8 @@ test.describe('query preprocessor', () => {
 
     // two different queries should have fired
     await expectGraphQLResponse(page, null);
-    await expectGraphQLResponse(page, null);
 
-    await expectToBe(page, 'Bruce Willis', 'div[id=result-default');
+    await expectToBe(page, 'Morgan Freeman', 'div[id=result-default]');
     await expectToBe(page, 'Samuel Jackson', 'div[id=result-prop]');
   });
 });

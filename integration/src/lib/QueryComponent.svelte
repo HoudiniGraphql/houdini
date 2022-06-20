@@ -1,8 +1,7 @@
 <script context="module" lang="ts">
   export function FragmentQueryVarsVariables({ props }: { props: { id?: string } }) {
-    console.log({ props });
     return {
-      id: '1'
+      id: props.id || '3'
     };
   }
 </script>
@@ -10,7 +9,6 @@
 <script lang="ts">
   import { query, graphql, type FragmentQueryVars } from '$houdini';
 
-  $: console.log('props changed:', $$props);
   export const id: string = '';
 
   const { data } = query<FragmentQueryVars>(graphql`
