@@ -6586,6 +6586,9 @@ __metadata:
     ts-node: ^9.1.1
     tslib: ^2.4.0
     typescript: ^4.6.3
+  peerDependencies:
+    "@kitql/helper": 0.3.4
+    svelte: ^3.47.0
   bin:
     houdini: ./build/cmd.js
   languageName: unknown
@@ -11485,17 +11488,10 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
-"svelte@npm:^3.38.2, svelte@npm:^3.44.0":
+"svelte@npm:^3.38.2, svelte@npm:^3.44.0, svelte@npm:^3.47.0":
   version: 3.48.0
   resolution: "svelte@npm:3.48.0"
   checksum: d72587582b6967bf083ff7dc254f8067c22b57d4678182b48ca51010e0f3a1d98a33a00365046aee0c70ed3ffc716b73141207ec5ac6c44f1f5e34c5477e61ea
-  languageName: node
-  linkType: hard
-
-"svelte@npm:^3.47.0":
-  version: 3.47.0
-  resolution: "svelte@npm:3.47.0"
-  checksum: 247892585543ab0fc4781e36d5469ad0ce8afd4c6c440639cb0c99564a0b435ee0838482443665a905e11b7f500a1cf68475bec6a938b668e1e73c2e0badfc4e
   languageName: node
   linkType: hard
 
