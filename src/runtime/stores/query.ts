@@ -358,17 +358,16 @@ export function queryStore<_Data, _Input>({
 				throw new Error('Error, check above logs for help.')
 			}
 
-			if (params.policy === CachePolicy.NetworkOnly) {
-				// We want to continue to load the data from the network anyway
-			} else {
-				// if the tracked variables hasn't changed, don't do anything
-				if (stry(params?.variables) === stry(tracking)) {
-					return
-				}
-			}
-
 			// fetch the new data, update subscribers, etc.
-			fetchData(params)
+			fetchData({
+				// if the variables haven't changed, make sure we grab the latest data from the cache
+				// unless the user has specified policy
+				policy:
+					stry(params?.variables) === stry(tracking)
+						? CachePolicy.CacheOnly
+						: params.policy,
+				...params,
+			})
 
 			// we are now tracking the new set of variables
 			tracking = params?.variables
