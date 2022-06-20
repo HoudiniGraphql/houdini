@@ -15,6 +15,7 @@ async function fetchQuery({ text = '', variables = {} }, session: App.Session) {
       variables
     })
   });
+
   return await result.json();
 }
 

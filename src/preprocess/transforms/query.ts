@@ -100,7 +100,7 @@ export default async function queryProcessor(
 			})
 
 			// check if there is a variable function defined
-			hasVariables[operation.name!.value] = Boolean(
+			hasVariables[artifact.name] = Boolean(
 				doc.module!.content.body.find(
 					(statement) =>
 						statement.type === 'ExportNamedDeclaration' &&
@@ -122,13 +122,6 @@ export default async function queryProcessor(
 						AST.stringLiteral(ArtifactKind.Query)
 					),
 					AST.objectProperty(AST.identifier('store'), storeIdentifiers[artifact.name]),
-					AST.objectProperty(AST.identifier('component'), AST.booleanLiteral(!isRoute)),
-					AST.objectProperty(
-						AST.identifier('variableFunction'),
-						hasVariables
-							? AST.identifier(queryInputFunction(artifact.name))
-							: AST.nullLiteral()
-					),
 					AST.objectProperty(AST.identifier('config'), AST.identifier('houdiniConfig')),
 					AST.objectProperty(
 						AST.identifier('artifact'),
@@ -166,6 +159,7 @@ export default async function queryProcessor(
 			artifactImportIDs,
 			storeIdentifiers,
 			storeFactories,
+			hasVariables,
 		})
 	}
 
@@ -189,6 +183,7 @@ function processModule({
 	artifactImportIDs,
 	storeIdentifiers,
 	storeFactories,
+	hasVariables,
 }: {
 	config: Config
 	script: Script
@@ -196,6 +191,7 @@ function processModule({
 	artifactImportIDs: { [name: string]: string }
 	storeIdentifiers: { [name: string]: Identifier }
 	storeFactories: { [name: string]: Identifier }
+	hasVariables: { [operationName: string]: boolean }
 }) {
 	// the main thing we are responsible for here is to add the module bits of the
 	// hoisted query. this means doing the actual fetch, checking errors, and returning
@@ -244,6 +240,7 @@ function processModule({
 		queries,
 		artifactImportIDs,
 		storeIdentifiers,
+		hasVariables,
 	})
 
 	// if we are processing this file for sapper, we need to add the actual preload function
@@ -258,12 +255,14 @@ function addKitLoad({
 	queries,
 	artifactImportIDs,
 	storeIdentifiers,
+	hasVariables,
 }: {
 	config: Config
 	body: Statement[]
 	queries: EmbeddedGraphqlDocument[]
 	artifactImportIDs: { [name: string]: string }
 	storeIdentifiers: { [name: string]: Identifier }
+	hasVariables: { [operationName: string]: boolean }
 }) {
 	// look for any hooks
 	let beforeLoadDefinition = findExportedFunction(body, 'beforeLoad')
@@ -352,8 +351,6 @@ function addKitLoad({
 		// the identifier for the query variables
 		const variableIdentifier = variablesKey(operation)
 
-		const hasVariables = Boolean(operation.variableDefinitions?.length)
-
 		const name = operation.name!.value
 
 		// add a local variable right before the return statement
@@ -363,7 +360,7 @@ function addKitLoad({
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier(variableIdentifier),
-					hasVariables
+					hasVariables[name]
 						? AST.callExpression(
 								AST.memberExpression(
 									requestContext,
@@ -651,21 +648,23 @@ function processInstance({
 
 	// if we are looking at a non-route component we need to create the store instance
 	// since we dont have a generated load that defines them
-	for (const query of queries) {
-		const operation = query.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-		const name = operation.name!.value
+	if (!isRoute) {
+		for (const query of queries) {
+			const operation = query.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+			const name = operation.name!.value
 
-		script.content.body.splice(
-			propInsertIndex++,
-			0,
-			// @ts-expect-error
-			AST.variableDeclaration('const', [
-				AST.variableDeclarator(
-					storeIdentifiers[name],
-					AST.callExpression(storeFactories[name], [])
-				),
-			])
-		)
+			script.content.body.splice(
+				propInsertIndex++,
+				0,
+				// @ts-expect-error
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
+						storeIdentifiers[name],
+						AST.callExpression(storeFactories[name], [])
+					),
+				])
+			)
+		}
 	}
 
 	const contextIdentifier = AST.identifier('_houdini_context_generated_DONT_USE')
