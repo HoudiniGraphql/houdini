@@ -18,6 +18,7 @@ export const routes = {
   Preprocess_query_simple: '/preprocess/query/simple',
   Preprocess_query_variable_1: '/preprocess/query/variable/1',
   Preprocess_query_variable_2: '/preprocess/query/variable/2',
+  Preprocess_query_variable_error: '/preprocess/query/variables-error',
   Preprocess_query_multiple: '/preprocess/query/multiple',
   Preprocess_query_scalars: '/preprocess/query/scalars',
   Preprocess_query_component: '/preprocess/query/component',
