@@ -4,14 +4,13 @@ import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { promisify } from 'util'
-import { Program } from '@babel/types'
 // locals
 import { Config, runPipeline as run, parseFile, ParsedSvelteFile, LogLevel } from '../common'
 import { CollectedGraphQLDocument, ArtifactKind } from './types'
 import * as transforms from './transforms'
 import * as generators from './generators'
 import * as validators from './validators'
-import { log } from '../common/log'
+import { Program } from '@babel/types'
 
 // the main entry point of the compile script
 export default async function compile(config: Config) {

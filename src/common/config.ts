@@ -197,6 +197,10 @@ export class Config {
 		return `GQL_${name}`
 	}
 
+	storeFactoryName(name: string): string {
+		return name + 'Store'
+	}
+
 	keyFieldsForType(type: string) {
 		return keyFieldsForType(this.configFile, type)
 	}

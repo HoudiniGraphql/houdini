@@ -25,6 +25,23 @@ export function ensureStoreImport({
 	})
 }
 
+export function ensureStoreFactoryImport({
+	config,
+	artifact,
+	body,
+}: {
+	config: Config
+	artifact: { name: string }
+	body: Statement[]
+}) {
+	return ensureImports({
+		config,
+		body,
+		sourceModule: config.storeImportPath(artifact.name),
+		import: [`${artifact.name}Store`],
+	})
+}
+
 export function ensureArtifactImport({
 	config,
 	artifact,

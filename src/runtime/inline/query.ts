@@ -44,8 +44,6 @@ export function query<_Query extends Operation<any, any>>(
 		errors,
 		loading,
 		partial,
-		// if the document was mounted in a non-route component, we need to do special things
-		...(document.component ? componentQuery<_Query>(document) : {}),
 	}
 }
 
@@ -67,7 +65,7 @@ type RefetchConfig = {
 function componentQuery<_Query extends Operation<any, any>>(
 	document: TaggedGraphqlQuery
 ): {
-	error: Readable<{ message: string }[] | null>
+	errors: Readable<{ message: string }[] | null>
 } {
 	// compute the variables for the request
 	let variables: _Query['input']
@@ -75,7 +73,7 @@ function componentQuery<_Query extends Operation<any, any>>(
 
 	// we need to augment the error state
 	const localError = writable<{ message: string }[] | null>(null)
-	const error = derived(
+	const errors = derived(
 		[localError, document.store],
 		([$localError, $store]) => $localError || $store.errors
 	)
@@ -107,7 +105,7 @@ function componentQuery<_Query extends Operation<any, any>>(
 			input:
 				document.variableFunction?.call(variableContext, {
 					page,
-					session: session ? get(session) : null,
+					session,
 					props: document.getProps?.(),
 				}) || {},
 		}) as _Query['input']
@@ -125,7 +123,7 @@ function componentQuery<_Query extends Operation<any, any>>(
 	}
 
 	return {
-		error,
+		errors,
 	}
 }
 
