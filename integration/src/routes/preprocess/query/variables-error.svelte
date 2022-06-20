@@ -1,5 +1,6 @@
 <script context="module" lang="ts">
   export function PreprocessorTestQueryErrorVariables({ params }: { params: { id?: string } }) {
+    // eslint-disable-next-line
     // @ts-ignore
     return this.error(403, 'test');
   }
