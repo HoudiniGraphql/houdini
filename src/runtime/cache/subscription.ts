@@ -1,4 +1,4 @@
-import type { SubscriptionSpec, SubscriptionSelection } from '../lib/types'
+import type { SubscriptionSpec, SubscriptionSelection, GraphQLObject } from '../lib/types'
 import { evaluateKey, flattenList } from './stuff'
 import { Cache, LinkedList } from './cache'
 import type { GraphQLValue } from '../lib/types'
@@ -30,12 +30,20 @@ export class InMemorySubscriptions {
 		selection: SubscriptionSelection
 		variables: { [key: string]: GraphQLValue }
 	}) {
-		const recordType = parentType || spec.rootType
-		for (const { keyRaw, fields, list, filters, type } of Object.values(selection)) {
+		for (const fieldSelection of Object.values(selection)) {
+			const { keyRaw, fields, type } = fieldSelection
+
 			const key = evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the field
-			this.addFieldSubscription(parent, key, spec)
+			this.addFieldSubscription({
+				id: parent,
+				key,
+				selection: fieldSelection,
+				spec,
+				parentType: parentType || spec.rootType,
+				variables,
+			})
 
 			// if the field points to a link, we need to subscribe to any fields of that
 			// linked record
@@ -48,29 +56,6 @@ export class InMemorySubscriptions {
 				let children = !Array.isArray(linkedRecord)
 					? [linkedRecord]
 					: flattenList(linkedRecord) || []
-
-				// if this field is marked as a list, register it. this will overwrite existing list handlers
-				// so that they can get up to date filters
-				if (fields && list) {
-					this.cache._internal_unstable.lists.add({
-						name: list.name,
-						connection: list.connection,
-						recordID: parent,
-						recordType: recordType,
-						listType: list.type,
-						key,
-						selection: fields,
-						filters: Object.entries(filters || {}).reduce(
-							(acc, [key, { kind, value }]) => {
-								return {
-									...acc,
-									[key]: kind !== 'Variable' ? value : variables[value as string],
-								}
-							},
-							{}
-						),
-					})
-				}
 
 				// add the subscriber to every child
 				for (const child of children) {
@@ -91,41 +76,76 @@ export class InMemorySubscriptions {
 		}
 	}
 
-	addFieldSubscription(id: string, field: string, spec: SubscriptionSpec) {
+	addFieldSubscription({
+		id,
+		key,
+		selection,
+		spec,
+		parentType,
+		variables,
+	}: {
+		id: string
+		key: string
+		selection: SubscriptionSelection[string]
+		spec: SubscriptionSpec
+		parentType: string
+		variables: GraphQLObject
+	}) {
 		// if we haven't seen the id or field before, create a list we can add to
 		if (!this.subscribers[id]) {
 			this.subscribers[id] = {}
 		}
-		if (!this.subscribers[id][field]) {
-			this.subscribers[id][field] = []
+		if (!this.subscribers[id][key]) {
+			this.subscribers[id][key] = []
 		}
 
 		// if this is the first time we've seen the raw key
-		if (!this.keyVersions[field]) {
-			this.keyVersions[field] = new Set()
+		if (!this.keyVersions[key]) {
+			this.keyVersions[key] = new Set()
 		}
 
 		// add this version of the key if we need to
-		this.keyVersions[field].add(field)
+		this.keyVersions[key].add(key)
 
-		if (!this.subscribers[id][field].map(({ set }) => set).includes(spec.set)) {
-			this.subscribers[id][field].push(spec)
+		if (!this.subscribers[id][key].map(({ set }) => set).includes(spec.set)) {
+			this.subscribers[id][key].push(spec)
 		}
 
-		// if this is the first time we've seen this field
+		// if this is the first time we've seen this key
 		if (!this.referenceCounts[id]) {
 			this.referenceCounts[id] = {}
 		}
-		if (!this.referenceCounts[id][field]) {
-			this.referenceCounts[id][field] = new Map()
+		if (!this.referenceCounts[id][key]) {
+			this.referenceCounts[id][key] = new Map()
 		}
-		const counts = this.referenceCounts[id][field]
+		const counts = this.referenceCounts[id][key]
 
 		// we're going to increment the current value by one
 		counts.set(spec.set, (counts.get(spec.set) || 0) + 1)
 
-		// reset the lifetime for the field
-		this.cache._internal_unstable.lifetimes.resetLifetime(id, field)
+		// reset the lifetime for the key
+		this.cache._internal_unstable.lifetimes.resetLifetime(id, key)
+
+		// if this field is marked as a list, register it. this will overwrite existing list handlers
+		// so that they can get up to date filters
+		const { fields, list, filters } = selection
+		if (fields && list) {
+			this.cache._internal_unstable.lists.add({
+				name: list.name,
+				connection: list.connection,
+				recordID: id,
+				recordType: parentType,
+				listType: list.type,
+				key,
+				selection: fields,
+				filters: Object.entries(filters || {}).reduce((acc, [key, { kind, value }]) => {
+					return {
+						...acc,
+						[key]: kind !== 'Variable' ? value : variables[value as string],
+					}
+				}, {}),
+			})
+		}
 	}
 
 	// this is different from add because of the treatment of lists
@@ -141,12 +161,21 @@ export class InMemorySubscriptions {
 		subscribers: SubscriptionSpec[]
 	}) {
 		// look at every field in the selection and add the subscribers
-		for (const { keyRaw, fields } of Object.values(selection)) {
+		for (const fieldSelection of Object.values(selection)) {
+			const { keyRaw, fields } = fieldSelection
+
 			const key = evaluateKey(keyRaw, variables)
 
 			// add the subscriber to the
 			for (const spec of subscribers) {
-				this.addFieldSubscription(parent, key, spec)
+				this.addFieldSubscription({
+					id: parent,
+					key,
+					selection: fieldSelection,
+					spec,
+					parentType: 'asdf',
+					variables,
+				})
 			}
 
 			// if there are fields under this
