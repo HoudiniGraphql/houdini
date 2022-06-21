@@ -8,17 +8,6 @@ import {
   navSelector
 } from '../../lib/utils/testsHelper.js';
 
-// test.beforeEach(async ({ page }) => {
-//   page.on('request', (request) => {
-//     console.log('>>', request.method(), request.url());
-//   });
-//   page.on('response', (response) => {
-//     console.log('<<', response.status(), response.url());
-//   });
-
-//   await page.goto(routes.Stores_SSR);
-// });
-
 test.describe('SSR Page', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
     await page.goto(routes.Stores_SSR);

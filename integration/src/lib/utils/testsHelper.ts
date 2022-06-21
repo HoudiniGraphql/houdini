@@ -1,4 +1,4 @@
-import { stry } from '@kitql/helper';
+import { sleep, stry } from '@kitql/helper';
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 import { routes } from './routes.js';
@@ -50,6 +50,40 @@ export async function expectGraphQLResponse(
   const str = stry(json, 0);
   expect(str).not.toBeNull();
   return str;
+}
+
+/**
+ *
+ * @param selector example: "button[id=next]"
+ * @returns The list of response. We will sort results by Alphabetical order (because we can't do any thing else :))
+ */
+export async function expectNGraphQLResponse(
+  page: Page,
+  selector: string | null,
+  n: number,
+  action: 'click' | 'hover' = 'click'
+) {
+  let nbRequest = 0;
+  let nbResponse = 0;
+  const listStr: string[] = [];
+  page.on('request', (request) => {
+    // console.log('>>', request.method(), request.url());
+    nbRequest++;
+  });
+  page.on('response', async (response) => {
+    // console.log('<<', response.status(), response.url());
+    nbResponse++;
+    const json = await response.json();
+    const str = stry(json, 0);
+    listStr.push(str as string);
+  });
+
+  selector ? (action === 'click' ? page.click(selector) : page.hover(selector)) : null;
+  await sleep(2111);
+
+  expect(nbRequest, 'nbRequest').toBe(n);
+  expect(nbResponse, 'nbResponse').toBe(n);
+  return listStr.sort();
 }
 
 export function navSelector(route: string) {
