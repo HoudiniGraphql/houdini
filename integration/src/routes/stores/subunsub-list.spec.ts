@@ -11,9 +11,10 @@ test.describe('SubUnsub Page', () => {
   test('Sub > Unsub > Mutate > Sub => Data should be updated & displayed', async ({ page }) => {
     // Go to the list and subscribe to the list
     await page.goto(routes.Stores_subunsub_list);
-    await expectNGraphQLResponse(page, null, 1);
 
-    expectToBe(
+    await expectGraphQLResponse(page, null);
+
+    await expectToBe(
       page,
       'store-user-subunsub:1 - Bruce Willis store-user-subunsub:2 - Samuel Jackson store-user-subunsub:3 - Morgan Freeman store-user-subunsub:4 - Tom Hanks',
       'ul'

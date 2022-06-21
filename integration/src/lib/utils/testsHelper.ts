@@ -54,16 +54,16 @@ export async function expectNGraphQLResponse(
   n: number,
   action: 'click' | 'hover' = 'click'
 ) {
-  let nbRequest = 0;
+  // let nbRequest = 0;
   let nbResponse = 0;
   const listStr: string[] = [];
 
-  function fnReq(request: any) {
-    // console.log('>>', request.method(), request.url());
-    if (request.url().endsWith(routes.GraphQL)) {
-      nbRequest++;
-    }
-  }
+  // function fnReq(request: any) {
+  //   // console.log('>>', request.method(), request.url());
+  //   if (request.url().endsWith(routes.GraphQL)) {
+  //     nbRequest++;
+  //   }
+  // }
 
   async function fnRes(response: any) {
     // console.log('<<', response.status(), response.url());
@@ -76,21 +76,27 @@ export async function expectNGraphQLResponse(
   }
 
   // Listen
-  page.on('request', fnReq);
+  // page.on('request', fnReq);
   page.on('response', fnRes);
 
   // Trigger the action
-  selector ? (action === 'click' ? page.click(selector) : page.hover(selector)) : null;
+  if (selector) {
+    if (action === 'click') {
+      await page.click(selector);
+    } else {
+      await page.hover(selector);
+    }
+  }
 
   // Wait a bit...
   await sleep(2111);
 
-  // Remoe listeners
-  page.removeListener('request', fnReq);
+  // Remove listeners
+  // page.removeListener('request', fnReq);
   page.removeListener('response', fnRes);
 
   // Check if numbers are ok
-  expect(nbRequest, 'nbRequest').toBe(n);
+  // expect(nbRequest, 'nbRequest').toBe(n);
   expect(nbResponse, 'nbResponse').toBe(n);
 
   // Sort and return!
