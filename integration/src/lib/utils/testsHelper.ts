@@ -69,15 +69,19 @@ export async function expectNGraphQLResponse(
 
   function fnReq(request: any) {
     // console.log('>>', request.method(), request.url());
-    nbRequest++;
+    if (request.url().endsWith(routes.GraphQL)) {
+      nbRequest++;
+    }
   }
 
   async function fnRes(response: any) {
     // console.log('<<', response.status(), response.url());
-    nbResponse++;
-    const json = await response.json();
-    const str = stry(json, 0);
-    listStr.push(str as string);
+    if (response.url().endsWith(routes.GraphQL)) {
+      nbResponse++;
+      const json = await response.json();
+      const str = stry(json, 0);
+      listStr.push(str as string);
+    }
   }
 
   // Listen
