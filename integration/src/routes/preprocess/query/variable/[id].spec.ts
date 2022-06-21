@@ -16,7 +16,7 @@ test.describe('query preprocessor variables', () => {
 
     await expectToBe(page, 'Bruce Willis');
 
-    // We should have the data without a GraphQL request in the client
+    // We should have the data with only 1 GraphQL request in the client
     await expectGraphQLResponse(page, navSelector(routes.Preprocess_query_variable_2));
 
     await expectToBe(page, 'Samuel Jackson');
