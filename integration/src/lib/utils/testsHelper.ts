@@ -39,17 +39,8 @@ export async function expectGraphQLResponse(
   selector: string | null,
   action: 'click' | 'hover' = 'click'
 ) {
-  const [res] = await Promise.all([
-    // Wait for the response
-    page.waitForResponse(routes.GraphQL, { timeout: 1999 }),
-    // Triggers the response
-    selector ? (action === 'click' ? page.click(selector) : page.hover(selector)) : null
-  ]);
-
-  const json = await res.json();
-  const str = stry(json, 0);
-  expect(str).not.toBeNull();
-  return str;
+  const listStr = await expectNGraphQLResponse(page, selector, 1, action);
+  return listStr[0];
 }
 
 /**
@@ -131,6 +122,8 @@ export async function expectToBe(
   trimed = true
 ) {
   const result = await page.locator(selector).textContent({ timeout: 2997 });
+  // If the selector is not found, we will get an error: Timeout.
+  // It's usually because the page is not loading properly!
   expect(trimed ? result?.trim() : result, `element "${selector}" must BE 👇`).toBe(toBe);
 }
 
