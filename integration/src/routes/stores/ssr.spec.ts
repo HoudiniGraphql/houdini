@@ -46,7 +46,7 @@ test.describe('SSR Page', () => {
   }) => {
     await page.goto(routes.Stores_SSR);
 
-    clientSideNavigation(page, routes.Stores_Network);
+    await clientSideNavigation(page, routes.Stores_Network);
     await expectNoGraphQLRequest(page);
   });
 

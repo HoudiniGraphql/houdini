@@ -32,5 +32,8 @@ export const routes = {
 
   Pagination_fragment_forward_cursor: '/pagination/fragment/forward-cursor',
   Pagination_fragment_backwards_cursor: '/pagination/fragment/backwards-cursor',
-  Pagination_fragment_offset: '/pagination/fragment/offset'
+  Pagination_fragment_offset: '/pagination/fragment/offset',
+
+  Stores_subunsub_list: '/stores/subunsub-list',
+  Stores_subunsub_mutation: '/stores/subunsub-mutation'
 };

@@ -1,0 +1,6 @@
+query UsersListSubUnSub {
+  usersList(limit: 4, snapshot: "store-user-subunsub") {
+    id
+    name
+  }
+}

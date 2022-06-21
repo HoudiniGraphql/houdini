@@ -66,23 +66,39 @@ export async function expectNGraphQLResponse(
   let nbRequest = 0;
   let nbResponse = 0;
   const listStr: string[] = [];
-  page.on('request', (request) => {
+
+  function fnReq(request: any) {
     // console.log('>>', request.method(), request.url());
     nbRequest++;
-  });
-  page.on('response', async (response) => {
+  }
+
+  async function fnRes(response: any) {
     // console.log('<<', response.status(), response.url());
     nbResponse++;
     const json = await response.json();
     const str = stry(json, 0);
     listStr.push(str as string);
-  });
+  }
 
+  // Listen
+  page.on('request', fnReq);
+  page.on('response', fnRes);
+
+  // Trigger the action
   selector ? (action === 'click' ? page.click(selector) : page.hover(selector)) : null;
+
+  // Wait a bit...
   await sleep(2111);
 
+  // Remoe listeners
+  page.removeListener('request', fnReq);
+  page.removeListener('response', fnRes);
+
+  // Check if numbers are ok
   expect(nbRequest, 'nbRequest').toBe(n);
   expect(nbResponse, 'nbResponse').toBe(n);
+
+  // Sort and return!
   return listStr.sort();
 }
 

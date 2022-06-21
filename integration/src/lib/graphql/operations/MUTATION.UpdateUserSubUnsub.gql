@@ -1,0 +1,6 @@
+mutation UpdateUserSubUnsub($id: ID!, $name: String) {
+  updateUser(id: $id, name: $name, snapshot: "store-user-subunsub") {
+    id
+    name
+  }
+}
