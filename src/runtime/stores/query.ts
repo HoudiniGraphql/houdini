@@ -70,6 +70,9 @@ export function queryStore<_Data, _Input>({
 	let latestSource: DataSource | null = null
 	let latestPartial: boolean | null = false
 
+	// Track the fetching state
+	let isFetching = false
+
 	// Perform the actual load
 	async function load(
 		context: FetchContext,
@@ -82,9 +85,15 @@ export function queryStore<_Data, _Input>({
 			hasLoaded = true
 		}
 
+		// We are already fetching... don't fetch again.
+		if (isFetching) {
+			return
+		}
+
 		if (withStoreSync) {
+			isFetching = true
 			update((c) => {
-				return { ...c, isFetching: true }
+				return { ...c, isFetching }
 			})
 		}
 
@@ -105,9 +114,10 @@ export function queryStore<_Data, _Input>({
 		})
 
 		if (withStoreSync) {
+			isFetching = false
 			update((s) => ({
 				...s,
-				isFetching: false,
+				isFetching,
 			}))
 		}
 
@@ -117,10 +127,11 @@ export function queryStore<_Data, _Input>({
 
 		if (result.errors && result.errors.length > 0) {
 			if (withStoreSync) {
+				isFetching = false
 				update((s) => ({
 					...s,
 					errors: result.errors,
-					isFetching: false,
+					isFetching,
 					partial: false,
 					data: result.data as _Data,
 					source,
@@ -171,10 +182,11 @@ export function queryStore<_Data, _Input>({
 		}
 
 		// return the value to the caller
+		isFetching = false
 		const storeValue = {
 			data: unmarshalSelection(config, artifact.selection, result.data)! as _Data,
 			errors: null,
-			isFetching: false,
+			isFetching,
 			partial: partial,
 			source: source,
 			variables: newVariables,
