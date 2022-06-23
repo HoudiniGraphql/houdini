@@ -120,7 +120,7 @@ export type MutationResult<_Data, _Input> = {
 	variables: _Input | null
 }
 
-export type QueryStoreParams<_Input> = {
+export type QueryStoreFetchParams<_Input> = {
 	variables?: _Input
 	policy?: CachePolicy
 
@@ -163,8 +163,8 @@ export type QueryStoreParams<_Input> = {
 )
 
 export type HoudiniFetchContext = {
-	url: URL
-	session: Readable<any>
+	url: () => URL
+	session: () => any
 	variables: () => {}
 	stuff: App.Stuff
 }
@@ -195,14 +195,9 @@ export type FragmentStore<_Shape> = {
 
 export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data, _Input>> & {
 	/**
-	 * prefetch the data in a load function
+	 * Fetch the data from the server
 	 */
-	prefetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
-
-	/**
-	 * Synchronize data with prefetch values or fetch them if they are not yet here.
-	 */
-	fetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
+	fetch: (params?: QueryStoreFetchParams<_Input>) => Promise<QueryResult<_Data, _Input>>
 }
 
 // the result of tagging an operation

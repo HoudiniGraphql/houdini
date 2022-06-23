@@ -27,13 +27,14 @@ export default async function generateAdapter(config: Config) {
 }
 
 const sapperAdapter = `import { stores, goto as go } from '@sapper/app'
+import { get } from 'svelte/store';
 
 export function getSession() {
-    return stores().session
+    return get(stores().session)
 }
 
 export function getPage() {
-	return stores().page
+	return get(stores().page)
 }
 
 export function goTo(location, options) {

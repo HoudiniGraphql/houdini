@@ -141,7 +141,6 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 		// @ts-ignore
 		context: fetchCtx,
 		artifact,
-		session,
 		variables,
 		cached,
 	})
@@ -205,13 +204,11 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	context,
 	artifact,
 	variables,
-	session,
 	cached = true,
 }: {
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
 	variables: {}
-	session?: FetchSession
 	cached?: boolean
 }): Promise<FetchQueryResult<_Data>> {
 	// grab the current environment
@@ -276,7 +273,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 		result: await environment.sendRequest<_Data>(
 			context,
 			{ text: artifact.raw, hash: artifact.hash, variables },
-			session
+			context.session
 		),
 		source: DataSource.Network,
 		partial: false,

@@ -2,6 +2,7 @@
 // this file just exists for type checking
 
 import type { Page } from '@sveltejs/kit'
+import type { Readable } from 'svelte/store'
 
 // the actual contents of this file gets overwritten by the runtime generator
 export function getSession(): any | null {

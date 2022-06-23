@@ -6,7 +6,7 @@
 		"lib": ["esnext", "dom"],
 		"skipLibCheck": true,
 		"downlevelIteration": true,
-		"target": "es5",
+		"target": "es2020",
 		"sourceMap": true,
 		"declaration": false,
 		"moduleResolution": "node",
