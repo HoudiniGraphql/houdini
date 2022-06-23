@@ -1,13 +1,13 @@
 // externals
 import { logCyan, logRed, logYellow, stry } from '@kitql/helper'
 import { get, Readable, Writable, writable } from 'svelte/store'
+// internals
 import { CachePolicy, DataSource, fetchQuery, QueryStore } from '..'
 import { clientStarted, isBrowser } from '../adapter'
 import cache from '../cache'
 import {
 	FetchContext,
 	getHoudiniContext,
-	HoudiniFetchContext,
 	QueryResult,
 	QueryStoreFetchParams,
 	SubscriptionSpec,
@@ -257,7 +257,7 @@ function fetchContext<_Data, _Input>(
 
     export async function load(${logYellow('event')}: LoadEvent) {
 			const variables = { ... };
-      await ${logCyan(storeName)}.prefetch({ ${logYellow('event')}, variables });
+      await ${logCyan(storeName)}.fetch({ ${logYellow('event')}, variables });
       return { props: { variables } };
     }
   </script> 

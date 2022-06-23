@@ -10,8 +10,8 @@
     const variables1 = { id: '1' };
     const variables5 = { id: '5' };
 
-    await u1.prefetch({ event, variables: variables1 });
-    await u5.prefetch({ event, variables: variables5 });
+    await u1.fetch({ event, variables: variables1 });
+    await u5.fetch({ event, variables: variables5 });
 
     return { props: { variables1, variables5 } };
   }

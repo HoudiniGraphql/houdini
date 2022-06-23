@@ -239,8 +239,18 @@ export type ListWhen = {
 }
 
 export enum DataSource {
+	/**
+	 * from the browser cache
+	 */
 	Cache = 'cache',
+	/**
+	 * from a browser side `fetch`
+	 */
 	Network = 'network',
+	/**
+	 * from a server side `fetch`
+	 */
+	Ssr = 'ssr',
 }
 
 export type MutationOperation = {

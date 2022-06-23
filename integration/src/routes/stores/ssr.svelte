@@ -4,15 +4,15 @@
   import type { LoadEvent } from '@sveltejs/kit';
 
   export async function load(event: LoadEvent) {
-    await GQL_usersList.prefetch({ event });
-    await GQL_Hello.prefetch({ event });
+    await GQL_usersList.fetch({ event });
+    await GQL_Hello.fetch({ event });
     return {};
   }
 </script>
 
 <script lang="ts">
-  $: browser && GQL_usersList.fetch();
-  $: browser && GQL_Hello.fetch();
+  // $: browser && GQL_usersList.fetch();
+  // $: browser && GQL_Hello.fetch();
 </script>
 
 <h1>SSR</h1>

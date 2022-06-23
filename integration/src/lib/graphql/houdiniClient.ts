@@ -2,7 +2,7 @@ import { HoudiniClient } from '$houdini';
 
 // For Query & Mutation
 async function fetchQuery({ text = '', variables = {} }, session: App.Session) {
-  //  eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const result = await this.fetch('http://localhost:4000/graphql', {
     method: 'POST',
@@ -16,7 +16,10 @@ async function fetchQuery({ text = '', variables = {} }, session: App.Session) {
     })
   });
 
-  return await result.json();
+  return {
+    url: result.url,
+    json: await result.json()
+  };
 }
 
 // Export the Houdini client

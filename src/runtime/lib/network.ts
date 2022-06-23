@@ -16,10 +16,13 @@ import cache from '../cache'
 import { Page } from '@sveltejs/kit'
 
 export class HoudiniClient {
-	private fetch: RequestHandler<any>
+	private fetch: RequestHandler<RequestPayloadMagic>
 	socket: SubscriptionHandler | null | undefined
 
-	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
+	constructor(
+		networkFn: RequestHandler<RequestPayloadMagic>,
+		subscriptionHandler?: SubscriptionHandler | null
+	) {
 		this.fetch = networkFn
 		this.socket = subscriptionHandler
 	}
@@ -99,6 +102,11 @@ type GraphQLError = {
 	message: string
 }
 
+export type RequestPayloadMagic<_Data = any> = {
+	url: string
+	json: RequestPayload<_Data>
+}
+
 export type RequestPayload<_Data = any> = {
 	data: _Data
 	errors: {
@@ -110,7 +118,7 @@ export type RequestHandler<_Data> = (
 	this: FetchContext,
 	params: FetchParams,
 	session?: FetchSession
-) => Promise<RequestPayload<_Data>>
+) => Promise<RequestPayloadMagic<_Data>>
 
 // This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
@@ -269,13 +277,14 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	}
 
 	// the request must be resolved against the network
+	const resMagic = await environment.sendRequest<_Data>(
+		context,
+		{ text: artifact.raw, hash: artifact.hash, variables },
+		context.session
+	)
 	return {
-		result: await environment.sendRequest<_Data>(
-			context,
-			{ text: artifact.raw, hash: artifact.hash, variables },
-			context.session
-		),
-		source: DataSource.Network,
+		result: resMagic.json,
+		source: resMagic.url === '' ? DataSource.Ssr : DataSource.Network,
 		partial: false,
 	}
 }
