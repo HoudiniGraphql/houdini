@@ -1,9 +1,7 @@
 // externals
 import { logCyan, logRed, logYellow, stry } from '@kitql/helper'
-import { onMount } from 'svelte'
 import { get, Readable, Writable, writable } from 'svelte/store'
 import { CachePolicy, DataSource, fetchQuery, QueryStore } from '..'
-import { ItemEntry_item$data } from '../../../example/$houdini'
 import { clientStarted, isBrowser } from '../adapter'
 import cache from '../cache'
 import {
@@ -18,22 +16,6 @@ import { PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import type { ConfigFile } from '../lib/types'
 import { QueryArtifact } from '../lib/types'
-
-function transformParam<_Input>(artifact: QueryArtifact, params?: QueryStoreFetchParams<_Input>) {
-	// params management
-	params = params ?? {}
-
-	if (!params.context) {
-		params.context = {} as HoudiniFetchContext
-	}
-
-	// If no policy specified => artifact.policy, if there is nothing go to CacheOrNetwork
-	if (!params.policy) {
-		params.policy = artifact.policy ?? CachePolicy.CacheOrNetwork
-	}
-
-	return params
-}
 
 // A query store has 3 different flows it has to deal with:
 // - Server-Rendered Request:
