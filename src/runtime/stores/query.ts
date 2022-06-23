@@ -226,6 +226,11 @@ export function queryStore<_Data, _Input>({
 
 		// if we have event, it's safe to assume this is inside of a load function
 		if (params.event) {
+			if (!isBrowser) {
+				// we are now tracking the new set of variables
+				tracking = params.variables
+			}
+
 			// we're in a `load` function, use the event params
 			const loadPromise = load(params.event, params, true, false)
 
@@ -245,11 +250,14 @@ export function queryStore<_Data, _Input>({
 				stuff: params.context?.stuff!,
 			}
 
+			// update the tracker
+			tracking = { ...variables, ...params.variables }
+
 			return await load(
 				context,
 				{
 					...params,
-					variables: { ...variables, ...params.variables } as _Input,
+					variables: tracking as _Input,
 				},
 				false,
 				true
@@ -358,16 +366,14 @@ export function queryStore<_Data, _Input>({
 				throw new Error('Error, check above logs for help.')
 			}
 
+			// if the variables haven't changed and we weren't told to only fetch from the network
+			if (stry(params?.variables) === stry(tracking) && !params.force) {
+				console.log('abort')
+				return
+			}
+
 			// fetch the new data, update subscribers, etc.
-			fetchData({
-				// if the variables haven't changed, make sure we grab the latest data from the cache
-				// unless the user has specified policy
-				policy:
-					stry(params?.variables) === stry(tracking)
-						? CachePolicy.CacheOnly
-						: params.policy,
-				...params,
-			})
+			fetchData(params)
 
 			// we are now tracking the new set of variables
 			tracking = params?.variables

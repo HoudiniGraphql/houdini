@@ -130,6 +130,12 @@ export type QueryStoreParams<_Input> = {
 	 * transitions to pause while loading data.
 	 */
 	blocking?: boolean
+
+	/**
+	 * By default, fetch will not load new data if the provided variables match the last time it was called.
+	 * Setting force to true will cause fetch() to always load new data.
+	 */
+	force?: boolean
 } & (
 	| {
 			/**
