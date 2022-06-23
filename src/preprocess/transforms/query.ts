@@ -274,36 +274,11 @@ function addKitLoad({
 
 	const preloadFn = AST.functionDeclaration(
 		AST.identifier('load'),
-		[AST.identifier('context')],
+		[AST.identifier('event')],
 		// return an object
 		AST.blockStatement([
 			AST.returnStatement(
-				AST.objectExpression([
-					AST.spreadElement(
-						AST.memberExpression(requestContext, AST.identifier('returnValue'))
-					),
-					AST.objectProperty(
-						AST.identifier('props'),
-						AST.objectExpression([
-							AST.spreadElement(
-								AST.memberExpression(
-									AST.memberExpression(
-										requestContext,
-										AST.identifier('returnValue')
-									),
-									AST.identifier('props')
-								)
-							),
-							...queries.map((query) => {
-								const identifier = AST.identifier(
-									variablesKey(query.parsedDocument.definitions[0])
-								)
-
-								return AST.objectProperty(identifier, identifier)
-							}),
-						])
-					),
-				])
+				AST.memberExpression(requestContext, AST.identifier('returnValue'))
 			),
 		])
 	)
@@ -326,7 +301,7 @@ function addKitLoad({
 		AST.variableDeclaration('const', [
 			AST.variableDeclarator(
 				requestContext,
-				AST.newExpression(AST.identifier('RequestContext'), [AST.identifier('context')])
+				AST.newExpression(AST.identifier('RequestContext'), [AST.identifier('event')])
 			),
 		])
 	)
@@ -412,17 +387,14 @@ function addKitLoad({
 		}
 
 		const fetchCall = AST.callExpression(
-			AST.memberExpression(
-				storeIdentifiers[document.artifact.name],
-				AST.identifier('prefetch')
-			),
+			AST.memberExpression(storeIdentifiers[document.artifact.name], AST.identifier('fetch')),
 			[
 				AST.objectExpression([
 					AST.objectProperty(
 						AST.literal('variables'),
 						AST.identifier(variableIdentifier)
 					),
-					AST.objectProperty(AST.literal('event'), AST.identifier('context')),
+					AST.objectProperty(AST.literal('event'), AST.identifier('event')),
 					AST.objectProperty(
 						AST.literal('blocking'),
 						AST.booleanLiteral(!!afterLoadDefinition)
@@ -670,129 +642,128 @@ function processInstance({
 
 	const contextIdentifier = AST.identifier('_houdini_context_generated_DONT_USE')
 
-	// pull out the houdini context
-	script.content.body.splice(
-		propInsertIndex,
-		0,
-		// @ts-expect-error
-		AST.variableDeclaration('const', [
-			AST.variableDeclarator(
-				contextIdentifier,
-				AST.callExpression(AST.identifier('getHoudiniContext'), [])
-			),
-		])
-	)
-
-	// increment the insert counter so context variable is defined
-	propInsertIndex++
-
-	// add the necessary bits for every query in the page
-	for (const query of queries) {
-		const operation = query.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
-		const inputPropName = variablesKey(operation)
-		const name = operation.name!.value
-
-		let variableDeclaration: recast.types.namedTypes.Statement
-		// in a route component, the variables are a prop
-		if (isRoute) {
-			variableDeclaration = AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [
-					AST.variableDeclarator(AST.identifier(inputPropName), AST.objectExpression([])),
-				])
-			)
-		}
-		// if we are processing a non-route, we need to label the variable and compute it in the component body
-		else if (hasVariables[name]) {
-			ensureImports({
-				config,
-				body: script.content.body,
-				import: ['marshalInputs'],
-				sourceModule: '$houdini/runtime/lib/scalars',
-			})
-
-			variableDeclaration = AST.labeledStatement(
-				AST.identifier('$'),
-				//
-				AST.expressionStatement(
-					AST.assignmentExpression(
-						'=',
-						AST.identifier(inputPropName),
-						AST.callExpression(AST.identifier('marshalInputs'), [
-							AST.objectExpression([
-								AST.objectProperty(
-									AST.identifier('config'),
-									AST.identifier('houdiniConfig')
-								),
-								AST.objectProperty(
-									AST.identifier('artifact'),
-									AST.identifier(artifactImportIDs[name])
-								),
-								AST.objectProperty(
-									AST.identifier('input'),
-									AST.callExpression(
-										AST.memberExpression(
-											AST.identifier(queryInputFunction(name)),
-											AST.identifier('call')
-										),
-										[
-											contextIdentifier,
-											AST.objectExpression([
-												AST.objectProperty(
-													AST.identifier('props'),
-													AST.identifier('$$props')
-												),
-												AST.objectProperty(
-													AST.identifier('session'),
-													AST.memberExpression(
-														contextIdentifier,
-														AST.identifier('session')
-													)
-												),
-											]),
-										]
-									)
-								),
-							]),
-						])
-					)
-				)
-			)
-		}
-		// a component query without variables just uses an empty object as input
-		else {
-			variableDeclaration = AST.variableDeclaration('let', [
-				AST.variableDeclarator(AST.identifier(inputPropName), AST.objectExpression([])),
-			])
-		}
-
-		// make sure we have a prop for every input
+	// process any component queries
+	if (!isRoute) {
+		// pull out the houdini context
 		script.content.body.splice(
-			propInsertIndex + 1,
+			propInsertIndex,
 			0,
-			// @ts-expect-error: recast does not mesh with babel's comment AST. ignore it.
-			variableDeclaration,
-			AST.labeledStatement(
-				AST.identifier('$'),
-				AST.expressionStatement(
-					AST.logicalExpression(
-						'&&',
-						AST.identifier('isBrowser'),
-						AST.callExpression(
-							AST.memberExpression(storeIdentifiers[name], AST.identifier('fetch')),
-							[
+			// @ts-expect-error
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					contextIdentifier,
+					AST.callExpression(AST.identifier('getHoudiniContext'), [])
+				),
+			])
+		)
+
+		// increment the insert counter so context variable is defined
+		propInsertIndex++
+
+		for (const query of queries) {
+			const operation = query.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+			const inputPropName = variablesKey(operation)
+			const name = operation.name!.value
+			let variableDeclaration: recast.types.namedTypes.Statement
+			// if we are processing a non-route, we need to label the variable and compute it in the component body
+			if (hasVariables[name]) {
+				ensureImports({
+					config,
+					body: script.content.body,
+					import: ['marshalInputs'],
+					sourceModule: '$houdini/runtime/lib/scalars',
+				})
+
+				variableDeclaration = AST.labeledStatement(
+					AST.identifier('$'),
+					//
+					AST.expressionStatement(
+						AST.assignmentExpression(
+							'=',
+							AST.identifier(inputPropName),
+							AST.callExpression(AST.identifier('marshalInputs'), [
 								AST.objectExpression([
 									AST.objectProperty(
-										AST.literal('variables'),
-										AST.identifier(inputPropName)
+										AST.identifier('config'),
+										AST.identifier('houdiniConfig')
 									),
-									AST.objectProperty(AST.literal('context'), contextIdentifier),
+									AST.objectProperty(
+										AST.identifier('artifact'),
+										AST.identifier(artifactImportIDs[name])
+									),
+									AST.objectProperty(
+										AST.identifier('input'),
+										AST.callExpression(
+											AST.memberExpression(
+												AST.identifier(queryInputFunction(name)),
+												AST.identifier('call')
+											),
+											[
+												contextIdentifier,
+												AST.objectExpression([
+													AST.objectProperty(
+														AST.identifier('props'),
+														AST.identifier('$$props')
+													),
+													AST.objectProperty(
+														AST.identifier('session'),
+														AST.memberExpression(
+															contextIdentifier,
+															AST.identifier('session')
+														)
+													),
+												]),
+											]
+										)
+									),
 								]),
-							]
+							])
+						)
+					)
+				)
+			}
+			// a component query without variables just uses an empty object as input
+			else {
+				variableDeclaration = AST.variableDeclaration('let', [
+					AST.variableDeclarator(AST.identifier(inputPropName), AST.objectExpression([])),
+				])
+			}
+
+			// make sure we have a prop for every input
+			script.content.body.splice(
+				propInsertIndex + 1,
+				0,
+				// @ts-expect-error: recast does not mesh with babel's comment AST. ignore it.
+				variableDeclaration,
+				AST.labeledStatement(
+					AST.identifier('$'),
+					AST.expressionStatement(
+						AST.logicalExpression(
+							'&&',
+							AST.identifier('isBrowser'),
+							AST.callExpression(
+								AST.memberExpression(
+									storeIdentifiers[name],
+									AST.identifier('fetch')
+								),
+								[
+									AST.objectExpression([
+										AST.objectProperty(
+											AST.literal('variables'),
+											AST.identifier(inputPropName)
+										),
+										AST.objectProperty(
+											AST.literal('context'),
+											contextIdentifier
+										),
+									]),
+								]
+							)
 						)
 					)
 				)
 			)
-		)
+		}
 	}
 }
 
