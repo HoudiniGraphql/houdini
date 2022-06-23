@@ -39,7 +39,7 @@ export function mutationStore<_Data, _Input>({
 		})
 
 		// grab the session from the adapter
-		const sessionStore: Readable<any> | null = fetchContext?.session || null
+		const sessionStore: Readable<any> | null = fetchContext?.session?.() || null
 
 		// treat a mutation like it has an optimistic layer regardless of
 		// whether there actually _is_ one. This ensures that a query which fires

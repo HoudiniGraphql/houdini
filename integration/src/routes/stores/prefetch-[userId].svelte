@@ -7,19 +7,10 @@
 
   export async function load(event: LoadEvent) {
     const variables = { id: event.params.userId };
-    await GQL_User.prefetch({ event, variables });
-    return {
-      props: {
-        variables
-      }
-    };
+    await GQL_User.fetch({ event, variables });
+
+    return {};
   }
-</script>
-
-<script lang="ts">
-  export let variables: User$input;
-
-  $: browser && GQL_User.fetch({ variables });
 </script>
 
 <h1>SSR - [userId: {$page.params.userId}]</h1>
