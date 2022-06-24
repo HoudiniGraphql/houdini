@@ -368,7 +368,7 @@ async function fetchAndCache<_Data, _Input>({
 			store.set({
 				data: (unmarshaledData || {}) as _Data,
 				variables: variables || ({} as _Input),
-				errors: request.result.errors,
+				errors: null,
 				isFetching: false,
 				partial: request.partial,
 				source: request.source,
