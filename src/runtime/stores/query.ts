@@ -37,10 +37,6 @@ import { QueryArtifact } from '../lib/types'
 //   happens during navigation
 
 // Questions:
-// - We can run into issues if the load is not blocking when navigating to a route on their browser.
-//   When that happens, the CSF will try to read from the cache once the non-blocking load is done. It won't be able
-//   to find the data so it will send out a request while the load's is still pending resulting in two requests.
-//
 // - Can we detect the first CSF by checking if the variable counter is null and there is a load function? Does that
 //   mean we can remove the ssr source?
 //
@@ -101,12 +97,16 @@ export function queryStore<_Data, _Input>({
 
 		// make sure we subscribe to the new values
 		cache.subscribe(subscriptionSpec, newVariables)
+
+		// track the newVariables
+		lastVariables = newVariables
 	}
 
 	// a function to fetch data (the root of the behavior tree described above)
 	async function fetch(
 		args?: QueryStoreFetchParams<_Input>
 	): Promise<QueryResult<_Data, _Input>> {
+		console.log({ loadPending })
 		// validate and prepare the request context for the current environment (client vs server)
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
 
@@ -114,8 +114,13 @@ export function queryStore<_Data, _Input>({
 		const isLoadFetch = Boolean(params?.event)
 		const isComponentFetch = !isLoadFetch
 
-		// a component fetch is _always_ blocking
+		// if there is a pending load, don't do anything
+		if (loadPending && isComponentFetch) {
+			return get(store)
+		}
+
 		if (isComponentFetch) {
+			// a component fetch is _always_ blocking
 			params.blocking = true
 		}
 
@@ -155,9 +160,6 @@ export function queryStore<_Data, _Input>({
 			console.log('blocked CSF')
 			blockNextCSF = false
 
-			// track the newVariables
-			lastVariables = newVariables
-
 			// make sure we return before the fetch happens
 			return get(store)
 		}
@@ -178,6 +180,7 @@ export function queryStore<_Data, _Input>({
 			isLoadFetch,
 			isBrowser,
 			lastVariables,
+			newVariables,
 			variableChange,
 			blocking: !fakeAwait,
 		})
@@ -191,13 +194,14 @@ export function queryStore<_Data, _Input>({
 			store,
 			updateStore,
 			cached: policy !== CachePolicy.NetworkOnly,
+			setLoadPending: (val) => (loadPending = val),
 		})
 
-		// we're done
-		loadPending = false
+		console.log('resetting loadPending')
 
 		// if we weren't told to block we're done (only valid for a client-side request)
 		if (fakeAwait) {
+			console.log('returning from fake await')
 			return get(store)
 		}
 
@@ -324,6 +328,7 @@ async function fetchAndCache<_Data, _Input>({
 	updateStore,
 	cached,
 	ignoreFollowup,
+	setLoadPending,
 }: {
 	config: ConfigFile
 	context: FetchContext
@@ -333,6 +338,7 @@ async function fetchAndCache<_Data, _Input>({
 	updateStore: boolean
 	cached: boolean
 	ignoreFollowup?: boolean
+	setLoadPending: (pending: boolean) => void
 }) {
 	const request = await fetchQuery({
 		context,
@@ -341,6 +347,9 @@ async function fetchAndCache<_Data, _Input>({
 		cached,
 	})
 	const { result, source, partial } = request
+
+	// we're done
+	setLoadPending(false)
 
 	if (result.data) {
 		// update the cache with the data that we just ran into
@@ -397,6 +406,7 @@ async function fetchAndCache<_Data, _Input>({
 				cached: false,
 				updateStore,
 				ignoreFollowup: true,
+				setLoadPending,
 			})
 		}
 		// if we have a partial result and we can load the rest of the data
@@ -411,6 +421,7 @@ async function fetchAndCache<_Data, _Input>({
 				cached: false,
 				updateStore,
 				ignoreFollowup: true,
+				setLoadPending,
 			})
 		}
 	}

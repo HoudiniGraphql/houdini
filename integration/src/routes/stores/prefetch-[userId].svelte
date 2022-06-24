@@ -32,7 +32,7 @@
   $: isBrowser && GQL_User.fetch({ variables });
 </script>
 
-<h1>SSR - [userId: {$page.params.userId}]</h1>
+<h1>Prefetch - [userId: {$page.params.userId}]</h1>
 <!-- {$navigating} -->
 <a sveltekit:prefetch id="previous" href="/stores/prefetch-1">Previous</a>
 <a sveltekit:prefetch id="current" href="/stores/prefetch-2">Current (n° 2)</a>

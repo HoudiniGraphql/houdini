@@ -5,7 +5,7 @@
 
   export async function load(event: LoadEvent) {
     await GQL_usersList.fetch({ event });
-    await GQL_Hello.fetch({ event });
+    // await GQL_Hello.fetch({ event });
     return {};
   }
 </script>
