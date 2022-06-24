@@ -1,4 +1,5 @@
 <script context="module">
+  import { navigating } from '$app/stores';
   import { houdiniClient } from '$lib/graphql/houdiniClient';
   import { routes } from '$lib/utils/routes';
 

@@ -7,7 +7,7 @@
 
   export async function load(event: LoadEvent) {
     const variables = { id: event.params.userId, tmp: false };
-    await GQL_User.prefetch({ event, variables });
+    await GQL_User.fetch({ event, variables });
     return { props: { variables } };
   }
 </script>

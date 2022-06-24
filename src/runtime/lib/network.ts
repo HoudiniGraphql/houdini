@@ -16,16 +16,46 @@ import cache from '../cache'
 import { Page } from '@sveltejs/kit'
 
 export class HoudiniClient {
-	private fetch: RequestHandler<any>
+	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
 
 	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
-		this.fetch = networkFn
+		this.fetchFn = networkFn
 		this.socket = subscriptionHandler
 	}
 
-	sendRequest<_Data>(ctx: FetchContext, params: FetchParams, session?: FetchSession) {
-		return this.fetch.call(ctx, params, session)
+	async sendRequest<_Data>(
+		ctx: FetchContext,
+		params: FetchParams,
+		session?: FetchSession
+	): Promise<RequestPayloadMagic<_Data>> {
+		let url = ''
+
+		// wrap the user's fetch function so we can identify SSR by checking
+		// the response.url
+		const wrapper = async (...args: Parameters<FetchContext['fetch']>) => {
+			const response = await ctx.fetch(...args)
+			if (response.url) {
+				url = response.url
+			}
+
+			return response
+		}
+
+		// invoke the function
+		const result = await this.fetchFn.call(
+			{
+				...ctx,
+				fetch: wrapper,
+			},
+			params,
+			session
+		)
+
+		return {
+			json: result,
+			url,
+		}
 	}
 
 	init() {
@@ -99,6 +129,11 @@ type GraphQLError = {
 	message: string
 }
 
+export type RequestPayloadMagic<_Data = any> = {
+	url: string
+	json: RequestPayload<_Data>
+}
+
 export type RequestPayload<_Data = any> = {
 	data: _Data
 	errors: {
@@ -141,7 +176,6 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 		// @ts-ignore
 		context: fetchCtx,
 		artifact,
-		session,
 		variables,
 		cached,
 	})
@@ -205,13 +239,11 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	context,
 	artifact,
 	variables,
-	session,
 	cached = true,
 }: {
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
 	variables: {}
-	session?: FetchSession
 	cached?: boolean
 }): Promise<FetchQueryResult<_Data>> {
 	// grab the current environment
@@ -272,13 +304,14 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	}
 
 	// the request must be resolved against the network
+	const resMagic = await environment.sendRequest<_Data>(
+		context,
+		{ text: artifact.raw, hash: artifact.hash, variables },
+		context.session
+	)
 	return {
-		result: await environment.sendRequest<_Data>(
-			context,
-			{ text: artifact.raw, hash: artifact.hash, variables },
-			session
-		),
-		source: DataSource.Network,
+		result: resMagic.json,
+		source: resMagic.url === '' ? DataSource.Ssr : DataSource.Network,
 		partial: false,
 	}
 }

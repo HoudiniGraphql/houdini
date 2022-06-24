@@ -35,7 +35,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await store_TestQueryStore.prefetch({
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": false
@@ -197,7 +197,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery2Promise = store_TestQuery2Store.prefetch({
+		    const _TestQuery2Promise = store_TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
 		        "blocking": false
@@ -209,7 +209,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery1Promise = store_TestQuery1Store.prefetch({
+		    const _TestQuery1Promise = store_TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": false
@@ -325,7 +325,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await store_TestQueryStore.prefetch({
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": false
@@ -404,7 +404,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await store_TestQueryStore.prefetch({
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": false
@@ -780,7 +780,7 @@ test('beforeLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await store_TestQueryStore.prefetch({
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": false
@@ -871,7 +871,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery2Promise = store_TestQuery2Store.prefetch({
+		    const _TestQuery2Promise = store_TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
 		        "blocking": false
@@ -883,7 +883,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery1Promise = store_TestQuery1Store.prefetch({
+		    const _TestQuery1Promise = store_TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": false
@@ -967,7 +967,7 @@ test('afterLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await store_TestQueryStore.prefetch({
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true
@@ -1065,7 +1065,7 @@ test('afterLoad hook - multiple queries', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery2Promise = store_TestQuery2Store.prefetch({
+		    const _TestQuery2Promise = store_TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
 		        "blocking": true
@@ -1077,7 +1077,7 @@ test('afterLoad hook - multiple queries', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery1Promise = store_TestQuery1Store.prefetch({
+		    const _TestQuery1Promise = store_TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": true
@@ -1191,7 +1191,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await store_TestQueryStore.prefetch({
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true

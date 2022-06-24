@@ -13,7 +13,7 @@ test.describe('prefetch-[userId] Page', () => {
     await expectNoGraphQLRequest(page);
 
     const dataDisplayedCache =
-      '{"data":{"user":{"id":"store-user-query:2","name":"Samuel Jackson"}},"errors":null,"isFetching":false,"partial":false,"source":"cache","variables":{"id":"2"}}';
+      '{"data":{"user":{"id":"store-user-query:2","name":"Samuel Jackson"}},"errors":null,"isFetching":false,"partial":false,"source":"network","variables":{"id":"2"}}';
 
     // The page should have the right data directly
     await expectToBe(page, dataDisplayedCache);

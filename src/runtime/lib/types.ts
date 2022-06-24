@@ -120,8 +120,14 @@ export type MutationResult<_Data, _Input> = {
 	variables: _Input | null
 }
 
-export type QueryStoreParams<_Input> = {
+export type QueryStoreFetchParams<_Input> = {
 	variables?: _Input
+
+	/**
+	 * The policy to use when performing the fetch. If set to CachePolicy.NetworkOnly,
+	 * a request will always be sent, even if the variables are the same as the last call
+	 * to fetch.
+	 */
 	policy?: CachePolicy
 
 	/**
@@ -157,8 +163,8 @@ export type QueryStoreParams<_Input> = {
 )
 
 export type HoudiniFetchContext = {
-	url: URL
-	session: Readable<any>
+	url: () => Readable<URL> | null
+	session: () => Readable<any> | null
 	variables: () => {}
 	stuff: App.Stuff
 }
@@ -189,14 +195,9 @@ export type FragmentStore<_Shape> = {
 
 export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data, _Input>> & {
 	/**
-	 * prefetch the data in a load function
+	 * Fetch the data from the server
 	 */
-	prefetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
-
-	/**
-	 * Synchronize data with prefetch values or fetch them if they are not yet here.
-	 */
-	fetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
+	fetch: (params?: QueryStoreFetchParams<_Input>) => Promise<QueryResult<_Data, _Input>>
 }
 
 // the result of tagging an operation
@@ -238,8 +239,18 @@ export type ListWhen = {
 }
 
 export enum DataSource {
+	/**
+	 * from the browser cache
+	 */
 	Cache = 'cache',
+	/**
+	 * from a browser side `fetch`
+	 */
 	Network = 'network',
+	/**
+	 * from a server side `fetch`
+	 */
+	Ssr = 'ssr',
 }
 
 export type MutationOperation = {

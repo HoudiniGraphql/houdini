@@ -412,10 +412,7 @@ function addKitLoad({
 		}
 
 		const fetchCall = AST.callExpression(
-			AST.memberExpression(
-				storeIdentifiers[document.artifact.name],
-				AST.identifier('prefetch')
-			),
+			AST.memberExpression(storeIdentifiers[document.artifact.name], AST.identifier('fetch')),
 			[
 				AST.objectExpression([
 					AST.objectProperty(
@@ -426,6 +423,7 @@ function addKitLoad({
 					AST.objectProperty(
 						AST.literal('blocking'),
 						AST.booleanLiteral(!!afterLoadDefinition)
+						// AST.booleanLiteral(true)
 					),
 				]),
 			]

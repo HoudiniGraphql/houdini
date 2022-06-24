@@ -5,7 +5,7 @@ import cache from '../cache'
 import { executeQuery } from './network'
 import { GraphQLObject, QueryArtifact } from './types'
 // this has to be in a separate file since config isn't defined in cache/index.ts
-import { FragmentStore, QueryResult, QueryStore, QueryStoreParams } from '..'
+import { FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams } from '..'
 import { getHoudiniContext } from './context'
 import { ConfigFile, keyFieldsForType } from './config'
 import { LoadContext } from './types'
@@ -13,7 +13,7 @@ import { countPage, extractPageInfo } from './utils'
 import { stry } from '@kitql/helper'
 
 type RefetchFn<_Data = any, _Input = any> = (
-	params?: QueryStoreParams<_Input>
+	params?: QueryStoreFetchParams<_Input>
 ) => Promise<QueryResult<_Data, _Input>>
 
 export function wrapPaginationStore<_Data, _Input>(
@@ -366,7 +366,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			})
 		},
 		pageInfo: { subscribe: pageInfo.subscribe },
-		async refetch(params?: QueryStoreParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+		async refetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = params ?? {}
 
 			// build up the variables to pass to the query
@@ -497,7 +497,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 			// we're not loading any more
 			loading.set(false)
 		},
-		async refetch(params?: QueryStoreParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+		async refetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = params ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal

@@ -6,7 +6,7 @@
 
   export async function load(event: LoadEvent) {
     const variables = { limit: 5 };
-    await GQL_usersList.prefetch({ event, variables });
+    await GQL_usersList.fetch({ event, variables });
     return { props: { variables } };
   }
 </script>
@@ -14,7 +14,7 @@
 <script lang="ts">
   export let variables: usersList$input;
 
-  $: browser && GQL_usersList.prefetch({ variables });
+  $: browser && GQL_usersList.fetch({ variables });
 
   async function update() {
     await GQL_UpdateUser.mutate({
