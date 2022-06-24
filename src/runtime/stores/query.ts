@@ -106,13 +106,17 @@ export function queryStore<_Data, _Input>({
 	async function fetch(
 		args?: QueryStoreFetchParams<_Input>
 	): Promise<QueryResult<_Data, _Input>> {
-		console.log({ loadPending })
 		// validate and prepare the request context for the current environment (client vs server)
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean(params?.event)
 		const isComponentFetch = !isLoadFetch
+
+		// detect if there is a load function that fires before the first CSF
+		if (isLoadFetch && lastVariables === null && Boolean(args?.event)) {
+			blockNextCSF = true
+		}
 
 		// if there is a pending load, don't do anything
 		if (loadPending && isComponentFetch) {
@@ -157,7 +161,6 @@ export function queryStore<_Data, _Input>({
 				(!variableChange && params.policy !== CachePolicy.NetworkOnly) ||
 				loadPending)
 		) {
-			console.log('blocked CSF')
 			blockNextCSF = false
 
 			// make sure we return before the fetch happens
@@ -175,16 +178,6 @@ export function queryStore<_Data, _Input>({
 		// we might not want to wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
 
-		console.log('fetching', {
-			isComponentFetch,
-			isLoadFetch,
-			isBrowser,
-			lastVariables,
-			newVariables,
-			variableChange,
-			blocking: !fakeAwait,
-		})
-
 		// perform the network request
 		const request = fetchAndCache({
 			config,
@@ -197,23 +190,13 @@ export function queryStore<_Data, _Input>({
 			setLoadPending: (val) => (loadPending = val),
 		})
 
-		console.log('resetting loadPending')
-
 		// if we weren't told to block we're done (only valid for a client-side request)
 		if (fakeAwait) {
-			console.log('returning from fake await')
 			return get(store)
 		}
 
 		// if we got this far, we need to wait for the response from the request
-		const { source } = await request
-
-		// if the request was a "fake" request mocked by svelte kit, we need
-		// to prevent the next fetch that happens in a non-load
-		if (source === 'ssr') {
-			console.log('detected ssr, block next csf')
-			blockNextCSF = true
-		}
+		await request
 
 		// the store will have been updated already since we waited for the response
 		return get(store)
@@ -265,7 +248,7 @@ function fetchContext<_Data, _Input>(
 	params?: QueryStoreFetchParams<_Input>
 ): { context: FetchContext; policy: CachePolicy; params: QueryStoreFetchParams<_Input> } {
 	// if we aren't on the browser but there's no event there's a big mistake
-	if (!isBrowser && !params?.event) {
+	if (!isBrowser && (!params || !params.event || !params.event.fetch)) {
 		// prettier-ignore
 		console.error(`
 	${logRed(`Missing event args in load function`)}. 
