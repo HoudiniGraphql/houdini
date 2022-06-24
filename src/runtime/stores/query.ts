@@ -196,7 +196,7 @@ export function queryStore<_Data, _Input>({
 		}
 
 		// if we got this far, we need to wait for the response from the request
-		console.log(await request)
+		await request
 
 		// the store will have been updated already since we waited for the response
 		return get(store)
