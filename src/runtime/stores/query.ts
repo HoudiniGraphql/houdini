@@ -74,8 +74,6 @@ export function queryStore<_Data, _Input>({
 	// we will be reading and write the last known variables often, avoid frequent gets and updates
 	let lastVariables: _Input | null = null
 
-	let hasLoad = false
-
 	// a function to fetch data (the root of the behavior tree described above)
 	async function fetch(
 		params?: QueryStoreFetchParams<_Input>
@@ -93,14 +91,8 @@ export function queryStore<_Data, _Input>({
 		// figure out if the variables changed
 		const updated = stry(lastVariables, 0) !== stry(newVariables, 0) && !params?.force
 
-		console.log({ updated, isBrowser, isLoad, lastVariables, newVariables })
-		if (params?.event) {
-			hasLoad = true
-		}
-
 		// when fetching in the component body, our subscribers need to be kept up to date
 		if (isBrowser && !isLoad) {
-			console.log('new subscribers')
 			// if the variables changed we need to unsubscribe from the old fields and
 			// listen to the new ones
 			if (subscriptionSpec) {
@@ -121,14 +113,12 @@ export function queryStore<_Data, _Input>({
 
 		// if the variables haven't changed since we last saw them, don't do anything
 		if (!updated && isBrowser) {
-			console.log("don't fetch")
 			return get(store)
-		} else {
-			console.log('fetching...')
 		}
 
 		// in all cases, we need to perform the fetch with the new variables and cache the result
 		const request = fetchAndCache<_Data, _Input>({
+			config,
 			context,
 			artifact,
 			variables: newVariables,
@@ -298,6 +288,7 @@ function fetchContext<_Data, _Input>(
 }
 
 async function fetchAndCache<_Data, _Input>({
+	config,
 	context,
 	artifact,
 	variables,
@@ -305,6 +296,7 @@ async function fetchAndCache<_Data, _Input>({
 	updateStore,
 	cached,
 }: {
+	config: ConfigFile
 	context: FetchContext
 	artifact: QueryArtifact
 	variables: _Input
@@ -330,6 +322,12 @@ async function fetchAndCache<_Data, _Input>({
 	}
 
 	if (updateStore) {
+		const unmarshaledData = unmarshalSelection(
+			config,
+			artifact.selection,
+			result.data
+		)! as _Data
+
 		// since we know we're not prefetching, we need to update the store with any errors
 		if (result.errors && result.errors.length > 0) {
 			store.update((s) => ({
@@ -337,7 +335,7 @@ async function fetchAndCache<_Data, _Input>({
 				errors: result.errors,
 				isFetching: false,
 				partial: false,
-				data: result.data as _Data,
+				data: unmarshaledData,
 				source,
 				variables,
 			}))
@@ -346,7 +344,7 @@ async function fetchAndCache<_Data, _Input>({
 			throw result.errors
 		} else {
 			store.set({
-				data: (request.result.data || {}) as _Data,
+				data: (unmarshaledData || {}) as _Data,
 				variables: variables || ({} as _Input),
 				errors: request.result.errors,
 				isFetching: false,
