@@ -98,7 +98,7 @@ export function queryStore<_Data, _Input>({
 			hasLoad = true
 		}
 
-		// all that's left is to make sure that our subscribers are up to date which only matters on the client
+		// when fetching in the component body, our subscribers need to be kept up to date
 		if (isBrowser && !isLoad) {
 			console.log('new subscribers')
 			// if the variables changed we need to unsubscribe from the old fields and
@@ -122,14 +122,7 @@ export function queryStore<_Data, _Input>({
 		// if the variables haven't changed since we last saw them, don't do anything
 		if (!updated && isBrowser) {
 			console.log("don't fetch")
-			return {
-				data: null,
-				errors: null,
-				isFetching: false,
-				partial: false,
-				source: null,
-				variables: newVariables,
-			}
+			return get(store)
 		} else {
 			console.log('fetching...')
 		}
