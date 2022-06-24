@@ -154,34 +154,6 @@ export function queryStore<_Data, _Input>({
 			variables: newVariables,
 		}
 
-		// // before we do anything else, lets send the followup queries
-
-		// // if the data was loaded from a cached value, and the document cache policy wants a
-		// // network request to be sent after the data was loaded, load the data
-		// if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
-		// 	fetchAndCache<_Data, _Input>({
-		// 		context,
-		// 		artifact,
-		// 		variables: newVariables,
-		// 		store,
-		// 		cached: false,
-		// 		updateStore: true,
-		// 	})
-		// }
-
-		// // if we have a partial result and we can load the rest of the data
-		// // from the network, send the request
-		// if (partial && artifact.policy === CachePolicy.CacheOrNetwork) {
-		// 	fetchAndCache<_Data, _Input>({
-		// 		context,
-		// 		artifact,
-		// 		variables: newVariables,
-		// 		store,
-		// 		cached: false,
-		// 		updateStore: true,
-		// 	})
-		// }
-
 		return storeValue
 	}
 
@@ -295,6 +267,7 @@ async function fetchAndCache<_Data, _Input>({
 	store,
 	updateStore,
 	cached,
+	ignoreFollowup,
 }: {
 	config: ConfigFile
 	context: FetchContext
@@ -303,6 +276,7 @@ async function fetchAndCache<_Data, _Input>({
 	store: Writable<QueryResult<_Data, _Input>>
 	updateStore: boolean
 	cached: boolean
+	ignoreFollowup?: boolean
 }) {
 	const request = await fetchQuery({
 		context,
@@ -310,7 +284,7 @@ async function fetchAndCache<_Data, _Input>({
 		variables,
 		cached,
 	})
-	const { result, source } = request
+	const { result, source, partial } = request
 
 	if (result.data) {
 		// update the cache with the data that we just ran into
@@ -350,6 +324,37 @@ async function fetchAndCache<_Data, _Input>({
 				isFetching: false,
 				partial: request.partial,
 				source: request.source,
+			})
+		}
+	}
+
+	if (!ignoreFollowup) {
+		// if the data was loaded from a cached value, and the document cache policy wants a
+		// network request to be sent after the data was loaded, load the data
+		if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
+			fetchAndCache<_Data, _Input>({
+				config,
+				context,
+				artifact,
+				variables,
+				store,
+				cached: false,
+				updateStore: true,
+				ignoreFollowup: true,
+			})
+		}
+		// if we have a partial result and we can load the rest of the data
+		// from the network, send the request
+		if (partial && artifact.policy === CachePolicy.CacheOrNetwork) {
+			fetchAndCache<_Data, _Input>({
+				config,
+				context,
+				artifact,
+				variables,
+				store,
+				cached: false,
+				updateStore: true,
+				ignoreFollowup: true,
 			})
 		}
 	}
