@@ -16,19 +16,46 @@ import cache from '../cache'
 import { Page } from '@sveltejs/kit'
 
 export class HoudiniClient {
-	private fetch: RequestHandler<RequestPayloadMagic>
+	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
 
-	constructor(
-		networkFn: RequestHandler<RequestPayloadMagic>,
-		subscriptionHandler?: SubscriptionHandler | null
-	) {
-		this.fetch = networkFn
+	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
+		this.fetchFn = networkFn
 		this.socket = subscriptionHandler
 	}
 
-	sendRequest<_Data>(ctx: FetchContext, params: FetchParams, session?: FetchSession) {
-		return this.fetch.call(ctx, params, session)
+	async sendRequest<_Data>(
+		ctx: FetchContext,
+		params: FetchParams,
+		session?: FetchSession
+	): Promise<RequestPayloadMagic<_Data>> {
+		let url = ''
+
+		// wrap the user's fetch function so we can identify SSR by checking
+		// the response.url
+		const wrapper = async (...args: Parameters<FetchContext['fetch']>) => {
+			const response = await ctx.fetch(...args)
+			if (response.url) {
+				url = response.url
+			}
+
+			return response
+		}
+
+		// invoke the function
+		const result = await this.fetchFn.call(
+			{
+				...ctx,
+				fetch: wrapper,
+			},
+			params,
+			session
+		)
+
+		return {
+			json: result,
+			url,
+		}
 	}
 
 	init() {
@@ -118,7 +145,7 @@ export type RequestHandler<_Data> = (
 	this: FetchContext,
 	params: FetchParams,
 	session?: FetchSession
-) => Promise<RequestPayloadMagic<_Data>>
+) => Promise<RequestPayload<_Data>>
 
 // This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.

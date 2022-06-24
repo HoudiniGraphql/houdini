@@ -16,10 +16,7 @@ async function fetchQuery({ text = '', variables = {} }, session: App.Session) {
     })
   });
 
-  return {
-    url: result.url,
-    json: await result.json()
-  };
+  return await result.json();
 }
 
 // Export the Houdini client
