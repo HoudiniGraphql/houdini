@@ -36,12 +36,6 @@ import { QueryArtifact } from '../lib/types'
 //   has to detect that the other will happen and not do anything. Regardless of which, this stop only matters when a fetch
 //   happens during navigation
 
-// Questions:
-// - Can we detect the first CSF by checking if the variable counter is null and there is a load function? Does that
-//   mean we can remove the ssr source?
-//
-// - Prefetch test doesn't have a CSF. Without it, the prefetch detection doesn't work. A problem or something we can just document?
-
 export function queryStore<_Data, _Input>({
 	config,
 	artifact,
