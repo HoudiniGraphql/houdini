@@ -122,6 +122,12 @@ export type MutationResult<_Data, _Input> = {
 
 export type QueryStoreFetchParams<_Input> = {
 	variables?: _Input
+
+	/**
+	 * The policy to use when performing the fetch. If set to CachePolicy.NetworkOnly,
+	 * a request will always be sent, even if the variables are the same as the last call
+	 * to fetch.
+	 */
 	policy?: CachePolicy
 
 	/**
@@ -130,12 +136,6 @@ export type QueryStoreFetchParams<_Input> = {
 	 * transitions to pause while loading data.
 	 */
 	blocking?: boolean
-
-	/**
-	 * By default, fetch will not load new data if the provided variables match the last time it was called.
-	 * Setting force to true will cause fetch() to always load new data.
-	 */
-	force?: boolean
 } & (
 	| {
 			/**

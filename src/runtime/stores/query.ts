@@ -17,31 +17,34 @@ import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import type { ConfigFile } from '../lib/types'
 import { QueryArtifact } from '../lib/types'
 
-// A query store has 3 different flows it has to deal with:
-// - Server-Rendered Request:
-//   - has to use a version of fetch appropriate for the server
-//   - fetch the data in load() on the server and rendering to html
-//   - fetch the data in load() on the client
-//     - if the store was fetched with the same variables as the load, we don't want to do anything (unless forced)
-//     - do not update the store value
-//     - do not update cache subscriptions (the user has to have fetch in the component body if they want new subscriptions)
+// Terms:
+// - CSF: client side fetch. identified by a lack of loadEvent
+
+// Notes:
+// - load handles prefetch and server-side
+//   - If the incoming variables on a load are different than the tracker, don't write to the store
+// - load only populates the store on the server
+// - load should _always_ perform a fetchAndCache
+//   - it's guaranteed to run before the CSF because the change in variables is what triggers the CSF
+//     - data won't necessarily be in the cache since blocking could be set to false
 //
-// - Data fetched inside of a component body
-//   - load only fires on client state
-//   - populate the cache with data
-//   - update the store value
-//   - create/update subscriptions
+// - CSF must load the data aswell (pre-fetches don't get another invocation of load())
+// - CSF must manage subscriptions
+// - CSF must update variable tracker.
 //
-// - Pre-Loading data for a new set of variables (for example, during a request created by sveltekit:prefetch)
-//   - does not update the store's loading state
-//   - populate the cache with data
-//   - do not touch the cache subscriptions
-//   - do not update the store value
-//
+// - We have to prevent a link to the current route with different variables from sending two requests. One of load or CSF
+//   has to detect that the other will happen and not do anything. Regardless of which, this stop only matters when a fetch
+//   happens during navigation
+
 // Questions:
-// - how does the client side cache get populated with the initial data from the server-side render?
-// - can we put something in the response as the raw data we can write?
-//   - extra steps for store users but that's okay. they're writing their own loads, they are accepting the extra work.
+// - We can run into issues if the load is not blocking when navigating to a route on their browser.
+//   When that happens, the CSF will try to read from the cache once the non-blocking load is done. It won't be able
+//   to find the data so it will send out a request while the load's is still pending resulting in two requests.
+//
+// - Can we detect the first CSF by checking if the variable counter is null and there is a load function? Does that
+//   mean we can remove the ssr source?
+//
+// - Prefetch test doesn't have a CSF. Without it, the prefetch detection doesn't work. A problem or something we can just document?
 
 export function queryStore<_Data, _Input>({
 	config,
@@ -68,19 +71,58 @@ export function queryStore<_Data, _Input>({
 	const setFetching = (isFetching: boolean) => store.update((s) => ({ ...s, isFetching }))
 	const getVariables = () => get(store).variables
 
-	// Track subscriptions
-	let subscriptionSpec: SubscriptionSpec | null = null
+	// the first client-side request after the mocked load() needs to be blocked
+	let blockNextCSF = false
 
 	// we will be reading and write the last known variables often, avoid frequent gets and updates
 	let lastVariables: _Input | null = null
 
+	// track the subscription's existence to refresh and unsubscribe when unmounting
+	let subscriptionSpec: SubscriptionSpec | null = null
+
+	// if there is a load in progress when the CSF triggers we need to stop it
+	let loadPending = false
+
+	// a function to update the store's cache subscriptions
+	function refreshSubscription(newVariables: _Input) {
+		// if the variables changed we need to unsubscribe from the old fields and
+		// listen to the new ones
+		if (subscriptionSpec) {
+			cache.unsubscribe(subscriptionSpec, lastVariables || {})
+		}
+
+		// subscribe to cache updates
+		subscriptionSpec = {
+			rootType: artifact.rootType,
+			selection: artifact.selection,
+			variables: () => newVariables,
+			set: (data) => store.update((s) => ({ ...s, data })),
+		}
+
+		// make sure we subscribe to the new values
+		cache.subscribe(subscriptionSpec, newVariables)
+	}
+
 	// a function to fetch data (the root of the behavior tree described above)
 	async function fetch(
-		params?: QueryStoreFetchParams<_Input>
+		args?: QueryStoreFetchParams<_Input>
 	): Promise<QueryResult<_Data, _Input>> {
-		const isLoad = Boolean(params?.event)
-		// prepare the request context
-		const { context, policy } = fetchContext(artifact, storeName, params)
+		// validate and prepare the request context for the current environment (client vs server)
+		const { context, policy, params } = fetchContext(artifact, storeName, args)
+
+		// identify if this is a CSF or load
+		const isLoadFetch = Boolean(params?.event)
+		const isComponentFetch = !isLoadFetch
+
+		// a component fetch is _always_ blocking
+		if (isComponentFetch) {
+			params.blocking = true
+		}
+
+		// the fetch is happening in a load
+		if (isLoadFetch) {
+			loadPending = true
+		}
 
 		// compute the variables we need to use for the query
 		const newVariables = (marshalInputs({
@@ -88,73 +130,89 @@ export function queryStore<_Data, _Input>({
 			config,
 			input: params?.variables,
 		}) || {}) as _Input
-		// figure out if the variables changed
-		const updated = stry(lastVariables, 0) !== stry(newVariables, 0) && !params?.force
 
-		// when fetching in the component body, our subscribers need to be kept up to date
-		if (isBrowser && !isLoad) {
-			// if the variables changed we need to unsubscribe from the old fields and
-			// listen to the new ones
-			if (subscriptionSpec) {
-				cache.unsubscribe(subscriptionSpec, lastVariables || {})
-			}
+		// check if the variables are different from the last time we saw them
+		let variableChange = stry(lastVariables, 0) !== stry(newVariables, 0)
 
-			// subscribe to cache updates
-			subscriptionSpec = {
-				rootType: artifact.rootType,
-				selection: artifact.selection,
-				variables: () => newVariables,
-				set: (data) => store.update((s) => ({ ...s, data })),
-			}
-
-			// make sure we subscribe to the new values
-			cache.subscribe(subscriptionSpec, newVariables)
+		// if we are loading on the client and the variables _are_ different, we have to
+		// update the subscribers. do that before the fetch so we don't accidentally
+		// cause the new data to trigger the old subscription after the store has been
+		// update with fetchAndCache
+		if (isComponentFetch && variableChange) {
+			refreshSubscription(newVariables)
 		}
 
-		// if the variables haven't changed since we last saw them, don't do anything
-		if (!updated && isBrowser) {
+		// there are a few cases where the CSF needs to be prevented:
+		// - the last request was from a server-side rendered request (faked by svelte kit)
+		// - the variables didn't change and we're not being forced to request it
+		// - there is a pending load function
+		if (
+			isComponentFetch &&
+			(blockNextCSF ||
+				(!variableChange && params.policy !== CachePolicy.NetworkOnly) ||
+				loadPending)
+		) {
+			console.log('blocked CSF')
+			blockNextCSF = false
+
+			// track the newVariables
+			lastVariables = newVariables
+
+			// make sure we return before the fetch happens
 			return get(store)
 		}
 
-		// in all cases, we need to perform the fetch with the new variables and cache the result
-		const request = fetchAndCache<_Data, _Input>({
+		// we want to update the store in four situations: ssr, csf, the first load of the ssr response,
+		// or if we got this far and the variables haven't changed (avoid prefetch)
+		const updateStore =
+			!isBrowser ||
+			isComponentFetch ||
+			(lastVariables === null && variableChange) ||
+			!variableChange
+
+		// we might not want to wait for the fetch to resolve
+		const fakeAwait = clientStarted && isBrowser && !params?.blocking
+
+		console.log('fetching', {
+			isComponentFetch,
+			isLoadFetch,
+			isBrowser,
+			lastVariables,
+			variableChange,
+			blocking: !fakeAwait,
+		})
+
+		// perform the network request
+		const request = fetchAndCache({
 			config,
 			context,
 			artifact,
 			variables: newVariables,
 			store,
-			updateStore: true,
+			updateStore,
 			cached: policy !== CachePolicy.NetworkOnly,
 		})
 
-		lastVariables = newVariables
+		// we're done
+		loadPending = false
 
-		// if we're not supposed to block, we're done
-		if (clientStarted && params && !params.blocking) {
-			return {
-				data: null,
-				errors: null,
-				isFetching: false,
-				partial: false,
-				source: null,
-				variables: newVariables,
-			}
+		// if we weren't told to block we're done (only valid for a client-side request)
+		if (fakeAwait) {
+			return get(store)
 		}
 
-		// otherwise we need to do something with the result
-		const { result, source, partial } = await request
+		// if we got this far, we need to wait for the response from the request
+		const { source } = await request
 
-		// bundle the result into the right shape
-		const storeValue = {
-			data: unmarshalSelection(config, artifact.selection, result.data)! as _Data,
-			errors: null,
-			isFetching: false,
-			partial: partial,
-			source: source,
-			variables: newVariables,
+		// if the request was a "fake" request mocked by svelte kit, we need
+		// to prevent the next fetch that happens in a non-load
+		if (source === 'ssr') {
+			console.log('detected ssr, block next csf')
+			blockNextCSF = true
 		}
 
-		return storeValue
+		// the store will have been updated already since we waited for the response
+		return get(store)
 	}
 
 	// add the pagination methods to the store
@@ -201,7 +259,7 @@ function fetchContext<_Data, _Input>(
 	artifact: QueryArtifact,
 	storeName: string,
 	params?: QueryStoreFetchParams<_Input>
-): { context: FetchContext; policy: CachePolicy } {
+): { context: FetchContext; policy: CachePolicy; params: QueryStoreFetchParams<_Input> } {
 	// if we aren't on the browser but there's no event there's a big mistake
 	if (!isBrowser && !params?.event) {
 		// prettier-ignore
@@ -238,9 +296,7 @@ function fetchContext<_Data, _Input>(
 
 	// figure out the right policy
 	let policy = params?.policy
-	if (params?.force) {
-		policy = CachePolicy.NetworkOnly
-	} else if (!policy) {
+	if (!policy) {
 		// use the artifact policy as the default, otherwise prefer the cache over the network
 		policy = artifact.policy ?? CachePolicy.CacheOrNetwork
 	}
@@ -256,7 +312,7 @@ function fetchContext<_Data, _Input>(
 			stuff: houdiniContext.stuff || {},
 		}
 	}
-	return { context, policy }
+	return { context, policy, params: params ?? {} }
 }
 
 async function fetchAndCache<_Data, _Input>({
@@ -339,7 +395,7 @@ async function fetchAndCache<_Data, _Input>({
 				variables,
 				store,
 				cached: false,
-				updateStore: true,
+				updateStore,
 				ignoreFollowup: true,
 			})
 		}
@@ -353,7 +409,7 @@ async function fetchAndCache<_Data, _Input>({
 				variables,
 				store,
 				cached: false,
-				updateStore: true,
+				updateStore,
 				ignoreFollowup: true,
 			})
 		}

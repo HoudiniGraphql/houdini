@@ -2,7 +2,7 @@
   import { browser } from '$app/env';
   import { afterNavigate, beforeNavigate, invalidate } from '$app/navigation';
   import { page } from '$app/stores';
-  import { getHoudiniContext, GQL_User, type User$input } from '$houdini';
+  import { getHoudiniContext, GQL_User, isBrowser, type User$input } from '$houdini';
   import { stry } from '@kitql/helper';
   import type { LoadEvent } from '@sveltejs/kit';
   import { navigating } from '$app/stores';
@@ -18,21 +18,18 @@
     //event.prefetch
     variables = { id: event.params.userId };
     await GQL_User.fetch({ event, variables });
-    console.log(`coucou load`);
-    // if (browser) {
-    //   let ttt = get(navigating);
-    //   console.log(`ttt`, ttt);
-    // }
-    // console.log(isNavigating);
     return {
-      cache: {
-        maxage: 10
+      props: {
+        variables
       }
     };
   }
 </script>
 
 <script lang="ts">
+  export let variables = { id: 'default' };
+
+  $: isBrowser && GQL_User.fetch({ variables });
 </script>
 
 <h1>SSR - [userId: {$page.params.userId}]</h1>
