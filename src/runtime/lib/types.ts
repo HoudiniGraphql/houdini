@@ -163,8 +163,8 @@ export type QueryStoreFetchParams<_Input> = {
 )
 
 export type HoudiniFetchContext = {
-	url: () => URL
-	session: () => any
+	url: () => Readable<URL> | null
+	session: () => Readable<any> | null
 	variables: () => {}
 	stuff: App.Stuff
 }

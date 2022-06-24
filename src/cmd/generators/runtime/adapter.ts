@@ -30,11 +30,11 @@ const sapperAdapter = `import { stores, goto as go } from '@sapper/app'
 import { get } from 'svelte/store';
 
 export function getSession() {
-    return get(stores().session)
+    return stores().session
 }
 
 export function getPage() {
-	return get(stores().page)
+	return stores().page
 }
 
 export function goTo(location, options) {
@@ -52,11 +52,11 @@ import { get } from 'svelte/store';
 import { browser } from '$app/env'
 
 export function getSession() {
-    return get(session)
+    return session
 }
 
 export function getPage() {
-	return get(page)
+	return page
 }
 
 export function goTo(location, options) {

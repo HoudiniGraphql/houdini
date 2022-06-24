@@ -7,7 +7,6 @@
 </script>
 
 <script lang="ts">
-  $: console.log($navigating);
   let routesKvp = Object.keys(routes).map((key: string) => {
     return { key, value: (routes as any)[key] };
   });

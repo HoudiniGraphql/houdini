@@ -23,8 +23,8 @@ import { QueryArtifact } from '../lib/types'
 //   - fetch the data in load() on the server and rendering to html
 //   - fetch the data in load() on the client
 //     - if the store was fetched with the same variables as the load, we don't want to do anything (unless forced)
-//     - update the store value
-//     - create/update subscriptions
+//     - do not update the store value
+//     - do not update cache subscriptions (the user has to have fetch in the component body if they want new subscriptions)
 //
 // - Data fetched inside of a component body
 //   - load only fires on client state
@@ -72,21 +72,15 @@ export function queryStore<_Data, _Input>({
 	let subscriptionSpec: SubscriptionSpec | null = null
 
 	// we will be reading and write the last known variables often, avoid frequent gets and updates
-	let lastVariables: _Input = {} as _Input
+	let lastVariables: _Input | null = null
+
+	let hasLoad = false
 
 	// a function to fetch data (the root of the behavior tree described above)
 	async function fetch(
 		params?: QueryStoreFetchParams<_Input>
 	): Promise<QueryResult<_Data, _Input>> {
-		// we need to tweak our logic when prefetch
-		let isPrefetch = false
-		// client and prefetch both happen on the browser
-		if (isBrowser && params?.event) {
-			// in order for there to be a prefetch, there has to be an event with an url that does not
-			// point to the current one
-			isPrefetch = window.location.href !== params.event.url.href
-		}
-
+		const isLoad = Boolean(params?.event)
 		// prepare the request context
 		const { context, policy } = fetchContext(artifact, storeName, params)
 
@@ -96,10 +90,48 @@ export function queryStore<_Data, _Input>({
 			config,
 			input: params?.variables,
 		}) || {}) as _Input
+		// figure out if the variables changed
+		const updated = stry(lastVariables, 0) !== stry(newVariables, 0) && !params?.force
 
-		// if we're not prefetching, update the loading state
-		if (!isPrefetch) {
-			setFetching(true)
+		console.log({ updated, isBrowser, isLoad, lastVariables, newVariables })
+		if (params?.event) {
+			hasLoad = true
+		}
+
+		// all that's left is to make sure that our subscribers are up to date which only matters on the client
+		if (isBrowser && !isLoad) {
+			console.log('new subscribers')
+			// if the variables changed we need to unsubscribe from the old fields and
+			// listen to the new ones
+			if (subscriptionSpec) {
+				cache.unsubscribe(subscriptionSpec, lastVariables || {})
+			}
+
+			// subscribe to cache updates
+			subscriptionSpec = {
+				rootType: artifact.rootType,
+				selection: artifact.selection,
+				variables: () => newVariables,
+				set: (data) => store.update((s) => ({ ...s, data })),
+			}
+
+			// make sure we subscribe to the new values
+			cache.subscribe(subscriptionSpec, newVariables)
+		}
+
+		// if the variables haven't changed since we last saw them, don't do anything
+		if (!updated && isBrowser) {
+			console.log("don't fetch")
+			return {
+				data: null,
+				errors: null,
+				isFetching: false,
+				partial: false,
+				source: null,
+				variables: newVariables,
+			}
+		} else {
+			console.log('fetching...')
 		}
 
 		// in all cases, we need to perform the fetch with the new variables and cache the result
@@ -108,9 +140,11 @@ export function queryStore<_Data, _Input>({
 			artifact,
 			variables: newVariables,
 			store,
-			updateStore: !isPrefetch,
+			updateStore: true,
 			cached: policy !== CachePolicy.NetworkOnly,
 		})
+
+		lastVariables = newVariables
 
 		// if we're not supposed to block, we're done
 		if (clientStarted && params && !params.blocking) {
@@ -137,65 +171,34 @@ export function queryStore<_Data, _Input>({
 			variables: newVariables,
 		}
 
-		// if we're pre-fetching, we're done
-		if (isPrefetch) {
-			return storeValue
-		}
+		// // before we do anything else, lets send the followup queries
 
-		// before we do anything else, lets send the followup queries
+		// // if the data was loaded from a cached value, and the document cache policy wants a
+		// // network request to be sent after the data was loaded, load the data
+		// if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
+		// 	fetchAndCache<_Data, _Input>({
+		// 		context,
+		// 		artifact,
+		// 		variables: newVariables,
+		// 		store,
+		// 		cached: false,
+		// 		updateStore: true,
+		// 	})
+		// }
 
-		// if the data was loaded from a cached value, and the document cache policy wants a
-		// network request to be sent after the data was loaded, load the data
-		if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
-			fetchAndCache<_Data, _Input>({
-				context,
-				artifact,
-				variables: newVariables,
-				store,
-				cached: false,
-				updateStore: true,
-			})
-		}
+		// // if we have a partial result and we can load the rest of the data
+		// // from the network, send the request
+		// if (partial && artifact.policy === CachePolicy.CacheOrNetwork) {
+		// 	fetchAndCache<_Data, _Input>({
+		// 		context,
+		// 		artifact,
+		// 		variables: newVariables,
+		// 		store,
+		// 		cached: false,
+		// 		updateStore: true,
+		// 	})
+		// }
 
-		// if we have a partial result and we can load the rest of the data
-		// from the network, send the request
-		if (partial && artifact.policy === CachePolicy.CacheOrNetwork) {
-			fetchAndCache<_Data, _Input>({
-				context,
-				artifact,
-				variables: newVariables,
-				store,
-				cached: false,
-				updateStore: true,
-			})
-		}
-
-		// all that's left is to make sure that our subscribers are up to date which only matters on the client
-		if (isBrowser) {
-			// figure out if the variables changed
-			const updated = stry(lastVariables, 0) !== stry(newVariables, 0)
-
-			// if the variables changed we need to unsubscribe from the old fields and
-			// listen to the new ones
-			if (updated && subscriptionSpec) {
-				cache.unsubscribe(subscriptionSpec, lastVariables)
-			}
-
-			// subscribe to cache updates
-			subscriptionSpec = {
-				rootType: artifact.rootType,
-				selection: artifact.selection,
-				variables: () => newVariables,
-				set: (data) => store.update((s) => ({ ...s, data })),
-			}
-
-			// make sure we subscribe to the new values
-			cache.subscribe(subscriptionSpec, newVariables)
-		}
-
-		// we're done. update the various bits of state
-		lastVariables = newVariables
-		store.set(storeValue)
 		return storeValue
 	}
 
@@ -229,7 +232,7 @@ export function queryStore<_Data, _Input>({
 			// Handle unsubscribe
 			return () => {
 				if (subscriptionSpec) {
-					cache.unsubscribe(subscriptionSpec, lastVariables)
+					cache.unsubscribe(subscriptionSpec, lastVariables || {})
 				}
 				bubbleUp()
 			}
