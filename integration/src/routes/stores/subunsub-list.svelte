@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
   import { browser } from '$app/env';
-  import { GQL_Hello, GQL_usersList, GQL_UsersListSubUnSub } from '$houdini';
+  import { GQL_UsersListSubUnSub } from '$houdini';
 </script>
 
 <script lang="ts">
