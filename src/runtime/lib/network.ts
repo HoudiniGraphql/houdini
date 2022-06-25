@@ -62,6 +62,7 @@ async function fetchQuery({ ${logYellow('fetch')}, ${logYellow(
   return await result.json();
 }
 
+
 For more information, visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
 `
 					)
@@ -100,7 +101,7 @@ import { HoudiniClient } from '$houdini/runtime'
 export default new HoudiniClient(fetchQuery)
 
 
-For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
+For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0#environment
 `
 		)
 	}
@@ -120,10 +121,9 @@ client.init()
 </script>
 
 
-For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
+For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0#environment
 `
 	)
-	console.warn('. <link>')
 	env.init()
 }
 

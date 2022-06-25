@@ -8,6 +8,7 @@ import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '..
 import { mergeSchemas } from '@graphql-tools/schema'
 import { glob } from 'glob'
 import { promisify } from 'util'
+import { logRed } from '@kitql/helper'
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -97,9 +98,17 @@ export class Config {
 		// if the user asked for `quiet` logging notify them its been deprecated
 		if (quiet) {
 			console.warn(
-				`The quiet configuration parameter has been deprecated. Please use logLevel: ${JSON.stringify(
-					LogLevel.Quiet
-				)}. For more information please see the 0.15.0 migration guide: <link>.`
+				`${logRed('⚠️ The quiet configuration parameter has been deprecated. ⚠️')}
+You should update your config to look like this:
+
+export default {
+    // ...
+    logLevel: 'quiet'
+}
+
+
+For more information, visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0#config-values
+`
 			)
 			this.logLevel = LogLevel.Summary
 		}
