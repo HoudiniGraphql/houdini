@@ -3,7 +3,6 @@ import { HoudiniClient } from '$houdini';
 // For Query & Mutation
 // @ts-ignore
 async function fetchQuery({ fetch, session, text = '', variables = {} }) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   const result = await fetch('http://localhost:4000/graphql', {
     method: 'POST',

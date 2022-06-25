@@ -8,7 +8,6 @@
   houdiniClient.init();
 
   if (browser) {
-    // eslint-disable-next-line
     // @ts-ignore
     window.cache = cache;
   }
