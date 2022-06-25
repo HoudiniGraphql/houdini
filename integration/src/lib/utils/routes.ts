@@ -14,6 +14,7 @@ export const routes = {
   Stores_Network_One_Store_Multivariables: '/stores/network-one-store-multivariables',
   Stores_SSR_One_Store_Multivariables: '/stores/ssr-one-store-multivariables',
   Stores_Fragment_Null: '/stores/fragment-null',
+  Stores_Metadata: '/stores/metadata',
 
   Preprocess_query_simple: '/preprocess/query/simple',
   Preprocess_query_variable_1: '/preprocess/query/variable-1',

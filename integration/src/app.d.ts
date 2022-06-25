@@ -4,12 +4,16 @@
 // for information about these interfaces
 declare namespace App {
   // interface Locals {}
+
   // interface Platform {}
+
   interface Session {
     token?: string | null;
   }
-  interface Metadata {
-    superKey?: string | null;
-  }
+
   // interface Stuff {}
+
+  interface Metadata {
+    logResult?: boolean | null;
+  }
 }

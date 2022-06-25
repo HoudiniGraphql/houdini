@@ -1,4 +1,5 @@
 import { HoudiniClient, type RequestHandlerArgs } from '$houdini';
+import { stry } from '@kitql/helper';
 
 // For Query & Mutation
 async function fetchQuery({ fetch, text = '', variables = {}, session, metadata }: RequestHandlerArgs) {
@@ -13,8 +14,7 @@ async function fetchQuery({ fetch, text = '', variables = {}, session, metadata 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${session?.token}`,
-      'superKey': `my key is => ${metadata?.superKey}`
+      Authorization: `Bearer ${session?.token}`
     },
     body: JSON.stringify({
       query: text,
@@ -22,8 +22,14 @@ async function fetchQuery({ fetch, text = '', variables = {}, session, metadata 
     })
   });
 
+  const json = await result.json();
+
+  if (metadata?.logResult === true) {
+    console.info(stry(json, 0));
+  }
+
   // return the result as a JSON object to Houdini
-  return await result.json();
+  return json;
 }
 
 // Export the Houdini client
