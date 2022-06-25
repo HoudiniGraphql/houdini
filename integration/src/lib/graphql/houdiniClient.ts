@@ -1,10 +1,10 @@
 import { HoudiniClient } from '$houdini';
 
 // For Query & Mutation
-async function fetchQuery({ text = '', variables = {} }, session: App.Session) {
+async function fetchQuery({ fetch, session, text = '', variables = {} }) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const result = await this.fetch('http://localhost:4000/graphql', {
+  const result = await fetch('http://localhost:4000/graphql', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

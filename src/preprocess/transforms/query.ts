@@ -15,7 +15,7 @@ import {
 	ensureStoreFactoryImport,
 } from '../utils'
 import { ArtifactKind } from '../../runtime/lib/types'
-import { ExportNamedDeclaration } from '@babel/types'
+import { ExportNamedDeclaration, VariableDeclaration } from '@babel/types'
 const AST = recast.types.builders
 import { Statement } from '@babel/types'
 
@@ -644,6 +644,15 @@ function processInstance({
 		(expression) => expression.type !== 'ImportDeclaration'
 	)
 
+	// find all of the props of the component by looking for export let
+	const props = (script.content.body.filter(
+		(statement) =>
+			statement.type === 'ExportNamedDeclaration' &&
+			statement.declaration?.type === 'VariableDeclaration'
+	) as ExportNamedDeclaration[]).flatMap(({ declaration }) =>
+		(declaration as VariableDeclaration)!.declarations.map((dec) => (dec.id as Identifier).name)
+	)
+
 	// if we are looking at a non-route component we need to create the store instance
 	// since we dont have a generated load that defines them
 	if (!isRoute) {
@@ -737,9 +746,13 @@ function processInstance({
 												AST.objectProperty(
 													AST.identifier('props'),
 													// pass every prop explicitly
-													AST.memberExpression(
-														AST.identifier('$$props'),
-														AST.identifier('id')
+													AST.objectExpression(
+														props.map((prop) =>
+															AST.objectProperty(
+																AST.identifier(prop),
+																AST.identifier(prop)
+															)
+														)
 													)
 												),
 												AST.objectProperty(

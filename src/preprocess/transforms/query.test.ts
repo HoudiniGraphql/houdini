@@ -556,6 +556,10 @@ describe('query preprocessor', function () {
 			</script>
 
 			<script>
+				export let prop1 = 'hello'
+				export const prop2 = 'goodbye'
+				export let prop3, prop4
+
 				const { data } = query(graphql\`
 					query TestQuery($test: String!) {
 						users(stringValue: $test) {
@@ -595,7 +599,13 @@ describe('query preprocessor', function () {
 		    artifact: _TestQueryArtifact,
 
 		    input: TestQueryVariables.call(_houdini_context_generated_DONT_USE, {
-		        props: $$props,
+		        props: {
+		            prop1: prop1,
+		            prop2: prop2,
+		            prop3: prop3,
+		            prop4: prop4
+		        },
+
 		        session: _houdini_context_generated_DONT_USE.session
 		    })
 		});
@@ -605,6 +615,10 @@ describe('query preprocessor', function () {
 		    "variables": _TestQuery_Input,
 		    "context": _houdini_context_generated_DONT_USE
 		});
+
+		export let prop1 = "hello";
+		export let prop2 = "goodbye";
+		export let prop3, prop4;
 
 		const {
 		    data
