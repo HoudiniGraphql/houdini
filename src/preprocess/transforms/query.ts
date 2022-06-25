@@ -736,7 +736,11 @@ function processInstance({
 											AST.objectExpression([
 												AST.objectProperty(
 													AST.identifier('props'),
-													AST.identifier('$$props')
+													// pass every prop explicitly
+													AST.memberExpression(
+														AST.identifier('$$props'),
+														AST.identifier('id')
+													)
 												),
 												AST.objectProperty(
 													AST.identifier('session'),

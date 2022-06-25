@@ -4,7 +4,14 @@
   const context = getHoudiniContext();
 
   async function getToken() {
-    GQL_Session.fetch({ context });
+    GQL_Session.fetch({
+      context,
+      stuff: {
+        headers: {
+          foo: 'bar'
+        }
+      }
+    });
   }
 </script>
 

@@ -14,6 +14,7 @@ import {
 import { marshalInputs } from './scalars'
 import cache from '../cache'
 import { Page } from '@sveltejs/kit'
+import { logRed, logYellow } from '@kitql/helper'
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
@@ -46,9 +47,32 @@ export class HoudiniClient {
 		const result = await this.fetchFn.call(
 			{
 				...ctx,
+				get fetch() {
+					console.log(
+						`${logRed(
+							"⚠️ fetch and session are now passed as arguments to your client's network function ⚠️"
+						)}
+You should update your client to look something like the following:
+
+async function fetchQuery({ ${logYellow('fetch')}, ${logYellow(
+							'session'
+						)}, text = '', variables = {} }) {
+  const result =  ...
+
+  return await result.json();
+}
+
+For more information, visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
+`
+					)
+					return wrapper
+				},
+			},
+			{
+				...params,
+				session,
 				fetch: wrapper,
 			},
-			params,
 			session
 		)
 
@@ -67,8 +91,17 @@ export class HoudiniClient {
 export class Environment extends HoudiniClient {
 	constructor(...args: ConstructorParameters<typeof HoudiniClient>) {
 		super(...args)
-		console.warn(
-			'Environment has been renamed to HoudiniClient. For more information, please visit the 0.15.0 migration guide: <link>'
+		console.log(
+			`${logRed('⚠️ Environment has been renamed to HoudiniClient. ⚠️')}
+You should update your client to look something like the following:
+
+import { HoudiniClient } from '$houdini/runtime'
+
+export default new HoudiniClient(fetchQuery)
+
+
+For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
+`
 		)
 	}
 }
@@ -76,9 +109,21 @@ export class Environment extends HoudiniClient {
 let currentClient: HoudiniClient | null = null
 
 export function setEnvironment(env: HoudiniClient) {
-	console.warn(
-		'setEnvironment is now replaced by environment.init(). For more information, please visit the 0.15.0 migration guide: <link>'
+	console.log(
+		`${logRed('⚠️ setEnvironment is now replaced by environment.init() ⚠️')}
+You should update your __layout files to look something like the following:
+
+<script context="module">
+import client from 'path/to/client'
+
+client.init()
+</script>
+
+
+For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
+`
 	)
+	console.warn('. <link>')
 	env.init()
 }
 
@@ -144,7 +189,7 @@ export type RequestPayload<_Data = any> = {
 
 export type RequestHandler<_Data> = (
 	this: FetchContext,
-	params: FetchParams,
+	args: Omit<FetchContext & FetchParams, 'stuff'>,
 	session?: FetchSession
 ) => Promise<RequestPayload<_Data>>
 

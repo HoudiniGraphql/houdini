@@ -110,10 +110,10 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	console.log('Welcome to Houdini!')
 }
 
-const networkFile = (
-	url: string
-) => `async function fetchQuery({ text = '', variables = {} }, session) {
-	const result = await this.fetch('${url}', {
+const networkFile = (url: string) => `import { HoudiniClient } from '$houdini/runtime'
+
+async function fetchQuery({ fetch, session, text = '', variables = {} }) {
+	const result = await fetch('${url}', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
