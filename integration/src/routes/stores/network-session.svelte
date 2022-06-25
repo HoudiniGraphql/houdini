@@ -5,12 +5,7 @@
 
   async function getToken() {
     GQL_Session.fetch({
-      context,
-      stuff: {
-        headers: {
-          foo: 'bar'
-        }
-      }
+      context
     });
   }
 </script>
