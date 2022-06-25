@@ -241,11 +241,13 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	artifact,
 	variables,
 	cached = true,
+	policy,
 }: {
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
 	variables: {}
 	cached?: boolean
+	policy?: CachePolicy
 }): Promise<FetchQueryResult<_Data>> {
 	// grab the current environment
 	const environment = currentClient
@@ -260,6 +262,11 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 
 	// enforce cache policies for queries
 	if (cached && artifact.kind === 'HoudiniQuery') {
+		// if the user didn't specify a policy, use the artifacts
+		if (!policy) {
+			policy = artifact.policy
+		}
+
 		// tick the garbage collector asynchronously
 		setTimeout(() => {
 			cache._internal_unstable.collectGarbage()
@@ -271,7 +278,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 		// resolve the next data)
 
 		// if the cache policy allows for cached data, look at the caches value first
-		if (artifact.policy !== CachePolicy.NetworkOnly) {
+		if (policy !== CachePolicy.NetworkOnly) {
 			// look up the current value in the cache
 			const value = cache.read({ selection: artifact.selection, variables })
 
@@ -291,7 +298,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 			}
 
 			// if the policy is cacheOnly and we got this far, we need to return null (no network request will be sent)
-			else if (artifact.policy === CachePolicy.CacheOnly) {
+			else if (policy === CachePolicy.CacheOnly) {
 				return {
 					result: {
 						data: null,

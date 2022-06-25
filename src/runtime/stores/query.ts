@@ -156,6 +156,21 @@ export function queryStore<_Data, _Input>({
 		) {
 			blockNextCSF = false
 
+			// if the variables didn't change, get the latest value and use that
+			if (!variableChange) {
+				await fetchAndCache<_Data, _Input>({
+					config,
+					context,
+					artifact,
+					variables: newVariables,
+					store,
+					updateStore: true,
+					cached: true,
+					policy: CachePolicy.CacheOnly,
+					setLoadPending: (val) => (loadPending = val),
+				})
+			}
+
 			// make sure we return before the fetch happens
 			return get(store)
 		}
@@ -307,6 +322,7 @@ async function fetchAndCache<_Data, _Input>({
 	cached,
 	ignoreFollowup,
 	setLoadPending,
+	policy,
 }: {
 	config: ConfigFile
 	context: FetchContext
@@ -317,12 +333,14 @@ async function fetchAndCache<_Data, _Input>({
 	cached: boolean
 	ignoreFollowup?: boolean
 	setLoadPending: (pending: boolean) => void
+	policy?: CachePolicy
 }) {
 	const request = await fetchQuery({
 		context,
 		artifact,
 		variables,
 		cached,
+		policy,
 	})
 	const { result, source, partial } = request
 
@@ -385,6 +403,7 @@ async function fetchAndCache<_Data, _Input>({
 				updateStore,
 				ignoreFollowup: true,
 				setLoadPending,
+				policy,
 			})
 		}
 		// if we have a partial result and we can load the rest of the data
@@ -400,6 +419,7 @@ async function fetchAndCache<_Data, _Input>({
 				updateStore,
 				ignoreFollowup: true,
 				setLoadPending,
+				policy,
 			})
 		}
 	}
