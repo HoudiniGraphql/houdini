@@ -1,6 +1,6 @@
 {
 	"name": "houdini",
-	"version": "0.15.0-next.12",
+	"version": "0.15.0-next.13",
 	"description": "The disappearing graphql client for SvelteKit",
 	"workspaces": [
 		"example",
@@ -40,7 +40,7 @@
 		"changeset": "changeset",
 		"version": "changeset version",
 		"release": "yarn build && changeset publish",
-		"postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
+		"_postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
 		"prepack": "pinst --disable",
 		"postpack": "pinst --enable"
 	},
