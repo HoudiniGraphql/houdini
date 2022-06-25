@@ -107,9 +107,27 @@ export function queryStore<_Data, _Input>({
 		const isLoadFetch = Boolean(params?.event)
 		const isComponentFetch = !isLoadFetch
 
+		// compute the variables we need to use for the query
+		const newVariables = (marshalInputs({
+			artifact,
+			config,
+			input: params?.variables,
+		}) || {}) as _Input
+
+		// check if the variables are different from the last time we saw them
+		let variableChange = stry(lastVariables, 0) !== stry(newVariables, 0)
+
 		// detect if there is a load function that fires before the first CSF
 		if (isLoadFetch && lastVariables === null && Boolean(args?.event)) {
 			blockNextCSF = true
+		}
+
+		// if we are loading on the client and the variables _are_ different, we have to
+		// update the subscribers. do that before the fetch so we don't accidentally
+		// cause the new data to trigger the old subscription after the store has been
+		// update with fetchAndCache
+		if (isComponentFetch && variableChange) {
+			refreshSubscription(newVariables)
 		}
 
 		// if there is a pending load, don't do anything
@@ -125,24 +143,6 @@ export function queryStore<_Data, _Input>({
 		// the fetch is happening in a load
 		if (isLoadFetch) {
 			loadPending = true
-		}
-
-		// compute the variables we need to use for the query
-		const newVariables = (marshalInputs({
-			artifact,
-			config,
-			input: params?.variables,
-		}) || {}) as _Input
-
-		// check if the variables are different from the last time we saw them
-		let variableChange = stry(lastVariables, 0) !== stry(newVariables, 0)
-
-		// if we are loading on the client and the variables _are_ different, we have to
-		// update the subscribers. do that before the fetch so we don't accidentally
-		// cause the new data to trigger the old subscription after the store has been
-		// update with fetchAndCache
-		if (isComponentFetch && variableChange) {
-			refreshSubscription(newVariables)
 		}
 
 		// there are a few cases where the CSF needs to be prevented:
