@@ -87,6 +87,7 @@
 	"dependencies": {
 		"@babel/parser": "^7.17.2",
 		"@graphql-tools/schema": "^8.3.7",
+		"@kitql/helper": "0.3.4",
 		"babylon": "^7.0.0-beta.47",
 		"commander": "^7.1.0",
 		"estree-walker": "^2.0.2",
