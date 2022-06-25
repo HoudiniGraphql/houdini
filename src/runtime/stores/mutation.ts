@@ -32,15 +32,13 @@ export function mutationStore<_Data, _Input>({
 		context,
 		...mutationConfig
 	}) => {
-		let fetchContext: HoudiniFetchContext | { session: null } = context || { session: null }
+		let fetchContext: HoudiniFetchContext | { session: () => null } = context || {
+			session: () => null,
+		}
 
 		update((c) => {
 			return { ...c, isFetching: true }
 		})
-
-		// grab the session from the adapter
-		const sessionStore: Readable<any> | null = fetchContext?.session?.() || null
-		// const sessionStore: Readable<any> | null = null
 
 		// treat a mutation like it has an optimistic layer regardless of
 		// whether there actually _is_ one. This ensures that a query which fires
@@ -89,7 +87,12 @@ export function mutationStore<_Data, _Input>({
 
 		try {
 			// trigger the mutation
-			const { result } = await executeQuery(artifact, newVariables, sessionStore, false)
+			const { result } = await executeQuery(
+				artifact,
+				newVariables,
+				fetchContext.session?.(),
+				false
+			)
 
 			if (result.errors && result.errors.length > 0) {
 				update((s) => ({

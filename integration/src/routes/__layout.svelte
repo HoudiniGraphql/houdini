@@ -1,9 +1,17 @@
 <script context="module">
+  import { browser } from '$app/env';
+
   import { navigating } from '$app/stores';
   import { houdiniClient } from '$lib/graphql/houdiniClient';
   import { routes } from '$lib/utils/routes';
+  import cache from '$houdini/runtime/cache';
 
   houdiniClient.init();
+
+  if (browser) {
+    // @ts-ignore
+    window.cache = cache;
+  }
 </script>
 
 <script lang="ts">

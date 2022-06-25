@@ -52,9 +52,10 @@ export class HoudiniClient {
 			session
 		)
 
+		// return the result
 		return {
-			json: result,
-			url,
+			body: result,
+			ssr: !url,
 		}
 	}
 
@@ -104,7 +105,7 @@ export type FetchParams = {
 
 export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
-	session: any
+	session: App.Session | null
 	stuff: App.Stuff
 }
 
@@ -130,8 +131,8 @@ type GraphQLError = {
 }
 
 export type RequestPayloadMagic<_Data = any> = {
-	url: string
-	json: RequestPayload<_Data>
+	ssr: boolean
+	body: RequestPayload<_Data>
 }
 
 export type RequestPayload<_Data = any> = {
@@ -152,7 +153,7 @@ export type RequestHandler<_Data> = (
 export async function executeQuery<_Data extends GraphQLObject, _Input>(
 	artifact: QueryArtifact | MutationArtifact,
 	variables: _Input,
-	session: any | null,
+	session: App.Session | null,
 	cached: boolean
 ): Promise<{ result: RequestPayload; partial: boolean }> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
@@ -200,7 +201,7 @@ export async function convertKitPayload(
 ) {
 	// invoke the loader
 	const result = await loader({
-		session,
+		session: session!,
 		fetch: context.fetch,
 		...page,
 		props: {},
@@ -310,8 +311,8 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 		context.session
 	)
 	return {
-		result: resMagic.json,
-		source: resMagic.url === '' ? DataSource.Ssr : DataSource.Network,
+		result: resMagic.body,
+		source: resMagic.ssr ? DataSource.Ssr : DataSource.Network,
 		partial: false,
 	}
 }

@@ -5,13 +5,8 @@ import { get, Readable, Writable, writable } from 'svelte/store'
 import { CachePolicy, DataSource, fetchQuery, QueryStore } from '..'
 import { clientStarted, isBrowser } from '../adapter'
 import cache from '../cache'
-import {
-	FetchContext,
-	getHoudiniContext,
-	QueryResult,
-	QueryStoreFetchParams,
-	SubscriptionSpec,
-} from '../lib'
+import { FetchContext, QueryResult, QueryStoreFetchParams, SubscriptionSpec } from '../lib'
+import { nullHoudiniContext } from '../lib/context'
 import { PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import type { ConfigFile } from '../lib/types'
@@ -108,11 +103,15 @@ export function queryStore<_Data, _Input>({
 		const isComponentFetch = !isLoadFetch
 
 		// compute the variables we need to use for the query
-		const newVariables = (marshalInputs({
+		const input = (marshalInputs({
 			artifact,
 			config,
 			input: params?.variables,
 		}) || {}) as _Input
+		const newVariables = {
+			...lastVariables,
+			...input,
+		}
 
 		// check if the variables are different from the last time we saw them
 		let variableChange = stry(lastVariables, 0) !== stry(newVariables, 0)
@@ -171,6 +170,8 @@ export function queryStore<_Data, _Input>({
 
 		// we might not want to wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
+
+		//
 
 		// perform the network request
 		const request = fetchAndCache({
@@ -286,10 +287,10 @@ function fetchContext<_Data, _Input>(
 	// we have to build up a context appropriate for the client
 	let context: FetchContext | undefined = params?.event
 	if (!context) {
-		const houdiniContext = params?.context || getHoudiniContext()
+		const houdiniContext = params?.context || nullHoudiniContext()
 		context = {
 			fetch: window.fetch.bind(window),
-			session: houdiniContext.session(),
+			session: houdiniContext.session?.(),
 			stuff: houdiniContext.stuff || {},
 		}
 	}
