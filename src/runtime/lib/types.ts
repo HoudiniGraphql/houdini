@@ -1,8 +1,8 @@
+import type { LoadEvent } from '@sveltejs/kit'
 import { Readable } from 'svelte/store'
+import { MutationConfig } from '../inline/mutation'
 import type { ConfigFile } from './config'
 import { HoudiniDocumentProxy } from './proxy'
-import type { LoadEvent } from '@sveltejs/kit'
-import { MutationConfig } from '../inline/mutation'
 
 export type { ConfigFile } from './config'
 
@@ -131,6 +131,12 @@ export type QueryStoreFetchParams<_Input> = {
 	policy?: CachePolicy
 
 	/**
+	 * An object that will be passed to the fetch function.
+	 * You can do what you want with it!
+	 */
+	metadata?: any
+
+	/**
 	 * Set to true if you want the promise to pause while it's resolving.
 	 * Only enable this if you know what you are doing. This will cause route
 	 * transitions to pause while loading data.
@@ -154,7 +160,7 @@ export type QueryStoreFetchParams<_Input> = {
 			 */
 			event?: never
 			/**
-			 * An object containing all of the current metadata necessary for a
+			 * An object containing all of the current info necessary for a
 			 * client-side fetch. Must be called in component initialization with
 			 * something like this: `const context = getHoudiniFetchContext()`
 			 */
@@ -208,10 +214,11 @@ export type TaggedGraphqlMutation = {
 
 export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result, _Input>> & {
 	mutate: (
-		params: { variables: _Input; context?: HoudiniFetchContext } & MutationConfig<
-			_Result,
-			_Input
-		>
+		params: {
+			variables: _Input
+			metadata?: any
+			context?: HoudiniFetchContext
+		} & MutationConfig<_Result, _Input>
 	) => Promise<MutationResult<_Result, _Input>>
 }
 

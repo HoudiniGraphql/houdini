@@ -309,6 +309,10 @@ function fetchContext<_Data, _Input>(
 			stuff: houdiniContext.stuff || {},
 		}
 	}
+
+	// Add metadata info to the context
+	context = { ...context, metadata: params?.metadata }
+
 	return { context, policy, params: params ?? {} }
 }
 

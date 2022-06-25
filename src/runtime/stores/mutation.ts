@@ -30,6 +30,7 @@ export function mutationStore<_Data, _Input>({
 	const mutate: MutationStore<_Data, _Input>['mutate'] = async ({
 		variables,
 		context,
+		metadata,
 		...mutationConfig
 	}) => {
 		let fetchContext: HoudiniFetchContext | { session: () => null } = context || {
@@ -91,7 +92,8 @@ export function mutationStore<_Data, _Input>({
 				artifact,
 				newVariables,
 				fetchContext.session?.(),
-				false
+				false,
+				metadata
 			)
 
 			if (result.errors && result.errors.length > 0) {

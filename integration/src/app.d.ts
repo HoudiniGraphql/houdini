@@ -8,5 +8,8 @@ declare namespace App {
   interface Session {
     token?: string | null;
   }
+  interface Metadata {
+    superKey?: string | null;
+  }
   // interface Stuff {}
 }

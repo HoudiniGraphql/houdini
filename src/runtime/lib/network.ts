@@ -14,7 +14,7 @@ import {
 import { marshalInputs } from './scalars'
 import cache from '../cache'
 import { Page } from '@sveltejs/kit'
-import { logRed, logYellow } from '@kitql/helper'
+import { logCyan, logRed, logYellow } from '@kitql/helper'
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
@@ -54,10 +54,10 @@ export class HoudiniClient {
 						)}
 You should update your client to look something like the following:
 
-async function fetchQuery({ ${logYellow('fetch')}, ${logYellow(
+async function fetchQuery({ ${logYellow('fetch')}, text = '', variables = {}, ${logYellow(
 							'session'
-						)}, text = '', variables = {} }) {
-  const result =  ...
+						)}, ${logCyan('metadata')} }) {
+  const result =  await fetch( ...
 
   return await result.json();
 }
@@ -70,9 +70,10 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 				},
 			},
 			{
+				fetch: wrapper,
 				...params,
 				session,
-				fetch: wrapper,
+				metadata: ctx.metadata,
 			},
 			session
 		)
@@ -115,9 +116,9 @@ export function setEnvironment(env: HoudiniClient) {
 You should update your __layout files to look something like the following:
 
 <script context="module">
-import client from 'path/to/client'
+  import client from 'path/to/client'
 
-client.init()
+  client.init()
 </script>
 
 
@@ -151,7 +152,8 @@ export type FetchParams = {
 export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
 	session: App.Session | null
-	stuff: App.Stuff
+	stuff: App.Stuff | null
+	metadata?: any
 }
 
 export type BeforeLoadContext = LoadEvent
@@ -187,9 +189,9 @@ export type RequestPayload<_Data = any> = {
 	}[]
 }
 
+export type RequestHandlerArgs = Omit<FetchContext & FetchParams, 'stuff'>
 export type RequestHandler<_Data> = (
-	this: FetchContext,
-	args: Omit<FetchContext & FetchParams, 'stuff'>,
+	args: RequestHandlerArgs,
 	session?: FetchSession
 ) => Promise<RequestPayload<_Data>>
 
@@ -199,7 +201,8 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 	artifact: QueryArtifact | MutationArtifact,
 	variables: _Input,
 	session: App.Session | null,
-	cached: boolean
+	cached: boolean,
+	metadata?: any
 ): Promise<{ result: RequestPayload; partial: boolean }> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?
@@ -220,7 +223,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 
 	const { result: res, partial } = await fetchQuery<_Data>({
 		// @ts-ignore
-		context: fetchCtx,
+		context: { ...fetchCtx, metadata },
 		artifact,
 		variables,
 		cached,
