@@ -617,7 +617,7 @@ describe('query preprocessor', function () {
 		});
 
 		export let prop1 = "hello";
-		export let prop2 = "goodbye";
+		export const prop2 = "goodbye";
 		export let prop3, prop4;
 
 		const {
