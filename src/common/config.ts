@@ -98,7 +98,7 @@ export class Config {
 		// if the user asked for `quiet` logging notify them its been deprecated
 		if (quiet) {
 			console.warn(
-				`${logRed('⚠️ The quiet configuration parameter has been deprecated. ⚠️')}
+				`⚠️ The quiet configuration parameter has been deprecated. ⚠️
 You should update your config to look like this:
 
 export default {
