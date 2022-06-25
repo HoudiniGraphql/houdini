@@ -134,7 +134,8 @@ export type QueryStoreFetchParams<_Input> = {
 	 * An object that will be passed to the fetch function.
 	 * You can do what you want with it!
 	 */
-	metadata?: any
+	// @ts-ignore
+	metadata?: App.Metadata
 
 	/**
 	 * Set to true if you want the promise to pause while it's resolving.
@@ -216,7 +217,8 @@ export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result, _I
 	mutate: (
 		params: {
 			variables: _Input
-			metadata?: any
+			// @ts-ignore
+			metadata?: App.Metadata
 			context?: HoudiniFetchContext
 		} & MutationConfig<_Result, _Input>
 	) => Promise<MutationResult<_Result, _Input>>

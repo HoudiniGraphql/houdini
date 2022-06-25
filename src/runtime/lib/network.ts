@@ -153,7 +153,8 @@ export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
 	session: App.Session | null
 	stuff: App.Stuff | null
-	metadata?: any
+	// @ts-ignore
+	metadata?: App.Metadata | null
 }
 
 export type BeforeLoadContext = LoadEvent
@@ -189,6 +190,20 @@ export type RequestPayload<_Data = any> = {
 	}[]
 }
 
+/**
+ * ## Tips 👇
+ *
+ * Create a file `src/app.d.ts` containing the following:
+ *
+ * ```ts
+ * declare namespace App { *
+ * 	interface Session {}
+ * 	interface Metadata {}
+ * }
+ * ```
+ *
+ * Like this, Session and Metadata will be typed everywhere!
+ */
 export type RequestHandlerArgs = Omit<FetchContext & FetchParams, 'stuff'>
 export type RequestHandler<_Data> = (
 	args: RequestHandlerArgs,
@@ -202,7 +217,8 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 	variables: _Input,
 	session: App.Session | null,
 	cached: boolean,
-	metadata?: any
+	// @ts-ignore
+	metadata?: App.Metadata
 ): Promise<{ result: RequestPayload; partial: boolean }> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?

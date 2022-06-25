@@ -10,18 +10,15 @@ async function fetchQuery({
   session,
   metadata
 }: RequestHandlerArgs) {
-  // // You can do what you want with your session
-  // console.log(`session`, session);
-
-  // // You can do what you want with your metadata at query/mutation level
-  // console.log(`metadata`, metadata);
-
+  // Prepare the request
   const url = import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
+
+  // regular fetch (Server & Client)
   const result = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${session?.token}`
+      Authorization: `Bearer ${session?.token}` // session usage example
     },
     body: JSON.stringify({
       query: text,
@@ -32,6 +29,7 @@ async function fetchQuery({
   // return the result as a JSON object to Houdini
   const json = await result.json();
 
+  // metadata usage example
   if (metadata?.logResult === true) {
     console.info(stry(json, 0));
   }
@@ -41,4 +39,3 @@ async function fetchQuery({
 
 // Export the Houdini client
 export const houdiniClient = new HoudiniClient(fetchQuery);
-// export const houdiniClient = new HoudiniClient(fetchQuery, socketClient)
