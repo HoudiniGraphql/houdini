@@ -17,7 +17,7 @@ test.describe('Metadata Page', () => {
     // Wait a bit
     await sleep(999);
 
-    expect(displayed).toBe(`{\"data\":{\"session\":\"1234-Houdini-Token-5678\"}}`);
+    expect(displayed).toBe(`{"data":{"session":"1234-Houdini-Token-5678"}}`);
   });
 
   test('Mutation => Should display the raw result in the console as info', async ({ page }) => {
@@ -38,7 +38,7 @@ test.describe('Metadata Page', () => {
     await expectGraphQLResponse(page, 'button[id=mutate]');
 
     expect(displayed).toBe(
-      `{\"data\":{\"updateUser\":{\"id\":\"store-user-subunsub:5\",\"name\":\"Hello!\"}}}`
+      `{"data":{"updateUser":{"id":"store-user-subunsub:5","name":"Hello!"}}}`
     );
   });
 });
