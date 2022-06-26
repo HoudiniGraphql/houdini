@@ -50,7 +50,7 @@ export class HoudiniClient {
 				get fetch() {
 					console.log(
 						`${logRed(
-							"⚠️ fetch and session are now passed as arguments to your client's network function ⚠️"
+							"⚠️  fetch and session are now passed as arguments to your client's network function ⚠️"
 						)}
 You should update your client to look something like the following:
 
@@ -94,7 +94,7 @@ export class Environment extends HoudiniClient {
 	constructor(...args: ConstructorParameters<typeof HoudiniClient>) {
 		super(...args)
 		console.log(
-			`${logRed('⚠️ Environment has been renamed to HoudiniClient. ⚠️')}
+			`${logRed('⚠️  Environment has been renamed to HoudiniClient. ⚠️')}
 You should update your client to look something like the following:
 
 import { HoudiniClient } from '$houdini/runtime'
@@ -112,7 +112,7 @@ let currentClient: HoudiniClient | null = null
 
 export function setEnvironment(env: HoudiniClient) {
 	console.log(
-		`${logRed('⚠️ setEnvironment is now replaced by environment.init() ⚠️')}
+		`${logRed('⚠️  setEnvironment is now replaced by environment.init() ⚠️')}
 You should update your __layout files to look something like the following:
 
 <script context="module">
@@ -205,6 +205,7 @@ export type RequestPayload<_Data = any> = {
  * Like this, Session and Metadata will be typed everywhere!
  */
 export type RequestHandlerArgs = Omit<FetchContext & FetchParams, 'stuff'>
+
 export type RequestHandler<_Data> = (
 	args: RequestHandlerArgs,
 	session?: FetchSession

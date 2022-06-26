@@ -52,7 +52,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	} catch {}
 
 	// if the previous version is different from the current version
-	const versionChanged = previousVersion !== 'HOUDINI_VERSION'
+	const versionChanged = previousVersion && previousVersion !== 'HOUDINI_VERSION'
 
 	await run(
 		config,
