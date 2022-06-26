@@ -728,7 +728,7 @@ class CacheInternal {
 					partial = true
 				}
 
-				if (listValue.hasData) {
+				if (listValue.hasData || value.length === 0) {
 					hasData = true
 				}
 			}
