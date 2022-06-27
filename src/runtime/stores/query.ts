@@ -249,6 +249,7 @@ export function queryStore<_Data, _Input>({
 			return () => {
 				if (subscriptionSpec) {
 					cache.unsubscribe(subscriptionSpec, lastVariables || {})
+					subscriptionSpec = null
 				}
 				bubbleUp()
 			}
