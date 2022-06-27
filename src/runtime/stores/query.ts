@@ -131,6 +131,12 @@ export function queryStore<_Data, _Input>({
 
 		// if there is a pending load, don't do anything
 		if (loadPending && isComponentFetch) {
+			// if the variables haven't changed and we dont have an active subscription
+			// then we need to start listening
+			if (!variableChange && subscriptionSpec === null) {
+				refreshSubscription(newVariables)
+			}
+
 			return get(store)
 		}
 
