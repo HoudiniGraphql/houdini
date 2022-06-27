@@ -88,13 +88,14 @@ export function mutationStore<_Data, _Input>({
 
 		try {
 			// trigger the mutation
-			const { result } = await executeQuery(
+			const { result } = await executeQuery({
+				config,
 				artifact,
-				newVariables,
-				fetchContext.session?.(),
-				false,
-				metadata
-			)
+				variables: newVariables,
+				session: fetchContext.session?.(),
+				cached: false,
+				metadata,
+			})
 
 			if (result.errors && result.errors.length > 0) {
 				update((s) => ({

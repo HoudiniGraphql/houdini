@@ -2,7 +2,7 @@
 import { logCyan, logRed, logYellow, stry } from '@kitql/helper'
 import { get, Readable, Writable, writable } from 'svelte/store'
 // internals
-import { CachePolicy, DataSource, fetchQuery, QueryStore } from '..'
+import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
 import { clientStarted, isBrowser } from '../adapter'
 import cache from '../cache'
 import { FetchContext, QueryResult, QueryStoreFetchParams, SubscriptionSpec } from '../lib'
@@ -14,7 +14,7 @@ import { QueryArtifact } from '../lib/types'
 
 // Terms:
 // - CSF: client side fetch. identified by a lack of loadEvent
-
+//
 // Notes:
 // - load handles prefetch and server-side
 //   - If the incoming variables on a load are different than the tracker, don't write to the store
@@ -26,12 +26,12 @@ import { QueryArtifact } from '../lib/types'
 // - CSF must load the data aswell (pre-fetches don't get another invocation of load())
 // - CSF must manage subscriptions
 // - CSF must update variable tracker.
+// - CSF might happen when load is also firing
+//   - avoid the double request
+//   - still need to subscribe to data
 //
-// - We have to prevent a link to the current route with different variables from sending two requests. One of load or CSF
-//   has to detect that the other will happen and not do anything. Regardless of which, this stop only matters when a fetch
-//   happens during navigation
 
-export function queryStore<_Data, _Input>({
+export function queryStore<_Data extends GraphQLObject, _Input>({
 	config,
 	artifact,
 	storeName,
@@ -323,7 +323,7 @@ function fetchContext<_Data, _Input>(
 	return { context, policy, params: params ?? {} }
 }
 
-async function fetchAndCache<_Data, _Input>({
+async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	config,
 	context,
 	artifact,
@@ -346,7 +346,8 @@ async function fetchAndCache<_Data, _Input>({
 	setLoadPending: (pending: boolean) => void
 	policy?: CachePolicy
 }) {
-	const request = await fetchQuery({
+	const request = await fetchQuery<_Data, _Input>({
+		config,
 		context,
 		artifact,
 		variables,
@@ -368,12 +369,6 @@ async function fetchAndCache<_Data, _Input>({
 	}
 
 	if (updateStore) {
-		const unmarshaledData = unmarshalSelection(
-			config,
-			artifact.selection,
-			result.data
-		)! as _Data
-
 		// since we know we're not prefetching, we need to update the store with any errors
 		if (result.errors && result.errors.length > 0) {
 			store.update((s) => ({
@@ -381,7 +376,7 @@ async function fetchAndCache<_Data, _Input>({
 				errors: result.errors,
 				isFetching: false,
 				partial: false,
-				data: unmarshaledData,
+				data: result.data,
 				source,
 				variables,
 			}))
@@ -390,7 +385,7 @@ async function fetchAndCache<_Data, _Input>({
 			throw result.errors
 		} else {
 			store.set({
-				data: (unmarshaledData || {}) as _Data,
+				data: (result.data || {}) as _Data,
 				variables: variables || ({} as _Input),
 				errors: null,
 				isFetching: false,

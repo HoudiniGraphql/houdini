@@ -176,12 +176,6 @@ export type HoudiniFetchContext = {
 	stuff: App.Stuff
 }
 
-export type LoadContext = {
-	url: URL
-	session: Readable<any>
-	variables: () => {}
-}
-
 export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
 	listen: (input: _Input) => void
 	unlisten: () => void

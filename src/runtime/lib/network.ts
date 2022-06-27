@@ -11,7 +11,7 @@ import {
 	QueryArtifact,
 	SubscriptionArtifact,
 } from './types'
-import { marshalInputs } from './scalars'
+import { marshalInputs, unmarshalSelection } from './scalars'
 import cache from '../cache'
 import { Page } from '@sveltejs/kit'
 import { logCyan, logRed, logYellow } from '@kitql/helper'
@@ -213,14 +213,22 @@ export type RequestHandler<_Data> = (
 
 // This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
-export async function executeQuery<_Data extends GraphQLObject, _Input>(
-	artifact: QueryArtifact | MutationArtifact,
-	variables: _Input,
-	session: App.Session | null,
-	cached: boolean,
+export async function executeQuery<_Data extends GraphQLObject, _Input>({
+	artifact,
+	variables,
+	session,
+	cached,
+	config,
+	metadata,
+}: {
+	artifact: QueryArtifact | MutationArtifact
+	variables: _Input
+	session: App.Session | null
+	cached: boolean
+	config: ConfigFile
 	// @ts-ignore
 	metadata?: App.Metadata
-): Promise<{ result: RequestPayload; partial: boolean }> {
+}): Promise<{ result: RequestPayload; partial: boolean }> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?
 	// const session = sessionStore !== null ? get(sessionStore) : sessionStore
@@ -238,9 +246,9 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 		},
 	}
 
-	const { result: res, partial } = await fetchQuery<_Data>({
-		// @ts-ignore
+	const { result: res, partial } = await fetchQuery<_Data, _Input>({
 		context: { ...fetchCtx, metadata },
+		config,
 		artifact,
 		variables,
 		cached,
@@ -294,23 +302,25 @@ export async function convertKitPayload(
 }
 
 export type FetchQueryResult<_Data> = {
-	result: RequestPayload<_Data | {} | null>
+	result: RequestPayload<_Data | null>
 	source: DataSource | null
 	partial: boolean
 }
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 
-export async function fetchQuery<_Data extends GraphQLObject>({
+export async function fetchQuery<_Data extends GraphQLObject, _Input>({
+	config,
 	context,
 	artifact,
 	variables,
 	cached = true,
 	policy,
 }: {
+	config: ConfigFile
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
-	variables: {}
+	variables: _Input
 	cached?: boolean
 	policy?: CachePolicy
 }): Promise<FetchQueryResult<_Data>> {
@@ -319,7 +329,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	// if there is no environment
 	if (!environment) {
 		return {
-			result: { data: {}, errors: [{ message: 'could not find houdini environment' }] },
+			result: { data: null, errors: [{ message: 'could not find houdini environment' }] },
 			source: null,
 			partial: false,
 		}
@@ -354,7 +364,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 			if (value.data !== null && allowed) {
 				return {
 					result: {
-						data: value.data,
+						data: value.data as _Data,
 						errors: [],
 					},
 					source: DataSource.Cache,
@@ -377,14 +387,22 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 	}
 
 	// the request must be resolved against the network
-	const resMagic = await environment.sendRequest<_Data>(
+	const result = await environment.sendRequest<_Data>(
 		context,
 		{ text: artifact.raw, hash: artifact.hash, variables },
 		context.session
 	)
+
+	// responses from the server should be marshaled into complex types before returning it
+	// note: values read from the cache are already marshaled so putting this here normalizes the behavior
+	if (result.body.data) {
+		result.body.data = (unmarshalSelection(config, artifact.selection, result.body.data) ||
+			result.body.data) as _Data
+	}
+
 	return {
-		result: resMagic.body,
-		source: resMagic.ssr ? DataSource.Ssr : DataSource.Network,
+		result: result.body,
+		source: result.ssr ? DataSource.Ssr : DataSource.Network,
 		partial: false,
 	}
 }
