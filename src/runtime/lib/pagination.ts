@@ -4,7 +4,6 @@ import { derived, get, readable, Readable, Writable, writable } from 'svelte/sto
 import cache from '../cache'
 import { executeQuery } from './network'
 import { GraphQLObject, QueryArtifact } from './types'
-// this has to be in a separate file since config isn't defined in cache/index.ts
 import { FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams } from '..'
 import { getHoudiniContext } from './context'
 import { ConfigFile, keyFieldsForType } from './config'
