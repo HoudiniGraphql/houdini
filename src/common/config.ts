@@ -546,12 +546,15 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		sourceGlob: '123',
 		schema: `
+			scalar Cursor
+
 			type User implements Node {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!
-				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnection!
+				friendsByCursorScalar(first: Int, after: Cursor, last: Int, before: Cursor, filter: String): UserConnection!
+				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnectionScalar!
 				friendsByForwardsCursor(first: Int, after: String, filter: String): UserConnection!
 				friendsByOffset(offset: Int, limit: Int, filter: String): [User!]!
 				friendsInterface: [Friend!]!
@@ -608,9 +611,19 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				node: User
 			}
 
+			type UserEdgeScalar {
+				cursor: Cursor!
+				node: User
+			}
+
 			type UserConnection {
 				pageInfo: PageInfo!
 				edges: [UserEdge!]!
+			}
+
+			type UserConnectionScalar { 
+				pageInfo: PageInfo!
+				edges: [UserEdgeScalar!]!
 			}
 
 			type GhostEdge {

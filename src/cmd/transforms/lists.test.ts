@@ -527,3 +527,5 @@ test('paginate with name also gets treated as a list', async function () {
 
 	`)
 })
+
+test.todo('cursor could be a Cursor scalar, not as string')

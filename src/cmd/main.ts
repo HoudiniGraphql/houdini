@@ -8,6 +8,7 @@ import { getConfig, LogLevel, readConfigFile } from '../common'
 import { ConfigFile } from '../runtime'
 import generate from './generate'
 import init from './init'
+import { HoudiniError } from './types'
 import { writeSchema } from './utils/writeSchema'
 
 // build up the cli
@@ -90,7 +91,21 @@ program
 
 				await generate(config)
 			} catch (e) {
-				console.error(util.inspect(e, { showHidden: false, depth: null, colors: true }))
+				// we need an array of errors to loop through
+				const errors = (Array.isArray(e) ? e : [e]) as HoudiniError[]
+
+				for (const error of errors) {
+					// if we have filepath, show that to the user
+					if ('filepath' in error) {
+						console.error(`❌ Encountered error in ${error.filepath}`)
+						console.error(error.message)
+					} else if ('description' in error) {
+						console.error(`❌ ${error.message}`)
+						console.error(`${error.description}`)
+					} else {
+						console.error(`❌ ${error.message}`)
+					}
+				}
 			}
 		}
 	)

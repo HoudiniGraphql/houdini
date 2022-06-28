@@ -35,7 +35,7 @@ export default async function typeCheck(
 	const fragments: Record<string, graphql.FragmentDefinitionNode> = {}
 
 	// visit every document and build up the lists
-	for (const { document: parsed } of docs) {
+	for (const { document: parsed, filename } of docs) {
 		graphql.visit(parsed, {
 			[graphql.Kind.FRAGMENT_DEFINITION](definition) {
 				fragments[definition.name.value] = definition
@@ -196,7 +196,7 @@ export default async function typeCheck(
 					targetField.name.value
 				] as graphql.GraphQLField<any, any>
 
-				const { type } = connectionSelection(
+				const { type, error } = connectionSelection(
 					config,
 					targetFieldDefinition,
 					parentTypeFromAncestors(config.schema, ancestors) as graphql.GraphQLObjectType,
@@ -209,15 +209,22 @@ export default async function typeCheck(
 					.filter((fieldName) => !type.getFields()[fieldName])
 
 				if (missingIDFields.length > 0) {
-					errors.push(
-						new HoudiniErrorTodo(
-							`@${
-								config.listDirective
-							} can only be applied to types with the necessary id fields: ${missingIDFields.join(
-								', '
-							)}.`
+					if (error) {
+						errors.push({
+							message: error,
+							filepath: filename,
+						})
+					} else {
+						errors.push(
+							new HoudiniErrorTodo(
+								`@${
+									config.listDirective
+								} can only be applied to types with the necessary id fields: ${missingIDFields.join(
+									', '
+								)}.`
+							)
 						)
-					)
+					}
 					return
 				}
 

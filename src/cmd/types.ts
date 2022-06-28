@@ -26,4 +26,4 @@ export const HoudiniErrorTodo = Error
 export type HoudiniInfoError = { message: string; description?: string[] }
 
 // any error that the compiler could fire
-export type HoudiniError = HoudiniDocumentError | HoudiniInfoError
+export type HoudiniError = HoudiniDocumentError | HoudiniInfoError | Error
