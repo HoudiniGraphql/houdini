@@ -204,6 +204,210 @@ test('offset based pagination marks appropriate field', async function () {
 				`)
 })
 
+test('cursor as scalar gets the right pagination query argument types', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`
+            query ScalarPagination {
+				user { 
+					friendsByCursorScalar(first:10, filter: "hello") @paginate {
+						edges { 
+							node {
+								friendsByCursor { 
+									edges { 
+										node { 
+											id
+										}
+									}
+								}
+							}
+                        }
+                    }
+                }
+            }
+        `
+		),
+	]
+
+	await runPipeline(config, docs)
+
+	// look at the artifact for the generated pagination query
+	await expect(docs[0]).toMatchArtifactSnapshot(`
+					module.exports = {
+					    name: "ScalarPagination",
+					    kind: "HoudiniQuery",
+					    hash: "8667d7c32df15064691e601136becc4d78c31f2bfd004a2e30e91cff61ecd5f6",
+
+					    refetch: {
+					        update: "append",
+					        path: ["user", "friendsByCursorScalar"],
+					        method: "cursor",
+					        pageSize: 10,
+					        embedded: false,
+					        targetType: "Query",
+					        paginated: true,
+					        direction: "forward"
+					    },
+
+					    raw: \`query ScalarPagination($first: Int = 10, $after: Cursor) {
+					  user {
+					    friendsByCursorScalar(first: $first, filter: "hello", after: $after) {
+					      edges {
+					        node {
+					          friendsByCursor {
+					            edges {
+					              node {
+					                id
+					              }
+					            }
+					          }
+					          id
+					        }
+					      }
+					      edges {
+					        cursor
+					        node {
+					          __typename
+					        }
+					      }
+					      pageInfo {
+					        hasPreviousPage
+					        hasNextPage
+					        startCursor
+					        endCursor
+					      }
+					    }
+					    id
+					  }
+					}
+					\`,
+
+					    rootType: "Query",
+
+					    selection: {
+					        user: {
+					            type: "User",
+					            keyRaw: "user",
+
+					            fields: {
+					                friendsByCursorScalar: {
+					                    type: "UserConnection",
+					                    keyRaw: "friendsByCursorScalar(filter: \\"hello\\")::paginated",
+
+					                    fields: {
+					                        edges: {
+					                            type: "UserEdge",
+					                            keyRaw: "edges",
+
+					                            fields: {
+					                                cursor: {
+					                                    type: "String",
+					                                    keyRaw: "cursor"
+					                                },
+
+					                                node: {
+					                                    type: "User",
+					                                    keyRaw: "node",
+					                                    nullable: true,
+
+					                                    fields: {
+					                                        __typename: {
+					                                            type: "String",
+					                                            keyRaw: "__typename"
+					                                        },
+
+					                                        friendsByCursor: {
+					                                            type: "UserConnection",
+					                                            keyRaw: "friendsByCursor",
+
+					                                            fields: {
+					                                                edges: {
+					                                                    type: "UserEdge",
+					                                                    keyRaw: "edges",
+
+					                                                    fields: {
+					                                                        node: {
+					                                                            type: "User",
+					                                                            keyRaw: "node",
+					                                                            nullable: true,
+
+					                                                            fields: {
+					                                                                id: {
+					                                                                    type: "ID",
+					                                                                    keyRaw: "id"
+					                                                                }
+					                                                            }
+					                                                        }
+					                                                    }
+					                                                }
+					                                            }
+					                                        },
+
+					                                        id: {
+					                                            type: "ID",
+					                                            keyRaw: "id"
+					                                        }
+					                                    }
+					                                }
+					                            },
+
+					                            update: "append"
+					                        },
+
+					                        pageInfo: {
+					                            type: "PageInfo",
+					                            keyRaw: "pageInfo",
+
+					                            fields: {
+					                                hasPreviousPage: {
+					                                    type: "Boolean",
+					                                    keyRaw: "hasPreviousPage"
+					                                },
+
+					                                hasNextPage: {
+					                                    type: "Boolean",
+					                                    keyRaw: "hasNextPage"
+					                                },
+
+					                                startCursor: {
+					                                    type: "String",
+					                                    keyRaw: "startCursor"
+					                                },
+
+					                                endCursor: {
+					                                    type: "String",
+					                                    keyRaw: "endCursor"
+					                                }
+					                            }
+					                        }
+					                    }
+					                },
+
+					                id: {
+					                    type: "ID",
+					                    keyRaw: "id"
+					                }
+					            }
+					        }
+					    },
+
+					    input: {
+					        fields: {
+					            first: "Int",
+					            after: "Cursor"
+					        },
+
+					        types: {}
+					    },
+
+					    policy: "CacheOrNetwork",
+					    partial: false
+					};
+
+					"HoudiniHash=684d0ec8284ab9f26c70d00f8e6f6824d7b8e35fb67c3724af409e643d573ccd";
+				`)
+})
+
 test("sibling aliases don't get marked", async function () {
 	const docs = [
 		mockCollectedDoc(
