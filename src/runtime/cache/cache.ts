@@ -676,8 +676,13 @@ class CacheInternal {
 				nextStep = 0
 			}
 
+			// if we run into a null cursor that is inside of a connection then
+			// we know its a generated value and should not force us to mark the whole parent as
+			// null (prevent the null cascade) or be treated as partial data
+			const embeddedCursor = key === 'cursor' && stepsFromConnection === 1
+
 			// if we dont have a value, we know this result is going to be partial
-			if (typeof value === 'undefined') {
+			if (typeof value === 'undefined' && !embeddedCursor) {
 				partial = true
 			}
 
@@ -755,11 +760,6 @@ class CacheInternal {
 					hasData = true
 				}
 			}
-
-			// if we run into a null cursor that is inside of a connection then
-			// we know its a generated value and should not force us to mark the whole parent as
-			// null (prevent the null cascade)
-			const embeddedCursor = key === 'cursor' && stepsFromConnection === 1
 
 			// regardless of how the field was processed, if we got a null value assigned
 			// and the field is not nullable, we need to cascade up
