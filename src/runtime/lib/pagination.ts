@@ -388,7 +388,11 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				artifact.refetch!.pageSize
 
 			// only include the count value if its not the refetch page size (generated with default value)
-			if (count && count !== artifact.refetch!.pageSize) {
+			if (
+				count &&
+				count !== artifact.refetch!.pageSize &&
+				('after' in queryVariables || 'before' in queryVariables)
+			) {
 				// reverse cursors need the last entries in the list
 				queryVariables[artifact.refetch!.update === 'prepend' ? 'last' : 'first'] = count
 			}
@@ -414,7 +418,6 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				errors: null,
 				source: result.source,
 			}
-			cache.write(returnValue)
 
 			// we're not loading any more
 			loading.set(false)
@@ -517,7 +520,9 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 			const queryVariables: Record<string, any> = {
 				...extraVariables(),
 			}
-			if (count !== artifact.refetch!.pageSize) {
+
+			// if the count is different
+			if (count !== artifact.refetch!.pageSize && 'offsest' in queryVariables) {
 				queryVariables.limit = count
 			}
 
@@ -533,23 +538,17 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 			// we're not loading any more
 			loading.set(false)
 
-			// update cache with the result
-			const returnValue = {
-				selection: artifact.selection,
+			// we're not loading any more
+			loading.set(false)
+
+			return {
 				data: result.data,
 				variables: queryVariables as _Input,
-				applyUpdates: false,
 				isFetching: false,
 				partial: result.partial,
 				errors: null,
 				source: result.source,
 			}
-			cache.write(returnValue)
-
-			// we're not loading any more
-			loading.set(false)
-
-			return returnValue
 		},
 	}
 }
