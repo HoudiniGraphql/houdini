@@ -423,7 +423,6 @@ function addKitLoad({
 					AST.objectProperty(
 						AST.literal('blocking'),
 						AST.booleanLiteral(!!afterLoadDefinition)
-						// AST.booleanLiteral(true)
 					),
 				]),
 			]

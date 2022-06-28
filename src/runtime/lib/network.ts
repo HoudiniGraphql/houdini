@@ -342,11 +342,6 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input>({
 			policy = artifact.policy
 		}
 
-		// tick the garbage collector asynchronously
-		setTimeout(() => {
-			cache._internal_unstable.collectGarbage()
-		}, 0)
-
 		// this function is called as the first step in requesting data. If the policy prefers
 		// cached data, we need to load data from the cache (if its available). If the policy
 		// prefers network data we need to send a request (the onLoad of the component will
@@ -386,19 +381,17 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input>({
 		}
 	}
 
+	// tick the garbage collector asynchronously
+	setTimeout(() => {
+		cache._internal_unstable.collectGarbage()
+	}, 0)
+
 	// the request must be resolved against the network
 	const result = await environment.sendRequest<_Data>(
 		context,
 		{ text: artifact.raw, hash: artifact.hash, variables },
 		context.session
 	)
-
-	// responses from the server should be marshaled into complex types before returning it
-	// note: values read from the cache are already marshaled so putting this here normalizes the behavior
-	if (result.body.data) {
-		result.body.data = (unmarshalSelection(config, artifact.selection, result.body.data) ||
-			result.body.data) as _Data
-	}
 
 	return {
 		result: result.body,

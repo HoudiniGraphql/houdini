@@ -177,6 +177,12 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 				})
 			}
 
+			// if we dont have a subscription but we're ending early we need to listen for
+			// changes
+			if (subscriptionSpec === null) {
+				refreshSubscription(newVariables)
+			}
+
 			// make sure we return before the fetch happens
 			return get(store)
 		}
@@ -359,7 +365,7 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	// we're done
 	setLoadPending(false)
 
-	if (result.data) {
+	if (result.data && source !== DataSource.Cache) {
 		// update the cache with the data that we just ran into
 		cache.write({
 			selection: artifact.selection,
@@ -369,6 +375,12 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	}
 
 	if (updateStore) {
+		// unmarshal the result into complex scalars if its a response from the server
+		const unmarshaled =
+			source === DataSource.Cache
+				? result.data
+				: unmarshalSelection(config, artifact.selection, result.data)
+
 		// since we know we're not prefetching, we need to update the store with any errors
 		if (result.errors && result.errors.length > 0) {
 			store.update((s) => ({
@@ -376,7 +388,7 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 				errors: result.errors,
 				isFetching: false,
 				partial: false,
-				data: result.data,
+				data: unmarshaled as _Data,
 				source,
 				variables,
 			}))
@@ -385,7 +397,7 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 			throw result.errors
 		} else {
 			store.set({
-				data: (result.data || {}) as _Data,
+				data: (unmarshaled || {}) as _Data,
 				variables: variables || ({} as _Input),
 				errors: null,
 				isFetching: false,
