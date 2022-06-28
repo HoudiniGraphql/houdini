@@ -173,7 +173,10 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 					updateStore: true,
 					cached: true,
 					policy: CachePolicy.CacheOnly,
-					setLoadPending: (val) => (loadPending = val),
+					setLoadPending: (val) => {
+						loadPending = val
+						setFetching(val)
+					},
 				})
 			}
 
