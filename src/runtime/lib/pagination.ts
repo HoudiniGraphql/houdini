@@ -387,12 +387,8 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				countPage(artifact.refetch!.path.concat('edges'), value) ||
 				artifact.refetch!.pageSize
 
-			// only include the count value if its not the refetch page size (generated with default value)
-			if (
-				count &&
-				count !== artifact.refetch!.pageSize &&
-				('after' in queryVariables || 'before' in queryVariables)
-			) {
+			// if there are more records than the first page, we need fetch to load everything
+			if (count && count > artifact.refetch!.pageSize) {
 				// reverse cursors need the last entries in the list
 				queryVariables[artifact.refetch!.update === 'prepend' ? 'last' : 'first'] = count
 			}
@@ -406,23 +402,17 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				variables: queryVariables,
 			})
 
-			// update cache with the result
-			const returnValue = {
-				selection: artifact.selection,
+			// we're not loading any more
+			loading.set(false)
+
+			return {
 				data: result.data,
 				variables: queryVariables as _Input,
-				// overwrite the current data
-				applyUpdates: false,
 				isFetching: false,
 				partial: result.partial,
 				errors: null,
 				source: result.source,
 			}
-
-			// we're not loading any more
-			loading.set(false)
-
-			return returnValue
 		},
 	}
 }
@@ -521,8 +511,8 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 				...extraVariables(),
 			}
 
-			// if the count is different
-			if (count !== artifact.refetch!.pageSize && 'offsest' in queryVariables) {
+			// if there are more records than the first page, we need fetch to load everything
+			if (count > artifact.refetch!.pageSize) {
 				queryVariables.limit = count
 			}
 
