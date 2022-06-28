@@ -50,7 +50,7 @@ export class Config {
 			scalars,
 			cacheBufferSize,
 			definitionsPath,
-			defaultCachePolicy = CachePolicy.NetworkOnly,
+			defaultCachePolicy = CachePolicy.CacheOrNetwork,
 			defaultPartial = false,
 			defaultKeys,
 			types = {},
