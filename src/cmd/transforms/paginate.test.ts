@@ -595,7 +595,7 @@ test('embeds node pagination query as a separate document', async function () {
 					        types: {}
 					    },
 
-					    policy: "NetworkOnly",
+					    policy: "CacheOrNetwork",
 					    partial: false
 					};
 
@@ -796,7 +796,7 @@ test('embeds custom pagination query as a separate document', async function () 
 					        types: {}
 					    },
 
-					    policy: "NetworkOnly",
+					    policy: "CacheOrNetwork",
 					    partial: false
 					};
 
@@ -1406,7 +1406,7 @@ test('generated query has same refetch spec', async function () {
 					        types: {}
 					    },
 
-					    policy: "NetworkOnly",
+					    policy: "CacheOrNetwork",
 					    partial: false
 					};
 
