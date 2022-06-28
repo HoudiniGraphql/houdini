@@ -23,7 +23,7 @@ import { unwrapType, wrapType } from '../utils'
 // - generate the query with the fragment embedded using @with to pass query variables through
 
 type PaginationFlags = {
-	[fieldName: string]: { enabled: boolean; type: 'String' | 'Int'; defaultValue?: any }
+	[fieldName: string]: { enabled: boolean; type: string; defaultValue?: any }
 }
 
 // paginate transform adds the necessary fields for a paginated field
@@ -68,6 +68,8 @@ export default async function paginate(
 			},
 		}
 
+		let cursorType = 'String'
+
 		// we need to know the path where the paginate directive shows up so we can distinguish updated
 		// values from data that needs to be added to the list
 		let paginationPath: string[] = []
@@ -87,18 +89,21 @@ export default async function paginate(
 				paginated = true
 
 				// loop over the args of the field once so we can check their existence
-				const args = new Set(
-					(parentTypeFromAncestors(config.schema, ancestors) as
-						| graphql.GraphQLObjectType
-						| graphql.GraphQLInterfaceType)
-						.getFields()
-						[node.name.value].args.map((arg) => arg.name)
-				)
+				const fieldTypeFields = (parentTypeFromAncestors(config.schema, ancestors) as
+					| graphql.GraphQLObjectType
+					| graphql.GraphQLInterfaceType).getFields()[node.name.value]
+				const args = new Set(fieldTypeFields.args.map((arg) => arg.name))
 
 				// also look to see if the user wants to do forward pagination
 				const passedArgs = new Set(node.arguments?.map((arg) => arg.name.value))
 				const specifiedForwards = passedArgs.has('first')
 				const specifiedBackwards = passedArgs.has('last')
+
+				cursorType =
+					(fieldTypeFields.args?.find((arg) => ['before', 'after'].includes(arg.name))
+						?.type as graphql.GraphQLNamedType)?.name || 'String'
+				flags.after.type = cursorType
+				flags.before.type = cursorType
 
 				// figure out what kind of pagination the field supports
 				const forwardPagination =

@@ -236,7 +236,7 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 					module.exports = {
 					    name: "ScalarPagination",
 					    kind: "HoudiniQuery",
-					    hash: "8667d7c32df15064691e601136becc4d78c31f2bfd004a2e30e91cff61ecd5f6",
+					    hash: "09863f3b665ef14816cc6b9cc965f12bb68ea569345d3f346415ba7a8b8af71c",
 
 					    refetch: {
 					        update: "append",
