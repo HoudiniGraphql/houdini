@@ -61,9 +61,6 @@ async function fetchQuery({ ${logYellow('fetch')}, text = '', variables = {}, ${
 
   return await result.json();
 }
-
-
-For more information, visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
 `
 					)
 					return wrapper
