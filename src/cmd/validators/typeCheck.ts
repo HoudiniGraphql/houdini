@@ -21,7 +21,13 @@ export default async function typeCheck(
 	const errors: HoudiniError[] = []
 
 	// verify the node interface (if it exists)
-	verifyNodeInterface(config)
+	try {
+		verifyNodeInterface(config)
+	} catch (e) {
+		throw HoudiniErrorTodo(
+			"There is a problem with your project's schema: " + ((e as unknown) as Error).message
+		)
+	}
 
 	// we need to catch errors in the list API. this means that a user
 	// must provide parentID if they are using a list that is not all-objects
@@ -896,46 +902,64 @@ function verifyNodeInterface(config: Config) {
 
 	// make sure its an interface
 	if (!graphql.isInterfaceType(nodeInterface)) {
-		throw new Error('Node must be an interface')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// look for a field on the query type to look up a node by id
 	const queryType = schema.getQueryType()
 	if (!queryType) {
-		throw new Error('There must be a query type if you define a Node interface')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// look for a node field
 	const nodeField = queryType.getFields()['node']
 	if (!nodeField) {
-		throw new Error('There must be a node field if you define a Node interface')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// there needs to be an arg on the field called id
 	const args = nodeField.args
 	if (args.length === 0) {
-		throw new Error('The node field must have args')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// look for the id arg
 	const idArg = args.find((arg) => arg.name === 'id')
 	if (!idArg) {
-		throw new Error('The node field must have an id argument')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// make sure that the id arg takes an ID
 	const idType = unwrapType(config, idArg.type)
 	// make sure its an ID
 	if (idType.type.name !== 'ID') {
-		throw new Error('The id arg of the node field must be an ID')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// make sure that the node field returns a Node
 	const fieldReturnType = unwrapType(config, nodeField.type)
 	if (fieldReturnType.type.name !== 'Node') {
-		throw new Error('The node field must return a Node')
+		throw new Error(invalidNodeFieldMessage)
 	}
 }
+
+const invalidNodeFieldMessage = `
+Your project defines a Node interface but it does not conform to the Global Identification Spec.
+
+If you are trying to provide the Node interface and its field, they must look like the following:
+
+interface Node { 
+	id: ID!
+}
+
+extend type Query { 
+	node(id: ID!): Node
+}
+
+For more information, please visit these links: 
+- https://graphql.org/learn/global-object-identification/
+- https://www.houdinigraphql.com/guides/caching-data#custom-ids
+`
 
 const paginateOnNonNodeMessage = (config: Config, directiveName: string) =>
 	`It looks like you are trying to use @${directiveName} on a document that does not have a valid type resolver. 
@@ -944,11 +968,5 @@ have defined a resolver entry for the fragment type.
 
 For more information, please visit these links:
 - https://www.houdinigraphql.com/guides/pagination#paginated-fragments
-- https://www.houdinigraphql.com/guides/caching-data#custom-ids`
-
-// `Looks like you are trying to use the ${logGreen(
-// 	`@${config.paginateDirective}`
-// )} directive on a field but have not provided a ${logYellow('first')}, ${logYellow(
-// 	'last'
-// )}, or ${logYellow('limit')} argument. Please add one and try again.
-// For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
+- https://www.houdinigraphql.com/guides/caching-data#custom-ids
+`

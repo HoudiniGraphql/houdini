@@ -271,16 +271,25 @@ export default function artifactGenerator(stats: {
 
 					const artifactPath = config.artifactPath(document)
 
+					// don't count the document unless it's user-facing (ie, generates a store)
+					const countDocument = doc.generateStore
+
 					// check if the file exists (indicating a new document)
 					let existingArtifact = ''
 					try {
 						existingArtifact = await fs.readFile(artifactPath, 'utf-8')
 					} catch (e) {
-						stats.new.push(artifact.name)
+						if (countDocument) {
+							stats.new.push(artifact.name)
+						}
 					}
 
 					// write the result to the artifact path we're configured to write to
 					await writeFile(artifactPath, recast.print(file).code)
+
+					if (!countDocument) {
+						return
+					}
 
 					// check if the artifact exists
 					const match = existingArtifact.match(/"HoudiniHash=(\w+)"/)
