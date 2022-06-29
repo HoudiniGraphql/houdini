@@ -834,7 +834,6 @@ function nodeDirectives(config: Config, directives: string[]) {
 	const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
 	if (nodeInterface) {
 		const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
-		console.log('possible interfaces implementing node', interfaces)
 		possibleNodes.push(
 			...objects.map((object) => object.name),
 			...interfaces.map((object) => object.name)
@@ -875,7 +874,6 @@ function nodeDirectives(config: Config, directives: string[]) {
 
 				// if the fragment is not on the query type or an implementor of node
 				if (!possibleNodes.includes(definitionType)) {
-					console.log(definitionType, possibleNodes)
 					ctx.reportError(
 						new graphql.GraphQLError(paginateOnNonNodeMessage(config, node.name.value))
 					)
