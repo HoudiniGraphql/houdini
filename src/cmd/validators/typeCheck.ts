@@ -34,7 +34,8 @@ export default async function typeCheck(
 	// keep track of every fragment that's defined in the set
 	const fragments: Record<string, graphql.FragmentDefinitionNode> = {}
 
-	// visit every document and build up the lists
+	// before we can validate everything, we need to look for the valid list names and
+	// check if they need a parent specification (if they fall inside of a fragment on something other than Query)
 	for (const { document: parsed, filename } of docs) {
 		graphql.visit(parsed, {
 			[graphql.Kind.FRAGMENT_DEFINITION](definition) {
@@ -100,11 +101,12 @@ export default async function typeCheck(
 				// go over the rest of the parent tree
 				for (const parent of parents) {
 					// if we are looking at a list or selection set, ignore it
-					if (
-						Array.isArray(parent) ||
-						parent.kind === 'SelectionSet' ||
-						parent.kind === 'InlineFragment'
-					) {
+					if (Array.isArray(parent) || parent.kind === 'SelectionSet') {
+						continue
+					}
+
+					if (parent.kind === 'InlineFragment' && parent.typeCondition) {
+						rootType = config.schema.getType(parent.typeCondition.name.value)
 						continue
 					}
 
@@ -190,9 +192,9 @@ export default async function typeCheck(
 
 				// in order to figure out the targets for the list we need to look at the field
 				// definition
-				const parentType = parentTypeFromAncestors(config.schema, ancestors.slice(0, -1))
+				const pType = parentTypeFromAncestors(config.schema, ancestors.slice(0, -1))
 				const targetField = ancestors[ancestors.length - 1] as graphql.FieldNode
-				const targetFieldDefinition = parentType.getFields()[
+				const targetFieldDefinition = pType.getFields()[
 					targetField.name.value
 				] as graphql.GraphQLField<any, any>
 
@@ -832,6 +834,7 @@ function nodeDirectives(config: Config, directives: string[]) {
 	const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
 	if (nodeInterface) {
 		const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
+		console.log('possible interfaces implementing node', interfaces)
 		possibleNodes.push(
 			...objects.map((object) => object.name),
 			...interfaces.map((object) => object.name)
@@ -872,10 +875,9 @@ function nodeDirectives(config: Config, directives: string[]) {
 
 				// if the fragment is not on the query type or an implementor of node
 				if (!possibleNodes.includes(definitionType)) {
+					console.log(definitionType, possibleNodes)
 					ctx.reportError(
-						new graphql.GraphQLError(
-							`@${node.name.value} must be applied to the query type or Node.`
-						)
+						new graphql.GraphQLError(paginateOnNonNodeMessage(config, node.name.value))
 					)
 				}
 			},
@@ -936,3 +938,19 @@ function verifyNodeInterface(config: Config) {
 		throw new Error('The node field must return a Node')
 	}
 }
+
+const paginateOnNonNodeMessage = (config: Config, directiveName: string) =>
+	`It looks like you are trying to use @${directiveName} on a document that does not have a valid type resolver. 
+If this is happening inside of a fragment, make sure that the fragment either implements the Node interface or you 
+have defined a resolver entry for the fragment type. 
+
+For more information, please visit these links:
+- https://www.houdinigraphql.com/guides/pagination#paginated-fragments
+- https://www.houdinigraphql.com/guides/caching-data#custom-ids`
+
+// `Looks like you are trying to use the ${logGreen(
+// 	`@${config.paginateDirective}`
+// )} directive on a field but have not provided a ${logYellow('first')}, ${logYellow(
+// 	'last'
+// )}, or ${logYellow('limit')} argument. Please add one and try again.
+// For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`

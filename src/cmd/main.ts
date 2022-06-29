@@ -20,6 +20,7 @@ program
 	.description('generate the application runtime')
 	.option('-p, --pull-schema', 'pull the latest schema before generating')
 	.option('-po, --persist-output [outputPath]', 'persist queries to a queryMap file')
+	.option('-v, --verbose', 'verbose error messages')
 	.option(
 		'-ph, --pull-header <headers...>',
 		'header to use when pulling your schema. Should be passed as KEY=VALUE'
@@ -35,9 +36,11 @@ program
 				persistOutput?: string
 				pullHeader: string[]
 				log?: string
+				verbose: boolean
 			} = {
 				pullSchema: false,
 				pullHeader: [],
+				verbose: false,
 			}
 		) => {
 			// grab the config file
@@ -99,11 +102,14 @@ program
 					if ('filepath' in error) {
 						console.error(`❌ Encountered error in ${error.filepath}`)
 						console.error(error.message)
-					} else if ('description' in error) {
-						console.error(`❌ ${error.message}`)
-						console.error(`${error.description}`)
 					} else {
 						console.error(`❌ ${error.message}`)
+						if ('description' in error) {
+							console.error(`${error.description}`)
+						}
+					}
+					if (args.verbose && 'stack' in error && error.stack) {
+						console.error(error.stack.split('\n').slice(1).join('\n'))
 					}
 				}
 			}
