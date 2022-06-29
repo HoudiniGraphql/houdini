@@ -54,7 +54,10 @@ export function scalarPropertyValue(config: Config, target: graphql.GraphQLNamed
 				return AST.tsTypeReference(AST.identifier(config.scalars?.[target.name].type))
 			}
 
-			throw new Error('Could not convert scalar type: ' + target.toString())
+			throw new Error(`Error generating typescript definitions.
+Could not convert ${target.toString()} to a TypeScript type. Please provide an equivalent type in your houdini config file. 
+
+For more information, please visit: https://www.houdinigraphql.com/api/config#custom-scalars`)
 		}
 	}
 }
