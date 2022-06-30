@@ -30,6 +30,7 @@ export type ConfigFile = {
 	defaultKeys?: string[]
 	types?: TypeConfig
 	logLevel?: string
+	disableMasking?: boolean
 }
 
 export type TypeConfig = {

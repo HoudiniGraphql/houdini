@@ -379,7 +379,6 @@ export function connectionSelection(
 	const backwardsPagination =
 		fieldArgs['last'] === 'Int' && ['Cursor', 'String'].includes(fieldArgs['before'])
 	if (!forwardPagination && !backwardsPagination) {
-		console.log({ forwardPagination, backwardsPagination, fieldArgs })
 		return { selection, type, connection: false, error: missingPaginationArgMessage(config) }
 	}
 

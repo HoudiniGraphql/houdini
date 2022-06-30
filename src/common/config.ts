@@ -33,6 +33,7 @@ export class Config {
 	typeConfig: ConfigFile['types']
 	configFile: ConfigFile
 	logLevel: LogLevel
+	disableMasking: boolean
 
 	constructor({ filepath, ...configFile }: ConfigFile & { filepath: string }) {
 		this.configFile = defaultConfigValues(configFile)
@@ -55,6 +56,7 @@ export class Config {
 			defaultKeys,
 			types = {},
 			logLevel,
+			disableMasking = false,
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -94,6 +96,7 @@ export class Config {
 		this.defaultPartial = defaultPartial
 		this.definitionsFile = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
+		this.disableMasking = disableMasking
 
 		// if the user asked for `quiet` logging notify them its been deprecated
 		if (quiet) {
