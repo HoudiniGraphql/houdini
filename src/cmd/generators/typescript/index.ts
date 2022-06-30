@@ -61,33 +61,12 @@ export default async function typescriptGenerator(
 					def.name?.value === name
 			) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
 
-			// de-dupe/flatten the selection of the definition
-
-			let parentType: graphql.GraphQLCompositeType | null = null
-			if (definition.kind === 'OperationDefinition') {
-				if (definition.operation === 'query') {
-					parentType = config.schema.getQueryType()!
-				} else if (definition.operation === 'mutation') {
-					parentType = config.schema.getMutationType()!
-				} else if (definition.operation === 'subscription') {
-					parentType = config.schema.getSubscriptionType()!
-				}
-			} else {
-				parentType = config.schema.getType(
-					definition.typeCondition.name.value
-				)! as graphql.GraphQLCompositeType
-			}
-			if (!parentType) {
-				throw new Error('Could not find root type for document')
-			}
-
 			const selections = flattenSelections({
 				config,
 				selections: definition.selectionSet.selections,
-				// only include fragment values if masking is disabled
+				// only globally include internal fragment values if masking is disabled
 				includeFragments: config.disableMasking,
 				fragmentDefinitions,
-				parentType: parentType,
 			})
 
 			if (definition?.kind === 'OperationDefinition') {
@@ -97,8 +76,7 @@ export default async function typescriptGenerator(
 					program.body,
 					definition,
 					selections,
-					visitedTypes,
-					parentType
+					visitedTypes
 				)
 			} else {
 				// treat it as a fragment document
@@ -148,9 +126,20 @@ async function generateOperationTypeDefs(
 	body: StatementKind[],
 	definition: graphql.OperationDefinitionNode,
 	selections: readonly graphql.SelectionNode[],
-	visitedTypes: Set<string>,
-	parentType: graphql.GraphQLNamedType
+	visitedTypes: Set<string>
 ) {
+	let parentType: graphql.GraphQLCompositeType | null = null
+	if (definition.operation === 'query') {
+		parentType = config.schema.getQueryType()!
+	} else if (definition.operation === 'mutation') {
+		parentType = config.schema.getMutationType()!
+	} else if (definition.operation === 'subscription') {
+		parentType = config.schema.getSubscriptionType()!
+	}
+	if (!parentType) {
+		throw new Error('Could not find root type for document')
+	}
+
 	// the name of the types we will define
 	const inputTypeName = `${definition.name!.value}$input`
 	const shapeTypeName = `${definition.name!.value}$result`

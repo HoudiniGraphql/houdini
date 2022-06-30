@@ -562,7 +562,7 @@ describe('typescript', function () {
 	`)
 	})
 
-	test('fragment spreads without masking', async function () {
+	test('fragment spreads no masking', async function () {
 		const withoutMasking = testConfig({ disableMasking: true })
 
 		// the document with the fragment
@@ -590,6 +590,7 @@ describe('typescript', function () {
 
 		export type Query$result = {
 		    readonly user: {
+		        readonly firstName: string,
 		        readonly $fragments: {
 		            Foo: true
 		        }

@@ -7,122 +7,157 @@ export function flattenSelections({
 	config,
 	selections,
 	includeFragments,
-	parentType,
 	fragmentDefinitions,
 }: {
 	config: Config
 	selections: readonly graphql.SelectionNode[]
 	includeFragments: boolean
-	parentType: graphql.GraphQLCompositeType
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 }): readonly graphql.SelectionNode[] {
-	// group the selections by field name, inline fragments
-	const fieldMap: { [attributeName: string]: graphql.FieldNode } = {}
-	const inlineFragments: { [typeName: string]: graphql.InlineFragmentNode } = {}
-	const spreadFragments: { [fragmentName: string]: graphql.FragmentSpreadNode } = {}
+	// collect all of the fields together
+	const fields = new FieldCollection({
+		config,
+		selections,
+		includeFragments,
+		fragmentDefinitions,
+	})
 
-	// in order to merge inline fragments into the right thing, we need to add each selection found
-	// to the appropriate group and then let the selections get merged with the rest
-	const spreads = !includeFragments
-		? []
-		: selections.filter(({ kind }) => kind === 'FragmentSpread')
-	for (const s of spreads) {
-		const selection = s as graphql.FragmentSpreadNode
+	// convert the flat fields into a selection set
+	return fields.toSelectionSet()
+}
+
+class FieldCollection {
+	config: Config
+	includeFragments: boolean = false
+	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
+
+	fields: { [name: string]: Field<graphql.FieldNode> }
+	inlineFragments: { [typeName: string]: Field<graphql.InlineFragmentNode> }
+	fragmentSpreads: { [fragmentName: string]: graphql.FragmentSpreadNode }
+
+	constructor(args: {
+		config: Config
+		selections: readonly graphql.SelectionNode[]
+		includeFragments: boolean
+		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
+	}) {
+		this.config = args.config
+		this.includeFragments = args.includeFragments
+		this.fragmentDefinitions = args.fragmentDefinitions
+
+		this.fields = {}
+		this.inlineFragments = {}
+		this.fragmentSpreads = {}
+
+		for (const selection of args.selections) {
+			this.add(selection)
+		}
 	}
 
-	// look at every selection
-	for (const selection of selections) {
-		// the selection could be a field
+	add(selection: graphql.SelectionNode) {
+		// how we handle the field depends on what kind of field it is
 		if (selection.kind === 'Field') {
-			const attributeName = selection.alias?.value || selection.name?.value
-			// if we haven't seen the field before
-			if (!fieldMap[attributeName]) {
-				// add the field to the map
-				fieldMap[attributeName] = selection
-				// move on
-				continue
-			}
+			// figure out the key of the field
+			const key = selection.alias?.value || selection.name.value
 
-			// we've seen the field before
-
-			// if the field doesn't have a selection we can move on
-			if (!selection.selectionSet) {
-				continue
-			}
-
-			// we have a field that we've seen before with a selection set
-			// add this fields selection set to the field we've already seen
-			fieldMap[attributeName] = {
-				...fieldMap[attributeName],
-				selectionSet: {
-					...inlineFragments[attributeName]?.selectionSet,
-					selections: [
-						...(fieldMap[attributeName]?.selectionSet?.selections || []),
-						...selection.selectionSet.selections,
-					],
-				},
-			}
-		}
-		// the selection could be an inline fragment
-		else if (selection.kind === 'InlineFragment') {
-			const typeCondition = selection.typeCondition?.name.value || ''
-			// if we haven't seen the type yet
-			if (!inlineFragments[typeCondition]) {
-				inlineFragments[typeCondition] = selection
-			}
-			// we've seen the type condition before, add the selection to the inline fragment
-			else {
-				inlineFragments[typeCondition] = {
-					...inlineFragments[typeCondition],
-					selectionSet: {
-						...inlineFragments[typeCondition].selectionSet,
-						selections: [
-							...inlineFragments[typeCondition].selectionSet.selections,
-							...selection.selectionSet.selections,
-						],
-					},
+			// if we don't already have a field with that name
+			if (!this.fields[key]) {
+				// create an entry for the selection field
+				this.fields[key] = {
+					astNode: selection,
+					selection: this.empty(),
 				}
 			}
-		} else if (selection.kind === 'FragmentSpread' && !spreadFragments[selection.name.value]) {
-			spreadFragments[selection.name.value] = selection
+
+			// its safe to all this fields selections if they exist
+			for (const subselect of selection.selectionSet?.selections || []) {
+				this.fields[key].selection.add(subselect)
+			}
+
+			// we're done
+			return
+		}
+
+		// we could run into an inline fragment that doesn't assert a type (treat it as a field selection)
+		if (selection.kind === 'InlineFragment' && !selection.typeCondition) {
+			for (const subselect of selection.selectionSet.selections) {
+				this.add(subselect)
+			}
+		}
+
+		// we could run into an inline fragment. the application has been validated already
+		// so we just need to add it to the inline fragment for the appropriate type
+		if (selection.kind === 'InlineFragment' && selection.typeCondition) {
+			// figure out the key of the field
+			const key = selection.typeCondition.name.value
+
+			// if we don't already have an inline fragment of that type
+			if (!this.inlineFragments[key]) {
+				// create an entry for the selection field
+				this.inlineFragments[key] = {
+					astNode: selection,
+					selection: this.empty(),
+				}
+			}
+
+			// its safe to all this fields selections if they exist
+			for (const subselect of selection.selectionSet?.selections || []) {
+				this.inlineFragments[key].selection.add(subselect)
+			}
+
+			// we're done
+			return
+		}
+
+		// the only thing that's left is external fragment spreads
+		if (selection.kind === 'FragmentSpread') {
+			// the application of the fragment has been validated already so track it
+			// so we can recreate
+			this.fragmentSpreads[selection.name.value] = selection
+
+			// we're finished if we're not supposed to include fragments in the selection
+			if (!this.includeFragments) {
+				return
+			}
+
+			const definition = this.fragmentDefinitions[selection.name.value]
+			if (!definition) {
+				throw new Error('Could not find referenced fragment definition')
+			}
+
+			for (const subselect of definition.selectionSet.selections) {
+				this.add(subselect)
+			}
 		}
 	}
 
-	return [
-		...Object.values(fieldMap).map((field) => ({
-			...field,
-			selectionSet: field.selectionSet
-				? ({
-						kind: 'SelectionSet',
-						selections: flattenSelections({
-							config,
-							selections: field.selectionSet?.selections,
-							includeFragments,
-							fragmentDefinitions,
-							parentType: (parentType as
-								| graphql.GraphQLObjectType
-								| graphql.GraphQLInterfaceType).getFields()[field.name.value].type,
-						}),
-				  } as graphql.SelectionSetNode)
-				: undefined,
-		})),
-		...Object.values(inlineFragments).map((fragment) => ({
-			...fragment,
-			selectionSet: {
-				kind: 'SelectionSet' as 'SelectionSet',
-				selections: flattenSelections({
-					config,
-					selections: fragment.selectionSet.selections,
-					includeFragments,
-					fragmentDefinitions,
-					parentType: fragment.typeCondition
-						? (config.schema.getType(
-								fragment.typeCondition.name.value
-						  )! as graphql.GraphQLOutputType)
-						: parentType,
-				}),
-			},
-		})),
-		...Object.values(spreadFragments),
-	]
+	toSelectionSet(): graphql.SelectionNode[] {
+		return Object.values(this.inlineFragments)
+			.map<graphql.SelectionNode>((fragment) => {
+				fragment.astNode.selectionSet.selections = fragment.selection.toSelectionSet()
+
+				return fragment.astNode
+			})
+			.concat(
+				Object.values(this.fields).map((field) => {
+					if (field.astNode.selectionSet) {
+						field.astNode.selectionSet.selections = field.selection.toSelectionSet()
+					}
+
+					return field.astNode
+				})
+			)
+			.concat(Object.values(this.fragmentSpreads))
+	}
+
+	empty() {
+		return new FieldCollection({
+			config: this.config,
+			includeFragments: this.includeFragments,
+			fragmentDefinitions: this.fragmentDefinitions,
+			selections: [],
+		})
+	}
 }
+
+type Field<_AST> = { astNode: _AST; selection: FieldCollection }
