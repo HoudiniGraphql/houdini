@@ -134,7 +134,9 @@ export class InMemorySubscriptions {
 				name: list.name,
 				connection: list.connection,
 				recordID: id,
-				recordType: parentType,
+				recordType:
+					(this.cache._internal_unstable.storage.get(id, '__typename')
+						?.value as string) || parentType,
 				listType: list.type,
 				key,
 				selection: fields,
