@@ -6,14 +6,29 @@ import { Config } from '../../common'
 export function flattenSelections({
 	config,
 	selections,
+	includeFragments,
+	parentType,
+	fragmentDefinitions,
 }: {
 	config: Config
 	selections: readonly graphql.SelectionNode[]
+	includeFragments: boolean
+	parentType: graphql.GraphQLCompositeType
+	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 }): readonly graphql.SelectionNode[] {
 	// group the selections by field name, inline fragments
 	const fieldMap: { [attributeName: string]: graphql.FieldNode } = {}
 	const inlineFragments: { [typeName: string]: graphql.InlineFragmentNode } = {}
 	const spreadFragments: { [fragmentName: string]: graphql.FragmentSpreadNode } = {}
+
+	// in order to merge inline fragments into the right thing, we need to add each selection found
+	// to the appropriate group and then let the selections get merged with the rest
+	const spreads = !includeFragments
+		? []
+		: selections.filter(({ kind }) => kind === 'FragmentSpread')
+	for (const s of spreads) {
+		const selection = s as graphql.FragmentSpreadNode
+	}
 
 	// look at every selection
 	for (const selection of selections) {
@@ -82,6 +97,11 @@ export function flattenSelections({
 						selections: flattenSelections({
 							config,
 							selections: field.selectionSet?.selections,
+							includeFragments,
+							fragmentDefinitions,
+							parentType: (parentType as
+								| graphql.GraphQLObjectType
+								| graphql.GraphQLInterfaceType).getFields()[field.name.value].type,
 						}),
 				  } as graphql.SelectionSetNode)
 				: undefined,
@@ -93,6 +113,13 @@ export function flattenSelections({
 				selections: flattenSelections({
 					config,
 					selections: fragment.selectionSet.selections,
+					includeFragments,
+					fragmentDefinitions,
+					parentType: fragment.typeCondition
+						? (config.schema.getType(
+								fragment.typeCondition.name.value
+						  )! as graphql.GraphQLOutputType)
+						: parentType,
 				}),
 			},
 		})),

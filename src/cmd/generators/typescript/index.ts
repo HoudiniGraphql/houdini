@@ -22,6 +22,19 @@ export default async function typescriptGenerator(
 	// build up a list of paths we have types in (to export from index.d.ts)
 	const typePaths: string[] = []
 
+	// we need every fragment definition
+	const fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode } = {}
+	for (const document of docs) {
+		// look at the parsed document for a fragment definition
+		const fragmentDefn = document.originalDocument.definitions.find(
+			({ kind }) => kind === 'FragmentDefinition'
+		) as graphql.FragmentDefinitionNode
+		if (!fragmentDefn) {
+			continue
+		}
+		fragmentDefinitions[fragmentDefn.name.value] = fragmentDefn
+	}
+
 	// every document needs a generated type
 	await Promise.all(
 		// the generated types depend solely on user-provided information
@@ -49,9 +62,32 @@ export default async function typescriptGenerator(
 			) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
 
 			// de-dupe/flatten the selection of the definition
+
+			let parentType: graphql.GraphQLCompositeType | null = null
+			if (definition.kind === 'OperationDefinition') {
+				if (definition.operation === 'query') {
+					parentType = config.schema.getQueryType()!
+				} else if (definition.operation === 'mutation') {
+					parentType = config.schema.getMutationType()!
+				} else if (definition.operation === 'subscription') {
+					parentType = config.schema.getSubscriptionType()!
+				}
+			} else {
+				parentType = config.schema.getType(
+					definition.typeCondition.name.value
+				)! as graphql.GraphQLCompositeType
+			}
+			if (!parentType) {
+				throw new Error('Could not find root type for document')
+			}
+
 			const selections = flattenSelections({
 				config,
 				selections: definition.selectionSet.selections,
+				// only include fragment values if masking is disabled
+				includeFragments: config.disableMasking,
+				fragmentDefinitions,
+				parentType: parentType,
 			})
 
 			if (definition?.kind === 'OperationDefinition') {
@@ -61,7 +97,8 @@ export default async function typescriptGenerator(
 					program.body,
 					definition,
 					selections,
-					visitedTypes
+					visitedTypes,
+					parentType
 				)
 			} else {
 				// treat it as a fragment document
@@ -111,25 +148,13 @@ async function generateOperationTypeDefs(
 	body: StatementKind[],
 	definition: graphql.OperationDefinitionNode,
 	selections: readonly graphql.SelectionNode[],
-	visitedTypes: Set<string>
+	visitedTypes: Set<string>,
+	parentType: graphql.GraphQLNamedType
 ) {
 	// the name of the types we will define
 	const inputTypeName = `${definition.name!.value}$input`
 	const shapeTypeName = `${definition.name!.value}$result`
 	const afterLoadTypeName = `${definition.name!.value}$afterLoad`
-
-	// look up the root type of the document
-	let type: graphql.GraphQLNamedType | null | undefined
-	if (definition.operation === 'query') {
-		type = config.schema.getQueryType()
-	} else if (definition.operation === 'mutation') {
-		type = config.schema.getMutationType()
-	} else if (definition.operation === 'subscription') {
-		type = config.schema.getSubscriptionType()
-	}
-	if (!type) {
-		throw new Error('Could not find root type for document')
-	}
 
 	// dry
 	const hasInputs = definition.variableDefinitions && definition.variableDefinitions.length > 0
@@ -173,7 +198,7 @@ async function generateOperationTypeDefs(
 				AST.identifier(shapeTypeName),
 				inlineType({
 					config,
-					rootType: type,
+					rootType: parentType,
 					selections,
 					root: true,
 					allowReadonly: true,
