@@ -201,7 +201,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// we might not want to wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
 
-		//
+		setFetching(true)
 
 		// perform the network request
 		const request = fetchAndCache({
@@ -212,7 +212,10 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			store,
 			updateStore,
 			cached: policy !== CachePolicy.NetworkOnly,
-			setLoadPending: (val) => (loadPending = val),
+			setLoadPending: (val) => {
+				loadPending = val
+				setFetching(val)
+			},
 		})
 
 		// if we weren't told to block we're done (only valid for a client-side request)
