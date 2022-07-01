@@ -35,6 +35,8 @@ export default async function typescriptGenerator(
 		fragmentDefinitions[fragmentDefn.name.value] = fragmentDefn
 	}
 
+	const missingScalars = new Set<string>()
+
 	// every document needs a generated type
 	await Promise.all(
 		// the generated types depend solely on user-provided information
@@ -76,7 +78,8 @@ export default async function typescriptGenerator(
 					program.body,
 					definition,
 					selections,
-					visitedTypes
+					visitedTypes,
+					missingScalars
 				)
 			} else {
 				// treat it as a fragment document
@@ -85,7 +88,8 @@ export default async function typescriptGenerator(
 					program.body,
 					selections,
 					originalDocument.definitions,
-					visitedTypes
+					visitedTypes,
+					missingScalars
 				)
 			}
 
@@ -119,6 +123,25 @@ export default async function typescriptGenerator(
 
 	// write the contents
 	await writeFile(config.typeIndexPath, recast.print(typeIndex).code)
+
+	// if we were missing scalars, we need to warn the user and tell them
+	if (missingScalars.size > 0) {
+		console.warn(`⚠️  Missing definitions for the following scalars: ${[...missingScalars].join(
+			', '
+		)}
+Generated types will contain an any type in place of these values. To fix this, provide an equivalent 
+type in your config file:
+
+{
+    scalars: { 
+        DateTime: {      <- The GraphQL Scalar
+            type: "Date" <-  The TypeScript type
+        }
+    }
+}
+
+For more information, please visit this link: https://www.houdinigraphql.com/api/config#custom-scalars`)
+	}
 }
 
 async function generateOperationTypeDefs(
@@ -126,7 +149,8 @@ async function generateOperationTypeDefs(
 	body: StatementKind[],
 	definition: graphql.OperationDefinitionNode,
 	selections: readonly graphql.SelectionNode[],
-	visitedTypes: Set<string>
+	visitedTypes: Set<string>,
+	missingScalars: Set<string>
 ) {
 	let parentType: graphql.GraphQLCompositeType | null = null
 	if (definition.operation === 'query') {
@@ -193,6 +217,7 @@ async function generateOperationTypeDefs(
 					allowReadonly: true,
 					visitedTypes,
 					body,
+					missingScalars,
 				})
 			)
 		)
@@ -257,7 +282,13 @@ async function generateOperationTypeDefs(
 	// if there are variables in this query
 	if (hasInputs && definition.variableDefinitions && definition.variableDefinitions.length > 0) {
 		for (const variableDefinition of definition.variableDefinitions) {
-			addReferencedInputTypes(config, body, visitedTypes, variableDefinition.type)
+			addReferencedInputTypes(
+				config,
+				body,
+				visitedTypes,
+				missingScalars,
+				variableDefinition.type
+			)
 		}
 
 		// merge all of the variables into a single object
@@ -271,7 +302,9 @@ async function generateOperationTypeDefs(
 								// add a property describing the variable to the root object
 								return AST.tsPropertySignature(
 									AST.identifier(definition.variable.name.value),
-									AST.tsTypeAnnotation(tsTypeReference(config, definition)),
+									AST.tsTypeAnnotation(
+										tsTypeReference(config, missingScalars, definition)
+									),
 									definition.type.kind !== 'NonNullType'
 								)
 							}
@@ -288,7 +321,8 @@ async function generateFragmentTypeDefs(
 	body: StatementKind[],
 	selections: readonly graphql.SelectionNode[],
 	definitions: readonly graphql.DefinitionNode[],
-	visitedTypes: Set<string>
+	visitedTypes: Set<string>,
+	missingScalars: Set<string>
 ) {
 	// every definition will contribute the same thing to the typedefs
 	for (const definition of definitions) {
@@ -357,6 +391,7 @@ async function generateFragmentTypeDefs(
 						allowReadonly: true,
 						body,
 						visitedTypes,
+						missingScalars,
 					})
 				)
 			)

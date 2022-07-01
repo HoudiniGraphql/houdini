@@ -19,6 +19,7 @@ export function inlineType({
 	allowReadonly,
 	body,
 	visitedTypes,
+	missingScalars,
 }: {
 	config: Config
 	rootType: graphql.GraphQLNamedType
@@ -27,6 +28,7 @@ export function inlineType({
 	allowReadonly: boolean
 	body: StatementKind[]
 	visitedTypes: Set<string>
+	missingScalars: Set<string>
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	const { type, wrappers } = unwrapType(config, rootType)
@@ -34,7 +36,7 @@ export function inlineType({
 	let result: TSTypeKind
 	// if we are looking at a scalar field
 	if (graphql.isScalarType(type)) {
-		result = scalarPropertyValue(config, type as graphql.GraphQLNamedType)
+		result = scalarPropertyValue(config, missingScalars, type as graphql.GraphQLNamedType)
 	}
 	// we could have encountered an enum
 	else if (graphql.isEnumType(type)) {
@@ -89,6 +91,7 @@ export function inlineType({
 					allowReadonly,
 					visitedTypes,
 					body,
+					missingScalars,
 				})
 
 				// we're done
@@ -155,6 +158,7 @@ export function inlineType({
 				visitedTypes,
 				root,
 				body,
+				missingScalars,
 			})
 
 			// we need to handle __typename in the generated type. this means removing

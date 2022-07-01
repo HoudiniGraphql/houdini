@@ -12,6 +12,7 @@ const AST = recast.types.builders
 // return the property
 export function tsTypeReference(
 	config: Config,
+	missingScalars: Set<string>,
 	definition: { type: graphql.TypeNode }
 ): TSTypeKind {
 	const { type, wrappers } = unwrapType(config, definition.type)
@@ -20,7 +21,7 @@ export function tsTypeReference(
 	let result
 	// if we're looking at a scalar
 	if (graphql.isScalarType(type)) {
-		result = scalarPropertyValue(config, type)
+		result = scalarPropertyValue(config, missingScalars, type)
 	}
 	// we're looking at an object
 	else {

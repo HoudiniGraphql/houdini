@@ -14,6 +14,7 @@ export function addReferencedInputTypes(
 	config: Config,
 	body: StatementKind[],
 	visitedTypes: Set<string>,
+	missingScalars: Set<string>,
 	rootType: graphql.TypeNode
 ) {
 	// try to find the name of the type
@@ -59,14 +60,14 @@ export function addReferencedInputTypes(
 
 	for (const field of Object.values(type.getFields())) {
 		// walk down the referenced fields and build stuff back up
-		addReferencedInputTypes(config, body, visitedTypes, field.type)
+		addReferencedInputTypes(config, body, visitedTypes, missingScalars, field.type)
 
 		// check if the type is optional so we can label the value as omitable
 
 		members.push(
 			AST.tsPropertySignature(
 				AST.identifier(field.name),
-				AST.tsTypeAnnotation(tsTypeReference(config, field)),
+				AST.tsTypeAnnotation(tsTypeReference(config, missingScalars, field)),
 				graphql.isNullableType(field.type)
 			)
 		)
