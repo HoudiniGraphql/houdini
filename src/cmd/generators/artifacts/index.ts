@@ -187,9 +187,10 @@ export default function artifactGenerator(stats: {
 							(fragment) => fragment.name.value === name
 						)
 						if (!matchingFragment) {
-							throw new Error(
-								`Fragment "${name}" doesn't exist in its own document?!`
-							)
+							throw {
+								filepath: doc.filename,
+								message: `Fragment "${name}" doesn't exist in its own document?!`,
+							}
 						}
 						rootType = matchingFragment.typeCondition.name.value
 						selectionSet = matchingFragment.selectionSet
