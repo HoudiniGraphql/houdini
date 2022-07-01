@@ -9,7 +9,7 @@
 </script>
 
 <script lang="ts">
-  export let message: string = '';
+  export let message = '';
 
   import { query, graphql, type PreprocessorTestQuery1 } from '$houdini';
 
