@@ -11,6 +11,7 @@ import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { tsTypeReference } from './typeReference'
 import { readonlyProperty } from './types'
 import { fragmentKey, inlineType } from './inlineType'
+import { logCyan, logGreen } from '../../../common/log'
 
 const AST = recast.types.builders
 
@@ -133,11 +134,20 @@ Generated types will contain an any type in place of these values. To fix this, 
 type in your config file:
 
 {
-    scalars: { 
-        DateTime: {      <- The GraphQL Scalar
-            type: "Date" <-  The TypeScript type
-        }
-    }
+  scalars: { 
+    ${logCyan(`/* in your case, something like */`)}
+${[...missingScalars]
+	.map(
+		(c) =>
+			`    ${c}: {                  ${logGreen(`// <- The GraphQL Scalar`)}
+      type: "${logCyan(`YourType_${c}`)}"  ${logGreen(`// <-  The TypeScript type`)}
+    }`
+	)
+	.join(
+		`,
+`
+	)}
+  }
 }
 
 For more information, please visit this link: https://www.houdinigraphql.com/api/config#custom-scalars`)
