@@ -8,7 +8,7 @@ export type PageInfo = {
 }
 
 export function extractPageInfo(data: GraphQLObject | null, path: string[]): PageInfo {
-	if (data === null) {
+	if (!data) {
 		return {
 			startCursor: null,
 			endCursor: null,
@@ -21,7 +21,7 @@ export function extractPageInfo(data: GraphQLObject | null, path: string[]): Pag
 	// walk down the object until we get to the end
 	let current = data
 	while (localPath.length > 0) {
-		if (current === null) {
+		if (!current) {
 			break
 		}
 		current = current[localPath.shift() as string] as GraphQLObject
