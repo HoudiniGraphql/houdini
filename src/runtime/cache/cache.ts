@@ -1,12 +1,13 @@
-// local imports
+// externals
+import { stry } from '@kitql/helper'
+// locals
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../lib/config'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
-import { computeID, keyFieldsForType, ConfigFile, defaultConfigValues } from '../lib/config'
-import { stry } from '@kitql/helper'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into

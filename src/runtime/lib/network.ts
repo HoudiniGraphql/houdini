@@ -1,8 +1,10 @@
 // externals
-import { get, Readable } from 'svelte/store'
-import { LoadEvent } from '@sveltejs/kit'
+import { logCyan, logRed, logYellow } from '@kitql/helper'
+import { LoadEvent, Page } from '@sveltejs/kit'
 // locals
+import cache from '../cache'
 import type { ConfigFile } from './config'
+import { marshalInputs } from './scalars'
 import {
 	CachePolicy,
 	DataSource,
@@ -11,10 +13,6 @@ import {
 	QueryArtifact,
 	SubscriptionArtifact,
 } from './types'
-import { marshalInputs, unmarshalSelection } from './scalars'
-import cache from '../cache'
-import { Page } from '@sveltejs/kit'
-import { logCyan, logRed, logYellow } from '@kitql/helper'
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>

@@ -1,6 +1,5 @@
 import path from 'path'
 import { Config } from '../../../common'
-import { log } from '../../../common/log'
 import { ArtifactKind, CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
 import { generateFragmentStore } from './fragment'

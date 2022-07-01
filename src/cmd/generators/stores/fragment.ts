@@ -1,7 +1,6 @@
 // externals
 import path from 'path'
 // locals
-import { log, logGreen } from '../../../common/log'
 import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'

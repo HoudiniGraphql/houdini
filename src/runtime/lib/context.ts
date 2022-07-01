@@ -1,8 +1,8 @@
-// external imports
+// externals
 import { logCyan, logRed, logYellow } from '@kitql/helper'
 import { getContext as svelteContext, setContext } from 'svelte'
 import { get } from 'svelte/store'
-// local imports
+// locals
 import { getPage, getSession } from '../adapter'
 import { HoudiniFetchContext } from './types'
 

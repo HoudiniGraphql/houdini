@@ -1,12 +1,12 @@
-// externalsr
+// externals
+import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 // locals
 import { Config, parentTypeFromAncestors } from '../../common'
+import { ArtifactKind } from '../../runtime/lib/types'
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 import { TypeWrapper, unwrapType } from '../utils'
-import { ArtifactKind } from '../../runtime/lib/types'
 import { pageInfoSelection } from './paginate'
-import { logYellow, logGreen } from '@kitql/helper'
 
 // addListFragments adds fragments for the fields tagged with @list
 export default async function addListFragments(

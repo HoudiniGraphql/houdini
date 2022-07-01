@@ -1,14 +1,13 @@
-import * as graphql from 'graphql'
-import fs from 'fs-extra'
-import path from 'path'
-import os from 'os'
-// locals
-import { CachePolicy } from '../runtime/lib/types'
-import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { mergeSchemas } from '@graphql-tools/schema'
+import fs from 'fs-extra'
 import { glob } from 'glob'
+import * as graphql from 'graphql'
+import os from 'os'
+import path from 'path'
 import { promisify } from 'util'
-import { logRed } from '@kitql/helper'
+// locals
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
+import { CachePolicy } from '../runtime/lib/types'
 
 // a place to hold conventions and magic strings
 export class Config {

@@ -1,17 +1,17 @@
 // externals
-import * as recast from 'recast'
-import * as graphql from 'graphql'
+import { logCyan, logGreen } from '@kitql/helper'
 import { StatementKind } from 'ast-types/gen/kinds'
+import * as graphql from 'graphql'
 import path from 'path'
+import * as recast from 'recast'
 // locals
 import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections, writeFile } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
+import { fragmentKey, inlineType } from './inlineType'
 import { tsTypeReference } from './typeReference'
 import { readonlyProperty } from './types'
-import { fragmentKey, inlineType } from './inlineType'
-import { logCyan, logGreen } from '../../../common/log'
 
 const AST = recast.types.builders
 
