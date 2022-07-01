@@ -38,7 +38,7 @@ test.describe('Metadata Page', () => {
     await expectGraphQLResponse(page, 'button[id=mutate]');
 
     expect(displayed).toBe(
-      `{"data":{"updateUser":{"id":"store-user-subunsub:5","name":"Hello!"}}}`
+      `{"data":{"updateUser":{"id":"list-store-user-subunsub:5","name":"Hello!"}}}`
     );
   });
 });

@@ -3,12 +3,12 @@ import { routes } from '../../../lib/utils/routes.js';
 import { expectNoGraphQLRequest, expectToBe } from '../../../lib/utils/testsHelper.js';
 
 test.describe('query preprocessor', () => {
-  test('happy path query - SRR', async ({ page }) => {
-    await page.goto(routes.Preprocess_query_simple);
+  test('afterLoad hook', async ({ page }) => {
+    await page.goto(routes.Preprocess_query_afterLoad);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
 
-    await expectToBe(page, 'B : Bruce Willis');
+    await expectToBe(page, 'B: Bruce Willis');
   });
 });

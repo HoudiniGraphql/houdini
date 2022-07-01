@@ -4,11 +4,11 @@ import { expectNoGraphQLRequest, expectToBe } from '../../../lib/utils/testsHelp
 
 test.describe('query preprocessor', () => {
   test('happy path query - SRR', async ({ page }) => {
-    await page.goto(routes.Preprocess_query_simple);
+    await page.goto(routes.Preprocess_query_beforeLoad);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
 
-    await expectToBe(page, 'Hello : Bruce Willis');
+    await expectToBe(page, 'hello: Bruce Willis');
   });
 });

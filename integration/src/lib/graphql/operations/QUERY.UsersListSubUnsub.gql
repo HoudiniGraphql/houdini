@@ -1,5 +1,5 @@
 query UsersListSubUnSub {
-  usersList(limit: 4, snapshot: "store-user-subunsub") {
+  usersList(limit: 4, snapshot: "list-store-user-subunsub") {
     id
     name
   }

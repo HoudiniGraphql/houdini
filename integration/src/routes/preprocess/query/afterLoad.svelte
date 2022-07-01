@@ -1,4 +1,5 @@
 <script context="module">
+  // @ts-ignore
   export function afterLoad({ data }) {
     return {
       props: {
@@ -15,7 +16,7 @@
 
   const { data } = query<PreprocessorTestQuery1>(graphql`
     query PreprocessorAfterLoadTestQuery {
-      user(id: "1", snapshot: "preprocess-After-load-test-simple") {
+      user(id: "1", snapshot: "preprocess-after-load-test-simple") {
         name
       }
     }

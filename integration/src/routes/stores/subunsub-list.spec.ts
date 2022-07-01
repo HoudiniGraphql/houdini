@@ -16,7 +16,7 @@ test.describe('SubUnsub Page', () => {
 
     await expectToBe(
       page,
-      'store-user-subunsub:1 - Bruce Willis store-user-subunsub:2 - Samuel Jackson store-user-subunsub:3 - Morgan Freeman store-user-subunsub:4 - Tom Hanks',
+      'list-store-user-subunsub:1 - Bruce Willis list-store-user-subunsub:2 - Samuel Jackson list-store-user-subunsub:3 - Morgan Freeman list-store-user-subunsub:4 - Tom Hanks',
       'ul'
     );
 
@@ -31,7 +31,7 @@ test.describe('SubUnsub Page', () => {
 
     expectToBe(
       page,
-      'store-user-subunsub:1 - JYC & Alec! store-user-subunsub:2 - Samuel Jackson store-user-subunsub:3 - Morgan Freeman store-user-subunsub:4 - Tom Hanks',
+      'list-store-user-subunsub:1 - JYC & Alec! list-store-user-subunsub:2 - Samuel Jackson list-store-user-subunsub:3 - Morgan Freeman list-store-user-subunsub:4 - Tom Hanks',
       'ul'
     );
   });
