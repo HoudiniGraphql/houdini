@@ -6,7 +6,7 @@ import * as graphql from 'graphql'
 import { promisify } from 'util'
 // locals
 import { Config, runPipeline as run, parseFile, ParsedSvelteFile, LogLevel } from '../common'
-import { CollectedGraphQLDocument, ArtifactKind } from './types'
+import { CollectedGraphQLDocument, ArtifactKind, HoudiniErrorTodo } from './types'
 import * as transforms from './transforms'
 import * as generators from './generators'
 import * as validators from './validators'
@@ -146,15 +146,25 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			}
 			// otherwise just treat the file as a graphql file (the whole file contents constitute a graphql file)
 			else {
-				documents.push({ filepath, document: contents })
+				documents.push({
+					filepath,
+					document: contents,
+				})
 			}
 		})
 	)
 
 	return await Promise.all(
-		documents.map(({ document, filepath }) =>
-			processGraphQLDocument(config, filepath, document)
-		)
+		documents.map(async ({ document, filepath }) => {
+			try {
+				return await processGraphQLDocument(config, filepath, document)
+			} catch (e) {
+				throw {
+					...((e as unknown) as Error),
+					filepath,
+				}
+			}
+		})
 	)
 }
 
