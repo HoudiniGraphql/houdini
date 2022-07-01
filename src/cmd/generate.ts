@@ -87,7 +87,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		console.log('💣 Detected new version of Houdini. Regenerating all documents...')
 		console.log('🎉 Welcome to HOUDINI_VERSION!')
 		console.log(`❓ For a description of what's changed, visit this guide: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
-❓ Remember, you'll need to update your sourceGlob config value if you want to define documents in external files.`)
+❓ Don't forget to update your sourceGlob config value if you want to define documents in external files.`)
 	} else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
 		// count the number of unchanged
 		const unchanged =
