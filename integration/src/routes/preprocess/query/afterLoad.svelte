@@ -2,7 +2,7 @@
   export function afterLoad({ data }) {
     return {
       props: {
-        message: data.PreprocessorBeforeLoadTestQuery.user.name[0]
+        message: data.PreprocessorAfterLoadTestQuery.user.name[0]
       }
     };
   }
@@ -14,8 +14,8 @@
   import { query, graphql, type PreprocessorTestQuery1 } from '$houdini';
 
   const { data } = query<PreprocessorTestQuery1>(graphql`
-    query PreprocessorBeforeLoadTestQuery {
-      user(id: "1", snapshot: "preprocess-before-load-test-simple") {
+    query PreprocessorAfterLoadTestQuery {
+      user(id: "1", snapshot: "preprocess-After-load-test-simple") {
         name
       }
     }
