@@ -598,11 +598,8 @@ function afterLoadQueryData(queries: EmbeddedGraphqlDocument[]) {
 					(definitions[0] as graphql.OperationDefinitionNode)?.name?.value || null
 				),
 				AST.memberExpression(
-					AST.memberExpression(
-						AST.identifier(
-							preloadPayloadKey(definitions[0] as graphql.OperationDefinitionNode)
-						),
-						AST.identifier('result')
+					AST.identifier(
+						preloadPayloadKey(definitions[0] as graphql.OperationDefinitionNode)
 					),
 					AST.identifier('data')
 				)

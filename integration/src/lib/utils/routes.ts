@@ -23,6 +23,8 @@ export const routes = {
   Preprocess_query_multiple: '/preprocess/query/multiple',
   Preprocess_query_scalars: '/preprocess/query/scalars',
   Preprocess_query_component: '/preprocess/query/component',
+  Preprocess_query_beforeLoad: '/preprocess/query/beforeLoad',
+  Preprocess_query_afterLoad: '/preprocess/query/afterLoad',
 
   Preprocess_mutation_mutation: '/preprocess/mutation/mutation',
   Preprocess_fragment_update: '/preprocess/fragment/update',
