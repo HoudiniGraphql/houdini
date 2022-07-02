@@ -48,13 +48,13 @@ export class HoudiniClient {
 				get fetch() {
 					log.info(
 						`${log.red(
-							"⚠️  fetch and session are now passed as arguments to your client's network function ⚠️"
+							"⚠️ fetch and session are now passed as arguments to your client's network function ⚠️"
 						)}
 You should update your client to look something like the following:
 
-async function fetchQuery({ ${log.yellow('fetch')}, text = '', variables = {}, ${log.yellow(
+async function fetchQuery({ ${log.yellow('fetch')}, ${log.yellow(
 							'session'
-						)}, ${log.cyan('metadata')} }) {
+						)}, text = '', variables = {} }) {
   const result =  await fetch( ...
 
   return await result.json();
