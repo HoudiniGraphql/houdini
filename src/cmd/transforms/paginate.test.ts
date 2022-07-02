@@ -448,7 +448,7 @@ test('embeds node pagination query as a separate document', async function () {
 
 	// load the contents of the file
 	await expect(docs[1]).toMatchArtifactSnapshot(`
-					module.exports = {
+					export default {
 					    name: "UserFriends_Pagination_Query",
 					    kind: "HoudiniQuery",
 					    hash: "bb5131f921805b85c17e7b882f4ad66a9dad452d0f66534a1c8b8f9942adec48",
@@ -639,7 +639,7 @@ test('embeds custom pagination query as a separate document', async function () 
 
 	// load the contents of the file
 	await expect(docs[1]).toMatchArtifactSnapshot(`
-					module.exports = {
+					export default {
 					    name: "UserGhost_Pagination_Query",
 					    kind: "HoudiniQuery",
 					    hash: "55c27b299d485bf73adfaa418b77ac03d918e2ce579730d328208318c6af0da5",
@@ -1283,7 +1283,7 @@ test('generated query has same refetch spec', async function () {
 	await runPipeline(config, docs)
 
 	await expect(docs[1]).toMatchArtifactSnapshot(`
-					module.exports = {
+					export default {
 					    name: "UserFriends_Pagination_Query",
 					    kind: "HoudiniQuery",
 					    hash: "5aeb471edf15c5b3e709ddccc6014f073d2dfdc1259d04b7ee26887ea81ef23b",

@@ -9,7 +9,7 @@ describe('deep merge', function () {
 			goodbye: 'moon',
 		}
 
-		expect(deepMerge(one, two)).toEqual({
+		expect(deepMerge('', one, two)).toEqual({
 			hello: 'world',
 			goodbye: 'moon',
 		})
@@ -26,7 +26,7 @@ describe('deep merge', function () {
 				anotherMessage: 'moon',
 			},
 		}
-		expect(deepMerge(one, two)).toEqual({
+		expect(deepMerge('', one, two)).toEqual({
 			hello: {
 				message: 'world',
 				anotherMessage: 'moon',
@@ -41,7 +41,7 @@ describe('deep merge', function () {
 		const two = {
 			hello: 'world',
 		}
-		expect(deepMerge(one, two)).toEqual({
+		expect(deepMerge('', one, two)).toEqual({
 			hello: 'world',
 		})
 	})
@@ -53,7 +53,7 @@ describe('deep merge', function () {
 		const two = {
 			hello: 'moon',
 		}
-		expect(() => deepMerge(one, two)).toThrow()
+		expect(() => deepMerge('', one, two)).toThrow()
 	})
 
 	test('three-way merge', function () {
@@ -67,7 +67,7 @@ describe('deep merge', function () {
 			message3: "i don't know",
 		}
 
-		expect(deepMerge(one, two, three)).toEqual({
+		expect(deepMerge('', one, two, three)).toEqual({
 			message1: 'hello world',
 			message2: 'goodbye moon',
 			message3: "i don't know",
@@ -99,7 +99,7 @@ describe('deep merge', function () {
 			},
 		}
 
-		expect(deepMerge(one, two, three)).toEqual({
+		expect(deepMerge('', one, two, three)).toEqual({
 			message1: 'hello world',
 			message2: 'goodbye moon',
 			message3: "i don't know",

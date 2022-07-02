@@ -27,7 +27,7 @@ test('cache policy is persisted in artifact', async function () {
 
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchArtifactSnapshot(`
-					module.exports = {
+					export default {
 					    name: "CachedFriends",
 					    kind: "HoudiniQuery",
 					    hash: "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
@@ -102,7 +102,7 @@ test('can change default cache policy', async function () {
 
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchArtifactSnapshot(`
-					module.exports = {
+					export default {
 					    name: "CachedFriends",
 					    kind: "HoudiniQuery",
 					    hash: "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
@@ -172,7 +172,7 @@ test('partial opt-in is persisted', async function () {
 
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchArtifactSnapshot(`
-					module.exports = {
+					export default {
 					    name: "CachedFriends",
 					    kind: "HoudiniQuery",
 					    hash: "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
@@ -247,7 +247,7 @@ test('can set default partial opt-in', async function () {
 
 	// look at the artifact for the generated pagination query
 	await expect(docs[0]).toMatchArtifactSnapshot(`
-					module.exports = {
+					export default {
 					    name: "CachedFriends",
 					    kind: "HoudiniQuery",
 					    hash: "ea9bab33b9e934c92f813b96c5a86f88fa81fbd06a27045efc95c4506b01ece4",
