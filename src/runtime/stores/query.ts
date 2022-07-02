@@ -136,7 +136,6 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 		// if there is a pending load, don't do anything
 		if (loadPending && isComponentFetch) {
-			console.log('aborting component fetch because of pending loading')
 			// if the variables haven't changed and we dont have an active subscription
 			// then we need to start listening
 			if (!variableChange && subscriptionSpec === null) {
@@ -167,10 +166,8 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 				loadPending)
 		) {
 			blockNextCSF = false
-			console.log('csf blocked')
 			// if the variables didn't change, get the latest value and use that
 			if (!variableChange) {
-				console.log("variables didn't change, reading from cache")
 				await fetchAndCache<_Data, _Input>({
 					config,
 					context,
@@ -196,8 +193,6 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			// make sure we return before the fetch happens
 			return get(store)
 		}
-		console.clear()
-		console.log('fetching', args?.variables)
 
 		// we want to update the store in four situations: ssr, csf, the first load of the ssr response,
 		// or if we got this far and the variables haven't changed (avoid prefetch)
@@ -211,8 +206,6 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
 
 		setFetching(true)
-
-		console.log('loading. update store?', updateStore)
 
 		// perform the network request
 		const request = fetchAndCache({
