@@ -73,6 +73,7 @@ export default async function addListFragments(
 					// look up the parent's type
 					const parentType = parentTypeFromAncestors(
 						config.schema,
+						doc.filename,
 						ancestors.slice(0, -1)
 					)
 
@@ -89,6 +90,7 @@ export default async function addListFragments(
 						targetFieldDefinition,
 						parentTypeFromAncestors(
 							config.schema,
+							doc.filename,
 							ancestors
 						) as graphql.GraphQLObjectType,
 						(ancestors[ancestors.length - 1] as graphql.FieldNode).selectionSet
@@ -138,7 +140,7 @@ export default async function addListFragments(
 				// the field is a list, is it a connection?
 
 				// look up the parent's type
-				const parentType = parentTypeFromAncestors(config.schema, ancestors)
+				const parentType = parentTypeFromAncestors(config.schema, doc.filename, ancestors)
 				// a non-connection list can just use the selection set of the tagged field
 				// but if this is a connection tagged with list we need to use the selection
 				// of the edges.node field
@@ -150,7 +152,11 @@ export default async function addListFragments(
 				const { connection } = connectionSelection(
 					config,
 					targetFieldDefinition,
-					parentTypeFromAncestors(config.schema, ancestors) as graphql.GraphQLObjectType,
+					parentTypeFromAncestors(
+						config.schema,
+						doc.filename,
+						ancestors
+					) as graphql.GraphQLObjectType,
 					node.selectionSet
 				)
 

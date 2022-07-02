@@ -61,7 +61,7 @@ export default function artifactGenerator(stats: {
 					}
 
 					// look up the parent's type so we can ask about the field marked as alist
-					const parentType = parentTypeFromAncestors(config.schema, [
+					const parentType = parentTypeFromAncestors(config.schema, doc.filename, [
 						...ancestors.slice(0, -1),
 					]) as graphql.GraphQLObjectType
 					const parentField = parentType.getFields()[field.name.value]

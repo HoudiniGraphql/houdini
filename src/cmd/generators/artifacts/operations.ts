@@ -44,7 +44,7 @@ export function operationsByPath(
 					filepath,
 					listName: config.listNameFromFragment(node.name.value),
 					operationKind: config.listOperationFromFragment(node.name.value),
-					type: parentTypeFromAncestors(config.schema, ancestors).name,
+					type: parentTypeFromAncestors(config.schema, filepath, ancestors).name,
 					selection: node,
 				})
 			)

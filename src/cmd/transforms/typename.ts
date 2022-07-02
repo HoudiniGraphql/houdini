@@ -21,7 +21,11 @@ export default async function addTypename(
 				}
 
 				// figure out the parent type
-				const type = parentTypeFromAncestors(config.schema, ancestors.slice(0, -1))
+				const type = parentTypeFromAncestors(
+					config.schema,
+					doc.filename,
+					ancestors.slice(0, -1)
+				)
 				// look up the field definition in the parent type
 				const field = type.getFields()[node.name.value]
 
