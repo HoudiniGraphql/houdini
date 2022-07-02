@@ -429,7 +429,7 @@ const missingPaginationArgMessage = (
 	`@${config.paginateDirective}`
 )} directive on a field but have not provided a ${chalk.yellow('first')}, ${chalk.yellow(
 	'last'
-)}, or ${chalk.yellow('limit')} argument. Please add one and try again. 
+)}, or ${chalk.yellow('limit')} argument. Please add one and try again.
 For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
 
 const missingEdgeSelectionMessage = (
@@ -438,7 +438,7 @@ const missingEdgeSelectionMessage = (
 	`@${config.paginateDirective}`
 )} directive on a field but your selection does not contain an ${chalk.yellow(
 	'edges'
-)} field. Please add one and try again. 
+)} field. Please add one and try again.
 For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
 
 const missingNodeSelectionMessage = (
@@ -447,7 +447,7 @@ const missingNodeSelectionMessage = (
 	`@${config.paginateDirective}`
 )} directive on a field but your selection does not contain a ${chalk.yellow(
 	'node'
-)} field. Please add one and try again. 
+)} field. Please add one and try again.
 For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
 
 const edgeInvalidTypeMessage = (
