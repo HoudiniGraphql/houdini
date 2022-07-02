@@ -5,7 +5,7 @@
 		"outDir": "build/runtime-esm",
 		"moduleResolution": "node",
 		"module": "es2020",
-		"lib": ["es2020", "dom"],
+		"lib": ["es2021", "dom"],
 		"target": "es2019",
 		"isolatedModules": true,
 		"resolveJsonModule": true,

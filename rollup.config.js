@@ -32,7 +32,7 @@ export default {
 		format: TARGET === 'esm' ? 'esm' : 'cjs',
 		...out,
 	},
-	external: ['graphql', './adapter.mjs', '$houdini'],
+	external: ['./adapter.mjs', '$houdini'],
 	plugins: [
 		json(),
 		typescript({
