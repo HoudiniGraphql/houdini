@@ -44,8 +44,8 @@ export class Config {
 			sourceGlob,
 			apiUrl,
 			quiet = false,
-			framework = 'sapper',
-			module = 'commonjs',
+			framework = 'kit',
+			module = 'esm',
 			static: staticSite,
 			scalars,
 			cacheBufferSize,
@@ -60,7 +60,7 @@ export class Config {
 
 		// make sure we got some kind of schema
 		if (!schema) {
-			throw new Error('Please provide one of schema or schema path')
+			throw new Error('❌ Please provide one of schema or schema path')
 		}
 
 		// if we're given a schema string
@@ -73,11 +73,18 @@ export class Config {
 		// validate the log level value
 		if (logLevel && !Object.values(LogLevel).includes(logLevel.toLowerCase() as LogLevel)) {
 			console.warn(
-				`Invalid log level provided. Valid values are: ${JSON.stringify(
+				`⚠️ Invalid log level provided. Valid values are: ${JSON.stringify(
 					Object.values(LogLevel)
 				)}`
 			)
 			logLevel = LogLevel.Summary
+		}
+
+		if (framework === 'sapper') {
+			console.warn(
+				`⚠️ Support for sapper will be dropped in 0.16.0. ⚠️
+If that's going to be a problem, please open a discussion on GitHub.`
+			)
 		}
 
 		// save the values we were given
@@ -623,7 +630,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				edges: [UserEdge!]!
 			}
 
-			type UserConnectionScalar { 
+			type UserConnectionScalar {
 				pageInfo: PageInfo!
 				edges: [UserEdgeScalar!]!
 			}
