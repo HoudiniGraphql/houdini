@@ -4,7 +4,6 @@ import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { convertValue } from './utils'
 import { Config, parentTypeFromAncestors } from '../../../common'
-import { doc } from 'prettier'
 
 const AST = recast.types.builders
 
