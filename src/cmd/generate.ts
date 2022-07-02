@@ -183,7 +183,7 @@ async function findGraphQLTemplates(filepath: string, contents: string): Promise
 		const err = e as Error
 
 		// add the filepath to the error message
-		throw new Error(`Encountered error parsing ${filepath}: ` + err.message)
+		throw { message: `Encountered error parsing ${filepath}`, description: err.message }
 	}
 
 	// we need to look for multiple script tags to support sveltekit
@@ -235,13 +235,13 @@ async function processGraphQLDocument(
 	)
 	// if there is more than one operation, throw an error
 	if (operations.length > 1) {
-		throw new Error('Operation documents can only have one operation')
+		throw { filepath, message: 'Operation documents can only have one operation' }
 	}
 	// we are looking at a fragment document
 	else {
 		// if there is more than one fragment, throw an error
 		if (fragments.length > 1) {
-			throw new Error('Fragment documents can only have one fragment')
+			throw { filepath, message: 'Fragment documents can only have one fragment' }
 		}
 	}
 

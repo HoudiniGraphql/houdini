@@ -4,12 +4,14 @@ import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { convertValue } from './utils'
 import { Config, parentTypeFromAncestors } from '../../../common'
+import { doc } from 'prettier'
 
 const AST = recast.types.builders
 
 // return the list of operations that are part of a mutation
 export function operationsByPath(
 	config: Config,
+	filepath: string,
 	definition: graphql.OperationDefinitionNode,
 	filterTypes: FilterMap
 ): { [path: string]: MutationOperation[] } {
@@ -40,6 +42,7 @@ export function operationsByPath(
 			pathOperations[path].push(
 				operationObject({
 					config,
+					filepath,
 					listName: config.listNameFromFragment(node.name.value),
 					operationKind: config.listOperationFromFragment(node.name.value),
 					type: parentTypeFromAncestors(config.schema, ancestors).name,
@@ -63,6 +66,7 @@ export function operationsByPath(
 			pathOperations[path].push(
 				operationObject({
 					config,
+					filepath,
 					listName: node.name.value,
 					operationKind: 'delete',
 					type: config.listNameFromDirective(node.name.value),
@@ -81,8 +85,10 @@ function operationObject({
 	operationKind,
 	type,
 	selection,
+	filepath,
 }: {
 	config: Config
+	filepath: string
 	listName: string
 	operationKind: MutationOperation['action']
 	type: string
@@ -118,7 +124,7 @@ function operationObject({
 
 		// if both are applied, there's a problem
 		if (append && prepend) {
-			throw new Error('WRAP THIS IN A HOUDINI ERROR. you have both applied')
+			throw { filepath, message: 'you have both applied' }
 		}
 		position = prepend ? 'first' : 'last'
 

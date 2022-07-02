@@ -5,11 +5,13 @@ import { Config } from '../../common'
 
 export function flattenSelections({
 	config,
+	filepath,
 	selections,
 	includeFragments,
 	fragmentDefinitions,
 }: {
 	config: Config
+	filepath: string
 	selections: readonly graphql.SelectionNode[]
 	includeFragments: boolean
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
@@ -17,6 +19,7 @@ export function flattenSelections({
 	// collect all of the fields together
 	const fields = new FieldCollection({
 		config,
+		filepath,
 		selections,
 		includeFragments,
 		fragmentDefinitions,
@@ -30,6 +33,7 @@ class FieldCollection {
 	config: Config
 	includeFragments: boolean = false
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
+	filepath: string
 
 	fields: { [name: string]: Field<graphql.FieldNode> }
 	inlineFragments: { [typeName: string]: Field<graphql.InlineFragmentNode> }
@@ -37,6 +41,7 @@ class FieldCollection {
 
 	constructor(args: {
 		config: Config
+		filepath: string
 		selections: readonly graphql.SelectionNode[]
 		includeFragments: boolean
 		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
@@ -48,6 +53,8 @@ class FieldCollection {
 		this.fields = {}
 		this.inlineFragments = {}
 		this.fragmentSpreads = {}
+
+		this.filepath = args.filepath
 
 		for (const selection of args.selections) {
 			this.add(selection)
@@ -122,7 +129,10 @@ class FieldCollection {
 
 			const definition = this.fragmentDefinitions[selection.name.value]
 			if (!definition) {
-				throw new Error('Could not find referenced fragment definition')
+				throw {
+					filepath: this.filepath,
+					message: 'Could not find referenced fragment definition',
+				}
 			}
 
 			for (const subselect of definition.selectionSet.selections) {
@@ -156,6 +166,7 @@ class FieldCollection {
 			includeFragments: this.includeFragments,
 			fragmentDefinitions: this.fragmentDefinitions,
 			selections: [],
+			filepath: this.filepath,
 		})
 	}
 }

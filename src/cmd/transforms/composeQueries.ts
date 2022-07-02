@@ -20,7 +20,7 @@ export default async function includeFragmentDefinitions(
 	const fragments = collectFragments(config, documents)
 
 	// visit every document and add any fragment definitions that are missing
-	for (const [index, { name, document }] of documents.entries()) {
+	for (const [index, { name, document, filename }] of documents.entries()) {
 		// look for the operation in this document
 		const operation = document.definitions.find(
 			({ kind }) => kind === GraphqlKinds.OPERATION_DEFINITION
@@ -33,6 +33,7 @@ export default async function includeFragmentDefinitions(
 
 		// grab the full list of required fragments
 		const allFragments = flattenFragments(
+			filename,
 			{ requiredFragments: findRequiredFragments(operation.selectionSet) },
 			fragments
 		)
@@ -104,6 +105,7 @@ function findRequiredFragments(selectionSet: graphql.SelectionSetNode): Array<st
 // take a list of required fragments and turn it into a list of fragments
 // needed to create the query document
 function flattenFragments(
+	filepath: string,
 	operation: { requiredFragments: Array<string> },
 	fragments: { [name: string]: { requiredFragments: Array<string> } }
 ): Array<string> {
@@ -139,7 +141,10 @@ function flattenFragments(
 		// grab the referenced fragment
 		const targetFragment = fragments[nextFragment]
 		if (!targetFragment) {
-			throw new Error('compose: could not find definition for fragment ' + nextFragment)
+			throw {
+				filepath,
+				message: 'compose: could not find definition for fragment ' + nextFragment,
+			}
 		}
 
 		// add this fragments dependents to the pile

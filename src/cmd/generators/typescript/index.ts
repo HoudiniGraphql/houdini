@@ -43,7 +43,7 @@ export default async function typescriptGenerator(
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(async ({ originalDocument, name, kind, generateArtifact }) => {
+		docs.map(async ({ originalDocument, name, filename, generateArtifact }) => {
 			if (!generateArtifact) {
 				return
 			}
@@ -66,6 +66,7 @@ export default async function typescriptGenerator(
 
 			const selections = flattenSelections({
 				config,
+				filepath: filename,
 				selections: definition.selectionSet.selections,
 				// only globally include internal fragment values if masking is disabled
 				includeFragments: config.disableMasking,
@@ -76,6 +77,7 @@ export default async function typescriptGenerator(
 				// treat it as an operation document
 				await generateOperationTypeDefs(
 					config,
+					filename,
 					program.body,
 					definition,
 					selections,
@@ -86,6 +88,7 @@ export default async function typescriptGenerator(
 				// treat it as a fragment document
 				await generateFragmentTypeDefs(
 					config,
+					filename,
 					program.body,
 					selections,
 					originalDocument.definitions,
@@ -156,6 +159,7 @@ For more information, please visit this link: https://www.houdinigraphql.com/api
 
 async function generateOperationTypeDefs(
 	config: Config,
+	filepath: string,
 	body: StatementKind[],
 	definition: graphql.OperationDefinitionNode,
 	selections: readonly graphql.SelectionNode[],
@@ -171,7 +175,7 @@ async function generateOperationTypeDefs(
 		parentType = config.schema.getSubscriptionType()!
 	}
 	if (!parentType) {
-		throw new Error('Could not find root type for document')
+		throw { filepath, message: 'Could not find root type for document' }
 	}
 
 	// the name of the types we will define
@@ -221,6 +225,7 @@ async function generateOperationTypeDefs(
 				AST.identifier(shapeTypeName),
 				inlineType({
 					config,
+					filepath,
 					rootType: parentType,
 					selections,
 					root: true,
@@ -294,6 +299,7 @@ async function generateOperationTypeDefs(
 		for (const variableDefinition of definition.variableDefinitions) {
 			addReferencedInputTypes(
 				config,
+				filepath,
 				body,
 				visitedTypes,
 				missingScalars,
@@ -328,6 +334,7 @@ async function generateOperationTypeDefs(
 
 async function generateFragmentTypeDefs(
 	config: Config,
+	filepath: string,
 	body: StatementKind[],
 	selections: readonly graphql.SelectionNode[],
 	definitions: readonly graphql.DefinitionNode[],
@@ -395,6 +402,7 @@ async function generateFragmentTypeDefs(
 					AST.identifier(shapeTypeName),
 					inlineType({
 						config,
+						filepath,
 						rootType: type,
 						selections,
 						root: true,

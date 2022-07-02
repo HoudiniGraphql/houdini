@@ -59,14 +59,14 @@ program
 					// Check if apiUrl is set in config
 					if (!config.apiUrl) {
 						throw new Error(
-							'Your config should contain a valid apiUrl to pull the latest schema.'
+							'❌ Your config should contain a valid apiUrl to pull the latest schema.'
 						)
 					}
 
 					// if the schema path is a glob, tell the user this flag doesn't do anything
 					if (config.schemaPath && glob.hasMagic(config.schemaPath)) {
 						console.warn(
-							'--pull-schema is not supported when the schemaPath is a glob. Remember, if your ' +
+							'⚠️ --pull-schema is not supported when the schemaPath is a glob. Remember, if your ' +
 								"schema is already available locally you don't need this flag."
 						)
 					}
@@ -82,7 +82,7 @@ program
 								: path.resolve(targetPath, 'schema.json'),
 							args.pullHeader
 						)
-						console.log(`Pulled latest schema from ${config.apiUrl}`)
+						console.log(`✅ Pulled latest schema from ${config.apiUrl}`)
 					}
 				}
 

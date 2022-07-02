@@ -60,7 +60,7 @@ export class Config {
 
 		// make sure we got some kind of schema
 		if (!schema) {
-			throw new Error('❌ Please provide one of schema or schema path')
+			throw new Error('❌ Invalid config file: please provide one of schema or schema path')
 		}
 
 		// if we're given a schema string

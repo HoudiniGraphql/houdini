@@ -42,7 +42,10 @@ export default function artifactGenerator(stats: {
 						(arg) => arg.name.value === config.listNameArg
 					)
 					if (!nameArg || nameArg.value.kind !== 'StringValue') {
-						throw new Error('could not find name arg in list directive')
+						throw {
+							filepath: doc.filename,
+							message: 'could not find name arg in list directive',
+						}
 					}
 					const listName = nameArg.value.value
 
@@ -63,7 +66,10 @@ export default function artifactGenerator(stats: {
 					]) as graphql.GraphQLObjectType
 					const parentField = parentType.getFields()[field.name.value]
 					if (!parentField) {
-						throw new Error('Could not find field information when computing filters')
+						throw {
+							filepath: doc.filename,
+							message: 'Could not find field information when computing filters',
+						}
 					}
 					const fieldType = getRootType(parentField.type).toString()
 
@@ -169,11 +175,13 @@ export default function artifactGenerator(stats: {
 							rootType = config.schema.getSubscriptionType()?.name
 						}
 						if (!rootType) {
-							throw new Error(
-								'could not find root type for operation: ' +
+							throw {
+								filepath: doc.filename,
+								message:
+									'could not find root type for operation: ' +
 									operation.operation +
-									'. Maybe you need to re-run the introspection query?'
-							)
+									'. Maybe you need to re-run the introspection query?',
+							}
 						}
 
 						// use this selection set
@@ -210,9 +218,15 @@ export default function artifactGenerator(stats: {
 						rootType,
 						selection: selection({
 							config,
+							filepath: doc.filename,
 							rootType,
 							selections: selectionSet.selections,
-							operations: operationsByPath(config, operations[0], filterTypes),
+							operations: operationsByPath(
+								config,
+								doc.filename,
+								operations[0],
+								filterTypes
+							),
 							// do not include used fragments if we are rendering the selection
 							// for a fragment document
 							includeFragments: docKind !== 'HoudiniFragment',
