@@ -339,7 +339,18 @@ export default async function addListFragments(
 		),
 	}
 
-	config.newSchema += '\n' + generatedDoc.definitions.map(graphql.print).join('\n')
+	config.newSchema +=
+		'\n' +
+		generatedDoc.definitions
+			.filter((c) => c.kind !== 'FragmentDefinition')
+			.map(graphql.print)
+			.join('\n\n')
+	config.newDocuments +=
+		'\n' +
+		generatedDoc.definitions
+			.filter((c) => c.kind === 'FragmentDefinition')
+			.map(graphql.print)
+			.join('\n\n')
 
 	documents.push({
 		name: 'generated::lists',

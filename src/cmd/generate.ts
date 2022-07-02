@@ -32,6 +32,9 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	// reset the newSchema accumulator
 	config.newSchema = ''
 
+	// reset the newDocuments accumulator
+	config.newDocuments = ''
+
 	// we need to hold onto some stats for the generated artifacts
 	const artifactStats = {
 		total: [],

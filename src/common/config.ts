@@ -26,8 +26,9 @@ export class Config {
 	cacheBufferSize?: number
 	defaultCachePolicy: CachePolicy
 	defaultPartial: boolean
-	definitionsFile?: string
+	definitionsFolder?: string
 	newSchema: string = ''
+	newDocuments: string = ''
 	defaultKeys: string[] = ['id']
 	typeConfig: ConfigFile['types']
 	configFile: ConfigFile
@@ -100,7 +101,7 @@ If that's going to be a problem, please open a discussion on GitHub.`
 		this.cacheBufferSize = cacheBufferSize
 		this.defaultCachePolicy = defaultCachePolicy
 		this.defaultPartial = defaultPartial
-		this.definitionsFile = definitionsPath
+		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 		this.disableMasking = disableMasking
 
@@ -180,10 +181,19 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		return path.join(this.rootDir, 'runtime')
 	}
 
-	get definitionsPath() {
-		return this.definitionsFile
-			? path.join(this.projectRoot, this.definitionsFile)
-			: path.join(this.rootDir, 'definitions.gql')
+	// Default to => $houdini/graphql
+	get definitionsDirectory() {
+		return this.definitionsFolder
+			? path.join(this.projectRoot, this.definitionsFolder)
+			: path.join(this.rootDir, 'graphql')
+	}
+
+	get definitionsSchemaPath() {
+		return path.join(this.definitionsDirectory, 'schema.graphql')
+	}
+
+	get definitionsDocumentsPath() {
+		return path.join(this.definitionsDirectory, 'documents.gql')
 	}
 
 	get typeIndexPath() {
@@ -269,6 +279,7 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 			fs.mkdirp(this.artifactTypeDirectory),
 			fs.mkdirp(this.runtimeDirectory),
 			fs.mkdirp(this.storesDirectory),
+			fs.mkdirp(this.definitionsDirectory),
 		])
 	}
 
@@ -489,7 +500,7 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 
 		// build up an error with no stack trace so the message isn't so noisy
 		const error = new Error(
-			"Invalid config value: 'schemaPath' must now be passed as a relative directory. Please change " +
+			`Invalid config value: 'schemaPath' must now be passed as a relative directory. Please change ` +
 				`its value to "./${relPath}".`
 		)
 		error.stack = ''
