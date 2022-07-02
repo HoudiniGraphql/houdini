@@ -2137,13 +2137,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kitql/helper@npm:^0.3.4":
-  version: 0.3.5
-  resolution: "@kitql/helper@npm:0.3.5"
-  checksum: 3a4cc4f52ca12f2360c9681757e9ec0cc6e9865d8cc58a9b7801ef3cdc449352fd159c5bb602d15850ede270393521703cb86864806958a614ad709deebf683b
-  languageName: node
-  linkType: hard
-
 "@kitql/vite-plugin-watch-and-run@npm:0.3.0":
   version: 0.3.0
   resolution: "@kitql/vite-plugin-watch-and-run@npm:0.3.0"
@@ -6520,7 +6513,6 @@ __metadata:
     "@changesets/changelog-github": ^0.4.4
     "@changesets/cli": ^2.22.0
     "@graphql-tools/schema": ^8.3.7
-    "@kitql/helper": ^0.3.4
     "@rollup/plugin-commonjs": ^22.0.0
     "@rollup/plugin-json": ^4.1.0
     "@rollup/plugin-node-resolve": ^13.2.0

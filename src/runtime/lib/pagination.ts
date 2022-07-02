@@ -1,14 +1,12 @@
 // externals
-import { stry } from '@kitql/helper'
 import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
 // locals
-import { FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams } from '..'
+import { FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams, deepEquals } from '..'
 import cache from '../cache'
 import { ConfigFile, keyFieldsForType } from './config'
 import { getHoudiniContext } from './context'
 import { executeQuery } from './network'
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from './types'
-import { countPage, extractPageInfo } from './utils'
 
 type RefetchFn<_Data = any, _Input = any> = (
 	params?: QueryStoreFetchParams<_Input>
@@ -376,7 +374,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && stry(extraVariables(), 0) !== stry(variables, 0)) {
+			if (variables && !deepEquals(extraVariables(), variables)) {
 				return refetch(params)
 			}
 
@@ -497,7 +495,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 			const { variables } = params ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if ((variables && stry(extraVariables(), 0) !== stry(variables), 0)) {
+			if (variables && !deepEquals(extraVariables(), variables)) {
 				return refetch(params)
 			}
 
@@ -574,4 +572,59 @@ export type PageInfo = {
 	endCursor: string | null
 	hasNextPage: boolean
 	hasPreviousPage: boolean
+}
+
+export function extractPageInfo(data: GraphQLObject | null, path: string[]): PageInfo {
+	if (!data) {
+		return {
+			startCursor: null,
+			endCursor: null,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		}
+	}
+
+	let localPath = [...path]
+	// walk down the object until we get to the end
+	let current = data
+	while (localPath.length > 0) {
+		if (!current) {
+			break
+		}
+		current = current[localPath.shift() as string] as GraphQLObject
+	}
+
+	return (
+		(current?.pageInfo as PageInfo) ?? {
+			startCursor: null,
+			endCursor: null,
+			hasNextPage: false,
+			hasPreviousPage: false,
+		}
+	)
+}
+
+export function countPage<_Data extends GraphQLObject>(
+	source: string[],
+	value: _Data | null
+): number {
+	let data = value
+	if (value === null || data === null) {
+		return 0
+	}
+
+	for (const field of source) {
+		const obj = data[field] as _Data | _Data[]
+		if (obj && !Array.isArray(obj)) {
+			data = obj
+		} else if (!data) {
+			throw new Error('Could not count page size')
+		}
+
+		if (Array.isArray(obj)) {
+			return obj.length
+		}
+	}
+
+	return 0
 }

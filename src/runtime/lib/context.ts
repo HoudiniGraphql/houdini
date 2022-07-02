@@ -1,10 +1,10 @@
 // externals
-import { logCyan, logRed, logYellow } from '@kitql/helper'
 import { getContext as svelteContext, setContext } from 'svelte'
 import { get } from 'svelte/store'
 // locals
 import { getPage, getSession } from '../adapter'
 import { HoudiniFetchContext } from './types'
+import * as log from './log'
 
 export const setVariables = (vars: () => {}) => setContext('variables', vars)
 
@@ -35,14 +35,14 @@ export function getHoudiniContext(): HoudiniFetchContext {
 			stuff: {},
 		}
 	} catch (e) {
-		console.log(
-			`${logRed('⚠️ getHoudiniContext() was not called in the right place ⚠️')}
+		log.info(
+			`${log.red('⚠️ getHoudiniContext() was not called in the right place ⚠️')}
 You should do something like the following. Make sure getHoudiniContext is 
 called at the top of your component (outside any event handlers or function definitions).
 
 <script lang="ts">
-    const ${logYellow('context')} = getHoudiniContext();
-    const onClick = () => GQL_${logCyan('[YOUR_STORE]')}.mutate({ ${logYellow('context')} });
+    const ${log.yellow('context')} = getHoudiniContext();
+    const onClick = () => GQL_${log.cyan('[YOUR_STORE]')}.mutate({ ${log.yellow('context')} });
 </script>`
 		)
 		throw new Error(e as any)

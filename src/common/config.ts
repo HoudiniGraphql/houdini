@@ -21,8 +21,8 @@ export class Config {
 	sourceGlob: string
 	static?: boolean
 	scalars?: ConfigFile['scalars']
-	framework: 'sapper' | 'kit' | 'svelte' = 'sapper'
-	module: 'commonjs' | 'esm' = 'commonjs'
+	framework: 'sapper' | 'kit' | 'svelte' = 'kit'
+	module: 'commonjs' | 'esm' = 'esm'
 	cacheBufferSize?: number
 	defaultCachePolicy: CachePolicy
 	defaultPartial: boolean

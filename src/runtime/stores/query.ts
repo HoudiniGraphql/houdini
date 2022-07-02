@@ -1,16 +1,21 @@
 // externals
-import { logCyan, logRed, logYellow, stry } from '@kitql/helper'
 import { get, Readable, Writable, writable } from 'svelte/store'
 // internals
 import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
 import { clientStarted, isBrowser } from '../adapter'
 import cache from '../cache'
-import { FetchContext, QueryResult, QueryStoreFetchParams, SubscriptionSpec } from '../lib'
+import {
+	FetchContext,
+	QueryResult,
+	QueryStoreFetchParams,
+	SubscriptionSpec,
+	deepEquals,
+} from '../lib'
+import type { ConfigFile, QueryArtifact } from '../lib'
 import { nullHoudiniContext } from '../lib/context'
 import { PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
-import type { ConfigFile } from '../lib/types'
-import { QueryArtifact } from '../lib/types'
+import * as log from '../lib/log'
 
 // Terms:
 // - CSF: client side fetch. identified by a lack of loadEvent
@@ -114,7 +119,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		}
 
 		// check if the variables are different from the last time we saw them
-		let variableChange = stry(lastVariables, 0) !== stry(newVariables, 0)
+		let variableChange = !deepEquals(lastVariables, newVariables)
 
 		// detect if there is a load function that fires before the first CSF
 		if (isLoadFetch && lastVariables === null && Boolean(args?.event)) {
@@ -279,31 +284,31 @@ function fetchContext<_Data, _Input>(
 	// if we aren't on the browser but there's no event there's a big mistake
 	if (!isBrowser && (!params || !params.event || !params.event.fetch)) {
 		// prettier-ignore
-		console.error(`
-	${logRed(`Missing event args in load function`)}. 
+		log.error(`
+	${log.red(`Missing event args in load function`)}. 
 
 	Two options:
-	${logCyan("1/ Prefetching & SSR")}
+	${log.cyan("1/ Prefetching & SSR")}
   <script context="module" lang="ts">
     import type { LoadEvent } from '@sveltejs/kit';
 
-    export async function load(${logYellow('event')}: LoadEvent) {
+    export async function load(${log.yellow('event')}: LoadEvent) {
 			const variables = { ... };
-      await ${logCyan(storeName)}.fetch({ ${logYellow('event')}, variables });
+      await ${log.cyan(storeName)}.fetch({ ${log.yellow('event')}, variables });
       return { props: { variables } };
     }
   </script> 
 
 	<script lang="ts">
-		import { type ${logCyan(storeName)}$input } from '$houdini'
-		export let variables: ${logCyan(storeName)}$input;
+		import { type ${log.cyan(storeName)}$input } from '$houdini'
+		export let variables: ${log.cyan(storeName)}$input;
 		
-		$: browser && ${logCyan(storeName)}.fetch({ variables });
+		$: browser && ${log.cyan(storeName)}.fetch({ variables });
 	</script> 
 
-	${logCyan("2/ Client only")}
+	${log.cyan("2/ Client only")}
 	<script lang="ts">
-		$: browser && ${logCyan(storeName)}.fetch({ variables: { ... } });
+		$: browser && ${log.cyan(storeName)}.fetch({ variables: { ... } });
 	</script> 
 `);
 

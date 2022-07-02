@@ -1,5 +1,5 @@
-import { CachePolicy } from './types'
 import type { GraphQLSchema } from 'graphql'
+import { CachePolicy } from './types'
 
 export type ScalarSpec = {
 	// the type to use at runtime
@@ -14,8 +14,24 @@ type ScalarMap = { [typeName: string]: ScalarSpec }
 
 // the values we can take in from the config file
 export type ConfigFile = {
+	/**
+	 * A glob pointing at all your graphql operations
+	 * @example glob: `src/** /*.{svelte,gql}`
+	 */
 	sourceGlob: string
+	/**
+	 * A static representation of your schema
+	 * @example path: `schema.graphql`
+	 * @example glob: `src/** /*.graphql`
+	 *
+	 * FYI: `schemaPath` or `schema` should be defined
+	 */
 	schemaPath?: string
+	/**
+	 * Raw graphql schema
+	 *
+	 * FYI: `schemaPath` or `schema` should be defined
+	 */
 	schema?: string | GraphQLSchema
 	quiet?: boolean
 	apiUrl?: string

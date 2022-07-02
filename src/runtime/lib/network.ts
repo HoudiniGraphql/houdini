@@ -1,5 +1,4 @@
 // externals
-import { logCyan, logRed, logYellow } from '@kitql/helper'
 import { LoadEvent, Page } from '@sveltejs/kit'
 // locals
 import cache from '../cache'
@@ -13,6 +12,7 @@ import {
 	QueryArtifact,
 	SubscriptionArtifact,
 } from './types'
+import * as log from './log'
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
@@ -46,15 +46,15 @@ export class HoudiniClient {
 			{
 				...ctx,
 				get fetch() {
-					console.log(
-						`${logRed(
+					log.info(
+						`${log.red(
 							"⚠️  fetch and session are now passed as arguments to your client's network function ⚠️"
 						)}
 You should update your client to look something like the following:
 
-async function fetchQuery({ ${logYellow('fetch')}, text = '', variables = {}, ${logYellow(
+async function fetchQuery({ ${log.yellow('fetch')}, text = '', variables = {}, ${log.yellow(
 							'session'
-						)}, ${logCyan('metadata')} }) {
+						)}, ${log.cyan('metadata')} }) {
   const result =  await fetch( ...
 
   return await result.json();
@@ -88,8 +88,8 @@ async function fetchQuery({ ${logYellow('fetch')}, text = '', variables = {}, ${
 export class Environment extends HoudiniClient {
 	constructor(...args: ConstructorParameters<typeof HoudiniClient>) {
 		super(...args)
-		console.log(
-			`${logRed('⚠️  Environment has been renamed to HoudiniClient. ⚠️')}
+		log.info(
+			`${log.red('⚠️  Environment has been renamed to HoudiniClient. ⚠️')}
 You should update your client to look something like the following:
 
 import { HoudiniClient } from '$houdini/runtime'
@@ -106,8 +106,8 @@ For more information, please visit this link: https://www.houdinigraphql.com/gui
 let currentClient: HoudiniClient | null = null
 
 export function setEnvironment(env: HoudiniClient) {
-	console.log(
-		`${logRed('⚠️  setEnvironment is now replaced by environment.init() ⚠️')}
+	log.info(
+		`${log.red('⚠️  setEnvironment is now replaced by environment.init() ⚠️')}
 You should update your __layout files to look something like the following:
 
 <script context="module">

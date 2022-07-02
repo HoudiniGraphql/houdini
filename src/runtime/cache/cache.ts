@@ -1,8 +1,6 @@
-// externals
-import { stry } from '@kitql/helper'
 // locals
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
-import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../lib/config'
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType, deepEquals } from '../lib'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
@@ -211,7 +209,7 @@ class CacheInternal {
 					'Could not find field listing in selection for ' +
 						field +
 						' @ ' +
-						stry(selection, 0) +
+						JSON.stringify(selection) +
 						''
 				)
 			}
@@ -261,7 +259,7 @@ class CacheInternal {
 				}
 
 				// if the value changed on a layer that impacts the current latest value
-				const valueChanged = stry(newValue) !== stry(previousValue)
+				const valueChanged = !deepEquals(newValue, previousValue)
 
 				if (displayLayer && (valueChanged || forceNotify)) {
 					// we need to add the fields' subscribers to the set of callbacks
@@ -498,7 +496,7 @@ class CacheInternal {
 				// or we got content for a new list which could already be known. If we just look at
 				// wether the IDs are the same, situations where we have old data that
 				// is still valid would not be triggered
-				const contentChanged = stry(linkedIDs, 0) !== stry(oldIDs, 0)
+				const contentChanged = !deepEquals(linkedIDs, oldIDs)
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				if (contentChanged || forceNotify) {
