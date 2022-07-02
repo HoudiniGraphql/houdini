@@ -20,7 +20,7 @@ test('adds internal documents to schema', async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file and make sure it got the internal documents
-	expect(graphql.parse(await fs.readFile(config.definitionsPath, 'utf-8')))
+	expect(graphql.parse(await fs.readFile(config.definitionsSchemaPath, 'utf-8')))
 		.toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
@@ -73,8 +73,8 @@ test('list operations are included', async function () {
 	// execute the generator
 	await runPipeline(config, docs)
 
-	// read the schema file and make sure it got the internal documents
-	expect(graphql.parse(await fs.readFile(config.definitionsPath, 'utf-8')))
+	// read the schema file
+	expect(graphql.parse(await fs.readFile(config.definitionsSchemaPath, 'utf-8')))
 		.toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
@@ -113,6 +113,13 @@ test('list operations are included', async function () {
 		"""@cache is used to specify cache rules for a query"""
 		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
+		directive @User_delete repeatable on FIELD
+
+	`)
+
+	// read the documents file
+	expect(graphql.parse(await fs.readFile(config.definitionsDocumentsPath, 'utf-8')))
+		.toMatchInlineSnapshot(`
 		fragment Friends_insert on User {
 		  id
 		}
@@ -125,8 +132,6 @@ test('list operations are included', async function () {
 		fragment Friends_remove on User {
 		  id
 		}
-
-		directive @User_delete repeatable on FIELD
 
 	`)
 })
@@ -142,7 +147,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file and make sure it got the internal documents
-	expect(graphql.parse(await fs.readFile(config.definitionsPath, 'utf-8')))
+	expect(graphql.parse(await fs.readFile(config.definitionsSchemaPath, 'utf-8')))
 		.toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork

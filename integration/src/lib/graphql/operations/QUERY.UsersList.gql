@@ -1,5 +1,5 @@
 query usersList($limit: Int) {
-  usersList(limit: $limit, snapshot: "store-user-query") {
+  usersList(limit: $limit, snapshot: "store-user-query") @list(name: "All_Users") {
     id
     name
     ...UserInfo
