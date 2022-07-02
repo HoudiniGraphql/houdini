@@ -1,6 +1,6 @@
 // externals
-import chalk from 'chalk'
 import * as graphql from 'graphql'
+import { logGreen, logYellow } from '@kitql/helper'
 // locals
 import { Config, parentTypeFromAncestors } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'
@@ -425,41 +425,37 @@ export function connectionSelection(
 
 const missingPaginationArgMessage = (
 	config: Config
-) => `Looks like you are trying to use the ${chalk.green(
+) => `Looks like you are trying to use the ${logGreen(
 	`@${config.paginateDirective}`
-)} directive on a field but have not provided a ${chalk.yellow('first')}, ${chalk.yellow(
+)} directive on a field but have not provided a ${logYellow('first')}, ${logYellow(
 	'last'
-)}, or ${chalk.yellow('limit')} argument. Please add one and try again.
+)}, or ${logYellow('limit')} argument. Please add one and try again.
 For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
 
 const missingEdgeSelectionMessage = (
 	config: Config
-) => `Looks like you are trying to use the ${chalk.green(
+) => `Looks like you are trying to use the ${logGreen(
 	`@${config.paginateDirective}`
-)} directive on a field but your selection does not contain an ${chalk.yellow(
+)} directive on a field but your selection does not contain an ${logYellow(
 	'edges'
 )} field. Please add one and try again.
 For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
 
 const missingNodeSelectionMessage = (
 	config: Config
-) => `Looks like you are trying to use the ${chalk.green(
+) => `Looks like you are trying to use the ${logGreen(
 	`@${config.paginateDirective}`
-)} directive on a field but your selection does not contain a ${chalk.yellow(
+)} directive on a field but your selection does not contain a ${logYellow(
 	'node'
 )} field. Please add one and try again.
 For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
 
-const edgeInvalidTypeMessage = (
-	config: Config
-) => `Looks like you are trying to use the ${chalk.green(
+const edgeInvalidTypeMessage = (config: Config) => `Looks like you are trying to use the ${logGreen(
 	`@${config.paginateDirective}`
 )} directive on a field but your field does not conform to the connection spec: your edges field seems strange.
 For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
 
-const nodeNotDefinedMessage = (
-	config: Config
-) => `Looks like you are trying to use the ${chalk.green(
+const nodeNotDefinedMessage = (config: Config) => `Looks like you are trying to use the ${logGreen(
 	`@${config.paginateDirective}`
 )} directive on a field but your field does not conform to the connection spec: your edge type does not have node as a field.
 For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`

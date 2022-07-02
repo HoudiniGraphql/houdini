@@ -3,7 +3,7 @@ import { StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
-import chalk from 'chalk'
+import { logCyan, logGreen } from '@kitql/helper'
 // locals
 import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
@@ -130,17 +130,17 @@ export default async function typescriptGenerator(
 		console.warn(`⚠️  Missing definitions for the following scalars: ${[...missingScalars].join(
 			', '
 		)}
-Generated types will contain an any type in place of these values. To fix this, provide an equivalent 
+Generated types will contain an any type in place of these values. To fix this, provide an equivalent
 type in your config file:
 
 {
-  scalars: { 
-    ${chalk.cyan(`/* in your case, something like */`)}
+  scalars: {
+    ${logCyan(`/* in your case, something like */`)}
 ${[...missingScalars]
 	.map(
 		(c) =>
-			`    ${c}: {                  ${chalk.green(`// <- The GraphQL Scalar`)}
-      type: "${chalk.cyan(`YourType_${c}`)}"  ${chalk.green(`// <-  The TypeScript type`)}
+			`    ${c}: {                  ${logGreen(`// <- The GraphQL Scalar`)}
+      type: "${logCyan(`YourType_${c}`)}"  ${logGreen(`// <-  The TypeScript type`)}
     }`
 	)
 	.join(

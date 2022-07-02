@@ -2137,6 +2137,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@kitql/helper@npm:^0.3.4":
+  version: 0.3.5
+  resolution: "@kitql/helper@npm:0.3.5"
+  checksum: 3a4cc4f52ca12f2360c9681757e9ec0cc6e9865d8cc58a9b7801ef3cdc449352fd159c5bb602d15850ede270393521703cb86864806958a614ad709deebf683b
+  languageName: node
+  linkType: hard
+
 "@kitql/vite-plugin-watch-and-run@npm:0.3.0":
   version: 0.3.0
   resolution: "@kitql/vite-plugin-watch-and-run@npm:0.3.0"
@@ -3977,13 +3984,6 @@ __metadata:
     ansi-styles: ^4.1.0
     supports-color: ^7.1.0
   checksum: fe75c9d5c76a7a98d45495b91b2172fa3b7a09e0cc9370e5c8feb1c567b85c4288e2b3fded7cfdd7359ac28d6b3844feb8b82b8686842e93d23c827c417e83fc
-  languageName: node
-  linkType: hard
-
-"chalk@npm:^5.0.1":
-  version: 5.0.1
-  resolution: "chalk@npm:5.0.1"
-  checksum: 7b45300372b908f0471fbf7389ce2f5de8d85bb949026fd51a1b95b10d0ed32c7ed5aab36dd5e9d2bf3191867909b4404cef75c5f4d2d1daeeacd301dd280b76
   languageName: node
   linkType: hard
 
@@ -6520,6 +6520,7 @@ __metadata:
     "@changesets/changelog-github": ^0.4.4
     "@changesets/cli": ^2.22.0
     "@graphql-tools/schema": ^8.3.7
+    "@kitql/helper": ^0.3.4
     "@rollup/plugin-commonjs": ^22.0.0
     "@rollup/plugin-json": ^4.1.0
     "@rollup/plugin-node-resolve": ^13.2.0
@@ -6534,7 +6535,6 @@ __metadata:
     babel-jest: ^26.6.3
     babel-plugin-transform-import-meta: ^2.1.1
     babylon: ^7.0.0-beta.47
-    chalk: ^5.0.1
     commander: ^7.1.0
     concurrently: ^7.1.0
     estree-walker: ^2.0.2
@@ -6563,6 +6563,8 @@ __metadata:
     ts-node: ^9.1.1
     tslib: ^2.4.0
     typescript: ^4.6.3
+  peerDependencies:
+    graphql: ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
   bin:
     houdini: ./build/cmd.js
   languageName: unknown
