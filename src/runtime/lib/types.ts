@@ -177,11 +177,13 @@ export type HoudiniFetchContext = {
 }
 
 export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
+	name: string
 	listen: (input: _Input) => void
 	unlisten: () => void
 }
 
 export type FragmentStore<_Shape> = {
+	name: string
 	get<T extends Fragment<_Shape>>(
 		value: T
 	): Readable<_Shape> & {
@@ -195,6 +197,7 @@ export type FragmentStore<_Shape> = {
 }
 
 export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data, _Input>> & {
+	name: string
 	/**
 	 * Fetch the data from the server
 	 */
@@ -208,6 +211,7 @@ export type TaggedGraphqlMutation = {
 }
 
 export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result, _Input>> & {
+	name: string
 	mutate: (
 		params: {
 			variables: _Input

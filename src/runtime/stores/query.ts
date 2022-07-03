@@ -241,6 +241,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			config,
 			artifact,
 			store: {
+				name: artifact.name,
 				subscribe: store.subscribe,
 				async fetch(params) {
 					return (await fetch({
@@ -258,6 +259,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	}
 
 	return {
+		name: artifact.name,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
 			const bubbleUp = store.subscribe(...args)
 

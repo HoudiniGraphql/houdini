@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store'
 // locals
 import cache from '../cache'
-import type { ConfigFile, SubscriptionArtifact } from '../lib'
+import type { ConfigFile, SubscriptionArtifact, SubscriptionStore } from '../lib'
 import { getCurrentClient } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 
@@ -11,7 +11,7 @@ export function subscriptionStore<_Data, _Input>({
 }: {
 	config: ConfigFile
 	artifact: SubscriptionArtifact
-}) {
+}): SubscriptionStore<_Data | null, _Input> {
 	// a store that holds the latest value
 	const result = writable<_Data | null>(null)
 
@@ -23,6 +23,7 @@ export function subscriptionStore<_Data, _Input>({
 	let clearSubscription = () => {}
 
 	return {
+		name: artifact.name,
 		subscribe: result.subscribe,
 		listen(variables: _Input) {
 			// pull out the current client

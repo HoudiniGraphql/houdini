@@ -164,6 +164,7 @@ export function mutationStore<_Data, _Input>({
 	}
 
 	return {
+		name: artifact.name,
 		subscribe,
 		mutate,
 	}
