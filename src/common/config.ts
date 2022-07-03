@@ -533,8 +533,12 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 		return graphql.buildSchema(contents)
 	}
 
-	// the schema must point to a json blob with the inspection data
-	return graphql.buildClientSchema(JSON.parse(contents))
+	// the schema must point to a json blob (with data level or content of data directly)
+	const jsonContents = JSON.parse(contents)
+	if (jsonContents.data) {
+		return graphql.buildClientSchema(jsonContents.data)
+	}
+	return graphql.buildClientSchema(jsonContents)
 }
 
 // get the project's current configuration
