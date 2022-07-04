@@ -30,7 +30,7 @@ test.describe('Mutation Page', () => {
     const optiStoreValues = {
       data: {
         addUser: {
-          birthDate: '1986-11-07T00:00:00.000Z',
+          birthDate: new Date('1986-11-07'),
           id: '???',
           name: '...optimisticResponse... I could have guessed JYC!'
         }
@@ -39,7 +39,7 @@ test.describe('Mutation Page', () => {
       isFetching: true,
       isOptimisticResponse: true,
       variables: {
-        birthDate: '1986-11-07T00:00:00.000Z',
+        birthDate: new Date('1986-11-07'),
         delay: 1000,
         name: 'JYC'
       }
