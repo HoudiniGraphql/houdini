@@ -69,7 +69,7 @@ export function mutationStore<_Data, _Input>({
 			})
 
 			const storeData = {
-				data: unmarshalSelection(config, artifact.selection, optimisticResponse) as _Data,
+				data: optimisticResponse,
 				errors: null,
 				isFetching: true,
 				isOptimisticResponse: true,
@@ -116,7 +116,7 @@ export function mutationStore<_Data, _Input>({
 			cache.write({
 				selection: artifact.selection,
 				data: result.data,
-				variables,
+				variables: newVariables,
 				// write to the mutation's layer
 				layer: layer.id,
 				// notify any subscribers that we updated with the optimistic response
@@ -136,7 +136,7 @@ export function mutationStore<_Data, _Input>({
 				errors: result.errors ?? null,
 				isFetching: false,
 				isOptimisticResponse: false,
-				variables,
+				variables: newVariables,
 			}
 
 			// update the store value

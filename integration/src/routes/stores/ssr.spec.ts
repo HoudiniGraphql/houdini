@@ -10,7 +10,7 @@ import {
 
 test.describe('SSR Page', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
-    await page.goto(routes.Stores_SSR);
+    const result = await page.goto(routes.Stores_SSR);
 
     await expectNoGraphQLRequest(page);
   });
@@ -22,7 +22,9 @@ test.describe('SSR Page', () => {
   });
 
   test('Right Data in <li> elements (SSR)', async ({ page }) => {
-    await page.goto(routes.Stores_SSR);
+    const body = await page.goto(routes.Stores_SSR);
+
+    const text = await body?.text();
 
     const data = [
       'store-user-query:1 - Bruce Willis',
@@ -31,14 +33,10 @@ test.describe('SSR Page', () => {
       'store-user-query:4 - Tom Hanks'
     ];
 
-    const li = page.locator('li');
-    const count = await li.count();
-    expect(count, 'number of <li> elements').toBe(data.length);
-
-    for (let i = 0; i < count; ++i) {
-      const text = await li.nth(i).textContent();
-      expect(text?.trim(), 'Content of <li> element').toBe(data[i]);
+    for (const entry of data) {
+      expect(text).toContain(`<li>${entry}`);
     }
+    expect(text?.match(/<li>/g)).toHaveLength(4);
   });
 
   test('From SSR to another page containing the same query should use the cache', async ({
