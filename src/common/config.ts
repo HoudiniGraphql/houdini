@@ -192,6 +192,14 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 			: path.join(this.rootDir, 'graphql')
 	}
 
+	get enumRuntimeDefinitionsPath() {
+		return path.join(this.definitionsDirectory, 'enums.js')
+	}
+
+	get enumTypesDefinitionsPath() {
+		return path.join(this.definitionsDirectory, 'enums.d.ts')
+	}
+
 	get definitionsSchemaPath() {
 		return path.join(this.definitionsDirectory, 'schema.graphql')
 	}
@@ -576,6 +584,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 		schema: `
 			scalar Cursor
 
+
 			type User implements Node {
 				id: ID!
 				firstName: String!
@@ -709,6 +718,16 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 
 			interface  Node {
 				id: ID!
+			}
+
+			enum TestEnum1 {
+				Value1
+				Value2
+			}
+
+			enum TestEnum2 {
+				Value3
+				Value2
 			}
 		`,
 		framework: 'kit',
