@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store'
 // locals
 import cache from '../cache'
-import type { ConfigFile, SubscriptionArtifact } from '../lib'
+import { ConfigFile, deepEquals, SubscriptionArtifact, SubscriptionStore } from '../lib'
 import { getCurrentClient } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 
@@ -11,7 +11,7 @@ export function subscriptionStore<_Data, _Input>({
 }: {
 	config: ConfigFile
 	artifact: SubscriptionArtifact
-}) {
+}): SubscriptionStore<_Data | null, _Input> {
 	// a store that holds the latest value
 	const result = writable<_Data | null>(null)
 
@@ -22,8 +22,13 @@ export function subscriptionStore<_Data, _Input>({
 	// the function to call to unregister the subscription
 	let clearSubscription = () => {}
 
+	// listen might be called multiple times while mounted
+	let lastVariables: _Input | null = null
+
 	return {
-		subscribe(variables: _Input) {
+		name: artifact.name,
+		subscribe: result.subscribe,
+		listen(variables: _Input) {
 			// pull out the current client
 			const env = getCurrentClient()
 			// if there isn't one, yell loudly
@@ -38,15 +43,23 @@ export function subscriptionStore<_Data, _Input>({
 				)
 			}
 
-			// clear any existing subscription
-			clearSubscription()
-
 			// marshal the inputs into their raw values
 			const marshaledVariables = marshalInputs({
 				input: variables || {},
 				config,
 				artifact,
 			}) as _Input
+
+			// if the variables haven't changed, don't do anything
+			if (deepEquals(lastVariables, marshaledVariables)) {
+				return
+			}
+
+			// clear any existing subscription
+			clearSubscription()
+
+			// save the last set
+			lastVariables = marshaledVariables
 
 			// start listening for updates from the server
 			clearSubscription = env.socket.subscribe(
@@ -81,8 +94,10 @@ export function subscriptionStore<_Data, _Input>({
 				}
 			)
 		},
-		unsubscribe() {
+		unlisten() {
 			clearSubscription()
+			clearSubscription = () => {}
+			lastVariables = null
 		},
 	}
 }

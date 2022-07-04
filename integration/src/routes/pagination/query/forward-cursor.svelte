@@ -22,9 +22,6 @@
 <div id="pageInfo">
   {JSON.stringify($pageInfo)}
 </div>
-<div>
-  {JSON.stringify($data)}
-</div>
 
 <button id="next" on:click={() => loadNextPage()}>next</button>
 

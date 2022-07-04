@@ -3478,3 +3478,271 @@ test('parentID must be passed if there are multiple instances of a list handler'
 		cache._internal_unstable.id('User', '1')
 	)
 })
+
+test('append in abstract list', function () {
+	// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'Node',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				__typename: {
+					type: 'String',
+					keyRaw: '__typename',
+				},
+				friends: {
+					type: 'Node',
+					keyRaw: 'friends',
+					list: {
+						name: 'All_Nodes',
+						connection: false,
+						type: 'Node',
+					},
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						firstName: {
+							type: 'String',
+							keyRaw: 'firstName',
+						},
+						__typename: {
+							type: 'String',
+							keyRaw: '__typename',
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				__typename: 'User',
+				friends: [
+					{
+						id: '2',
+						firstName: 'jane',
+						__typename: 'User',
+					},
+				],
+			},
+		},
+	})
+
+	// a function to spy on that will play the role of set
+	const set = jest.fn()
+
+	// subscribe to the fields
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// insert an element into the list (no parent ID)
+	cache.list('All_Nodes').append(
+		{ id: { type: 'ID', keyRaw: 'id' }, firstName: { type: 'String', keyRaw: 'firstName' } },
+		{
+			id: '3',
+			firstName: 'mary',
+			__typename: 'User',
+		}
+	)
+
+	// make sure we got the new value
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			__typename: 'User',
+			friends: [
+				{
+					firstName: 'jane',
+					id: '2',
+					__typename: 'User',
+				},
+				{
+					firstName: 'mary',
+					id: '3',
+					__typename: 'User',
+				},
+			],
+		},
+	})
+})
+
+test('list operations on interface fields without a well defined parent update the correct values in cache', function () {
+	// they have to use __typename to compute the parentID because the list type is Node but the cached value is User:OOOOO// instantiate a cache
+	const cache = new Cache(config)
+
+	const selection = {
+		viewer: {
+			type: 'Node',
+			keyRaw: 'viewer',
+			fields: {
+				id: {
+					type: 'ID',
+					keyRaw: 'id',
+				},
+				__typename: {
+					type: 'String',
+					keyRaw: '__typename',
+				},
+				friends: {
+					type: 'Node',
+					keyRaw: 'friends',
+					abstract: true,
+					fields: {
+						id: {
+							type: 'ID',
+							keyRaw: 'id',
+						},
+						__typename: {
+							type: 'String',
+							keyRaw: '__typename',
+						},
+						notFriends: {
+							type: 'Node',
+							keyRaw: 'notFriends',
+							abstract: true,
+							list: {
+								name: 'Not_Friends',
+								connection: false,
+								type: 'Node',
+							},
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+								__typename: {
+									type: 'String',
+									keyRaw: '__typename',
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// start off associated with one object
+	cache.write({
+		selection,
+		data: {
+			viewer: {
+				id: '1',
+				__typename: 'User',
+				friends: [
+					{
+						id: '2',
+						__typename: 'User',
+						notFriends: [
+							{
+								id: '3',
+								firstName: 'jane',
+								__typename: 'User',
+							},
+						],
+					},
+					{
+						id: '3',
+						__typename: 'User',
+						notFriends: [
+							{
+								id: '4',
+								firstName: 'jane',
+								__typename: 'User',
+							},
+						],
+					},
+				],
+			},
+		},
+	})
+
+	// a function to call
+	const set = jest.fn()
+
+	// subscribe to the fields (create the list handler)
+	cache.subscribe({
+		rootType: 'Query',
+		set,
+		selection,
+	})
+
+	// insert into the not friends list for user 3
+	cache.list('Not_Friends', '3').append(
+		{
+			id: {
+				type: 'ID',
+				keyRaw: 'id',
+			},
+			firstName: {
+				type: 'String',
+				keyRaw: 'firstName',
+			},
+			__typename: {
+				type: 'String',
+				keyRaw: '__typename',
+			},
+		},
+		{
+			id: '5',
+			firstName: 'Billy',
+			__typename: 'User',
+		}
+	)
+
+	expect(set).toHaveBeenCalledWith({
+		viewer: {
+			id: '1',
+			__typename: 'User',
+			friends: [
+				{
+					id: '2',
+					__typename: 'User',
+					notFriends: [
+						{
+							id: '3',
+							firstName: 'jane',
+							__typename: 'User',
+						},
+					],
+				},
+				{
+					id: '3',
+					__typename: 'User',
+					notFriends: [
+						{
+							id: '4',
+							firstName: 'jane',
+							__typename: 'User',
+						},
+						{
+							id: '5',
+							firstName: 'Billy',
+							__typename: 'User',
+						},
+					],
+				},
+			],
+		},
+	})
+})

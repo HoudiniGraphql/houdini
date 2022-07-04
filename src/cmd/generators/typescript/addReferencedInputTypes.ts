@@ -12,8 +12,10 @@ const AST = recast.types.builders
 // add any object types found in the input
 export function addReferencedInputTypes(
 	config: Config,
+	filepath: string,
 	body: StatementKind[],
 	visitedTypes: Set<string>,
+	missingScalars: Set<string>,
 	rootType: graphql.TypeNode
 ) {
 	// try to find the name of the type
@@ -33,7 +35,7 @@ export function addReferencedInputTypes(
 	// if we ran into a union
 	if (graphql.isUnionType(type)) {
 		// we don't support them yet
-		throw new Error('Unions are not supported yet. Sorry!')
+		throw { filepath, message: 'Input Unions are not supported yet. Sorry!' }
 	}
 
 	// track that we are processing the type
@@ -59,14 +61,14 @@ export function addReferencedInputTypes(
 
 	for (const field of Object.values(type.getFields())) {
 		// walk down the referenced fields and build stuff back up
-		addReferencedInputTypes(config, body, visitedTypes, field.type)
+		addReferencedInputTypes(config, filepath, body, visitedTypes, missingScalars, field.type)
 
 		// check if the type is optional so we can label the value as omitable
 
 		members.push(
 			AST.tsPropertySignature(
 				AST.identifier(field.name),
-				AST.tsTypeAnnotation(tsTypeReference(config, field)),
+				AST.tsTypeAnnotation(tsTypeReference(config, missingScalars, field)),
 				graphql.isNullableType(field.type)
 			)
 		)

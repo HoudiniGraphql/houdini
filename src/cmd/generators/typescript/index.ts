@@ -1,16 +1,17 @@
 // externals
-import * as recast from 'recast'
-import * as graphql from 'graphql'
 import { StatementKind } from 'ast-types/gen/kinds'
+import * as graphql from 'graphql'
 import path from 'path'
+import * as recast from 'recast'
+import { logCyan, logGreen } from '@kitql/helper'
 // locals
 import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections, writeFile } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
+import { fragmentKey, inlineType } from './inlineType'
 import { tsTypeReference } from './typeReference'
 import { readonlyProperty } from './types'
-import { fragmentKey, inlineType } from './inlineType'
 
 const AST = recast.types.builders
 
@@ -22,12 +23,27 @@ export default async function typescriptGenerator(
 	// build up a list of paths we have types in (to export from index.d.ts)
 	const typePaths: string[] = []
 
+	// we need every fragment definition
+	const fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode } = {}
+	for (const document of docs) {
+		// look at the parsed document for a fragment definition
+		const fragmentDefn = document.originalDocument.definitions.find(
+			({ kind }) => kind === 'FragmentDefinition'
+		) as graphql.FragmentDefinitionNode
+		if (!fragmentDefn) {
+			continue
+		}
+		fragmentDefinitions[fragmentDefn.name.value] = fragmentDefn
+	}
+
+	const missingScalars = new Set<string>()
+
 	// every document needs a generated type
 	await Promise.all(
 		// the generated types depend solely on user-provided information
 		// so we need to use the original document that we haven't mutated
 		// as part of the compiler
-		docs.map(async ({ originalDocument, name, kind, generateArtifact }) => {
+		docs.map(async ({ originalDocument, name, filename, generateArtifact }) => {
 			if (!generateArtifact) {
 				return
 			}
@@ -48,29 +64,36 @@ export default async function typescriptGenerator(
 					def.name?.value === name
 			) as graphql.OperationDefinitionNode | graphql.FragmentDefinitionNode
 
-			// de-dupe/flatten the selection of the definition
 			const selections = flattenSelections({
 				config,
+				filepath: filename,
 				selections: definition.selectionSet.selections,
+				// only globally include internal fragment values if masking is disabled
+				includeFragments: config.disableMasking,
+				fragmentDefinitions,
 			})
 
 			if (definition?.kind === 'OperationDefinition') {
 				// treat it as an operation document
 				await generateOperationTypeDefs(
 					config,
+					filename,
 					program.body,
 					definition,
 					selections,
-					visitedTypes
+					visitedTypes,
+					missingScalars
 				)
 			} else {
 				// treat it as a fragment document
 				await generateFragmentTypeDefs(
 					config,
+					filename,
 					program.body,
 					selections,
 					originalDocument.definitions,
-					visitedTypes
+					visitedTypes,
+					missingScalars
 				)
 			}
 
@@ -104,32 +127,61 @@ export default async function typescriptGenerator(
 
 	// write the contents
 	await writeFile(config.typeIndexPath, recast.print(typeIndex).code)
+
+	// if we were missing scalars, we need to warn the user and tell them
+	if (missingScalars.size > 0) {
+		console.warn(`⚠️  Missing definitions for the following scalars: ${[...missingScalars].join(
+			', '
+		)}
+Generated types will contain an any type in place of these values. To fix this, provide an equivalent
+type in your config file:
+
+{
+  scalars: {
+    ${logCyan(`/* in your case, something like */`)}
+${[...missingScalars]
+	.map(
+		(c) =>
+			`    ${c}: {                  ${logGreen(`// <- The GraphQL Scalar`)}
+      type: "${logCyan(`YourType_${c}`)}"  ${logGreen(`// <-  The TypeScript type`)}
+    }`
+	)
+	.join(
+		`,
+`
+	)}
+  }
+}
+
+For more information, please visit this link: https://www.houdinigraphql.com/api/config#custom-scalars`)
+	}
 }
 
 async function generateOperationTypeDefs(
 	config: Config,
+	filepath: string,
 	body: StatementKind[],
 	definition: graphql.OperationDefinitionNode,
 	selections: readonly graphql.SelectionNode[],
-	visitedTypes: Set<string>
+	visitedTypes: Set<string>,
+	missingScalars: Set<string>
 ) {
+	let parentType: graphql.GraphQLCompositeType | null = null
+	if (definition.operation === 'query') {
+		parentType = config.schema.getQueryType()!
+	} else if (definition.operation === 'mutation') {
+		parentType = config.schema.getMutationType()!
+	} else if (definition.operation === 'subscription') {
+		parentType = config.schema.getSubscriptionType()!
+	}
+	if (!parentType) {
+		throw { filepath, message: 'Could not find root type for document' }
+	}
+
 	// the name of the types we will define
 	const inputTypeName = `${definition.name!.value}$input`
 	const shapeTypeName = `${definition.name!.value}$result`
 	const afterLoadTypeName = `${definition.name!.value}$afterLoad`
-
-	// look up the root type of the document
-	let type: graphql.GraphQLNamedType | null | undefined
-	if (definition.operation === 'query') {
-		type = config.schema.getQueryType()
-	} else if (definition.operation === 'mutation') {
-		type = config.schema.getMutationType()
-	} else if (definition.operation === 'subscription') {
-		type = config.schema.getSubscriptionType()
-	}
-	if (!type) {
-		throw new Error('Could not find root type for document')
-	}
 
 	// dry
 	const hasInputs = definition.variableDefinitions && definition.variableDefinitions.length > 0
@@ -173,12 +225,14 @@ async function generateOperationTypeDefs(
 				AST.identifier(shapeTypeName),
 				inlineType({
 					config,
-					rootType: type,
+					filepath,
+					rootType: parentType,
 					selections,
 					root: true,
 					allowReadonly: true,
 					visitedTypes,
 					body,
+					missingScalars,
 				})
 			)
 		)
@@ -243,7 +297,14 @@ async function generateOperationTypeDefs(
 	// if there are variables in this query
 	if (hasInputs && definition.variableDefinitions && definition.variableDefinitions.length > 0) {
 		for (const variableDefinition of definition.variableDefinitions) {
-			addReferencedInputTypes(config, body, visitedTypes, variableDefinition.type)
+			addReferencedInputTypes(
+				config,
+				filepath,
+				body,
+				visitedTypes,
+				missingScalars,
+				variableDefinition.type
+			)
 		}
 
 		// merge all of the variables into a single object
@@ -257,7 +318,9 @@ async function generateOperationTypeDefs(
 								// add a property describing the variable to the root object
 								return AST.tsPropertySignature(
 									AST.identifier(definition.variable.name.value),
-									AST.tsTypeAnnotation(tsTypeReference(config, definition)),
+									AST.tsTypeAnnotation(
+										tsTypeReference(config, missingScalars, definition)
+									),
 									definition.type.kind !== 'NonNullType'
 								)
 							}
@@ -271,10 +334,12 @@ async function generateOperationTypeDefs(
 
 async function generateFragmentTypeDefs(
 	config: Config,
+	filepath: string,
 	body: StatementKind[],
 	selections: readonly graphql.SelectionNode[],
 	definitions: readonly graphql.DefinitionNode[],
-	visitedTypes: Set<string>
+	visitedTypes: Set<string>,
+	missingScalars: Set<string>
 ) {
 	// every definition will contribute the same thing to the typedefs
 	for (const definition of definitions) {
@@ -337,12 +402,14 @@ async function generateFragmentTypeDefs(
 					AST.identifier(shapeTypeName),
 					inlineType({
 						config,
+						filepath,
 						rootType: type,
 						selections,
 						root: true,
 						allowReadonly: true,
 						body,
 						visitedTypes,
+						missingScalars,
 					})
 				)
 			)

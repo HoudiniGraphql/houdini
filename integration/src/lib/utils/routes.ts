@@ -14,12 +14,17 @@ export const routes = {
   Stores_Network_One_Store_Multivariables: '/stores/network-one-store-multivariables',
   Stores_SSR_One_Store_Multivariables: '/stores/ssr-one-store-multivariables',
   Stores_Fragment_Null: '/stores/fragment-null',
+  Stores_Metadata: '/stores/metadata',
 
   Preprocess_query_simple: '/preprocess/query/simple',
-  Preprocess_query_variable_1: '/preprocess/query/variable/1',
-  Preprocess_query_variable_2: '/preprocess/query/variable/2',
+  Preprocess_query_variable_1: '/preprocess/query/variable-1',
+  Preprocess_query_variable_2: '/preprocess/query/variable-2',
+  Preprocess_query_variable_error: '/preprocess/query/variables-error',
   Preprocess_query_multiple: '/preprocess/query/multiple',
   Preprocess_query_scalars: '/preprocess/query/scalars',
+  Preprocess_query_component: '/preprocess/query/component',
+  Preprocess_query_beforeLoad: '/preprocess/query/beforeLoad',
+  Preprocess_query_afterLoad: '/preprocess/query/afterLoad',
 
   Preprocess_mutation_mutation: '/preprocess/mutation/mutation',
   Preprocess_fragment_update: '/preprocess/fragment/update',
@@ -30,5 +35,8 @@ export const routes = {
 
   Pagination_fragment_forward_cursor: '/pagination/fragment/forward-cursor',
   Pagination_fragment_backwards_cursor: '/pagination/fragment/backwards-cursor',
-  Pagination_fragment_offset: '/pagination/fragment/offset'
+  Pagination_fragment_offset: '/pagination/fragment/offset',
+
+  Stores_subunsub_list: '/stores/subunsub-list',
+  Stores_subunsub_mutation: '/stores/subunsub-mutation'
 };

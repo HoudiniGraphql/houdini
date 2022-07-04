@@ -3,7 +3,7 @@ import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { TSTypeKind, StatementKind } from 'ast-types/gen/kinds'
 // locals
-import { Config, selectionTypeInfo } from '../../../common'
+import { Config } from '../../../common'
 import { TypeWrapper, unwrapType } from '../../utils'
 import { enumDeclaration, nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
@@ -13,20 +13,24 @@ export const fragmentKey = '$fragments'
 
 export function inlineType({
 	config,
+	filepath,
 	rootType,
 	selections,
 	root,
 	allowReadonly,
 	body,
 	visitedTypes,
+	missingScalars,
 }: {
 	config: Config
+	filepath: string
 	rootType: graphql.GraphQLNamedType
 	selections: readonly graphql.SelectionNode[] | undefined
 	root: boolean
 	allowReadonly: boolean
 	body: StatementKind[]
 	visitedTypes: Set<string>
+	missingScalars: Set<string>
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	const { type, wrappers } = unwrapType(config, rootType)
@@ -34,7 +38,7 @@ export function inlineType({
 	let result: TSTypeKind
 	// if we are looking at a scalar field
 	if (graphql.isScalarType(type)) {
-		result = scalarPropertyValue(config, type as graphql.GraphQLNamedType)
+		result = scalarPropertyValue(config, missingScalars, type as graphql.GraphQLNamedType)
 	}
 	// we could have encountered an enum
 	else if (graphql.isEnumType(type)) {
@@ -75,7 +79,12 @@ export function inlineType({
 				(field) => field.kind === 'Field'
 			) as graphql.FieldNode[]).map((selection) => {
 				// grab the type info for the selection
-				const { type, field } = selectionTypeInfo(config.schema, rootObj, selection)
+				const { type, field } = selectionTypeInfo(
+					config.schema,
+					filepath,
+					rootObj,
+					selection
+				)
 
 				// figure out the response name
 				const attributeName = selection.alias?.value || selection.name.value
@@ -83,12 +92,14 @@ export function inlineType({
 				// figure out the corresponding typescript type
 				let attributeType = inlineType({
 					config,
+					filepath,
 					rootType: field.type as graphql.GraphQLNamedType,
 					selections: selection.selectionSet?.selections as graphql.SelectionNode[],
 					root: false,
 					allowReadonly,
 					visitedTypes,
 					body,
+					missingScalars,
 				})
 
 				// we're done
@@ -149,12 +160,14 @@ export function inlineType({
 			// generate the type for the inline fragment
 			const fragmentType = inlineType({
 				config,
+				filepath,
 				rootType: fragmentRootType,
 				selections: fragment.selectionSet.selections,
 				allowReadonly,
 				visitedTypes,
 				root,
 				body,
+				missingScalars,
 			})
 
 			// we need to handle __typename in the generated type. this means removing
@@ -288,4 +301,66 @@ export function inlineType({
 	}
 
 	return result
+}
+
+// look up the selection type info
+export function selectionTypeInfo(
+	schema: graphql.GraphQLSchema,
+	filepath: string,
+	rootType: graphql.GraphQLObjectType<any, any>,
+	selection: graphql.SelectionNode
+): { field: graphql.GraphQLField<any, any>; type: graphql.GraphQLNamedType } {
+	// the field we are looking at
+	const selectionName = (selection as graphql.FieldNode).name.value
+
+	// look up the fields for the root object
+	let fields: { [fieldName: string]: graphql.GraphQLField<any, any> } = {}
+
+	// if the parent type in question is a union, there is only __typename
+	if (selection.kind === 'Field' && selection.name.value === '__typename') {
+		return {
+			field: {
+				name: '__typename',
+				// @ts-ignore
+				type: schema.getType('String')!,
+				args: [],
+			},
+			type: schema.getType('String')!,
+		}
+	}
+	// unwrap non-nulls
+	else if (graphql.isNonNullType(rootType)) {
+		fields = rootType.ofType.getFields()
+	}
+	// anything else
+	else {
+		fields = rootType.getFields()
+	}
+
+	const field = fields[selectionName]
+
+	if (!field) {
+		throw {
+			filepath,
+			message: `Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`,
+		}
+	}
+	const fieldType = (graphql.getNamedType(field.type) as unknown) as graphql.GraphQLNamedType
+	if (!fieldType) {
+		throw {
+			filepath,
+			message: `Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`,
+		}
+	}
+
+	const fieldTypeName = fieldType.name
+
+	// and the actual object type that it refers to
+	// @ts-ignore
+	const selectionType = schema.getType(fieldTypeName) as graphql.GraphQLObjectType
+	if (!selectionType) {
+		throw { filepath, message: 'Could not find type for ' + fieldTypeName }
+	}
+
+	return { field, type: selectionType }
 }

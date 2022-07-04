@@ -28,7 +28,7 @@ test('can find ancestor from type', function () {
 	graphql.visit(doc, {
 		Field(node, key, parent, path, ancestors) {
 			if (node.name.value === 'id') {
-				foundType = parentTypeFromAncestors(schema, ancestors).name
+				foundType = parentTypeFromAncestors(schema, '', ancestors).name
 			}
 		},
 	})
@@ -69,7 +69,7 @@ test('inline fragments', function () {
 	graphql.visit(doc, {
 		Field(node, key, parent, path, ancestors) {
 			if (node.name.value === 'id') {
-				foundType = parentTypeFromAncestors(schema, ancestors).name
+				foundType = parentTypeFromAncestors(schema, '', ancestors).name
 			}
 		},
 	})
@@ -112,7 +112,7 @@ test('nested inline fragments', function () {
 	graphql.visit(doc, {
 		Field(node, key, parent, path, ancestors) {
 			if (node.name.value === 'id') {
-				foundType = parentTypeFromAncestors(schema, ancestors).name
+				foundType = parentTypeFromAncestors(schema, '', ancestors).name
 			}
 		},
 	})
@@ -151,7 +151,7 @@ test('can find interface ancestor from type', function () {
 	graphql.visit(doc, {
 		Field(node, key, parent, path, ancestors) {
 			if (node.name.value === 'id') {
-				foundType = parentTypeFromAncestors(schema, ancestors).name
+				foundType = parentTypeFromAncestors(schema, '', ancestors).name
 			}
 		},
 	})
@@ -200,7 +200,7 @@ test('union ancestor', function () {
 	graphql.visit(doc, {
 		Field(node, key, parent, path, ancestors) {
 			if (node.name.value === 'id') {
-				foundType = parentTypeFromAncestors(schema, ancestors).name
+				foundType = parentTypeFromAncestors(schema, '', ancestors).name
 			}
 		},
 	})

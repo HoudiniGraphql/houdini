@@ -58,7 +58,10 @@ export const resolvers = {
     usersConnection(_, args) {
       return connectionFromArray(getSnapshot(args.snapshot), args);
     },
-    user: (_, args) => {
+    user: async (_, args) => {
+      // simulate network delay
+      // await sleep(1000);
+
       const user = getSnapshot(args.snapshot).find((c) => c.id === `${args.snapshot}:${args.id}`);
       if (!user) {
         throw new GraphQLYogaError('User not found', { code: 404 });

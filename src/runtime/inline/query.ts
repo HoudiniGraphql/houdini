@@ -44,8 +44,6 @@ export function query<_Query extends Operation<any, any>>(
 		errors,
 		loading,
 		partial,
-		// if the document was mounted in a non-route component, we need to do special things
-		...(document.component ? componentQuery<_Query>(document) : {}),
 	}
 }
 
@@ -62,74 +60,6 @@ export type QueryResponse<_Data, _Input> = {
 type RefetchConfig = {
 	policy?: CachePolicy
 }
-
-// perform the necessary logic for a component query to function
-function componentQuery<_Query extends Operation<any, any>>(
-	document: TaggedGraphqlQuery
-): {
-	error: Readable<{ message: string }[] | null>
-} {
-	// compute the variables for the request
-	let variables: _Query['input']
-	let variableError: Error[] | null = null
-
-	// we need to augment the error state
-	const localError = writable<{ message: string }[] | null>(null)
-	const error = derived(
-		[localError, document.store],
-		([$localError, $store]) => $localError || $store.errors
-	)
-
-	// the function invoked by `this.error` inside of the variable function
-	const setVariableError = (code: number, msg: string) => {
-		// create an error
-		variableError = [new Error(msg)]
-		// return no variables to assign
-		return null
-	}
-
-	// the context to invoke the variable function with
-	const variableContext = {
-		redirect: goTo,
-		error: setVariableError,
-	}
-
-	const session = getSession()
-	const page = getPage()
-
-	$: {
-		// clear any previous variable error
-		variableError = null
-		// compute the new variables
-		variables = marshalInputs({
-			artifact: document.artifact,
-			config: document.config,
-			input:
-				document.variableFunction?.call(variableContext, {
-					page,
-					session: session ? get(session) : null,
-					props: document.getProps?.(),
-				}) || {},
-		}) as _Query['input']
-	}
-
-	// a component should fire the query and then write the result to the store
-	$: {
-		// if there was an error while computing variables
-		if (variableError) {
-			localError.set(variableError)
-		}
-
-		// load the data with the new variables
-		document.store.fetch(variables)
-	}
-
-	return {
-		error,
-	}
-}
-
-type ErrorWithCode = Error & { code: number }
 
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult

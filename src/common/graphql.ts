@@ -1,65 +1,6 @@
 import * as graphql from 'graphql'
 import crypto from 'crypto'
 
-// look up the selection type info
-export function selectionTypeInfo(
-	schema: graphql.GraphQLSchema,
-	rootType: graphql.GraphQLObjectType<any, any>,
-	selection: graphql.SelectionNode
-): { field: graphql.GraphQLField<any, any>; type: graphql.GraphQLNamedType } {
-	// the field we are looking at
-	const selectionName = (selection as graphql.FieldNode).name.value
-
-	// look up the fields for the root object
-	let fields: { [fieldName: string]: graphql.GraphQLField<any, any> } = {}
-
-	// if the parent type in question is a union, there is only __typename
-	if (selection.kind === 'Field' && selection.name.value === '__typename') {
-		return {
-			field: {
-				name: '__typename',
-				// @ts-ignore
-				type: schema.getType('String')!,
-				args: [],
-			},
-			type: schema.getType('String')!,
-		}
-	}
-	// unwrap non-nulls
-	else if (graphql.isNonNullType(rootType)) {
-		fields = rootType.ofType.getFields()
-	}
-	// anything else
-	else {
-		fields = rootType.getFields()
-	}
-
-	const field = fields[selectionName]
-
-	if (!field) {
-		throw new Error(
-			`Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`
-		)
-	}
-	const fieldType = (graphql.getNamedType(field.type) as unknown) as graphql.GraphQLNamedType
-	if (!fieldType) {
-		throw new Error(
-			`Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`
-		)
-	}
-
-	const fieldTypeName = fieldType.name
-
-	// and the actual object type that it refers to
-	// @ts-ignore
-	const selectionType = schema.getType(fieldTypeName) as graphql.GraphQLObjectType
-	if (!selectionType) {
-		throw new Error('Could not find type for ' + fieldTypeName)
-	}
-
-	return { field, type: selectionType }
-}
-
 export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	// if the type is non-null, unwrap and go again
 	if (graphql.isNonNullType(type)) {
@@ -88,7 +29,11 @@ type GraphQLParentType =
 	| graphql.GraphQLInputObjectType
 	| graphql.GraphQLInterfaceType
 
-export function parentTypeFromAncestors(schema: graphql.GraphQLSchema, ancestors: readonly any[]) {
+export function parentTypeFromAncestors(
+	schema: graphql.GraphQLSchema,
+	filepath: string,
+	ancestors: readonly any[]
+) {
 	const parents = [...ancestors] as (
 		| graphql.OperationDefinitionNode
 		| graphql.FragmentDefinitionNode
@@ -96,11 +41,12 @@ export function parentTypeFromAncestors(schema: graphql.GraphQLSchema, ancestors
 	)[]
 	parents.reverse()
 
-	return walkAncestors(schema, parents)
+	return walkAncestors(schema, filepath, parents)
 }
 
 function walkAncestors(
 	schema: graphql.GraphQLSchema,
+	filepath: string,
 	ancestors: (
 		| graphql.OperationDefinitionNode
 		| graphql.FragmentDefinitionNode
@@ -112,11 +58,11 @@ function walkAncestors(
 	let head = ancestors.shift()
 	// if it was a list, skip it
 	if (Array.isArray(head)) {
-		return walkAncestors(schema, ancestors)
+		return walkAncestors(schema, filepath, ancestors)
 	}
 
 	if (!head) {
-		throw new Error('Could not figure out type of field')
+		throw { filepath, message: 'Could not figure out type of field' }
 	}
 
 	// if we are at the top of the definition stack
@@ -129,7 +75,7 @@ function walkAncestors(
 		}[head.operation]
 
 		if (!operationType) {
-			throw new Error('Could not find operation type')
+			throw { filepath, message: 'Could not find operation type' }
 		}
 		return operationType
 	}
@@ -138,9 +84,10 @@ function walkAncestors(
 		// look up the type condition in the schema
 		const result = schema.getType(head.typeCondition.name.value) as GraphQLParentType
 		if (!result) {
-			throw new Error(
-				`Could not find definition for ${head.typeCondition.name.value} in the schema`
-			)
+			throw {
+				filepath,
+				message: `Could not find definition for ${head.typeCondition.name.value} in the schema`,
+			}
 		}
 
 		// we're done here
@@ -153,7 +100,7 @@ function walkAncestors(
 	}
 
 	// grab our parent type
-	const parent = walkAncestors(schema, ancestors)
+	const parent = walkAncestors(schema, filepath, ancestors)
 
 	// if we are looking at an inline fragment
 	if (head.kind === 'InlineFragment') {
@@ -165,7 +112,10 @@ function walkAncestors(
 		// look at the type condition to find the type
 		const wrapper = schema.getType(head.typeCondition.name.value) as GraphQLParentType
 		if (!wrapper) {
-			throw new Error('Could not find type with name: ' + head.typeCondition.name.value)
+			throw {
+				filepath,
+				message: 'Could not find type with name: ' + head.typeCondition.name.value,
+			}
 		}
 
 		return wrapper
@@ -178,7 +128,10 @@ function walkAncestors(
 	// we are looking at a field so we can just access the field map of the parent type
 	const field = parent.getFields()[head.name.value]
 	if (!field) {
-		throw new Error(`Could not find definition of ${head.name.value} in ${parent.toString()}`)
+		throw {
+			filepath,
+			message: `Could not find definition of ${head.name.value} in ${parent.toString()}`,
+		}
 	}
 
 	return getRootType(field.type) as GraphQLParentType

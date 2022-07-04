@@ -13,6 +13,7 @@ const AST = recast.types.builders
 
 export default function selection({
 	config,
+	filepath,
 	rootType,
 	selections,
 	operations,
@@ -22,6 +23,7 @@ export default function selection({
 	markEdges,
 }: {
 	config: Config
+	filepath: string
 	rootType: string
 	selections: readonly graphql.SelectionNode[]
 	operations: { [path: string]: MutationOperation[] }
@@ -41,16 +43,20 @@ export default function selection({
 				(defn) => defn.kind === 'FragmentDefinition' && defn.name.value === field.name.value
 			) as graphql.FragmentDefinitionNode
 			if (!fragmentDefinition) {
-				throw new Error(
-					'selection: could not find definition for fragment ' + field.name.value
-				)
+				throw {
+					filepath,
+					message:
+						'selection: could not find definition for fragment ' + field.name.value,
+				}
 			}
 
 			// merge the fragments selection into ours
 			object = deepMerge(
+				filepath,
 				object,
 				selection({
 					config,
+					filepath,
 					rootType: fragmentDefinition.typeCondition.name.value,
 					operations,
 					selections: fragmentDefinition.selectionSet.selections,
@@ -63,9 +69,11 @@ export default function selection({
 		// inline fragments should be merged with the parent
 		else if (field.kind === 'InlineFragment') {
 			object = deepMerge(
+				filepath,
 				object,
 				selection({
 					config,
+					filepath,
 					rootType: field.typeCondition?.name.value || rootType,
 					operations,
 					selections: field.selectionSet.selections,
@@ -80,7 +88,7 @@ export default function selection({
 			// look up the field
 			const type = config.schema.getType(rootType) as graphql.GraphQLObjectType
 			if (!type) {
-				throw new Error('Could not find type')
+				throw { filepath, message: 'Could not find type' }
 			}
 
 			const attributeName = field.alias?.value || field.name.value
@@ -166,6 +174,7 @@ export default function selection({
 
 				fieldObj.fields = selection({
 					config,
+					filepath,
 					rootType: typeName,
 					selections: field.selectionSet.selections,
 					operations,
@@ -193,6 +202,7 @@ export default function selection({
 
 			// add the field data we computed
 			object[attributeName] = deepMerge(
+				filepath,
 				fieldObj,
 				object[attributeName] || {}
 			) as SubscriptionSelection['field']

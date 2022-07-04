@@ -2,7 +2,9 @@
 	export function AllItemsVariables({ params }) {
 		// if there is no filter assigned, dont enforce one in the query
 		if (!params.filter || params.filter === 'all') {
-			return {}
+			return {
+				completed: undefined,
+			}
 		}
 
 		// make sure we recognize the value

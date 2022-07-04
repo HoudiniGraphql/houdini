@@ -50,6 +50,7 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 		const string = str.slice(greaterThanIndex, lessThanIndex)
 
 		result[which] = {
+			// @ts-ignore
 			content: parseJS(string || '', {
 				plugins: ['typescript'],
 				sourceType: 'module',

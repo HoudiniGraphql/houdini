@@ -38,7 +38,7 @@ export function serializeValue(value: any): ExpressionKind {
 	return AST.literal(value)
 }
 
-export function deepMerge(...targets: {}[]): {} {
+export function deepMerge(filepath: string, ...targets: {}[]): {} {
 	// look at the first target to know what type we're merging
 
 	// if we aren't looking at an object
@@ -46,7 +46,7 @@ export function deepMerge(...targets: {}[]): {} {
 		// make sure all of the values are the same
 		const matches = targets.filter((val) => val !== targets[0]).length === 0
 		if (!matches) {
-			throw new Error('could not merge: ' + targets)
+			throw { filepath, message: 'could not merge: ' + targets }
 		}
 
 		// return the matching value
@@ -75,7 +75,7 @@ export function deepMerge(...targets: {}[]): {} {
 	}
 
 	return Object.fromEntries(
-		Object.entries(fields).map(([key, value]) => [key, deepMerge(...value)])
+		Object.entries(fields).map(([key, value]) => [key, deepMerge(filepath, ...value)])
 	)
 }
 

@@ -2137,10 +2137,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kitql/helper@npm:0.3.4":
-  version: 0.3.4
-  resolution: "@kitql/helper@npm:0.3.4"
-  checksum: 6e79908f5ee0c0a99c04dbca997da683a0ef319152376b07e6255169cdb2c9e95e0b3b752fad66da7ff1af6e320e90f3da4cfe9d57f49d53361e1dd21c5a652f
+"@kitql/helper@npm:^0.3.4":
+  version: 0.3.5
+  resolution: "@kitql/helper@npm:0.3.5"
+  checksum: 3a4cc4f52ca12f2360c9681757e9ec0cc6e9865d8cc58a9b7801ef3cdc449352fd159c5bb602d15850ede270393521703cb86864806958a614ad709deebf683b
   languageName: node
   linkType: hard
 
@@ -2597,22 +2597,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:1.0.0-next.107":
-  version: 1.0.0-next.107
-  resolution: "@sveltejs/kit@npm:1.0.0-next.107"
-  dependencies:
-    "@sveltejs/vite-plugin-svelte": ^1.0.0-next.10
-    cheap-watch: ^1.0.3
-    sade: ^1.7.4
-    vite: ^2.3.1
-  peerDependencies:
-    svelte: ^3.38.2
-  bin:
-    svelte-kit: svelte-kit.js
-  checksum: b7f71a7081d161ab9e4554411495090d125fc6fd3ebb012b99a0e0ebcbbb81911caaa8f7aeab15629d05ede76168115f3b9bfaee8a8838895faf0cd784bdaf6d
-  languageName: node
-  linkType: hard
-
 "@sveltejs/kit@npm:1.0.0-next.350":
   version: 1.0.0-next.350
   resolution: "@sveltejs/kit@npm:1.0.0-next.350"
@@ -2629,7 +2613,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/vite-plugin-svelte@npm:^1.0.0-next.10, @sveltejs/vite-plugin-svelte@npm:^1.0.0-next.46":
+"@sveltejs/vite-plugin-svelte@npm:^1.0.0-next.46":
   version: 1.0.0-next.49
   resolution: "@sveltejs/vite-plugin-svelte@npm:1.0.0-next.49"
   dependencies:
@@ -4014,13 +3998,6 @@ __metadata:
   version: 0.7.0
   resolution: "chardet@npm:0.7.0"
   checksum: 6fd5da1f5d18ff5712c1e0aed41da200d7c51c28f11b36ee3c7b483f3696dabc08927fc6b227735eb8f0e1215c9a8abd8154637f3eff8cada5959df7f58b024d
-  languageName: node
-  linkType: hard
-
-"cheap-watch@npm:^1.0.3":
-  version: 1.0.4
-  resolution: "cheap-watch@npm:1.0.4"
-  checksum: 31273b2fb90ce0afcc8a5d22189b97f7403514d4fcaece0b4ad3e9856b02ffd6f41fb6921f36a5adf62e751a8864cca1cb391486d6230bbc0768abe8bde99a98
   languageName: node
   linkType: hard
 
@@ -5611,13 +5588,13 @@ __metadata:
   dependencies:
     "@graphql-yoga/node": 2.8.0
     "@kitql/vite-plugin-watch-and-run": 0.3.0
-    "@sveltejs/kit": 1.0.0-next.107
+    "@sveltejs/kit": 1.0.0-next.350
     concurrently: ^6.2.1
     graphql: 15.5.0
     graphql-relay: 0.8.0
     graphql-tag: 2.12.6
     graphql-ws: 5.8.2
-    houdini: ^0.15.0-next.0
+    houdini: ^0.15.0-next.8
     svelte: ^3.38.2
     svelte-preprocess: ^4.0.0
     tslib: ^2.2.0
@@ -6531,7 +6508,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini@^0.15.0-next.0, houdini@workspace:., houdini@workspace:^":
+"houdini@^0.15.0-next.8, houdini@workspace:., houdini@workspace:^":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:."
   dependencies:
@@ -6543,7 +6520,7 @@ __metadata:
     "@changesets/changelog-github": ^0.4.4
     "@changesets/cli": ^2.22.0
     "@graphql-tools/schema": ^8.3.7
-    "@kitql/helper": 0.3.4
+    "@kitql/helper": ^0.3.4
     "@rollup/plugin-commonjs": ^22.0.0
     "@rollup/plugin-json": ^4.1.0
     "@rollup/plugin-node-resolve": ^13.2.0
@@ -6586,6 +6563,8 @@ __metadata:
     ts-node: ^9.1.1
     tslib: ^2.4.0
     typescript: ^4.6.3
+  peerDependencies:
+    graphql: ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
   bin:
     houdini: ./build/cmd.js
   languageName: unknown
@@ -6882,7 +6861,7 @@ __metadata:
     houdini: "workspace:^"
     prettier: ^2.5.1
     prettier-plugin-svelte: ^2.5.0
-    svelte: ^3.44.0
+    svelte: ^3.47.0
     svelte-check: ^2.2.6
     svelte-preprocess: ^4.10.1
     tslib: ^2.3.1
@@ -11485,17 +11464,10 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
-"svelte@npm:^3.38.2, svelte@npm:^3.44.0":
+"svelte@npm:^3.38.2, svelte@npm:^3.47.0":
   version: 3.48.0
   resolution: "svelte@npm:3.48.0"
   checksum: d72587582b6967bf083ff7dc254f8067c22b57d4678182b48ca51010e0f3a1d98a33a00365046aee0c70ed3ffc716b73141207ec5ac6c44f1f5e34c5477e61ea
-  languageName: node
-  linkType: hard
-
-"svelte@npm:^3.47.0":
-  version: 3.47.0
-  resolution: "svelte@npm:3.47.0"
-  checksum: 247892585543ab0fc4781e36d5469ad0ce8afd4c6c440639cb0c99564a0b435ee0838482443665a905e11b7f500a1cf68475bec6a938b668e1e73c2e0badfc4e
   languageName: node
   linkType: hard
 
@@ -12234,7 +12206,7 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
-"vite@npm:^2.3.1, vite@npm:^2.9.10":
+"vite@npm:^2.9.10":
   version: 2.9.12
   resolution: "vite@npm:2.9.12"
   dependencies:

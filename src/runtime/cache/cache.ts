@@ -1,12 +1,12 @@
-// local imports
+// locals
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
+import { computeID, ConfigFile, keyFieldsForType, deepEquals } from '../lib'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
-import { computeID, keyFieldsForType, ConfigFile, defaultConfigValues } from '../lib/config'
-import { stry } from '@kitql/helper'
+import { defaultConfigValues } from '../lib/config'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -210,7 +210,7 @@ class CacheInternal {
 					'Could not find field listing in selection for ' +
 						field +
 						' @ ' +
-						stry(selection, 0) +
+						JSON.stringify(selection) +
 						''
 				)
 			}
@@ -260,7 +260,7 @@ class CacheInternal {
 				}
 
 				// if the value changed on a layer that impacts the current latest value
-				const valueChanged = stry(newValue) !== stry(previousValue)
+				const valueChanged = !deepEquals(newValue, previousValue)
 
 				if (displayLayer && (valueChanged || forceNotify)) {
 					// we need to add the fields' subscribers to the set of callbacks
@@ -497,7 +497,7 @@ class CacheInternal {
 				// or we got content for a new list which could already be known. If we just look at
 				// wether the IDs are the same, situations where we have old data that
 				// is still valid would not be triggered
-				const contentChanged = stry(linkedIDs, 0) !== stry(oldIDs, 0)
+				const contentChanged = !deepEquals(linkedIDs, oldIDs)
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				if (contentChanged || forceNotify) {
@@ -676,8 +676,13 @@ class CacheInternal {
 				nextStep = 0
 			}
 
+			// if we run into a null cursor that is inside of a connection then
+			// we know its a generated value and should not force us to mark the whole parent as
+			// null (prevent the null cascade) or be treated as partial data
+			const embeddedCursor = key === 'cursor' && stepsFromConnection === 1
+
 			// if we dont have a value, we know this result is going to be partial
-			if (typeof value === 'undefined') {
+			if (typeof value === 'undefined' && !embeddedCursor) {
 				partial = true
 			}
 
@@ -728,7 +733,7 @@ class CacheInternal {
 					partial = true
 				}
 
-				if (listValue.hasData) {
+				if (listValue.hasData || value.length === 0) {
 					hasData = true
 				}
 			}
@@ -755,11 +760,6 @@ class CacheInternal {
 					hasData = true
 				}
 			}
-
-			// if we run into a null cursor that is inside of a connection then
-			// we know its a generated value and should not force us to mark the whole parent as
-			// null (prevent the null cascade)
-			const embeddedCursor = key === 'cursor' && stepsFromConnection === 1
 
 			// regardless of how the field was processed, if we got a null value assigned
 			// and the field is not nullable, we need to cascade up

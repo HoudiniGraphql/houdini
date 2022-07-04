@@ -2,7 +2,6 @@
 import * as graphql from 'graphql'
 import { asyncWalk, BaseNode } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
-import { Program } from '@babel/types'
 import * as recast from 'recast'
 // locals
 import { Config } from '../../common'
@@ -15,6 +14,8 @@ import {
 } from '../../runtime/lib/types'
 import { TransformDocument } from '../types'
 import { ensureImports } from '.'
+
+type Program = ReturnType<typeof recast.types.builders.statement>
 
 const AST = recast.types.builders
 

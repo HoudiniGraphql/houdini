@@ -12,24 +12,27 @@ test.describe('prefetch-[userId] Page', () => {
 
     await expectNoGraphQLRequest(page);
 
-    const dataDisplayedCache =
-      '{"data":{"user":{"id":"store-user-query:2","name":"Samuel Jackson"}},"errors":null,"isFetching":false,"partial":false,"source":"cache","variables":{"id":"2"}}';
+    const dataDisplayedSSR =
+      '{"data":{"user":{"id":"store-user-query:2","name":"Samuel Jackson"}},"errors":null,"isFetching":false,"partial":false,"source":"ssr","variables":{"id":"2"}}';
 
     // The page should have the right data directly
-    await expectToBe(page, dataDisplayedCache);
+    await expectToBe(page, dataDisplayedSSR);
 
     // Hovering previous link should not change the data displayed
     let response = await expectGraphQLResponse(page, 'a[id=previous]', 'hover');
     expect(JSON.parse(response ?? '{}').data.user.id).toBe('store-user-query:1'); // Should get the right data
-    await expectToBe(page, dataDisplayedCache);
+    // Data displayed should still be the same
+    await expectToBe(page, dataDisplayedSSR);
 
     // Hovering next link should not change the data displayed
     response = await expectGraphQLResponse(page, 'a[id=next]', 'hover');
     expect(JSON.parse(response ?? '{}').data.user.id).toBe('store-user-query:3'); // Should get the right data
-    await expectToBe(page, dataDisplayedCache);
+    // Data displayed should still be the same
+    await expectToBe(page, dataDisplayedSSR);
 
     // Hovering again previous link should not trigger a new request (it's already ion the cache) AND should not change sur data displayed
     await expectNoGraphQLRequest(page, `a[id=previous]`, 'hover');
-    await expectToBe(page, dataDisplayedCache);
+    // Data displayed should still be the same
+    await expectToBe(page, dataDisplayedSSR);
   });
 });

@@ -1,8 +1,9 @@
 // externals
-import { get, Readable } from 'svelte/store'
-import { LoadEvent } from '@sveltejs/kit'
+import { LoadEvent, Page } from '@sveltejs/kit'
 // locals
+import cache from '../cache'
 import type { ConfigFile } from './config'
+import { marshalInputs } from './scalars'
 import {
 	CachePolicy,
 	DataSource,
@@ -11,21 +12,72 @@ import {
 	QueryArtifact,
 	SubscriptionArtifact,
 } from './types'
-import { marshalInputs } from './scalars'
-import cache from '../cache'
-import { Page } from '@sveltejs/kit'
+import * as log from './log'
 
 export class HoudiniClient {
-	private fetch: RequestHandler<any>
+	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
 
 	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
-		this.fetch = networkFn
+		this.fetchFn = networkFn
 		this.socket = subscriptionHandler
 	}
 
-	sendRequest<_Data>(ctx: FetchContext, params: FetchParams, session?: FetchSession) {
-		return this.fetch.call(ctx, params, session)
+	async sendRequest<_Data>(
+		ctx: FetchContext,
+		params: FetchParams,
+		session?: FetchSession
+	): Promise<RequestPayloadMagic<_Data>> {
+		let url = ''
+
+		// wrap the user's fetch function so we can identify SSR by checking
+		// the response.url
+		const wrapper = async (...args: Parameters<FetchContext['fetch']>) => {
+			const response = await ctx.fetch(...args)
+			if (response.url) {
+				url = response.url
+			}
+
+			return response
+		}
+
+		// invoke the function
+		const result = await this.fetchFn.call(
+			{
+				...ctx,
+				get fetch() {
+					log.info(
+						`${log.red(
+							"⚠️ fetch and session are now passed as arguments to your client's network function ⚠️"
+						)}
+You should update your client to look something like the following:
+
+async function fetchQuery({ ${log.yellow('fetch')}, ${log.yellow(
+							'session'
+						)}, text = '', variables = {} }) {
+  const result =  await fetch( ...
+
+  return await result.json();
+}
+`
+					)
+					return wrapper
+				},
+			},
+			{
+				fetch: wrapper,
+				...params,
+				session,
+				metadata: ctx.metadata,
+			},
+			session
+		)
+
+		// return the result
+		return {
+			body: result,
+			ssr: !url,
+		}
 	}
 
 	init() {
@@ -36,8 +88,17 @@ export class HoudiniClient {
 export class Environment extends HoudiniClient {
 	constructor(...args: ConstructorParameters<typeof HoudiniClient>) {
 		super(...args)
-		console.warn(
-			'Environment has been renamed to HoudiniClient. For more information, please visit the 0.15.0 migration guide: <link>'
+		log.info(
+			`${log.red('⚠️  Environment has been renamed to HoudiniClient. ⚠️')}
+You should update your client to look something like the following:
+
+import { HoudiniClient } from '$houdini/runtime'
+
+export default new HoudiniClient(fetchQuery)
+
+
+For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0#environment
+`
 		)
 	}
 }
@@ -45,8 +106,19 @@ export class Environment extends HoudiniClient {
 let currentClient: HoudiniClient | null = null
 
 export function setEnvironment(env: HoudiniClient) {
-	console.warn(
-		'setEnvironment is now replaced by environment.init(). For more information, please visit the 0.15.0 migration guide: <link>'
+	log.info(
+		`${log.red('⚠️  setEnvironment is now replaced by environment.init() ⚠️')}
+You should update your __layout files to look something like the following:
+
+<script context="module">
+  import client from 'path/to/client'
+
+  client.init()
+</script>
+
+
+For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0#environment
+`
 	)
 	env.init()
 }
@@ -74,8 +146,10 @@ export type FetchParams = {
 
 export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
-	session: any
-	stuff: App.Stuff
+	session: App.Session | null
+	stuff: App.Stuff | null
+	// @ts-ignore
+	metadata?: App.Metadata | null
 }
 
 export type BeforeLoadContext = LoadEvent
@@ -99,6 +173,11 @@ type GraphQLError = {
 	message: string
 }
 
+export type RequestPayloadMagic<_Data = any> = {
+	ssr: boolean
+	body: RequestPayload<_Data>
+}
+
 export type RequestPayload<_Data = any> = {
 	data: _Data
 	errors: {
@@ -106,20 +185,45 @@ export type RequestPayload<_Data = any> = {
 	}[]
 }
 
+/**
+ * ## Tips 👇
+ *
+ * Create a file `src/app.d.ts` containing the following:
+ *
+ * ```ts
+ * declare namespace App { *
+ * 	interface Session {}
+ * 	interface Metadata {}
+ * }
+ * ```
+ *
+ * Like this, Session and Metadata will be typed everywhere!
+ */
+export type RequestHandlerArgs = Omit<FetchContext & FetchParams, 'stuff'>
+
 export type RequestHandler<_Data> = (
-	this: FetchContext,
-	params: FetchParams,
+	args: RequestHandlerArgs,
 	session?: FetchSession
 ) => Promise<RequestPayload<_Data>>
 
 // This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
-export async function executeQuery<_Data extends GraphQLObject, _Input>(
-	artifact: QueryArtifact | MutationArtifact,
-	variables: _Input,
-	session: any | null,
+export async function executeQuery<_Data extends GraphQLObject, _Input>({
+	artifact,
+	variables,
+	session,
+	cached,
+	config,
+	metadata,
+}: {
+	artifact: QueryArtifact | MutationArtifact
+	variables: _Input
+	session: App.Session | null
 	cached: boolean
-): Promise<{ result: RequestPayload; partial: boolean }> {
+	config: ConfigFile
+	// @ts-ignore
+	metadata?: App.Metadata
+}): Promise<{ result: RequestPayload; partial: boolean }> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?
 	// const session = sessionStore !== null ? get(sessionStore) : sessionStore
@@ -137,11 +241,10 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>(
 		},
 	}
 
-	const { result: res, partial } = await fetchQuery<_Data>({
-		// @ts-ignore
-		context: fetchCtx,
+	const { result: res, partial } = await fetchQuery<_Data, _Input>({
+		context: { ...fetchCtx, metadata },
+		config,
 		artifact,
-		session,
 		variables,
 		cached,
 	})
@@ -166,7 +269,7 @@ export async function convertKitPayload(
 ) {
 	// invoke the loader
 	const result = await loader({
-		session,
+		session: session!,
 		fetch: context.fetch,
 		...page,
 		props: {},
@@ -194,32 +297,34 @@ export async function convertKitPayload(
 }
 
 export type FetchQueryResult<_Data> = {
-	result: RequestPayload<_Data | {} | null>
+	result: RequestPayload<_Data | null>
 	source: DataSource | null
 	partial: boolean
 }
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 
-export async function fetchQuery<_Data extends GraphQLObject>({
+export async function fetchQuery<_Data extends GraphQLObject, _Input>({
+	config,
 	context,
 	artifact,
 	variables,
-	session,
 	cached = true,
+	policy,
 }: {
+	config: ConfigFile
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
-	variables: {}
-	session?: FetchSession
+	variables: _Input
 	cached?: boolean
+	policy?: CachePolicy
 }): Promise<FetchQueryResult<_Data>> {
 	// grab the current environment
 	const environment = currentClient
 	// if there is no environment
 	if (!environment) {
 		return {
-			result: { data: {}, errors: [{ message: 'could not find houdini environment' }] },
+			result: { data: null, errors: [{ message: 'could not find houdini environment' }] },
 			source: null,
 			partial: false,
 		}
@@ -227,10 +332,10 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 
 	// enforce cache policies for queries
 	if (cached && artifact.kind === 'HoudiniQuery') {
-		// tick the garbage collector asynchronously
-		setTimeout(() => {
-			cache._internal_unstable.collectGarbage()
-		}, 0)
+		// if the user didn't specify a policy, use the artifacts
+		if (!policy) {
+			policy = artifact.policy
+		}
 
 		// this function is called as the first step in requesting data. If the policy prefers
 		// cached data, we need to load data from the cache (if its available). If the policy
@@ -238,7 +343,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 		// resolve the next data)
 
 		// if the cache policy allows for cached data, look at the caches value first
-		if (artifact.policy !== CachePolicy.NetworkOnly) {
+		if (policy !== CachePolicy.NetworkOnly) {
 			// look up the current value in the cache
 			const value = cache.read({ selection: artifact.selection, variables })
 
@@ -249,7 +354,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 			if (value.data !== null && allowed) {
 				return {
 					result: {
-						data: value.data,
+						data: value.data as _Data,
 						errors: [],
 					},
 					source: DataSource.Cache,
@@ -258,7 +363,7 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 			}
 
 			// if the policy is cacheOnly and we got this far, we need to return null (no network request will be sent)
-			else if (artifact.policy === CachePolicy.CacheOnly) {
+			else if (policy === CachePolicy.CacheOnly) {
 				return {
 					result: {
 						data: null,
@@ -271,14 +376,21 @@ export async function fetchQuery<_Data extends GraphQLObject>({
 		}
 	}
 
+	// tick the garbage collector asynchronously
+	setTimeout(() => {
+		cache._internal_unstable.collectGarbage()
+	}, 0)
+
 	// the request must be resolved against the network
+	const result = await environment.sendRequest<_Data>(
+		context,
+		{ text: artifact.raw, hash: artifact.hash, variables },
+		context.session
+	)
+
 	return {
-		result: await environment.sendRequest<_Data>(
-			context,
-			{ text: artifact.raw, hash: artifact.hash, variables },
-			session
-		),
-		source: DataSource.Network,
+		result: result.body,
+		source: result.ssr ? DataSource.Ssr : DataSource.Network,
 		partial: false,
 	}
 }

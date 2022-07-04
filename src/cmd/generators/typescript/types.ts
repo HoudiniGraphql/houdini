@@ -26,7 +26,11 @@ export function nullableField(inner: TSTypeKind, input = false) {
 	return AST.tsUnionType(members)
 }
 
-export function scalarPropertyValue(config: Config, target: graphql.GraphQLNamedType): TSTypeKind {
+export function scalarPropertyValue(
+	config: Config,
+	missingScalars: Set<string>,
+	target: graphql.GraphQLNamedType
+): TSTypeKind {
 	switch (target.name) {
 		case 'String': {
 			return AST.tsStringKeyword()
@@ -46,7 +50,7 @@ export function scalarPropertyValue(config: Config, target: graphql.GraphQLNamed
 		default: {
 			// if we're looking at a non-null type
 			if (graphql.isNonNullType(target)) {
-				return scalarPropertyValue(config, target.ofType)
+				return scalarPropertyValue(config, missingScalars, target.ofType)
 			}
 
 			// the type could be a custom scalar we know about
@@ -54,7 +58,9 @@ export function scalarPropertyValue(config: Config, target: graphql.GraphQLNamed
 				return AST.tsTypeReference(AST.identifier(config.scalars?.[target.name].type))
 			}
 
-			throw new Error('Could not convert scalar type: ' + target.toString())
+			missingScalars.add(target.name)
+
+			return AST.tsAnyKeyword()
 		}
 	}
 }

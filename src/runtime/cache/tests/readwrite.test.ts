@@ -1120,3 +1120,81 @@ test('must have a single value in order to use partial data', function () {
 		},
 	})
 })
+
+test('reading an empty list counts as data', function () {
+	// instantiate the cache
+	const cache = new Cache(config)
+
+	// write the user data without the nested value
+	cache.write({
+		selection: {
+			viewer: {
+				type: 'User',
+				keyRaw: 'viewer',
+				nullable: true,
+				fields: {
+					id: {
+						keyRaw: 'id',
+						type: 'String',
+					},
+
+					friends: {
+						type: 'User',
+						keyRaw: 'friends',
+						fields: {
+							id: {
+								type: 'ID',
+								keyRaw: 'id',
+							},
+							firstName: {
+								type: 'String',
+								keyRaw: 'firstName',
+							},
+						},
+					},
+				},
+			},
+		},
+		data: {
+			viewer: {
+				id: '1',
+				friends: [],
+			},
+		},
+	})
+
+	expect(
+		cache.read({
+			selection: {
+				viewer: {
+					type: 'User',
+					keyRaw: 'viewer',
+					nullable: true,
+					fields: {
+						friends: {
+							type: 'User',
+							keyRaw: 'friends',
+							fields: {
+								id: {
+									type: 'ID',
+									keyRaw: 'id',
+								},
+								firstName: {
+									type: 'String',
+									keyRaw: 'firstName',
+								},
+							},
+						},
+					},
+				},
+			},
+		})
+	).toEqual({
+		partial: false,
+		data: {
+			viewer: {
+				friends: [],
+			},
+		},
+	})
+})

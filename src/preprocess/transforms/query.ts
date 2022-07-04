@@ -1,7 +1,6 @@
 // externals
 import * as recast from 'recast'
 import * as graphql from 'graphql'
-import { ExportNamedDeclaration, Statement } from '@babel/types'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
@@ -13,10 +12,14 @@ import {
 	EmbeddedGraphqlDocument,
 	ensureImports,
 	ensureArtifactImport,
-	ensureStoreImport,
+	ensureStoreFactoryImport,
 } from '../utils'
 import { ArtifactKind } from '../../runtime/lib/types'
+import { ExportNamedDeclaration, VariableDeclaration } from '@babel/types'
 const AST = recast.types.builders
+import { Statement } from '@babel/types'
+
+type Identifier = ReturnType<typeof recast.types.builders.identifier>
 
 // in order for query values to update when mutations fire (after the component has mounted), the result of the query has to be a store.
 // stores can't be serialized in preload (understandably) so we're going to have to interact with the query document in
@@ -53,7 +56,9 @@ export default async function queryProcessor(
 	const queries: EmbeddedGraphqlDocument[] = []
 
 	let artifactImportIDs: { [name: string]: string } = {}
-	let storeImportIDs: { [name: string]: string } = {}
+	let storeIdentifiers: { [name: string]: Identifier } = {}
+	let storeFactories: { [name: string]: Identifier } = {}
+	let hasVariables: { [name: string]: boolean } = {}
 
 	// go to every graphql document
 	await walkTaggedDocuments(config, doc, doc.instance.content, {
@@ -75,11 +80,18 @@ export default async function queryProcessor(
 			// add the document to the list
 			queries.push(tag)
 
-			storeImportIDs[artifact.name] = ensureStoreImport({
-				config,
-				body: isRoute ? doc.module!.content.body : doc.instance!.content.body,
-				artifact,
-			})
+			// add imports for the appropriate store and artifact
+			storeFactories[artifact.name] = AST.identifier(
+				ensureStoreFactoryImport({
+					config,
+					body: isRoute ? doc.module!.content.body : doc.instance!.content.body,
+					artifact,
+				})[0]
+			)
+
+			storeIdentifiers[artifact.name] = AST.identifier(
+				`store_${storeFactories[artifact.name].name}`
+			)
 
 			artifactImportIDs[artifact.name] = ensureArtifactImport({
 				config,
@@ -87,50 +99,35 @@ export default async function queryProcessor(
 				artifact: artifact,
 			})
 
+			// check if there is a variable function defined
+			hasVariables[artifact.name] = Boolean(
+				doc.module!.content.body.find(
+					(statement) =>
+						statement.type === 'ExportNamedDeclaration' &&
+						statement.declaration?.type === 'FunctionDeclaration' &&
+						statement.declaration.id?.name === queryInputFunction(artifact.name)
+				)
+			)
+
+			// TODO: check if there is at least one required input and tell them they need to define
+			// a variable functino
+
 			// the "actual" value of a template tag depends on wether its a route or component
 			node.replaceWith(
 				// a non-route needs a little more information than the handler to fetch
 				// the query on mount
-				AST.objectExpression(
-					[
-						AST.objectProperty(
-							AST.identifier('kind'),
-							AST.stringLiteral(ArtifactKind.Query)
-						),
-						AST.objectProperty(
-							AST.identifier('store'),
-							AST.identifier(storeImportIDs[artifact.name])
-						),
-						AST.objectProperty(
-							AST.identifier('component'),
-							AST.booleanLiteral(!isRoute)
-						),
-						AST.objectProperty(
-							AST.identifier('variableFunction'),
-							operation.variableDefinitions &&
-								operation.variableDefinitions.length > 0
-								? AST.identifier(queryInputFunction(artifact.name))
-								: AST.nullLiteral()
-						),
-						AST.objectProperty(
-							AST.identifier('config'),
-							AST.identifier('houdiniConfig')
-						),
-						AST.objectProperty(
-							AST.identifier('artifact'),
-							AST.identifier(artifactImportIDs[artifact.name])
-						),
-					].concat(
-						...(isRoute
-							? []
-							: [
-									AST.objectProperty(
-										AST.identifier('getProps'),
-										AST.arrowFunctionExpression([], AST.identifier('$$props'))
-									),
-							  ])
-					)
-				)
+				AST.objectExpression([
+					AST.objectProperty(
+						AST.identifier('kind'),
+						AST.stringLiteral(ArtifactKind.Query)
+					),
+					AST.objectProperty(AST.identifier('store'), storeIdentifiers[artifact.name]),
+					AST.objectProperty(AST.identifier('config'), AST.identifier('houdiniConfig')),
+					AST.objectProperty(
+						AST.identifier('artifact'),
+						AST.identifier(artifactImportIDs[artifact.name])
+					),
+				])
 			)
 		},
 	})
@@ -155,11 +152,28 @@ export default async function queryProcessor(
 
 	// if we are processing a route, use those processors
 	if (isRoute) {
-		processModule({ config, script: doc.module!, queries, artifactImportIDs, storeImportIDs })
+		processModule({
+			config,
+			script: doc.module!,
+			queries,
+			artifactImportIDs,
+			storeIdentifiers,
+			storeFactories,
+			hasVariables,
+		})
 	}
 
 	// add the necessary bits to the instance script
-	processInstance({ config, script: doc.instance, queries, storeImportIDs })
+	processInstance({
+		config,
+		script: doc.instance,
+		queries,
+		storeIdentifiers,
+		storeFactories,
+		isRoute,
+		artifactImportIDs,
+		hasVariables,
+	})
 }
 
 function processModule({
@@ -167,13 +181,17 @@ function processModule({
 	script,
 	queries,
 	artifactImportIDs,
-	storeImportIDs,
+	storeIdentifiers,
+	storeFactories,
+	hasVariables,
 }: {
 	config: Config
 	script: Script
 	queries: EmbeddedGraphqlDocument[]
 	artifactImportIDs: { [name: string]: string }
-	storeImportIDs: { [name: string]: string }
+	storeIdentifiers: { [name: string]: Identifier }
+	storeFactories: { [name: string]: Identifier }
+	hasVariables: { [operationName: string]: boolean }
 }) {
 	// the main thing we are responsible for here is to add the module bits of the
 	// hoisted query. this means doing the actual fetch, checking errors, and returning
@@ -194,13 +212,35 @@ function processModule({
 		return
 	}
 
+	// we need to instantiate copies of the the stores that the load and component content will reference
+	// these statements have to go after the last import
+	let insertIndex = script.content.body.findIndex(
+		(expression) => expression.type !== 'ImportDeclaration'
+	)
+	for (const query of queries) {
+		const name = (query.parsedDocument.definitions[0] as graphql.OperationDefinitionNode).name!
+			.value
+		script.content.body.splice(
+			insertIndex,
+			0,
+			// @ts-expect-error
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					storeIdentifiers[name],
+					AST.callExpression(storeFactories[name], [])
+				),
+			])
+		)
+	}
+
 	// add the kit preload function
 	addKitLoad({
 		config,
 		body: script.content.body,
 		queries,
 		artifactImportIDs,
-		storeImportIDs,
+		storeIdentifiers,
+		hasVariables,
 	})
 
 	// if we are processing this file for sapper, we need to add the actual preload function
@@ -214,13 +254,15 @@ function addKitLoad({
 	body,
 	queries,
 	artifactImportIDs,
-	storeImportIDs,
+	storeIdentifiers,
+	hasVariables,
 }: {
 	config: Config
 	body: Statement[]
 	queries: EmbeddedGraphqlDocument[]
 	artifactImportIDs: { [name: string]: string }
-	storeImportIDs: { [name: string]: string }
+	storeIdentifiers: { [name: string]: Identifier }
+	hasVariables: { [operationName: string]: boolean }
 }) {
 	// look for any hooks
 	let beforeLoadDefinition = findExportedFunction(body, 'beforeLoad')
@@ -281,7 +323,6 @@ function addKitLoad({
 	preloadFn.body.body.splice(
 		insertIndex,
 		0,
-		// @ts-ignore
 		AST.variableDeclaration('const', [
 			AST.variableDeclarator(
 				requestContext,
@@ -310,7 +351,7 @@ function addKitLoad({
 		// the identifier for the query variables
 		const variableIdentifier = variablesKey(operation)
 
-		const hasVariables = Boolean(operation.variableDefinitions?.length)
+		const name = operation.name!.value
 
 		// add a local variable right before the return statement
 		preloadFn.body.body.splice(
@@ -319,7 +360,7 @@ function addKitLoad({
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier(variableIdentifier),
-					hasVariables
+					hasVariables[name]
 						? AST.callExpression(
 								AST.memberExpression(
 									requestContext,
@@ -371,10 +412,7 @@ function addKitLoad({
 		}
 
 		const fetchCall = AST.callExpression(
-			AST.memberExpression(
-				AST.identifier(storeImportIDs[document.artifact.name]),
-				AST.identifier('prefetch')
-			),
+			AST.memberExpression(storeIdentifiers[document.artifact.name], AST.identifier('fetch')),
 			[
 				AST.objectExpression([
 					AST.objectProperty(
@@ -418,7 +456,6 @@ function addKitLoad({
 			preloadFn.body.body.splice(
 				nextIndex++,
 				0,
-				// @ts-ignore
 				// perform the fetch and save the value under {preloadKey}
 				AST.variableDeclaration('const', [
 					AST.variableDeclarator(
@@ -561,11 +598,8 @@ function afterLoadQueryData(queries: EmbeddedGraphqlDocument[]) {
 					(definitions[0] as graphql.OperationDefinitionNode)?.name?.value || null
 				),
 				AST.memberExpression(
-					AST.memberExpression(
-						AST.identifier(
-							preloadPayloadKey(definitions[0] as graphql.OperationDefinitionNode)
-						),
-						AST.identifier('result')
+					AST.identifier(
+						preloadPayloadKey(definitions[0] as graphql.OperationDefinitionNode)
 					),
 					AST.identifier('data')
 				)
@@ -578,12 +612,20 @@ function processInstance({
 	config,
 	script,
 	queries,
-	storeImportIDs,
+	storeIdentifiers,
+	storeFactories,
+	artifactImportIDs,
+	hasVariables,
+	isRoute,
 }: {
 	config: Config
 	script: Script
 	queries: EmbeddedGraphqlDocument[]
-	storeImportIDs: { [operationName: string]: string }
+	storeIdentifiers: { [name: string]: Identifier }
+	storeFactories: { [name: string]: Identifier }
+	artifactImportIDs: { [operationName: string]: string }
+	hasVariables: { [operationName: string]: boolean }
+	isRoute: boolean
 }) {
 	// make sure we imported the
 	ensureImports({
@@ -598,13 +640,43 @@ function processInstance({
 		(expression) => expression.type !== 'ImportDeclaration'
 	)
 
+	// find all of the props of the component by looking for export let
+	const props = (script.content.body.filter(
+		(statement) =>
+			statement.type === 'ExportNamedDeclaration' &&
+			statement.declaration?.type === 'VariableDeclaration'
+	) as ExportNamedDeclaration[]).flatMap(({ declaration }) =>
+		(declaration as VariableDeclaration)!.declarations.map((dec) => (dec.id as Identifier).name)
+	)
+
+	// if we are looking at a non-route component we need to create the store instance
+	// since we dont have a generated load that defines them
+	if (!isRoute) {
+		for (const query of queries) {
+			const operation = query.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
+			const name = operation.name!.value
+
+			script.content.body.splice(
+				propInsertIndex++,
+				0,
+				// @ts-expect-error
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
+						storeIdentifiers[name],
+						AST.callExpression(storeFactories[name], [])
+					),
+				])
+			)
+		}
+	}
+
 	const contextIdentifier = AST.identifier('_houdini_context_generated_DONT_USE')
 
 	// pull out the houdini context
 	script.content.body.splice(
 		propInsertIndex,
 		0,
-		// @ts-expect-error: babel <-> recast comments are incompatible
+		// @ts-expect-error
 		AST.variableDeclaration('const', [
 			AST.variableDeclarator(
 				contextIdentifier,
@@ -620,22 +692,95 @@ function processInstance({
 	for (const query of queries) {
 		const operation = query.parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 		const inputPropName = variablesKey(operation)
-		const localStoreName = storeImportIDs[operation.name?.value || '']
-		if (!localStoreName) {
-			// this should never happen
-			throw new Error('did not import store for query?')
+		const name = operation.name!.value
+
+		let variableDeclaration: recast.types.namedTypes.Statement
+		// in a route component, the variables are a prop
+		if (isRoute) {
+			variableDeclaration = AST.exportNamedDeclaration(
+				AST.variableDeclaration('let', [
+					AST.variableDeclarator(AST.identifier(inputPropName), AST.objectExpression([])),
+				])
+			)
+		}
+		// if we are processing a non-route, we need to label the variable and compute it in the component body
+		else if (hasVariables[name]) {
+			ensureImports({
+				config,
+				body: script.content.body,
+				import: ['marshalInputs'],
+				sourceModule: '$houdini/runtime/lib/scalars',
+			})
+
+			variableDeclaration = AST.labeledStatement(
+				AST.identifier('$'),
+				//
+				AST.expressionStatement(
+					AST.assignmentExpression(
+						'=',
+						AST.identifier(inputPropName),
+						AST.callExpression(AST.identifier('marshalInputs'), [
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.identifier('config'),
+									AST.identifier('houdiniConfig')
+								),
+								AST.objectProperty(
+									AST.identifier('artifact'),
+									AST.identifier(artifactImportIDs[name])
+								),
+								AST.objectProperty(
+									AST.identifier('input'),
+									AST.callExpression(
+										AST.memberExpression(
+											AST.identifier(queryInputFunction(name)),
+											AST.identifier('call')
+										),
+										[
+											contextIdentifier,
+											AST.objectExpression([
+												AST.objectProperty(
+													AST.identifier('props'),
+													// pass every prop explicitly
+													AST.objectExpression(
+														props.map((prop) =>
+															AST.objectProperty(
+																AST.identifier(prop),
+																AST.identifier(prop)
+															)
+														)
+													)
+												),
+												AST.objectProperty(
+													AST.identifier('session'),
+													AST.memberExpression(
+														contextIdentifier,
+														AST.identifier('session')
+													)
+												),
+											]),
+										]
+									)
+								),
+							]),
+						])
+					)
+				)
+			)
+		}
+		// a component query without variables just uses an empty object as input
+		else {
+			variableDeclaration = AST.variableDeclaration('let', [
+				AST.variableDeclarator(AST.identifier(inputPropName), AST.objectExpression([])),
+			])
 		}
 
 		// make sure we have a prop for every input
 		script.content.body.splice(
-			propInsertIndex,
+			propInsertIndex + 1,
 			0,
 			// @ts-expect-error: recast does not mesh with babel's comment AST. ignore it.
-			AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [
-					AST.variableDeclarator(AST.identifier(inputPropName), AST.objectExpression([])),
-				])
-			),
+			variableDeclaration,
 			AST.labeledStatement(
 				AST.identifier('$'),
 				AST.expressionStatement(
@@ -643,10 +788,7 @@ function processInstance({
 						'&&',
 						AST.identifier('isBrowser'),
 						AST.callExpression(
-							AST.memberExpression(
-								AST.identifier(localStoreName),
-								AST.identifier('fetch')
-							),
+							AST.memberExpression(storeIdentifiers[name], AST.identifier('fetch')),
 							[
 								AST.objectExpression([
 									AST.objectProperty(

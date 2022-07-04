@@ -4,8 +4,9 @@
   import type { LoadEvent } from '@sveltejs/kit';
 
   export async function load(event: LoadEvent) {
-    await GQL_usersList.prefetch({ event });
-    await GQL_Hello.prefetch({ event });
+    await GQL_usersList.fetch({ event });
+    await GQL_Hello.fetch({ event });
+
     return {};
   }
 </script>

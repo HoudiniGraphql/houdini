@@ -66,6 +66,7 @@ export class ListManager {
 		selection: SubscriptionSelection
 		when?: ListWhen
 		filters?: List['filters']
+		abstract?: boolean
 	}) {
 		// if we haven't seen this list before
 		if (!this.lists.has(list.name)) {
@@ -134,7 +135,7 @@ export class List {
 	readonly recordID: string
 	readonly recordType?: string
 	readonly key: string
-	readonly listType: string
+	readonly type: string
 	private cache: Cache
 	readonly selection: SubscriptionSelection
 	private _when?: ListWhen
@@ -142,6 +143,7 @@ export class List {
 	readonly name: string
 	private connection: boolean
 	private manager: ListManager
+	private abstract?: boolean
 
 	constructor({
 		name,
@@ -154,11 +156,12 @@ export class List {
 		filters,
 		connection,
 		manager,
+		abstract,
 	}: Parameters<ListManager['add']>[0] & { manager: ListManager }) {
 		this.recordID = recordID || rootID
 		this.recordType = recordType
 		this.key = key
-		this.listType = listType
+		this.type = listType
 		this.cache = manager.cache
 		this.selection = selection
 		this._when = when
@@ -166,6 +169,7 @@ export class List {
 		this.name = name
 		this.connection = connection
 		this.manager = manager
+		this.abstract = abstract
 	}
 
 	// looks for the collection of all of the lists in the cache that satisfies a when
@@ -188,8 +192,11 @@ export class List {
 		variables: {} = {},
 		where: 'first' | 'last'
 	) {
+		// figure out the type we're adding
+		const listType = this.listType(data)
+
 		// figure out the id of the type we are adding
-		const dataID = this.cache._internal_unstable.id(this.listType, data)
+		const dataID = this.cache._internal_unstable.id(listType, data)
 
 		// if there are conditions for this operation
 		if (!this.validateWhen() || !dataID) {
@@ -215,7 +222,7 @@ export class List {
 							update: (where === 'first' ? 'prepend' : 'append') as RefetchUpdateMode,
 							fields: {
 								node: {
-									type: this.listType,
+									type: listType,
 									keyRaw: 'node',
 									fields: {
 										...selection,
@@ -232,14 +239,14 @@ export class List {
 			}
 			insertData = {
 				newEntry: {
-					edges: [{ node: { ...data, __typename: this.listType } }],
+					edges: [{ node: { ...data, __typename: listType } }],
 				},
 			}
 		} else {
 			insertSelection = {
 				newEntries: {
 					keyRaw: this.key,
-					type: this.listType,
+					type: listType,
 					update: (where === 'first' ? 'prepend' : 'append') as RefetchUpdateMode,
 					fields: {
 						...selection,
@@ -251,7 +258,7 @@ export class List {
 				},
 			}
 			insertData = {
-				newEntries: [{ ...data, __typename: this.listType }],
+				newEntries: [{ ...data, __typename: listType }],
 			}
 		}
 
@@ -357,13 +364,17 @@ export class List {
 	}
 
 	remove(data: {}, variables: {} = {}) {
-		const targetID = this.cache._internal_unstable.id(this.listType, data)
+		const targetID = this.cache._internal_unstable.id(this.listType(data), data)
 		if (!targetID) {
 			return
 		}
 
 		// figure out the id of the type we are adding
 		return this.removeID(targetID, variables)
+	}
+
+	listType(data: { __typename?: string }) {
+		return data.__typename || this.type
 	}
 
 	validateWhen(when?: ListWhen) {

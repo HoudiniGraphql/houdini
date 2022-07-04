@@ -1,8 +1,8 @@
+import type { LoadEvent } from '@sveltejs/kit'
 import { Readable } from 'svelte/store'
+import { MutationConfig } from '../inline/mutation'
 import type { ConfigFile } from './config'
 import { HoudiniDocumentProxy } from './proxy'
-import type { LoadEvent } from '@sveltejs/kit'
-import { MutationConfig } from '../inline/mutation'
 
 export type { ConfigFile } from './config'
 
@@ -120,9 +120,22 @@ export type MutationResult<_Data, _Input> = {
 	variables: _Input | null
 }
 
-export type QueryStoreParams<_Input> = {
+export type QueryStoreFetchParams<_Input> = {
 	variables?: _Input
+
+	/**
+	 * The policy to use when performing the fetch. If set to CachePolicy.NetworkOnly,
+	 * a request will always be sent, even if the variables are the same as the last call
+	 * to fetch.
+	 */
 	policy?: CachePolicy
+
+	/**
+	 * An object that will be passed to the fetch function.
+	 * You can do what you want with it!
+	 */
+	// @ts-ignore
+	metadata?: App.Metadata
 
 	/**
 	 * Set to true if you want the promise to pause while it's resolving.
@@ -148,7 +161,7 @@ export type QueryStoreParams<_Input> = {
 			 */
 			event?: never
 			/**
-			 * An object containing all of the current metadata necessary for a
+			 * An object containing all of the current info necessary for a
 			 * client-side fetch. Must be called in component initialization with
 			 * something like this: `const context = getHoudiniFetchContext()`
 			 */
@@ -157,41 +170,38 @@ export type QueryStoreParams<_Input> = {
 )
 
 export type HoudiniFetchContext = {
-	url: URL
-	session: Readable<any>
+	url: () => URL | null
+	session: () => App.Session | null
 	variables: () => {}
 	stuff: App.Stuff
 }
 
-export type LoadContext = {
-	url: URL
-	session: Readable<any>
-	variables: () => {}
-}
-
 export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
-	subscribe: (input: _Input) => void
-	unsubscribe: () => void
+	name: string
+	listen: (input: _Input) => void
+	unlisten: () => void
 }
 
 export type FragmentStore<_Shape> = {
-	get: (
-		value: any | null
-	) => Readable<_Shape> & {
-		update: (parent: _Shape) => void
+	name: string
+	get<T extends Fragment<_Shape>>(
+		value: T
+	): Readable<_Shape> & {
+		update: (parent: _Shape | null) => void
+	}
+	get<T extends Fragment<_Shape>>(
+		value: T | null
+	): Readable<_Shape | null> & {
+		update: (parent: _Shape | null) => void
 	}
 }
 
 export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data, _Input>> & {
+	name: string
 	/**
-	 * prefetch the data in a load function
+	 * Fetch the data from the server
 	 */
-	prefetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
-
-	/**
-	 * Synchronize data with prefetch values or fetch them if they are not yet here.
-	 */
-	fetch: (params?: QueryStoreParams<_Input>) => Promise<QueryResult<_Data, _Input>>
+	fetch: (params?: QueryStoreFetchParams<_Input>) => Promise<QueryResult<_Data, _Input>>
 }
 
 // the result of tagging an operation
@@ -201,11 +211,14 @@ export type TaggedGraphqlMutation = {
 }
 
 export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result, _Input>> & {
+	name: string
 	mutate: (
-		params: { variables: _Input; context?: HoudiniFetchContext } & MutationConfig<
-			_Result,
-			_Input
-		>
+		params: {
+			variables: _Input
+			// @ts-ignore
+			metadata?: App.Metadata
+			context?: HoudiniFetchContext
+		} & MutationConfig<_Result, _Input>
 	) => Promise<MutationResult<_Result, _Input>>
 }
 
@@ -222,9 +235,7 @@ export type TaggedGraphqlQuery = {
 	component: boolean
 	store: QueryStore<any, any>
 	config: ConfigFile
-	variableFunction: ((...args: any[]) => any) | null
 	artifact: QueryArtifact
-	getProps: () => any
 }
 
 type Filter = { [key: string]: string | boolean | number }
@@ -235,8 +246,18 @@ export type ListWhen = {
 }
 
 export enum DataSource {
+	/**
+	 * from the browser cache
+	 */
 	Cache = 'cache',
+	/**
+	 * from a browser side `fetch`
+	 */
 	Network = 'network',
+	/**
+	 * from a server side `fetch`
+	 */
+	Ssr = 'ssr',
 }
 
 export type MutationOperation = {

@@ -4,14 +4,13 @@ import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { promisify } from 'util'
-import { Program } from '@babel/types'
 // locals
 import { Config, runPipeline as run, parseFile, ParsedSvelteFile, LogLevel } from '../common'
-import { CollectedGraphQLDocument, ArtifactKind } from './types'
+import { CollectedGraphQLDocument, ArtifactKind, HoudiniErrorTodo } from './types'
 import * as transforms from './transforms'
 import * as generators from './generators'
 import * as validators from './validators'
-import { log } from '../common/log'
+import { Program } from '@babel/types'
 
 // the main entry point of the compile script
 export default async function compile(config: Config) {
@@ -33,6 +32,9 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	// reset the newSchema accumulator
 	config.newSchema = ''
 
+	// reset the newDocuments accumulator
+	config.newDocuments = ''
+
 	// we need to hold onto some stats for the generated artifacts
 	const artifactStats = {
 		total: [],
@@ -53,7 +55,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	} catch {}
 
 	// if the previous version is different from the current version
-	const versionChanged = previousVersion !== 'HOUDINI_VERSION'
+	const versionChanged = previousVersion && previousVersion !== 'HOUDINI_VERSION'
 
 	await run(
 		config,
@@ -85,13 +87,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	// don't log anything if its quiet
 	if (config.logLevel === LogLevel.Quiet) {
 	} else if (versionChanged) {
-		console.log('ℹ️  Detected new version of Houdini. Regenerating all documents...')
-		console.log(
-			'ℹ️  Welcome to the pre-release version for 0.15.0! Documentation can be found here: https://docs-git-0150-aaivazis.vercel.app/.'
-		)
-		console.log(
-			"ℹ️  For a description of what's changed, visit this guide: https://docs-git-0150-aaivazis.vercel.app/guides/migrating-to-0.15.0"
-		)
+		console.log('💣 Detected new version of Houdini. Regenerating all documents...')
+		console.log('🎉 Welcome to HOUDINI_VERSION!')
+		console.log(`❓ For a description of what's changed, visit this guide: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
+❓ Don't forget to update your sourceGlob config value if you want to define documents in external files.`)
 	} else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
 		// count the number of unchanged
 		const unchanged =
@@ -150,15 +149,25 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			}
 			// otherwise just treat the file as a graphql file (the whole file contents constitute a graphql file)
 			else {
-				documents.push({ filepath, document: contents })
+				documents.push({
+					filepath,
+					document: contents,
+				})
 			}
 		})
 	)
 
 	return await Promise.all(
-		documents.map(({ document, filepath }) =>
-			processGraphQLDocument(config, filepath, document)
-		)
+		documents.map(async ({ document, filepath }) => {
+			try {
+				return await processGraphQLDocument(config, filepath, document)
+			} catch (e) {
+				throw {
+					...((e as unknown) as Error),
+					filepath,
+				}
+			}
+		})
 	)
 }
 
@@ -177,7 +186,7 @@ async function findGraphQLTemplates(filepath: string, contents: string): Promise
 		const err = e as Error
 
 		// add the filepath to the error message
-		throw new Error(`Encountered error parsing ${filepath}: ` + err.message)
+		throw { message: `Encountered error parsing ${filepath}`, description: err.message }
 	}
 
 	// we need to look for multiple script tags to support sveltekit
@@ -229,13 +238,13 @@ async function processGraphQLDocument(
 	)
 	// if there is more than one operation, throw an error
 	if (operations.length > 1) {
-		throw new Error('Operation documents can only have one operation')
+		throw { filepath, message: 'Operation documents can only have one operation' }
 	}
 	// we are looking at a fragment document
 	else {
 		// if there is more than one fragment, throw an error
 		if (fragments.length > 1) {
-			throw new Error('Fragment documents can only have one fragment')
+			throw { filepath, message: 'Fragment documents can only have one fragment' }
 		}
 	}
 

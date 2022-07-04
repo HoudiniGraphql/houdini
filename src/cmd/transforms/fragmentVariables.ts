@@ -42,6 +42,7 @@ export default async function fragmentVariables(
 		// inline any fragment arguments in the document
 		doc.document = inlineFragmentArgs({
 			config,
+			filepath: doc.filename,
 			fragmentDefinitions: fragments,
 			document: doc.document,
 			generatedFragments,
@@ -73,6 +74,7 @@ type ValueMap = Record<string, graphql.ValueNode>
 
 export function inlineFragmentArgs({
 	config,
+	filepath,
 	fragmentDefinitions,
 	document,
 	generatedFragments,
@@ -81,6 +83,7 @@ export function inlineFragmentArgs({
 	newName,
 }: {
 	config: Config
+	filepath: string
 	fragmentDefinitions: Record<string, FragmentDependency>
 	document: graphql.ASTNode
 	generatedFragments: Record<string, graphql.FragmentDefinitionNode>
@@ -101,6 +104,7 @@ export function inlineFragmentArgs({
 	// look up the arguments for the fragment
 	const definitionArgs = fragmentArguments(
 		config,
+		filepath,
 		document as graphql.FragmentDefinitionNode
 	).reduce<Record<string, FragmentArgument>>((acc, arg) => ({ ...acc, [arg.name]: arg }), {})
 
@@ -113,7 +117,7 @@ export function inlineFragmentArgs({
 			const { definition } = fragmentDefinitions[node.name.value]
 
 			// we have to apply arguments to the fragment definitions
-			let { args, hash } = collectWithArguments(config, node, scope)
+			let { args, hash } = collectWithArguments(config, filepath, node, scope)
 
 			// generate a fragment name based on the arguments passed
 			const newFragmentName = `${node.name.value}${hash}`
@@ -124,7 +128,7 @@ export function inlineFragmentArgs({
 				visitedFragments.add(newFragmentName)
 
 				// figure out the default arguments for the fragment
-				const defaultArguments = collectDefaultArgumentValues(config, definition)
+				const defaultArguments = collectDefaultArgumentValues(config, filepath, definition)
 
 				// if there are local arguments we need to treat it like a new fragment
 				if (args) {
@@ -137,6 +141,7 @@ export function inlineFragmentArgs({
 
 					generatedFragments[newFragmentName] = inlineFragmentArgs({
 						config,
+						filepath,
 						fragmentDefinitions,
 						document: fragmentDefinitions[node.name.value].definition,
 						generatedFragments,
@@ -166,6 +171,7 @@ export function inlineFragmentArgs({
 					localDefinitions.push(
 						inlineFragmentArgs({
 							config,
+							filepath,
 							fragmentDefinitions,
 							document: fragmentDefinitions[node.name.value].definition,
 							generatedFragments,
@@ -204,11 +210,13 @@ export function inlineFragmentArgs({
 
 			// if there's no scope we can't evaluate it
 			if (!scope) {
-				throw new Error(
-					node.name.value +
+				throw {
+					filepath,
+					message:
+						node.name.value +
 						' is not defined in the current scope: ' +
-						JSON.stringify(scope)
-				)
+						JSON.stringify(scope),
+				}
 			}
 
 			// is the variable in scope
@@ -222,7 +230,7 @@ export function inlineFragmentArgs({
 			}
 			// if the argument is required
 			if (definitionArgs[value.name.value] && definitionArgs[value.name.value].required) {
-				throw new Error('Missing value for required arg: ' + value.name.value)
+				throw { filepath, message: 'Missing value for required arg: ' + value.name.value }
 			}
 
 			// if we got this far, theres no value for a non-required arg, remove the node
@@ -267,6 +275,7 @@ export type FragmentArgument = {
 
 export function fragmentArguments(
 	config: Config,
+	filepath: string,
 	definition: graphql.FragmentDefinitionNode
 ): FragmentArgument[] {
 	const directives = definition.directives?.filter(
@@ -283,7 +292,7 @@ export function fragmentArguments(
 			directive.arguments?.flatMap((arg) => {
 				// arguments must be object
 				if (arg.value.kind !== 'ObjectValue') {
-					throw new Error('values of @argument must be objects')
+					throw { filepath, message: 'values of @argument must be objects' }
 				}
 
 				// look for the type field
@@ -321,10 +330,15 @@ export function fragmentArguments(
 
 function collectDefaultArgumentValues(
 	config: Config,
+	filepath: string,
 	definition: graphql.FragmentDefinitionNode
 ): ValueMap | null {
 	let result: ValueMap = {}
-	for (const { name, required, defaultValue } of fragmentArguments(config, definition)) {
+	for (const { name, required, defaultValue } of fragmentArguments(
+		config,
+		filepath,
+		definition
+	)) {
 		// if the argument is required, there's no default value
 		if (required || !defaultValue) {
 			continue
@@ -338,6 +352,7 @@ function collectDefaultArgumentValues(
 
 export function collectWithArguments(
 	config: Config,
+	filepath: string,
 	node: graphql.FragmentSpreadNode,
 	scope: ValueMap | null = {}
 ): { args: ValueMap | null; hash: string } {
@@ -355,7 +370,7 @@ export function collectWithArguments(
 		if (value.kind === GraphqlKinds.VARIABLE) {
 			// if we don't have a scope the variable isn't defined
 			if (!scope || !scope[value.name.value]) {
-				throw new Error('Encountered undefined variable: ' + value.name.value)
+				throw { filepath, message: 'Encountered undefined variable: ' + value.name.value }
 			}
 
 			// use the value pulled from scope

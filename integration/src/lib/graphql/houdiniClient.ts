@@ -1,38 +1,41 @@
+import type { RequestHandlerArgs } from '$houdini';
 import { HoudiniClient } from '$houdini';
+import { stry } from '@kitql/helper';
 
 // For Query & Mutation
-async function fetchQuery({ text = '', variables = {} }, session: App.Session) {
-  //  eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const result = await this.fetch('http://localhost:4000/graphql', {
+async function fetchQuery({
+  fetch,
+  text = '',
+  variables = {},
+  session,
+  metadata
+}: RequestHandlerArgs) {
+  // Prepare the request
+  const url = import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
+
+  // regular fetch (Server & Client)
+  const result = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${session?.token}`
+      Authorization: `Bearer ${session?.token}` // session usage example
     },
     body: JSON.stringify({
       query: text,
       variables
     })
   });
-  return await result.json();
+
+  // return the result as a JSON object to Houdini
+  const json = await result.json();
+
+  // metadata usage example
+  if (metadata?.logResult === true) {
+    console.info(stry(json, 0));
+  }
+
+  return json;
 }
-
-// // For subscription (client only)
-// let socketClient: SubscriptionHandler | null = null
-// if (browser) {
-// 	const client = new SubscriptionClient('ws://localhost:4000/graphql', {
-// 		reconnect: true,
-// 	})
-
-// 	socketClient = {
-// 		subscribe(payload, handlers) {
-// 			const { unsubscribe } = client.request(payload).subscribe(handlers)
-// 			return unsubscribe
-// 		},
-// 	}
-// }
 
 // Export the Houdini client
 export const houdiniClient = new HoudiniClient(fetchQuery);
-// export const houdiniClient = new HoudiniClient(fetchQuery, socketClient)

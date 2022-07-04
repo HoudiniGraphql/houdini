@@ -46,7 +46,7 @@ test('pass argument values to generated fragments', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports = {
+		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 		    hash: "c346b9eaafaa74d18a267a74706e193e8080b9533d994d6e8489d7e5b534ee41",
@@ -78,7 +78,7 @@ test('pass argument values to generated fragments', async function () {
 		        }
 		    },
 
-		    policy: "NetworkOnly",
+		    policy: "CacheOrNetwork",
 		    partial: false
 		};
 
@@ -122,7 +122,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports = {
+		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 		    hash: "19b6a6cc9d06ab798cbf4b0a9530e07a3473b78e7d964cc9d6557d8240ed9012",
@@ -154,7 +154,7 @@ test("nullable arguments with no values don't show up in the query", async funct
 		        }
 		    },
 
-		    policy: "NetworkOnly",
+		    policy: "CacheOrNetwork",
 		    partial: false
 		};
 
@@ -198,7 +198,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports = {
+		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 		    hash: "3835ee68277547d738cc8fd5051fe98799b5bd470516146906fa0f134a2b3891",
@@ -230,7 +230,7 @@ test("fragment arguments with default values don't rename the fragment", async f
 		        }
 		    },
 
-		    policy: "NetworkOnly",
+		    policy: "CacheOrNetwork",
 		    partial: false
 		};
 
@@ -282,7 +282,7 @@ test('thread query variables to inner fragments', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports = {
+		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 		    hash: "8fa4273ab75455c901e7de893f72a28af4c001afbf204ceca2fd7ab30b7ff372",
@@ -326,7 +326,7 @@ test('thread query variables to inner fragments', async function () {
 		        types: {}
 		    },
 
-		    policy: "NetworkOnly",
+		    policy: "CacheOrNetwork",
 		    partial: false
 		};
 
@@ -378,7 +378,7 @@ test('inner fragment with intermediate default value', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports = {
+		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 		    hash: "d5753a3cae56b8133c72527cdccdd0c001effb48104b98806ac62dd9afeeb259",
@@ -414,7 +414,7 @@ test('inner fragment with intermediate default value', async function () {
 		        }
 		    },
 
-		    policy: "NetworkOnly",
+		    policy: "CacheOrNetwork",
 		    partial: false
 		};
 
@@ -466,7 +466,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports = {
+		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 		    hash: "b155b401cdbdfe0f63dd47575fbcfb2aa90678e7530b93476c4efe559405cf4f",
@@ -502,7 +502,7 @@ test("default values don't overwrite unless explicitly passed", async function (
 		        }
 		    },
 
-		    policy: "NetworkOnly",
+		    policy: "CacheOrNetwork",
 		    partial: false
 		};
 
@@ -546,7 +546,7 @@ test('default arguments', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports = {
+		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 		    hash: "5c4a8d1fe2e117286ecdfbd273bf1beb2f71a0a3fd9ea6bc84fe97c394c1a836",
@@ -578,7 +578,7 @@ test('default arguments', async function () {
 		        }
 		    },
 
-		    policy: "NetworkOnly",
+		    policy: "CacheOrNetwork",
 		    partial: false
 		};
 
@@ -622,7 +622,7 @@ test('multiple with directives - no overlap', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		module.exports = {
+		export default {
 		    name: "AllUsers",
 		    kind: "HoudiniQuery",
 		    hash: "7327e6f7f6c8339feebb640b995c3e25efe1b25de29b1f43cb55c2a0566f713f",
@@ -654,7 +654,7 @@ test('multiple with directives - no overlap', async function () {
 		        }
 		    },
 
-		    policy: "NetworkOnly",
+		    policy: "CacheOrNetwork",
 		    partial: false
 		};
 

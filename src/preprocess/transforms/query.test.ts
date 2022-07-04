@@ -23,14 +23,19 @@ describe('query preprocessor', function () {
 		import { convertKitPayload } from "$houdini/runtime";
 		import { RequestContext } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
+		const store_TestQueryStore = TestQueryStore();
 		import { houdiniConfig } from "$houdini";
 
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
-		    const _TestQuery = await _TestQueryStore.prefetch({
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": false
@@ -53,23 +58,22 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && _TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
 
 		const {
 		    data
 		} = query({
 		    kind: "HoudiniQuery",
-		    store: _TestQueryStore,
-		    component: false,
-		    variableFunction: null,
+		    store: store_TestQueryStore,
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact
+		});
+
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && store_TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
 		});
 	`)
 	})
@@ -105,19 +109,29 @@ describe('query preprocessor', function () {
 		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { RequestContext } from "$houdini/runtime";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
-		import _TestQuery2Store from "$houdini/stores/TestQuery2";
+		import { TestQuery2Store } from "$houdini/stores/TestQuery2";
 		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
-		import _TestQuery1Store from "$houdini/stores/TestQuery1";
+		import { TestQuery1Store } from "$houdini/stores/TestQuery1";
 		import { houdiniConfig } from "$houdini";
 		export async function load() {}
 	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+
+		const {
+		    data: data1
+		} = query({
+		    kind: "HoudiniQuery",
+		    store: store_TestQuery1Store,
+		    config: houdiniConfig,
+		    artifact: _TestQuery1Artifact
+		});
+
 		export let _TestQuery2_Input = {};
 
 		$:
-		isBrowser && _TestQuery2Store.fetch({
+		isBrowser && store_TestQuery2Store.fetch({
 		    "variables": _TestQuery2_Input,
 		    "context": _houdini_context_generated_DONT_USE
 		});
@@ -125,29 +139,16 @@ describe('query preprocessor', function () {
 		export let _TestQuery1_Input = {};
 
 		$:
-		isBrowser && _TestQuery1Store.fetch({
+		isBrowser && store_TestQuery1Store.fetch({
 		    "variables": _TestQuery1_Input,
 		    "context": _houdini_context_generated_DONT_USE
-		});
-
-		const {
-		    data: data1
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: _TestQuery1Store,
-		    component: false,
-		    variableFunction: null,
-		    config: houdiniConfig,
-		    artifact: _TestQuery1Artifact
 		});
 
 		const {
 		    data: data2
 		} = query({
 		    kind: "HoudiniQuery",
-		    store: _TestQuery2Store,
-		    component: false,
-		    variableFunction: null,
+		    store: store_TestQuery2Store,
 		    config: houdiniConfig,
 		    artifact: _TestQuery2Artifact
 		});
@@ -181,16 +182,22 @@ describe('query preprocessor', function () {
 		import { convertKitPayload } from "$houdini/runtime";
 		import { RequestContext } from "$houdini/runtime";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
-		import _TestQuery2Store from "$houdini/stores/TestQuery2";
+		import { TestQuery2Store } from "$houdini/stores/TestQuery2";
 		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
-		import _TestQuery1Store from "$houdini/stores/TestQuery1";
+		import { TestQuery1Store } from "$houdini/stores/TestQuery1";
+		const store_TestQuery1Store = TestQuery1Store();
+		const store_TestQuery2Store = TestQuery2Store();
 		import { houdiniConfig } from "$houdini";
 
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    const _TestQuery2Promise = _TestQuery2Store.prefetch({
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery2Promise = store_TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
 		        "blocking": false
@@ -198,7 +205,11 @@ describe('query preprocessor', function () {
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery1Store.prefetch({
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery1Promise = store_TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": false
@@ -225,10 +236,20 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+
+		const {
+		    data: data1
+		} = query({
+		    kind: "HoudiniQuery",
+		    store: store_TestQuery1Store,
+		    config: houdiniConfig,
+		    artifact: _TestQuery1Artifact
+		});
+
 		export let _TestQuery2_Input = {};
 
 		$:
-		isBrowser && _TestQuery2Store.fetch({
+		isBrowser && store_TestQuery2Store.fetch({
 		    "variables": _TestQuery2_Input,
 		    "context": _houdini_context_generated_DONT_USE
 		});
@@ -236,29 +257,16 @@ describe('query preprocessor', function () {
 		export let _TestQuery1_Input = {};
 
 		$:
-		isBrowser && _TestQuery1Store.fetch({
+		isBrowser && store_TestQuery1Store.fetch({
 		    "variables": _TestQuery1_Input,
 		    "context": _houdini_context_generated_DONT_USE
-		});
-
-		const {
-		    data: data1
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: _TestQuery1Store,
-		    component: false,
-		    variableFunction: null,
-		    config: houdiniConfig,
-		    artifact: _TestQuery1Artifact
 		});
 
 		const {
 		    data: data2
 		} = query({
 		    kind: "HoudiniQuery",
-		    store: _TestQuery2Store,
-		    component: false,
-		    variableFunction: null,
+		    store: store_TestQuery2Store,
 		    config: houdiniConfig,
 		    artifact: _TestQuery2Artifact
 		});
@@ -293,8 +301,9 @@ describe('query preprocessor', function () {
 		import { convertKitPayload } from "$houdini/runtime";
 		import { RequestContext } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { houdiniConfig } from "$houdini";
+		const store_TestQueryStore = TestQueryStore();
 
 		export function TestQueryVariables(page) {
 		    return {
@@ -316,7 +325,7 @@ describe('query preprocessor', function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.prefetch({
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": false
@@ -339,23 +348,22 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && _TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
 
 		const {
 		    data
 		} = query({
 		    kind: "HoudiniQuery",
-		    store: _TestQueryStore,
-		    component: false,
-		    variableFunction: TestQueryVariables,
+		    store: store_TestQueryStore,
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact
+		});
+
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && store_TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
 		});
 	`)
 	})
@@ -384,14 +392,19 @@ describe('query preprocessor', function () {
 		expect(doc.module?.content).toMatchInlineSnapshot(`
 		import { RequestContext } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
+		const store_TestQueryStore = TestQueryStore();
 		import { houdiniConfig } from "$houdini";
 
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
-		    const _TestQuery = await _TestQueryStore.prefetch({
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": false
@@ -410,23 +423,22 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && _TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
 
 		const {
 		    data
 		} = query({
 		    kind: "HoudiniQuery",
-		    store: _TestQueryStore,
-		    component: false,
-		    variableFunction: null,
+		    store: store_TestQueryStore,
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact
+		});
+
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && store_TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
 		});
 	`)
 	})
@@ -460,26 +472,25 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
+		const store_TestQueryStore = TestQueryStore();
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && _TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
 
 		const {
 		    data
 		} = query({
 		    kind: "HoudiniQuery",
-		    store: _TestQueryStore,
-		    component: true,
-		    variableFunction: null,
+		    store: store_TestQueryStore,
 		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    getProps: () => $$props
+		    artifact: _TestQueryArtifact
+		});
+
+		let _TestQuery_Input = {};
+
+		$:
+		isBrowser && store_TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
 		});
 	`)
 	})
@@ -510,26 +521,25 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
+		const store_TestQueryStore = TestQueryStore();
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && _TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
 
 		const {
 		    data
 		} = query({
 		    kind: "HoudiniQuery",
-		    store: _TestQueryStore,
-		    component: true,
-		    variableFunction: null,
+		    store: store_TestQueryStore,
 		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    getProps: () => $$props
+		    artifact: _TestQueryArtifact
+		});
+
+		let _TestQuery_Input = {};
+
+		$:
+		isBrowser && store_TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
 		});
 	`)
 	})
@@ -537,7 +547,19 @@ describe('query preprocessor', function () {
 	test('non-route page - with variables', async function () {
 		const doc = await preprocessorTest(
 			`
+			<script context="module">
+				export function TestQueryVariables() {
+					return {
+						hello: 'world'
+					}
+				}
+			</script>
+
 			<script>
+				export let prop1 = 'hello'
+				export const prop2 = 'goodbye'
+				export let prop3, prop4
+
 				const { data } = query(graphql\`
 					query TestQuery($test: String!) {
 						users(stringValue: $test) {
@@ -554,32 +576,57 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(
-			`import { houdiniConfig } from "$houdini";`
-		)
+		expect(doc.module?.content).toMatchInlineSnapshot(`
+		import { houdiniConfig } from "$houdini";
+
+		export function TestQueryVariables() {
+		    return {
+		        hello: "world"
+		    };
+		}
+	`)
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
+		const store_TestQueryStore = TestQueryStore();
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-		export let _TestQuery_Input = {};
 
 		$:
-		isBrowser && _TestQueryStore.fetch({
+		_TestQuery_Input = marshalInputs({
+		    config: houdiniConfig,
+		    artifact: _TestQueryArtifact,
+
+		    input: TestQueryVariables.call(_houdini_context_generated_DONT_USE, {
+		        props: {
+		            prop1: prop1,
+		            prop2: prop2,
+		            prop3: prop3,
+		            prop4: prop4
+		        },
+
+		        session: _houdini_context_generated_DONT_USE.session
+		    })
+		});
+
+		$:
+		isBrowser && store_TestQueryStore.fetch({
 		    "variables": _TestQuery_Input,
 		    "context": _houdini_context_generated_DONT_USE
 		});
+
+		export let prop1 = "hello";
+		export const prop2 = "goodbye";
+		export let prop3, prop4;
 
 		const {
 		    data
 		} = query({
 		    kind: "HoudiniQuery",
-		    store: _TestQueryStore,
-		    component: true,
-		    variableFunction: TestQueryVariables,
+		    store: store_TestQueryStore,
 		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    getProps: () => $$props
+		    artifact: _TestQueryArtifact
 		});
 	`)
 	})
@@ -609,23 +656,22 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && _TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
 
 		const {
 		    data
 		} = paginatedQuery({
 		    kind: "HoudiniQuery",
-		    store: _TestQueryStore,
-		    component: false,
-		    variableFunction: TestQueryVariables,
+		    store: store_TestQueryStore,
 		    config: houdiniConfig,
 		    artifact: _TestQueryArtifact
+		});
+
+		export let _TestQuery_Input = {};
+
+		$:
+		isBrowser && store_TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
 		});
 	`)
 	})
@@ -656,26 +702,25 @@ describe('query preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
+		const store_TestQueryStore = TestQueryStore();
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && _TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
 
 		const {
 		    data
 		} = query({
 		    kind: "HoudiniQuery",
-		    store: _TestQueryStore,
-		    component: true,
-		    variableFunction: null,
+		    store: store_TestQueryStore,
 		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-		    getProps: () => $$props
+		    artifact: _TestQueryArtifact
+		});
+
+		let _TestQuery_Input = {};
+
+		$:
+		isBrowser && store_TestQueryStore.fetch({
+		    "variables": _TestQuery_Input,
+		    "context": _houdini_context_generated_DONT_USE
 		});
 	`)
 	})
@@ -715,8 +760,9 @@ test('beforeLoad hook', async function () {
 		import { convertKitPayload } from "$houdini/runtime";
 		import { RequestContext } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { houdiniConfig } from "$houdini";
+		const store_TestQueryStore = TestQueryStore();
 
 		export async function beforeLoad() {
 		    return this.redirect(302, "/test");
@@ -748,7 +794,7 @@ test('beforeLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.prefetch({
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": false
@@ -807,10 +853,12 @@ test('beforeLoad hook - multiple queries', async function () {
 		import { convertKitPayload } from "$houdini/runtime";
 		import { RequestContext } from "$houdini/runtime";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
-		import _TestQuery2Store from "$houdini/stores/TestQuery2";
+		import { TestQuery2Store } from "$houdini/stores/TestQuery2";
 		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
-		import _TestQuery1Store from "$houdini/stores/TestQuery1";
+		import { TestQuery1Store } from "$houdini/stores/TestQuery1";
 		import { houdiniConfig } from "$houdini";
+		const store_TestQuery2Store = TestQuery2Store();
+		const store_TestQuery1Store = TestQuery1Store();
 
 		export async function beforeLoad() {
 		    return this.redirect(302, "/test");
@@ -833,7 +881,11 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		    const _TestQuery2_Input = {};
 
-		    const _TestQuery2Promise = _TestQuery2Store.prefetch({
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery2Promise = store_TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
 		        "blocking": false
@@ -841,7 +893,11 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery1Store.prefetch({
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery1Promise = store_TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": false
@@ -897,8 +953,9 @@ test('afterLoad hook', async function () {
 		import { convertKitPayload } from "$houdini/runtime";
 		import { RequestContext } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { houdiniConfig } from "$houdini";
+		const store_TestQueryStore = TestQueryStore();
 
 		export async function afterLoad() {
 		    return this.redirect(302, "/test");
@@ -924,7 +981,7 @@ test('afterLoad hook', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.prefetch({
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true
@@ -940,7 +997,7 @@ test('afterLoad hook', async function () {
 		        },
 
 		        "data": {
-		            "TestQuery": _TestQuery.result.data
+		            "TestQuery": _TestQuery.data
 		        }
 		    });
 
@@ -997,10 +1054,12 @@ test('afterLoad hook - multiple queries', async function () {
 		import { convertKitPayload } from "$houdini/runtime";
 		import { RequestContext } from "$houdini/runtime";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
-		import _TestQuery2Store from "$houdini/stores/TestQuery2";
+		import { TestQuery2Store } from "$houdini/stores/TestQuery2";
 		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
-		import _TestQuery1Store from "$houdini/stores/TestQuery1";
+		import { TestQuery1Store } from "$houdini/stores/TestQuery1";
 		import { houdiniConfig } from "$houdini";
+		const store_TestQuery2Store = TestQuery2Store();
+		const store_TestQuery1Store = TestQuery1Store();
 
 		export async function afterLoad() {
 		    return this.redirect(302, "/test");
@@ -1016,7 +1075,11 @@ test('afterLoad hook - multiple queries', async function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    const _TestQuery2Promise = _TestQuery2Store.prefetch({
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery2Promise = store_TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
 		        "blocking": true
@@ -1024,7 +1087,11 @@ test('afterLoad hook - multiple queries', async function () {
 
 		    const _TestQuery1_Input = {};
 
-		    const _TestQuery1Promise = _TestQuery1Store.prefetch({
+		    if (!_houdini_context.continue) {
+		        return _houdini_context.returnValue;
+		    }
+
+		    const _TestQuery1Promise = store_TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
 		        "event": context,
 		        "blocking": true
@@ -1044,8 +1111,8 @@ test('afterLoad hook - multiple queries', async function () {
 		        },
 
 		        "data": {
-		            "TestQuery1": _TestQuery1.result.data,
-		            "TestQuery2": _TestQuery2.result.data
+		            "TestQuery1": _TestQuery1.data,
+		            "TestQuery2": _TestQuery2.data
 		        }
 		    });
 
@@ -1100,8 +1167,9 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		import { convertKitPayload } from "$houdini/runtime";
 		import { RequestContext } from "$houdini/runtime";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { houdiniConfig } from "$houdini";
+		const store_TestQueryStore = TestQueryStore();
 
 		export async function beforeLoad() {
 		    return this.redirect(302, "/test");
@@ -1137,7 +1205,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        return _houdini_context.returnValue;
 		    }
 
-		    const _TestQuery = await _TestQueryStore.prefetch({
+		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
 		        "blocking": true
@@ -1153,93 +1221,8 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        },
 
 		        "data": {
-		            "TestQuery": _TestQuery.result.data
+		            "TestQuery": _TestQuery.data
 		        }
-		    });
-
-		    return {
-		        ..._houdini_context.returnValue,
-
-		        props: {
-		            ..._houdini_context.returnValue.props,
-		            _TestQuery_Input: _TestQuery_Input
-		        }
-		    };
-		}
-
-		export function preload(page, session) {
-		    return convertKitPayload(this, load, page, session);
-		}
-	`)
-})
-
-test('deprecated onLoad hook', async function () {
-	const doc = await preprocessorTest(
-		`
-		<script context="module">
-			export async function onLoad(){
-			   return this.redirect(302, "/test")
-			}
-
-			export function TestQueryVariables(page) {
-				return {
-					test: true
-				}
-			}
-		</script>
-		<script>
-			const { data } = query(graphql\`
-				query TestQuery($test: Boolean!) {
-					viewer {
-						id
-					}
-				}
-			\`)
-		</script>
-	`
-	)
-
-	expect(doc.module?.content).toMatchInlineSnapshot(`
-		import { convertKitPayload } from "$houdini/runtime";
-		import { RequestContext } from "$houdini/runtime";
-		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import _TestQueryStore from "$houdini/stores/TestQuery";
-		import { houdiniConfig } from "$houdini";
-
-		export async function onLoad() {
-		    return this.redirect(302, "/test");
-		}
-
-		export function TestQueryVariables(page) {
-		    return {
-		        test: true
-		    };
-		}
-
-		export async function load(context) {
-		    const _houdini_context = new RequestContext(context);
-
-		    await _houdini_context.invokeLoadHook({
-		        "variant": "before",
-		        "framework": "sapper",
-		        "hookFn": onLoad
-		    });
-
-		    const _TestQuery_Input = _houdini_context.computeInput({
-		        "config": houdiniConfig,
-		        "framework": "sapper",
-		        "variableFunction": TestQueryVariables,
-		        "artifact": _TestQueryArtifact
-		    });
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
-		    const _TestQuery = await _TestQueryStore.prefetch({
-		        "variables": _TestQuery_Input,
-		        "event": context,
-		        "blocking": false
 		    });
 
 		    return {
@@ -1287,48 +1270,45 @@ test('2 queries, one paginated one not', async function () {
 	expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import { getHoudiniContext, isBrowser } from "$houdini/runtime";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
-		import _TestQuery2Store from "$houdini/stores/TestQuery2";
+		import { TestQuery2Store } from "$houdini/stores/TestQuery2";
 		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
-		import _TestQuery1Store from "$houdini/stores/TestQuery1";
+		import { TestQuery1Store } from "$houdini/stores/TestQuery1";
+		const store_TestQuery1Store = TestQuery1Store();
+		const store_TestQuery2Store = TestQuery2Store();
 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-		export let _TestQuery2_Input = {};
-
-		$:
-		isBrowser && _TestQuery2Store.fetch({
-		    "variables": _TestQuery2_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-
-		export let _TestQuery1_Input = {};
-
-		$:
-		isBrowser && _TestQuery1Store.fetch({
-		    "variables": _TestQuery1_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
 
 		const {
 		    data
 		} = query({
 		    kind: "HoudiniQuery",
-		    store: _TestQuery1Store,
-		    component: true,
-		    variableFunction: TestQuery1Variables,
+		    store: store_TestQuery1Store,
 		    config: houdiniConfig,
-		    artifact: _TestQuery1Artifact,
-		    getProps: () => $$props
+		    artifact: _TestQuery1Artifact
+		});
+
+		let _TestQuery2_Input = {};
+
+		$:
+		isBrowser && store_TestQuery2Store.fetch({
+		    "variables": _TestQuery2_Input,
+		    "context": _houdini_context_generated_DONT_USE
+		});
+
+		let _TestQuery1_Input = {};
+
+		$:
+		isBrowser && store_TestQuery1Store.fetch({
+		    "variables": _TestQuery1_Input,
+		    "context": _houdini_context_generated_DONT_USE
 		});
 
 		const {
 		    data: data2
 		} = paginatedQuery({
 		    kind: "HoudiniQuery",
-		    store: _TestQuery2Store,
-		    component: true,
-		    variableFunction: TestQuery2Variables,
+		    store: store_TestQuery2Store,
 		    config: houdiniConfig,
-		    artifact: _TestQuery2Artifact,
-		    getProps: () => $$props
+		    artifact: _TestQuery2Artifact
 		});
 	`)
 })

@@ -11,7 +11,9 @@ export default function houdiniPreprocessor(extraConfig?: Partial<ConfigFile>) {
 			const config = await getConfig(extraConfig)
 
 			// apply the transform pipeline
-			return await applyTransforms(config, { content, filename })
+			const result = await applyTransforms(config, { content, filename })
+
+			return result
 		},
 	}
 }

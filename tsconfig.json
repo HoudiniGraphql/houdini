@@ -3,10 +3,10 @@
 	"compilerOptions": {
 		"strict": true,
 		"esModuleInterop": true,
-		"lib": ["esnext", "dom"],
+		"lib": ["esnext", "dom", "ES2021.String"],
 		"skipLibCheck": true,
 		"downlevelIteration": true,
-		"target": "es5",
+		"target": "es2020",
 		"sourceMap": true,
 		"declaration": false,
 		"moduleResolution": "node",

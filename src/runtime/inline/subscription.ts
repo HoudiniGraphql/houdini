@@ -3,6 +3,7 @@ import { Readable } from 'svelte/store'
 import { onMount, onDestroy } from 'svelte'
 // locals
 import { Operation, GraphQLTagResult } from '../lib/types'
+import { isBrowser } from '../adapter'
 
 // subscription holds open a live connection to the server. it returns a store
 // containing the requested data. Houdini will also update the cache with any
@@ -18,14 +19,20 @@ export function subscription<_Subscription extends Operation<any, any>>(
 		throw new Error('subscription() must be passed a subscription document')
 	}
 
-	// the websocket connection only exists on the client
-	onMount(() => {
-		document.store.subscribe(variables)
-	})
+	// an inline document's value is just the store
+	const value = { data: { subscribe: document.store.subscribe } }
+
+	// invoking subscription on the server doesn't do anything
+	if (!isBrowser) {
+		return value
+	}
+
+	// every invocation should just be pushed to the store
+	document.store.listen(variables)
 
 	onDestroy(() => {
-		document.store.unsubscribe()
+		document.store.unlisten()
 	})
 
-	return { data: { subscribe: document.store.subscribe } }
+	return value
 }

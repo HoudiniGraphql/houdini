@@ -21,7 +21,13 @@ export default async function typeCheck(
 	const errors: HoudiniError[] = []
 
 	// verify the node interface (if it exists)
-	verifyNodeInterface(config)
+	try {
+		verifyNodeInterface(config)
+	} catch (e) {
+		throw HoudiniErrorTodo(
+			"There is a problem with your project's schema: " + ((e as unknown) as Error).message
+		)
+	}
 
 	// we need to catch errors in the list API. this means that a user
 	// must provide parentID if they are using a list that is not all-objects
@@ -34,8 +40,9 @@ export default async function typeCheck(
 	// keep track of every fragment that's defined in the set
 	const fragments: Record<string, graphql.FragmentDefinitionNode> = {}
 
-	// visit every document and build up the lists
-	for (const { document: parsed } of docs) {
+	// before we can validate everything, we need to look for the valid list names and
+	// check if they need a parent specification (if they fall inside of a fragment on something other than Query)
+	for (const { document: parsed, filename } of docs) {
 		graphql.visit(parsed, {
 			[graphql.Kind.FRAGMENT_DEFINITION](definition) {
 				fragments[definition.name.value] = definition
@@ -93,18 +100,19 @@ export default async function typeCheck(
 						? config.schema.getQueryType()
 						: config.schema.getType(definition.typeCondition.name.value)
 				if (!rootType) {
-					errors.push(new Error('Could not find root type'))
+					errors.push({ filepath: filename, message: 'Could not find root type' })
 					return
 				}
 
 				// go over the rest of the parent tree
 				for (const parent of parents) {
 					// if we are looking at a list or selection set, ignore it
-					if (
-						Array.isArray(parent) ||
-						parent.kind === 'SelectionSet' ||
-						parent.kind === 'InlineFragment'
-					) {
+					if (Array.isArray(parent) || parent.kind === 'SelectionSet') {
+						continue
+					}
+
+					if (parent.kind === 'InlineFragment' && parent.typeCondition) {
+						rootType = config.schema.getType(parent.typeCondition.name.value)
 						continue
 					}
 
@@ -190,16 +198,24 @@ export default async function typeCheck(
 
 				// in order to figure out the targets for the list we need to look at the field
 				// definition
-				const parentType = parentTypeFromAncestors(config.schema, ancestors.slice(0, -1))
+				const pType = parentTypeFromAncestors(
+					config.schema,
+					filename,
+					ancestors.slice(0, -1)
+				)
 				const targetField = ancestors[ancestors.length - 1] as graphql.FieldNode
-				const targetFieldDefinition = parentType.getFields()[
+				const targetFieldDefinition = pType.getFields()[
 					targetField.name.value
 				] as graphql.GraphQLField<any, any>
 
-				const { type } = connectionSelection(
+				const { type, error } = connectionSelection(
 					config,
 					targetFieldDefinition,
-					parentTypeFromAncestors(config.schema, ancestors) as graphql.GraphQLObjectType,
+					parentTypeFromAncestors(
+						config.schema,
+						filename,
+						ancestors
+					) as graphql.GraphQLObjectType,
 					targetField.selectionSet
 				)
 
@@ -209,15 +225,22 @@ export default async function typeCheck(
 					.filter((fieldName) => !type.getFields()[fieldName])
 
 				if (missingIDFields.length > 0) {
-					errors.push(
-						new HoudiniErrorTodo(
-							`@${
-								config.listDirective
-							} can only be applied to types with the necessary id fields: ${missingIDFields.join(
-								', '
-							)}.`
+					if (error) {
+						errors.push({
+							message: error,
+							filepath: filename,
+						})
+					} else {
+						errors.push(
+							new HoudiniErrorTodo(
+								`@${
+									config.listDirective
+								} can only be applied to types with the necessary id fields: ${missingIDFields.join(
+									', '
+								)}.`
+							)
 						)
-					)
+					}
 					return
 				}
 
@@ -241,52 +264,53 @@ export default async function typeCheck(
 	// there was nothing wrong, we're ready validate the documents totally
 
 	// build up the list of rules we'll apply to every document
-	const rules = [...graphql.specifiedRules]
-		.filter(
-			// remove rules that conflict with houdini
-			(rule) =>
-				![
-					// fragments are defined on their own so unused fragments are a fact of life
-					graphql.NoUnusedFragmentsRule,
-					// query documents don't contain the fragments they use so we can't enforce
-					// that we know every fragment. this is replaced with a more appropriate version
-					// down below
-					graphql.KnownFragmentNamesRule,
-					// some of the documents (ie the injected ones) will contain directive definitions
-					// and therefor not be explicitly executable
-					graphql.ExecutableDefinitionsRule,
-					// list include directives that aren't defined by the schema. this
-					// is replaced with a more appropriate version down below
-					graphql.KnownDirectivesRule,
-					// a few directives such at @arguments and @with don't have static names. this is
-					// replaced with a more flexible version below
-					graphql.KnownArgumentNamesRule,
-				].includes(rule)
-		)
-		.concat(
-			// this will replace `KnownDirectives` and `KnownFragmentNames`
-			validateLists({
-				config,
-				freeLists,
-				lists,
-				listTypes,
-				fragments,
-			}),
-			// pagination directive can only show up on nodes or the query type
-			nodeDirectives(config, [config.paginateDirective]),
-			// this replaces KnownArgumentNamesRule
-			knownArguments(config),
-			// validate any fragment arguments
-			validateFragmentArguments(config, fragments),
-			// make sure there are pagination args on fields marked with @paginate
-			paginateArgs(config),
-			// make sure every argument defined in a fragment is used
-			noUnusedFragmentArguments(config)
-		)
+	const rules = (filepath: string) =>
+		[...graphql.specifiedRules]
+			.filter(
+				// remove rules that conflict with houdini
+				(rule) =>
+					![
+						// fragments are defined on their own so unused fragments are a fact of life
+						graphql.NoUnusedFragmentsRule,
+						// query documents don't contain the fragments they use so we can't enforce
+						// that we know every fragment. this is replaced with a more appropriate version
+						// down below
+						graphql.KnownFragmentNamesRule,
+						// some of the documents (ie the injected ones) will contain directive definitions
+						// and therefor not be explicitly executable
+						graphql.ExecutableDefinitionsRule,
+						// list include directives that aren't defined by the schema. this
+						// is replaced with a more appropriate version down below
+						graphql.KnownDirectivesRule,
+						// a few directives such at @arguments and @with don't have static names. this is
+						// replaced with a more flexible version below
+						graphql.KnownArgumentNamesRule,
+					].includes(rule)
+			)
+			.concat(
+				// this will replace `KnownDirectives` and `KnownFragmentNames`
+				validateLists({
+					config,
+					freeLists,
+					lists,
+					listTypes,
+					fragments,
+				}),
+				// pagination directive can only show up on nodes or the query type
+				nodeDirectives(config, [config.paginateDirective]),
+				// this replaces KnownArgumentNamesRule
+				knownArguments(config),
+				// validate any fragment arguments
+				validateFragmentArguments(config, filepath, fragments),
+				// make sure there are pagination args on fields marked with @paginate
+				paginateArgs(config, filepath),
+				// make sure every argument defined in a fragment is used
+				noUnusedFragmentArguments(config)
+			)
 
 	for (const { filename, document: parsed } of docs) {
 		// validate the document
-		for (const error of graphql.validate(config.schema, parsed, rules)) {
+		for (const error of graphql.validate(config.schema, parsed, rules(filename))) {
 			errors.push({
 				...error,
 				filepath: filename,
@@ -470,6 +494,7 @@ function knownArguments(config: Config) {
 
 function validateFragmentArguments(
 	config: Config,
+	filepath: string,
 	fragments: Record<string, graphql.FragmentDefinitionNode>
 ) {
 	// map a fragment name to the list of required args
@@ -555,7 +580,7 @@ function validateFragmentArguments(
 					let args: FragmentArgument[]
 					try {
 						// look up the arguments for the fragment
-						args = collectFragmentArguments(config, fragments[fragmentName])
+						args = collectFragmentArguments(config, filepath, fragments[fragmentName])
 					} catch (e) {
 						ctx.reportError(new graphql.GraphQLError((e as Error).message))
 						return
@@ -650,7 +675,7 @@ function validateFragmentArguments(
 	}
 }
 
-function paginateArgs(config: Config) {
+function paginateArgs(config: Config, filepath: string) {
 	return function (ctx: graphql.ValidationContext): graphql.ASTVisitor {
 		// track if we have seen a paginate directive (to error on the second one)
 		let alreadyPaginated = false
@@ -680,6 +705,7 @@ function paginateArgs(config: Config) {
 				// look at the fragment arguments
 				const definitionArgs = collectFragmentArguments(
 					config,
+					filepath,
 					definition as graphql.FragmentDefinitionNode
 				)
 
@@ -697,6 +723,7 @@ function paginateArgs(config: Config) {
 				// look at the field the directive is applied to
 				const targetFieldType = parentTypeFromAncestors(
 					config.schema,
+					filepath,
 					ancestors.slice(0, -1)
 				)
 				const targetField = ancestors.slice(-1)[0] as graphql.FieldNode
@@ -866,9 +893,7 @@ function nodeDirectives(config: Config, directives: string[]) {
 				// if the fragment is not on the query type or an implementor of node
 				if (!possibleNodes.includes(definitionType)) {
 					ctx.reportError(
-						new graphql.GraphQLError(
-							`@${node.name.value} must be applied to the query type or Node.`
-						)
+						new graphql.GraphQLError(paginateOnNonNodeMessage(config, node.name.value))
 					)
 				}
 			},
@@ -889,43 +914,71 @@ function verifyNodeInterface(config: Config) {
 
 	// make sure its an interface
 	if (!graphql.isInterfaceType(nodeInterface)) {
-		throw new Error('Node must be an interface')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// look for a field on the query type to look up a node by id
 	const queryType = schema.getQueryType()
 	if (!queryType) {
-		throw new Error('There must be a query type if you define a Node interface')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// look for a node field
 	const nodeField = queryType.getFields()['node']
 	if (!nodeField) {
-		throw new Error('There must be a node field if you define a Node interface')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// there needs to be an arg on the field called id
 	const args = nodeField.args
 	if (args.length === 0) {
-		throw new Error('The node field must have args')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// look for the id arg
 	const idArg = args.find((arg) => arg.name === 'id')
 	if (!idArg) {
-		throw new Error('The node field must have an id argument')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// make sure that the id arg takes an ID
 	const idType = unwrapType(config, idArg.type)
 	// make sure its an ID
 	if (idType.type.name !== 'ID') {
-		throw new Error('The id arg of the node field must be an ID')
+		throw new Error(invalidNodeFieldMessage)
 	}
 
 	// make sure that the node field returns a Node
 	const fieldReturnType = unwrapType(config, nodeField.type)
 	if (fieldReturnType.type.name !== 'Node') {
-		throw new Error('The node field must return a Node')
+		throw new Error(invalidNodeFieldMessage)
 	}
 }
+
+const invalidNodeFieldMessage = `
+Your project defines a Node interface but it does not conform to the Global Identification Spec.
+
+If you are trying to provide the Node interface and its field, they must look like the following:
+
+interface Node {
+	id: ID!
+}
+
+extend type Query {
+	node(id: ID!): Node
+}
+
+For more information, please visit these links:
+- https://graphql.org/learn/global-object-identification/
+- https://www.houdinigraphql.com/guides/caching-data#custom-ids
+`
+
+const paginateOnNonNodeMessage = (config: Config, directiveName: string) =>
+	`It looks like you are trying to use @${directiveName} on a document that does not have a valid type resolver.
+If this is happening inside of a fragment, make sure that the fragment either implements the Node interface or you
+have defined a resolver entry for the fragment type.
+
+For more information, please visit these links:
+- https://www.houdinigraphql.com/guides/pagination#paginated-fragments
+- https://www.houdinigraphql.com/guides/caching-data#custom-ids
+`

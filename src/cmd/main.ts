@@ -8,6 +8,7 @@ import { getConfig, LogLevel, readConfigFile } from '../common'
 import { ConfigFile } from '../runtime'
 import generate from './generate'
 import init from './init'
+import { HoudiniError } from './types'
 import { writeSchema } from './utils/writeSchema'
 
 // build up the cli
@@ -19,6 +20,7 @@ program
 	.description('generate the application runtime')
 	.option('-p, --pull-schema', 'pull the latest schema before generating')
 	.option('-po, --persist-output [outputPath]', 'persist queries to a queryMap file')
+	.option('-v, --verbose', 'verbose error messages')
 	.option(
 		'-ph, --pull-header <headers...>',
 		'header to use when pulling your schema. Should be passed as KEY=VALUE'
@@ -34,9 +36,11 @@ program
 				persistOutput?: string
 				pullHeader: string[]
 				log?: string
+				verbose: boolean
 			} = {
 				pullSchema: false,
 				pullHeader: [],
+				verbose: false,
 			}
 		) => {
 			// grab the config file
@@ -55,14 +59,14 @@ program
 					// Check if apiUrl is set in config
 					if (!config.apiUrl) {
 						throw new Error(
-							'Your config should contain a valid apiUrl to pull the latest schema.'
+							'❌ Your config should contain a valid apiUrl to pull the latest schema.'
 						)
 					}
 
 					// if the schema path is a glob, tell the user this flag doesn't do anything
 					if (config.schemaPath && glob.hasMagic(config.schemaPath)) {
 						console.warn(
-							'--pull-schema is not supported when the schemaPath is a glob. Remember, if your ' +
+							'⚠️ --pull-schema is not supported when the schemaPath is a glob. Remember, if your ' +
 								"schema is already available locally you don't need this flag."
 						)
 					}
@@ -78,7 +82,7 @@ program
 								: path.resolve(targetPath, 'schema.json'),
 							args.pullHeader
 						)
-						console.log(`Pulled latest schema from ${config.apiUrl}`)
+						console.log(`✅ Pulled latest schema from ${config.apiUrl}`)
 					}
 				}
 
@@ -90,7 +94,24 @@ program
 
 				await generate(config)
 			} catch (e) {
-				console.error(util.inspect(e, { showHidden: false, depth: null, colors: true }))
+				// we need an array of errors to loop through
+				const errors = (Array.isArray(e) ? e : [e]) as HoudiniError[]
+
+				for (const error of errors) {
+					// if we have filepath, show that to the user
+					if ('filepath' in error) {
+						console.error(`❌ Encountered error in ${error.filepath}`)
+						console.error(error.message)
+					} else {
+						console.error(`❌ ${error.message}`)
+						if ('description' in error) {
+							console.error(`${error.description}`)
+						}
+					}
+					if (args.verbose && 'stack' in error && error.stack) {
+						console.error(error.stack.split('\n').slice(1).join('\n'))
+					}
+				}
 			}
 		}
 	)

@@ -3,7 +3,7 @@ import { routes } from '../../lib/utils/routes.js';
 import { expectToBe, expectNoGraphQLRequest } from '../../lib/utils/testsHelper.js';
 
 test.describe('SSR Session Page', () => {
-  test('No GraphQL request & response happen (SSR)', async ({ page }) => {
+  test('No GraphQL request & Should display the session token', async ({ page }) => {
     await page.goto(routes.Stores_SSR_Session);
 
     await expectNoGraphQLRequest(page);

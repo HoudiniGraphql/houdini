@@ -32,7 +32,7 @@ const factory = () => queryStore({
 
 export const ${storeName} = factory()
 
-export const ${doc.name}Store = factory
+export const ${config.storeFactoryName(artifactName)} = factory
 
 export default ${storeName}
 `
@@ -50,9 +50,11 @@ export default ${storeName}
 import { QueryStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
 
-export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}> ${paginationExtras.types}
+export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}> ${
+		paginationExtras.types
+	}
 
-export declare const ${doc.name}Store: () => typeof ${storeName}
+export declare const ${config.storeFactoryName(artifactName)}: () => typeof ${storeName}
 
 export default ${storeName}
 `

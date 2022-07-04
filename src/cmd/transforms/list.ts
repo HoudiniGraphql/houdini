@@ -1,10 +1,11 @@
-// externalsr
+// externals
 import * as graphql from 'graphql'
+import { logGreen, logYellow } from '@kitql/helper'
 // locals
 import { Config, parentTypeFromAncestors } from '../../common'
+import { ArtifactKind } from '../../runtime/lib/types'
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 import { TypeWrapper, unwrapType } from '../utils'
-import { ArtifactKind } from '../../runtime/lib/types'
 import { pageInfoSelection } from './paginate'
 
 // addListFragments adds fragments for the fields tagged with @list
@@ -72,6 +73,7 @@ export default async function addListFragments(
 					// look up the parent's type
 					const parentType = parentTypeFromAncestors(
 						config.schema,
+						doc.filename,
 						ancestors.slice(0, -1)
 					)
 
@@ -88,6 +90,7 @@ export default async function addListFragments(
 						targetFieldDefinition,
 						parentTypeFromAncestors(
 							config.schema,
+							doc.filename,
 							ancestors
 						) as graphql.GraphQLObjectType,
 						(ancestors[ancestors.length - 1] as graphql.FieldNode).selectionSet
@@ -137,7 +140,7 @@ export default async function addListFragments(
 				// the field is a list, is it a connection?
 
 				// look up the parent's type
-				const parentType = parentTypeFromAncestors(config.schema, ancestors)
+				const parentType = parentTypeFromAncestors(config.schema, doc.filename, ancestors)
 				// a non-connection list can just use the selection set of the tagged field
 				// but if this is a connection tagged with list we need to use the selection
 				// of the edges.node field
@@ -149,7 +152,11 @@ export default async function addListFragments(
 				const { connection } = connectionSelection(
 					config,
 					targetFieldDefinition,
-					parentTypeFromAncestors(config.schema, ancestors) as graphql.GraphQLObjectType,
+					parentTypeFromAncestors(
+						config.schema,
+						doc.filename,
+						ancestors
+					) as graphql.GraphQLObjectType,
 					node.selectionSet
 				)
 
@@ -332,7 +339,18 @@ export default async function addListFragments(
 		),
 	}
 
-	config.newSchema += '\n' + generatedDoc.definitions.map(graphql.print).join('\n')
+	config.newSchema +=
+		'\n' +
+		generatedDoc.definitions
+			.filter((c) => c.kind !== 'FragmentDefinition')
+			.map(graphql.print)
+			.join('\n\n')
+	config.newDocuments +=
+		'\n' +
+		generatedDoc.definitions
+			.filter((c) => c.kind === 'FragmentDefinition')
+			.map(graphql.print)
+			.join('\n\n')
 
 	documents.push({
 		name: 'generated::lists',
@@ -357,6 +375,7 @@ export function connectionSelection(
 	selection: graphql.SelectionSetNode | undefined
 	type: graphql.GraphQLObjectType
 	connection: boolean
+	error: string | null
 } {
 	// make sure the field has the fields for either forward or backwards pagination
 	const fieldArgs = field.args.reduce<Record<string, string>>(
@@ -366,10 +385,18 @@ export function connectionSelection(
 		}),
 		{}
 	)
-	const forwardPagination = fieldArgs['first'] === 'Int' && fieldArgs['after'] === 'String'
-	const backwardsPagination = fieldArgs['last'] === 'Int' && fieldArgs['before'] === 'String'
+
+	// if the field has an argument for limit, we're good to go
+	if (fieldArgs['limit']) {
+		return { selection, type, connection: false, error: null }
+	}
+
+	const forwardPagination =
+		fieldArgs['first'] === 'Int' && ['Cursor', 'String'].includes(fieldArgs['after'])
+	const backwardsPagination =
+		fieldArgs['last'] === 'Int' && ['Cursor', 'String'].includes(fieldArgs['before'])
 	if (!forwardPagination && !backwardsPagination) {
-		return { selection, type, connection: false }
+		return { selection, type, connection: false, error: missingPaginationArgMessage(config) }
 	}
 
 	// we need to make sure that there is an edges field
@@ -377,14 +404,14 @@ export function connectionSelection(
 		(selection) => selection.kind === 'Field' && selection.name.value === 'edges'
 	) as graphql.FieldNode
 	if (!edgesField) {
-		return { selection, type, connection: false }
+		return { selection, type, connection: false, error: missingEdgeSelectionMessage(config) }
 	}
 
 	const nodeSelection = edgesField.selectionSet?.selections.find(
 		(selection) => selection.kind === 'Field' && selection.name.value === 'node'
 	) as graphql.FieldNode
 	if (!nodeSelection.selectionSet) {
-		return { selection, type, connection: false }
+		return { selection, type, connection: false, error: missingNodeSelectionMessage(config) }
 	}
 
 	// now that we have the correct selection, we have to lookup node type
@@ -397,17 +424,55 @@ export function connectionSelection(
 	// this means we just have to look at the second to last element and check if its a list
 	const list = wrappers[wrappers.length - 2] === TypeWrapper.List
 	if (!list) {
-		return { selection, type, connection: false }
+		return { selection, type, connection: false, error: edgeInvalidTypeMessage(config) }
 	}
 
 	const nodeField = (edgeFieldType as graphql.GraphQLObjectType).getFields()['node']
 	if (!nodeField) {
-		return { selection, type, connection: false }
+		return { selection, type, connection: false, error: nodeNotDefinedMessage(config) }
 	}
 
 	return {
 		selection: nodeSelection.selectionSet,
 		type: unwrapType(config, nodeField.type).type as graphql.GraphQLObjectType,
 		connection: true,
+		error: null,
 	}
 }
+
+const missingPaginationArgMessage = (
+	config: Config
+) => `Looks like you are trying to use the ${logGreen(
+	`@${config.paginateDirective}`
+)} directive on a field but have not provided a ${logYellow('first')}, ${logYellow(
+	'last'
+)}, or ${logYellow('limit')} argument. Please add one and try again.
+For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
+
+const missingEdgeSelectionMessage = (
+	config: Config
+) => `Looks like you are trying to use the ${logGreen(
+	`@${config.paginateDirective}`
+)} directive on a field but your selection does not contain an ${logYellow(
+	'edges'
+)} field. Please add one and try again.
+For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
+
+const missingNodeSelectionMessage = (
+	config: Config
+) => `Looks like you are trying to use the ${logGreen(
+	`@${config.paginateDirective}`
+)} directive on a field but your selection does not contain a ${logYellow(
+	'node'
+)} field. Please add one and try again.
+For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
+
+const edgeInvalidTypeMessage = (config: Config) => `Looks like you are trying to use the ${logGreen(
+	`@${config.paginateDirective}`
+)} directive on a field but your field does not conform to the connection spec: your edges field seems strange.
+For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`
+
+const nodeNotDefinedMessage = (config: Config) => `Looks like you are trying to use the ${logGreen(
+	`@${config.paginateDirective}`
+)} directive on a field but your field does not conform to the connection spec: your edge type does not have node as a field.
+For more information, visit this link: https://www.houdinigraphql.com/guides/pagination`

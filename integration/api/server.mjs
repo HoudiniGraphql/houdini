@@ -11,6 +11,7 @@ async function main() {
       typeDefs,
       resolvers
     },
+    maskedErrors: false,
     graphiql: {
       // Use WebSockets in GraphiQL
       subscriptionsProtocol: 'WS',

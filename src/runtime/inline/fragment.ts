@@ -5,12 +5,25 @@ import { FragmentStore } from '..'
 import type { Fragment, GraphQLTagResult } from '../lib/types'
 import { wrapPaginationStore, PaginatedDocumentHandlers } from '../lib/pagination'
 
-// fragment returns the requested data from the reference
+// function overloads meant to only return a nullable value
+// if the reference type was nullable
 export function fragment<_Fragment extends Fragment<any>>(
 	fragment: GraphQLTagResult,
-	initialValue: _Fragment
-): Omit<ReturnType<FragmentStore<_Fragment['shape']>['get']>, 'update'> & {
-	data: Readable<_Fragment['shape']>
+	ref: _Fragment
+): Readable<NonNullable<_Fragment['shape']>> & {
+	data: Readable<_Fragment>
+}
+export function fragment<_Fragment extends Fragment<any>>(
+	fragment: GraphQLTagResult,
+	ref: _Fragment | null
+): Readable<NonNullable<_Fragment['shape']> | null> & {
+	data: Readable<_Fragment | null>
+}
+export function fragment<_Fragment extends Fragment<any>>(
+	fragment: GraphQLTagResult,
+	ref: _Fragment | null
+): Readable<NonNullable<_Fragment['shape']>> & {
+	data: Readable<_Fragment | null>
 } {
 	// make sure we got a query document
 	if (fragment.kind !== 'HoudiniFragment' || false) {
@@ -18,7 +31,7 @@ export function fragment<_Fragment extends Fragment<any>>(
 	}
 
 	// load the fragment store for the value
-	const store = fragment.store.get(initialValue)
+	const store = fragment.store.get(ref)
 
 	// make sure the store always stays up to date with the fragment value
 	fragment.proxy.listen((val: _Fragment) => {
@@ -106,7 +119,21 @@ export function fragment<_Fragment extends Fragment<any>>(
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	document: GraphQLTagResult,
+	initialValue: _Fragment | null
+): { data: Readable<_Fragment['shape'] | null> } & Omit<
+	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
+	'refetch'
+>
+export function paginatedFragment<_Fragment extends Fragment<any>>(
+	document: GraphQLTagResult,
 	initialValue: _Fragment
+): { data: Readable<_Fragment['shape']> } & Omit<
+	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
+	'refetch'
+>
+export function paginatedFragment<_Fragment extends Fragment<any>>(
+	document: GraphQLTagResult,
+	initialValue: _Fragment | null
 ): { data: Readable<_Fragment['shape']> } & Omit<
 	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
 	'refetch'
