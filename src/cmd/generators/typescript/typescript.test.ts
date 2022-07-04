@@ -324,6 +324,8 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+		import type { MyEnum } from "$houdini/graphql/enums";
+
 		export type Query = {
 		    readonly "input": Query$input,
 		    readonly "result": Query$result | undefined
@@ -343,10 +345,6 @@ describe('typescript', function () {
 		        readonly "Query": Query$result
 		    }
 		};
-
-		enum MyEnum {
-		    Hello = "Hello"
-		}
 
 		export type Query$input = {
 		    id: string,
@@ -392,6 +390,8 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+		import type { MyEnum } from "$houdini/graphql/enums";
+
 		export type Mutation = {
 		    readonly "input": Mutation$input,
 		    readonly "result": Mutation$result
@@ -410,10 +410,6 @@ describe('typescript', function () {
 		    age?: number | null | undefined,
 		    weight?: number | null | undefined
 		};
-
-		enum MyEnum {
-		    Hello = "Hello"
-		}
 
 		type UserFilter = {
 		    middle?: NestedUserFilter | null | undefined,
@@ -453,6 +449,8 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
+		import type { MyEnum } from "$houdini/graphql/enums";
+
 		export type Query = {
 		    readonly "input": Query$input,
 		    readonly "result": Query$result | undefined
@@ -480,10 +478,6 @@ describe('typescript', function () {
 		    age?: number | null | undefined,
 		    weight?: number | null | undefined
 		};
-
-		enum MyEnum {
-		    Hello = "Hello"
-		}
 
 		type UserFilter = {
 		    middle?: NestedUserFilter | null | undefined,

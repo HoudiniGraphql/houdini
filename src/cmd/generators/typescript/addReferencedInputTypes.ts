@@ -3,7 +3,7 @@ import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { StatementKind, TSPropertySignatureKind } from 'ast-types/gen/kinds'
 // locals
-import { Config } from '../../../common'
+import { Config, ensureImports } from '../../../common'
 import { unwrapType } from '../../utils'
 import { tsTypeReference } from './typeReference'
 
@@ -43,16 +43,15 @@ export function addReferencedInputTypes(
 
 	// if we ran into an enum, add its definition to the file
 	if (graphql.isEnumType(type)) {
-		body.push(
-			AST.tsEnumDeclaration(
-				AST.identifier(type.name),
-				type
-					.getValues()
-					.map((value) =>
-						AST.tsEnumMember(AST.identifier(value.name), AST.stringLiteral(value.name))
-					)
-			)
-		)
+		// we need to add an import for the enum
+		ensureImports({
+			config,
+			// @ts-ignore
+			body,
+			import: [type.name],
+			sourceModule: '$houdini/graphql/enums',
+			importKind: 'type',
+		})
 		return
 	}
 
