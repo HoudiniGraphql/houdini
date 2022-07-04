@@ -2,95 +2,33 @@
 
 ## 0.15.0
 
+Version 0.15.0 is the biggest release yet! Thanks for everyone who helped test/contribute :tada: 🥰 The biggest update here is that documents now have a brand new store-based API. For more information on what's changed and how to update your project, check out this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
+
 ### Minor Changes
 
--   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - definitionsPath refers now to a folder path that will contain schema and documents
+-   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis][@jycouet](https://github.com/jycouet)! - definitionsPath refers now to a folder path that will contain schema and documents
 
 *   [#315](https://github.com/HoudiniGraphql/houdini/pull/315) [`4cf4b7f`](https://github.com/HoudiniGraphql/houdini/commit/4cf4b7f93d893ede734c7a067f03b14499cc9773) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - parentID directive and arguments are now relative to object containing the decorated field
 
--   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Default framework is now kit, default module type is esm
+-   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@jycouet](https://github.com/jycouet)! - Default framework is now kit, default module type is esm
 
-*   [#291](https://github.com/HoudiniGraphql/houdini/pull/291) [`17cd57e`](https://github.com/HoudiniGraphql/houdini/commit/17cd57eac72596823d2a4dddec85b6ac1a1d09dd) Thanks [@jycouet](https://github.com/jycouet)! - Added store-based APIs :tada:
-
-### Patch Changes
-
--   [#339](https://github.com/HoudiniGraphql/houdini/pull/339) [`1293374`](https://github.com/HoudiniGraphql/houdini/commit/12933746b879aaedc019d2f8458a38740f561bdf) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove deprecation warning (its no longer deprecated)
-
-*   [#329](https://github.com/HoudiniGraphql/houdini/pull/329) [`d65c657`](https://github.com/HoudiniGraphql/houdini/commit/d65c6577d10dad56f13661d1b5c3d9e808979431) Thanks [@jycouet](https://github.com/jycouet)! - Fix bug when prefetching a route that's already mounted
-
--   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Subscription methods are now listen and unlisten
-
-*   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Missing scalars generate as any and produce a console warning instead of an error
-
--   [#342](https://github.com/HoudiniGraphql/houdini/pull/342) [`973db72`](https://github.com/HoudiniGraphql/houdini/commit/973db723ed9a155c43cac01cb08f55fe389714c2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Only generate load with navigation block when user defines afterLoad
-
-*   [#331](https://github.com/HoudiniGraphql/houdini/pull/331) [`41cd95a`](https://github.com/HoudiniGraphql/houdini/commit/41cd95a577e418b6937039da963f82c95bd79854) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed return type of inline mutation
-
--   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add `disableMasking` config value to disable fragment masking
-
-*   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - initial value for inline fragment can be null
-
--   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added support for non-string cursors
-
-*   [#341](https://github.com/HoudiniGraphql/houdini/pull/341) [`a0b6030`](https://github.com/HoudiniGraphql/houdini/commit/a0b6030324816765b6c5cf451dd09586fbd886ec) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - allow null values passed to fragment
-
--   [#321](https://github.com/HoudiniGraphql/houdini/pull/321) [`47bb94e`](https://github.com/HoudiniGraphql/houdini/commit/47bb94ea4b6c36210f1d2b7812613287fbe82e61) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - config.schemaPath can be a glob pointing to multiple files
-
-*   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fetch and prefetch usecases are both handled by queryStore.fetch
-
--   [#326](https://github.com/HoudiniGraphql/houdini/pull/326) [`dc4bf44`](https://github.com/HoudiniGraphql/houdini/commit/dc4bf44ff7507f2a8c58b50c651e9ac155a3ad8c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed type generated for mutation results
-
-*   [#333](https://github.com/HoudiniGraphql/houdini/pull/333) [`eac4eb3`](https://github.com/HoudiniGraphql/houdini/commit/eac4eb309eecef78b82f5a683585cb7b8729d9cf) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - More mutation typefixes
-
-## 0.15.0-next.6
+*   [#291](https://github.com/HoudiniGraphql/houdini/pull/291) [`17cd57e`](https://github.com/HoudiniGraphql/houdini/commit/17cd57eac72596823d2a4dddec85b6ac1a1d09dd) Thanks [@jycouet](https://github.com/jycouet) and [@AlecAivazis](https://github.com/AlecAivazis)! - Added store-based APIs :tada:
 
 ### Patch Changes
 
--   [#342](https://github.com/HoudiniGraphql/houdini/pull/342) [`973db72`](https://github.com/HoudiniGraphql/houdini/commit/973db723ed9a155c43cac01cb08f55fe389714c2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Only generate load with navigation block when user defines afterLoad
-
-*   [#341](https://github.com/HoudiniGraphql/houdini/pull/341) [`a0b6030`](https://github.com/HoudiniGraphql/houdini/commit/a0b6030324816765b6c5cf451dd09586fbd886ec) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - allow null values passed to fragment
-
-## 0.15.0-next.5
-
-### Patch Changes
-
--   [#339](https://github.com/HoudiniGraphql/houdini/pull/339) [`1293374`](https://github.com/HoudiniGraphql/houdini/commit/12933746b879aaedc019d2f8458a38740f561bdf) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Remove deprecation warning (its no longer deprecated)
-
-## 0.15.0-next.4
-
-### Patch Changes
-
--   [#329](https://github.com/HoudiniGraphql/houdini/pull/329) [`d65c657`](https://github.com/HoudiniGraphql/houdini/commit/d65c6577d10dad56f13661d1b5c3d9e808979431) Thanks [@jycouet](https://github.com/jycouet)! - Fix bug when prefetching a route that's already mounted
-
-## 0.15.0-next.3
-
-### Patch Changes
-
--   [#333](https://github.com/HoudiniGraphql/houdini/pull/333) [`eac4eb3`](https://github.com/HoudiniGraphql/houdini/commit/eac4eb309eecef78b82f5a683585cb7b8729d9cf) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - More mutation typefixes
-
-## 0.15.0-next.2
-
-### Patch Changes
+-   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Missing scalars generate as any and produce a console warning instead of an error
 
 -   [#331](https://github.com/HoudiniGraphql/houdini/pull/331) [`41cd95a`](https://github.com/HoudiniGraphql/houdini/commit/41cd95a577e418b6937039da963f82c95bd79854) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed return type of inline mutation
 
-## 0.15.0-next.1
+*   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add `disableMasking` config value to disable fragment masking
 
-### Minor Changes
+-   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - initial value for inline fragment can be null
 
--   [#291](https://github.com/HoudiniGraphql/houdini/pull/291) [`17cd57e`](https://github.com/HoudiniGraphql/houdini/commit/17cd57eac72596823d2a4dddec85b6ac1a1d09dd) Thanks [@jycouet](https://github.com/jycouet)! - Added store-based APIs :tada:
+*   [#344](https://github.com/HoudiniGraphql/houdini/pull/344) [`ca0709d`](https://github.com/HoudiniGraphql/houdini/commit/ca0709dfb7d66e77556f3d8334a428f1ac148aef) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Added support for non-string cursors
 
-### Patch Changes
+-   [#341](https://github.com/HoudiniGraphql/houdini/pull/341) [`a0b6030`](https://github.com/HoudiniGraphql/houdini/commit/a0b6030324816765b6c5cf451dd09586fbd886ec) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - allow null values passed to fragment
 
--   [#321](https://github.com/HoudiniGraphql/houdini/pull/321) [`47bb94e`](https://github.com/HoudiniGraphql/houdini/commit/47bb94ea4b6c36210f1d2b7812613287fbe82e61) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - config.schemaPath can be a glob pointing to multiple files
-
-*   [#326](https://github.com/HoudiniGraphql/houdini/pull/326) [`dc4bf44`](https://github.com/HoudiniGraphql/houdini/commit/dc4bf44ff7507f2a8c58b50c651e9ac155a3ad8c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fixed type generated for mutation results
-
-## 0.15.0-next.0
-
-### Minor Changes
-
--   [#315](https://github.com/HoudiniGraphql/houdini/pull/315) [`4cf4b7f`](https://github.com/HoudiniGraphql/houdini/commit/4cf4b7f93d893ede734c7a067f03b14499cc9773) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - parentID directive and arguments are now relative to object containing the decorated field
+*   [#321](https://github.com/HoudiniGraphql/houdini/pull/321) [`47bb94e`](https://github.com/HoudiniGraphql/houdini/commit/47bb94ea4b6c36210f1d2b7812613287fbe82e61) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - config.schemaPath can be a glob pointing to multiple files
 
 ## 0.14.8
 
