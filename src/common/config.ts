@@ -38,7 +38,11 @@ export class Config {
 	disableMasking: boolean
 	configIsRoute: ((filepath: string) => boolean) | null = null
 
-	constructor({ filepath, ...configFile }: ConfigFile & { filepath: string }) {
+	constructor({
+		filepath,
+		loadFrameworkConfig,
+		...configFile
+	}: ConfigFile & { filepath: string; loadFrameworkConfig?: boolean }) {
 		this.configFile = defaultConfigValues(configFile)
 
 		// apply defaults and pull out the values
@@ -151,16 +155,7 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 
 		// if the config file specified an isRoute, use that
 		if (configFile.isRoute) {
-			this.isRoute = configFile.isRoute
-		}
-		// if we are loading a sveltekit project, we might be able to grab the isRoute
-		// from the config (if it exists)
-		if (this.framework === 'kit') {
-			// only load the route config if we didn't assign on
-			this.loadKitConfig({
-				isRoute: !configFile.isRoute,
-				configFilePath: configFile.frameworkConfigFile,
-			})
+			this.configIsRoute = configFile.isRoute
 		}
 	}
 
@@ -641,6 +636,17 @@ export async function getConfig(extraConfig?: Partial<ConfigFile>): Promise<Conf
 		...extraConfig,
 		filepath: configPath,
 	})
+
+	// if we are loading a sveltekit project, we might be able to grab the isRoute
+	// from the config (if it exists)
+	if (config.framework === 'kit') {
+		// only load the route config if we didn't assign on
+		await _config.loadKitConfig({
+			isRoute: !config.isRoute,
+			configFilePath: config.frameworkConfigFile,
+		})
+	}
+
 	return _config
 }
 
