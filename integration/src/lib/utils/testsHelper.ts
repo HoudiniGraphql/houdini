@@ -16,9 +16,14 @@ export async function expectNoGraphQLRequest(
       selector ? (action === 'click' ? page.click(selector) : page.hover(selector)) : null
     ]);
     info = res;
-  } catch (error: any) {
-    expect(error.name).toBe('TimeoutError');
-    nbError++;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      expect(error.name).toBe('TimeoutError');
+      nbError++;
+    } else {
+      // We should never come here!
+      expect(0, 'a catch that was not an instanceof Error! It should NOT happen').toBe(1);
+    }
   }
   if (nbError === 0) {
     console.error(`The body of the query that shouldn't happen: `, info?.postDataJSON());

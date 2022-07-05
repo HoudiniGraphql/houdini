@@ -31,8 +31,7 @@
         name
       }
     `,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-    $data?.node!
+    $data?.node ?? null
   );
 </script>
 
