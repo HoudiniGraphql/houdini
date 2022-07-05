@@ -171,13 +171,20 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 			return false
 		}
 
+		// only consider filepaths in src/routes
+		if (
+			!posixify(filepath).startsWith(posixify(path.join(this.projectRoot, 'src', 'routes')))
+		) {
+			return false
+		}
+
 		// if there is a route function from the config
 		if (this.configIsRoute) {
 			return this.configIsRoute(filepath)
 		}
 
-		// no config value, use the old one (just check if there is something in src/routes)
-		return posixify(filepath).startsWith(posixify(path.join(this.projectRoot, 'src', 'routes')))
+		// there is no special filter to apply. anything this far is a route
+		return true
 	}
 
 	async loadKitConfig({
@@ -205,6 +212,7 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 			}
 		} catch {}
 
+		// if its not in the route directory, its not a
 		// if we didn't assign an isRoute function, use the default kit one
 		if (!this.configIsRoute) {
 			// copied from here: https://github.com/sveltejs/kit/blob/28139749c4bf056d1e04f55e7f955da33770750d/packages/kit/src/core/config/options.js#L250
