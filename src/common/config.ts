@@ -157,7 +157,10 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		// from the config (if it exists)
 		if (this.framework === 'kit') {
 			// only load the route config if we didn't assign on
-			this.loadKitConfig({ isRoute: !configFile.isRoute })
+			this.loadKitConfig({
+				isRoute: !configFile.isRoute,
+				configFilePath: configFile.frameworkConfigFile,
+			})
 		}
 	}
 
@@ -177,7 +180,13 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		return posixify(filepath).startsWith(posixify(path.join(this.projectRoot, 'src', 'routes')))
 	}
 
-	async loadKitConfig({ isRoute }: { isRoute: boolean }) {
+	async loadKitConfig({
+		isRoute,
+		configFilePath,
+	}: {
+		isRoute: boolean
+		configFilePath?: string
+	}) {
 		// so far, all this does is load the route function so if we don't
 		// have to do that, we're done
 		if (!isRoute) {
@@ -185,7 +194,7 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		}
 
 		// import the user's kit config file, and look for a custom isRoute function
-		const configFile = path.join(process.cwd(), 'svelte.config.js')
+		const configFile = path.join(process.cwd(), configFilePath || 'svelte.config.js')
 		const config: KitConfig = await import(url.pathToFileURL(configFile).href)
 
 		// if there is a custom route function, use it
