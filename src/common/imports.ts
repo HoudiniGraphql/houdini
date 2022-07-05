@@ -2,7 +2,7 @@
 import * as recast from 'recast'
 import { Statement } from '@babel/types'
 // locals
-import { Config } from '../../common'
+import { Config } from '.'
 
 const AST = recast.types.builders
 
@@ -66,11 +66,13 @@ export function ensureImports<_Count extends string[] | string>({
 	body,
 	import: importID,
 	sourceModule,
+	importKind,
 }: {
 	config: Config
 	body: Statement[]
 	import: _Count
 	sourceModule: string
+	importKind?: 'value' | 'type'
 }): _Count {
 	const idList = Array.isArray(importID) ? importID : [importID]
 
@@ -106,6 +108,7 @@ export function ensureImports<_Count extends string[] | string>({
 					? AST.importDefaultSpecifier(AST.identifier(identifier))
 					: AST.importSpecifier(AST.identifier(identifier), AST.identifier(identifier))
 			),
+			importKind,
 		})
 	}
 

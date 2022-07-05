@@ -122,6 +122,7 @@ export default async function typescriptGenerator(
 			.concat([
 				AST.exportAllDeclaration(AST.literal('./runtime'), null),
 				AST.exportAllDeclaration(AST.literal('./stores'), null),
+				AST.exportAllDeclaration(AST.literal('./graphql'), null),
 			])
 	)
 

@@ -3,7 +3,7 @@ import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { TSTypeKind, StatementKind } from 'ast-types/gen/kinds'
 // locals
-import { Config } from '../../../common'
+import { Config, ensureImports } from '../../../common'
 import { TypeWrapper, unwrapType } from '../../utils'
 import { enumDeclaration, nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
@@ -44,8 +44,13 @@ export function inlineType({
 	else if (graphql.isEnumType(type)) {
 		// have we seen the enum before
 		if (!visitedTypes.has(type.name)) {
-			// add the enum declaration to the body
-			body.push(enumDeclaration(type))
+			ensureImports({
+				config,
+				// @ts-ignore
+				body,
+				import: [type.name],
+				sourceModule: '$houdini/graphql/enums',
+			})
 
 			// register that we've visited the type already
 			visitedTypes.add(type.name)

@@ -9,8 +9,7 @@
 <script lang="ts">
   import { query, graphql, type FragmentQueryVars } from '$houdini';
 
-  // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-  export let id: string = '';
+  export let id = '';
 
   const { data } = query<FragmentQueryVars>(graphql`
     query FragmentQueryVars($id: ID!) {

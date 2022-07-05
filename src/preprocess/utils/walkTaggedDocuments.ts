@@ -4,7 +4,7 @@ import { asyncWalk, BaseNode } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // locals
-import { Config } from '../../common'
+import { Config, ensureImports } from '../../common'
 import {
 	CompiledDocumentKind,
 	CompiledFragmentKind,
@@ -13,7 +13,6 @@ import {
 	CompiledSubscriptionKind,
 } from '../../runtime/lib/types'
 import { TransformDocument } from '../types'
-import { ensureImports } from '.'
 
 type Program = ReturnType<typeof recast.types.builders.statement>
 

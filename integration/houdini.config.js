@@ -9,11 +9,13 @@ const config = {
   scalars: {
     DateTime: {
       type: 'Date',
-      marshal(val) {
-        return val.getTime();
-      },
+      // turn the api's response into that type
       unmarshal(val) {
         return new Date(val);
+      },
+      // turn the value into something the API can use
+      marshal(val) {
+        return val.getTime();
       }
     }
   }

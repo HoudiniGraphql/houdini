@@ -5,15 +5,15 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 import { StatementKind } from 'ast-types/gen/kinds'
 import path from 'path'
 // locals
-import { Config, Script } from '../../common'
-import { TransformDocument } from '../types'
 import {
-	walkTaggedDocuments,
-	EmbeddedGraphqlDocument,
+	Config,
+	Script,
 	ensureImports,
 	ensureArtifactImport,
 	ensureStoreFactoryImport,
-} from '../utils'
+} from '../../common'
+import { TransformDocument } from '../types'
+import { walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { ExportNamedDeclaration, VariableDeclaration } from '@babel/types'
 const AST = recast.types.builders

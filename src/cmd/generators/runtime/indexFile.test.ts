@@ -52,6 +52,7 @@ test('runtime index file - sapper', async function () {
 
 		__exportStar(require("./runtime"), exports);
 		__exportStar(require("./artifacts"), exports);
+		__exportStar(require("./graphql"), exports);
 	`)
 })
 
@@ -73,5 +74,6 @@ test('runtime index file - kit', async function () {
 		export * from "./runtime"
 		export * from "./artifacts"
 		export * from "./stores"
+		export * from "./graphql"
 	`)
 })

@@ -15,7 +15,7 @@
 
 <script lang="ts">
   let routesKvp = Object.keys(routes).map((key: string) => {
-    return { key, value: (routes as any)[key] };
+    return { key, value: (routes as Record<string, string>)[key] };
   });
 </script>
 
