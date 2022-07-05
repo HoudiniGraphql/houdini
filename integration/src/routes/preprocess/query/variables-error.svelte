@@ -1,5 +1,5 @@
 <script context="module" lang="ts">
-  export function PreprocessorTestQueryErrorVariables({ params }: { params: { id?: string } }) {
+  export function PreprocessorTestQueryErrorVariables({}: { params: { id?: string } }) {
     // @ts-ignore
     return this.error(403, 'test');
   }

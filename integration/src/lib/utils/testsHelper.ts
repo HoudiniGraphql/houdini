@@ -1,5 +1,5 @@
 import { sleep, stry } from '@kitql/helper';
-import type { Page } from '@playwright/test';
+import type { Page, Response } from '@playwright/test';
 import { expect } from '@playwright/test';
 import { routes } from './routes.js';
 
@@ -65,7 +65,7 @@ export async function expectNGraphQLResponse(
   //   }
   // }
 
-  async function fnRes(response: any) {
+  async function fnRes(response: Response) {
     // console.log('<<', response.status(), response.url());
     if (response.url().endsWith(routes.GraphQL)) {
       nbResponse++;
@@ -89,7 +89,7 @@ export async function expectNGraphQLResponse(
   }
 
   // Wait a bit...
-  await sleep(2111);
+  await sleep(1111);
 
   // Remove listeners
   // page.removeListener('request', fnReq);

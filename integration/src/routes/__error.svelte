@@ -1,10 +1,11 @@
 <script context="module" lang="ts">
-  /** @type {import('@sveltejs/kit').Load} */
-  export function load({ error, status }: any) {
-    console.log(`error`, error);
+  import type { LoadEvent } from '@sveltejs/kit';
+
+  export function load(event: LoadEvent) {
+    console.log(`error`, event.error);
     return {
       props: {
-        title: `${status}: ${error.message}`
+        title: `${event.status}: ${event.error?.message}`
       }
     };
   }

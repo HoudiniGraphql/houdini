@@ -1,10 +1,6 @@
 import { test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import {
-  expectGraphQLResponse,
-  expectNoGraphQLRequest,
-  expectToBe
-} from '../../lib/utils/testsHelper.js';
+import { expectNoGraphQLRequest, expectToBe } from '../../lib/utils/testsHelper.js';
 
 test.describe('fragment store', function () {
   test('accepts and returns null values', async function ({ page }) {

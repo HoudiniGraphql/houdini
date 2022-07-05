@@ -3,7 +3,6 @@ import { routes } from '../../lib/utils/routes.js';
 import {
   clientSideNavigation,
   expectGraphQLResponse,
-  expectNGraphQLResponse,
   expectToBe
 } from '../../lib/utils/testsHelper.js';
 

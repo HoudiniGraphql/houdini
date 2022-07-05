@@ -10,7 +10,7 @@ import {
 
 test.describe('SSR Page', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
-    const result = await page.goto(routes.Stores_SSR);
+    await page.goto(routes.Stores_SSR);
 
     await expectNoGraphQLRequest(page);
   });
