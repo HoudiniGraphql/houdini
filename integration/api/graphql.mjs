@@ -88,6 +88,9 @@ export const resolvers = {
     },
     friendsConnection(user, args) {
       return connectionFromArray(getSnapshot(user.snapshot), args);
+    },
+    enumValue() {
+      return 'Value1';
     }
   },
 

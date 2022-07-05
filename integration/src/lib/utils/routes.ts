@@ -11,6 +11,7 @@ export const routes = {
   Stores_Mutation: '/stores/mutation',
   Stores_Mutation_Update: '/stores/mutation-update',
   Stores_Mutation_Scalars: '/stores/mutation-scalars',
+  Stores_Mutation_Enums: '/stores/mutation-enums',
   Stores_Network_One_Store_Multivariables: '/stores/network-one-store-multivariables',
   Stores_SSR_One_Store_Multivariables: '/stores/ssr-one-store-multivariables',
   Stores_Fragment_Null: '/stores/fragment-null',

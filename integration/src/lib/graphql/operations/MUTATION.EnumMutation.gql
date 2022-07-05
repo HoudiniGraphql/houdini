@@ -1,0 +1,5 @@
+mutation EnumMutation($birthDate: DateTime!, $name: String!, $snapshot: String!, $value: MyEnum) {
+  addUser(birthDate: $birthDate, name: $name, snapshot: $snapshot, enumValue: $value) {
+    enumValue
+  }
+}

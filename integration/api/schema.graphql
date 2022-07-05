@@ -9,7 +9,13 @@ enum MyEnum {
 }
 
 type Mutation {
-  addUser(birthDate: DateTime!, delay: Int, name: String!, snapshot: String!): User!
+  addUser(
+    birthDate: DateTime!
+    name: String!
+    snapshot: String!
+    delay: Int
+    enumValue: MyEnum
+  ): User!
   updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime): User!
 }
 
@@ -45,6 +51,7 @@ type User implements Node {
   friendsList(limit: Int, offset: Int): [User!]!
   id: ID!
   name: String!
+  enumValue: MyEnum
 }
 
 type UserConnection {

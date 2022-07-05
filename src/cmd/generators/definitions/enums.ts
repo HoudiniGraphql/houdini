@@ -12,11 +12,11 @@ const AST = recast.types.builders
 // single place to avoid conflicting exported types
 export default async function definitionsGenerator(config: Config) {
 	// grab every enum definition in the project's schema
-	const enums = graphql
+	const enums = (graphql
 		.parse(graphql.printSchema(config.schema))
 		.definitions.filter(
 			(definition) => definition.kind === 'EnumTypeDefinition'
-		) as graphql.EnumTypeDefinitionNode[]
+		) as graphql.EnumTypeDefinitionNode[]).filter((def) => !config.isInternalEnum(def))
 
 	// generate the runtime definitions
 	const runtimeDefinitions = recast.print(

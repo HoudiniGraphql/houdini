@@ -1,17 +1,21 @@
 import path from 'path'
 import { ConfigFile } from '../runtime'
-import { Config } from '../common'
+import { Config, LogLevel } from '../common'
 
 export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		sourceGlob: '123',
 		schema: `
+			scalar Cursor
+
+
 			type User implements Node {
 				id: ID!
 				firstName: String!
 				friends: [User!]!
 				friendsByCursor(first: Int, after: String, last: Int, before: String, filter: String): UserConnection!
-				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnection!
+				friendsByCursorScalar(first: Int, after: Cursor, last: Int, before: Cursor, filter: String): UserConnection!
+				friendsByBackwardsCursor(last: Int, before: String, filter: String): UserConnectionScalar!
 				friendsByForwardsCursor(first: Int, after: String, filter: String): UserConnection!
 				friendsByOffset(offset: Int, limit: Int, filter: String): [User!]!
 				friendsInterface: [Friend!]!
@@ -30,7 +34,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				legends: [Legend!]!
 			}
 
-			type Legend { 
+			type Legend {
 				name: String
 				believers(first: Int, after: String): GhostConnection
 			}
@@ -68,9 +72,19 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				node: User
 			}
 
+			type UserEdgeScalar {
+				cursor: Cursor!
+				node: User
+			}
+
 			type UserConnection {
 				pageInfo: PageInfo!
 				edges: [UserEdge!]!
+			}
+
+			type UserConnectionScalar {
+				pageInfo: PageInfo!
+				edges: [UserEdgeScalar!]!
 			}
 
 			type GhostEdge {
@@ -129,9 +143,18 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			interface  Node {
 				id: ID!
 			}
+
+			enum TestEnum1 {
+				Value1
+				Value2
+			}
+
+			enum TestEnum2 {
+				Value3
+				Value2
+			}
 		`,
 		framework: 'kit',
-		quiet: true,
 		types: {
 			Ghost: {
 				keys: ['name', 'aka'],
@@ -140,6 +163,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 				},
 			},
 		},
+		logLevel: LogLevel.Quiet,
 		...config,
 	}
 }
