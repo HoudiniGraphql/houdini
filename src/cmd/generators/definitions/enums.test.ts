@@ -41,13 +41,6 @@ test('generates runtime defintions for each enum', async function () {
 		    Value3 = "Value3",
 		    Value2 = "Value2"
 		}
-		 
-		export declare enum CachePolicy {
-		    CacheAndNetwork = "CacheAndNetwork",
-		    CacheOnly = "CacheOnly",
-		    CacheOrNetwork = "CacheOrNetwork",
-		    NetworkOnly = "NetworkOnly"
-		}
 	`)
 
 	// load the contents of the type definitions file
@@ -67,13 +60,6 @@ test('generates runtime defintions for each enum', async function () {
 		export const TestEnum2 = {
 		    "Value3": "Value3",
 		    "Value2": "Value2"
-		};
-
-		export const CachePolicy = {
-		    "CacheAndNetwork": "CacheAndNetwork",
-		    "CacheOnly": "CacheOnly",
-		    "CacheOrNetwork": "CacheOrNetwork",
-		    "NetworkOnly": "NetworkOnly"
 		};
 	`)
 })
