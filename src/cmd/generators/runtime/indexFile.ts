@@ -15,6 +15,8 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 		'./' + path.relative(config.rootDir, config.artifactDirectory).split(path.sep).join('/')
 	const storesDir =
 		'./' + path.relative(config.rootDir, config.storesDirectory).split(path.sep).join('/')
+	const definitionsDir =
+		'./' + path.relative(config.rootDir, config.definitionsDirectory).split(path.sep).join('/')
 	const configPath = path.relative(config.rootDir, config.filepath).split(path.sep).join('/')
 	// if we are rendering an index file for sapper we need to compile it for commonjs
 	let body = ''
@@ -25,6 +27,7 @@ ${exportDefaultFrom(configPath, 'houdiniConfig')}
 
 ${exportStarFrom(runtimeDir)}
 ${exportStarFrom(artifactDir)}
+${exportStarFrom(definitionsDir)}
 `
 	}
 	// otherwise just use esm statements as the final result
@@ -34,6 +37,7 @@ export { default as houdiniConfig } from "${configPath}"
 export * from "${runtimeDir}"
 export * from "${artifactDir}"
 export * from "${storesDir}"
+export * from "${definitionsDir}"
 `
 	}
 

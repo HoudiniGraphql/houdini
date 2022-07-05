@@ -1,16 +1,16 @@
 // external imports
 import * as graphql from 'graphql'
 import * as recast from 'recast'
+import path from 'path'
 // local imports
 import { Config } from '../../../common'
-import { CollectedGraphQLDocument } from '../../types'
 import { moduleExport, writeFile } from '../../utils'
 
 const AST = recast.types.builders
 
 // the enum generator creates runtime definitions and centralizes the type definitions in a
 // single place to avoid conflicting exported types
-export default async function enumGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
+export default async function definitionsGenerator(config: Config) {
 	// grab every enum definition in the project's schema
 	const enums = graphql
 		.parse(graphql.printSchema(config.schema))
@@ -52,9 +52,16 @@ ${definition.values?.map((value) => `    ${value.name.value} = "${value.name.val
 		)
 		.join('')
 
+	// the index file for the definitions directory
+	const definitionsIndex = `
+export * from './enums'
+	`
+
 	// write the typedefinition to disk
 	await Promise.all([
 		writeFile(config.enumTypesDefinitionsPath, typeDefinitions),
 		writeFile(config.enumRuntimeDefinitionsPath, runtimeDefinitions),
+		writeFile(path.join(config.definitionsDirectory, 'index.js'), definitionsIndex),
+		writeFile(path.join(config.definitionsDirectory, 'index.d.ts'), definitionsIndex),
 	])
 }
