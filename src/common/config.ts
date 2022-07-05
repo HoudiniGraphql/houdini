@@ -546,13 +546,16 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 }
 
 // get the project's current configuration
-export async function getConfig(extraConfig?: Partial<ConfigFile>): Promise<Config> {
+export async function getConfig({
+	configFile,
+	...extraConfig
+}: { configFile?: string } & Partial<ConfigFile>): Promise<Config> {
 	if (_config) {
 		return _config
 	}
 
 	// add the filepath and save the result
-	const configPath = DEFAULT_CONFIG_PATH
+	const configPath = configFile || DEFAULT_CONFIG_PATH
 	const config = await readConfigFile(configPath)
 
 	// look up the schema
