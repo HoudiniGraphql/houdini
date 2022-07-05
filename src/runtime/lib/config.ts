@@ -57,6 +57,11 @@ export type ConfigFile = {
 	 * however that's not always valid. Use this option to customize where houdini looks.
 	 */
 	frameworkConfigFile?: string
+	/**
+	 * The directory containing your project routes. For default Kit and Sapper projects, this
+	 * value is ./src/routes
+	 */
+	routesDir?: string
 }
 
 export type TypeConfig = {

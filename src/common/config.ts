@@ -37,6 +37,7 @@ export class Config {
 	logLevel: LogLevel
 	disableMasking: boolean
 	configIsRoute: ((filepath: string) => boolean) | null = null
+	routesDir: string | null
 
 	constructor({
 		filepath,
@@ -64,6 +65,7 @@ export class Config {
 			types = {},
 			logLevel,
 			disableMasking = false,
+			routesDir = null,
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -115,6 +117,7 @@ If that's going to be a problem, please open a discussion on GitHub.`
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 		this.disableMasking = disableMasking
+		this.routesDir = routesDir
 
 		// if the user asked for `quiet` logging notify them its been deprecated
 		if (quiet) {
@@ -167,9 +170,8 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		}
 
 		// only consider filepaths in src/routes
-		if (
-			!posixify(filepath).startsWith(posixify(path.join(this.projectRoot, 'src', 'routes')))
-		) {
+		const routesDir = this.routesDir || 'src/routes'
+		if (!posixify(filepath).startsWith(posixify(path.join(this.projectRoot, routesDir)))) {
 			return false
 		}
 
@@ -640,7 +642,7 @@ export async function getConfig(extraConfig?: Partial<ConfigFile>): Promise<Conf
 	// if we are loading a sveltekit project, we might be able to grab the isRoute
 	// from the config (if it exists)
 	if (config.framework === 'kit') {
-		// only load the route config if we didn't assign on
+		// only load the route config if the user didn't specify one explicitly
 		await _config.loadKitConfig({
 			isRoute: !config.isRoute,
 			configFilePath: config.frameworkConfigFile,
