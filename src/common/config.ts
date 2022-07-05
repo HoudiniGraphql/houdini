@@ -549,7 +549,7 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 export async function getConfig({
 	configFile,
 	...extraConfig
-}: { configFile?: string } & Partial<ConfigFile>): Promise<Config> {
+}: { configFile?: string } & Partial<ConfigFile> = {}): Promise<Config> {
 	if (_config) {
 		return _config
 	}
