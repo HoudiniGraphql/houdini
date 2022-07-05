@@ -36,7 +36,7 @@ export class Config {
 	configFile: ConfigFile
 	logLevel: LogLevel
 	disableMasking: boolean
-	configIsRoute: (filepath: string) => boolean = () => false
+	configIsRoute: ((filepath: string) => boolean) | null = null
 
 	constructor({ filepath, ...configFile }: ConfigFile & { filepath: string }) {
 		this.configFile = defaultConfigValues(configFile)
@@ -187,22 +187,26 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		isRoute: boolean
 		configFilePath?: string
 	}) {
-		// so far, all this does is load the route function so if we don't
-		// have to do that, we're done
-		if (!isRoute) {
-			return
-		}
+		// if we fail to load
+		try {
+			// so far, all this does is load the route function so if we don't
+			// have to do that, we're done
+			if (!isRoute) {
+				return
+			}
 
-		// import the user's kit config file, and look for a custom isRoute function
-		const configFile = path.join(process.cwd(), configFilePath || 'svelte.config.js')
-		const config: KitConfig = await import(url.pathToFileURL(configFile).href)
+			// import the user's kit config file, and look for a custom isRoute function
+			const configFile = path.join(process.cwd(), configFilePath || 'svelte.config.js')
+			const config: KitConfig = await import(url.pathToFileURL(configFile).href)
 
-		// if there is a custom route function, use it
-		if (config.routes) {
-			this.configIsRoute = config.routes
-		}
-		// otherwise use the default kit route function
-		else {
+			// if there is a custom route function, use it
+			if (config.routes) {
+				this.configIsRoute = config.routes
+			}
+		} catch {}
+
+		// if we didn't assign an isRoute function, use the default kit one
+		if (!this.configIsRoute) {
 			// copied from here: https://github.com/sveltejs/kit/blob/28139749c4bf056d1e04f55e7f955da33770750d/packages/kit/src/core/config/options.js#L250
 			this.configIsRoute = (filepath) =>
 				!/(?:(?:^_|\/_)|(?:^\.|\/\.)(?!well-known))/.test(filepath)
