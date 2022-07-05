@@ -17,5 +17,8 @@ test.describe('mutation store', function () {
 
     // make sure that the result updated with unmarshaled data
     await expectToBe(page, 'true');
+
+    // make sure that the result updated with unmarshaled data
+    await expectToBe(page, '["COOL","NICE"]', 'div[id=result-type]');
   });
 });

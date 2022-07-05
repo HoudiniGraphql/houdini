@@ -88,9 +88,6 @@ export const resolvers = {
     },
     friendsConnection(user, args) {
       return connectionFromArray(getSnapshot(user.snapshot), args);
-    },
-    enumValue() {
-      return 'Value1';
     }
   },
 
@@ -103,7 +100,9 @@ export const resolvers = {
       const user = {
         id: (list.length + 1).toString(),
         name: args.name,
-        birthDate: args.birthDate
+        birthDate: args.birthDate,
+        enumValue: args.enumValue,
+        types: args.types ?? []
       };
       list.push(user);
       return user;

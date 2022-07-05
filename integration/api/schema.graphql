@@ -8,6 +8,11 @@ enum MyEnum {
   Value2
 }
 
+enum TypeOfUser {
+  NICE
+  COOL
+}
+
 type Mutation {
   addUser(
     birthDate: DateTime!
@@ -15,6 +20,7 @@ type Mutation {
     snapshot: String!
     delay: Int
     enumValue: MyEnum
+    types: [TypeOfUser!]
   ): User!
   updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime): User!
 }
@@ -52,6 +58,7 @@ type User implements Node {
   id: ID!
   name: String!
   enumValue: MyEnum
+  types: [TypeOfUser!]!
 }
 
 type UserConnection {
