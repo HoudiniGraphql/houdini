@@ -13,8 +13,6 @@
         }
       }
     `);
-
-  console.log(MyEnum.Value1);
 </script>
 
 <div id="result">
