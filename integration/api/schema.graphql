@@ -3,6 +3,11 @@ Date custom scalar type
 """
 scalar DateTime
 
+enum MyEnum {
+  Value1
+  Value2
+}
+
 type Mutation {
   addUser(birthDate: DateTime!, delay: Int, name: String!, snapshot: String!): User!
   updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime): User!

@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "generate": "houdini generate",
+    "generatep": "houdini generate -p",
     "web": "cross-env TZ=utc svelte-kit dev",
     "api": "cross-env TZ=utc node api/server.mjs",
     "dev": "npm run prepare && concurrently \"yarn web\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",

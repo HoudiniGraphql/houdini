@@ -109,9 +109,7 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		enum MyEnum {
-		    Hello = "Hello"
-		}
+		import { MyEnum } from "$houdini/graphql/enums";
 
 		export type TestFragment = {
 		    readonly "shape"?: TestFragment$data,
@@ -513,6 +511,7 @@ describe('typescript', function () {
 		export * from "./artifacts/Query";
 		export * from "./runtime";
 		export * from "./stores";
+		export * from "./graphql";
 	`)
 	})
 

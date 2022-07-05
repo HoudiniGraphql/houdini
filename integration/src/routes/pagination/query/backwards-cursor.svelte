@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { paginatedQuery, graphql, type BackwardsCursorPaginationQuery } from '$houdini';
+  import { paginatedQuery, graphql, type BackwardsCursorPaginationQuery, MyEnum } from '$houdini';
 
   const { data, loadPreviousPage, refetch, pageInfo } =
     paginatedQuery<BackwardsCursorPaginationQuery>(graphql`
@@ -13,6 +13,8 @@
         }
       }
     `);
+
+  console.log(MyEnum.Value1);
 </script>
 
 <div id="result">
