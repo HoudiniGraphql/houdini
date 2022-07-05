@@ -47,6 +47,16 @@ export type ConfigFile = {
 	types?: TypeConfig
 	logLevel?: string
 	disableMasking?: boolean
+	/**
+	 * A function to customize the logic houdini uses to identify a route vs a component
+	 */
+	isRoute?: (filepath: string) => boolean
+	/**
+	 * The path to your framework config file relative to the houdini config file. By
+	 * default, Houdini will look for your framework config file in process.cwd()
+	 * however that's not always valid. Use this option to customize where houdini looks.
+	 */
+	frameworkConfigFile?: string
 }
 
 export type TypeConfig = {

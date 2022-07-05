@@ -5,9 +5,11 @@ import * as graphql from 'graphql'
 import os from 'os'
 import path from 'path'
 import { promisify } from 'util'
+import * as url from 'url'
 // locals
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib/types'
+import { KitConfig } from '@sveltejs/kit'
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -34,6 +36,7 @@ export class Config {
 	configFile: ConfigFile
 	logLevel: LogLevel
 	disableMasking: boolean
+	configIsRoute: (filepath: string) => boolean = () => false
 
 	constructor({ filepath, ...configFile }: ConfigFile & { filepath: string }) {
 		this.configFile = defaultConfigValues(configFile)
@@ -145,6 +148,56 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 			framework === 'sapper'
 				? path.join(this.projectRoot, 'src', 'node_modules', '$houdini')
 				: path.join(this.projectRoot, '$houdini')
+
+		// if the config file specified an isRoute, use that
+		if (configFile.isRoute) {
+			this.isRoute = configFile.isRoute
+		}
+		// if we are loading a sveltekit project, we might be able to grab the isRoute
+		// from the config (if it exists)
+		if (this.framework === 'kit') {
+			// only load the route config if we didn't assign on
+			this.loadKitConfig({ isRoute: !configFile.isRoute })
+		}
+	}
+
+	// compute if a path points to a component query or not
+	isRoute(filepath: string): boolean {
+		// a vanilla svelte app is never considered in a route
+		if (this.framework === 'svelte' || this.static) {
+			return false
+		}
+
+		// if there is a route function from the config
+		if (this.configIsRoute) {
+			return this.configIsRoute(filepath)
+		}
+
+		// no config value, use the old one (just check if there is something in src/routes)
+		return posixify(filepath).startsWith(posixify(path.join(this.projectRoot, 'src', 'routes')))
+	}
+
+	async loadKitConfig({ isRoute }: { isRoute: boolean }) {
+		// so far, all this does is load the route function so if we don't
+		// have to do that, we're done
+		if (!isRoute) {
+			return
+		}
+
+		// import the user's kit config file, and look for a custom isRoute function
+		const configFile = path.join(process.cwd(), 'svelte.config.js')
+		const config: KitConfig = await import(url.pathToFileURL(configFile).href)
+
+		// if there is a custom route function, use it
+		if (config.routes) {
+			this.configIsRoute = config.routes
+		}
+		// otherwise use the default kit route function
+		else {
+			// copied from here: https://github.com/sveltejs/kit/blob/28139749c4bf056d1e04f55e7f955da33770750d/packages/kit/src/core/config/options.js#L250
+			this.configIsRoute = (filepath) =>
+				!/(?:(?:^_|\/_)|(?:^\.|\/\.)(?!well-known))/.test(filepath)
+		}
 	}
 
 	/*
@@ -742,3 +795,5 @@ export enum LogLevel {
 	ShortSummary = 'short-summary',
 	Quiet = 'quiet',
 }
+
+const posixify = (str: string) => str.replace(/\\/g, '/')
