@@ -1,0 +1,9 @@
+projects:
+    default:
+        # 👇 For vscode-graphql and intellisense
+        schema:
+            - integration/api/*.graphql
+            - integration/$houdini/graphql/schema.gql
+        documents:
+            - integration/src/**/*.gql
+            - integration/$houdini/graphql/documents.gql
