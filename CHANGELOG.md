@@ -1,5 +1,11 @@
 # houdini
 
+## 0.15.3
+
+### Patch Changes
+
+-   [#375](https://github.com/HoudiniGraphql/houdini/pull/375) [`918ff87`](https://github.com/HoudiniGraphql/houdini/commit/918ff87b9a7f5ff1068327c36088df1c89df6341) Thanks [@jycouet](https://github.com/jycouet)! - fix issue with embedded page info in paginated query stores
+
 ## 0.15.2
 
 ### Patch Changes
