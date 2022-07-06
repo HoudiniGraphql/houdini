@@ -12,7 +12,7 @@ export async function generateFragmentStore(config: Config, doc: CollectedGraphQ
 
 	const artifactName = `${doc.name}`
 	const paginated = !!doc.refetch?.paginated
-	const paginationExtras = pagination(config, doc)
+	const paginationExtras = pagination(config, doc, 'fragment')
 
 	// the content of the store
 	const storeContent = `import { houdiniConfig } from '$houdini'
@@ -46,7 +46,7 @@ export default ${storeName}
 import { FragmentStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
 
-export declare const ${storeName}: FragmentStore<${doc.name}$data> ${paginationExtras.types}
+export declare const ${storeName}: FragmentStore<${doc.name}$data, {}, ${paginationExtras.storeExtras}> ${paginationExtras.types}
 
 export default ${storeName}
 `

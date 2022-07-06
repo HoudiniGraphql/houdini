@@ -432,6 +432,10 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		return 'paginate'
 	}
 
+	get paginateNameArg() {
+		return 'name'
+	}
+
 	get cacheDirective() {
 		return 'cache'
 	}

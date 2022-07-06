@@ -35,6 +35,12 @@ test('adds internal documents to schema', async function () {
 		"""
 		directive @list(name: String!, connection: Boolean) on FIELD
 
+		"""
+		@paginate is used to to mark a field for pagination.
+		More info in the [doc](https://www.houdinigraphql.com/guides/pagination).
+		"""
+		directive @paginate(name: String) on FIELD
+
 		"""@prepend is used to tell the runtime to add the result to the end of the list"""
 		directive @prepend(parentID: ID) on FRAGMENT_SPREAD
 
@@ -88,6 +94,12 @@ test('list operations are included', async function () {
 		entities in mutations
 		"""
 		directive @list(name: String!, connection: Boolean) on FIELD
+
+		"""
+		@paginate is used to to mark a field for pagination.
+		More info in the [doc](https://www.houdinigraphql.com/guides/pagination).
+		"""
+		directive @paginate(name: String) on FIELD
 
 		"""@prepend is used to tell the runtime to add the result to the end of the list"""
 		directive @prepend(parentID: ID) on FRAGMENT_SPREAD
@@ -161,6 +173,12 @@ test("writing twice doesn't duplicate definitions", async function () {
 		entities in mutations
 		"""
 		directive @list(name: String!, connection: Boolean) on FIELD
+
+		"""
+		@paginate is used to to mark a field for pagination.
+		More info in the [doc](https://www.houdinigraphql.com/guides/pagination).
+		"""
+		directive @paginate(name: String) on FIELD
 
 		"""@prepend is used to tell the runtime to add the result to the end of the list"""
 		directive @prepend(parentID: ID) on FRAGMENT_SPREAD

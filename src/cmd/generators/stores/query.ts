@@ -10,7 +10,7 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	const storeName = config.storeName(doc)
 	const artifactName = `${doc.name}`
 
-	const paginationExtras = pagination(config, doc)
+	const paginationExtras = pagination(config, doc, 'query')
 
 	// store definition
 	const storeData = `import { houdiniConfig } from '$houdini';
@@ -47,12 +47,12 @@ export default ${storeName}
 
 	// type definitions
 	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
-import { QueryStore } from '../runtime/lib/types'
+import { type QueryStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
 
-export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}> ${
-		paginationExtras.types
-	}
+export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}, ${
+		paginationExtras.storeExtras
+	}> ${paginationExtras.types}
 
 export declare const ${config.storeFactoryName(artifactName)}: () => typeof ${storeName}
 

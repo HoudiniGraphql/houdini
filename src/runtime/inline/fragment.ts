@@ -1,7 +1,6 @@
 // externals
 // locals
 import { Readable } from 'svelte/store'
-import { FragmentStore } from '..'
 import type { Fragment, GraphQLTagResult } from '../lib/types'
 import { wrapPaginationStore, PaginatedDocumentHandlers } from '../lib/pagination'
 
