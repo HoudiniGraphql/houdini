@@ -11,6 +11,14 @@
   `);
 </script>
 
+ISO:
 <div id="result-date">
   {$data?.user.birthDate.toISOString()}
+</div>
+
+<br />
+
+Local:
+<div id="result-date-local">
+  {$data?.user.birthDate.toLocaleString()}
 </div>

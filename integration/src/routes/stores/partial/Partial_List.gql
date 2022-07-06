@@ -1,0 +1,6 @@
+query Partial_List {
+  usersList(snapshot: "Partial") @cache(partial: true) {
+    id
+    name
+  }
+}
