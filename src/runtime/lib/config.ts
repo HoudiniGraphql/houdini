@@ -47,21 +47,26 @@ export type ConfigFile = {
 	types?: TypeConfig
 	logLevel?: string
 	disableMasking?: boolean
+
 	/**
-	 * A function to customize the logic houdini uses to identify a route vs a component
+	 * A function to customize the logic houdini uses to identify a route or component when the file
+	 * is _inside_ of the routesDir. You do not need to define this if you have a custom value in
+	 * your SvelteKit config file - Houdini will use what's there.
 	 */
-	isRoute?: (filepath: string) => boolean
+	routes?: (filepath: string) => boolean
+
+	/**
+	 * The directory containing your project routes. For default Kit and Sapper projects, this
+	 * value is ./src/routes
+	 */
+	routesDir?: string
+
 	/**
 	 * The path to your framework config file relative to the houdini config file. By
 	 * default, Houdini will look for your framework config file in process.cwd()
 	 * however that's not always valid. Use this option to customize where houdini looks.
 	 */
 	frameworkConfigFile?: string
-	/**
-	 * The directory containing your project routes. For default Kit and Sapper projects, this
-	 * value is ./src/routes
-	 */
-	routesDir?: string
 }
 
 export type TypeConfig = {

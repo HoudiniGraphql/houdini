@@ -157,8 +157,8 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 				: path.join(this.projectRoot, '$houdini')
 
 		// if the config file specified an isRoute, use that
-		if (configFile.isRoute) {
-			this.configIsRoute = configFile.isRoute
+		if (configFile.routes) {
+			this.configIsRoute = configFile.routes
 		}
 	}
 
@@ -644,7 +644,7 @@ export async function getConfig(extraConfig?: Partial<ConfigFile>): Promise<Conf
 	if (config.framework === 'kit') {
 		// only load the route config if the user didn't specify one explicitly
 		await _config.loadKitConfig({
-			isRoute: !config.isRoute,
+			isRoute: !config.routes,
 			configFilePath: config.frameworkConfigFile,
 		})
 	}
