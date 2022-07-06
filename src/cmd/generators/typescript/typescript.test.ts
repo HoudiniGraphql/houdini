@@ -20,6 +20,7 @@ const config = testConfig({
 			users: [User]
 			nodes: [Node!]!
 			entities: [Entity]
+			entity: Entity!
 			listOfLists: [[User]]!
 			node(id: ID!): Node
 		}
@@ -347,6 +348,53 @@ describe('typescript', function () {
 		export type Query$input = {
 		    id: string,
 		    enum?: MyEnum | null | undefined
+		};
+	`)
+	})
+
+	test('interface on interface', async function () {
+		// the document to test
+		const doc = mockCollectedDoc(
+			`query MyTestQuery {
+				entity {
+					... on Node {
+						id
+					}
+				}
+			}`
+		)
+
+		// execute the generator
+		await runPipeline(config, [doc])
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		export type MyTestQuery = {
+		    readonly "input": null,
+		    readonly "result": MyTestQuery$result | undefined
+		};
+
+		export type MyTestQuery$result = {
+		    readonly entity: {} & (({
+		        readonly id: string,
+		        readonly __typename: "Cat"
+		    }) | ({
+		        readonly id: string,
+		        readonly __typename: "User"
+		    }))
+		};
+
+		export type MyTestQuery$afterLoad = {
+		    readonly "data": {
+		        readonly "MyTestQuery": MyTestQuery$result
+		    }
 		};
 	`)
 	})
@@ -796,13 +844,12 @@ describe('typescript', function () {
 
 		export type Query$result = {
 		    readonly entities: ({} & (({
-		        readonly firstName: string,
-		        readonly __typename: "User"
-		    }) | ({
+		        readonly isAnimal: boolean,
 		        readonly kitty: boolean,
 		        readonly __typename: "Cat"
-		    } & {
-		        readonly isAnimal: boolean
+		    }) | ({
+		        readonly firstName: string,
+		        readonly __typename: "User"
 		    })) | null)[] | null
 		};
 
