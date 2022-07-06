@@ -20,13 +20,13 @@ export default async function uniqueDocumentNames(
 	const errors: HoudiniInfoError[] = Object.entries(nameMap)
 		.filter(([_, filenames]) => filenames.length > 1)
 		.map(([docName, fileNames]) => ({
-			message: 'Encountered conflict in document names',
+			message: `Operation "${docName}" conflict. It should not be defined in multiple places!`,
 			description: fileNames,
 		}))
 
 	// if we got errors
 	if (errors.length > 0) {
-		throw errors
+		throw { filepath: errors[0].description?.join(' | '), message: errors[0].message }
 	}
 
 	// we're done here
