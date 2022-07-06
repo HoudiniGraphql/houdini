@@ -107,15 +107,23 @@ export function inlineType({
 					continue
 				}
 
+				const possibleParents = config.schema.getPossibleTypes(type).map((t) => t.name)
+
 				// the fragment type is an interface or union and is getting mixed into an interface or union
 				// which means every possible type of fragment type needs to be mixed into the discriminated
 				// portion for the particular type
 				for (const possibleType of config.schema.getPossibleTypes(fragmentType)) {
+					// if the possible type is not a possible type of the parent, the intersection isn't possible
+					if (!possibleParents.includes(possibleType.name)) {
+						continue
+					}
+
 					// make sure we have to place to put the discriminated type
 					if (!inlineFragments[possibleType.name]) {
 						inlineFragments[possibleType.name] = []
 					}
 
+					// add the selection to the discriminated object of the intersecting type
 					inlineFragments[possibleType.name].push(...selection.selectionSet.selections)
 				}
 			}

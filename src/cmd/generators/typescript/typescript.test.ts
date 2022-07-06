@@ -63,6 +63,7 @@ const config = testConfig({
 			isAnimal: Boolean!
 		}
 
+
 		interface Animal {
 			isAnimal: Boolean!
 		}
@@ -71,7 +72,8 @@ const config = testConfig({
 
 		union AnotherEntity = User | Ghost
 
-		type Ghost {
+		type Ghost implements Node {
+			id: ID!
 			aka: String!
 		}
 
