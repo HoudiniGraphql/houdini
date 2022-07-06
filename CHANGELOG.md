@@ -1,5 +1,11 @@
 # houdini
 
+## 0.15.2
+
+### Patch Changes
+
+-   [#370](https://github.com/HoudiniGraphql/houdini/pull/370) [`1ce03ec`](https://github.com/HoudiniGraphql/houdini/commit/1ce03ece112bf2688dcc066bdd844fa8b431fe4a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fixed bug when generating type definitions for interfaces mixed on interfaces
+
 ## 0.15.1
 
 ### Patch Changes
