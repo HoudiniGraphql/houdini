@@ -59,14 +59,14 @@ test.describe('forwards cursor paginatedQuery', () => {
 
     // load the next 3 pages
     for (let i = 0; i < 3; i++) {
+      // check the page info to know if we will click on next?
+      await expectToContain(page, `"hasNextPage":true`);
+
       // wait for the request to resolve
       await expectGraphQLResponse(page, 'button[id=next]');
 
       // check the data
       await expectToBe(page, data[i]);
-
-      // check the page info
-      await expectToContain(page, `"hasNextPage":true`);
     }
 
     // make sure we have all of the data loaded
