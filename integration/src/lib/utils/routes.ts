@@ -26,6 +26,7 @@ export const routes = {
   Preprocess_query_component: '/preprocess/query/component',
   Preprocess_query_beforeLoad: '/preprocess/query/beforeLoad',
   Preprocess_query_afterLoad: '/preprocess/query/afterLoad',
+  Preprocess_query_isRoute: '/preprocess/query/isRoute',
 
   Preprocess_mutation_mutation: '/preprocess/mutation/mutation',
   Preprocess_fragment_update: '/preprocess/fragment/update',
