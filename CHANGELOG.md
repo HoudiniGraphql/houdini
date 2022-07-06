@@ -1,5 +1,15 @@
 # houdini
 
+## 0.15.1
+
+### Patch Changes
+
+-   [#366](https://github.com/HoudiniGraphql/houdini/pull/366) [`5a1e7e0`](https://github.com/HoudiniGraphql/houdini/commit/5a1e7e07e0e2cf8734dae3af1a95b93600328734) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - improved logic for distinguishing routes from components in a SvelteKit project
+
+*   [#367](https://github.com/HoudiniGraphql/houdini/pull/367) [`66d0bcf`](https://github.com/HoudiniGraphql/houdini/commit/66d0bcfb1d0f70dae966540a8858aed285c15e0e) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add a `configFile` parameter to the preprocessor so users can specify where to find their `houdini.config.js` file
+
+-   [#364](https://github.com/HoudiniGraphql/houdini/pull/364) [`b323f54`](https://github.com/HoudiniGraphql/houdini/commit/b323f5411db92f669edef64eed0df59bb0233ae8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add enum definitions to generated runtime
+
 ## 0.15.0
 
 Version 0.15.0 is the biggest release yet! Thanks for everyone who helped test/contribute :tada: 🥰 The biggest update here is that documents now have a brand new store-based API. For more information on what's changed and how to update your project, check out this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
