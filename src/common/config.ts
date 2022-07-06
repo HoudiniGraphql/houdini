@@ -176,9 +176,7 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		}
 
 		// always consider layouts as routes
-		const name = path.parse(filepath).name
-		const isLayout = layout_pattern.test(name)
-		if (isLayout) {
+		if (layout_pattern.test(path.parse(filepath).name)) {
 			return true
 		}
 
