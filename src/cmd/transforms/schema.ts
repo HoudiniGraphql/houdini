@@ -27,7 +27,7 @@ enum CachePolicy {
 directive @${config.listDirective}(${config.listNameArg}: String!, connection: Boolean) on FIELD
 
 """
-	@${config.paginateDirective} is used to enable infinite scrolling pagination.
+	@${config.paginateDirective} is used to to mark a field for pagination.
 	More info in the [doc](https://www.houdinigraphql.com/guides/pagination).
 """
 directive @${config.paginateDirective}(${config.paginateNameArg}: String) on FIELD

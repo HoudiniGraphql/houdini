@@ -36,7 +36,7 @@ test('adds internal documents to schema', async function () {
 		directive @list(name: String!, connection: Boolean) on FIELD
 
 		"""
-		@paginate is used to enable infinite scrolling pagination.
+		@paginate is used to to mark a field for pagination.
 		More info in the [doc](https://www.houdinigraphql.com/guides/pagination).
 		"""
 		directive @paginate(name: String) on FIELD
@@ -96,7 +96,7 @@ test('list operations are included', async function () {
 		directive @list(name: String!, connection: Boolean) on FIELD
 
 		"""
-		@paginate is used to enable infinite scrolling pagination.
+		@paginate is used to to mark a field for pagination.
 		More info in the [doc](https://www.houdinigraphql.com/guides/pagination).
 		"""
 		directive @paginate(name: String) on FIELD
@@ -175,7 +175,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 		directive @list(name: String!, connection: Boolean) on FIELD
 
 		"""
-		@paginate is used to enable infinite scrolling pagination.
+		@paginate is used to to mark a field for pagination.
 		More info in the [doc](https://www.houdinigraphql.com/guides/pagination).
 		"""
 		directive @paginate(name: String) on FIELD
