@@ -90,14 +90,12 @@ export type ConfigFile = {
 	defaultKeys?: string[]
 
 	/**
-	 * An object that customizes the resolution behavior for a specific type. For more
-	 * information: https://www.houdinigraphql.com/guides/caching-data#custom-ids
+	 * An object that customizes the resolution behavior for a specific type. For more information: https://www.houdinigraphql.com/guides/caching-data#custom-ids
 	 */
 	types?: TypeConfig
 
 	/**
-	 * Specifies the style of logging houdini will use when generating your file.
-	 * One of “quiet”, “full”, “summary”, or “short-summary”.
+	 * Specifies the style of logging houdini will use when generating your file. One of “quiet”, “full”, “summary”, or “short-summary”.
 	 */
 
 	logLevel?: string
