@@ -3,7 +3,7 @@ projects:
         # 👇 For vscode-graphql and intellisense
         schema:
             - integration/api/*.graphql
-            - integration/$houdini/graphql/schema.gql
+            - integration/$houdini/graphql/schema.graphql
         documents:
             - integration/src/**/*.gql
             - integration/$houdini/graphql/documents.gql

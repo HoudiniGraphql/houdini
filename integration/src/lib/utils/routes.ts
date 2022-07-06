@@ -18,6 +18,7 @@ export const routes = {
   Stores_Metadata: '/stores/metadata',
 
   Stores_Partial_List: '/stores/partial/partial_List',
+  Stores_Pagination_query_forward_cursor: '/stores/pagination/query/forward-cursor',
 
   Preprocess_query_simple: '/preprocess/query/simple',
   Preprocess_query_variable_1: '/preprocess/query/variable-1',
@@ -28,6 +29,7 @@ export const routes = {
   Preprocess_query_component: '/preprocess/query/component',
   Preprocess_query_beforeLoad: '/preprocess/query/beforeLoad',
   Preprocess_query_afterLoad: '/preprocess/query/afterLoad',
+  Preprocess_query_isRoute: '/preprocess/query/isRoute',
 
   Preprocess_mutation_mutation: '/preprocess/mutation/mutation',
   Preprocess_fragment_update: '/preprocess/fragment/update',

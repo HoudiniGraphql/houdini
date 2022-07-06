@@ -5,9 +5,11 @@ import * as graphql from 'graphql'
 import os from 'os'
 import path from 'path'
 import { promisify } from 'util'
+import * as url from 'url'
 // locals
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib/types'
+import { KitConfig } from '@sveltejs/kit'
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -34,8 +36,14 @@ export class Config {
 	configFile: ConfigFile
 	logLevel: LogLevel
 	disableMasking: boolean
+	configIsRoute: ((filepath: string) => boolean) | null = null
+	routesDir: string | null
 
-	constructor({ filepath, ...configFile }: ConfigFile & { filepath: string }) {
+	constructor({
+		filepath,
+		loadFrameworkConfig,
+		...configFile
+	}: ConfigFile & { filepath: string; loadFrameworkConfig?: boolean }) {
 		this.configFile = defaultConfigValues(configFile)
 
 		// apply defaults and pull out the values
@@ -57,6 +65,7 @@ export class Config {
 			types = {},
 			logLevel,
 			disableMasking = false,
+			routesDir = null,
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -108,6 +117,7 @@ If that's going to be a problem, please open a discussion on GitHub.`
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 		this.disableMasking = disableMasking
+		this.routesDir = routesDir
 
 		// if the user asked for `quiet` logging notify them its been deprecated
 		if (quiet) {
@@ -145,6 +155,67 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 			framework === 'sapper'
 				? path.join(this.projectRoot, 'src', 'node_modules', '$houdini')
 				: path.join(this.projectRoot, '$houdini')
+
+		// if the config file specified an isRoute, use that
+		if (configFile.routes) {
+			this.configIsRoute = configFile.routes
+		}
+	}
+
+	// compute if a path points to a component query or not
+	isRoute(filepath: string): boolean {
+		// a vanilla svelte app is never considered in a route
+		if (this.framework === 'svelte' || this.static) {
+			return false
+		}
+
+		// only consider filepaths in src/routes
+		const routesDir = this.routesDir || 'src/routes'
+		if (!posixify(filepath).startsWith(posixify(path.join(this.projectRoot, routesDir)))) {
+			return false
+		}
+
+		// if there is a route function from the config
+		if (this.configIsRoute) {
+			return this.configIsRoute(filepath)
+		}
+
+		// there is no special filter to apply. anything this far is a route
+		return true
+	}
+
+	async loadKitConfig({
+		isRoute,
+		configFilePath,
+	}: {
+		isRoute: boolean
+		configFilePath?: string
+	}) {
+		// if we fail to load
+		try {
+			// so far, all this does is load the route function so if we don't
+			// have to do that, we're done
+			if (!isRoute) {
+				return
+			}
+
+			// import the user's kit config file, and look for a custom isRoute function
+			const configFile = path.join(process.cwd(), configFilePath || 'svelte.config.js')
+			const config: KitConfig = await import(url.pathToFileURL(configFile).href)
+
+			// if there is a custom route function, use it
+			if (config.routes) {
+				this.configIsRoute = config.routes
+			}
+		} catch {}
+
+		// if its not in the route directory, its not a
+		// if we didn't assign an isRoute function, use the default kit one
+		if (!this.configIsRoute) {
+			// copied from here: https://github.com/sveltejs/kit/blob/28139749c4bf056d1e04f55e7f955da33770750d/packages/kit/src/core/config/options.js#L250
+			this.configIsRoute = (filepath) =>
+				!/(?:(?:^_|\/_)|(?:^\.|\/\.)(?!well-known))/.test(filepath)
+		}
 	}
 
 	/*
@@ -359,6 +430,10 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 
 	get paginateDirective() {
 		return 'paginate'
+	}
+
+	get paginateNameArg() {
+		return 'name'
 	}
 
 	get cacheDirective() {
@@ -583,6 +658,17 @@ export async function getConfig({
 		...extraConfig,
 		filepath: configPath,
 	})
+
+	// if we are loading a sveltekit project, we might be able to grab the isRoute
+	// from the config (if it exists)
+	if (config.framework === 'kit') {
+		// only load the route config if the user didn't specify one explicitly
+		await _config.loadKitConfig({
+			isRoute: !config.routes,
+			configFilePath: config.frameworkConfigFile,
+		})
+	}
+
 	return _config
 }
 
@@ -592,3 +678,5 @@ export enum LogLevel {
 	ShortSummary = 'short-summary',
 	Quiet = 'quiet',
 }
+
+const posixify = (str: string) => str.replace(/\\/g, '/')

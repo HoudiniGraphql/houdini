@@ -1,5 +1,5 @@
 // externals
-import { get, Readable, Writable, writable } from 'svelte/store'
+import { derived, get, Readable, Writable, writable } from 'svelte/store'
 // internals
 import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
 import { clientStarted, isBrowser } from '../adapter'
@@ -13,7 +13,7 @@ import {
 } from '../lib'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { nullHoudiniContext } from '../lib/context'
-import { PaginatedHandlers, queryHandlers } from '../lib/pagination'
+import { PageInfo, PaginatedHandlers, queryHandlers, nullPageInfo } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import * as log from '../lib/log'
 
@@ -49,8 +49,8 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	storeName: string
 	paginationMethods: { [key: string]: keyof PaginatedHandlers<_Data, _Input> }
 }): QueryStore<_Data, _Input> {
-	// at its core, a query store is a writable store with extra methods
-	const store = writable<QueryResult<_Data, _Input>>({
+	// only include pageInfo in the store state if the query is paginated
+	const initialState = (): QueryResult<_Data, _Input> & { pageInfo?: PageInfo } => ({
 		data: null,
 		errors: null,
 		isFetching: false,
@@ -58,6 +58,9 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		source: null,
 		variables: null,
 	})
+
+	// at its core, a query store is a writable store with extra methods
+	const store = writable(initialState())
 	const setFetching = (isFetching: boolean) => store.update((s) => ({ ...s, isFetching }))
 	const getVariables = () => get(store).variables
 
@@ -234,6 +237,9 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		return get(store)
 	}
 
+	// we might need to mix multiple store values for the user
+	const relevantStores: Readable<any>[] = [store]
+
 	// add the pagination methods to the store
 	let extraMethods: {} = {}
 	if (paginated) {
@@ -243,7 +249,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			store: {
 				name: artifact.name,
 				subscribe: store.subscribe,
-				async fetch(params) {
+				async fetch(params?: QueryStoreFetchParams<_Input>) {
 					return (await fetch({
 						...params,
 						blocking: true,
@@ -253,15 +259,21 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			queryVariables: getVariables,
 		})
 
+		// we only want to add page info if we have to
+		relevantStores.push(derived([handlers.pageInfo], (pageInfo) => ({ pageInfo })))
+
 		extraMethods = Object.fromEntries(
 			Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])
 		)
 	}
 
+	// mix any of the stores we care about
+	const userFacingStore = derived(relevantStores, (stores) => Object.assign({}, ...stores))
+
 	return {
 		name: artifact.name,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
-			const bubbleUp = store.subscribe(...args)
+			const bubbleUp = userFacingStore.subscribe(...args)
 
 			// Handle unsubscribe
 			return () => {
@@ -277,14 +289,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 				// don't clear the store state on the server (breaks SSR)
 				if (isBrowser) {
 					// reset the store value
-					store.set({
-						data: null,
-						errors: null,
-						isFetching: false,
-						partial: false,
-						source: null,
-						variables: null,
-					})
+					store.set(initialState())
 				}
 
 				// we're done

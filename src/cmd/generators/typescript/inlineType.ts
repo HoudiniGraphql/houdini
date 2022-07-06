@@ -62,17 +62,77 @@ export function inlineType({
 	else if (selections) {
 		const rootObj = type as graphql.GraphQLObjectType<any, any>
 
+		// a selection can contain 1 of 3 things:
+		// - a field
+		// - an inline fragment
+		// - a fragment spread
+
+		// an inline fragment can refer to an interface that's not refered in another
+		// fragment so we need to break down all fragments into their concrete versions
+		// discriminated by __typename
+
 		// before we can begin, we need to sort the selection set for this field for
 		// fields defined on the interface as well as subtypes of the interface
-		const inlineFragments: graphql.InlineFragmentNode[] = []
+		const inlineFragments: { [typeName: string]: graphql.SelectionNode[] } = {}
 		// the rest of the selection can be a single type in the union
 		const selectedFields: graphql.SelectionNode[] = []
 
 		for (const selection of selections) {
 			// if we found an inline fragment then we have a sub-condition on the fragment
-			if (selection.kind === 'InlineFragment') {
-				inlineFragments.push(selection)
-			} else {
+			if (selection.kind === 'InlineFragment' && selection.typeCondition) {
+				// the type of the fragment
+				const fragmentType = config.schema.getType(selection.typeCondition.name.value)!
+
+				// if the parent is a non-union or interface then the __typename is only going to have a single
+				// value so we just need to add every field to the list
+				if (!graphql.isInterfaceType(type) && !graphql.isUnionType(type)) {
+					selectedFields.push(...selection.selectionSet.selections)
+					continue
+				}
+
+				// the parent type is not concrete so the selections will have to be organized
+				// into discriminated and non discriminated parts
+
+				// if the fragment type is not an interface or union, we should just
+				// add the selection as part of the discriminated selection
+				if (!graphql.isInterfaceType(fragmentType) && !graphql.isUnionType(fragmentType)) {
+					// make sure we have to place to put the discriminated type
+					if (!inlineFragments[fragmentType.name]) {
+						inlineFragments[fragmentType.name] = []
+					}
+
+					inlineFragments[fragmentType.name].push(...selection.selectionSet.selections)
+
+					// we're done processing this type
+					continue
+				}
+
+				const possibleParents = config.schema.getPossibleTypes(type).map((t) => t.name)
+
+				// the fragment type is an interface or union and is getting mixed into an interface or union
+				// which means every possible type of fragment type needs to be mixed into the discriminated
+				// portion for the particular type
+				for (const possibleType of config.schema.getPossibleTypes(fragmentType)) {
+					// if the possible type is not a possible type of the parent, the intersection isn't possible
+					if (!possibleParents.includes(possibleType.name)) {
+						continue
+					}
+
+					// make sure we have to place to put the discriminated type
+					if (!inlineFragments[possibleType.name]) {
+						inlineFragments[possibleType.name] = []
+					}
+
+					// add the selection to the discriminated object of the intersecting type
+					inlineFragments[possibleType.name].push(...selection.selectionSet.selections)
+				}
+			}
+			// an inline fragment without a selection is just a fancy way of asking for fields
+			else if (selection.kind === 'InlineFragment' && !selection.typeCondition) {
+				selectedFields.push(...selection.selectionSet.selections)
+			}
+			// the selection is just a normal field, add it to the non-discriminated object
+			else {
 				selectedFields.push(selection)
 			}
 		}
@@ -151,12 +211,7 @@ export function inlineType({
 		const inlineFragmentSelections: {
 			type: graphql.GraphQLNamedType
 			tsType: TSTypeKind
-		}[] = inlineFragments.flatMap((fragment: graphql.InlineFragmentNode) => {
-			// look up the type pointed by the type condition
-			if (!fragment.typeCondition) {
-				return []
-			}
-			const typeName = fragment.typeCondition.name.value
+		}[] = Object.entries(inlineFragments).flatMap(([typeName, fragment]) => {
 			const fragmentRootType = config.schema.getType(typeName)
 			if (!fragmentRootType) {
 				return []
@@ -167,7 +222,7 @@ export function inlineType({
 				config,
 				filepath,
 				rootType: fragmentRootType,
-				selections: fragment.selectionSet.selections,
+				selections: fragment,
 				allowReadonly,
 				visitedTypes,
 				root,
@@ -217,72 +272,40 @@ export function inlineType({
 			// we're done massaging the type
 			return [{ type: fragmentRootType, tsType: fragmentType }]
 		})
-		if (inlineFragmentSelections.length > 0) {
-			// these fragments could refer to types, unions, or interfaces
-			// only mix the relevant ones
-			const interfaceFragments = inlineFragmentSelections.filter(({ type }) =>
-				graphql.isInterfaceType(type)
-			)
-			const unionFragments = inlineFragmentSelections.filter(({ type }) =>
-				graphql.isUnionType(type)
-			)
-			const concreteFragments = inlineFragmentSelections.filter(({ type }) => {
-				// look up the type in the schema
-				return !graphql.isUnionType(type) && !graphql.isInterfaceType(type)
-			})
 
-			// build up the discriminated type
-			let selectionTypes = concreteFragments.map(({ type, tsType }) => {
-				// the selection for a concrete type is really the intersection of itself
-				// with every abstract type it implements. go over every fragment belonging
-				// to an abstract type and check if this type implements it.
-				return AST.tsParenthesizedType(
-					AST.tsIntersectionType(
-						[tsType]
-							// include the interface fragment if the concrete type implements it
-							.concat(
-								interfaceFragments
-									.filter(({ type: abstractType }) =>
-										config.schema
-											.getImplementations(
-												abstractType as graphql.GraphQLInterfaceType
-											)
-											.objects.map(({ name }) => name)
-											.includes(type.name)
-									)
-									.map(({ tsType }) => tsType)
-							)
-							// include the union fragment if the concrete type is a member
-							.concat(
-								unionFragments
-									.filter(({ type }) => {
-										return true
-									})
-									.map(({ tsType }) => tsType)
-							)
-							// remove any inner nullability flags
-							.flatMap((type) => {
-								// if we are looking at a union we might have nulls in there
-								if (type.type === 'TSUnionType') {
-									return type.types.filter(
-										(innerType) =>
-											innerType.type !== 'TSNullKeyword' &&
-											innerType.type !== 'TSUndefinedKeyword'
-									)
-								}
-
-								return type
-							})
+		//
+		if (Object.keys(inlineFragmentSelections).length > 0) {
+			// // build up the discriminated type
+			let selectionTypes = Object.entries(inlineFragmentSelections).map(
+				([typeName, { type, tsType }]) => {
+					// the selection for a concrete type is really the intersection of itself
+					// with every abstract type it implements. go over every fragment belonging
+					// to an abstract type and check if this type implements it.
+					return AST.tsParenthesizedType(
+						AST.tsIntersectionType(
+							[tsType]
+								// remove any inner nullability flags
+								.flatMap((type) => {
+									// if we are looking at a union we might have nulls in there
+									if (type.type === 'TSUnionType') {
+										return type.types.filter(
+											(innerType) =>
+												innerType.type !== 'TSNullKeyword' &&
+												innerType.type !== 'TSUndefinedKeyword'
+										)
+									}
+									return type
+								})
+						)
 					)
-				)
-			})
+				}
+			)
 
 			// build up the list of fragment types
 			result = AST.tsIntersectionType([
 				result,
 				AST.tsParenthesizedType(AST.tsUnionType(selectionTypes)),
 			])
-			// if we're supposed to leave a nullable type behind
 		}
 	}
 	// we shouldn't get here

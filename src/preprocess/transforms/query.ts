@@ -28,8 +28,6 @@ type Identifier = ReturnType<typeof recast.types.builders.identifier>
 // what this means in practice is that if we see a getQuery(graphql``) in the instance script of a component, we need to hoist
 // it into the module's preload, grab the result and set it as the initial value in the store.
 
-const posixify = (str: string) => str.replace(/\\/g, '/')
-
 export default async function queryProcessor(
 	config: Config,
 	doc: TransformDocument
@@ -40,10 +38,7 @@ export default async function queryProcessor(
 	}
 
 	// how we preprocess a query depends on wether its a route/layout component
-	const isRoute =
-		config.framework !== 'svelte' &&
-		!config.static &&
-		posixify(doc.filename).startsWith(posixify(path.join(config.projectRoot, 'src', 'routes')))
+	const isRoute = config.isRoute(doc.filename)
 
 	// figure out the root type
 	const rootType = doc.config.schema.getQueryType()
@@ -396,7 +391,7 @@ function addKitLoad({
 			])
 		)
 
-		if (hasVariables) {
+		if (hasVariables[name]) {
 			preloadFn.body.body.splice(
 				nextIndex++,
 				0,
