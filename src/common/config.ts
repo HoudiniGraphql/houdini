@@ -175,6 +175,13 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 			return false
 		}
 
+		// always consider layouts as routes
+		const name = path.parse(filepath).name
+		const isLayout = layout_pattern.test(name)
+		if (isLayout) {
+			return true
+		}
+
 		// if there is a route function from the config
 		if (this.configIsRoute) {
 			return this.configIsRoute(filepath)
@@ -680,3 +687,5 @@ export enum LogLevel {
 }
 
 const posixify = (str: string) => str.replace(/\\/g, '/')
+
+const layout_pattern = /^__layout(?:-([a-zA-Z0-9_-]+))?(?:@([a-zA-Z0-9_-]+))?$/
