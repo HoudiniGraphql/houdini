@@ -31,10 +31,6 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
 		        "event": context,
@@ -193,10 +189,6 @@ describe('query preprocessor', function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery2Promise = store_TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
@@ -204,10 +196,6 @@ describe('query preprocessor', function () {
 		    });
 
 		    const _TestQuery1_Input = {};
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
 
 		    const _TestQuery1Promise = store_TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
@@ -399,10 +387,6 @@ describe('query preprocessor', function () {
 		export async function load(context) {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery_Input = {};
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
 
 		    const _TestQuery = await store_TestQueryStore.fetch({
 		        "variables": _TestQuery_Input,
@@ -881,10 +865,6 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		    const _TestQuery2_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery2Promise = store_TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
@@ -892,10 +872,6 @@ test('beforeLoad hook - multiple queries', async function () {
 		    });
 
 		    const _TestQuery1_Input = {};
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
 
 		    const _TestQuery1Promise = store_TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,
@@ -1075,10 +1051,6 @@ test('afterLoad hook - multiple queries', async function () {
 		    const _houdini_context = new RequestContext(context);
 		    const _TestQuery2_Input = {};
 
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
-
 		    const _TestQuery2Promise = store_TestQuery2Store.fetch({
 		        "variables": _TestQuery2_Input,
 		        "event": context,
@@ -1086,10 +1058,6 @@ test('afterLoad hook - multiple queries', async function () {
 		    });
 
 		    const _TestQuery1_Input = {};
-
-		    if (!_houdini_context.continue) {
-		        return _houdini_context.returnValue;
-		    }
 
 		    const _TestQuery1Promise = store_TestQuery1Store.fetch({
 		        "variables": _TestQuery1_Input,

@@ -396,7 +396,7 @@ function addKitLoad({
 			])
 		)
 
-		if (hasVariables) {
+		if (hasVariables[name]) {
 			preloadFn.body.body.splice(
 				nextIndex++,
 				0,
