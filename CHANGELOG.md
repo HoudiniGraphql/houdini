@@ -1,5 +1,11 @@
 # houdini
 
+## 0.15.4
+
+### Patch Changes
+
+-   [#378](https://github.com/HoudiniGraphql/houdini/pull/378) [`6e71762`](https://github.com/HoudiniGraphql/houdini/commit/6e717629e0059cead070a92db9a6b81c91a163d2) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - always treat layout files as routes
+
 ## 0.15.3
 
 ### Patch Changes
