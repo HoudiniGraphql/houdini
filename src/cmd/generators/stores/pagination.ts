@@ -24,13 +24,13 @@ export default function pagination(config: Config, doc: CollectedGraphQLDocument
 	}
 	// cursor pagination
 	else if (paginationMethod === 'cursor') {
-		typeImports = `import type { PageInfo } from '../runtime/lib/utils'
-import type { Readable } from 'svelte/store'
-`
+		typeImports = `import type { Readable } from 'svelte/store'
+import { type HoudiniFetchContext } from '../runtime/lib/types'
+import type { PageInfo } from '../runtime/lib/utils'`
 		// forwards cursor pagination
 		if (doc.refetch?.direction === 'forward') {
 			types = `{
-    loadNextPage: (pageCount?: number, after?: string | number) => Promise<void>
+    loadNextPage: (context: HoudiniFetchContext, pageCount?: number, after?: string | number) => Promise<void>
     pageInfo: Readable<PageInfo>
 }`
 			methods = {
@@ -43,7 +43,7 @@ import type { Readable } from 'svelte/store'
 			// backwards cursor pagination
 		} else {
 			types = `{
-    loadPreviousPage: (pageCount?: number, before?: string) => Promise<void>
+    loadPreviousPage: (context: HoudiniFetchContext, pageCount?: number, before?: string) => Promise<void>
     pageInfo: Readable<PageInfo>
 }`
 			methods = {

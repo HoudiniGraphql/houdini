@@ -47,7 +47,7 @@ export default ${storeName}
 
 	// type definitions
 	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
-import { QueryStore } from '../runtime/lib/types'
+import { type QueryStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
 
 export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}> ${

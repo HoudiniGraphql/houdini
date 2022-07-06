@@ -1,7 +1,7 @@
 // externals
 import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
 // locals
-import { FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams, deepEquals } from '..'
+import { deepEquals, FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams } from '..'
 import cache from '../cache'
 import { ConfigFile, keyFieldsForType } from './config'
 import { getHoudiniContext } from './context'
