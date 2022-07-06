@@ -1,6 +1,6 @@
 // externals
 import { Readable } from 'svelte/store'
-import { onMount, onDestroy } from 'svelte'
+import { onDestroy } from 'svelte'
 // locals
 import { Operation, GraphQLTagResult } from '../lib/types'
 import { isBrowser } from '../adapter'

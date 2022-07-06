@@ -13,7 +13,7 @@ type RefetchFn<_Data = any, _Input = any> = (
 ) => Promise<QueryResult<_Data, _Input>>
 
 export function wrapPaginationStore<_Data, _Input>(
-	store: QueryStore<_Data, _Input> | FragmentStore<_Data>
+	store: QueryStore<_Data, _Input> | ReturnType<FragmentStore<_Data>['get']>
 ) {
 	// @ts-ignore
 	const { loadNextPage, loadPreviousPage, ...rest } = store
@@ -94,6 +94,7 @@ export function queryHandlers<_Data extends GraphQLObject, _Input>({
 	artifact: QueryArtifact
 	store: QueryStore<any, any>
 	queryVariables: () => _Input
+	pageInfo?: Readable<PageInfo>
 }) {
 	// if there's no refetch config for the artifact there's a problem
 	if (!artifact.refetch) {
@@ -132,6 +133,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	documentLoading?: Readable<boolean>
 	refetch: RefetchFn<_Data, _Input>
 	config: ConfigFile
+	pageInfo?: Readable<PageInfo>
 }): PaginatedHandlers<_Data, _Input> {
 	// start with the defaults and no meaningful page info
 	let loadPreviousPage: PaginatedHandlers<_Data, _Input>['loadPreviousPage'] = async (
@@ -140,15 +142,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	let loadNextPage: PaginatedHandlers<_Data, _Input>['loadNextPage'] = async (
 		...args: Parameters<PaginatedHandlers<_Data, _Input>['loadNextPage']>
 	) => {}
-	let pageInfo = readable<PageInfo>(
-		{
-			startCursor: null,
-			endCursor: null,
-			hasNextPage: false,
-			hasPreviousPage: false,
-		},
-		() => {}
-	)
+	let pageInfo = readable<PageInfo>(nullPageInfo())
 
 	// loading state
 	let paginationLoadingState = writable(false)
@@ -228,12 +222,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	refetch: RefetchFn
 }): PaginatedHandlers<_Data, _Input> {
 	// track the current page info in an easy-to-reach store
-	const initialPageInfo = extractPageInfo(initialValue, artifact.refetch!.path) ?? {
-		startCursor: null,
-		endCursor: null,
-		hasNextPage: false,
-		hasPreviousPage: false,
-	}
+	const initialPageInfo = extractPageInfo(initialValue, artifact.refetch!.path) ?? nullPageInfo()
 
 	const pageInfo = writable<PageInfo>(initialPageInfo)
 
@@ -594,14 +583,7 @@ export function extractPageInfo(data: GraphQLObject | null, path: string[]): Pag
 		current = current[localPath.shift() as string] as GraphQLObject
 	}
 
-	return (
-		(current?.pageInfo as PageInfo) ?? {
-			startCursor: null,
-			endCursor: null,
-			hasNextPage: false,
-			hasPreviousPage: false,
-		}
-	)
+	return (current?.pageInfo as PageInfo) ?? nullPageInfo()
 }
 
 export function countPage<_Data extends GraphQLObject>(
@@ -628,3 +610,10 @@ export function countPage<_Data extends GraphQLObject>(
 
 	return 0
 }
+
+export const nullPageInfo = () => ({
+	startCursor: null,
+	endCursor: null,
+	hasNextPage: false,
+	hasPreviousPage: false,
+})

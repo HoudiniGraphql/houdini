@@ -22,7 +22,7 @@
 </div>
 
 <div id="pageInfo">
-  {JSON.stringify($GQL_StoreForwardCursorPaginationQuery?.data?.usersConnection.pageInfo)}
+  {JSON.stringify($GQL_StoreForwardCursorPaginationQuery?.pageInfo)}
 </div>
 
 <button id="next" on:click={() => loadNextPage()}>next</button>

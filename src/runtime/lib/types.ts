@@ -196,12 +196,14 @@ export type FragmentStore<_Shape> = {
 	}
 }
 
-export type QueryStore<_Data, _Input> = Readable<QueryResult<_Data, _Input>> & {
+export type QueryStore<_Data, _Input, _Extra = {}> = Readable<
+	QueryResult<_Data, _Input> & _Extra
+> & {
 	name: string
 	/**
 	 * Fetch the data from the server
 	 */
-	fetch: (params?: QueryStoreFetchParams<_Input>) => Promise<QueryResult<_Data, _Input>>
+	fetch: (params?: QueryStoreFetchParams<_Input>) => Promise<QueryResult<_Data, _Input> & _Extra>
 }
 
 // the result of tagging an operation

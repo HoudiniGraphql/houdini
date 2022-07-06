@@ -1,11 +1,16 @@
 import { Config } from '../../../common'
-import { ArtifactKind, CollectedGraphQLDocument } from '../../types'
+import { CollectedGraphQLDocument } from '../../types'
 
-export default function pagination(config: Config, doc: CollectedGraphQLDocument) {
+export default function pagination(
+	config: Config,
+	doc: CollectedGraphQLDocument,
+	which: 'fragment' | 'query'
+) {
 	// figure out the extra methods and their types when there's pagination
 	let methods = {}
 	let types = ''
 	let typeImports = ''
+	let storeExtras = '{}'
 
 	// which functions we pull from the handlers depends on the pagination method
 	// specified by the artifact
@@ -13,8 +18,10 @@ export default function pagination(config: Config, doc: CollectedGraphQLDocument
 
 	// offset pagination
 	if (paginationMethod === 'offset') {
+		typeImports = `import { type HoudiniFetchContext } from '../runtime/lib/types`
+
 		types = `{
-	loadNextPage: (limit?: number) => Promise<void>
+	loadNextPage: (context: HoudiniFetchContext, limit?: number) => Promise<void>
 }`
 		methods = {
 			loadNextPage: 'loadNextPage',
@@ -27,11 +34,15 @@ export default function pagination(config: Config, doc: CollectedGraphQLDocument
 		typeImports = `import type { Readable } from 'svelte/store'
 import { type HoudiniFetchContext } from '../runtime/lib/types'
 import type { PageInfo } from '../runtime/lib/utils'`
+
+		// regardless of direction, the store needs to have the most recent page info attached
+		storeExtras = '{ pageInfo: PageInfo } '
+
 		// forwards cursor pagination
 		if (doc.refetch?.direction === 'forward') {
 			types = `{
     loadNextPage: (context: HoudiniFetchContext, pageCount?: number, after?: string | number) => Promise<void>
-    pageInfo: Readable<PageInfo>
+    ${which === 'query' ? 'pageInfo: Readable<PageInfo>' : ''}
 }`
 			methods = {
 				loadNextPage: 'loadNextPage',
@@ -44,7 +55,6 @@ import type { PageInfo } from '../runtime/lib/utils'`
 		} else {
 			types = `{
     loadPreviousPage: (context: HoudiniFetchContext, pageCount?: number, before?: string) => Promise<void>
-    pageInfo: Readable<PageInfo>
 }`
 			methods = {
 				loadPreviousPage: 'loadPreviousPage',
@@ -59,5 +69,6 @@ import type { PageInfo } from '../runtime/lib/utils'`
 		types: types ? `& ${types}` : '',
 		methods,
 		typeImports,
+		storeExtras,
 	}
 }
