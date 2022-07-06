@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { query, graphql, type PreprocessorTestQuery1 } from '$houdini';
+  import { query, graphql, type LayoutTestQuery } from '$houdini';
 
-  const { data } = query<PreprocessorTestQuery1>(graphql`
-    query PreprocessorTestQuery1 {
+  const { data } = query<LayoutTestQuery>(graphql`
+    query LayoutTestQuery {
       user(id: "1", snapshot: "preprocess-query-simple") {
         name
       }
