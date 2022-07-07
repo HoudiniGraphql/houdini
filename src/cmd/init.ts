@@ -14,7 +14,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 		{
 			message:
 				'Did you git commit everything before running init? (so that you can see all changes easily)',
-			name: 'isTypeScript',
+			name: 'allowWritingEverywhere',
 			type: 'confirm',
 		},
 		{
@@ -61,33 +61,13 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 			name: 'isTypeScript',
 			type: 'confirm',
 		},
-		// {
-		// 	message:
-		// 		'Where should the schema be written to? Valid file extensions are .json, .gql, or .graphql',
-		// 	name: 'schemaPath',
-		// 	type: 'input',
-		// 	default: './schema.graphql',
-		// 	validate: (input: string) => {
-		// 		const validExtensions = ['json', 'gql', 'graphql']
-
-		// 		const extension = input.split('.').pop()
-		// 		if (!extension) {
-		// 			return 'Please provide a valid schema path.'
-		// 		}
-		// 		if (!validExtensions.includes(extension)) {
-		// 			return 'The provided schema path should be of type ' + validExtensions.join('|')
-		// 		}
-
-		// 		return true
-		// 	},
-		// },
 	])) as {
+		allowWritingEverywhere: boolean
 		framework: 'kit' | 'svelte' | 'sapper'
 		isGraphQLEndpoint: boolean
 		url: string
 		module: 'commonjs' | 'esm'
 		isTypeScript: boolean
-		// schemaPath: string
 	}
 
 	// if the user didn't choose a module type, figure it out from the framework choice
@@ -105,6 +85,10 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	const sourceDir = path.join(targetPath, 'src')
 	// the config file path
 	const configPath = path.join(targetPath, 'houdini.config.js')
+	// the config file path
+	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
+
+	const gitignorePath = path.join(targetPath, '.gitignore')
 	// where we put the houdiniClient
 	const houdiniClientPath = path.join(
 		sourceDir,
@@ -133,10 +117,23 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 
 		// write the houdiniClient file
 		fs.writeFile(houdiniClientPath, houdiniClientFile(answers.url, answers.isTypeScript)),
+
+		// write the svelte config file
+		answers.allowWritingEverywhere && fs.writeFile(svelteConfigPath, svelteConfigFile()),
+
+		fs.appendFile(
+			gitignorePath,
+			`\n\n# 🎩 Houdini's folder where everything will be generated\n$houdini`
+		),
 	])
 
 	// generate an empty runtime
 	console.log('✨ Creating necessary files...')
+
+	if (!answers.allowWritingEverywhere) {
+		console.log('🪄 To compelte the setup, you need to:')
+		console.log('- update "svelte.config.js"')
+	}
 
 	// make sure we don't log anything else
 	const config = await getConfig({
@@ -197,6 +194,38 @@ async function fetchQuery({ fetch, session, text = '', variables = {}, session, 
 
 export default new HoudiniClient(fetchQuery)}
 `
+}
+
+const svelteConfigFile = () => {
+	return `import adapter from '@sveltejs/adapter-auto'
+import houdini from 'houdini/preprocess'
+import path from 'path'
+import preprocess from 'svelte-preprocess'
+
+/\*\* @type {import('@sveltejs/kit').Config} \*/
+const config = {
+preprocess: [preprocess(), houdini()],
+
+	kit: {
+		adapter: adapter(),
+
+		vite: {
+			resolve: {
+				alias: {
+					$houdini: path.resolve('.', '$houdini')
+				}
+			},
+			server: {
+				fs: {
+					allow: ['.']
+				}
+			},
+		}
+	}
+
+};
+
+export default config;`
 }
 
 const configFile = ({
