@@ -23,7 +23,8 @@ jobs:
               with:
                   ref: ${{ github.ref }}
 
-            - uses: ./github/workflows/actions/node_and_install@v1
+            - name: Node Yarn Install
+              uses: ./github/workflows/actions/node_yarn_install@feat/ci
 
             - name: Check prettier
               run: yarn format:check
