@@ -1,4 +1,5 @@
 import fs from 'fs/promises'
+import { existsSync } from 'fs'
 
 export async function writeFile(path: string, data: string) {
 	try {
@@ -15,7 +16,7 @@ export async function writeFile(path: string, data: string) {
 }
 
 export async function createFolderIfNotExists(folder: string) {
-	if (!(await fs.readdir(folder))) {
+	if (!existsSync(folder)) {
 		await fs.mkdir(folder)
 	}
 }
