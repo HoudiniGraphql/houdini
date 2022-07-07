@@ -1,4 +1,4 @@
-name: 'Hello World'
+name: 'Node Yarn Install'
 
 inputs:
     node-version:
