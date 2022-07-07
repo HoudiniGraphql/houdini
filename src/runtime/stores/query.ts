@@ -260,7 +260,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		})
 
 		// we only want to add page info if we have to
-		relevantStores.push(derived([handlers.pageInfo], (pageInfo) => ({ pageInfo })))
+		relevantStores.push(derived([handlers.pageInfo], ([pageInfo]) => ({ pageInfo })))
 
 		extraMethods = Object.fromEntries(
 			Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])

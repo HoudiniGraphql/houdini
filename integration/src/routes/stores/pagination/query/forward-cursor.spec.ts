@@ -62,6 +62,10 @@ test.describe('forwards cursor paginatedQuery', () => {
       // check the page info to know if we will click on next?
       await expectToContain(page, `"hasNextPage":true`);
 
+      // make sure that page info is an object
+      const pageInfo = (await page.textContent('div[id=pageInfo]')) || 'null';
+      expect(Array.isArray(JSON.parse(pageInfo))).toBeFalsy();
+
       // wait for the request to resolve
       await expectGraphQLResponse(page, 'button[id=next]');
 
