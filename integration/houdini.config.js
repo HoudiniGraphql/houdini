@@ -13,9 +13,6 @@ const config = {
       type: 'Date',
       // turn the api's response into that type
       unmarshal(val) {
-        if (val === null) {
-          return null;
-        }
         return new Date(val);
       },
       // turn the value into something the API can use

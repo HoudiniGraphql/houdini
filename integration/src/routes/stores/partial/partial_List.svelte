@@ -20,9 +20,11 @@
   {#each $GQL_Partial_List.data?.usersList ?? [] as { id, name }}
     {@const realId = id.split(':')[1]}
     <div>
-      <a id={realId} href={`./partial_${realId}`}>
+      <a id={`f_${realId}`} href={`./partial_${realId}`}>Full</a>
+      <a id={`l_${realId}`} href={`./partial_${realId}_Light`}>Light</a>
+      <span>
         {id} - {name}
-      </a>
+      </span>
     </div>
   {/each}
 </div>
