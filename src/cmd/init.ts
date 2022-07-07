@@ -148,6 +148,17 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	// generate an empty runtime
 	console.log('✨ Creating necessary files...')
 
+	// make sure we don't log anything else
+	const config = await getConfig({
+		logLevel: LogLevel.Quiet,
+	})
+	await generate(config)
+
+	// we're done!
+	console.log('🎩 Welcome to Houdini!')
+
+	console.log('')
+
 	if (!answers.allowWritingEverywhere) {
 		console.log('🪄  To compelte the setup, you need to:')
 		console.log('  - update "svelte.config.js"')
@@ -158,17 +169,10 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 		console.log(
 			'  More infos on https://www.houdinigraphql.com/guides/setting-up-your-project"'
 		)
+	} else {
+		console.log('👉  Write your GraphQL operations...')
+		console.log('👉  Run: "houdini generate" to start using them.')
 	}
-
-	// make sure we don't log anything else
-	const config = await getConfig({
-		logLevel: LogLevel.Quiet,
-	})
-	await generate(config)
-
-	// we're done!
-	console.log('🎩 Welcome to Houdini!')
-	console.log('👉  run: "houdini generate"')
 }
 
 const houdiniClientFile = (url: string, isTypeScript: boolean) => {
