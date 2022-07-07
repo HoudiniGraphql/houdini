@@ -18,17 +18,24 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Setup Node
-              uses: actions/setup-node@v1
-              with:
-                  node-version: 16.14.2
-
             - name: Checkout source
               uses: actions/checkout@master
               with:
                   ref: ${{ github.ref }}
 
+            - name: Setup Node
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16.14.2
+                  cache: 'yarn'
+
+            - uses: actions/cache@v2
+              with:
+                  path: '**/node_modules'
+                  key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
             - name: Install Dependencies
+              if: steps.yarn-cache.outputs.cache-hit != 'true'
               run: yarn install
               env:
                   YARN_ENABLE_IMMUTABLE_INSTALLS: false
