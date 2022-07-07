@@ -1,5 +1,13 @@
 # houdini
 
+## 0.15.5
+
+### Patch Changes
+
+-   [#377](https://github.com/HoudiniGraphql/houdini/pull/377) [`9836c94`](https://github.com/HoudiniGraphql/houdini/commit/9836c94f36a0cba387a86ef31075cf318a5df557) Thanks [@jycouet](https://github.com/jycouet)! - avoid manipulating scalars with null values
+
+*   [#384](https://github.com/HoudiniGraphql/houdini/pull/384) [`0c567cd`](https://github.com/HoudiniGraphql/houdini/commit/0c567cd3c4c9eb44f63e54712582e15837472773) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix bug with incorrect page info type
+
 ## 0.15.4
 
 ### Patch Changes
