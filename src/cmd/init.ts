@@ -3,6 +3,7 @@ import inquirer from 'inquirer'
 import path from 'path'
 import { Config, getConfig, LogLevel } from '../common'
 import generate from './generate'
+import { createFolderIfNotExists, writeFile } from './utils'
 import { writeSchema } from './utils/writeSchema'
 
 // the init command is responsible for scaffolding a few files
@@ -92,7 +93,8 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	// the tsconfig file path
 	const tsconfigPath = path.join(targetPath, 'tsconfig.json')
 	// the layout file path
-	const layoutPath = path.join(targetPath, 'routes', '__layout.svelte')
+	const routesPath = path.join(targetPath, 'routes')
+	const layoutPath = path.join(routesPath, '__layout.svelte')
 	// where we put the houdiniClient
 	const houdiniClientPath = path.join(
 		sourceDir,
@@ -102,13 +104,18 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	const kitGraphQLEndpoint = answers.framework === 'kit' && answers.isGraphQLEndpoint
 	const schemaPath = kitGraphQLEndpoint ? 'src/**/*.graphql' : './schema.graphql'
 
+	// This need to be done before we can start writing files
+	if (answers.allowWritingEverywhere) {
+		await createFolderIfNotExists(routesPath)
+	}
+
 	await Promise.all([
 		// Get the schema from the url and write it to file
 		!kitGraphQLEndpoint &&
 			writeSchema(answers.url, path.join(targetPath, schemaPath), args?.pullHeader),
 
 		// write the config file
-		fs.writeFile(
+		writeFile(
 			configPath,
 			configFile({
 				schemaPath,
@@ -120,18 +127,17 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 		),
 
 		// write the houdiniClient file
-		fs.writeFile(houdiniClientPath, houdiniClientFile(answers.url, answers.isTypeScript)),
+		writeFile(houdiniClientPath, houdiniClientFile(answers.url, answers.isTypeScript)),
 
 		// write the svelte config file
-		answers.allowWritingEverywhere && fs.writeFile(svelteConfigPath, svelteConfigFile()),
+		answers.allowWritingEverywhere && writeFile(svelteConfigPath, svelteConfigFile()),
 
 		// write the tsConfigFile
 		answers.allowWritingEverywhere &&
 			answers.isTypeScript &&
-			fs.writeFile(tsconfigPath, tsConfigFile()),
+			writeFile(tsconfigPath, tsConfigFile()),
 
-		answers.allowWritingEverywhere &&
-			fs.writeFile(layoutPath, layoutFile(answers.isTypeScript)),
+		answers.allowWritingEverywhere && writeFile(layoutPath, layoutFile(answers.isTypeScript)),
 
 		fs.appendFile(
 			gitignorePath,

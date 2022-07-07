@@ -13,3 +13,9 @@ export async function writeFile(path: string, data: string) {
 
 	await fs.writeFile(path, data, 'utf8')
 }
+
+export async function createFolderIfNotExists(folder: string) {
+	if (!(await fs.readdir(folder))) {
+		await fs.mkdir(folder)
+	}
+}
