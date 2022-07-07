@@ -29,71 +29,71 @@ jobs:
             - name: Check prettier
               run: yarn format:check
 
-    tests:
-        name: Tests
-        runs-on: ubuntu-latest
+    # tests:
+    #     name: Tests
+    #     runs-on: ubuntu-latest
 
-        steps:
-            - name: Setup Node
-              uses: actions/setup-node@v1
-              with:
-                  node-version: 16.14.2
+    #     steps:
+    #         - name: Setup Node
+    #           uses: actions/setup-node@v1
+    #           with:
+    #               node-version: 16.14.2
 
-            - name: Checkout source
-              uses: actions/checkout@master
-              with:
-                  ref: ${{ github.ref }}
+    #         - name: Checkout source
+    #           uses: actions/checkout@master
+    #           with:
+    #               ref: ${{ github.ref }}
 
-            - name: Install Dependencies
-              run: yarn install
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+    #         - name: Install Dependencies
+    #           run: yarn install
+    #           env:
+    #               YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
-            - name: Build packages
-              run: yarn build
+    #         - name: Build packages
+    #           run: yarn build
 
-            - name: Tests
-              run: yarn tests
+    #         - name: Tests
+    #           run: yarn tests
 
-    integration:
-        name: Integration Tests
-        runs-on: ubuntu-latest
+    # integration:
+    #     name: Integration Tests
+    #     runs-on: ubuntu-latest
 
-        steps:
-            - name: Setup Node
-              uses: actions/setup-node@v1
-              with:
-                  node-version: 16.14.2
+    #     steps:
+    #         - name: Setup Node
+    #           uses: actions/setup-node@v1
+    #           with:
+    #               node-version: 16.14.2
 
-            - name: Checkout source
-              uses: actions/checkout@master
-              with:
-                  ref: ${{ github.ref }}
+    #         - name: Checkout source
+    #           uses: actions/checkout@master
+    #           with:
+    #               ref: ${{ github.ref }}
 
-            - name: Install Dependencies
-              run: yarn install
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+    #         - name: Install Dependencies
+    #           run: yarn install
+    #           env:
+    #               YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
-            - name: Build packages
-              run: yarn build
+    #         - name: Build packages
+    #           run: yarn build
 
-            - name: Install Playwright
-              run: npx playwright install --with-deps
+    #         - name: Install Playwright
+    #           run: npx playwright install --with-deps
 
-            - name: Integration Tests
-              run: yarn tests:integration
+    #         - name: Integration Tests
+    #           run: yarn tests:integration
 
-            # needs to run after build & houdini generate
-            - name: Integration lint
-              run: yarn workspace integration lint
+    #         # needs to run after build & houdini generate
+    #         - name: Integration lint
+    #           run: yarn workspace integration lint
 
-            - name: Integration check
-              run: yarn workspace integration check
+    #         - name: Integration check
+    #           run: yarn workspace integration check
 
-            - name: Upload test results
-              if: always()
-              uses: actions/upload-artifact@v2
-              with:
-                  name: playwright-report
-                  path: integration/playwright-report
+    #         - name: Upload test results
+    #           if: always()
+    #           uses: actions/upload-artifact@v2
+    #           with:
+    #               name: playwright-report
+    #               path: integration/playwright-report
