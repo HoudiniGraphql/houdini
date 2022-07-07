@@ -39,7 +39,7 @@ type PageInfo {
 type Query {
   avgYearsBirthDate: Float!
   node(id: ID!): Node
-  user(id: ID!, snapshot: String!, tmp: Boolean): User!
+  user(id: ID!, snapshot: String!, tmp: Boolean, delay: Int, forceNullDate: Boolean): User!
   usersConnection(
     after: String
     before: String
@@ -52,7 +52,7 @@ type Query {
 }
 
 type User implements Node {
-  birthDate: DateTime!
+  birthDate: DateTime
   friendsConnection(after: String, before: String, first: Int, last: Int): UserConnection!
   friendsList(limit: Int, offset: Int): [User!]!
   id: ID!

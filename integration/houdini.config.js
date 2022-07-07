@@ -6,6 +6,7 @@ const config = {
   module: 'esm',
   apiUrl: 'http://localhost:4000/graphql',
   defaultCachePolicy: 'CacheOrNetwork',
+  defaultPartial: true,
   routes: (filepath) => filepath && !filepath.includes('_') && !filepath.includes('+'),
   scalars: {
     DateTime: {

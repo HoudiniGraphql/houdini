@@ -60,9 +60,16 @@ export const resolvers = {
     },
     user: async (_, args) => {
       // simulate network delay
-      // await sleep(1000);
+      if (args.delay) {
+        await sleep(args.delay);
+      }
 
       const user = getSnapshot(args.snapshot).find((c) => c.id === `${args.snapshot}:${args.id}`);
+
+      if (args.forceNullDate) {
+        user.birthDate = null;
+      }
+
       if (!user) {
         throw new GraphQLYogaError('User not found', { code: 404 });
       }
@@ -75,6 +82,7 @@ export const resolvers = {
       const [snapshot, id] = nodeID.split(':');
       const list = getSnapshot(snapshot);
       const user = list.find((u) => u.id === nodeID);
+
       return {
         ...user,
         __typename: 'User'

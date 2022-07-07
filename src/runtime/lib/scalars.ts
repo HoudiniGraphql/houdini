@@ -157,7 +157,9 @@ export function unmarshalSelection(
 					unmarshalSelection(config, fields, value),
 				]
 			}
-
+			if (value === null) {
+				return [fieldName, value]
+			}
 			// is the type something that requires marshaling
 			if (config.scalars?.[type]?.marshal) {
 				const unmarshalFn = config.scalars[type].unmarshal

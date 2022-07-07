@@ -17,6 +17,7 @@ export const routes = {
   Stores_Fragment_Null: '/stores/fragment-null',
   Stores_Metadata: '/stores/metadata',
 
+  Stores_Partial_List: '/stores/partial/partial_List',
   Stores_Pagination_query_forward_cursor: '/stores/pagination/query/forward-cursor',
 
   Preprocess_query_simple: '/preprocess/query/simple',

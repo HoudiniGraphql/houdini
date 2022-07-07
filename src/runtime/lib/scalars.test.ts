@@ -1,8 +1,8 @@
+import { jest } from '@jest/globals'
 import { testConfigFile } from '../../common'
 import { RequestContext } from './network'
 import { marshalSelection, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact } from './types'
-import { jest } from '@jest/globals'
 
 jest.mock('../cache', function () {
 	return
@@ -512,6 +512,34 @@ describe('unmarshal selection', function () {
 
 		expect(unmarshalSelection(config, selection, data)).toEqual({
 			item: null,
+		})
+	})
+
+	test('null inside', function () {
+		const data = {
+			item: {
+				createdAt: null,
+			},
+		}
+
+		const selection = {
+			item: {
+				type: 'TodoItem',
+				keyRaw: 'item',
+
+				fields: {
+					createdAt: {
+						type: 'DateTime',
+						keyRaw: 'createdAt',
+					},
+				},
+			},
+		}
+
+		expect(unmarshalSelection(config, selection, data)).toEqual({
+			item: {
+				createdAt: null,
+			},
 		})
 	})
 
