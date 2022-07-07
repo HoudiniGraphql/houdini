@@ -1,11 +1,9 @@
 <script context="module" lang="ts">
   import { browser } from '$app/env';
   import { GQL_Partial_User, type Partial_User$input } from '$houdini';
-  import type { Load } from '@sveltejs/kit';
+  import type { Load } from './__types/partial_[userId]';
 
-  export const load: Load<{ userId: string }, {}, { variables: Partial_User$input }> = async (
-    event
-  ) => {
+  export const load: Load<{}, { variables: Partial_User$input }> = async (event) => {
     const variables = { id: event.params.userId };
 
     await GQL_Partial_User.fetch({ event, variables });

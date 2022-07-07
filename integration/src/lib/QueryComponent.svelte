@@ -9,6 +9,7 @@
 <script lang="ts">
   import { query, graphql, type FragmentQueryVars } from '$houdini';
 
+  // svelte-ignore unused-export-let
   export let id = '';
 
   const { data } = query<FragmentQueryVars>(graphql`

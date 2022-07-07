@@ -3,12 +3,10 @@
   import { GQL_Partial_List } from '$houdini';
   import type { Load } from '@sveltejs/kit';
 
-  export const load: Load<{}, {}, {}> = async (event) => {
+  export const load: Load = async (event) => {
     await GQL_Partial_List.fetch({ event });
 
-    return {
-      props: {}
-    };
+    return {};
   };
 </script>
 

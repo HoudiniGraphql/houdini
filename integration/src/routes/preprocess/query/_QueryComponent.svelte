@@ -9,8 +9,8 @@
 <script lang="ts">
   import { query, graphql, type ComponentRouteQuery } from '$houdini';
 
-  // eslint-disable-next-line @typescript-eslint/no-inferrable-types
-  export let id: string = '';
+  // svelte-ignore unused-export-let
+  export let id = '';
 
   const { data } = query<ComponentRouteQuery>(graphql`
     query ComponentRouteQuery($id: ID!) {
