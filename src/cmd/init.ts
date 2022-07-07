@@ -87,8 +87,12 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	const configPath = path.join(targetPath, 'houdini.config.js')
 	// the config file path
 	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
-
+	// the .gitignore file path
 	const gitignorePath = path.join(targetPath, '.gitignore')
+	// the tsconfig file path
+	const tsconfigPath = path.join(targetPath, 'tsconfig.json')
+	// the layout file path
+	const layoutPath = path.join(targetPath, 'routes', '__layout.svelte')
 	// where we put the houdiniClient
 	const houdiniClientPath = path.join(
 		sourceDir,
@@ -121,6 +125,14 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 		// write the svelte config file
 		answers.allowWritingEverywhere && fs.writeFile(svelteConfigPath, svelteConfigFile()),
 
+		// write the tsConfigFile
+		answers.allowWritingEverywhere &&
+			answers.isTypeScript &&
+			fs.writeFile(tsconfigPath, tsConfigFile()),
+
+		answers.allowWritingEverywhere &&
+			fs.writeFile(layoutPath, layoutFile(answers.isTypeScript)),
+
 		fs.appendFile(
 			gitignorePath,
 			`\n\n# 🎩 Houdini's folder where everything will be generated\n$houdini`
@@ -131,8 +143,15 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	console.log('✨ Creating necessary files...')
 
 	if (!answers.allowWritingEverywhere) {
-		console.log('🪄 To compelte the setup, you need to:')
-		console.log('- update "svelte.config.js"')
+		console.log('🪄  To compelte the setup, you need to:')
+		console.log('  - update "svelte.config.js"')
+		if (answers.isTypeScript) {
+			console.log('  - update "tsconfig.json"')
+		}
+		console.log('  - update "routes/__layout.svelte"')
+		console.log(
+			'  More infos on https://www.houdinigraphql.com/guides/setting-up-your-project"'
+		)
 	}
 
 	// make sure we don't log anything else
@@ -143,6 +162,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 
 	// we're done!
 	console.log('🎩 Welcome to Houdini!')
+	console.log('👉  run: "houdini generate"')
 }
 
 const houdiniClientFile = (url: string, isTypeScript: boolean) => {
@@ -228,6 +248,29 @@ preprocess: [preprocess(), houdini()],
 export default config;`
 }
 
+const tsConfigFile = () => {
+	return `{
+	"extends": "./.svelte-kit/tsconfig.json",
+	"compilerOptions": {
+		"paths": {
+			"$houdini": ["$houdini"]
+		}
+	}
+}
+`
+}
+
+const layoutFile = (isTypeScript: boolean) => {
+	return `<script context="module"${isTypeScript ? ' lang="ts"' : ''}>
+	import { houdiniClient } from '../houdiniClient'; 
+	
+	houdiniClient.init();
+</script>
+
+<slot />
+`
+}
+
 const configFile = ({
 	schemaPath,
 	framework,
@@ -246,19 +289,22 @@ const configFile = ({
 
 	configObj.push(`/** @type {import('houdini').ConfigFile} */`)
 	configObj.push(`const config = {`)
-	configObj.push(`		schemaPath: '${schemaPath}',`)
-	configObj.push(`		sourceGlob: 'src/**/*.{svelte,gql}',`)
+	configObj.push(`	schemaPath: '${schemaPath}',`)
+	configObj.push(`	sourceGlob: 'src/**/*.{svelte,gql}',`)
 
 	if (module !== 'esm') {
-		configObj.push(`		module: '${module}',`)
+		configObj.push(`	module: '${module}',`)
 	}
 	if (framework !== 'kit') {
-		configObj.push(`		framework: '${framework}',`)
+		configObj.push(`	framework: '${framework}',`)
 	}
 	if (!kitGraphQLEndpoint) {
-		configObj.push(`		apiUrl: '${url}',`)
+		configObj.push(`	apiUrl: '${url}',`)
 	}
 
+	configObj.push(`	scalars: {`)
+	configObj.push(`		// For your scalars configuration later...`)
+	configObj.push(`	}`)
 	configObj.push(`}`)
 	configObj.push(``)
 
