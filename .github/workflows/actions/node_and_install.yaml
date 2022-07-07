@@ -1,0 +1,28 @@
+name: 'Hello World'
+
+inputs:
+    node-version:
+        required: false
+        default: 16.14.2
+
+runs:
+    using: 'composite'
+
+    steps:
+        - name: Setup Node
+          uses: actions/setup-node@v3
+          with:
+              node-version: ${{ inputs.node-version }}
+              cache: 'yarn'
+
+        - name: Prepare Cache
+          uses: actions/cache@v2
+          with:
+              path: '**/node_modules'
+              key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+        - name: Install Dependencies
+          if: steps.yarn-cache.outputs.cache-hit != 'true'
+          run: yarn install
+          env:
+              YARN_ENABLE_IMMUTABLE_INSTALLS: false
