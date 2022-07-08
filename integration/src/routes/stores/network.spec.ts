@@ -4,16 +4,6 @@ import { expectNGraphQLResponse } from '../../lib/utils/testsHelper.js';
 
 test.describe('NETWORK Page', () => {
   test('we have no li element(s) in <ul></ul> (no data from SSR)', async ({ page }) => {
-    // Fake GraphQL response, to not load any data.
-    // Here just to make sure we have no data in the page from the start.
-    // The test was failing because the page was loading data too fast!
-    await page.route('**/graphql', (route) =>
-      route.fulfill({
-        status: 200,
-        body: ''
-      })
-    );
-
     const body = await page.goto(routes.Stores_Network);
     const text = await body?.text();
     expect(text).toContain('<ul></ul>');
