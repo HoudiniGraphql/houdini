@@ -18,10 +18,8 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v2.3.4 # Necessary to access local action!
-
             - name: Checkout source
-              uses: actions/checkout
+              uses: actions/checkout@v2.3.4 # Necessary to access local action!
               with:
                   ref: ${{ github.ref }}
 
