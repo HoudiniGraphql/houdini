@@ -14,10 +14,9 @@ test.describe('NETWORK Page', () => {
       })
     );
 
-    await page.goto(routes.Stores_Network);
-
-    const ele = await page.content();
-    expect(ele).toContain('<ul></ul>');
+    const body = await page.goto(routes.Stores_Network);
+    const text = await body?.text();
+    expect(text).toContain('<ul></ul>');
   });
 
   test('Getting the right data in a network mode (CSR)', async ({ page }) => {
