@@ -127,8 +127,8 @@ jobs:
             - name: Build packages
               run: yarn build
 
-            # - name: Install Playwright
-            #   run: npx playwright install --with-deps
+            - name: Install Playwright
+              run: npx playwright install --with-deps
 
             - name: Integration Tests
               run: yarn tests:integration
