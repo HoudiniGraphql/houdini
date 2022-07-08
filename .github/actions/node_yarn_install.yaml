@@ -9,8 +9,6 @@ runs:
     using: 'composite'
 
     steps:
-        - uses: actions/checkout@v2.3.4 # Necessary to access local action!
-
         - name: Setup Node
           uses: actions/setup-node@v3
           with:

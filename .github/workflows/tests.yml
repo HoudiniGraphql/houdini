@@ -19,7 +19,7 @@ jobs:
 
         steps:
             - name: Checkout source
-              uses: actions/checkout@v2.3.4 # Necessary to access local action!
+              uses: actions/checkout@v3
               with:
                   ref: ${{ github.ref }}
 
