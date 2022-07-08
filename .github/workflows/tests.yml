@@ -12,24 +12,24 @@ on:
         branches:
             - main
 
-node_yarn_install: &node_yarn_install
-    - name: Setup Node
-      uses: actions/setup-node@v3
-      with:
-          node-version: 16.14.2
-          cache: 'yarn'
+# node_yarn_install: &node_yarn_install
+#     - name: Setup Node
+#       uses: actions/setup-node@v3
+#       with:
+#           node-version: 16.14.2
+#           cache: 'yarn'
 
-    - name: Prepare Cache
-      uses: actions/cache@v2
-      with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+#     - name: Prepare Cache
+#       uses: actions/cache@v2
+#       with:
+#           path: '**/node_modules'
+#           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-    - name: Install Dependencies
-      if: steps.yarn-cache.outputs.cache-hit != 'true'
-      run: yarn install
-      env:
-          YARN_ENABLE_IMMUTABLE_INSTALLS: false
+#     - name: Install Dependencies
+#       if: steps.yarn-cache.outputs.cache-hit != 'true'
+#       run: yarn install
+#       env:
+#           YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
 jobs:
     format:
@@ -42,7 +42,7 @@ jobs:
               with:
                   ref: ${{ github.ref }}
 
-            - *node_yarn_install
+            # - *node_yarn_install
 
             - name: Check prettier
               run: yarn format:check
