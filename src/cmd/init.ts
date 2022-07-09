@@ -405,6 +405,12 @@ async function updatePackageJSON(targetPath: string) {
 		generate: 'houdini generate',
 	}
 
+	// and houdini should be a dev dependency
+	packageJSON.devDependencies = {
+		...packageJSON.devDependencies,
+		houdini: '^HOUDINI_VERSION',
+	}
+
 	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4), 'utf-8')
 
 	console.log(`✅ Added generate script to package.json`)
