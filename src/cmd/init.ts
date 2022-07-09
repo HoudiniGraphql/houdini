@@ -41,23 +41,23 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 
 	// typescript
 	if (typescript) {
-		console.log('🟦 TypeScript')
+		console.log('  🟦 TypeScript')
 	}
 
 	// module
 	if (module === 'esm') {
-		console.log('📦 ES Modules')
+		console.log('  📦 ES Modules')
 	} else {
-		console.log('📦 CommonJS')
+		console.log('  📦 CommonJS')
 	}
 
 	// framework
 	if (framework === 'kit') {
-		console.log('✨ SvelteKit')
+		console.log('  ✨ SvelteKit')
 	} else if (framework === 'sapper') {
-		console.log('✨ Sapper')
+		console.log('  ✨ Sapper')
 		console.log(
-			'⚠️  Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
+			'  ⚠️  Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
 		)
 	}
 
@@ -305,9 +305,14 @@ const config = {
 export default config;
 `
 	const oldSvelteConfig = `import adapter from '@sveltejs/adapter-auto';
+import preprocess from 'svelte-preprocess';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
+	// Consult https://github.com/sveltejs/svelte-preprocess
+	// for more information about preprocessors
+	preprocess: preprocess(),
+
 	kit: {
 		adapter: adapter()
 	}
