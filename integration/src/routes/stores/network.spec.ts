@@ -3,13 +3,11 @@ import { routes } from '../../lib/utils/routes.js';
 import { expectNGraphQLResponse } from '../../lib/utils/testsHelper.js';
 
 test.describe('NETWORK Page', () => {
-  test('we have no li element(s) in <ul></ul> (no data from SSR)', async ({ page }) => {
+  test('no data from SSR, yes data from CSR', async ({ page }) => {
     const body = await page.goto(routes.Stores_Network);
     const text = await body?.text();
     expect(text).toContain('<ul></ul>');
-  });
 
-  test('Getting the right data in a network mode (CSR)', async ({ page }) => {
     await page.goto(routes.Stores_Network);
 
     const listStr = await expectNGraphQLResponse(page, null, 2);
