@@ -37,7 +37,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 	const { framework, typescript, module } = await detectTools(targetPath)
 
 	// notify the users of what we detected
-	console.log("Here's what we were able to detect about your project:")
+	console.log("👍 Here's what we were able to detect about your project:")
 
 	// typescript
 	if (typescript) {
@@ -57,7 +57,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 	} else if (framework === 'sapper') {
 		console.log('✨ Sapper')
 		console.log(
-			'⚠️ Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
+			'⚠️  Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
 		)
 	}
 
@@ -91,6 +91,8 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 
 			// write the houdiniClient file
 			fs.writeFile(houdiniClientPath, networkFile(url, typescript)),
+
+			updatePackageJSON(targetPath),
 		]
 			// add the typescript specific changes
 			.concat(typescript ? [updateTypescriptConfig(targetPath)] : [])
@@ -195,11 +197,9 @@ async function detectTools(cwd: string): Promise<DetectedTools> {
 	try {
 		var packageJSON = JSON.parse(await fs.readFile(path.join(cwd, 'package.json'), 'utf-8'))
 	} catch {
-		return {
-			module: 'commonjs',
-			typescript: false,
-			framework: 'svelte',
-		}
+		throw new Error(
+			'❌ houdini init must target an existing node project (with a package.json)'
+		)
 	}
 
 	// grab the dev dependencies
@@ -213,6 +213,12 @@ async function detectTools(cwd: string): Promise<DetectedTools> {
 	} else if (hasDependency('sapper')) {
 		framework = 'sapper'
 	}
+
+	let typescript = false
+	try {
+		await fs.stat(path.join(cwd, 'tsconfig.json'))
+		typescript = true
+	} catch {}
 
 	return {
 		typescript: hasDependency('typescript'),
@@ -254,7 +260,7 @@ async function updateLayoutFile(targetPath: string) {
 	try {
 		await fs.stat(layoutFile)
 		// if we get here, the file exists
-		console.log(`⚠️ You already have a root layout file. Please update it to look like the following:
+		console.log(`⚠️  You already have a root layout file. Please update it to look like the following:
 ${contents}
 `)
 		return
@@ -299,21 +305,17 @@ const config = {
 export default config;
 `
 	const oldSvelteConfig = `import adapter from '@sveltejs/adapter-auto';
-	import preprocess from 'svelte-preprocess';
 
-	/** @type {import('@sveltejs/kit').Config} */
-	const config = {
-		// Consult https://github.com/sveltejs/svelte-preprocess
-		// for more information about preprocessors
-		preprocess: preprocess(),
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
+	kit: {
+		adapter: adapter()
+	}
+};
 
-		kit: {
-			adapter: adapter()
-		}
-	};
-
-	export default config;
+export default config;
 `
+
 	const svelteConfig = `import adapter from '@sveltejs/adapter-auto';
 import preprocess from 'svelte-preprocess';
 import houdini from 'houdini/preprocess';
@@ -335,7 +337,7 @@ export default config;
 	if ((await fs.readFile(svelteConfigPath, 'utf-8')) === oldSvelteConfig) {
 		await fs.writeFile(svelteConfigPath, svelteConfig, 'utf-8')
 	} else {
-		console.log(`⚠️ Could not update your svelte.config.js. Please update it to look like:
+		console.log(`⚠️  Could not update your svelte.config.js. Please update it to look like:
 
 import houdini from 'houdini/preprocess';
 
@@ -350,7 +352,7 @@ const config = {
 	if ((await fs.readFile(viteConfigPath, 'utf-8')) === oldViteConfig) {
 		await fs.writeFile(viteConfigPath, viteConfig, 'utf-8')
 	} else {
-		console.log(`⚠️ Could not update your vite.config.js. Please update it to look like:
+		console.log(`⚠️  Could not update your vite.config.js. Please update it to look like:
 
 import path from 'path'
 
@@ -369,4 +371,20 @@ export default {
 }
 `)
 	}
+}
+
+async function updatePackageJSON(targetPath: string) {
+	const packagePath = path.join(targetPath, 'package.json')
+
+	var packageJSON = JSON.parse(await fs.readFile(packagePath, 'utf-8'))
+
+	// add a generate script
+	packageJSON.scripts = {
+		...packageJSON.scripts,
+		generate: 'houdini generate',
+	}
+
+	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4), 'utf-8')
+
+	console.log(`✅ Added generate script to package.json`)
 }

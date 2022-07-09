@@ -38,8 +38,7 @@ export async function writeSchema(url: string, schemaPath: string, headers?: str
 		// return the schema for usage in --pull-schema
 		return schema
 	} catch (e) {
-		console.log('encountered error parsing response as json: ' + (e as Error).message)
-		console.log('full body: ' + content)
+		console.log(`❌ Encountered error when pulling your latest schema: ` + (e as Error).message)
 		process.exit(0)
 	}
 }
