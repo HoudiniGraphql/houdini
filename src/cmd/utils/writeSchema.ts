@@ -12,16 +12,17 @@ export async function writeSchema(url: string, schemaPath: string, headers?: str
 		}
 	}, {})
 
-	// send the request
-	const resp = await fetch(url, {
-		method: 'POST',
-		body: JSON.stringify({
-			query: graphql.getIntrospectionQuery(),
-		}),
-		headers: { 'Content-Type': 'application/json', ...moreHeaders },
-	})
-	const content = await resp.text()
 	try {
+		// send the request
+		const resp = await fetch(url, {
+			method: 'POST',
+			body: JSON.stringify({
+				query: graphql.getIntrospectionQuery(),
+			}),
+			headers: { 'Content-Type': 'application/json', ...moreHeaders },
+		})
+		const content = await resp.text()
+
 		const jsonSchema = JSON.parse(content).data
 		const schema = graphql.buildClientSchema(jsonSchema)
 

@@ -37,30 +37,32 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 	const { framework, typescript, module } = await detectTools(targetPath)
 
 	// notify the users of what we detected
+	console.log()
 	console.log("👍 Here's what we were able to detect about your project:")
-
-	// typescript
-	if (typescript) {
-		console.log('  🟦 TypeScript')
-	}
-
-	// module
-	if (module === 'esm') {
-		console.log('  📦 ES Modules')
-	} else {
-		console.log('  📦 CommonJS')
-	}
 
 	// framework
 	if (framework === 'kit') {
-		console.log('  ✨ SvelteKit')
+		console.log('✨ SvelteKit')
 	} else if (framework === 'sapper') {
-		console.log('  ✨ Sapper')
+		console.log('✨ Sapper')
 		console.log(
 			'  ⚠️  Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
 		)
 	}
 
+	// module
+	if (module === 'esm') {
+		console.log('📦 ES Modules')
+	} else {
+		console.log('📦 CommonJS')
+	}
+
+	// typescript
+	if (typescript) {
+		console.log('🟦 TypeScript')
+	}
+
+	console.log()
 	console.log('🚧 Generating your project files...')
 
 	// the location for the schema
@@ -109,6 +111,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 	await generate(config)
 
 	// we're done!
+	console.log()
 	console.log('🎩 Welcome to Houdini!')
 }
 
