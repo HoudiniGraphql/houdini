@@ -1,104 +1,104 @@
 import path from 'path'
 import inquirer from 'inquirer'
 import fs from 'fs/promises'
-import { Config, getConfig, LogLevel } from '../common'
+import { getConfig, LogLevel } from '../common'
 import { writeSchema } from './utils/writeSchema'
 import generate from './generate'
+import { ConfigFile } from '../runtime'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
-export default async (_path: string | undefined, args: { pullHeader?: string[] }) => {
+export default async (_path: string | undefined, args: { pullHeader?: string[]; yes: boolean }) => {
+	// if no path was given, we'll use cwd
+	const targetPath = _path ? path.resolve(_path) : process.cwd()
+
 	// we need to collect some information from the user before we
 	// can continue
-	let answers = await inquirer.prompt([
+	let { url, running } = await inquirer.prompt<{ url: string; running: boolean }>([
+		{
+			name: 'running',
+			type: 'confirm',
+			message: 'Is your GraphQL API running?',
+		},
 		{
 			name: 'url',
 			type: 'input',
-			message: 'Please enter the URL for your api, including its protocol.',
-		},
-		{
-			name: 'framework',
-			type: 'list',
-			message: 'Are you using Sapper or SvelteKit?',
-			choices: [
-				{ value: 'svelte', name: 'No' },
-				{ value: 'sapper', name: 'Sapper' },
-				{ value: 'kit', name: 'SvelteKit' },
-			],
-		},
-		{
-			name: 'module',
-			type: 'list',
-			message: 'What kind of modules do you want to be generated?',
-			when: ({ framework }) => framework === 'svelte',
-			choices: [
-				{ value: 'commonjs', name: 'CommonJS' },
-				{ value: 'esm', name: 'ES Modules' },
-			],
-		},
-		{
-			name: 'schemaPath',
-			type: 'input',
-			default: './schema.graphql',
-			validate: (input: string) => {
-				const validExtensions = ['json', 'gql', 'graphql']
-
-				const extension = input.split('.').pop()
-				if (!extension) {
-					return 'Please provide a valid schema path.'
-				}
-				if (!validExtensions.includes(extension)) {
-					return 'The provided schema path should be of type ' + validExtensions.join('|')
-				}
-
-				return true
-			},
-			message:
-				'Where should the schema be written to? Valid file extensions are .json, .gql, or .graphql',
+			message: "What's the URL for your api? Please includes its protocol.",
+			when: ({ running }) => running,
 		},
 	])
 
-	// if the user didn't choose a module type, figure it out from the framework choice
-	let module: Config['module'] = answers.module
-	if (answers.framework === 'kit') {
-		module = 'esm'
-	} else if (answers.framework === 'sapper') {
-		module = 'commonjs'
+	if (!running) {
+		console.log('❌ Your API must be running order to continue')
+		return
 	}
-	// dry up the framework choice
-	const { framework } = answers
 
-	// if no path was given, we'll use cwd
-	const targetPath = _path ? path.resolve(_path) : process.cwd()
+	// try to detect which tools they are using
+	const { framework, typescript, module } = await detectTools(targetPath)
+
+	// notify the users of what we detected
+	console.log("Here's what we were able to detect about your project:")
+
+	// typescript
+	if (typescript) {
+		console.log('🟦 TypeScript')
+	}
+
+	// module
+	if (module === 'esm') {
+		console.log('📦 ES Modules')
+	} else {
+		console.log('📦 CommonJS')
+	}
+
+	// framework
+	if (framework === 'kit') {
+		console.log('✨ SvelteKit')
+	} else if (framework === 'sapper') {
+		console.log('✨ Sapper')
+		console.log(
+			'⚠️ Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
+		)
+	}
+
+	console.log('🚧 Generating your project files...')
+
+	// the location for the schema
+	const schemaPath = './schema.graphql'
 
 	// the source directory
 	const sourceDir = path.join(targetPath, 'src')
 	// the config file path
 	const configPath = path.join(targetPath, 'houdini.config.js')
 	// where we put the houdiniClient
-	const houdiniClientPath = path.join(sourceDir, 'houdiniClient.js')
+	const houdiniClientPath = typescript
+		? path.join(sourceDir, 'client.ts')
+		: path.join(sourceDir, 'client.js')
 
-	await Promise.all([
-		// Get the schema from the url and write it to file
-		writeSchema(answers.url, path.join(targetPath, answers.schemaPath), args?.pullHeader),
+	await Promise.all(
+		[
+			// Get the schema from the url and write it to file
+			writeSchema(url, path.join(targetPath, schemaPath), args?.pullHeader),
 
-		// write the config file
-		fs.writeFile(
-			configPath,
-			configFile({
-				schemaPath: answers.schemaPath,
+			// write the config file
+			writeConfigFile({
+				configPath,
+				schemaPath,
 				framework,
 				module,
-				url: answers.url,
-			})
-		),
+				url,
+			}),
 
-		// write the houdiniClient file
-		fs.writeFile(houdiniClientPath, networkFile(answers.url)),
-	])
-
-	// generate an empty runtime
-	console.log('Creating necessary files...')
+			// write the houdiniClient file
+			fs.writeFile(houdiniClientPath, networkFile(url, typescript)),
+		]
+			// add the typescript specific changes
+			.concat(typescript ? [updateTypescriptConfig(targetPath)] : [])
+			// only update the layout file if we're generating a kit or sapper project
+			.concat(framework !== 'svelte' ? [updateLayoutFile(targetPath)] : [])
+			// add the sveltekit config file
+			.concat(framework === 'kit' ? [updateKitConfig(targetPath)] : [])
+	)
 
 	// make sure we don't log anything else
 	const config = await getConfig({
@@ -107,59 +107,266 @@ export default async (_path: string | undefined, args: { pullHeader?: string[] }
 	await generate(config)
 
 	// we're done!
-	console.log('Welcome to Houdini!')
+	console.log('🎩 Welcome to Houdini!')
 }
 
-const networkFile = (url: string) => `import { HoudiniClient } from '$houdini/runtime'
+const networkFile = (url: string, typescript: boolean) => `
+import { HoudiniClient${typescript ? ', type RequestHandlerArgs' : ''} } from '$houdini';
 
-async function fetchQuery({ fetch, session, text = '', variables = {} }) {
-	const result = await fetch('${url}', {
+async function fetchQuery({
+	fetch,
+	text = '',
+	variables = {},
+	session,
+	metadata
+}${typescript ? ': RequestHandlerArgs' : ''}) {
+	const url = import.meta.env.VITE_GRAPHQL_ENDPOINT || '${url}';
+	const result = await fetch(url, {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/json',
+			'Content-Type': 'application/json'
 		},
 		body: JSON.stringify({
 			query: text,
-			variables,
-		}),
-	})
-	return await result.json()
+			variables
+		})
+	});
+	return await result.json();
 }
 
-export default new HoudiniClient(fetchQuery)
+export default new HoudiniClient(fetchQuery);
 `
 
-const configFile = ({
+const writeConfigFile = async ({
+	configPath,
 	schemaPath,
 	framework,
 	module,
 	url,
+	sourceGlob = 'src/**/*.{svelte,gql,graphql}',
 }: {
+	configPath: string
 	schemaPath: string
-	framework: string
-	module: string
+	framework: 'kit' | 'sapper' | 'svelte'
+	module: 'esm' | 'commonjs'
 	url: string
+	sourceGlob?: string
 }) => {
-	// the actual config contents
-	const configObj = `{
-	schemaPath: '${schemaPath}',
-	sourceGlob: 'src/**/*.{svelte,gql,graphql}',
-	module: '${module}',
-	framework: '${framework}',
-	apiUrl: '${url}'
-}`
+	const config: ConfigFile = {
+		schemaPath,
+		sourceGlob,
+		apiUrl: url,
+	}
+	if (module !== 'esm') {
+		config.module = module
+	}
+	if (framework !== 'kit') {
+		config.framework = framework
+	}
 
-	return module === 'esm'
-		? // SvelteKit default config
-		  `/** @type {import('houdini').ConfigFile} */
+	// the actual config contents
+	const configObj = JSON.stringify(config, null, 4)
+	const content =
+		module === 'esm'
+			? // SvelteKit default config
+			  `/** @type {import('houdini').ConfigFile} */
 const config = ${configObj}
 
 export default config
 `
-		: // sapper default config
-		  `/** @type {import('houdini').ConfigFile} */
+			: // sapper default config
+			  `/** @type {import('houdini').ConfigFile} */
 const config = ${configObj}
 
 module.exports = config
 `
+
+	await fs.writeFile(configPath, content, 'utf-8')
+}
+
+type DetectedTools = {
+	typescript: boolean
+	framework: 'kit' | 'sapper' | 'svelte'
+	module: 'esm' | 'commonjs'
+}
+
+async function detectTools(cwd: string): Promise<DetectedTools> {
+	// if there's no package.json then there's nothing we can detect
+	try {
+		var packageJSON = JSON.parse(await fs.readFile(path.join(cwd, 'package.json'), 'utf-8'))
+	} catch {
+		return {
+			module: 'commonjs',
+			typescript: false,
+			framework: 'svelte',
+		}
+	}
+
+	// grab the dev dependencies
+	const { devDependencies, dependencies } = packageJSON
+
+	const hasDependency = (dep: string) => Boolean(devDependencies?.[dep] || dependencies?.[dep])
+
+	let framework: ConfigFile['framework'] = 'svelte'
+	if (hasDependency('@sveltejs/kit')) {
+		framework = 'kit'
+	} else if (hasDependency('sapper')) {
+		framework = 'sapper'
+	}
+
+	return {
+		typescript: hasDependency('typescript'),
+		framework,
+		module: packageJSON['type'] === 'module' ? 'esm' : 'commonjs',
+	}
+}
+
+async function updateTypescriptConfig(targetPath: string) {
+	const configFile = path.join(targetPath, 'tsconfig.json')
+
+	// check if the tsconfig.json file exists
+	try {
+		var tsConfig = JSON.parse(await fs.readFile(configFile, 'utf-8'))
+
+		tsConfig.compilerOptions.paths = {
+			...tsConfig.compilerOptions.paths,
+			$houdini: ['./$houdini/'],
+		}
+
+		await fs.writeFile(configFile, JSON.stringify(tsConfig, null, 4), 'utf-8')
+	} catch {
+		return
+	}
+}
+
+async function updateLayoutFile(targetPath: string) {
+	const layoutFile = path.join(targetPath, 'src', 'routes', '__layout.svelte')
+
+	const contents = `<script context="module">
+	import client from '../client'
+
+	client.init()
+</script>
+
+`
+
+	// if the layout file doesn't exist, just tell the user to update it themselves
+	try {
+		await fs.stat(layoutFile)
+		// if we get here, the file exists
+		console.log(`⚠️ You already have a root layout file. Please update it to look like the following:
+${contents}
+`)
+		return
+	} catch {}
+
+	// if we got this far we need to write the layout file
+	await fs.writeFile(layoutFile, contents, 'utf-8')
+}
+
+async function updateKitConfig(targetPath: string) {
+	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
+	const viteConfigPath = path.join(targetPath, 'vite.config.js')
+
+	const oldViteConfig = `import { sveltekit } from '@sveltejs/kit/vite';
+
+/** @type {import('vite').UserConfig} */
+const config = {
+	plugins: [sveltekit()]
+};
+
+export default config;
+`
+	const viteConfig = `import { sveltekit } from '@sveltejs/kit/vite';
+import path from 'path'
+
+/** @type {import('vite').UserConfig} */
+const config = {
+	plugins: [sveltekit()],
+	resolve: {
+		alias: {
+			$houdini: path.resolve('./$houdini'),
+		},
+	},
+	server: {
+		fs: {
+			// Allow serving files from one level up to the project root
+			allow: ['.'],
+		},
+	},
+};
+
+export default config;
+`
+	const oldSvelteConfig = `import adapter from '@sveltejs/adapter-auto';
+	import preprocess from 'svelte-preprocess';
+
+	/** @type {import('@sveltejs/kit').Config} */
+	const config = {
+		// Consult https://github.com/sveltejs/svelte-preprocess
+		// for more information about preprocessors
+		preprocess: preprocess(),
+
+		kit: {
+			adapter: adapter()
+		}
+	};
+
+	export default config;
+`
+	const svelteConfig = `import adapter from '@sveltejs/adapter-auto';
+import preprocess from 'svelte-preprocess';
+import houdini from 'houdini/preprocess';
+
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
+	// Consult https://github.com/sveltejs/svelte-preprocess
+	// for more information about preprocessors
+	preprocess: [preprocess(), houdini()],
+
+	kit: {
+		adapter: adapter()
+	}
+};
+
+export default config;
+`
+	// look up the existing svelte config
+	if ((await fs.readFile(svelteConfigPath, 'utf-8')) === oldSvelteConfig) {
+		await fs.writeFile(svelteConfigPath, svelteConfig, 'utf-8')
+	} else {
+		console.log(`⚠️ Could not update your svelte.config.js. Please update it to look like:
+
+import houdini from 'houdini/preprocess';
+
+const config = {
+	// ...
+	preprocess: [preprocess(), houdini()],
+}
+`)
+	}
+
+	// look up the existing svelte config
+	if ((await fs.readFile(viteConfigPath, 'utf-8')) === oldViteConfig) {
+		await fs.writeFile(viteConfigPath, viteConfig, 'utf-8')
+	} else {
+		console.log(`⚠️ Could not update your vite.config.js. Please update it to look like:
+
+import path from 'path'
+
+export default {
+	resolve: {
+		alias: {
+			$houdini: path.resolve('./$houdini'),
+		},
+	},
+	server: {
+		fs: {
+			// Allow serving files from one level up to the project root
+			allow: ['.'],
+		},
+	},
+}
+`)
+	}
 }

@@ -82,7 +82,6 @@ program
 								: path.resolve(targetPath, 'schema.json'),
 							args.pullHeader
 						)
-						console.log(`✅ Pulled latest schema from ${config.apiUrl}`)
 					}
 				}
 
@@ -126,6 +125,7 @@ program
 		'-ph, --pull-header <headers...>',
 		'header to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
+	.option('-y, --yes', 'initialize a project with the default values (compatible with SvelteKit)')
 	.action(init)
 
 // start the command
