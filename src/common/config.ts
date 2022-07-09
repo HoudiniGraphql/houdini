@@ -182,7 +182,7 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 
 		// if there is a route function from the config
 		if (this.configIsRoute) {
-			return this.configIsRoute(filepath)
+			return this.configIsRoute(path.relative(this.projectRoot, filepath))
 		}
 
 		// there is no special filter to apply. anything this far is a route
