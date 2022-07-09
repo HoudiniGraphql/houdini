@@ -18,6 +18,11 @@
 			"require": "./build/preprocess-cjs/index.js"
 		}
 	},
+	"typesVersions": {
+		"*": {
+		  	"preprocess": ["build/preprocess/index.d.ts"]
+		}
+	},
 	"types": "./build/cmd/index.d.ts",
 	"scripts": {
 		"tests": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest",
