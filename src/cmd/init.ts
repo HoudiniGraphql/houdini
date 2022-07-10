@@ -23,7 +23,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 		{
 			name: 'url',
 			type: 'input',
-			message: "What's the URL for your api? Please includes its protocol.",
+			message: "What's the URL for your api? Please includes its scheme.",
 			when: ({ running }) => running,
 		},
 	])
@@ -45,9 +45,6 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 		console.log('✨ SvelteKit')
 	} else if (framework === 'sapper') {
 		console.log('✨ Sapper')
-		console.log(
-			'  ⚠️  Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
-		)
 	}
 
 	// module
@@ -60,6 +57,12 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 	// typescript
 	if (typescript) {
 		console.log('🟦 TypeScript')
+	}
+
+	if (framework === 'sapper') {
+		console.log(
+			'⚠️  Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
+		)
 	}
 
 	console.log()
@@ -95,10 +98,10 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 			fs.writeFile(houdiniClientPath, networkFile(url, typescript)),
 
 			updatePackageJSON(targetPath),
-
-			// add the typescript specific changes
-			updateTypescriptConfig(targetPath),
 		]
+
+			// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
+			.concat(framework !== 'kit' ? [aliasPaths(targetPath)] : [])
 			// only update the layout file if we're generating a kit or sapper project
 			.concat(framework !== 'svelte' ? [updateLayoutFile(targetPath)] : [])
 			// add the sveltekit config file
@@ -231,7 +234,7 @@ async function detectTools(cwd: string): Promise<DetectedTools> {
 	}
 }
 
-async function updateTypescriptConfig(targetPath: string) {
+async function aliasPaths(targetPath: string) {
 	// if there is no tsconfig.json, there could be a jsconfig.json
 	let configFile = path.join(targetPath, 'tsconfig.json')
 	try {
@@ -306,14 +309,8 @@ import path from 'path'
 /** @type {import('vite').UserConfig} */
 const config = {
 	plugins: [sveltekit()],
-	resolve: {
-		alias: {
-			$houdini: path.resolve('./$houdini'),
-		},
-	},
 	server: {
 		fs: {
-			// Allow serving files from one level up to the project root
 			allow: ['.'],
 		},
 	},
@@ -360,7 +357,10 @@ const config = {
 	preprocess: [preprocess(), houdini()],
 
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		alias: {
+			$houdini: './houdini',
+		}
 	}
 };
 
@@ -374,12 +374,7 @@ export default config;
 	} else {
 		console.log(`⚠️  Could not update your svelte.config.js. Please update it to look like:
 
-import houdini from 'houdini/preprocess';
-
-const config = {
-	// ...
-	preprocess: [preprocess(), houdini()],
-}
+${svelteConfig}
 `)
 	}
 
@@ -389,21 +384,7 @@ const config = {
 	} else {
 		console.log(`⚠️  Could not update your vite.config.js. Please update it to look like:
 
-import path from 'path'
-
-export default {
-	resolve: {
-		alias: {
-			$houdini: path.resolve('./$houdini'),
-		},
-	},
-	server: {
-		fs: {
-			// Allow serving files from one level up to the project root
-			allow: ['.'],
-		},
-	},
-}
+${viteConfig}
 `)
 	}
 }
