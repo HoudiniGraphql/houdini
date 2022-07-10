@@ -307,10 +307,20 @@ export default config;
 `
 	const viteConfig = `import { sveltekit } from '@sveltejs/kit/vite';
 import path from 'path'
+import watchAndRun from '@kitql/vite-plugin-watch-and-run'
 
 /** @type {import('vite').UserConfig} */
 const config = {
-	plugins: [sveltekit()],
+	plugins: [
+		sveltekit(),
+		watchAndRun([
+			{
+			    watch: './src/**/*.(gql|graphql|svelte)',
+			    run: 'npm run generate',
+			    delay: 300,
+			}
+		])
+	],
 	server: {
 		fs: {
 			allow: ['.'],
@@ -406,9 +416,13 @@ async function updatePackageJSON(targetPath: string) {
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
 		houdini: '^HOUDINI_VERSION',
+		'@kitql/vite-plugin-watch-and-run': '^0.3.7',
 	}
 
 	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4), 'utf-8')
 
 	console.log(`✅ Added generate script to package.json`)
+	console.log(
+		"✅ Added depdencies to package.json. Don't forget to do your favorite version of `npm install`"
+	)
 }
