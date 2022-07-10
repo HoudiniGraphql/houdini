@@ -38,7 +38,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 
 	// notify the users of what we detected
 	console.log()
-	console.log("👍 Here's what we were able to detect about your project:")
+	console.log("👍 Here's what we found:")
 
 	// framework
 	if (framework === 'kit') {
