@@ -15,7 +15,7 @@ async function init(
 	args: { pullHeader?: string[]; yes: boolean },
 	withRunningCheck = true
 ): Promise<void> {
-	// if no path was given, we'll use cwd
+	// if no path was given, we	'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
 
 	// we need to collect some information from the user before we
@@ -67,7 +67,7 @@ async function init(
 
 	// notify the users of what we detected
 	console.log()
-	console.log("👍 Here's what we found:")
+	console.log('🚧 Generating project with the following stack:')
 
 	// framework
 	if (framework === 'kit') {
@@ -88,14 +88,15 @@ async function init(
 		console.log('🟦 TypeScript')
 	}
 
+	// put some space between discoveries and errors
+	console.log()
+
 	if (framework === 'sapper') {
 		console.log(
 			'⚠️  Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
 		)
+		console.log()
 	}
-
-	console.log()
-	console.log('🚧 Generating your project files...')
 
 	// the location for the schema
 	const schemaPath = './schema.graphql'
@@ -109,31 +110,33 @@ async function init(
 		? path.join(sourceDir, 'client.ts')
 		: path.join(sourceDir, 'client.js')
 
-	await Promise.all(
-		[
-			// Get the schema from the url and write it to file
-			writeSchema(url, path.join(targetPath, schemaPath), args?.pullHeader),
+	const hasWarnings = (
+		await Promise.all(
+			[
+				// Get the schema from the url and write it to file
+				writeSchema(url, path.join(targetPath, schemaPath), args?.pullHeader),
 
-			// write the config file
-			writeConfigFile({
-				configPath,
-				schemaPath,
-				framework,
-				module,
-				url,
-			}),
+				// write the config file
+				writeConfigFile({
+					configPath,
+					schemaPath,
+					framework,
+					module,
+					url,
+				}),
 
-			// write the houdiniClient file
-			fs.writeFile(houdiniClientPath, networkFile(url, typescript)),
-		]
+				// write the houdiniClient file
+				fs.writeFile(houdiniClientPath, networkFile(url, typescript)),
+			]
 
-			// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
-			.concat(framework !== 'kit' ? [aliasPaths(targetPath)] : [])
-			// only update the layout file if we're generating a kit or sapper project
-			.concat(framework !== 'svelte' ? [updateLayoutFile(targetPath)] : [])
-			// add the sveltekit config file
-			.concat(framework === 'kit' ? [updateKitConfig(targetPath)] : [])
-	)
+				// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
+				.concat(framework !== 'kit' ? [aliasPaths(targetPath)] : [])
+				// only update the layout file if we're generating a kit or sapper project
+				.concat(framework !== 'svelte' ? [updateLayoutFile(targetPath)] : [])
+				// add the sveltekit config file
+				.concat(framework === 'kit' ? [updateKitConfig(targetPath)] : [])
+		)
+	).find((result) => typeof result === 'boolean' && result)
 
 	// make sure we don't log anything else
 	const config = await getConfig({
@@ -142,8 +145,10 @@ async function init(
 	await generate(config)
 
 	// we're done!
-	console.log()
 	console.log('🎩 Welcome to Houdini!')
+	if (hasWarnings) {
+		console.log('⚠️  Something unexpected happened. Check above for more info.')
+	}
 	await updatePackageJSON(targetPath)
 }
 
@@ -188,7 +193,7 @@ const writeConfigFile = async ({
 	module: 'esm' | 'commonjs'
 	url: string
 	sourceGlob?: string
-}) => {
+}): Promise<boolean> => {
 	const config: ConfigFile = {
 		schemaPath,
 		sourceGlob,
@@ -219,6 +224,8 @@ module.exports = config
 `
 
 	await fs.writeFile(configPath, content, 'utf-8')
+
+	return false
 }
 
 type DetectedTools = {
@@ -274,7 +281,7 @@ async function aliasPaths(targetPath: string) {
 
 			// there isn't either a .tsconfig.json or a jsconfig.json, there's nothing to update
 		} catch {
-			return
+			return false
 		}
 	}
 
@@ -288,12 +295,12 @@ async function aliasPaths(targetPath: string) {
 		}
 
 		await fs.writeFile(configFile, JSON.stringify(tsConfig, null, 4), 'utf-8')
-	} catch {
-		return
-	}
+	} catch {}
+
+	return false
 }
 
-async function updateLayoutFile(targetPath: string) {
+async function updateLayoutFile(targetPath: string): Promise<boolean> {
 	const layoutFile = path.join(targetPath, 'src', 'routes', '__layout.svelte')
 
 	const contents = `<script context="module">
@@ -310,17 +317,21 @@ async function updateLayoutFile(targetPath: string) {
 	try {
 		await fs.stat(layoutFile)
 		// if we get here, the file exists
-		console.log(`⚠️  You already have a root layout file. Please update it to look like the following:
+		console.log(`⚠️  You already have a root layout file. Please update src/routes/__layout.svelte to include the following:
+
 ${contents}
 `)
-		return
+		// there was a warning
+		return true
 	} catch {}
 
 	// if we got this far we need to write the layout file
 	await fs.writeFile(layoutFile, contents, 'utf-8')
+
+	return false
 }
 
-async function updateKitConfig(targetPath: string) {
+async function updateKitConfig(targetPath: string): Promise<boolean> {
 	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
 	const viteConfigPath = path.join(targetPath, 'vite.config.js')
 
@@ -343,9 +354,9 @@ const config = {
 		sveltekit(),
 		watchAndRun([
 			{
-			    watch: './src/**/*.(gql|graphql|svelte)',
+			    watch: path.resolve('src/**/*.(gql|graphql|svelte)'),
 			    run: 'npm run generate',
-			    delay: 300,
+			    delay: 100,
 			}
 		])
 	],
@@ -406,6 +417,9 @@ const config = {
 
 export default config;
 `
+
+	let hasWarnings = false
+
 	// look up the existing svelte config
 	if (
 		[oldSvelteConfig2, oldSvelteConfig1].includes(await fs.readFile(svelteConfigPath, 'utf-8'))
@@ -416,6 +430,7 @@ export default config;
 
 ${svelteConfig}
 `)
+		hasWarnings = true
 	}
 
 	// look up the existing svelte config
@@ -426,7 +441,10 @@ ${svelteConfig}
 
 ${viteConfig}
 `)
+		hasWarnings = true
 	}
+
+	return hasWarnings
 }
 
 async function updatePackageJSON(targetPath: string) {
@@ -448,9 +466,8 @@ async function updatePackageJSON(targetPath: string) {
 	}
 
 	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4), 'utf-8')
-
 	console.log(`✅ Added generate script to package.json`)
-	console.log('✅ Added new dependencies. Please install them with npm/yarn/pnpm now')
+	console.log('✅ Added a few new dependencies. Please install them with npm/yarn/pnpm')
 }
 
 export default init
