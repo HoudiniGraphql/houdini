@@ -5,10 +5,16 @@ import { getConfig, LogLevel } from '../common'
 import { writeSchema } from './utils/writeSchema'
 import generate from './generate'
 import { ConfigFile } from '../runtime'
+import { getIntrospectionQuery } from 'graphql'
+import fetch from 'node-fetch'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
-export default async (_path: string | undefined, args: { pullHeader?: string[]; yes: boolean }) => {
+async function init(
+	_path: string | undefined,
+	args: { pullHeader?: string[]; yes: boolean },
+	withRunningCheck = true
+): Promise<void> {
 	// if no path was given, we'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
 
@@ -19,18 +25,41 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 			name: 'running',
 			type: 'confirm',
 			message: 'Is your GraphQL API running?',
+			when: withRunningCheck,
 		},
 		{
 			name: 'url',
 			type: 'input',
 			message: "What's the URL for your api? Please includes its scheme.",
-			when: ({ running }) => running,
+			when: ({ running }) => !withRunningCheck || (withRunningCheck && running),
 		},
 	])
 
-	if (!running) {
+	if (!running && withRunningCheck) {
 		console.log('❌ Your API must be running order to continue')
 		return
+	}
+
+	try {
+		// verify we can send graphql queries to the server
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				query: getIntrospectionQuery(),
+			}),
+		})
+
+		// if the response was not a 200, we have a problem
+		if (response.status !== 200) {
+			console.log('❌ That URL is not accepting GraphQL queries. Please try again.')
+			return await init(_path, args, false)
+		}
+	} catch (e) {
+		console.log('❌ Something went wrong: ' + (e as Error).message)
+		return await init(_path, args, false)
 	}
 
 	// try to detect which tools they are using
@@ -113,6 +142,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 		logLevel: LogLevel.Quiet,
 	})
 	await generate(config)
+	console.log()
 
 	// we're done!
 	console.log()
@@ -423,6 +453,8 @@ async function updatePackageJSON(targetPath: string) {
 
 	console.log(`✅ Added generate script to package.json`)
 	console.log(
-		"✅ Added depdencies to package.json. Don't forget to do your favorite version of `npm install`"
+		"✅ Added dependencies to package.json. Don't forget to install them with npm/yarn/pnpm"
 	)
 }
+
+export default init

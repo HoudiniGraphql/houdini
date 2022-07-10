@@ -35,7 +35,6 @@ export async function writeSchema(url: string, schemaPath: string, headers?: str
 			await writeFile(schemaPath, JSON.stringify(jsonSchema))
 		}
 
-		console.log(`✅ Pulled latest schema from ${url}`)
 		// return the schema for usage in --pull-schema
 		return schema
 	} catch (e) {
