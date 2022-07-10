@@ -127,6 +127,9 @@ async function init(
 
 				// write the houdiniClient file
 				fs.writeFile(houdiniClientPath, networkFile(url, typescript)),
+
+				// make sure we generate a .graphqlrc file for intellisense
+				graphqlRCFile(targetPath),
 			]
 
 				// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
@@ -468,6 +471,36 @@ async function updatePackageJSON(targetPath: string) {
 	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4), 'utf-8')
 	console.log(`✅ Added generate script to package.json`)
 	console.log('✅ Added a few new dependencies. Please install them with npm/yarn/pnpm')
+}
+
+async function graphqlRCFile(targetPath: string): Promise<boolean> {
+	// the filepath for the rcfile
+	const target = path.join(targetPath, '.graphqlrc.yaml')
+
+	const contents = `projects:
+  default:
+    schema:
+      - ./$houdini/graphql/schema.graphql
+    documents:
+      - '**/*.gql'
+      - ./$houdini/graphql/documents.gql
+`
+
+	try {
+		await fs.stat(target)
+
+		console.log(`⚠️  You already have a .graphqlrc file. Please add the following lines to get intellisense for your graphql documents:
+		
+${contents}
+`)
+
+		// if the file already exists, don't do anything
+		return true
+	} catch {}
+
+	await fs.writeFile(target, contents, 'utf-8')
+
+	return false
 }
 
 export default init
