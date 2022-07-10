@@ -97,7 +97,7 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 			updatePackageJSON(targetPath),
 		]
 			// add the typescript specific changes
-			.concat(typescript ? [updateTypescriptConfig(targetPath)] : [])
+			.concat(typescript || framework === 'kit' ? [updateTypescriptConfig(targetPath)] : [])
 			// only update the layout file if we're generating a kit or sapper project
 			.concat(framework !== 'svelte' ? [updateLayoutFile(targetPath)] : [])
 			// add the sveltekit config file
@@ -224,14 +224,27 @@ async function detectTools(cwd: string): Promise<DetectedTools> {
 	} catch {}
 
 	return {
-		typescript: hasDependency('typescript'),
+		typescript,
 		framework,
 		module: packageJSON['type'] === 'module' ? 'esm' : 'commonjs',
 	}
 }
 
 async function updateTypescriptConfig(targetPath: string) {
-	const configFile = path.join(targetPath, 'tsconfig.json')
+	// if there is no tsconfig.json, there could be a jsconfig.json
+	let configFile = path.join(targetPath, 'tsconfig.json')
+	try {
+		await fs.stat(configFile)
+	} catch {
+		configFile = path.join(targetPath, 'jsconfig.json')
+		try {
+			await fs.stat(configFile)
+
+			// there isn't either a .tsconfig.json or a jsconfig.json, there's nothing to update
+		} catch {
+			return
+		}
+	}
 
 	// check if the tsconfig.json file exists
 	try {
