@@ -125,8 +125,6 @@ async function init(
 
 			// write the houdiniClient file
 			fs.writeFile(houdiniClientPath, networkFile(url, typescript)),
-
-			updatePackageJSON(targetPath),
 		]
 
 			// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
@@ -142,11 +140,11 @@ async function init(
 		logLevel: LogLevel.Quiet,
 	})
 	await generate(config)
-	console.log()
 
 	// we're done!
 	console.log()
 	console.log('🎩 Welcome to Houdini!')
+	await updatePackageJSON(targetPath)
 }
 
 const networkFile = (url: string, typescript: boolean) => `
@@ -452,9 +450,7 @@ async function updatePackageJSON(targetPath: string) {
 	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4), 'utf-8')
 
 	console.log(`✅ Added generate script to package.json`)
-	console.log(
-		"✅ Added dependencies to package.json. Don't forget to install them with npm/yarn/pnpm"
-	)
+	console.log('✅ Added new dependencies. Please install them with npm/yarn/pnpm now')
 }
 
 export default init
