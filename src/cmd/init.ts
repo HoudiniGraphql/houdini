@@ -274,6 +274,8 @@ async function updateLayoutFile(targetPath: string) {
 	client.init()
 </script>
 
+<slot />
+
 `
 
 	// if the layout file doesn't exist, just tell the user to update it themselves
@@ -359,7 +361,7 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		alias: {
-			$houdini: './houdini',
+			$houdini: './$houdini',
 		}
 	}
 };
