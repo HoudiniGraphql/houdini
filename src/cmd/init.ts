@@ -95,9 +95,10 @@ export default async (_path: string | undefined, args: { pullHeader?: string[]; 
 			fs.writeFile(houdiniClientPath, networkFile(url, typescript)),
 
 			updatePackageJSON(targetPath),
-		]
+
 			// add the typescript specific changes
-			.concat(typescript || framework === 'kit' ? [updateTypescriptConfig(targetPath)] : [])
+			updateTypescriptConfig(targetPath),
+		]
 			// only update the layout file if we're generating a kit or sapper project
 			.concat(framework !== 'svelte' ? [updateLayoutFile(targetPath)] : [])
 			// add the sveltekit config file
