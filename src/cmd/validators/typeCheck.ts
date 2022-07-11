@@ -43,224 +43,217 @@ export default async function typeCheck(
 	// before we can validate everything, we need to look for the valid list names and
 	// check if they need a parent specification (if they fall inside of a fragment on something other than Query)
 	for (const { document: parsed, filename } of docs) {
-		try {
-			graphql.visit(parsed, {
-				[graphql.Kind.FRAGMENT_DEFINITION](definition) {
-					fragments[definition.name.value] = definition
-				},
-				[graphql.Kind.DIRECTIVE](directive, _, parent, __, ancestors) {
-					// only consider @paginate or @list
-					if (
-						![config.listDirective, config.paginateDirective].includes(
-							directive.name.value
+		graphql.visit(parsed, {
+			[graphql.Kind.FRAGMENT_DEFINITION](definition) {
+				fragments[definition.name.value] = definition
+			},
+			[graphql.Kind.DIRECTIVE](directive, _, parent, __, ancestors) {
+				// only consider @paginate or @list
+				if (
+					![config.listDirective, config.paginateDirective].includes(directive.name.value)
+				) {
+					return
+				}
+
+				// in order to look up field type information we have to start at the parent
+				// and work our way down
+				// note:  the top-most parent is always gonna be a document so we ignore it
+				let parents = [...ancestors] as (
+					| graphql.FieldNode
+					| graphql.InlineFragmentNode
+					| graphql.FragmentDefinitionNode
+					| graphql.OperationDefinitionNode
+					| graphql.SelectionSetNode
+				)[]
+				parents.shift()
+
+				// the first meaningful parent is a definition of some kind
+				let definition = parents.shift() as
+					| graphql.FragmentDefinitionNode
+					| graphql.OperationDefinitionNode
+				while (Array.isArray(definition) && definition) {
+					// @ts-ignore
+					definition = parents.shift()
+				}
+
+				// look at the list of ancestors to see if we required a parent ID
+				let needsParent = false
+
+				// if we are looking at an operation that's not query
+				if (
+					(definition.kind !== 'OperationDefinition' &&
+						definition.kind !== 'FragmentDefinition') ||
+					(definition.kind === 'OperationDefinition' && definition.operation !== 'query')
+				) {
+					errors.push(
+						new Error(
+							`@${directive.name.value} can only appear in queries or fragments`
 						)
-					) {
-						return
-					}
-
-					// in order to look up field type information we have to start at the parent
-					// and work our way down
-					// note:  the top-most parent is always gonna be a document so we ignore it
-					let parents = [...ancestors] as (
-						| graphql.FieldNode
-						| graphql.InlineFragmentNode
-						| graphql.FragmentDefinitionNode
-						| graphql.OperationDefinitionNode
-						| graphql.SelectionSetNode
-					)[]
-					parents.shift()
-
-					// the first meaningful parent is a definition of some kind
-					let definition = parents.shift() as
-						| graphql.FragmentDefinitionNode
-						| graphql.OperationDefinitionNode
-					while (Array.isArray(definition) && definition) {
-						// @ts-ignore
-						definition = parents.shift()
-					}
-
-					// look at the list of ancestors to see if we required a parent ID
-					let needsParent = false
-
-					// if we are looking at an operation that's not query
-					if (
-						(definition.kind !== 'OperationDefinition' &&
-							definition.kind !== 'FragmentDefinition') ||
-						(definition.kind === 'OperationDefinition' &&
-							definition.operation !== 'query')
-					) {
-						errors.push(
-							new Error(
-								`@${directive.name.value} can only appear in queries or fragments`
-							)
-						)
-						return
-					}
-
-					// we need to figure out the type of the list so lets start walking down
-					// the list of parents starting at the root type
-					let rootType: graphql.GraphQLNamedType | undefined | null =
-						definition.kind === 'OperationDefinition'
-							? config.schema.getQueryType()
-							: config.schema.getType(definition.typeCondition.name.value)
-					if (!rootType) {
-						errors.push({ filepath: filename, message: 'Could not find root type' })
-						return
-					}
-
-					// go over the rest of the parent tree
-					for (const parent of parents) {
-						// if we are looking at a list or selection set, ignore it
-						if (Array.isArray(parent) || parent.kind === 'SelectionSet') {
-							continue
-						}
-
-						if (parent.kind === 'InlineFragment' && parent.typeCondition) {
-							rootType = config.schema.getType(parent.typeCondition.name.value)
-							continue
-						}
-
-						// if the directive isn't a field we have a problem
-						if (parent.kind !== 'Field') {
-							errors.push(new HoudiniErrorTodo("Shouldn't get here"))
-							return
-						}
-
-						// if we are looking at a list type
-						if (
-							graphql.isListType(rootType) ||
-							(graphql.isNonNullType(rootType) && graphql.isListType(rootType.ofType))
-						) {
-							// we need an id to know which element to add to
-							needsParent = true
-							break
-						}
-
-						// if we have a non-null type, unwrap it
-						if (graphql.isNonNullType(rootType)) {
-							rootType = rootType.ofType
-						}
-
-						// if we hit a scalar
-						if (graphql.isScalarType(rootType)) {
-							// we're done
-							break
-						}
-
-						// @ts-ignore
-						// look at the next entry for a list or something else that would make us
-						// require a parent ID
-						rootType = rootType?.getFields()[parent.name.value].type
-					}
-
-					// if we found a pagination directive, make sure that it doesn't
-					// fall under a list (same logic as @list needing a parent)
-					if (directive.name.value === config.paginateDirective) {
-						// if we need a parent, we can't paginate it
-						if (needsParent) {
-							errors.push(
-								new HoudiniErrorTodo(
-									`@${config.paginateDirective} cannot be below a list`
-								)
-							)
-						}
-					}
-
-					// if we got this far, we need a parent if we're under any fragment
-					// since a list mutation can't compute the parent from the owner of the fragment
-					needsParent = needsParent || definition.kind === 'FragmentDefinition'
-
-					// look up the name of the list
-					const nameArg = directive.arguments?.find(
-						({ name }) => name.value === config.listNameArg
 					)
+					return
+				}
 
-					if (!nameArg) {
-						// if we are looking at @list there is an error
-						if (directive.name.value === config.listDirective) {
-							errors.push(new HoudiniErrorTodo('Could not find name arg'))
-						}
+				// we need to figure out the type of the list so lets start walking down
+				// the list of parents starting at the root type
+				let rootType: graphql.GraphQLNamedType | undefined | null =
+					definition.kind === 'OperationDefinition'
+						? config.schema.getQueryType()
+						: config.schema.getType(definition.typeCondition.name.value)
+				if (!rootType) {
+					errors.push({ filepath: filename, message: 'Could not find root type' })
+					return
+				}
 
-						// regardless there's nothing more to process
+				// go over the rest of the parent tree
+				for (const parent of parents) {
+					// if we are looking at a list or selection set, ignore it
+					if (Array.isArray(parent) || parent.kind === 'SelectionSet') {
+						continue
+					}
+
+					if (parent.kind === 'InlineFragment' && parent.typeCondition) {
+						rootType = config.schema.getType(parent.typeCondition.name.value)
+						continue
+					}
+
+					// if the directive isn't a field we have a problem
+					if (parent.kind !== 'Field') {
+						errors.push(new HoudiniErrorTodo("Shouldn't get here"))
 						return
 					}
-					if (nameArg.value.kind !== 'StringValue') {
+
+					// if we are looking at a list type
+					if (
+						graphql.isListType(rootType) ||
+						(graphql.isNonNullType(rootType) && graphql.isListType(rootType.ofType))
+					) {
+						// we need an id to know which element to add to
+						needsParent = true
+						break
+					}
+
+					// if we have a non-null type, unwrap it
+					if (graphql.isNonNullType(rootType)) {
+						rootType = rootType.ofType
+					}
+
+					// if we hit a scalar
+					if (graphql.isScalarType(rootType)) {
+						// we're done
+						break
+					}
+
+					// @ts-ignore
+					// look at the next entry for a list or something else that would make us
+					// require a parent ID
+					rootType = rootType?.getFields()[parent.name.value].type
+				}
+
+				// if we found a pagination directive, make sure that it doesn't
+				// fall under a list (same logic as @list needing a parent)
+				if (directive.name.value === config.paginateDirective) {
+					// if we need a parent, we can't paginate it
+					if (needsParent) {
 						errors.push(
 							new HoudiniErrorTodo(
-								'Name arg must be a static string, it cannot be set to a variable.'
+								`@${config.paginateDirective} cannot be below a list`
 							)
 						)
-						return
+					}
+				}
+
+				// if we got this far, we need a parent if we're under any fragment
+				// since a list mutation can't compute the parent from the owner of the fragment
+				needsParent = needsParent || definition.kind === 'FragmentDefinition'
+
+				// look up the name of the list
+				const nameArg = directive.arguments?.find(
+					({ name }) => name.value === config.listNameArg
+				)
+
+				if (!nameArg) {
+					// if we are looking at @list there is an error
+					if (directive.name.value === config.listDirective) {
+						errors.push(new HoudiniErrorTodo('Could not find name arg'))
 					}
 
-					// if we have already seen the list name there's a problem
-					const listName = nameArg.value.value
-					if (lists.includes(listName)) {
-						errors.push(new HoudiniErrorTodo('List names must be unique'))
-						return
-					}
+					// regardless there's nothing more to process
+					return
+				}
+				if (nameArg.value.kind !== 'StringValue') {
+					errors.push(
+						new HoudiniErrorTodo(
+							'Name arg must be a static string, it cannot be set to a variable.'
+						)
+					)
+					return
+				}
 
-					// in order to figure out the targets for the list we need to look at the field
-					// definition
-					const pType = parentTypeFromAncestors(
+				// if we have already seen the list name there's a problem
+				const listName = nameArg.value.value
+				if (lists.includes(listName)) {
+					errors.push(new HoudiniErrorTodo('List names must be unique'))
+					return
+				}
+
+				// in order to figure out the targets for the list we need to look at the field
+				// definition
+				const pType = parentTypeFromAncestors(
+					config.schema,
+					filename,
+					ancestors.slice(0, -1)
+				)
+				const targetField = ancestors[ancestors.length - 1] as graphql.FieldNode
+				const targetFieldDefinition = pType.getFields()[
+					targetField.name.value
+				] as graphql.GraphQLField<any, any>
+
+				const { type, error } = connectionSelection(
+					config,
+					targetFieldDefinition,
+					parentTypeFromAncestors(
 						config.schema,
 						filename,
-						ancestors.slice(0, -1)
-					)
-					const targetField = ancestors[ancestors.length - 1] as graphql.FieldNode
-					const targetFieldDefinition = pType.getFields()[
-						targetField.name.value
-					] as graphql.GraphQLField<any, any>
+						ancestors
+					) as graphql.GraphQLObjectType,
+					targetField.selectionSet
+				)
 
-					const { type, error } = connectionSelection(
-						config,
-						targetFieldDefinition,
-						parentTypeFromAncestors(
-							config.schema,
-							filename,
-							ancestors
-						) as graphql.GraphQLObjectType,
-						targetField.selectionSet
-					)
+				// make sure there is an id field
+				const missingIDFields = config
+					.keyFieldsForType(type.name)
+					.filter((fieldName) => !type.getFields()[fieldName])
 
-					// make sure there is an id field
-					const missingIDFields = config
-						.keyFieldsForType(type.name)
-						.filter((fieldName) => !type.getFields()[fieldName])
-
-					if (missingIDFields.length > 0) {
-						if (error) {
-							errors.push({
-								message: error,
-								filepath: filename,
-							})
-						} else {
-							errors.push(
-								new HoudiniErrorTodo(
-									`@${
-										config.listDirective
-									} can only be applied to types with the necessary id fields: ${missingIDFields.join(
-										', '
-									)}.`
-								)
+				if (missingIDFields.length > 0) {
+					if (error) {
+						errors.push({
+							message: error,
+							filepath: filename,
+						})
+					} else {
+						errors.push(
+							new HoudiniErrorTodo(
+								`@${
+									config.listDirective
+								} can only be applied to types with the necessary id fields: ${missingIDFields.join(
+									', '
+								)}.`
 							)
-						}
-						return
+						)
 					}
+					return
+				}
 
-					// add the list to the list
-					lists.push(listName)
-					listTypes.push(type.name)
+				// add the list to the list
+				lists.push(listName)
+				listTypes.push(type.name)
 
-					// if we still don't need a parent by now, add it to the list of free lists
-					if (!needsParent) {
-						freeLists.push(listName)
-					}
-				},
-			})
-		} catch (error) {
-			throw { filepath: filename, message: error }
-		}
+				// if we still don't need a parent by now, add it to the list of free lists
+				if (!needsParent) {
+					freeLists.push(listName)
+				}
+			},
+		})
 	}
 
 	// if we got errors
