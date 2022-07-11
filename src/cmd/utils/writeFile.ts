@@ -1,15 +1,10 @@
 import fs from 'fs/promises'
+import { readFile } from './readFile'
 
 export async function writeFile(path: string, data: string) {
-	try {
-		const existingFileData = await fs.readFile(path, 'utf8')
-
-		if (data === existingFileData) {
-			return
-		}
-	} catch (error) {
-		// ignore files which don't yet exist or can't be read
+	const existingFileData = await readFile(path)
+	if (data === existingFileData) {
+		return
 	}
-
 	await fs.writeFile(path, data, 'utf8')
 }

@@ -1,12 +1,13 @@
-import path from 'path'
-import inquirer from 'inquirer'
 import fs from 'fs/promises'
-import { getConfig, LogLevel } from '../common'
-import { writeSchema } from './utils/writeSchema'
-import generate from './generate'
-import { ConfigFile } from '../runtime'
 import { getIntrospectionQuery } from 'graphql'
+import inquirer from 'inquirer'
 import fetch from 'node-fetch'
+import path from 'path'
+import { getConfig, LogLevel } from '../common'
+import { ConfigFile } from '../runtime'
+import generate from './generate'
+import { readFile, writeFile } from './utils'
+import { writeSchema } from './utils/writeSchema'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
@@ -22,16 +23,19 @@ async function init(
 	// can continue
 	let { url, running } = await inquirer.prompt<{ url: string; running: boolean }>([
 		{
+			message: 'Is your GraphQL API running?',
 			name: 'running',
 			type: 'confirm',
-			message: 'Is your GraphQL API running?',
 			when: withRunningCheck,
 		},
 		{
+			message: "What's the URL for your api?",
 			name: 'url',
 			type: 'input',
-			message: "What's the URL for your api? Please includes its scheme.",
-			when: ({ running }) => !withRunningCheck || (withRunningCheck && running),
+			default: !withRunningCheck
+				? 'http://localhost:3000/api/graphql'
+				: 'https://countries.trevorblades.com/',
+			when: ({ running }) => withRunningCheck && running,
 		},
 	])
 
@@ -74,6 +78,8 @@ async function init(
 		console.log('✨ SvelteKit')
 	} else if (framework === 'sapper') {
 		console.log('✨ Sapper')
+	} else if (framework === 'svelte') {
+		console.log('✨ Svelte')
 	}
 
 	// module
@@ -86,6 +92,8 @@ async function init(
 	// typescript
 	if (typescript) {
 		console.log('🟦 TypeScript')
+	} else {
+		console.log('🟨 JavaScript')
 	}
 
 	// put some space between discoveries and errors
@@ -126,7 +134,7 @@ async function init(
 				}),
 
 				// write the houdiniClient file
-				fs.writeFile(houdiniClientPath, networkFile(url, typescript)),
+				writeFile(houdiniClientPath, networkFile(url, typescript)),
 
 				// make sure we generate a .graphqlrc file for intellisense
 				graphqlRCFile(targetPath),
@@ -145,7 +153,11 @@ async function init(
 	const config = await getConfig({
 		logLevel: LogLevel.Quiet,
 	})
-	await generate(config)
+	try {
+		await generate(config)
+	} catch (error) {
+		console.log(`⚠️  generate error`, error)
+	}
 
 	// we're done!
 	console.log('🎩 Welcome to Houdini!')
@@ -226,7 +238,7 @@ const config = ${configObj}
 module.exports = config
 `
 
-	await fs.writeFile(configPath, content, 'utf-8')
+	await writeFile(configPath, content)
 
 	return false
 }
@@ -240,7 +252,10 @@ type DetectedTools = {
 async function detectTools(cwd: string): Promise<DetectedTools> {
 	// if there's no package.json then there's nothing we can detect
 	try {
-		var packageJSON = JSON.parse(await fs.readFile(path.join(cwd, 'package.json'), 'utf-8'))
+		const packageJSONFile = await readFile(path.join(cwd, 'package.json'))
+		if (packageJSONFile) {
+			var packageJSON = JSON.parse(packageJSONFile)
+		}
 	} catch {
 		throw new Error(
 			'❌ houdini init must target an existing node project (with a package.json)'
@@ -290,14 +305,17 @@ async function aliasPaths(targetPath: string) {
 
 	// check if the tsconfig.json file exists
 	try {
-		var tsConfig = JSON.parse(await fs.readFile(configFile, 'utf-8'))
+		const tsConfigFile = await readFile(configFile)
+		if (tsConfigFile) {
+			var tsConfig = JSON.parse(tsConfigFile)
+		}
 
 		tsConfig.compilerOptions.paths = {
 			...tsConfig.compilerOptions.paths,
 			$houdini: ['./$houdini/'],
 		}
 
-		await fs.writeFile(configFile, JSON.stringify(tsConfig, null, 4), 'utf-8')
+		await writeFile(configFile, JSON.stringify(tsConfig, null, 4))
 	} catch {}
 
 	return false
@@ -329,7 +347,7 @@ ${contents}
 	} catch {}
 
 	// if we got this far we need to write the layout file
-	await fs.writeFile(layoutFile, contents, 'utf-8')
+	await writeFile(layoutFile, contents)
 
 	return false
 }
@@ -424,10 +442,9 @@ export default config;
 	let hasWarnings = false
 
 	// look up the existing svelte config
-	if (
-		[oldSvelteConfig2, oldSvelteConfig1].includes(await fs.readFile(svelteConfigPath, 'utf-8'))
-	) {
-		await fs.writeFile(svelteConfigPath, svelteConfig, 'utf-8')
+	const svelteConfigFile = await readFile(svelteConfigPath)
+	if (svelteConfigFile && [oldSvelteConfig2, oldSvelteConfig1].includes(svelteConfigFile)) {
+		await writeFile(svelteConfigPath, svelteConfig)
 	} else {
 		console.log(`⚠️  Could not update your svelte.config.js. Please update it to look like:
 
@@ -437,8 +454,8 @@ ${svelteConfig}
 	}
 
 	// look up the existing svelte config
-	if ((await fs.readFile(viteConfigPath, 'utf-8')) === oldViteConfig) {
-		await fs.writeFile(viteConfigPath, viteConfig, 'utf-8')
+	if ((await readFile(viteConfigPath)) === oldViteConfig) {
+		await writeFile(viteConfigPath, viteConfig)
 	} else {
 		console.log(`⚠️  Could not update your vite.config.js. Please update it to look like:
 
@@ -452,8 +469,10 @@ ${viteConfig}
 
 async function updatePackageJSON(targetPath: string) {
 	const packagePath = path.join(targetPath, 'package.json')
-
-	var packageJSON = JSON.parse(await fs.readFile(packagePath, 'utf-8'))
+	const packageFile = await readFile(packagePath)
+	if (packageFile) {
+		var packageJSON = JSON.parse(packageFile)
+	}
 
 	// add a generate script
 	packageJSON.scripts = {
@@ -468,7 +487,7 @@ async function updatePackageJSON(targetPath: string) {
 		'@kitql/vite-plugin-watch-and-run': '^0.3.7',
 	}
 
-	await fs.writeFile(packagePath, JSON.stringify(packageJSON, null, 4), 'utf-8')
+	await writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
 	console.log(`✅ Added generate script to package.json`)
 	console.log('✅ Added a few new dependencies. Please install them with npm/yarn/pnpm')
 }
@@ -498,7 +517,7 @@ ${contents}
 		return true
 	} catch {}
 
-	await fs.writeFile(target, contents, 'utf-8')
+	await writeFile(target, contents)
 
 	return false
 }
