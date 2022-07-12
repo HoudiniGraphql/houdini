@@ -5,12 +5,17 @@ import { expectNoGraphQLRequest, expectGraphQLResponse } from '../../lib/utils/t
 
 test.describe('Mutations', () => {
   test('Work in Endpoints', async ({ page }) => {
-    await page.goto(routes.Stores_Mutation);
+    await page.goto(routes.Stores_Endpoint_Mutation);
 
     await expectNoGraphQLRequest(page);
 
     // click on the button and make sure there's no error
-    await expectGraphQLResponse(page, '#button');
+    await Promise.all([
+      // Waits for the next response with the specified url
+      page.waitForResponse(routes.Stores_Endpoint_Mutation),
+      // Triggers the response
+      page.click('button')
+    ]);
 
     const status = await page.textContent('#result');
     expect(status).toEqual('200');
