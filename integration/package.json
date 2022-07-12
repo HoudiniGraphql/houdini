@@ -1,17 +1,17 @@
 {
   "name": "integration",
   "version": "0.0.1",
-  "type": "module",
   "private": true,
   "scripts": {
+    "prepare": "svelte-kit sync",
     "generate": "houdini generate",
     "generatep": "houdini generate -p",
-    "web": "cross-env TZ=utc svelte-kit dev",
+    "web": "cross-env TZ=utc vite dev",
     "api": "cross-env TZ=utc node api/server.mjs",
     "dev": "npm run generate && concurrently \"yarn web\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
-    "build": "svelte-kit build",
+    "build": "vite build",
     "package": "svelte-kit package",
-    "previewWeb": "cross-env TZ=utc svelte-kit preview -p 3007",
+    "previewWeb": "cross-env TZ=utc vite preview --port 3007",
     "preview": "npm run generate && concurrently \"yarn previewWeb\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
     "tests": "playwright test",
     "check": "svelte-check --tsconfig ./tsconfig.json",
@@ -20,9 +20,10 @@
     "format": "prettier --ignore-path .gitignore --write --plugin-search-dir=. ."
   },
   "devDependencies": {
+    "@kitql/vite-plugin-watch-and-run": "^0.4.0",
     "@playwright/test": "^1.21.0",
-    "@sveltejs/adapter-auto": "1.0.0-next.50",
-    "@sveltejs/kit": "1.0.0-next.350",
+    "@sveltejs/adapter-auto": "1.0.0-next.55",
+    "@sveltejs/kit": "1.0.0-next.370",
     "@typescript-eslint/eslint-plugin": "^5.10.1",
     "@typescript-eslint/parser": "^5.10.1",
     "concurrently": "7.1.0",
@@ -38,12 +39,14 @@
     "svelte-check": "^2.2.6",
     "svelte-preprocess": "^4.10.1",
     "tslib": "^2.3.1",
-    "typescript": "~4.6.2"
+    "typescript": "~4.6.2",
+    "vite": "^2.9.14"
   },
   "dependencies": {
     "@graphql-yoga/node": "^2.8.0",
     "graphql-relay": "^0.10.0",
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.8.2"
-  }
+  },
+  "type": "module"
 }

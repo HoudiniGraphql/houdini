@@ -1,11 +1,17 @@
 import { browser } from '$app/env'
-import type { SubscriptionHandler } from '$houdini'
+import type { RequestHandlerArgs, SubscriptionHandler } from '$houdini'
 import { HoudiniClient } from '$houdini'
 import { createClient as createWSClient } from 'graphql-ws'
 
 // For Query & Mutation
-async function fetchQuery({ text, variables = {} }, session: App.Session) {
-	const result = await this.fetch('http://localhost:4000/graphql', {
+async function fetchQuery({
+	fetch,
+	text = '',
+	variables = {},
+	session,
+	metadata,
+}: RequestHandlerArgs) {
+	const result = await fetch('http://localhost:4000/graphql', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',

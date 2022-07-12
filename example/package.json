@@ -1,32 +1,32 @@
 {
 	"name": "example-kit",
-	"private": true,
 	"version": "0.13.0",
 	"scripts": {
 		"prepare": "svelte-kit sync",
 		"generate": "houdini generate",
-		"dev": "npm run prepare && concurrently \"yarn web\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
-		"build": "svelte-kit build",
-		"start": "svelte-kit preview",
-		"web": "svelte-kit dev",
-		"api": "node api.mjs"
+		"web": "vite dev",
+		"api": "node api.mjs",
+		"dev": "npm run prepare && npm run generate && concurrently \"yarn web\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
+		"build": "vite build",
+		"start": "vite preview"
 	},
 	"devDependencies": {
-		"@sveltejs/kit": "1.0.0-next.350",
+		"@kitql/vite-plugin-watch-and-run": "^0.4.0",
+		"@sveltejs/kit": "1.0.0-next.370",
 		"concurrently": "^6.2.1",
 		"graphql": "15.5.0",
-		"houdini": "^0.15.0-next.8",
+		"houdini": "0.15.5",
 		"svelte": "^3.38.2",
 		"svelte-preprocess": "^4.0.0",
 		"tslib": "^2.2.0",
-		"typescript": "^4.0.0"
+		"typescript": "^4.0.0",
+		"vite": "^2.9.14"
 	},
-	"type": "module",
 	"dependencies": {
 		"@graphql-yoga/node": "2.8.0",
-		"@kitql/vite-plugin-watch-and-run": "0.3.0",
 		"graphql-relay": "0.8.0",
 		"graphql-tag": "2.12.6",
 		"graphql-ws": "5.8.2"
-	}
+	},
+	"type": "module"
 }

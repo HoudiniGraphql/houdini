@@ -3,7 +3,6 @@
 	"version": "0.15.5",
 	"description": "The disappearing graphql client for SvelteKit",
 	"workspaces": [
-		"example",
 		"integration",
 		"."
 	],
@@ -20,7 +19,9 @@
 	},
 	"typesVersions": {
 		"*": {
-		  	"preprocess": ["build/preprocess/index.d.ts"]
+			"preprocess": [
+				"build/preprocess/index.d.ts"
+			]
 		}
 	},
 	"types": "./build/cmd/index.d.ts",
@@ -60,7 +61,7 @@
 		"@rollup/plugin-json": "^4.1.0",
 		"@rollup/plugin-node-resolve": "^13.2.0",
 		"@rollup/plugin-replace": "^4.0.0",
-		"@sveltejs/kit": "1.0.0-next.350",
+		"@sveltejs/kit": "1.0.0-next.370",
 		"@types/fs-extra": "^9.0.13",
 		"@types/glob": "^7.2.0",
 		"@types/inquirer": "^7.3.1",
