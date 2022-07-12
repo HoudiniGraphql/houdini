@@ -1,5 +1,5 @@
 ---
-"@fake-scope/fake-pkg": patch
+'houdini': patch
 ---
 
 export preprocessor types
