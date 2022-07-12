@@ -311,7 +311,7 @@ function fetchContext<_Data, _Input>(
 	if (!isBrowser && !params?.fetch && (!params || !params.event || !('fetch' in params.event))) {
 		// prettier-ignore
 		log.error(`
-	${log.red(`Missing event args in load function`)}. 
+	${log.red(`Missing event args in load function`)}.
 
 	Three options:
 	${log.cyan('1/ Prefetching & SSR')}
@@ -321,22 +321,22 @@ function fetchContext<_Data, _Input>(
 		export async function load(${log.yellow('event')}: LoadEvent) {
 			const variables = { ... };
 			await ${log.cyan(storeName)}.fetch({ ${log.yellow('event')}, variables });
-			
+
 			return { props: { variables } };
 		}
-	</script> 
+	</script>
 
 	<script lang="ts">
 		import { type ${log.cyan(storeName)}$input } from '$houdini'
 		export let variables: ${log.cyan(storeName)}$input;
-		
+
 		$: browser && ${log.cyan(storeName)}.fetch({ variables });
-	</script> 
+	</script>
 
 	${log.cyan('2/ Client only')}
 	<script lang="ts">
 		$: browser && ${log.cyan(storeName)}.fetch({ variables: { ... } });
-	</script> 
+	</script>
 
 	${log.cyan('3/ Endpoint')}
 	import fetch from 'node-fetch'
@@ -360,7 +360,11 @@ function fetchContext<_Data, _Input>(
 	// looking at the session will error while prerendering
 	let session: App.Session | null = null
 	try {
-		session = houdiniContext.session?.()
+		if (params?.event && 'session' in params.event) {
+			session = params?.event.session
+		} else {
+			session = houdiniContext.session?.()
+		}
 	} catch {}
 
 	// figure out the right policy
