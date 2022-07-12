@@ -1,4 +1,4 @@
-import type { LoadEvent } from '@sveltejs/kit'
+import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { Readable } from 'svelte/store'
 import { MutationConfig } from '../inline/mutation'
 import type { ConfigFile } from './config'
@@ -154,6 +154,13 @@ export type QueryStoreFetchParams<_Input> = {
 			 * Only when you are in a component, not here.
 			 */
 			context?: never
+
+			fetch?: never
+	  }
+	| {
+			event: RequestEvent
+			fetch: LoadEvent['fetch']
+			context?: never
 	  }
 	| {
 			/**
@@ -166,6 +173,8 @@ export type QueryStoreFetchParams<_Input> = {
 			 * something like this: `const context = getHoudiniFetchContext()`
 			 */
 			context?: HoudiniFetchContext
+
+			fetch?: never
 	  }
 )
 

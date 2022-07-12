@@ -16,6 +16,7 @@ export const routes = {
   Stores_SSR_One_Store_Multivariables: '/stores/ssr-one-store-multivariables',
   Stores_Fragment_Null: '/stores/fragment-null',
   Stores_Metadata: '/stores/metadata',
+  Stores_Endpoint: '/stores/endpoint',
 
   Stores_Partial_List: '/stores/partial/partial_List',
   Stores_Pagination_query_forward_cursor: '/stores/pagination/query/forward-cursor',
