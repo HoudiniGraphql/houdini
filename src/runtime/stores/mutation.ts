@@ -31,6 +31,7 @@ export function mutationStore<_Data, _Input>({
 		variables,
 		context,
 		metadata,
+		fetch,
 		...mutationConfig
 	}) => {
 		let fetchContext: HoudiniFetchContext | { session: () => null } = context || {
@@ -95,6 +96,7 @@ export function mutationStore<_Data, _Input>({
 				session: fetchContext.session?.(),
 				cached: false,
 				metadata,
+				fetch,
 			})
 
 			if (result.errors && result.errors.length > 0) {

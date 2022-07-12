@@ -233,6 +233,7 @@ export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result, _I
 			// @ts-ignore
 			metadata?: App.Metadata
 			context?: HoudiniFetchContext
+			fetch?: LoadEvent['fetch']
 		} & MutationConfig<_Result, _Input>
 	) => Promise<MutationResult<_Result, _Input>>
 }
