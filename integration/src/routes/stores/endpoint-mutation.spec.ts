@@ -1,7 +1,6 @@
-import { sleep, stry } from '@kitql/helper';
 import { expect, test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import { expectNoGraphQLRequest, expectGraphQLResponse } from '../../lib/utils/testsHelper.js';
+import { expectNoGraphQLRequest } from '../../lib/utils/testsHelper.js';
 
 test.describe('Mutations', () => {
   test('Work in Endpoints', async ({ page }) => {

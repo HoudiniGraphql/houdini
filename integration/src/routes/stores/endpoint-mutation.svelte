@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { GQL_AddUser } from '$houdini';
-  import { stry } from '@kitql/helper';
   import { routes } from '$lib/utils/routes';
 
   let status: number | null = null;
