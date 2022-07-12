@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let data: { hello: string }
+  export let data: { hello: string };
 </script>
 
 <div id="result">
