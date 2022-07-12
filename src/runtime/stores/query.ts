@@ -1,5 +1,6 @@
 // externals
 import { derived, get, Readable, Writable, writable } from 'svelte/store'
+import type { LoadEvent } from '@sveltejs/kit'
 // internals
 import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
 import { clientStarted, isBrowser } from '../adapter'
@@ -13,10 +14,9 @@ import {
 } from '../lib'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { nullHoudiniContext } from '../lib/context'
-import { PageInfo, PaginatedHandlers, queryHandlers, nullPageInfo } from '../lib/pagination'
+import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import * as log from '../lib/log'
-import { LoadEvent } from '@sveltejs/kit'
 
 // Terms:
 // - CSF: client side fetch. identified by a lack of loadEvent
@@ -108,7 +108,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
 
 		// identify if this is a CSF or load
-		const isLoadFetch = Boolean(params?.event)
+		const isLoadFetch = 'event' in params
 		const isComponentFetch = !isLoadFetch
 
 		// compute the variables we need to use for the query
@@ -126,7 +126,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		let variableChange = !deepEquals(lastVariables, newVariables)
 
 		// detect if there is a load function that fires before the first CSF
-		if (isLoadFetch && lastVariables === null && Boolean(args?.event)) {
+		if (isLoadFetch && lastVariables === null && Boolean('event' in (args || {}))) {
 			blockNextCSF = true
 		}
 
@@ -308,7 +308,11 @@ function fetchContext<_Data, _Input>(
 	params?: QueryStoreFetchParams<_Input>
 ): { context: FetchContext; policy: CachePolicy; params: QueryStoreFetchParams<_Input> } {
 	// if we aren't on the browser but there's no event there's a big mistake
-	if (!isBrowser && !params?.fetch && (!params || !params.event || !('fetch' in params.event))) {
+	if (
+		!isBrowser &&
+		!(params && 'fetch' in params) &&
+		(!params || !('event' in params) || !('fetch' in (params.event || {})))
+	) {
 		// prettier-ignore
 		log.error(`
 	${log.red(`Missing event args in load function`)}.
@@ -355,12 +359,19 @@ function fetchContext<_Data, _Input>(
 		throw new Error('Error, check above logs for help.')
 	}
 
-	const houdiniContext = params?.context || nullHoudiniContext()
+	let houdiniContext = params && 'context' in params ? params.context : nullHoudiniContext()
+	houdiniContext ??= nullHoudiniContext()
 
 	// looking at the session will error while prerendering
 	let session: App.Session | null = null
 	try {
-		if (params?.event && 'session' in params.event) {
+		if (
+			params &&
+			'event' in params &&
+			params.event &&
+			'session' in params.event &&
+			params.event.session
+		) {
 			session = params.event.session
 		} else {
 			session = houdiniContext.session?.()
@@ -375,10 +386,14 @@ function fetchContext<_Data, _Input>(
 	}
 
 	// figure out the right fetch to use
-	let fetch = params?.fetch
-	if (!fetch && params?.event && 'fetch' in params.event) {
-		fetch = params.event.fetch
-	} else if (!fetch && isBrowser) {
+	let fetch: LoadEvent['fetch'] | null = null
+	if (params) {
+		if ('fetch' in params && params.fetch) {
+			fetch = params.fetch
+		} else if ('event' in params && params.event && 'fetch' in params.event) {
+			fetch = params.event.fetch
+		}
+	} else if (isBrowser) {
 		fetch = window.fetch.bind(window)
 	}
 
@@ -388,8 +403,8 @@ function fetchContext<_Data, _Input>(
 
 	// find the right stuff
 	let stuff = houdiniContext?.stuff || {}
-	if (params?.event && 'stuff' in params.event) {
-		stuff = params?.event.stuff
+	if (params && 'event' in params && params.event && 'stuff' in params.event) {
+		stuff = params.event.stuff
 	}
 
 	return {

@@ -120,7 +120,7 @@ export type MutationResult<_Data, _Input> = {
 	variables: _Input | null
 }
 
-export type QueryStoreFetchParams<_Input> = {
+type FetchGlobalParams<_Input> = {
 	variables?: _Input
 
 	/**
@@ -143,50 +143,40 @@ export type QueryStoreFetchParams<_Input> = {
 	 * transitions to pause while loading data.
 	 */
 	blocking?: boolean
-} & (
-	| {
-			/**
-			 * Directly the `even` param coming from the `load` function
-			 */
-			event: LoadEvent
+}
 
-			/**
-			 * Only when you are in a component, not here.
-			 */
-			context?: never
+type LoadEventFetchParams<_Input> = FetchGlobalParams<_Input> & {
+	/**
+	 * Directly the `even` param coming from the `load` function
+	 */
+	event?: LoadEvent
+}
 
-			fetch?: never
-	  }
-	| {
-			/**
-			 * A Request event should be provided when the store is being used in an endpoint.
-			 * When this happens, fetch needs to be provided
-			 */
-			event: RequestEvent
-			/**
-			 * The fetch function to use when using this store in an endpoint.
-			 */
-			fetch: LoadEvent['fetch']
-			/**
-			 * This value should only be provided in a component query
-			 */
-			context?: never
-	  }
-	| {
-			/**
-			 * Only in a <script context="module"> `load` function, not here.
-			 */
-			event?: never
-			/**
-			 * An object containing all of the current info necessary for a
-			 * client-side fetch. Must be called in component initialization with
-			 * something like this: `const context = getHoudiniFetchContext()`
-			 */
-			context?: HoudiniFetchContext
+type RequestEventFetchParams<_Input> = FetchGlobalParams<_Input> & {
+	/**
+	 * A RequestEvent should be provided when the store is being used in an endpoint.
+	 * When this happens, fetch also needs to be provided
+	 */
+	event?: RequestEvent
+	/**
+	 * The fetch function to use when using this store in an endpoint.
+	 */
+	fetch?: LoadEvent['fetch']
+}
 
-			fetch?: never
-	  }
-)
+type ClientFetchParams<_Input> = FetchGlobalParams<_Input> & {
+	/**
+	 * An object containing all of the current info necessary for a
+	 * client-side fetch. Must be called in component initialization with
+	 * something like this: `const context = getHoudiniFetchContext()`
+	 */
+	context?: HoudiniFetchContext
+}
+
+export type QueryStoreFetchParams<_Input> =
+	| LoadEventFetchParams<_Input>
+	| RequestEventFetchParams<_Input>
+	| ClientFetchParams<_Input>
 
 export type HoudiniFetchContext = {
 	url: () => URL | null
@@ -219,10 +209,14 @@ export type QueryStore<_Data, _Input, _Extra = {}> = Readable<
 	QueryResult<_Data, _Input> & _Extra
 > & {
 	name: string
+
 	/**
 	 * Fetch the data from the server
 	 */
-	fetch: (params?: QueryStoreFetchParams<_Input>) => Promise<QueryResult<_Data, _Input> & _Extra>
+	fetch(params?: RequestEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input> & _Extra>
+	fetch(params?: LoadEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input> & _Extra>
+	fetch(params?: ClientFetchParams<_Input>): Promise<QueryResult<_Data, _Input> & _Extra>
+	fetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input> & _Extra>
 }
 
 // the result of tagging an operation
