@@ -18,6 +18,7 @@ export function query<_Query extends Operation<any, any>>(
 	const loading = derived(document.store, ($store) => $store.isFetching)
 	const partial = derived(document.store, ($store) => $store.partial)
 	const errors = derived(document.store, ($store) => $store.errors)
+	const variables = derived(document.store, ($store) => $store.variables)
 
 	// load the current houdini context
 	const context = getHoudiniContext()
@@ -36,6 +37,7 @@ export function query<_Query extends Operation<any, any>>(
 		errors,
 		loading,
 		partial,
+		variables,
 	}
 }
 
@@ -47,6 +49,7 @@ export type QueryResponse<_Data, _Input> = {
 	loading: Readable<boolean>
 	partial: Readable<boolean>
 	errors: Readable<{ message: string }[] | null>
+	variables: Readable<_Input>
 }
 
 type RefetchConfig = {

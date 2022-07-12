@@ -135,6 +135,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// update with fetchAndCache
 		if (isComponentFetch && variableChange) {
 			refreshSubscription(newVariables)
+			store.update((s) => ({ ...s, variables: newVariables }))
 		}
 
 		// if there is a pending load, don't do anything

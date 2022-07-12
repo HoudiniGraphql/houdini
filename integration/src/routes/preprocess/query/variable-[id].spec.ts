@@ -16,9 +16,13 @@ test.describe('query preprocessor variables', () => {
 
     await expectToBe(page, 'Bruce Willis');
 
+    await expectToBe(page, '{"id":"1"}', '#variables');
+
     // We should have the data with only 1 GraphQL request in the client
     await expectGraphQLResponse(page, navSelector(routes.Preprocess_query_variable_2));
 
     await expectToBe(page, 'Samuel Jackson');
+
+    await expectToBe(page, '{"id":"2"}', '#variables');
   });
 });
