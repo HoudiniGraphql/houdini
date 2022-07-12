@@ -4,18 +4,17 @@
   const { data } = query<Style1>(graphql`
     query Style1 {
       usersList(snapshot: "style1") {
-          id
-          name
+        id
+        name
       }
     }
   `);
-</script> 
-  
+</script>
+
 <div id="result">
   <ul>
-    {#each $data?.usersList ?? [] as {id, name}}
+    {#each $data?.usersList ?? [] as { id, name }}
       <li>{id} - {name}</li>
     {/each}
   </ul>
 </div>
-  
