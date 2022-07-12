@@ -158,8 +158,18 @@ export type QueryStoreFetchParams<_Input> = {
 			fetch?: never
 	  }
 	| {
+			/**
+			 * A Request event should be provided when the store is being used in an endpoint.
+			 * When this happens, fetch needs to be provided
+			 */
 			event: RequestEvent
+			/**
+			 * The fetch function to use when using this store in an endpoint.
+			 */
 			fetch: LoadEvent['fetch']
+			/**
+			 * This value should only be provided in a component query
+			 */
 			context?: never
 	  }
 	| {
