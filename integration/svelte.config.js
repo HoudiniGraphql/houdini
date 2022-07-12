@@ -11,19 +11,10 @@ const config = {
 
   kit: {
     adapter: adapter(),
-    vite: {
-      resolve: {
-        alias: {
-          $houdini: path.resolve('./$houdini'),
-          $lib: path.resolve('./src/lib')
-        }
-      },
-      server: {
-        fs: {
-          // Allow serving files from one level up to the project root
-          allow: ['.']
-        }
-      }
+
+    alias: {
+      $houdini: path.resolve('./$houdini'),
+      $lib: path.resolve('./src/lib')
     }
   }
 };
