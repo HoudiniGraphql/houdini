@@ -71,8 +71,8 @@
 		}
 	`)
 
-	$: numberOfItems = $data.allItems.edges.length
-	$: itemsLeft = $data.allItems.edges.filter(({ node: item }) => !item.completed).length
+	$: numberOfItems = $data?.allItems.edges.length || 0
+	$: itemsLeft = $data?.allItems.edges.filter(({ node: item }) => !item?.completed).length
 
 	// figure out the current page
 	const currentPage = derived(page, ($page) => {
@@ -116,7 +116,7 @@
 	<input id="toggle-all" class="toggle-all" type="checkbox" />
 	<label for="toggle-all">Mark all as complete</label>
 	<ul class="todo-list">
-		{#each $data.filteredItems.edges as edge (edge.node.id)}
+		{#each $data?.filteredItems.edges ?? [] as edge (edge.node?.id)}
 			<ItemEntry item={edge.node} />
 		{/each}
 	</ul>
