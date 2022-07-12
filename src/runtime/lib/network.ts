@@ -215,6 +215,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 	cached,
 	config,
 	metadata,
+	fetch,
 }: {
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
@@ -223,6 +224,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 	config: ConfigFile
 	// @ts-ignore
 	metadata?: App.Metadata
+	fetch?: LoadEvent['fetch']
 }): Promise<{ result: RequestPayload; partial: boolean }> {
 	// We use get from svelte/store here to subscribe to the current value and unsubscribe after.
 	// Maybe there can be a better solution and subscribing only once?
@@ -230,7 +232,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 
 	// Simulate the fetch/load context
 	const fetchCtx = {
-		fetch: window.fetch.bind(window),
+		fetch: fetch ?? window.fetch.bind(window),
 		session,
 		stuff: {},
 		page: {

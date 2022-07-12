@@ -1,5 +1,6 @@
 // externals
 import { derived, get, Readable, Writable, writable } from 'svelte/store'
+import type { LoadEvent } from '@sveltejs/kit'
 // internals
 import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
 import { clientStarted, isBrowser } from '../adapter'
@@ -13,7 +14,7 @@ import {
 } from '../lib'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { nullHoudiniContext } from '../lib/context'
-import { PageInfo, PaginatedHandlers, queryHandlers, nullPageInfo } from '../lib/pagination'
+import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import * as log from '../lib/log'
 
@@ -107,7 +108,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
 
 		// identify if this is a CSF or load
-		const isLoadFetch = Boolean(params?.event)
+		const isLoadFetch = Boolean('event' in params && params.event)
 		const isComponentFetch = !isLoadFetch
 
 		// compute the variables we need to use for the query
@@ -125,7 +126,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		let variableChange = !deepEquals(lastVariables, newVariables)
 
 		// detect if there is a load function that fires before the first CSF
-		if (isLoadFetch && lastVariables === null && Boolean(args?.event)) {
+		if (isLoadFetch && lastVariables === null && Boolean('event' in (args || {}))) {
 			blockNextCSF = true
 		}
 
@@ -308,38 +309,75 @@ function fetchContext<_Data, _Input>(
 	params?: QueryStoreFetchParams<_Input>
 ): { context: FetchContext; policy: CachePolicy; params: QueryStoreFetchParams<_Input> } {
 	// if we aren't on the browser but there's no event there's a big mistake
-	if (!isBrowser && (!params || !params.event || !params.event.fetch)) {
+	if (
+		!isBrowser &&
+		!(params && 'fetch' in params) &&
+		(!params || !('event' in params) || !('fetch' in (params.event || {})))
+	) {
 		// prettier-ignore
 		log.error(`
-	${log.red(`Missing event args in load function`)}. 
+	${log.red(`Missing event args in load function`)}.
 
-	Two options:
-	${log.cyan("1/ Prefetching & SSR")}
-  <script context="module" lang="ts">
-    import type { LoadEvent } from '@sveltejs/kit';
+	Three options:
+	${log.cyan('1/ Prefetching & SSR')}
+	<script context="module" lang="ts">
+		import type { LoadEvent } from '@sveltejs/kit';
 
-    export async function load(${log.yellow('event')}: LoadEvent) {
+		export async function load(${log.yellow('event')}: LoadEvent) {
 			const variables = { ... };
-      await ${log.cyan(storeName)}.fetch({ ${log.yellow('event')}, variables });
-      return { props: { variables } };
-    }
-  </script> 
+			await ${log.cyan(storeName)}.fetch({ ${log.yellow('event')}, variables });
+
+			return { props: { variables } };
+		}
+	</script>
 
 	<script lang="ts">
 		import { type ${log.cyan(storeName)}$input } from '$houdini'
 		export let variables: ${log.cyan(storeName)}$input;
-		
-		$: browser && ${log.cyan(storeName)}.fetch({ variables });
-	</script> 
 
-	${log.cyan("2/ Client only")}
+		$: browser && ${log.cyan(storeName)}.fetch({ variables });
+	</script>
+
+	${log.cyan('2/ Client only')}
 	<script lang="ts">
 		$: browser && ${log.cyan(storeName)}.fetch({ variables: { ... } });
-	</script> 
-`);
+	</script>
+
+	${log.cyan('3/ Endpoint')}
+	import fetch from 'node-fetch'
+	import { ${log.cyan(storeName)} } from '$houdini';
+
+	export async function get(event) {
+		return {
+			props: {
+				data: await  ${log.cyan(storeName)}.fetch({ event, fetch })
+			}
+		};
+	}
+
+`)
 
 		throw new Error('Error, check above logs for help.')
 	}
+
+	let houdiniContext = (params && 'context' in params && params.context) || null
+	houdiniContext ??= nullHoudiniContext()
+
+	// looking at the session will error while prerendering
+	let session: App.Session | null = null
+	try {
+		if (
+			params &&
+			'event' in params &&
+			params.event &&
+			'session' in params.event &&
+			params.event.session
+		) {
+			session = params.event.session
+		} else {
+			session = houdiniContext.session?.()
+		}
+	} catch {}
 
 	// figure out the right policy
 	let policy = params?.policy
@@ -348,22 +386,40 @@ function fetchContext<_Data, _Input>(
 		policy = artifact.policy ?? CachePolicy.CacheOrNetwork
 	}
 
-	// if there is an event (we are inside of a load), the event is a good enough context, otherwise
-	// we have to build up a context appropriate for the client
-	let context: FetchContext | undefined = params?.event
-	if (!context) {
-		const houdiniContext = params?.context || nullHoudiniContext()
-		context = {
-			fetch: window.fetch.bind(window),
-			session: houdiniContext.session?.(),
-			stuff: houdiniContext.stuff || {},
+	// figure out the right fetch to use
+	let fetch: LoadEvent['fetch'] | null = null
+	if (params) {
+		if ('fetch' in params && params.fetch) {
+			fetch = params.fetch
+		} else if ('event' in params && params.event && 'fetch' in params.event) {
+			fetch = params.event.fetch
 		}
 	}
 
-	// Add metadata info to the context
-	context = { ...context, metadata: params?.metadata }
+	if (!fetch) {
+		if (isBrowser) {
+			fetch = window.fetch.bind(window)
+		} else {
+			throw new Error('Cannot find fetch to use')
+		}
+	}
 
-	return { context, policy, params: params ?? {} }
+	// find the right stuff
+	let stuff = houdiniContext?.stuff || {}
+	if (params && 'event' in params && params.event && 'stuff' in params.event) {
+		stuff = params.event.stuff
+	}
+
+	return {
+		context: {
+			fetch,
+			metadata: params?.metadata ?? {},
+			session,
+			stuff,
+		},
+		policy,
+		params: params ?? {},
+	}
 }
 
 async function fetchAndCache<_Data extends GraphQLObject, _Input>({
