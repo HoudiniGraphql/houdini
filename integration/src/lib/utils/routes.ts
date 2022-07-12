@@ -44,5 +44,10 @@ export const routes = {
   Pagination_fragment_offset: '/pagination/fragment/offset',
 
   Stores_subunsub_list: '/stores/subunsub-list',
-  Stores_subunsub_mutation: '/stores/subunsub-mutation'
+  Stores_subunsub_mutation: '/stores/subunsub-mutation',
+
+  Mix_Style1: '/mix/style1',
+  Mix_Style2: '/mix/style2',
+  Mix_Style3: '/mix/style3',
+  Mix_Style4: '/mix/style4'
 };

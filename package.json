@@ -20,7 +20,9 @@
 	},
 	"typesVersions": {
 		"*": {
-		  	"preprocess": ["build/preprocess/index.d.ts"]
+			"preprocess": [
+				"build/preprocess/index.d.ts"
+			]
 		}
 	},
 	"types": "./build/cmd/index.d.ts",
