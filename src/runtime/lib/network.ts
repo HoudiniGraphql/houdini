@@ -52,12 +52,16 @@ export class HoudiniClient {
 						)}
 You should update your client to look something like the following:
 
-async function fetchQuery({ ${log.yellow('fetch')}, ${log.yellow(
-							'session'
-						)}, text = '', variables = {} }) {
-  const result =  await fetch( ...
+async function fetchQuery({
+	${log.yellow('fetch')},
+	text = '',
+	variables = {},
+	${log.yellow('session')},
+	metadata,
+}: RequestHandlerArgs) {
+	const result =  await fetch( ... );
 
-  return await result.json();
+	return await result.json();
 }
 `
 					)
