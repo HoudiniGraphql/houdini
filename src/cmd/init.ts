@@ -32,9 +32,7 @@ async function init(
 			message: "What's the URL for your api?",
 			name: 'url',
 			type: 'input',
-			default: !withRunningCheck
-				? 'http://localhost:3000/api/graphql'
-				: 'https://countries.trevorblades.com/',
+			default: 'http://localhost:3000/api/graphql',
 			when: ({ running }) => withRunningCheck && running,
 		},
 	])
@@ -78,8 +76,6 @@ async function init(
 		console.log('✨ SvelteKit')
 	} else if (framework === 'sapper') {
 		console.log('✨ Sapper')
-	} else if (framework === 'svelte') {
-		console.log('✨ Svelte')
 	}
 
 	// module
@@ -92,8 +88,6 @@ async function init(
 	// typescript
 	if (typescript) {
 		console.log('🟦 TypeScript')
-	} else {
-		console.log('🟨 JavaScript')
 	}
 
 	// put some space between discoveries and errors
@@ -153,11 +147,7 @@ async function init(
 	const config = await getConfig({
 		logLevel: LogLevel.Quiet,
 	})
-	try {
-		await generate(config)
-	} catch (error) {
-		console.log(`⚠️  generate error`, error)
-	}
+	await generate(config)
 
 	// we're done!
 	console.log('🎩 Welcome to Houdini!')
