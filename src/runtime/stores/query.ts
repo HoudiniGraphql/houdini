@@ -361,7 +361,7 @@ function fetchContext<_Data, _Input>(
 	let session: App.Session | null = null
 	try {
 		if (params?.event && 'session' in params.event) {
-			session = params?.event.session
+			session = params.event.session
 		} else {
 			session = houdiniContext.session?.()
 		}
