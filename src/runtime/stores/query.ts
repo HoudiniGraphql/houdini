@@ -108,7 +108,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
 
 		// identify if this is a CSF or load
-		const isLoadFetch = 'event' in params
+		const isLoadFetch = Boolean('event' in params && params.event)
 		const isComponentFetch = !isLoadFetch
 
 		// compute the variables we need to use for the query
@@ -359,7 +359,7 @@ function fetchContext<_Data, _Input>(
 		throw new Error('Error, check above logs for help.')
 	}
 
-	let houdiniContext = params && 'context' in params ? params.context : nullHoudiniContext()
+	let houdiniContext = (params && 'context' in params && params.context) || null
 	houdiniContext ??= nullHoudiniContext()
 
 	// looking at the session will error while prerendering
@@ -393,12 +393,14 @@ function fetchContext<_Data, _Input>(
 		} else if ('event' in params && params.event && 'fetch' in params.event) {
 			fetch = params.event.fetch
 		}
-	} else if (isBrowser) {
-		fetch = window.fetch.bind(window)
 	}
 
 	if (!fetch) {
-		throw new Error('Cannot find fetch to use')
+		if (isBrowser) {
+			fetch = window.fetch.bind(window)
+		} else {
+			throw new Error('Cannot find fetch to use')
+		}
 	}
 
 	// find the right stuff
