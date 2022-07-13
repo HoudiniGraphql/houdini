@@ -4,6 +4,7 @@ import { LoadEvent, Page } from '@sveltejs/kit'
 import cache from '../cache'
 import type { ConfigFile } from './config'
 import { marshalInputs } from './scalars'
+import { isPrerender } from '../adapter'
 import {
 	CachePolicy,
 	DataSource,
@@ -71,10 +72,18 @@ async function fetchQuery({
 			{
 				fetch: wrapper,
 				...params,
-				session,
+				get session() {
+					// using session while prerendering is not meaningful
+					if (isPrerender) {
+						throw new Error(
+							'Attempted to access session from a prerendered page. Session would never be populated.'
+						)
+					}
+
+					return session
+				},
 				metadata: ctx.metadata,
-			},
-			session
+			}
 		)
 
 		// return the result

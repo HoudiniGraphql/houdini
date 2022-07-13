@@ -44,12 +44,14 @@ export function goTo(location, options) {
 export const isBrowser = process.browser
 
 export const clientStarted = true; // Not tested in Sapper.
+
+export const isPrerender = false
 `
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
 import { page, session } from '$app/stores';
 import { get } from 'svelte/store';
-import { browser } from '$app/env'
+import { browser, prerendering } from '$app/env'
 
 export function getSession() {
     return session
@@ -74,6 +76,8 @@ if (browser) {
     clientStarted = true;
   });
 }
+
+export const isPrerender = prerendering
 `
 
 const svelteAdapter = `
@@ -97,4 +101,6 @@ export function goTo(location, options) {
 export const isBrowser = true
 
 export const clientStarted = true
+
+export const isPrerender = false
 `
