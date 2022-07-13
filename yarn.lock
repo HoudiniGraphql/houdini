@@ -1833,7 +1833,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-yoga/node@npm:2.8.0, @graphql-yoga/node@npm:^2.8.0":
+"@graphql-yoga/node@npm:^2.8.0":
   version: 2.8.0
   resolution: "@graphql-yoga/node@npm:2.8.0"
   dependencies:
@@ -4310,24 +4310,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"concurrently@npm:^6.2.1":
-  version: 6.5.1
-  resolution: "concurrently@npm:6.5.1"
-  dependencies:
-    chalk: ^4.1.0
-    date-fns: ^2.16.1
-    lodash: ^4.17.21
-    rxjs: ^6.6.3
-    spawn-command: ^0.0.2-1
-    supports-color: ^8.1.0
-    tree-kill: ^1.2.2
-    yargs: ^16.2.0
-  bin:
-    concurrently: bin/concurrently.js
-  checksum: 3f4d89b464fa5c9fb6f9489b46594c30ba54eff6ff10ab3cb5f30f64b74c83be664623a0f0cc731a3cb3f057a1f4a3292f7d3470c012a292c44aca31f214a3fa
-  languageName: node
-  linkType: hard
-
 "console-control-strings@npm:^1.0.0, console-control-strings@npm:^1.1.0, console-control-strings@npm:~1.1.0":
   version: 1.1.0
   resolution: "console-control-strings@npm:1.1.0"
@@ -5542,27 +5524,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"example-kit@workspace:example":
-  version: 0.0.0-use.local
-  resolution: "example-kit@workspace:example"
-  dependencies:
-    "@graphql-yoga/node": 2.8.0
-    "@kitql/vite-plugin-watch-and-run": ^0.4.0
-    "@sveltejs/kit": 1.0.0-next.370
-    concurrently: ^6.2.1
-    graphql: 15.5.0
-    graphql-relay: 0.8.0
-    graphql-tag: 2.12.6
-    graphql-ws: 5.8.2
-    houdini: 0.15.5
-    svelte: ^3.38.2
-    svelte-preprocess: ^4.0.0
-    tslib: ^2.2.0
-    typescript: ^4.0.0
-    vite: ^2.9.14
-  languageName: unknown
-  linkType: soft
-
 "exec-sh@npm:^0.3.2":
   version: 0.3.4
   resolution: "exec-sh@npm:0.3.4"
@@ -6276,15 +6237,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-relay@npm:0.8.0":
-  version: 0.8.0
-  resolution: "graphql-relay@npm:0.8.0"
-  peerDependencies:
-    graphql: 15.5.1
-  checksum: 66bd9d611098bdfe9dd86e391f5c59185f25484000877513ad0f97f79ce5eea52aaef4e05589d8030de9c8910990afb7c5491e9fdf81280032c59dc7cb285da9
-  languageName: node
-  linkType: hard
-
 "graphql-relay@npm:^0.10.0":
   version: 0.10.0
   resolution: "graphql-relay@npm:0.10.0"
@@ -6294,7 +6246,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-tag@npm:2.12.6, graphql-tag@npm:^2.12.6":
+"graphql-tag@npm:^2.12.6":
   version: 2.12.6
   resolution: "graphql-tag@npm:2.12.6"
   dependencies:
@@ -6305,7 +6257,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-ws@npm:5.8.2, graphql-ws@npm:^5.8.2":
+"graphql-ws@npm:^5.8.2":
   version: 5.8.2
   resolution: "graphql-ws@npm:5.8.2"
   peerDependencies:
@@ -6314,7 +6266,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:15.5.0, graphql@npm:^15.5.0":
+"graphql@npm:^15.5.0":
   version: 15.5.0
   resolution: "graphql@npm:15.5.0"
   checksum: 58a69f7274ae94c690bfa2517f96bbaf1327e1ca1fc46606e772ba2f7ca517adeb375346301373351e693022f448b7866163034209623d7c5315819ef8c5e7c0
@@ -6460,7 +6412,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"houdini@0.15.5, houdini@workspace:., houdini@workspace:^":
+"houdini@workspace:., houdini@workspace:^":
   version: 0.0.0-use.local
   resolution: "houdini@workspace:."
   dependencies:
@@ -11317,7 +11269,7 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
-"svelte@npm:^3.38.2, svelte@npm:^3.47.0":
+"svelte@npm:^3.47.0":
   version: 3.48.0
   resolution: "svelte@npm:3.48.0"
   checksum: d72587582b6967bf083ff7dc254f8067c22b57d4678182b48ca51010e0f3a1d98a33a00365046aee0c70ed3ffc716b73141207ec5ac6c44f1f5e34c5477e61ea
@@ -11786,16 +11738,6 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
-"typescript@npm:^4.0.0":
-  version: 4.7.3
-  resolution: "typescript@npm:4.7.3"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: fd13a1ce53790a36bb8350e1f5e5e384b5f6cb9b0635114a6d01d49cb99916abdcfbc13c7521cdae2f2d3f6d8bc4a8ae7625edf645a04ee940588cd5e7597b2f
-  languageName: node
-  linkType: hard
-
 "typescript@npm:^4.6.3, typescript@npm:~4.6.2":
   version: 4.6.4
   resolution: "typescript@npm:4.6.4"
@@ -11813,16 +11755,6 @@ resolve@^1.19.0:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 09d93fc0983d38eadd9b0427f790b49b4437f45002a87d447be3fbe53120880e87a91dd03e1d900498f99205d6e0b7c9784fe41fca11d56f4bbce371f74bb160
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@^4.0.0#~builtin<compat/typescript>":
-  version: 4.7.3
-  resolution: "typescript@patch:typescript@npm%3A4.7.3#~builtin<compat/typescript>::version=4.7.3&hash=bda367"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 8257ce7ecbbf9416da60045a76a99d473698ca9e973fa0ddab7137cacb1587255431176cbbcc801a650938c4dc8109ab88355774829a714fabe56a53a2fe4524
   languageName: node
   linkType: hard
 

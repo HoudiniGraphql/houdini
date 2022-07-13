@@ -26,3 +26,5 @@ export const isBrowser = false
  *  After `clientStarted = true`, only client side navigation will happen.
  */
 export let clientStarted = false // Will be true on a client side navigation
+
+export let isPrerender = false
