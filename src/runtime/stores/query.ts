@@ -227,8 +227,6 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			},
 		})
 
-		console.log({ fakeAwait })
-
 		// if the await isn't fake, await it
 		if (!fakeAwait) {
 			await request
