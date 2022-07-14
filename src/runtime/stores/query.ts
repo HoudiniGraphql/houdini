@@ -3,7 +3,7 @@ import { derived, get, Readable, Writable, writable } from 'svelte/store'
 import type { LoadEvent } from '@sveltejs/kit'
 // internals
 import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
-import { clientStarted, isBrowser } from '../adapter'
+import { clientStarted, getSession, isBrowser } from '../adapter'
 import cache from '../cache'
 import {
 	FetchContext,
@@ -37,6 +37,14 @@ import * as log from '../lib/log'
 //   - still need to subscribe to data
 //
 
+// our query store needs to be able to handle concurrent requests from users with different sessions
+// without leaking data. In order to do this, a query store is going to store independent versions for
+// every req_id that it encounters. We're going to then use that `req_id` in the session during store subscribe
+// in order to get the value that was loaded fetch
+type QueryResultMap<_Data, _Input> = {
+	[req_id: string]: Writable<QueryResult<_Data, _Input> & { pageInfo?: PageInfo }>
+}
+
 export function queryStore<_Data extends GraphQLObject, _Input>({
 	config,
 	artifact,
@@ -51,19 +59,21 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	paginationMethods: { [key: string]: keyof PaginatedHandlers<_Data, _Input> }
 }): QueryStore<_Data, _Input> {
 	// only include pageInfo in the store state if the query is paginated
-	const initialState = (): QueryResult<_Data, _Input> & { pageInfo?: PageInfo } => ({
-		data: null,
-		errors: null,
-		isFetching: false,
-		partial: false,
-		source: null,
-		variables: null,
-	})
+	const initialState = (): Writable<QueryResult<_Data, _Input> & { pageInfo?: PageInfo }> =>
+		writable({
+			data: null,
+			errors: null,
+			isFetching: false,
+			partial: false,
+			source: null,
+			variables: null,
+		})
 
 	// at its core, a query store is a writable store with extra methods
-	const store = writable(initialState())
-	const setFetching = (isFetching: boolean) => store.update((s) => ({ ...s, isFetching }))
-	const getVariables = () => get(store).variables
+	const data: QueryResultMap<_Data, _Input> = {}
+	const setFetching = (req_id: string, isFetching: boolean) =>
+		data[req_id]?.update((s) => ({ ...s, isFetching }))
+	const getVariables = (req_id: string) => get(data[req_id]).variables
 
 	// the first client-side request after the mocked load() needs to be blocked
 	let blockNextCSF = false
@@ -82,7 +92,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	let subscriberCount = 0
 
 	// a function to update the store's cache subscriptions
-	function refreshSubscription(newVariables: _Input) {
+	function refreshSubscription(req_id: string, newVariables: _Input) {
 		// if the variables changed we need to unsubscribe from the old fields and
 		// listen to the new ones
 		if (subscriptionSpec) {
@@ -94,7 +104,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			rootType: artifact.rootType,
 			selection: artifact.selection,
 			variables: () => newVariables,
-			set: (data) => store.update((s) => ({ ...s, data })),
+			set: (newValue) => data[req_id]?.update((s) => ({ ...s, data: newValue })),
 		}
 
 		// make sure we subscribe to the new values
@@ -110,6 +120,23 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	): Promise<QueryResult<_Data, _Input>> {
 		// validate and prepare the request context for the current environment (client vs server)
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
+
+		// get the req_id from the session
+		// @ts-ignore
+		let { req_id } = context.session
+		if (!req_id) {
+			while (!req_id || data[req_id]) {
+				req_id = Math.random()
+			}
+
+			// @ts-ignore
+			context.session.req_id = req_id
+		}
+		console.log(req_id)
+		// if we dont have an entry for this req_id already,  create one
+		if (!data[req_id]) {
+			data[req_id] = initialState()
+		}
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
@@ -139,8 +166,8 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// cause the new data to trigger the old subscription after the store has been
 		// update with fetchAndCache
 		if (isComponentFetch && variableChange) {
-			refreshSubscription(newVariables)
-			store.update((s) => ({ ...s, variables: newVariables }))
+			refreshSubscription(req_id, newVariables)
+			data[req_id].update((s) => ({ ...s, variables: newVariables }))
 		}
 
 		// if there is a pending load, don't do anything
@@ -148,10 +175,10 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			// if the variables haven't changed and we dont have an active subscription
 			// then we need to start listening
 			if (!variableChange && subscriptionSpec === null) {
-				refreshSubscription(newVariables)
+				refreshSubscription(req_id, newVariables)
 			}
 
-			return get(store)
+			return get(data[req_id])
 		}
 
 		if (isComponentFetch) {
@@ -182,13 +209,13 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 					context,
 					artifact,
 					variables: newVariables,
-					store,
+					store: data[req_id],
 					updateStore: true,
 					cached: true,
 					policy: CachePolicy.CacheOnly,
 					setLoadPending: (val) => {
 						loadPending = val
-						setFetching(val)
+						setFetching(req_id, val)
 					},
 				})
 			}
@@ -196,11 +223,11 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			// if we dont have a subscription but we're ending early we need to listen for
 			// changes
 			if (subscriptionSpec === null) {
-				refreshSubscription(newVariables)
+				refreshSubscription(req_id, newVariables)
 			}
 
 			// make sure we return before the fetch happens
-			return get(store)
+			return get(data[req_id])
 		}
 
 		// we want to update the store in four situations: ssr, csf, the first load of the ssr response,
@@ -214,7 +241,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// we might not want to wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
 
-		setFetching(true)
+		setFetching(req_id, true)
 
 		// perform the network request
 		const request = fetchAndCache({
@@ -222,12 +249,12 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			context,
 			artifact,
 			variables: newVariables,
-			store,
+			store: data[req_id],
 			updateStore,
 			cached: policy !== CachePolicy.NetworkOnly,
 			setLoadPending: (val) => {
 				loadPending = val
-				setFetching(val)
+				setFetching(req_id, val)
 			},
 		})
 
@@ -237,46 +264,49 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		}
 
 		// the store will have been updated already since we waited for the response
-		return get(store)
+		return get(data[req_id])
 	}
 
-	// we might need to mix multiple store values for the user
-	const relevantStores: Readable<any>[] = [store]
+	// // we might need to mix multiple store values for the user
+	// const relevantStores: Readable<any>[] = [data]
 
-	// add the pagination methods to the store
-	let extraMethods: {} = {}
-	if (paginated) {
-		const handlers = queryHandlers({
-			config,
-			artifact,
-			store: {
-				name: artifact.name,
-				subscribe: store.subscribe,
-				async fetch(params?: QueryStoreFetchParams<_Input>) {
-					return (await fetch({
-						...params,
-						blocking: true,
-					}))!
-				},
-			},
-			queryVariables: getVariables,
-		})
+	// // add the pagination methods to the store
+	// let extraMethods: {} = {}
+	// if (paginated) {
+	// 	const handlers = queryHandlers({
+	// 		config,
+	// 		artifact,
+	// 		store: {
+	// 			name: artifact.name,
+	// 			subscribe: store.subscribe,
+	// 			async fetch(params?: QueryStoreFetchParams<_Input>) {
+	// 				return (await fetch({
+	// 					...params,
+	// 					blocking: true,
+	// 				}))!
+	// 			},
+	// 		},
+	// 		queryVariables: getVariables,
+	// 	})
 
-		// we only want to add page info if we have to
-		relevantStores.push(derived([handlers.pageInfo], ([pageInfo]) => ({ pageInfo })))
+	// 	// we only want to add page info if we have to
+	// 	relevantStores.push(derived([handlers.pageInfo], ([pageInfo]) => ({ pageInfo })))
 
-		extraMethods = Object.fromEntries(
-			Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])
-		)
-	}
+	// 	extraMethods = Object.fromEntries(
+	// 		Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])
+	// 	)
+	// }
 
-	// mix any of the stores we care about
-	const userFacingStore = derived(relevantStores, (stores) => Object.assign({}, ...stores))
+	// // mix any of the stores we care about
+	// const userFacingStore = derived(relevantStores, (stores) => Object.assign({}, ...stores))
 
 	return {
 		name: artifact.name,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
-			const bubbleUp = userFacingStore.subscribe(...args)
+			const session = getSession()
+			const { req_id } = get(session)
+
+			const bubbleUp = data[req_id].subscribe(...args)
 
 			// we have a new subscriber
 			subscriberCount++
@@ -299,7 +329,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 					lastVariables = null
 
 					// reset the store value
-					store.set(initialState())
+					delete data[req_id]
 				}
 
 				// we're done
@@ -307,7 +337,6 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			}
 		},
 		fetch,
-		...extraMethods,
 	}
 }
 
