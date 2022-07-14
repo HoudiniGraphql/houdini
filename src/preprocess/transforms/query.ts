@@ -199,7 +199,7 @@ function processModule({
 		config,
 		body: script.content.body,
 		import: ['RequestContext'],
-		sourceModule: '$houdini/runtime',
+		sourceModule: '$houdini/runtime/lib/network',
 	})
 
 	// if there is already a load function, don't do anything
@@ -491,7 +491,7 @@ function addSapperPreload(config: Config, body: Statement[]) {
 		config,
 		body,
 		import: ['convertKitPayload'],
-		sourceModule: '$houdini/runtime',
+		sourceModule: '$houdini/runtime/lib/network',
 	})
 
 	// look for a preload definition
@@ -626,8 +626,14 @@ function processInstance({
 	ensureImports({
 		config,
 		body: script.content.body,
-		import: ['getHoudiniContext', 'isBrowser'],
-		sourceModule: '$houdini/runtime',
+		import: ['getHoudiniContext'],
+		sourceModule: '$houdini/runtime/lib/context',
+	})
+	ensureImports({
+		config,
+		body: script.content.body,
+		import: ['isBrowser'],
+		sourceModule: '$houdini/runtime/adapter',
 	})
 
 	// any prop declarations and statements need to come after the first import

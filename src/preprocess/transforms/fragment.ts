@@ -42,7 +42,7 @@ export default async function fragmentProcessor(
 				config,
 				body: doc.instance!.content.body,
 				import: ['HoudiniDocumentProxy'],
-				sourceModule: '$houdini/runtime',
+				sourceModule: '$houdini/runtime/lib/proxy',
 			})
 
 			// instantiate a proxy we can use to update this fragment
