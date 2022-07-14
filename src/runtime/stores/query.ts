@@ -227,13 +227,10 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			},
 		})
 
-		// if we weren't told to block we're done (only valid for a client-side request)
-		if (fakeAwait) {
-			return get(store)
+		// if the await isn't fake, await it
+		if (!fakeAwait) {
+			await request
 		}
-
-		// if we got this far, we need to wait for the response from the request
-		await request
 
 		// the store will have been updated already since we waited for the response
 		return get(store)
