@@ -508,6 +508,11 @@ describe('extractAttributeValue', () => {
 		const result = extractAttributeValue(`<script lang  =  'ts'>`, 'lang')
 		expect(result).toBe(`ts`)
 	})
+
+	test('extractAttributeValue - leading spaces & tabs', async () => {
+		const result = extractAttributeValue(`<script lang  	   =  'ts'>`, 'lang')
+		expect(result).toBe(`ts`)
+	})
 })
 
 function checkScriptBounds(doc: string, result?: ParsedSvelteFile | null | undefined) {

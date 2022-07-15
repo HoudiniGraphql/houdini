@@ -123,10 +123,11 @@ export function findScriptInnerBoundsAndLang({
 export function extractAttributeValue(str: string, key: string): string | null | undefined {
 	// remove a lot of things from the string!
 	// and create a table of elements
+	// The order of replacements is important like this
 	const elements = str
-		.replace(/(\s+=)/g, '=') // for '    ='
-		.replace(/(=\s+)/g, '=') // for '=    '
-		.replace(/[\<,\>,",',\r,\n,\t]/g, '') // for the rest
+		.replace(/[\<,\>,",',\r,\n,\t]/g, '') // 1/ for the rest
+		.replace(/(\s+=)/g, '=') // 2/ for '    ='
+		.replace(/(=\s+)/g, '=') // 3/ for '=    '
 		.trim()
 		.split(' ')
 
