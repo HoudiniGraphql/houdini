@@ -6,4 +6,5 @@ export type Script = {
 	content: Program
 	start: number
 	end: number
+	lang: 'js' | 'ts'
 }

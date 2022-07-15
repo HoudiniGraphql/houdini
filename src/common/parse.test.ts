@@ -104,6 +104,7 @@ describe('parser tests', () => {
 		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
 		expect(result.module?.start).toMatchInlineSnapshot(`4`)
 		expect(result.module?.end).toMatchInlineSnapshot(`67`)
+		expect(result.module?.lang).toMatchInlineSnapshot(`"js"`)
 
 		checkScriptBounds(doc, result)
 	})
@@ -111,7 +112,7 @@ describe('parser tests', () => {
 	test('happy path - typescript', async () => {
 		const doc = `
 			<script context="module" lang="ts">
-				type Foo = { hello: string}
+				type Foo = { hello: string }
 			</script>
 		`
 		// parse the string
@@ -127,7 +128,8 @@ describe('parser tests', () => {
 		};
 	`)
 		expect(result.module?.start).toMatchInlineSnapshot(`4`)
-		expect(result.module?.end).toMatchInlineSnapshot(`83`)
+		expect(result.module?.end).toMatchInlineSnapshot(`84`)
+		expect(result.module?.lang).toMatchInlineSnapshot(`"ts"`)
 
 		checkScriptBounds(doc, result)
 	})

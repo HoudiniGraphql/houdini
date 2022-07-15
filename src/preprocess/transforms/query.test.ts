@@ -1291,3 +1291,49 @@ test('2 queries, one paginated one not', async function () {
 		});
 	`)
 })
+
+test('Using type in a js script tag is wrong', async function () {
+	try {
+		await preprocessorTest(
+			`
+			<script>
+			const { data } = query<TestQuery1>(graphql\`
+			query TestQuery1($test: Boolean!) {
+				viewer {
+					id
+				}
+			}
+			\`)
+			</script>
+			`
+		)
+	} catch (error) {
+		expect(error).toMatchInlineSnapshot(`
+		{
+		    "filepath": "/home/jycouet/udev/gh/lib/houdini/src/routes/component.svelte",
+		    "message": "query<MY_TYPE>(graphql... is not valid. 2 Options: 1/ add lang=\\"ts\\" in script tag, 2/ get rid of the <MY_TYPE>."
+		}
+	`)
+	}
+})
+
+test('Using type in a ts script tag is good', async function () {
+	try {
+		const doc = await preprocessorTest(
+			`<script lang="ts">
+				const { data } = query<TestQuery1>(graphql\`
+				query TestQuery1($test: Boolean!) {
+					viewer {
+						id
+					}
+				}
+				\`)
+				</script>`
+		)
+	} catch (error) {
+		// We should never get here
+		expect(1).toBe(2)
+	} finally {
+		expect(1).toBe(1)
+	}
+})

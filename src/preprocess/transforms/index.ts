@@ -1,14 +1,22 @@
 // externals
 import * as recast from 'recast'
 // locals
-import { runPipeline, Config, Transform, parseFile, findScriptInnerBounds } from '../../common'
+import {
+	Config,
+	findScriptInnerBoundsAndLang,
+	parseFile,
+	runPipeline,
+	Transform,
+} from '../../common'
 import * as types from '../types'
 import fragmentProcessor from './fragment'
-import queryProcessor from './query'
+import moduleProcessorChecker from './module'
 import mutationProcessor from './mutation'
+import queryProcessor from './query'
 import subscriptionProcessor from './subscription'
 
 const defaultTransforms = [
+	moduleProcessorChecker,
 	fragmentProcessor,
 	queryProcessor,
 	mutationProcessor,
@@ -151,7 +159,11 @@ function replaceTagContent(
 		return `<script${attrs}>${insert}</script>${source}`
 	}
 
-	const [greaterThanIndex, lessThanIndex] = findScriptInnerBounds({ start, end, text: source })
+	const [greaterThanIndex, lessThanIndex] = findScriptInnerBoundsAndLang({
+		start,
+		end,
+		text: source,
+	})
 
 	// replace the content between the closing of the open and open of the close
 	return replaceBetween(source, greaterThanIndex, lessThanIndex, insert)

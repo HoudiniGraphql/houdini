@@ -41,7 +41,7 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 		}
 
 		// now that we have the bounds we can find the appropriate string to parse
-		const [greaterThanIndex, lessThanIndex] = findScriptInnerBounds({
+		const [greaterThanIndex, lessThanIndex, lang] = findScriptInnerBoundsAndLang({
 			start: parsed[which]!.start,
 			end: parsed[which]!.end - 1,
 			text: str,
@@ -58,6 +58,7 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 			start: parsed[which]!.start,
 			// end has to exist to get this far
 			end: parsed[which]!.end! - 1,
+			lang,
 		}
 	}
 
@@ -65,7 +66,7 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 	return result
 }
 
-export function findScriptInnerBounds({
+export function findScriptInnerBoundsAndLang({
 	start,
 	end,
 	text,
@@ -73,7 +74,7 @@ export function findScriptInnerBounds({
 	start: number
 	end: number
 	text: string
-}): [number, number] {
+}): [number, number, 'js' | 'ts'] {
 	// {start} points to the < of the opening tag, we want to find the >
 	let greaterThanIndex = start
 	// keep looking until the end
@@ -106,5 +107,18 @@ export function findScriptInnerBounds({
 		throw new Error('Could not find the start of the tag close')
 	}
 
-	return [greaterThanIndex + 1, lessThanIndex]
+	// the <script lang="ts">
+	const scriptLine = text.slice(0, greaterThanIndex + 1)
+	let lang: 'js' | 'ts' = 'js'
+
+	// Check the different know syntaxes for the lang attribute
+	// And if we find typescript, well, we'll set it
+	if (
+		scriptLine.includes(`lang="ts"`) ||
+		scriptLine.includes(`lang='ts'`) ||
+		scriptLine.includes(`lang=ts`)
+	) {
+		lang = 'ts'
+	}
+	return [greaterThanIndex + 1, lessThanIndex, lang]
 }
