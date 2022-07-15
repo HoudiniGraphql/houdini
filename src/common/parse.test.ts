@@ -504,7 +504,7 @@ describe('extractAttributeValue', () => {
 		expect(result).toBe(`ts`)
 	})
 
-	test('extractAttributeValue - leading spaces', async () => {
+	test('extractAttributeValue - leading spaces ', async () => {
 		const result = extractAttributeValue(`<script lang  =  'ts'>`, 'lang')
 		expect(result).toBe(`ts`)
 	})
