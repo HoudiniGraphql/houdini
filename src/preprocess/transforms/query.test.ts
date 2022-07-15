@@ -1307,13 +1307,11 @@ test('Using type in a js script tag is wrong', async function () {
 			</script>
 			`
 		)
-	} catch (error) {
-		expect(error).toMatchInlineSnapshot(`
-		{
-		    "filepath": "/home/jycouet/udev/gh/lib/houdini/src/routes/component.svelte",
-		    "message": "query<MY_TYPE>(graphql... is not valid. 2 Options: 1/ add lang=\\"ts\\" in script tag, 2/ get rid of the <MY_TYPE>."
-		}
-	`)
+	} catch (error: any) {
+		expect(error.filepath).toContain('routes/component.svelte')
+		expect(error.message).toMatchInlineSnapshot(
+			`"query<MY_TYPE>(graphql... is not valid. 2 Options: 1/ add lang=\\"ts\\" in script tag, 2/ get rid of the <MY_TYPE>."`
+		)
 	}
 })
 

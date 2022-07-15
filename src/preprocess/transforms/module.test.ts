@@ -18,14 +18,10 @@ describe('module preprocessor checker', function () {
 				</script>
 				`
 			)
-		} catch (error) {
-			expect(error).toMatchInlineSnapshot(
-				`
-			{
-			    "filepath": "/home/jycouet/udev/gh/lib/houdini/src/routes/component.svelte",
-			    "message": "The operation \\"TestQuery\\" should not be defined in a context=\\"module\\"."
-			}
-		`
+		} catch (error: any) {
+			expect(error.filepath).toContain('routes/component.svelte')
+			expect(error.message).toMatchInlineSnapshot(
+				`"The operation \\"TestQuery\\" should not be defined in a context=\\"module\\"."`
 			)
 		}
 	})
