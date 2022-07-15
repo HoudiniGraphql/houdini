@@ -11,7 +11,7 @@ import { writeSchema } from './utils/writeSchema'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
-async function init(
+export default async function init(
 	_path: string | undefined,
 	args: { pullHeader?: string[]; yes: boolean },
 	withRunningCheck = true
@@ -33,11 +33,11 @@ async function init(
 			name: 'url',
 			type: 'input',
 			default: 'http://localhost:3000/api/graphql',
-			when: ({ running }) => withRunningCheck && running,
+			when: ({ running }) => !withRunningCheck || running,
 		},
 	])
 
-	if (!running && withRunningCheck) {
+	if (withRunningCheck && !running) {
 		console.log('❌ Your API must be running order to continue')
 		return
 	}
@@ -69,13 +69,15 @@ async function init(
 
 	// notify the users of what we detected
 	console.log()
-	console.log('🚧 Generating project with the following stack:')
+	console.log('🔎 Heres what we found:')
 
 	// framework
 	if (framework === 'kit') {
 		console.log('✨ SvelteKit')
 	} else if (framework === 'sapper') {
 		console.log('✨ Sapper')
+	} else {
+		console.log('✨ Svelte')
 	}
 
 	// module
@@ -88,6 +90,8 @@ async function init(
 	// typescript
 	if (typescript) {
 		console.log('🟦 TypeScript')
+	} else {
+		console.log('🟨 JavaScript')
 	}
 
 	// put some space between discoveries and errors
@@ -112,49 +116,52 @@ async function init(
 		? path.join(sourceDir, 'client.ts')
 		: path.join(sourceDir, 'client.js')
 
-	const hasWarnings = (
-		await Promise.all(
-			[
-				// Get the schema from the url and write it to file
-				writeSchema(url, path.join(targetPath, schemaPath), args?.pullHeader),
+	console.log('🚧 Generating project files...')
 
-				// write the config file
-				writeConfigFile({
-					configPath,
-					schemaPath,
-					framework,
-					module,
-					url,
-				}),
+	await updatePackageJSON(targetPath)
 
-				// write the houdiniClient file
-				writeFile(houdiniClientPath, networkFile(url, typescript)),
-
-				// make sure we generate a .graphqlrc file for intellisense
-				graphqlRCFile(targetPath),
-			]
-
-				// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
-				.concat(framework !== 'kit' ? [aliasPaths(targetPath)] : [])
-				// only update the layout file if we're generating a kit or sapper project
-				.concat(framework !== 'svelte' ? [updateLayoutFile(targetPath)] : [])
-				// add the sveltekit config file
-				.concat(framework === 'kit' ? [updateKitConfig(targetPath)] : [])
-		)
-	).find((result) => typeof result === 'boolean' && result)
-
-	// make sure we don't log anything else
-	const config = await getConfig({
-		logLevel: LogLevel.Quiet,
+	// generate the necessary files
+	await writeSchema(url, path.join(targetPath, schemaPath), args?.pullHeader)
+	await writeConfigFile({
+		targetPath,
+		configPath,
+		schemaPath,
+		framework,
+		module,
+		url,
 	})
-	await generate(config)
+	await writeFile(houdiniClientPath, networkFile(url, typescript))
+	await graphqlRCFile(targetPath)
+
+	// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
+	if (framework !== 'kit') {
+		await aliasPaths(targetPath)
+	}
+	// only update the layout file if we're generating a kit or sapper project
+	if (framework !== 'svelte') {
+		await updateLayoutFile(targetPath)
+	}
+	// add the sveltekit config file
+	if (framework === 'kit') {
+		await updateKitConfig(targetPath)
+	}
+
+	// generate the initial runtime
+	await generate(
+		await getConfig({
+			// make sure we don't log anything else
+			logLevel: LogLevel.Quiet,
+		})
+	)
 
 	// we're done!
+	console.log()
 	console.log('🎩 Welcome to Houdini!')
-	if (hasWarnings) {
-		console.log('⚠️  Something unexpected happened. Check above for more info.')
-	}
-	await updatePackageJSON(targetPath)
+	console.log(`
+👉 Next Steps
+1️⃣  Finalize your installation: npm/yarn/pnpm install 
+2️⃣  Start your application: npm run dev
+`)
 }
 
 const networkFile = (url: string, typescript: boolean) => `
@@ -185,6 +192,7 @@ export default new HoudiniClient(fetchQuery);
 `
 
 const writeConfigFile = async ({
+	targetPath,
 	configPath,
 	schemaPath,
 	framework,
@@ -192,6 +200,7 @@ const writeConfigFile = async ({
 	url,
 	sourceGlob = 'src/**/*.{svelte,gql,graphql}',
 }: {
+	targetPath: string
 	configPath: string
 	schemaPath: string
 	framework: 'kit' | 'sapper' | 'svelte'
@@ -228,53 +237,13 @@ const config = ${configObj}
 module.exports = config
 `
 
-	await writeFile(configPath, content)
+	await updateFile({
+		projectPath: targetPath,
+		filepath: configPath,
+		content,
+	})
 
 	return false
-}
-
-type DetectedTools = {
-	typescript: boolean
-	framework: 'kit' | 'sapper' | 'svelte'
-	module: 'esm' | 'commonjs'
-}
-
-async function detectTools(cwd: string): Promise<DetectedTools> {
-	// if there's no package.json then there's nothing we can detect
-	try {
-		const packageJSONFile = await readFile(path.join(cwd, 'package.json'))
-		if (packageJSONFile) {
-			var packageJSON = JSON.parse(packageJSONFile)
-		}
-	} catch {
-		throw new Error(
-			'❌ houdini init must target an existing node project (with a package.json)'
-		)
-	}
-
-	// grab the dev dependencies
-	const { devDependencies, dependencies } = packageJSON
-
-	const hasDependency = (dep: string) => Boolean(devDependencies?.[dep] || dependencies?.[dep])
-
-	let framework: ConfigFile['framework'] = 'svelte'
-	if (hasDependency('@sveltejs/kit')) {
-		framework = 'kit'
-	} else if (hasDependency('sapper')) {
-		framework = 'sapper'
-	}
-
-	let typescript = false
-	try {
-		await fs.stat(path.join(cwd, 'tsconfig.json'))
-		typescript = true
-	} catch {}
-
-	return {
-		typescript,
-		framework,
-		module: packageJSON['type'] === 'module' ? 'esm' : 'commonjs',
-	}
 }
 
 async function aliasPaths(targetPath: string) {
@@ -311,38 +280,26 @@ async function aliasPaths(targetPath: string) {
 	return false
 }
 
-async function updateLayoutFile(targetPath: string): Promise<boolean> {
+async function updateLayoutFile(targetPath: string) {
 	const layoutFile = path.join(targetPath, 'src', 'routes', '__layout.svelte')
 
-	const contents = `<script context="module">
+	const content = `<script context="module">
 	import client from '../client'
 
 	client.init()
 </script>
 
 <slot />
-
 `
 
-	// if the layout file doesn't exist, just tell the user to update it themselves
-	try {
-		await fs.stat(layoutFile)
-		// if we get here, the file exists
-		console.log(`⚠️  You already have a root layout file. Please update src/routes/__layout.svelte to include the following:
-
-${contents}
-`)
-		// there was a warning
-		return true
-	} catch {}
-
-	// if we got this far we need to write the layout file
-	await writeFile(layoutFile, contents)
-
-	return false
+	await updateFile({
+		projectPath: targetPath,
+		filepath: layoutFile,
+		content,
+	})
 }
 
-async function updateKitConfig(targetPath: string): Promise<boolean> {
+async function updateKitConfig(targetPath: string) {
 	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
 	const viteConfigPath = path.join(targetPath, 'vite.config.js')
 
@@ -429,32 +386,21 @@ const config = {
 export default config;
 `
 
-	let hasWarnings = false
+	// write the svelte config file
+	await updateFile({
+		projectPath: targetPath,
+		filepath: svelteConfigPath,
+		content: svelteConfig,
+		old: [oldSvelteConfig1, oldSvelteConfig2],
+	})
 
-	// look up the existing svelte config
-	const svelteConfigFile = await readFile(svelteConfigPath)
-	if (svelteConfigFile && [oldSvelteConfig2, oldSvelteConfig1].includes(svelteConfigFile)) {
-		await writeFile(svelteConfigPath, svelteConfig)
-	} else {
-		console.log(`⚠️  Could not update your svelte.config.js. Please update it to look like:
-
-${svelteConfig}
-`)
-		hasWarnings = true
-	}
-
-	// look up the existing svelte config
-	if ((await readFile(viteConfigPath)) === oldViteConfig) {
-		await writeFile(viteConfigPath, viteConfig)
-	} else {
-		console.log(`⚠️  Could not update your vite.config.js. Please update it to look like:
-
-${viteConfig}
-`)
-		hasWarnings = true
-	}
-
-	return hasWarnings
+	// write the vite config file
+	await updateFile({
+		projectPath: targetPath,
+		filepath: viteConfigPath,
+		content: svelteConfig,
+		old: [oldViteConfig],
+	})
 }
 
 async function updatePackageJSON(targetPath: string) {
@@ -478,15 +424,13 @@ async function updatePackageJSON(targetPath: string) {
 	}
 
 	await writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
-	console.log(`✅ Added generate script to package.json`)
-	console.log('✅ Added a few new dependencies. Please install them with npm/yarn/pnpm')
 }
 
-async function graphqlRCFile(targetPath: string): Promise<boolean> {
+async function graphqlRCFile(targetPath: string) {
 	// the filepath for the rcfile
 	const target = path.join(targetPath, '.graphqlrc.yaml')
 
-	const contents = `projects:
+	const content = `projects:
   default:
     schema:
       - ./$houdini/graphql/schema.graphql
@@ -495,21 +439,97 @@ async function graphqlRCFile(targetPath: string): Promise<boolean> {
       - ./$houdini/graphql/documents.gql
 `
 
-	try {
-		await fs.stat(target)
-
-		console.log(`⚠️  You already have a .graphqlrc file. Please add the following lines to get intellisense for your graphql documents:
-		
-${contents}
-`)
-
-		// if the file already exists, don't do anything
-		return true
-	} catch {}
-
-	await writeFile(target, contents)
-
-	return false
+	await updateFile({
+		projectPath: targetPath,
+		filepath: target,
+		content,
+	})
 }
 
-export default init
+type DetectedTools = {
+	typescript: boolean
+	framework: 'kit' | 'sapper' | 'svelte'
+	module: 'esm' | 'commonjs'
+}
+
+async function detectTools(cwd: string): Promise<DetectedTools> {
+	// if there's no package.json then there's nothing we can detect
+	try {
+		const packageJSONFile = await readFile(path.join(cwd, 'package.json'))
+		if (packageJSONFile) {
+			var packageJSON = JSON.parse(packageJSONFile)
+		}
+	} catch {
+		throw new Error(
+			'❌ houdini init must target an existing node project (with a package.json)'
+		)
+	}
+
+	// grab the dev dependencies
+	const { devDependencies, dependencies } = packageJSON
+
+	const hasDependency = (dep: string) => Boolean(devDependencies?.[dep] || dependencies?.[dep])
+
+	let framework: ConfigFile['framework'] = 'svelte'
+	if (hasDependency('@sveltejs/kit')) {
+		framework = 'kit'
+	} else if (hasDependency('sapper')) {
+		framework = 'sapper'
+	}
+
+	let typescript = false
+	try {
+		await fs.stat(path.join(cwd, 'tsconfig.json'))
+		typescript = true
+	} catch {}
+
+	return {
+		typescript,
+		framework,
+		module: packageJSON['type'] === 'module' ? 'esm' : 'commonjs',
+	}
+}
+
+async function updateFile({
+	projectPath,
+	filepath,
+	old = [],
+	content,
+}: {
+	projectPath: string
+	filepath: string
+	old?: string[]
+	content: string
+}) {
+	// look up the file contents
+	const existingContents = await readFile(filepath)
+
+	// compare the existing contents to the approved overwrite list
+	if (existingContents && !old.includes(existingContents)) {
+		// show the filepath relative to the project path
+		const relPath = path.relative(projectPath, filepath)
+
+		// show a message before we prompt their response
+		console.log()
+		console.log(`⚠️  ${relPath} already exists. We'd like to replace it with:
+	
+${content}
+`)
+
+		// ask the user if we should continue
+		const { done } = await inquirer.prompt<{ done: boolean }>([
+			{
+				name: 'done',
+				type: 'confirm',
+				message: 'Should we overwrite the file? If not, please update it manually.',
+			},
+		])
+
+		if (!done) {
+			return
+		}
+	}
+
+	// if we got this far we are safe to write the file
+	await writeFile(filepath, content)
+}
