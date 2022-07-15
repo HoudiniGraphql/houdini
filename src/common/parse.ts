@@ -107,18 +107,35 @@ export function findScriptInnerBoundsAndLang({
 		throw new Error('Could not find the start of the tag close')
 	}
 
-	// the <script lang="ts">
 	const scriptLine = text.slice(0, greaterThanIndex + 1)
-	let lang: 'js' | 'ts' = 'js'
+	// extract the lang value and set ts if we find typescript
+	const lang = extractAttributeValue(scriptLine, 'lang') === 'ts' ? 'ts' : 'js'
 
-	// Check the different known syntaxes (as of today) for the lang attribute
-	// And if we find typescript, well, we'll set it
-	if (
-		scriptLine.includes(`lang="ts"`) ||
-		scriptLine.includes(`lang='ts'`) ||
-		scriptLine.includes(`lang=ts`)
-	) {
-		lang = 'ts'
-	}
 	return [greaterThanIndex + 1, lessThanIndex, lang]
+}
+
+/**
+ * Will extract the value of the attribute from the given string
+ * @param str example :`<script lang="ts">`
+ * @param key example : `lang`
+ * @returns example : `ts`
+ */
+export function extractAttributeValue(str: string, key: string): string | null | undefined {
+	// remove a lot of things from the string!
+	// and create a table of elements
+	const elements = str
+		.replace(/(\s+=)/g, '=') // for '    ='
+		.replace(/(=\s+)/g, '=') // for '=    '
+		.replace(/[\<,\>,",',\r,\n,\t]/g, '') // for the rest
+		.trim()
+		.split(' ')
+
+	for (let i = 0; i < elements.length; i++) {
+		const [eleKey, ekeValue] = elements[i].split('=')
+
+		if (eleKey === key) {
+			return ekeValue
+		}
+	}
+	return null
 }
