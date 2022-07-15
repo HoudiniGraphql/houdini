@@ -111,7 +111,7 @@ export function findScriptInnerBoundsAndLang({
 	const scriptLine = text.slice(0, greaterThanIndex + 1)
 	let lang: 'js' | 'ts' = 'js'
 
-	// Check the different know syntaxes for the lang attribute
+	// Check the different known syntaxes (as of today) for the lang attribute
 	// And if we find typescript, well, we'll set it
 	if (
 		scriptLine.includes(`lang="ts"`) ||
