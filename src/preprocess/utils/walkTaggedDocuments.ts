@@ -43,7 +43,7 @@ export default async function walkTaggedDocuments(
 	doc: TransformDocument,
 	parsedScript: Program,
 	walker: GraphqlTagWalker,
-	checkOnly: boolean = false
+	ignoreDeps: boolean = false
 ): Promise<void> {
 	// @ts-ignore
 	await asyncWalk(parsedScript, {
@@ -108,8 +108,8 @@ export default async function walkTaggedDocuments(
 				// the location for the document artifact
 				const documentPath = doc.config.artifactPath(parsedTag)
 
-				// if checkOnly, we don't want to add dependencies, we just want to check
-				if (!checkOnly) {
+				// if ignoreDeps, we don't want to add dependencies, we just want to check
+				if (!ignoreDeps) {
 					// make sure we watch the compiled fragment
 					doc.dependencies.push(documentPath)
 				}
