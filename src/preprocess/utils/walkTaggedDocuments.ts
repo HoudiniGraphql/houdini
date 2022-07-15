@@ -42,7 +42,8 @@ export default async function walkTaggedDocuments(
 	config: Config,
 	doc: TransformDocument,
 	parsedScript: Program,
-	walker: GraphqlTagWalker
+	walker: GraphqlTagWalker,
+	ignoreDeps: boolean = false
 ): Promise<void> {
 	// @ts-ignore
 	await asyncWalk(parsedScript, {
@@ -91,11 +92,27 @@ export default async function walkTaggedDocuments(
 					}
 				}
 
+				const hasType =
+					// @ts-ignore
+					parent?.typeParameters?.type === 'TSTypeParameterInstantiation' || false
+
+				// if we have a type defined, and we are in js, there is something wrong.
+				if (doc.instance?.lang === 'js' && hasType) {
+					throw {
+						filepath: doc.filename,
+						message:
+							'query<MY_TYPE>(graphql... is not valid. 2 Options: 1/ add lang="ts" in script tag, 2/ get rid of the <MY_TYPE>.',
+					}
+				}
+
 				// the location for the document artifact
 				const documentPath = doc.config.artifactPath(parsedTag)
 
-				// make sure we watch the compiled fragment
-				doc.dependencies.push(documentPath)
+				// if ignoreDeps, we don't want to add dependencies, we just want to check
+				if (!ignoreDeps) {
+					// make sure we watch the compiled fragment
+					doc.dependencies.push(documentPath)
+				}
 
 				// if there is a query in the document, we want to add an import to the module script
 				// doing it here ensures that we don't import the config since we can guarantee

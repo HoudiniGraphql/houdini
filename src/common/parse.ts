@@ -41,7 +41,7 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 		}
 
 		// now that we have the bounds we can find the appropriate string to parse
-		const [greaterThanIndex, lessThanIndex] = findScriptInnerBounds({
+		const [greaterThanIndex, lessThanIndex, lang] = findScriptInnerBoundsAndLang({
 			start: parsed[which]!.start,
 			end: parsed[which]!.end - 1,
 			text: str,
@@ -58,6 +58,7 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 			start: parsed[which]!.start,
 			// end has to exist to get this far
 			end: parsed[which]!.end! - 1,
+			lang,
 		}
 	}
 
@@ -65,7 +66,7 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 	return result
 }
 
-export function findScriptInnerBounds({
+export function findScriptInnerBoundsAndLang({
 	start,
 	end,
 	text,
@@ -73,7 +74,7 @@ export function findScriptInnerBounds({
 	start: number
 	end: number
 	text: string
-}): [number, number] {
+}): [number, number, 'js' | 'ts'] {
 	// {start} points to the < of the opening tag, we want to find the >
 	let greaterThanIndex = start
 	// keep looking until the end
@@ -106,5 +107,36 @@ export function findScriptInnerBounds({
 		throw new Error('Could not find the start of the tag close')
 	}
 
-	return [greaterThanIndex + 1, lessThanIndex]
+	const scriptLine = text.slice(0, greaterThanIndex + 1)
+	// extract the lang value and set ts if we find typescript
+	const lang = extractAttributeValue(scriptLine, 'lang') === 'ts' ? 'ts' : 'js'
+
+	return [greaterThanIndex + 1, lessThanIndex, lang]
+}
+
+/**
+ * Will extract the value of the attribute from the given string
+ * @param str example :`<script lang="ts">`
+ * @param key example : `lang`
+ * @returns example : `ts`
+ */
+export function extractAttributeValue(str: string, key: string): string | null | undefined {
+	// remove a lot of things from the string!
+	// and create a table of elements
+	// The order of replacements is important like this
+	const elements = str
+		.replace(/[\<,\>,",',\r,\n,\t]/g, '') // 1/ for the rest
+		.replace(/(\s+=)/g, '=') // 2/ for '    ='
+		.replace(/(=\s+)/g, '=') // 3/ for '=    '
+		.trim()
+		.split(' ')
+
+	for (let i = 0; i < elements.length; i++) {
+		const [eleKey, ekeValue] = elements[i].split('=')
+
+		if (eleKey === key) {
+			return ekeValue
+		}
+	}
+	return null
 }
