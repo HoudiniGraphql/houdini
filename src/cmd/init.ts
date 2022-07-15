@@ -132,6 +132,7 @@ export default async function init(
 	})
 	await writeFile(houdiniClientPath, networkFile(url, typescript))
 	await graphqlRCFile(targetPath)
+	await gitIgnore(targetPath)
 
 	// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
 	if (framework !== 'kit') {
@@ -446,6 +447,12 @@ async function graphqlRCFile(targetPath: string) {
 	})
 }
 
+async function gitIgnore(targetPath: string) {
+	const filepath = path.join(targetPath, '.gitignore')
+	const existing = (await readFile(filepath)) || ''
+	await writeFile(filepath, existing + '\n$houdini\n')
+}
+
 type DetectedTools = {
 	typescript: boolean
 	framework: 'kit' | 'sapper' | 'svelte'
@@ -513,8 +520,7 @@ async function updateFile({
 		console.log()
 		console.log(`⚠️  ${relPath} already exists. We'd like to replace it with:
 	
-${content}
-`)
+${content}`)
 
 		// ask the user if we should continue
 		const { done } = await inquirer.prompt<{ done: boolean }>([
