@@ -140,7 +140,7 @@ export default async function init(
 	}
 	// only update the layout file if we're generating a kit or sapper project
 	if (framework !== 'svelte') {
-		await updateLayoutFile(targetPath)
+		await updateLayoutFile(targetPath, typescript)
 	}
 	// add the sveltekit config file
 	if (framework === 'kit') {
@@ -281,10 +281,10 @@ async function aliasPaths(targetPath: string) {
 	return false
 }
 
-async function updateLayoutFile(targetPath: string) {
+async function updateLayoutFile(targetPath: string, ts: boolean) {
 	const layoutFile = path.join(targetPath, 'src', 'routes', '__layout.svelte')
 
-	const content = `<script context="module">
+	const content = `<script context="module" ${ts ? ' lang="ts"' : ''}>
 	import client from '../client'
 
 	client.init()
@@ -399,7 +399,7 @@ export default config;
 	await updateFile({
 		projectPath: targetPath,
 		filepath: viteConfigPath,
-		content: svelteConfig,
+		content: viteConfig,
 		old: [oldViteConfig],
 	})
 }
@@ -434,6 +434,7 @@ async function graphqlRCFile(targetPath: string) {
 	const content = `projects:
   default:
     schema:
+      - './schema.graphql'
       - ./$houdini/graphql/schema.graphql
     documents:
       - '**/*.gql'
