@@ -1,5 +1,5 @@
 <script>
-    import QueryExt from "$lib/QueryExt.svelte";
+  import QueryExt from '$lib/QueryExt.svelte';
 </script>
 
-<QueryExt></QueryExt>
+<QueryExt />

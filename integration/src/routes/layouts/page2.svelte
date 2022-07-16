@@ -1,7 +1,7 @@
 <script>
-import QueryExt from "$lib/QueryExt.svelte";
-
+  import QueryExt from '$lib/QueryExt.svelte';
 </script>
+
 Page: page2
 
-<QueryExt></QueryExt>
+<QueryExt />
