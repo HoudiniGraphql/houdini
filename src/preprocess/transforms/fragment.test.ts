@@ -20,7 +20,7 @@ describe('fragment preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import _TestFragmentArtifact from "$houdini/artifacts/TestFragment";
 		import _TestFragmentStore from "$houdini/stores/TestFragment";
-		import { HoudiniDocumentProxy } from "$houdini/runtime";
+		import { HoudiniDocumentProxy } from "$houdini/runtime/lib/proxy";
 		let TestFragmentProxy = new HoudiniDocumentProxy();
 		let reference;
 
@@ -58,7 +58,7 @@ describe('fragment preprocessor', function () {
 		expect(doc.instance?.content).toMatchInlineSnapshot(`
 		import _TestFragmentArtifact from "$houdini/artifacts/TestFragment";
 		import _TestFragmentStore from "$houdini/stores/TestFragment";
-		import { HoudiniDocumentProxy } from "$houdini/runtime";
+		import { HoudiniDocumentProxy } from "$houdini/runtime/lib/proxy";
 		let TestFragmentProxy = new HoudiniDocumentProxy();
 		let reference;
 
