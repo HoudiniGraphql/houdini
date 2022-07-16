@@ -1,7 +1,9 @@
+import { readdir, remove } from 'fs-extra'
 import path from 'path'
 import { Config } from '../../../common'
 import { ArtifactKind, CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
+import { cleanupFiles } from '../../utils/cleanupFiles'
 import { generateFragmentStore } from './fragment'
 import { generateIndividualStoreMutation } from './mutation'
 import { generateIndividualStoreQuery } from './query'
@@ -29,11 +31,10 @@ export default async function storesGenerator(config: Config, docs: CollectedGra
 		})
 	)
 
-	const dataIndex = listOfStores
+	const listOfStoresOrdered = listOfStores
 		.filter((c) => c !== null)
-		.sort((a, b) => (a + '').localeCompare(b + ''))
-		.map((c) => `export * from './${c}'`)
-		.join(`\n`)
+		.sort((a, b) => (a + '').localeCompare(b + '')) as string[]
+	const dataIndex = listOfStoresOrdered.map((c) => `export * from './${c}'`).join(`\n`)
 	await writeFile(path.join(config.rootDir, 'stores', `index.js`), dataIndex)
 
 	const dataIndexDTs = `import type { DataSource } from '$houdini/runtime'
@@ -46,8 +47,10 @@ export type Result<DataType> = {
 	error?: Error | null
 }`
 
-	await writeFile(
-		path.join(config.rootDir, 'stores', `index.d.ts`),
-		dataIndexDTs + `\n` + dataIndex
-	)
+	const storePath = path.join(config.rootDir, 'stores')
+
+	await writeFile(path.join(storePath, `index.d.ts`), dataIndexDTs + `\n` + dataIndex)
+
+	// cleanup files that are no more necessary!
+	await cleanupFiles(storePath, listOfStoresOrdered)
 }

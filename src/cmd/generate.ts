@@ -40,6 +40,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		total: [],
 		changed: [],
 		new: [],
+		deleted: [],
 	}
 
 	// notify the user we are starting the generation process
@@ -103,7 +104,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	} else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
 		// count the number of unchanged
 		const unchanged =
-			artifactStats.total.length - artifactStats.changed.length - artifactStats.new.length
+			artifactStats.total.length -
+			artifactStats.changed.length -
+			artifactStats.new.length -
+			artifactStats.deleted.length
 
 		// if we have any unchanged artifacts
 		if (unchanged > 0) {
@@ -123,6 +127,13 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				logFirst5(artifactStats.new)
 			}
 		}
+
+		if (artifactStats.deleted.length > 0) {
+			console.log(`🧹 Deleted: ${artifactStats.deleted.length}`)
+			if (config.logLevel === LogLevel.Summary) {
+				logFirst5(artifactStats.deleted)
+			}
+		}
 	} else if (config.logLevel === LogLevel.Full) {
 		for (const artifact of artifactStats.total) {
 			// figure out the emoji to use
@@ -131,6 +142,8 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				emoji = '✏️ '
 			} else if (artifactStats.new.includes(artifact)) {
 				emoji = '✨'
+			} else if (artifactStats.deleted.includes(artifact)) {
+				emoji = '🧹'
 			}
 
 			// log the name
