@@ -60,9 +60,12 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	await run(
 		config,
 		[
+			// validators
 			validators.typeCheck,
 			validators.uniqueNames,
 			validators.noIDAlias,
+
+			// transforms
 			transforms.internalSchema,
 			transforms.addID,
 			transforms.typename,
@@ -74,8 +77,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			transforms.paginate,
 			transforms.fragmentVariables,
 			transforms.composeQueries,
-			generators.artifacts(artifactStats),
+
+			// generators
 			generators.runtime,
+			generators.artifacts(artifactStats),
 			generators.typescript,
 			generators.persistOutput,
 			generators.definitions,
