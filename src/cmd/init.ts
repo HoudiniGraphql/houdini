@@ -325,7 +325,10 @@ const config = {
 			{
 			    watch: path.resolve('src/**/*.(gql|graphql|svelte)'),
 			    run: 'npm run generate',
-			    delay: 100,
+			},
+			{
+			    watch: path.resolve('houdini.config.js'),
+			    run: 'npm run generate',
 			}
 		])
 	],
