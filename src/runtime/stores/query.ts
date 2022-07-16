@@ -264,38 +264,56 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		return get(data[req_id])
 	}
 
-	// // we might need to mix multiple store values for the user
-	// const relevantStores: Readable<any>[] = [data]
+	// add the pagination methods to the store
+	let extraMethods: {} = {}
+	let pageInfos: ReturnType<typeof queryHandlers>['pageInfo'] = {}
+	if (paginated) {
+		const handlers = queryHandlers({
+			config,
+			artifact,
+			store: {
+				name: artifact.name,
+				subscribe: (
+					...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>
+				) => {
+					const session = getSession()
+					const { req_id } = get(session)
+					return data[req_id].subscribe(...args)
+				},
+				async fetch(params?: QueryStoreFetchParams<_Input>) {
+					return (await fetch({
+						...params,
+						blocking: true,
+					}))!
+				},
+			},
+			queryVariables() {
+				const session = getSession()
+				const { req_id } = get(session)
 
-	// // add the pagination methods to the store
-	// let extraMethods: {} = {}
-	// if (paginated) {
-	// 	const handlers = queryHandlers({
-	// 		config,
-	// 		artifact,
-	// 		store: {
-	// 			name: artifact.name,
-	// 			subscribe: store.subscribe,
-	// 			async fetch(params?: QueryStoreFetchParams<_Input>) {
-	// 				return (await fetch({
-	// 					...params,
-	// 					blocking: true,
-	// 				}))!
-	// 			},
-	// 		},
-	// 		queryVariables: getVariables,
-	// 	})
+				getVariables(req_id)
+			},
+		})
 
-	// 	// we only want to add page info if we have to
-	// 	relevantStores.push(derived([handlers.pageInfo], ([pageInfo]) => ({ pageInfo })))
+		extraMethods = Object.fromEntries(
+			Object.entries(paginationMethods)
+				.map(([key, value]) => [key, handlers[value]])
+				.concat([
+					'pageInfo',
+					// @ts-expect-error: this pageInfo is not on the standard store type to avoid confusion
+					{
+						subscribe(...args: Parameters<Readable<PageInfo>['subscribe']>) {
+							const session = getSession()
+							const { req_id } = get(session)
 
-	// 	extraMethods = Object.fromEntries(
-	// 		Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])
-	// 	)
-	// }
+							return handlers.pageInfo[req_id]?.subscribe(...args)
+						},
+					},
+				])
+		)
 
-	// // mix any of the stores we care about
-	// const userFacingStore = derived(relevantStores, (stores) => Object.assign({}, ...stores))
+		pageInfos = handlers.pageInfo
+	}
 
 	return {
 		name: artifact.name,
@@ -303,7 +321,17 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			const session = getSession()
 			const { req_id } = get(session)
 
-			const bubbleUp = data[req_id].subscribe(...args)
+			// add the page info store if it exists
+			const combined = derived([data[req_id], pageInfos[req_id]], ([store, pageInfo]) => {
+				const everything = { ...store }
+				if (pageInfo) {
+					everything.pageInfo = pageInfo
+				}
+
+				return everything
+			})
+
+			const bubbleUp = combined.subscribe(...args)
 
 			// Handle unsubscribe
 			return () => {
@@ -327,6 +355,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			}
 		},
 		fetch,
+		...extraMethods,
 	}
 }
 

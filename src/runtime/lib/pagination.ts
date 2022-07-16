@@ -7,6 +7,7 @@ import { ConfigFile, keyFieldsForType } from './config'
 import { getHoudiniContext } from './context'
 import { executeQuery } from './network'
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from './types'
+import { getSession } from '../adapter'
 
 type RefetchFn<_Data = any, _Input = any> = (
 	params?: QueryStoreFetchParams<_Input>
@@ -133,7 +134,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	documentLoading?: Readable<boolean>
 	refetch: RefetchFn<_Data, _Input>
 	config: ConfigFile
-	pageInfo?: Readable<PageInfo>
+	pageInfo?: { [req_id: string]: Writable<PageInfo> }
 }): PaginatedHandlers<_Data, _Input> {
 	// start with the defaults and no meaningful page info
 	let loadPreviousPage: PaginatedHandlers<_Data, _Input>['loadPreviousPage'] = async (
@@ -142,7 +143,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	let loadNextPage: PaginatedHandlers<_Data, _Input>['loadNextPage'] = async (
 		...args: Parameters<PaginatedHandlers<_Data, _Input>['loadNextPage']>
 	) => {}
-	let pageInfo = readable<PageInfo>(nullPageInfo())
+	let pageInfo: { [req_id: string]: Writable<PageInfo> } = {}
 
 	// loading state
 	let paginationLoadingState = writable(false)
@@ -224,12 +225,18 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	// track the current page info in an easy-to-reach store
 	const initialPageInfo = extractPageInfo(initialValue, artifact.refetch!.path) ?? nullPageInfo()
 
-	const pageInfo = writable<PageInfo>(initialPageInfo)
+	const pageInfo: { [req_id: string]: Writable<PageInfo> } = {}
 
 	// hold onto the current value
 	let value = initialValue
 	store.subscribe((val) => {
-		pageInfo.set(extractPageInfo(val, artifact.refetch!.path))
+		const session = getSession()
+		const { req_id } = get(session)
+		if (!pageInfo[req_id]) {
+			pageInfo[req_id] = writable(initialPageInfo)
+		}
+
+		pageInfo[req_id].set(extractPageInfo(val, artifact.refetch!.path))
 		value = val
 	})
 
@@ -245,6 +252,12 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		functionName: string
 		input: {}
 	}) => {
+		const session = getSession()
+		const { req_id } = get(session)
+		if (!pageInfo[req_id]) {
+			pageInfo[req_id] = writable(initialPageInfo)
+		}
+
 		// set the loading state to true
 		loading.set(true)
 
@@ -286,7 +299,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		}
 
 		// we need to find the connection object holding the current page info
-		pageInfo.set(extractPageInfo(result.data, resultPath))
+		pageInfo[req_id].set(extractPageInfo(result.data, resultPath))
 
 		// update cache with the result
 		cache.write({
@@ -352,7 +365,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				input,
 			})
 		},
-		pageInfo: { subscribe: pageInfo.subscribe },
+		pageInfo,
 		async refetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { variables } = params ?? {}
 
@@ -548,7 +561,7 @@ export type PaginatedHandlers<_Data, _Input> = {
 		before?: string
 	): Promise<void>
 	loading: Readable<boolean>
-	pageInfo: Readable<PageInfo>
+	pageInfo: { [req_id: string]: Writable<PageInfo> }
 	refetch: RefetchFn<_Data, _Input>
 }
 

@@ -2,7 +2,7 @@
 // locals
 import { Readable } from 'svelte/store'
 import type { Fragment, GraphQLTagResult } from '../lib/types'
-import { wrapPaginationStore, PaginatedDocumentHandlers } from '../lib/pagination'
+import { wrapPaginationStore, PaginatedDocumentHandlers, PageInfo } from '../lib/pagination'
 
 // function overloads meant to only return a nullable value
 // if the reference type was nullable
@@ -127,14 +127,20 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	document: GraphQLTagResult,
 	initialValue: _Fragment
 ): { data: Readable<_Fragment['shape']> } & Omit<
-	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
+	Omit<
+		PaginatedDocumentHandlers<_Fragment['shape'], {}>,
+		'pageInfo' & { pageInfo: Readable<PageInfo> }
+	>,
 	'refetch'
 >
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	document: GraphQLTagResult,
 	initialValue: _Fragment | null
 ): { data: Readable<_Fragment['shape']> } & Omit<
-	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
+	Omit<
+		PaginatedDocumentHandlers<_Fragment['shape'], {}>,
+		'pageInfo' & { pageInfo: Readable<PageInfo> }
+	>,
 	'refetch'
 > {
 	// make sure we got a query document
