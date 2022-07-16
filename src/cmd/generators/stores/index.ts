@@ -31,6 +31,7 @@ export default async function storesGenerator(config: Config, docs: CollectedGra
 
 	const dataIndex = listOfStores
 		.filter((c) => c !== null)
+		.sort((a, b) => (a + '').localeCompare(b + ''))
 		.map((c) => `export * from './${c}'`)
 		.join(`\n`)
 	await writeFile(path.join(config.rootDir, 'stores', `index.js`), dataIndex)
