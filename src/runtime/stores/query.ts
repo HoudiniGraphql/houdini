@@ -286,10 +286,10 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 				lastVariables = null
 
 				// don't clear the store state on the server (breaks SSR)
-				if (isBrowser) {
-					// reset the store value
-					store.set(initialState())
-				}
+				// if (isBrowser) {
+				// 	// reset the store value
+				// 	store.set(initialState())
+				// }
 
 				// we're done
 				bubbleUp()
