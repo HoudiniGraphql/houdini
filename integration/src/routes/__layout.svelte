@@ -19,6 +19,10 @@
   });
 </script>
 
+<slot />
+
+<hr />
+
 <nav>
   {#each routesKvp as { key, value }}
     <div>
@@ -27,6 +31,4 @@
   {/each}
 </nav>
 
-<hr />
 
-<slot />
