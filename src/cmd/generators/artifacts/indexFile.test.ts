@@ -38,8 +38,8 @@ test('index file - esm', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		export { default as TestQuery} from './TestQuery'
 		export { default as TestFragment} from './TestFragment'
+		export { default as TestQuery} from './TestQuery'
 	`)
 })
 
@@ -74,9 +74,9 @@ test('index file - sapper', async function () {
 		    return (mod && mod.__esModule) ? mod : { "default": mod };
 		};
 		Object.defineProperty(exports, "__esModule", { value: true });
-		var TestQuery = require("./TestQuery");
-		Object.defineProperty(exports, "TestQuery", { enumerable: true, get: function () { return __importDefault(TestQuery).default; } });
 		var TestFragment = require("./TestFragment");
 		Object.defineProperty(exports, "TestFragment", { enumerable: true, get: function () { return __importDefault(TestFragment).default; } });
+		var TestQuery = require("./TestQuery");
+		Object.defineProperty(exports, "TestQuery", { enumerable: true, get: function () { return __importDefault(TestQuery).default; } });
 	`)
 })
