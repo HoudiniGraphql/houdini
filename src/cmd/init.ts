@@ -147,14 +147,6 @@ export default async function init(
 		await updateKitConfig(targetPath)
 	}
 
-	// generate the initial runtime
-	await generate(
-		await getConfig({
-			// make sure we don't log anything else
-			logLevel: LogLevel.Quiet,
-		})
-	)
-
 	// we're done!
 	console.log()
 	console.log('🎩 Welcome to Houdini!')
@@ -323,13 +315,15 @@ const config = {
 		sveltekit(),
 		watchAndRun([
 			{
-			    watch: path.resolve('src/**/*.(gql|graphql|svelte)'),
-			    run: 'npm run generate',
+				watch: path.resolve('src/**/*.(gql|graphql|svelte)'),
+				run: 'npm run generate',
+				delay: 100,
+				watchKind: ['ready', 'add', 'remove', 'change'],
 			},
 			{
-			    watch: path.resolve('houdini.config.js'),
-			    run: 'npm run generate',
-			}
+				watch: path.resolve('houdini.config.js'),
+				run: 'npm run generate',
+			}, 
 		])
 	],
 	server: {
@@ -424,7 +418,7 @@ async function updatePackageJSON(targetPath: string) {
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
 		houdini: '^HOUDINI_VERSION',
-		'@kitql/vite-plugin-watch-and-run': '^0.3.7',
+		'@kitql/vite-plugin-watch-and-run': '^0.4.1',
 	}
 
 	await writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
