@@ -1,8 +1,6 @@
-// externals
-import * as recast from 'recast'
 // locals
 import '../../jest.setup'
-import { parseFile, ParsedSvelteFile, extractAttributeValue } from './parse'
+import { parseFile, ParsedSvelteFile } from './parse'
 
 describe('parser tests', () => {
 	test('happy path - separate module and instance script', async () => {
@@ -104,7 +102,6 @@ describe('parser tests', () => {
 		expect(result.module?.content).toMatchInlineSnapshot(`console.log("module");`)
 		expect(result.module?.start).toMatchInlineSnapshot(`4`)
 		expect(result.module?.end).toMatchInlineSnapshot(`67`)
-		expect(result.module?.lang).toMatchInlineSnapshot(`"js"`)
 
 		checkScriptBounds(doc, result)
 	})
@@ -129,7 +126,6 @@ describe('parser tests', () => {
 	`)
 		expect(result.module?.start).toMatchInlineSnapshot(`4`)
 		expect(result.module?.end).toMatchInlineSnapshot(`84`)
-		expect(result.module?.lang).toMatchInlineSnapshot(`"ts"`)
 
 		checkScriptBounds(doc, result)
 	})
@@ -466,52 +462,6 @@ describe('parser tests', () => {
 		expect(result.module?.end).toMatchInlineSnapshot(`undefined`)
 
 		checkScriptBounds(doc, result)
-	})
-})
-
-describe('extractAttributeValue', () => {
-	test('extractAttributeValue - double quotes', async () => {
-		const result = extractAttributeValue(`<script lang="ts">`, 'lang')
-		expect(result).toBe(`ts`)
-	})
-
-	test('extractAttributeValue - single quotes', async () => {
-		const result = extractAttributeValue(`<script lang='ts'>`, 'lang')
-		expect(result).toBe(`ts`)
-	})
-
-	test('extractAttributeValue - no quotes', async () => {
-		const result = extractAttributeValue(`<script lang=ts>`, 'lang')
-		expect(result).toBe(`ts`)
-	})
-
-	test('extractAttributeValue - undefined', async () => {
-		const result = extractAttributeValue(`<script lang>`, 'lang')
-		expect(result).toBe(undefined)
-	})
-
-	test('extractAttributeValue - null', async () => {
-		const result = extractAttributeValue(`<script>`, 'lang')
-		expect(result).toBe(null)
-	})
-
-	test('extractAttributeValue - enter', async () => {
-		const result = extractAttributeValue(
-			`<script lang
-		='ts'>`,
-			'lang'
-		)
-		expect(result).toBe(`ts`)
-	})
-
-	test('extractAttributeValue - leading spaces ', async () => {
-		const result = extractAttributeValue(`<script lang  =  'ts'>`, 'lang')
-		expect(result).toBe(`ts`)
-	})
-
-	test('extractAttributeValue - leading spaces & tabs', async () => {
-		const result = extractAttributeValue(`<script lang  	   =  'ts'>`, 'lang')
-		expect(result).toBe(`ts`)
 	})
 })
 

@@ -1,13 +1,7 @@
 // externals
 import * as recast from 'recast'
 // locals
-import {
-	Config,
-	findScriptInnerBoundsAndLang,
-	parseFile,
-	runPipeline,
-	Transform,
-} from '../../common'
+import { Config, findScriptInnerBounds, parseFile, runPipeline, Transform } from '../../common'
 import * as types from '../types'
 import fragmentProcessor from './fragment'
 import moduleProcessorChecker from './module'
@@ -159,7 +153,7 @@ function replaceTagContent(
 		return `<script${attrs}>${insert}</script>${source}`
 	}
 
-	const [greaterThanIndex, lessThanIndex] = findScriptInnerBoundsAndLang({
+	const [greaterThanIndex, lessThanIndex] = findScriptInnerBounds({
 		start,
 		end,
 		text: source,
