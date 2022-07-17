@@ -315,14 +315,17 @@ const config = {
 		sveltekit(),
 		watchAndRun([
 			{
+				name: 'Houdini',
 				watch: path.resolve('src/**/*.(gql|graphql|svelte)'),
 				run: 'npm run generate',
 				delay: 100,
 				watchKind: ['ready', 'add', 'remove', 'change'],
 			},
 			{
+				name: 'Houdini',
 				watch: path.resolve('houdini.config.js'),
 				run: 'npm run generate',
+				delay: 100,
 			}, 
 		])
 	],
