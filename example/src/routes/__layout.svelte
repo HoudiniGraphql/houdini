@@ -3,11 +3,6 @@
 	import cache from '$houdini/runtime/cache'
 	import { houdiniClient } from '../client'
 
-	if (browser) {
-		// @ts-ignore
-		window.cache = cache
-	}
-
 	houdiniClient.init()
 </script>
 
