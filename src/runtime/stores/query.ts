@@ -13,7 +13,7 @@ import {
 	deepEquals,
 } from '../lib'
 import type { ConfigFile, QueryArtifact } from '../lib'
-import { nullHoudiniContext } from '../lib/context'
+import { getHoudiniContext, nullHoudiniContext } from '../lib/context'
 import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import * as log from '../lib/log'
@@ -41,7 +41,7 @@ import * as log from '../lib/log'
 // without leaking data. In order to do this, a query store is going to store independent versions for
 // every req_id that it encounters. We're going to then use that `req_id` in the session during store subscribe
 // in order to get the value that was loaded fetch
-type QueryResultMap<_Data, _Input> = {
+export type QueryResultMap<_Data, _Input> = {
 	[req_id: string]: Writable<QueryResult<_Data, _Input> & { pageInfo?: PageInfo }>
 }
 
@@ -132,7 +132,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			// @ts-ignore
 			context.session.req_id = req_id
 		}
-		console.log(req_id)
+
 		// if we dont have an entry for this req_id already,  create one
 		if (!data[req_id]) {
 			data[req_id] = initialState()
@@ -271,31 +271,24 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	// add the pagination methods to the store
 	let extraMethods: {} = {}
 	let pageInfos: ReturnType<typeof queryHandlers>['pageInfo'] = {}
+
 	if (paginated) {
 		const handlers = queryHandlers({
+			storeName,
 			config,
 			artifact,
-			store: {
-				name: artifact.name,
-				subscribe: (
-					...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>
-				) => {
-					const session = getSession()
-					const { req_id } = get(session)
-					return data[req_id].subscribe(...args)
-				},
-				async fetch(params?: QueryStoreFetchParams<_Input>) {
-					return (await fetch({
-						...params,
-						blocking: true,
-					}))!
-				},
+			stores: data,
+			async fetch(params) {
+				return (await fetch({
+					...params,
+					blocking: true,
+				}))!
 			},
 			queryVariables() {
 				const session = getSession()
 				const { req_id } = get(session)
 
-				getVariables(req_id)
+				return getVariables(req_id)
 			},
 		})
 
@@ -370,7 +363,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	}
 }
 
-function fetchContext<_Data, _Input>(
+export function fetchContext<_Data, _Input>(
 	artifact: QueryArtifact,
 	storeName: string,
 	params?: QueryStoreFetchParams<_Input>
