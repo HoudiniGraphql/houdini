@@ -319,7 +319,7 @@ const config = {
 				watch: path.resolve('src/**/*.(gql|graphql|svelte)'),
 				run: 'npm run generate',
 				delay: 100,
-				watchKind: ['ready', 'add', 'remove', 'change'],
+				watchKind: ['ready', 'add', 'change', 'unlink'],
 			},
 			{
 				name: 'Houdini',
@@ -421,7 +421,7 @@ async function updatePackageJSON(targetPath: string) {
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
 		houdini: '^HOUDINI_VERSION',
-		'@kitql/vite-plugin-watch-and-run': '^0.4.1',
+		'@kitql/vite-plugin-watch-and-run': '^0.4.2',
 	}
 
 	await writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
@@ -434,10 +434,10 @@ async function graphqlRCFile(targetPath: string) {
 	const content = `projects:
   default:
     schema:
-      - './schema.graphql'
+      - ./schema.graphql
       - ./$houdini/graphql/schema.graphql
     documents:
-      - '**/*.gql'
+      - **/*.gql
       - ./$houdini/graphql/documents.gql
 `
 
