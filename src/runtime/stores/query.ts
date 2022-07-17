@@ -293,23 +293,19 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		})
 
 		extraMethods = Object.fromEntries(
-			Object.entries(paginationMethods)
-				.map(([key, value]) => [key, handlers[value]])
-				.concat([
-					'pageInfo',
-					// @ts-expect-error: this pageInfo is not on the standard store type to avoid confusion
-					{
-						subscribe(...args: Parameters<Readable<PageInfo>['subscribe']>) {
-							const session = getSession()
-							const { req_id } = get(session)
-
-							return handlers.pageInfo[req_id]?.subscribe(...args)
-						},
-					},
-				])
+			Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])
 		)
 
-		pageInfos = handlers.pageInfo
+		// @ts-ignore
+		;(extraMethods.pageInfo = {
+			subscribe(...args: Parameters<Readable<PageInfo>['subscribe']>) {
+				const session = getSession()
+				const { req_id } = get(session)
+
+				return handlers.pageInfo[req_id]?.subscribe(...args)
+			},
+		}),
+			(pageInfos = handlers.pageInfo)
 	}
 
 	return {

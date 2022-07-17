@@ -76,7 +76,8 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 
 	return paginationHandlers<_Data, _Input>({
 		config,
-		store: store as Readable<GraphQLObject>,
+		// @ts-ignore
+		stores: store as Readable<GraphQLObject>,
 		artifact: paginationArtifact,
 		queryVariables,
 		refetch: async () => {
