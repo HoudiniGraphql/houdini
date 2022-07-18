@@ -26,14 +26,11 @@ export default async function typescriptGenerator(
 	// we need every fragment definition
 	const fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode } = {}
 	for (const document of docs) {
-		// look at the parsed document for a fragment definition
-		const fragmentDefn = document.originalDocument.definitions.find(
+		for (const defn of document.originalDocument.definitions.filter(
 			({ kind }) => kind === 'FragmentDefinition'
-		) as graphql.FragmentDefinitionNode
-		if (!fragmentDefn) {
-			continue
+		) as graphql.FragmentDefinitionNode[]) {
+			fragmentDefinitions[defn.name.value] = defn
 		}
-		fragmentDefinitions[fragmentDefn.name.value] = fragmentDefn
 	}
 
 	const missingScalars = new Set<string>()
@@ -107,7 +104,6 @@ export default async function typescriptGenerator(
 	// now that we have every type generated, create an index file in the runtime root that exports the types
 	const typeIndex = AST.program(
 		typePaths
-			.sort((a, b) => a.localeCompare(b))
 			.map((typePath) => {
 				return AST.exportAllDeclaration(
 					AST.literal(

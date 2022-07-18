@@ -1089,6 +1089,101 @@ describe('typescript', function () {
 	`)
 	})
 
+	test('can reference list fragments', async function () {
+		const unmaskedConfig = testConfig({ disableMasking: true, schema: config.schema })
+
+		// the document to test
+		const docs = [
+			mockCollectedDoc(`
+				query MyQuery { 
+					users @list(name:"My_Users") { 
+						id
+					}
+				}
+			`),
+			mockCollectedDoc(`
+				mutation Mutation(
+					$filter: UserFilter,
+					$filterList: [UserFilter!]!,
+					$id: ID!
+					$firstName: String!
+					$admin: Boolean
+					$age: Int
+					$weight: Float
+				) { 
+					doThing(
+						filter: $filter,
+						list: $filterList,
+						id:$id
+						firstName:$firstName
+						admin:$admin
+						age:$age
+						weight:$weight
+					) {
+						...My_Users_remove
+						...My_Users_insert
+					}
+				}
+			`),
+		]
+
+		// execute the generator
+		await runPipeline(unmaskedConfig, docs)
+
+		// look up the files in the artifact directory
+		const fileContents = await fs.readFile(config.artifactTypePath(docs[1].document), 'utf-8')
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+		import type { MyEnum } from "$houdini/graphql/enums";
+
+		export type Mutation = {
+		    readonly "input": Mutation$input,
+		    readonly "result": Mutation$result
+		};
+
+		export type Mutation$result = {
+		    readonly doThing: {
+		        readonly id: string,
+		        readonly $fragments: {
+		            My_Users_remove: true,
+		            My_Users_insert: true
+		        }
+		    } | null
+		};
+
+		type NestedUserFilter = {
+		    id: string,
+		    firstName: string,
+		    admin?: boolean | null | undefined,
+		    age?: number | null | undefined,
+		    weight?: number | null | undefined
+		};
+
+		type UserFilter = {
+		    middle?: NestedUserFilter | null | undefined,
+		    listRequired: (string)[],
+		    nullList?: (string | null | undefined)[] | null | undefined,
+		    recursive?: UserFilter | null | undefined,
+		    enum?: MyEnum | null | undefined
+		};
+
+		export type Mutation$input = {
+		    filter?: UserFilter | null | undefined,
+		    filterList: (UserFilter)[],
+		    id: string,
+		    firstName: string,
+		    admin?: boolean | null | undefined,
+		    age?: number | null | undefined,
+		    weight?: number | null | undefined
+		};
+	`)
+	})
+
 	test.todo('fragments on interfaces')
 
 	test.todo('intersections with __typename in subselection')
