@@ -13,7 +13,7 @@ export function nullHoudiniContext(): HoudiniFetchContext {
 		url: () => null,
 		session: () => null,
 		variables: async () => {},
-		stuff: {},
+		stuff: () => ({}),
 	}
 }
 
@@ -35,7 +35,7 @@ export function getHoudiniContext(): HoudiniFetchContext {
 			url: () => url,
 			session: () => session,
 			variables: svelteContext('variables') || (() => ({})),
-			stuff,
+			stuff: () => stuff,
 		}
 	} catch (e) {
 		log.info(
