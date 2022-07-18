@@ -598,7 +598,9 @@ describe('query preprocessor', function () {
 		            prop4: prop4
 		        },
 
-		        session: _houdini_context_generated_DONT_USE.session
+		        session: _houdini_context_generated_DONT_USE.session(),
+		        stuff: _houdini_context_generated_DONT_USE.stuff(),
+		        url: _houdini_context_generated_DONT_USE.url()
 		    })
 		});
 

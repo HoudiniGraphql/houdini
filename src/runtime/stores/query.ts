@@ -402,7 +402,7 @@ function fetchContext<_Data, _Input>(
 	}
 
 	// find the right stuff
-	let stuff = houdiniContext?.stuff || {}
+	let stuff = houdiniContext?.stuff?.() || {}
 	if (params && 'event' in params && params.event && 'stuff' in params.event) {
 		stuff = params.event.stuff
 	}

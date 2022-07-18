@@ -752,11 +752,17 @@ function processInstance({
 														)
 													)
 												),
-												AST.objectProperty(
-													AST.identifier('session'),
-													AST.memberExpression(
-														contextIdentifier,
-														AST.identifier('session')
+												// pull session, stuff, and url from the context
+												...['session', 'stuff', 'url'].map((name) =>
+													AST.objectProperty(
+														AST.identifier(name),
+														AST.callExpression(
+															AST.memberExpression(
+																contextIdentifier,
+																AST.identifier(name)
+															),
+															[]
+														)
 													)
 												),
 											]),
