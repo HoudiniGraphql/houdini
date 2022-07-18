@@ -77,6 +77,10 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	// if there is a load in progress when the CSF triggers we need to stop it
 	let loadPending = false
 
+	// in order to clear the store's value when unmounting, we need to track how many concurrent subscribers
+	// we have. when this number is 0, we need to clear the store
+	let subscriberCount = 0
+
 	// a function to update the store's cache subscriptions
 	function refreshSubscription(newVariables: _Input) {
 		// if the variables changed we need to unsubscribe from the old fields and
@@ -274,6 +278,9 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
 			const bubbleUp = userFacingStore.subscribe(...args)
 
+			// we have a new subscriber
+			subscriberCount++
+
 			// Handle unsubscribe
 			return () => {
 				// clean up any cache subscriptions
@@ -285,8 +292,12 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 				// clear the variable counter
 				lastVariables = null
 
+				// we lost a subscriber
+				subscriberCount--
+
 				// don't clear the store state on the server (breaks SSR)
-				if (isBrowser) {
+				// or when there is still an active subscriber
+				if (isBrowser && subscriberCount <= 0) {
 					// reset the store value
 					store.set(initialState())
 				}
