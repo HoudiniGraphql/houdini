@@ -131,7 +131,8 @@ class FieldCollection {
 			if (!definition) {
 				throw {
 					filepath: this.filepath,
-					message: 'Could not find referenced fragment definition',
+					message:
+						'Could not find referenced fragment definition: ' + selection.name.value,
 				}
 			}
 
