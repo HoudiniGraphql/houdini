@@ -104,6 +104,7 @@ export default async function typescriptGenerator(
 	// now that we have every type generated, create an index file in the runtime root that exports the types
 	const typeIndex = AST.program(
 		typePaths
+			.sort((a, b) => a.localeCompare(b))
 			.map((typePath) => {
 				return AST.exportAllDeclaration(
 					AST.literal(
