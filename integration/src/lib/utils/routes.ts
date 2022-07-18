@@ -46,5 +46,8 @@ export const routes = {
   Pagination_fragment_offset: '/pagination/fragment/offset',
 
   Stores_subunsub_list: '/stores/subunsub-list',
-  Stores_subunsub_mutation: '/stores/subunsub-mutation'
+  Stores_subunsub_mutation: '/stores/subunsub-mutation',
+
+  Stores_Layouts: '/layouts',
+  Stores_Layouts_page2: '/layouts/page2'
 };

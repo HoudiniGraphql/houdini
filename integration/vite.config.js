@@ -10,7 +10,7 @@ const config = {
       {
         run: 'npm run generate',
         watch: path.resolve('src/**/*.(gql|svelte)'),
-        delay: 300
+        name: 'Houdini generate'
       }
     ])
   ],
