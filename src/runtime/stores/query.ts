@@ -123,8 +123,8 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 		// get the req_id from the session
 		// @ts-ignore
-		let { req_id } = context.session ?? {}
-		if (!req_id) {
+		let { req_id } = context.session ?? { req_id: 'CLIENT' }
+		if (!req_id && !isBrowser) {
 			while (!req_id || data[req_id]) {
 				req_id = Math.random()
 			}
@@ -132,9 +132,9 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			if (context.session) {
 				// @ts-ignore
 				context.session.req_id = req_id
-				console.log('fetching with', req_id)
 			}
 		}
+		console.log('fetching with', req_id)
 
 		// if we dont have an entry for this req_id already,  create one
 		if (!data[req_id]) {
@@ -261,9 +261,8 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			},
 		})
 
-		// if we weren't told to block we're done (only valid for a client-side request)
+		// if the await isn't fake, await it
 		if (!fakeAwait) {
-			// if we got this far, we need to wait for the response from the request
 			await request
 		}
 
@@ -314,16 +313,17 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	return {
 		name: artifact.name,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
-			const context = getHoudiniContext()
-
-			// @ts-ignore
-			let { req_id } = context.session() ?? {}
+			const session = getSession()
+			let { req_id } = get(session)
 			if (!req_id) {
 				req_id = 'CLIENT'
-				setSession('req_id', 'CLIENT"')
 			}
 
-			console.log('subscribing with ', req_id)
+			// if we dont have a valid req_id, there is no server side request so we are free to use the
+			// client (global session)
+			if (!data[req_id]) {
+				data[req_id] = initialState()
+			}
 
 			// add the page info store if it exists
 			const combined = derived([data[req_id], pageInfos[req_id]], ([store, pageInfo]) => {
@@ -428,7 +428,7 @@ export function fetchContext<_Data, _Input>(
 	}
 
 	let houdiniContext = (params && 'context' in params && params.context) || null
-	houdiniContext ??= isBrowser ? getHoudiniContext() : nullHoudiniContext()
+	houdiniContext ??= nullHoudiniContext()
 
 	// looking at the session will error while prerendering
 	let session: App.Session | null = null
