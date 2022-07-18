@@ -3,7 +3,7 @@ import { derived, get, Readable, Writable, writable } from 'svelte/store'
 import type { LoadEvent } from '@sveltejs/kit'
 // internals
 import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
-import { clientStarted, getSession, isBrowser } from '../adapter'
+import { clientStarted, getSession, isBrowser, setSession } from '../adapter'
 import cache from '../cache'
 import {
 	FetchContext,
@@ -123,14 +123,17 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 		// get the req_id from the session
 		// @ts-ignore
-		let { req_id } = context.session
+		let { req_id } = context.session ?? {}
 		if (!req_id) {
 			while (!req_id || data[req_id]) {
 				req_id = Math.random()
 			}
 
-			// @ts-ignore
-			context.session.req_id = req_id
+			if (context.session) {
+				// @ts-ignore
+				context.session.req_id = req_id
+				console.log('fetching with', req_id)
+			}
 		}
 
 		// if we dont have an entry for this req_id already,  create one
@@ -311,8 +314,16 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	return {
 		name: artifact.name,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
-			const session = getSession()
-			const { req_id } = get(session)
+			const context = getHoudiniContext()
+
+			// @ts-ignore
+			let { req_id } = context.session() ?? {}
+			if (!req_id) {
+				req_id = 'CLIENT'
+				setSession('req_id', 'CLIENT"')
+			}
+
+			console.log('subscribing with ', req_id)
 
 			// add the page info store if it exists
 			const combined = derived([data[req_id], pageInfos[req_id]], ([store, pageInfo]) => {
@@ -417,7 +428,7 @@ export function fetchContext<_Data, _Input>(
 	}
 
 	let houdiniContext = (params && 'context' in params && params.context) || null
-	houdiniContext ??= nullHoudiniContext()
+	houdiniContext ??= isBrowser ? getHoudiniContext() : nullHoudiniContext()
 
 	// looking at the session will error while prerendering
 	let session: App.Session | null = null
