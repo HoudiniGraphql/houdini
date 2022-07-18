@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store'
 // locals
+import { isBrowser } from '../adapter'
 import cache from '../cache'
 import { ConfigFile, deepEquals, SubscriptionArtifact, SubscriptionStore } from '../lib'
 import { getCurrentClient } from '../lib/network'
@@ -29,6 +30,11 @@ export function subscriptionStore<_Data, _Input>({
 		name: artifact.name,
 		subscribe: result.subscribe,
 		listen(variables: _Input) {
+			// subscription.listen is a no-op on the server
+			if (!isBrowser) {
+				return
+			}
+
 			// pull out the current client
 			const env = getCurrentClient()
 			// if there isn't one, yell loudly
