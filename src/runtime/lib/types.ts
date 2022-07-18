@@ -182,7 +182,7 @@ export type HoudiniFetchContext = {
 	url: () => URL | null
 	session: () => App.Session | null
 	variables: () => {}
-	stuff: App.Stuff
+	stuff: () => App.Stuff
 }
 
 export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {

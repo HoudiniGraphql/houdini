@@ -12,6 +12,7 @@ import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
 import { serializeValue } from './utils'
 import { ArtifactKind } from '../../../runtime/lib/types'
+import { cleanupFiles } from '../../utils/cleanupFiles'
 
 const AST = recast.types.builders
 
@@ -23,6 +24,7 @@ export default function artifactGenerator(stats: {
 	total: string[]
 	new: string[]
 	changed: string[]
+	deleted: string[]
 }) {
 	return async function (config: Config, docs: CollectedGraphQLDocument[]) {
 		// put together the type information for the filter for every list
@@ -92,6 +94,8 @@ export default function artifactGenerator(stats: {
 				},
 			})
 		}
+
+		const listOfArtifacts: string[] = []
 
 		// we have everything we need to generate the artifacts
 		await Promise.all(
@@ -301,6 +305,7 @@ export default function artifactGenerator(stats: {
 
 					// write the result to the artifact path we're configured to write to
 					await writeFile(artifactPath, recast.print(file).code)
+					listOfArtifacts.push(config.documentName(document))
 
 					if (!countDocument) {
 						return
@@ -317,5 +322,8 @@ export default function artifactGenerator(stats: {
 				})
 			)
 		)
+
+		// cleanup files that are no more necessary!
+		stats.deleted = await cleanupFiles(config.artifactDirectory, listOfArtifacts)
 	}
 }

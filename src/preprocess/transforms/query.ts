@@ -105,7 +105,7 @@ export default async function queryProcessor(
 			)
 
 			// TODO: check if there is at least one required input and tell them they need to define
-			// a variable functino
+			// a variable function
 
 			// the "actual" value of a template tag depends on wether its a route or component
 			node.replaceWith(
@@ -752,11 +752,17 @@ function processInstance({
 														)
 													)
 												),
-												AST.objectProperty(
-													AST.identifier('session'),
-													AST.memberExpression(
-														contextIdentifier,
-														AST.identifier('session')
+												// pull session, stuff, and url from the context
+												...['session', 'stuff', 'url'].map((name) =>
+													AST.objectProperty(
+														AST.identifier(name),
+														AST.callExpression(
+															AST.memberExpression(
+																contextIdentifier,
+																AST.identifier(name)
+															),
+															[]
+														)
 													)
 												),
 											]),

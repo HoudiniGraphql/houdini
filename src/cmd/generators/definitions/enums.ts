@@ -43,6 +43,7 @@ export default async function definitionsGenerator(config: Config) {
 
 	// generate the type definitions
 	const typeDefinitions = enums
+		.sort((a, b) => a.name.value.localeCompare(b.name.value))
 		.map(
 			(definition) => `
 export declare enum ${definition.name.value} {

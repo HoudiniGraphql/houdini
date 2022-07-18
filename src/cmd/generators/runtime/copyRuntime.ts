@@ -91,7 +91,10 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 							contents.replace('"use strict";', '')
 					}
 
-					await writeFile(targetPath, contents)
+					// Do not write `/runtime/adapter.js` file. It will be generated later depending on the framework.
+					if (!targetPath.endsWith('/runtime/adapter.js')) {
+						await writeFile(targetPath, contents)
+					}
 				}
 			})
 		)

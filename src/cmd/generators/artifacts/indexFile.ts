@@ -7,7 +7,9 @@ import { CollectedGraphQLDocument } from '../../types'
 import { cjsIndexFilePreamble, exportDefaultFrom, writeFile } from '../../utils'
 
 export default async function writeIndexFile(config: Config, docs: CollectedGraphQLDocument[]) {
-	const docsToGenerate = docs.filter((doc) => doc.generateArtifact)
+	const docsToGenerate = docs
+		.filter((doc) => doc.generateArtifact)
+		.sort((a, b) => a.name.localeCompare(b.name))
 
 	// we want to export every artifact from the index file.
 	let body =

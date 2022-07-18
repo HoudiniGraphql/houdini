@@ -13,7 +13,7 @@ export function nullHoudiniContext(): HoudiniFetchContext {
 		url: () => null,
 		session: () => null,
 		variables: async () => {},
-		stuff: {},
+		stuff: () => ({}),
 	}
 }
 
@@ -25,14 +25,17 @@ export function getHoudiniContext(): HoudiniFetchContext {
 		sessionStore.subscribe((val) => (session = val))
 
 		const pageStore = getPage()
-		let url = get(pageStore).url
-		pageStore.subscribe((val) => (url = val.url))
+		let { url, stuff } = get(pageStore)
+		pageStore.subscribe((val) => {
+			url = val.url
+			stuff = val.stuff
+		})
 
 		return {
 			url: () => url,
 			session: () => session,
 			variables: svelteContext('variables') || (() => ({})),
-			stuff: {},
+			stuff: () => stuff,
 		}
 	} catch (e) {
 		log.info(
