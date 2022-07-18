@@ -1,5 +1,35 @@
 # houdini
 
+## 0.15.6
+
+### Patch Changes
+
+-   [#426](https://github.com/HoudiniGraphql/houdini/pull/426) [`73b2467`](https://github.com/HoudiniGraphql/houdini/commit/73b2467e20f68b37ed0d3bb47f823361d685d026) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fixed bug when generating list operation types without masking
+
+*   [#426](https://github.com/HoudiniGraphql/houdini/pull/426) [`73b2467`](https://github.com/HoudiniGraphql/houdini/commit/73b2467e20f68b37ed0d3bb47f823361d685d026) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - subscription.listen is a no-op on the server
+
+-   [#423](https://github.com/HoudiniGraphql/houdini/pull/423) [`ff44c42`](https://github.com/HoudiniGraphql/houdini/commit/ff44c42220dbc50ca6e23a7a2e40a93bb32f7a24) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix bug when computing variables in component queries
+
+*   [#419](https://github.com/HoudiniGraphql/houdini/pull/419) [`6363707`](https://github.com/HoudiniGraphql/houdini/commit/6363707d1a9471d9b8b62e8206d2660c316d9d05) Thanks [@jycouet](https://github.com/jycouet)! - feat: in summary a new log is displayed about what item was deleted
+
+-   [#397](https://github.com/HoudiniGraphql/houdini/pull/397) [`ed764a2`](https://github.com/HoudiniGraphql/houdini/commit/ed764a235c81442babd9c153960d0ef5452f379c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - update init script to detect tooling automatically
+
+*   [#394](https://github.com/HoudiniGraphql/houdini/pull/394) [`96468da`](https://github.com/HoudiniGraphql/houdini/commit/96468dab8499085b9332044736b7c1b497d3fa58) Thanks [@david-plugge](https://github.com/david-plugge)! - export preprocessor types
+
+-   [#392](https://github.com/HoudiniGraphql/houdini/pull/392) [`17e50a9`](https://github.com/HoudiniGraphql/houdini/commit/17e50a925188c499dc865fc2d16bc248713d5c90) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add variable store to inline query result
+
+*   [#413](https://github.com/HoudiniGraphql/houdini/pull/413) [`8be5953`](https://github.com/HoudiniGraphql/houdini/commit/8be5953ae4237ef0f84346c595446ba8cd3feaee) Thanks [@jycouet](https://github.com/jycouet)! - improve: checking if you wrote an operation in a module, and warn you if it's the case
+
+-   [#409](https://github.com/HoudiniGraphql/houdini/pull/409) [`6f99e1f`](https://github.com/HoudiniGraphql/houdini/commit/6f99e1fd826c8476f62644a3991380c805272c7f) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - improved preprocessor performance
+
+*   [#405](https://github.com/HoudiniGraphql/houdini/pull/405) [`7eb7d39`](https://github.com/HoudiniGraphql/houdini/commit/7eb7d398174c796f6525de47aef08161e8b28ef3) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Add support for query stores in endpoints
+
+-   [#403](https://github.com/HoudiniGraphql/houdini/pull/403) [`97ea10d`](https://github.com/HoudiniGraphql/houdini/commit/97ea10dc8eeb81eff437fd51d4d1eceece7376a9) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix error when prerendering queries
+
+*   [#416](https://github.com/HoudiniGraphql/houdini/pull/416) [`3f56c0d`](https://github.com/HoudiniGraphql/houdini/commit/3f56c0d6bf69690b617ce8d56c607acc5b6448b7) Thanks [@jycouet](https://github.com/jycouet)! - avoid clearing store state when there are all multiple subscribers
+
+-   [#419](https://github.com/HoudiniGraphql/houdini/pull/419) [`6363707`](https://github.com/HoudiniGraphql/houdini/commit/6363707d1a9471d9b8b62e8206d2660c316d9d05) Thanks [@jycouet](https://github.com/jycouet)! - improve: generate will write files only if it has changed
+
 ## 0.15.5
 
 ### Patch Changes
