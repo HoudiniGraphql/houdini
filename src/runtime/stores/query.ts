@@ -283,21 +283,21 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 			// Handle unsubscribe
 			return () => {
-				// clean up any cache subscriptions
-				if (subscriptionSpec) {
-					cache.unsubscribe(subscriptionSpec, lastVariables || {})
-					subscriptionSpec = null
-				}
-
-				// clear the variable counter
-				lastVariables = null
-
 				// we lost a subscriber
 				subscriberCount--
 
 				// don't clear the store state on the server (breaks SSR)
 				// or when there is still an active subscriber
 				if (isBrowser && subscriberCount <= 0) {
+					// clean up any cache subscriptions
+					if (subscriptionSpec) {
+						cache.unsubscribe(subscriptionSpec, lastVariables || {})
+						subscriptionSpec = null
+					}
+
+					// clear the variable counter
+					lastVariables = null
+
 					// reset the store value
 					store.set(initialState())
 				}
