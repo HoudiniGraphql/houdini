@@ -1,5 +1,11 @@
 # houdini
 
+## 0.15.7
+
+### Patch Changes
+
+-   [#429](https://github.com/HoudiniGraphql/houdini/pull/429) [`d6d5c50`](https://github.com/HoudiniGraphql/houdini/commit/d6d5c50c2f4f0365a5939799fbcab4205fd99317) Thanks [@jycouet](https://github.com/jycouet)! - fix: unsub only when you have no active stores
+
 ## 0.15.6
 
 ### Patch Changes
