@@ -1,5 +1,5 @@
 // externals
-import { derived, get, Readable, Writable, writable } from 'svelte/store'
+import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
 import type { LoadEvent } from '@sveltejs/kit'
 // internals
 import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
@@ -12,7 +12,7 @@ import {
 	SubscriptionSpec,
 	deepEquals,
 } from '../lib'
-import type { ConfigFile, QueryArtifact } from '../lib'
+import type { ConfigFile, QueryArtifact, HoudiniFetchContext } from '../lib'
 import { getHoudiniContext, nullHoudiniContext } from '../lib/context'
 import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
@@ -58,22 +58,11 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	storeName: string
 	paginationMethods: { [key: string]: keyof PaginatedHandlers<_Data, _Input> }
 }): QueryStore<_Data, _Input> {
-	// only include pageInfo in the store state if the query is paginated
-	const initialState = (): Writable<QueryResult<_Data, _Input> & { pageInfo?: PageInfo }> =>
-		writable({
-			data: null,
-			errors: null,
-			isFetching: false,
-			partial: false,
-			source: null,
-			variables: null,
-		})
-
 	// at its core, a query store is a writable store with extra methods
 	const data: QueryResultMap<_Data, _Input> = {}
 	const setFetching = (req_id: string, isFetching: boolean) =>
 		data[req_id]?.update((s) => ({ ...s, isFetching }))
-	const getVariables = (req_id: string) => get(data[req_id]).variables
+	const getVariables = (req_id: string) => get(data[req_id])?.variables || {}
 
 	// the first client-side request after the mocked load() needs to be blocked
 	let blockNextCSF = false
@@ -120,29 +109,8 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	): Promise<QueryResult<_Data, _Input>> {
 		// validate and prepare the request context for the current environment (client vs server)
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
-
-		// get the req_id from the session
-		// @ts-ignore
-		let { req_id } = context.session ?? { req_id: 'CLIENT' }
-		if (isBrowser) {
-			req_id = 'CLIENT'
-		}
-
-		// make sure the req_id is unique on the server
-		while (!isBrowser && (!req_id || data[req_id])) {
-			req_id = Math.random()
-		}
-
-		// make sure the session always contains the req_id
-		// @ts-ignore
-		context.session?.req_id = req_id
-
-		console.log('fetching with', req_id)
-
-		// if we dont have an entry for this req_id already,  create one
-		if (!data[req_id]) {
-			data[req_id] = initialState()
-		}
+		// get the appropriate store for the session
+		const [store, req_id] = sessionQueryStore(context, data)
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
@@ -173,7 +141,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// update with fetchAndCache
 		if (isComponentFetch && variableChange) {
 			refreshSubscription(req_id, newVariables)
-			data[req_id].update((s) => ({ ...s, variables: newVariables }))
+			store.update((s) => ({ ...s, variables: newVariables }))
 		}
 
 		// if there is a pending load, don't do anything
@@ -184,7 +152,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 				refreshSubscription(req_id, newVariables)
 			}
 
-			return get(data[req_id])
+			return get(store)
 		}
 
 		if (isComponentFetch) {
@@ -215,7 +183,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 					context,
 					artifact,
 					variables: newVariables,
-					store: data[req_id],
+					store: store,
 					updateStore: true,
 					cached: true,
 					policy: CachePolicy.CacheOnly,
@@ -233,7 +201,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			}
 
 			// make sure we return before the fetch happens
-			return get(data[req_id])
+			return get(store)
 		}
 
 		// we want to update the store in four situations: ssr, csf, the first load of the ssr response,
@@ -255,7 +223,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			context,
 			artifact,
 			variables: newVariables,
-			store: data[req_id],
+			store: store,
 			updateStore,
 			cached: policy !== CachePolicy.NetworkOnly,
 			setLoadPending: (val) => {
@@ -270,7 +238,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		}
 
 		// the store will have been updated already since we waited for the response
-		return get(data[req_id])
+		return get(store)
 	}
 
 	// add the pagination methods to the store
@@ -284,15 +252,13 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			artifact,
 			stores: data,
 			async fetch(params) {
+				// @ts-ignore
 				return (await fetch({
 					...params,
 					blocking: true,
 				}))!
 			},
-			queryVariables() {
-				const session = getSession()
-				const { req_id } = get(session)
-
+			queryVariables: (req_id: string) => {
 				return getVariables(req_id)
 			},
 		})
@@ -301,16 +267,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])
 		)
 
-		// @ts-ignore
-		;(extraMethods.pageInfo = {
-			subscribe(...args: Parameters<Readable<PageInfo>['subscribe']>) {
-				const session = getSession()
-				const { req_id } = get(session)
-
-				return handlers.pageInfo[req_id]?.subscribe(...args)
-			},
-		}),
-			(pageInfos = handlers.pageInfo)
+		pageInfos = handlers.pageInfo
 	}
 
 	return {
@@ -322,23 +279,27 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 				req_id = 'CLIENT'
 			}
 
-			console.log('subscribing with', req_id)
-
-			// if we dont have a valid req_id, there is no server side request so we are free to use the
+			// if we don't have a valid req_id, there is no server side request so we are free to use the
 			// client (global session)
 			if (!data[req_id]) {
-				data[req_id] = initialState()
+				data[req_id] = writable(nullQueryStoreState())
 			}
 
-			// add the page info store if it exists
-			const combined = derived([data[req_id], pageInfos[req_id]], ([store, pageInfo]) => {
-				const everything = { ...store }
-				if (pageInfo) {
-					everything.pageInfo = pageInfo
-				}
+			console.log('subscribing with', req_id)
 
-				return everything
-			})
+			// add the page info store if it exists
+			const combined = derived(
+				[data[req_id], pageInfos[req_id] || readable(null)],
+				([store, pageInfo]) => {
+					const everything = { ...store }
+					console.log({ pageInfos })
+					if (pageInfo) {
+						everything.pageInfo = pageInfo
+					}
+
+					return everything
+				}
+			)
 
 			const bubbleUp = combined.subscribe(...args)
 
@@ -361,13 +322,13 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 					// clear the variable counter
 					lastVariables = null
-
-					// reset the store value
-					delete data[req_id]
 				}
 
 				// we're done
 				bubbleUp()
+
+				// reset the store value
+				delete data[req_id]
 			}
 		},
 		fetch,
@@ -608,4 +569,72 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	}
 
 	return request
+}
+
+export function sessionStore<_State>(
+	context: FetchContext,
+	home: { [key: string]: Writable<_State> },
+	initialState: () => _State
+): [Writable<_State>, string] {
+	const req_id = context_req_id(context, home)
+
+	// if we dont have an entry for this req_id already,  create one
+	if (!home[req_id]) {
+		home[req_id] = writable(initialState())
+	}
+
+	// there is an entry for the id, return it and the id we computed
+	return [home[req_id], req_id]
+}
+
+// only include pageInfo in the store state if the query is paginated
+const nullQueryStoreState = <_Data, _Input>(): QueryResult<_Data, _Input> & {
+	pageInfo?: PageInfo
+} => ({
+	data: null,
+	errors: null,
+	isFetching: false,
+	partial: false,
+	source: null,
+	variables: null,
+})
+
+export const sessionQueryStore = <_Data, _Input>(
+	context: FetchContext,
+	home: {
+		[key: string]: Writable<QueryResult<_Data, _Input>>
+	}
+): [
+	Writable<
+		QueryResult<_Data, _Input> & {
+			pageInfo?: PageInfo
+		}
+	>,
+	string
+] => {
+	return sessionStore(context, home, nullQueryStoreState)
+}
+
+export function context_req_id(
+	context: HoudiniFetchContext | FetchContext,
+	home: { [key: string]: any }
+) {
+	// get the req_id from the session
+	// @ts-ignore
+	let { req_id }: { req_id: string } = context.session ?? { req_id: 'CLIENT' }
+	if (isBrowser) {
+		req_id = 'CLIENT'
+	}
+
+	// make sure the req_id is unique on the server
+	while (!isBrowser && (!req_id || home[req_id])) {
+		req_id = Math.random().toString()
+	}
+
+	// make sure the session always contains the req_id
+	const session = typeof context.session === 'function' ? context.session() : context.session
+	// @ts-ignore
+	session?.req_id = req_id
+
+	return req_id
 }
