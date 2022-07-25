@@ -124,16 +124,19 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// get the req_id from the session
 		// @ts-ignore
 		let { req_id } = context.session ?? { req_id: 'CLIENT' }
-		if (!req_id && !isBrowser) {
-			while (!req_id || data[req_id]) {
-				req_id = Math.random()
-			}
-
-			if (context.session) {
-				// @ts-ignore
-				context.session.req_id = req_id
-			}
+		if (isBrowser) {
+			req_id = 'CLIENT'
 		}
+
+		// make sure the req_id is unique on the server
+		while (!isBrowser && (!req_id || data[req_id])) {
+			req_id = Math.random()
+		}
+
+		// make sure the session always contains the req_id
+		// @ts-ignore
+		context.session?.req_id = req_id
+
 		console.log('fetching with', req_id)
 
 		// if we dont have an entry for this req_id already,  create one
@@ -315,9 +318,11 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
 			const session = getSession()
 			let { req_id } = get(session)
-			if (!req_id) {
+			if (!req_id || isBrowser) {
 				req_id = 'CLIENT'
 			}
+
+			console.log('subscribing with', req_id)
 
 			// if we dont have a valid req_id, there is no server side request so we are free to use the
 			// client (global session)
