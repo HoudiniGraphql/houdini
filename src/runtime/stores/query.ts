@@ -18,6 +18,7 @@ import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import * as log from '../lib/log'
 import { sessionStore } from '../lib/session'
+import G from 'glob'
 
 // Terms:
 // - CSF: client side fetch. identified by a lack of loadEvent
@@ -153,6 +154,9 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			if (!variableChange && subscriptionSpec === null) {
 				refreshSubscription(reqID, newVariables)
 			}
+
+			// we've officially blocked a CSF
+			blockNextCSF = false
 
 			return get(store)
 		}
