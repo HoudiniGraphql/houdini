@@ -11,7 +11,7 @@ import {
 	PaginatedHandlers,
 } from '../lib/pagination'
 import { sessionStore } from '../lib/session'
-import { getSession } from '../adapter'
+import { getSession, isBrowser } from '../adapter'
 
 // a fragment store exists in multiple places in a given application so we
 // can't just return a store directly, the user has to load the version of the
@@ -59,8 +59,8 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 				pageInfos = handlers.pageInfos
 			}
 
-			console.log(extraMethods)
-
+			// we need to track the first time we write to a fragment store so we
+			// can make sure it has data (filled from the initial value argument)
 			const written = new Set<string>()
 
 			return {
@@ -93,7 +93,10 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 						}
 					}
 
-					store = requestStore
+					// hold onto the store reference so client's can update
+					if (isBrowser) {
+						store = requestStore
+					}
 
 					// we need to add the page info
 					const combined = derived<[typeof requestStore, Readable<PageInfo>], _Data>(
