@@ -69,7 +69,6 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 		// if we have a specific function to use when computing the variables
 		if (typeConfig.resolve?.arguments) {
 			queryVariables = (reqID: string) => {
-				console.log('queryVariables for ', reqID)
 				const value = get(stores[reqID])
 				return (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 			}
@@ -266,7 +265,6 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 
 		// build up the variables to pass to the query
 		const loadVariables: Record<string, any> = {
-			// @ts-ignore
 			...extraVariables?.(reqID),
 			...houdiniContext.variables(),
 			...input,
