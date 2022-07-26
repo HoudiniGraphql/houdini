@@ -40,10 +40,10 @@ import { currentReqID, sessionStore } from '../lib/session'
 
 // our query store needs to be able to handle concurrent requests from users with different sessions
 // without leaking data. In order to do this, a query store is going to store independent versions for
-// every req_id that it encounters. We're going to then use that `req_id` in the session during store subscribe
+// every reqID that it encounters. We're going to then use that `reqID` in the session during store subscribe
 // in order to get the value that was loaded fetch
 export type QueryResultMap<_Data, _Input> = {
-	[req_id: string]: Writable<QueryResult<_Data, _Input> & { pageInfo?: PageInfo }>
+	[reqID: string]: Writable<QueryResult<_Data, _Input> & { pageInfo?: PageInfo }>
 }
 
 export function queryStore<_Data extends GraphQLObject, _Input>({
@@ -61,9 +61,9 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 }): QueryStore<_Data, _Input> {
 	// at its core, a query store is a writable store with extra methods
 	const data: QueryResultMap<_Data, _Input> = {}
-	const setFetching = (req_id: string, isFetching: boolean) =>
-		data[req_id]?.update((s) => ({ ...s, isFetching }))
-	const getVariables = (req_id: string) => get(data[req_id])?.variables || {}
+	const setFetching = (reqID: string, isFetching: boolean) =>
+		data[reqID]?.update((s) => ({ ...s, isFetching }))
+	const getVariables = (reqID: string) => get(data[reqID])?.variables || {}
 
 	// the first client-side request after the mocked load() needs to be blocked
 	let blockNextCSF = false
@@ -82,7 +82,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	let subscriberCount: { [reqID: string]: number } = {}
 
 	// a function to update the store's cache subscriptions
-	function refreshSubscription(req_id: string, newVariables: _Input) {
+	function refreshSubscription(reqID: string, newVariables: _Input) {
 		// if the variables changed we need to unsubscribe from the old fields and
 		// listen to the new ones
 		if (subscriptionSpec) {
@@ -94,7 +94,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			rootType: artifact.rootType,
 			selection: artifact.selection,
 			variables: () => newVariables,
-			set: (newValue) => data[req_id]?.update((s) => ({ ...s, data: newValue })),
+			set: (newValue) => data[reqID]?.update((s) => ({ ...s, data: newValue })),
 		}
 
 		// make sure we subscribe to the new values
@@ -111,7 +111,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// validate and prepare the request context for the current environment (client vs server)
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
 		// get the appropriate store for the session
-		const [store, req_id] = sessionQueryStore(context.session, data)
+		const [store, reqID] = sessionQueryStore(context.session, data)
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
@@ -141,7 +141,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// cause the new data to trigger the old subscription after the store has been
 		// update with fetchAndCache
 		if (isComponentFetch && variableChange) {
-			refreshSubscription(req_id, newVariables)
+			refreshSubscription(reqID, newVariables)
 			store.update((s) => ({ ...s, variables: newVariables }))
 		}
 
@@ -150,7 +150,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			// if the variables haven't changed and we dont have an active subscription
 			// then we need to start listening
 			if (!variableChange && subscriptionSpec === null) {
-				refreshSubscription(req_id, newVariables)
+				refreshSubscription(reqID, newVariables)
 			}
 
 			return get(store)
@@ -190,7 +190,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 					policy: CachePolicy.CacheOnly,
 					setLoadPending: (val) => {
 						loadPending = val
-						setFetching(req_id, val)
+						setFetching(reqID, val)
 					},
 				})
 			}
@@ -198,7 +198,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			// if we dont have a subscription but we're ending early we need to listen for
 			// changes
 			if (subscriptionSpec === null) {
-				refreshSubscription(req_id, newVariables)
+				refreshSubscription(reqID, newVariables)
 			}
 
 			// make sure we return before the fetch happens
@@ -216,7 +216,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// we might not want to wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
 
-		setFetching(req_id, true)
+		setFetching(reqID, true)
 
 		// perform the network request
 		const request = fetchAndCache({
@@ -229,7 +229,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			cached: policy !== CachePolicy.NetworkOnly,
 			setLoadPending: (val) => {
 				loadPending = val
-				setFetching(req_id, val)
+				setFetching(reqID, val)
 			},
 		})
 
@@ -259,8 +259,8 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 					blocking: true,
 				}))!
 			},
-			queryVariables: (req_id: string) => {
-				return getVariables(req_id)
+			queryVariables: (reqID: string) => {
+				return getVariables(reqID)
 			},
 		})
 
@@ -275,11 +275,11 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		name: artifact.name,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
 			// figure out the correct store to subscribe to
-			const [store, req_id] = sessionQueryStore(get(getSession()), data)
+			const [store, reqID] = sessionQueryStore(get(getSession()), data)
 
 			// add the page info store if it exists
 			const combined = derived(
-				[store, pageInfos[req_id] || readable(null)],
+				[store, pageInfos[reqID] || readable(null)],
 				([$store, pageInfo]) => {
 					const everything = { ...$store }
 					if (pageInfo) {
@@ -293,16 +293,16 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			const bubbleUp = combined.subscribe(...args)
 
 			// we have a new subscriber
-			subscriberCount[req_id] = (subscriberCount[req_id] ?? 0) + 1
+			subscriberCount[reqID] = (subscriberCount[reqID] ?? 0) + 1
 
 			// Handle unsubscribe
 			return () => {
 				// we lost a subscriber
-				subscriberCount[req_id]--
+				subscriberCount[reqID]--
 
 				// don't clear the store state on the server (breaks SSR)
 				// or when there is still an active subscriber
-				if (subscriberCount[req_id] <= 0) {
+				if (subscriberCount[reqID] <= 0) {
 					// clean up any cache subscriptions
 					if (isBrowser && subscriptionSpec) {
 						cache.unsubscribe(subscriptionSpec, lastVariables || {})
@@ -313,7 +313,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 					lastVariables = null
 
 					// reset the store value
-					delete data[req_id]
+					delete data[reqID]
 				}
 
 				// we're done

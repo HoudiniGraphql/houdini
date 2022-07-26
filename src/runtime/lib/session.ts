@@ -38,7 +38,7 @@ export function currentReqID(
 
 	// @ts-ignore
 	// get the reqID from the session
-	let { reqID }: { reqID: string } = session ?? {}
+	let { __houdini_session_key: reqID }: { __houdini_session_key: string } = session ?? {}
 
 	// if we already have a reqID, use it
 	if (reqID) {
@@ -51,7 +51,7 @@ export function currentReqID(
 	}
 
 	// @ts-ignore
-	session?.reqID = reqID
+	session?.__houdini_session_key = reqID
 
 	// return the id we computed
 	return reqID
