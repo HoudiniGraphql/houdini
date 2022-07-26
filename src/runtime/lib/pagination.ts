@@ -488,10 +488,9 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 		},
 		async refetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { params, context } = fetchContext(artifact, storeName, args)
-			const { variables } = params ?? {}
+			const [data, reqID] = sessionQueryStore(context.session, stores)
 
-			// figure out the reqID for this session
-			const reqID = currentReqID(context, stores)
+			const { variables } = params ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(extraVariables(reqID), variables)) {
@@ -500,8 +499,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
-			// @ts-ignore
-			const value = get(stores[context.session.reqID]).data
+			const value = get(data).data
 			const count = countPage(artifact.refetch!.path, value) || artifact.refetch!.pageSize
 
 			// build up the variables to pass to the query
@@ -522,9 +520,6 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 				...params,
 				variables: queryVariables,
 			})
-
-			// we're not loading any more
-			loading.set(false)
 
 			// we're not loading any more
 			loading.set(false)
