@@ -59,10 +59,9 @@ type RefetchConfig = {
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): QueryResponse<_Query['result'], _Query['input']> &
-	Omit<
-		PaginatedDocumentHandlers<_Query['result'], _Query['input']>,
-		'pageInfo' & { pageInfo: Readable<PageInfo> }
-	> {
+	Omit<PaginatedDocumentHandlers<_Query['result'], _Query['input']>, 'pageInfo'> & {
+		pageInfo: Readable<PageInfo>
+	} {
 	// TODO: fix type checking paginated
 	// @ts-ignore: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation

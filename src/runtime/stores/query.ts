@@ -247,6 +247,9 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	let extraMethods: {} = {}
 	let pageInfos: ReturnType<typeof queryHandlers>['pageInfo'] = {}
 
+	// a collection of functions to call when cleaning up
+	let onUnsub = (key: string) => {}
+
 	if (paginated) {
 		const handlers = queryHandlers<_Data, _Input>({
 			storeName,
@@ -267,6 +270,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		)
 
 		pageInfos = handlers.pageInfo
+		onUnsub = handlers.onUnsubscribe
 	}
 
 	return {
@@ -312,6 +316,8 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 					// reset the store value
 					delete data[reqID]
+					// clean up any pagination state
+					onUnsub(reqID)
 				}
 
 				// we're done

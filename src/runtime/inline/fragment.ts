@@ -133,16 +133,14 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	>,
 	'refetch'
 >
+
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	document: GraphQLTagResult,
 	initialValue: _Fragment | null
 ): { data: Readable<_Fragment['shape']> } & Omit<
-	Omit<
-		PaginatedDocumentHandlers<_Fragment['shape'], {}>,
-		'pageInfo' & { pageInfo: Readable<PageInfo> }
-	>,
-	'refetch'
-> {
+	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
+	'pageInfo' | 'refetch' | 'onUnsubscribe'
+> & { pageInfo: Readable<PageInfo> } {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniFragment') {
 		throw new Error('paginatedFragment() must be passed a fragment document')

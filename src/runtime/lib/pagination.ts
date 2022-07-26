@@ -154,6 +154,8 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	// loading state
 	let paginationLoadingState = writable(false)
 
+	let onUnsubscribe = (reqID: string) => {}
+
 	let refetchQuery: RefetchFn<_Data, _Input>
 	// if the artifact supports cursor based pagination
 	if (artifact.refetch?.method === 'cursor') {
@@ -171,6 +173,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 		pageInfo = cursor.pageInfo
 		// always use the refetch fn
 		refetchQuery = cursor.refetch
+		onUnsubscribe = cursor.onUnsubscribe
 
 		// if we are implementing forward pagination
 		if (artifact.refetch.update === 'append') {
@@ -200,7 +203,14 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	// merge the pagination and document loading state
 	const loading = derived([paginationLoadingState], ($loadingStates) => $loadingStates[0])
 
-	return { loadNextPage, loadPreviousPage, pageInfo, loading, refetch: refetchQuery }
+	return {
+		loadNextPage,
+		loadPreviousPage,
+		pageInfo,
+		loading,
+		refetch: refetchQuery,
+		onUnsubscribe,
+	}
 }
 
 function cursorHandlers<_Data extends GraphQLObject, _Input>({
@@ -410,6 +420,11 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				source: result.source,
 			}
 		},
+		onUnsubscribe(reqID: string) {
+			if (pageInfos[reqID]) {
+				delete pageInfos[reqID]
+			}
+		},
 	}
 }
 
@@ -560,6 +575,7 @@ export type PaginatedHandlers<_Data, _Input> = {
 	loading: Readable<boolean>
 	pageInfo: { [reqID: string]: Writable<PageInfo> }
 	refetch: RefetchFn<_Data, _Input>
+	onUnsubscribe: (reqID: string) => void
 }
 
 function missingPageSizeError(fnName: string) {
