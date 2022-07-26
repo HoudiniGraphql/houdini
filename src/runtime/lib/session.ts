@@ -4,7 +4,7 @@ import { writable } from 'svelte/store'
 import { isBrowser } from '../adapter'
 
 export function sessionStore<_State>(
-	context: HoudiniFetchContext | FetchContext | null | App.Session,
+	context: Parameters<typeof currentReqID>[0],
 	home: { [key: string]: Writable<_State> },
 	initialState: () => _State
 ): [Writable<_State>, string] {
@@ -20,7 +20,7 @@ export function sessionStore<_State>(
 }
 
 export function currentReqID(
-	context: HoudiniFetchContext | FetchContext | null | App.Session,
+	context: { session: () => App.Session | null } | null | App.Session,
 	home: { [key: string]: any }
 ): string {
 	let session: App.Session | null = null

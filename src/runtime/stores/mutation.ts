@@ -1,5 +1,6 @@
 // externals
-import { Readable, writable } from 'svelte/store'
+import { Readable, get } from 'svelte/store'
+import type { Writable } from 'svelte/store'
 // locals
 import {
 	ConfigFile,
@@ -11,6 +12,8 @@ import {
 import type { SubscriptionSpec, MutationArtifact } from '../lib'
 import cache from '../cache'
 import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
+import { getSession } from '../adapter'
+import { sessionStore } from '../lib/session'
 
 export function mutationStore<_Data, _Input>({
 	config,
@@ -19,13 +22,7 @@ export function mutationStore<_Data, _Input>({
 	config: ConfigFile
 	artifact: MutationArtifact
 }): MutationStore<_Data, _Input> {
-	const { subscribe, set, update } = writable<MutationResult<_Data, _Input>>({
-		data: null as _Data | null,
-		errors: null,
-		isFetching: false,
-		isOptimisticResponse: false,
-		variables: null,
-	})
+	const stores: { [reqID: string]: Writable<MutationResult<_Data, _Input>> } = {}
 
 	const mutate: MutationStore<_Data, _Input>['mutate'] = async ({
 		variables,
@@ -38,7 +35,9 @@ export function mutationStore<_Data, _Input>({
 			session: () => null,
 		}
 
-		update((c) => {
+		const [store] = sessionStore(fetchContext, stores, nullMutationStore)
+
+		store.update((c) => {
 			return { ...c, isFetching: true }
 		})
 
@@ -78,7 +77,7 @@ export function mutationStore<_Data, _Input>({
 			}
 
 			// update the store value
-			set(storeData)
+			store.set(storeData)
 		}
 
 		const newVariables = marshalInputs({
@@ -100,7 +99,7 @@ export function mutationStore<_Data, _Input>({
 			})
 
 			if (result.errors && result.errors.length > 0) {
-				update((s) => ({
+				store.update((s) => ({
 					...s,
 					errors: result.errors,
 					isFetching: false,
@@ -142,12 +141,12 @@ export function mutationStore<_Data, _Input>({
 			}
 
 			// update the store value
-			set(storeData)
+			store.set(storeData)
 
 			// return the value to the caller
 			return storeData
 		} catch (error) {
-			update((s) => ({
+			store.update((s) => ({
 				...s,
 				errors: error as { message: string }[],
 				isFetching: false,
@@ -167,7 +166,21 @@ export function mutationStore<_Data, _Input>({
 
 	return {
 		name: artifact.name,
-		subscribe,
+		subscribe(...args: Parameters<Readable<MutationResult<_Data, _Input>>['subscribe']>) {
+			// grab the appropriate store for the session
+			const [requestStore] = sessionStore(get(getSession()), stores, nullMutationStore)
+
+			// use it's value
+			return requestStore.subscribe(...args)
+		},
 		mutate,
 	}
 }
+
+const nullMutationStore = <_Data = any, _Input = any>(): MutationResult<_Data, _Input> => ({
+	data: null as _Data | null,
+	errors: null,
+	isFetching: false,
+	isOptimisticResponse: false,
+	variables: null,
+})

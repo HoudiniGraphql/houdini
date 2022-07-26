@@ -578,7 +578,7 @@ export const nullQueryStore = (): QueryResult<any, any> => ({
 })
 
 export const sessionQueryStore = <_Data, _Input>(
-	session: HoudiniFetchContext | FetchContext | null | App.Session,
+	session: { session: () => App.Session | null } | null | App.Session,
 	home: {
 		[key: string]: Writable<QueryResult<_Data, _Input>>
 	}

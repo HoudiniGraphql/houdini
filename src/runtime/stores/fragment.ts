@@ -99,17 +99,22 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 					}
 
 					// we need to add the page info
-					const combined = derived<[typeof requestStore, Readable<PageInfo>], _Data>(
-						[requestStore, pageInfos[reqID] || readable(null)],
-						([$store, $pageInfo]) => {
-							const everything = { ...$store }
-							if ($pageInfo) {
-								everything.pageInfo = $pageInfo
-							}
-
-							return everything as _Data
+					const combined = derived<
+						[typeof requestStore, Readable<PageInfo>],
+						_Data | null
+					>([requestStore, pageInfos[reqID] || readable(null)], ([$store, $pageInfo]) => {
+						if ($store === null) {
+							return null
 						}
-					)
+
+						// combine the state and page info values
+						const everything: _Data & { pageInfo?: PageInfo } = { ...$store }
+						if ($pageInfo) {
+							everything.pageInfo = $pageInfo
+						}
+
+						return everything
+					})
 
 					const unsub = combined.subscribe(...args)
 
