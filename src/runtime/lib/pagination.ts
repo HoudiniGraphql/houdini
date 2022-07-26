@@ -7,7 +7,7 @@ import { ConfigFile, keyFieldsForType } from './config'
 import { getHoudiniContext } from './context'
 import { executeQuery } from './network'
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from './types'
-import { fetchContext, QueryResultMap, sessionQueryStore } from '../stores/query'
+import { fetchContext, nullQueryStore, QueryResultMap, sessionQueryStore } from '../stores/query'
 import { currentReqID, sessionStore } from './session'
 
 type RefetchFn<_Data = any, _Input = any> = (
@@ -465,11 +465,15 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 	refetch: PaginatedHandlers<_Data, _Input>['refetch']
 } {
 	// we need to track the most recent offset for this handler
-	let currentOffset = (ctx: HoudiniFetchContext) =>
-		(artifact.refetch?.start as number) ||
-		// @ts-ignore
-		countPage(artifact.refetch!.path, get(stores[ctx.session()?.reqID])?.data) ||
-		artifact.refetch!.pageSize
+	let currentOffset = (ctx: HoudiniFetchContext) => {
+		const [store] = sessionStore(ctx, stores, nullQueryStore)
+
+		return (
+			(artifact.refetch?.start as number) ||
+			countPage(artifact.refetch!.path, get(store)?.data) ||
+			artifact.refetch!.pageSize
+		)
+	}
 
 	return {
 		loadPage: async (houdiniContext: HoudiniFetchContext, limit?: number) => {
@@ -522,7 +526,8 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 		},
 		async refetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { params, context } = fetchContext(artifact, storeName, args)
-			const [data, reqID] = sessionQueryStore(context.session, stores)
+			// use this instead of currentReqID to make sure there _is_ a query store
+			const [, reqID] = sessionQueryStore(context.session, stores)
 
 			const { variables } = params ?? {}
 

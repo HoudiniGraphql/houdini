@@ -41,10 +41,10 @@ export async function expectNoGraphQLRequest(
  */
 export async function expectGraphQLResponse(
   page: Page,
-  selector: string | null,
+  selector?: string | null,
   action: 'click' | 'hover' = 'click'
 ) {
-  const listStr = await expectNGraphQLResponse(page, selector, 1, action);
+  const listStr = await expectNGraphQLResponse(page, selector || null, 1, action);
   return listStr[0];
 }
 

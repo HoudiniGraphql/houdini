@@ -568,6 +568,15 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	return request
 }
 
+export const nullQueryStore = (): QueryResult<any, any> => ({
+	data: null,
+	errors: null,
+	isFetching: false,
+	partial: false,
+	source: null,
+	variables: null,
+})
+
 export const sessionQueryStore = <_Data, _Input>(
 	session: HoudiniFetchContext | FetchContext | null | App.Session,
 	home: {
@@ -581,12 +590,5 @@ export const sessionQueryStore = <_Data, _Input>(
 	>,
 	string
 ] => {
-	return sessionStore(session, home, () => ({
-		data: null,
-		errors: null,
-		isFetching: false,
-		partial: false,
-		source: null,
-		variables: null,
-	}))
+	return sessionStore(session, home, nullQueryStore)
 }
