@@ -13,10 +13,11 @@ import {
 	deepEquals,
 } from '../lib'
 import type { ConfigFile, QueryArtifact, HoudiniFetchContext } from '../lib'
-import { getHoudiniContext, nullHoudiniContext } from '../lib/context'
+import { nullHoudiniContext } from '../lib/context'
 import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import * as log from '../lib/log'
+import { currentReqID, sessionStore } from '../lib/session'
 
 // Terms:
 // - CSF: client side fetch. identified by a lack of loadEvent
@@ -110,7 +111,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// validate and prepare the request context for the current environment (client vs server)
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
 		// get the appropriate store for the session
-		const [store, req_id] = sessionQueryStore(context, data)
+		const [store, req_id] = sessionQueryStore(context.session, data)
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
@@ -273,26 +274,14 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	return {
 		name: artifact.name,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
-			const session = getSession()
-			let { req_id } = get(session)
-			if (!req_id || isBrowser) {
-				req_id = 'CLIENT'
-			}
-
-			// if we don't have a valid req_id, there is no server side request so we are free to use the
-			// client (global session)
-			if (!data[req_id]) {
-				data[req_id] = writable(nullQueryStoreState())
-			}
-
-			console.log('subscribing with', req_id)
+			// figure out the correct store to subscribe to
+			const [store, req_id] = sessionQueryStore(get(getSession()), data)
 
 			// add the page info store if it exists
 			const combined = derived(
-				[data[req_id], pageInfos[req_id] || readable(null)],
-				([store, pageInfo]) => {
-					const everything = { ...store }
-					console.log({ pageInfos })
+				[store, pageInfos[req_id] || readable(null)],
+				([$store, pageInfo]) => {
+					const everything = { ...$store }
 					if (pageInfo) {
 						everything.pageInfo = pageInfo
 					}
@@ -571,24 +560,8 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	return request
 }
 
-export function sessionStore<_State>(
-	context: FetchContext,
-	home: { [key: string]: Writable<_State> },
-	initialState: () => _State
-): [Writable<_State>, string] {
-	const req_id = context_req_id(context, home)
-
-	// if we dont have an entry for this req_id already,  create one
-	if (!home[req_id]) {
-		home[req_id] = writable(initialState())
-	}
-
-	// there is an entry for the id, return it and the id we computed
-	return [home[req_id], req_id]
-}
-
 // only include pageInfo in the store state if the query is paginated
-const nullQueryStoreState = <_Data, _Input>(): QueryResult<_Data, _Input> & {
+const nullQueryStore = <_Data, _Input>(): QueryResult<_Data, _Input> & {
 	pageInfo?: PageInfo
 } => ({
 	data: null,
@@ -600,7 +573,7 @@ const nullQueryStoreState = <_Data, _Input>(): QueryResult<_Data, _Input> & {
 })
 
 export const sessionQueryStore = <_Data, _Input>(
-	context: FetchContext,
+	session: HoudiniFetchContext | FetchContext | null | App.Session,
 	home: {
 		[key: string]: Writable<QueryResult<_Data, _Input>>
 	}
@@ -612,29 +585,5 @@ export const sessionQueryStore = <_Data, _Input>(
 	>,
 	string
 ] => {
-	return sessionStore(context, home, nullQueryStoreState)
-}
-
-export function context_req_id(
-	context: HoudiniFetchContext | FetchContext,
-	home: { [key: string]: any }
-) {
-	// get the req_id from the session
-	// @ts-ignore
-	let { req_id }: { req_id: string } = context.session ?? { req_id: 'CLIENT' }
-	if (isBrowser) {
-		req_id = 'CLIENT'
-	}
-
-	// make sure the req_id is unique on the server
-	while (!isBrowser && (!req_id || home[req_id])) {
-		req_id = Math.random().toString()
-	}
-
-	// make sure the session always contains the req_id
-	const session = typeof context.session === 'function' ? context.session() : context.session
-	// @ts-ignore
-	session?.req_id = req_id
-
-	return req_id
+	return sessionStore(session, home, nullQueryStore)
 }

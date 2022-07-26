@@ -5,7 +5,7 @@ import type { Page } from '@sveltejs/kit'
 import type { Readable, Writable } from 'svelte/store'
 
 // the actual contents of this file gets overwritten by the runtime generator
-export function getSession(): Writable<any> {
+export function getSession(): Writable<App.Session | null> {
 	// @ts-ignore
 	return {}
 }
