@@ -27,7 +27,7 @@
 	"types": "./build/cmd/index.d.ts",
 	"scripts": {
 		"tests": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest",
-		"tests:integration": "yarn workspace integration tests --workers 15",
+		"tests:integration": "yarn workspace integration tests --workers 5",
 		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
 		"build": "concurrently \"npm run build:runtime\" \"npm run build:cmd\" \"npm run build:preprocess\" -n \"run,cmd,pre\" -c \"blue.bold,green.bold,yellow.bold\" && npm run build:typeModule",
 		"build:runtime": "concurrently \"npm run build:runtime:esm\" \"npm run build:runtime:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
