@@ -45,8 +45,8 @@ export function currentReqID(
 		return reqID
 	}
 
-	// make sure the reqID is unique on the server
-	while (!isBrowser && (!reqID || home[reqID])) {
+	// make sure that reqID isn't currently being used
+	while (!reqID || home[reqID]) {
 		reqID = Math.random().toString()
 	}
 
