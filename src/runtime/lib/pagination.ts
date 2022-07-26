@@ -395,6 +395,9 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				variables: queryVariables,
 			})
 
+			// keep the page info store up to date
+			pageInfo.set(extractPageInfo(result.data, artifact.refetch!.path))
+
 			// we're not loading any more
 			loading.set(false)
 

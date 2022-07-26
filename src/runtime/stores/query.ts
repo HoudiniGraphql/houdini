@@ -17,7 +17,7 @@ import { nullHoudiniContext } from '../lib/context'
 import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import * as log from '../lib/log'
-import { currentReqID, sessionStore } from '../lib/session'
+import { sessionStore } from '../lib/session'
 
 // Terms:
 // - CSF: client side fetch. identified by a lack of loadEvent
@@ -63,7 +63,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	const data: QueryResultMap<_Data, _Input> = {}
 	const setFetching = (reqID: string, isFetching: boolean) =>
 		data[reqID]?.update((s) => ({ ...s, isFetching }))
-	const getVariables = (reqID: string) => get(data[reqID])?.variables || {}
+	const getVariables = (reqID: string): _Input | null => get(data[reqID])?.variables || null
 
 	// the first client-side request after the mocked load() needs to be blocked
 	let blockNextCSF = false
@@ -110,6 +110,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	): Promise<QueryResult<_Data, _Input>> {
 		// validate and prepare the request context for the current environment (client vs server)
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
+
 		// get the appropriate store for the session
 		const [store, reqID] = sessionQueryStore(context.session, data)
 
@@ -247,21 +248,18 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	let pageInfos: ReturnType<typeof queryHandlers>['pageInfo'] = {}
 
 	if (paginated) {
-		const handlers = queryHandlers({
+		const handlers = queryHandlers<_Data, _Input>({
 			storeName,
 			config,
 			artifact,
 			stores: data,
 			async fetch(params) {
-				// @ts-ignore
 				return (await fetch({
 					...params,
 					blocking: true,
 				}))!
 			},
-			queryVariables: (reqID: string) => {
-				return getVariables(reqID)
-			},
+			queryVariables: getVariables,
 		})
 
 		extraMethods = Object.fromEntries(
@@ -278,12 +276,13 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			const [store, reqID] = sessionQueryStore(get(getSession()), data)
 
 			// add the page info store if it exists
+			console.log('looking for pageInfo', reqID)
 			const combined = derived(
 				[store, pageInfos[reqID] || readable(null)],
-				([$store, pageInfo]) => {
+				([$store, $pageInfo]) => {
 					const everything = { ...$store }
-					if (pageInfo) {
-						everything.pageInfo = pageInfo
+					if ($pageInfo) {
+						everything.pageInfo = $pageInfo
 					}
 
 					return everything
@@ -560,18 +559,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	return request
 }
 
-// only include pageInfo in the store state if the query is paginated
-const nullQueryStore = <_Data, _Input>(): QueryResult<_Data, _Input> & {
-	pageInfo?: PageInfo
-} => ({
-	data: null,
-	errors: null,
-	isFetching: false,
-	partial: false,
-	source: null,
-	variables: null,
-})
-
 export const sessionQueryStore = <_Data, _Input>(
 	session: HoudiniFetchContext | FetchContext | null | App.Session,
 	home: {
@@ -585,5 +572,12 @@ export const sessionQueryStore = <_Data, _Input>(
 	>,
 	string
 ] => {
-	return sessionStore(session, home, nullQueryStore)
+	return sessionStore(session, home, () => ({
+		data: null,
+		errors: null,
+		isFetching: false,
+		partial: false,
+		source: null,
+		variables: null,
+	}))
 }
