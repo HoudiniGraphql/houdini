@@ -50,8 +50,11 @@ export function currentReqID(
 		reqID = Math.random().toString()
 	}
 
-	// @ts-ignore
-	session?.__houdini_session_key = reqID
+	// save the session
+	if (session) {
+		// @ts-ignore
+		session.__houdini_session_key = reqID
+	}
 
 	// return the id we computed
 	return reqID

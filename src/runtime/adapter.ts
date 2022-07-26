@@ -28,5 +28,3 @@ export const isBrowser = false
 export let clientStarted = false // Will be true on a client side navigation
 
 export let isPrerender = false
-
-export let setSession = (key: string, val: any) => {}

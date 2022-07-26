@@ -109,7 +109,7 @@ test('forward cursor pagination', async function () {
 					    paginated: true,
 					    paginationMethods: {
 					        "loadNextPage": "loadNextPage",
-					        "pageInfo": "pageInfo",
+					        "pageInfos": "pageInfos",
 					        "fetch": "refetch",
 					        "loading": "loading"
 					    }
@@ -161,7 +161,7 @@ test('backwards cursor pagination', async function () {
 					    paginated: true,
 					    paginationMethods: {
 					        "loadPreviousPage": "loadPreviousPage",
-					        "pageInfo": "pageInfo",
+					        "pageInfos": "pageInfos",
 					        "fetch": "refetch",
 					        "loading": "loading"
 					    }

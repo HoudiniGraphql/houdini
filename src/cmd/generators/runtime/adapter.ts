@@ -40,8 +40,6 @@ export const isBrowser = process.browser
 export const clientStarted = true; 
 
 export const isPrerender = false
-
-export const setSession = (key, value) => session.update(s => ({...s, [key]: value}))
 `
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
@@ -74,8 +72,6 @@ if (browser) {
 }
 
 export const isPrerender = prerendering
-
-export const setSession = (key, value) => session.update(s => ({...s, [key]: value}))
 `
 
 const svelteAdapter = `
@@ -101,6 +97,4 @@ export const isBrowser = true
 export const clientStarted = true
 
 export const isPrerender = false
-
-export const setSession = (key, value) => session.update(s => ({...s, [key]: value}))
 `

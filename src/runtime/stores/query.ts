@@ -1,9 +1,9 @@
 // externals
-import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
+import { derived, get, readable, Readable, Writable } from 'svelte/store'
 import type { LoadEvent } from '@sveltejs/kit'
 // internals
 import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
-import { clientStarted, getSession, isBrowser, setSession } from '../adapter'
+import { clientStarted, getSession, isBrowser } from '../adapter'
 import cache from '../cache'
 import {
 	FetchContext,
