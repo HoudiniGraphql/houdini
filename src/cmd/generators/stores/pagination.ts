@@ -46,7 +46,7 @@ import type { PageInfo } from '../runtime/lib/utils'`
 }`
 			methods = {
 				loadNextPage: 'loadNextPage',
-				pageInfo: 'pageInfo',
+				pageInfos: 'pageInfos',
 				fetch: 'refetch',
 				loading: 'loading',
 			}
@@ -58,7 +58,7 @@ import type { PageInfo } from '../runtime/lib/utils'`
 }`
 			methods = {
 				loadPreviousPage: 'loadPreviousPage',
-				pageInfo: 'pageInfo',
+				pageInfos: 'pageInfos',
 				fetch: 'refetch',
 				loading: 'loading',
 			}

@@ -59,7 +59,7 @@ type RefetchConfig = {
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
 ): QueryResponse<_Query['result'], _Query['input']> &
-	Omit<PaginatedDocumentHandlers<_Query['result'], _Query['input']>, 'pageInfo'> & {
+	Omit<PaginatedDocumentHandlers<_Query['result'], _Query['input']>, 'pageInfos'> & {
 		pageInfo: Readable<PageInfo>
 	} {
 	// TODO: fix type checking paginated

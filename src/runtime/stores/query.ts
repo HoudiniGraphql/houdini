@@ -245,7 +245,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 	// add the pagination methods to the store
 	let extraMethods: {} = {}
-	let pageInfos: ReturnType<typeof queryHandlers>['pageInfo'] = {}
+	let pageInfos: ReturnType<typeof queryHandlers>['pageInfos'] = {}
 
 	// a collection of functions to call when cleaning up
 	let onUnsub = (key: string) => {}
@@ -269,7 +269,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])
 		)
 
-		pageInfos = handlers.pageInfo
+		pageInfos = handlers.pageInfos
 		onUnsub = handlers.onUnsubscribe
 	}
 

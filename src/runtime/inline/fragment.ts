@@ -139,7 +139,7 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment | null
 ): { data: Readable<_Fragment['shape']> } & Omit<
 	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
-	'pageInfo' | 'refetch' | 'onUnsubscribe'
+	'pageInfos' | 'refetch' | 'onUnsubscribe'
 > & { pageInfo: Readable<PageInfo> } {
 	// make sure we got a query document
 	if (document.kind !== 'HoudiniFragment') {
