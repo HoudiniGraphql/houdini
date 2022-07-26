@@ -79,7 +79,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 	// in order to clear the store's value when unmounting, we need to track how many concurrent subscribers
 	// we have. when this number is 0, we need to clear the store
-	let subscriberCount = 0
+	let subscriberCount: { [reqID: string]: number } = {}
 
 	// a function to update the store's cache subscriptions
 	function refreshSubscription(req_id: string, newVariables: _Input) {
@@ -293,31 +293,31 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			const bubbleUp = combined.subscribe(...args)
 
 			// we have a new subscriber
-			subscriberCount++
+			subscriberCount[req_id] = (subscriberCount[req_id] ?? 0) + 1
 
 			// Handle unsubscribe
 			return () => {
 				// we lost a subscriber
-				subscriberCount--
+				subscriberCount[req_id]--
 
 				// don't clear the store state on the server (breaks SSR)
 				// or when there is still an active subscriber
-				if (isBrowser && subscriberCount <= 0) {
+				if (subscriberCount[req_id] <= 0) {
 					// clean up any cache subscriptions
-					if (subscriptionSpec) {
+					if (isBrowser && subscriptionSpec) {
 						cache.unsubscribe(subscriptionSpec, lastVariables || {})
 						subscriptionSpec = null
 					}
 
 					// clear the variable counter
 					lastVariables = null
+
+					// reset the store value
+					delete data[req_id]
 				}
 
 				// we're done
 				bubbleUp()
-
-				// reset the store value
-				delete data[req_id]
 			}
 		},
 		fetch,
