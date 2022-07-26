@@ -276,7 +276,6 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			const [store, reqID] = sessionQueryStore(get(getSession()), data)
 
 			// add the page info store if it exists
-			console.log('looking for pageInfo', reqID)
 			const combined = derived(
 				[store, pageInfos[reqID] || readable(null)],
 				([$store, $pageInfo]) => {
