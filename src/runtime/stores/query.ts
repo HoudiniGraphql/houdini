@@ -18,7 +18,6 @@ import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import * as log from '../lib/log'
 import { currentReqID, sessionStore } from '../lib/session'
-import G from 'glob'
 
 // Terms:
 // - CSF: client side fetch. identified by a lack of loadEvent
@@ -58,7 +57,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	artifact: QueryArtifact
 	paginated: boolean
 	storeName: string
-	paginationMethods: { [key: string]: keyof PaginatedHandlers<_Data, _Input> }
+	paginationMethods: (keyof PaginatedHandlers<_Data, _Input>)[]
 }): QueryStore<_Data, _Input> {
 	// at its core, a query store is a writable store with extra methods
 	const data: QueryResultMap<_Data, _Input> = {}
@@ -270,10 +269,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			queryVariables: getVariables,
 		})
 
-		extraMethods = Object.fromEntries(
-			Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])
-		)
-
+		extraMethods = Object.fromEntries(paginationMethods.map((key) => [key, handlers[key]]))
 		pageInfos = handlers.pageInfos
 		onUnsub = handlers.onUnsubscribe
 	}

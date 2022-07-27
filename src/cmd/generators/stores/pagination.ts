@@ -7,7 +7,7 @@ export default function pagination(
 	which: 'fragment' | 'query'
 ) {
 	// figure out the extra methods and their types when there's pagination
-	let methods = {}
+	let methods: string[] = []
 	let types = ''
 	let typeImports = ''
 	let storeExtras = '{}'
@@ -23,11 +23,7 @@ export default function pagination(
 		types = `{
 	loadNextPage: (context: HoudiniFetchContext, limit?: number) => Promise<void>
 }`
-		methods = {
-			loadNextPage: 'loadNextPage',
-			fetch: 'refetch',
-			loading: 'loading',
-		}
+		methods = ['loadNextPage', 'fetch', 'loading']
 	}
 	// cursor pagination
 	else if (paginationMethod === 'cursor') {
@@ -44,24 +40,14 @@ import type { PageInfo } from '../runtime/lib/utils'`
     loadNextPage: (context: HoudiniFetchContext, pageCount?: number, after?: string | number) => Promise<void>
     ${which === 'query' ? 'pageInfo: Readable<PageInfo>' : ''}
 }`
-			methods = {
-				loadNextPage: 'loadNextPage',
-				pageInfos: 'pageInfos',
-				fetch: 'refetch',
-				loading: 'loading',
-			}
+			methods = ['loadNextPage', 'pageInfos', 'fetch', 'loading']
 
 			// backwards cursor pagination
 		} else {
 			types = `{
     loadPreviousPage: (context: HoudiniFetchContext, pageCount?: number, before?: string) => Promise<void>
 }`
-			methods = {
-				loadPreviousPage: 'loadPreviousPage',
-				pageInfos: 'pageInfos',
-				fetch: 'refetch',
-				loading: 'loading',
-			}
+			methods = ['loadPreviousPage', 'pageInfos', 'fetch', 'loading']
 		}
 	}
 

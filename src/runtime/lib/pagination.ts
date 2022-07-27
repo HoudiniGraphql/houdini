@@ -10,7 +10,7 @@ import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from './types'
 import { fetchContext, QueryResultMap, sessionQueryStore } from '../stores/query'
 import { currentReqID, sessionStore } from './session'
 
-type RefetchFn<_Data = any, _Input = any> = (
+type FetchFn<_Data = any, _Input = any> = (
 	params?: QueryStoreFetchParams<_Input>
 ) => Promise<QueryResult<_Data, _Input>>
 
@@ -144,7 +144,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	getValue: (reqID: string) => _Data
 	queryVariables: (reqID: string) => _Input | null
 	documentLoading?: Readable<boolean>
-	fetch: RefetchFn<_Data, _Input>
+	fetch: FetchFn<_Data, _Input>
 	config: ConfigFile
 	pageInfo?: { [reqID: string]: Writable<PageInfo> }
 	storeName: string
@@ -163,7 +163,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 
 	let onUnsubscribe = (reqID: string) => {}
 
-	let refetchQuery: RefetchFn<_Data, _Input>
+	let fetchQuery: FetchFn<_Data, _Input>
 	// if the artifact supports cursor based pagination
 	if (artifact.refetch?.method === 'cursor') {
 		// generate the cursor handlers
@@ -180,7 +180,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 		// always track pageInfo
 		pageInfos = cursor.pageInfos
 		// always use the refetch fn
-		refetchQuery = cursor.refetch
+		fetchQuery = cursor.fetch
 		onUnsubscribe = cursor.onUnsubscribe
 
 		// if we are implementing forward pagination
@@ -206,7 +206,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 		})
 
 		loadNextPage = offset.loadPage
-		refetchQuery = offset.refetch
+		fetchQuery = offset.fetch
 	}
 
 	// merge the pagination and document loading state
@@ -217,7 +217,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 		loadPreviousPage,
 		pageInfos,
 		loading,
-		refetch: refetchQuery,
+		fetch: fetchQuery,
 		onUnsubscribe,
 	}
 }
@@ -238,7 +238,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	getValue: (reqID: string) => _Data
 	queryVariables: (reqID: string) => _Input | null
 	loading: Writable<boolean>
-	fetch: RefetchFn
+	fetch: FetchFn
 	storeName: string
 }): PaginatedHandlers<_Data, _Input> {
 	const pageInfos: { [reqID: string]: Writable<PageInfo> } = {}
@@ -374,7 +374,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			})
 		},
 		pageInfos,
-		async refetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+		async fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			// validate and prepare the request context for the current environment (client vs server)
 			const { context, params } = fetchContext(artifact, storeName, args)
 
@@ -454,14 +454,14 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 	config: ConfigFile
 	artifact: QueryArtifact
 	queryVariables: (reqID: string) => _Input | null
-	fetch: RefetchFn
+	fetch: FetchFn
 	stores: { [reqID: string]: any }
 	getValue: (reqID: string) => _Data
 	loading: Writable<boolean>
 	storeName: string
 }): {
 	loadPage: PaginatedHandlers<_Data, _Input>['loadNextPage']
-	refetch: PaginatedHandlers<_Data, _Input>['refetch']
+	fetch: PaginatedHandlers<_Data, _Input>['fetch']
 } {
 	// we need to track the most recent offset for this handler
 	let currentOffset = (ctx: HoudiniFetchContext) => {
@@ -523,7 +523,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 			// we're not loading any more
 			loading.set(false)
 		},
-		async refetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+		async fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { params, context } = fetchContext(artifact, storeName, args)
 
 			const reqID = currentReqID(context.session, stores)
@@ -596,7 +596,7 @@ export type PaginatedHandlers<_Data, _Input> = {
 	): Promise<void>
 	loading: Readable<boolean>
 	pageInfos: { [reqID: string]: Writable<PageInfo> }
-	refetch: RefetchFn<_Data, _Input>
+	fetch: FetchFn<_Data, _Input>
 	onUnsubscribe: (reqID: string) => void
 }
 

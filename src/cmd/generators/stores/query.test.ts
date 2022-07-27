@@ -60,7 +60,7 @@ test('basic store', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: false,
-					    paginationMethods: {}
+					    paginationMethods: [],
 					})
 
 					export const GQL_TestQuery = factory()
@@ -107,12 +107,7 @@ test('forward cursor pagination', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
-					    paginationMethods: {
-					        "loadNextPage": "loadNextPage",
-					        "pageInfos": "pageInfos",
-					        "fetch": "refetch",
-					        "loading": "loading"
-					    }
+					    paginationMethods: ["loadNextPage","pageInfos","fetch","loading"],
 					})
 
 					export const GQL_TestQuery = factory()
@@ -159,12 +154,7 @@ test('backwards cursor pagination', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
-					    paginationMethods: {
-					        "loadPreviousPage": "loadPreviousPage",
-					        "pageInfos": "pageInfos",
-					        "fetch": "refetch",
-					        "loading": "loading"
-					    }
+					    paginationMethods: ["loadPreviousPage","pageInfos","fetch","loading"],
 					})
 
 					export const GQL_TestQuery = factory()
@@ -207,11 +197,7 @@ test('offset pagination', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
-					    paginationMethods: {
-					        "loadNextPage": "loadNextPage",
-					        "fetch": "refetch",
-					        "loading": "loading"
-					    }
+					    paginationMethods: ["loadNextPage","fetch","loading"],
 					})
 
 					export const GQL_TestQuery = factory()

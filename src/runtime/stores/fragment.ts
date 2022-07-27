@@ -27,7 +27,7 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 	config: ConfigFile
 	paginated: QueryArtifact
 	paginatedArtifact?: QueryArtifact
-	paginationMethods: { [key: string]: keyof PaginatedHandlers<_Data, _Input> }
+	paginationMethods: (keyof PaginatedHandlers<_Data, _Input>)[]
 	storeName: string
 }): FragmentStore<_Data | null> {
 	return {
@@ -53,7 +53,7 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 				})
 
 				extraMethods = Object.fromEntries(
-					Object.entries(paginationMethods).map(([key, value]) => [key, handlers[value]])
+					paginationMethods.map((key) => [key, handlers[key]])
 				)
 				onUnsubscribe = handlers.onUnsubscribe
 				pageInfos = handlers.pageInfos
