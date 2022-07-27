@@ -114,7 +114,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 		// get the appropriate store for the session
 		const store = sessionQueryStore(context.session, data)
-		const reqID = currentReqID(context.session)
+		const reqID = currentReqID(context.session, data)
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
@@ -282,7 +282,9 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		name: artifact.name,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
 			// figure out the correct store to subscribe to
-			const [store, reqID] = sessionQueryStore(get(getSession()), data)
+			const session = get(getSession())
+			const store = sessionQueryStore(session, data)
+			const reqID = currentReqID(session, data)
 
 			// add the page info store if it exists
 			const combined = derived(

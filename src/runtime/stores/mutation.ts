@@ -35,7 +35,7 @@ export function mutationStore<_Data, _Input>({
 			session: () => null,
 		}
 
-		const [store] = sessionStore(fetchContext, stores, nullMutationStore)
+		const store = sessionStore(fetchContext, stores, nullMutationStore)
 
 		store.update((c) => {
 			return { ...c, isFetching: true }
@@ -168,7 +168,7 @@ export function mutationStore<_Data, _Input>({
 		name: artifact.name,
 		subscribe(...args: Parameters<Readable<MutationResult<_Data, _Input>>['subscribe']>) {
 			// grab the appropriate store for the session
-			const [requestStore] = sessionStore(get(getSession()), stores, nullMutationStore)
+			const requestStore = sessionStore(get(getSession()), stores, nullMutationStore)
 
 			// use it's value
 			return requestStore.subscribe(...args)
