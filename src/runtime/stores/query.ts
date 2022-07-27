@@ -17,7 +17,7 @@ import { nullHoudiniContext } from '../lib/context'
 import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import * as log from '../lib/log'
-import { sessionStore } from '../lib/session'
+import { currentReqID, sessionStore } from '../lib/session'
 import G from 'glob'
 
 // Terms:
@@ -113,7 +113,8 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		const { context, policy, params } = fetchContext(artifact, storeName, args)
 
 		// get the appropriate store for the session
-		const [store, reqID] = sessionQueryStore(context.session, data)
+		const store = sessionQueryStore(context.session, data)
+		const reqID = currentReqID(context.session)
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
@@ -573,14 +574,11 @@ export const sessionQueryStore = <_Data, _Input>(
 	home: {
 		[key: string]: Writable<QueryResult<_Data, _Input>>
 	}
-): [
-	Writable<
-		QueryResult<_Data, _Input> & {
-			pageInfo?: PageInfo
-		}
-	>,
-	string
-] => {
+): Writable<
+	QueryResult<_Data, _Input> & {
+		pageInfo?: PageInfo
+	}
+> => {
 	return sessionStore(
 		session,
 		home,

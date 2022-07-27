@@ -10,7 +10,7 @@ import {
 	pageInfoStore,
 	PaginatedHandlers,
 } from '../lib/pagination'
-import { sessionStore } from '../lib/session'
+import { currentReqID, sessionStore } from '../lib/session'
 import { getSession, isBrowser } from '../adapter'
 
 // a fragment store exists in multiple places in a given application so we
@@ -68,7 +68,8 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 					const session = get(getSession())
 
 					// grab the appropriate store for the session
-					const [requestStore, reqID] = sessionStore(session, stores, () => initialValue)
+					const requestStore = sessionStore(session, stores, () => initialValue)
+					const reqID = currentReqID(session, stores)
 
 					// if we haven't written anything yet
 					if (!written.has(reqID)) {
@@ -79,10 +80,8 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 
 						// if we have to set up a paginated fragment
 						if (paginatedArtifact) {
-							const [pageInfo] = pageInfoStore(session, pageInfos)
-
 							// update the page info
-							pageInfo.set(
+							pageInfoStore(session, pageInfos).set(
 								extractPageInfo(initialValue, paginatedArtifact.refetch!.path)
 							)
 						}

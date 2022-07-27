@@ -258,7 +258,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		// figure out the reqID for this session
 		const reqID = currentReqID(houdiniContext, stores)
 		// get the pageInfo store
-		const [pageInfo] = pageInfoStore(houdiniContext, pageInfos)
+		const pageInfo = pageInfoStore(houdiniContext, pageInfos)
 
 		// set the loading state to true
 		loading.set(true)
@@ -379,8 +379,9 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			const { context, params } = fetchContext(artifact, storeName, args)
 
 			// get the session stores we will write to
-			const [pageInfo, reqID] = sessionStore(context.session, pageInfos, nullPageInfo)
-			const [data] = sessionQueryStore<_Data, _Input>(context.session, stores)
+			const reqID = currentReqID(context.session, stores)
+			const pageInfo = sessionStore(context.session, pageInfos, nullPageInfo)
+			const data = sessionQueryStore<_Data, _Input>(context.session, stores)
 
 			const { variables } = params ?? {}
 
@@ -464,7 +465,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 } {
 	// we need to track the most recent offset for this handler
 	let currentOffset = (ctx: HoudiniFetchContext) => {
-		const [store] = sessionQueryStore<_Data, _Input>(ctx, stores)
+		const store = sessionQueryStore<_Data, _Input>(ctx, stores)
 
 		return (
 			(artifact.refetch?.start as number) ||
@@ -524,8 +525,10 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 		},
 		async refetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			const { params, context } = fetchContext(artifact, storeName, args)
-			// use this instead of currentReqID to make sure there _is_ a query store
-			const [, reqID] = sessionQueryStore(context.session, stores)
+
+			const reqID = currentReqID(context.session, stores)
+			// make sure we created a query store
+			sessionQueryStore(context.session, stores)
 
 			const { variables } = params ?? {}
 
@@ -667,6 +670,6 @@ export const pageInfoStore = (
 	home: {
 		[key: string]: Writable<PageInfo>
 	}
-): [Writable<PageInfo>, string] => {
+): Writable<PageInfo> => {
 	return sessionStore(session, home, nullPageInfo)
 }

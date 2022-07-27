@@ -1,5 +1,4 @@
 import type { Writable } from 'svelte/store'
-import type { FetchContext, HoudiniFetchContext } from '.'
 import { writable } from 'svelte/store'
 import { isBrowser } from '../adapter'
 
@@ -7,7 +6,7 @@ export function sessionStore<_State>(
 	context: Parameters<typeof currentReqID>[0],
 	home: { [key: string]: Writable<_State> },
 	initialState: () => _State
-): [Writable<_State>, string] {
+): Writable<_State> {
 	const reqID = currentReqID(context, home)
 
 	// if we dont have an entry for this reqID already,  create one
@@ -16,7 +15,7 @@ export function sessionStore<_State>(
 	}
 
 	// there is an entry for the id, return it and the id we computed
-	return [home[reqID], reqID]
+	return home[reqID]
 }
 
 export function currentReqID(
