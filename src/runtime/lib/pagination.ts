@@ -7,7 +7,7 @@ import { ConfigFile, keyFieldsForType } from './config'
 import { getHoudiniContext } from './context'
 import { executeQuery } from './network'
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from './types'
-import { fetchContext, nullQueryStore, QueryResultMap, sessionQueryStore } from '../stores/query'
+import { fetchContext, QueryResultMap, sessionQueryStore } from '../stores/query'
 import { currentReqID, sessionStore } from './session'
 
 type RefetchFn<_Data = any, _Input = any> = (
@@ -258,7 +258,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		// figure out the reqID for this session
 		const reqID = currentReqID(houdiniContext, stores)
 		// get the pageInfo store
-		const [pageInfo] = sessionStore(houdiniContext, pageInfos, nullPageInfo)
+		const [pageInfo] = pageInfoStore(houdiniContext, pageInfos)
 
 		// set the loading state to true
 		loading.set(true)
@@ -464,7 +464,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 } {
 	// we need to track the most recent offset for this handler
 	let currentOffset = (ctx: HoudiniFetchContext) => {
-		const [store] = sessionStore(ctx, stores, nullQueryStore)
+		const [store] = sessionQueryStore<_Data, _Input>(ctx, stores)
 
 		return (
 			(artifact.refetch?.start as number) ||
@@ -655,10 +655,18 @@ export function countPage<_Data extends GraphQLObject>(
 
 	return 0
 }
-
-export const nullPageInfo = (): PageInfo => ({
+const nullPageInfo = (): PageInfo => ({
 	startCursor: null,
 	endCursor: null,
 	hasNextPage: false,
 	hasPreviousPage: false,
 })
+
+export const pageInfoStore = (
+	session: { session: () => App.Session | null } | null | App.Session,
+	home: {
+		[key: string]: Writable<PageInfo>
+	}
+): [Writable<PageInfo>, string] => {
+	return sessionStore(session, home, nullPageInfo)
+}

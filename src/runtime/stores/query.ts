@@ -568,15 +568,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	return request
 }
 
-export const nullQueryStore = (): QueryResult<any, any> => ({
-	data: null,
-	errors: null,
-	isFetching: false,
-	partial: false,
-	source: null,
-	variables: null,
-})
-
 export const sessionQueryStore = <_Data, _Input>(
 	session: { session: () => App.Session | null } | null | App.Session,
 	home: {
@@ -590,5 +581,16 @@ export const sessionQueryStore = <_Data, _Input>(
 	>,
 	string
 ] => {
-	return sessionStore(session, home, nullQueryStore)
+	return sessionStore(
+		session,
+		home,
+		(): QueryResult<any, any> => ({
+			data: null,
+			errors: null,
+			isFetching: false,
+			partial: false,
+			source: null,
+			variables: null,
+		})
+	)
 }

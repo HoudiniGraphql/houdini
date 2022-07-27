@@ -6,8 +6,8 @@ import { ConfigFile, FragmentStore, GraphQLObject, QueryArtifact } from '../lib'
 import {
 	extractPageInfo,
 	fragmentHandlers,
-	nullPageInfo,
 	PageInfo,
+	pageInfoStore,
 	PaginatedHandlers,
 } from '../lib/pagination'
 import { sessionStore } from '../lib/session'
@@ -65,12 +65,10 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 
 			return {
 				subscribe: (...args: Parameters<Readable<_Data | null>['subscribe']>) => {
+					const session = get(getSession())
+
 					// grab the appropriate store for the session
-					const [requestStore, reqID] = sessionStore(
-						get(getSession()),
-						stores,
-						() => initialValue
-					)
+					const [requestStore, reqID] = sessionStore(session, stores, () => initialValue)
 
 					// if we haven't written anything yet
 					if (!written.has(reqID)) {
@@ -81,13 +79,10 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 
 						// if we have to set up a paginated fragment
 						if (paginatedArtifact) {
-							// if we don't have an entry for the page info, make one
-							if (!pageInfos[reqID]) {
-								pageInfos[reqID] = writable(nullPageInfo())
-							}
+							const [pageInfo] = pageInfoStore(session, pageInfos)
 
 							// update the page info
-							pageInfos[reqID].set(
+							pageInfo.set(
 								extractPageInfo(initialValue, paginatedArtifact.refetch!.path)
 							)
 						}
