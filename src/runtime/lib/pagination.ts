@@ -1,5 +1,5 @@
 // externals
-import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
+import { derived, get, Readable, Writable, writable } from 'svelte/store'
 // locals
 import { deepEquals, FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams } from '..'
 import cache from '../cache'
@@ -7,8 +7,10 @@ import { ConfigFile, keyFieldsForType } from './config'
 import { getHoudiniContext } from './context'
 import { executeQuery } from './network'
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from './types'
+import { fetchContext, QueryResultMap, sessionQueryStore } from '../stores/query'
+import { currentReqID, sessionStore } from './session'
 
-type RefetchFn<_Data = any, _Input = any> = (
+type FetchFn<_Data = any, _Input = any> = (
 	params?: QueryStoreFetchParams<_Input>
 ) => Promise<QueryResult<_Data, _Input>>
 
@@ -16,7 +18,7 @@ export function wrapPaginationStore<_Data, _Input>(
 	store: QueryStore<_Data, _Input> | ReturnType<FragmentStore<_Data>['get']>
 ) {
 	// @ts-ignore
-	const { loadNextPage, loadPreviousPage, ...rest } = store
+	const { loadNextPage, loadPreviousPage, paginationStrategy, subscribe, ...rest } = store
 
 	// grab the current houdini context
 	const context = getHoudiniContext()
@@ -31,19 +33,27 @@ export function wrapPaginationStore<_Data, _Input>(
 		result.loadPreviousPage = (...args) => loadPreviousPage(context, ...args)
 	}
 
-	return result
+	if (paginationStrategy === 'cursor') {
+		// @ts-ignore
+		result.pageInfo = derived([{ subscribe }], ([$store]) => {
+			// @ts-ignore
+			return $store.pageInfo
+		})
+	}
+
+	return { subscribe, ...result }
 }
 
 export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 	config,
 	paginationArtifact,
-	initialValue,
-	store,
+	stores,
+	storeName,
 }: {
+	storeName: string
 	config: ConfigFile
 	paginationArtifact: QueryArtifact
-	initialValue: _Data | null
-	store: Readable<GraphQLObject | null>
+	stores: { [reqID: string]: Readable<GraphQLObject | null> }
 }) {
 	const { targetType } = paginationArtifact.refetch || {}
 	const typeConfig = config.types?.[targetType || '']
@@ -53,19 +63,19 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 		)
 	}
 
-	let queryVariables = () => ({} as _Input)
+	let queryVariables = (reqID: string) => ({} as _Input)
 	// if the query is embedded we have to figure out the correct variables to pass
 	if (paginationArtifact.refetch!.embedded) {
 		// if we have a specific function to use when computing the variables
 		if (typeConfig.resolve?.arguments) {
-			queryVariables = () => {
-				const value = get(store)
+			queryVariables = (reqID: string) => {
+				const value = get(stores[reqID])
 				return (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 			}
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')
-			queryVariables = () => {
-				const value = get(store)
+			queryVariables = (reqID: string) => {
+				const value = get(stores[reqID])
 				// @ts-ignore
 				return Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
 			}
@@ -73,13 +83,16 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 	}
 
 	return paginationHandlers<_Data, _Input>({
+		storeName,
 		config,
-		initialValue,
-		store: store as Readable<GraphQLObject>,
+		stores,
 		artifact: paginationArtifact,
 		queryVariables,
-		refetch: async () => {
+		fetch: async () => {
 			return {} as any
+		},
+		getValue: (reqID) => {
+			return get(stores[reqID]) as _Data
 		},
 	})
 }
@@ -87,53 +100,54 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 export function queryHandlers<_Data extends GraphQLObject, _Input>({
 	config,
 	artifact,
-	store,
+	stores,
+	fetch,
 	queryVariables,
+	storeName,
 }: {
 	config: ConfigFile
 	artifact: QueryArtifact
-	store: QueryStore<any, any>
-	queryVariables: () => _Input
+	stores: QueryResultMap<_Data, _Input>
+	fetch: QueryStore<_Data, _Input>['fetch']
+	queryVariables: (reqID: string) => _Input | null
 	pageInfo?: Readable<PageInfo>
+	storeName: string
 }) {
 	// if there's no refetch config for the artifact there's a problem
 	if (!artifact.refetch) {
 		throw new Error('paginatedQuery must be passed a query with @paginate.')
 	}
 
-	// create some derived stores from the query meta data
-	const loading = derived([store], ([$store]) => $store.isFetching)
-	const data = derived([store], ([$store]) => $store.data)
-
 	// return the handlers
 	return paginationHandlers<_Data, _Input>({
-		documentLoading: loading,
-		initialValue: get(store).data || {},
 		artifact,
-		store: data,
+		stores,
 		queryVariables,
-		refetch: store.fetch,
+		fetch,
 		config,
+		storeName,
+		getValue: (reqID: string) => get(stores[reqID])?.data || ({} as _Data),
 	})
 }
 
 function paginationHandlers<_Data extends GraphQLObject, _Input>({
-	initialValue,
 	artifact,
-	store,
+	stores,
 	queryVariables,
-	documentLoading,
-	refetch,
+	fetch,
 	config,
+	storeName,
+	getValue,
 }: {
-	initialValue: GraphQLObject | null
 	artifact: QueryArtifact
-	store: Readable<GraphQLObject>
-	queryVariables: () => _Input
+	stores: { [reqID: string]: any }
+	getValue: (reqID: string) => _Data
+	queryVariables: (reqID: string) => _Input | null
 	documentLoading?: Readable<boolean>
-	refetch: RefetchFn<_Data, _Input>
+	fetch: FetchFn<_Data, _Input>
 	config: ConfigFile
-	pageInfo?: Readable<PageInfo>
+	pageInfo?: { [reqID: string]: Writable<PageInfo> }
+	storeName: string
 }): PaginatedHandlers<_Data, _Input> {
 	// start with the defaults and no meaningful page info
 	let loadPreviousPage: PaginatedHandlers<_Data, _Input>['loadPreviousPage'] = async (
@@ -142,28 +156,35 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	let loadNextPage: PaginatedHandlers<_Data, _Input>['loadNextPage'] = async (
 		...args: Parameters<PaginatedHandlers<_Data, _Input>['loadNextPage']>
 	) => {}
-	let pageInfo = readable<PageInfo>(nullPageInfo())
+	let pageInfos: { [reqID: string]: Writable<PageInfo> } = {}
 
 	// loading state
 	let paginationLoadingState = writable(false)
 
-	let refetchQuery: RefetchFn<_Data, _Input>
+	let onUnsubscribe = (reqID: string) => {}
+
+	let fetchQuery: FetchFn<_Data, _Input>
+
+	let paginationStrategy = artifact.refetch?.method
+
 	// if the artifact supports cursor based pagination
 	if (artifact.refetch?.method === 'cursor') {
 		// generate the cursor handlers
 		const cursor = cursorHandlers<_Data, _Input>({
-			initialValue,
 			artifact,
-			store,
+			stores,
 			queryVariables,
 			loading: paginationLoadingState,
-			refetch,
+			fetch,
 			config,
+			storeName,
+			getValue,
 		})
 		// always track pageInfo
-		pageInfo = cursor.pageInfo
+		pageInfos = cursor.pageInfos
 		// always use the refetch fn
-		refetchQuery = cursor.refetch
+		fetchQuery = cursor.fetch
+		onUnsubscribe = cursor.onUnsubscribe
 
 		// if we are implementing forward pagination
 		if (artifact.refetch.update === 'append') {
@@ -177,61 +198,54 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	// the artifact supports offset-based pagination, only loadNextPage is valid
 	else {
 		const offset = offsetPaginationHandler<_Data, _Input>({
-			initialValue,
 			artifact,
 			queryVariables,
-			loading: paginationLoadingState,
-			refetch,
-			store,
+			fetch,
+			stores,
 			config,
+			storeName,
+			loading: paginationLoadingState,
+			getValue,
 		})
 
 		loadNextPage = offset.loadPage
-		refetchQuery = offset.refetch
-	}
-
-	// if no loading state was provided just use a store that's always false
-	if (!documentLoading) {
-		documentLoading = readable(false, () => {})
+		fetchQuery = offset.fetch
 	}
 
 	// merge the pagination and document loading state
-	const loading = derived(
-		[paginationLoadingState, documentLoading],
-		($loadingStates) => $loadingStates[0] || $loadingStates[1]
-	)
+	const loading = derived([paginationLoadingState], ($loadingStates) => $loadingStates[0])
 
-	return { loadNextPage, loadPreviousPage, pageInfo, loading, refetch: refetchQuery }
+	return {
+		loadNextPage,
+		loadPreviousPage,
+		pageInfos,
+		loading,
+		fetch: fetchQuery,
+		onUnsubscribe,
+		paginationStrategy,
+	}
 }
 
 function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	config,
-	initialValue,
 	artifact,
-	store,
+	stores,
 	queryVariables: extraVariables,
 	loading,
-	refetch,
+	fetch,
+	storeName,
+	getValue,
 }: {
 	config: ConfigFile
-	initialValue: GraphQLObject | null
 	artifact: QueryArtifact
-	store: Readable<GraphQLObject>
-	queryVariables: () => _Input
+	stores: { [reqID: string]: any }
+	getValue: (reqID: string) => _Data
+	queryVariables: (reqID: string) => _Input | null
 	loading: Writable<boolean>
-	refetch: RefetchFn
-}): PaginatedHandlers<_Data, _Input> {
-	// track the current page info in an easy-to-reach store
-	const initialPageInfo = extractPageInfo(initialValue, artifact.refetch!.path) ?? nullPageInfo()
-
-	const pageInfo = writable<PageInfo>(initialPageInfo)
-
-	// hold onto the current value
-	let value = initialValue
-	store.subscribe((val) => {
-		pageInfo.set(extractPageInfo(val, artifact.refetch!.path))
-		value = val
-	})
+	fetch: FetchFn
+	storeName: string
+}) {
+	const pageInfos: { [reqID: string]: Writable<PageInfo> } = {}
 
 	// dry up the page-loading logic
 	const loadPage = async ({
@@ -245,12 +259,17 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		functionName: string
 		input: {}
 	}) => {
+		// figure out the reqID for this session
+		const reqID = currentReqID(houdiniContext, stores)
+		// get the pageInfo store
+		const pageInfo = pageInfoStore(houdiniContext, pageInfos)
+
 		// set the loading state to true
 		loading.set(true)
 
 		// build up the variables to pass to the query
 		const loadVariables: Record<string, any> = {
-			...extraVariables?.(),
+			...extraVariables?.(reqID),
 			...houdiniContext.variables(),
 			...input,
 		}
@@ -303,8 +322,11 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	return {
 		loading,
 		loadNextPage: async (houdiniContext: HoudiniFetchContext, pageCount?: number) => {
+			// figure out the reqID for this session
+			const reqID = currentReqID(houdiniContext, stores)
+
 			// we need to find the connection object holding the current page info
-			const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
+			const currentPageInfo = extractPageInfo(getValue(reqID), artifact.refetch!.path)
 
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasNextPage) {
@@ -328,8 +350,11 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			})
 		},
 		loadPreviousPage: async (houdiniContext: HoudiniFetchContext, pageCount?: number) => {
+			// figure out the reqID for this session
+			const reqID = currentReqID(houdiniContext, stores)
+
 			// we need to find the connection object holding the current page info
-			const currentPageInfo = extractPageInfo(value, artifact.refetch!.path)
+			const currentPageInfo = extractPageInfo(getValue(reqID), artifact.refetch!.path)
 
 			// if there is no next page, we're done
 			if (!currentPageInfo.hasPreviousPage) {
@@ -352,25 +377,34 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				input,
 			})
 		},
-		pageInfo: { subscribe: pageInfo.subscribe },
-		async refetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+		pageInfos,
+		async fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+			// validate and prepare the request context for the current environment (client vs server)
+			const { context, params } = fetchContext(artifact, storeName, args)
+
+			// get the session stores we will write to
+			const reqID = currentReqID(context.session, stores)
+			const pageInfo = sessionStore(context.session, pageInfos, nullPageInfo)
+			const data = sessionQueryStore<_Data, _Input>(context.session, stores)
+
 			const { variables } = params ?? {}
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...extraVariables(),
+				...extraVariables(reqID),
 				...variables,
 			}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && !deepEquals(extraVariables(), variables)) {
-				return refetch(params)
+			if (variables && !deepEquals(extraVariables(reqID), variables)) {
+				const result = await fetch(params)
+				pageInfo.set(extractPageInfo(result, artifact.refetch!.path))
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
 			const count =
-				countPage(artifact.refetch!.path.concat('edges'), value) ||
+				countPage(artifact.refetch!.path.concat('edges'), get(data).data) ||
 				artifact.refetch!.pageSize
 
 			// if there are more records than the first page, we need fetch to load everything
@@ -383,10 +417,13 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			loading.set(true)
 
 			// send the query
-			const result = await refetch({
+			const result = await fetch({
 				...params,
 				variables: queryVariables,
 			})
+
+			// keep the page info store up to date
+			pageInfo.set(extractPageInfo(result.data, artifact.refetch!.path))
 
 			// we're not loading any more
 			loading.set(false)
@@ -400,48 +437,58 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				source: result.source,
 			}
 		},
+		onUnsubscribe(reqID: string) {
+			if (pageInfos[reqID]) {
+				delete pageInfos[reqID]
+			}
+		},
 	}
 }
 
 function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 	artifact,
 	queryVariables: extraVariables,
-	loading,
-	refetch,
-	initialValue,
-	store,
+	fetch,
+	stores,
+	getValue,
 	config,
+	loading,
+	storeName,
 }: {
 	config: ConfigFile
 	artifact: QueryArtifact
-	queryVariables: () => _Input
+	queryVariables: (reqID: string) => _Input | null
+	fetch: FetchFn
+	stores: { [reqID: string]: any }
+	getValue: (reqID: string) => _Data
 	loading: Writable<boolean>
-	refetch: RefetchFn
-	initialValue: GraphQLObject | null
-	store: Readable<GraphQLObject>
+	storeName: string
 }): {
 	loadPage: PaginatedHandlers<_Data, _Input>['loadNextPage']
-	refetch: PaginatedHandlers<_Data, _Input>['refetch']
+	fetch: PaginatedHandlers<_Data, _Input>['fetch']
 } {
 	// we need to track the most recent offset for this handler
-	let currentOffset =
-		(artifact.refetch?.start as number) ||
-		countPage(artifact.refetch!.path, initialValue) ||
-		artifact.refetch!.pageSize
+	let currentOffset = (ctx: HoudiniFetchContext) => {
+		const store = sessionQueryStore<_Data, _Input>(ctx, stores)
 
-	// hold onto the current value
-	let value = initialValue
-	store.subscribe((val) => {
-		value = val
-	})
+		return (
+			(artifact.refetch?.start as number) ||
+			countPage(artifact.refetch!.path, get(store)?.data) ||
+			artifact.refetch!.pageSize
+		)
+	}
 
 	return {
 		loadPage: async (houdiniContext: HoudiniFetchContext, limit?: number) => {
+			const offset = currentOffset(houdiniContext)
+			// figure out the reqID for this session
+			const reqID = currentReqID(houdiniContext, stores)
+
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
 				...houdiniContext.variables(),
-				...extraVariables(),
-				offset: currentOffset,
+				...extraVariables(reqID),
+				offset,
 			}
 			if (limit) {
 				queryVariables.limit = limit
@@ -480,21 +527,28 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 			// we're not loading any more
 			loading.set(false)
 		},
-		async refetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+		async fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+			const { params, context } = fetchContext(artifact, storeName, args)
+
+			const reqID = currentReqID(context.session, stores)
+			// make sure we created a query store
+			sessionQueryStore(context.session, stores)
+
 			const { variables } = params ?? {}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && !deepEquals(extraVariables(), variables)) {
-				return refetch(params)
+			if (variables && !deepEquals(extraVariables(reqID), variables)) {
+				return fetch(params)
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
-			const count = countPage(artifact.refetch!.path, value) || artifact.refetch!.pageSize
+			const count =
+				countPage(artifact.refetch!.path, getValue(reqID)) || artifact.refetch!.pageSize
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...extraVariables(),
+				...extraVariables(reqID),
 			}
 
 			// if there are more records than the first page, we need fetch to load everything
@@ -506,13 +560,10 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 			loading.set(true)
 
 			// send the query
-			const result = await refetch({
+			const result = await fetch({
 				...params,
 				variables: queryVariables,
 			})
-
-			// we're not loading any more
-			loading.set(false)
 
 			// we're not loading any more
 			loading.set(false)
@@ -548,8 +599,10 @@ export type PaginatedHandlers<_Data, _Input> = {
 		before?: string
 	): Promise<void>
 	loading: Readable<boolean>
-	pageInfo: Readable<PageInfo>
-	refetch: RefetchFn<_Data, _Input>
+	pageInfos: { [reqID: string]: Writable<PageInfo> }
+	fetch: FetchFn<_Data, _Input>
+	onUnsubscribe: (reqID: string) => void
+	paginationStrategy?: 'cursor' | 'offset'
 }
 
 function missingPageSizeError(fnName: string) {
@@ -591,7 +644,7 @@ export function countPage<_Data extends GraphQLObject>(
 	value: _Data | null
 ): number {
 	let data = value
-	if (value === null || data === null) {
+	if (value === null || data === null || data === undefined) {
 		return 0
 	}
 
@@ -610,10 +663,18 @@ export function countPage<_Data extends GraphQLObject>(
 
 	return 0
 }
-
-export const nullPageInfo = () => ({
+const nullPageInfo = (): PageInfo => ({
 	startCursor: null,
 	endCursor: null,
 	hasNextPage: false,
 	hasPreviousPage: false,
 })
+
+export const pageInfoStore = (
+	session: { session: () => App.Session | null } | null | App.Session,
+	home: {
+		[key: string]: Writable<PageInfo>
+	}
+): Writable<PageInfo> => {
+	return sessionStore(session, home, nullPageInfo)
+}

@@ -5,5 +5,5 @@
 </script>
 
 <div id="result">
-  {$data}
+  {JSON.stringify($data)}
 </div>

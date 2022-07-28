@@ -29,13 +29,7 @@ jobs:
                   node-version: 16.14.2
                   cache: 'yarn'
 
-            - uses: actions/cache@v2
-              with:
-                  path: '**/node_modules'
-                  key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
             - name: Install Dependencies
-              if: steps.yarn-cache.outputs.cache-hit != 'true'
               run: yarn install
               env:
                   YARN_ENABLE_IMMUTABLE_INSTALLS: false
@@ -48,15 +42,16 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Setup Node
-              uses: actions/setup-node@v1
-              with:
-                  node-version: 16.14.2
-
             - name: Checkout source
-              uses: actions/checkout@master
+              uses: actions/checkout@v3
               with:
                   ref: ${{ github.ref }}
+
+            - name: Setup Node
+              uses: actions/setup-node@v3
+              with:
+                  cache: 'yarn'
+                  node-version: 16.14.2
 
             - name: Install Dependencies
               run: yarn install
@@ -74,18 +69,27 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Setup Node
-              uses: actions/setup-node@v1
-              with:
-                  node-version: 16.14.2
-
             - name: Checkout source
-              uses: actions/checkout@master
+              uses: actions/checkout@v3
               with:
                   ref: ${{ github.ref }}
 
-            - name: Install Dependencies
-              run: yarn install
+            - name: Setup Node
+              uses: actions/setup-node@v3
+              with:
+                  cache: 'yarn'
+                  node-version: 16.14.2
+
+            - name: Cache playwright binaries
+              uses: actions/cache@v2
+              id: playwright-cache
+              with:
+                  path: |
+                      ~/.cache/ms-playwright
+                  key: cache-playwright-linux-1.21.0
+
+            - name: Install dependencies
+              run: yarn install --immutable
               env:
                   YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
@@ -93,10 +97,50 @@ jobs:
               run: yarn build
 
             - name: Install Playwright
+              if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
 
             - name: Integration Tests
-              run: yarn tests:integration
+              run: yarn workspace integration tests
+              env:
+                  RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
+
+            # - name: Upload videos
+            #   uses: replayio/action-upload@v0.4.1
+            #   if: ${{ always() }}
+            #   with:
+            #       api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
+            #       filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
+
+    integration_linter:
+        name: Integration Linter
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.ref }}
+
+            - name: Setup Node
+              uses: actions/setup-node@v3
+              with:
+                  cache: 'yarn'
+                  node-version: 16.14.2
+
+            - name: Install dependencies
+              run: yarn install
+              env:
+                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+
+            - name: Build packages
+              run: yarn build
+
+            - name: Generate runtime
+              run: yarn workspace integration generate
+
+            - name: Build kit assets
+              run: yarn workspace integration build
 
             # needs to run after build & houdini generate
             - name: Integration lint
@@ -104,10 +148,3 @@ jobs:
 
             - name: Integration check
               run: yarn workspace integration check
-
-            - name: Upload test results
-              if: always()
-              uses: actions/upload-artifact@v2
-              with:
-                  name: playwright-report
-                  path: integration/playwright-report

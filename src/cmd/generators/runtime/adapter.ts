@@ -37,7 +37,7 @@ export function goTo(location, options) {
 
 export const isBrowser = process.browser
 
-export const clientStarted = true; // Not tested in Sapper.
+export const clientStarted = true; 
 
 export const isPrerender = false
 `

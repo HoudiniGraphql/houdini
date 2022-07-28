@@ -24,10 +24,7 @@ const factory = () => queryStore({
     config: defaultConfigValues(houdiniConfig),
     storeName: ${JSON.stringify(storeName)},
     paginated: ${JSON.stringify(Boolean(doc.refetch?.paginated))},
-    paginationMethods: ${JSON.stringify(paginationExtras.methods, null, 4).replaceAll(
-		'\n',
-		'\n    '
-	)}
+    paginationMethods: ${JSON.stringify(paginationExtras.methods)},
 })
 
 export const ${storeName} = factory()

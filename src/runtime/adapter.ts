@@ -2,10 +2,10 @@
 // this file just exists for type checking
 
 import type { Page } from '@sveltejs/kit'
-import type { Readable } from 'svelte/store'
+import type { Readable, Writable } from 'svelte/store'
 
 // the actual contents of this file gets overwritten by the runtime generator
-export function getSession(): Readable<any> {
+export function getSession(): Writable<App.Session | null> {
 	// @ts-ignore
 	return {}
 }
