@@ -1,5 +1,13 @@
 # houdini
 
+## 0.15.8
+
+### Patch Changes
+
+-   [#434](https://github.com/HoudiniGraphql/houdini/pull/434) [`ebeb90e`](https://github.com/HoudiniGraphql/houdini/commit/ebeb90e1a9528b1b327bc161d26dc962ba7812bd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - prevent store information from leaking across requests boundaries
+
+*   [#434](https://github.com/HoudiniGraphql/houdini/pull/434) [`ebeb90e`](https://github.com/HoudiniGraphql/houdini/commit/ebeb90e1a9528b1b327bc161d26dc962ba7812bd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - updated type definition for config file to allow for missing marshal/unmarshal functions
+
 ## 0.15.7
 
 ### Patch Changes
