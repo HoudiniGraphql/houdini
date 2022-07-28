@@ -105,12 +105,12 @@ jobs:
               env:
                   RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
 
-            - name: Upload videos
-              uses: replayio/action-upload@v0.4.1
-              if: ${{ always() }}
-              with:
-                  api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
-                  filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
+            # - name: Upload videos
+            #   uses: replayio/action-upload@v0.4.1
+            #   if: ${{ always() }}
+            #   with:
+            #       api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
+            #       filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
 
     integration_linter:
         name: Integration Linter
