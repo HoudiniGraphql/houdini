@@ -41,7 +41,7 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 			let store: Writable<_Data | null>
 
 			// build up the methods we want to use
-			let extraMethods: {} = {}
+			let extraMethods: Record<string, any> = {}
 			let onUnsubscribe = (reqID: string) => {}
 			let pageInfos: { [key: string]: Writable<PageInfo> } = {}
 			if (paginatedArtifact) {
@@ -55,6 +55,8 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 				extraMethods = Object.fromEntries(
 					paginationMethods.map((key) => [key, handlers[key]])
 				)
+				extraMethods.paginationStrategy = handlers.paginationStrategy
+
 				onUnsubscribe = handlers.onUnsubscribe
 				pageInfos = handlers.pageInfos
 			}

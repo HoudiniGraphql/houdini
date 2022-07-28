@@ -107,7 +107,7 @@ test('forward cursor pagination', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
-					    paginationMethods: ["loadNextPage","pageInfos","fetch","loading"],
+					    paginationMethods: ["loadNextPage","fetch","loading"],
 					})
 
 					export const GQL_TestQuery = factory()
@@ -154,7 +154,7 @@ test('backwards cursor pagination', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
-					    paginationMethods: ["loadPreviousPage","pageInfos","fetch","loading"],
+					    paginationMethods: ["loadPreviousPage","fetch","loading"],
 					})
 
 					export const GQL_TestQuery = factory()

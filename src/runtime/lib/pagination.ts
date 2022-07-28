@@ -18,7 +18,7 @@ export function wrapPaginationStore<_Data, _Input>(
 	store: QueryStore<_Data, _Input> | ReturnType<FragmentStore<_Data>['get']>
 ) {
 	// @ts-ignore
-	const { loadNextPage, loadPreviousPage, pageInfos, subscribe, ...rest } = store
+	const { loadNextPage, loadPreviousPage, paginationStrategy, subscribe, ...rest } = store
 
 	// grab the current houdini context
 	const context = getHoudiniContext()
@@ -33,7 +33,7 @@ export function wrapPaginationStore<_Data, _Input>(
 		result.loadPreviousPage = (...args) => loadPreviousPage(context, ...args)
 	}
 
-	if (pageInfos) {
+	if (paginationStrategy === 'cursor') {
 		// @ts-ignore
 		result.pageInfo = derived([{ subscribe }], ([$store]) => {
 			// @ts-ignore
@@ -164,6 +164,9 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	let onUnsubscribe = (reqID: string) => {}
 
 	let fetchQuery: FetchFn<_Data, _Input>
+
+	let paginationStrategy = artifact.refetch?.method
+
 	// if the artifact supports cursor based pagination
 	if (artifact.refetch?.method === 'cursor') {
 		// generate the cursor handlers
@@ -219,6 +222,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 		loading,
 		fetch: fetchQuery,
 		onUnsubscribe,
+		paginationStrategy,
 	}
 }
 
@@ -240,7 +244,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	loading: Writable<boolean>
 	fetch: FetchFn
 	storeName: string
-}): PaginatedHandlers<_Data, _Input> {
+}) {
 	const pageInfos: { [reqID: string]: Writable<PageInfo> } = {}
 
 	// dry up the page-loading logic
@@ -598,6 +602,7 @@ export type PaginatedHandlers<_Data, _Input> = {
 	pageInfos: { [reqID: string]: Writable<PageInfo> }
 	fetch: FetchFn<_Data, _Input>
 	onUnsubscribe: (reqID: string) => void
+	paginationStrategy?: 'cursor' | 'offset'
 }
 
 function missingPageSizeError(fnName: string) {
