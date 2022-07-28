@@ -103,7 +103,7 @@ jobs:
             - name: Integration Tests
               run: yarn workspace integration tests:replay
               env:
-                  RECORD_REPLAY_TEST_RUN_ID: { { env.GITHUB_SHA } }
+                  RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
 
             - name: Upload videos
               uses: replayio/action-upload@v0.4.1
