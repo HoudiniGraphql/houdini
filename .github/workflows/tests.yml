@@ -100,12 +100,21 @@ jobs:
               if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
 
+            - name: Generate Test Run ID
+              id: test-run-id
+              uses: actions/github-script@v6
+              with:
+                  result-encoding: string
+                  script: |
+                      return require(require('path').join(process.env.GITHUB_ACTION_PATH, 'node_modules', 'uuid')).v4()
+
             - name: Integration Tests
               run: yarn workspace integration tests:replay
               env:
-                  RECORD_REPLAY_TEST_RUN_ID: $GITHUB_EVENT_PATH
+                  RECORD_REPLAY_TEST_RUN_ID: ${{ steps.test-run-id.outputs.result }}
 
-            - uses: replayio/action-upload@v0.4.1
+            - name: Upload videos
+              uses: replayio/action-upload@v0.4.1
               if: ${{ always() }}
               with:
                   api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
