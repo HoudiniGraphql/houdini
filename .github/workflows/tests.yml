@@ -109,7 +109,7 @@ jobs:
                   api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
                   filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
 
-    integration linter:
+    integration_linter:
         name: Integration Linter
         runs-on: ubuntu-latest
 
