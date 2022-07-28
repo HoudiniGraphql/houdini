@@ -29,13 +29,7 @@ jobs:
                   node-version: 16.14.2
                   cache: 'yarn'
 
-            - uses: actions/cache@v2
-              with:
-                  path: '**/node_modules'
-                  key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
             - name: Install Dependencies
-              if: steps.yarn-cache.outputs.cache-hit != 'true'
               run: yarn install
               env:
                   YARN_ENABLE_IMMUTABLE_INSTALLS: false
@@ -49,12 +43,12 @@ jobs:
 
         steps:
             - name: Setup Node
-              uses: actions/setup-node@v1
+              uses: actions/setup-node@v3
               with:
                   node-version: 16.14.2
 
             - name: Checkout source
-              uses: actions/checkout@master
+              uses: actions/checkout@v3
               with:
                   ref: ${{ github.ref }}
 
@@ -115,6 +109,11 @@ jobs:
                   api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
                   filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
 
+    integration linter:
+        name: Integration Linter
+        runs-on: ubuntu-latest
+
+        steps:
             # needs to run after build & houdini generate
             - name: Integration lint
               run: yarn workspace integration lint
