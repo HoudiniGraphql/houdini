@@ -106,7 +106,8 @@ jobs:
               with:
                   result-encoding: string
                   script: |
-                      return require(require('path').join(process.env.GITHUB_ACTION_PATH, 'node_modules', 'uuid')).v4()
+                      return process.env.GITHUB_EVENT_PATH + ':' + process.env.GITHUB_SHA
+              env:
 
             - name: Integration Tests
               run: yarn workspace integration tests:replay
