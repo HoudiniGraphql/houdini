@@ -129,6 +129,14 @@ export async function expectNGraphQLResponse(
   // wait for the first of 10 seconds or n responses
   await Promise.race([sleep(10000), responsePromise]);
 
+  // Remove listeners
+  page.removeListener('response', fnRes);
+
+  // if we got this far without resolving the promise, clean it up
+  if (!resolved) {
+    resolve();
+  }
+
   // if we have a wait time, then wait
   if (waitTime !== null) {
     await sleep(waitTime);
@@ -139,23 +147,13 @@ export async function expectNGraphQLResponse(
     }
   }
 
-  // Remove listeners
-  // page.removeListener('request', fnReq);
-  page.removeListener('response', fnRes);
-
-  // if we didn't get enough responses, clean up and fail
+  // if we didn't get enough responses, we need to fail the test
   if (!resolved) {
-    // make sure the promise isn't hanging around
-    resolve();
-
     // we failed the test
     throw new Error('Timeout waiting for api requests');
   }
 
-  // Sort and return!
-  listStr.sort();
-
-  return listStr;
+  return listStr.sort();
 }
 
 export function navSelector(route: string) {
