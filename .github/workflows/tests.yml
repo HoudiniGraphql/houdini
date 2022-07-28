@@ -134,6 +134,9 @@ jobs:
             - name: Build packages
               run: yarn build
 
+            - name: Generate runtime
+              run: yarn workspace integration generate
+
             # needs to run after build & houdini generate
             - name: Integration lint
               run: yarn workspace integration lint
