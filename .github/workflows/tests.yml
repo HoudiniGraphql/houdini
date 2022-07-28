@@ -100,15 +100,12 @@ jobs:
               if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
 
-            - name: Integration Tests
-              run: yarn workspace integration tests:replay
-              env:
-                  RECORD_REPLAY_TEST_RUN_ID: $GITHUB_EVENT_PATH
-
-            - uses: replayio/action-upload@v0.4.1
+            - uses: replayio/action-playwright@v0.4.9
               with:
-                  api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
-                  filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
+                  command: cd integration && npx playwright test
+                  issue-number: ${{ github.event.pull_request.number }}
+                  project: replay-firefox
+                  apiKey: ${{ secrets.RECORD_REPLAY_API_KEY }}
 
     integration_linter:
         name: Integration Linter
