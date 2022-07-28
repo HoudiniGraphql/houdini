@@ -90,7 +90,7 @@ jobs:
               with:
                   path: |
                       ~/.cache/ms-playwright
-                  key: cache-playwright-linux-1.19.2
+                  key: cache-playwright-linux-1.21.0
 
             - name: Install Dependencies
               run: yarn install
@@ -115,7 +115,9 @@ jobs:
               if: ${{ always() }}
               with:
                   public: false
-                  filter: ${{ 'function($v) { $v.metadata.test.result = "failed" }' || 'function($v) { $v.metadata.test.result }' }}
+                  filter: 'function($v) { $v.metadata.test.result = "failed" }'
+              env:
+                  RECORD_REPLAY_API_KEY: $RECORD_REPLAY_API_KEY
 
             # needs to run after build & houdini generate
             - name: Integration lint
