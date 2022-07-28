@@ -104,7 +104,7 @@ jobs:
               with:
                   command: cd integration && npx playwright test
                   issue-number: ${{ github.event.pull_request.number }}
-                  project: replay-firefox
+                  project: replay
                   apiKey: ${{ secrets.RECORD_REPLAY_API_KEY }}
 
     integration_linter:
