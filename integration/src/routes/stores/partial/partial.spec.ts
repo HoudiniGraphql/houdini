@@ -21,7 +21,7 @@ test.describe('Partial Pages', () => {
     await sleep(2345);
 
     // Check that we have 2 fields
-    expectToBe(page, 'Partia:2', 'div[id="id"]');
+    expectToBe(page, 'Partial:2', 'div[id="id"]');
     expectToBe(page, 'Samuel Jackson', 'div[id="name"]');
 
     // go back to the list
