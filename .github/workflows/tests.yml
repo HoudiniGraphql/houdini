@@ -98,12 +98,13 @@ jobs:
 
             - name: Install Playwright
               if: steps.playwright-cache.outputs.cache-hit != 'true'
-              run: npx playwright install --with-deps
+              run: npx playwright install --with-deps && npx @replayio/playwright install
 
             - name: Integration Tests
               run: yarn workspace integration tests
-              env:
-                  RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
+
+            - name: List replays
+              run: npx @replayio/replay ls --json
 
             # - name: Upload videos
             #   uses: replayio/action-upload@v0.4.1
