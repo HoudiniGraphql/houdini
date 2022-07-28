@@ -105,7 +105,7 @@ jobs:
               run: npx playwright install --with-deps
 
             - name: Integration Tests
-              run: yarn workspace integration tests --workers 10 --project replay --reporter=line,@replayio/playwright/reporter
+              run: yarn workspace integration tests:replay
               env:
                   RECORD_REPLAY_TEST_RUN_ID: $GITHUB_EVENT_PATH
 
