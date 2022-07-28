@@ -101,7 +101,7 @@ jobs:
               run: npx playwright install --with-deps
 
             - name: Integration Tests
-              run: yarn workspace integration tests:replay
+              run: yarn workspace integration tests
               env:
                   RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
 
