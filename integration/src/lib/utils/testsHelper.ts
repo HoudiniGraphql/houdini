@@ -77,7 +77,7 @@ export async function expectNGraphQLResponse(
   let lock = false;
 
   let waitTime: number | null = null;
-  let start = new Date().valueOf();
+  const start = new Date().valueOf();
 
   // the function to call on each response
   async function fnRes(response: Response) {
