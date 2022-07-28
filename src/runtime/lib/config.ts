@@ -5,9 +5,9 @@ export type ScalarSpec = {
 	// the type to use at runtime
 	type: string
 	// the function to call that serializes the type for the API
-	marshal: (val: any) => any
+	marshal?: (val: any) => any
 	// the function to call that turns the API's response into _ClientType
-	unmarshal: (val: any) => any
+	unmarshal?: (val: any) => any
 }
 
 type ScalarMap = { [typeName: string]: ScalarSpec }

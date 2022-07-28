@@ -701,11 +701,10 @@ class CacheInternal {
 			// if the field is a scalar
 			else if (!fields) {
 				// is the type a custom scalar with a specified unmarshal function
-				if (this.config.scalars?.[type]?.unmarshal) {
+				const fnUnmarshal = this.config.scalars?.[type]?.unmarshal
+				if (fnUnmarshal) {
 					// pass the primitive value to the unmarshal function
-					target[attributeName] = this.config.scalars[type].unmarshal(
-						value
-					) as GraphQLValue
+					target[attributeName] = fnUnmarshal(value) as GraphQLValue
 				}
 				// the field does not have an unmarshal function
 				else {
