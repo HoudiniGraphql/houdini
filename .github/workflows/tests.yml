@@ -97,6 +97,16 @@ jobs:
 
             - name: Integration Tests
               run: yarn workspace integration tests --workers 10 --project replay --reporter=line,@replayio/playwright/reporter
+              env:
+                  RECORD_REPLAY_TEST_RUN_ID: ${{ steps.test-run-id.outputs.result }}
+
+            - name: 'Upload Recordings'
+              id: 'upload-recordings'
+              uses: replayio/action-upload@v0.4.2
+              if: ${{ always() }}
+              with:
+                  public: false
+                  filter: ${{ 'function($v) { $v.metadata.test.result = "failed" }' || 'function($v) { $v.metadata.test.result }' }}
 
             # needs to run after build & houdini generate
             - name: Integration lint
