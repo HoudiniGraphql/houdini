@@ -96,12 +96,7 @@ jobs:
               run: npx playwright install --with-deps
 
             - name: Integration Tests
-              uses: replayio/action-playwright@v0.4.9
-              with:
-                  command: yarn workspace integration tests --workers 10 --project replay
-                  issue-number: ${{ github.event.pull_request.number }}
-                  project: replay-firefox
-                  apiKey: ${{ secrets.RECORD_REPLAY_API_KEY }}
+              run: yarn workspace integration tests --workers 10 --project replay --reporter=line,@replayio/playwright/reporter
 
             # needs to run after build & houdini generate
             - name: Integration lint
