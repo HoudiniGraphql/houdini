@@ -14,7 +14,7 @@
     "previewWeb": "cross-env TZ=utc vite preview --port 3007",
     "preview": "npm run generate && concurrently \"yarn previewWeb\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
     "tests": "playwright test --project default",
-    "tests:replay": "playwright test --project replay --reporter=line,@replayio/playwright/reporter",
+    "tests:replay": "playwright test --project replay --reporter=line,@replayio/playwright/reporter --workers 10",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --ignore-path .gitignore --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .",
