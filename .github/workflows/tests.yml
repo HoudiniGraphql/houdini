@@ -131,6 +131,9 @@ jobs:
               env:
                   YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
+            - name: Build packages
+              run: yarn build
+
             # needs to run after build & houdini generate
             - name: Integration lint
               run: yarn workspace integration lint
