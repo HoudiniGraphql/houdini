@@ -131,7 +131,7 @@ export async function expectNGraphQLResponse(
     resolve();
 
     // we failed the test
-    throw new Error('did not encounter enough requests to the API');
+    throw new Error('Timeout waiting for api requests');
   }
 
   // Sort and return!
