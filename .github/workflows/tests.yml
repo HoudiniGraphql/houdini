@@ -45,6 +45,7 @@ jobs:
             - name: Setup Node
               uses: actions/setup-node@v3
               with:
+                  cache: 'yarn'
                   node-version: 16.14.2
 
             - name: Checkout source
