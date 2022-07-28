@@ -101,7 +101,7 @@ jobs:
               run: npx playwright install --with-deps && npx @replayio/playwright install
 
             - name: Integration Tests
-              run: yarn workspace integration tests
+              run: yarn workspace integration tests:replay
 
             - name: List replays
               run: npx @replayio/replay ls --json
