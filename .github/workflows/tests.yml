@@ -98,7 +98,7 @@ jobs:
             - name: Integration Tests
               run: yarn workspace integration tests --workers 10 --project replay --reporter=line,@replayio/playwright/reporter
               env:
-                  RECORD_REPLAY_TEST_RUN_ID: ${{ steps.test-run-id.outputs.result }}
+                  RECORD_REPLAY_TEST_RUN_ID: a
 
             - name: 'Upload Recordings'
               id: 'upload-recordings'
