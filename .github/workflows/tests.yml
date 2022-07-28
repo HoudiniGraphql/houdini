@@ -84,6 +84,14 @@ jobs:
               with:
                   ref: ${{ github.ref }}
 
+            - name: Cache playwright binaries
+              uses: actions/cache@v2
+              id: playwright-cache
+              with:
+                  path: |
+                      ~/.cache/ms-playwright
+                  key: cache-playwright-linux-1.19.2
+
             - name: Install Dependencies
               run: yarn install
               env:
@@ -93,12 +101,13 @@ jobs:
               run: yarn build
 
             - name: Install Playwright
+              if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
 
             - name: Integration Tests
               run: yarn workspace integration tests --workers 10 --project replay --reporter=line,@replayio/playwright/reporter
               env:
-                  RECORD_REPLAY_TEST_RUN_ID: a
+                  RECORD_REPLAY_TEST_RUN_ID: $GITHUB_EVENT_PATH
 
             - name: 'Upload Recordings'
               id: 'upload-recordings'
