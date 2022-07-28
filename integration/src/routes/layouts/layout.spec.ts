@@ -3,9 +3,7 @@ import { routes } from '../../lib/utils/routes.js';
 import {
   clientSideNavigation,
   expectNGraphQLResponse,
-  expectNoGraphQLRequest,
-  expectToBe,
-  navSelector
+  expectNoGraphQLRequest
 } from '../../lib/utils/testsHelper.js';
 
 test.describe('Layout & comp', () => {
