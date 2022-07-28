@@ -107,7 +107,6 @@ jobs:
                   result-encoding: string
                   script: |
                       return process.env.GITHUB_EVENT_PATH + ':' + process.env.GITHUB_SHA
-              env:
 
             - name: Integration Tests
               run: yarn workspace integration tests:replay
