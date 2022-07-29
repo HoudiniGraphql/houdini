@@ -50,8 +50,5 @@
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.8.2"
   },
-  "resolutions": {
-    "@playwright/test/playwright-core": "1.19.2"
-  },
   "type": "module"
 }
