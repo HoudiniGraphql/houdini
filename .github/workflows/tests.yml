@@ -105,6 +105,7 @@ jobs:
 
             - name: List replays
               run: npx @replayio/replay ls --json
+              if: ${{ always() }}
 
             # - name: Upload videos
             #   uses: replayio/action-upload@v0.4.1

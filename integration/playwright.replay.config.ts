@@ -4,6 +4,7 @@ import defaultConfig from './playwright.config.ts';
 
 const config: PlaywrightTestConfig = {
   ...defaultConfig,
+  retries: process.env.CI ? 0 : 2,
   use: { ...(replayDevices['Replay Chromium'] as any) }
 };
 
