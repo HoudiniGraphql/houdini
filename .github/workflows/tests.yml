@@ -104,7 +104,7 @@ jobs:
               run: yarn workspace integration tests:replay
 
             - name: List replays
-              run: npx @replayio/replay ls --json
+              run: npx @replayio/replay ls --filter 'function($v) { $v.metadata.test.result = "failed" }'
               if: ${{ always() }}
 
             # - name: Upload videos
