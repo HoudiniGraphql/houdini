@@ -107,12 +107,12 @@ jobs:
               run: npx @replayio/replay ls
               if: ${{ always() }}
 
-            # - name: Upload videos
-            #   uses: replayio/action-upload@v0.4.1
-            #   if: ${{ always() }}
-            #   with:
-            #       api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
-            #       filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
+            - name: Upload Replays
+              uses: replayio/action-upload@v0.4.1
+              if: ${{ always() }}
+              with:
+                  public: true
+                  api-key: rwk_rU0zn3HTo6ln30JdS6QCVJNcuxld0nyWNsN1RhKgt3y
 
     integration_linter:
         name: Integration Linter
