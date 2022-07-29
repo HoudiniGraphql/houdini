@@ -27,22 +27,24 @@ func processDirectory(dirPath string) error {
 
 	for _, item := range content {
 		itemPath := path.Join(dirPath, item.Name())
+		extension := filepath.Ext(item.Name())
+		name := strings.TrimSuffix(item.Name(), extension)
 
-		if item.IsDir() {
+		switch {
+		case item.IsDir():
 			err = processDirectory(itemPath)
-		} else if item.Name() == "__error.svelte" {
+		case item.Name() == "__error.svelte":
 			err = copyAndDelete(itemPath, path.Join(dirPath, "+error.svelte"))
-		} else if item.Name() == "__layout.svelte" {
+		case item.Name() == "__layout.svelte":
 			err = copyAndDelete(itemPath, path.Join(dirPath, "+layout.svelte"))
-		} else if item.Name() == "index.svelte" {
+		case item.Name() == "index.svelte":
 			err = copyAndDelete(itemPath, path.Join(dirPath, "+page.svelte"))
-		} else {
-			extension := filepath.Ext(itemPath)
-			name := strings.TrimSuffix(item.Name(), extension)
+		case strings.HasSuffix(name, ".spec"):
+			name = strings.TrimSuffix(name, filepath.Ext(name))
 
-			// if we are looking at a svelte file we need to move it to a directory with the same name
-			// as a +page.svelte file
-			err = copyAndDelete(itemPath, path.Join(itemPath, name, "+page.svelte"))
+			err = copyAndDelete(itemPath, path.Join(dirPath, name, "spec.ts"))
+		default:
+			err = copyAndDelete(itemPath, path.Join(dirPath, name, "+page.svelte"))
 		}
 
 		if err != nil {
@@ -61,14 +63,15 @@ func copyAndDelete(old string, new string) error {
 
 	input, err := ioutil.ReadFile(path.Join(cwd, old))
 	if err != nil {
-		return err
+		return fmt.Errorf("error reading file: %s", err.Error())
 	}
+
+	err = os.MkdirAll(filepath.Dir(new), os.ModePerm)
 
 	err = ioutil.WriteFile(path.Join(cwd, new), input, 0644)
 	if err != nil {
-		return err
+		return fmt.Errorf("error writing file: %s", err.Error())
 	}
 
-	// return os.Remove(old)
-	return nil
+	return os.Remove(old)
 }
