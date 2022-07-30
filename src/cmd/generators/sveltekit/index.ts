@@ -1,4 +1,10 @@
-import { Config, EmbeddedGraphqlDocument } from '../../../common'
+import {
+	Config,
+	EmbeddedGraphqlDocument,
+	ensureArtifactImport,
+	ensureImports,
+	ensureStoreImport,
+} from '../../../common'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { CollectedGraphQLDocument } from '../../types'
@@ -8,6 +14,7 @@ import { ExportNamedDeclaration } from '@babel/types'
 import { Statement } from '@babel/types'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { StatementKind } from 'ast-types/gen/kinds'
+import { writeFile } from 'fs-extra'
 
 const AST = recast.types.builders
 type Identifier = ReturnType<typeof recast.types.builders.identifier>
@@ -35,8 +42,13 @@ export default async function sveltekitGenerator(config: Config, docs: Collected
 			// we need to generate a data file that loads every document in the route
 			// the file will likely already exist so a lot of the complexity we'll have to manage
 			// here is to find a way to safely update the parts we need without destroying the user's code
-			const dataFileContents = (await readFile(config.routeDataPath(filename))) || ''
-			const existing = parseJS(dataFileContents)
+			const dataFilePath = config.routeDataPath(filename)
+			const dataFileContents = (await readFile(dataFilePath)) || ''
+
+			const existing = parseJS(dataFileContents, {
+				plugins: ['typescript'],
+				sourceType: 'module',
+			})
 
 			// add the kit load function
 			addKitLoad({
@@ -46,7 +58,8 @@ export default async function sveltekitGenerator(config: Config, docs: Collected
 				queries: byFilename[filename],
 			})
 
-			console.log(existing)
+			// write the new file contents
+			await writeFile(dataFilePath, recast.prettyPrint(existing).code)
 		})
 	)
 }
@@ -62,15 +75,39 @@ function addKitLoad({
 	queries: CollectedGraphQLDocument[]
 	hasVariables: { [operationName: string]: boolean }
 }) {
+	// if there is a load function in the body, we need to delete it
+	let index = -1
+	for (const [i, statement] of body.entries()) {
+		if (statement.type !== 'FunctionDeclaration') {
+			return
+		}
+
+		if (statement.id?.name !== 'load') {
+			return
+		}
+
+		index = i
+		break
+	}
+	if (index != -1) {
+		body.splice(index, 1)
+	}
+
+	ensureImports({
+		config,
+		body,
+		import: ['RequestContext'],
+		sourceModule: '$houdini/runtime/lib/network',
+	})
+
 	// look for any hooks
 	let beforeLoadDefinition = findExportedFunction(body, 'beforeLoad')
 	let afterLoadDefinition = findExportedFunction(body, 'afterLoad')
-	let onLoadDefinition = findExportedFunction(body, 'onLoad')
 
 	// the name of the variable
 	const requestContext = AST.identifier('_houdini_context')
 
-	const preloadFn = AST.functionDeclaration(
+	const loadFn = AST.functionDeclaration(
 		AST.identifier('load'),
 		[AST.identifier('context')],
 		// return an object
@@ -106,10 +143,10 @@ function addKitLoad({
 		])
 	)
 	// mark the function as async
-	preloadFn.async = true
+	loadFn.async = true
 
 	// export the function from the module
-	body.push(AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration)
+	body.push(AST.exportNamedDeclaration(loadFn) as ExportNamedDeclaration)
 
 	const retValue = AST.memberExpression(requestContext, AST.identifier('returnValue'))
 
@@ -118,7 +155,7 @@ function addKitLoad({
 
 	// instantiate the context variable and then thread it through instead of passing `this` directly
 	// then look to see if `this.error`, `this.redirect` were called before continuing onto the fetch
-	preloadFn.body.body.splice(
+	loadFn.body.body.splice(
 		insertIndex,
 		0,
 		AST.variableDeclaration('const', [
@@ -144,6 +181,10 @@ function addKitLoad({
 		const operation = document.originalDocument
 			.definitions[0] as graphql.OperationDefinitionNode
 
+		// make sure we have an import for the artifact
+		const artifactID = ensureArtifactImport({ config, body, artifact: document })
+		const storeID = ensureStoreImport({ config, body, artifact: document })
+
 		// figure out the local variable that holds the result
 		const preloadKey = preloadPayloadKey(operation)
 
@@ -153,7 +194,7 @@ function addKitLoad({
 		const name = operation.name!.value
 
 		// add a local variable right before the return statement
-		preloadFn.body.body.splice(
+		loadFn.body.body.splice(
 			nextIndex++,
 			0,
 			AST.variableDeclaration('const', [
@@ -181,7 +222,7 @@ function addKitLoad({
 										),
 										AST.objectProperty(
 											AST.literal('artifact'),
-											AST.identifier(artifactImportIDs[document.name])
+											AST.identifier(artifactID)
 										),
 									]),
 								]
@@ -192,7 +233,7 @@ function addKitLoad({
 		)
 
 		if (hasVariables[name]) {
-			preloadFn.body.body.splice(
+			loadFn.body.body.splice(
 				nextIndex++,
 				0,
 				// if we ran into a problem computing the variables
@@ -207,7 +248,7 @@ function addKitLoad({
 		}
 
 		const fetchCall = AST.callExpression(
-			AST.memberExpression(storeIdentifiers[document.name], AST.identifier('fetch')),
+			AST.memberExpression(AST.identifier(storeID), AST.identifier('fetch')),
 			[
 				AST.objectExpression([
 					AST.objectProperty(
@@ -227,7 +268,7 @@ function addKitLoad({
 			// local variable for holding the query promise
 			const preloadPromiseKey = `${preloadKey}Promise`
 
-			preloadFn.body.body.splice(
+			loadFn.body.body.splice(
 				nextIndex++,
 				0,
 				// a variable holding the query promise
@@ -248,7 +289,7 @@ function addKitLoad({
 				])
 			)
 		} else {
-			preloadFn.body.body.splice(
+			loadFn.body.body.splice(
 				nextIndex++,
 				0,
 				// perform the fetch and save the value under {preloadKey}
@@ -263,26 +304,24 @@ function addKitLoad({
 	}
 
 	// add all awaits and checks
-	preloadFn.body.body.splice(-1, 0, ...awaitsAndChecks)
+	loadFn.body.body.splice(-1, 0, ...awaitsAndChecks)
 
 	// add calls to user before/after load functions
-	if (beforeLoadDefinition || afterLoadDefinition || onLoadDefinition) {
+	if (beforeLoadDefinition || afterLoadDefinition) {
 		let context = [requestContext, config, queries] as const
 
 		if (beforeLoadDefinition) {
-			preloadFn.body.body.splice(
-				insertIndex,
-				0,
-				...loadHookStatements('beforeLoad', ...context)
-			)
-		} else if (onLoadDefinition) {
-			preloadFn.body.body.splice(insertIndex, 0, ...loadHookStatements('onLoad', ...context))
+			loadFn.body.body.splice(insertIndex, 0, ...loadHookStatements('beforeLoad', ...context))
 		}
 
 		if (afterLoadDefinition) {
-			preloadFn.body.body.splice(-1, 0, ...loadHookStatements('afterLoad', ...context))
+			loadFn.body.body.splice(-1, 0, ...loadHookStatements('afterLoad', ...context))
 		}
 	}
+
+	// @ts-ignore
+	// add the function to the body
+	body.push(loadFn)
 }
 
 function preloadPayloadKey(operation: graphql.OperationDefinitionNode): string {
@@ -307,17 +346,11 @@ function findExportedFunction(body: Statement[], name: string): ExportNamedDecla
 }
 
 function loadHookStatements(
-	name: 'beforeLoad' | 'afterLoad' | 'onLoad',
+	name: 'beforeLoad' | 'afterLoad',
 	requestContext: namedTypes.Identifier,
 	config: Config,
 	queries: CollectedGraphQLDocument[]
 ) {
-	if (name === 'onLoad') {
-		console.warn(
-			'Warning: Houdini `onLoad` hook has been renamed to `beforeLoad`. ' +
-				'Support for onLoad will be removed in an upcoming release'
-		)
-	}
 	return [
 		AST.expressionStatement(
 			AST.awaitExpression(
