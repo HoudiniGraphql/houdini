@@ -43,6 +43,8 @@ func processDirectory(dirPath string) error {
 			name = strings.TrimSuffix(name, filepath.Ext(name))
 
 			err = copyAndDelete(itemPath, path.Join(dirPath, name, "spec.ts"))
+		case extension == ".gql", extension == ".graphql":
+			continue
 		default:
 			err = copyAndDelete(itemPath, path.Join(dirPath, name, "+page.svelte"))
 		}
