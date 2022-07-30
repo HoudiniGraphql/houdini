@@ -1,7 +1,5 @@
 import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { glob } from 'glob'
-import { promisify } from 'util'
 
 export default async function sveltekitGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// we will only generate things if the project is using svelte kit
@@ -9,8 +7,26 @@ export default async function sveltekitGenerator(config: Config, docs: Collected
 		return
 	}
 
-	// we need to look at every filepath and generate loads for the routes
-	const sourceFiles = await promisify(glob)(config.sourceGlob)
+	// a file can have multiple documents in it so we need to first group by filename
+	const byFilename = docs.reduce<{ [filename: string]: CollectedGraphQLDocument[] }>(
+		(prev, doc) => ({
+			...prev,
+			[doc.filename]: [...(prev[doc.filename] || []), doc],
+		}),
+		{}
+	)
 
-	console.log(sourceFiles)
+	const routes = Object.keys(byFilename).filter((filename) => config.isRoute(filename, ''))
+
+	// process every route we run into
+	await Promise.all(
+		routes.map(async (filename) => {
+			// we need to generate a data file that loads every document in the route
+
+			// grab the documents for the route
+			const docs = byFilename[filename]
+
+			console.log(filename)
+		})
+	)
 }

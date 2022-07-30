@@ -2,9 +2,14 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
-import { Config, ensureImports, ensureStoreImport, ensureArtifactImport } from '../../common'
-import { walkTaggedDocuments } from '../utils'
-import { TransformDocument } from '../types'
+import {
+	Config,
+	ensureImports,
+	ensureStoreImport,
+	ensureArtifactImport,
+	walkTaggedDocuments,
+	TransformDocument,
+} from '../../common'
 
 const AST = recast.types.builders
 

@@ -1,8 +1,14 @@
 // externals
 import * as recast from 'recast'
 // locals
-import { Config, findScriptInnerBounds, parseFile, runPipeline, Transform } from '../../common'
-import * as types from '../types'
+import {
+	Config,
+	findScriptInnerBounds,
+	parseFile,
+	runPipeline,
+	Transform,
+	TransformDocument,
+} from '../../common'
 import fragmentProcessor from './fragment'
 import moduleProcessorChecker from './module'
 import mutationProcessor from './mutation'
@@ -20,7 +26,7 @@ const defaultTransforms = [
 export default async function applyTransforms(
 	config: Config,
 	doc: { content: string; filename: string },
-	pipeline: Transform<types.TransformDocument>[] = defaultTransforms
+	pipeline: Transform<TransformDocument>[] = defaultTransforms
 ): Promise<{ code: string; dependencies: string[] }> {
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
@@ -28,7 +34,7 @@ export default async function applyTransforms(
 	const scripts = await parseFile(doc.content)
 
 	// wrap everything up in an object we'll thread through the transforms
-	const result: types.TransformDocument = {
+	const result: TransformDocument = {
 		instance: scripts.instance,
 		module: scripts.module,
 		config,

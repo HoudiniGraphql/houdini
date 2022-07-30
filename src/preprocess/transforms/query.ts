@@ -11,9 +11,10 @@ import {
 	ensureImports,
 	ensureArtifactImport,
 	ensureStoreFactoryImport,
+	walkTaggedDocuments,
+	EmbeddedGraphqlDocument,
+	TransformDocument,
 } from '../../common'
-import { TransformDocument } from '../types'
-import { walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { ExportNamedDeclaration, VariableDeclaration } from '@babel/types'
 const AST = recast.types.builders

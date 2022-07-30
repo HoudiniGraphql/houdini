@@ -163,7 +163,7 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 	}
 
 	// compute if a path points to a component query or not
-	isRoute(filepath: string): boolean {
+	isRoute(filepath: string, root: string = this.projectRoot): boolean {
 		// a vanilla svelte app is never considered in a route
 		if (this.framework === 'svelte' || this.static) {
 			return false
@@ -171,22 +171,12 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 
 		// only consider filepaths in src/routes
 		const routesDir = this.routesDir || 'src/routes'
-		if (!posixify(filepath).startsWith(posixify(path.join(this.projectRoot, routesDir)))) {
+		if (!posixify(filepath).startsWith(posixify(path.join(root, routesDir)))) {
 			return false
 		}
 
-		// always consider layouts as routes
-		if (layout_pattern.test(path.parse(filepath).name)) {
-			return true
-		}
-
-		// if there is a route function from the config
-		if (this.configIsRoute) {
-			return this.configIsRoute(path.relative(this.projectRoot, filepath))
-		}
-
-		// there is no special filter to apply. anything this far is a route
-		return true
+		// only consider layouts and pages as routes
+		return ['+layout.svelte', '+page.svelte'].includes(path.parse(filepath).base)
 	}
 
 	async loadKitConfig({
@@ -564,6 +554,8 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 
 		throw new Error('Could not find list name from fragment: ' + fragmentName)
 	}
+
+	//// experimental sveltekit stuff
 }
 
 const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'houdini.config.js')
