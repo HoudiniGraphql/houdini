@@ -556,6 +556,11 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 	}
 
 	//// experimental sveltekit stuff
+
+	routeDataPath(filename: string) {
+		// replace the .svelte with .js
+		return filename.replace('.svelte', '.js')
+	}
 }
 
 const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'houdini.config.js')
