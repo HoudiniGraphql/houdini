@@ -1,15 +1,15 @@
 // externals
 import * as graphql from 'graphql'
 // locals
-import { Config, definitionFromAncestors, parentTypeFromAncestors } from '../../common'
-import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
+import { Config, definitionFromAncestors, LogLevel, parentTypeFromAncestors } from '../../common'
 import {
 	FragmentArgument,
 	fragmentArguments as collectFragmentArguments,
 	withArguments,
 } from '../transforms/fragmentVariables'
-import { unwrapType } from '../utils'
 import { connectionSelection } from '../transforms/list'
+import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
+import { unwrapType } from '../utils'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.
@@ -20,14 +20,9 @@ export default async function typeCheck(
 	// wrap the errors we run into in a HoudiniError
 	const errors: HoudiniError[] = []
 
-	// verify the node interface (if it exists)
-	try {
-		verifyNodeInterface(config)
-	} catch (e) {
-		throw HoudiniErrorTodo(
-			"There is a problem with your project's schema: " + ((e as unknown) as Error).message
-		)
-	}
+	// verify the node interface (if everything is fine)
+	// log a warning if it's not properly defined and continue.
+	getAndVerifyNodeInterface(config)
 
 	// we need to catch errors in the list API. this means that a user
 	// must provide parentID if they are using a list that is not all-objects
@@ -849,7 +844,7 @@ function nodeDirectives(config: Config, directives: string[]) {
 	const customTypes = Object.keys(config.typeConfig || {})
 
 	// check if there's a node interface
-	const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
+	const nodeInterface = getAndVerifyNodeInterface(config)
 	if (nodeInterface) {
 		const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
 		possibleNodes.push(
@@ -901,7 +896,7 @@ function nodeDirectives(config: Config, directives: string[]) {
 	}
 }
 
-function verifyNodeInterface(config: Config) {
+export function getAndVerifyNodeInterface(config: Config): graphql.GraphQLInterfaceType | null {
 	const { schema } = config
 
 	// look for Node
@@ -909,54 +904,77 @@ function verifyNodeInterface(config: Config) {
 
 	// if there is no node interface don't do anything else
 	if (!nodeInterface) {
-		return
+		return null
 	}
 
 	// make sure its an interface
 	if (!graphql.isInterfaceType(nodeInterface)) {
-		throw new Error(invalidNodeFieldMessage)
+		displayInvalidNodeFieldMessage(config.logLevel)
+		return null
 	}
 
 	// look for a field on the query type to look up a node by id
 	const queryType = schema.getQueryType()
 	if (!queryType) {
-		throw new Error(invalidNodeFieldMessage)
+		displayInvalidNodeFieldMessage(config.logLevel)
+		return null
 	}
 
 	// look for a node field
 	const nodeField = queryType.getFields()['node']
 	if (!nodeField) {
-		throw new Error(invalidNodeFieldMessage)
+		displayInvalidNodeFieldMessage(config.logLevel)
+		return null
 	}
 
 	// there needs to be an arg on the field called id
 	const args = nodeField.args
 	if (args.length === 0) {
-		throw new Error(invalidNodeFieldMessage)
+		displayInvalidNodeFieldMessage(config.logLevel)
+		return null
 	}
 
 	// look for the id arg
 	const idArg = args.find((arg) => arg.name === 'id')
 	if (!idArg) {
-		throw new Error(invalidNodeFieldMessage)
+		displayInvalidNodeFieldMessage(config.logLevel)
+		return null
 	}
 
 	// make sure that the id arg takes an ID
 	const idType = unwrapType(config, idArg.type)
 	// make sure its an ID
 	if (idType.type.name !== 'ID') {
-		throw new Error(invalidNodeFieldMessage)
+		displayInvalidNodeFieldMessage(config.logLevel)
+		return null
 	}
 
 	// make sure that the node field returns a Node
 	const fieldReturnType = unwrapType(config, nodeField.type)
 	if (fieldReturnType.type.name !== 'Node') {
-		throw new Error(invalidNodeFieldMessage)
+		displayInvalidNodeFieldMessage(config.logLevel)
+		return null
 	}
+
+	return nodeInterface as graphql.GraphQLInterfaceType
 }
 
-const invalidNodeFieldMessage = `
-Your project defines a Node interface but it does not conform to the Global Identification Spec.
+let nbInvalidNodeFieldMessageDisplayed = 0
+function displayInvalidNodeFieldMessage(logLevel: LogLevel) {
+	// We want to display the message only once.
+	if (nbInvalidNodeFieldMessageDisplayed === 0) {
+		if (logLevel === LogLevel.Full) {
+			console.warn(invalidNodeFieldMessage)
+		} else {
+			console.warn(invalidNodeFieldMessageLight)
+		}
+	}
+	nbInvalidNodeFieldMessageDisplayed++
+}
+
+const invalidNodeFieldMessageLight = `⚠️  Your Node interface is not properly defined, please fix your schema to be able to use this interface. (For more info, add flag "-l full")`
+
+const invalidNodeFieldMessage = `⚠️  Your project defines a Node interface but it does not conform to the Global Identification Spec.
 
 If you are trying to provide the Node interface and its field, they must look like the following:
 
