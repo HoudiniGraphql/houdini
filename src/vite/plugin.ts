@@ -3,14 +3,16 @@ import minimatch from 'minimatch'
 import path from 'path'
 import { Plugin } from 'vite'
 import * as recast from 'recast'
-import { Program } from 'estree'
+import { Program, ExportNamedDeclaration } from 'estree'
 import * as graphql from 'graphql'
 import fs from 'fs/promises'
+import { namedTypes } from 'ast-types/gen/namedTypes'
+import { StatementKind } from 'ast-types/gen/kinds'
 // locals
 import { HoudiniPluginConfig } from '.'
 import { Config, getConfig } from '../common'
 import { walk_graphql_tags } from './walk'
-import { store_import } from './imports'
+import { artifact_import, store_import } from './imports'
 
 const AST = recast.types.builders
 
@@ -52,7 +54,7 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 			}
 
 			// turn any graphql tags into stores
-			const { dependencies } = await transform_gql_tag(
+			const dependencies = await transform_gql_tag(
 				plugin_cfg,
 				houdini_config,
 				filepath,
@@ -73,7 +75,7 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 				// ideally we could just use this.load and look at the module's metadata
 				// but vite doesn't support that: https://github.com/vitejs/vite/issues/6810
 
-				// until that is merged in, we'll have to read the file directly and parse it separately
+				// until that is fixed, we'll have to read the file directly and parse it separately
 				// to find any inline queries
 
 				const inline_queries: DiscoveredGraphQLTag[] = []
@@ -118,8 +120,13 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 					}
 				} catch {}
 
-				// add a load function for every inline query found in the route
-				add_load(plugin_cfg, (result.ast! as unknown) as Program, inline_queries)
+				// add a load function for every query found
+				add_load(
+					plugin_cfg,
+					houdini_config,
+					(result.ast! as unknown) as Program,
+					inline_queries
+				)
 			}
 
 			return {
@@ -140,9 +147,9 @@ async function transform_gql_tag(
 	houdini_config: Config,
 	filepath: string,
 	code: Program
-): Promise<{ dependencies: string[] }> {
+): Promise<string[]> {
 	// look for
-	const dependencies = await walk_graphql_tags(houdini_config, code!, {
+	return await walk_graphql_tags(houdini_config, code!, {
 		tag(tag) {
 			// pull out what we need
 			const { node, parsedDocument, parent } = tag
@@ -161,10 +168,322 @@ async function transform_gql_tag(
 			)
 		},
 	})
-
-	return { dependencies }
 }
 
-function add_load(config: HoudiniPluginConfig, code: Program, found: DiscoveredGraphQLTag[]) {
-	console.log('adding loading to', code.body[0].type)
+function add_load(
+	config: HoudiniPluginConfig,
+	houdini_config: Config,
+	program: Program,
+	queries: DiscoveredGraphQLTag[]
+) {
+	// the queries we have to fetch come from multiple places
+
+	// look for any hooks
+	let before_load = find_exported_fn(program, 'beforeLoad')
+	let after_load = find_exported_fn(program, 'afterLoad')
+	let on_load = find_exported_fn(program, 'onLoad')
+
+	// the name of the variable
+	const request_context = AST.identifier('_houdini_context')
+
+	const preload_fn = AST.functionDeclaration(
+		AST.identifier('load'),
+		[AST.identifier('context')],
+		// return an object
+		AST.blockStatement([
+			AST.returnStatement(
+				AST.objectExpression([
+					AST.spreadElement(
+						AST.memberExpression(request_context, AST.identifier('returnValue'))
+					),
+					AST.objectProperty(
+						AST.identifier('props'),
+						AST.objectExpression([
+							AST.spreadElement(
+								AST.memberExpression(
+									AST.memberExpression(
+										request_context,
+										AST.identifier('returnValue')
+									),
+									AST.identifier('props')
+								)
+							),
+							...queries.map((query) => {
+								const identifier = AST.identifier(key_variables(query))
+
+								return AST.objectProperty(identifier, identifier)
+							}),
+						])
+					),
+				])
+			),
+		])
+	)
+	// mark the function as async
+	preload_fn.async = true
+
+	// export the function from the module
+	program.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
+
+	const return_value = AST.memberExpression(request_context, AST.identifier('returnValue'))
+
+	// we can start inserting statements at the top of the function
+	let insert_index = 0
+
+	// instantiate the context variable and then thread it through instead of passing `this` directly
+	// then look to see if `this.error`, `this.redirect` were called before continuing onto the fetch
+	preload_fn.body.body.splice(
+		insert_index,
+		0,
+		AST.variableDeclaration('const', [
+			AST.variableDeclarator(
+				request_context,
+				AST.newExpression(AST.identifier('request_context'), [AST.identifier('context')])
+			),
+		])
+	)
+
+	// we just added one to the return index
+	insert_index++
+
+	// only split into promise and await if there are multiple queries
+	const needs_promise = queries.length > 1
+	// a list of statements to await the query promises and check the results for errors
+	const awaits_and_checks: StatementKind[] = []
+
+	// every query that we found needs to be triggered in this function
+	for (const query of queries) {
+		let next_index = insert_index
+
+		// figure out the local variable that holds the result
+		const preload_key = key_preload_payload(query)
+
+		// the identifier for the query variables
+		const variable_id = key_variables(query)
+
+		// make sure we've imported the artifact
+		const artifact_id = artifact_import({ config: houdini_config, artifact: query, program })
+		const store_id = store_import({ config: houdini_config, artifact: query, program })
+
+		// add a local variable right before the return statement
+		preload_fn.body.body.splice(
+			next_index++,
+			0,
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					AST.identifier(variable_id),
+					query.variables
+						? AST.callExpression(
+								AST.memberExpression(
+									request_context,
+									AST.identifier('computeInput')
+								),
+								[
+									AST.objectExpression([
+										AST.objectProperty(
+											AST.literal('config'),
+											AST.identifier('houdiniConfig')
+										),
+										AST.objectProperty(
+											AST.literal('framework'),
+											AST.stringLiteral(houdini_config.framework)
+										),
+										AST.objectProperty(
+											AST.literal('variableFunction'),
+											AST.identifier(query_variable_fn(query.name))
+										),
+										AST.objectProperty(
+											AST.literal('artifact'),
+											AST.identifier(artifact_id)
+										),
+									]),
+								]
+						  )
+						: AST.objectExpression([])
+				),
+			])
+		)
+
+		if (query.variables) {
+			preload_fn.body.body.splice(
+				next_index++,
+				0,
+				// if we ran into a problem computing the variables
+				AST.ifStatement(
+					AST.unaryExpression(
+						'!',
+						AST.memberExpression(request_context, AST.identifier('continue'))
+					),
+					AST.blockStatement([AST.returnStatement(return_value)])
+				)
+			)
+		}
+
+		const fetch_call = AST.callExpression(
+			AST.memberExpression(AST.identifier(store_id), AST.identifier('fetch')),
+			[
+				AST.objectExpression([
+					AST.objectProperty(AST.literal('variables'), AST.identifier(variable_id)),
+					AST.objectProperty(AST.literal('event'), AST.identifier('context')),
+					AST.objectProperty(AST.literal('blocking'), AST.booleanLiteral(!!after_load)),
+				]),
+			]
+		)
+
+		if (needs_promise) {
+			// local variable for holding the query promise
+			const preload_promise_key = `${preload_key}Promise`
+
+			preload_fn.body.body.splice(
+				next_index++,
+				0,
+				// a variable holding the query promise
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(AST.identifier(preload_promise_key), fetch_call),
+				])
+			)
+
+			awaits_and_checks.splice(
+				0,
+				0,
+				// await the promise
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
+						AST.identifier(preload_key),
+						AST.awaitExpression(AST.identifier(preload_promise_key))
+					),
+				])
+			)
+		} else {
+			preload_fn.body.body.splice(
+				next_index++,
+				0,
+				// perform the fetch and save the value under {preload_key}
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
+						AST.identifier(preload_key),
+						AST.awaitExpression(fetch_call)
+					),
+				])
+			)
+		}
+	}
+
+	// add all awaits and checks
+	preload_fn.body.body.splice(-1, 0, ...awaits_and_checks)
+
+	// add calls to user before/after load functions
+	if (before_load || after_load || on_load) {
+		let context = [request_context, houdini_config, queries] as const
+
+		if (before_load) {
+			preload_fn.body.body.splice(
+				insert_index,
+				0,
+				...load_hook_statements('beforeLoad', ...context)
+			)
+		} else if (on_load) {
+			preload_fn.body.body.splice(
+				insert_index,
+				0,
+				...load_hook_statements('onLoad', ...context)
+			)
+		}
+
+		if (after_load) {
+			preload_fn.body.body.splice(-1, 0, ...load_hook_statements('afterLoad', ...context))
+		}
+	}
+}
+
+function load_hook_statements(
+	name: 'beforeLoad' | 'afterLoad' | 'onLoad',
+	request_context: namedTypes.Identifier,
+	config: Config,
+	queries: DiscoveredGraphQLTag[]
+) {
+	if (name === 'onLoad') {
+		console.warn(
+			'Warning: Houdini `onLoad` hook has been renamed to `beforeLoad`. ' +
+				'Support for onLoad will be removed in an upcoming release'
+		)
+	}
+	return [
+		AST.expressionStatement(
+			AST.awaitExpression(
+				AST.callExpression(
+					AST.memberExpression(request_context, AST.identifier('invokeLoadHook')),
+					[
+						AST.objectExpression([
+							AST.objectProperty(
+								AST.literal('variant'),
+								AST.stringLiteral(name === 'afterLoad' ? 'after' : 'before')
+							),
+							AST.objectProperty(
+								AST.literal('framework'),
+								AST.stringLiteral(config.framework)
+							),
+							AST.objectProperty(AST.literal('hookFn'), AST.identifier(name)),
+							// after load: pass query data to the hook
+							...(name === 'afterLoad'
+								? [
+										AST.objectProperty(
+											AST.literal('input'),
+											afterLoadQueryInput(queries)
+										),
+										AST.objectProperty(
+											AST.literal('data'),
+											after_load_data(queries)
+										),
+								  ]
+								: []),
+						]),
+					]
+				)
+			)
+		),
+	]
+}
+
+function afterLoadQueryInput(queries: DiscoveredGraphQLTag[]) {
+	return AST.objectExpression(
+		queries.map((query) =>
+			AST.objectProperty(AST.literal(query.name), AST.identifier(key_variables(query)))
+		)
+	)
+}
+
+function after_load_data(queries: DiscoveredGraphQLTag[]) {
+	return AST.objectExpression(
+		queries.map((query) =>
+			AST.objectProperty(
+				AST.literal(query.name),
+				AST.memberExpression(
+					AST.identifier(key_preload_payload(query)),
+					AST.identifier('data')
+				)
+			)
+		)
+	)
+}
+
+function key_preload_payload(operation: { name: string }): string {
+	return `_${operation.name}`
+}
+
+function key_variables(operation: { name: string }): string {
+	return `_${operation}_Input`
+}
+
+function query_variable_fn(name: string) {
+	return `${name}Variables`
+}
+
+function find_exported_fn(body: Program, name: string): ExportNamedDeclaration | null {
+	return body.body.find(
+		(expression) =>
+			expression.type === 'ExportNamedDeclaration' &&
+			expression.declaration?.type === 'FunctionDeclaration' &&
+			expression.declaration?.id?.name === name
+	) as ExportNamedDeclaration
 }
