@@ -2,7 +2,6 @@ import minimatch from 'minimatch'
 import path from 'path'
 import { Plugin } from 'vite'
 import * as recast from 'recast'
-import { SourceDescription } from 'rollup'
 import { Program } from 'estree'
 import * as graphql from 'graphql'
 import { HoudiniPluginConfig } from '.'
@@ -50,23 +49,28 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 			}
 
 			// turn any graphql tags into stores
-			const found = await transform_gql_tag(
+			const { queries: inline, dependencies } = await transform_gql_tag(
 				plugin_cfg,
 				houdini_config,
 				filepath,
 				(result.ast! as unknown) as Program
 			)
 
+			// make sure we actually watch the dependencies
+			for (const dep of dependencies) {
+				this.addWatchFile(dep)
+			}
+
 			// if we are looking at a route file, we need to mark its data meta data as a route
 			if (houdini_config.isRoute(filepath)) {
 				result.meta!.route = {
 					// leave the name of every inline query that we processed and wether
 					// there should be a variable function defined
-					inline: found,
+					inline,
 				}
 			}
 
-			// if we are processing a routep config file
+			// if we are processing a route config file
 			if (houdini_config.isRouteConfigFile(filepath)) {
 				// in order to know what we need to do here, we need to know if our
 				// corresponding page component defined any inline queries
@@ -96,12 +100,12 @@ async function transform_gql_tag(
 	houdini_config: Config,
 	filepath: string,
 	code: Program
-): Promise<DiscoveredGraphQLTag[]> {
+): Promise<{ queries: DiscoveredGraphQLTag[]; dependencies: string[] }> {
 	// the list of queries that we found which require generated loads
 	const inline_queries: DiscoveredGraphQLTag[] = []
 
 	// look for
-	await walk_graphql_tags(houdini_config, code!, {
+	const dependencies = await walk_graphql_tags(houdini_config, code!, {
 		tag(tag) {
 			// pull out what we need
 			const { node, parsedDocument, parent } = tag
@@ -137,7 +141,9 @@ async function transform_gql_tag(
 		},
 	})
 
-	return inline_queries
+	return { queries: inline_queries, dependencies }
 }
 
-function add_load(config: HoudiniPluginConfig, code: Program, found: DiscoveredGraphQLTag[]) {}
+function add_load(config: HoudiniPluginConfig, code: Program, found: DiscoveredGraphQLTag[]) {
+	console.log('adding loading to', code.body[0].type)
+}
