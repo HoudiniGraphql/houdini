@@ -2147,6 +2147,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@kitql/vite-plugin-watch-and-run@npm:^0.4.2":
+  version: 0.4.2
+  resolution: "@kitql/vite-plugin-watch-and-run@npm:0.4.2"
+  dependencies:
+    "@kitql/helper": 0.3.5
+    micromatch: 4.0.5
+  checksum: c92b266ef49fac1a9d728eb936fc6df6b2557a554d2fd0843fa599a003f73ca532c32ff7f1f65692d84315efac04af631b138672c17d6afb16509e194b71b8ed
+  languageName: node
+  linkType: hard
+
 "@manypkg/find-root@npm:^1.1.0":
   version: 1.1.0
   resolution: "@manypkg/find-root@npm:1.1.0"
@@ -6600,6 +6610,7 @@ __metadata:
     "@changesets/cli": ^2.22.0
     "@graphql-tools/schema": ^8.3.7
     "@kitql/helper": ^0.3.4
+    "@kitql/vite-plugin-watch-and-run": ^0.4.2
     "@rollup/plugin-commonjs": ^22.0.0
     "@rollup/plugin-json": ^4.1.0
     "@rollup/plugin-node-resolve": ^13.2.0

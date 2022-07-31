@@ -21,6 +21,10 @@ const out = {
 		dir: `build/${WHICH.toLowerCase()}-${TARGET.toLowerCase()}`,
 		exports: process.env.TARGET === 'cjs' ? 'default' : undefined,
 	},
+	vite: {
+		dir: `build/${WHICH.toLowerCase()}-${TARGET.toLowerCase()}`,
+		exports: process.env.TARGET === 'cjs' ? 'default' : undefined,
+	},
 }[WHICH]
 
 // we need to use rollup to handle esm/cjs interop.

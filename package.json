@@ -15,6 +15,10 @@
 		"./preprocess": {
 			"import": "./build/preprocess-esm/index.js",
 			"require": "./build/preprocess-cjs/index.js"
+		},
+		"./vite": {
+			"import": "./build/vite-esm/index.js",
+			"require": "./build/vite-cjs/index.js"
 		}
 	},
 	"typesVersions": {
@@ -36,6 +40,9 @@
 		"build:preprocess": "concurrently \"npm run build:preprocess:esm\" \"npm run build:preprocess:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
 		"build:preprocess:cjs": "TARGET=cjs WHICH=preprocess rollup --config rollup.config.js",
 		"build:preprocess:esm": "TARGET=esm WHICH=preprocess rollup --config rollup.config.js",
+		"build:vite": "concurrently \"npm run build:vite:esm\" \"npm run build:vite:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
+		"build:vite:cjs": "TARGET=cjs WHICH=vite rollup --config rollup.config.js",
+		"build:vite:esm": "TARGET=esm WHICH=vite rollup --config rollup.config.js",
 		"build:cmd": "concurrently \"npm run build:cmd:main\" \"npm run build:cmd:types\" -n \"exe,typ\" -c \"green,yellow\"",
 		"build:cmd:main": "TARGET=esm WHICH=cmd rollup --config rollup.config.js",
 		"build:cmd:types": "tsc --p tsconfig.root.json",
@@ -92,6 +99,7 @@
 		"@babel/parser": "^7.17.2",
 		"@graphql-tools/schema": "^8.3.7",
 		"@kitql/helper": "^0.3.4",
+		"@kitql/vite-plugin-watch-and-run": "^0.4.2",
 		"babylon": "^7.0.0-beta.47",
 		"commander": "^7.1.0",
 		"estree-walker": "^2.0.2",
