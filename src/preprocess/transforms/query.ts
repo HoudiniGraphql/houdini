@@ -238,10 +238,8 @@ function processModule({
 		hasVariables,
 	})
 
-	// if we are processing this file for sapper, we need to add the actual preload function
-	if (config.framework === 'sapper') {
-		addSapperPreload(config, script.content.body)
-	}
+	// wrap the kit preload into something for sapper
+	addSapperPreload(config, script.content.body)
 }
 
 function addKitLoad({
@@ -483,6 +481,44 @@ function addKitLoad({
 			preloadFn.body.body.splice(-1, 0, ...loadHookStatements('afterLoad', ...context))
 		}
 	}
+}
+
+function addSapperPreload(config: Config, body: Statement[]) {
+	// make sure we have the utility that will do the conversion
+	ensureImports({
+		config,
+		body,
+		import: ['convertKitPayload'],
+		sourceModule: '$houdini/runtime/lib/network',
+	})
+
+	// look for a preload definition
+	let preloadDefinition = findExportedFunction(body, 'preload')
+
+	// if there isn't one, add it
+	if (preloadDefinition) {
+		throw new Error('Cannot have a query where there is already a preload() defined')
+	}
+
+	// define the preload function
+	const preloadFn = AST.functionDeclaration(
+		AST.identifier('preload'),
+		[AST.identifier('page'), AST.identifier('session')],
+		// all we need to do is invoke the utility
+		AST.blockStatement([
+			AST.returnStatement(
+				AST.callExpression(AST.identifier('convertKitPayload'), [
+					AST.thisExpression(),
+					AST.identifier('load'),
+					AST.identifier('page'),
+					AST.identifier('session'),
+				])
+			),
+		])
+	)
+
+	// export the function from the module
+	body.push(AST.exportNamedDeclaration(preloadFn) as ExportNamedDeclaration)
 }
 
 function loadHookStatements(

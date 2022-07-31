@@ -18,6 +18,11 @@ export default function houdiniPreprocessor(
 			// grab the config
 			const config = await getConfig(extraConfig)
 
+			// if we detected a kit project using the preprocessor, tell them they need to update
+			if (config.framework === 'kit') {
+				throw new Error('Please use the vite plugin.')
+			}
+
 			// apply the transform pipeline
 			return await applyTransforms(config, { content, filename })
 		},
