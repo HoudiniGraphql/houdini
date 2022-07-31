@@ -74,7 +74,7 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 				// until that is fixed, we'll have to read the file directly and parse it separately
 				// to find any inline queries
 
-				const inline_queries: DiscoveredGraphQLTag[] = []
+				const route_queries: DiscoveredGraphQLTag[] = []
 				try {
 					const contents = await fs.readFile(page_path, 'utf-8')
 
@@ -99,7 +99,7 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 								operation.operation === 'query' &&
 								parent.type === 'CallExpression'
 							) {
-								inline_queries.push({
+								route_queries.push({
 									name: operation.name!.value,
 									variables: Boolean(
 										operation.variableDefinitions &&
@@ -121,7 +121,7 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 					plugin_cfg,
 					houdini_config,
 					(result.ast! as unknown) as Program,
-					inline_queries
+					route_queries
 				)
 			}
 
@@ -177,7 +177,6 @@ function add_load(
 	// look for any hooks
 	let before_load = find_exported_fn(program, 'beforeLoad')
 	let after_load = find_exported_fn(program, 'afterLoad')
-	let on_load = find_exported_fn(program, 'onLoad')
 
 	// the name of the variable
 	const request_context = AST.identifier('_houdini_context')
@@ -369,7 +368,7 @@ function add_load(
 	preload_fn.body.body.splice(-1, 0, ...awaits_and_checks)
 
 	// add calls to user before/after load functions
-	if (before_load || after_load || on_load) {
+	if (before_load || after_load) {
 		let context = [request_context, houdini_config, queries] as const
 
 		if (before_load) {
@@ -377,12 +376,6 @@ function add_load(
 				insert_index,
 				0,
 				...load_hook_statements('beforeLoad', ...context)
-			)
-		} else if (on_load) {
-			preload_fn.body.body.splice(
-				insert_index,
-				0,
-				...load_hook_statements('onLoad', ...context)
 			)
 		}
 
@@ -393,17 +386,11 @@ function add_load(
 }
 
 function load_hook_statements(
-	name: 'beforeLoad' | 'afterLoad' | 'onLoad',
+	name: 'beforeLoad' | 'afterLoad',
 	request_context: namedTypes.Identifier,
 	config: Config,
 	queries: DiscoveredGraphQLTag[]
 ) {
-	if (name === 'onLoad') {
-		console.warn(
-			'Warning: Houdini `onLoad` hook has been renamed to `beforeLoad`. ' +
-				'Support for onLoad will be removed in an upcoming release'
-		)
-	}
 	return [
 		AST.expressionStatement(
 			AST.awaitExpression(
