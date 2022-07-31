@@ -3,7 +3,6 @@ import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { StatementKind } from 'ast-types/gen/kinds'
-import path from 'path'
 // locals
 import {
 	Config,
@@ -12,10 +11,10 @@ import {
 	ensureArtifactImport,
 	ensureStoreFactoryImport,
 } from '../../common'
-import { TransformDocument } from '../types'
-import { walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
+import { TransformDocument } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { ExportNamedDeclaration, VariableDeclaration } from '@babel/types'
+import { walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
 const AST = recast.types.builders
 import { Statement } from '@babel/types'
 
@@ -32,7 +31,7 @@ export default async function queryProcessor(
 	config: Config,
 	doc: TransformDocument
 ): Promise<void> {
-	// if there is no module script we don't care about the document
+	// if there is no instance script we don't care about the document
 	if (!doc.instance) {
 		return
 	}

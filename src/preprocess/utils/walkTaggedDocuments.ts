@@ -4,14 +4,14 @@ import { asyncWalk, BaseNode } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // locals
-import { Config, ensureImports, TransformDocument } from '.'
+import { Config, ensureImports, TransformDocument } from '../../common'
 import {
 	CompiledDocumentKind,
 	CompiledFragmentKind,
 	CompiledMutationKind,
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
-} from '../runtime/lib/types'
+} from '../../runtime/lib/types'
 
 type Program = ReturnType<typeof recast.types.builders.statement>
 
@@ -91,12 +91,8 @@ export default async function walkTaggedDocuments(
 					}
 				}
 
-				const hasType =
-					// @ts-ignore
-					parent?.typeParameters?.type === 'TSTypeParameterInstantiation' || false
-
 				// the location for the document artifact
-				const documentPath = doc.config.artifactPath(parsedTag)
+				const documentPath = doc.config.storeImportPath(definition.name!.value)
 
 				// if ignoreDeps, we don't want to add dependencies, we just want to check
 				if (!ignoreDeps) {

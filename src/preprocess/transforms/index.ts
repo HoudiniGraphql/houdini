@@ -9,19 +9,10 @@ import {
 	Transform,
 	TransformDocument,
 } from '../../common'
-import fragmentProcessor from './fragment'
-import moduleProcessorChecker from './module'
-import mutationProcessor from './mutation'
 import queryProcessor from './query'
-import subscriptionProcessor from './subscription'
+import tagProcessor from './tag'
 
-const defaultTransforms = [
-	moduleProcessorChecker,
-	fragmentProcessor,
-	queryProcessor,
-	mutationProcessor,
-	subscriptionProcessor,
-]
+const defaultTransforms = [queryProcessor, tagProcessor]
 
 export default async function applyTransforms(
 	config: Config,
