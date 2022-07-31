@@ -36,10 +36,6 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 		// we need to process the source files
 		async transform(code, filepath) {
 			const houdini_config = await getConfig({ configFile: plugin_cfg?.configPath })
-			// the vite plugin is designed to work with sveltekit
-			if (houdini_config.framework !== 'kit') {
-				return
-			}
 
 			// if the file is not in our configured source path, we need to ignore it
 			if (!minimatch(filepath, path.join(process.cwd(), houdini_config.sourceGlob))) {
@@ -67,7 +63,7 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 			}
 
 			// if we are processing a route config file
-			if (houdini_config.isRouteConfigFile(filepath)) {
+			if (houdini_config.framework === 'kit' && houdini_config.isRouteConfigFile(filepath)) {
 				// in order to know what we need to do here, we need to know if our
 				// corresponding page component defined any inline queries
 				const page_path = houdini_config.routePagePath(filepath)
