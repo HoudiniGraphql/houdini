@@ -1,8 +1,7 @@
 import * as graphql from 'graphql'
 // locals
 import { Config } from '../../common'
-import { TransformDocument } from '../types'
-import { walkTaggedDocuments } from '../utils'
+import { TransformDocument, walkTaggedDocuments } from '../../common'
 
 export default async function moduleProcessorChecker(
 	config: Config,

@@ -561,6 +561,14 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		// replace the .svelte with .js
 		return filename.replace('.svelte', '.js')
 	}
+
+	isRouteConfigFile(filename: string) {
+		return filename.endsWith('page.js') || filename.endsWith('page.ts')
+	}
+
+	routePagePath(filename: string) {
+		return filename.replace('.js', '.svelte').replace('.ts', '.svelte')
+	}
 }
 
 const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'houdini.config.js')

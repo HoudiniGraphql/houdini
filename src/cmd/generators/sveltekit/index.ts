@@ -1,23 +1,7 @@
-import {
-	Config,
-	EmbeddedGraphqlDocument,
-	ensureArtifactImport,
-	ensureImports,
-	ensureStoreImport,
-} from '../../../common'
-import * as graphql from 'graphql'
-import * as recast from 'recast'
+import { Config } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { parse as parseJS } from '@babel/parser'
-import { readFile } from '../../../../build/cmd/utils'
-import { ExportNamedDeclaration } from '@babel/types'
-import { Statement } from '@babel/types'
-import { namedTypes } from 'ast-types/gen/namedTypes'
-import { StatementKind } from 'ast-types/gen/kinds'
-import { Program } from '@babel/types'
+import { readFile } from '../../utils'
 import { writeFile } from 'fs-extra'
-
-const AST = recast.types.builders
 
 export default async function sveltekitGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// we will only generate things if the project is using svelte kit
@@ -49,15 +33,17 @@ export default async function sveltekitGenerator(config: Config, docs: Collected
 	// process every route we run into
 	await Promise.all(
 		routes.map(async (filename) => {
-			// we need to generate a data file that loads every document in the route
-			// the file will likely already exist so a lot of the complexity we'll have to manage
-			// here is to find a way to safely update the parts we need without destroying the user's code
+			// the actual loading logic will be handled by a plugin's transform so all we have to do
+			// is make sure that the data file exists
 			const dataFilePath = config.routeDataPath(filename)
 			const dataFileContents = await readFile(dataFilePath)
 
 			// if the file does not exist, create it
 			if (!dataFileContents) {
-				await writeFile(dataFilePath, '')
+				await writeFile(
+					dataFilePath,
+					'// This file cannot contain a load function. Jean-Yves will have better content to put here:D'
+				)
 			}
 		})
 	)
