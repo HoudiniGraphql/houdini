@@ -1,10 +1,12 @@
 // external imports
-import * as svelte from 'svelte/compiler'
 import { default as path } from 'path'
+import { parse as parseJS } from '@babel/parser'
 // local imports
 import { testConfig } from '../../common'
 import { ConfigFile } from '../../runtime'
-import runTransforms from '../transforms'
+import { transform } from '../plugin'
+import { parse } from 'acorn'
+import type { TransformContext } from '../plugin'
 
 export default async function preprocessorTest(
 	content: string,
@@ -26,17 +28,22 @@ export default async function preprocessorTest(
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema, framework: 'sapper', ...cfg })
 
-	const doc = {
-		content,
-		filename: route
-			? path.join(config.projectRoot, 'src', 'routes', 'component.svelte')
-			: path.join(config.projectRoot, 'src', 'lib', 'component.svelte'),
-	}
+	const filename = route
+		? path.join(config.projectRoot, 'src', 'routes', 'component.svelte')
+		: path.join(config.projectRoot, 'src', 'lib', 'component.svelte')
 
 	// run the source through the processor
-	const result = await runTransforms(config, doc)
+	const ctx: TransformContext = {
+		config,
+		addWatchFile: () => {},
+		parse: (val: string) => parse(val, { ecmaVersion: 'latest' }),
+	}
 
-	return svelte.parse(result.code)
+	const result = await transform(ctx, content, filename)
+	return parseJS(typeof result !== 'string' ? result!.code! : result || '', {
+		plugins: ['typescript'],
+		sourceType: 'module',
+	}).program
 }
 
 type Partial<T> = {

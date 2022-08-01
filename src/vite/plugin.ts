@@ -13,6 +13,7 @@ import { Config } from '../common'
 import { walk_graphql_tags } from './walk'
 import { artifact_import, store_import } from './imports'
 import generate from '../cmd/generate'
+import { AcornNode } from 'rollup'
 
 const AST = recast.types.builders
 
@@ -38,95 +39,108 @@ export default function HoudiniPlugin(config: Config): Plugin {
 			await generate(config)
 		},
 
-		// we need to process the source files
-		async transform(code, filepath) {
-			// if the file is not in our configured source path, we need to ignore it
-			if (!minimatch(filepath, path.join(process.cwd(), config.sourceGlob))) {
-				return
-			}
-
-			// build up the return value
-			let ast = this.parse(code)
-			const result: ReturnType<Required<Plugin>['transform']> = {
-				meta: {},
-				ast,
-			}
-
-			// turn any graphql tags into stores
-			const dependencies = await transform_gql_tag(
+		transform(code, filepath) {
+			const ctx: TransformContext = {
+				...this,
 				config,
-				filepath,
-				(result.ast! as unknown) as Program
-			)
-
-			// make sure we actually watch the dependencies
-			for (const dep of dependencies) {
-				this.addWatchFile(dep)
 			}
 
-			// if we are processing a route config file
-			if (config.framework === 'kit' && config.isRouteConfigFile(filepath)) {
-				// in order to know what we need to do here, we need to know if our
-				// corresponding page component defined any inline queries
-				const page_path = config.routePagePath(filepath)
-
-				// ideally we could just use this.load and look at the module's metadata
-				// but vite doesn't support that: https://github.com/vitejs/vite/issues/6810
-
-				// until that is fixed, we'll have to read the file directly and parse it separately
-				// to find any inline queries
-
-				const route_queries: DiscoveredGraphQLTag[] = []
-				try {
-					const contents = await fs.readFile(page_path, 'utf-8')
-
-					// look for inline queries
-					const deps = await walk_graphql_tags(config, this.parse(contents), {
-						where(tag) {
-							return !!tag.definitions.find(
-								(defn) =>
-									defn.kind === 'OperationDefinition' &&
-									defn.operation === 'query'
-							)
-						},
-						tag(tag) {
-							// if the graphql tag was inside of a call expression, we need to assume that it's a
-							// part of an inline document. if the operation is a query, we need to add it to the list
-							// so that the load function can have the correct contents
-							const { parsedDocument, parent } = tag
-							const operation = parsedDocument
-								.definitions[0] as graphql.ExecutableDefinitionNode
-							if (
-								operation.kind === 'OperationDefinition' &&
-								operation.operation === 'query' &&
-								parent.type === 'CallExpression'
-							) {
-								route_queries.push({
-									name: operation.name!.value,
-									variables: Boolean(
-										operation.variableDefinitions &&
-											operation.variableDefinitions?.length > 0
-									),
-								})
-							}
-						},
-					})
-
-					// make sure we are watching all of the new deps
-					for (const dep of deps) {
-						this.addWatchFile(dep)
-					}
-				} catch {}
-
-				// add a load function for every query found
-				add_load(config, (result.ast! as unknown) as Program, route_queries)
-			}
-
-			return {
-				...result,
-				code: recast.print(result.ast!).code,
-			}
+			return transform(ctx, code, filepath)
 		},
+	}
+}
+
+export interface TransformContext {
+	config: Config
+	parse: (val: string) => AcornNode
+	addWatchFile: (path: string) => void
+}
+
+// we need to process the source files (pulled out to an external file for testing and the preprocessor)
+export async function transform(ctx: TransformContext, code: string, filepath: string) {
+	// if the file is not in our configured source path, we need to ignore it
+	if (!minimatch(filepath, path.join(process.cwd(), ctx.config.sourceGlob))) {
+		return
+	}
+
+	// build up the return value
+	let ast = ctx.parse(code)
+	const result: ReturnType<Required<Plugin>['transform']> = {
+		meta: {},
+		ast,
+	}
+
+	// turn any graphql tags into stores
+	const dependencies = await transform_gql_tag(
+		ctx.config,
+		filepath,
+		(result.ast! as unknown) as Program
+	)
+
+	// make sure we actually watch the dependencies
+	for (const dep of dependencies) {
+		ctx.addWatchFile?.(dep)
+	}
+
+	// if we are processing a route config file
+	if (ctx.config.framework === 'kit' && ctx.config.isRouteConfigFile(filepath)) {
+		// in order to know what we need to do here, we need to know if our
+		// corresponding page component defined any inline queries
+		const page_path = ctx.config.routePagePath(filepath)
+
+		// ideally we could just use ctx.load and look at the module's metadata
+		// but vite doesn't support that: https://github.com/vitejs/vite/issues/6810
+
+		// until that is fixed, we'll have to read the file directly and parse it separately
+		// to find any inline queries
+
+		const route_queries: DiscoveredGraphQLTag[] = []
+		try {
+			const contents = await fs.readFile(page_path, 'utf-8')
+
+			// look for inline queries
+			const deps = await walk_graphql_tags(ctx.config, ctx.parse(contents), {
+				where(tag) {
+					return !!tag.definitions.find(
+						(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
+					)
+				},
+				tag(tag) {
+					// if the graphql tag was inside of a call expression, we need to assume that it's a
+					// part of an inline document. if the operation is a query, we need to add it to the list
+					// so that the load function can have the correct contents
+					const { parsedDocument, parent } = tag
+					const operation = parsedDocument
+						.definitions[0] as graphql.ExecutableDefinitionNode
+					if (
+						operation.kind === 'OperationDefinition' &&
+						operation.operation === 'query' &&
+						parent.type === 'CallExpression'
+					) {
+						route_queries.push({
+							name: operation.name!.value,
+							variables: Boolean(
+								operation.variableDefinitions &&
+									operation.variableDefinitions?.length > 0
+							),
+						})
+					}
+				},
+			})
+
+			// make sure we are watching all of the new deps
+			for (const dep of deps) {
+				ctx.addWatchFile(dep)
+			}
+		} catch {}
+
+		// add a load function for every query found
+		add_load(ctx.config, (result.ast! as unknown) as Program, route_queries)
+	}
+
+	return {
+		...result,
+		code: recast.print(result.ast!).code,
 	}
 }
 

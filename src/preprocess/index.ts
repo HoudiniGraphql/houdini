@@ -1,7 +1,9 @@
 // locals
 import { getConfig } from '../common'
 import { ConfigFile } from '../runtime'
-import applyTransforms from './transforms'
+import { transform } from '../vite/plugin'
+import { parse } from 'acorn'
+import type { TransformContext } from '../vite/plugin'
 
 /**
  * The houdini processor automates a lot of boilerplate to make inline documents
@@ -23,8 +25,15 @@ export default function houdiniPreprocessor(
 				throw new Error('Please use the vite plugin.')
 			}
 
+			// build up the necessary context to run the vite transform
+			const pluginContext: TransformContext = {
+				config,
+				parse: (val: string) => parse(val, { ecmaVersion: 'latest' }),
+				addWatchFile: () => {},
+			}
+
 			// apply the transform pipeline
-			return await applyTransforms(config, { content, filename })
+			return await transform(pluginContext, content, filename)
 		},
 	}
 }

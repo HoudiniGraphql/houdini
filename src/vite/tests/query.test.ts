@@ -1,6 +1,6 @@
 // local imports
 import '../../../jest.setup'
-import { preprocessorTest } from '../utils'
+import preprocessorTest from './preprocessorTest'
 
 describe('query preprocessor', function () {
 	test('route - preload initial data', async function () {
@@ -19,7 +19,7 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(`
+		expect(doc).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini/runtime/lib/network";
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -51,28 +51,6 @@ describe('query preprocessor', function () {
 		    return convertKitPayload(this, load, page, session);
 		}
 	`)
-		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-
-		const {
-		    data
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: store_TestQueryStore,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact
-		});
-
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && store_TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-	`)
 	})
 
 	test("existing loads aren't modified", async function () {
@@ -103,7 +81,7 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(`
+		expect(doc).toMatchInlineSnapshot(`
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
 		import { TestQuery2Store } from "$houdini/stores/TestQuery2";
@@ -111,45 +89,6 @@ describe('query preprocessor', function () {
 		import { TestQuery1Store } from "$houdini/stores/TestQuery1";
 		import { houdiniConfig } from "$houdini";
 		export async function load() {}
-	`)
-		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-
-		const {
-		    data: data1
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: store_TestQuery1Store,
-		    config: houdiniConfig,
-		    artifact: _TestQuery1Artifact
-		});
-
-		export let _TestQuery2_Input = {};
-
-		$:
-		isBrowser && store_TestQuery2Store.fetch({
-		    "variables": _TestQuery2_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-
-		export let _TestQuery1_Input = {};
-
-		$:
-		isBrowser && store_TestQuery1Store.fetch({
-		    "variables": _TestQuery1_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-
-		const {
-		    data: data2
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: store_TestQuery2Store,
-		    config: houdiniConfig,
-		    artifact: _TestQuery2Artifact
-		});
 	`)
 	})
 
@@ -176,7 +115,7 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(`
+		expect(doc).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini/runtime/lib/network";
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
@@ -223,45 +162,6 @@ describe('query preprocessor', function () {
 		    return convertKitPayload(this, load, page, session);
 		}
 	`)
-		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-
-		const {
-		    data: data1
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: store_TestQuery1Store,
-		    config: houdiniConfig,
-		    artifact: _TestQuery1Artifact
-		});
-
-		export let _TestQuery2_Input = {};
-
-		$:
-		isBrowser && store_TestQuery2Store.fetch({
-		    "variables": _TestQuery2_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-
-		export let _TestQuery1_Input = {};
-
-		$:
-		isBrowser && store_TestQuery1Store.fetch({
-		    "variables": _TestQuery1_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-
-		const {
-		    data: data2
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: store_TestQuery2Store,
-		    config: houdiniConfig,
-		    artifact: _TestQuery2Artifact
-		});
-	`)
 	})
 
 	test('preload initial data with variables', async function () {
@@ -288,7 +188,7 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(`
+		expect(doc).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini/runtime/lib/network";
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -336,28 +236,6 @@ describe('query preprocessor', function () {
 		    return convertKitPayload(this, load, page, session);
 		}
 	`)
-		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-
-		const {
-		    data
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: store_TestQueryStore,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact
-		});
-
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && store_TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-	`)
 	})
 
 	test('sveltekit', async function () {
@@ -381,7 +259,7 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(`
+		expect(doc).toMatchInlineSnapshot(`
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { TestQueryStore } from "$houdini/stores/TestQuery";
@@ -408,28 +286,6 @@ describe('query preprocessor', function () {
 		    };
 		}
 	`)
-		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-
-		const {
-		    data
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: store_TestQueryStore,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact
-		});
-
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && store_TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-	`)
 	})
 
 	test('svelte kit with static set', async function () {
@@ -455,34 +311,7 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(
-			`import { houdiniConfig } from "$houdini";`
-		)
-		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import { TestQueryStore } from "$houdini/stores/TestQuery";
-		const store_TestQueryStore = TestQueryStore();
-		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-
-		const {
-		    data
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: store_TestQueryStore,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact
-		});
-
-		let _TestQuery_Input = {};
-
-		$:
-		isBrowser && store_TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-	`)
+		expect(doc).toMatchInlineSnapshot(`import { houdiniConfig } from "$houdini";`)
 	})
 
 	test('non-route page - no variables', async function () {
@@ -505,10 +334,7 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(
-			`import { houdiniConfig } from "$houdini";`
-		)
-		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		expect(doc).toMatchInlineSnapshot(`
 		import { isBrowser } from "$houdini/runtime/adapter";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -567,7 +393,7 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(`
+		expect(doc).toMatchInlineSnapshot(`
 		import { houdiniConfig } from "$houdini";
 
 		export function TestQueryVariables() {
@@ -575,53 +401,6 @@ describe('query preprocessor', function () {
 		        hello: "world"
 		    };
 		}
-	`)
-		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { marshalInputs } from "$houdini/runtime/lib/scalars";
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-		import { TestQueryStore } from "$houdini/stores/TestQuery";
-		const store_TestQueryStore = TestQueryStore();
-		const _houdini_context_generated_DONT_USE = getHoudiniContext();
-
-		$:
-		_TestQuery_Input = marshalInputs({
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact,
-
-		    input: TestQueryVariables.call(_houdini_context_generated_DONT_USE, {
-		        props: {
-		            prop1: prop1,
-		            prop2: prop2,
-		            prop3: prop3,
-		            prop4: prop4
-		        },
-
-		        session: _houdini_context_generated_DONT_USE.session(),
-		        stuff: _houdini_context_generated_DONT_USE.stuff(),
-		        url: _houdini_context_generated_DONT_USE.url()
-		    })
-		});
-
-		$:
-		isBrowser && store_TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-
-		export let prop1 = "hello";
-		export const prop2 = "goodbye";
-		export let prop3, prop4;
-
-		const {
-		    data
-		} = query({
-		    kind: "HoudiniQuery",
-		    store: store_TestQueryStore,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact
-		});
 	`)
 	})
 
@@ -647,28 +426,8 @@ describe('query preprocessor', function () {
 			</script>
 		`
 		)
-		expect(doc.instance?.content).toMatchInlineSnapshot(`
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		const _houdini_context_generated_DONT_USE = getHoudiniContext();
 
-		const {
-		    data
-		} = paginatedQuery({
-		    kind: "HoudiniQuery",
-		    store: store_TestQueryStore,
-		    config: houdiniConfig,
-		    artifact: _TestQueryArtifact
-		});
-
-		export let _TestQuery_Input = {};
-
-		$:
-		isBrowser && store_TestQueryStore.fetch({
-		    "variables": _TestQuery_Input,
-		    "context": _houdini_context_generated_DONT_USE
-		});
-	`)
+		expect(doc).toMatchInlineSnapshot()
 	})
 
 	test('bare svelte component in route filepath', async function () {
@@ -691,10 +450,7 @@ describe('query preprocessor', function () {
 		)
 
 		// make sure we added the right stuff
-		expect(doc.module?.content).toMatchInlineSnapshot(
-			`import { houdiniConfig } from "$houdini";`
-		)
-		expect(doc.instance?.content).toMatchInlineSnapshot(`
+		expect(doc).toMatchInlineSnapshot(`
 		import { isBrowser } from "$houdini/runtime/adapter";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -752,7 +508,7 @@ test('beforeLoad hook', async function () {
 	`
 	)
 
-	expect(doc.module?.content).toMatchInlineSnapshot(`
+	expect(doc).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini/runtime/lib/network";
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -845,7 +601,7 @@ test('beforeLoad hook - multiple queries', async function () {
 	`
 	)
 
-	expect(doc.module?.content).toMatchInlineSnapshot(`
+	expect(doc).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini/runtime/lib/network";
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
@@ -937,7 +693,7 @@ test('afterLoad hook', async function () {
 	`
 	)
 
-	expect(doc.module?.content).toMatchInlineSnapshot(`
+	expect(doc).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini/runtime/lib/network";
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -1038,7 +794,7 @@ test('afterLoad hook - multiple queries', async function () {
 	`
 	)
 
-	expect(doc.module?.content).toMatchInlineSnapshot(`
+	expect(doc).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini/runtime/lib/network";
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
@@ -1143,7 +899,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 	`
 	)
 
-	expect(doc.module?.content).toMatchInlineSnapshot(`
+	expect(doc).toMatchInlineSnapshot(`
 		import { convertKitPayload } from "$houdini/runtime/lib/network";
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
@@ -1247,7 +1003,7 @@ test('2 queries, one paginated one not', async function () {
 		}
 	)
 
-	expect(doc.instance?.content).toMatchInlineSnapshot(`
+	expect(doc).toMatchInlineSnapshot(`
 		import { isBrowser } from "$houdini/runtime/adapter";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
