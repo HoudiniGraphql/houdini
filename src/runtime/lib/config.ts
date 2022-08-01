@@ -127,12 +127,12 @@ export type ConfigFile = {
 	frameworkConfigFile?: string
 
 	/**
-	 * Default mode for stores
+	 * Default mode for stores (if not set: Global)
 	 */
 	storeMode: StoreMode
 
 	/**
-	 * Default mode for stores that are defined in a component
+	 * Default mode for stores that are defined in a component (if not set: Isolated)
 	 */
 	storeModeInlineComponent: StoreMode
 }
