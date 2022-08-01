@@ -9,18 +9,18 @@ import { isBrowser } from '../adapter'
 // containing the requested data. Houdini will also update the cache with any
 // information that it encounters in the response.
 export function subscription<_Subscription extends Operation<any, any>>(
-	document: GraphQLTagResult,
+	store: GraphQLTagResult,
 	variables?: _Subscription['input']
 ): {
 	data: Readable<_Subscription['result']>
 } {
 	// make sure we got a query document
-	if (document.kind !== 'HoudiniSubscription') {
+	if (store.kind !== 'HoudiniSubscription') {
 		throw new Error('subscription() must be passed a subscription document')
 	}
 
 	// an inline document's value is just the store
-	const value = { data: { subscribe: document.store.subscribe } }
+	const value = { data: { subscribe: store.subscribe } }
 
 	// invoking subscription on the server doesn't do anything
 	if (!isBrowser) {
@@ -28,10 +28,10 @@ export function subscription<_Subscription extends Operation<any, any>>(
 	}
 
 	// every invocation should just be pushed to the store
-	document.store.listen(variables)
+	store.listen(variables)
 
 	onDestroy(() => {
-		document.store.unlisten()
+		store.unlisten()
 	})
 
 	return value

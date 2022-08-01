@@ -3,6 +3,7 @@ import { Readable, get } from 'svelte/store'
 import type { Writable } from 'svelte/store'
 // locals
 import {
+	CompiledMutationKind,
 	ConfigFile,
 	executeQuery,
 	HoudiniFetchContext,
@@ -166,6 +167,7 @@ export function mutationStore<_Data, _Input>({
 
 	return {
 		name: artifact.name,
+		kind: CompiledMutationKind,
 		subscribe(...args: Parameters<Readable<MutationResult<_Data, _Input>>['subscribe']>) {
 			// grab the appropriate store for the session
 			const requestStore = sessionStore(get(getSession()), stores, nullMutationStore)

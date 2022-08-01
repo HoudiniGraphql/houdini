@@ -1,8 +1,7 @@
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { Readable } from 'svelte/store'
+import { HoudiniDocumentProxy } from '..'
 import { MutationConfig } from '../inline/mutation'
-import type { ConfigFile } from './config'
-import { HoudiniDocumentProxy } from './proxy'
 
 export type { ConfigFile } from './config'
 
@@ -91,17 +90,10 @@ export type BaseCompiledDocument = {
 
 // the result of the template tag
 export type GraphQLTagResult =
-	| TaggedGraphqlQuery
-	| TaggedGraphqlFragment
-	| TaggedGraphqlMutation
-	| TaggedGraphqlSubscription
-
-export type TaggedGraphqlFragment = {
-	kind: 'HoudiniFragment'
-	artifact: FragmentArtifact
-	store: FragmentStore<any>
-	proxy: HoudiniDocumentProxy
-}
+	| QueryStore<any, any>
+	| FragmentStore<any>
+	| MutationStore<any, any>
+	| SubscriptionStore<any, any>
 
 export type QueryResult<_Data, _Input> = {
 	data: _Data | null
@@ -187,21 +179,26 @@ export type HoudiniFetchContext = {
 
 export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
 	name: string
+	kind: typeof CompiledSubscriptionKind
 	listen: (input: _Input) => void
 	unlisten: () => void
 }
 
 export type FragmentStore<_Shape> = {
 	name: string
+	kind: typeof CompiledFragmentKind
+	paginated: boolean
 	get<T extends Fragment<_Shape>>(
 		value: T
 	): Readable<_Shape> & {
 		update: (parent: _Shape | null) => void
+		proxy: HoudiniDocumentProxy
 	}
 	get<T extends Fragment<_Shape>>(
 		value: T | null
 	): Readable<_Shape | null> & {
 		update: (parent: _Shape | null) => void
+		proxy: HoudiniDocumentProxy
 	}
 }
 
@@ -209,6 +206,7 @@ export type QueryStore<_Data, _Input, _Extra = {}> = Readable<
 	QueryResult<_Data, _Input> & _Extra
 > & {
 	name: string
+	kind: typeof CompiledQueryKind
 
 	/**
 	 * Fetch the data from the server
@@ -219,14 +217,9 @@ export type QueryStore<_Data, _Input, _Extra = {}> = Readable<
 	fetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input> & _Extra>
 }
 
-// the result of tagging an operation
-export type TaggedGraphqlMutation = {
-	kind: 'HoudiniMutation'
-	store: MutationStore<any, any>
-}
-
 export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result, _Input>> & {
 	name: string
+	kind: typeof CompiledMutationKind
 	mutate: (
 		params: {
 			variables: _Input
@@ -236,22 +229,6 @@ export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result, _I
 			fetch?: LoadEvent['fetch']
 		} & MutationConfig<_Result, _Input>
 	) => Promise<MutationResult<_Result, _Input>>
-}
-
-// the result of tagging an operation
-export type TaggedGraphqlSubscription = {
-	kind: 'HoudiniSubscription'
-	store: SubscriptionStore<any, any>
-	config: ConfigFile
-}
-
-// the result of tagging an operation
-export type TaggedGraphqlQuery = {
-	kind: 'HoudiniQuery'
-	component: boolean
-	store: QueryStore<any, any>
-	config: ConfigFile
-	artifact: QueryArtifact
 }
 
 type Filter = { [key: string]: string | boolean | number }

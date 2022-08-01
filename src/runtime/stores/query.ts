@@ -11,8 +11,9 @@ import {
 	QueryStoreFetchParams,
 	SubscriptionSpec,
 	deepEquals,
+	CompiledQueryKind,
 } from '../lib'
-import type { ConfigFile, QueryArtifact, HoudiniFetchContext } from '../lib'
+import type { ConfigFile, QueryArtifact } from '../lib'
 import { nullHoudiniContext } from '../lib/context'
 import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
@@ -278,6 +279,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 	return {
 		name: artifact.name,
+		kind: CompiledQueryKind,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
 			// figure out the correct store to subscribe to
 			const session = get(getSession())

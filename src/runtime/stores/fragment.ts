@@ -2,7 +2,14 @@
 import { derived, get, readable, Writable, writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 // locals
-import { ConfigFile, FragmentStore, GraphQLObject, QueryArtifact } from '../lib'
+import {
+	CompiledFragmentKind,
+	ConfigFile,
+	FragmentStore,
+	GraphQLObject,
+	QueryArtifact,
+	HoudiniDocumentProxy,
+} from '../lib'
 import {
 	extractPageInfo,
 	fragmentHandlers,
@@ -32,6 +39,8 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 }): FragmentStore<_Data | null> {
 	return {
 		name: artifact.name,
+		kind: CompiledFragmentKind,
+		paginated: !!paginatedArtifact,
 		get(initialValue: _Data | null) {
 			const stores: { [reqID: string]: Writable<_Data | null> } = {}
 
@@ -120,6 +129,7 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 						written.delete(reqID)
 					}
 				},
+				proxy: new HoudiniDocumentProxy(),
 				update: (val: _Data | null) => store?.set(val),
 				...extraMethods,
 			}

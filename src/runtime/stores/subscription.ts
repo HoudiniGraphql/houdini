@@ -2,7 +2,13 @@ import { writable } from 'svelte/store'
 // locals
 import { isBrowser } from '../adapter'
 import cache from '../cache'
-import { ConfigFile, deepEquals, SubscriptionArtifact, SubscriptionStore } from '../lib'
+import {
+	CompiledSubscriptionKind,
+	ConfigFile,
+	deepEquals,
+	SubscriptionArtifact,
+	SubscriptionStore,
+} from '../lib'
 import { getCurrentClient } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 
@@ -28,6 +34,7 @@ export function subscriptionStore<_Data, _Input>({
 
 	return {
 		name: artifact.name,
+		kind: CompiledSubscriptionKind,
 		subscribe: result.subscribe,
 		listen(variables: _Input) {
 			// subscription.listen is a no-op on the server

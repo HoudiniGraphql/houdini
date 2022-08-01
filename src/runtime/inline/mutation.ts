@@ -5,10 +5,10 @@ export type MutationConfig<_Result, _Input> = {
 	optimisticResponse?: _Result
 }
 
-export function mutation<_Mutation extends Operation<any, any>>(document: GraphQLTagResult) {
-	// make sure we got a query document
-	if (document.kind !== 'HoudiniMutation') {
-		throw new Error('mutation() must be passed a mutation document')
+export function mutation<_Mutation extends Operation<any, any>>(store: GraphQLTagResult) {
+	// make sure we got a query store
+	if (store.kind !== 'HoudiniMutation') {
+		throw new Error('mutation() must be passed a mutation store')
 	}
 
 	const context = getHoudiniContext()
@@ -17,7 +17,7 @@ export function mutation<_Mutation extends Operation<any, any>>(document: GraphQ
 		variables: _Mutation['input'],
 		mutationConfig?: MutationConfig<_Mutation['result'], _Mutation['input']>
 	): Promise<_Mutation['result']> => {
-		const { data } = await document.store.mutate({
+		const { data } = await store.mutate({
 			variables,
 			...mutationConfig,
 			context,
