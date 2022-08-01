@@ -562,7 +562,7 @@ export class Config {
 	}
 
 	isRouteConfigFile(filename: string) {
-		return filename.endsWith('page.js') || filename.endsWith('page.ts')
+		return filename.endsWith('+page.js') || filename.endsWith('+page.ts')
 	}
 
 	routePagePath(filename: string) {

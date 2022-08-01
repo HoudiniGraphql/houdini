@@ -406,17 +406,10 @@ async function updatePackageJSON(targetPath: string) {
 		var packageJSON = JSON.parse(packageFile)
 	}
 
-	// add a generate script
-	packageJSON.scripts = {
-		...packageJSON.scripts,
-		generate: 'houdini generate',
-	}
-
 	// and houdini should be a dev dependency
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
 		houdini: '^HOUDINI_VERSION',
-		'@kitql/vite-plugin-watch-and-run': '^0.4.2',
 	}
 
 	await writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
