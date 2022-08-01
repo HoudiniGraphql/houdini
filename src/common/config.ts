@@ -138,11 +138,6 @@ export class Config {
 			framework === 'sapper'
 				? path.join(this.projectRoot, 'src', 'node_modules', '$houdini')
 				: path.join(this.projectRoot, '$houdini')
-
-		// if the config file specified an isRoute, use that
-		if (configFile.routes) {
-			this.configIsRoute = configFile.routes
-		}
 	}
 
 	// compute if a path points to a component query or not

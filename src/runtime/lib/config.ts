@@ -106,13 +106,6 @@ export type ConfigFile = {
 	disableMasking?: boolean
 
 	/**
-	 * A function to customize the logic houdini uses to identify a route or component when the file
-	 * is _inside_ of the routesDir. You do not need to define this if you have a custom value in
-	 * your SvelteKit config file - Houdini will use what's there.
-	 */
-	routes?: (filepath: string) => boolean
-
-	/**
 	 * The directory containing your project routes. For default Kit and Sapper projects, this
 	 * value is ./src/routes
 	 */
