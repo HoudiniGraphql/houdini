@@ -12,6 +12,7 @@ import { StatementKind } from 'ast-types/gen/kinds'
 import { Config } from '../common'
 import { walk_graphql_tags } from './walk'
 import { artifact_import, store_import } from './imports'
+import generate from '../cmd/generate'
 
 const AST = recast.types.builders
 
@@ -30,6 +31,11 @@ export default function HoudiniPlugin(config: Config): Plugin {
 					},
 				},
 			}
+		},
+
+		// when the build starts, we need to make sure to generate
+		async buildStart() {
+			await generate(config)
 		},
 
 		// we need to process the source files

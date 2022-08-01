@@ -74,13 +74,25 @@ program
 					else {
 						// The target path -> current working directory by default. Should we allow passing custom paths?
 						const targetPath = process.cwd()
+
+						let headers = {}
+						if ((args.pullHeader ?? []).length > 0) {
+							headers = args.pullHeader.reduce((total, header) => {
+								const [key, value] = header.split('=')
+								return {
+									...total,
+									[key]: value,
+								}
+							}, {})
+						}
+
 						// Write the schema
 						await writeSchema(
 							config.apiUrl,
 							config.schemaPath
 								? config.schemaPath
 								: path.resolve(targetPath, 'schema.json'),
-							args.pullHeader
+							headers
 						)
 					}
 				}

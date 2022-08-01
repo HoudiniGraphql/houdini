@@ -2,16 +2,11 @@ import * as graphql from 'graphql'
 import fetch from 'node-fetch'
 import { writeFile } from './writeFile'
 
-export async function writeSchema(url: string, schemaPath: string, headers?: string[]) {
-	// the headers to include are a list of strings in KEY=VALUE format
-	const moreHeaders = headers?.reduce((total, header) => {
-		const [key, value] = header.split('=')
-		return {
-			...total,
-			[key]: value,
-		}
-	}, {})
-
+export async function writeSchema(
+	url: string,
+	schemaPath: string,
+	headers?: Record<string, string>
+) {
 	try {
 		// send the request
 		const resp = await fetch(url, {
@@ -19,7 +14,7 @@ export async function writeSchema(url: string, schemaPath: string, headers?: str
 			body: JSON.stringify({
 				query: graphql.getIntrospectionQuery(),
 			}),
-			headers: { 'Content-Type': 'application/json', ...moreHeaders },
+			headers: { 'Content-Type': 'application/json', ...headers },
 		})
 		const content = await resp.text()
 

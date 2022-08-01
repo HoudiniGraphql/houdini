@@ -38,6 +38,8 @@ export class Config {
 	disableMasking: boolean
 	configIsRoute: ((filepath: string) => boolean) | null = null
 	routesDir: string | null
+	schemaPollInterval: number | null
+	schemaPollHeaders: Record<string, string | ((env: any) => string)>
 
 	constructor({
 		filepath,
@@ -52,7 +54,6 @@ export class Config {
 			schemaPath,
 			sourceGlob,
 			apiUrl,
-			quiet = false,
 			framework = 'kit',
 			module = 'esm',
 			static: staticSite,
@@ -66,6 +67,8 @@ export class Config {
 			logLevel,
 			disableMasking = false,
 			routesDir = null,
+			schemaPollInterval = 2000,
+			schemaPollHeaders = {},
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -94,13 +97,6 @@ export class Config {
 			logLevel = LogLevel.Summary
 		}
 
-		if (framework === 'sapper') {
-			console.warn(
-				`⚠️ Support for sapper will be dropped in 0.16.0. ⚠️
-If that's going to be a problem, please open a discussion on GitHub.`
-			)
-		}
-
 		// save the values we were given
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
@@ -118,24 +114,8 @@ If that's going to be a problem, please open a discussion on GitHub.`
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 		this.disableMasking = disableMasking
 		this.routesDir = routesDir
-
-		// if the user asked for `quiet` logging notify them its been deprecated
-		if (quiet) {
-			console.warn(
-				`⚠️ The quiet configuration parameter has been deprecated. ⚠️
-You should update your config to look like this:
-
-export default {
-    // ...
-    logLevel: 'quiet'
-}
-
-
-For more information, visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0#config-values
-`
-			)
-			this.logLevel = LogLevel.Summary
-		}
+		this.schemaPollInterval = schemaPollInterval
+		this.schemaPollHeaders = schemaPollHeaders
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -211,6 +191,22 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 			this.configIsRoute = (filepath) =>
 				!/(?:(?:^_|\/_)|(?:^\.|\/\.)(?!well-known))/.test(filepath)
 		}
+	}
+
+	get pullHeaders() {
+		return Object.fromEntries(
+			Object.entries(this.schemaPollHeaders || {}).map(([key, value]) => {
+				const headerValue =
+					typeof value === 'string' ? process.env[value] : value(process.env)
+
+				// if there was no value, dont add anything
+				if (!headerValue) {
+					return []
+				}
+
+				return [key, headerValue]
+			})
+		)
 	}
 
 	/*

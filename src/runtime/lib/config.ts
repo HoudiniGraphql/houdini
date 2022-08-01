@@ -35,11 +35,6 @@ export type ConfigFile = {
 	schema?: string | GraphQLSchema
 
 	/**
-	 * @deprecated use logLevel instead.
-	 */
-	quiet?: boolean
-
-	/**
 	 * A url to use to pull the schema. For more information: https://www.houdinigraphql.com/api/cli#generate
 	 */
 	apiUrl?: string
@@ -124,6 +119,23 @@ export type ConfigFile = {
 	 * however that's not always valid. Use this option to customize where houdini looks.
 	 */
 	frameworkConfigFile?: string
+
+	/**
+	 * Configures the houdini plugin's schema polling behavior. By default, houdini will poll your APIs
+	 * during development in order to keep it's definition of your schema up to date. The schemaPollingInterval
+	 * config value sets the amount of time between each request in milliseconds (default 2 seconds).
+	 * To limit the schema introspection to just on the start of the server, set schemaPollingInterval to 0.
+	 * To disable the schema introspection, set schemaPollingInterval to null.
+	 */
+	schemaPollInterval?: number | null
+
+	/**
+	 * An object containing the environment variables you want passed onto the api when polling for a new schema.
+	 * The keys dictate the header names. If the value is a string, the corresponding environment variable will be used
+	 * directly. If the value is a function, the current environment will be passed to your function so you can perform any
+	 * logic you need
+	 */
+	schemaPollHeaders?: Record<string, string | ((env: any) => string)>
 }
 
 export type TypeConfig = {
