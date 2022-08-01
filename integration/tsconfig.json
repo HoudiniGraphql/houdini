@@ -9,6 +9,11 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "paths": {}
+    "paths": {
+      "$lib": ["src/lib"],
+      "$lib/*": ["src/lib/*"],
+      "$houdini": ["$houdini"],
+      "$houdini/*": ["$houdini/*"]
+    }
   }
 }
