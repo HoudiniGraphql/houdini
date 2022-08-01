@@ -4,8 +4,17 @@ import * as svelte from 'svelte/compiler'
 import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { promisify } from 'util'
+import { parse as parseJS } from '@babel/parser'
 // locals
-import { Config, runPipeline as run, parseFile, ParsedSvelteFile, LogLevel } from '../common'
+import {
+	Config,
+	runPipeline as run,
+	parseFile,
+	ParsedSvelteFile,
+	LogLevel,
+	walkTaggedDocuments,
+	TransformDocument,
+} from '../common'
 import { CollectedGraphQLDocument, ArtifactKind, HoudiniErrorTodo } from './types'
 import * as transforms from './transforms'
 import * as generators from './generators'
@@ -168,14 +177,16 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 
 			// if the file ends with .svelte, we need to look for graphql template tags
 			if (filepath.endsWith('.svelte')) {
-				documents.push(...(await findGraphQLTemplates(filepath, contents)))
-			}
-			// otherwise just treat the file as a graphql file (the whole file contents constitute a graphql file)
-			else {
+				documents.push(...(await processSvelteFile(filepath, contents)))
+			} else if (filepath.endsWith('.graphql') || filepath.endsWith('.gql')) {
 				documents.push({
 					filepath,
 					document: contents,
 				})
+			}
+			// otherwise just treat the file as a javascript file
+			else {
+				documents.push(...(await processJSFile(config, filepath, contents)))
 			}
 		})
 	)
@@ -199,7 +210,44 @@ type DiscoveredDoc = {
 	document: string
 }
 
-async function findGraphQLTemplates(filepath: string, contents: string): Promise<DiscoveredDoc[]> {
+async function processJSFile(
+	config: Config,
+	filepath: string,
+	contents: string
+): Promise<DiscoveredDoc[]> {
+	const documents: DiscoveredDoc[] = []
+
+	// parse the contents as js
+	let program: Program
+	try {
+		program = await parseJS(contents || '', {
+			plugins: ['typescript'],
+			sourceType: 'module',
+		}).program
+	} catch (e) {
+		// add the filepath to the error message
+		throw { message: (e as Error).message, filepath }
+	}
+	const doc: TransformDocument = {
+		instance: { start: 0, end: 0, content: program },
+		module: null,
+		config,
+		dependencies: [],
+		filename: filepath,
+	}
+
+	// look for a graphql template tag
+	await walkTaggedDocuments(config, doc, program, {
+		onTag(tag) {
+			documents.push({ document: tag.tagContent, filepath })
+		},
+	})
+
+	// we found every document in the file
+	return documents
+}
+
+async function processSvelteFile(filepath: string, contents: string): Promise<DiscoveredDoc[]> {
 	const documents: DiscoveredDoc[] = []
 
 	let parsedFile: ParsedSvelteFile
