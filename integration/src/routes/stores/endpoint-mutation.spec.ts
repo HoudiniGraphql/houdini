@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
 import { expectNoGraphQLRequest, expectToBe } from '../../lib/utils/testsHelper.js';
 
