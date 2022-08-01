@@ -1,6 +1,6 @@
 // externals
-import * as graphql from 'graphql'
 import { logGreen, logYellow } from '@kitql/helper'
+import * as graphql from 'graphql'
 // locals
 import { Config, parentTypeFromAncestors } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'

@@ -1,18 +1,25 @@
 // externals
-import * as graphql from 'graphql'
-import { CollectedGraphQLDocument } from '../../types'
-import * as recast from 'recast'
 import fs from 'fs/promises'
+import * as graphql from 'graphql'
+import * as recast from 'recast'
+import { CollectedGraphQLDocument } from '../../types'
 // locals
-import { Config, getRootType, hashDocument, parentTypeFromAncestors } from '../../../common'
-import { moduleExport, writeFile } from '../../utils'
-import selection from './selection'
-import { operationsByPath, FilterMap } from './operations'
+import {
+	Config,
+	DocumentDefinition,
+	getRootType,
+	hashDocument,
+	parentTypeFromAncestors,
+} from '../../../common'
+import { ArtifactKind } from '../../../runtime/lib/types'
+import { getArg, getDirective, moduleExport, writeFile } from '../../utils'
+import { cleanupFiles } from '../../utils/cleanupFiles'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
+import { FilterMap, operationsByPath } from './operations'
+import selection from './selection'
 import { serializeValue } from './utils'
-import { ArtifactKind } from '../../../runtime/lib/types'
-import { cleanupFiles } from '../../utils/cleanupFiles'
+import { extractInfo } from '../../utils/extractInfo'
 
 const AST = recast.types.builders
 
@@ -217,6 +224,7 @@ export default function artifactGenerator(stats: {
 						name,
 						kind: docKind,
 						hash: hashDocument(rawString),
+						...extractInfo(operations, config, doc.filename),
 						refetch: doc.refetch,
 						raw: rawString,
 						rootType,
@@ -246,9 +254,7 @@ export default function artifactGenerator(stats: {
 
 					// add the cache policy to query documents
 					if (docKind === 'HoudiniQuery') {
-						const cacheDirective = operations[0].directives?.find(
-							(directive) => directive.name.value === config.cacheDirective
-						)
+						const cacheDirective = getDirective(operations, config.cacheDirective)
 						if (cacheDirective) {
 							// look for arguments
 							const args: { [key: string]: graphql.ArgumentNode } =

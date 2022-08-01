@@ -36,6 +36,8 @@ export class Config {
 	configFile: ConfigFile
 	logLevel: LogLevel
 	disableMasking: boolean
+	storeMode: StoreMode = StoreMode.Global
+	storeModeInlineComponent: StoreMode = StoreMode.Isolated
 	configIsRoute: ((filepath: string) => boolean) | null = null
 	routesDir: string | null
 
@@ -309,13 +311,17 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		return `$houdini/${this.storesDirectoryName}/${name}`
 	}
 
-	storeName({ name }: { name: string }) {
+	storeNameGlobal({ name }: { name: string }) {
 		return `GQL_${name}`
 	}
 
-	storeFactoryName(name: string): string {
-		return name + 'Store'
+	storeNameIsolated({ name }: { name: string }) {
+		return `gql_${name}`
 	}
+
+	// storeFactoryName(name: string): string {
+	// 	return name + 'Store'
+	// }
 
 	keyFieldsForType(type: string) {
 		return keyFieldsForType(this.configFile, type)
@@ -453,6 +459,14 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		return 'policy'
 	}
 
+	get houdiniDirective() {
+		return 'houdini'
+	}
+
+	get houdiniStoreModeArg() {
+		return 'storeMode'
+	}
+
 	paginationQueryName(documentName: string) {
 		return documentName + '_Pagination_Query'
 	}
@@ -511,6 +525,7 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 				this.withDirective,
 				this.paginateDirective,
 				this.cacheDirective,
+				this.houdiniDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}
@@ -682,6 +697,19 @@ export enum LogLevel {
 	Summary = 'summary',
 	ShortSummary = 'short-summary',
 	Quiet = 'quiet',
+}
+
+export enum StoreMode {
+	Global = 'Global',
+	Isolated = 'Isolated',
+}
+
+export enum DocumentDefinition {
+	External = 'External',
+	ExternalRoute = 'ExternalRoute', // page.gql
+	InlineSvelteRoute = 'InlineSvelteRoute',
+	InlineSvelteComponent = 'InlineSvelteComponent',
+	InlineScript = 'InlineScript', // +page.{js,ts}
 }
 
 const posixify = (str: string) => str.replace(/\\/g, '/')

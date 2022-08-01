@@ -7,7 +7,7 @@ import { writeFile } from '../../utils'
 import pagination from './pagination'
 
 export async function generateFragmentStore(config: Config, doc: CollectedGraphQLDocument) {
-	const storeName = config.storeName(doc)
+	const storeName = config.storeNameGlobal(doc)
 	const fileName = doc.name
 
 	const artifactName = `${doc.name}`

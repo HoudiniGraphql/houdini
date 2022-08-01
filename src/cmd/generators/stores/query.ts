@@ -1,16 +1,24 @@
 import * as graphql from 'graphql'
 import path from 'path'
-import { Config } from '../../../common'
+import { Config, StoreMode } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { writeFile } from '../../utils'
+import { extractInfo } from '../../utils/extractInfo'
 import pagination from './pagination'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {
 	const fileName = doc.name
-	const storeName = config.storeName(doc)
+	const storeNameGlobal = config.storeNameGlobal(doc)
+	const storeNameIsolated = config.storeNameIsolated(doc)
 	const artifactName = `${doc.name}`
-
 	const paginationExtras = pagination(config, doc, 'query')
+
+	const operationsList = doc.document.definitions.filter(
+		({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
+	) as graphql.OperationDefinitionNode[]
+	const { storeMode } = extractInfo(operationsList, config, doc.filename)
+	const isGlobal = storeMode === StoreMode.Global
+	const storeName = isGlobal ? storeNameGlobal : storeNameIsolated
 
 	// store definition
 	const storeData = `import { houdiniConfig } from '$houdini';
@@ -27,10 +35,13 @@ const factory = () => queryStore({
     paginationMethods: ${JSON.stringify(paginationExtras.methods)},
 })
 
-export const ${storeName} = factory()
+// StoreMode: Global
+${isGlobal ? '' : '// '}export const ${storeNameGlobal} = factory()
 
-export const ${config.storeFactoryName(artifactName)} = factory
+// StoreMode: Isolated
+${isGlobal ? '// ' : ''}export const ${storeNameIsolated} = factory
 
+// Export default of used mode
 export default ${storeName}
 `
 
@@ -47,11 +58,7 @@ export default ${storeName}
 import { type QueryStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
 
-export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}, ${
-		paginationExtras.storeExtras
-	}> ${paginationExtras.types}
-
-export declare const ${config.storeFactoryName(artifactName)}: () => typeof ${storeName}
+export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}, ${paginationExtras.storeExtras}> ${paginationExtras.types}
 
 export default ${storeName}
 `

@@ -20,6 +20,16 @@ enum CachePolicy {
 	${CachePolicy.NetworkOnly}
 }
 
+enum StoreMode {
+	Global
+	Isolated
+}
+
+"""
+	@houdini is used to specify some specific behaviors
+"""
+directive @houdini(storeMode: StoreMode) on QUERY
+
 """
 	@${config.listDirective} is used to mark a field for the runtime as a place to add or remove
 	entities in mutations

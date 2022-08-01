@@ -8,7 +8,7 @@ import { writeFile } from '../../utils'
 
 export async function generateSubscriptionStore(config: Config, doc: CollectedGraphQLDocument) {
 	const fileName = doc.name
-	const storeName = config.storeName(doc)
+	const storeName = config.storeNameGlobal(doc)
 	const artifactName = `${doc.name}`
 
 	// the content of the store
