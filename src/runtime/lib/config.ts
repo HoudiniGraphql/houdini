@@ -60,6 +60,11 @@ export type ConfigFile = {
 	framework?: 'kit' | 'sapper' | 'svelte'
 
 	/**
+	 * A boolean indicating if the generator should create typescript files or not
+	 */
+	typescript?: boolean
+
+	/**
 	 * One of "esm" or "commonjs". Tells the artifact generator what kind of modules to create. (default: esm)
 	 */
 	module?: 'esm' | 'commonjs'

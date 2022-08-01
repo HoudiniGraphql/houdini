@@ -40,6 +40,7 @@ export class Config {
 	routesDir: string | null
 	schemaPollInterval: number | null
 	schemaPollHeaders: Record<string, string | ((env: any) => string)>
+	typescript: boolean
 
 	constructor({
 		filepath,
@@ -69,6 +70,7 @@ export class Config {
 			routesDir = null,
 			schemaPollInterval = 2000,
 			schemaPollHeaders = {},
+			typescript = false,
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -116,6 +118,7 @@ export class Config {
 		this.routesDir = routesDir
 		this.schemaPollInterval = schemaPollInterval
 		this.schemaPollHeaders = schemaPollHeaders
+		this.typescript = typescript
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -555,7 +558,7 @@ export class Config {
 
 	routeDataPath(filename: string) {
 		// replace the .svelte with .js
-		return filename.replace('.svelte', '.js')
+		return filename.replace('.svelte', this.typescript ? '.ts' : '.js')
 	}
 
 	isRouteConfigFile(filename: string) {
@@ -665,6 +668,18 @@ export async function getConfig({
 		filepath: configPath,
 	})
 
+	// is there a typescript config file in the project?
+	try {
+		await fs.stat(path.join(_config.rootDir, 'tsconfig.json'))
+		if (!_config.typescript) {
+			console.log(`⚠️ Detected a typescript project but your houdini.config.js file does not indicate you are using typescript.
+Please update your houdini.config.js file to have typescript set to true.
+`)
+		}
+		// do it for them
+		_config.typescript = true
+	} catch {}
+
 	// if we are loading a sveltekit project, we might be able to grab the isRoute
 	// from the config (if it exists)
 	if (config.framework === 'kit') {
@@ -686,5 +701,3 @@ export enum LogLevel {
 }
 
 const posixify = (str: string) => str.replace(/\\/g, '/')
-
-const layout_pattern = /^__layout(?:-([a-zA-Z0-9_-]+))?(?:@([a-zA-Z0-9_-]+))?$/

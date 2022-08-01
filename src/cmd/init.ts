@@ -121,7 +121,17 @@ export default async function init(
 	await updatePackageJSON(targetPath)
 
 	// generate the necessary files
-	await writeSchema(url, path.join(targetPath, schemaPath), args?.pullHeader)
+	let headers = {}
+	if ((args.pullHeader ?? []).length > 0) {
+		headers = args.pullHeader!.reduce((total, header) => {
+			const [key, value] = header.split('=')
+			return {
+				...total,
+				[key]: value,
+			}
+		}, {})
+	}
+	await writeSchema(url, path.join(targetPath, schemaPath), headers)
 	await writeConfigFile({
 		targetPath,
 		configPath,
@@ -129,6 +139,7 @@ export default async function init(
 		framework,
 		module,
 		url,
+		typescript,
 	})
 	await writeFile(houdiniClientPath, networkFile(url, typescript))
 	await graphqlRCFile(targetPath)
@@ -192,6 +203,7 @@ const writeConfigFile = async ({
 	module,
 	url,
 	sourceGlob = 'src/**/*.{svelte,gql,graphql}',
+	typescript,
 }: {
 	targetPath: string
 	configPath: string
@@ -200,11 +212,13 @@ const writeConfigFile = async ({
 	module: 'esm' | 'commonjs'
 	url: string
 	sourceGlob?: string
+	typescript: boolean
 }): Promise<boolean> => {
 	const config: ConfigFile = {
 		schemaPath,
 		sourceGlob,
 		apiUrl: url,
+		typescript,
 	}
 	if (module !== 'esm') {
 		config.module = module
