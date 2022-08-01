@@ -318,10 +318,6 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 		return `gql_${name}`
 	}
 
-	// storeFactoryName(name: string): string {
-	// 	return name + 'Store'
-	// }
-
 	keyFieldsForType(type: string) {
 		return keyFieldsForType(this.configFile, type)
 	}

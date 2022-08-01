@@ -1,7 +1,7 @@
 // externals
 import * as graphql from 'graphql'
-import { Config } from '../../common'
 // locals
+import { Config } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { CollectedGraphQLDocument } from '../types'
 import { murmurHash } from '../utils'

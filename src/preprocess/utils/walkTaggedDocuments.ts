@@ -3,7 +3,6 @@ import { IdentifierKind, TaggedTemplateExpressionKind } from 'ast-types/gen/kind
 import { asyncWalk, BaseNode } from 'estree-walker'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { extractInfo } from '../../cmd/utils/extractInfo'
 // locals
 import { Config, ensureImports, StoreMode } from '../../common'
 import {

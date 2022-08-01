@@ -1,15 +1,12 @@
 // locals
-import {
-	computeID,
-	ConfigFile,
-	deepEquals,
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../lib/config'
+import { deepEquals } from '../lib/deepEquals'
+import type {
 	GraphQLObject,
 	GraphQLValue,
-	keyFieldsForType,
 	SubscriptionSelection,
 	SubscriptionSpec,
-} from '../lib'
-import { defaultConfigValues } from '../lib/config'
+} from '../lib/types'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'

@@ -1,8 +1,8 @@
 // externals
-import { derived, get, readable, Writable, writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
+import { derived, get, readable, Writable } from 'svelte/store'
 // locals
-import { ConfigFile, FragmentStore, GraphQLObject, QueryArtifact } from '../lib'
+import { getSession, isBrowser } from '../adapter'
 import {
 	extractPageInfo,
 	fragmentHandlers,
@@ -11,7 +11,7 @@ import {
 	PaginatedHandlers,
 } from '../lib/pagination'
 import { currentReqID, sessionStore } from '../lib/session'
-import { getSession, isBrowser } from '../adapter'
+import type { ConfigFile, FragmentStore, GraphQLObject, QueryArtifact } from '../lib/types'
 
 // a fragment store exists in multiple places in a given application so we
 // can't just return a store directly, the user has to load the version of the

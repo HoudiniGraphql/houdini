@@ -1,4 +1,6 @@
+// externals
 import type * as graphql from 'graphql'
+// locals
 import { ArtifactKind, BaseCompiledDocument } from '../runtime/lib/types'
 export type { ConfigFile } from '../runtime/lib'
 export * from '../runtime/lib/types'

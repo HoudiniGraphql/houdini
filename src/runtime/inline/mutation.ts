@@ -1,5 +1,6 @@
 // locals
-import { getHoudiniContext, Operation, GraphQLTagResult } from '../lib'
+import { getHoudiniContext } from '../lib/context'
+import type { GraphQLTagResult, Operation } from '../lib/types'
 
 export type MutationConfig<_Result, _Input> = {
 	optimisticResponse?: _Result
