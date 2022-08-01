@@ -9,14 +9,13 @@ import fs from 'fs/promises'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { StatementKind } from 'ast-types/gen/kinds'
 // locals
-import { HoudiniPluginConfig } from '.'
-import { Config, getConfig } from '../common'
+import { Config } from '../common'
 import { walk_graphql_tags } from './walk'
 import { artifact_import, store_import } from './imports'
 
 const AST = recast.types.builders
 
-export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plugin {
+export default function HoudiniPlugin(config: Config): Plugin {
 	return {
 		name: 'houdini',
 
@@ -35,10 +34,8 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 
 		// we need to process the source files
 		async transform(code, filepath) {
-			const houdini_config = await getConfig({ configFile: plugin_cfg?.configPath })
-
 			// if the file is not in our configured source path, we need to ignore it
-			if (!minimatch(filepath, path.join(process.cwd(), houdini_config.sourceGlob))) {
+			if (!minimatch(filepath, path.join(process.cwd(), config.sourceGlob))) {
 				return
 			}
 
@@ -51,8 +48,7 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 
 			// turn any graphql tags into stores
 			const dependencies = await transform_gql_tag(
-				plugin_cfg,
-				houdini_config,
+				config,
 				filepath,
 				(result.ast! as unknown) as Program
 			)
@@ -63,10 +59,10 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 			}
 
 			// if we are processing a route config file
-			if (houdini_config.framework === 'kit' && houdini_config.isRouteConfigFile(filepath)) {
+			if (config.framework === 'kit' && config.isRouteConfigFile(filepath)) {
 				// in order to know what we need to do here, we need to know if our
 				// corresponding page component defined any inline queries
-				const page_path = houdini_config.routePagePath(filepath)
+				const page_path = config.routePagePath(filepath)
 
 				// ideally we could just use this.load and look at the module's metadata
 				// but vite doesn't support that: https://github.com/vitejs/vite/issues/6810
@@ -79,7 +75,7 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 					const contents = await fs.readFile(page_path, 'utf-8')
 
 					// look for inline queries
-					const deps = await walk_graphql_tags(houdini_config, this.parse(contents), {
+					const deps = await walk_graphql_tags(config, this.parse(contents), {
 						where(tag) {
 							return !!tag.definitions.find(
 								(defn) =>
@@ -117,12 +113,7 @@ export default function HoudiniPlugin(plugin_cfg: HoudiniPluginConfig = {}): Plu
 				} catch {}
 
 				// add a load function for every query found
-				add_load(
-					plugin_cfg,
-					houdini_config,
-					(result.ast! as unknown) as Program,
-					route_queries
-				)
+				add_load(config, (result.ast! as unknown) as Program, route_queries)
 			}
 
 			return {
@@ -139,13 +130,12 @@ type DiscoveredGraphQLTag = {
 }
 
 async function transform_gql_tag(
-	config: HoudiniPluginConfig,
-	houdini_config: Config,
+	config: Config,
 	filepath: string,
 	code: Program
 ): Promise<string[]> {
 	// look for
-	return await walk_graphql_tags(houdini_config, code!, {
+	return await walk_graphql_tags(config, code!, {
 		tag(tag) {
 			// pull out what we need
 			const { node, parsedDocument, parent } = tag
@@ -156,7 +146,7 @@ async function transform_gql_tag(
 			node.replaceWith(
 				AST.identifier(
 					store_import({
-						config: houdini_config,
+						config: config,
 						program: code,
 						artifact: { name: operation.name!.value },
 					})
@@ -166,12 +156,7 @@ async function transform_gql_tag(
 	})
 }
 
-function add_load(
-	config: HoudiniPluginConfig,
-	houdini_config: Config,
-	program: Program,
-	queries: DiscoveredGraphQLTag[]
-) {
+function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTag[]) {
 	// the queries we have to fetch come from multiple places
 
 	// look for any hooks
@@ -257,8 +242,8 @@ function add_load(
 		const variable_id = key_variables(query)
 
 		// make sure we've imported the artifact
-		const artifact_id = artifact_import({ config: houdini_config, artifact: query, program })
-		const store_id = store_import({ config: houdini_config, artifact: query, program })
+		const artifact_id = artifact_import({ config: config, artifact: query, program })
+		const store_id = store_import({ config: config, artifact: query, program })
 
 		// add a local variable right before the return statement
 		preload_fn.body.body.splice(
@@ -281,7 +266,7 @@ function add_load(
 										),
 										AST.objectProperty(
 											AST.literal('framework'),
-											AST.stringLiteral(houdini_config.framework)
+											AST.stringLiteral(config.framework)
 										),
 										AST.objectProperty(
 											AST.literal('variableFunction'),
@@ -369,7 +354,7 @@ function add_load(
 
 	// add calls to user before/after load functions
 	if (before_load || after_load) {
-		let context = [request_context, houdini_config, queries] as const
+		let context = [request_context, config, queries] as const
 
 		if (before_load) {
 			preload_fn.body.body.splice(
