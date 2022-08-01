@@ -13,7 +13,7 @@ import { Config } from '../common'
 import { walk_graphql_tags } from './walk'
 import { artifact_import, store_import } from './imports'
 import generate from '../cmd/generate'
-import { AcornNode } from 'rollup'
+import { AcornNode, TransformResult } from 'rollup'
 
 const AST = recast.types.builders
 
@@ -57,7 +57,11 @@ export interface TransformContext {
 }
 
 // we need to process the source files (pulled out to an external file for testing and the preprocessor)
-export async function transform(ctx: TransformContext, code: string, filepath: string) {
+export async function transform(
+	ctx: TransformContext,
+	code: string,
+	filepath: string
+): Promise<TransformResult> {
 	// if the file is not in our configured source path, we need to ignore it
 	if (!minimatch(filepath, path.join(process.cwd(), ctx.config.sourceGlob))) {
 		return

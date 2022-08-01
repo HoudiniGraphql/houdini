@@ -157,40 +157,6 @@ export class Config {
 		return ['+layout.svelte', '+page.svelte'].includes(path.parse(filepath).base)
 	}
 
-	async loadKitConfig({
-		isRoute,
-		configFilePath,
-	}: {
-		isRoute: boolean
-		configFilePath?: string
-	}) {
-		// if we fail to load
-		try {
-			// so far, all this does is load the route function so if we don't
-			// have to do that, we're done
-			if (!isRoute) {
-				return
-			}
-
-			// import the user's kit config file, and look for a custom isRoute function
-			const configFile = path.join(process.cwd(), configFilePath || 'svelte.config.js')
-			const config: KitConfig = await import(url.pathToFileURL(configFile).href)
-
-			// if there is a custom route function, use it
-			if (config.routes) {
-				this.configIsRoute = config.routes
-			}
-		} catch {}
-
-		// if its not in the route directory, its not a
-		// if we didn't assign an isRoute function, use the default kit one
-		if (!this.configIsRoute) {
-			// copied from here: https://github.com/sveltejs/kit/blob/28139749c4bf056d1e04f55e7f955da33770750d/packages/kit/src/core/config/options.js#L250
-			this.configIsRoute = (filepath) =>
-				!/(?:(?:^_|\/_)|(?:^\.|\/\.)(?!well-known))/.test(filepath)
-		}
-	}
-
 	get pullHeaders() {
 		return Object.fromEntries(
 			Object.entries(this.schemaPollHeaders || {}).map(([key, value]) => {
@@ -674,16 +640,6 @@ Please update your houdini.config.js file to have typescript set to true.
 		// do it for them
 		_config.typescript = true
 	} catch {}
-
-	// if we are loading a sveltekit project, we might be able to grab the isRoute
-	// from the config (if it exists)
-	if (config.framework === 'kit') {
-		// only load the route config if the user didn't specify one explicitly
-		await _config.loadKitConfig({
-			isRoute: !config.routes,
-			configFilePath: config.frameworkConfigFile,
-		})
-	}
 
 	return _config
 }
