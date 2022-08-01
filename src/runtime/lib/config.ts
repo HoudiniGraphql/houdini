@@ -140,7 +140,7 @@ export type ConfigFile = {
 	 * directly. If the value is a function, the current environment will be passed to your function so you can perform any
 	 * logic you need
 	 */
-	schemaPollHeaders?: Record<string, string | ((env: any) => string)>
+	schemaPollHeaders?: Record<string, string | ((env: NodeJS.ProcessEnv) => string)>
 }
 
 export type TypeConfig = {
