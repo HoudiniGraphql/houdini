@@ -152,9 +152,9 @@ export default async function init(
 	}
 	// only update the layout file if we're generating a kit or sapper project
 	if (framework !== 'svelte') {
-		await updateLayoutFile(targetPath, typescript)
+		await updateLayoutFile(framework, targetPath, typescript)
 	}
-	// add the sveltekit config file
+	// add the sveltekit config files
 	if (framework === 'kit') {
 		await updateKitConfig(targetPath)
 	}
@@ -219,7 +219,9 @@ const writeConfigFile = async ({
 		schemaPath,
 		sourceGlob,
 		apiUrl: url,
-		typescript,
+	}
+	if (typescript) {
+		config.typescript = true
 	}
 	if (module !== 'esm') {
 		config.module = module
@@ -288,8 +290,9 @@ async function aliasPaths(targetPath: string) {
 	return false
 }
 
-async function updateLayoutFile(targetPath: string, ts: boolean) {
-	const layoutFile = path.join(targetPath, 'src', 'routes', '__layout.svelte')
+async function updateLayoutFile(framework: 'kit' | 'sapper', targetPath: string, ts: boolean) {
+	const filename = framework === 'sapper' ? '__layout.svelte' : '+layout.svelte'
+	const layoutFile = path.join(targetPath, 'src', 'routes', filename)
 
 	const content = `<script context="module" ${ts ? ' lang="ts"' : ''}>
 	import client from '../client'
