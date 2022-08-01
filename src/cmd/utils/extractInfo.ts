@@ -32,9 +32,9 @@ export function extractInfo(
 		storeMode = houdiniStoreModeArg.value as StoreMode
 	} else {
 		if (documentDefinition === DocumentDefinition.InlineSvelteComponent) {
-			storeMode = config.storeModeInlineComponent
+			storeMode = config.storeModeInlineComponent ?? StoreMode.Isolated
 		} else {
-			storeMode = config.storeMode
+			storeMode = config.storeMode ?? StoreMode.Global
 		}
 	}
 

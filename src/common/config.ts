@@ -36,8 +36,8 @@ export class Config {
 	configFile: ConfigFile
 	logLevel: LogLevel
 	disableMasking: boolean
-	storeMode: StoreMode = StoreMode.Global
-	storeModeInlineComponent: StoreMode = StoreMode.Isolated
+	storeMode?: StoreMode = StoreMode.Global
+	storeModeInlineComponent?: StoreMode = StoreMode.Isolated
 	configIsRoute: ((filepath: string) => boolean) | null = null
 	routesDir: string | null
 

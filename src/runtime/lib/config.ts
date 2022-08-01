@@ -129,12 +129,12 @@ export type ConfigFile = {
 	/**
 	 * Default mode for stores (if not set: Global)
 	 */
-	storeMode: StoreMode
+	storeMode?: StoreMode
 
 	/**
 	 * Default mode for stores that are defined in a component (if not set: Isolated)
 	 */
-	storeModeInlineComponent: StoreMode
+	storeModeInlineComponent?: StoreMode
 }
 
 export type TypeConfig = {
