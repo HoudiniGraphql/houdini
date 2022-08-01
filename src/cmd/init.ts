@@ -148,6 +148,7 @@ export default async function init(
 	// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
 	if (framework !== 'kit') {
 		await aliasPaths(targetPath)
+		await updateSvelteConfig(targetPath)
 	}
 	// only update the layout file if we're generating a kit or sapper project
 	if (framework !== 'svelte') {
@@ -307,7 +308,6 @@ async function updateLayoutFile(targetPath: string, ts: boolean) {
 }
 
 async function updateKitConfig(targetPath: string) {
-	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
 	const viteConfigPath = path.join(targetPath, 'vite.config.js')
 
 	const oldViteConfig = `import { sveltekit } from '@sveltejs/kit/vite';
@@ -333,6 +333,19 @@ const config = {
 
 export default config;
 `
+	// write the vite config file
+	await updateFile({
+		projectPath: targetPath,
+		filepath: viteConfigPath,
+		content: viteConfig,
+		old: [oldViteConfig],
+	})
+}
+
+async function updateSvelteConfig(targetPath: string) {
+	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
+	const viteConfigPath = path.join(targetPath, 'vite.config.js')
+
 	const oldSvelteConfig1 = `import adapter from '@sveltejs/adapter-auto';
 import preprocess from 'svelte-preprocess';
 
@@ -389,21 +402,15 @@ export default config;
 		content: svelteConfig,
 		old: [oldSvelteConfig1, oldSvelteConfig2],
 	})
-
-	// write the vite config file
-	await updateFile({
-		projectPath: targetPath,
-		filepath: viteConfigPath,
-		content: viteConfig,
-		old: [oldViteConfig],
-	})
 }
 
 async function updatePackageJSON(targetPath: string) {
+	let packageJSON: Record<string, any> = {}
+
 	const packagePath = path.join(targetPath, 'package.json')
 	const packageFile = await readFile(packagePath)
 	if (packageFile) {
-		var packageJSON = JSON.parse(packageFile)
+		packageJSON = JSON.parse(packageFile)
 	}
 
 	// and houdini should be a dev dependency
