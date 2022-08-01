@@ -13,7 +13,7 @@
     "package": "svelte-kit package",
     "previewWeb": "cross-env TZ=utc vite preview --port 3007",
     "preview": "npm run generate && concurrently \"yarn previewWeb\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
-    "tests": "playwright test ",
+    "tests": "playwright test",
     "tests:replay": "playwright test -c ./playwright.replay.config.ts  --reporter=line,@replayio/playwright/reporter --workers 10",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",

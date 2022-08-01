@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import { expectNoGraphQLRequest } from '../../lib/utils/testsHelper.js';
+import { expectNoGraphQLRequest, expectToBe } from '../../lib/utils/testsHelper.js';
 
 test.describe('Mutations', () => {
   test('Work in Endpoints', async ({ page }) => {
@@ -11,12 +11,12 @@ test.describe('Mutations', () => {
     // click on the button and make sure there's no error
     await Promise.all([
       // Waits for the next response with the specified url
-      page.waitForResponse(routes.Stores_Endpoint_Mutation),
+      page.waitForResponse(routes.Stores_Endpoint_Mutation, { timeout: 2200 }),
       // Triggers the response
       page.click('button')
     ]);
 
-    const status = await page.textContent('#result');
-    expect(status).toEqual('200');
+    // expect status 200 to be displayed
+    await expectToBe(page, '200');
   });
 });
