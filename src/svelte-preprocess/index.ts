@@ -25,8 +25,15 @@ export default function houdiniPreprocessor(
 				throw new Error('Please use the vite plugin.')
 			}
 
-			// regardless, this isn't the right package
-			throw new Error('this package has moved to houdini/svelte-preprocess')
+			// build up the necessary context to run the vite transform
+			const pluginContext: TransformContext = {
+				config,
+				parse: (val: string) => parse(val, { ecmaVersion: 'latest' }),
+				addWatchFile: () => {},
+			}
+
+			// apply the transform pipeline
+			return await transform(pluginContext, content, filename)
 		},
 	}
 }

@@ -16,6 +16,10 @@
 			"import": "./build/preprocess-esm/index.js",
 			"require": "./build/preprocess-cjs/index.js"
 		},
+		"./svelte-preprocess": {
+			"import": "./build/preprocess-esm/index.js",
+			"require": "./build/preprocess-cjs/index.js"
+		},
 		"./vite": {
 			"import": "./build/vite-esm/index.js",
 			"require": "./build/vite-cjs/index.js"
@@ -25,6 +29,9 @@
 		"*": {
 			"vite": [
 				"build/vite/index.d.ts"
+			],
+			"svelte-preprocess": [
+				"build/preprocess/index.d.ts"
 			]
 		}
 	},
