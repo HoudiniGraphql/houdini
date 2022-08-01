@@ -32,6 +32,11 @@ test('generates runtime defintions for each enum', async function () {
 	}).program
 
 	expect(parsedQuery).toMatchInlineSnapshot(`
+		export declare enum StoreMode {
+		    Global = "Global",
+		    Isolated = "Isolated"
+		}
+		 
 		export declare enum TestEnum1 {
 		    Value1 = "Value1",
 		    Value2 = "Value2"
@@ -60,6 +65,11 @@ test('generates runtime defintions for each enum', async function () {
 		export const TestEnum2 = {
 		    "Value3": "Value3",
 		    "Value2": "Value2"
+		};
+
+		export const StoreMode = {
+		    "Global": "Global",
+		    "Isolated": "Isolated"
 		};
 	`)
 })

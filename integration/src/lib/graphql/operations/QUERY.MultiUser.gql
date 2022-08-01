@@ -1,4 +1,4 @@
-query MultiUser($id: ID!, $tmp: Boolean) {
+query MultiUser($id: ID!, $tmp: Boolean) @houdini(storeMode: Isolated) {
   user(id: $id, tmp: $tmp, snapshot: "store-multi-user") {
     id
     name

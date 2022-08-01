@@ -50,6 +50,8 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "8e483259f3d69f416c01b6106c0440fa0f916abb4cadb75273f8226a1ff0a5e2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery {
 		  version
@@ -87,6 +89,8 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		    name: "TestFragment",
 		    kind: "HoudiniFragment",
 		    hash: "29c40b5d9f6b0cd77fc3fb46fc1338be4960369a01651d5149c2442a33b48686",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`fragment TestFragment on User {
 		  firstName
@@ -134,6 +138,8 @@ test('selection includes fragments', async function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "2d52c61126b6514cd0f51584ae220d583c1df1db1090d2b44da83b7f59a4022c",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -190,6 +196,8 @@ test('selection includes fragments', async function () {
 		    name: "TestFragment",
 		    kind: "HoudiniFragment",
 		    hash: "29c40b5d9f6b0cd77fc3fb46fc1338be4960369a01651d5149c2442a33b48686",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`fragment TestFragment on User {
 		  firstName
@@ -233,6 +241,8 @@ test('internal directives are scrubbed', async function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "d602ba63b61c244225db2524918578e52cc0c1b06a512b56064deb7d176f8e30",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -304,6 +314,8 @@ test('variables only used by internal directives are scrubbed', async function (
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "d602ba63b61c244225db2524918578e52cc0c1b06a512b56064deb7d176f8e30",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -377,6 +389,8 @@ test('overlapping query and fragment selection', async function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "89ff86b7807db8c5395ab994977ca62e2af6a50b78add45f306d6730faa17cdf",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -443,6 +457,8 @@ test('overlapping query and fragment nested selection', async function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "58b9fbe10de1dedb58d303b2e492b01192c69daceafd1060e433f40f9b4d6eb0",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery {
 		  user {
@@ -542,6 +558,8 @@ test('selections with interfaces', async function () {
 		    name: "Friends",
 		    kind: "HoudiniQuery",
 		    hash: "359c4d6ceae8e5a5411fa160c2ffaf61e714d7c82a0f1816244f8a83291a2863",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query Friends {
 		  friends {
@@ -652,6 +670,8 @@ test('selections with unions', async function () {
 		    name: "Friends",
 		    kind: "HoudiniQuery",
 		    hash: "512c81f0e5ea88525b407c9978620c931d4e8bc41317d9bd6eeaf3338fe40c6c",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query Friends {
 		  entities {
@@ -765,6 +785,8 @@ describe('mutation artifacts', function () {
 		    name: "B",
 		    kind: "HoudiniMutation",
 		    hash: "38005b47351eb4e6e14e3c13a8d0d206dac09bf80d6fa3c103a060a3990edd37",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation B {
 		  addFriend {
@@ -848,6 +870,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -942,6 +966,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "2a821dc72c7f92a67ff9fcef569c4cadaf9852662035b32d015c4af67e57aca3",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1037,6 +1063,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "9dc41329a7176f813b623958a68c2752d391151a4f3b1f9b8198f6c487e931a4",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1122,6 +1150,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  deleteUser(id: "1234") {
@@ -1193,6 +1223,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "b9e1e926be309c06c868dc2472c082b6829f93ae55e000317a1066378590a85d",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  deleteUser(id: "1234") {
@@ -1272,6 +1304,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1371,6 +1405,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1470,6 +1506,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1569,6 +1607,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1669,6 +1709,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1769,6 +1811,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1869,6 +1913,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -1969,6 +2015,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -2074,6 +2122,8 @@ describe('mutation artifacts', function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -2187,6 +2237,8 @@ describe('mutation artifacts', function () {
 		    name: "A",
 		    kind: "HoudiniMutation",
 		    hash: "7cc5c23ffd19603e2c7c727d1ac2726d4d87ee6b0470ced7d28c7f0ed88a05c2",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`mutation A {
 		  addFriend {
@@ -2287,6 +2339,8 @@ describe('mutation artifacts', function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "2997353b3d1f04e02b9d211bb4f4069b63f8536b7f1eb686fc74fd8b3dab8dbd",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery {
 		  users(stringValue: "foo") {
@@ -2381,6 +2435,8 @@ describe('mutation artifacts', function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "ae03169e8d96702d39c54183ece747c31f4b5d1e3abf54cf3fc0706abfd597b9",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    refetch: {
 		        update: "append",
@@ -2562,6 +2618,8 @@ describe('mutation artifacts', function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -2673,6 +2731,8 @@ describe('mutation artifacts', function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "d773bead4120baa620dc05347fba277faaa5bb555e10943507a393eaa3399c52",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery($value: String!) {
 		  users(stringValue: $value, boolValue: true, floatValue: 1.2, intValue: 1) {
@@ -2793,6 +2853,8 @@ test('custom scalar shows up in artifact', async function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "b8314df1f7d924f76e6dfe6e7e3c8efd593db931c67c892311e97a9ec1d429b4",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery {
 		  allItems {
@@ -2898,6 +2960,8 @@ test('operation inputs', async function () {
 		    name: "TestQuery",
 		    kind: "HoudiniQuery",
 		    hash: "f39d9c24c97c9c3cdcd916272e7ffb9d79cb4ad08ec294c829d647d4238c7e6b",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`query TestQuery($id: ID, $filter: UserFilter, $filterList: [UserFilter!], $enumArg: MyEnum) {
 		  user(id: $id, filter: $filter, filterList: $filterList, enumArg: $enumArg) {
@@ -2991,6 +3055,8 @@ describe('subscription artifacts', function () {
 		    name: "B",
 		    kind: "HoudiniSubscription",
 		    hash: "755fb65bebc83835db68921b7e193809246fb6f9ee2e37cc66d7314b91a501e7",
+		    documentDefinition: "InlineScript",
+		    storeMode: "Global",
 
 		    raw: \`subscription B {
 		  newUser {

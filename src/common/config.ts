@@ -171,9 +171,8 @@ For more information, visit this link: https://www.houdinigraphql.com/guides/mig
 			return false
 		}
 
-		// only consider filepaths in src/routes
-		const routesDir = this.routesDir || 'src/routes'
-		if (!posixify(filepath).startsWith(posixify(path.join(this.projectRoot, routesDir)))) {
+		// if it doesn't includes: 'src/routes', it cannot be a route
+		if (!posixify(filepath).includes('src/routes')) {
 			return false
 		}
 

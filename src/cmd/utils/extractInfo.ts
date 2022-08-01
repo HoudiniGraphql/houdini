@@ -2,6 +2,10 @@ import { Config, DocumentDefinition, StoreMode } from '../../common'
 import { getArg, getDirective } from './graphql'
 import * as graphql from 'graphql'
 
+// Would be nice to do this once in the generate artifacts,
+// then reuse the calculated value everywhere else:
+//  - generatores/stores/query
+//  - preprocess/transforms/query
 export function extractInfo(
 	operations: graphql.OperationDefinitionNode[],
 	config: Config,

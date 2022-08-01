@@ -32,6 +32,8 @@ test('pagination arguments stripped from key', async function () {
 					    name: "PaginatedFragment",
 					    kind: "HoudiniFragment",
 					    hash: "d655188329bfa82826d0e09c9b56fb90c276ed5b3b155784c3358db3cac30c87",
+					    documentDefinition: "InlineScript",
+					    storeMode: "Global",
 
 					    refetch: {
 					        update: "append",
@@ -163,6 +165,8 @@ test('offset based pagination marks appropriate field', async function () {
 					    name: "PaginatedFragment",
 					    kind: "HoudiniFragment",
 					    hash: "61656f834b4f2afccdd42328b499f288fc9776befbef14154133565e0ac7e8b6",
+					    documentDefinition: "InlineScript",
+					    storeMode: "Global",
 
 					    refetch: {
 					        update: "append",
@@ -237,6 +241,8 @@ test('cursor as scalar gets the right pagination query argument types', async fu
 					    name: "ScalarPagination",
 					    kind: "HoudiniQuery",
 					    hash: "09863f3b665ef14816cc6b9cc965f12bb68ea569345d3f346415ba7a8b8af71c",
+					    documentDefinition: "InlineScript",
+					    storeMode: "Global",
 
 					    refetch: {
 					        update: "append",
@@ -452,6 +458,8 @@ test("sibling aliases don't get marked", async function () {
 					    name: "PaginatedFragment",
 					    kind: "HoudiniFragment",
 					    hash: "1a2d87a1d79e0241ab3ebda1cd43296a631d99973bb06e4fc66becd42c4a67be",
+					    documentDefinition: "InlineScript",
+					    storeMode: "Global",
 
 					    refetch: {
 					        update: "append",

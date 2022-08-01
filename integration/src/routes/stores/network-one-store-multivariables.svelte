@@ -1,13 +1,13 @@
 <script lang="ts">
   import { browser } from '$app/env';
-  import { MultiUserStore } from '$houdini';
+  import { gql_MultiUser } from '$houdini';
 
   const variables1 = { id: '1' };
-  const u1 = MultiUserStore();
+  const u1 = gql_MultiUser();
   $: browser && u1.fetch({ variables: variables1 });
 
   const variables5 = { id: '5' };
-  const u5 = MultiUserStore();
+  const u5 = gql_MultiUser();
   $: browser && u5.fetch({ variables: variables5 });
 </script>
 

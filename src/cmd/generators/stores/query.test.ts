@@ -63,10 +63,14 @@ test('basic store', async function () {
 					    paginationMethods: [],
 					})
 
+					// StoreMode: Global
 					export const GQL_TestQuery = factory()
 
-					export const TestQueryStore = factory
+					// StoreMode: Isolated
+					// export const gql_TestQuery = factory
+					// const store_TestQuery = gql_TestQuery();
 
+					// Export default StoreMode: Global
 					export default GQL_TestQuery
 				`)
 })
@@ -110,10 +114,14 @@ test('forward cursor pagination', async function () {
 					    paginationMethods: ["loadNextPage","fetch","loading"],
 					})
 
+					// StoreMode: Global
 					export const GQL_TestQuery = factory()
 
-					export const TestQueryStore = factory
+					// StoreMode: Isolated
+					// export const gql_TestQuery = factory
+					// const store_TestQuery = gql_TestQuery();
 
+					// Export default StoreMode: Global
 					export default GQL_TestQuery
 				`)
 })
@@ -157,10 +165,14 @@ test('backwards cursor pagination', async function () {
 					    paginationMethods: ["loadPreviousPage","fetch","loading"],
 					})
 
+					// StoreMode: Global
 					export const GQL_TestQuery = factory()
 
-					export const TestQueryStore = factory
+					// StoreMode: Isolated
+					// export const gql_TestQuery = factory
+					// const store_TestQuery = gql_TestQuery();
 
+					// Export default StoreMode: Global
 					export default GQL_TestQuery
 				`)
 })
@@ -200,10 +212,14 @@ test('offset pagination', async function () {
 					    paginationMethods: ["loadNextPage","fetch","loading"],
 					})
 
+					// StoreMode: Global
 					export const GQL_TestQuery = factory()
 
-					export const TestQueryStore = factory
+					// StoreMode: Isolated
+					// export const gql_TestQuery = factory
+					// const store_TestQuery = gql_TestQuery();
 
+					// Export default StoreMode: Global
 					export default GQL_TestQuery
 				`)
 })

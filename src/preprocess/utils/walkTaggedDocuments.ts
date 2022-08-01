@@ -1,10 +1,11 @@
 // externals
-import * as graphql from 'graphql'
+import { IdentifierKind, TaggedTemplateExpressionKind } from 'ast-types/gen/kinds'
 import { asyncWalk, BaseNode } from 'estree-walker'
-import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
+import * as graphql from 'graphql'
 import * as recast from 'recast'
+import { extractInfo } from '../../cmd/utils/extractInfo'
 // locals
-import { Config, ensureImports } from '../../common'
+import { Config, ensureImports, StoreMode } from '../../common'
 import {
 	CompiledDocumentKind,
 	CompiledFragmentKind,
@@ -30,6 +31,7 @@ export type EmbeddedGraphqlDocument = {
 	}
 	tagContent: string
 	parent: BaseNode
+	storeMode?: StoreMode
 }
 
 type GraphqlTagWalker = {

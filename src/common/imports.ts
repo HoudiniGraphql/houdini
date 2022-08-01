@@ -29,16 +29,18 @@ export function ensureStoreFactoryImport({
 	config,
 	artifact,
 	body,
+	storeModeName,
 }: {
 	config: Config
 	artifact: { name: string }
 	body: Statement[]
+	storeModeName: string
 }) {
 	return ensureImports({
 		config,
 		body,
 		sourceModule: config.storeImportPath(artifact.name),
-		import: [`${artifact.name}Store`],
+		import: [storeModeName],
 	})
 }
 

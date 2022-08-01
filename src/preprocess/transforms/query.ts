@@ -1,23 +1,23 @@
 // externals
-import * as recast from 'recast'
-import * as graphql from 'graphql'
-import { namedTypes } from 'ast-types/gen/namedTypes'
 import { StatementKind } from 'ast-types/gen/kinds'
-import path from 'path'
+import { namedTypes } from 'ast-types/gen/namedTypes'
+import * as graphql from 'graphql'
+import * as recast from 'recast'
 // locals
+import { ExportNamedDeclaration, Statement, VariableDeclaration } from '@babel/types'
+import { extractInfo } from '../../cmd/utils/extractInfo'
 import {
 	Config,
-	Script,
-	ensureImports,
 	ensureArtifactImport,
+	ensureImports,
 	ensureStoreFactoryImport,
+	Script,
+	StoreMode,
 } from '../../common'
-import { TransformDocument } from '../types'
-import { walkTaggedDocuments, EmbeddedGraphqlDocument } from '../utils'
 import { ArtifactKind } from '../../runtime/lib/types'
-import { ExportNamedDeclaration, VariableDeclaration } from '@babel/types'
+import { TransformDocument } from '../types'
+import { EmbeddedGraphqlDocument, walkTaggedDocuments } from '../utils'
 const AST = recast.types.builders
-import { Statement } from '@babel/types'
 
 type Identifier = ReturnType<typeof recast.types.builders.identifier>
 
@@ -72,8 +72,15 @@ export default async function queryProcessor(
 			const { node, parsedDocument, parent, artifact, tagContent } = tag
 			const operation = parsedDocument.definitions[0] as graphql.OperationDefinitionNode
 
+			const { storeMode, documentDefinition } = extractInfo([operation], config, doc.filename)
+
 			// add the document to the list
-			queries.push(tag)
+			queries.push({ ...tag, storeMode })
+
+			const storeModeName =
+				storeMode === StoreMode.Global
+					? config.storeNameGlobal({ name: artifact.name })
+					: config.storeNameIsolated({ name: artifact.name })
 
 			// add imports for the appropriate store and artifact
 			storeFactories[artifact.name] = AST.identifier(
@@ -81,11 +88,12 @@ export default async function queryProcessor(
 					config,
 					body: isRoute ? doc.module!.content.body : doc.instance!.content.body,
 					artifact,
+					storeModeName,
 				})[0]
 			)
 
 			storeIdentifiers[artifact.name] = AST.identifier(
-				`store_${storeFactories[artifact.name].name}`
+				storeMode === StoreMode.Global ? storeModeName : `store_${storeModeName}`
 			)
 
 			artifactImportIDs[artifact.name] = ensureArtifactImport({
@@ -213,19 +221,21 @@ function processModule({
 		(expression) => expression.type !== 'ImportDeclaration'
 	)
 	for (const query of queries) {
-		const name = (query.parsedDocument.definitions[0] as graphql.OperationDefinitionNode).name!
-			.value
-		script.content.body.splice(
-			insertIndex,
-			0,
-			// @ts-expect-error
-			AST.variableDeclaration('const', [
-				AST.variableDeclarator(
-					storeIdentifiers[name],
-					AST.callExpression(storeFactories[name], [])
-				),
-			])
-		)
+		if (query.storeMode === StoreMode.Isolated) {
+			const name = (query.parsedDocument.definitions[0] as graphql.OperationDefinitionNode)
+				.name!.value
+			script.content.body.splice(
+				insertIndex,
+				0,
+				// @ts-expect-error
+				AST.variableDeclaration('const', [
+					AST.variableDeclarator(
+						storeIdentifiers[name],
+						AST.callExpression(storeFactories[name], [])
+					),
+				])
+			)
+		}
 	}
 
 	// add the kit preload function

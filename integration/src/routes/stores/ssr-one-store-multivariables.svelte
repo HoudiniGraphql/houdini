@@ -1,10 +1,10 @@
 <script context="module" lang="ts">
   import { browser } from '$app/env';
-  import { MultiUserStore, type MultiUser$input } from '$houdini';
+  import { gql_MultiUser, type MultiUser$input } from '$houdini';
   import type { LoadEvent } from '@sveltejs/kit';
 
-  const u1 = MultiUserStore();
-  const u5 = MultiUserStore();
+  const u1 = gql_MultiUser();
+  const u5 = gql_MultiUser();
 
   export async function load(event: LoadEvent) {
     const variables1 = { id: '1' };

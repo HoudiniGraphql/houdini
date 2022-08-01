@@ -16,7 +16,8 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	const operationsList = doc.document.definitions.filter(
 		({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
 	) as graphql.OperationDefinitionNode[]
-	const { storeMode } = extractInfo(operationsList, config, doc.filename)
+	const { storeMode, documentDefinition } = extractInfo(operationsList, config, doc.filename)
+
 	const isGlobal = storeMode === StoreMode.Global
 	const storeName = isGlobal ? storeNameGlobal : storeNameIsolated
 
@@ -40,8 +41,9 @@ ${isGlobal ? '' : '// '}export const ${storeNameGlobal} = factory()
 
 // StoreMode: Isolated
 ${isGlobal ? '// ' : ''}export const ${storeNameIsolated} = factory
+// const store_${artifactName} = ${storeNameIsolated}();
 
-// Export default of used mode
+// Export default StoreMode: ${isGlobal ? 'Global' : 'Isolated'}
 export default ${storeName}
 `
 
@@ -57,8 +59,12 @@ export default ${storeName}
 	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
 import { type QueryStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
-
-export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}, ${paginationExtras.storeExtras}> ${paginationExtras.types}
+export declare const ${storeName}: ${
+		// if it's Isolated, it's a function, so the type is accordingly
+		isGlobal ? '' : '() =>'
+	} QueryStore<${artifactName}$result | undefined, ${VariableInputsType}, ${
+		paginationExtras.storeExtras
+	}> ${paginationExtras.types}
 
 export default ${storeName}
 `

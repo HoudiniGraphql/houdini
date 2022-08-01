@@ -29,6 +29,14 @@ test('adds internal documents to schema', async function () {
 		  NetworkOnly
 		}
 
+		enum StoreMode {
+		  Global
+		  Isolated
+		}
+
+		"""@houdini is used to specify some specific behaviors"""
+		directive @houdini(storeMode: StoreMode) on QUERY
+
 		"""
 		@list is used to mark a field for the runtime as a place to add or remove
 		entities in mutations
@@ -88,6 +96,14 @@ test('list operations are included', async function () {
 		  CacheOrNetwork
 		  NetworkOnly
 		}
+
+		enum StoreMode {
+		  Global
+		  Isolated
+		}
+
+		"""@houdini is used to specify some specific behaviors"""
+		directive @houdini(storeMode: StoreMode) on QUERY
 
 		"""
 		@list is used to mark a field for the runtime as a place to add or remove
@@ -167,6 +183,14 @@ test("writing twice doesn't duplicate definitions", async function () {
 		  CacheOrNetwork
 		  NetworkOnly
 		}
+
+		enum StoreMode {
+		  Global
+		  Isolated
+		}
+
+		"""@houdini is used to specify some specific behaviors"""
+		directive @houdini(storeMode: StoreMode) on QUERY
 
 		"""
 		@list is used to mark a field for the runtime as a place to add or remove
