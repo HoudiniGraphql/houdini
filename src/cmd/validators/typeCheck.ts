@@ -1,5 +1,4 @@
 // externals
-import * as graphql from 'graphql'
 // locals
 import { Config, definitionFromAncestors, LogLevel, parentTypeFromAncestors } from '../../common'
 import {
@@ -10,6 +9,7 @@ import {
 import { connectionSelection } from '../transforms/list'
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 import { unwrapType } from '../utils'
+import * as graphql from 'graphql'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.
@@ -19,10 +19,6 @@ export default async function typeCheck(
 ): Promise<void> {
 	// wrap the errors we run into in a HoudiniError
 	const errors: HoudiniError[] = []
-
-	// verify the node interface (if everything is fine)
-	// log a warning if it's not properly defined and continue.
-	getAndVerifyNodeInterface(config)
 
 	// we need to catch errors in the list API. this means that a user
 	// must provide parentID if they are using a list that is not all-objects
