@@ -1,4 +1,5 @@
 import type { GraphQLSchema } from 'graphql'
+import { StoreMode } from '../../common'
 import { CachePolicy } from './types'
 
 export type ScalarSpec = {
@@ -124,6 +125,16 @@ export type ConfigFile = {
 	 * however that's not always valid. Use this option to customize where houdini looks.
 	 */
 	frameworkConfigFile?: string
+
+	/**
+	 * Default mode for stores
+	 */
+	storeMode: StoreMode
+
+	/**
+	 * Default mode for stores that are defined in a component
+	 */
+	storeModeInlineComponent: StoreMode
 }
 
 export type TypeConfig = {
