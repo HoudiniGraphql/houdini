@@ -12,9 +12,6 @@ export async function readFile(filepath: string): Promise<string | null> {
 
 			return memfs.readFileSync(filepath, 'utf-8')!.toString()
 		} catch (e) {
-			if (filepath === '/home/alec/dv/houdini/houdini/build/runtime-esm/cache/index.js') {
-				console.log(e)
-			}
 			return null
 		}
 	}
@@ -72,7 +69,7 @@ export async function mkdir(filepath: string) {
 		return await fs.mkdir(filepath)
 	}
 
-	return memfs.mkdirpSync(filepath)
+	return memfs.mkdirSync(filepath)
 }
 
 export async function stat(filepath: string) {
