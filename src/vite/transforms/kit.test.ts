@@ -1,6 +1,6 @@
 // local imports
-import '../../jest.setup'
-import preprocessorTest from './pluginTests'
+import '../../../jest.setup'
+import preprocessorTest from '../pluginTests'
 
 describe('query preprocessor', function () {
 	test('route - preload initial data', async function () {

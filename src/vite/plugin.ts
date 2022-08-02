@@ -4,7 +4,7 @@ import path from 'path'
 import { Plugin } from 'vite'
 import * as recast from 'recast'
 // locals
-import { formatErrors, getConfig, Script } from '../common'
+import { Config, formatErrors, getConfig, Script } from '../common'
 import { Program } from 'estree'
 import generate from '../cmd/generate'
 import applyTransforms from './transforms'
@@ -63,6 +63,7 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 }
 
 export interface TransformContext {
+	config: Config
 	program: Script
 	filepath: string
 	addWatchFile: (path: string) => void

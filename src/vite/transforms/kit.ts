@@ -16,27 +16,26 @@ type ExportNamedDeclaration = ReturnType<typeof recast.types.builders['exportNam
 
 export default async function svelteKitProccessor(config: Config, ctx: TransformContext) {
 	// if we aren't running on a kit project, don't do anything
-	if (config.framework !== 'kit') {
+	if (ctx.config.framework !== 'kit') {
 		return
 	}
 
 	// if we are processing a route config file (+page.ts)
-	if (config.isRouteConfigFile(ctx.filepath)) {
-		await query_file(config, ctx)
+	if (ctx.config.isRouteConfigFile(ctx.filepath)) {
+		await query_file(ctx)
 	}
 }
 
-async function query_file(config: Config, ctx: TransformContext) {
+async function query_file(ctx: TransformContext) {
 	// we need to collect all of the various queries associated with the query file
 	const [page_query, inline_queries, page_stores] = await Promise.all([
-		find_page_query(config, ctx),
-		find_inline_queries(config, ctx),
+		find_page_query(ctx),
+		find_inline_queries(ctx),
 		find_page_stores(ctx),
 	])
 
 	// add the load function to the query file
 	add_load({
-		config,
 		ctx,
 		external_queries: inline_queries.concat(page_query ?? []),
 		page_stores,
@@ -44,12 +43,10 @@ async function query_file(config: Config, ctx: TransformContext) {
 }
 
 function add_load({
-	config,
 	ctx,
 	external_queries,
 	page_stores,
 }: {
-	config: Config
 	ctx: TransformContext
 	external_queries: LoadQuery[]
 	page_stores: boolean
@@ -139,11 +136,11 @@ function add_load({
 
 		// make sure we've imported the artifact
 		const artifact_id = artifact_import({
-			config: config,
+			config: ctx.config,
 			artifact: query,
 			program: ctx.program,
 		})
-		const store_id = store_import({ config: config, artifact: query, program: ctx.program })
+		const store_id = store_import({ config: ctx.config, artifact: query, program: ctx.program })
 
 		// add a local variable right before the return statement
 		preload_fn.body.body.splice(
@@ -166,7 +163,7 @@ function add_load({
 										),
 										AST.objectProperty(
 											AST.literal('framework'),
-											AST.stringLiteral(config.framework)
+											AST.stringLiteral(ctx.config.framework)
 										),
 										AST.objectProperty(
 											AST.literal('variableFunction'),
@@ -254,7 +251,7 @@ function add_load({
 
 	// add calls to user before/after load functions
 	if (before_load || after_load) {
-		let context = [request_context, config, external_queries] as const
+		let context = [request_context, ctx.config, external_queries] as const
 
 		if (before_load) {
 			preload_fn.body.body.splice(
@@ -270,7 +267,7 @@ function add_load({
 	}
 }
 
-async function find_inline_queries(config: Config, ctx: TransformContext): Promise<LoadQuery[]> {
+async function find_inline_queries(ctx: TransformContext): Promise<LoadQuery[]> {
 	// build up a list of the queries we run into
 	const queries: {
 		name: string
@@ -285,7 +282,7 @@ async function find_inline_queries(config: Config, ctx: TransformContext): Promi
 
 	// in order to know what we need to do here, we need to know if our
 	// corresponding page component defined any inline queries
-	const page_path = config.routePagePath(ctx.filepath)
+	const page_path = ctx.config.routePagePath(ctx.filepath)
 
 	// read the page path and if it doesn't exist, there aren't any inline queries
 	const contents = await readFile(page_path)
@@ -332,7 +329,7 @@ async function find_inline_queries(config: Config, ctx: TransformContext): Promi
 	return queries.map((query) => {
 		// we need to make sure that we have reference to the store
 		// for every query
-		const storeID = store_import({ config: config, artifact: query, program: ctx.program })
+		const storeID = store_import({ config: ctx.config, artifact: query, program: ctx.program })
 
 		return {
 			store_identifier: AST.identifier(storeID),
@@ -342,9 +339,9 @@ async function find_inline_queries(config: Config, ctx: TransformContext): Promi
 	})
 }
 
-async function find_page_query(config: Config, ctx: TransformContext): Promise<LoadQuery | null> {
+async function find_page_query(ctx: TransformContext): Promise<LoadQuery | null> {
 	// figure out the filepath for the page query
-	const page_query_path = config.pageQueryPath(ctx.filepath)
+	const page_query_path = ctx.config.pageQueryPath(ctx.filepath)
 
 	// if the file doesn't exist, we're done
 	const contents = await readFile(page_query_path)
@@ -367,7 +364,7 @@ async function find_page_query(config: Config, ctx: TransformContext): Promise<L
 
 	// generate an import for the store
 	const store_id = store_import({
-		config: config,
+		config: ctx.config,
 		artifact: { name: definition.name!.value },
 		program: ctx.program,
 	})
