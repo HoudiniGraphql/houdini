@@ -11,7 +11,7 @@ import applyTransforms from './transforms'
 
 const AST = recast.types.builders
 
-export default function HoudiniPlugin(): Plugin {
+export default function HoudiniPlugin(configFile?: string): Plugin {
 	return {
 		name: 'houdini',
 
@@ -30,7 +30,7 @@ export default function HoudiniPlugin(): Plugin {
 
 		// when the build starts, we need to make sure to generate
 		async buildStart() {
-			const config = await getConfig()
+			const config = await getConfig({ configFile })
 
 			try {
 				await generate(config)
@@ -43,16 +43,17 @@ export default function HoudiniPlugin(): Plugin {
 		async transform(code, filepath) {
 			const config = await getConfig()
 
+			// if the file is not in our configured source path, we need to ignore it
+			if (!minimatch(filepath, path.join(process.cwd(), config.sourceGlob))) {
+				return
+			}
+
+			// bundle up the contextual stuff
 			const ctx = {
 				parse: this.parse,
 				addWatchFile: this.addWatchFile,
 				config,
 				filepath,
-			}
-
-			// if the file is not in our configured source path, we need to ignore it
-			if (!minimatch(filepath, path.join(process.cwd(), config.sourceGlob))) {
-				return
 			}
 
 			// run the plugin pipeline

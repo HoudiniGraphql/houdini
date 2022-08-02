@@ -7,14 +7,14 @@ import glob from 'glob'
 import { getConfig } from '../common'
 import { writeSchema } from '../cmd/utils'
 
-export default function HoudiniWatchSchemaPlugin(): Plugin {
+export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 	let interval_id: NodeJS.Timeout | null = null
 
 	return {
 		name: 'houdini-watch-schema',
 		apply: 'serve',
 		async buildStart() {
-			const config = await getConfig()
+			const config = await getConfig({ configFile })
 
 			// validate the config
 

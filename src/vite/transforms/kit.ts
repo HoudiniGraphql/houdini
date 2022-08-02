@@ -4,20 +4,22 @@ import { StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Identifier } from 'estree'
-import { parse as parseJS } from '@babel/parser'
 // locals
 import { walk_graphql_tags } from '../walk'
 import { TransformContext } from '../plugin'
 import { Config, parseSvelte, readFile, Script } from '../../common'
 import { artifact_import, store_import } from '../imports'
-import { AcornNode } from 'rollup'
 
 const AST = recast.types.builders
 
-type Program = ReturnType<typeof recast.types.builders['program']>
 type ExportNamedDeclaration = ReturnType<typeof recast.types.builders['exportNamedDeclaration']>
 
 export default async function svelteKitProccessor(config: Config, ctx: TransformContext) {
+	// if we aren't running on a kit project, don't do anything
+	if (config.framework !== 'kit') {
+		return
+	}
+
 	// if we are processing a route config file (+page.ts)
 	if (config.isRouteConfigFile(ctx.filepath)) {
 		await query_file(config, ctx)
@@ -33,12 +35,12 @@ async function query_file(config: Config, ctx: TransformContext) {
 	])
 
 	// add the load function to the query file
-	// add_load({
-	// 	config,
-	// 	ctx,
-	// 	external_queries: inline_queries.concat(page_query ?? []),
-	// 	page_stores,
-	// })
+	add_load({
+		config,
+		ctx,
+		external_queries: inline_queries.concat(page_query ?? []),
+		page_stores,
+	})
 }
 
 function add_load({
@@ -469,7 +471,7 @@ function key_preload_payload(operation: { name: string }): string {
 }
 
 function key_variables(operation: { name: string }): string {
-	return `_${operation}_Input`
+	return `_${operation.name}_Input`
 }
 
 function query_variable_fn(name: string) {

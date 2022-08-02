@@ -1,14 +1,11 @@
 import type { Plugin } from 'vite'
-import watch_and_run from '@kitql/vite-plugin-watch-and-run'
-import path from 'path'
 import houdini from './plugin'
-import { Config } from '../common'
 import schema from './schema'
 
-export default function (config: Config): Plugin[] {
+export default function ({ configPath }: { configPath?: string } = {}): Plugin[] {
 	return [
-		houdini(),
-		schema(),
+		houdini(configPath),
+		schema(configPath),
 		// watch_and_run([
 		// 	{
 		// 		name: 'Houdini',
