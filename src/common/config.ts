@@ -529,6 +529,10 @@ export class Config {
 	routePagePath(filename: string) {
 		return filename.replace('.js', '.svelte').replace('.ts', '.svelte')
 	}
+
+	pageQueryPath(filename: string) {
+		return filename.replace('+page.js', 'page.gql').replace('+page.ts', 'page.gql')
+	}
 }
 
 const DEFAULT_CONFIG_PATH = path.join(process.cwd(), 'houdini.config.js')

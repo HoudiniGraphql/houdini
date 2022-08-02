@@ -2,11 +2,10 @@
 import { default as path } from 'path'
 import { parse as parseJS } from '@babel/parser'
 // local imports
-import { testConfig } from '../../common'
-import { ConfigFile } from '../../runtime'
-import { transform } from '../plugin'
+import { testConfig } from '../common'
+import { ConfigFile } from '../runtime'
+import { transform } from './plugin'
 import { parse } from 'acorn'
-import type { TransformContext } from '../plugin'
 
 export default async function preprocessorTest(
 	content: string,
@@ -33,13 +32,14 @@ export default async function preprocessorTest(
 		: path.join(config.projectRoot, 'src', 'lib', 'component.svelte')
 
 	// run the source through the processor
-	const ctx: TransformContext = {
+	const ctx = {
 		config,
+		filepath: filename,
 		addWatchFile: () => {},
 		parse: (val: string) => parse(val, { ecmaVersion: 'latest' }),
 	}
 
-	const result = await transform(ctx, content, filename)
+	const result = await transform(ctx, content)
 	return parseJS(typeof result !== 'string' ? result!.code! : result || '', {
 		plugins: ['typescript'],
 		sourceType: 'module',

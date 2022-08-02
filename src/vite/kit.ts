@@ -23,13 +23,21 @@ export default async function svelteKitProccessor(ctx: TransformContext) {
 
 async function query_file(ctx: TransformContext) {
 	// we need to collect all of the various queries associated with the query file
-	const [page_query, inline] = await Promise.all([find_page_query(ctx), find_inline_queries(ctx)])
+	const external_queries = (await Promise.all([find_page_query(ctx), find_inline_queries(ctx)]))
+		.flat()
+		.filter((val) => val !== null) as LocalQuery[]
 
 	// add a load function for every query found
-	add_load({ ctx, inline })
+	add_load({ ctx, external_queries })
 }
 
-function add_load({ ctx, inline }: { ctx: TransformContext; inline: LocalQuery[] }) {
+function add_load({
+	ctx,
+	external_queries,
+}: {
+	ctx: TransformContext
+	external_queries: LocalQuery[]
+}) {
 	// the queries we have to fetch come from multiple places
 
 	// look for any hooks
@@ -61,7 +69,7 @@ function add_load({ ctx, inline }: { ctx: TransformContext; inline: LocalQuery[]
 									AST.identifier('props')
 								)
 							),
-							...inline.map((query) => {
+							...external_queries.map((query) => {
 								const identifier = AST.identifier(key_variables(query))
 
 								return AST.objectProperty(identifier, identifier)
@@ -100,12 +108,12 @@ function add_load({ ctx, inline }: { ctx: TransformContext; inline: LocalQuery[]
 	insert_index++
 
 	// only split into promise and await if there are multiple queries
-	const needs_promise = inline.length > 1
+	const needs_promise = external_queries.length > 1
 	// a list of statements to await the query promises and check the results for errors
 	const awaits_and_checks: StatementKind[] = []
 
 	// every query that we found needs to be triggered in this function
-	for (const query of inline) {
+	for (const query of external_queries) {
 		let next_index = insert_index
 
 		// figure out the local variable that holds the result
@@ -231,7 +239,7 @@ function add_load({ ctx, inline }: { ctx: TransformContext; inline: LocalQuery[]
 
 	// add calls to user before/after load functions
 	if (before_load || after_load) {
-		let context = [request_context, ctx.config, inline] as const
+		let context = [request_context, ctx.config, external_queries] as const
 
 		if (before_load) {
 			preload_fn.body.body.splice(
@@ -316,8 +324,43 @@ async function find_inline_queries(ctx: TransformContext): Promise<LocalQuery[]>
 	})
 }
 
-async function find_page_query(ctx: TransformContext): Promise<LocalQuery> {
-	return {}
+async function find_page_query(ctx: TransformContext): Promise<LocalQuery | null> {
+	// figure out the filepath for the page query
+	const page_query_path = ctx.config.pageQueryPath(ctx.filepath)
+
+	// if the file doesn't exist, we're done
+	const contents = await readFile(page_query_path)
+	if (!contents) {
+		return null
+	}
+
+	// we have a page query, make sure it contains a query
+	const parsed = graphql.parse(contents)
+
+	// find the query definition
+	const definition = parsed.definitions.find(
+		(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
+	) as graphql.OperationDefinitionNode
+	// if it doesn't exist, there is an error, but no discovered query either
+	if (!definition) {
+		console.log('page.gql must contain a query')
+		return null
+	}
+
+	// generate an import for the store
+	const store_id = store_import({
+		config: ctx.config,
+		artifact: { name: definition.name!.value },
+		program: ctx.program,
+	})
+
+	return {
+		identifier: AST.identifier(store_id),
+		name: definition.name!.value,
+		hasVariables: Boolean(
+			definition.variableDefinitions && definition.variableDefinitions.length > 0
+		),
+	}
 }
 
 function load_hook_statements(
