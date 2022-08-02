@@ -6,7 +6,7 @@ import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 
 test('generates runtime meta data file', async function () {
-	const config = testConfig({ framework: 'sapper', module: 'commonjs' })
+	const config = testConfig()
 	// execute the generator
 	await runPipeline(config, [])
 

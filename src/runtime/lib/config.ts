@@ -55,9 +55,9 @@ export type ConfigFile = {
 	definitionsPath?: string
 
 	/**
-	 * One of "kit", "sapper", or "svelte". Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: kit)
+	 * One of "kit" or "svelte". Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: kit)
 	 */
-	framework?: 'kit' | 'sapper' | 'svelte'
+	framework?: 'kit' | 'svelte'
 
 	/**
 	 * A boolean indicating if the generator should create typescript files or not
@@ -106,7 +106,7 @@ export type ConfigFile = {
 	disableMasking?: boolean
 
 	/**
-	 * The directory containing your project routes. For default Kit and Sapper projects, this
+	 * The directory containing your project routes. For default Kit projects, this
 	 * value is ./src/routes
 	 */
 	routesDir?: string

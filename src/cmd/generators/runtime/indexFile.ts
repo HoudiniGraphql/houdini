@@ -18,7 +18,8 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 	const definitionsDir =
 		'./' + path.relative(config.rootDir, config.definitionsDirectory).split(path.sep).join('/')
 	const configPath = path.relative(config.rootDir, config.filepath).split(path.sep).join('/')
-	// if we are rendering an index file for sapper we need to compile it for commonjs
+
+	// make sure the content uses the correct module system
 	let body = ''
 	if (config.module === 'commonjs') {
 		body = `${cjsIndexFilePreamble}

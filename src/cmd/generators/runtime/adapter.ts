@@ -10,7 +10,6 @@ export default async function generateAdapter(config: Config) {
 
 	// figure out which adapter we need to lay down
 	const adapter = {
-		sapper: sapperAdapter,
 		kit: sveltekitAdapter,
 		svelte: svelteAdapter,
 	}[config.framework]
@@ -18,28 +17,6 @@ export default async function generateAdapter(config: Config) {
 	// write the index file that exports the runtime
 	await writeFile(adapterLocation, adapter)
 }
-
-const sapperAdapter = `import { stores, goto as go } from '@sapper/app'
-import { get } from 'svelte/store';
-
-export function getSession() {
-    return stores().session
-}
-
-export function getPage() {
-	return stores().page
-}
-
-export function goTo(location, options) {
-    go(location, options)
-}
-
-export const isBrowser = process.browser
-
-export const clientStarted = true;
-
-export const isPrerender = false
-`
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
 import { page, session } from '$app/stores';

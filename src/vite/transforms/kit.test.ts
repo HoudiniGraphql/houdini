@@ -252,8 +252,6 @@ describe('query preprocessor', function () {
 			</script>
 		`,
 			{
-				module: 'esm',
-				framework: 'kit',
 				route: true,
 			}
 		)
@@ -302,7 +300,6 @@ describe('query preprocessor', function () {
 			</script>
 		`,
 			{
-				module: 'esm',
 				// if we are in a route but static is set to true, we need to treat the file like a
 				// svelte component
 				route: true,
@@ -328,7 +325,6 @@ describe('query preprocessor', function () {
 			</script>
 		`,
 			{
-				module: 'esm',
 				route: false,
 			}
 		)
@@ -387,7 +383,6 @@ describe('query preprocessor', function () {
 			</script>
 		`,
 			{
-				module: 'esm',
 				route: false,
 			}
 		)

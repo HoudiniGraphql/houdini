@@ -23,7 +23,7 @@ export class Config {
 	sourceGlob: string
 	static?: boolean
 	scalars?: ConfigFile['scalars']
-	framework: 'sapper' | 'kit' | 'svelte' = 'kit'
+	framework: 'kit' | 'svelte' = 'kit'
 	module: 'commonjs' | 'esm' = 'esm'
 	cacheBufferSize?: number
 	defaultCachePolicy: CachePolicy
@@ -119,6 +119,7 @@ export class Config {
 		this.schemaPollInterval = schemaPollInterval
 		this.schemaPollHeaders = schemaPollHeaders
 		this.typescript = typescript
+		this.rootDir = path.join(this.projectRoot, '$houdini')
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -130,14 +131,6 @@ export class Config {
 				...types,
 			}
 		}
-
-		// if we are building a sapper project, we want to put the runtime in
-		// src/node_modules so that we can access @sapper/app and interact
-		// with the application stores directly
-		this.rootDir =
-			framework === 'sapper'
-				? path.join(this.projectRoot, 'src', 'node_modules', '$houdini')
-				: path.join(this.projectRoot, '$houdini')
 	}
 
 	// compute if a path points to a component query or not

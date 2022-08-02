@@ -462,42 +462,21 @@ export class RequestContext {
 		data,
 	}: {
 		variant: 'before' | 'after'
-		framework: 'kit' | 'sapper'
-		hookFn: KitBeforeLoad | KitAfterLoad | SapperBeforeLoad | SapperAfterLoad
+		framework: 'kit'
+		hookFn: KitBeforeLoad | KitAfterLoad
 		input: Record<string, any>
 		data: Record<string, any>
 	}) {
 		// call the onLoad function to match the framework
 		let hookCall
-		if (framework === 'kit') {
-			if (variant === 'before') {
-				hookCall = (hookFn as KitBeforeLoad).call(this, this.loadEvent as BeforeLoadContext)
-			} else {
-				hookCall = (hookFn as KitAfterLoad).call(this, {
-					...this.loadEvent,
-					input,
-					data,
-				} as AfterLoadContext)
-			}
+		if (variant === 'before') {
+			hookCall = (hookFn as KitBeforeLoad).call(this, this.loadEvent as BeforeLoadContext)
 		} else {
-			// sapper
-			if (variant === 'before') {
-				hookCall = (hookFn as SapperBeforeLoad).call(
-					this,
-					// @ts-ignore
-					this.loadEvent,
-					this.loadEvent.session
-				)
-			} else {
-				hookCall = (hookFn as SapperAfterLoad).call(
-					this,
-					// @ts-ignore
-					this.loadEvent,
-					this.loadEvent.session,
-					data,
-					input
-				)
-			}
+			hookCall = (hookFn as KitAfterLoad).call(this, {
+				...this.loadEvent,
+				input,
+				data,
+			} as AfterLoadContext)
 		}
 
 		let result = await hookCall
@@ -515,45 +494,22 @@ export class RequestContext {
 	}
 
 	// compute the inputs for an operation should reflect the framework's conventions.
-	// in sapper, this means preparing a `this` for the function. for kit, we can just pass
-	// the context
 	computeInput({
 		config,
-		framework,
 		variableFunction,
 		artifact,
 	}: {
-		framework: 'kit' | 'sapper'
-		variableFunction: SapperBeforeLoad | KitBeforeLoad
+		variableFunction: KitBeforeLoad
 		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
 		config: ConfigFile
 	}) {
 		// call the variable function to match the framework
-		let input =
-			framework === 'kit'
-				? // in kit just pass the context directly
-				  (variableFunction as KitBeforeLoad).call(this, this.loadEvent)
-				: // we are in sapper mode, so we need to prepare the function context
-				  (variableFunction as SapperBeforeLoad).call(
-						this,
-						// @ts-ignore
-						this.loadEvent,
-						this.loadEvent.session
-				  )
+		let input = variableFunction.call(this, this.loadEvent)
 
 		// and pass page and session
 		return marshalInputs({ artifact, config, input })
 	}
 }
-
-type SapperBeforeLoad = (page: Page, session: LoadEvent['session']) => Record<string, any>
-
-type SapperAfterLoad = (
-	page: Page,
-	session: LoadEvent['session'],
-	data: Record<string, any>,
-	input: Record<string, any>
-) => Record<string, any>
 
 type KitBeforeLoad = (ctx: BeforeLoadContext) => Record<string, any>
 type KitAfterLoad = (ctx: AfterLoadContext) => Record<string, any>

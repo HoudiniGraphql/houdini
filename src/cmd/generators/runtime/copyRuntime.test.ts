@@ -10,7 +10,7 @@ import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 
 test('cache index runtime imports config file - commonjs', async function () {
-	const config = testConfig({ framework: 'sapper', module: 'commonjs' })
+	const config = testConfig({ module: 'commonjs' })
 	// execute the generator
 	await runPipeline(config, [])
 
@@ -43,8 +43,8 @@ test('cache index runtime imports config file - commonjs', async function () {
 	`)
 })
 
-test('cache index runtime imports config file - kit', async function () {
-	const config = testConfig({ module: 'esm', framework: 'kit' })
+test('cache index runtime imports config file - esm', async function () {
+	const config = testConfig({ module: 'esm' })
 	// execute the generator
 	await runPipeline(config, [])
 

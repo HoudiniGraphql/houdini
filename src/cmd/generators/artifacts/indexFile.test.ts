@@ -43,7 +43,7 @@ test('index file - esm', async function () {
 	`)
 })
 
-test('index file - sapper', async function () {
+test('index file - commonjs', async function () {
 	// execute the generator
 	await runPipeline(testConfig({ module: 'commonjs' }), docs)
 

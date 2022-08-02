@@ -72,8 +72,6 @@ export default async function init(
 	// framework
 	if (framework === 'kit') {
 		console.log('✨ SvelteKit')
-	} else if (framework === 'sapper') {
-		console.log('✨ Sapper')
 	} else {
 		console.log('✨ Svelte')
 	}
@@ -97,9 +95,9 @@ export default async function init(
 
 	if (framework === 'sapper') {
 		console.log(
-			'⚠️  Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
+			'❌  Sorry, Houdini no longer supports Sapper. Please downgrade to v0.15.x or migrate to SvelteKit.'
 		)
-		console.log()
+		process.exit(1)
 	}
 
 	// the location for the schema
@@ -207,7 +205,7 @@ const writeConfigFile = async ({
 	targetPath: string
 	configPath: string
 	schemaPath: string
-	framework: 'kit' | 'sapper' | 'svelte'
+	framework: 'kit' | 'svelte'
 	module: 'esm' | 'commonjs'
 	url: string
 	sourceGlob?: string
@@ -232,13 +230,13 @@ const writeConfigFile = async ({
 	const configObj = JSON.stringify(config, null, 4)
 	const content =
 		module === 'esm'
-			? // SvelteKit default config
+			? // ESM default config
 			  `/** @type {import('houdini').ConfigFile} */
 const config = ${configObj}
 
 export default config
 `
-			: // sapper default config
+			: // CommonJS default config
 			  `/** @type {import('houdini').ConfigFile} */
 const config = ${configObj}
 
@@ -288,9 +286,8 @@ async function aliasPaths(targetPath: string) {
 	return false
 }
 
-async function updateLayoutFile(framework: 'kit' | 'sapper', targetPath: string, ts: boolean) {
-	const filename = framework === 'sapper' ? '__layout.svelte' : '+layout.svelte'
-	const layoutFile = path.join(targetPath, 'src', 'routes', filename)
+async function updateLayoutFile(framework: 'kit', targetPath: string, ts: boolean) {
+	const layoutFile = path.join(targetPath, 'src', 'routes', '+layout.svelte')
 
 	const content = `<script context="module" ${ts ? ' lang="ts"' : ''}>
 	import client from '../client'
@@ -477,8 +474,6 @@ async function detectTools(cwd: string): Promise<DetectedTools> {
 	let framework: ConfigFile['framework'] = 'svelte'
 	if (hasDependency('@sveltejs/kit')) {
 		framework = 'kit'
-	} else if (hasDependency('sapper')) {
-		framework = 'sapper'
 	}
 
 	let typescript = false

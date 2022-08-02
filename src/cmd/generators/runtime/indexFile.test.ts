@@ -17,8 +17,8 @@ const docs: CollectedGraphQLDocument[] = [
 	mockCollectedDoc(`fragment TestFragment on User { firstName }`),
 ]
 
-test('runtime index file - sapper', async function () {
-	const config = testConfig({ module: 'commonjs', framework: 'sapper' })
+test('runtime index file - commonjs', async function () {
+	const config = testConfig({ module: 'commonjs' })
 	// execute the generator
 	await runPipeline(config, docs)
 
@@ -56,8 +56,8 @@ test('runtime index file - sapper', async function () {
 	`)
 })
 
-test('runtime index file - kit', async function () {
-	const config = testConfig({ module: 'esm', framework: 'kit' })
+test('runtime index file - esm', async function () {
+	const config = testConfig({ module: 'esm' })
 	// execute the generator
 	await runPipeline(config, docs)
 

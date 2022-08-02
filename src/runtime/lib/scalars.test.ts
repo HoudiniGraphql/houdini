@@ -132,7 +132,6 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -177,7 +176,6 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -204,7 +202,6 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -231,7 +228,6 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -250,7 +246,6 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -273,7 +268,6 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -300,7 +294,6 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -319,7 +312,6 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -338,7 +330,6 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
@@ -357,7 +348,6 @@ describe('marshal inputs', function () {
 		// compute the inputs
 		const inputs = ctx.computeInput({
 			config,
-			framework: 'kit',
 			artifact,
 			variableFunction() {
 				return {
