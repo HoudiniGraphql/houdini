@@ -59,6 +59,9 @@ export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 				return
 			}
 
+			// wait once before starting the loop
+			await sleep(interval)
+
 			// start listening
 			await pullSchema(true)
 		},

@@ -20,13 +20,19 @@ export default async function svelteKitProccessor(config: Config, ctx: Transform
 		return
 	}
 
+	// if we are processing a route component (+page.svelte)
+	if (ctx.config.isRoute(ctx.filepath)) {
+		await process_route_component(ctx)
+	}
 	// if we are processing a route config file (+page.ts)
-	if (ctx.config.isRouteConfigFile(ctx.filepath)) {
-		await query_file(ctx)
+	else if (ctx.config.isRouteConfigFile(ctx.filepath)) {
+		await process_route_config(ctx)
 	}
 }
 
-async function query_file(ctx: TransformContext) {
+async function process_route_component(ctx: TransformContext) {}
+
+async function process_route_config(ctx: TransformContext) {
 	// we need to collect all of the various queries associated with the query file
 	const [page_query, inline_queries, page_stores] = await Promise.all([
 		find_page_query(ctx),

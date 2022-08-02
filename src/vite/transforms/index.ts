@@ -1,15 +1,7 @@
 // externals
 import * as recast from 'recast'
 // locals
-import {
-	Config,
-	findScriptInnerBounds,
-	parseSvelte,
-	parseJS,
-	runPipeline,
-	Transform,
-	ParsedFile,
-} from '../../common'
+import { Config, parseJS, runPipeline, Transform, ParsedFile } from '../../common'
 import { TransformContext } from '../plugin'
 import svelteKitProccessor from './kit'
 import tagProcessor from './tags'
