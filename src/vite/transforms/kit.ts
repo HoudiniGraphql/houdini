@@ -8,7 +8,7 @@ import { parse as parseJS } from '@babel/parser'
 // locals
 import { walk_graphql_tags } from '../walk'
 import { TransformContext } from '../plugin'
-import { Config, readFile, Script } from '../../common'
+import { Config, parseSvelte, readFile, Script } from '../../common'
 import { artifact_import, store_import } from '../imports'
 import { AcornNode } from 'rollup'
 
@@ -33,7 +33,12 @@ async function query_file(config: Config, ctx: TransformContext) {
 	])
 
 	// add the load function to the query file
-	// add_load({ ctx, external_queries: inline_queries.concat(page_query ?? []), page_stores })
+	// add_load({
+	// 	config,
+	// 	ctx,
+	// 	external_queries: inline_queries.concat(page_query ?? []),
+	// 	page_stores,
+	// })
 }
 
 function add_load({
@@ -286,9 +291,11 @@ async function find_inline_queries(config: Config, ctx: TransformContext): Promi
 		return []
 	}
 
+	const parsed = await parseSvelte(contents)
+
 	// look for inline queries
 	// @ts-ignore
-	const deps = await walk_graphql_tags(config, parsed, {
+	const deps = await walk_graphql_tags(config, parsed?.content, {
 		where(tag) {
 			return !!tag.definitions.find(
 				(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
@@ -446,8 +453,6 @@ async function find_page_stores(ctx: TransformContext): Promise<boolean> {
 	if (!module.houdini_load) {
 		return false
 	}
-
-	console.log(module.houdini_load)
 
 	// make sure that houdini_load is a list
 	if (!Array.isArray(module.houdini_load)) {
