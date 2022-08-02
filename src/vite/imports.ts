@@ -1,5 +1,5 @@
 // externals
-import { Program, ImportDeclaration } from 'estree'
+import { ImportDeclaration } from 'estree'
 import * as recast from 'recast'
 // locals
 import { Config, Script } from '../common'
@@ -8,13 +8,13 @@ const AST = recast.types.builders
 
 export function ensure_imports<_Count extends string[] | string>({
 	config,
-	program,
+	script,
 	import: importID,
 	sourceModule,
 	importKind,
 }: {
 	config: Config
-	program: Script
+	script: Script
 	import: _Count
 	sourceModule: string
 	importKind?: 'value' | 'type'
@@ -24,7 +24,7 @@ export function ensure_imports<_Count extends string[] | string>({
 	// figure out the list of things to import
 	const toImport = idList.filter(
 		(identifier) =>
-			!program.content.body.find(
+			!script.content.body.find(
 				(statement) =>
 					statement.type === 'ImportDeclaration' &&
 					((statement as unknown) as ImportDeclaration).specifiers.find(
@@ -43,7 +43,7 @@ export function ensure_imports<_Count extends string[] | string>({
 
 	// add the import if it doesn't exist, add it
 	if (toImport.length > 0) {
-		program.content.body.unshift({
+		script.content.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
 			source: AST.stringLiteral(sourceModule),
@@ -63,17 +63,17 @@ export function ensure_imports<_Count extends string[] | string>({
 export function artifact_import({
 	config,
 	artifact,
-	program,
+	script,
 	local,
 }: {
 	config: Config
 	artifact: { name: string }
-	program: Script
+	script: Script
 	local?: string
 }) {
 	return ensure_imports({
 		config,
-		program,
+		script,
 		sourceModule: config.artifactImportPath(artifact.name),
 		import: local || `_${artifact.name}Artifact`,
 	})
@@ -82,17 +82,17 @@ export function artifact_import({
 export function store_import({
 	config,
 	artifact,
-	program,
+	script,
 	local,
 }: {
 	config: Config
 	artifact: { name: string }
-	program: Script
+	script: Script
 	local?: string
 }) {
 	return ensure_imports({
 		config,
-		program,
+		script,
 		sourceModule: config.storeImportPath(artifact.name),
 		import: [`GQL_${artifact.name}`],
 	})[0]

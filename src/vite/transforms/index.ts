@@ -2,7 +2,7 @@
 import * as recast from 'recast'
 // locals
 import { Config, parseJS, runPipeline, Transform, ParsedFile } from '../../common'
-import { TransformContext } from '../plugin'
+import { TransformPage } from '../plugin'
 import svelteKitProccessor from './kit'
 import tagProcessor from './tags'
 
@@ -10,9 +10,9 @@ const defaultTransforms = [svelteKitProccessor, tagProcessor]
 
 export default async function applyTransforms(
 	config: Config,
-	ctx: Omit<TransformContext, 'program'>,
+	page: Omit<TransformPage, 'script'>,
 	content: string,
-	pipeline: Transform<TransformContext>[] = defaultTransforms
+	pipeline: Transform<TransformPage>[] = defaultTransforms
 ): Promise<{ code: string }> {
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,
@@ -31,9 +31,9 @@ export default async function applyTransforms(
 	}
 
 	// wrap everything up in an object we'll thread through the transforms
-	const result: TransformContext = {
-		...ctx,
-		program: script,
+	const result: TransformPage = {
+		...page,
+		script,
 	}
 
 	// send the scripts through the pipeline
@@ -45,7 +45,7 @@ export default async function applyTransforms(
 	}
 
 	// if we dont have anything to render, we're done
-	if (!result.program) {
+	if (!result.script) {
 		return { code: content }
 	}
 
@@ -53,9 +53,7 @@ export default async function applyTransforms(
 	// content as a string and then replacing everything between the appropriate
 	// script tags. the parser tells us the locations for the different tags so we
 	// just have to replace the indices it tells us to
-	const printedInstance = result.program
-		? (recast.print(result.program.content).code as string)
-		: ''
+	const printedInstance = result.script ? (recast.print(result.script).code as string) : ''
 
 	// just copy the instance where it needs to go
 	return {

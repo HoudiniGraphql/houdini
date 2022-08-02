@@ -62,9 +62,9 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 	}
 }
 
-export interface TransformContext {
+export interface TransformPage {
 	config: Config
-	program: Script
+	script: Script
 	filepath: string
 	addWatchFile: (path: string) => void
 }
