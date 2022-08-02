@@ -107,7 +107,7 @@ export default async function walkTaggedDocuments(
 				// add the imports if they're not there
 				ensureImports({
 					config,
-					body: doc.instance!.content.body,
+					body: doc.instance!.body,
 					import: ['houdiniConfig'],
 					sourceModule: '$houdini',
 				})

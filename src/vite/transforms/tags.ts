@@ -2,12 +2,12 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Config } from '../../common'
 import { store_import } from '../imports'
-import { TransformContext } from '../plugin'
+import { TransformPage } from '../plugin'
 import { walk_graphql_tags } from '../walk'
 
 const AST = recast.types.builders
 
-export default async function transform_gql_tag(config: Config, ctx: TransformContext) {
+export default async function transform_gql_tag(config: Config, ctx: TransformPage) {
 	// @ts-ignore
 	// all graphql template tags need to be turned into a reference to the appropriate store
 	const deps = await walk_graphql_tags(config, ctx.program.content, {
@@ -22,7 +22,7 @@ export default async function transform_gql_tag(config: Config, ctx: TransformCo
 				AST.identifier(
 					store_import({
 						config: config,
-						program: ctx.program,
+						script: ctx.script,
 						artifact: { name: operation.name!.value },
 					})
 				)

@@ -1,9 +1,6 @@
 // locals
 import { getConfig } from '../common'
 import { ConfigFile } from '../runtime'
-import { transform } from '../vite/plugin'
-import { parse } from 'acorn'
-import type { TransformContext } from '../vite/plugin'
 
 /**
  * The houdini processor automates a lot of boilerplate to make inline documents

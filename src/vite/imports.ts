@@ -24,7 +24,7 @@ export function ensure_imports<_Count extends string[] | string>({
 	// figure out the list of things to import
 	const toImport = idList.filter(
 		(identifier) =>
-			!script.content.body.find(
+			!script.body.find(
 				(statement) =>
 					statement.type === 'ImportDeclaration' &&
 					((statement as unknown) as ImportDeclaration).specifiers.find(
@@ -43,7 +43,7 @@ export function ensure_imports<_Count extends string[] | string>({
 
 	// add the import if it doesn't exist, add it
 	if (toImport.length > 0) {
-		script.content.body.unshift({
+		script.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
 			source: AST.stringLiteral(sourceModule),

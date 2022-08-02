@@ -43,28 +43,15 @@ export async function parseSvelte(str: string): Promise<ParsedFile> {
 	const string = str.slice(greaterThanIndex, lessThanIndex)
 
 	// we're done here
-	return {
-		content: parseJavascript(string || '', {
-			plugins: ['typescript'],
-			sourceType: 'module',
-		}).program,
-		start: parsed.instance!.start,
-		// end has to exist to get this far
-		end: parsed.instance!.end! - 1,
-	}
+	return parseJS(string)
 }
 
 export async function parseJS(str: string): Promise<ParsedFile> {
 	// we're done here
-	return {
-		content: parseJavascript(str || '', {
-			plugins: ['typescript'],
-			sourceType: 'module',
-		}).program,
-		start: 0,
-		// end has to exist to get this far
-		end: str.length - 1,
-	}
+	return parseJavascript(str || '', {
+		plugins: ['typescript'],
+		sourceType: 'module',
+	}).program
 }
 
 export function findScriptInnerBounds({
