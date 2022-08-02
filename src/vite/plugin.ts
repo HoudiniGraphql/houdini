@@ -38,30 +38,32 @@ export default function HoudiniPlugin(config: Config): Plugin {
 		},
 
 		transform(code, filepath) {
-			const ctx: TransformContext = {
+			const ctx = {
 				...this,
 				config,
+				filepath,
 			}
 
-			return transform(ctx, code, filepath)
+			return transform(ctx, code)
 		},
 	}
 }
 
 export interface TransformContext {
 	config: Config
+	program: Program
+	filepath: string
 	parse: (val: string) => AcornNode
 	addWatchFile: (path: string) => void
 }
 
 // we need to process the source files (pulled out to an external file for testing and the preprocessor)
 export async function transform(
-	ctx: TransformContext,
-	code: string,
-	filepath: string
+	ctx: Omit<TransformContext, 'program'>,
+	code: string
 ): Promise<TransformResult> {
 	// if the file is not in our configured source path, we need to ignore it
-	if (!minimatch(filepath, path.join(process.cwd(), ctx.config.sourceGlob))) {
+	if (!minimatch(ctx.filepath, path.join(process.cwd(), ctx.config.sourceGlob))) {
 		return
 	}
 
@@ -71,13 +73,13 @@ export async function transform(
 		meta: {},
 		ast,
 	}
+	const context: TransformContext = {
+		...ctx,
+		program: (result.ast! as unknown) as Program,
+	}
 
 	// turn any graphql tags into stores
-	const dependencies = await transform_gql_tag(
-		ctx.config,
-		filepath,
-		(result.ast! as unknown) as Program
-	)
+	const dependencies = await transform_gql_tag(context)
 
 	// make sure we actually watch the dependencies
 	for (const dep of dependencies) {
@@ -85,8 +87,8 @@ export async function transform(
 	}
 
 	// if we are processing a route config file
-	if (ctx.config.framework === 'kit' && ctx.config.isRouteConfigFile(filepath)) {
-		svelteKitProccessor(ctx, filepath, (result.ast! as unknown) as Program)
+	if (ctx.config.framework === 'kit') {
+		svelteKitProccessor(context)
 	}
 
 	return {
@@ -95,13 +97,9 @@ export async function transform(
 	}
 }
 
-async function transform_gql_tag(
-	config: Config,
-	filepath: string,
-	code: Program
-): Promise<string[]> {
+async function transform_gql_tag(ctx: TransformContext): Promise<string[]> {
 	// look for
-	return await walk_graphql_tags(config, code!, {
+	return await walk_graphql_tags(ctx.config, ctx.program, {
 		tag(tag) {
 			// pull out what we need
 			const { node, parsedDocument, parent } = tag
@@ -112,8 +110,8 @@ async function transform_gql_tag(
 			node.replaceWith(
 				AST.identifier(
 					store_import({
-						config: config,
-						program: code,
+						config: ctx.config,
+						program: ctx.program,
 						artifact: { name: operation.name!.value },
 					})
 				)

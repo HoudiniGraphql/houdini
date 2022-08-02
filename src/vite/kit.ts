@@ -5,78 +5,36 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 import { StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
+import { Identifier } from 'estree'
 // locals
 import { walk_graphql_tags } from './walk'
 import { TransformContext } from './plugin'
-import { Config } from '../common'
+import { Config, readFile } from '../common'
 import { artifact_import, store_import } from './imports'
 
 const AST = recast.types.builders
 
-export default async function svelteKitProccessor(
-	ctx: TransformContext,
-	filepath: string,
-	program: Program
-) {
-	// in order to know what we need to do here, we need to know if our
-	// corresponding page component defined any inline queries
-	const page_path = ctx.config.routePagePath(filepath)
-
-	// ideally we could just use ctx.load and look at the module's metadata
-	// but vite doesn't support that: https://github.com/vitejs/vite/issues/6810
-
-	// until that is fixed, we'll have to read the file directly and parse it separately
-	// to find any inline queries
-
-	const route_queries: DiscoveredGraphQLTag[] = []
-	try {
-		const contents = await fs.readFile(page_path, 'utf-8')
-
-		// look for inline queries
-		const deps = await walk_graphql_tags(ctx.config, ctx.parse(contents), {
-			where(tag) {
-				return !!tag.definitions.find(
-					(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
-				)
-			},
-			tag(tag) {
-				// if the graphql tag was inside of a call expression, we need to assume that it's a
-				// part of an inline document. if the operation is a query, we need to add it to the list
-				// so that the load function can have the correct contents
-				const { parsedDocument, parent } = tag
-				const operation = parsedDocument.definitions[0] as graphql.ExecutableDefinitionNode
-				if (
-					operation.kind === 'OperationDefinition' &&
-					operation.operation === 'query' &&
-					parent.type === 'CallExpression'
-				) {
-					route_queries.push({
-						name: operation.name!.value,
-						variables: Boolean(
-							operation.variableDefinitions &&
-								operation.variableDefinitions?.length > 0
-						),
-					})
-				}
-			},
-		})
-
-		// make sure we are watching all of the new deps
-		for (const dep of deps) {
-			ctx.addWatchFile(dep)
-		}
-	} catch {}
-
-	// add a load function for every query found
-	add_load(ctx.config, program, route_queries)
+export default async function svelteKitProccessor(ctx: TransformContext) {
+	// if we are processing a route config file (+page.ts)
+	if (ctx.config.isRouteConfigFile(ctx.filepath)) {
+		await query_file(ctx)
+	}
 }
 
-function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTag[]) {
+async function query_file(ctx: TransformContext) {
+	// we need to collect all of the various queries associated with the query file
+	const [page_query, inline] = await Promise.all([find_page_query(ctx), find_inline_queries(ctx)])
+
+	// add a load function for every query found
+	add_load({ ctx, inline })
+}
+
+function add_load({ ctx, inline }: { ctx: TransformContext; inline: LocalQuery[] }) {
 	// the queries we have to fetch come from multiple places
 
 	// look for any hooks
-	let before_load = find_exported_fn(program, 'beforeLoad')
-	let after_load = find_exported_fn(program, 'afterLoad')
+	let before_load = find_exported_fn(ctx.program, 'beforeLoad')
+	let after_load = find_exported_fn(ctx.program, 'afterLoad')
 
 	// the name of the variable
 	const request_context = AST.identifier('_houdini_context')
@@ -103,7 +61,7 @@ function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTa
 									AST.identifier('props')
 								)
 							),
-							...queries.map((query) => {
+							...inline.map((query) => {
 								const identifier = AST.identifier(key_variables(query))
 
 								return AST.objectProperty(identifier, identifier)
@@ -118,7 +76,7 @@ function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTa
 	preload_fn.async = true
 
 	// export the function from the module
-	program.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
+	ctx.program.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
 
 	const return_value = AST.memberExpression(request_context, AST.identifier('returnValue'))
 
@@ -142,12 +100,12 @@ function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTa
 	insert_index++
 
 	// only split into promise and await if there are multiple queries
-	const needs_promise = queries.length > 1
+	const needs_promise = inline.length > 1
 	// a list of statements to await the query promises and check the results for errors
 	const awaits_and_checks: StatementKind[] = []
 
 	// every query that we found needs to be triggered in this function
-	for (const query of queries) {
+	for (const query of inline) {
 		let next_index = insert_index
 
 		// figure out the local variable that holds the result
@@ -157,8 +115,12 @@ function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTa
 		const variable_id = key_variables(query)
 
 		// make sure we've imported the artifact
-		const artifact_id = artifact_import({ config: config, artifact: query, program })
-		const store_id = store_import({ config: config, artifact: query, program })
+		const artifact_id = artifact_import({
+			config: ctx.config,
+			artifact: query,
+			program: ctx.program,
+		})
+		const store_id = store_import({ config: ctx.config, artifact: query, program: ctx.program })
 
 		// add a local variable right before the return statement
 		preload_fn.body.body.splice(
@@ -167,7 +129,7 @@ function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTa
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier(variable_id),
-					query.variables
+					query.hasVariables
 						? AST.callExpression(
 								AST.memberExpression(
 									request_context,
@@ -181,7 +143,7 @@ function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTa
 										),
 										AST.objectProperty(
 											AST.literal('framework'),
-											AST.stringLiteral(config.framework)
+											AST.stringLiteral(ctx.config.framework)
 										),
 										AST.objectProperty(
 											AST.literal('variableFunction'),
@@ -199,7 +161,7 @@ function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTa
 			])
 		)
 
-		if (query.variables) {
+		if (query.hasVariables) {
 			preload_fn.body.body.splice(
 				next_index++,
 				0,
@@ -269,7 +231,7 @@ function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTa
 
 	// add calls to user before/after load functions
 	if (before_load || after_load) {
-		let context = [request_context, config, queries] as const
+		let context = [request_context, ctx.config, inline] as const
 
 		if (before_load) {
 			preload_fn.body.body.splice(
@@ -285,11 +247,84 @@ function add_load(config: Config, program: Program, queries: DiscoveredGraphQLTa
 	}
 }
 
+async function find_inline_queries(ctx: TransformContext): Promise<LocalQuery[]> {
+	// build up a list of the queries we run into
+	const queries: {
+		name: string
+		variables: boolean
+	}[] = []
+
+	// ideally we could just use ctx.load and look at the module's metadata
+	// but vite doesn't support that: https://github.com/vitejs/vite/issues/6810
+
+	// until that is fixed, we'll have to read the file directly and parse it separately
+	// to find any inline queries
+
+	// in order to know what we need to do here, we need to know if our
+	// corresponding page component defined any inline queries
+	const page_path = ctx.config.routePagePath(ctx.filepath)
+
+	// read the page path and if it doesn't exist, there aren't any inline queries
+	const contents = await readFile(page_path)
+	if (!contents) {
+		return []
+	}
+
+	// look for inline queries
+	const deps = await walk_graphql_tags(ctx.config, ctx.parse(contents), {
+		where(tag) {
+			return !!tag.definitions.find(
+				(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
+			)
+		},
+		tag(tag) {
+			// if the graphql tag was inside of a call expression, we need to assume that it's a
+			// part of an inline document. if the operation is a query, we need to add it to the list
+			// so that the load function can have the correct contents
+			const { parsedDocument, parent } = tag
+			const operation = parsedDocument.definitions[0] as graphql.ExecutableDefinitionNode
+			if (
+				operation.kind === 'OperationDefinition' &&
+				operation.operation === 'query' &&
+				parent.type === 'CallExpression'
+			) {
+				queries.push({
+					name: operation.name!.value,
+					variables: Boolean(
+						operation.variableDefinitions && operation.variableDefinitions?.length > 0
+					),
+				})
+			}
+		},
+	})
+
+	// make sure we are watching all of the new deps
+	for (const dep of deps) {
+		ctx.addWatchFile(dep)
+	}
+
+	return queries.map((query) => {
+		// we need to make sure that we have reference to the store
+		// for every query
+		const storeID = store_import({ config: ctx.config, artifact: query, program: ctx.program })
+
+		return {
+			identifier: AST.identifier(storeID),
+			name: query.name,
+			hasVariables: query.variables,
+		}
+	})
+}
+
+async function find_page_query(ctx: TransformContext): Promise<LocalQuery> {
+	return {}
+}
+
 function load_hook_statements(
 	name: 'beforeLoad' | 'afterLoad',
 	request_context: namedTypes.Identifier,
 	config: Config,
-	queries: DiscoveredGraphQLTag[]
+	queries: LocalQuery[]
 ) {
 	return [
 		AST.expressionStatement(
@@ -328,7 +363,7 @@ function load_hook_statements(
 	]
 }
 
-function afterLoadQueryInput(queries: DiscoveredGraphQLTag[]) {
+function afterLoadQueryInput(queries: LocalQuery[]) {
 	return AST.objectExpression(
 		queries.map((query) =>
 			AST.objectProperty(AST.literal(query.name), AST.identifier(key_variables(query)))
@@ -336,7 +371,7 @@ function afterLoadQueryInput(queries: DiscoveredGraphQLTag[]) {
 	)
 }
 
-function after_load_data(queries: DiscoveredGraphQLTag[]) {
+function after_load_data(queries: LocalQuery[]) {
 	return AST.objectExpression(
 		queries.map((query) =>
 			AST.objectProperty(
@@ -371,7 +406,4 @@ function find_exported_fn(body: Program, name: string): ExportNamedDeclaration |
 	) as ExportNamedDeclaration
 }
 
-type DiscoveredGraphQLTag = {
-	name: string
-	variables: boolean
-}
+type LocalQuery = { identifier: Identifier; name: string; hasVariables: boolean }

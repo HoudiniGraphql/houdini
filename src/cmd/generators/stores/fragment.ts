@@ -1,9 +1,8 @@
 // externals
 import path from 'path'
 // locals
-import { Config } from '../../../common'
+import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { writeFile } from '../../utils'
 import pagination from './pagination'
 
 export async function generateFragmentStore(config: Config, doc: CollectedGraphQLDocument) {
@@ -26,7 +25,7 @@ ${
 		: `import _PaginationArtifact from '${config.artifactImportPath(
 				config.paginationQueryName(doc.name)
 		  )}'`
-} 
+}
 
 export const ${storeName} = fragmentStore({
     artifact,

@@ -3,9 +3,8 @@ import path from 'path'
 import fs from 'fs/promises'
 import { fileURLToPath } from 'url'
 // locals
-import { Config } from '../../../common'
+import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { writeFile } from '../../utils'
 import generateAdapter from './adapter'
 
 // @ts-ignore

@@ -1,8 +1,7 @@
 import * as graphql from 'graphql'
 import path from 'path'
-import { Config } from '../../../common'
+import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { writeFile } from '../../utils'
 import pagination from './pagination'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {

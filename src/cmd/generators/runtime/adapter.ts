@@ -2,8 +2,7 @@
 import path from 'path'
 import fs from 'fs/promises'
 // local imports
-import { Config } from '../../../common'
-import { writeFile } from '../../utils'
+import { Config, writeFile } from '../../../common'
 
 export default async function generateAdapter(config: Config) {
 	// the location of the adapter
@@ -37,7 +36,7 @@ export function goTo(location, options) {
 
 export const isBrowser = process.browser
 
-export const clientStarted = true; 
+export const clientStarted = true;
 
 export const isPrerender = false
 `

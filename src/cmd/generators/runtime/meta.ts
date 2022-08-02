@@ -1,8 +1,5 @@
-// externals
-import path from 'path'
 // locals
-import { Config } from '../../../common'
-import { writeFile } from '../../utils'
+import { Config, writeFile } from '../../../common'
 
 export default async function metaGenerator(config: Config) {
 	const meta = {

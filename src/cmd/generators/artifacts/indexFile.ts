@@ -2,9 +2,9 @@
 import * as recast from 'recast'
 import path from 'path'
 // locals
-import { Config } from '../../../common'
+import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { cjsIndexFilePreamble, exportDefaultFrom, writeFile } from '../../utils'
+import { cjsIndexFilePreamble, exportDefaultFrom } from '../../utils'
 
 export default async function writeIndexFile(config: Config, docs: CollectedGraphQLDocument[]) {
 	const docsToGenerate = docs

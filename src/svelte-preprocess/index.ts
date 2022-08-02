@@ -26,14 +26,15 @@ export default function houdiniPreprocessor(
 			}
 
 			// build up the necessary context to run the vite transform
-			const pluginContext: TransformContext = {
+			const pluginContext = {
 				config,
+				filepath: filename,
 				parse: (val: string) => parse(val, { ecmaVersion: 'latest' }),
 				addWatchFile: () => {},
 			}
 
 			// apply the transform pipeline
-			return await transform(pluginContext, content, filename)
+			return await transform(pluginContext, content)
 		},
 	}
 }

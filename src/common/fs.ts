@@ -1,5 +1,11 @@
 import fs from 'fs/promises'
-import { readFile } from './readFile'
+
+export async function readFile(path: string) {
+	try {
+		return await fs.readFile(path, 'utf8')
+	} catch (error) {}
+	return null
+}
 
 export async function writeFile(path: string, data: string) {
 	const existingFileData = await readFile(path)

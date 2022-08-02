@@ -3,10 +3,8 @@ import { getIntrospectionQuery } from 'graphql'
 import inquirer from 'inquirer'
 import fetch from 'node-fetch'
 import path from 'path'
-import { getConfig, LogLevel } from '../common'
+import { readFile, writeFile } from '../common'
 import { ConfigFile } from '../runtime'
-import generate from './generate'
-import { readFile, writeFile } from './utils'
 import { writeSchema } from './utils/writeSchema'
 
 // the init command is responsible for scaffolding a few files
@@ -164,7 +162,7 @@ export default async function init(
 	console.log('🎩 Welcome to Houdini!')
 	console.log(`
 👉 Next Steps
-1️⃣  Finalize your installation: npm/yarn/pnpm install 
+1️⃣  Finalize your installation: npm/yarn/pnpm install
 2️⃣  Start your application: npm run dev
 `)
 }
@@ -518,7 +516,7 @@ async function updateFile({
 		// show a message before we prompt their response
 		console.log()
 		console.log(`⚠️  ${relPath} already exists. We'd like to replace it with:
-	
+
 ${content}`)
 
 		// ask the user if we should continue

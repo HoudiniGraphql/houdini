@@ -4,8 +4,14 @@ import { CollectedGraphQLDocument } from '../../types'
 import * as recast from 'recast'
 import fs from 'fs/promises'
 // locals
-import { Config, getRootType, hashDocument, parentTypeFromAncestors } from '../../../common'
-import { moduleExport, writeFile } from '../../utils'
+import {
+	Config,
+	getRootType,
+	hashDocument,
+	parentTypeFromAncestors,
+	writeFile,
+} from '../../../common'
+import { moduleExport } from '../../utils'
 import selection from './selection'
 import { operationsByPath, FilterMap } from './operations'
 import writeIndexFile from './indexFile'
