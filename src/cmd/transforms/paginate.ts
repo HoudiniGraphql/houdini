@@ -1,10 +1,11 @@
 // externals
-import * as graphql from 'graphql'
 import { Config, parentTypeFromAncestors } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'
 // locals
 import { CollectedGraphQLDocument, RefetchUpdateMode } from '../types'
 import { unwrapType, wrapType } from '../utils'
+import { getAndVerifyNodeInterface } from '../validators/typeCheck'
+import * as graphql from 'graphql'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination
 // to be embedded in the query that will be used to fetch additional data. That means it
