@@ -2832,6 +2832,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/memory-fs@npm:^0.3.3":
+  version: 0.3.3
+  resolution: "@types/memory-fs@npm:0.3.3"
+  dependencies:
+    "@types/node": "*"
+  checksum: 57442f78c612c241ab99137d62029693faff7a36a1cbab0cc5d07c5efb700f8c0daf92b4bc9f55913f78aeb586082cc5f882bb4b8f73b7af3ce6240b34a8c4e0
+  languageName: node
+  linkType: hard
+
 "@types/minimatch@npm:*":
   version: 3.0.5
   resolution: "@types/minimatch@npm:3.0.5"
@@ -4911,6 +4920,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"errno@npm:^0.1.3":
+  version: 0.1.8
+  resolution: "errno@npm:0.1.8"
+  dependencies:
+    prr: ~1.0.1
+  bin:
+    errno: cli.js
+  checksum: 1271f7b9fbb3bcbec76ffde932485d1e3561856d21d847ec613a9722ee924cdd4e523a62dc71a44174d91e898fe21fdc8d5b50823f4b5e0ce8c35c8271e6ef4a
+  languageName: node
+  linkType: hard
+
 "error-ex@npm:^1.3.1":
   version: 1.3.2
   resolution: "error-ex@npm:1.3.2"
@@ -6053,6 +6073,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fs-monkey@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "fs-monkey@npm:1.0.3"
+  checksum: cf50804833f9b88a476911ae911fe50f61a98d986df52f890bd97e7262796d023698cb2309fa9b74fdd8974f04315b648748a0a8ee059e7d5257b293bfc409c0
+  languageName: node
+  linkType: hard
+
 "fs.realpath@npm:^1.0.0":
   version: 1.0.0
   resolution: "fs.realpath@npm:1.0.0"
@@ -6620,6 +6647,7 @@ __metadata:
     "@types/glob": ^7.2.0
     "@types/inquirer": ^7.3.1
     "@types/jest": ^26.0.23
+    "@types/memory-fs": ^0.3.3
     "@types/mock-fs": ^4.13.0
     "@types/node-fetch": ^2.6.1
     babel-jest: ^26.6.3
@@ -6636,6 +6664,8 @@ __metadata:
     inquirer: ^8.2.2
     install: ^0.13.0
     jest: ^26.6.3
+    memfs: ^3.4.7
+    memory-fs: ^0.5.0
     minimatch: ^5.1.0
     mkdirp: ^1.0.4
     mock-fs: ^4.13.0
@@ -8592,6 +8622,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"memfs@npm:^3.4.7":
+  version: 3.4.7
+  resolution: "memfs@npm:3.4.7"
+  dependencies:
+    fs-monkey: ^1.0.3
+  checksum: fab88266dc576dc4999e38bdf531d703fb798affac2e0dd3fc17470878486844027b2766008ba80c0103b443f52cf9068a5c00f4e1ecf04106f4b29c11855822
+  languageName: node
+  linkType: hard
+
+"memory-fs@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "memory-fs@npm:0.5.0"
+  dependencies:
+    errno: ^0.1.3
+    readable-stream: ^2.0.1
+  checksum: a9f25b0a8ecfb7324277393f19ef68e6ba53b9e6e4b526bbf2ba23055c5440fbf61acc7bf66bfd980e9eb4951a4790f6f777a9a3abd36603f22c87e8a64d3d6b
+  languageName: node
+  linkType: hard
+
 "meow@npm:^6.0.0":
   version: 6.1.1
   resolution: "meow@npm:6.1.1"
@@ -10085,6 +10134,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prr@npm:~1.0.1":
+  version: 1.0.1
+  resolution: "prr@npm:1.0.1"
+  checksum: 3bca2db0479fd38f8c4c9439139b0c42dcaadcc2fbb7bb8e0e6afaa1383457f1d19aea9e5f961d5b080f1cfc05bfa1fe9e45c97a1d3fd6d421950a73d3108381
+  languageName: node
+  linkType: hard
+
 "pseudomap@npm:^1.0.2":
   version: 1.0.2
   resolution: "pseudomap@npm:1.0.2"
@@ -10226,7 +10282,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"readable-stream@npm:^2.0.6":
+"readable-stream@npm:^2.0.1, readable-stream@npm:^2.0.6":
   version: 2.3.7
   resolution: "readable-stream@npm:2.3.7"
   dependencies:

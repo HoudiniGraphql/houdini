@@ -1,11 +1,10 @@
 // external imports
 import path from 'path'
-import fs from 'fs/promises'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import * as recast from 'recast'
 import { ProgramKind } from 'ast-types/gen/kinds'
 // local imports
-import { testConfig } from '../../../common'
+import { readFile, testConfig } from '../../../common'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { CollectedGraphQLDocument } from '../../types'
@@ -25,9 +24,9 @@ test('generates runtime defintions for each enum', async function () {
 	await runPipeline(config, [])
 
 	// load the contents of the type definitions file
-	let fileContents = await fs.readFile(path.join(config.enumTypesDefinitionsPath), 'utf-8')
+	let fileContents = await readFile(path.join(config.enumTypesDefinitionsPath))
 	expect(fileContents).toBeTruthy()
-	let parsedQuery: ProgramKind = recast.parse(fileContents.toString(), {
+	let parsedQuery: ProgramKind = recast.parse(fileContents!.toString(), {
 		parser: typeScriptParser,
 	}).program
 
@@ -44,10 +43,10 @@ test('generates runtime defintions for each enum', async function () {
 	`)
 
 	// load the contents of the type definitions file
-	fileContents = await fs.readFile(path.join(config.enumRuntimeDefinitionsPath), 'utf-8')
+	fileContents = await readFile(path.join(config.enumRuntimeDefinitionsPath))
 
 	expect(fileContents).toBeTruthy()
-	parsedQuery = recast.parse(fileContents.toString(), {
+	parsedQuery = recast.parse(fileContents!.toString(), {
 		parser: typeScriptParser,
 	}).program
 

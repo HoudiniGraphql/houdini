@@ -1,11 +1,10 @@
 // external imports
 import path from 'path'
-import fs from 'fs/promises'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
-import { testConfig } from '../../../common'
+import { readFile, testConfig } from '../../../common'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { CollectedGraphQLDocument } from '../../types'
@@ -23,10 +22,10 @@ test('runtime index file - commonjs', async function () {
 	await runPipeline(config, docs)
 
 	// open up the index file
-	const queryContents = await fs.readFile(path.join(config.rootDir, 'index.js'), 'utf-8')
+	const queryContents = await readFile(path.join(config.rootDir, 'index.js'))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -47,7 +46,7 @@ test('runtime index file - commonjs', async function () {
 		};
 		Object.defineProperty(exports, "__esModule", { value: true });
 
-		var houdiniConfig = require("../../../config.cjs");
+		var houdiniConfig = require("../config.cjs");
 		Object.defineProperty(exports, "houdiniConfig", { enumerable: true, get: function () { return __importDefault(houdiniConfig).default; } });
 
 		__exportStar(require("./runtime"), exports);
@@ -62,10 +61,10 @@ test('runtime index file - esm', async function () {
 	await runPipeline(config, docs)
 
 	// open up the index file
-	const queryContents = await fs.readFile(path.join(config.rootDir, 'index.js'), 'utf-8')
+	const queryContents = await readFile(path.join(config.rootDir, 'index.js'))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents

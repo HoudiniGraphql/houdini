@@ -1,7 +1,5 @@
-// external imports
-import fs from 'fs/promises'
 // local imports
-import { testConfig } from '../../../common'
+import { readFile, testConfig } from '../../../common'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 
@@ -11,7 +9,7 @@ test('generates runtime meta data file', async function () {
 	await runPipeline(config, [])
 
 	// open up the index file
-	const fileContents = await fs.readFile(config.metaFilePath, 'utf-8')
+	const fileContents = await readFile(config.metaFilePath)
 
 	expect(fileContents).toBeTruthy()
 	// verify contents

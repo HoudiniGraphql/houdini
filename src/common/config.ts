@@ -10,6 +10,7 @@ import * as url from 'url'
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib/types'
 import { KitConfig } from '@sveltejs/kit'
+import { readFile } from './fs'
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -591,7 +592,7 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 
 		return mergeSchemas({
 			typeDefs: await Promise.all(
-				sourceFiles.map(async (filepath) => fs.readFile(filepath, 'utf-8'))
+				sourceFiles.map(async (filepath) => (await readFile(filepath))!)
 			),
 		})
 	}
@@ -601,7 +602,7 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 		throw new Error(`Schema file does not exist! Create it using houdini generate -p`)
 	}
 
-	const contents = await fs.readFile(schemaPath, 'utf-8')
+	const contents = (await readFile(schemaPath))!
 
 	// if the schema points to an sdl file
 	if (schemaPath.endsWith('gql') || schemaPath.endsWith('graphql')) {

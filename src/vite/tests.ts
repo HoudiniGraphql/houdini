@@ -1,10 +1,8 @@
 // external imports
-import * as svelte from 'svelte/compiler'
 import path from 'path'
-import fs from 'fs/promises'
 import * as recast from 'recast'
 // local imports
-import { ParsedFile, parseJS, parseSvelte, Script, testConfig } from '../common'
+import { ParsedFile, parseJS, parseSvelte, Script, testConfig, writeFile } from '../common'
 import { ConfigFile } from '../runtime'
 import runTransforms from './transforms'
 
@@ -41,9 +39,9 @@ export async function routeTest({
 
 	// write the content
 	await Promise.all([
-		fs.writeFile(filepath, component, 'utf-8'),
-		fs.writeFile(config.routeDataPath(filepath), script, 'utf-8'),
-		fs.writeFile(config.pageQueryPath(filepath), query, 'utf-8'),
+		writeFile(filepath, component),
+		writeFile(config.routeDataPath(filepath), script),
+		writeFile(config.pageQueryPath(filepath), query),
 	])
 
 	// we want to run the transformer on both the component and script paths
@@ -87,7 +85,7 @@ export async function componentTest(
 	const filepath = path.join(process.cwd(), 'src/lib', 'component.svelte')
 
 	// write the content
-	await Promise.all([fs.writeFile(filepath, content, 'utf-8')])
+	await Promise.all([writeFile(filepath, content)])
 
 	// we want to run the transformer on both the component and script paths
 	const result = await runTransforms(

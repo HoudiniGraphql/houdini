@@ -1,16 +1,15 @@
 // external imports
 import path, { parse } from 'path'
-import fs from 'fs/promises'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
 import { testConfig } from '../../../common'
+import * as fs from '../../../common/fs'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
-import { readFile, stat } from 'fs/promises'
 
 // the config to use in tests
 const config = testConfig()
@@ -40,10 +39,10 @@ test('basic store', async function () {
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
 
 	// parse the contents
-	const parsed = recast.parse(contents, {
+	const parsed = recast.parse(contents!, {
 		parser: typeScriptParser,
 	}).program
 
@@ -87,10 +86,10 @@ test('forward cursor pagination', async function () {
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
 
 	// parse the contents
-	const parsed = recast.parse(contents, {
+	const parsed = recast.parse(contents!, {
 		parser: typeScriptParser,
 	}).program
 
@@ -134,10 +133,10 @@ test('backwards cursor pagination', async function () {
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
 
 	// parse the contents
-	const parsed = recast.parse(contents, {
+	const parsed = recast.parse(contents!, {
 		parser: typeScriptParser,
 	}).program
 
@@ -177,10 +176,10 @@ test('offset pagination', async function () {
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
 
 	// parse the contents
-	const parsed = recast.parse(contents, {
+	const parsed = recast.parse(contents!, {
 		parser: typeScriptParser,
 	}).program
 
@@ -225,6 +224,6 @@ test('does not generate pagination store', async function () {
 	await runPipeline(config, docs)
 
 	await expect(
-		stat(path.join(config.storesDirectory, config.paginationQueryName('TestQuery') + '.js'))
+		fs.stat(path.join(config.storesDirectory, config.paginationQueryName('TestQuery') + '.js'))
 	).rejects.toBeTruthy()
 })

@@ -1,10 +1,9 @@
 const recast = require('recast')
 const graphql = require('graphql')
-const mockFs = require('mock-fs')
 const path = require('path')
 const { toMatchInlineSnapshot } = require('jest-snapshot')
-const fs = require('fs/promises')
 const typeScriptParser = require('recast/parsers/typescript')
+const { readFile, clearMock } = require('./src/common/fs')
 
 process.env.TEST = 'true'
 
@@ -37,9 +36,13 @@ expect.extend({
 
 		// assuming that the value we were given is a collected document, figure
 		// out the path holding the artifact
-		const artifactPath = path.join('$houdini/artifacts', documentName(value.document) + '.js')
+		const artifactPath = path.join(
+			process.cwd(),
+			'$houdini/artifacts',
+			documentName(value.document) + '.js'
+		)
 
-		const artifactContents = await fs.readFile(artifactPath, 'utf-8')
+		const artifactContents = await readFile(artifactPath, 'utf-8')
 
 		// parse the contents
 		const parsed = recast.parse(artifactContents, {
@@ -49,29 +52,10 @@ expect.extend({
 		return toMatchInlineSnapshot.call(this, parsed, ...rest)
 	},
 })
-
-beforeEach(() => {
-	mockFs({
-		// make sure we can read and write to the runtime directory
-		$houdini: {
-			artifacts: {},
-			runtime: {},
-			stores: {},
-		},
-
-		// the runtime generator copies files relative to import.meta.url. we need our tests
-		// to point to the same file structure that will exist
-		[`build/runtime-esm`]: mockFs.load(path.resolve('build', 'runtime-esm')),
-		[`build/runtime-cjs`]: mockFs.load(path.resolve('build', 'runtime-cjs')),
-
-		// the plugin tests need files that live in the route directory
-		['src/routes']: {},
-		['src/lib']: {},
-	})
-})
-
 // make sure the runtime directory is clear before each test
-afterEach(mockFs.restore)
+afterEach(() => {
+	clearMock()
+})
 
 function documentName(document) {
 	// if there is an operation in the document

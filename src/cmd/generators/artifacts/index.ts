@@ -2,13 +2,13 @@
 import * as graphql from 'graphql'
 import { CollectedGraphQLDocument } from '../../types'
 import * as recast from 'recast'
-import fs from 'fs/promises'
 // locals
 import {
 	Config,
 	getRootType,
 	hashDocument,
 	parentTypeFromAncestors,
+	readFile,
 	writeFile,
 } from '../../../common'
 import { moduleExport } from '../../utils'
@@ -300,10 +300,8 @@ export default function artifactGenerator(stats: {
 					const countDocument = doc.generateStore
 
 					// check if the file exists (indicating a new document)
-					let existingArtifact = ''
-					try {
-						existingArtifact = await fs.readFile(artifactPath, 'utf-8')
-					} catch (e) {
+					let existingArtifact = await readFile(artifactPath)
+					if (existingArtifact === null) {
 						if (countDocument) {
 							stats.new.push(artifact.name)
 						}
@@ -318,7 +316,7 @@ export default function artifactGenerator(stats: {
 					}
 
 					// check if the artifact exists
-					const match = existingArtifact.match(/"HoudiniHash=(\w+)"/)
+					const match = existingArtifact && existingArtifact.match(/"HoudiniHash=(\w+)"/)
 					if (match && match[1] !== hashDocument(doc.originalString)) {
 						stats.changed.push(artifact.name)
 					}

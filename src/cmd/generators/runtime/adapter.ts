@@ -1,6 +1,5 @@
 // external imports
 import path from 'path'
-import fs from 'fs/promises'
 // local imports
 import { Config, writeFile } from '../../../common'
 

@@ -37,7 +37,7 @@ async function process_route_config(page: TransformPage) {
 	const [page_query, inline_queries] = await Promise.all([
 		find_page_query(page),
 		find_inline_queries(page),
-		find_page_stores(page),
+		// find_page_stores(page),
 	])
 
 	// add the load function to the query file

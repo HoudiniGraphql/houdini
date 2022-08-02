@@ -1,11 +1,10 @@
 // external imports
 import path from 'path'
-import fs from 'fs/promises'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
-import { testConfig } from '../../../common'
+import { readFile, testConfig } from '../../../common'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 
@@ -15,19 +14,16 @@ test('cache index runtime imports config file - commonjs', async function () {
 	await runPipeline(config, [])
 
 	// open up the index file
-	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'cache', 'index.js'),
-		'utf-8'
-	)
+	const fileContents = await readFile(path.join(config.runtimeDirectory, 'cache', 'index.js'))
 
 	expect(fileContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(fileContents, {
+	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		var config = require('../../../../../config.cjs');
+		var config = require('../../../config.cjs');
 		Object.defineProperty(exports, "__esModule", { value: true });
 		const cache_1 = require("./cache");
 		let cache;
@@ -49,13 +45,10 @@ test('cache index runtime imports config file - esm', async function () {
 	await runPipeline(config, [])
 
 	// open up the index file
-	const fileContents = await fs.readFile(
-		path.join(config.runtimeDirectory, 'cache', 'index.js'),
-		'utf-8'
-	)
+	const fileContents = await readFile(path.join(config.runtimeDirectory, 'cache', 'index.js'))
 	expect(fileContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(fileContents, {
+	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents

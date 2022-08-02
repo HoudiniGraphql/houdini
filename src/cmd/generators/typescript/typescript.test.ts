@@ -1,9 +1,8 @@
 // external imports
-import fs from 'fs/promises'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
-import { testConfig } from '../../../common'
+import { readFile, testConfig } from '../../../common'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
@@ -104,11 +103,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -139,11 +138,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -173,11 +172,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -208,11 +207,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -240,11 +239,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -280,11 +279,11 @@ describe('typescript', function () {
 		await runPipeline(config, [queryDoc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(queryDoc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(queryDoc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -317,11 +316,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -370,11 +369,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -430,11 +429,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -489,11 +488,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -551,10 +550,10 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// read the type index file
-		const fileContents = await fs.readFile(config.typeIndexPath, 'utf-8')
+		const fileContents = await readFile(config.typeIndexPath)
 
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -576,11 +575,11 @@ describe('typescript', function () {
 		await runPipeline(config, [query, fragment])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -618,11 +617,11 @@ describe('typescript', function () {
 		await runPipeline(withoutMasking, [query, fragment])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -669,11 +668,11 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -721,11 +720,11 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -774,11 +773,11 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -831,11 +830,11 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -898,11 +897,11 @@ describe('typescript', function () {
 		await runPipeline(localConfig, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -962,11 +961,11 @@ describe('typescript', function () {
 		await runPipeline(localConfig, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -1013,11 +1012,11 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -1059,11 +1058,11 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -1131,11 +1130,11 @@ describe('typescript', function () {
 		await runPipeline(unmaskedConfig, docs)
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(docs[1].document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(docs[1].document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`

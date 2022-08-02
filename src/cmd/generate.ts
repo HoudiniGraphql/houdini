@@ -1,7 +1,6 @@
 // externals
 import glob from 'glob'
 import * as svelte from 'svelte/compiler'
-import fs from 'fs/promises'
 import * as graphql from 'graphql'
 import { promisify } from 'util'
 import { parse as parseJS } from '@babel/parser'
@@ -14,6 +13,7 @@ import {
 	LogLevel,
 	walkTaggedDocuments,
 	TransformDocument,
+	readFile,
 } from '../common'
 import { CollectedGraphQLDocument, ArtifactKind, HoudiniErrorTodo } from './types'
 import * as transforms from './transforms'
@@ -60,8 +60,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	// the last version the runtime was generated with
 	let previousVersion = ''
 	try {
-		const content = JSON.parse(await fs.readFile(config.metaFilePath, 'utf-8'))
-		previousVersion = content.version
+		const content = await readFile(config.metaFilePath)
+		if (content) {
+			previousVersion = JSON.parse(content).version
+		}
 	} catch {}
 
 	// if the previous version is different from the current version
@@ -173,7 +175,10 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	await Promise.all(
 		sourceFiles.map(async (filepath) => {
 			// read the file
-			const contents = await fs.readFile(filepath, 'utf-8')
+			const contents = await readFile(filepath)
+			if (!contents) {
+				return
+			}
 
 			// if the file ends with .svelte, we need to look for graphql template tags
 			if (filepath.endsWith('.svelte')) {

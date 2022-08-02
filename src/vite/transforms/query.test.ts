@@ -1,3 +1,5 @@
+test.skip('keep me', function () {})
+
 // test('non-route page - no variables', async function () {
 // 	const route = await preprocessorTest(
 // 		`

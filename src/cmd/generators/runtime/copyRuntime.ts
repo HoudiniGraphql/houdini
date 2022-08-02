@@ -1,9 +1,9 @@
 // externals
 import path from 'path'
-import fs from 'fs/promises'
 import { fileURLToPath } from 'url'
 // locals
-import { Config, writeFile } from '../../../common'
+import { Config } from '../../../common'
+import * as fs from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
 import generateAdapter from './adapter'
 
@@ -69,15 +69,19 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 				const cacheIndexPath = path.join(config.runtimeDirectory, 'cache', 'index.js')
 
 				// if the child is a directory
-				if ((await fs.lstat(childPath)).isDirectory()) {
+				if ((await fs.stat(childPath)).isDirectory()) {
 					// keep walking down
 					await recursiveCopy(config, childPath, parentDir, true)
 				}
 				// the child is a file, copy it to the parent directory
 				else {
 					const targetPath = path.join(parentDir, child)
+					// Do not write `/runtime/adapter.js` file. It will be generated later depending on the framework.
+					if (targetPath.endsWith('/runtime/adapter.js')) {
+						return
+					}
 
-					let contents = await fs.readFile(childPath, 'utf-8')
+					let contents = await fs.readFile(childPath)
 
 					// if we are writing to the cache index file, modify the contents
 					if (isCacheIndex) {
@@ -91,13 +95,10 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 							(config.module === 'esm'
 								? `import config from "${relativePath}"\n`
 								: `var config = require('${relativePath}');`) +
-							contents.replace('"use strict";', '')
+							(contents || '').replace('"use strict";', '')
 					}
 
-					// Do not write `/runtime/adapter.js` file. It will be generated later depending on the framework.
-					if (!targetPath.endsWith('/runtime/adapter.js')) {
-						await writeFile(targetPath, contents)
-					}
+					await fs.writeFile(targetPath, contents || '')
 				}
 			})
 		)

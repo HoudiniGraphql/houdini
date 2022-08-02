@@ -27,7 +27,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result).toMatchInlineSnapshot(`undefined`)
+		expect(result).toMatchInlineSnapshot(`null`)
 	})
 
 	test('happy path - only module', async () => {
@@ -39,7 +39,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result).toMatchInlineSnapshot(`undefined`)
+		expect(result).toMatchInlineSnapshot(`null`)
 	})
 
 	test('happy path - only instance', async () => {
@@ -63,7 +63,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result).toMatchInlineSnapshot(`undefined`)
+		expect(result).toMatchInlineSnapshot(`null`)
 	})
 
 	test('happy path - typescript', async () => {
@@ -75,7 +75,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result).toMatchInlineSnapshot(`undefined`)
+		expect(result).toMatchInlineSnapshot(`null`)
 	})
 
 	test('nested script block', async () => {
@@ -90,7 +90,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result).toMatchInlineSnapshot(`undefined`)
+		expect(result).toMatchInlineSnapshot(`null`)
 	})
 
 	test('script next to html', async () => {
@@ -119,7 +119,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result).toMatchInlineSnapshot(`undefined`)
+		expect(result).toMatchInlineSnapshot(`null`)
 	})
 
 	test("logic in template doesn't break things", async () => {
@@ -137,7 +137,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result).toMatchInlineSnapshot(`undefined`)
+		expect(result).toMatchInlineSnapshot(`null`)
 	})
 
 	test('self-closing tags', async () => {
@@ -194,7 +194,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result).toMatchInlineSnapshot(`undefined`)
+		expect(result).toMatchInlineSnapshot(`null`)
 	})
 
 	test('expression in content', async () => {
@@ -209,7 +209,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result).toMatchInlineSnapshot(`undefined`)
+		expect(result).toMatchInlineSnapshot(`null`)
 	})
 
 	test('expression attribute', async () => {
@@ -237,7 +237,7 @@ describe('parser tests', () => {
 		// parse the string
 		const result = await parseSvelte(doc)
 
-		expect(result).toMatchInlineSnapshot(`undefined`)
+		expect(result).toMatchInlineSnapshot(`null`)
 	})
 
 	test('tabs to end tags', async () => {
