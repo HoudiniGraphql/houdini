@@ -1,6 +1,5 @@
 // externals
 import { Program, ExportNamedDeclaration } from 'estree'
-import fs from 'fs/promises'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
@@ -25,7 +24,10 @@ async function query_file(ctx: TransformContext) {
 	// we need to collect all of the various queries associated with the query file
 	const external_queries = (await Promise.all([find_page_query(ctx), find_inline_queries(ctx)]))
 		.flat()
-		.filter((val) => val !== null) as LocalQuery[]
+		.filter(Boolean) as LoadQuery[]
+
+	// extract the page store values
+	const page_stores = await find_page_stores(ctx)
 
 	// add a load function for every query found
 	add_load({ ctx, external_queries })
@@ -36,10 +38,8 @@ function add_load({
 	external_queries,
 }: {
 	ctx: TransformContext
-	external_queries: LocalQuery[]
+	external_queries: LoadQuery[]
 }) {
-	// the queries we have to fetch come from multiple places
-
 	// look for any hooks
 	let before_load = find_exported_fn(ctx.program, 'beforeLoad')
 	let after_load = find_exported_fn(ctx.program, 'afterLoad')
@@ -255,7 +255,7 @@ function add_load({
 	}
 }
 
-async function find_inline_queries(ctx: TransformContext): Promise<LocalQuery[]> {
+async function find_inline_queries(ctx: TransformContext): Promise<LoadQuery[]> {
 	// build up a list of the queries we run into
 	const queries: {
 		name: string
@@ -324,7 +324,7 @@ async function find_inline_queries(ctx: TransformContext): Promise<LocalQuery[]>
 	})
 }
 
-async function find_page_query(ctx: TransformContext): Promise<LocalQuery | null> {
+async function find_page_query(ctx: TransformContext): Promise<LoadQuery | null> {
 	// figure out the filepath for the page query
 	const page_query_path = ctx.config.pageQueryPath(ctx.filepath)
 
@@ -367,7 +367,7 @@ function load_hook_statements(
 	name: 'beforeLoad' | 'afterLoad',
 	request_context: namedTypes.Identifier,
 	config: Config,
-	queries: LocalQuery[]
+	queries: LoadQuery[]
 ) {
 	return [
 		AST.expressionStatement(
@@ -406,7 +406,7 @@ function load_hook_statements(
 	]
 }
 
-function afterLoadQueryInput(queries: LocalQuery[]) {
+function afterLoadQueryInput(queries: LoadQuery[]) {
 	return AST.objectExpression(
 		queries.map((query) =>
 			AST.objectProperty(AST.literal(query.name), AST.identifier(key_variables(query)))
@@ -414,7 +414,7 @@ function afterLoadQueryInput(queries: LocalQuery[]) {
 	)
 }
 
-function after_load_data(queries: LocalQuery[]) {
+function after_load_data(queries: LoadQuery[]) {
 	return AST.objectExpression(
 		queries.map((query) =>
 			AST.objectProperty(
@@ -427,6 +427,8 @@ function after_load_data(queries: LocalQuery[]) {
 		)
 	)
 }
+
+async function find_page_stores(ctx: TransformContext) {}
 
 function key_preload_payload(operation: { name: string }): string {
 	return `_${operation.name}`
@@ -449,4 +451,4 @@ function find_exported_fn(body: Program, name: string): ExportNamedDeclaration |
 	) as ExportNamedDeclaration
 }
 
-type LocalQuery = { identifier: Identifier; name: string; hasVariables: boolean }
+type LoadQuery = { identifier: Identifier; name: string; hasVariables: boolean }
