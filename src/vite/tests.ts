@@ -2,8 +2,9 @@
 import * as svelte from 'svelte/compiler'
 import path from 'path'
 import fs from 'fs/promises'
+import * as recast from 'recast'
 // local imports
-import { ParsedFile, parseJS, Script, testConfig } from '../common'
+import { ParsedFile, parseJS, parseSvelte, Script, testConfig } from '../common'
 import { ConfigFile } from '../runtime'
 import runTransforms from './transforms'
 
@@ -54,7 +55,8 @@ export async function routeTest({
 				filepath,
 				addWatchFile: () => {},
 			},
-			component
+			// the component transforms happen on the script content only
+			recast.prettyPrint((await parseSvelte(component))!).code
 		),
 		runTransforms(
 			config,

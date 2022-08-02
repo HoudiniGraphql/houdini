@@ -34,7 +34,7 @@ async function process_route_component(page: TransformPage) {}
 
 async function process_route_config(page: TransformPage) {
 	// we need to collect all of the various queries associated with the query file
-	const [page_query, inline_queries, page_stores] = await Promise.all([
+	const [page_query, inline_queries] = await Promise.all([
 		find_page_query(page),
 		find_inline_queries(page),
 		find_page_stores(page),
@@ -44,7 +44,7 @@ async function process_route_config(page: TransformPage) {
 	add_load({
 		page,
 		external_queries: inline_queries.concat(page_query ?? []),
-		page_stores,
+		page_stores: false,
 	})
 }
 
@@ -102,7 +102,7 @@ function add_load({
 
 	// @ts-ignore
 	// export the function from the module
-	page.program.content.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
+	page.script.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
 
 	const return_value = AST.memberExpression(request_context, AST.identifier('returnValue'))
 
@@ -303,8 +303,7 @@ async function find_inline_queries(page: TransformPage): Promise<LoadQuery[]> {
 	const parsed = await parseSvelte(contents)
 
 	// look for inline queries
-	// @ts-ignore
-	const deps = await walk_graphql_tags(config, parsed?.content, {
+	const deps = await walk_graphql_tags(page.config, parsed, {
 		where(tag) {
 			return !!tag.definitions.find(
 				(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
@@ -459,7 +458,13 @@ function after_load_data(queries: LoadQuery[]) {
 
 async function find_page_stores(page: TransformPage): Promise<boolean> {
 	// let's check for existence by importing the file
-	const mod = await import(page.filepath)
+	let mod: any
+	try {
+		mod = await import(page.filepath)
+	} catch {
+		return false
+	}
+
 	const module = mod.default || mod
 
 	// if there are no page stores we're done

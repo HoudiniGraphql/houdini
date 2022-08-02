@@ -3,10 +3,10 @@ import * as recast from 'recast'
 // locals
 import { Config, parseJS, runPipeline, Transform, ParsedFile } from '../../common'
 import { TransformPage } from '../plugin'
-import svelteKitProccessor from './kit'
+import svelteKitProcessor from './kit'
 import tagProcessor from './tags'
 
-const defaultTransforms = [svelteKitProccessor, tagProcessor]
+const defaultTransforms = [svelteKitProcessor, tagProcessor]
 
 export default async function applyTransforms(
 	config: Config,
@@ -22,6 +22,7 @@ export default async function applyTransforms(
 	try {
 		script = await parseJS(content)
 	} catch (e) {
+		console.log(e, content)
 		return { code: content }
 	}
 

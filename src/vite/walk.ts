@@ -5,7 +5,7 @@ import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kind
 import recast from 'recast'
 import { BaseNode } from 'estree'
 // locals
-import { Config, Script } from '../common'
+import { Config, ParsedFile, Script } from '../common'
 import {
 	CompiledDocumentKind,
 	CompiledFragmentKind,
@@ -38,12 +38,13 @@ type GraphqlTagWalker = {
 // yield the tagged graphql documents contained within the provided AST
 export async function walk_graphql_tags(
 	config: Config,
-	parsedScript: Program,
+	parsedScript: ParsedFile,
 	walker: GraphqlTagWalker
 ): Promise<string[]> {
 	const dependencies: string[] = []
 
-	await asyncWalk(parsedScript, {
+	// @ts-ignore
+	await asyncWalk(parsedScript!, {
 		async enter(node, parent) {
 			// if we are looking at the graphql template tag
 			if (

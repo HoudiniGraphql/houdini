@@ -19,8 +19,37 @@ describe('kit route processor', function () {
 		})
 
 		// make sure we added the right stuff
-		expect(route.component).toMatchInlineSnapshot()
-		expect(route.script).toMatchInlineSnapshot()
+		expect(route.component).toMatchInlineSnapshot(`
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+
+		const {
+		    data
+		} = query(GQL_TestQuery);
+	`)
+		expect(route.script).toMatchInlineSnapshot(`
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+
+		export async function load(context) {
+		    const houdini_context = new request_context(context);
+		    const TestQuery_Input = {};
+
+		    const TestQuery = await GQL_TestQuery.fetch({
+		        "variables": TestQuery_Input,
+		        "event": context,
+		        "blocking": false
+		    });
+
+		    return {
+		        ...houdini_context.returnValue,
+
+		        props: {
+		            ...houdini_context.returnValue.props,
+		            TestQuery_Input: TestQuery_Input
+		        }
+		    };
+		}
+	`)
 	})
 
 	test("existing loads aren't modified", async function () {
@@ -70,8 +99,56 @@ describe('kit route processor', function () {
 		})
 
 		// make sure we added the right stuff
-		expect(route.component).toMatchInlineSnapshot()
-		expect(route.script).toMatchInlineSnapshot()
+		expect(route.component).toMatchInlineSnapshot(`
+		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
+		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
+
+		const {
+		    data: data1
+		} = query(GQL_TestQuery1);
+
+		const {
+		    data: data2
+		} = query(GQL_TestQuery2);
+	`)
+		expect(route.script).toMatchInlineSnapshot(`
+		import _TestQuery2Artifact from "$houdini/artifacts/TestQuery2";
+		import _TestQuery1Artifact from "$houdini/artifacts/TestQuery1";
+		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
+		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
+
+		export async function load(context) {
+		    const houdini_context = new request_context(context);
+		    const TestQuery2_Input = {};
+
+		    const TestQuery2Promise = GQL_TestQuery2.fetch({
+		        "variables": TestQuery2_Input,
+		        "event": context,
+		        "blocking": false
+		    });
+
+		    const TestQuery1_Input = {};
+
+		    const TestQuery1Promise = GQL_TestQuery1.fetch({
+		        "variables": TestQuery1_Input,
+		        "event": context,
+		        "blocking": false
+		    });
+
+		    const TestQuery2 = await TestQuery2Promise;
+		    const TestQuery1 = await TestQuery1Promise;
+
+		    return {
+		        ...houdini_context.returnValue,
+
+		        props: {
+		            ...houdini_context.returnValue.props,
+		            TestQuery1_Input: TestQuery1_Input,
+		            TestQuery2_Input: TestQuery2_Input
+		        }
+		    };
+		}
+	`)
 	})
 
 	test('compute variables', async function () {
