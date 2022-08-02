@@ -1,11 +1,11 @@
 // externals
-import * as graphql from 'graphql'
 import { Config, parentTypeFromAncestors } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'
 // locals
 import { CollectedGraphQLDocument, RefetchUpdateMode } from '../types'
 import { unwrapType, wrapType } from '../utils'
 import { getAndVerifyNodeInterface } from '../validators/typeCheck'
+import * as graphql from 'graphql'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination
 // to be embedded in the query that will be used to fetch additional data. That means it
@@ -289,7 +289,7 @@ export default async function paginate(
 			// figure out the 'target' type of the refetch
 			let targetType = config.schema.getQueryType()?.name || ''
 			if (fragment) {
-				const nodeInterface = getAndVerifyNodeInterface(config)
+				const nodeInterface = config.schema.getType('Node') as graphql.GraphQLInterfaceType
 				if (nodeInterface) {
 					const { objects, interfaces } = config.schema.getImplementations(nodeInterface)
 
