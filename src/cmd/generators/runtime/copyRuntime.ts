@@ -13,12 +13,16 @@ const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.ur
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
 	// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
-	const relative = process.env.TEST ? '../../../../' : '../'
+	const relative = process.env.TEST
+		? path.join(currentDir, '../../../../')
+		: // TODO: it's very possible this breaks someones setup. the old version walked up from currentDir
+		  // there isn't a consistent number of steps up anymore since the vite plugin and cmd live at different depths
+		  // a better approach could be to start at current dir and walk up until we find a `houdini` dir
+		  path.join(path.dirname(config.filepath), 'node_modules', 'houdini')
 
 	// we want to copy the typescript source code for the templates and then compile the files according
 	// to the requirements of the platform
 	const source = path.resolve(
-		currentDir,
 		relative,
 		'build',
 		config.module === 'esm' ? 'runtime-esm' : 'runtime-cjs'

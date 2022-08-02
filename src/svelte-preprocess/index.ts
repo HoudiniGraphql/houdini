@@ -1,7 +1,7 @@
 // locals
 import { getConfig } from '../common'
 import { ConfigFile } from '../runtime'
-import { transform } from '../vite/plugin'
+import transform from '../vite/transforms'
 import { parse } from 'acorn'
 import type { TransformContext } from '../vite/plugin'
 
@@ -29,12 +29,11 @@ export default function houdiniPreprocessor(
 			const pluginContext = {
 				config,
 				filepath: filename,
-				parse: (val: string) => parse(val, { ecmaVersion: 'latest' }),
 				addWatchFile: () => {},
 			}
 
 			// apply the transform pipeline
-			return await transform(pluginContext, content)
+			return await transform(config, pluginContext, content)
 		},
 	}
 }

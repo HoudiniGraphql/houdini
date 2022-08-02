@@ -5,7 +5,7 @@ import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kind
 import recast from 'recast'
 import { BaseNode } from 'estree'
 // locals
-import { Config } from '../common'
+import { Config, Script } from '../common'
 import {
 	CompiledDocumentKind,
 	CompiledFragmentKind,
@@ -13,6 +13,8 @@ import {
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
 } from '../runtime/lib/types'
+
+type Program = ReturnType<typeof recast.types.builders['program']>
 
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
@@ -36,7 +38,7 @@ type GraphqlTagWalker = {
 // yield the tagged graphql documents contained within the provided AST
 export async function walk_graphql_tags(
 	config: Config,
-	parsedScript: BaseNode,
+	parsedScript: Program,
 	walker: GraphqlTagWalker
 ): Promise<string[]> {
 	const dependencies: string[] = []

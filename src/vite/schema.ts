@@ -4,16 +4,18 @@ import { Plugin } from 'vite'
 import path from 'path'
 import glob from 'glob'
 // locals
-import { Config } from '../common'
+import { getConfig } from '../common'
 import { writeSchema } from '../cmd/utils'
 
-export default function HoudiniWatchSchemaPlugin(config: Config): Plugin {
+export default function HoudiniWatchSchemaPlugin(): Plugin {
 	let interval_id: NodeJS.Timeout | null = null
 
 	return {
 		name: 'houdini-watch-schema',
 		apply: 'serve',
 		async buildStart() {
+			const config = await getConfig()
+
 			// validate the config
 
 			// if there's no api url set, there's nothing to poll

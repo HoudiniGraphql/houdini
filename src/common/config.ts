@@ -531,7 +531,12 @@ export class Config {
 	}
 
 	pageQueryPath(filename: string) {
-		return filename.replace('+page.js', 'page.gql').replace('+page.ts', 'page.gql')
+		const pageFileName = 'page.gql'
+
+		return filename
+			.replace('+page.js', pageFileName)
+			.replace('+page.ts', pageFileName)
+			.replace('+page.svelte', pageFileName)
 	}
 }
 

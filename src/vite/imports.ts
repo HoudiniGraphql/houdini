@@ -2,7 +2,7 @@
 import { Program, ImportDeclaration } from 'estree'
 import * as recast from 'recast'
 // locals
-import { Config } from '../common'
+import { Config, Script } from '../common'
 
 const AST = recast.types.builders
 
@@ -14,7 +14,7 @@ export function ensure_imports<_Count extends string[] | string>({
 	importKind,
 }: {
 	config: Config
-	program: Program
+	program: Script
 	import: _Count
 	sourceModule: string
 	importKind?: 'value' | 'type'
@@ -24,10 +24,10 @@ export function ensure_imports<_Count extends string[] | string>({
 	// figure out the list of things to import
 	const toImport = idList.filter(
 		(identifier) =>
-			!program.body.find(
+			!program.content.body.find(
 				(statement) =>
 					statement.type === 'ImportDeclaration' &&
-					(statement as ImportDeclaration).specifiers.find(
+					((statement as unknown) as ImportDeclaration).specifiers.find(
 						(importSpecifier) =>
 							(importSpecifier.type === 'ImportSpecifier' &&
 								importSpecifier.imported.type === 'Identifier' &&
@@ -43,7 +43,7 @@ export function ensure_imports<_Count extends string[] | string>({
 
 	// add the import if it doesn't exist, add it
 	if (toImport.length > 0) {
-		program.body.unshift({
+		program.content.body.unshift({
 			type: 'ImportDeclaration',
 			// @ts-ignore
 			source: AST.stringLiteral(sourceModule),
@@ -68,7 +68,7 @@ export function artifact_import({
 }: {
 	config: Config
 	artifact: { name: string }
-	program: Program
+	program: Script
 	local?: string
 }) {
 	return ensure_imports({
@@ -87,7 +87,7 @@ export function store_import({
 }: {
 	config: Config
 	artifact: { name: string }
-	program: Program
+	program: Script
 	local?: string
 }) {
 	return ensure_imports({

@@ -4,7 +4,7 @@ import { glob } from 'glob'
 import path from 'path'
 import util from 'util'
 // local imports
-import { getConfig, LogLevel, readConfigFile } from '../common'
+import { formatErrors, getConfig, LogLevel, readConfigFile } from '../common'
 import { ConfigFile } from '../runtime'
 import generate from './generate'
 import init from './init'
@@ -108,21 +108,11 @@ program
 				// we need an array of errors to loop through
 				const errors = (Array.isArray(e) ? e : [e]) as HoudiniError[]
 
-				for (const error of errors) {
-					// if we have filepath, show that to the user
-					if ('filepath' in error) {
-						console.error(`❌ Encountered error in ${error.filepath}`)
-						console.error(error.message)
-					} else {
-						console.error(`❌ ${error.message}`)
-						if ('description' in error) {
-							console.error(`${error.description}`)
-						}
-					}
+				formatErrors(errors, function (error) {
 					if (args.verbose && 'stack' in error && error.stack) {
 						console.error(error.stack.split('\n').slice(1).join('\n'))
 					}
-				}
+				})
 			}
 		}
 	)

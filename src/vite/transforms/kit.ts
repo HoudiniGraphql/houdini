@@ -1,44 +1,51 @@
 // externals
-import { Program, ExportNamedDeclaration } from 'estree'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import { StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Identifier } from 'estree'
+import { parse as parseJS } from '@babel/parser'
 // locals
-import { walk_graphql_tags } from './walk'
-import { TransformContext } from './plugin'
-import { Config, readFile } from '../common'
-import { artifact_import, store_import } from './imports'
+import { walk_graphql_tags } from '../walk'
+import { TransformContext } from '../plugin'
+import { Config, readFile, Script } from '../../common'
+import { artifact_import, store_import } from '../imports'
+import { AcornNode } from 'rollup'
 
 const AST = recast.types.builders
 
-export default async function svelteKitProccessor(ctx: TransformContext) {
+type Program = ReturnType<typeof recast.types.builders['program']>
+type ExportNamedDeclaration = ReturnType<typeof recast.types.builders['exportNamedDeclaration']>
+
+export default async function svelteKitProccessor(config: Config, ctx: TransformContext) {
 	// if we are processing a route config file (+page.ts)
-	if (ctx.config.isRouteConfigFile(ctx.filepath)) {
-		await query_file(ctx)
+	if (config.isRouteConfigFile(ctx.filepath)) {
+		await query_file(config, ctx)
 	}
 }
 
-async function query_file(ctx: TransformContext) {
+async function query_file(config: Config, ctx: TransformContext) {
 	// we need to collect all of the various queries associated with the query file
-	const external_queries = (await Promise.all([find_page_query(ctx), find_inline_queries(ctx)]))
-		.flat()
-		.filter(Boolean) as LoadQuery[]
+	const [page_query, inline_queries, page_stores] = await Promise.all([
+		find_page_query(config, ctx),
+		find_inline_queries(config, ctx),
+		find_page_stores(ctx),
+	])
 
-	// extract the page store values
-	const page_stores = await find_page_stores(ctx)
-
-	// add a load function for every query found
-	add_load({ ctx, external_queries })
+	// add the load function to the query file
+	// add_load({ ctx, external_queries: inline_queries.concat(page_query ?? []), page_stores })
 }
 
 function add_load({
+	config,
 	ctx,
 	external_queries,
+	page_stores,
 }: {
+	config: Config
 	ctx: TransformContext
 	external_queries: LoadQuery[]
+	page_stores: boolean
 }) {
 	// look for any hooks
 	let before_load = find_exported_fn(ctx.program, 'beforeLoad')
@@ -83,8 +90,9 @@ function add_load({
 	// mark the function as async
 	preload_fn.async = true
 
+	// @ts-ignore
 	// export the function from the module
-	ctx.program.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
+	ctx.program.content.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
 
 	const return_value = AST.memberExpression(request_context, AST.identifier('returnValue'))
 
@@ -124,11 +132,11 @@ function add_load({
 
 		// make sure we've imported the artifact
 		const artifact_id = artifact_import({
-			config: ctx.config,
+			config: config,
 			artifact: query,
 			program: ctx.program,
 		})
-		const store_id = store_import({ config: ctx.config, artifact: query, program: ctx.program })
+		const store_id = store_import({ config: config, artifact: query, program: ctx.program })
 
 		// add a local variable right before the return statement
 		preload_fn.body.body.splice(
@@ -137,7 +145,7 @@ function add_load({
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier(variable_id),
-					query.hasVariables
+					query.has_variables
 						? AST.callExpression(
 								AST.memberExpression(
 									request_context,
@@ -151,7 +159,7 @@ function add_load({
 										),
 										AST.objectProperty(
 											AST.literal('framework'),
-											AST.stringLiteral(ctx.config.framework)
+											AST.stringLiteral(config.framework)
 										),
 										AST.objectProperty(
 											AST.literal('variableFunction'),
@@ -169,7 +177,7 @@ function add_load({
 			])
 		)
 
-		if (query.hasVariables) {
+		if (query.has_variables) {
 			preload_fn.body.body.splice(
 				next_index++,
 				0,
@@ -239,7 +247,7 @@ function add_load({
 
 	// add calls to user before/after load functions
 	if (before_load || after_load) {
-		let context = [request_context, ctx.config, external_queries] as const
+		let context = [request_context, config, external_queries] as const
 
 		if (before_load) {
 			preload_fn.body.body.splice(
@@ -255,7 +263,7 @@ function add_load({
 	}
 }
 
-async function find_inline_queries(ctx: TransformContext): Promise<LoadQuery[]> {
+async function find_inline_queries(config: Config, ctx: TransformContext): Promise<LoadQuery[]> {
 	// build up a list of the queries we run into
 	const queries: {
 		name: string
@@ -270,7 +278,7 @@ async function find_inline_queries(ctx: TransformContext): Promise<LoadQuery[]> 
 
 	// in order to know what we need to do here, we need to know if our
 	// corresponding page component defined any inline queries
-	const page_path = ctx.config.routePagePath(ctx.filepath)
+	const page_path = config.routePagePath(ctx.filepath)
 
 	// read the page path and if it doesn't exist, there aren't any inline queries
 	const contents = await readFile(page_path)
@@ -279,7 +287,8 @@ async function find_inline_queries(ctx: TransformContext): Promise<LoadQuery[]> 
 	}
 
 	// look for inline queries
-	const deps = await walk_graphql_tags(ctx.config, ctx.parse(contents), {
+	// @ts-ignore
+	const deps = await walk_graphql_tags(config, parsed, {
 		where(tag) {
 			return !!tag.definitions.find(
 				(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
@@ -314,19 +323,19 @@ async function find_inline_queries(ctx: TransformContext): Promise<LoadQuery[]> 
 	return queries.map((query) => {
 		// we need to make sure that we have reference to the store
 		// for every query
-		const storeID = store_import({ config: ctx.config, artifact: query, program: ctx.program })
+		const storeID = store_import({ config: config, artifact: query, program: ctx.program })
 
 		return {
-			identifier: AST.identifier(storeID),
+			store_identifier: AST.identifier(storeID),
 			name: query.name,
-			hasVariables: query.variables,
+			has_variables: query.variables,
 		}
 	})
 }
 
-async function find_page_query(ctx: TransformContext): Promise<LoadQuery | null> {
+async function find_page_query(config: Config, ctx: TransformContext): Promise<LoadQuery | null> {
 	// figure out the filepath for the page query
-	const page_query_path = ctx.config.pageQueryPath(ctx.filepath)
+	const page_query_path = config.pageQueryPath(ctx.filepath)
 
 	// if the file doesn't exist, we're done
 	const contents = await readFile(page_query_path)
@@ -349,15 +358,15 @@ async function find_page_query(ctx: TransformContext): Promise<LoadQuery | null>
 
 	// generate an import for the store
 	const store_id = store_import({
-		config: ctx.config,
+		config: config,
 		artifact: { name: definition.name!.value },
 		program: ctx.program,
 	})
 
 	return {
-		identifier: AST.identifier(store_id),
+		store_identifier: AST.identifier(store_id),
 		name: definition.name!.value,
-		hasVariables: Boolean(
+		has_variables: Boolean(
 			definition.variableDefinitions && definition.variableDefinitions.length > 0
 		),
 	}
@@ -428,7 +437,27 @@ function after_load_data(queries: LoadQuery[]) {
 	)
 }
 
-async function find_page_stores(ctx: TransformContext) {}
+async function find_page_stores(ctx: TransformContext): Promise<boolean> {
+	// let's check for existence by importing the file
+	const mod = await import(ctx.filepath)
+	const module = mod.default || mod
+
+	// if there are no page stores we're done
+	if (!module.houdini_load) {
+		return false
+	}
+
+	console.log(module.houdini_load)
+
+	// make sure that houdini_load is a list
+	if (!Array.isArray(module.houdini_load)) {
+		console.log('houdini_load must be a list')
+		return false
+	}
+
+	// there is a load
+	return true
+}
 
 function key_preload_payload(operation: { name: string }): string {
 	return `_${operation.name}`
@@ -442,8 +471,8 @@ function query_variable_fn(name: string) {
 	return `${name}Variables`
 }
 
-function find_exported_fn(body: Program, name: string): ExportNamedDeclaration | null {
-	return body.body.find(
+function find_exported_fn(body: Script, name: string): ExportNamedDeclaration | null {
+	return body.content.body.find(
 		(expression) =>
 			expression.type === 'ExportNamedDeclaration' &&
 			expression.declaration?.type === 'FunctionDeclaration' &&
@@ -451,4 +480,4 @@ function find_exported_fn(body: Program, name: string): ExportNamedDeclaration |
 	) as ExportNamedDeclaration
 }
 
-type LoadQuery = { identifier: Identifier; name: string; hasVariables: boolean }
+type LoadQuery = { store_identifier: Identifier; name: string; has_variables: boolean }

@@ -1,11 +1,10 @@
 // external imports
+import * as svelte from 'svelte/compiler'
 import { default as path } from 'path'
-import { parse as parseJS } from '@babel/parser'
 // local imports
 import { testConfig } from '../common'
 import { ConfigFile } from '../runtime'
-import { transform } from './plugin'
-import { parse } from 'acorn'
+import runTransforms from './transforms'
 
 export default async function preprocessorTest(
 	content: string,
@@ -36,14 +35,12 @@ export default async function preprocessorTest(
 		config,
 		filepath: filename,
 		addWatchFile: () => {},
-		parse: (val: string) => parse(val, { ecmaVersion: 'latest' }),
 	}
 
-	const result = await transform(ctx, content)
-	return parseJS(typeof result !== 'string' ? result!.code! : result || '', {
-		plugins: ['typescript'],
-		sourceType: 'module',
-	}).program
+	// run the source through the processor
+	const result = await runTransforms(config, ctx, content)
+
+	return svelte.parse(result.code)
 }
 
 type Partial<T> = {

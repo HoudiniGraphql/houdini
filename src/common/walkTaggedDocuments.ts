@@ -104,19 +104,10 @@ export default async function walkTaggedDocuments(
 				// doing it here ensures that we don't import the config since we can guarantee
 				// that the import only ends up in the module script
 
-				// make sure there is a module script
-				if (!doc.module) {
-					doc.module = {
-						start: 0,
-						end: 0,
-						// @ts-ignore
-						content: AST.program([]),
-					}
-				}
 				// add the imports if they're not there
 				ensureImports({
 					config,
-					body: doc.module!.content.body,
+					body: doc.instance!.content.body,
 					import: ['houdiniConfig'],
 					sourceModule: '$houdini',
 				})

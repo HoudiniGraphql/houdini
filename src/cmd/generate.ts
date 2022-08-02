@@ -9,8 +9,8 @@ import { parse as parseJS } from '@babel/parser'
 import {
 	Config,
 	runPipeline as run,
-	parseFile,
-	ParsedSvelteFile,
+	parseSvelte,
+	ParsedFile,
 	LogLevel,
 	walkTaggedDocuments,
 	TransformDocument,
@@ -230,7 +230,6 @@ async function processJSFile(
 	}
 	const doc: TransformDocument = {
 		instance: { start: 0, end: 0, content: program },
-		module: null,
 		config,
 		dependencies: [],
 		filename: filepath,
@@ -250,9 +249,9 @@ async function processJSFile(
 async function processSvelteFile(filepath: string, contents: string): Promise<DiscoveredDoc[]> {
 	const documents: DiscoveredDoc[] = []
 
-	let parsedFile: ParsedSvelteFile
+	let parsedFile: ParsedFile
 	try {
-		parsedFile = await parseFile(contents)
+		parsedFile = await parseSvelte(contents)
 	} catch (e) {
 		const err = e as Error
 
@@ -261,9 +260,7 @@ async function processSvelteFile(filepath: string, contents: string): Promise<Di
 	}
 
 	// we need to look for multiple script tags to support sveltekit
-	const scripts = [parsedFile.instance, parsedFile.module]
-		.map((script) => (script ? script.content : null))
-		.filter(Boolean) as Program[]
+	const scripts = [parsedFile]
 
 	await Promise.all(
 		scripts.map(async (jsContent) => {
