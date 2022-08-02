@@ -14,7 +14,7 @@ const AST = recast.types.builders
 
 type ExportNamedDeclaration = ReturnType<typeof recast.types.builders['exportNamedDeclaration']>
 
-export default async function svelteKitProccessor(config: Config, page: TransformPage) {
+export default async function svelteKitProcessor(config: Config, page: TransformPage) {
 	// if we aren't running on a kit project, don't do anything
 	if (page.config.framework !== 'kit') {
 		return

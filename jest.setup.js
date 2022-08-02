@@ -52,15 +52,21 @@ expect.extend({
 
 beforeEach(() => {
 	mockFs({
+		// make sure we can read and write to the runtime directory
 		$houdini: {
 			artifacts: {},
 			runtime: {},
 			stores: {},
 		},
+
 		// the runtime generator copies files relative to import.meta.url. we need our tests
-		// to point to the same filestructure that will exist
+		// to point to the same file structure that will exist
 		[`build/runtime-esm`]: mockFs.load(path.resolve('build', 'runtime-esm')),
 		[`build/runtime-cjs`]: mockFs.load(path.resolve('build', 'runtime-cjs')),
+
+		// the plugin tests need files that live in the route directory
+		['src/routes']: {},
+		['src/lib']: {},
 	})
 })
 

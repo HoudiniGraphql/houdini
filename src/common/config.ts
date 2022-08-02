@@ -526,6 +526,14 @@ export class Config {
 		return filename.replace('.js', '.svelte').replace('.ts', '.svelte')
 	}
 
+	isComponent(filename: string) {
+		return (
+			filename.endsWith('.svelte') &&
+			!this.isRouteConfigFile(filename) &&
+			!this.isRoute(filename)
+		)
+	}
+
 	pageQueryPath(filename: string) {
 		const pageFileName = 'page.gql'
 
