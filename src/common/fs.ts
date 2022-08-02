@@ -41,6 +41,7 @@ export async function writeFile(filepath: string, data: string) {
 }
 
 export function clearMock() {
+	vol.reset()
 	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'runtime'))
 	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'stores'))
 	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'artifacts'))
