@@ -229,7 +229,7 @@ async function processJSFile(
 		throw { message: (e as Error).message, filepath }
 	}
 	const doc: TransformDocument = {
-		instance: { start: 0, end: 0, content: program },
+		instance: program,
 		config,
 		dependencies: [],
 		filename: filepath,
