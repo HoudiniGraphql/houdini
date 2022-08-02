@@ -34,7 +34,6 @@ export async function writeFile(filepath: string, data: string) {
 
 	// no mock in tests
 	if (process.env.NODE_ENV === 'test') {
-		memfs.mkdirpSync(path.dirname(filepath))
 		return memfs.writeFileSync(filepath, data)
 	}
 
@@ -42,8 +41,13 @@ export async function writeFile(filepath: string, data: string) {
 }
 
 export function clearMock() {
-	vol.reset()
+	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'runtime'))
+	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'stores'))
+	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'artifacts'))
+	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'graphql'))
+	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'routes'))
 }
+clearMock()
 
 export async function access(filepath: string) {
 	// no mock in production
