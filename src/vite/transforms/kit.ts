@@ -57,6 +57,11 @@ function add_load({
 	external_queries: LoadQuery[]
 	page_stores: boolean
 }) {
+	// if there is already a load function defined, don't do anything
+	if (find_exported_fn(page.script, 'load')) {
+		return
+	}
+
 	// look for any hooks
 	let before_load = find_exported_fn(page.script, 'beforeLoad')
 	let after_load = find_exported_fn(page.script, 'afterLoad')
@@ -259,21 +264,25 @@ function add_load({
 	// add all awaits and checks
 	preload_fn.body.body.splice(-1, 0, ...awaits_and_checks)
 
-	// add calls to user before/after load functions
-	if (before_load || after_load) {
-		let context = [request_context, page.config, external_queries] as const
+	let args = [request_context, page.config, external_queries] as const
 
+	// add calls to user before/after load functions
+	if (before_load) {
 		if (before_load) {
 			preload_fn.body.body.splice(
 				insert_index,
 				0,
-				...load_hook_statements('beforeLoad', ...context)
+				...load_hook_statements('beforeLoad', ...args)
 			)
 		}
+	}
 
-		if (after_load) {
-			preload_fn.body.body.splice(-1, 0, ...load_hook_statements('afterLoad', ...context))
-		}
+	if (after_load) {
+		preload_fn.body.body.splice(
+			preload_fn.body.body.length - 1,
+			0,
+			...load_hook_statements('afterLoad', ...args)
+		)
 	}
 }
 
@@ -418,7 +427,7 @@ function load_hook_statements(
 								? [
 										AST.objectProperty(
 											AST.literal('input'),
-											afterLoadQueryInput(queries)
+											after_load_input(queries)
 										),
 										AST.objectProperty(
 											AST.literal('data'),
@@ -434,7 +443,7 @@ function load_hook_statements(
 	]
 }
 
-function afterLoadQueryInput(queries: LoadQuery[]) {
+function after_load_input(queries: LoadQuery[]) {
 	return AST.objectExpression(
 		queries.map((query) =>
 			AST.objectProperty(AST.literal(query.name), AST.identifier(key_variables(query)))
