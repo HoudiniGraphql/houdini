@@ -207,6 +207,7 @@ export type QueryStore<_Data, _Input, _Extra = {}> = Readable<
 > & {
 	name: string
 	kind: typeof CompiledQueryKind
+	variables: boolean
 
 	/**
 	 * Fetch the data from the server

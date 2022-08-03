@@ -9,6 +9,7 @@ import { walk_graphql_tags } from '../walk'
 import { TransformPage } from '../plugin'
 import { Config, parseSvelte, readFile, Script } from '../../common'
 import { artifact_import, store_import } from '../imports'
+import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
 
 const AST = recast.types.builders
 
@@ -465,12 +466,10 @@ function after_load_data(queries: LoadQuery[]) {
 	)
 }
 
-async function find_page_stores(page: TransformPage): Promise<boolean> {
+async function find_page_stores(page: TransformPage): Promise<PageStoreReference[]> {
 	// if the page has mocked page stores return them
-	if (page.page_stores) {
-		return page.page_stores.length > 0
-	} else if (process.env.NODE_ENV === 'test') {
-		return false
+	if (process.env.NODE_ENV === 'test') {
+		return page.mock_page_stores ?? []
 	}
 
 	// let's check for existence by importing the file
@@ -478,24 +477,54 @@ async function find_page_stores(page: TransformPage): Promise<boolean> {
 	try {
 		mod = await import(page.filepath)
 	} catch {
-		return false
+		return []
 	}
 
-	const module = mod.default || mod
+	const module: { houdini_load?: GraphQLTagResult[]; [key: string]: any } = mod.default || mod
 
 	// if there are no page stores we're done
 	if (!module.houdini_load) {
-		return false
+		return []
 	}
 
 	// make sure that houdini_load is a list
 	if (!Array.isArray(module.houdini_load)) {
 		console.log('houdini_load must be a list')
-		return false
+		return []
+	}
+
+	// build up a list of the referenced stores
+	const stores: PageStoreReference[] = []
+
+	for (const store of module.houdini_load) {
+		// if there is no kind in the value then its not a store reference
+		if (!('kind' in store)) {
+			console.log('you must pass stores to houdini_load')
+			// don't load any stores
+			return []
+		}
+		if (store.kind !== CompiledQueryKind) {
+			console.log('you must pass query stores to houdini_load')
+			// don't load any stores
+			return []
+		}
+
+		// if the store requires variables but the function is not defined we can't continue
+		const variable_fn = query_variable_fn(store.name)
+		if (store.variables && !module[variable_fn]) {
+			console.log('missing variable function. maybe its not exported?')
+			return []
+		}
+
+		// add the store to the list
+		stores.push({
+			name: store.name,
+			variables: !!module[variable_fn],
+		})
 	}
 
 	// there is a load
-	return true
+	return stores
 }
 
 function key_preload_payload(operation: { name: string }): string {
@@ -520,3 +549,8 @@ function find_exported_fn(script: Script, name: string): ExportNamedDeclaration 
 }
 
 type LoadQuery = { store_identifier: Identifier; name: string; has_variables: boolean }
+
+export type PageStoreReference = {
+	name: string
+	variables: boolean
+}

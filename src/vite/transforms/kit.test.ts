@@ -262,9 +262,28 @@ describe('kit route processor', function () {
 				</script>
 			`,
 			script: `
-				export const houdini_load = ['a', 'b']
+				const store1 = graphql\`
+					query MyQuery1 {
+						field
+					}
+				\`
+
+				const store2 = graphql\`
+					query MyQuery2($input: Int) {
+						field(input: $input)
+					}
+				\`
+
+				function MyQuery2Variables() {
+
+				}
+
+				export const houdini_load = [store1, store2]
 			`,
-			page_stores: ['a', 'b'],
+			page_stores: [
+				{ name: 'MyQuery1', variables: false },
+				{ name: 'MyQuery2', variables: true },
+			],
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
@@ -275,9 +294,14 @@ describe('kit route processor', function () {
 		} = query(GQL_TestQuery);
 	`)
 		expect(route.script).toMatchInlineSnapshot(`
+		import { GQL_MyQuery2 } from "$houdini/stores/MyQuery2";
+		import { GQL_MyQuery1 } from "$houdini/stores/MyQuery1";
 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
-		export const houdini_load = ["a", "b"];
+		const store1 = GQL_MyQuery1;
+		const store2 = GQL_MyQuery2;
+		function MyQuery2Variables() {}
+		export const houdini_load = [store1, store2];
 
 		export async function load(context) {
 		    const houdini_context = new request_context(context);

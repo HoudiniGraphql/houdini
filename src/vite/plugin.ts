@@ -8,6 +8,7 @@ import { Config, formatErrors, getConfig, Script } from '../common'
 import { Program } from 'estree'
 import generate from '../cmd/generate'
 import applyTransforms from './transforms'
+import { PageStoreReference } from './transforms/kit'
 
 const AST = recast.types.builders
 
@@ -67,5 +68,5 @@ export interface TransformPage {
 	script: Script
 	filepath: string
 	addWatchFile: (path: string) => void
-	page_stores?: string[]
+	mock_page_stores?: PageStoreReference[]
 }

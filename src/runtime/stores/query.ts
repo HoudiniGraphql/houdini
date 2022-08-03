@@ -53,12 +53,14 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	storeName,
 	paginationMethods,
 	paginated,
+	variables,
 }: {
 	config: ConfigFile
 	artifact: QueryArtifact
 	paginated: boolean
 	storeName: string
 	paginationMethods: (keyof PaginatedHandlers<_Data, _Input>)[]
+	variables: boolean
 }): QueryStore<_Data, _Input> {
 	// at its core, a query store is a writable store with extra methods
 	const data: QueryResultMap<_Data, _Input> = {}
@@ -280,6 +282,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	return {
 		name: artifact.name,
 		kind: CompiledQueryKind,
+		variables,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {
 			// figure out the correct store to subscribe to
 			const session = get(getSession())
