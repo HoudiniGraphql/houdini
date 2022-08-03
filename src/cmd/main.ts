@@ -1,9 +1,8 @@
-// external imports
 import { Command } from 'commander'
 import { glob } from 'glob'
 import path from 'path'
-// local imports
-import { formatErrors, getConfig, LogLevel, readConfigFile } from '../common'
+import { getConfig, LogLevel, readConfigFile } from '../common/config'
+import { formatErrors } from '../common/graphql'
 import type { ConfigFile } from '../runtime/lib/config'
 import generate from './generate'
 import init from './init'

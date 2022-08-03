@@ -1,5 +1,10 @@
 // locals
-import type { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
+import type {
+	GraphQLObject,
+	GraphQLValue,
+	SubscriptionSelection,
+	SubscriptionSpec,
+} from '../lib/types'
 import { computeID, ConfigFile, deepEquals, keyFieldsForType } from '../lib'
 import { defaultConfigValues } from '../lib/config'
 import { GarbageCollector } from './gc'

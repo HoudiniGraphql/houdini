@@ -1,8 +1,8 @@
 // externals
 import graphql, { Kind as GraphqlKinds } from 'graphql'
 // locals
-import { Config } from '../../common'
-import { CollectedGraphQLDocument } from '../types'
+import type { Config } from '../../common/config'
+import type { CollectedGraphQLDocument } from '../types'
 
 export type FragmentDependency = {
 	definition: graphql.FragmentDefinitionNode

@@ -1,7 +1,7 @@
 // externals
 import { derived, get, Readable, Writable, writable } from 'svelte/store'
 // locals
-import { deepEquals, FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams } from '..'
+import { FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams } from '../lib/types'
 import cache from '../cache'
 import { ConfigFile, keyFieldsForType } from './config'
 import { getHoudiniContext } from './context'
@@ -9,6 +9,7 @@ import { executeQuery } from './network'
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from './types'
 import { fetchContext, QueryResultMap, sessionQueryStore } from '../stores/query'
 import { currentReqID, sessionStore } from './session'
+import { deepEquals } from './deepEquals'
 
 type FetchFn<_Data = any, _Input = any> = (
 	params?: QueryStoreFetchParams<_Input>

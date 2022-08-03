@@ -4,8 +4,8 @@ import type { Plugin } from 'vite'
 import path from 'path'
 import glob from 'glob'
 // locals
-import { getConfig } from '../common/lib/config'
 import { writeSchema } from '../cmd/utils'
+import { getConfig } from '../common/config'
 
 export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 	let interval_id: NodeJS.Timeout | null = null

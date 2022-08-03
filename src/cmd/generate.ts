@@ -15,7 +15,8 @@ import {
 	TransformDocument,
 	readFile,
 } from '../common'
-import type { CollectedGraphQLDocument, ArtifactKind, HoudiniErrorTodo } from './types'
+import type { CollectedGraphQLDocument, HoudiniErrorTodo } from './types'
+import { ArtifactKind } from './types'
 import * as transforms from './transforms'
 import * as generators from './generators'
 import * as validators from './validators'

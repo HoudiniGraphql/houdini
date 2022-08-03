@@ -1,24 +1,28 @@
 // externals
-import { derived, get, readable, Readable, Writable } from 'svelte/store'
 import type { LoadEvent } from '@sveltejs/kit'
+import { derived, get, readable, Readable, Writable } from 'svelte/store'
 // internals
-import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
 import { clientStarted, getSession, isBrowser } from '../adapter'
 import cache from '../cache'
-import {
-	FetchContext,
-	QueryResult,
-	QueryStoreFetchParams,
-	SubscriptionSpec,
-	deepEquals,
-	CompiledQueryKind,
-} from '../lib'
-import type { ConfigFile, QueryArtifact } from '../lib'
+import { ConfigFile } from '../lib/config'
 import { nullHoudiniContext } from '../lib/context'
+import { deepEquals } from '../lib/deepEquals'
+import * as log from '../lib/log'
+import { FetchContext, fetchQuery } from '../lib/network'
 import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
-import * as log from '../lib/log'
 import { currentReqID, sessionStore } from '../lib/session'
+import {
+	CachePolicy,
+	CompiledQueryKind,
+	DataSource,
+	GraphQLObject,
+	QueryArtifact,
+	QueryResult,
+	QueryStore,
+	QueryStoreFetchParams,
+	SubscriptionSpec,
+} from '../lib/types'
 
 // Terms:
 // - CSF: client side fetch. identified by a lack of loadEvent

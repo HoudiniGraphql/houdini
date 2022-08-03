@@ -1,4 +1,4 @@
-import { GraphQLValue } from '..'
+import { GraphQLValue } from '../lib/types'
 import { LinkedList } from './cache'
 
 export function flattenList<T>(source: LinkedList<T>): T[] {
