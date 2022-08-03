@@ -20,19 +20,11 @@ export default async function svelteKitProcessor(config: Config, page: Transform
 		return
 	}
 
-	// if we are processing a route component (+page.svelte)
-	if (page.config.isRoute(page.filepath)) {
-		await process_component(page)
+	// if this isn't a route, move on
+	if (!page.config.isRoute(page.filepath) && !page.config.isRouteScript(page.filepath)) {
+		return
 	}
-	// if we are processing a route config file (+page.ts)
-	else if (page.config.isRouteScript(page.filepath)) {
-		await process_script(page)
-	}
-}
 
-async function process_component(page: TransformPage) {}
-
-async function process_script(page: TransformPage) {
 	// we need to collect all of the various queries associated with the query file
 	const [page_query, inline_queries, page_info] = await Promise.all([
 		find_page_query(page),
@@ -40,12 +32,39 @@ async function process_script(page: TransformPage) {
 		find_page_info(page),
 	])
 
-	// add the load function to the query file
-	add_load({
-		page,
-		queries: inline_queries.concat(page_query ?? []),
-		page_info,
-	})
+	// merge page and inline queries into a single list
+	const queries = inline_queries.concat(page_query ?? [])
+
+	// if we are processing a route component (+page.svelte)
+	if (page.config.isRoute(page.filepath)) {
+		await process_component({
+			page,
+			queries,
+			page_info,
+		})
+	}
+	// if we are processing a route config file (+page.ts)
+	else if (page.config.isRouteScript(page.filepath)) {
+		// add the load function to the query file
+		add_load({
+			page,
+			queries,
+			page_info,
+		})
+	}
+}
+
+async function process_component({
+	page,
+	queries: external_queries,
+	page_info,
+}: {
+	page: TransformPage
+	queries: LoadTarget[]
+	page_info: PageScriptInfo
+}) {
+	// the first thing we need to do is to define a local variable that
+	// will hold onto the values we get from props
 }
 
 function add_load({
@@ -54,7 +73,7 @@ function add_load({
 	page_info,
 }: {
 	page: TransformPage
-	queries: LoadQuery[]
+	queries: LoadTarget[]
 	page_info: PageScriptInfo
 }) {
 	// if there is already a load function defined, don't do anything
@@ -256,7 +275,7 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 	}
 }
 
-async function find_inline_queries(page: TransformPage): Promise<LoadQuery[]> {
+async function find_inline_queries(page: TransformPage): Promise<LoadTarget[]> {
 	// build up a list of the queries we run into
 	const queries: {
 		name: string
@@ -330,7 +349,7 @@ async function find_inline_queries(page: TransformPage): Promise<LoadQuery[]> {
 	})
 }
 
-async function find_page_query(page: TransformPage): Promise<LoadQuery | null> {
+async function find_page_query(page: TransformPage): Promise<LoadTarget | null> {
 	// figure out the filepath for the page query
 	const page_query_path = page.config.pageQueryPath(page.filepath)
 
@@ -371,7 +390,7 @@ function load_hook_statements(
 	name: 'beforeLoad' | 'afterLoad',
 	request_context: namedTypes.Identifier,
 	config: Config,
-	queries: LoadQuery[],
+	queries: LoadTarget[],
 	input_obj: IdentifierKind,
 	result_id: IdentifierKind
 ) {
@@ -443,7 +462,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	}
 
 	// build up a list of the referenced stores
-	const stores: LoadTarget[] = []
+	const load: QueryInfo[] = []
 
 	const seen: string[] = []
 
@@ -468,7 +487,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 		}
 
 		// add the store to the list
-		stores.push({
+		load.push({
 			name: store.name,
 			variables: store.variables,
 		})
@@ -476,7 +495,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 
 	// there is a load
 	return {
-		load: stores,
+		load,
 		exports: Object.keys(module),
 	}
 }
@@ -485,18 +504,18 @@ function query_variable_fn(name: string) {
 	return `${name}Variables`
 }
 
-type LoadQuery = {
-	store_id: ExpressionKind
+export type PageScriptInfo = {
+	load?: QueryInfo[]
+	exports: string[]
+}
+
+type QueryInfo = {
 	name: string
 	variables: boolean
 }
 
-export type PageScriptInfo = {
-	load?: LoadTarget[]
-	exports: string[]
-}
-
 type LoadTarget = {
+	store_id: ExpressionKind
 	name: string
 	variables: boolean
 }
