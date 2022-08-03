@@ -345,6 +345,43 @@ describe('kit route processor', function () {
 	`)
 	})
 
+	test('route with page query', async function () {
+		const route = await routeTest({
+			query: `
+				query TestQuery {
+					viewer {
+						id
+					}
+				}
+			`,
+		})
+
+		expect(route.component).toMatchInlineSnapshot(``)
+		expect(route.script).toMatchInlineSnapshot(`
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+
+		export async function load(context) {
+		    const houdini_context = new request_context(context);
+		    const inputs = {};
+		    const promises = [];
+		    inputs["TestQuery"] = {};
+
+		    promises.push(GQL_TestQuery.fetch({
+		        "variables": inputs["TestQuery"],
+		        "event": context,
+		        "blocking": false
+		    }));
+
+		    const result = await Promise.all(promises);
+
+		    return {
+		        ...houdini_context.returnValue,
+		        inputs: inputs
+		    };
+		}
+	`)
+	})
+
 	test.todo('fails if variable function is not present')
 
 	test.todo('adds arguments to an empty preload')
