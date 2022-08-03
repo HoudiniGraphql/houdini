@@ -1,19 +1,20 @@
-import { Readable, get } from 'svelte/store'
 import type { Writable } from 'svelte/store'
+import { get, Readable } from 'svelte/store'
 
 import { getSession } from '../adapter'
 import cache from '../cache'
-import {
-	CompiledMutationKind,
-	ConfigFile,
-	executeQuery,
-	HoudiniFetchContext,
-	MutationResult,
-	MutationStore,
-} from '../lib'
-import type { SubscriptionSpec, MutationArtifact } from '../lib'
+import { ConfigFile } from '../lib/config'
+import { executeQuery } from '../lib/network'
 import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
 import { sessionStore } from '../lib/session'
+import {
+	CompiledMutationKind,
+	HoudiniFetchContext,
+	MutationArtifact,
+	MutationResult,
+	MutationStore,
+	SubscriptionSpec,
+} from '../lib/types'
 
 export function mutationStore<_Data, _Input>({
 	config,

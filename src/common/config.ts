@@ -1,14 +1,12 @@
 import { mergeSchemas } from '@graphql-tools/schema'
-import { KitConfig } from '@sveltejs/kit'
 import fs from 'fs-extra'
 import { glob } from 'glob'
 import * as graphql from 'graphql'
 import os from 'os'
 import path from 'path'
-import * as url from 'url'
 import { promisify } from 'util'
 
-import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib/config'
 import { CachePolicy } from '../runtime/lib/types'
 import { readFile } from './fs'
 

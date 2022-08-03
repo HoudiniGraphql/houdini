@@ -2,15 +2,15 @@ import { writable } from 'svelte/store'
 
 import { isBrowser } from '../adapter'
 import cache from '../cache'
+import { deepEquals } from '../lib/deepEquals'
+import { getCurrentClient } from '../lib/network'
+import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import {
 	CompiledSubscriptionKind,
 	ConfigFile,
-	deepEquals,
 	SubscriptionArtifact,
 	SubscriptionStore,
-} from '../lib'
-import { getCurrentClient } from '../lib/network'
-import { marshalInputs, unmarshalSelection } from '../lib/scalars'
+} from '../lib/types'
 
 export function subscriptionStore<_Data, _Input>({
 	config,

@@ -1,15 +1,8 @@
-import { derived, get, readable, Writable, writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
+import { derived, get, readable, Writable } from 'svelte/store'
 
 import { getSession, isBrowser } from '../adapter'
-import {
-	CompiledFragmentKind,
-	ConfigFile,
-	FragmentStore,
-	GraphQLObject,
-	QueryArtifact,
-	HoudiniDocumentProxy,
-} from '../lib'
+import { ConfigFile } from '../lib/config'
 import {
 	extractPageInfo,
 	fragmentHandlers,
@@ -17,7 +10,9 @@ import {
 	pageInfoStore,
 	PaginatedHandlers,
 } from '../lib/pagination'
+import { HoudiniDocumentProxy } from '../lib/proxy'
 import { currentReqID, sessionStore } from '../lib/session'
+import { CompiledFragmentKind, FragmentStore, GraphQLObject, QueryArtifact } from '../lib/types'
 
 // a fragment store exists in multiple places in a given application so we
 // can't just return a store directly, the user has to load the version of the
