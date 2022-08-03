@@ -358,7 +358,9 @@ describe('kit route processor', function () {
 			`,
 		})
 
-		expect(route.component).toMatchInlineSnapshot(``)
+		expect(route.component).toMatchInlineSnapshot(
+			`import { GQL_TestQuery } from "$houdini/stores/TestQuery";`
+		)
 		expect(route.script).toMatchInlineSnapshot(`
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
