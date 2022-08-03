@@ -516,7 +516,7 @@ export class Config {
 		return filename.replace('.svelte', this.typescript ? '.ts' : '.js')
 	}
 
-	isRouteConfigFile(filename: string) {
+	isRouteScript(filename: string) {
 		return (
 			this.framework === 'kit' &&
 			(filename.endsWith('+page.js') || filename.endsWith('+page.ts'))
@@ -529,9 +529,7 @@ export class Config {
 
 	isComponent(filename: string) {
 		return (
-			filename.endsWith('.svelte') &&
-			!this.isRouteConfigFile(filename) &&
-			!this.isRoute(filename)
+			filename.endsWith('.svelte') && !this.isRouteScript(filename) && !this.isRoute(filename)
 		)
 	}
 

@@ -22,29 +22,29 @@ export default async function svelteKitProcessor(config: Config, page: Transform
 
 	// if we are processing a route component (+page.svelte)
 	if (page.config.isRoute(page.filepath)) {
-		await process_route_component(page)
+		await process_component(page)
 	}
 	// if we are processing a route config file (+page.ts)
-	else if (page.config.isRouteConfigFile(page.filepath)) {
-		await process_route_config(page)
+	else if (page.config.isRouteScript(page.filepath)) {
+		await process_script(page)
 	}
 }
 
-async function process_route_component(page: TransformPage) {}
+async function process_component(page: TransformPage) {}
 
-async function process_route_config(page: TransformPage) {
+async function process_script(page: TransformPage) {
 	// we need to collect all of the various queries associated with the query file
 	const [page_query, inline_queries] = await Promise.all([
 		find_page_query(page),
 		find_inline_queries(page),
-		// find_page_stores(page),
+		find_page_stores(page),
 	])
 
 	// add the load function to the query file
 	add_load({
 		page,
 		external_queries: inline_queries.concat(page_query ?? []),
-		page_stores: false,
+		page_stores: find_page_stores.length > 0,
 	})
 }
 
@@ -466,6 +466,13 @@ function after_load_data(queries: LoadQuery[]) {
 }
 
 async function find_page_stores(page: TransformPage): Promise<boolean> {
+	// if the page has mocked page stores return them
+	if (page.page_stores) {
+		return page.page_stores.length > 0
+	} else if (process.env.NODE_ENV === 'test') {
+		return false
+	}
+
 	// let's check for existence by importing the file
 	let mod: any
 	try {

@@ -25,11 +25,13 @@ export async function routeTest({
 	script = '',
 	query = '',
 	config: extra,
+	page_stores = [],
 }: {
 	component?: string
 	script?: string
 	query?: string
 	config?: Partial<ConfigFile>
+	page_stores?: string[]
 }): Promise<{ component: ParsedFile; script: ParsedFile }> {
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema, ...extra })
@@ -52,6 +54,7 @@ export async function routeTest({
 				config,
 				filepath,
 				addWatchFile: () => {},
+				page_stores,
 			},
 			// the component transforms happen on the script content only
 			recast.prettyPrint((await parseSvelte(component))!).code
@@ -62,6 +65,7 @@ export async function routeTest({
 				config,
 				filepath: config.routeDataPath(filepath),
 				addWatchFile: () => {},
+				page_stores,
 			},
 			script
 		),

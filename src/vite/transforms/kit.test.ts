@@ -248,6 +248,59 @@ describe('kit route processor', function () {
 		expect(route.script).toMatchInlineSnapshot(``)
 	})
 
+	test('route with page stores', async function () {
+		const route = await routeTest({
+			component: `
+				<script>
+					const { data } = query(graphql\`
+						query TestQuery {
+							viewer {
+								id
+							}
+						}
+					\`)
+				</script>
+			`,
+			script: `
+				export const houdini_load = ['a', 'b']
+			`,
+			page_stores: ['a', 'b'],
+		})
+
+		expect(route.component).toMatchInlineSnapshot(`
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+
+		const {
+		    data
+		} = query(GQL_TestQuery);
+	`)
+		expect(route.script).toMatchInlineSnapshot(`
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+		export const houdini_load = ["a", "b"];
+
+		export async function load(context) {
+		    const houdini_context = new request_context(context);
+		    const TestQuery_Input = {};
+
+		    const TestQuery = await GQL_TestQuery.fetch({
+		        "variables": TestQuery_Input,
+		        "event": context,
+		        "blocking": false
+		    });
+
+		    return {
+		        ...houdini_context.returnValue,
+
+		        props: {
+		            ...houdini_context.returnValue.props,
+		            TestQuery_Input: TestQuery_Input
+		        }
+		    };
+		}
+	`)
+	})
+
 	test.todo('fails if variable function is not present')
 
 	test.todo('adds arguments to an empty preload')

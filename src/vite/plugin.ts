@@ -67,4 +67,5 @@ export interface TransformPage {
 	script: Script
 	filepath: string
 	addWatchFile: (path: string) => void
+	page_stores?: string[]
 }
