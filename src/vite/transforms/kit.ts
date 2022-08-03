@@ -7,7 +7,7 @@ import * as recast from 'recast'
 import { walk_graphql_tags } from '../walk'
 import { TransformPage } from '../plugin'
 import { Config, operation_requires_variables, parseSvelte, readFile, Script } from '../../common'
-import { artifact_import, store_import } from '../imports'
+import { artifact_import, ensure_imports, store_import } from '../imports'
 import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
 
 const AST = recast.types.builders
@@ -81,6 +81,14 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 		return
 	}
 
+	// make sure we have RequestContext imported
+	ensure_imports({
+		config: page.config,
+		script: page.script,
+		import: ['RequestContext'],
+		sourceModule: '$houdini/runtime/lib/network',
+	})
+
 	// look for any hooks
 	let before_load = page_info.exports.includes('beforeLoad')
 	let after_load = page_info.exports.includes('afterLoad')
@@ -110,9 +118,7 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					request_context,
-					AST.newExpression(AST.identifier('request_context'), [
-						AST.identifier('context'),
-					])
+					AST.newExpression(AST.identifier('RequestContext'), [AST.identifier('context')])
 				),
 			]),
 
@@ -169,10 +175,6 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 										AST.objectProperty(
 											AST.literal('config'),
 											AST.identifier('houdiniConfig')
-										),
-										AST.objectProperty(
-											AST.literal('framework'),
-											AST.stringLiteral(page.config.framework)
 										),
 										AST.objectProperty(
 											AST.literal('variableFunction'),

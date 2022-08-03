@@ -27,10 +27,11 @@ describe('kit route processor', function () {
 		} = query(GQL_TestQuery);
 	`)
 		expect(route.script).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export async function load(context) {
-		    const houdini_context = new request_context(context);
+		    const houdini_context = new RequestContext(context);
 		    const inputs = {};
 		    const promises = [];
 		    inputs["TestQuery"] = {};
@@ -117,11 +118,12 @@ describe('kit route processor', function () {
 			} = query(GQL_TestQuery2);
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
 		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 
 		export async function load(context) {
-		    const houdini_context = new request_context(context);
+		    const houdini_context = new RequestContext(context);
 		    const inputs = {};
 		    const promises = [];
 		    inputs["TestQuery1"] = {};
@@ -177,6 +179,7 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.script).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export function TestQueryVariables(page) {
@@ -186,13 +189,12 @@ describe('kit route processor', function () {
 		}
 
 		export async function load(context) {
-		    const houdini_context = new request_context(context);
+		    const houdini_context = new RequestContext(context);
 		    const inputs = {};
 		    const promises = [];
 
 		    inputs["TestQuery"] = houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "framework": "kit",
 		        "variableFunction": TestQueryVariables,
 		        "artifact": GQL_TestQuery["artifact"]
 		    });
@@ -242,7 +244,7 @@ describe('kit route processor', function () {
 		expect(route.script).toMatchInlineSnapshot(``)
 	})
 
-	test('route with page stores', async function () {
+	test('route with page stores and inline queries', async function () {
 		const route = await routeTest({
 			component: `
 				<script>
@@ -296,6 +298,7 @@ describe('kit route processor', function () {
 		expect(route.script).toMatchInlineSnapshot(`
 		import { GQL_MyQuery2 } from "$houdini/stores/MyQuery2";
 		import { GQL_MyQuery1 } from "$houdini/stores/MyQuery1";
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		const store1 = GQL_MyQuery1;
 		const store2 = GQL_MyQuery2;
@@ -303,7 +306,7 @@ describe('kit route processor', function () {
 		export const houdini_load = [store1, store2];
 
 		export async function load(context) {
-		    const houdini_context = new request_context(context);
+		    const houdini_context = new RequestContext(context);
 		    const inputs = {};
 		    const promises = [];
 		    inputs["TestQuery"] = {};
@@ -324,7 +327,6 @@ describe('kit route processor', function () {
 
 		    inputs["MyQuery2"] = houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "framework": "kit",
 		        "variableFunction": MyQuery2Variables,
 		        "artifact": houdini_load[1]["artifact"]
 		    });
@@ -358,10 +360,11 @@ describe('kit route processor', function () {
 
 		expect(route.component).toMatchInlineSnapshot(``)
 		expect(route.script).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export async function load(context) {
-		    const houdini_context = new request_context(context);
+		    const houdini_context = new RequestContext(context);
 		    const inputs = {};
 		    const promises = [];
 		    inputs["TestQuery"] = {};
@@ -417,6 +420,7 @@ test('beforeLoad hook', async function () {
 	})
 
 	expect(route.script).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export async function beforeLoad() {
@@ -430,13 +434,12 @@ test('beforeLoad hook', async function () {
 		}
 
 		export async function load(context) {
-		    const houdini_context = new request_context(context);
+		    const houdini_context = new RequestContext(context);
 		    const inputs = {};
 		    const promises = [];
 
 		    inputs["TestQuery"] = houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "framework": "kit",
 		        "variableFunction": TestQueryVariables,
 		        "artifact": GQL_TestQuery["artifact"]
 		    });
@@ -500,6 +503,7 @@ test('beforeLoad hook - multiple queries', async function () {
 	})
 
 	expect(route.script).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
 		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 
@@ -514,7 +518,7 @@ test('beforeLoad hook - multiple queries', async function () {
 		}
 
 		export async function load(context) {
-		    const houdini_context = new request_context(context);
+		    const houdini_context = new RequestContext(context);
 		    const inputs = {};
 		    const promises = [];
 		    inputs["TestQuery1"] = {};
@@ -579,6 +583,7 @@ test('afterLoad hook', async function () {
 	})
 
 	expect(route.script).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export async function afterLoad() {
@@ -592,13 +597,12 @@ test('afterLoad hook', async function () {
 		}
 
 		export async function load(context) {
-		    const houdini_context = new request_context(context);
+		    const houdini_context = new RequestContext(context);
 		    const inputs = {};
 		    const promises = [];
 
 		    inputs["TestQuery"] = houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "framework": "kit",
 		        "variableFunction": TestQueryVariables,
 		        "artifact": GQL_TestQuery["artifact"]
 		    });
@@ -667,6 +671,7 @@ test('afterLoad hook - multiple queries', async function () {
 	})
 
 	expect(route.script).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
 		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 
@@ -681,7 +686,7 @@ test('afterLoad hook - multiple queries', async function () {
 		}
 
 		export async function load(context) {
-		    const houdini_context = new request_context(context);
+		    const houdini_context = new RequestContext(context);
 		    const inputs = {};
 		    const promises = [];
 		    inputs["TestQuery1"] = {};
@@ -756,6 +761,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 	})
 
 	expect(route.script).toMatchInlineSnapshot(`
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export async function beforeLoad() {
@@ -773,13 +779,12 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		}
 
 		export async function load(context) {
-		    const houdini_context = new request_context(context);
+		    const houdini_context = new RequestContext(context);
 		    const inputs = {};
 		    const promises = [];
 
 		    inputs["TestQuery"] = houdini_context.computeInput({
 		        "config": houdiniConfig,
-		        "framework": "kit",
 		        "variableFunction": TestQueryVariables,
 		        "artifact": GQL_TestQuery["artifact"]
 		    });
