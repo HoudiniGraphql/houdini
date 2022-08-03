@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import { Config } from '../../../common/config'
 import { parentTypeFromAncestors } from '../../../common/graphql'
-import { MutationOperation } from '../../../runtime'
+import { MutationOperation } from '../../types'
 import { convertValue } from './utils'
 
 const AST = recast.types.builders
