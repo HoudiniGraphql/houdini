@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 import path from 'path'
-import { Config, writeFile } from '../../../common'
+import { Config, operation_requires_variables, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import pagination from './pagination'
 
@@ -15,12 +15,7 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	) as graphql.OperationDefinitionNode
 	if (operation) {
 		// an operation requires variables if there is any non-null variable that doesn't have a default value
-		variables = Boolean(
-			operation.variableDefinitions &&
-				operation.variableDefinitions?.find(
-					(defn) => defn.type.kind === 'NonNullType' && !defn.defaultValue
-				)
-		)
+		variables = operation_requires_variables(operation)
 	}
 
 	const paginationExtras = pagination(config, doc, 'query')

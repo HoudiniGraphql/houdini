@@ -7,7 +7,7 @@ import { Identifier } from 'estree'
 // locals
 import { walk_graphql_tags } from '../walk'
 import { TransformPage } from '../plugin'
-import { Config, parseSvelte, readFile, Script } from '../../common'
+import { Config, operation_requires_variables, parseSvelte, readFile, Script } from '../../common'
 import { artifact_import, store_import } from '../imports'
 import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
 
@@ -35,31 +35,55 @@ async function process_component(page: TransformPage) {}
 
 async function process_script(page: TransformPage) {
 	// we need to collect all of the various queries associated with the query file
-	const [page_query, inline_queries] = await Promise.all([
+	const [page_query, inline_queries, page_info] = await Promise.all([
 		find_page_query(page),
 		find_inline_queries(page),
-		find_page_stores(page),
+		find_page_info(page),
 	])
 
 	// add the load function to the query file
 	add_load({
 		page,
 		external_queries: inline_queries.concat(page_query ?? []),
-		page_stores: find_page_stores.length > 0,
+		page_info,
 	})
 }
 
 function add_load({
 	page,
 	external_queries,
-	page_stores,
+	page_info,
 }: {
 	page: TransformPage
 	external_queries: LoadQuery[]
-	page_stores: boolean
+	page_info: PageScriptInfo
 }) {
 	// if there is already a load function defined, don't do anything
 	if (find_exported_fn(page.script, 'load')) {
+		return
+	}
+
+	// we need to
+	const queries: PageStoreReference[] = (page_info.load ?? []).concat(external_queries)
+	let invalid = false
+
+	// let's verify that we have all of the variable functions we need before we mutate anything
+	for (const query of queries) {
+		const variable_fn = query_variable_fn(query.name)
+		// if the page doesn't export a function with the correct name, something is wrong
+		if (!page_info.exports.includes(variable_fn) && query.variables) {
+			// tell them we're missing something
+			console.log(`error in ${page.filepath}:
+could not find required variable function: ${variable_fn}. maybe its not exported?
+`)
+
+			// don't go any further
+			invalid = true
+		}
+	}
+
+	// if we ran into issue
+	if (invalid) {
 		return
 	}
 
@@ -70,35 +94,33 @@ function add_load({
 	// the name of the variable
 	const request_context = AST.identifier('houdini_context')
 
+	const return_value = AST.memberExpression(request_context, AST.identifier('returnValue'))
+
 	const preload_fn = AST.functionDeclaration(
 		AST.identifier('load'),
 		[AST.identifier('context')],
 		// return an object
 		AST.blockStatement([
+			// instantiate the context variable and then thread it through instead of passing `this` directly
+			// then look to see if `this.error`, `this.redirect` were called before continuing onto the fetch
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					request_context,
+					AST.newExpression(AST.identifier('request_context'), [
+						AST.identifier('context'),
+					])
+				),
+			]),
+			// regardless of what happens between the contenxt instantiation and return,
+			// all we have to do is mix the return value with the props we want to send one
 			AST.returnStatement(
 				AST.objectExpression([
-					AST.spreadElement(
-						AST.memberExpression(request_context, AST.identifier('returnValue'))
-					),
-					AST.objectProperty(
-						AST.identifier('props'),
-						AST.objectExpression([
-							AST.spreadElement(
-								AST.memberExpression(
-									AST.memberExpression(
-										request_context,
-										AST.identifier('returnValue')
-									),
-									AST.identifier('props')
-								)
-							),
-							...external_queries.map((query) => {
-								const identifier = AST.identifier(key_variables(query))
+					AST.spreadElement(return_value),
+					...external_queries.map((query) => {
+						const identifier = AST.identifier(key_variables(query))
 
-								return AST.objectProperty(identifier, identifier)
-							}),
-						])
-					),
+						return AST.objectProperty(identifier, identifier)
+					}),
 				])
 			),
 		])
@@ -106,30 +128,12 @@ function add_load({
 	// mark the function as async
 	preload_fn.async = true
 
-	// @ts-ignore
 	// export the function from the module
+	// @ts-ignore
 	page.script.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
 
-	const return_value = AST.memberExpression(request_context, AST.identifier('returnValue'))
-
-	// we can start inserting statements at the top of the function
-	let insert_index = 0
-
-	// instantiate the context variable and then thread it through instead of passing `this` directly
-	// then look to see if `this.error`, `this.redirect` were called before continuing onto the fetch
-	preload_fn.body.body.splice(
-		insert_index,
-		0,
-		AST.variableDeclaration('const', [
-			AST.variableDeclarator(
-				request_context,
-				AST.newExpression(AST.identifier('request_context'), [AST.identifier('context')])
-			),
-		])
-	)
-
-	// we just added one to the return index
-	insert_index++
+	// we can start inserting statements after we define the context
+	let insert_index = 1
 
 	// only split into promise and await if there are multiple queries
 	const needs_promise = external_queries.length > 1
@@ -165,7 +169,8 @@ function add_load({
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(
 					AST.identifier(variable_id),
-					query.has_variables
+					// if we have variables, we need to call the function
+					page_info.exports.includes(query_variable_fn(query.name))
 						? AST.callExpression(
 								AST.memberExpression(
 									request_context,
@@ -196,21 +201,6 @@ function add_load({
 				),
 			])
 		)
-
-		if (query.has_variables) {
-			preload_fn.body.body.splice(
-				next_index++,
-				0,
-				// if we ran into a problem computing the variables
-				AST.ifStatement(
-					AST.unaryExpression(
-						'!',
-						AST.memberExpression(request_context, AST.identifier('continue'))
-					),
-					AST.blockStatement([AST.returnStatement(return_value)])
-				)
-			)
-		}
 
 		const fetch_call = AST.callExpression(
 			AST.memberExpression(AST.identifier(store_id), AST.identifier('fetch')),
@@ -332,9 +322,8 @@ async function find_inline_queries(page: TransformPage): Promise<LoadQuery[]> {
 			) {
 				queries.push({
 					name: operation.name!.value,
-					variables: Boolean(
-						operation.variableDefinitions && operation.variableDefinitions?.length > 0
-					),
+					// an operation requires variables if there is any non-null variable that doesn't have a default value
+					variables: operation_requires_variables(operation),
 				})
 			}
 		},
@@ -357,7 +346,7 @@ async function find_inline_queries(page: TransformPage): Promise<LoadQuery[]> {
 		return {
 			store_identifier: AST.identifier(storeID),
 			name: query.name,
-			has_variables: query.variables,
+			variables: query.variables,
 		}
 	})
 }
@@ -395,9 +384,7 @@ async function find_page_query(page: TransformPage): Promise<LoadQuery | null> {
 	return {
 		store_identifier: AST.identifier(store_id),
 		name: definition.name!.value,
-		has_variables: Boolean(
-			definition.variableDefinitions && definition.variableDefinitions.length > 0
-		),
+		variables: operation_requires_variables(definition),
 	}
 }
 
@@ -466,31 +453,31 @@ function after_load_data(queries: LoadQuery[]) {
 	)
 }
 
-async function find_page_stores(page: TransformPage): Promise<PageStoreReference[]> {
+async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
+	const nil: PageScriptInfo = { load: [], exports: [] }
+
 	// if the page has mocked page stores return them
 	if (process.env.NODE_ENV === 'test') {
-		return page.mock_page_stores ?? []
+		return page.mock_page_info ?? nil
 	}
 
 	// let's check for existence by importing the file
-	let mod: any
+	let module: { houdini_load?: GraphQLTagResult[]; [key: string]: any }
 	try {
-		mod = await import(page.filepath)
+		module = await import(page.filepath)
 	} catch {
-		return []
+		return nil
 	}
-
-	const module: { houdini_load?: GraphQLTagResult[]; [key: string]: any } = mod.default || mod
 
 	// if there are no page stores we're done
 	if (!module.houdini_load) {
-		return []
+		return nil
 	}
 
 	// make sure that houdini_load is a list
 	if (!Array.isArray(module.houdini_load)) {
 		console.log('houdini_load must be a list')
-		return []
+		return nil
 	}
 
 	// build up a list of the referenced stores
@@ -501,30 +488,26 @@ async function find_page_stores(page: TransformPage): Promise<PageStoreReference
 		if (!('kind' in store)) {
 			console.log('you must pass stores to houdini_load')
 			// don't load any stores
-			return []
+			return nil
 		}
 		if (store.kind !== CompiledQueryKind) {
 			console.log('you must pass query stores to houdini_load')
 			// don't load any stores
-			return []
-		}
-
-		// if the store requires variables but the function is not defined we can't continue
-		const variable_fn = query_variable_fn(store.name)
-		if (store.variables && !module[variable_fn]) {
-			console.log('missing variable function. maybe its not exported?')
-			return []
+			return nil
 		}
 
 		// add the store to the list
 		stores.push({
 			name: store.name,
-			variables: !!module[variable_fn],
+			variables: store.variables,
 		})
 	}
 
 	// there is a load
-	return stores
+	return {
+		load: stores,
+		exports: Object.keys(module),
+	}
 }
 
 function key_preload_payload(operation: { name: string }): string {
@@ -548,9 +531,14 @@ function find_exported_fn(script: Script, name: string): ExportNamedDeclaration 
 	) as ExportNamedDeclaration
 }
 
-type LoadQuery = { store_identifier: Identifier; name: string; has_variables: boolean }
+type LoadQuery = { store_identifier: Identifier; name: string; variables: boolean }
 
-export type PageStoreReference = {
+export type PageScriptInfo = {
+	load?: PageStoreReference[]
+	exports: string[]
+}
+
+type PageStoreReference = {
 	name: string
 	variables: boolean
 }

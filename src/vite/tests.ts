@@ -5,7 +5,7 @@ import * as recast from 'recast'
 import { ParsedFile, parseJS, parseSvelte, testConfig, writeFile } from '../common'
 import { ConfigFile } from '../runtime'
 import runTransforms from './transforms'
-import { PageStoreReference } from './transforms/kit'
+import { PageScriptInfo } from './transforms/kit'
 
 const schema = `
 	type User {
@@ -26,13 +26,13 @@ export async function routeTest({
 	script = '',
 	query = '',
 	config: extra,
-	page_stores = [],
+	script_info,
 }: {
 	component?: string
 	script?: string
 	query?: string
 	config?: Partial<ConfigFile>
-	page_stores?: PageStoreReference[]
+	script_info?: PageScriptInfo
 }): Promise<{ component: ParsedFile; script: ParsedFile }> {
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema, ...extra })
@@ -55,7 +55,7 @@ export async function routeTest({
 				config,
 				filepath,
 				addWatchFile: () => {},
-				mock_page_stores: page_stores,
+				mock_page_info: script_info,
 			},
 			// the component transforms happen on the script content only
 			recast.prettyPrint((await parseSvelte(component))!).code
@@ -66,7 +66,7 @@ export async function routeTest({
 				config,
 				filepath: config.routeDataPath(filepath),
 				addWatchFile: () => {},
-				mock_page_stores: page_stores,
+				mock_page_info: script_info,
 			},
 			script
 		),
