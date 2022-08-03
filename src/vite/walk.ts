@@ -5,7 +5,7 @@ import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kind
 import recast from 'recast'
 import { BaseNode } from 'estree'
 // locals
-import { Config, ParsedFile, Script } from '../common'
+import { Config } from '../common/config'
 import {
 	CompiledDocumentKind,
 	CompiledFragmentKind,
@@ -13,6 +13,7 @@ import {
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
 } from '../runtime/lib/types'
+import { ParsedFile } from '../common/parse'
 
 type Program = ReturnType<typeof recast.types.builders['program']>
 

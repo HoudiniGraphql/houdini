@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals'
-import { testConfigFile } from '../../common'
+import { testConfigFile } from '../../common/tests'
 import { RequestContext } from './network'
 import { marshalSelection, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact } from './types'

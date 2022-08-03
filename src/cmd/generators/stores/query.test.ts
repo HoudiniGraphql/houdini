@@ -1,15 +1,14 @@
 // external imports
-import path, { parse } from 'path'
-import * as typeScriptParser from 'recast/parsers/typescript'
-import { ProgramKind } from 'ast-types/gen/kinds'
+import path from 'path'
 import * as recast from 'recast'
+import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
-import { testConfig } from '../../../common'
-import * as fs from '../../../common/fs'
 import '../../../../jest.setup'
+import * as fs from '../../../common/fs'
+import { testConfig } from '../../../common/tests'
 import { runPipeline } from '../../generate'
-import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
+import { CollectedGraphQLDocument } from '../../types'
 
 // the config to use in tests
 const config = testConfig()

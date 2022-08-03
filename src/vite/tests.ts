@@ -2,7 +2,8 @@
 import path from 'path'
 import * as recast from 'recast'
 // local imports
-import { ParsedFile, parseJS, parseSvelte, writeFile } from '../common'
+import { writeFile } from '../common/fs'
+import { ParsedFile, parseJS, parseSvelte } from '../common/parse'
 import { testConfig } from '../common/tests'
 import type { ConfigFile } from '../runtime/lib/config'
 import runTransforms from './transforms'

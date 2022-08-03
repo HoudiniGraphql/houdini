@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { Config } from '../../common'
+import { Config } from '../../common/config'
 import { store_import } from '../imports'
 import { TransformPage } from '../plugin'
 import { walk_graphql_tags } from '../walk'

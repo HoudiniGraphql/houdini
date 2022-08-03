@@ -7,9 +7,12 @@ import { Identifier } from 'estree'
 // locals
 import { walk_graphql_tags } from '../walk'
 import { TransformPage } from '../plugin'
-import { Config, parseSvelte, readFile, Script } from '../../common'
+import { readFile } from '../../common/fs'
 import { artifact_import, store_import } from '../imports'
 import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
+import { Config } from '../../common/config'
+import { parseSvelte } from '../../common/parse'
+import { Script } from '../../common/types'
 
 const AST = recast.types.builders
 

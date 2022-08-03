@@ -1,4 +1,4 @@
-import { Config } from '../../../common'
+import { Config } from '../../../common/config'
 import { CollectedGraphQLDocument } from '../../types'
 
 export default function pagination(

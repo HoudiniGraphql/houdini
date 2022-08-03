@@ -1,5 +1,5 @@
 // locals
-import { testConfigFile } from '../../../common'
+import { testConfigFile } from '../../../common/tests'
 import { Cache } from '../cache'
 import { jest } from '@jest/globals'
 

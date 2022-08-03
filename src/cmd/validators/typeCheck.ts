@@ -1,15 +1,16 @@
 // externals
 import * as graphql from 'graphql'
 // locals
-import { Config, definitionFromAncestors, parentTypeFromAncestors } from '../../common'
-import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
+import { Config } from '../../common/config'
+import { definitionFromAncestors, parentTypeFromAncestors } from '../../common/graphql'
 import {
 	FragmentArgument,
 	fragmentArguments as collectFragmentArguments,
 	withArguments,
 } from '../transforms/fragmentVariables'
-import { unwrapType } from '../utils'
 import { connectionSelection } from '../transforms/list'
+import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
+import { unwrapType } from '../utils'
 
 // typeCheck verifies that the documents are valid instead of waiting
 // for the compiler to fail later down the line.

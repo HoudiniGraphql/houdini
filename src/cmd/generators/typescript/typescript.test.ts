@@ -2,8 +2,9 @@
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
-import { readFile, testConfig } from '../../../common'
 import '../../../../jest.setup'
+import { readFile } from '../../../common/fs'
+import { testConfig } from '../../../common/tests'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
 

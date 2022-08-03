@@ -1,11 +1,12 @@
 // externals
-import * as recast from 'recast'
+import { StatementKind, TSTypeKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
-import { TSTypeKind, StatementKind } from 'ast-types/gen/kinds'
+import * as recast from 'recast'
 // locals
-import { Config, ensureImports } from '../../../common'
+import { Config } from '../../../common/config'
+import { ensureImports } from '../../../common/imports'
 import { TypeWrapper, unwrapType } from '../../utils'
-import { enumDeclaration, nullableField, readonlyProperty, scalarPropertyValue } from './types'
+import { nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
 const AST = recast.types.builders
 

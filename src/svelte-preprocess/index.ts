@@ -1,5 +1,5 @@
 // locals
-import { getConfig } from '../common'
+import { getConfig } from '../common/config'
 import type { ConfigFile } from '../runtime/lib/config'
 import transform from '../vite/transforms'
 

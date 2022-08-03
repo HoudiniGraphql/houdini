@@ -1,11 +1,12 @@
 // external imports
-import path from 'path'
-import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
+import path from 'path'
 import * as recast from 'recast'
+import * as typeScriptParser from 'recast/parsers/typescript'
 // local imports
-import { readFile, testConfig } from '../../../common'
 import '../../../../jest.setup'
+import { readFile } from '../../../common/fs'
+import { testConfig } from '../../../common/tests'
 import { runPipeline } from '../../generate'
 
 test('cache index runtime imports config file - commonjs', async function () {

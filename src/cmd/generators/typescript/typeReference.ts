@@ -3,7 +3,7 @@ import * as recast from 'recast'
 import * as graphql from 'graphql'
 import { TSTypeKind } from 'ast-types/gen/kinds'
 // locals
-import { Config } from '../../../common'
+import { Config } from '../../../common/config'
 import { TypeWrapper, unwrapType } from '../../utils'
 import { nullableField, scalarPropertyValue } from './types'
 

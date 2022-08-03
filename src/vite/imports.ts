@@ -2,7 +2,8 @@
 import { ImportDeclaration } from 'estree'
 import * as recast from 'recast'
 // locals
-import { Config, Script } from '../common'
+import { Config } from '../common/config'
+import { Script } from '../common/types'
 
 const AST = recast.types.builders
 

@@ -1,5 +1,5 @@
 // locals
-import { Config } from '../../../common'
+import { Config } from '../../../common/config'
 import { CollectedGraphQLDocument } from '../../types'
 import copyRuntime from './copyRuntime'
 import writeIndexFile from './indexFile'

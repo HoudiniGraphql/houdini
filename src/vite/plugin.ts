@@ -5,7 +5,9 @@ import * as recast from 'recast'
 import type { Plugin } from 'vite'
 // locals
 import generate from '../cmd/generate'
-import { Config, formatErrors, getConfig, Script } from '../common'
+import { Config, getConfig } from '../common/config'
+import { formatErrors } from '../common/graphql'
+import { Script } from '../common/types'
 import applyTransforms from './transforms'
 import type { PageStoreReference } from './transforms/kit'
 

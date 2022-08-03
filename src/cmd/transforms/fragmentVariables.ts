@@ -1,5 +1,5 @@
 // externals
-import { Config } from '../../common'
+import { Config } from '../../common/config'
 import * as graphql from 'graphql'
 // locals
 import { CollectedGraphQLDocument } from '../types'

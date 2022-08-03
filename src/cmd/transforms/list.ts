@@ -1,8 +1,9 @@
 // externals
-import * as graphql from 'graphql'
 import { logGreen, logYellow } from '@kitql/helper'
+import * as graphql from 'graphql'
 // locals
-import { Config, parentTypeFromAncestors } from '../../common'
+import { Config } from '../../common/config'
+import { parentTypeFromAncestors } from '../../common/graphql'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
 import { TypeWrapper, unwrapType } from '../utils'
