@@ -70,11 +70,12 @@ async function process_component({
 	page_info: PageScriptInfo
 }) {
 	// find the first non import
-	let insert_index = page.script.body.findIndex(
-		(statement) => statement.type !== 'ImportDeclaration'
-	)
+	let insert_index = page.script.body.findIndex((statement) => {
+		return statement.type !== 'ImportDeclaration'
+	})
+	// if we didn't find one, make sure we add stuff at the end of the file
 	if (insert_index === -1) {
-		insert_index = 0
+		insert_index = page.script.body.length
 	}
 
 	// add an import for the context utility
@@ -89,7 +90,7 @@ async function process_component({
 		insert_index++
 	}
 
-	// import the browser chec
+	// import the browser check
 	if (
 		ensure_imports({
 			config: page.config,

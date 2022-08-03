@@ -420,6 +420,7 @@ describe('kit route processor', function () {
 		expect(route.component).toMatchInlineSnapshot(`
 		import { browser } from "$app/env";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		$:
 		_houdini_inputs = $$props.data.inputs;
@@ -431,8 +432,6 @@ describe('kit route processor', function () {
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _houdini_inputs["TestQuery"]
 		});
-
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 	`)
 		expect(route.script).toMatchInlineSnapshot(`
 		import { RequestContext } from "$houdini/runtime/lib/network";

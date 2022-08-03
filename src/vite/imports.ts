@@ -18,7 +18,7 @@ export function ensure_imports<_Count extends string[] | string>({
 	import: _Count
 	sourceModule: string
 	importKind?: 'value' | 'type'
-}): { ids: _Count; added: boolean } {
+}): { ids: _Count; added: number } {
 	const idList = Array.isArray(importID) ? importID : [importID]
 
 	// figure out the list of things to import
@@ -59,7 +59,7 @@ export function ensure_imports<_Count extends string[] | string>({
 
 	return {
 		ids: Array.isArray(importID) ? idList : idList[0],
-		added: toImport.length > 0,
+		added: toImport.length,
 	}
 }
 
@@ -73,7 +73,7 @@ export function store_import({
 	artifact: { name: string }
 	script: Script
 	local?: string
-}): { id: string; added: boolean } {
+}): { id: string; added: number } {
 	const { ids, added } = ensure_imports({
 		config,
 		script,
