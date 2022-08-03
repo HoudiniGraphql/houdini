@@ -93,6 +93,7 @@ async function fetchQuery({
 	}
 
 	init() {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		currentClient = this
 	}
 }
