@@ -451,7 +451,16 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	// build up a list of the referenced stores
 	const stores: PageStoreReference[] = []
 
+	const seen: string[] = []
+
 	for (const store of module.houdini_load) {
+		// make sure a store only shows up once
+		if (seen.includes(store.name)) {
+			console.log('a store can only appear once')
+			return nil
+		}
+		seen.push(store.name)
+
 		// if there is no kind in the value then its not a store reference
 		if (!('kind' in store)) {
 			console.log('you must pass stores to houdini_load')
