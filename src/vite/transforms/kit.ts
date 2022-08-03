@@ -443,7 +443,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	}
 
 	// build up a list of the referenced stores
-	const stores: PageStoreReference[] = []
+	const stores: LoadTarget[] = []
 
 	const seen: string[] = []
 
@@ -492,11 +492,11 @@ type LoadQuery = {
 }
 
 export type PageScriptInfo = {
-	load?: PageStoreReference[]
+	load?: LoadTarget[]
 	exports: string[]
 }
 
-type PageStoreReference = {
+type LoadTarget = {
 	name: string
 	variables: boolean
 }
