@@ -1,6 +1,6 @@
 // locals
 import { getConfig } from '../common'
-import { ConfigFile } from '../runtime'
+import type { ConfigFile } from '../runtime/lib/config'
 
 /**
  * The houdini processor automates a lot of boilerplate to make inline documents

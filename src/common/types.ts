@@ -1,5 +1,5 @@
 import type { Program } from '@babel/types'
-import { Config } from './config'
+import type { Config } from './config'
 
 export type Maybe<T> = T | null | undefined
 

@@ -4,7 +4,6 @@ export * from './graphql'
 export * from './types'
 export * from './parse'
 export * from './imports'
-export * from './tests'
 export * from './fs'
 
 export { default as walkTaggedDocuments } from './walkTaggedDocuments'

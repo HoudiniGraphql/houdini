@@ -2,10 +2,11 @@
 import path from 'path'
 import * as recast from 'recast'
 // local imports
-import { ParsedFile, parseJS, parseSvelte, testConfig, writeFile } from '../common'
-import { ConfigFile } from '../runtime'
+import { ParsedFile, parseJS, parseSvelte, writeFile } from '../common'
+import { testConfig } from '../common/tests'
+import type { ConfigFile } from '../runtime/lib/config'
 import runTransforms from './transforms'
-import { PageStoreReference } from './transforms/kit'
+import type { PageStoreReference } from './transforms/kit'
 
 const schema = `
 	type User {

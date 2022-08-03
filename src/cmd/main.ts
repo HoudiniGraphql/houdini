@@ -2,13 +2,12 @@
 import { Command } from 'commander'
 import { glob } from 'glob'
 import path from 'path'
-import util from 'util'
 // local imports
 import { formatErrors, getConfig, LogLevel, readConfigFile } from '../common'
-import { ConfigFile } from '../runtime'
+import type { ConfigFile } from '../runtime/lib/config'
 import generate from './generate'
 import init from './init'
-import { HoudiniError } from './types'
+import type { HoudiniError } from './types'
 import { writeSchema } from './utils/writeSchema'
 
 // build up the cli

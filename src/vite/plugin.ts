@@ -1,14 +1,13 @@
 // externals
 import minimatch from 'minimatch'
 import path from 'path'
-import { Plugin } from 'vite'
 import * as recast from 'recast'
+import type { Plugin } from 'vite'
 // locals
-import { Config, formatErrors, getConfig, Script } from '../common'
-import { Program } from 'estree'
 import generate from '../cmd/generate'
+import { Config, formatErrors, getConfig, Script } from '../common'
 import applyTransforms from './transforms'
-import { PageStoreReference } from './transforms/kit'
+import type { PageStoreReference } from './transforms/kit'
 
 const AST = recast.types.builders
 

@@ -1,10 +1,10 @@
 // externals
 import { sleep } from '@kitql/helper'
-import { Plugin } from 'vite'
+import type { Plugin } from 'vite'
 import path from 'path'
 import glob from 'glob'
 // locals
-import { getConfig } from '../common'
+import { getConfig } from '../common/lib/config'
 import { writeSchema } from '../cmd/utils'
 
 export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {

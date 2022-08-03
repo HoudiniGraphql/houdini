@@ -4,7 +4,7 @@ import fetch from 'node-fetch'
 import path from 'path'
 import { readFile, writeFile } from '../common'
 import * as fs from '../common/fs'
-import { ConfigFile } from '../runtime'
+import type { ConfigFile } from '../runtime/lib/config'
 import { writeSchema } from './utils/writeSchema'
 
 // the init command is responsible for scaffolding a few files

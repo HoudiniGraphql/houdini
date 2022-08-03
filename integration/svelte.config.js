@@ -1,5 +1,4 @@
 import adapter from '@sveltejs/adapter-auto';
-import houdini from 'houdini/preprocess';
 import path from 'path';
 import preprocess from 'svelte-preprocess';
 

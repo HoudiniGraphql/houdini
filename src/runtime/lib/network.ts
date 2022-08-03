@@ -1,5 +1,5 @@
 // externals
-import { LoadEvent, Page } from '@sveltejs/kit'
+import type { LoadEvent, Page } from '@sveltejs/kit'
 // locals
 import cache from '../cache'
 import type { ConfigFile } from './config'

@@ -10,7 +10,9 @@
 		"sourceMap": true,
 		"declaration": false,
 		"moduleResolution": "node",
-		"module": "es2020"
+		"module": "es2020",
+		"importsNotUsedAsValues": "error",
+		"preserveValueImports": true
 	},
 	"typeRoots": ["./node_modules/@types", "./jest.d.ts"]
 }

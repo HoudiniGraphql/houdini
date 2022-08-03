@@ -1,12 +1,12 @@
 // locals
-import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
-import { computeID, ConfigFile, keyFieldsForType, deepEquals } from '../lib'
+import type { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
+import { computeID, ConfigFile, deepEquals, keyFieldsForType } from '../lib'
+import { defaultConfigValues } from '../lib/config'
 import { GarbageCollector } from './gc'
-import { ListCollection, ListManager } from './lists'
+import type { ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
-import { defaultConfigValues } from '../lib/config'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into

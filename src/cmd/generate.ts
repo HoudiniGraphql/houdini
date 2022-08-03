@@ -15,11 +15,11 @@ import {
 	TransformDocument,
 	readFile,
 } from '../common'
-import { CollectedGraphQLDocument, ArtifactKind, HoudiniErrorTodo } from './types'
+import type { CollectedGraphQLDocument, ArtifactKind, HoudiniErrorTodo } from './types'
 import * as transforms from './transforms'
 import * as generators from './generators'
 import * as validators from './validators'
-import { Program } from '@babel/types'
+import type { Program } from '@babel/types'
 
 // the main entry point of the compile script
 export default async function compile(config: Config) {

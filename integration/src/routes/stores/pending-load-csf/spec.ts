@@ -1,11 +1,6 @@
 import { test } from '@playwright/test';
 import { routes } from '../../lib/utils/routes.js';
-import {
-  clientSideNavigation,
-  expectGraphQLResponse,
-  expectNoGraphQLRequest,
-  expectToBe
-} from '../../lib/utils/testsHelper.js';
+import { clientSideNavigation, expectGraphQLResponse } from '../../lib/utils/testsHelper.js';
 
 test('Simultaneous Pending Load and CSF', async ({ page }) => {
   // start off on any page (/stores/network)

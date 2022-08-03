@@ -1,10 +1,9 @@
 // externals
-import * as graphql from 'graphql'
+import { IdentifierKind, TaggedTemplateExpressionKind } from 'ast-types/gen/kinds'
 import { asyncWalk, BaseNode } from 'estree-walker'
-import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
+import * as graphql from 'graphql'
 import * as recast from 'recast'
 // locals
-import { Config, ensureImports, TransformDocument } from '.'
 import {
 	CompiledDocumentKind,
 	CompiledFragmentKind,
@@ -12,6 +11,9 @@ import {
 	CompiledQueryKind,
 	CompiledSubscriptionKind,
 } from '../runtime/lib/types'
+import { Config } from './config'
+import { ensureImports } from './imports'
+import { TransformDocument } from './types'
 
 type Program = ReturnType<typeof recast.types.builders.statement>
 

@@ -1,6 +1,6 @@
 import { sleep, stry } from '@kitql/helper';
 import type { Page, Response } from '@playwright/test';
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { routes } from './routes.js';
 
 export async function expectNoGraphQLRequest(

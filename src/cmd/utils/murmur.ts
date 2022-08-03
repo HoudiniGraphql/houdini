@@ -12,7 +12,6 @@ const BASE62 = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
  * @return {string} a base62 murmur hash
  */
 export function murmurHash(str: string): string {
-	/* eslint-disable no-bitwise */
 	const length = str.length
 	const rem = length & 3
 	const len = length ^ rem
