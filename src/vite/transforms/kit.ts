@@ -79,28 +79,20 @@ async function process_component({
 	}
 
 	// add an import for the context utility
-	if (
-		ensure_imports({
-			config: page.config,
-			script: page.script,
-			import: ['getHoudiniContext'],
-			sourceModule: '$houdini/runtime/lib/context',
-		}).added
-	) {
-		insert_index++
-	}
+	insert_index += ensure_imports({
+		config: page.config,
+		script: page.script,
+		import: ['getHoudiniContext'],
+		sourceModule: '$houdini/runtime/lib/context',
+	}).added
 
 	// import the browser check
-	if (
-		ensure_imports({
-			config: page.config,
-			script: page.script,
-			import: ['browser'],
-			sourceModule: '$app/env',
-		}).added
-	) {
-		insert_index++
-	}
+	insert_index += ensure_imports({
+		config: page.config,
+		script: page.script,
+		import: ['browser'],
+		sourceModule: '$app/env',
+	}).added
 
 	// make sure that we have imports for every store
 	const store_ids: Record<string, string> = {}
@@ -110,9 +102,7 @@ async function process_component({
 			artifact: query,
 			script: page.script,
 		})
-		if (added) {
-			insert_index++
-		}
+		insert_index += added
 		store_ids[query.name] = id
 	}
 
