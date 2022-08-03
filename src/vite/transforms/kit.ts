@@ -1,15 +1,14 @@
-import { StatementKind } from 'ast-types/gen/kinds'
+import { ExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
 import { namedTypes } from 'ast-types/gen/namedTypes'
-import { Identifier } from 'estree'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import { Config } from '../../common/config'
 import { readFile } from '../../common/fs'
+import { operation_requires_variables } from '../../common/graphql'
 import { parseSvelte } from '../../common/parse'
-import { Script } from '../../common/types'
 import { CompiledQueryKind, GraphQLTagResult } from '../../runtime/lib/types'
-import { artifact_import, store_import } from '../imports'
+import { ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
 import { walk_graphql_tags } from '../walk'
 
@@ -23,84 +22,146 @@ export default async function svelteKitProcessor(config: Config, page: Transform
 		return
 	}
 
+	// if this isn't a route, move on
+	if (!page.config.isRoute(page.filepath) && !page.config.isRouteScript(page.filepath)) {
+		return
+	}
+
+	// we need to collect all of the various queries associated with the query file
+	const [page_query, inline_queries, page_info] = await Promise.all([
+		find_page_query(page),
+		find_inline_queries(page),
+		find_page_info(page),
+	])
+
+	// merge page and inline queries into a single list
+	const queries = inline_queries.concat(page_query ?? [])
+
 	// if we are processing a route component (+page.svelte)
 	if (page.config.isRoute(page.filepath)) {
-		await process_component(page)
+		await process_component({
+			page,
+			queries,
+			page_info,
+		})
 	}
 	// if we are processing a route config file (+page.ts)
 	else if (page.config.isRouteScript(page.filepath)) {
-		await process_script(page)
+		// add the load function to the query file
+		add_load({
+			page,
+			queries,
+			page_info,
+		})
 	}
 }
 
-async function process_component(page: TransformPage) {}
-
-async function process_script(page: TransformPage) {
-	// we need to collect all of the various queries associated with the query file
-	const [page_query, inline_queries] = await Promise.all([
-		find_page_query(page),
-		find_inline_queries(page),
-		find_page_stores(page),
-	])
-
-	// add the load function to the query file
-	add_load({
-		page,
-		external_queries: inline_queries.concat(page_query ?? []),
-		page_stores: find_page_stores.length > 0,
-	})
+async function process_component({
+	page,
+	queries: external_queries,
+	page_info,
+}: {
+	page: TransformPage
+	queries: LoadTarget[]
+	page_info: PageScriptInfo
+}) {
+	// the first thing we need to do is to define a local variable that
+	// will hold onto the values we get from props
 }
 
 function add_load({
 	page,
-	external_queries,
-	page_stores,
+	queries: external_queries,
+	page_info,
 }: {
 	page: TransformPage
-	external_queries: LoadQuery[]
-	page_stores: boolean
+	queries: LoadTarget[]
+	page_info: PageScriptInfo
 }) {
 	// if there is already a load function defined, don't do anything
-	if (find_exported_fn(page.script, 'load')) {
+	if (page_info.exports.includes('load')) {
 		return
 	}
 
-	// look for any hooks
-	let before_load = find_exported_fn(page.script, 'beforeLoad')
-	let after_load = find_exported_fn(page.script, 'afterLoad')
+	// let's verify that we have all of the variable functions we need before we mutate anything
+	let invalid = false
+	for (const query of (page_info.load ?? []).concat(external_queries)) {
+		const variable_fn = query_variable_fn(query.name)
+		// if the page doesn't export a function with the correct name, something is wrong
+		if (!page_info.exports.includes(variable_fn) && query.variables) {
+			// tell them we're missing something
+			console.log(`error in ${page.filepath}:
+could not find required variable function: ${variable_fn}. maybe its not exported?
+`)
 
-	// the name of the variable
+			// don't go any further
+			invalid = true
+		}
+	}
+	if (invalid) {
+		return
+	}
+
+	// make sure we have RequestContext imported
+	ensure_imports({
+		config: page.config,
+		script: page.script,
+		import: ['RequestContext'],
+		sourceModule: '$houdini/runtime/lib/network',
+	})
+
+	// look for any hooks
+	let before_load = page_info.exports.includes('beforeLoad')
+	let after_load = page_info.exports.includes('afterLoad')
+
+	// some local variables
 	const request_context = AST.identifier('houdini_context')
+	const input_obj = AST.identifier('inputs')
+	const promise_list = AST.identifier('promises')
+
+	// build up a list of metadata for every store that we have to load
+	const load = external_queries
+	for (const [i, target] of (page_info.load ?? []).entries()) {
+		load.push({
+			name: target.name,
+			variables: target.variables,
+			store_id: AST.memberExpression(AST.identifier('houdini_load'), AST.literal(i)),
+		})
+	}
 
 	const preload_fn = AST.functionDeclaration(
 		AST.identifier('load'),
 		[AST.identifier('context')],
 		// return an object
 		AST.blockStatement([
+			// instantiate the context variable and then thread it through instead of passing `this` directly
+			// then look to see if `this.error`, `this.redirect` were called before continuing onto the fetch
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					request_context,
+					AST.newExpression(AST.identifier('RequestContext'), [AST.identifier('context')])
+				),
+			]),
+
+			// the final return value from load is an object containing all of the inputs
+			// for every query that we generated
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(input_obj, AST.objectExpression([])),
+			]),
+
+			// and a list of all of the promises we generate
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(promise_list, AST.arrayExpression([])),
+			]),
+
+			// regardless of what happens between the contenxt instantiation and return,
+			// all we have to do is mix the return value with the props we want to send one
 			AST.returnStatement(
 				AST.objectExpression([
 					AST.spreadElement(
 						AST.memberExpression(request_context, AST.identifier('returnValue'))
 					),
-					AST.objectProperty(
-						AST.identifier('props'),
-						AST.objectExpression([
-							AST.spreadElement(
-								AST.memberExpression(
-									AST.memberExpression(
-										request_context,
-										AST.identifier('returnValue')
-									),
-									AST.identifier('props')
-								)
-							),
-							...external_queries.map((query) => {
-								const identifier = AST.identifier(key_variables(query))
-
-								return AST.objectProperty(identifier, identifier)
-							}),
-						])
-					),
+					AST.objectProperty(AST.identifier('inputs'), input_obj),
 				])
 			),
 		])
@@ -108,66 +169,23 @@ function add_load({
 	// mark the function as async
 	preload_fn.async = true
 
-	// @ts-ignore
 	// export the function from the module
+	// @ts-ignore
 	page.script.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
 
-	const return_value = AST.memberExpression(request_context, AST.identifier('returnValue'))
-
-	// we can start inserting statements at the top of the function
-	let insert_index = 0
-
-	// instantiate the context variable and then thread it through instead of passing `this` directly
-	// then look to see if `this.error`, `this.redirect` were called before continuing onto the fetch
-	preload_fn.body.body.splice(
-		insert_index,
-		0,
-		AST.variableDeclaration('const', [
-			AST.variableDeclarator(
-				request_context,
-				AST.newExpression(AST.identifier('request_context'), [AST.identifier('context')])
-			),
-		])
-	)
-
-	// we just added one to the return index
-	insert_index++
-
-	// only split into promise and await if there are multiple queries
-	const needs_promise = external_queries.length > 1
-	// a list of statements to await the query promises and check the results for errors
-	const awaits_and_checks: StatementKind[] = []
+	// we can start inserting statements after we define the context
+	let insert_index = 3
 
 	// every query that we found needs to be triggered in this function
-	for (const query of external_queries) {
-		let next_index = insert_index
-
-		// figure out the local variable that holds the result
-		const preload_key = key_preload_payload(query)
-
-		// the identifier for the query variables
-		const variable_id = key_variables(query)
-
-		// make sure we've imported the artifact
-		const artifact_id = artifact_import({
-			config: page.config,
-			artifact: query,
-			script: page.script,
-		})
-		const store_id = store_import({
-			config: page.config,
-			artifact: query,
-			script: page.script,
-		})
-
-		// add a local variable right before the return statement
+	for (const query of load) {
 		preload_fn.body.body.splice(
-			next_index++,
+			insert_index++,
 			0,
-			AST.variableDeclaration('const', [
-				AST.variableDeclarator(
-					AST.identifier(variable_id),
-					query.has_variables
+			AST.expressionStatement(
+				AST.assignmentExpression(
+					'=',
+					AST.memberExpression(input_obj, AST.literal(query.name)),
+					page_info.exports.includes(query_variable_fn(query.name))
 						? AST.callExpression(
 								AST.memberExpression(
 									request_context,
@@ -180,103 +198,73 @@ function add_load({
 											AST.identifier('houdiniConfig')
 										),
 										AST.objectProperty(
-											AST.literal('framework'),
-											AST.stringLiteral(page.config.framework)
-										),
-										AST.objectProperty(
 											AST.literal('variableFunction'),
 											AST.identifier(query_variable_fn(query.name))
 										),
 										AST.objectProperty(
 											AST.literal('artifact'),
-											AST.identifier(artifact_id)
+											AST.memberExpression(
+												query.store_id,
+												AST.literal('artifact')
+											)
 										),
 									]),
 								]
 						  )
 						: AST.objectExpression([])
-				),
-			])
-		)
-
-		if (query.has_variables) {
-			preload_fn.body.body.splice(
-				next_index++,
-				0,
-				// if we ran into a problem computing the variables
-				AST.ifStatement(
-					AST.unaryExpression(
-						'!',
-						AST.memberExpression(request_context, AST.identifier('continue'))
-					),
-					AST.blockStatement([AST.returnStatement(return_value)])
 				)
+			),
+			// push the result of the fetch onto the list of promises
+			AST.expressionStatement(
+				AST.callExpression(AST.memberExpression(promise_list, AST.identifier('push')), [
+					AST.callExpression(
+						AST.memberExpression(query.store_id, AST.identifier('fetch')),
+						[
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.literal('variables'),
+									AST.memberExpression(input_obj, AST.literal(query.name))
+								),
+								AST.objectProperty(AST.literal('event'), AST.identifier('context')),
+								AST.objectProperty(
+									AST.literal('blocking'),
+									AST.booleanLiteral(!!after_load)
+								),
+							]),
+						]
+					),
+				])
 			)
-		}
-
-		const fetch_call = AST.callExpression(
-			AST.memberExpression(AST.identifier(store_id), AST.identifier('fetch')),
-			[
-				AST.objectExpression([
-					AST.objectProperty(AST.literal('variables'), AST.identifier(variable_id)),
-					AST.objectProperty(AST.literal('event'), AST.identifier('context')),
-					AST.objectProperty(AST.literal('blocking'), AST.booleanLiteral(!!after_load)),
-				]),
-			]
 		)
 
-		if (needs_promise) {
-			// local variable for holding the query promise
-			const preload_promise_key = `${preload_key}Promise`
-
-			preload_fn.body.body.splice(
-				next_index++,
-				0,
-				// a variable holding the query promise
-				AST.variableDeclaration('const', [
-					AST.variableDeclarator(AST.identifier(preload_promise_key), fetch_call),
-				])
-			)
-
-			awaits_and_checks.splice(
-				0,
-				0,
-				// await the promise
-				AST.variableDeclaration('const', [
-					AST.variableDeclarator(
-						AST.identifier(preload_key),
-						AST.awaitExpression(AST.identifier(preload_promise_key))
-					),
-				])
-			)
-		} else {
-			preload_fn.body.body.splice(
-				next_index++,
-				0,
-				// perform the fetch and save the value under {preload_key}
-				AST.variableDeclaration('const', [
-					AST.variableDeclarator(
-						AST.identifier(preload_key),
-						AST.awaitExpression(fetch_call)
-					),
-				])
-			)
-		}
+		// we added 2 elements
+		insert_index++
 	}
 
-	// add all awaits and checks
-	preload_fn.body.body.splice(-1, 0, ...awaits_and_checks)
+	// now that the promise list is done, let's wait for everything to finish
+	const resolved_promises = AST.identifier('result')
+	preload_fn.body.body.splice(
+		insert_index++,
+		0,
+		AST.variableDeclaration('const', [
+			AST.variableDeclarator(
+				resolved_promises,
+				AST.awaitExpression(
+					AST.callExpression(
+						AST.memberExpression(AST.identifier('Promise'), AST.identifier('all')),
+						[promise_list]
+					)
+				)
+			),
+		])
+	)
 
-	let args = [request_context, page.config, external_queries] as const
+	let args = [request_context, page.config, load, input_obj, resolved_promises] as const
 
 	// add calls to user before/after load functions
 	if (before_load) {
 		if (before_load) {
-			preload_fn.body.body.splice(
-				insert_index,
-				0,
-				...load_hook_statements('beforeLoad', ...args)
-			)
+			preload_fn.body.body.splice(1, 0, ...load_hook_statements('beforeLoad', ...args))
 		}
 	}
 
@@ -289,7 +277,7 @@ function add_load({
 	}
 }
 
-async function find_inline_queries(page: TransformPage): Promise<LoadQuery[]> {
+async function find_inline_queries(page: TransformPage): Promise<LoadTarget[]> {
 	// build up a list of the queries we run into
 	const queries: {
 		name: string
@@ -334,9 +322,8 @@ async function find_inline_queries(page: TransformPage): Promise<LoadQuery[]> {
 			) {
 				queries.push({
 					name: operation.name!.value,
-					variables: Boolean(
-						operation.variableDefinitions && operation.variableDefinitions?.length > 0
-					),
+					// an operation requires variables if there is any non-null variable that doesn't have a default value
+					variables: operation_requires_variables(operation),
 				})
 			}
 		},
@@ -357,14 +344,14 @@ async function find_inline_queries(page: TransformPage): Promise<LoadQuery[]> {
 		})
 
 		return {
-			store_identifier: AST.identifier(storeID),
+			store_id: AST.identifier(storeID),
 			name: query.name,
-			has_variables: query.variables,
+			variables: query.variables,
 		}
 	})
 }
 
-async function find_page_query(page: TransformPage): Promise<LoadQuery | null> {
+async function find_page_query(page: TransformPage): Promise<LoadTarget | null> {
 	// figure out the filepath for the page query
 	const page_query_path = page.config.pageQueryPath(page.filepath)
 
@@ -395,11 +382,9 @@ async function find_page_query(page: TransformPage): Promise<LoadQuery | null> {
 	})
 
 	return {
-		store_identifier: AST.identifier(store_id),
+		store_id: AST.identifier(store_id),
 		name: definition.name!.value,
-		has_variables: Boolean(
-			definition.variableDefinitions && definition.variableDefinitions.length > 0
-		),
+		variables: operation_requires_variables(definition),
 	}
 }
 
@@ -407,7 +392,9 @@ function load_hook_statements(
 	name: 'beforeLoad' | 'afterLoad',
 	request_context: namedTypes.Identifier,
 	config: Config,
-	queries: LoadQuery[]
+	queries: LoadTarget[],
+	input_obj: IdentifierKind,
+	result_id: IdentifierKind
 ) {
 	return [
 		AST.expressionStatement(
@@ -420,21 +407,24 @@ function load_hook_statements(
 								AST.literal('variant'),
 								AST.stringLiteral(name === 'afterLoad' ? 'after' : 'before')
 							),
-							AST.objectProperty(
-								AST.literal('framework'),
-								AST.stringLiteral(config.framework)
-							),
 							AST.objectProperty(AST.literal('hookFn'), AST.identifier(name)),
 							// after load: pass query data to the hook
 							...(name === 'afterLoad'
 								? [
-										AST.objectProperty(
-											AST.literal('input'),
-											after_load_input(queries)
-										),
+										AST.objectProperty(AST.literal('input'), input_obj),
 										AST.objectProperty(
 											AST.literal('data'),
-											after_load_data(queries)
+											AST.objectExpression(
+												queries.map((query, i) =>
+													AST.objectProperty(
+														AST.stringLiteral(query.name),
+														AST.memberExpression(
+															result_id,
+															AST.literal(i)
+														)
+													)
+												)
+											)
 										),
 								  ]
 								: []),
@@ -446,113 +436,88 @@ function load_hook_statements(
 	]
 }
 
-function after_load_input(queries: LoadQuery[]) {
-	return AST.objectExpression(
-		queries.map((query) =>
-			AST.objectProperty(AST.literal(query.name), AST.identifier(key_variables(query)))
-		)
-	)
-}
+async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
+	const nil: PageScriptInfo = { load: [], exports: [] }
 
-function after_load_data(queries: LoadQuery[]) {
-	return AST.objectExpression(
-		queries.map((query) =>
-			AST.objectProperty(
-				AST.literal(query.name),
-				AST.memberExpression(
-					AST.identifier(key_preload_payload(query)),
-					AST.identifier('data')
-				)
-			)
-		)
-	)
-}
-
-async function find_page_stores(page: TransformPage): Promise<PageStoreReference[]> {
 	// if the page has mocked page stores return them
 	if (process.env.NODE_ENV === 'test') {
-		return page.mock_page_stores ?? []
+		return page.mock_page_info ?? nil
 	}
 
 	// let's check for existence by importing the file
-	let mod: any
+	let module: { houdini_load?: GraphQLTagResult[]; [key: string]: any }
 	try {
-		mod = await import(page.filepath)
+		module = await import(page.filepath)
 	} catch {
-		return []
+		return nil
 	}
-
-	const module: { houdini_load?: GraphQLTagResult[]; [key: string]: any } = mod.default || mod
 
 	// if there are no page stores we're done
 	if (!module.houdini_load) {
-		return []
+		return nil
 	}
 
 	// make sure that houdini_load is a list
 	if (!Array.isArray(module.houdini_load)) {
 		console.log('houdini_load must be a list')
-		return []
+		return nil
 	}
 
 	// build up a list of the referenced stores
-	const stores: PageStoreReference[] = []
+	const load: QueryInfo[] = []
+
+	const seen: string[] = []
 
 	for (const store of module.houdini_load) {
+		// make sure a store only shows up once
+		if (seen.includes(store.name)) {
+			console.log('a store can only appear once')
+			return nil
+		}
+		seen.push(store.name)
+
 		// if there is no kind in the value then its not a store reference
 		if (!('kind' in store)) {
 			console.log('you must pass stores to houdini_load')
 			// don't load any stores
-			return []
+			return nil
 		}
 		if (store.kind !== CompiledQueryKind) {
 			console.log('you must pass query stores to houdini_load')
 			// don't load any stores
-			return []
-		}
-
-		// if the store requires variables but the function is not defined we can't continue
-		const variable_fn = query_variable_fn(store.name)
-		if (store.variables && !module[variable_fn]) {
-			console.log('missing variable function. maybe its not exported?')
-			return []
+			return nil
 		}
 
 		// add the store to the list
-		stores.push({
+		load.push({
 			name: store.name,
-			variables: !!module[variable_fn],
+			variables: store.variables,
 		})
 	}
 
 	// there is a load
-	return stores
-}
-
-function key_preload_payload(operation: { name: string }): string {
-	return `${operation.name}`
-}
-
-function key_variables(operation: { name: string }): string {
-	return `${operation.name}_Input`
+	return {
+		load,
+		exports: Object.keys(module),
+	}
 }
 
 function query_variable_fn(name: string) {
 	return `${name}Variables`
 }
 
-function find_exported_fn(script: Script, name: string): ExportNamedDeclaration | null {
-	return script.body.find(
-		(expression) =>
-			expression.type === 'ExportNamedDeclaration' &&
-			expression.declaration?.type === 'FunctionDeclaration' &&
-			expression.declaration?.id?.name === name
-	) as ExportNamedDeclaration
+export type PageScriptInfo = {
+	load?: QueryInfo[]
+	exports: string[]
 }
 
-type LoadQuery = { store_identifier: Identifier; name: string; has_variables: boolean }
+type QueryInfo = {
+	name: string
+	variables: boolean
+}
 
-export type PageStoreReference = {
+type LoadTarget = {
+	store_id: ExpressionKind
 	name: string
 	variables: boolean
 }

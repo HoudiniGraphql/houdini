@@ -285,6 +285,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 	return {
 		name: artifact.name,
+		artifact,
 		kind: CompiledQueryKind,
 		variables,
 		subscribe: (...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) => {

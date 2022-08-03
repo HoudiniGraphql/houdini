@@ -184,3 +184,12 @@ export function formatErrors(e: unknown, afterError?: (e: Error) => void) {
 		afterError?.(e as Error)
 	}
 }
+
+export function operation_requires_variables(operation: graphql.OperationDefinitionNode) {
+	return Boolean(
+		operation.variableDefinitions &&
+			operation.variableDefinitions?.find(
+				(defn) => defn.type.kind === 'NonNullType' && !defn.defaultValue
+			)
+	)
+}

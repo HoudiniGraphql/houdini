@@ -8,7 +8,7 @@ import { Config, getConfig } from '../common/config'
 import { formatErrors } from '../common/graphql'
 import { Script } from '../common/types'
 import applyTransforms from './transforms'
-import type { PageStoreReference } from './transforms/kit'
+import { PageScriptInfo } from './transforms/kit'
 
 const AST = recast.types.builders
 
@@ -68,5 +68,5 @@ export interface TransformPage {
 	script: Script
 	filepath: string
 	addWatchFile: (path: string) => void
-	mock_page_stores?: PageStoreReference[]
+	mock_page_info?: PageScriptInfo
 }

@@ -209,6 +209,7 @@ export type QueryStore<_Data, _Input, _Extra = {}> = Readable<
 	name: string
 	kind: typeof CompiledQueryKind
 	variables: boolean
+	artifact: QueryArtifact
 
 	/**
 	 * Fetch the data from the server
