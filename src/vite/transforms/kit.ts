@@ -78,27 +78,33 @@ async function process_component({
 	}
 
 	// add an import for the context utility
-	ensure_imports({
-		config: page.config,
-		script: page.script,
-		import: ['getHoudiniContext'],
-		sourceModule: '$houdini/runtime/lib/context',
-	})
-	insert_index++
+	if (
+		ensure_imports({
+			config: page.config,
+			script: page.script,
+			import: ['getHoudiniContext'],
+			sourceModule: '$houdini/runtime/lib/context',
+		}).added
+	) {
+		insert_index++
+	}
 
 	// import the browser chec
-	ensure_imports({
-		config: page.config,
-		script: page.script,
-		import: ['browser'],
-		sourceModule: '$app/env',
-	})
-	insert_index++
+	if (
+		ensure_imports({
+			config: page.config,
+			script: page.script,
+			import: ['browser'],
+			sourceModule: '$app/env',
+		}).added
+	) {
+		insert_index++
+	}
 
 	// make sure that we have imports for every store
 	const store_ids: Record<string, string> = {}
 	for (const query of queries) {
-		const [id, added] = store_import({
+		const { id, added } = store_import({
 			config: page.config,
 			artifact: query,
 			script: page.script,
@@ -439,14 +445,14 @@ async function find_inline_queries(page: TransformPage): Promise<LoadTarget[]> {
 	return queries.map((query) => {
 		// we need to make sure that we have reference to the store
 		// for every query
-		const [storeID] = store_import({
+		const { id } = store_import({
 			config: page.config,
 			artifact: query,
 			script: page.script,
 		})
 
 		return {
-			store_id: AST.identifier(storeID),
+			store_id: AST.identifier(id),
 			name: query.name,
 			variables: query.variables,
 		}
@@ -477,14 +483,14 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 	}
 
 	// generate an import for the store
-	const [store_id] = store_import({
+	const { id } = store_import({
 		config: page.config,
 		artifact: { name: definition.name!.value },
 		script: page.script,
 	})
 
 	return {
-		store_id: AST.identifier(store_id),
+		store_id: AST.identifier(id),
 		name: definition.name!.value,
 		variables: operation_requires_variables(definition),
 	}

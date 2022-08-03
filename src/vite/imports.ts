@@ -18,7 +18,7 @@ export function ensure_imports<_Count extends string[] | string>({
 	import: _Count
 	sourceModule: string
 	importKind?: 'value' | 'type'
-}): [_Count, boolean] {
+}): { ids: _Count; added: boolean } {
 	const idList = Array.isArray(importID) ? importID : [importID]
 
 	// figure out the list of things to import
@@ -57,26 +57,10 @@ export function ensure_imports<_Count extends string[] | string>({
 		})
 	}
 
-	return [Array.isArray(importID) ? idList : idList[0], toImport.length > 0]
-}
-
-export function artifact_import({
-	config,
-	artifact,
-	script,
-	local,
-}: {
-	config: Config
-	artifact: { name: string }
-	script: Script
-	local?: string
-}) {
-	return ensure_imports({
-		config,
-		script,
-		sourceModule: config.artifactImportPath(artifact.name),
-		import: local || `_${artifact.name}Artifact`,
-	})
+	return {
+		ids: Array.isArray(importID) ? idList : idList[0],
+		added: toImport.length > 0,
+	}
 }
 
 export function store_import({
@@ -89,13 +73,13 @@ export function store_import({
 	artifact: { name: string }
 	script: Script
 	local?: string
-}): [string, boolean] {
-	const [imports, added] = ensure_imports({
+}): { id: string; added: boolean } {
+	const { ids, added } = ensure_imports({
 		config,
 		script,
 		sourceModule: config.storeImportPath(artifact.name),
 		import: [`GQL_${artifact.name}`],
 	})
 
-	return [imports[0], added]
+	return { id: ids[0], added }
 }

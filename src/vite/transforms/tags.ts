@@ -23,7 +23,7 @@ export default async function transform_gql_tag(config: Config, ctx: TransformPa
 						config: config,
 						script: ctx.script,
 						artifact: { name: operation.name!.value },
-					})[0]
+					}).id
 				)
 			)
 		},
