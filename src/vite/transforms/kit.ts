@@ -1,9 +1,8 @@
 // externals
 import { namedTypes } from 'ast-types/gen/namedTypes'
-import { StatementKind } from 'ast-types/gen/kinds'
+import { IdentifierKind, ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { Identifier } from 'estree'
 // locals
 import { walk_graphql_tags } from '../walk'
 import { TransformPage } from '../plugin'
@@ -44,31 +43,28 @@ async function process_script(page: TransformPage) {
 	// add the load function to the query file
 	add_load({
 		page,
-		external_queries: inline_queries.concat(page_query ?? []),
+		queries: inline_queries.concat(page_query ?? []),
 		page_info,
 	})
 }
 
 function add_load({
 	page,
-	external_queries,
+	queries: external_queries,
 	page_info,
 }: {
 	page: TransformPage
-	external_queries: LoadQuery[]
+	queries: LoadQuery[]
 	page_info: PageScriptInfo
 }) {
 	// if there is already a load function defined, don't do anything
-	if (find_exported_fn(page.script, 'load')) {
+	if (page_info.exports.includes('load')) {
 		return
 	}
 
-	// we need to
-	const queries: PageStoreReference[] = (page_info.load ?? []).concat(external_queries)
-	let invalid = false
-
 	// let's verify that we have all of the variable functions we need before we mutate anything
-	for (const query of queries) {
+	let invalid = false
+	for (const query of (page_info.load ?? []).concat(external_queries)) {
 		const variable_fn = query_variable_fn(query.name)
 		// if the page doesn't export a function with the correct name, something is wrong
 		if (!page_info.exports.includes(variable_fn) && query.variables) {
@@ -81,20 +77,28 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 			invalid = true
 		}
 	}
-
-	// if we ran into issue
 	if (invalid) {
 		return
 	}
 
 	// look for any hooks
-	let before_load = find_exported_fn(page.script, 'beforeLoad')
-	let after_load = find_exported_fn(page.script, 'afterLoad')
+	let before_load = page_info.exports.includes('beforeLoad')
+	let after_load = page_info.exports.includes('afterLoad')
 
-	// the name of the variable
+	// some local variables
 	const request_context = AST.identifier('houdini_context')
+	const input_obj = AST.identifier('inputs')
+	const promise_list = AST.identifier('promises')
 
-	const return_value = AST.memberExpression(request_context, AST.identifier('returnValue'))
+	// build up a list of metadata for every store that we have to load
+	const load = external_queries
+	for (const [i, target] of (page_info.load ?? []).entries()) {
+		load.push({
+			name: target.name,
+			variables: target.variables,
+			store_id: AST.memberExpression(AST.identifier('houdini_load'), AST.literal(i)),
+		})
+	}
 
 	const preload_fn = AST.functionDeclaration(
 		AST.identifier('load'),
@@ -111,16 +115,26 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 					])
 				),
 			]),
+
+			// the final return value from load is an object containing all of the inputs
+			// for every query that we generated
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(input_obj, AST.objectExpression([])),
+			]),
+
+			// and a list of all of the promises we generate
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(promise_list, AST.arrayExpression([])),
+			]),
+
 			// regardless of what happens between the contenxt instantiation and return,
 			// all we have to do is mix the return value with the props we want to send one
 			AST.returnStatement(
 				AST.objectExpression([
-					AST.spreadElement(return_value),
-					...external_queries.map((query) => {
-						const identifier = AST.identifier(key_variables(query))
-
-						return AST.objectProperty(identifier, identifier)
-					}),
+					AST.spreadElement(
+						AST.memberExpression(request_context, AST.identifier('returnValue'))
+					),
+					AST.objectProperty(AST.identifier('inputs'), input_obj),
 				])
 			),
 		])
@@ -133,43 +147,17 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 	page.script.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
 
 	// we can start inserting statements after we define the context
-	let insert_index = 1
-
-	// only split into promise and await if there are multiple queries
-	const needs_promise = external_queries.length > 1
-	// a list of statements to await the query promises and check the results for errors
-	const awaits_and_checks: StatementKind[] = []
+	let insert_index = 3
 
 	// every query that we found needs to be triggered in this function
-	for (const query of external_queries) {
-		let next_index = insert_index
-
-		// figure out the local variable that holds the result
-		const preload_key = key_preload_payload(query)
-
-		// the identifier for the query variables
-		const variable_id = key_variables(query)
-
-		// make sure we've imported the artifact
-		const artifact_id = artifact_import({
-			config: page.config,
-			artifact: query,
-			script: page.script,
-		})
-		const store_id = store_import({
-			config: page.config,
-			artifact: query,
-			script: page.script,
-		})
-
-		// add a local variable right before the return statement
+	for (const query of load) {
 		preload_fn.body.body.splice(
-			next_index++,
+			insert_index++,
 			0,
-			AST.variableDeclaration('const', [
-				AST.variableDeclarator(
-					AST.identifier(variable_id),
-					// if we have variables, we need to call the function
+			AST.expressionStatement(
+				AST.assignmentExpression(
+					'=',
+					AST.memberExpression(input_obj, AST.literal(query.name)),
 					page_info.exports.includes(query_variable_fn(query.name))
 						? AST.callExpression(
 								AST.memberExpression(
@@ -192,70 +180,63 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 										),
 										AST.objectProperty(
 											AST.literal('artifact'),
-											AST.identifier(artifact_id)
+											AST.memberExpression(
+												query.store_id,
+												AST.literal('artifact')
+											)
 										),
 									]),
 								]
 						  )
 						: AST.objectExpression([])
-				),
-			])
-		)
-
-		const fetch_call = AST.callExpression(
-			AST.memberExpression(AST.identifier(store_id), AST.identifier('fetch')),
-			[
-				AST.objectExpression([
-					AST.objectProperty(AST.literal('variables'), AST.identifier(variable_id)),
-					AST.objectProperty(AST.literal('event'), AST.identifier('context')),
-					AST.objectProperty(AST.literal('blocking'), AST.booleanLiteral(!!after_load)),
-				]),
-			]
-		)
-
-		if (needs_promise) {
-			// local variable for holding the query promise
-			const preload_promise_key = `${preload_key}Promise`
-
-			preload_fn.body.body.splice(
-				next_index++,
-				0,
-				// a variable holding the query promise
-				AST.variableDeclaration('const', [
-					AST.variableDeclarator(AST.identifier(preload_promise_key), fetch_call),
-				])
-			)
-
-			awaits_and_checks.splice(
-				0,
-				0,
-				// await the promise
-				AST.variableDeclaration('const', [
-					AST.variableDeclarator(
-						AST.identifier(preload_key),
-						AST.awaitExpression(AST.identifier(preload_promise_key))
+				)
+			),
+			// push the result of the fetch onto the list of promises
+			AST.expressionStatement(
+				AST.callExpression(AST.memberExpression(promise_list, AST.identifier('push')), [
+					AST.callExpression(
+						AST.memberExpression(query.store_id, AST.identifier('fetch')),
+						[
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.literal('variables'),
+									AST.memberExpression(input_obj, AST.literal(query.name))
+								),
+								AST.objectProperty(AST.literal('event'), AST.identifier('context')),
+								AST.objectProperty(
+									AST.literal('blocking'),
+									AST.booleanLiteral(!!after_load)
+								),
+							]),
+						]
 					),
 				])
 			)
-		} else {
-			preload_fn.body.body.splice(
-				next_index++,
-				0,
-				// perform the fetch and save the value under {preload_key}
-				AST.variableDeclaration('const', [
-					AST.variableDeclarator(
-						AST.identifier(preload_key),
-						AST.awaitExpression(fetch_call)
-					),
-				])
-			)
-		}
+		)
+
+		// we added 2 elements
+		insert_index++
 	}
 
-	// add all awaits and checks
-	preload_fn.body.body.splice(-1, 0, ...awaits_and_checks)
+	// now that the promise list is done, let's wait for everything to finish
+	const resolved_promises = AST.identifier('result')
+	preload_fn.body.body.splice(
+		insert_index++,
+		0,
+		AST.variableDeclaration('const', [
+			AST.variableDeclarator(
+				resolved_promises,
+				AST.awaitExpression(
+					AST.callExpression(
+						AST.memberExpression(AST.identifier('Promise'), AST.identifier('all')),
+						[promise_list]
+					)
+				)
+			),
+		])
+	)
 
-	let args = [request_context, page.config, external_queries] as const
+	let args = [request_context, page.config, load, input_obj, resolved_promises] as const
 
 	// add calls to user before/after load functions
 	if (before_load) {
@@ -344,7 +325,7 @@ async function find_inline_queries(page: TransformPage): Promise<LoadQuery[]> {
 		})
 
 		return {
-			store_identifier: AST.identifier(storeID),
+			store_id: AST.identifier(storeID),
 			name: query.name,
 			variables: query.variables,
 		}
@@ -382,7 +363,7 @@ async function find_page_query(page: TransformPage): Promise<LoadQuery | null> {
 	})
 
 	return {
-		store_identifier: AST.identifier(store_id),
+		store_id: AST.identifier(store_id),
 		name: definition.name!.value,
 		variables: operation_requires_variables(definition),
 	}
@@ -392,7 +373,9 @@ function load_hook_statements(
 	name: 'beforeLoad' | 'afterLoad',
 	request_context: namedTypes.Identifier,
 	config: Config,
-	queries: LoadQuery[]
+	queries: LoadQuery[],
+	input_obj: IdentifierKind,
+	result_id: IdentifierKind
 ) {
 	return [
 		AST.expressionStatement(
@@ -413,13 +396,20 @@ function load_hook_statements(
 							// after load: pass query data to the hook
 							...(name === 'afterLoad'
 								? [
-										AST.objectProperty(
-											AST.literal('input'),
-											after_load_input(queries)
-										),
+										AST.objectProperty(AST.literal('input'), input_obj),
 										AST.objectProperty(
 											AST.literal('data'),
-											after_load_data(queries)
+											AST.objectExpression(
+												queries.map((query, i) =>
+													AST.objectProperty(
+														AST.stringLiteral(query.name),
+														AST.memberExpression(
+															result_id,
+															AST.literal(i)
+														)
+													)
+												)
+											)
 										),
 								  ]
 								: []),
@@ -429,28 +419,6 @@ function load_hook_statements(
 			)
 		),
 	]
-}
-
-function after_load_input(queries: LoadQuery[]) {
-	return AST.objectExpression(
-		queries.map((query) =>
-			AST.objectProperty(AST.literal(query.name), AST.identifier(key_variables(query)))
-		)
-	)
-}
-
-function after_load_data(queries: LoadQuery[]) {
-	return AST.objectExpression(
-		queries.map((query) =>
-			AST.objectProperty(
-				AST.literal(query.name),
-				AST.memberExpression(
-					AST.identifier(key_preload_payload(query)),
-					AST.identifier('data')
-				)
-			)
-		)
-	)
 }
 
 async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
@@ -510,28 +478,15 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	}
 }
 
-function key_preload_payload(operation: { name: string }): string {
-	return `${operation.name}`
-}
-
-function key_variables(operation: { name: string }): string {
-	return `${operation.name}_Input`
-}
-
 function query_variable_fn(name: string) {
 	return `${name}Variables`
 }
 
-function find_exported_fn(script: Script, name: string): ExportNamedDeclaration | null {
-	return script.body.find(
-		(expression) =>
-			expression.type === 'ExportNamedDeclaration' &&
-			expression.declaration?.type === 'FunctionDeclaration' &&
-			expression.declaration?.id?.name === name
-	) as ExportNamedDeclaration
+type LoadQuery = {
+	store_id: ExpressionKind
+	name: string
+	variables: boolean
 }
-
-type LoadQuery = { store_identifier: Identifier; name: string; variables: boolean }
 
 export type PageScriptInfo = {
 	load?: PageStoreReference[]
