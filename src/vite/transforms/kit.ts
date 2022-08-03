@@ -6,8 +6,8 @@ import * as recast from 'recast'
 // locals
 import { walk_graphql_tags } from '../walk'
 import { TransformPage } from '../plugin'
-import { Config, operation_requires_variables, parseSvelte, readFile, Script } from '../../common'
-import { artifact_import, ensure_imports, store_import } from '../imports'
+import { Config, operation_requires_variables, parseSvelte, readFile } from '../../common'
+import { ensure_imports, store_import } from '../imports'
 import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
 
 const AST = recast.types.builders
