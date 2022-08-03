@@ -9,13 +9,17 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	const storeName = config.storeName(doc)
 	const artifactName = `${doc.name}`
 
-	let hasVariables = false
+	let variables = false
 	const operation = doc.originalDocument.definitions.find(
 		(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
 	) as graphql.OperationDefinitionNode
 	if (operation) {
-		hasVariables = Boolean(
-			operation.variableDefinitions && operation.variableDefinitions.length > 0
+		// an operation requires variables if there is any non-null variable that doesn't have a default value
+		variables = Boolean(
+			operation.variableDefinitions &&
+				operation.variableDefinitions?.find(
+					(defn) => defn.type.kind === 'NonNullType' && !defn.defaultValue
+				)
 		)
 	}
 
@@ -34,7 +38,7 @@ const factory = () => queryStore({
     storeName: ${JSON.stringify(storeName)},
     paginated: ${JSON.stringify(Boolean(doc.refetch?.paginated))},
     paginationMethods: ${JSON.stringify(paginationExtras.methods)},
-	hasVariables: ${JSON.stringify(hasVariables)},
+	variables: ${JSON.stringify(variables)},
 })
 
 export const ${storeName} = factory()

@@ -60,7 +60,7 @@ test('basic store', async function () {
 					    storeName: "GQL_TestQuery",
 					    paginated: false,
 					    paginationMethods: [],
-						hasVariables: false,
+						variables: false,
 					})
 
 					export const GQL_TestQuery = factory()
@@ -71,7 +71,7 @@ test('basic store', async function () {
 				`)
 })
 
-test('store with avriables', async function () {
+test('store with required variables', async function () {
 	const docs = [
 		mockCollectedDoc(
 			`query TestQuery($intValue: Int!) { usersByOffset(offset: $intValue) { id }  }`
@@ -102,7 +102,91 @@ test('store with avriables', async function () {
 					    storeName: "GQL_TestQuery",
 					    paginated: false,
 					    paginationMethods: [],
-						hasVariables: true,
+						variables: true,
+					})
+
+					export const GQL_TestQuery = factory()
+
+					export const TestQueryStore = factory
+
+					export default GQL_TestQuery
+				`)
+})
+
+test('store with nullable variables', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`query TestQuery($intValue: Int) { usersByOffset(offset: $intValue) { id }  }`
+		),
+	]
+
+	// run the generator
+	await runPipeline(config, docs)
+
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	await expect(parsed).toMatchInlineSnapshot(`
+					import { houdiniConfig } from '$houdini';
+					import { queryStore } from '../runtime/stores'
+					import artifact from '../artifacts/TestQuery'
+					import { defaultConfigValues } from '../runtime/lib'
+
+					// create the query store
+					const factory = () => queryStore({
+					    artifact,
+					    config: defaultConfigValues(houdiniConfig),
+					    storeName: "GQL_TestQuery",
+					    paginated: false,
+					    paginationMethods: [],
+						variables: false,
+					})
+
+					export const GQL_TestQuery = factory()
+
+					export const TestQueryStore = factory
+
+					export default GQL_TestQuery
+				`)
+})
+
+test('store with non-null variables with default value', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`query TestQuery($intValue: Int = 2) { usersByOffset(offset: $intValue) { id }  }`
+		),
+	]
+
+	// run the generator
+	await runPipeline(config, docs)
+
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	await expect(parsed).toMatchInlineSnapshot(`
+					import { houdiniConfig } from '$houdini';
+					import { queryStore } from '../runtime/stores'
+					import artifact from '../artifacts/TestQuery'
+					import { defaultConfigValues } from '../runtime/lib'
+
+					// create the query store
+					const factory = () => queryStore({
+					    artifact,
+					    config: defaultConfigValues(houdiniConfig),
+					    storeName: "GQL_TestQuery",
+					    paginated: false,
+					    paginationMethods: [],
+						variables: false,
 					})
 
 					export const GQL_TestQuery = factory()
@@ -150,7 +234,7 @@ test('forward cursor pagination', async function () {
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
 					    paginationMethods: ["loadNextPage","fetch","loading"],
-						hasVariables: false,
+						variables: false,
 					})
 
 					export const GQL_TestQuery = factory()
@@ -198,7 +282,7 @@ test('backwards cursor pagination', async function () {
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
 					    paginationMethods: ["loadPreviousPage","fetch","loading"],
-						hasVariables: false,
+						variables: false,
 					})
 
 					export const GQL_TestQuery = factory()
@@ -242,7 +326,7 @@ test('offset pagination', async function () {
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
 					    paginationMethods: ["loadNextPage","fetch","loading"],
-						hasVariables: false,
+						variables: false,
 					})
 
 					export const GQL_TestQuery = factory()
