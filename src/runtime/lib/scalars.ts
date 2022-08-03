@@ -1,4 +1,3 @@
-// locals
 import type { ConfigFile } from './config'
 import {
 	MutationArtifact,

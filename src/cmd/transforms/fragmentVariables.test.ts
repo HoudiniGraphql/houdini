@@ -1,14 +1,13 @@
-// external imports
-import path from 'path'
-import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
+import path from 'path'
 import * as recast from 'recast'
-// local imports
+import * as typeScriptParser from 'recast/parsers/typescript'
+
 import '../../../jest.setup'
+import { readFile } from '../../common/fs'
+import { testConfig } from '../../common/tests'
 import { runPipeline } from '../generate'
 import { mockCollectedDoc } from '../testUtils'
-import { testConfig } from '../../common/tests'
-import { readFile } from '../../common/fs'
 
 test('pass argument values to generated fragments', async function () {
 	const docs = [

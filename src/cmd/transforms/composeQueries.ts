@@ -1,6 +1,5 @@
-// externals
 import graphql, { Kind as GraphqlKinds } from 'graphql'
-// locals
+
 import type { Config } from '../../common/config'
 import type { CollectedGraphQLDocument } from '../types'
 

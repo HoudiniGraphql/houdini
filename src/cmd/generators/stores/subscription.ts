@@ -1,9 +1,8 @@
-// externals
-import path from 'path'
 import * as graphql from 'graphql'
-// locals
-import { writeFile } from '../../../common/fs'
+import path from 'path'
+
 import { Config } from '../../../common/config'
+import { writeFile } from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
 
 export async function generateSubscriptionStore(config: Config, doc: CollectedGraphQLDocument) {

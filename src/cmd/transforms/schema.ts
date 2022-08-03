@@ -1,10 +1,9 @@
-// externals
 import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
-// locals
+
 import type { Config } from '../../common/config'
-import type { CollectedGraphQLDocument } from '../types'
 import { CachePolicy } from '../../runtime/lib/types'
+import type { CollectedGraphQLDocument } from '../types'
 
 // graphqlExtensions adds a few different things to the graphql schema
 export default async function graphqlExtensions(

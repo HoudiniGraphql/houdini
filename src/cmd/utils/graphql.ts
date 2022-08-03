@@ -1,4 +1,5 @@
 import * as graphql from 'graphql'
+
 import { Config } from '../../common/config'
 
 export function unwrapType(

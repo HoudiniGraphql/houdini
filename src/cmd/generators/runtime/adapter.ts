@@ -1,8 +1,7 @@
-// external imports
 import path from 'path'
-// local imports
-import { writeFile } from '../../../common/fs'
+
 import { Config } from '../../../common/config'
+import { writeFile } from '../../../common/fs'
 
 export default async function generateAdapter(config: Config) {
 	// the location of the adapter

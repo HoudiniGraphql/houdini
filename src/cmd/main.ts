@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import { glob } from 'glob'
 import path from 'path'
+
 import { getConfig, LogLevel, readConfigFile } from '../common/config'
 import { formatErrors } from '../common/graphql'
 import type { ConfigFile } from '../runtime/lib/config'

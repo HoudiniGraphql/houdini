@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import * as graphql from 'graphql'
+
 import { HoudiniError } from '../cmd/types'
 
 export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {

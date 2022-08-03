@@ -1,7 +1,6 @@
-// locals
 import { testConfigFile } from '../../../common/tests'
-import { Cache, rootID } from '../cache'
 import { SubscriptionSelection } from '../../lib/types'
+import { Cache, rootID } from '../cache'
 
 const config = testConfigFile({
 	scalars: {

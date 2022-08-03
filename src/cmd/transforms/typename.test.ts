@@ -1,6 +1,5 @@
-// local imports
-import { testConfig } from '../../common/tests'
 import '../../../jest.setup'
+import { testConfig } from '../../common/tests'
 import { runPipeline } from '../generate'
 import { mockCollectedDoc } from '../testUtils'
 

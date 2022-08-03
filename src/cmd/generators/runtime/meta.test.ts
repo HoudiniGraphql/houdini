@@ -1,8 +1,7 @@
-// local imports
-import { readFile } from '../../../common/fs'
 import '../../../../jest.setup'
-import { runPipeline } from '../../generate'
+import { readFile } from '../../../common/fs'
 import { testConfig } from '../../../common/tests'
+import { runPipeline } from '../../generate'
 
 test('generates runtime meta data file', async function () {
 	const config = testConfig()

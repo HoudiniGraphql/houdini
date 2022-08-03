@@ -1,9 +1,8 @@
-// externals
-import { Readable } from 'svelte/store'
 import { onDestroy } from 'svelte'
-// locals
-import { Operation, GraphQLTagResult } from '../lib/types'
+import { Readable } from 'svelte/store'
+
 import { isBrowser } from '../adapter'
+import { Operation, GraphQLTagResult } from '../lib/types'
 
 // subscription holds open a live connection to the server. it returns a store
 // containing the requested data. Houdini will also update the cache with any

@@ -1,12 +1,11 @@
-// externals
+import { logCyan, logGreen } from '@kitql/helper'
 import { StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
-import { logCyan, logGreen } from '@kitql/helper'
-// locals
-import { writeFile } from '../../../common/fs'
+
 import { Config } from '../../../common/config'
+import { writeFile } from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'

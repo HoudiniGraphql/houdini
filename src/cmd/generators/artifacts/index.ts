@@ -1,12 +1,11 @@
-// externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { CollectedGraphQLDocument } from '../../types'
-// locals
+
 import { Config } from '../../../common/config'
 import { readFile, writeFile } from '../../../common/fs'
 import { getRootType, hashDocument, parentTypeFromAncestors } from '../../../common/graphql'
 import { ArtifactKind } from '../../../runtime/lib/types'
+import { CollectedGraphQLDocument } from '../../types'
 import { moduleExport } from '../../utils'
 import { cleanupFiles } from '../../utils/cleanupFiles'
 import writeIndexFile from './indexFile'

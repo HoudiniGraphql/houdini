@@ -1,9 +1,8 @@
-// externals
-import * as recast from 'recast'
 import path from 'path'
-// locals
-import { writeFile } from '../../../common/fs'
+import * as recast from 'recast'
+
 import { Config } from '../../../common/config'
+import { writeFile } from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
 import { cjsIndexFilePreamble, exportDefaultFrom } from '../../utils'
 

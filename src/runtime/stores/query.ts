@@ -1,6 +1,6 @@
-// externals
 import type { LoadEvent } from '@sveltejs/kit'
 import { derived, get, readable, Readable, Writable } from 'svelte/store'
+
 // internals
 import { clientStarted, getSession, isBrowser } from '../adapter'
 import cache from '../cache'

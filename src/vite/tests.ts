@@ -1,7 +1,6 @@
-// external imports
 import path from 'path'
 import * as recast from 'recast'
-// local imports
+
 import { writeFile } from '../common/fs'
 import { ParsedFile, parseJS, parseSvelte } from '../common/parse'
 import { testConfig } from '../common/tests'

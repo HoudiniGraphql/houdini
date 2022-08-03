@@ -1,9 +1,8 @@
-// externals
 import { sleep } from '@kitql/helper'
-import type { Plugin } from 'vite'
-import path from 'path'
 import glob from 'glob'
-// locals
+import path from 'path'
+import type { Plugin } from 'vite'
+
 import { writeSchema } from '../cmd/utils'
 import { getConfig } from '../common/config'
 

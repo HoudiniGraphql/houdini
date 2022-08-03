@@ -1,7 +1,7 @@
-// locals
-import type { Maybe, Script } from './types'
-import * as svelte from 'svelte/compiler'
 import { parse as parseJavascript } from '@babel/parser'
+import * as svelte from 'svelte/compiler'
+
+import type { Maybe, Script } from './types'
 
 export type ParsedFile = Maybe<Script>
 

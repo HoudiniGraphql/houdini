@@ -1,7 +1,7 @@
-// locals
+import { jest } from '@jest/globals'
+
 import { testConfigFile } from '../../../common/tests'
 import { Cache } from '../cache'
-import { jest } from '@jest/globals'
 
 const config = testConfigFile()
 

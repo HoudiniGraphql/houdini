@@ -1,7 +1,7 @@
 import type { SubscriptionSpec, SubscriptionSelection, GraphQLObject } from '../lib/types'
-import { evaluateKey, flattenList } from './stuff'
-import { Cache, LinkedList } from './cache'
 import type { GraphQLValue } from '../lib/types'
+import { Cache, LinkedList } from './cache'
+import { evaluateKey, flattenList } from './stuff'
 
 // manage the subscriptions
 export class InMemorySubscriptions {

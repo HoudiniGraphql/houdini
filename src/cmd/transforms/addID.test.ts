@@ -1,4 +1,3 @@
-// local imports
 import '../../../jest.setup'
 import { testConfig } from '../../common/tests'
 import { runPipeline } from '../generate'

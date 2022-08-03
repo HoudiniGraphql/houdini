@@ -1,6 +1,6 @@
-// externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
+
 import { Config } from '../../../common/config'
 import { parentTypeFromAncestors } from '../../../common/graphql'
 import { MutationOperation } from '../../types'

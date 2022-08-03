@@ -1,7 +1,8 @@
 import * as graphql from 'graphql'
 import path from 'path'
-import { writeFile } from '../../../common/fs'
+
 import { Config } from '../../../common/config'
+import { writeFile } from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
 import pagination from './pagination'
 

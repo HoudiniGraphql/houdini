@@ -1,18 +1,17 @@
-// externals
-import { namedTypes } from 'ast-types/gen/namedTypes'
 import { StatementKind } from 'ast-types/gen/kinds'
+import { namedTypes } from 'ast-types/gen/namedTypes'
+import { Identifier } from 'estree'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-import { Identifier } from 'estree'
-// locals
-import { walk_graphql_tags } from '../walk'
-import { TransformPage } from '../plugin'
-import { readFile } from '../../common/fs'
-import { artifact_import, store_import } from '../imports'
-import { CompiledQueryKind, GraphQLTagResult } from '../../runtime/lib/types'
+
 import { Config } from '../../common/config'
+import { readFile } from '../../common/fs'
 import { parseSvelte } from '../../common/parse'
 import { Script } from '../../common/types'
+import { CompiledQueryKind, GraphQLTagResult } from '../../runtime/lib/types'
+import { artifact_import, store_import } from '../imports'
+import { TransformPage } from '../plugin'
+import { walk_graphql_tags } from '../walk'
 
 const AST = recast.types.builders
 

@@ -4,6 +4,7 @@ import glob from 'glob'
 import * as graphql from 'graphql'
 import * as svelte from 'svelte/compiler'
 import { promisify } from 'util'
+
 import { Config, LogLevel } from '../common/config'
 import { readFile } from '../common/fs'
 import { ParsedFile, parseSvelte } from '../common/parse'

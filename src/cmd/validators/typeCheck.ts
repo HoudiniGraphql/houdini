@@ -1,6 +1,5 @@
-// externals
 import * as graphql from 'graphql'
-// locals
+
 import { Config } from '../../common/config'
 import { definitionFromAncestors, parentTypeFromAncestors } from '../../common/graphql'
 import {

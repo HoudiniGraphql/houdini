@@ -1,7 +1,6 @@
-// externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-// locals
+
 import { Config } from '../../../common/config'
 import type { InputObject } from '../../../runtime/lib/types'
 import { unwrapType } from '../../utils'

@@ -1,7 +1,8 @@
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import type { Readable } from 'svelte/store'
-import type { HoudiniDocumentProxy } from './proxy'
+
 import type { MutationConfig } from '../inline/mutation'
+import type { HoudiniDocumentProxy } from './proxy'
 
 export type { ConfigFile } from './config'
 

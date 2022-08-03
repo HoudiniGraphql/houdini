@@ -1,13 +1,12 @@
-// externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-// locals
-import fieldKey from './fieldKey'
-import { CollectedGraphQLDocument, MutationOperation, SubscriptionSelection } from '../../types'
-import { convertValue, deepMerge } from './utils'
-import { connectionSelection } from '../../transforms/list'
+
 import { Config } from '../../../common/config'
 import { getRootType } from '../../../common/graphql'
+import { connectionSelection } from '../../transforms/list'
+import { CollectedGraphQLDocument, MutationOperation, SubscriptionSelection } from '../../types'
+import fieldKey from './fieldKey'
+import { convertValue, deepMerge } from './utils'
 
 const AST = recast.types.builders
 

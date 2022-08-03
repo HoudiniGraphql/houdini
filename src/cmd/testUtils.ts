@@ -1,6 +1,5 @@
-// externals
 import * as graphql from 'graphql'
-// locals
+
 import { testConfig } from '../common/tests'
 import { ArtifactKind } from '../runtime/lib/types'
 import { runPipeline } from './generate'

@@ -1,9 +1,8 @@
-// externals
 import minimatch from 'minimatch'
 import path from 'path'
 import * as recast from 'recast'
 import type { Plugin } from 'vite'
-// locals
+
 import generate from '../cmd/generate'
 import { Config, getConfig } from '../common/config'
 import { formatErrors } from '../common/graphql'

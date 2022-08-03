@@ -1,9 +1,8 @@
-// external imports
 import { ProgramKind } from 'ast-types/gen/kinds'
 import path from 'path'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
-// local imports
+
 import '../../../../jest.setup'
 import { readFile } from '../../../common/fs'
 import { testConfig } from '../../../common/tests'

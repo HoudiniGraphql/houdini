@@ -1,4 +1,3 @@
-// locals
 import { testConfigFile } from '../../../common/tests'
 import { Cache } from '../cache'
 

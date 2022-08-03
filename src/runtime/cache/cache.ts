@@ -1,4 +1,3 @@
-// locals
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'

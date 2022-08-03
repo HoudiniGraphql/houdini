@@ -1,5 +1,6 @@
 //externals
 import * as graphql from 'graphql'
+
 import { Config } from '../../../common/config'
 // internals
 import { writeFile } from '../../../common/fs'

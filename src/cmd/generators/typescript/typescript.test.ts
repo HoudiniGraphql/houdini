@@ -1,7 +1,6 @@
-// external imports
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
-// local imports
+
 import '../../../../jest.setup'
 import { readFile } from '../../../common/fs'
 import { testConfig } from '../../../common/tests'
