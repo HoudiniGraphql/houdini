@@ -19,7 +19,6 @@ module.exports = {
 		'import/no-default-export': 'off',
 		'sonarjs/no-gratuitous-expressions': 'off',
 		'no-lonely-if': 'off',
-		'object-shorthand': 'off',
 		'no-console': 'off',
 		'prefer-arrow-callback': 'off',
 		'prefer-const': 'off',

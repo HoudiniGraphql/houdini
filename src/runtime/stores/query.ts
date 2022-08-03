@@ -196,7 +196,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 					context,
 					artifact,
 					variables: newVariables,
-					store: store,
+					store,
 					updateStore: true,
 					cached: true,
 					policy: CachePolicy.CacheOnly,
@@ -236,7 +236,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			context,
 			artifact,
 			variables: newVariables,
-			store: store,
+			store,
 			updateStore,
 			cached: policy !== CachePolicy.NetworkOnly,
 			setLoadPending: (val) => {
