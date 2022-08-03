@@ -20,7 +20,21 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
+		import { houdini_load } from "./+page.js";
+		import { browser } from "$app/env";
+		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+
+		$:
+		_houdini_inputs = $$props.data.inputs;
+
+		const _houdini_context_DO_NOT_USE = getHoudiniContext();
+
+		$:
+		browser && GQL_TestQuery.fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _houdini_inputs["TestQuery"]
+		});
 
 		const {
 		    data
@@ -106,17 +120,37 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-			import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
-			import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
+		import { houdini_load } from "./+page.js";
+		import { browser } from "$app/env";
+		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
+		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 
-			const {
-			    data: data1
-			} = query(GQL_TestQuery1);
+		$:
+		_houdini_inputs = $$props.data.inputs;
 
-			const {
-			    data: data2
-			} = query(GQL_TestQuery2);
-		`)
+		const _houdini_context_DO_NOT_USE = getHoudiniContext();
+
+		$:
+		browser && GQL_TestQuery1.fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _houdini_inputs["TestQuery1"]
+		});
+
+		$:
+		browser && GQL_TestQuery2.fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _houdini_inputs["TestQuery2"]
+		});
+
+		const {
+		    data: data1
+		} = query(GQL_TestQuery1);
+
+		const {
+		    data: data2
+		} = query(GQL_TestQuery2);
+	`)
 		expect(route.script).toMatchInlineSnapshot(`
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
@@ -289,7 +323,33 @@ describe('kit route processor', function () {
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
+		import { houdini_load } from "./+page.js";
+		import { browser } from "$app/env";
+		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+
+		$:
+		_houdini_inputs = $$props.data.inputs;
+
+		const _houdini_context_DO_NOT_USE = getHoudiniContext();
+
+		$:
+		browser && GQL_TestQuery.fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _houdini_inputs["TestQuery"]
+		});
+
+		$:
+		browser && houdini_load[0].fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _houdini_inputs["MyQuery1"]
+		});
+
+		$:
+		browser && houdini_load[1].fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _houdini_inputs["MyQuery2"]
+		});
 
 		const {
 		    data
@@ -358,9 +418,24 @@ describe('kit route processor', function () {
 			`,
 		})
 
-		expect(route.component).toMatchInlineSnapshot(
-			`import { GQL_TestQuery } from "$houdini/stores/TestQuery";`
-		)
+		expect(route.component).toMatchInlineSnapshot(`
+		import { houdini_load } from "./+page.js";
+		import { browser } from "$app/env";
+		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+
+		$:
+		_houdini_inputs = $$props.data.inputs;
+
+		const _houdini_context_DO_NOT_USE = getHoudiniContext();
+
+		$:
+		browser && GQL_TestQuery.fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _houdini_inputs["TestQuery"]
+		});
+
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+	`)
 		expect(route.script).toMatchInlineSnapshot(`
 		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";

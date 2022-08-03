@@ -32,8 +32,14 @@ export default async function svelteKitProcessor(config: Config, page: Transform
 		find_page_info(page),
 	])
 
-	// merge page and inline queries into a single list
 	const queries = inline_queries.concat(page_query ?? [])
+	for (const [i, target] of (page_info.load ?? []).entries()) {
+		queries.push({
+			name: target.name,
+			variables: target.variables,
+			store_id: AST.memberExpression(AST.identifier('houdini_load'), AST.literal(i)),
+		})
+	}
 
 	// if we are processing a route component (+page.svelte)
 	if (page.config.isRoute(page.filepath)) {
@@ -56,24 +62,124 @@ export default async function svelteKitProcessor(config: Config, page: Transform
 
 async function process_component({
 	page,
-	queries: external_queries,
+	queries,
 	page_info,
 }: {
 	page: TransformPage
 	queries: LoadTarget[]
 	page_info: PageScriptInfo
 }) {
+	// find the first non import
+	let insert_index = page.script.body.findIndex(
+		(statement) => statement.type !== 'ImportDeclaration'
+	)
+	if (insert_index === -1) {
+		insert_index = 0
+	}
+
+	// add an import for the context utility
+	ensure_imports({
+		config: page.config,
+		script: page.script,
+		import: ['getHoudiniContext'],
+		sourceModule: '$houdini/runtime/lib/context',
+	})
+	insert_index++
+
+	// import the browser chec
+	ensure_imports({
+		config: page.config,
+		script: page.script,
+		import: ['browser'],
+		sourceModule: '$app/env',
+	})
+	insert_index++
+
+	// if the page contains a defined load, import it
+	if (page_info.load) {
+		ensure_imports({
+			config: page.config,
+			script: page.script,
+			import: ['houdini_load'],
+			sourceModule: './+page' + (page.config.typescript ? '.ts' : '.js'),
+		})
+		insert_index++
+	}
+
 	// the first thing we need to do is to define a local variable that
 	// will hold onto the values we get from props
+	const input_obj = AST.identifier('_houdini_inputs')
+	page.script.body.splice(
+		insert_index++,
+		0,
+		// @ts-ignore
+		AST.labeledStatement(
+			AST.identifier('$'),
+			AST.expressionStatement(
+				AST.assignmentExpression(
+					'=',
+					input_obj,
+					AST.memberExpression(
+						AST.memberExpression(AST.identifier('$$props'), AST.identifier('data')),
+						AST.identifier('inputs')
+					)
+				)
+			)
+		)
+	)
+
+	// create a context handler we can pass to the fetches
+	const houdini_context = AST.identifier('_houdini_context_DO_NOT_USE')
+	page.script.body.splice(
+		insert_index++,
+		0,
+		// @ts-ignore
+		AST.variableDeclaration('const', [
+			AST.variableDeclarator(
+				houdini_context,
+				AST.callExpression(AST.identifier('getHoudiniContext'), [])
+			),
+		])
+	)
+
+	// we need to add the client side fetches for every query that we ran into
+	page.script.body.splice(
+		insert_index++,
+		0,
+		// @ts-ignore
+		...queries.map((query) =>
+			AST.labeledStatement(
+				AST.identifier('$'),
+				AST.expressionStatement(
+					AST.logicalExpression(
+						'&&',
+						AST.identifier('browser'),
+						AST.callExpression(
+							AST.memberExpression(query.store_id, AST.identifier('fetch')),
+							[
+								AST.objectExpression([
+									AST.objectProperty(AST.identifier('context'), houdini_context),
+									AST.objectProperty(
+										AST.identifier('variables'),
+										AST.memberExpression(input_obj, AST.literal(query.name))
+									),
+								]),
+							]
+						)
+					)
+				)
+			)
+		)
+	)
 }
 
 function add_load({
 	page,
-	queries: external_queries,
+	queries,
 	page_info,
 }: {
-	page: TransformPage
 	queries: LoadTarget[]
+	page: TransformPage
 	page_info: PageScriptInfo
 }) {
 	// if there is already a load function defined, don't do anything
@@ -83,7 +189,7 @@ function add_load({
 
 	// let's verify that we have all of the variable functions we need before we mutate anything
 	let invalid = false
-	for (const query of (page_info.load ?? []).concat(external_queries)) {
+	for (const query of queries) {
 		const variable_fn = query_variable_fn(query.name)
 		// if the page doesn't export a function with the correct name, something is wrong
 		if (!page_info.exports.includes(variable_fn) && query.variables) {
@@ -118,14 +224,6 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 	const promise_list = AST.identifier('promises')
 
 	// build up a list of metadata for every store that we have to load
-	const load = external_queries
-	for (const [i, target] of (page_info.load ?? []).entries()) {
-		load.push({
-			name: target.name,
-			variables: target.variables,
-			store_id: AST.memberExpression(AST.identifier('houdini_load'), AST.literal(i)),
-		})
-	}
 
 	const preload_fn = AST.functionDeclaration(
 		AST.identifier('load'),
@@ -175,7 +273,7 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 	let insert_index = 3
 
 	// every query that we found needs to be triggered in this function
-	for (const query of load) {
+	for (const query of queries) {
 		preload_fn.body.body.splice(
 			insert_index++,
 			0,
@@ -257,7 +355,7 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 		])
 	)
 
-	let args = [request_context, page.config, load, input_obj, resolved_promises] as const
+	let args = [request_context, page.config, queries, input_obj, resolved_promises] as const
 
 	// add calls to user before/after load functions
 	if (before_load) {

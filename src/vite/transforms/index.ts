@@ -50,14 +50,6 @@ export default async function applyTransforms(
 		return { code: content }
 	}
 
-	// we need to apply the changes to the file. we'll do this by printing the mutated
-	// content as a string and then replacing everything between the appropriate
-	// script tags. the parser tells us the locations for the different tags so we
-	// just have to replace the indices it tells us to
-	const printedInstance = result.script ? (recast.print(result.script).code as string) : ''
-
-	// just copy the instance where it needs to go
-	return {
-		code: printedInstance,
-	}
+	// print the result
+	return recast.print(result.script)
 }
