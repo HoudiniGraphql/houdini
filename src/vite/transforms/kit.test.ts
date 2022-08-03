@@ -20,7 +20,6 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-		import { houdini_load } from "./+page.js";
 		import { browser } from "$app/env";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
@@ -120,7 +119,6 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-		import { houdini_load } from "./+page.js";
 		import { browser } from "$app/env";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
@@ -323,7 +321,8 @@ describe('kit route processor', function () {
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
-		import { houdini_load } from "./+page.js";
+		import { GQL_MyQuery2 } from "$houdini/stores/MyQuery2";
+		import { GQL_MyQuery1 } from "$houdini/stores/MyQuery1";
 		import { browser } from "$app/env";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
@@ -340,13 +339,13 @@ describe('kit route processor', function () {
 		});
 
 		$:
-		browser && houdini_load[0].fetch({
+		browser && GQL_MyQuery1.fetch({
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _houdini_inputs["MyQuery1"]
 		});
 
 		$:
-		browser && houdini_load[1].fetch({
+		browser && GQL_MyQuery2.fetch({
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _houdini_inputs["MyQuery2"]
 		});
@@ -419,7 +418,6 @@ describe('kit route processor', function () {
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
-		import { houdini_load } from "./+page.js";
 		import { browser } from "$app/env";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 

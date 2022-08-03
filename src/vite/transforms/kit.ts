@@ -95,15 +95,18 @@ async function process_component({
 	})
 	insert_index++
 
-	// if the page contains a defined load, import it
-	if (page_info.load) {
-		ensure_imports({
+	// make sure that we have imports for every store
+	const store_ids: Record<string, string> = {}
+	for (const query of queries) {
+		const [id, added] = store_import({
 			config: page.config,
+			artifact: query,
 			script: page.script,
-			import: ['houdini_load'],
-			sourceModule: './+page' + (page.config.typescript ? '.ts' : '.js'),
 		})
-		insert_index++
+		if (added) {
+			insert_index++
+		}
+		store_ids[query.name] = id
 	}
 
 	// the first thing we need to do is to define a local variable that
@@ -155,7 +158,10 @@ async function process_component({
 						'&&',
 						AST.identifier('browser'),
 						AST.callExpression(
-							AST.memberExpression(query.store_id, AST.identifier('fetch')),
+							AST.memberExpression(
+								AST.identifier(store_ids[query.name]),
+								AST.identifier('fetch')
+							),
 							[
 								AST.objectExpression([
 									AST.objectProperty(AST.identifier('context'), houdini_context),
@@ -433,7 +439,7 @@ async function find_inline_queries(page: TransformPage): Promise<LoadTarget[]> {
 	return queries.map((query) => {
 		// we need to make sure that we have reference to the store
 		// for every query
-		const storeID = store_import({
+		const [storeID] = store_import({
 			config: page.config,
 			artifact: query,
 			script: page.script,
@@ -471,7 +477,7 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 	}
 
 	// generate an import for the store
-	const store_id = store_import({
+	const [store_id] = store_import({
 		config: page.config,
 		artifact: { name: definition.name!.value },
 		script: page.script,
