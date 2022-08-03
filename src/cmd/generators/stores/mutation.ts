@@ -1,5 +1,6 @@
 import path from 'path'
-import { Config, writeFile } from '../../../common'
+import { writeFile } from '../../../common/fs'
+import { Config } from '../../../common/config'
 import { CollectedGraphQLDocument } from '../../types'
 
 export async function generateIndividualStoreMutation(

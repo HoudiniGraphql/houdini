@@ -4,11 +4,12 @@ import * as typeScriptParser from 'recast/parsers/typescript'
 import * as recast from 'recast'
 import { ProgramKind } from 'ast-types/gen/kinds'
 // local imports
-import { readFile, testConfig } from '../../../common'
+import { readFile } from '../../../common/fs'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
+import { testConfig } from '../../../common/tests'
 
 // the config to use in tests
 const config = testConfig()

@@ -7616,7 +7616,6 @@ __metadata:
     concurrently: ^7.1.0
     eslint: ^8.21.0
     eslint-config-prettier: ^8.5.0
-    eslint-plugin-svelte3: ^4.0.0
     estree-walker: ^2.0.2
     fs-extra: ^10.0.1
     glob: ^8.0.1

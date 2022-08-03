@@ -3,7 +3,8 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 import path from 'path'
 // local imports
-import { Config, writeFile } from '../../../common'
+import { writeFile } from '../../../common/fs'
+import { Config } from '../../../common/config'
 import { moduleExport } from '../../utils'
 
 const AST = recast.types.builders

@@ -1,10 +1,10 @@
 // externals
 import * as graphql from 'graphql'
 // locals
-import { testConfig } from '../common'
-import { CollectedGraphQLDocument, HoudiniError } from './types'
-import { runPipeline } from './generate'
+import { testConfig } from '../common/tests'
 import { ArtifactKind } from '../runtime/lib/types'
+import { runPipeline } from './generate'
+import { CollectedGraphQLDocument, HoudiniError } from './types'
 
 export function pipelineTest(
 	title: string,

@@ -1,6 +1,7 @@
 // externals
 // locals
-import { Config, writeFile } from '../../../common'
+import { writeFile } from '../../../common/fs'
+import { Config } from '../../../common/config'
 import enums from './enums'
 
 // schemaGenerator updates the schema file to contain all of the generated

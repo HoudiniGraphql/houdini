@@ -1,5 +1,6 @@
 // locals
-import { Config, writeFile } from '../../../common'
+import { writeFile } from '../../../common/fs'
+import { Config } from '../../../common/config'
 
 export default async function metaGenerator(config: Config) {
 	const meta = {

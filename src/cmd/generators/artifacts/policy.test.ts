@@ -1,9 +1,9 @@
 // local imports
-import { testConfig } from '../../../common'
 import { CachePolicy } from '../../types'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
+import { testConfig } from '../../../common/tests'
 
 // the config to use in tests
 const config = testConfig()

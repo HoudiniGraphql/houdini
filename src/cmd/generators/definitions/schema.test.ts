@@ -1,11 +1,12 @@
 // external
 import * as graphql from 'graphql'
 // local imports
-import { readFile, testConfig } from '../../../common'
+import { readFile } from '../../../common/fs'
 import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
 import { CollectedGraphQLDocument } from '../../types'
+import { testConfig } from '../../../common/tests'
 
 const config = testConfig()
 
