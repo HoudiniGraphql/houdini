@@ -386,8 +386,6 @@ describe('kit route processor', function () {
 	})
 
 	test.todo('fails if variable function is not present')
-
-	test.todo('adds arguments to an empty preload')
 })
 
 test('beforeLoad hook', async function () {
@@ -435,6 +433,12 @@ test('beforeLoad hook', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
+
+		    await houdini_context.invokeLoadHook({
+		        "variant": "before",
+		        "hookFn": beforeLoad
+		    });
+
 		    const inputs = {};
 		    const promises = [];
 
@@ -451,12 +455,6 @@ test('beforeLoad hook', async function () {
 		    }));
 
 		    const result = await Promise.all(promises);
-
-		    await houdini_context.invokeLoadHook({
-		        "variant": "before",
-		        "framework": "kit",
-		        "hookFn": beforeLoad
-		    });
 
 		    return {
 		        ...houdini_context.returnValue,
@@ -519,6 +517,12 @@ test('beforeLoad hook - multiple queries', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
+
+		    await houdini_context.invokeLoadHook({
+		        "variant": "before",
+		        "hookFn": beforeLoad
+		    });
+
 		    const inputs = {};
 		    const promises = [];
 		    inputs["TestQuery1"] = {};
@@ -538,12 +542,6 @@ test('beforeLoad hook - multiple queries', async function () {
 		    }));
 
 		    const result = await Promise.all(promises);
-
-		    await houdini_context.invokeLoadHook({
-		        "variant": "before",
-		        "framework": "kit",
-		        "hookFn": beforeLoad
-		    });
 
 		    return {
 		        ...houdini_context.returnValue,
@@ -617,7 +615,6 @@ test('afterLoad hook', async function () {
 
 		    await houdini_context.invokeLoadHook({
 		        "variant": "after",
-		        "framework": "kit",
 		        "hookFn": afterLoad,
 		        "input": inputs,
 
@@ -709,7 +706,6 @@ test('afterLoad hook - multiple queries', async function () {
 
 		    await houdini_context.invokeLoadHook({
 		        "variant": "after",
-		        "framework": "kit",
 		        "hookFn": afterLoad,
 		        "input": inputs,
 
@@ -780,6 +776,12 @@ test('both beforeLoad and afterLoad hooks', async function () {
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
+
+		    await houdini_context.invokeLoadHook({
+		        "variant": "before",
+		        "hookFn": beforeLoad
+		    });
+
 		    const inputs = {};
 		    const promises = [];
 
@@ -798,14 +800,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		    const result = await Promise.all(promises);
 
 		    await houdini_context.invokeLoadHook({
-		        "variant": "before",
-		        "framework": "kit",
-		        "hookFn": beforeLoad
-		    });
-
-		    await houdini_context.invokeLoadHook({
 		        "variant": "after",
-		        "framework": "kit",
 		        "hookFn": afterLoad,
 		        "input": inputs,
 

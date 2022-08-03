@@ -243,11 +243,7 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 	// add calls to user before/after load functions
 	if (before_load) {
 		if (before_load) {
-			preload_fn.body.body.splice(
-				insert_index,
-				0,
-				...load_hook_statements('beforeLoad', ...args)
-			)
+			preload_fn.body.body.splice(1, 0, ...load_hook_statements('beforeLoad', ...args))
 		}
 	}
 
@@ -389,10 +385,6 @@ function load_hook_statements(
 							AST.objectProperty(
 								AST.literal('variant'),
 								AST.stringLiteral(name === 'afterLoad' ? 'after' : 'before')
-							),
-							AST.objectProperty(
-								AST.literal('framework'),
-								AST.stringLiteral(config.framework)
 							),
 							AST.objectProperty(AST.literal('hookFn'), AST.identifier(name)),
 							// after load: pass query data to the hook
