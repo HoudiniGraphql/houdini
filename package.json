@@ -79,6 +79,7 @@
 		"@rollup/plugin-node-resolve": "^13.2.0",
 		"@rollup/plugin-replace": "^4.0.0",
 		"@sveltejs/kit": "1.0.0-next.370",
+		"@trivago/prettier-plugin-sort-imports": "^3.3.0",
 		"@types/fs-extra": "^9.0.13",
 		"@types/glob": "^7.2.0",
 		"@types/inquirer": "^7.3.1",
