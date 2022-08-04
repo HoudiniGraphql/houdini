@@ -1,0 +1,66 @@
+name: '🐛 Bug report'
+description: Create a report to help us improve
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Thank you for reporting a bug :pray:.
+              
+    - type: textarea
+      id: description
+      attributes:
+          label: Describe the bug
+          description: Provide a clear and concise description of the challenge you are running into.
+      validations:
+          required: true
+
+    - type: textarea
+      id: steps
+      attributes:
+          label: Steps to Reproduce the Bug
+          description: Describe the steps we have to take to reproduce the behavior.
+          placeholder: |
+              1. Go to '...'
+              2. Click on '....'
+              3. Scroll down to '....'
+              4. See error
+      validations:
+          required: true
+
+    - type: textarea
+      id: expected
+      attributes:
+          label: Expected behavior
+          description: Provide a clear and concise description of what you expected to happen.
+          placeholder: |
+              As a user, I expected ___ behavior but i am seeing ___
+      validations:
+          required: true
+
+    - type: textarea
+        id: system-info
+        attributes:
+            label: System Info
+            description: Output of `npx envinfo --system --binaries --browsers --npmPackages "{houdini,svelte,@sveltejs/*,vite}"`
+            render: shell
+            placeholder: System, Binaries, Browsers
+        validations:
+            required: true
+
+    - type: dropdown
+        id: severity
+        attributes:
+        label: Severity
+        options:
+            - annoyance
+            - serious, but I can work around it
+            - blocking an upgrade
+            - blocking all usage of Houdini
+        validations:
+        required: true
+
+    - type: textarea
+        id: additional
+        attributes:
+            label: Additional context
+            description: Add any other context you wan't to share?
