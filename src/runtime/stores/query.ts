@@ -1,6 +1,6 @@
-// externals
-import { derived, get, readable, Readable, Writable } from 'svelte/store'
 import type { LoadEvent } from '@sveltejs/kit'
+import { derived, get, readable, Readable, Writable } from 'svelte/store'
+
 // internals
 import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
 import { clientStarted, getSession, isBrowser } from '../adapter'
@@ -15,9 +15,9 @@ import {
 } from '../lib'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { nullHoudiniContext } from '../lib/context'
+import * as log from '../lib/log'
 import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
-import * as log from '../lib/log'
 import { currentReqID, sessionStore } from '../lib/session'
 
 // Terms:

@@ -1,6 +1,5 @@
-// external imports
 import path from 'path'
-// local imports
+
 import { Config, writeFile } from '../../../common'
 
 export default async function generateAdapter(config: Config) {

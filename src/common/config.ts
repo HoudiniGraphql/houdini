@@ -1,15 +1,15 @@
 import { mergeSchemas } from '@graphql-tools/schema'
+import { KitConfig } from '@sveltejs/kit'
 import fs from 'fs-extra'
 import { glob } from 'glob'
 import * as graphql from 'graphql'
 import os from 'os'
 import path from 'path'
-import { promisify } from 'util'
 import * as url from 'url'
-// locals
+import { promisify } from 'util'
+
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib/types'
-import { KitConfig } from '@sveltejs/kit'
 import { readFile } from './fs'
 
 // a place to hold conventions and magic strings

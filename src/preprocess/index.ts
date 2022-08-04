@@ -1,4 +1,3 @@
-// locals
 import { getConfig } from '../common'
 import { ConfigFile } from '../runtime'
 

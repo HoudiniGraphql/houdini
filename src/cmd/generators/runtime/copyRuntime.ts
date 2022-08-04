@@ -1,7 +1,6 @@
-// externals
 import path from 'path'
 import { fileURLToPath } from 'url'
-// locals
+
 import { Config } from '../../../common'
 import * as fs from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'

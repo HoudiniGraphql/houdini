@@ -1,11 +1,10 @@
-// external imports
-import path from 'path'
-import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
+import path from 'path'
 import * as recast from 'recast'
-// local imports
-import { readFile, testConfig } from '../../common'
+import * as typeScriptParser from 'recast/parsers/typescript'
+
 import '../../../jest.setup'
+import { readFile, testConfig } from '../../common'
 import { runPipeline } from '../generate'
 import { mockCollectedDoc } from '../testUtils'
 

@@ -1,4 +1,3 @@
-// locals
 import { Config, writeFile } from '../../../common'
 
 export default async function metaGenerator(config: Config) {

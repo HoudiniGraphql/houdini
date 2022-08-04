@@ -1,11 +1,10 @@
-// external imports
 import path from 'path'
-// local imports
-import { readFile, testConfig } from '../../../common'
+
 import '../../../../jest.setup'
+import { readFile, testConfig } from '../../../common'
 import { runPipeline } from '../../generate'
-import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
+import { CollectedGraphQLDocument } from '../../types'
 
 test('generates an artifact for every document', async function () {
 	const config = testConfig()

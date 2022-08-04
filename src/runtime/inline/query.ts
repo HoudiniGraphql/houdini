@@ -1,9 +1,8 @@
-// externals
 import { derived, Readable } from 'svelte/store'
-// locals
-import { GraphQLTagResult, Operation, QueryResult, CachePolicy } from '../lib/types'
-import { wrapPaginationStore, PaginatedDocumentHandlers, PageInfo } from '../lib/pagination'
+
 import { getHoudiniContext } from '../lib/context'
+import { wrapPaginationStore, PaginatedDocumentHandlers, PageInfo } from '../lib/pagination'
+import { GraphQLTagResult, Operation, QueryResult, CachePolicy } from '../lib/types'
 
 export function query<_Query extends Operation<any, any>>(
 	store: GraphQLTagResult

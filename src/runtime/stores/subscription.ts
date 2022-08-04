@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store'
-// locals
+
 import { isBrowser } from '../adapter'
 import cache from '../cache'
 import {

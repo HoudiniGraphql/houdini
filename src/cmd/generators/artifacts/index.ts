@@ -1,8 +1,6 @@
-// externals
 import * as graphql from 'graphql'
-import { CollectedGraphQLDocument } from '../../types'
 import * as recast from 'recast'
-// locals
+
 import {
 	Config,
 	getRootType,
@@ -11,14 +9,15 @@ import {
 	readFile,
 	writeFile,
 } from '../../../common'
+import { ArtifactKind } from '../../../runtime/lib/types'
+import { CollectedGraphQLDocument } from '../../types'
 import { moduleExport } from '../../utils'
-import selection from './selection'
-import { operationsByPath, FilterMap } from './operations'
+import { cleanupFiles } from '../../utils/cleanupFiles'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
+import { operationsByPath, FilterMap } from './operations'
+import selection from './selection'
 import { serializeValue } from './utils'
-import { ArtifactKind } from '../../../runtime/lib/types'
-import { cleanupFiles } from '../../utils/cleanupFiles'
 
 const AST = recast.types.builders
 

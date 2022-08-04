@@ -1,14 +1,13 @@
-// externals
-import { namedTypes } from 'ast-types/gen/namedTypes'
 import { IdentifierKind, ExpressionKind } from 'ast-types/gen/kinds'
+import { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-// locals
-import { walk_graphql_tags } from '../walk'
-import { TransformPage } from '../plugin'
+
 import { Config, operation_requires_variables, parseSvelte, readFile } from '../../common'
-import { ensure_imports, store_import } from '../imports'
 import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
+import { ensure_imports, store_import } from '../imports'
+import { TransformPage } from '../plugin'
+import { walk_graphql_tags } from '../walk'
 
 const AST = recast.types.builders
 

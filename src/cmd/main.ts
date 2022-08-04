@@ -1,9 +1,8 @@
-// external imports
 import { Command } from 'commander'
 import { glob } from 'glob'
 import path from 'path'
 import util from 'util'
-// local imports
+
 import { formatErrors, getConfig, LogLevel, readConfigFile } from '../common'
 import { ConfigFile } from '../runtime'
 import generate from './generate'

@@ -1,5 +1,3 @@
-// externals
-// locals
 import { Config, writeFile } from '../../../common'
 import enums from './enums'
 

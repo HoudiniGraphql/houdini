@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
-import path from 'path'
 import { fs as memfs, vol } from 'memfs'
+import path from 'path'
 
 export async function readFile(filepath: string): Promise<string | null> {
 	if (process.env.NODE_ENV === 'test') {

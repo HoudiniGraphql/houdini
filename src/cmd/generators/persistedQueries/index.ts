@@ -1,5 +1,6 @@
 //externals
 import * as graphql from 'graphql'
+
 // internals
 import { Config, hashDocument, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'

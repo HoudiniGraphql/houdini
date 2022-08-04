@@ -1,6 +1,5 @@
-// local imports
-import { readFile, testConfig } from '../../../common'
 import '../../../../jest.setup'
+import { readFile, testConfig } from '../../../common'
 import { runPipeline } from '../../generate'
 
 test('generates runtime meta data file', async function () {

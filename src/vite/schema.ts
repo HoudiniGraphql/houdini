@@ -1,11 +1,10 @@
-// externals
 import { sleep } from '@kitql/helper'
-import { Plugin } from 'vite'
-import path from 'path'
 import glob from 'glob'
-// locals
-import { getConfig } from '../common'
+import path from 'path'
+import { Plugin } from 'vite'
+
 import { writeSchema } from '../cmd/utils'
+import { getConfig } from '../common'
 
 export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 	let interval_id: NodeJS.Timeout | null = null

@@ -1,7 +1,6 @@
-// externals
-import * as recast from 'recast'
 import { Statement } from '@babel/types'
-// locals
+import * as recast from 'recast'
+
 import { Config } from '.'
 
 const AST = recast.types.builders

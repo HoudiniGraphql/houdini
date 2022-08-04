@@ -1,9 +1,8 @@
-// externals
 import { jest } from '@jest/globals'
-// locals
+
 import { testConfigFile } from '../../../common'
-import { Cache } from '../cache'
 import { SubscriptionSelection, RefetchUpdateMode } from '../../lib/types'
+import { Cache } from '../cache'
 
 const config = testConfigFile()
 

@@ -1,10 +1,9 @@
-// externals
 import { getContext as svelteContext, setContext } from 'svelte'
 import { get } from 'svelte/store'
-// locals
+
 import { getPage, getSession } from '../adapter'
-import { HoudiniFetchContext } from './types'
 import * as log from './log'
+import { HoudiniFetchContext } from './types'
 
 export const setVariables = (vars: () => {}) => setContext('variables', vars)
 

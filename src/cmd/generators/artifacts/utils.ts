@@ -1,6 +1,6 @@
-import * as recast from 'recast'
 import { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
+import * as recast from 'recast'
 
 const AST = recast.types.builders
 

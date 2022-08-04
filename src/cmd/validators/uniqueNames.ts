@@ -1,4 +1,3 @@
-// locals
 import { Config } from '../../common'
 import { CollectedGraphQLDocument, HoudiniInfoError } from '../types'
 

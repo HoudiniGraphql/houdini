@@ -1,8 +1,7 @@
-// externals
-import * as recast from 'recast'
-import * as graphql from 'graphql'
 import { StatementKind, TSPropertySignatureKind } from 'ast-types/gen/kinds'
-// locals
+import * as graphql from 'graphql'
+import * as recast from 'recast'
+
 import { Config, ensureImports } from '../../../common'
 import { unwrapType } from '../../utils'
 import { tsTypeReference } from './typeReference'

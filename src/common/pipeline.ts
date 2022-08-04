@@ -1,4 +1,3 @@
-// locals
 import type { Config } from './config'
 
 // transforms are functions that takes the collected documents. some will mutate

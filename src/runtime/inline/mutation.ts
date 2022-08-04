@@ -1,4 +1,3 @@
-// locals
 import { getHoudiniContext, Operation, GraphQLTagResult } from '../lib'
 
 export type MutationConfig<_Result, _Input> = {

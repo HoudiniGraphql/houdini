@@ -1,6 +1,5 @@
-// externals
 import * as graphql from 'graphql'
-// locals
+
 import { Config } from '../../common'
 
 export function flattenSelections({

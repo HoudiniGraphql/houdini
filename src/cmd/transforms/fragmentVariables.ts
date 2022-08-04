@@ -1,11 +1,10 @@
-// externals
-import { Config } from '../../common'
 import * as graphql from 'graphql'
-// locals
-import { CollectedGraphQLDocument } from '../types'
-import { collectFragments, FragmentDependency } from './composeQueries'
-import { murmurHash } from '../utils'
+
+import { Config } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'
+import { CollectedGraphQLDocument } from '../types'
+import { murmurHash } from '../utils'
+import { collectFragments, FragmentDependency } from './composeQueries'
 
 const GraphqlKinds = graphql.Kind
 

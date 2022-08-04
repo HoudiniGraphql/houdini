@@ -1,4 +1,5 @@
 import type { GraphQLSchema } from 'graphql'
+
 import { CachePolicy } from './types'
 
 export type ScalarSpec = {

@@ -1,6 +1,7 @@
+import { writeFile } from 'fs-extra'
+
 import { Config, readFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { writeFile } from 'fs-extra'
 
 export default async function sveltekitGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// we will only generate things if the project is using svelte kit

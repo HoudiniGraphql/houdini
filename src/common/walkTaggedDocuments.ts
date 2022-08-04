@@ -1,9 +1,8 @@
-// externals
-import * as graphql from 'graphql'
-import { asyncWalk, BaseNode } from 'estree-walker'
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
+import { asyncWalk, BaseNode } from 'estree-walker'
+import * as graphql from 'graphql'
 import * as recast from 'recast'
-// locals
+
 import { Config, ensureImports, TransformDocument } from '.'
 import {
 	CompiledDocumentKind,

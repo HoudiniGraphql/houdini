@@ -1,5 +1,5 @@
-// external imports
 import * as graphql from 'graphql'
+
 import { Config } from '../../../common'
 
 // we need to generate a static key that we can use to index this field in the cache.

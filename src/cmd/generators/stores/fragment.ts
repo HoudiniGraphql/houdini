@@ -1,6 +1,5 @@
-// externals
 import path from 'path'
-// locals
+
 import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import pagination from './pagination'

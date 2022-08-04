@@ -1,4 +1,3 @@
-// local imports
 import '../../../jest.setup'
 import { routeTest } from '../tests'
 

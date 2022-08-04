@@ -1,10 +1,10 @@
-// externals
 import { LoadEvent, Page } from '@sveltejs/kit'
-// locals
+
+import { isPrerender } from '../adapter'
 import cache from '../cache'
 import type { ConfigFile } from './config'
+import * as log from './log'
 import { marshalInputs } from './scalars'
-import { isPrerender } from '../adapter'
 import {
 	CachePolicy,
 	DataSource,
@@ -13,7 +13,6 @@ import {
 	QueryArtifact,
 	SubscriptionArtifact,
 } from './types'
-import * as log from './log'
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>

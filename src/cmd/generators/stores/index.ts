@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { Config, writeFile } from '../../../common'
 import { ArtifactKind, CollectedGraphQLDocument } from '../../types'
 import { cleanupFiles } from '../../utils/cleanupFiles'

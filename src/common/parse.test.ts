@@ -1,4 +1,3 @@
-// locals
 import '../../jest.setup'
 import { parseSvelte } from './parse'
 

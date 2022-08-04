@@ -1,8 +1,7 @@
-// external imports
 import * as graphql from 'graphql'
-import * as recast from 'recast'
 import path from 'path'
-// local imports
+import * as recast from 'recast'
+
 import { Config, writeFile } from '../../../common'
 import { moduleExport } from '../../utils'
 

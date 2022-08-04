@@ -1,5 +1,6 @@
 import * as graphql from 'graphql'
 import fetch from 'node-fetch'
+
 import { writeFile } from '../../common/fs'
 
 export async function writeSchema(

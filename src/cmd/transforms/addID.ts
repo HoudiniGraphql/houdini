@@ -1,6 +1,5 @@
-// externals
 import * as graphql from 'graphql'
-// locals
+
 import { Config, parentTypeFromAncestors } from '../../common'
 import { CollectedGraphQLDocument } from '../types'
 import { unwrapType } from '../utils'

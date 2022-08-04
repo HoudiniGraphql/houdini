@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 

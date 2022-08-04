@@ -1,4 +1,5 @@
 import type { Plugin } from 'vite'
+
 import houdini from './plugin'
 import schema from './schema'
 

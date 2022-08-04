@@ -1,10 +1,10 @@
-// externals
-import glob from 'glob'
-import * as svelte from 'svelte/compiler'
-import * as graphql from 'graphql'
-import { promisify } from 'util'
 import { parse as parseJS } from '@babel/parser'
-// locals
+import { Program } from '@babel/types'
+import glob from 'glob'
+import * as graphql from 'graphql'
+import * as svelte from 'svelte/compiler'
+import { promisify } from 'util'
+
 import {
 	Config,
 	runPipeline as run,
@@ -15,11 +15,10 @@ import {
 	TransformDocument,
 	readFile,
 } from '../common'
-import { CollectedGraphQLDocument, ArtifactKind, HoudiniErrorTodo } from './types'
-import * as transforms from './transforms'
 import * as generators from './generators'
+import * as transforms from './transforms'
+import { CollectedGraphQLDocument, ArtifactKind } from './types'
 import * as validators from './validators'
-import { Program } from '@babel/types'
 
 // the main entry point of the compile script
 export default async function compile(config: Config) {

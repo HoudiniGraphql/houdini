@@ -1,7 +1,6 @@
-// externals
-import path from 'path'
 import * as graphql from 'graphql'
-// locals
+import path from 'path'
+
 import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 

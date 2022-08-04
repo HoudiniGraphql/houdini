@@ -1,6 +1,7 @@
 import path from 'path'
-import { ConfigFile } from '../runtime'
+
 import { Config, LogLevel } from '../common'
+import { ConfigFile } from '../runtime'
 
 export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 	return {

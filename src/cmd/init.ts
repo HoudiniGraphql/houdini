@@ -2,6 +2,7 @@ import { getIntrospectionQuery } from 'graphql'
 import inquirer from 'inquirer'
 import fetch from 'node-fetch'
 import path from 'path'
+
 import { readFile, writeFile } from '../common'
 import * as fs from '../common/fs'
 import { ConfigFile } from '../runtime'

@@ -1,8 +1,7 @@
-// externals
-// locals
 import { Readable } from 'svelte/store'
-import type { Fragment, GraphQLTagResult } from '../lib/types'
+
 import { wrapPaginationStore, PaginatedDocumentHandlers, PageInfo } from '../lib/pagination'
+import type { Fragment, GraphQLTagResult } from '../lib/types'
 
 // function overloads meant to only return a nullable value
 // if the reference type was nullable

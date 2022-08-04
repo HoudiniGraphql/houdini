@@ -1,6 +1,5 @@
-// externals
 import * as recast from 'recast'
-// locals
+
 import { Config, parseJS, runPipeline, Transform, ParsedFile } from '../../common'
 import { TransformPage } from '../plugin'
 import svelteKitProcessor from './kit'

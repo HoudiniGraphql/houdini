@@ -1,7 +1,7 @@
-// externals
 import { derived, get, readable, Writable, writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
-// locals
+
+import { getSession, isBrowser } from '../adapter'
 import {
 	CompiledFragmentKind,
 	ConfigFile,
@@ -18,7 +18,6 @@ import {
 	PaginatedHandlers,
 } from '../lib/pagination'
 import { currentReqID, sessionStore } from '../lib/session'
-import { getSession, isBrowser } from '../adapter'
 
 // a fragment store exists in multiple places in a given application so we
 // can't just return a store directly, the user has to load the version of the

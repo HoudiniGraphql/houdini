@@ -1,9 +1,9 @@
-// externals
-import { MutationOperation } from '../../../runtime'
-import * as recast from 'recast'
 import * as graphql from 'graphql'
-import { convertValue } from './utils'
+import * as recast from 'recast'
+
 import { Config, parentTypeFromAncestors } from '../../../common'
+import { MutationOperation } from '../../../runtime'
+import { convertValue } from './utils'
 
 const AST = recast.types.builders
 

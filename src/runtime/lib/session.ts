@@ -1,5 +1,6 @@
 import type { Writable } from 'svelte/store'
 import { writable } from 'svelte/store'
+
 import { isBrowser } from '../adapter'
 
 export function sessionStore<_State>(

@@ -1,11 +1,10 @@
-// externals
 import minimatch from 'minimatch'
 import path from 'path'
-import { Plugin } from 'vite'
 import * as recast from 'recast'
-// locals
-import { Config, formatErrors, getConfig, Script } from '../common'
+import { Plugin } from 'vite'
+
 import generate from '../cmd/generate'
+import { Config, formatErrors, getConfig, Script } from '../common'
 import applyTransforms from './transforms'
 import { PageScriptInfo } from './transforms/kit'
 

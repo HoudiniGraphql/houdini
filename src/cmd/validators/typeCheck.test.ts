@@ -1,6 +1,5 @@
-// locals
-import { pipelineTest } from '../testUtils'
 import '../../../jest.setup'
+import { pipelineTest } from '../testUtils'
 import { CollectedGraphQLDocument, HoudiniError } from '../types'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure
