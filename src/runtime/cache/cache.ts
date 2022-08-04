@@ -420,7 +420,7 @@ class CacheInternal {
 					recordID: parent,
 					key,
 					linkedType,
-					variables: variables,
+					variables,
 					fields,
 					layer,
 					forceNotify,

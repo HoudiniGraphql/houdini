@@ -430,7 +430,7 @@ test('remove from connection', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selection,
+		selection,
 	})
 
 	// remove user 2 from the list
@@ -551,7 +551,7 @@ test('element removed from list can be added back', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selection,
+		selection,
 	})
 
 	// remove user 2 from the list
@@ -1350,7 +1350,7 @@ test('remove from list', function () {
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selection,
+		selection,
 	})
 
 	// remove user 2 from the list

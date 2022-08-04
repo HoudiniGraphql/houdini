@@ -21,7 +21,7 @@ export default async function transform_gql_tag(config: Config, ctx: TransformPa
 			node.replaceWith(
 				AST.identifier(
 					store_import({
-						config: config,
+						config,
 						script: ctx.script,
 						artifact: { name: operation.name!.value },
 					}).id
