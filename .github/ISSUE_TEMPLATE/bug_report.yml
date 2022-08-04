@@ -14,6 +14,18 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - annoyance
+        - serious, but I can work around it
+        - blocking an upgrade
+        - blocking all usage of Houdini
+    validations:
+      required: true
+
   - type: textarea
     id: steps
     attributes:
@@ -36,13 +48,6 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: reproduction
-    attributes:
-      label: Reproduction
-      description: To help us, please provide a [stackblitz](https://stackblitz.com/) or [replay.io](https://docs.replay.io/docs/recording-bug-reports-80c37d7d6753485f81497570625d06f0) link showing your bug. _A [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) is a nice option to get your bug fixed asap ([Why?](https://antfu.me/posts/why-reproductions-are-required))._
-      placeholder: 🔗 Reproduction link
-
   - type: textarea
     id: system-info
     attributes:
@@ -53,17 +58,12 @@ body:
     validations:
       required: true
 
-  - type: dropdown
-    id: severity
+  - type: input
+    id: reproduction
     attributes:
-      label: Severity
-      options:
-        - annoyance
-        - serious, but I can work around it
-        - blocking an upgrade
-        - blocking all usage of Houdini
-    validations:
-      required: true
+      label: Reproduction
+      description: To help us, please provide a [stackblitz](https://stackblitz.com/) or [replay.io](https://docs.replay.io/docs/recording-bug-reports-80c37d7d6753485f81497570625d06f0) link showing your bug. _A [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) is a nice option to get your bug fixed asap ([Why?](https://antfu.me/posts/why-reproductions-are-required))._
+      placeholder: 🔗 Reproduction link
 
   - type: textarea
     id: additional
