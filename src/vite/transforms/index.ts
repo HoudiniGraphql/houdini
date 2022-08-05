@@ -5,10 +5,9 @@ import { TransformPage } from '../plugin'
 import tags from './tags'
 import svelteKit from './kit'
 import query from './query'
-import fragment from './fragment'
 
 // tags must be processed last so we don't lose the graphql tags we look for
-const pipeline = [svelteKit, query, fragment, tags]
+const pipeline = [svelteKit, query, tags]
 
 export default async function applyTransforms(
 	config: Config,

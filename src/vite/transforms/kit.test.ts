@@ -283,11 +283,6 @@ describe('kit route processor', function () {
 		    variables: _TestQuery_Input
 		});
 	`)
-		expect(route.script).toMatchInlineSnapshot(`
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		const _houdini_context_DO_NOT_USE = getHoudiniContext();
-	`)
 	})
 
 	test('route with page stores and inline queries', async function () {

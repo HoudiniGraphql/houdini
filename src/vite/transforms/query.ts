@@ -6,13 +6,12 @@ import { Config, operation_requires_variables, ParsedFile } from '../../common'
 import { artifact_import, ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
 import { walk_graphql_tags } from '../walk'
-import { find_exported_fn, find_insert_index } from '../ast'
+import { find_exported_fn } from '../ast'
 
 const AST = recast.types.builders
 
 type ExportNamedDeclaration = recast.types.namedTypes.ExportNamedDeclaration
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
-type Identifier = recast.types.namedTypes.Identifier
 
 export default async function QueryProcessor(config: Config, page: TransformPage) {
 	// only consider consider components in this processor
