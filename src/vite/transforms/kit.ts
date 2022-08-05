@@ -4,6 +4,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import { Config, operation_requires_variables, parseSvelte, readFile } from '../../common'
+import { CompiledFragmentKind, CompiledQueryKind, GraphQLTagResult } from '../../runtime'
 import { find_insert_index } from '../ast'
 import { ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
@@ -400,7 +401,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	}
 
 	// let's check for existence by importing the file
-	let module: { houdini_load?: string[]; [key: string]: any }
+	let module: { houdini_load?: (string | GraphQLTagResult)[]; [key: string]: any }
 	try {
 		module = await import(page.filepath)
 	} catch {
@@ -425,35 +426,57 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	const seen = new Set<string>()
 
 	for (const document of module.houdini_load) {
-		// parse the document
-		const parsed = graphql.parse(document)
-		// look for a query definition
-		const query = parsed.definitions.find(
-			(defn): defn is graphql.OperationDefinitionNode =>
-				defn.kind === 'OperationDefinition' && defn.operation === 'query'
-		)
-		if (!query) {
-			// TODO: text
-			console.log('houdini_load must contain store references')
-			return nil
+		// if the document is a string then it's the result of a graphql template tag
+		// we need to parse the string for data
+		if (typeof document === 'string') {
+			// parse the document
+			let parsed: graphql.DocumentNode
+			try {
+				parsed = graphql.parse(document)
+			} catch {
+				console.log("we got a string that isn't a graphql query?")
+				continue
+			}
+
+			// look for a query definition
+			const query = parsed.definitions.find(
+				(defn): defn is graphql.OperationDefinitionNode =>
+					defn.kind === 'OperationDefinition' && defn.operation === 'query'
+			)
+			if (!query) {
+				// TODO: text
+				console.log('houdini_load must contain store references')
+				return nil
+			}
+
+			// dry up the name
+			const name = query.name!.value
+
+			// make sure a store only shows up once
+			if (seen.has(name)) {
+				// TODO: text
+				console.log('a store can only appear once')
+				return nil
+			}
+			seen.add(name)
+
+			// add the store to the list
+			load.push({
+				name,
+				variables: operation_requires_variables(query),
+			})
 		}
+		// the document is not a string
+		else {
+			// validate the kind (so we know its a store)
+			if (document.kind !== CompiledQueryKind) {
+				console.log('you must pass query stores to houdini_load')
+				continue
+			}
 
-		// dry up the name
-		const name = query.name!.value
-
-		// make sure a store only shows up once
-		if (seen.has(name)) {
-			// TODO: text
-			console.log('a store can only appear once')
-			return nil
+			// add the store to the list
+			load.push(document)
 		}
-		seen.add(name)
-
-		// add the store to the list
-		load.push({
-			name,
-			variables: operation_requires_variables(query),
-		})
 	}
 
 	// there is a load

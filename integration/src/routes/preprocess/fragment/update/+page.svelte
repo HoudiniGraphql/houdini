@@ -1,11 +1,3 @@
-<script context="module">
-  export function FragmentUpdateTestQueryVariables() {
-    return {
-      id: 'preprocess-fragment:1'
-    };
-  }
-</script>
-
 <script lang="ts">
   import {
     fragment,

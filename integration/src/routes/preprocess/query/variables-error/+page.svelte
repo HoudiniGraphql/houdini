@@ -1,10 +1,3 @@
-<script context="module" lang="ts">
-  export function PreprocessorTestQueryErrorVariables() {
-    // @ts-ignore
-    return this.error(403, 'test');
-  }
-</script>
-
 <script lang="ts">
   import { query, graphql, type PreprocessorTestQueryError } from '$houdini';
 
