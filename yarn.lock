@@ -3202,6 +3202,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/braces@npm:*":
+  version: 3.0.1
+  resolution: "@types/braces@npm:3.0.1"
+  checksum: 3749f7673a03d498ddb2f199b222bb403e53e78ac05a599c757c2049703ece802602c78640af0ff826be0fd2ea8b03daff04ce18806ed739592302195b7a569b
+  languageName: node
+  linkType: hard
+
 "@types/estree@npm:*":
   version: 0.0.51
   resolution: "@types/estree@npm:0.0.51"
@@ -3327,6 +3334,15 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: 57442f78c612c241ab99137d62029693faff7a36a1cbab0cc5d07c5efb700f8c0daf92b4bc9f55913f78aeb586082cc5f882bb4b8f73b7af3ce6240b34a8c4e0
+  languageName: node
+  linkType: hard
+
+"@types/micromatch@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "@types/micromatch@npm:4.0.2"
+  dependencies:
+    "@types/braces": "*"
+  checksum: 6c678e9c625d5b422c6d2c1001da1c502ecc4457248343bbd324b79fd798a6563e336a4d79630d80e8202312013dd7cf8b4440afa644d04477abd26fde6fba24
   languageName: node
   linkType: hard
 
@@ -7760,6 +7776,7 @@ __metadata:
     "@types/inquirer": ^7.3.1
     "@types/jest": ^26.0.23
     "@types/memory-fs": ^0.3.3
+    "@types/micromatch": ^4.0.2
     "@types/mock-fs": ^4.13.0
     "@types/node-fetch": ^2.6.1
     babel-jest: ^26.6.3
@@ -7779,6 +7796,7 @@ __metadata:
     jest: ^26.6.3
     memfs: ^3.4.7
     memory-fs: ^0.5.0
+    micromatch: ^4.0.5
     minimatch: ^5.1.0
     mkdirp: ^1.0.4
     mock-fs: ^4.13.0
@@ -9989,7 +10007,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"micromatch@npm:4.0.5, micromatch@npm:^4.0.4":
+"micromatch@npm:4.0.5, micromatch@npm:^4.0.4, micromatch@npm:^4.0.5":
   version: 4.0.5
   resolution: "micromatch@npm:4.0.5"
   dependencies:

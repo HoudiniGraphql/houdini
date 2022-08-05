@@ -13,7 +13,8 @@ export function graphql(str: TemplateStringsArray): GraphQLTagResult {
 	try {
 		if (globalThis.process.env.HOUDINI_PLUGIN) {
 			// @ts-ignore: this is a totally internal type. the user will never see it, we won't
-			//             and ever get a typed value of this.
+			//             and ever get a typed value of this since it's only used in the result of a dynamic
+			//             import
 			return str
 		}
 	} catch {}

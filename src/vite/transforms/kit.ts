@@ -4,14 +4,13 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import { Config, operation_requires_variables, parseSvelte, readFile } from '../../common'
-import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
 import { find_insert_index } from '../ast'
 import { ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
 import {
+	LoadTarget,
 	ctx_id,
 	find_inline_queries,
-	LoadTarget,
 	process_component,
 	query_variable_fn,
 } from './query'
@@ -94,8 +93,6 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 				)
 			)
 		)
-
-		// AST.memberExpression(input_obj, AST.literal(query.name))
 	}
 	// if we are processing a route config file (+page.ts)
 	else if (is_route_script) {
