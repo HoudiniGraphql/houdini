@@ -22,7 +22,6 @@ export default async function applyTransforms(
 	try {
 		script = await parseJS(content)
 	} catch (e) {
-		console.log(e, content)
 		return { code: content }
 	}
 
@@ -41,6 +40,7 @@ export default async function applyTransforms(
 	try {
 		await runPipeline(config, pipeline, result)
 	} catch (e) {
+		// TODO: text
 		console.log(e)
 		return { code: content }
 	}

@@ -128,6 +128,7 @@ function add_load({
 		const variable_fn = query_variable_fn(query.name)
 		// if the page doesn't export a function with the correct name, something is wrong
 		if (!page_info.exports.includes(variable_fn) && query.variables) {
+			// TODO: text
 			// tell them we're missing something
 			console.log(`error in ${page.filepath}:
 could not find required variable function: ${variable_fn}. maybe its not exported?
@@ -326,6 +327,7 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 	) as graphql.OperationDefinitionNode
 	// if it doesn't exist, there is an error, but no discovered query either
 	if (!definition) {
+		// TODO: text
 		console.log('page.gql must contain a query')
 		return null
 	}
@@ -415,6 +417,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 
 	// make sure that houdini_load is a list
 	if (!Array.isArray(module.houdini_load)) {
+		// TODO: text
 		console.log('houdini_load must be a list')
 		return nil
 	}
@@ -433,6 +436,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 				defn.kind === 'OperationDefinition' && defn.operation === 'query'
 		)
 		if (!query) {
+			// TODO: text
 			console.log('houdini_load must contain store references')
 			return nil
 		}
@@ -442,6 +446,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 
 		// make sure a store only shows up once
 		if (seen.has(name)) {
+			// TODO: text
 			console.log('a store can only appear once')
 			return nil
 		}
