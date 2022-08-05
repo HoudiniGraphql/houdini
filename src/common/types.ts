@@ -1,4 +1,5 @@
 import * as recast from 'recast'
+
 import { Config } from './config'
 
 type Program = recast.types.namedTypes.Program

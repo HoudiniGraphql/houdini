@@ -1,8 +1,8 @@
 import glob from 'glob'
 import * as graphql from 'graphql'
+import * as recast from 'recast'
 import * as svelte from 'svelte/compiler'
 import { promisify } from 'util'
-import * as recast from 'recast'
 
 import {
 	Config,

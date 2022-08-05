@@ -2,9 +2,9 @@ import * as recast from 'recast'
 
 import { Config, parseJS, runPipeline, Transform, ParsedFile } from '../../common'
 import { TransformPage } from '../plugin'
-import tags from './tags'
 import svelteKit from './kit'
 import query from './query'
+import tags from './tags'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 const pipeline = [svelteKit, query, tags]
