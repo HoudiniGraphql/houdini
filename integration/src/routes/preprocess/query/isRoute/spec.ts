@@ -1,6 +1,6 @@
+import { routes } from '../../../../lib/utils/routes.js';
+import { expectNGraphQLResponse, expectToBe } from '../../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.js';
-import { expectNGraphQLResponse, expectToBe } from '../../../lib/utils/testsHelper.js';
 
 test.describe('query preprocessor', () => {
   test('component queries', async ({ page }) => {

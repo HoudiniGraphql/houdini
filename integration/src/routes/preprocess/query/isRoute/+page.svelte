@@ -1,6 +1,6 @@
 <script>
-  import QueryComponent from './_QueryComponent.svelte';
-  import PlusQueryComponent from './+QueryComponent.svelte';
+  import QueryComponent from '../Component1.svelte';
+  import PlusQueryComponent from '../Component2.svelte';
 </script>
 
 <div id="result-default">

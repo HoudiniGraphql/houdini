@@ -1,7 +1,7 @@
+import { routes } from '../../../../lib/utils/routes.js';
+import { clientSideNavigation, expectToBe } from '../../../../lib/utils/testsHelper.js';
 import { sleep } from '@kitql/helper';
 import { test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.js';
-import { clientSideNavigation, expectToBe } from '../../../lib/utils/testsHelper.js';
 
 test.describe('Partial Pages', () => {
   test('From the list to the detail should see 2 info then the date coming', async ({ page }) => {

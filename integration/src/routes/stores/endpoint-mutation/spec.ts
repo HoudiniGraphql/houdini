@@ -1,6 +1,6 @@
+import { routes } from '../../../lib/utils/routes.js';
+import { expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
-import { routes } from '../../lib/utils/routes.js';
-import { expectNoGraphQLRequest } from '../../lib/utils/testsHelper.js';
 
 test.describe('Mutations', () => {
   test('Work in Endpoints', async ({ page }) => {

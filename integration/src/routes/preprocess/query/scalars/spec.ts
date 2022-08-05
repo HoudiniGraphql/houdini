@@ -1,6 +1,10 @@
+import { routes } from '../../../../lib/utils/routes.js';
+import {
+  expectGraphQLResponse,
+  expectToBe,
+  navSelector
+} from '../../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.js';
-import { expectGraphQLResponse, expectToBe, navSelector } from '../../../lib/utils/testsHelper.js';
 
 test.describe('query preprocessor variables', () => {
   test('query values get unmarshaled into complex values', async function ({ page }) {

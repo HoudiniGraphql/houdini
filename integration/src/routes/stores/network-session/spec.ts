@@ -1,6 +1,6 @@
+import { routes } from '../../../lib/utils/routes.js';
+import { expectGraphQLResponse, expectToBe } from '../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
-import { routes } from '../../lib/utils/routes.js';
-import { expectGraphQLResponse, expectToBe } from '../../lib/utils/testsHelper.js';
 
 test.describe('SSR Session Page', () => {
   test('Should display the session token from a network call', async ({ page }) => {

@@ -1,10 +1,10 @@
-import { test } from '@playwright/test';
-import { routes } from '../../lib/utils/routes.js';
+import { routes } from '../../../lib/utils/routes.js';
 import {
   clientSideNavigation,
   expectGraphQLResponse,
   expectToBe
-} from '../../lib/utils/testsHelper.js';
+} from '../../../lib/utils/testsHelper.js';
+import { test } from '@playwright/test';
 
 test.describe('SubUnsub Page', () => {
   test('Sub > Unsub > Mutate > Sub => Data should be updated & displayed', async ({ page }) => {

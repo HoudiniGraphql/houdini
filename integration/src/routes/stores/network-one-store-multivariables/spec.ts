@@ -1,7 +1,7 @@
+import { routes } from '../../../lib/utils/routes.js';
+import { expectToBe } from '../../../lib/utils/testsHelper.js';
 import { sleep } from '@kitql/helper';
 import { test } from '@playwright/test';
-import { routes } from '../../lib/utils/routes.js';
-import { expectToBe } from '../../lib/utils/testsHelper.js';
 
 test.describe('network-one-store-multivariables Page', () => {
   test('Getting the right data in a network mode (CSR)', async ({ page }) => {

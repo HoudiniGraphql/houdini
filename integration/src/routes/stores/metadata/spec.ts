@@ -1,7 +1,7 @@
+import { routes } from '../../../lib/utils/routes.js';
+import { expectGraphQLResponse } from '../../../lib/utils/testsHelper.js';
 import { sleep } from '@kitql/helper';
 import { expect, test } from '@playwright/test';
-import { routes } from '../../lib/utils/routes.js';
-import { expectGraphQLResponse } from '../../lib/utils/testsHelper.js';
 
 test.describe('Metadata Page', () => {
   test('Query => Should display the raw result in the console as info', async ({ page }) => {

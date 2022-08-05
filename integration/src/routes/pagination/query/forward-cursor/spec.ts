@@ -1,11 +1,11 @@
-import { expect, test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.js';
+import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
   expectNoGraphQLRequest,
   expectToBe,
   expectToContain
-} from '../../../lib/utils/testsHelper.js';
+} from '../../../../lib/utils/testsHelper.js';
+import { expect, test } from '@playwright/test';
 
 test.describe('forwards cursor paginatedQuery', () => {
   test('loadNextPage', async ({ page }) => {

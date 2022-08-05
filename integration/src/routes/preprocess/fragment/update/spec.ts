@@ -1,10 +1,10 @@
-import { test } from '@playwright/test';
-import { routes } from '../../../lib/utils/routes.js';
+import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
   expectNoGraphQLRequest,
   expectToBe
-} from '../../../lib/utils/testsHelper.js';
+} from '../../../../lib/utils/testsHelper.js';
+import { test } from '@playwright/test';
 
 test.describe('Fragment Preprocessor', () => {
   test('updates with parent store', async ({ page }) => {

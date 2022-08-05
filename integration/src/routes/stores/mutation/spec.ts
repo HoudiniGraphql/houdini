@@ -1,7 +1,7 @@
+import { routes } from '../../../lib/utils/routes.js';
+import { expectNoGraphQLRequest, expectToBe } from '../../../lib/utils/testsHelper.js';
 import { sleep, stry } from '@kitql/helper';
 import { expect, test } from '@playwright/test';
-import { routes } from '../../lib/utils/routes.js';
-import { expectNoGraphQLRequest, expectToBe } from '../../lib/utils/testsHelper.js';
 
 test.describe('Mutation Page', () => {
   test('No GraphQL request & default data in the store', async ({ page }) => {
