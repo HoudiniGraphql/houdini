@@ -4,6 +4,10 @@ import houdini from './plugin'
 import schema from './schema'
 
 export default function ({ configPath }: { configPath?: string } = {}): Plugin[] {
+	// we need some way for the graphql tag to detect that we are running on the server
+	// so we don't get an error when importing.
+	process.env.HOUDINI_PLUGIN = 'true'
+
 	return [
 		houdini(configPath),
 		schema(configPath),

@@ -401,7 +401,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	}
 
 	// let's check for existence by importing the file
-	let module: { houdini_load?: GraphQLTagResult[]; [key: string]: any }
+	let module: { houdini_load?: string[]; [key: string]: any }
 	try {
 		module = await import(page.filepath)
 	} catch {
@@ -424,30 +424,33 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 
 	const seen: string[] = []
 
-	for (const store of module.houdini_load) {
+	for (const document of module.houdini_load) {
+		// parse the document
+		const parsed = graphql.parse(document)
+		// look for a query definition
+		const query = parsed.definitions.find<graphql.OperationDefinitionNode>(
+			(defn): defn is graphql.OperationDefinitionNode =>
+				defn.kind === 'OperationDefinition' && defn.operation === 'query'
+		)
+		if (!query) {
+			console.log('houdini_load must contain store references')
+			return nil
+		}
+
+		// dry up the name
+		const name = query.name!.value
+
 		// make sure a store only shows up once
-		if (seen.includes(store.name)) {
+		if (seen.includes(name)) {
 			console.log('a store can only appear once')
 			return nil
 		}
-		seen.push(store.name)
-
-		// if there is no kind in the value then its not a store reference
-		if (!('kind' in store)) {
-			console.log('you must pass stores to houdini_load')
-			// don't load any stores
-			return nil
-		}
-		if (store.kind !== CompiledQueryKind) {
-			console.log('you must pass query stores to houdini_load')
-			// don't load any stores
-			return nil
-		}
+		seen.push(name)
 
 		// add the store to the list
 		load.push({
-			name: store.name,
-			variables: store.variables,
+			name,
+			variables: operation_requires_variables(query),
 		})
 	}
 
