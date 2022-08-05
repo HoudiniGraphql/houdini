@@ -44,6 +44,7 @@ export function clearMock() {
 	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'artifacts'))
 	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'graphql'))
 	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'routes'))
+	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'lib'))
 }
 clearMock()
 

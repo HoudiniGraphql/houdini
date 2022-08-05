@@ -1,33 +1,50 @@
-import { IdentifierKind, ExpressionKind } from 'ast-types/gen/kinds'
+import { IdentifierKind } from 'ast-types/gen/kinds'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import { Config, operation_requires_variables, parseSvelte, readFile } from '../../common'
 import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
+import { find_insert_index } from '../ast'
 import { ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
-import { walk_graphql_tags } from '../walk'
+import {
+	ctx_id,
+	find_inline_queries,
+	LoadTarget,
+	process_component,
+	query_variable_fn,
+} from './query'
 
 const AST = recast.types.builders
 
 type ExportNamedDeclaration = ReturnType<typeof recast.types.builders['exportNamedDeclaration']>
 
-export default async function svelteKitProcessor(config: Config, page: TransformPage) {
+export default async function SvelteKitProcessor(config: Config, page: TransformPage) {
 	// if we aren't running on a kit project, don't do anything
 	if (page.config.framework !== 'kit') {
 		return
 	}
 
 	// if this isn't a route, move on
-	if (!page.config.isRoute(page.filepath) && !page.config.isRouteScript(page.filepath)) {
+	const is_route = page.config.isRoute(page.filepath)
+	const is_route_script = page.config.isRouteScript(page.filepath)
+	if (!is_route && !is_route_script) {
 		return
 	}
 
 	// we need to collect all of the various queries associated with the query file
 	const [page_query, inline_queries, page_info] = await Promise.all([
 		find_page_query(page),
-		find_inline_queries(page),
+		find_inline_queries(
+			page,
+			// if we are currently on the route file, there's nothing to parse
+			is_route
+				? page.script
+				: await parseSvelte(
+						(await readFile(page.config.routePagePath(page.filepath))) || ''
+				  )
+		),
 		find_page_info(page),
 	])
 
@@ -41,15 +58,47 @@ export default async function svelteKitProcessor(config: Config, page: Transform
 	}
 
 	// if we are processing a route component (+page.svelte)
-	if (page.config.isRoute(page.filepath)) {
+	if (is_route) {
+		const input_obj = AST.identifier('inputs')
+
+		page.script.body.push(
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					ctx_id,
+					AST.callExpression(AST.identifier('getHoudiniContext'), [])
+				),
+			])
+		)
+
 		await process_component({
 			page,
 			queries,
-			page_info,
+			input_id: (name) => AST.memberExpression(input_obj, AST.literal(name)),
 		})
+
+		// now that we have the load, we need a reference to the loaded inputs added above
+		page.script.body.splice(
+			find_insert_index(page.script),
+			0,
+			AST.labeledStatement(
+				AST.identifier('$'),
+				AST.expressionStatement(
+					AST.assignmentExpression(
+						'=',
+						input_obj,
+						AST.memberExpression(
+							AST.memberExpression(AST.identifier('$$props'), AST.identifier('data')),
+							AST.identifier('inputs')
+						)
+					)
+				)
+			)
+		)
+
+		// AST.memberExpression(input_obj, AST.literal(query.name))
 	}
 	// if we are processing a route config file (+page.ts)
-	else if (page.config.isRouteScript(page.filepath)) {
+	else if (is_route_script) {
 		// add the load function to the query file
 		add_load({
 			page,
@@ -57,122 +106,6 @@ export default async function svelteKitProcessor(config: Config, page: Transform
 			page_info,
 		})
 	}
-}
-
-async function process_component({
-	page,
-	queries,
-	page_info,
-}: {
-	page: TransformPage
-	queries: LoadTarget[]
-	page_info: PageScriptInfo
-}) {
-	// find the first non import
-	let insert_index = page.script.body.findIndex((statement) => {
-		return statement.type !== 'ImportDeclaration'
-	})
-	// if we didn't find one, make sure we add stuff at the end of the file
-	if (insert_index === -1) {
-		insert_index = page.script.body.length
-	}
-
-	// add an import for the context utility
-	insert_index += ensure_imports({
-		config: page.config,
-		script: page.script,
-		import: ['getHoudiniContext'],
-		sourceModule: '$houdini/runtime/lib/context',
-	}).added
-
-	// import the browser check
-	insert_index += ensure_imports({
-		config: page.config,
-		script: page.script,
-		import: ['browser'],
-		sourceModule: '$app/env',
-	}).added
-
-	// make sure that we have imports for every store
-	const store_ids: Record<string, string> = {}
-	for (const query of queries) {
-		const { id, added } = store_import({
-			config: page.config,
-			artifact: query,
-			script: page.script,
-		})
-		insert_index += added
-		store_ids[query.name] = id
-	}
-
-	// the first thing we need to do is to define a local variable that
-	// will hold onto the values we get from props
-	const input_obj = AST.identifier('_houdini_inputs')
-	page.script.body.splice(
-		insert_index++,
-		0,
-		// @ts-ignore
-		AST.labeledStatement(
-			AST.identifier('$'),
-			AST.expressionStatement(
-				AST.assignmentExpression(
-					'=',
-					input_obj,
-					AST.memberExpression(
-						AST.memberExpression(AST.identifier('$$props'), AST.identifier('data')),
-						AST.identifier('inputs')
-					)
-				)
-			)
-		)
-	)
-
-	// create a context handler we can pass to the fetches
-	const houdini_context = AST.identifier('_houdini_context_DO_NOT_USE')
-	page.script.body.splice(
-		insert_index++,
-		0,
-		// @ts-ignore
-		AST.variableDeclaration('const', [
-			AST.variableDeclarator(
-				houdini_context,
-				AST.callExpression(AST.identifier('getHoudiniContext'), [])
-			),
-		])
-	)
-
-	// we need to add the client side fetches for every query that we ran into
-	page.script.body.splice(
-		insert_index++,
-		0,
-		// @ts-ignore
-		...queries.map((query) =>
-			AST.labeledStatement(
-				AST.identifier('$'),
-				AST.expressionStatement(
-					AST.logicalExpression(
-						'&&',
-						AST.identifier('browser'),
-						AST.callExpression(
-							AST.memberExpression(
-								AST.identifier(store_ids[query.name]),
-								AST.identifier('fetch')
-							),
-							[
-								AST.objectExpression([
-									AST.objectProperty(AST.identifier('context'), houdini_context),
-									AST.objectProperty(
-										AST.identifier('variables'),
-										AST.memberExpression(input_obj, AST.literal(query.name))
-									),
-								]),
-							]
-						)
-					)
-				)
-			)
-		)
-	)
 }
 
 function add_load({
@@ -268,7 +201,6 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 	preload_fn.async = true
 
 	// export the function from the module
-	// @ts-ignore
 	page.script.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
 
 	// we can start inserting statements after we define the context
@@ -373,80 +305,6 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 			...load_hook_statements('afterLoad', ...args)
 		)
 	}
-}
-
-async function find_inline_queries(page: TransformPage): Promise<LoadTarget[]> {
-	// build up a list of the queries we run into
-	const queries: {
-		name: string
-		variables: boolean
-	}[] = []
-
-	// ideally we could just use page.load and look at the module's metadata
-	// but vite doesn't support that: https://github.com/vitejs/vite/issues/6810
-
-	// until that is fixed, we'll have to read the file directly and parse it separately
-	// to find any inline queries
-
-	// in order to know what we need to do here, we need to know if our
-	// corresponding page component defined any inline queries
-	const page_path = page.config.routePagePath(page.filepath)
-
-	// read the page path and if it doesn't exist, there aren't any inline queries
-	const contents = await readFile(page_path)
-	if (!contents) {
-		return []
-	}
-
-	const parsed = await parseSvelte(contents)
-
-	// look for inline queries
-	const deps = await walk_graphql_tags(page.config, parsed, {
-		where(tag) {
-			return !!tag.definitions.find(
-				(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
-			)
-		},
-		tag(tag) {
-			// if the graphql tag was inside of a call expression, we need to assume that it's a
-			// part of an inline document. if the operation is a query, we need to add it to the list
-			// so that the load function can have the correct contents
-			const { parsedDocument, parent } = tag
-			const operation = parsedDocument.definitions[0] as graphql.ExecutableDefinitionNode
-			if (
-				operation.kind === 'OperationDefinition' &&
-				operation.operation === 'query' &&
-				parent.type === 'CallExpression'
-			) {
-				queries.push({
-					name: operation.name!.value,
-					// an operation requires variables if there is any non-null variable that doesn't have a default value
-					variables: operation_requires_variables(operation),
-				})
-			}
-		},
-	})
-
-	// make sure we are watching all of the new deps
-	for (const dep of deps) {
-		page.addWatchFile(dep)
-	}
-
-	return queries.map((query) => {
-		// we need to make sure that we have reference to the store
-		// for every query
-		const { id } = store_import({
-			config: page.config,
-			artifact: query,
-			script: page.script,
-		})
-
-		return {
-			store_id: AST.identifier(id),
-			name: query.name,
-			variables: query.variables,
-		}
-	})
 }
 
 async function find_page_query(page: TransformPage): Promise<LoadTarget | null> {
@@ -600,22 +458,12 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	}
 }
 
-function query_variable_fn(name: string) {
-	return `${name}Variables`
-}
-
 export type PageScriptInfo = {
 	load?: QueryInfo[]
 	exports: string[]
 }
 
 type QueryInfo = {
-	name: string
-	variables: boolean
-}
-
-type LoadTarget = {
-	store_id: ExpressionKind
 	name: string
 	variables: boolean
 }

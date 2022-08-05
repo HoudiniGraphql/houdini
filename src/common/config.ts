@@ -529,7 +529,10 @@ export class Config {
 
 	isComponent(filename: string) {
 		return (
-			filename.endsWith('.svelte') && !this.isRouteScript(filename) && !this.isRoute(filename)
+			this.framework === 'svelte' ||
+			(filename.endsWith('.svelte') &&
+				!this.isRouteScript(filename) &&
+				!this.isRoute(filename))
 		)
 	}
 

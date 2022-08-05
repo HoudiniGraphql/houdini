@@ -31,6 +31,7 @@ export type EmbeddedGraphqlDocument = {
 
 type GraphqlTagWalker = {
 	where?: (tag: graphql.DocumentNode) => boolean
+	dependency?: (fp: string) => void
 	tag: (tag: EmbeddedGraphqlDocument) => void | Promise<void>
 }
 
@@ -39,10 +40,9 @@ export async function walk_graphql_tags(
 	config: Config,
 	parsedScript: ParsedFile,
 	walker: GraphqlTagWalker
-): Promise<string[]> {
+): Promise<void> {
 	const dependencies: string[] = []
 
-	// @ts-ignore
 	await asyncWalk(parsedScript!, {
 		async enter(node, parent) {
 			// if we are looking at the graphql template tag
@@ -89,8 +89,8 @@ export async function walk_graphql_tags(
 					}
 				}
 
-				// make sure we watch the compiled fragment
-				dependencies.push(config.artifactPath(parsedTag))
+				// tell the walk there was a dependency
+				walker.dependency?.(config.artifactPath(parsedTag))
 
 				// invoker the walker's callback with the right context
 				await walker.tag({
@@ -111,6 +111,4 @@ export async function walk_graphql_tags(
 			}
 		},
 	})
-
-	return dependencies
 }

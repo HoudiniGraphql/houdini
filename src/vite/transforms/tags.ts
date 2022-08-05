@@ -8,9 +8,10 @@ import { walk_graphql_tags } from '../walk'
 
 const AST = recast.types.builders
 
-export default async function transform_gql_tag(config: Config, ctx: TransformPage) {
+export default async function GraphQLTagProcessor(config: Config, ctx: TransformPage) {
 	// all graphql template tags need to be turned into a reference to the appropriate store
-	const deps = await walk_graphql_tags(config, ctx.script, {
+	await walk_graphql_tags(config, ctx.script, {
+		dependency: ctx.addWatchFile,
 		tag(tag) {
 			// pull out what we need
 			const { node, parsedDocument, parent } = tag
@@ -29,8 +30,4 @@ export default async function transform_gql_tag(config: Config, ctx: TransformPa
 			)
 		},
 	})
-
-	for (const dep of deps) {
-		ctx.addWatchFile(dep)
-	}
 }

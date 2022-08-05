@@ -1,119 +1,159 @@
-test.skip('keep me', function () {})
+import '../../../jest.setup'
+import { componentTest } from '../tests'
 
-// test('non-route page - no variables', async function () {
-// 	const route = await preprocessorTest(
-// 		`
-// 			<script>
-// 				const { data } = query(graphql\`
-// 					query TestQuery {
-// 						viewer {
-// 							id
-// 						}
-// 					}
-// 				\`)
-// 			</script>
-// 		`,
-// 		{
-// 			route: false,
-// 		}
-// 	)
+test('no variables', async function () {
+	const route = await componentTest(
+		`
+            const { data } = query(graphql\`
+                query TestQuery {
+                    viewer {
+                        id
+                    }
+                }
+            \`)
+		`
+	)
 
-// 	// make sure we added the right stuff
-// 	expect(doc).toMatchInlineSnapshot(`
-// 		import { isBrowser } from "$houdini/runtime/adapter";
-// 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-// 		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
-// 		import { TestQueryStore } from "$houdini/stores/TestQuery";
-// 		const store_TestQueryStore = TestQueryStore();
-// 		const _houdini_context_generated_DONT_USE = getHoudiniContext();
+	// make sure we added the right stuff
+	expect(route).toMatchInlineSnapshot(`
+		import { isBrowser } from "$houdini/runtime/adapter";
+		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
-// 		const {
-// 		    data
-// 		} = query({
-// 		    kind: "HoudiniQuery",
-// 		    store: store_TestQueryStore,
-// 		    config: houdiniConfig,
-// 		    artifact: _TestQueryArtifact
-// 		});
+		const {
+		    data
+		} = query(GQL_TestQuery);
 
-// 		let _TestQuery_Input = {};
+		const _houdini_context_DO_NOT_USE = getHoudiniContext();
+		const _TestQuery_Input = {};
 
-// 		$:
-// 		isBrowser && store_TestQueryStore.fetch({
-// 		    "variables": _TestQuery_Input,
-// 		    "context": _houdini_context_generated_DONT_USE
-// 		});
-// 	`)
-// })
+		$:
+		isBrowser && GQL_TestQuery.fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _TestQuery_Input
+		});
+	`)
+})
 
-// test('non-route page - with variables', async function () {
-// 	const route = await preprocessorTest(
-// 		`
-// 			<script context="module">
-// 				export function TestQueryVariables() {
-// 					return {
-// 						hello: 'world'
-// 					}
-// 				}
-// 			</script>
+test('with variables', async function () {
+	const route = await componentTest(
+		`
+            export function TestQueryVariables() {
+                return {
+                    hello: 'world'
+                }
+            }
+            
+            export let prop1 = 'hello'
+            export const prop2 = 'goodbye'
+            export let prop3, prop4
 
-// 			<script>
-// 				export let prop1 = 'hello'
-// 				export const prop2 = 'goodbye'
-// 				export let prop3, prop4
+            const { data } = query(graphql\`
+                query TestQuery($test: String!) {
+                    users(stringValue: $test) {
+                        id
+                    }
+                }
+            \`)
+		`
+	)
 
-// 				const { data } = query(graphql\`
-// 					query TestQuery($test: String!) {
-// 						users(stringValue: $test) {
-// 							id
-// 						}
-// 					}
-// 				\`)
-// 			</script>
-// 		`,
-// 		{
-// 			route: false,
-// 		}
-// 	)
+	// make sure we added the right stuff
+	expect(route).toMatchInlineSnapshot(`
+		import { isBrowser } from "$houdini/runtime/adapter";
+		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+		import _TestQueryArtifact from "$houdini/artifacts/TestQuery";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
-// 	// make sure we added the right stuff
-// 	expect(doc).toMatchInlineSnapshot(`
-// 		import { houdiniConfig } from "$houdini";
+		export function TestQueryVariables() {
+		    return {
+		        hello: "world"
+		    };
+		}
 
-// 		export function TestQueryVariables() {
-// 		    return {
-// 		        hello: "world"
-// 		    };
-// 		}
-// 	`)
-// })
+		export let prop1 = "hello";
+		export const prop2 = "goodbye";
+		export let prop3, prop4;
 
-// test('2 queries, one paginated one not', async function () {
-// 	const route = await routeTest(
-// 		{
-// 			component: `
+		const {
+		    data
+		} = query(GQL_TestQuery);
 
-// 			const { data } = query(graphql\`
-// 				query TestQuery1($test: Boolean!) {
-// 					viewer {
-// 						id
-// 					}
-// 				}
-// 			\`)
+		const _houdini_context_DO_NOT_USE = getHoudiniContext();
 
-// 			const { data: data2 } = paginatedQuery(graphql\`
-// 				query TestQuery2($test: Boolean!) {
-// 					viewer {
-// 						id
-// 					}
-// 				}
-// 			\`)
-// 			`,
-// 		}`
-// 		<script>
-// 		</script>
-// 	`
-// 	)
+		$:
+		_TestQuery_Input = marshalInputs({
+		    config: houdiniConfig,
+		    artifact: _,
 
-// 	expect(route.component).toMatchInlineSnapshot()
-// })
+		    input: TestQueryVariables.call(_houdini_context_DO_NOT_USE, {
+		        props: {
+		            prop1: prop1,
+		            prop2: prop2,
+		            prop3: prop3,
+		            prop4: prop4
+		        },
+
+		        session: _houdini_context_DO_NOT_USE.session(),
+		        url: _houdini_context_DO_NOT_USE.url()
+		    })
+		});
+
+		$:
+		isBrowser && GQL_TestQuery.fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _TestQuery_Input
+		});
+	`)
+})
+
+test('2 queries, one paginated one not', async function () {
+	const route = await componentTest(`
+        const { data } = query(graphql\`
+            query TestQuery1($test: Boolean!) {
+                viewer {
+                    id
+                }
+            }
+        \`)
+
+        const { data: data2 } = paginatedQuery(graphql\`
+            query TestQuery2($test: Boolean!) {
+                viewer {
+                    id
+                }
+            }
+        \`)
+    `)
+
+	expect(route).toMatchInlineSnapshot(`
+		import { isBrowser } from "$houdini/runtime/adapter";
+		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
+		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
+
+		const {
+		    data
+		} = query(GQL_TestQuery1);
+
+		const {
+		    data: data2
+		} = paginatedQuery(GQL_TestQuery2);
+
+		const _houdini_context_DO_NOT_USE = getHoudiniContext();
+		const _TestQuery1_Input = {};
+		const _TestQuery2_Input = {};
+
+		$:
+		isBrowser && GQL_TestQuery1.fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _TestQuery1_Input
+		});
+
+		$:
+		isBrowser && GQL_TestQuery2.fetch({
+		    context: _houdini_context_DO_NOT_USE,
+		    variables: _TestQuery2_Input
+		});
+	`)
+})

@@ -2,10 +2,12 @@ import * as recast from 'recast'
 
 import { Config, parseJS, runPipeline, Transform, ParsedFile } from '../../common'
 import { TransformPage } from '../plugin'
-import svelteKitProcessor from './kit'
 import tagProcessor from './tags'
+import svelteKitProcessor from './kit'
+import queryProcessor from './query'
 
-const defaultTransforms = [svelteKitProcessor, tagProcessor]
+// tagProcessor must go last so we don't lose the graphql tags we look for
+const defaultTransforms = [svelteKitProcessor, queryProcessor, tagProcessor]
 
 export default async function applyTransforms(
 	config: Config,

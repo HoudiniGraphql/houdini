@@ -89,7 +89,7 @@ export async function componentTest(
 	const filepath = path.join(process.cwd(), 'src/lib', 'component.svelte')
 
 	// write the content
-	await Promise.all([writeFile(filepath, content)])
+	await writeFile(filepath, content)
 
 	// we want to run the transformer on both the component and script paths
 	const result = await runTransforms(

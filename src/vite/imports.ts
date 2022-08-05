@@ -44,9 +44,7 @@ export function ensure_imports<_Count extends string[] | string>({
 	if (toImport.length > 0) {
 		script.body.unshift({
 			type: 'ImportDeclaration',
-			// @ts-ignore
 			source: AST.stringLiteral(sourceModule),
-			// @ts-ignore
 			specifiers: toImport.map((identifier) =>
 				!Array.isArray(importID)
 					? AST.importDefaultSpecifier(AST.identifier(identifier))
@@ -81,4 +79,23 @@ export function store_import({
 	})
 
 	return { id: ids[0], added }
+}
+
+export function artifact_import({
+	config,
+	artifact,
+	script,
+	local,
+}: {
+	config: Config
+	artifact: { name: string }
+	script: Script
+	local?: string
+}) {
+	return ensure_imports({
+		config,
+		script,
+		sourceModule: config.artifactImportPath(artifact.name),
+		import: local || `_${artifact.name}Artifact`,
+	})
 }
