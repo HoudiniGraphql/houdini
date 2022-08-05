@@ -20,7 +20,7 @@ const schema = `
 	}
 `
 
-export async function routeTest({
+export async function route_test({
 	component = '',
 	script = '',
 	query = '',
@@ -78,7 +78,7 @@ export async function routeTest({
 	}
 }
 
-export async function componentTest(
+export async function component_test(
 	content: string,
 	extra?: Partial<ConfigFile>
 ): Promise<ParsedFile> {

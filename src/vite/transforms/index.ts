@@ -2,18 +2,18 @@ import * as recast from 'recast'
 
 import { Config, parseJS, runPipeline, Transform, ParsedFile } from '../../common'
 import { TransformPage } from '../plugin'
-import tagProcessor from './tags'
-import svelteKitProcessor from './kit'
-import queryProcessor from './query'
+import tags from './tags'
+import svelteKit from './kit'
+import query from './query'
+import fragment from './fragment'
 
-// tagProcessor must go last so we don't lose the graphql tags we look for
-const defaultTransforms = [svelteKitProcessor, queryProcessor, tagProcessor]
+// tags must be processed last so we don't lose the graphql tags we look for
+const pipeline = [svelteKit, query, fragment, tags]
 
 export default async function applyTransforms(
 	config: Config,
 	page: Omit<TransformPage, 'script'>,
-	content: string,
-	pipeline: Transform<TransformPage>[] = defaultTransforms
+	content: string
 ): Promise<{ code: string }> {
 	// a single transform might need to do different things to the module and
 	// instance scripts so we're going to pull them out, push them through separately,

@@ -1,8 +1,8 @@
 import '../../../jest.setup'
-import { componentTest } from '../tests'
+import { component_test } from '../tests'
 
 test('no variables', async function () {
-	const route = await componentTest(
+	const route = await component_test(
 		`
             const { data } = query(graphql\`
                 query TestQuery {
@@ -36,7 +36,7 @@ test('no variables', async function () {
 })
 
 test('with variables', async function () {
-	const route = await componentTest(
+	const route = await component_test(
 		`
             export function TestQueryVariables() {
                 return {
@@ -108,7 +108,7 @@ test('with variables', async function () {
 })
 
 test('2 queries, one paginated one not', async function () {
-	const route = await componentTest(`
+	const route = await component_test(`
         const { data } = query(graphql\`
             query TestQuery1($test: Boolean!) {
                 viewer {

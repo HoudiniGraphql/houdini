@@ -1,9 +1,11 @@
-import { Statement } from '@babel/types'
 import * as recast from 'recast'
 
 import { Config } from '.'
 
 const AST = recast.types.builders
+
+type Statement = recast.types.namedTypes.Statement
+type ImportDeclaration = recast.types.namedTypes.ImportDeclaration
 
 export function ensureStoreImport({
 	config,
@@ -81,16 +83,15 @@ export function ensureImports<_Count extends string[] | string>({
 			!body.find(
 				(statement) =>
 					statement.type === 'ImportDeclaration' &&
-					statement.specifiers.find(
+					(statement as ImportDeclaration).specifiers!.find(
 						(importSpecifier) =>
 							(importSpecifier.type === 'ImportSpecifier' &&
 								importSpecifier.imported.type === 'Identifier' &&
 								importSpecifier.imported.name === identifier &&
-								importSpecifier.local.name === identifier) ||
+								importSpecifier.local!.name === identifier) ||
 							(importSpecifier.type === 'ImportDefaultSpecifier' &&
-								importSpecifier.local.type === 'Identifier' &&
-								importSpecifier.local.name === identifier &&
-								importSpecifier.local.name === identifier)
+								importSpecifier.local!.type === 'Identifier' &&
+								importSpecifier.local!.name === identifier)
 					)
 			)
 	)

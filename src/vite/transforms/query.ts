@@ -22,6 +22,10 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 
 	// build up a list of the inline queries
 	const queries = await find_inline_queries(page, page.script)
+	// if there aren't any, we're done
+	if (queries.length === 0) {
+		return
+	}
 
 	// find all of the props of the component by looking for export let
 	const props = (page.script.body.filter(

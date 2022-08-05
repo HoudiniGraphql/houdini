@@ -47,7 +47,7 @@ export async function parseSvelte(str: string): Promise<ParsedFile> {
 }
 
 export async function parseJS(str: string): Promise<ParsedFile> {
-	// we're done here
+	// @ts-ignore
 	return parseJavascript(str || '', {
 		plugins: ['typescript'],
 		sourceType: 'module',

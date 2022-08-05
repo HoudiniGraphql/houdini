@@ -1,9 +1,8 @@
-import { parse as parseJS } from '@babel/parser'
-import { Program } from '@babel/types'
 import glob from 'glob'
 import * as graphql from 'graphql'
 import * as svelte from 'svelte/compiler'
 import { promisify } from 'util'
+import * as recast from 'recast'
 
 import {
 	Config,
@@ -14,11 +13,14 @@ import {
 	walkTaggedDocuments,
 	TransformDocument,
 	readFile,
+	parseJS,
 } from '../common'
 import * as generators from './generators'
 import * as transforms from './transforms'
 import { CollectedGraphQLDocument, ArtifactKind } from './types'
 import * as validators from './validators'
+
+type Program = recast.types.namedTypes.Program
 
 // the main entry point of the compile script
 export default async function compile(config: Config) {
@@ -224,10 +226,7 @@ async function processJSFile(
 	// parse the contents as js
 	let program: Program
 	try {
-		program = await parseJS(contents || '', {
-			plugins: ['typescript'],
-			sourceType: 'module',
-		}).program
+		program = (await parseJS(contents))!
 	} catch (e) {
 		// add the filepath to the error message
 		throw { message: (e as Error).message, filepath }

@@ -1,9 +1,9 @@
 import '../../../jest.setup'
-import { routeTest } from '../tests'
+import { route_test } from '../tests'
 
 describe('kit route processor', function () {
 	test('inline query', async function () {
-		const route = await routeTest({
+		const route = await route_test({
 			component: `
 				<script>
 					const { data } = query(graphql\`
@@ -65,7 +65,7 @@ describe('kit route processor', function () {
 	})
 
 	test("existing loads aren't modified", async function () {
-		const route = await routeTest({
+		const route = await route_test({
 			script: `
 					export async function load() {
 
@@ -95,7 +95,7 @@ describe('kit route processor', function () {
 	})
 
 	test('multiple inline queries', async function () {
-		const route = await routeTest({
+		const route = await route_test({
 			component: `
 				<script>
 					const { data: data1 } = query(graphql\`
@@ -184,7 +184,7 @@ describe('kit route processor', function () {
 	})
 
 	test('compute variables', async function () {
-		const route = await routeTest({
+		const route = await route_test({
 			script: `
 					export function TestQueryVariables(page) {
 						return {
@@ -247,7 +247,7 @@ describe('kit route processor', function () {
 	})
 
 	test('bare svelte component in route filepath', async function () {
-		const route = await routeTest({
+		const route = await route_test({
 			component: `
 					<script>
 						const { data } = query(graphql\`
@@ -291,7 +291,7 @@ describe('kit route processor', function () {
 	})
 
 	test('route with page stores and inline queries', async function () {
-		const route = await routeTest({
+		const route = await route_test({
 			component: `
 				<script>
 					const { data } = query(graphql\`
@@ -421,7 +421,7 @@ describe('kit route processor', function () {
 	})
 
 	test('route with page query', async function () {
-		const route = await routeTest({
+		const route = await route_test({
 			query: `
 				query TestQuery {
 					viewer {
@@ -477,7 +477,7 @@ describe('kit route processor', function () {
 })
 
 test('beforeLoad hook', async function () {
-	const route = await routeTest({
+	const route = await route_test({
 		script: `
 			export async function beforeLoad(){
 				return this.redirect(302, "/test")
@@ -553,7 +553,7 @@ test('beforeLoad hook', async function () {
 })
 
 test('beforeLoad hook - multiple queries', async function () {
-	const route = await routeTest({
+	const route = await route_test({
 		script: `
 			export async function beforeLoad(){
 				return this.redirect(302, "/test")
@@ -640,7 +640,7 @@ test('beforeLoad hook - multiple queries', async function () {
 })
 
 test('afterLoad hook', async function () {
-	const route = await routeTest({
+	const route = await route_test({
 		script: `
 				export async function afterLoad(){
 				   return this.redirect(302, "/test")
@@ -720,7 +720,7 @@ test('afterLoad hook', async function () {
 })
 
 test('afterLoad hook - multiple queries', async function () {
-	const route = await routeTest({
+	const route = await route_test({
 		script: `
 			export async function afterLoad(){
 			   return this.redirect(302, "/test")
@@ -812,7 +812,7 @@ test('afterLoad hook - multiple queries', async function () {
 })
 
 test('both beforeLoad and afterLoad hooks', async function () {
-	const route = await routeTest({
+	const route = await route_test({
 		script: `
 			export async function beforeLoad(){
 			return this.redirect(302, "/test")
