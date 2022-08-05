@@ -422,13 +422,13 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	// build up a list of the referenced stores
 	const load: QueryInfo[] = []
 
-	const seen: string[] = []
+	const seen = new Set<string>()
 
 	for (const document of module.houdini_load) {
 		// parse the document
 		const parsed = graphql.parse(document)
 		// look for a query definition
-		const query = parsed.definitions.find<graphql.OperationDefinitionNode>(
+		const query = parsed.definitions.find(
 			(defn): defn is graphql.OperationDefinitionNode =>
 				defn.kind === 'OperationDefinition' && defn.operation === 'query'
 		)
@@ -441,11 +441,11 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 		const name = query.name!.value
 
 		// make sure a store only shows up once
-		if (seen.includes(name)) {
+		if (seen.has(name)) {
 			console.log('a store can only appear once')
 			return nil
 		}
-		seen.push(name)
+		seen.add(name)
 
 		// add the store to the list
 		load.push({
