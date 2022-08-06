@@ -25,6 +25,7 @@ module.exports = {
 		'no-empty': 'off',
 		'no-var': 'off',
 		'no-undef': 'off',
+		'object-shorthand': 'off',
 		// 'no-console': ['error', { allow: ['info', 'warn', 'error', 'time', 'timeEnd'] }],
 	},
 	ignorePatterns: ['integration', 'example'],
