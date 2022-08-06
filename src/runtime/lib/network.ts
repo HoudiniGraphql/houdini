@@ -1,7 +1,7 @@
 import { LoadEvent, Page } from '@sveltejs/kit'
-// @ts-ignore
-import { error, redirect } from '@sveltejs/kit/data'
 
+// @ts-ignore
+// import { error, redirect } from '@sveltejs/kit/data'
 import { isPrerender } from '../adapter'
 import cache from '../cache'
 import type { ConfigFile } from './config'
@@ -15,6 +15,9 @@ import {
 	QueryArtifact,
 	SubscriptionArtifact,
 } from './types'
+
+const error = (status: number, message: string) => ({ status, message })
+const redirect = (location: number, status: string) => ({ location, status })
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
@@ -422,11 +425,11 @@ export class RequestContext {
 	}
 
 	error(status: number, message: string | Error): any {
-		throw error(status, message)
+		throw error(status, typeof message === 'string' ? message : message.message)
 	}
 
 	redirect(status: number, location: string): any {
-		throw error(status, location)
+		throw redirect(status, location)
 	}
 
 	fetch(input: RequestInfo, init?: RequestInit) {
