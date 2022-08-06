@@ -1,4 +1,6 @@
 import { LoadEvent, Page } from '@sveltejs/kit'
+// @ts-ignore
+import { error, redirect } from '@sveltejs/kit/data'
 
 import { isPrerender } from '../adapter'
 import cache from '../cache'
@@ -420,19 +422,11 @@ export class RequestContext {
 	}
 
 	error(status: number, message: string | Error): any {
-		this.continue = false
-		this.returnValue = {
-			error: message,
-			status,
-		}
+		throw error(status, message)
 	}
 
 	redirect(status: number, location: string): any {
-		this.continue = false
-		this.returnValue = {
-			redirect: location,
-			status,
-		}
+		throw error(status, location)
 	}
 
 	fetch(input: RequestInfo, init?: RequestInit) {

@@ -537,7 +537,7 @@ export class Config {
 	}
 
 	pageQueryPath(filename: string) {
-		return path.join(path.dirname(filename), 'page.gql')
+		return path.join(path.dirname(filename), '+page.gql')
 	}
 }
 
