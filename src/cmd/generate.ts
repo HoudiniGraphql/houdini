@@ -226,7 +226,7 @@ async function processJSFile(
 	// parse the contents as js
 	let program: Program
 	try {
-		program = (await parseJS(contents))!
+		program = (await parseJS(contents))!.script
 	} catch (e) {
 		// add the filepath to the error message
 		throw { message: (e as Error).message, filepath }
