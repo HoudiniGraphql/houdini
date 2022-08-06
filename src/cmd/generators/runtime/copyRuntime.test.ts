@@ -66,3 +66,25 @@ test('cache index runtime imports config file - esm', async function () {
 		export default cache;
 	`)
 })
+
+test('adds overloaded definitions for graphql template tag', async function () {
+	const config = testConfig({ module: 'esm' })
+	// execute the generator
+	await runPipeline(config, [])
+
+	// open up the index file
+	const fileContents = await readFile(path.join(config.runtimeDirectory, 'index.d.ts'))
+	expect(fileContents).toBeTruthy()
+	// parse the contents
+	const parsedQuery: ProgramKind = recast.parse(fileContents!, {
+		parser: typeScriptParser,
+	}).program
+	// verify contents
+	expect(parsedQuery).toMatchInlineSnapshot(`
+		import { GraphQLTagResult } from "./lib/types";
+		export * from "./lib";
+		export * from "./inline";
+		export * from "./adapter";
+		export declare fuction graphql(str: TemplateStringsArray): GraphQLTagResult;
+	`)
+})
