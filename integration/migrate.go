@@ -7,7 +7,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 )
 
 func main() {
@@ -27,26 +26,11 @@ func processDirectory(dirPath string) error {
 
 	for _, item := range content {
 		itemPath := path.Join(dirPath, item.Name())
-		extension := filepath.Ext(item.Name())
-		name := strings.TrimSuffix(item.Name(), extension)
 
-		switch {
-		case item.IsDir():
+		if item.IsDir() {
 			err = processDirectory(itemPath)
-		case item.Name() == "__error.svelte":
-			err = copyAndDelete(itemPath, path.Join(dirPath, "+error.svelte"))
-		case item.Name() == "__layout.svelte":
-			err = copyAndDelete(itemPath, path.Join(dirPath, "+layout.svelte"))
-		case item.Name() == "index.svelte":
-			err = copyAndDelete(itemPath, path.Join(dirPath, "+page.svelte"))
-		case strings.HasSuffix(name, ".spec"):
-			name = strings.TrimSuffix(name, filepath.Ext(name))
-
-			err = copyAndDelete(itemPath, path.Join(dirPath, name, "spec.ts"))
-		case extension == ".gql", extension == ".graphql":
-			continue
-		default:
-			err = copyAndDelete(itemPath, path.Join(dirPath, name, "+page.svelte"))
+		} else if item.Name() == "+page.js" {
+			os.Remove(itemPath)
 		}
 
 		if err != nil {

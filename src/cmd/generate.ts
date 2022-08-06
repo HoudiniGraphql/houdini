@@ -98,7 +98,6 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			generators.persistOutput,
 			generators.definitions,
 			generators.stores,
-			generators.sveltekit,
 		],
 		docs
 	)
