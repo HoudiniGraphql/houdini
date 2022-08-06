@@ -36,36 +36,7 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	await recursiveCopy(config, source, config.runtimeDirectory)
 
 	// generate the adapter to normalize interactions with the framework
-	await Promise.all([generateAdapter(config), runtimeIndex(config, docs)])
-}
-
-// added overloaded definitions to the graphql template tag for every artifact
-async function runtimeIndex(config: Config, docs: CollectedGraphQLDocument[]) {
-	// the location of the runtime index file
-	const filepath = path.join(config.runtimeDirectory, 'index.d.ts')
-	// parse the file contents so
-	const contents = await fs.readFile(filepath)
-	if (contents === null) {
-		return
-	}
-	const parsed = await parseJS(contents)
-	if (!parsed) {
-		return
-	}
-
-	// find index of the graphql template tag definition
-	const insertIndex = parsed.body.findIndex(
-		(statement) =>
-			statement.type === 'ExportNamedDeclaration' &&
-			(statement as ExportNamedDeclaration).declaration?.type === 'TSDeclareFunction' &&
-			((statement as ExportNamedDeclaration).declaration as TSDeclareFunction).id?.name ===
-				'graphql'
-	)
-
-	parsed.body.splice(insertIndex, 0)
-
-	// write the updated file over the original
-	await fs.writeFile(filepath, recast.print(parsed).code)
+	await Promise.all([generateAdapter(config)])
 }
 
 async function recursiveCopy(config: Config, source: string, target: string, notRoot?: boolean) {
