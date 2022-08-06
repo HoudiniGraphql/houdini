@@ -104,13 +104,6 @@ export function findScriptInnerBounds({
 	}
 	// if we didn't find it
 	if (lessThanIndex === end) {
-		console.log({
-			start: start,
-			end: end,
-			text,
-			length: text.length,
-			last: text[end],
-		})
 		throw new Error('Could not find the start of the tag close')
 	}
 
