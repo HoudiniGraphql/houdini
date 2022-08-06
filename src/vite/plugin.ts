@@ -9,8 +9,6 @@ import './fsPatch'
 import applyTransforms from './transforms'
 import { PageScriptInfo } from './transforms/kit'
 
-const AST = recast.types.builders
-
 let config: Config
 
 export default function HoudiniPlugin(configFile?: string): Plugin {
@@ -32,6 +30,42 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 				},
 			}
 		},
+
+		// when the build starts, we need to make sure to generate
+		async buildStart() {
+			config = await getConfig({ configFile })
+
+			try {
+				await generate(config)
+			} catch (e) {
+				formatErrors(e)
+				throw new Error('see above')
+			}
+		},
+
+		// transform the user's code
+		async transform(code, filepath) {
+			// if the file is not in our configured source path, we need to ignore it
+			if (!minimatch(filepath, path.join(process.cwd(), config.sourceGlob))) {
+				return
+			}
+
+			// bundle up the contextual stuff
+			const ctx = {
+				parse: this.parse,
+				addWatchFile: this.addWatchFile,
+				config,
+				filepath,
+			}
+
+			// run the plugin pipeline
+			const result = await applyTransforms(config, ctx, code)
+
+			return result
+		},
+
+		// resolveId, load, and the fsPatch import are needed to trick vite into thinking that
+		// SvelteKit route scripts exist even if they aren't present on the filesystem
 
 		resolveId(id, _, { ssr }) {
 			if (!ssr) {
@@ -56,41 +90,6 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 
 			// do the normal thing
 			return null
-		},
-
-		// when the build starts, we need to make sure to generate
-		async buildStart() {
-			config = await getConfig({ configFile })
-
-			try {
-				await generate(config)
-			} catch (e) {
-				formatErrors(e)
-				throw new Error('see above')
-			}
-		},
-
-		// we need special resolve logic to
-
-		// transform the user's code
-		async transform(code, filepath) {
-			// if the file is not in our configured source path, we need to ignore it
-			if (!minimatch(filepath, path.join(process.cwd(), config.sourceGlob))) {
-				return
-			}
-
-			// bundle up the contextual stuff
-			const ctx = {
-				parse: this.parse,
-				addWatchFile: this.addWatchFile,
-				config,
-				filepath,
-			}
-
-			// run the plugin pipeline
-			const result = await applyTransforms(config, ctx, code)
-
-			return result
 		},
 	}
 }
