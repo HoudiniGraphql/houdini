@@ -65,13 +65,6 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 			// run the plugin pipeline
 			const result = await applyTransforms(config, ctx, code)
 
-			if (
-				filepath ===
-				'/home/alec/dv/houdini/houdini/integration/src/routes/preprocess/query/simple/+page.svelte'
-			) {
-				console.log(result.code)
-			}
-
 			return result
 		},
 	}
