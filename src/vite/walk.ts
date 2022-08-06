@@ -4,7 +4,7 @@ import { asyncWalk } from 'estree-walker'
 import * as graphql from 'graphql'
 import recast from 'recast'
 
-import { Config, ParsedFile, Script } from '../common'
+import { Config, Script } from '../common'
 import {
 	CompiledDocumentKind,
 	CompiledFragmentKind,
@@ -38,7 +38,7 @@ type GraphqlTagWalker = {
 // yield the tagged graphql documents contained within the provided AST
 export async function walk_graphql_tags(
 	config: Config,
-	parsedScript: ParsedFile,
+	parsedScript: Script,
 	walker: GraphqlTagWalker
 ): Promise<void> {
 	const dependencies: string[] = []

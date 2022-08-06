@@ -17,6 +17,8 @@ export default async function GraphQLTagProcessor(config: Config, ctx: Transform
 			const { node, parsedDocument, parent } = tag
 			const operation = parsedDocument.definitions[0] as graphql.ExecutableDefinitionNode
 
+			console.log('has tag')
+
 			// we're going to turn the graphql tag into a reference to the document's
 			// store
 			node.replaceWith(

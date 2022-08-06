@@ -5,6 +5,7 @@ import { Plugin } from 'vite'
 
 import generate from '../cmd/generate'
 import { Config, formatErrors, getConfig, Script } from '../common'
+import './fsPatch'
 import applyTransforms from './transforms'
 import { PageScriptInfo } from './transforms/kit'
 
@@ -13,6 +14,9 @@ const AST = recast.types.builders
 export default function HoudiniPlugin(configFile?: string): Plugin {
 	return {
 		name: 'houdini',
+
+		// make sure our resolver runs before vite internal resolver to resolve svelte field correctly
+		enforce: 'pre',
 
 		// add watch-and-run to their vite config
 		async config(viteConfig, { command }) {
@@ -39,6 +43,9 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 			}
 		},
 
+		// we need special resolve logic to
+
+		// transform the user's code
 		async transform(code, filepath) {
 			const config = await getConfig()
 
@@ -56,7 +63,16 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 			}
 
 			// run the plugin pipeline
-			return applyTransforms(config, ctx, code)
+			const result = await applyTransforms(config, ctx, code)
+
+			if (
+				filepath ===
+				'/home/alec/dv/houdini/houdini/integration/src/routes/preprocess/query/simple/+page.svelte'
+			) {
+				console.log(result.code)
+			}
+
+			return result
 		},
 	}
 }

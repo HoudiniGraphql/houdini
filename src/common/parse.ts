@@ -3,7 +3,7 @@ import * as svelte from 'svelte/compiler'
 
 import type { Maybe, Script } from './types'
 
-export type ParsedFile = Maybe<Script>
+export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
 
 export async function parseSvelte(str: string): Promise<ParsedFile> {
 	// parsing a file happens in two steps:
@@ -43,15 +43,27 @@ export async function parseSvelte(str: string): Promise<ParsedFile> {
 	const string = str.slice(greaterThanIndex, lessThanIndex)
 
 	// we're done here
-	return parseJS(string)
+	const scriptParsed = await parseJS(string)
+
+	return scriptParsed
+		? {
+				script: scriptParsed.script,
+				start: greaterThanIndex,
+				end: lessThanIndex,
+		  }
+		: null
 }
 
 export async function parseJS(str: string): Promise<ParsedFile> {
-	// @ts-ignore
-	return parseJavascript(str || '', {
-		plugins: ['typescript'],
-		sourceType: 'module',
-	}).program
+	return {
+		start: 0,
+		// @ts-ignore
+		script: parseJavascript(str || '', {
+			plugins: ['typescript'],
+			sourceType: 'module',
+		}).program,
+		end: str.length,
+	}
 }
 
 export function findScriptInnerBounds({
@@ -92,6 +104,12 @@ export function findScriptInnerBounds({
 	}
 	// if we didn't find it
 	if (lessThanIndex === end) {
+		console.log({
+			start: start,
+			end: end,
+			text,
+			length: text.length,
+		})
 		throw new Error('Could not find the start of the tag close')
 	}
 

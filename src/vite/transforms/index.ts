@@ -1,6 +1,14 @@
 import * as recast from 'recast'
 
-import { Config, parseJS, runPipeline, Transform, ParsedFile } from '../../common'
+import {
+	Config,
+	parseJS,
+	runPipeline,
+	Transform,
+	ParsedFile,
+	parseSvelte,
+	findScriptInnerBounds,
+} from '../../common'
 import { TransformPage } from '../plugin'
 import svelteKit from './kit'
 import query from './query'
@@ -20,7 +28,11 @@ export default async function applyTransforms(
 	let script: ParsedFile | null = null
 
 	try {
-		script = await parseJS(content)
+		if (page.filepath.endsWith('.svelte')) {
+			script = await parseSvelte(content)
+		} else {
+			script = await parseJS(content)
+		}
 	} catch (e) {
 		return { code: content }
 	}
@@ -33,7 +45,7 @@ export default async function applyTransforms(
 	// wrap everything up in an object we'll thread through the transforms
 	const result: TransformPage = {
 		...page,
-		script,
+		...script,
 	}
 
 	// send the scripts through the pipeline
@@ -51,5 +63,32 @@ export default async function applyTransforms(
 	}
 
 	// print the result
-	return recast.print(result.script)
+	const printedScript = recast.print(result.script).code
+	return {
+		// if we're transforming a svelte file, we need to replace the script's inner contents
+		code: !page.filepath.endsWith('.svelte')
+			? printedScript
+			: replace_tag_content(content, script.start, script.end, printedScript),
+	}
 }
+
+function replace_tag_content(source: string, start: number, end: number, insert: string) {
+	// if we're supposed to insert the tag
+	if (start === 0 && end === 0) {
+		// just add the script at the start
+		return `<script>${insert}</script>${source}`
+	}
+
+	const [greaterThanIndex, lessThanIndex] = findScriptInnerBounds({
+		start,
+		end,
+		text: source,
+	})
+
+	// replace the content between the closing of the open and open of the close
+	return replace_between(source, greaterThanIndex, lessThanIndex, insert)
+}
+
+// replaceSubstring replaces the substring string between the indices with the provided new value
+const replace_between = (origin: string, startIndex: number, endIndex: number, insertion: string) =>
+	origin.substring(0, startIndex) + insertion + origin.substring(endIndex)

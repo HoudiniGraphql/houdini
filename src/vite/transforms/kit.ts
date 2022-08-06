@@ -41,9 +41,11 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 			// if we are currently on the route file, there's nothing to parse
 			is_route
 				? page.script
-				: await parseSvelte(
-						(await readFile(page.config.routePagePath(page.filepath))) || ''
-				  )
+				: (
+						await parseSvelte(
+							(await readFile(page.config.routePagePath(page.filepath))) || ''
+						)
+				  )?.script ?? null
 		),
 		find_page_info(page),
 	])

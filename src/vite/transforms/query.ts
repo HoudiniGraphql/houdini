@@ -2,7 +2,7 @@ import { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, operation_requires_variables, ParsedFile } from '../../common'
+import { Config, operation_requires_variables, ParsedFile, Script } from '../../common'
 import { find_exported_fn } from '../ast'
 import { artifact_import, ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
@@ -211,8 +211,13 @@ export async function process_component({
 
 export async function find_inline_queries(
 	page: TransformPage,
-	parsed: ParsedFile
+	parsed: Script | null
 ): Promise<LoadTarget[]> {
+	// if there's nothing to parse, we're done
+	if (!parsed) {
+		return []
+	}
+
 	// build up a list of the queries we run into
 	const queries: {
 		name: string
