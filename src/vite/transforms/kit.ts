@@ -128,9 +128,10 @@ function add_load({
 		if (!page_info.exports.includes(variable_fn) && query.variables) {
 			// TODO: text
 			// tell them we're missing something
+			console.log()
+			console.log(page_info.exports)
 			console.log(`error in ${page.filepath}:
-could not find required variable function: ${variable_fn}. maybe its not exported?
-`)
+could not find required variable function: ${variable_fn}. maybe its not exported?`)
 
 			// don't go any further
 			invalid = true
@@ -400,13 +401,26 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 		return page.mock_page_info ?? nil
 	}
 
+	if (!page.config.isRouteScript(page.filepath) && !page.config.isRoute(page.filepath)) {
+		return nil
+	}
+
+	const route_path = page.config.routeDataPath(page.filepath)
+
 	// let's check for existence by importing the file
 	let module: { houdini_load?: (string | GraphQLTagResult)[]; [key: string]: any }
 	try {
-		module = await import(page.filepath)
-	} catch {
+		module = await import(route_path)
+	} catch (e) {
+		if (!(e as Error).toString().includes('ERR_MODULE_NOT_FOUND')) {
+			console.log(e)
+		}
+
 		return nil
 	}
+
+	// add the exports to the default return value
+	nil.exports = Object.keys(module)
 
 	// if there are no page stores we're done
 	if (!module.houdini_load) {
@@ -482,7 +496,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	// there is a load
 	return {
 		load,
-		exports: Object.keys(module),
+		exports: nil.exports,
 	}
 }
 
