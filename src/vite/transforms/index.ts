@@ -34,7 +34,17 @@ export default async function applyTransforms(
 			script = await parseJS(content)
 		}
 	} catch (e) {
+		console.log(page.filepath, content)
 		return { code: content }
+	}
+
+	// if the route script is nill we can just use an empty program
+	if (script === null) {
+		script = {
+			start: 0,
+			end: 0,
+			script: recast.types.builders.program([]),
+		}
 	}
 
 	// if we didn't get a script out of this, there's nothing to do
@@ -64,6 +74,7 @@ export default async function applyTransforms(
 
 	// print the result
 	const printedScript = recast.print(result.script).code
+
 	return {
 		// if we're transforming a svelte file, we need to replace the script's inner contents
 		code: !page.filepath.endsWith('.svelte')
@@ -79,14 +90,8 @@ function replace_tag_content(source: string, start: number, end: number, insert:
 		return `<script>${insert}</script>${source}`
 	}
 
-	const [greaterThanIndex, lessThanIndex] = findScriptInnerBounds({
-		start,
-		end,
-		text: source,
-	})
-
 	// replace the content between the closing of the open and open of the close
-	return replace_between(source, greaterThanIndex, lessThanIndex, insert)
+	return replace_between(source, start, end, insert)
 }
 
 // replaceSubstring replaces the substring string between the indices with the provided new value

@@ -1,7 +1,7 @@
 import path from 'path'
 import * as recast from 'recast'
 
-import { ParsedFile, parseJS, parseSvelte, testConfig, writeFile } from '../common'
+import { ParsedFile, parseJS, parseSvelte, Script, testConfig, writeFile } from '../common'
 import { ConfigFile } from '../runtime'
 import runTransforms from './transforms'
 import { PageScriptInfo } from './transforms/kit'
@@ -32,7 +32,7 @@ export async function route_test({
 	query?: string
 	config?: Partial<ConfigFile>
 	script_info?: PageScriptInfo
-}): Promise<{ component: ParsedFile; script: ParsedFile }> {
+}): Promise<{ component: Script | null; script: Script | null }> {
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema, ...extra })
 
@@ -56,8 +56,7 @@ export async function route_test({
 				addWatchFile: () => {},
 				mock_page_info: script_info,
 			},
-			// the component transforms happen on the script content only
-			recast.prettyPrint((await parseSvelte(component))!).code
+			component
 		),
 		runTransforms(
 			config,
@@ -73,15 +72,15 @@ export async function route_test({
 
 	// return both
 	return {
-		component: await parseJS(componentResult.code),
-		script: await parseJS(scriptResult.code),
+		component: (await parseSvelte(componentResult.code))?.script ?? null,
+		script: (await parseJS(scriptResult.code))?.script ?? null,
 	}
 }
 
 export async function component_test(
 	content: string,
 	extra?: Partial<ConfigFile>
-): Promise<ParsedFile> {
+): Promise<Script | null> {
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema, ...extra })
 
@@ -89,7 +88,7 @@ export async function component_test(
 	const filepath = path.join(process.cwd(), 'src/lib', 'component.svelte')
 
 	// write the content
-	await writeFile(filepath, content)
+	await writeFile(filepath, `<script>${content}</script>`)
 
 	// we want to run the transformer on both the component and script paths
 	const result = await runTransforms(
@@ -99,9 +98,9 @@ export async function component_test(
 			filepath,
 			addWatchFile: () => {},
 		},
-		content
+		`<script>${content}</script>`
 	)
 
 	// return both
-	return await parseJS(result.code)
+	return (await parseSvelte(result.code))?.script ?? null
 }
