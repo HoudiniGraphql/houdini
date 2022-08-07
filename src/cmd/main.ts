@@ -18,12 +18,13 @@ program
 	.command('generate')
 	.description('generate the application runtime')
 	.option('-p, --pull-schema', 'pull the latest schema before generating')
+	.option('-o, --output [outputPath]', 'persist queries to a queryMap file')
 	.option('-po, --persist-output [outputPath]', 'persist queries to a queryMap file')
-	.option('-v, --verbose', 'verbose error messages')
 	.option(
-		'-ph, --pull-header <headers...>',
-		'header to use when pulling your schema. Should be passed as KEY=VALUE'
+		'-h, --headers <headers...>',
+		'headers to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
+	.option('-v, --verbose', 'verbose error messages')
 	.option(
 		'-l, --log [level]',
 		`the log level for the generate command. One of ${JSON.stringify(Object.values(LogLevel))}`
@@ -33,12 +34,14 @@ program
 			args: {
 				pullSchema: boolean
 				persistOutput?: string
-				pullHeader: string[]
+				output?: string
+				pullHeader?: string[]
+				headers: string[]
 				log?: string
 				verbose: boolean
 			} = {
 				pullSchema: false,
-				pullHeader: [],
+				headers: [],
 				verbose: false,
 			}
 		) => {
@@ -75,8 +78,19 @@ program
 						const targetPath = process.cwd()
 
 						let headers = {}
-						if ((args.pullHeader ?? []).length > 0) {
-							headers = args.pullHeader.reduce((total, header) => {
+						let headerStrings: string[] = []
+
+						if (args.headers) {
+							headerStrings = args.headers
+						}
+						if (args.pullHeader) {
+							console.log(
+								'⚠️ --pull-headers has been replaced by --headers (abbreviated -h)'
+							)
+							headerStrings = args.pullHeader
+						}
+						if (headerStrings.length > 0) {
+							headers = headerStrings.reduce((total, header) => {
 								const [key, value] = header.split('=')
 								return {
 									...total,
@@ -98,7 +112,13 @@ program
 
 				// Load config
 				config = await getConfig(extraConfig)
+				if (args.output) {
+					config.persistedQueryPath = args.output
+				}
 				if (args.persistOutput) {
+					console.log(
+						'⚠️ --persist-output has been replaced by --output (abbreviated -o)'
+					)
 					config.persistedQueryPath = args.persistOutput
 				}
 
