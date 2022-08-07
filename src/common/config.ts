@@ -41,6 +41,7 @@ export class Config {
 	routesDir: string
 	schemaPollInterval: number | null
 	schemaPollHeaders: Record<string, string | ((env: any) => string)>
+	pageQueryFilename: string
 
 	constructor({
 		filepath,
@@ -72,6 +73,7 @@ export class Config {
 			routesDir = 'src/routes',
 			schemaPollInterval = 2000,
 			schemaPollHeaders = {},
+			pageQueryFilename = '+page.gql',
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -135,6 +137,7 @@ ${
 		this.schemaPollInterval = schemaPollInterval
 		this.schemaPollHeaders = schemaPollHeaders
 		this.rootDir = path.join(this.projectRoot, '$houdini')
+		this.pageQueryFilename = pageQueryFilename
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -564,7 +567,7 @@ ${
 	}
 
 	pageQueryPath(filename: string) {
-		return path.join(path.dirname(filename), '+page.gql')
+		return path.join(path.dirname(filename), this.pageQueryFilename)
 	}
 }
 

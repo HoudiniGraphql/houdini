@@ -142,6 +142,12 @@ export type ConfigFile = {
 	 * logic you need
 	 */
 	schemaPollHeaders?: Record<string, string | ((env: NodeJS.ProcessEnv) => string)>
+
+	/**
+	 * The name of the file used to define page queries.
+	 * @default +page.gql
+	 */
+	pageQueryFilename?: string
 }
 
 export type TypeConfig = {
