@@ -17,7 +17,7 @@ import tags from './tags'
 // tags must be processed last so we don't lose the graphql tags we look for
 const pipeline = [svelteKit, query, tags]
 
-export default async function applyTransforms(
+export default async function apply_transforms(
 	config: Config,
 	page: Omit<TransformPage, 'script'>,
 	content: string

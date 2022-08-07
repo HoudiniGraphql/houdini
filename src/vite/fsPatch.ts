@@ -20,7 +20,10 @@ filesystem.readdirSync = function (path, options) {
 	if (!path.includes('routes')) return _readDirSync(path, options)
 	const result = _readDirSync(path, options)
 	// if there is a route component but no script, add the script
-	if (result.includes('+page.svelte') && !result.includes('+page.js')) {
+	if (
+		result.includes('+page.svelte') &&
+		!(result.includes('+page.js') || result.includes('+page.ts'))
+	) {
 		result.push('+page.js')
 	}
 

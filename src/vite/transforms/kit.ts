@@ -3,8 +3,8 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, operation_requires_variables, parseSvelte, readFile } from '../../common'
-import { CompiledFragmentKind, CompiledQueryKind, GraphQLTagResult } from '../../runtime'
+import { Config, operation_requires_variables, parseJS, parseSvelte, readFile } from '../../common'
+import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
 import { find_insert_index } from '../ast'
 import { ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
@@ -410,9 +410,12 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 	const route_path = page.config.routeDataPath(page.filepath)
 
 	// let's check for existence by importing the file
-	let module: { houdini_load?: (string | GraphQLTagResult)[]; [key: string]: any }
+	let module: {
+		houdini_load?: (string | GraphQLTagResult) | (string | GraphQLTagResult)[]
+		[key: string]: any
+	}
 	try {
-		module = await import(route_path)
+		module = await import_module(route_path)
 	} catch (e) {
 		if (!(e as Error).toString().includes('ERR_MODULE_NOT_FOUND')) {
 			console.log(e)
@@ -429,11 +432,9 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 		return nil
 	}
 
-	// make sure that houdini_load is a list
+	// if the load is not a list, embed it in one
 	if (!Array.isArray(module.houdini_load)) {
-		// TODO: text
-		console.log('houdini_load must be a list')
-		return nil
+		module.houdini_load = [module.houdini_load]
 	}
 
 	// build up a list of the referenced stores
@@ -505,6 +506,20 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 export type PageScriptInfo = {
 	load?: QueryInfo[]
 	exports: string[]
+}
+
+async function import_module(filepath: string): Promise<NodeJS.Module> {
+	// if the filepath is a javascript file, just use import
+	if (filepath.endsWith('.js')) {
+		return await import(filepath)
+	}
+
+	// the file is not javascript so we need to parse it by hand
+	const result = await parseJS((await readFile(filepath)) || '')
+
+	eval(recast.print(result?.script!).code || '')
+
+	return await import(filepath)
 }
 
 type QueryInfo = {
