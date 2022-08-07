@@ -1,5 +1,6 @@
 import glob from 'glob'
 import * as graphql from 'graphql'
+import minimatch from 'minimatch'
 import * as recast from 'recast'
 import * as svelte from 'svelte/compiler'
 import { promisify } from 'util'
@@ -166,7 +167,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {
 	// the first step we have to do is grab a list of every file in the source tree
-	const sourceFiles = await promisify(glob)(config.sourceGlob)
+	let sourceFiles = await await promisify(glob)(config.include)
+	if (config.exclude) {
+		sourceFiles = sourceFiles.filter((filepath) => !minimatch(filepath, config.exclude!))
+	}
 
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []

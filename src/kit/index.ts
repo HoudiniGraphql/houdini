@@ -2,11 +2,15 @@ import path from 'path'
 import type { Plugin } from 'vite'
 
 import { getConfig } from '../common'
+import { ConfigFile } from '../runtime'
 import houdini from './plugin'
 import schema from './schema'
 import watch_and_run from './watch-and-run'
 
-export default function ({ configPath }: { configPath?: string } = {}): Plugin[] {
+export default function ({
+	configPath,
+	...extraConfig
+}: { configPath?: string } & Partial<ConfigFile> = {}): Plugin[] {
 	// we need some way for the graphql tag to detect that we are running on the server
 	// so we don't get an error when importing.
 	process.env.HOUDINI_PLUGIN = 'true'
@@ -19,10 +23,10 @@ export default function ({ configPath }: { configPath?: string } = {}): Plugin[]
 				name: 'Houdini',
 				async watch() {
 					// load the config file
-					const config = await getConfig({ configFile: configPath })
+					const config = await getConfig({ configFile: configPath, ...extraConfig })
 
 					// the list of paths we want to watch for actions
-					const paths = [config.sourceGlob, config.filepath, config.schemaPath]
+					const paths = [config.include, config.filepath, config.schemaPath]
 
 					// join the list of paths in a minimatch pattern
 					return paths

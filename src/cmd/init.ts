@@ -136,7 +136,6 @@ export default async function init(
 		framework,
 		module,
 		url,
-		typescript,
 	})
 	await writeFile(houdiniClientPath, networkFile(url, typescript))
 	await graphqlRCFile(targetPath)
@@ -200,8 +199,6 @@ const writeConfigFile = async ({
 	framework,
 	module,
 	url,
-	sourceGlob = 'src/**/*.{svelte,gql,graphql}',
-	typescript,
 }: {
 	targetPath: string
 	configPath: string
@@ -209,16 +206,10 @@ const writeConfigFile = async ({
 	framework: 'kit' | 'svelte'
 	module: 'esm' | 'commonjs'
 	url: string
-	sourceGlob?: string
-	typescript: boolean
 }): Promise<boolean> => {
 	const config: ConfigFile = {
 		schemaPath,
-		sourceGlob,
 		apiUrl: url,
-	}
-	if (typescript) {
-		config.typescript = true
 	}
 	if (module !== 'esm') {
 		config.module = module

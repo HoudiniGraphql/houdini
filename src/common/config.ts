@@ -1,11 +1,10 @@
 import { mergeSchemas } from '@graphql-tools/schema'
-import { KitConfig } from '@sveltejs/kit'
 import fs from 'fs-extra'
 import { glob } from 'glob'
 import * as graphql from 'graphql'
+import minimatch from 'minimatch'
 import os from 'os'
 import path from 'path'
-import * as url from 'url'
 import { promisify } from 'util'
 
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
@@ -21,7 +20,8 @@ export class Config {
 	apiUrl?: string
 	schemaPath?: string
 	persistedQueryPath?: string
-	sourceGlob: string
+	include: string
+	exclude?: string
 	static?: boolean
 	scalars?: ConfigFile['scalars']
 	framework: 'kit' | 'svelte' = 'kit'
@@ -41,7 +41,6 @@ export class Config {
 	routesDir: string
 	schemaPollInterval: number | null
 	schemaPollHeaders: Record<string, string | ((env: any) => string)>
-	typescript: boolean
 
 	constructor({
 		filepath,
@@ -55,6 +54,8 @@ export class Config {
 			schema,
 			schemaPath,
 			sourceGlob,
+			include = `src/**/*.{svelte,graphql,gql,ts,js}`,
+			exclude,
 			apiUrl,
 			framework = 'kit',
 			module = 'esm',
@@ -71,7 +72,6 @@ export class Config {
 			routesDir = 'src/routes',
 			schemaPollInterval = 2000,
 			schemaPollHeaders = {},
-			typescript = false,
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -90,6 +90,20 @@ export class Config {
 			this.schema = schema!
 		}
 
+		if (sourceGlob) {
+			const hasDefault = sourceGlob === 'src/**/*.{svelte,gql,graphql}'
+
+			console.warn(`⚠️ config value \`sourceGlob\` has been renamed to \`include\`. 
+Please update your config file. Keep in mind, the new config parameter is optional and has a default of "src/**/*.{svelte,graphql,gql,ts,js}". 
+${
+	hasDefault
+		? 'You might prefer to remove the config value all together since you are using the old default value.'
+		: 'Consider removing this config value and using `exclude` to filter out the files that match this default pattern that you want to avoid.'
+}
+`)
+			include = sourceGlob
+		}
+
 		// validate the log level value
 		if (logLevel && !Object.values(LogLevel).includes(logLevel.toLowerCase() as LogLevel)) {
 			console.warn(
@@ -104,7 +118,8 @@ export class Config {
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
 		this.filepath = filepath
-		this.sourceGlob = sourceGlob
+		this.include = include
+		this.exclude = exclude
 		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(filepath)
@@ -119,7 +134,6 @@ export class Config {
 		this.routesDir = path.join(this.projectRoot, routesDir)
 		this.schemaPollInterval = schemaPollInterval
 		this.schemaPollHeaders = schemaPollHeaders
-		this.typescript = typescript
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 
 		// hold onto the key config
@@ -318,6 +332,16 @@ export class Config {
 		return path.join(this.rootDir, '.build')
 	}
 
+	includeFile(filepath: string) {
+		// if the filepath doesn't match the include we're done
+		if (!minimatch(filepath, path.join(process.cwd(), this.include))) {
+			return false
+		}
+
+		// if there is an exclude, make sure the path doesn't match
+		return !this.exclude ? true : !minimatch(filepath, this.exclude)
+	}
+
 	/*
 
 		GraphqQL conventions
@@ -512,7 +536,7 @@ export class Config {
 		throw new Error('Could not find list name from fragment: ' + fragmentName)
 	}
 
-	//// experimental sveltekit stuff
+	//// sveltekit conventions
 
 	routeDataPath(filename: string) {
 		// replace the .svelte with .js
@@ -641,18 +665,6 @@ export async function getConfig({
 		...extraConfig,
 		filepath: configPath,
 	})
-
-	// is there a typescript config file in the project?
-	try {
-		await fs.stat(path.join(_config.rootDir, 'tsconfig.json'))
-		if (!_config.typescript) {
-			console.log(`⚠️ Detected a typescript project but your houdini.config.js file does not indicate you are using typescript.
-Please update your houdini.config.js file to have typescript set to true.
-`)
-		}
-		// do it for them
-		_config.typescript = true
-	} catch {}
 
 	return _config
 }

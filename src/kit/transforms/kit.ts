@@ -523,20 +523,6 @@ export type PageScriptInfo = {
 	exports: string[]
 }
 
-async function import_module(filepath: string): Promise<NodeJS.Module> {
-	// if the filepath is a javascript file, just use import
-	if (filepath.endsWith('.js')) {
-		return await import(filepath)
-	}
-
-	// the file is not javascript so we need to parse it by hand
-	const result = await parseJS((await readFile(filepath)) || '')
-
-	eval(recast.print(result?.script!).code || '')
-
-	return await import(filepath)
-}
-
 type QueryInfo = {
 	name: string
 	variables: boolean

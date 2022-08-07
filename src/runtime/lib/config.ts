@@ -16,10 +16,22 @@ type ScalarMap = { [typeName: string]: ScalarSpec }
 // the values we can take in from the config file
 export type ConfigFile = {
 	/**
-	 * A glob pointing at all your graphql operations
-	 * @example glob: `src/** /*.{svelte,gql}`
+	 * @deprecated use include instead. although you might not need it at all, check the default value.
 	 */
-	sourceGlob: string
+	sourceGlob?: string
+
+	/**
+	 * A glob pointing to all files that houdini should consider. Note, this must include .js files
+	 * for inline queries to work
+	 * @default `src/** /*.{svelte,graphql,gql,ts,js}`
+	 */
+	include?: string
+
+	/**
+	 * A pattern used to remove matches from files that satisfy the include value
+	 */
+	exclude?: string
+
 	/**
 	 * A static representation of your schema
 	 * @example path: `schema.graphql`
@@ -59,11 +71,6 @@ export type ConfigFile = {
 	 * One of "kit" or "svelte". Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: kit)
 	 */
 	framework?: 'kit' | 'svelte'
-
-	/**
-	 * A boolean indicating if the generator should create typescript files or not
-	 */
-	typescript?: boolean
 
 	/**
 	 * One of "esm" or "commonjs". Tells the artifact generator what kind of modules to create. (default: esm)

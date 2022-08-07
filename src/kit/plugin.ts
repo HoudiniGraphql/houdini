@@ -69,7 +69,7 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 		// transform the user's code
 		async transform(code, filepath) {
 			// if the file is not in our configured source path, we need to ignore it
-			if (!minimatch(filepath, path.join(process.cwd(), config.sourceGlob))) {
+			if (!config.includeFile(filepath)) {
 				return
 			}
 
