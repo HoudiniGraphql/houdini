@@ -14,6 +14,8 @@ export type Options = {
 	 * watch files to trigger the run action (glob format)
 	 */
 	watch?: string | (() => Promise<string>)
+
+	watchFile?: (filepath: string) => Promise<boolean>
 	/**
 	 * Kind of watch that will trigger the run action
 	 */
@@ -44,6 +46,8 @@ export type StateDetail = {
 	run: string
 	delay: number
 	isRunning: boolean
+	watchFile?: (filepath: string) => boolean
+	watch?: string
 	name?: string | null
 }
 
@@ -52,31 +56,11 @@ async function checkConf(params: Options[]) {
 		throw new Error('plugin watchAndRun, `params` needs to be an array.')
 	}
 
-	const paramsChecked: Record<string, StateDetail> = {}
+	const paramsChecked: StateDetail[] = []
 
 	for (const param of params) {
-		if (!param.watch) {
+		if (!param.watch && !param.watchFile) {
 			continue
-		}
-
-		// watch can be a function or a string
-		const watch = typeof param.watch === 'function' ? await param.watch() : param.watch
-		paramsChecked[watch] = {
-			kind: param.watchKind ?? ['add', 'change', 'unlink'],
-			run: param.run,
-			delay: param.delay ?? 300,
-			isRunning: false,
-			name: param.name,
-		}
-
-		if (
-			!param.watch &&
-			getArraysIntersection(paramsChecked[param.watch].kind, kindWithPath).length !== 0
-		) {
-			throw new Error('plugin watch-and-run, `watch` is missing.')
-		}
-		if (!param.run) {
-			throw new Error('plugin watch-and-run, `run` is missing.')
 		}
 
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -86,36 +70,49 @@ async function checkConf(params: Options[]) {
 				'BREAKING: ADD, CHANGE, DELETE were renamed add, change, unlink. Please update your config.'
 			)
 		}
+
+		// watch can be a function or a string
+		const watch = typeof param.watch === 'function' ? await param.watch() : param.watch
+		paramsChecked.push({
+			kind: param.watchKind ?? ['add', 'change', 'unlink'],
+			run: param.run,
+			delay: param.delay ?? 300,
+			isRunning: false,
+			name: param.name,
+		})
+
+		if (
+			!param.watch &&
+			getArraysIntersection(paramsChecked[paramsChecked.length - 1].kind, kindWithPath)
+				.length !== 0
+		) {
+			throw new Error('plugin watch-and-run, `watch` is missing.')
+		}
+		if (!param.run) {
+			throw new Error('plugin watch-and-run, `run` is missing.')
+		}
 	}
 
 	return paramsChecked
 }
 
-type ShouldRunResult =
-	| { shouldRun: true; globToWatch: string; param: StateDetail }
-	| { shouldRun: false; globToWatch: null; param: null }
 function shouldRun(
 	absolutePath: string | null,
 	watchKind: WatchKind,
-	watchAndRunConf: Record<string, StateDetail>
-): ShouldRunResult {
-	for (const [globToWatch, param] of Object.entries(watchAndRunConf)) {
-		const isWatched = param.kind.includes(watchKind)
-		const isPathMatching = absolutePath && micromatch.isMatch(absolutePath, globToWatch)
+	watchAndRunConf: StateDetail[]
+): StateDetail | null {
+	for (const info of watchAndRunConf) {
+		const isWatched = info.kind.includes(watchKind)
+		let isPathMatching =
+			absolutePath &&
+			(info.watchFile?.(absolutePath) ?? micromatch.isMatch(absolutePath, info.watch!))
+
 		const isWatchKindWithoutPath = kindWithoutPath.includes(watchKind as KindWithoutPath)
-		if (!param.isRunning && isWatched && (isPathMatching || isWatchKindWithoutPath)) {
-			return {
-				shouldRun: true,
-				globToWatch,
-				param,
-			}
+		if (!info.isRunning && isWatched && (isPathMatching || isWatchKindWithoutPath)) {
+			return info
 		}
 	}
-	return {
-		shouldRun: false,
-		globToWatch: null,
-		param: null,
-	}
+	return null
 }
 
 function formatLog(str: string, name?: string) {
@@ -125,42 +122,42 @@ function formatLog(str: string, name?: string) {
 async function watcher(
 	absolutePath: string | null,
 	watchKind: WatchKind,
-	watchAndRunConf: Record<string, StateDetail>
+	watchAndRunConf: StateDetail[]
 ) {
 	const shouldRunInfo = shouldRun(absolutePath, watchKind, watchAndRunConf)
-	if (shouldRunInfo.shouldRun) {
-		watchAndRunConf[shouldRunInfo.globToWatch].isRunning = true
+	if (shouldRunInfo) {
+		shouldRunInfo.isRunning = true
 
-		if (shouldRunInfo.globToWatch) {
+		if (shouldRunInfo.watch) {
 			log.info(
 				`${logGreen('✔')} Watch ${logCyan(watchKind)}${
 					absolutePath && logGreen(' ' + absolutePath)
 				}` +
-					` and run ${logGreen(shouldRunInfo.param.run)} (+${logCyan(
-						shouldRunInfo.param.delay + 'ms'
+					` and run ${logGreen(shouldRunInfo.run)} (+${logCyan(
+						shouldRunInfo.delay + 'ms'
 					)}).`
 			)
 		} else {
 			log.info(
 				`${logGreen('✔')} Watch ${logCyan(watchKind)}` +
-					` and run ${logGreen(shouldRunInfo.param.run)} (+${logCyan(
-						shouldRunInfo.param.delay + 'ms'
+					` and run ${logGreen(shouldRunInfo.run)} (+${logCyan(
+						shouldRunInfo.delay + 'ms'
 					)}).`
 			)
 		}
 
 		// Run after a delay
 		setTimeout(() => {
-			const child = spawn(shouldRunInfo.param.run, [], { shell: true })
+			const child = spawn(shouldRunInfo.run, [], { shell: true })
 
 			//spit stdout to screen
 			child.stdout.on('data', (data) => {
-				process.stdout.write(formatLog(data.toString(), shouldRunInfo.param.name ?? ''))
+				process.stdout.write(formatLog(data.toString(), shouldRunInfo.name ?? ''))
 			})
 
 			//spit stderr to screen
 			child.stderr.on('data', (data) => {
-				process.stdout.write(formatLog(data.toString(), shouldRunInfo.param.name ?? ''))
+				process.stdout.write(formatLog(data.toString(), shouldRunInfo.name ?? ''))
 			})
 
 			child.on('close', (code) => {
@@ -169,11 +166,11 @@ async function watcher(
 				} else {
 					log.error(`finished with some ${logRed('errors')}`)
 				}
-				shouldRunInfo.param.isRunning = false
+				shouldRunInfo.isRunning = false
 			})
 
 			return
-		}, shouldRunInfo.param.delay)
+		}, shouldRunInfo.delay)
 	}
 
 	return

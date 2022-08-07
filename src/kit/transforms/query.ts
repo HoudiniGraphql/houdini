@@ -41,16 +41,17 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 		})
 	)
 
-	// where we are supposed to insert this is a bit tricky. it needs to be below any prop declarations
-	// which means we need to start at the end of the file and walk backwards until we run into an export or
-	// or an import.
+	// define some things we'll need when fetching
 	page.script.body.push(
+		// houdini context
 		AST.variableDeclaration('const', [
 			AST.variableDeclarator(
 				ctx_id,
 				AST.callExpression(AST.identifier('getHoudiniContext'), [])
 			),
 		]),
+
+		// a variable to hold the query input
 		...queries.map((query) => {
 			// the identifier to use for this variables inputs
 			const input_name = local_input_id(query.name)
@@ -170,7 +171,7 @@ export async function process_component({
 	// make sure that we have imports for every store
 	const store_ids: Record<string, string> = {}
 	for (const query of queries) {
-		const { id, added } = store_import({
+		const { id } = store_import({
 			config: page.config,
 			artifact: query,
 			script: page.script,

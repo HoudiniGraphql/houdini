@@ -19,6 +19,7 @@ export default function houdiniPreprocessor(
 
 			// if we detected a kit project using the preprocessor, tell them they need to update
 			if (config.framework === 'kit') {
+				// TODO: text
 				throw new Error('Please use the vite plugin.')
 			}
 

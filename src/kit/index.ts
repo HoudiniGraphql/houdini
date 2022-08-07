@@ -1,3 +1,4 @@
+import minimatch from 'minimatch'
 import path from 'path'
 import type { Plugin } from 'vite'
 
@@ -21,18 +22,23 @@ export default function ({
 		watch_and_run([
 			{
 				name: 'Houdini',
-				async watch() {
+				async watchFile(filepath: string) {
 					// load the config file
 					const config = await getConfig({ configFile: configPath, ...extraConfig })
 
-					// the list of paths we want to watch for actions
-					const paths = [config.include, config.filepath, config.schemaPath]
+					// we need to watch some specific files
+					if ([config.filepath, config.schemaPath].includes(filepath)) {
+						return true
+					}
 
-					// join the list of paths in a minimatch pattern
-					return paths
-						.filter(Boolean)
-						.map((filepath) => `(${path.resolve(filepath!)})`)
-						.join('|')
+					// if the filepath matches the include
+					if (minimatch(filepath, config.include)) {
+						// make sure that the file doesn't match the exclude
+						return !config.exclude || !minimatch(filepath, config.exclude)
+					}
+
+					// if we got this far, we dont care about the filepath
+					return false
 				},
 				run: 'npx houdini generate',
 				delay: 100,
