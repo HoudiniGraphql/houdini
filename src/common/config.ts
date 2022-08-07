@@ -289,7 +289,7 @@ ${
 	documentName(document: graphql.DocumentNode): string {
 		// if there is an operation in the document
 		const operation = document.definitions.find(
-			({ kind }) => graphql.Kind.OPERATION_DEFINITION
+			({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
 		) as graphql.OperationDefinitionNode
 		if (operation) {
 			// if the operation does not have a name
@@ -308,7 +308,7 @@ ${
 		) as graphql.FragmentDefinitionNode[]
 		if (fragmentDefinitions.length) {
 			// join all of the fragment definitions into one
-			return fragmentDefinitions.map((fragment) => fragment.name).join('_')
+			return fragmentDefinitions.map((fragment) => fragment.name.value).join('_')
 		}
 
 		// we don't know how to generate a name for this document

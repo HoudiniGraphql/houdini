@@ -31,9 +31,13 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 					// delete the old build dir
 					await rmdir(config.compiledAssetsDir)
 				} catch (e) {}
-
-				// create a new build directory we can put the transpiled routes
-				await mkdir(config.compiledAssetsDir)
+				try {
+					await mkdir(config.rootDir)
+				} catch {}
+				try {
+					// create a new build directory we can put the transpiled routes
+					await mkdir(config.compiledAssetsDir)
+				} catch {}
 
 				// create and load a new manifest
 				load = await load_manifest(config)
