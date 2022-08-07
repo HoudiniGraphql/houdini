@@ -2,4 +2,4 @@
 'houdini': minor
 ---
 
-config.sourceGlob has been renamed to config.include (to match the new config.exclude) and is optional
+`config.sourceGlob` has been renamed to `config.include` and is now optional. Also added `config.exclude` to filter out files matched by `config.include`

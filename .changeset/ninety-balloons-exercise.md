@@ -2,4 +2,4 @@
 'houdini': patch
 ---
 
-graphql tags produce evaluate into store references
+graphql tags return store references
