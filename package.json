@@ -20,15 +20,15 @@
 			"import": "./build/preprocess-esm/index.js",
 			"require": "./build/preprocess-cjs/index.js"
 		},
-		"./vite": {
-			"import": "./build/vite-esm/index.js",
-			"require": "./build/vite-cjs/index.js"
+		"./kit": {
+			"import": "./build/kit-esm/index.js",
+			"require": "./build/kit-cjs/index.js"
 		}
 	},
 	"typesVersions": {
 		"*": {
-			"vite": [
-				"build/vite/index.d.ts"
+			"kit": [
+				"build/kit/index.d.ts"
 			],
 			"svelte-preprocess": [
 				"build/preprocess/index.d.ts"
@@ -40,7 +40,7 @@
 		"tests": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest",
 		"tests:integration": "yarn workspace integration tests --workers 5",
 		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
-		"build": "concurrently \"npm run build:runtime\" \"npm run build:cmd\" \"npm run build:preprocess\"  \"npm run build:vite\" \"npm run build:svelte-preprocess\" -n \"run,cmd,pre,vit,svp\" -c \"blue.bold,green.bold,yellow.bold,cyan.bold,magenta.bold\" && npm run build:typeModule",
+		"build": "concurrently \"npm run build:runtime\" \"npm run build:cmd\" \"npm run build:preprocess\"  \"npm run build:kit\" \"npm run build:svelte-preprocess\" -n \"run,cmd,pre,vit,svp\" -c \"blue.bold,green.bold,yellow.bold,cyan.bold,magenta.bold\" && npm run build:typeModule",
 		"build:runtime": "concurrently \"npm run build:runtime:esm\" \"npm run build:runtime:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
 		"build:runtime:cjs": "tsc --p tsconfig.runtime.cjs.json",
 		"build:runtime:esm": "tsc --p tsconfig.runtime.esm.json",
@@ -50,9 +50,9 @@
 		"build:svelte-preprocess": "concurrently \"npm run build:svelte-preprocess:esm\" \"npm run build:svelte-preprocess:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
 		"build:svelte-preprocess:cjs": "TARGET=cjs WHICH=svelte-preprocess rollup --config rollup.config.js",
 		"build:svelte-preprocess:esm": "TARGET=esm WHICH=svelte-preprocess rollup --config rollup.config.js",
-		"build:vite": "concurrently \"npm run build:vite:esm\" \"npm run build:vite:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
-		"build:vite:cjs": "TARGET=cjs WHICH=vite rollup --config rollup.config.js",
-		"build:vite:esm": "TARGET=esm WHICH=vite rollup --config rollup.config.js",
+		"build:kit": "concurrently \"npm run build:kit:esm\" \"npm run build:kit:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
+		"build:kit:cjs": "TARGET=cjs WHICH=kit rollup --config rollup.config.js",
+		"build:kit:esm": "TARGET=esm WHICH=kit rollup --config rollup.config.js",
 		"build:cmd": "concurrently \"npm run build:cmd:main\" \"npm run build:cmd:types\" -n \"exe,typ\" -c \"green,yellow\"",
 		"build:cmd:main": "TARGET=esm WHICH=cmd rollup --config rollup.config.js",
 		"build:cmd:types": "tsc --p tsconfig.root.json",

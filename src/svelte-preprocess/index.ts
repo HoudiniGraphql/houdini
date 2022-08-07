@@ -1,6 +1,6 @@
 import { getConfig } from '../common'
+import transform from '../kit/transforms'
 import { ConfigFile } from '../runtime'
-import transform from '../vite/transforms'
 
 /**
  * The houdini processor automates a lot of boilerplate to make inline documents
@@ -27,6 +27,7 @@ export default function houdiniPreprocessor(
 				config,
 				filepath: filename,
 				addWatchFile: () => {},
+				load: async (fp: string) => await import(fp),
 			}
 
 			// apply the transform pipeline

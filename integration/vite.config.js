@@ -1,5 +1,5 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import houdini from 'houdini/vite';
+import houdini from 'houdini/kit';
 
 /** @type {import('vite').UserConfig} */
 const config = {
