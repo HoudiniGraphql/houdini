@@ -1,1 +1,1 @@
-export const houdini_load = ['a'];
+export const houdini_load = [];

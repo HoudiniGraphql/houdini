@@ -3,7 +3,14 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, operation_requires_variables, parseJS, parseSvelte, readFile } from '../../common'
+import {
+	Config,
+	operation_requires_variables,
+	parseJS,
+	parseSvelte,
+	readFile,
+	stat,
+} from '../../common'
 import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
 import { find_insert_index } from '../ast'
 import { ensure_imports, store_import } from '../imports'
@@ -407,15 +414,22 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 		return nil
 	}
 
-	const route_path = page.config.routeDataPath(page.filepath)
+	// make sure we consider the typescript path first (so if it fails we resort to the .js one)
+	let route_path = page.config.routeDataPath(page.filepath)
+	try {
+		await stat(route_path)
+	} catch {
+		route_path = route_path.replace('.js', '.ts')
+	}
 
 	// let's check for existence by importing the file
 	let module: {
 		houdini_load?: (string | GraphQLTagResult) | (string | GraphQLTagResult)[]
 		[key: string]: any
 	}
+
 	try {
-		module = await import_module(route_path)
+		module = (await page.load(route_path)) as typeof module
 	} catch (e) {
 		if (!(e as Error).toString().includes('ERR_MODULE_NOT_FOUND')) {
 			console.log(e)
@@ -451,7 +465,8 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 			try {
 				parsed = graphql.parse(document)
 			} catch {
-				console.log("we got a string that isn't a graphql query?")
+				// TODO: text
+				console.log("we got a string that isn't a graphql query")
 				continue
 			}
 

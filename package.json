@@ -69,7 +69,8 @@
 		"postpack": "pinst --enable"
 	},
 	"devDependencies": {
-		"@babel/core": "^7.12.10",
+		"@babel/core": "^7.18.10",
+		"@babel/plugin-transform-typescript": "^7.18.12",
 		"@babel/preset-env": "^7.12.11",
 		"@babel/preset-typescript": "^7.16.7",
 		"@changesets/changelog-git": "^0.1.11",

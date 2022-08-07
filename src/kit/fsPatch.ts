@@ -16,9 +16,10 @@ filesystem.statSync = function (path, options) {
 	}
 }
 
-filesystem.readdirSync = function (path, options) {
-	if (!path.includes('routes')) return _readDirSync(path, options)
-	const result = _readDirSync(path, options)
+filesystem.readdirSync = function (filepath, options) {
+	if (!filepath.includes('routes')) return _readDirSync(filepath, options)
+	const result = _readDirSync(filepath, options)
+
 	// if there is a route component but no script, add the script
 	if (
 		result.includes('+page.svelte') &&

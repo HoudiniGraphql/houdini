@@ -38,7 +38,7 @@ export class Config {
 	logLevel: LogLevel
 	disableMasking: boolean
 	configIsRoute: ((filepath: string) => boolean) | null = null
-	routesDir: string | null
+	routesDir: string
 	schemaPollInterval: number | null
 	schemaPollHeaders: Record<string, string | ((env: any) => string)>
 	typescript: boolean
@@ -68,7 +68,7 @@ export class Config {
 			types = {},
 			logLevel,
 			disableMasking = false,
-			routesDir = null,
+			routesDir = 'src/routes',
 			schemaPollInterval = 2000,
 			schemaPollHeaders = {},
 			typescript = false,
@@ -116,7 +116,7 @@ export class Config {
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 		this.disableMasking = disableMasking
-		this.routesDir = routesDir
+		this.routesDir = path.join(this.projectRoot, routesDir)
 		this.schemaPollInterval = schemaPollInterval
 		this.schemaPollHeaders = schemaPollHeaders
 		this.typescript = typescript
@@ -142,8 +142,7 @@ export class Config {
 		}
 
 		// only consider filepaths in src/routes
-		const routesDir = this.routesDir || 'src/routes'
-		if (!posixify(filepath).startsWith(posixify(path.join(root, routesDir)))) {
+		if (!posixify(filepath).startsWith(posixify(this.routesDir))) {
 			return false
 		}
 
@@ -313,6 +312,10 @@ export class Config {
 			fs.mkdirp(this.storesDirectory),
 			fs.mkdirp(this.definitionsDirectory),
 		])
+	}
+
+	get compiledAssetsDir() {
+		return path.join(this.rootDir, '.build')
 	}
 
 	/*
@@ -513,7 +516,7 @@ export class Config {
 
 	routeDataPath(filename: string) {
 		// replace the .svelte with .js
-		return filename.replace('.svelte', this.typescript ? '.ts' : '.js')
+		return filename.replace('.svelte', '.js')
 	}
 
 	isRouteScript(filename: string) {

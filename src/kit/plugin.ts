@@ -1,11 +1,11 @@
 import minimatch from 'minimatch'
 import path from 'path'
-import * as recast from 'recast'
-import { Plugin, UserConfig } from 'vite'
+import { Plugin } from 'vite'
 
 import generate from '../cmd/generate'
-import { Config, formatErrors, getConfig, readFile, Script } from '../common'
+import { Config, formatErrors, getConfig, mkdir, readFile, rmdir, Script } from '../common'
 import './fsPatch'
+import { load_manifest } from './manifest'
 import apply_transforms from './transforms'
 import { PageScriptInfo } from './transforms/kit'
 
@@ -21,15 +21,22 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 		// make sure our resolver runs before vite internal resolver to resolve svelte field correctly
 		enforce: 'pre',
 
-		// save the configs
-		async configResolved() {
-			config = await getConfig({ configFile })
-		},
-
 		// add watch-and-run to their vite config
 		async config(viteConfig, { command }) {
+			config = await getConfig({ configFile })
+
 			// if we are running this to build, we need to generate the route manifest so our import can load it
 			if (command === 'build') {
+				try {
+					// delete the old build dir
+					await rmdir(config.compiledAssetsDir)
+				} catch (e) {}
+
+				// create a new build directory we can put the transpiled routes
+				await mkdir(config.compiledAssetsDir)
+
+				// create and load a new manifest
+				load = await load_manifest(config)
 			}
 
 			return {
@@ -44,7 +51,9 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 		},
 
 		configureServer(server) {
-			load = server.ssrLoadModule
+			load = (str) => {
+				return server.ssrLoadModule(str)
+			}
 		},
 
 		// when the build starts, we need to make sure to generate
@@ -118,5 +127,5 @@ export interface TransformPage {
 	filepath: string
 	addWatchFile: (path: string) => void
 	mock_page_info?: PageScriptInfo
-	load: (path: string) => Record<string, any> | null
+	load: (path: string) => Promise<Record<string, any> | null>
 }

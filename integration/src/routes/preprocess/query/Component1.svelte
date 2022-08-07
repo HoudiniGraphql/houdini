@@ -10,7 +10,7 @@
   import { query, graphql, type PlusComponentRouteQuery } from '$houdini';
 
   // svelte-ignore unused-export-let
-  export let id = '';
+  export const id = '';
 
   const { data } = query<PlusComponentRouteQuery>(graphql`
     query PlusComponentRouteQuery($id: ID!) {
