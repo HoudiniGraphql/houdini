@@ -13,7 +13,7 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 	let config: Config
 
 	// the function to load a module
-	let load = (val: string): Record<string, any> | null => null
+	let load = async (val: string): Promise<Record<string, any> | null> => null
 
 	return {
 		name: 'houdini',
@@ -83,7 +83,6 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 			}
 
 			// run the plugin pipeline
-			// @ts-ignore
 			const result = await apply_transforms(config, ctx, code)
 
 			return result
