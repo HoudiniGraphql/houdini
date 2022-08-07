@@ -19,7 +19,14 @@ program
 	.description('generate the application runtime')
 	.option('-p, --pull-schema', 'pull the latest schema before generating')
 	.option('-o, --output [outputPath]', 'persist queries to a queryMap file')
-	.option('-po, --persist-output [outputPath]', 'persist queries to a queryMap file')
+	.option(
+		'-po, --persist-output [outputPath]',
+		'deprecated in favor of --output. persist queries to a queryMap file'
+	)
+	.option(
+		'-ph, --pull-headers <headers...>',
+		'deprecated in favor of --headers. headers to use when pulling your schema. Should be passed as KEY=VALUE'
+	)
 	.option(
 		'-h, --headers <headers...>',
 		'headers to use when pulling your schema. Should be passed as KEY=VALUE'
