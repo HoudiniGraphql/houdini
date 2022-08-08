@@ -89,7 +89,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			docs
 		)
 	} catch (e) {
-		error = error
+		error = e as Error
 	}
 
 	/// Summary
@@ -114,14 +114,18 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 	// notify the user we are starting the generation process
 	const printMessage = !config.plugin || unchanged !== artifactStats.total.length
-	if (!printMessage) {
-		return
-	}
-	if (config.logLevel === LogLevel.Quiet) {
+	if (!printMessage || config.logLevel === LogLevel.Quiet) {
+		if (error) {
+			throw error
+		}
 		return
 	}
 
 	console.log('🎩 Generating runtime...')
+
+	if (error) {
+		throw error
+	}
 
 	// if we detected a version change, we're nuking everything so don't bother with a summary
 	if (versionChanged) {
