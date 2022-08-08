@@ -76,11 +76,7 @@ async function checkConf(params: Options[]) {
 			)
 		}
 
-		if (
-			!param.watch &&
-			getArraysIntersection(paramsChecked[paramsChecked.length - 1].kind, kindWithPath)
-				.length !== 0
-		) {
+		if (!param.watch && !param.watchFile) {
 			throw new Error('plugin watch-and-run, `watch` is missing.')
 		}
 		if (!param.run) {
