@@ -1,7 +1,6 @@
-import { Readable, get } from 'svelte/store'
-import type { Writable } from 'svelte/store'
+import { Readable } from 'svelte/store'
+import { Writable, writable } from 'svelte/store'
 
-import { getSession } from '../adapter'
 import cache from '../cache'
 import {
 	CompiledMutationKind,
@@ -13,7 +12,6 @@ import {
 } from '../lib'
 import type { SubscriptionSpec, MutationArtifact } from '../lib'
 import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
-import { sessionStore } from '../lib/session'
 
 export function mutationStore<_Data, _Input>({
 	config,
@@ -22,7 +20,7 @@ export function mutationStore<_Data, _Input>({
 	config: ConfigFile
 	artifact: MutationArtifact
 }): MutationStore<_Data, _Input> {
-	const stores: { [reqID: string]: Writable<MutationResult<_Data, _Input>> } = {}
+	const store: Writable<MutationResult<_Data, _Input>> = writable(nullMutationStore())
 
 	const mutate: MutationStore<_Data, _Input>['mutate'] = async ({
 		variables,
@@ -34,8 +32,6 @@ export function mutationStore<_Data, _Input>({
 		let fetchContext: HoudiniFetchContext | { session: () => null } = context || {
 			session: () => null,
 		}
-
-		const store = sessionStore(fetchContext, stores, nullMutationStore)
 
 		store.update((c) => {
 			return { ...c, isFetching: true }
@@ -168,11 +164,8 @@ export function mutationStore<_Data, _Input>({
 		name: artifact.name,
 		kind: CompiledMutationKind,
 		subscribe(...args: Parameters<Readable<MutationResult<_Data, _Input>>['subscribe']>) {
-			// grab the appropriate store for the session
-			const requestStore = sessionStore(get(getSession()), stores, nullMutationStore)
-
 			// use it's value
-			return requestStore.subscribe(...args)
+			return store.subscribe(...args)
 		},
 		mutate,
 	}

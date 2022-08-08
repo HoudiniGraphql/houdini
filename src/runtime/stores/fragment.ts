@@ -10,14 +10,7 @@ import {
 	QueryArtifact,
 	HoudiniDocumentProxy,
 } from '../lib'
-import {
-	extractPageInfo,
-	fragmentHandlers,
-	PageInfo,
-	pageInfoStore,
-	PaginatedHandlers,
-} from '../lib/pagination'
-import { currentReqID, sessionStore } from '../lib/session'
+import { extractPageInfo, fragmentHandlers, PageInfo, PaginatedHandlers } from '../lib/pagination'
 
 // a fragment store exists in multiple places in a given application so we
 // can't just return a store directly, the user has to load the version of the
@@ -41,23 +34,21 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 		kind: CompiledFragmentKind,
 		paginated: !!paginatedArtifact,
 		get(initialValue: _Data | null) {
-			const stores: { [reqID: string]: Writable<_Data | null> } = {}
-
 			// at the moment a fragment store doesn't really do anything
 			// but we're going to keep it wrapped in a store so we can eventually
 			// optimize the updates
-			let store: Writable<_Data | null>
+			let store: Writable<_Data | null> = writable(initialValue)
 
 			// build up the methods we want to use
 			let extraMethods: Record<string, any> = {}
 			let onUnsubscribe = (reqID: string) => {}
-			let pageInfos: { [key: string]: Writable<PageInfo> } = {}
+			let pageInfo: Writable<PageInfo> | null = null
 			if (paginatedArtifact) {
 				const handlers = fragmentHandlers<_Data, {}>({
 					storeName,
 					config,
 					paginationArtifact: paginatedArtifact,
-					stores,
+					store,
 				})
 
 				extraMethods = Object.fromEntries(
@@ -66,47 +57,16 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 				extraMethods.paginationStrategy = handlers.paginationStrategy
 
 				onUnsubscribe = handlers.onUnsubscribe
-				pageInfos = handlers.pageInfos
+				pageInfo = handlers.pageInfo ?? null
 			}
-
-			// we need to track the first time we write to a fragment store so we
-			// can make sure it has data (filled from the initial value argument)
-			const written = new Set<string>()
 
 			return {
 				subscribe: (...args: Parameters<Readable<_Data | null>['subscribe']>) => {
-					const session = get(getSession())
-
-					// grab the appropriate store for the session
-					const requestStore = sessionStore(session, stores, () => initialValue)
-					const reqID = currentReqID(session, stores)
-
-					// if we haven't written anything yet
-					if (!written.has(reqID)) {
-						written.add(reqID)
-
-						// update the fragment value
-						requestStore.set(initialValue)
-
-						// if we have to set up a paginated fragment
-						if (paginatedArtifact) {
-							// update the page info
-							pageInfoStore(session, pageInfos).set(
-								extractPageInfo(initialValue, paginatedArtifact.refetch!.path)
-							)
-						}
-					}
-
-					// hold onto the store reference so client's can update
-					if (isBrowser) {
-						store = requestStore
-					}
-
 					// we need to add the page info
 					const combined = derived<
-						[typeof requestStore, Readable<PageInfo>],
+						[typeof store, Readable<PageInfo | null>],
 						_Data | null
-					>([requestStore, pageInfos[reqID] || readable(null)], ([$store, $pageInfo]) => {
+					>([store, pageInfo || readable(null)], ([$store, $pageInfo]) => {
 						if ($store === null) {
 							return null
 						}
@@ -120,13 +80,7 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 						return everything
 					})
 
-					const unsub = combined.subscribe(...args)
-
-					return () => {
-						unsub()
-						onUnsubscribe(reqID)
-						written.delete(reqID)
-					}
+					return combined.subscribe(...args)
 				},
 				proxy: new HoudiniDocumentProxy(),
 				update: (val: _Data | null) => store?.set(val),

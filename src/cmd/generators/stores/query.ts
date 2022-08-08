@@ -37,6 +37,16 @@ const factory = () => queryStore({
 	variables: ${JSON.stringify(variables)},
 })
 
+export async function load_${storeName}(params) {
+	const store = factory()
+	
+	await store.fetch(params)
+
+	return {
+		${storeName}: store,
+	}
+}
+
 export const ${storeName} = factory()
 
 export const ${config.storeFactoryName(artifactName)} = factory

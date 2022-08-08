@@ -40,14 +40,14 @@ import type { PageInfo } from '../runtime/lib/utils'`
     loadNextPage: (context: HoudiniFetchContext, pageCount?: number, after?: string | number) => Promise<void>
     ${which === 'query' ? 'pageInfo: Readable<PageInfo>' : ''}
 }`
-			methods = ['loadNextPage', 'fetch', 'loading']
+			methods = ['loadNextPage', 'fetch', 'loading', 'pageInfo']
 
 			// backwards cursor pagination
 		} else {
 			types = `{
     loadPreviousPage: (context: HoudiniFetchContext, pageCount?: number, before?: string) => Promise<void>
 }`
-			methods = ['loadPreviousPage', 'fetch', 'loading']
+			methods = ['loadPreviousPage', 'fetch', 'loading', 'pageInfo']
 		}
 	}
 
