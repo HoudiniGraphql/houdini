@@ -1,8 +1,9 @@
-import typescript from 'rollup-plugin-typescript2'
-import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
+import { nodeResolve } from '@rollup/plugin-node-resolve'
 import replace from '@rollup/plugin-replace'
+import typescript from 'rollup-plugin-typescript2'
+
 import packgeJSON from './package.json'
 
 // grab the environment variables
@@ -32,7 +33,7 @@ export default {
 		format: TARGET === 'esm' ? 'esm' : 'cjs',
 		...out,
 	},
-	external: ['graphql', './adapter.mjs', '$houdini'],
+	external: ['graphql', './adapter.mjs', '$houdini', 'vite'],
 	plugins: [
 		json(),
 		typescript({

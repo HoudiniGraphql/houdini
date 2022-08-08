@@ -1,7 +1,6 @@
-import babel from '@babel/core'
-// @ts-ignore
-import babelTs from '@babel/plugin-transform-typescript'
+import { transform } from '@babel/core'
 import path from 'path'
+import { transformWithEsbuild } from 'vite'
 
 import { Config, parseJS } from '../common'
 import * as fs from '../common/fs'
@@ -48,12 +47,9 @@ async function walk_route_dir(
 			// transform the result
 			let transformed = ''
 			try {
-				let result = await babel.transformAsync(contents, {
-					plugins: [babelTs],
-					sourceType: 'module',
-				})
-				transformed = result?.code || ''
+				transformed = (await transformWithEsbuild(contents, child_path)).code
 			} catch (e) {
+				// TODO: text
 				console.log(e)
 			}
 			if (!transformed) {

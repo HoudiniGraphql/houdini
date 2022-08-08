@@ -32,14 +32,13 @@ export default function ({
 						return true
 					}
 
-					// if the filepath matches the include
-					if (minimatch(filepath, config.include)) {
-						// make sure that the file doesn't match the exclude
-						return !config.exclude || !minimatch(filepath, config.exclude)
+					// if the filepath does not match the include, ignore it
+					if (!minimatch(filepath, config.include)) {
+						return false
 					}
 
-					// if we got this far, we dont care about the filepath
-					return false
+					// make sure that the file doesn't match the exclude
+					return !config.exclude || !minimatch(filepath, config.exclude)
 				},
 				async run() {
 					// load the config file

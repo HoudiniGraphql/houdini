@@ -511,10 +511,10 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 		}
 	}
 
-	// there is a load
+	// we're done
 	return {
+		...nil,
 		load,
-		exports: nil.exports,
 	}
 }
 
