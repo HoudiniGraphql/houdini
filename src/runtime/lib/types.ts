@@ -166,10 +166,11 @@ type ClientFetchParams<_Input> = FetchGlobalParams<_Input> & {
 	context?: HoudiniFetchContext
 }
 
-export type QueryStoreFetchParams<_Input> =
+export type QueryStoreFetchParams<_Input> = QueryStoreLoadParams<_Input> | ClientFetchParams<_Input>
+
+export type QueryStoreLoadParams<_Input> =
 	| LoadEventFetchParams<_Input>
 	| RequestEventFetchParams<_Input>
-	| ClientFetchParams<_Input>
 
 export type HoudiniFetchContext = {
 	url: () => URL | null

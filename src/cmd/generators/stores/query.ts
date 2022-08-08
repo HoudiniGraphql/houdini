@@ -63,7 +63,7 @@ export default ${storeName}
 	const VariableInputsType = withVariableInputs ? `${artifactName}$input` : 'null'
 
 	// type definitions
-	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
+	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy, QueryStoreLoadParams} from '$houdini'
 import { type QueryStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
 
@@ -72,6 +72,8 @@ export declare const ${storeName}: QueryStore<${artifactName}$result | undefined
 	}> ${paginationExtras.types}
 
 export declare const ${config.storeFactoryName(artifactName)}: () => typeof ${storeName}
+
+export declare const load_${storeName}: (params: QueryStoreLoadParams<${artifactName}$input>) => Promise<${storeName}>
 
 export default ${storeName}
 `
