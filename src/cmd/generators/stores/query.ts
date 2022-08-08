@@ -37,7 +37,7 @@ const factory = () => queryStore({
 	variables: ${JSON.stringify(variables)},
 })
 
-export async function load_${storeName}(params) {
+export async function load_${artifactName}(params) {
 	const store = factory()
 	
 	await store.fetch(params)
@@ -73,7 +73,7 @@ export declare const ${storeName}: QueryStore<${artifactName}$result | undefined
 
 export declare const ${config.storeFactoryName(artifactName)}: () => typeof ${storeName}
 
-export declare const load_${storeName}: (params: QueryStoreLoadParams<${artifactName}$input>) => Promise<${storeName}>
+export declare const load_${artifactName}: (params: QueryStoreLoadParams<${artifactName}$input>) => Promise<${storeName}>
 
 export default ${storeName}
 `

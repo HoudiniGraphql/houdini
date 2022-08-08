@@ -5,7 +5,6 @@ import { ConfigFile } from '../runtime'
 
 export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 	return {
-		sourceGlob: '123',
 		schema: `
 			scalar Cursor
 
