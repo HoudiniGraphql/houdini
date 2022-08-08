@@ -1,7 +1,7 @@
 import minimatch from 'minimatch'
-import path from 'path'
 import type { Plugin } from 'vite'
 
+import generate from '../cmd/generate'
 import { getConfig } from '../common'
 import { ConfigFile } from '../runtime'
 import houdini from './plugin'
@@ -22,6 +22,7 @@ export default function ({
 		watch_and_run([
 			{
 				name: 'Houdini',
+				quiet: true,
 				async watchFile(filepath: string) {
 					// load the config file
 					const config = await getConfig({ configFile: configPath, ...extraConfig })
@@ -40,7 +41,16 @@ export default function ({
 					// if we got this far, we dont care about the filepath
 					return false
 				},
-				run: 'npx houdini generate',
+				async run() {
+					// load the config file
+					const config = await getConfig({ configFile: configPath, ...extraConfig })
+
+					// make sure we behave as if we're generating from inside the plugin (changes logging behavior)
+					config.plugin = true
+
+					// generate the runtime
+					await generate(config)
+				},
 				delay: 100,
 				watchKind: ['add', 'change', 'unlink'],
 			},

@@ -21,9 +21,13 @@ export type Options = {
 	 */
 	watchKind?: WatchKind[]
 	/**
+	 * Don't print anything extra to the console when an event is trigger
+	 */
+	quiet?: boolean
+	/**
 	 * run command (yarn gen for example!)
 	 */
-	run: string
+	run: string | (() => void | Promise<void>)
 	/**
 	 * Delay before running the run command (in ms)
 	 * @default 300 ms
@@ -43,7 +47,8 @@ export type WatchKind = KindWithPath | KindWithoutPath
 
 export type StateDetail = {
 	kind: WatchKind[]
-	run: string
+	quiet: boolean
+	run: string | (() => void | Promise<void>)
 	delay: number
 	isRunning: boolean
 	watchFile?: (filepath: string) => boolean
@@ -71,16 +76,6 @@ async function checkConf(params: Options[]) {
 			)
 		}
 
-		// watch can be a function or a string
-		const watch = typeof param.watch === 'function' ? await param.watch() : param.watch
-		paramsChecked.push({
-			kind: param.watchKind ?? ['add', 'change', 'unlink'],
-			run: param.run,
-			delay: param.delay ?? 300,
-			isRunning: false,
-			name: param.name,
-		})
-
 		if (
 			!param.watch &&
 			getArraysIntersection(paramsChecked[paramsChecked.length - 1].kind, kindWithPath)
@@ -91,6 +86,16 @@ async function checkConf(params: Options[]) {
 		if (!param.run) {
 			throw new Error('plugin watch-and-run, `run` is missing.')
 		}
+
+		// watch can be a function or a string
+		paramsChecked.push({
+			kind: param.watchKind ?? ['add', 'change', 'unlink'],
+			run: param.run,
+			delay: param.delay ?? 300,
+			isRunning: false,
+			name: param.name,
+			quiet: !!param.quiet,
+		})
 	}
 
 	return paramsChecked
@@ -124,40 +129,42 @@ async function watcher(
 	watchKind: WatchKind,
 	watchAndRunConf: StateDetail[]
 ) {
-	const shouldRunInfo = shouldRun(absolutePath, watchKind, watchAndRunConf)
-	if (shouldRunInfo) {
-		shouldRunInfo.isRunning = true
+	const info = shouldRun(absolutePath, watchKind, watchAndRunConf)
+	if (info) {
+		info.isRunning = true
 
-		if (shouldRunInfo.watch) {
-			log.info(
-				`${logGreen('✔')} Watch ${logCyan(watchKind)}${
-					absolutePath && logGreen(' ' + absolutePath)
-				}` +
-					` and run ${logGreen(shouldRunInfo.run)} (+${logCyan(
-						shouldRunInfo.delay + 'ms'
-					)}).`
-			)
-		} else {
-			log.info(
-				`${logGreen('✔')} Watch ${logCyan(watchKind)}` +
-					` and run ${logGreen(shouldRunInfo.run)} (+${logCyan(
-						shouldRunInfo.delay + 'ms'
-					)}).`
-			)
+		// print the message
+		if (!info.quiet) {
+			let message = `${logGreen('✔')} Watch ${logCyan(watchKind)}`
+			if (info.watch && absolutePath) {
+				message += logGreen(' ' + absolutePath)
+			}
+			if (typeof info.run === 'string') {
+				message + ` and run ${logGreen(info.run)} `
+			}
+			message += logCyan(info.delay + 'ms')
+
+			log.info(message)
 		}
 
 		// Run after a delay
 		setTimeout(() => {
-			const child = spawn(shouldRunInfo.run, [], { shell: true })
+			// if the run value is a function, we just have to call it and we're done
+			if (typeof info.run === 'function') {
+				info.run()
+				return
+			}
+
+			const child = spawn(info.run, [], { shell: true })
 
 			//spit stdout to screen
 			child.stdout.on('data', (data) => {
-				process.stdout.write(formatLog(data.toString(), shouldRunInfo.name ?? ''))
+				process.stdout.write(formatLog(data.toString(), info.name ?? ''))
 			})
 
 			//spit stderr to screen
 			child.stderr.on('data', (data) => {
-				process.stdout.write(formatLog(data.toString(), shouldRunInfo.name ?? ''))
+				process.stdout.write(formatLog(data.toString(), info.name ?? ''))
 			})
 
 			child.on('close', (code) => {
@@ -166,11 +173,11 @@ async function watcher(
 				} else {
 					log.error(`finished with some ${logRed('errors')}`)
 				}
-				shouldRunInfo.isRunning = false
+				info.isRunning = false
 			})
 
 			return
-		}, shouldRunInfo.delay)
+		}, info.delay)
 	}
 
 	return

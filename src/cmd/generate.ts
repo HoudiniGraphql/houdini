@@ -54,10 +54,45 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		deleted: [],
 	}
 
-	// notify the user we are starting the generation process
-	if (config.logLevel !== LogLevel.Quiet) {
-		console.log('🎩 Generating runtime...')
+	// run the generate command before we print so
+	let error: Error | null = null
+	try {
+		await run(
+			config,
+			[
+				// validators
+				validators.typeCheck,
+				validators.uniqueNames,
+				validators.noIDAlias,
+
+				// transforms
+				transforms.internalSchema,
+				transforms.addID,
+				transforms.typename,
+				// list transform must go before fragment variables
+				// so that the mutation fragments are defined before they get mixed in
+				transforms.list,
+				// paginate transform needs to go before fragmentVariables
+				// so that the variable definitions get hashed
+				transforms.paginate,
+				transforms.fragmentVariables,
+				transforms.composeQueries,
+
+				// generators
+				generators.runtime,
+				generators.artifacts(artifactStats),
+				generators.typescript,
+				generators.persistOutput,
+				generators.definitions,
+				generators.stores,
+			],
+			docs
+		)
+	} catch (e) {
+		error = error
 	}
+
+	/// Summary
 
 	// the last version the runtime was generated with
 	let previousVersion = ''
@@ -67,45 +102,29 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			previousVersion = JSON.parse(content).version
 		}
 	} catch {}
-
 	// if the previous version is different from the current version
 	const versionChanged = previousVersion && previousVersion !== 'HOUDINI_VERSION'
 
-	await run(
-		config,
-		[
-			// validators
-			validators.typeCheck,
-			validators.uniqueNames,
-			validators.noIDAlias,
+	// count the number of unchanged
+	const unchanged =
+		artifactStats.total.length -
+		artifactStats.changed.length -
+		artifactStats.new.length -
+		artifactStats.deleted.length
 
-			// transforms
-			transforms.internalSchema,
-			transforms.addID,
-			transforms.typename,
-			// list transform must go before fragment variables
-			// so that the mutation fragments are defined before they get mixed in
-			transforms.list,
-			// paginate transform needs to go before fragmentVariables
-			// so that the variable definitions get hashed
-			transforms.paginate,
-			transforms.fragmentVariables,
-			transforms.composeQueries,
-
-			// generators
-			generators.runtime,
-			generators.artifacts(artifactStats),
-			generators.typescript,
-			generators.persistOutput,
-			generators.definitions,
-			generators.stores,
-		],
-		docs
-	)
-
-	// don't log anything if its quiet
+	// notify the user we are starting the generation process
+	const printMessage = !config.plugin || unchanged !== artifactStats.total.length
+	if (!printMessage) {
+		return
+	}
 	if (config.logLevel === LogLevel.Quiet) {
-	} else if (versionChanged) {
+		return
+	}
+
+	console.log('🎩 Generating runtime...')
+
+	// if we detected a version change, we're nuking everything so don't bother with a summary
+	if (versionChanged) {
 		console.log('💣 Detected new version of Houdini. Regenerating all documents...')
 		console.log('🎉 Welcome to HOUDINI_VERSION!')
 		// if the user is coming from a version pre-15, point them to the migration guide
@@ -114,16 +133,11 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			console.log(`❓ For a description of what's changed, visit this guide: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
 ❓ Don't forget to update your sourceGlob config value if you want to define documents in external files.`)
 		}
-	} else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
-		// count the number of unchanged
-		const unchanged =
-			artifactStats.total.length -
-			artifactStats.changed.length -
-			artifactStats.new.length -
-			artifactStats.deleted.length
-
+	}
+	// print summaries of the changes
+	else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
 		// if we have any unchanged artifacts
-		if (unchanged > 0) {
+		if (unchanged > 0 && printMessage) {
 			console.log(`📃 Unchanged: ${unchanged}`)
 		}
 
@@ -147,7 +161,9 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				logFirst5(artifactStats.deleted)
 			}
 		}
-	} else if (config.logLevel === LogLevel.Full) {
+	}
+	// print the status of every file
+	else if (config.logLevel === LogLevel.Full) {
 		for (const artifact of artifactStats.total) {
 			// figure out the emoji to use
 			let emoji = '📃'

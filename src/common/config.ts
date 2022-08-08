@@ -42,6 +42,7 @@ export class Config {
 	schemaPollInterval: number | null
 	schemaPollHeaders: Record<string, string | ((env: any) => string)>
 	pageQueryFilename: string
+	plugin: boolean = false
 
 	constructor({
 		filepath,
