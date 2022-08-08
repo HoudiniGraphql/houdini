@@ -19,25 +19,6 @@ import * as log from '../lib/log'
 import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 
-// Terms:
-// - CSF: client side fetch. identified by a lack of loadEvent
-//
-// Notes:
-// - load handles prefetch and server-side
-//   - If the incoming variables on a load are different than the tracker, don't write to the store
-// - load only populates the store on the server
-// - load should _always_ perform a fetchAndCache
-//   - it's guaranteed to run before the CSF because the change in variables is what triggers the CSF
-//     - data won't necessarily be in the cache since blocking could be set to false
-//
-// - CSF must load the data aswell (pre-fetches don't get another invocation of load())
-// - CSF must manage subscriptions
-// - CSF must update variable tracker.
-// - CSF might happen when load is also firing
-//   - avoid the double request
-//   - still need to subscribe to data
-//
-
 export function queryStore<_Data extends GraphQLObject, _Input>({
 	config,
 	artifact,
@@ -59,9 +40,6 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	)
 	const setFetching = (isFetching: boolean) => store?.update((s) => ({ ...s, isFetching }))
 	const getVariables = (): _Input | null => get(store)?.variables || null
-
-	// the first client-side request after the mocked load() needs to be blocked
-	let blockNextCSF = false
 
 	// we will be reading and write the last known variables often, avoid frequent gets and updates
 	let lastVariables: _Input | null = null
@@ -124,11 +102,6 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		// check if the variables are different from the last time we saw them
 		let variableChange = !deepEquals(lastVariables, newVariables)
 
-		// detect if there is a load function that fires before the first CSF
-		if (isLoadFetch && lastVariables === null && Boolean('event' in (args || {}))) {
-			blockNextCSF = true
-		}
-
 		// if we are loading on the client and the variables _are_ different, we have to
 		// update the subscribers. do that before the fetch so we don't accidentally
 		// cause the new data to trigger the old subscription after the store has been
@@ -140,20 +113,16 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 		// if there is a pending load, don't do anything
 		if (loadPending && isComponentFetch) {
-			// if the variables haven't changed and we dont have an active subscription
-			// then we need to start listening
-			if (!variableChange && subscriptionSpec === null) {
-				refreshSubscription(newVariables)
-			}
-
-			// we've officially blocked a CSF
-			blockNextCSF = false
+			log.error(`⚠️ Encountered fetch from your component while ${storeName}.load was running. 
+This will result in duplicate queries. If you are trying to ensure there is always a good value, please a CachePolicy instead.
+If this is leftovers from old versions of houdini, you can safely remove this \`${storeName}\`.fetch() from your component.
+`)
 
 			return get(store)
 		}
 
+		// a component fetch is _always_ blocking
 		if (isComponentFetch) {
-			// a component fetch is _always_ blocking
 			params.blocking = true
 		}
 
@@ -161,53 +130,6 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		if (isLoadFetch) {
 			loadPending = true
 		}
-
-		// there are a few cases where the CSF needs to be prevented:
-		// - the last request was from a server-side rendered request (faked by svelte kit)
-		// - the variables didn't change and we're not being forced to request it
-		// - there is a pending load function
-		if (
-			isComponentFetch &&
-			(blockNextCSF ||
-				(!variableChange && params.policy !== CachePolicy.NetworkOnly) ||
-				loadPending)
-		) {
-			blockNextCSF = false
-			// if the variables didn't change, get the latest value and use that
-			if (!variableChange) {
-				await fetchAndCache<_Data, _Input>({
-					config,
-					context,
-					artifact,
-					variables: newVariables,
-					store,
-					updateStore: true,
-					cached: true,
-					policy: CachePolicy.CacheOnly,
-					setLoadPending: (val) => {
-						loadPending = val
-						setFetching(val)
-					},
-				})
-			}
-
-			// if we dont have a subscription but we're ending early we need to listen for
-			// changes
-			if (subscriptionSpec === null) {
-				refreshSubscription(newVariables)
-			}
-
-			// make sure we return before the fetch happens
-			return get(store)
-		}
-
-		// we want to update the store in four situations: ssr, csf, the first load of the ssr response,
-		// or if we got this far and the variables haven't changed (avoid prefetch)
-		const updateStore =
-			!isBrowser ||
-			isComponentFetch ||
-			(lastVariables === null && variableChange) ||
-			!variableChange
 
 		// we might not want to wait for the fetch to resolve
 		const fakeAwait = clientStarted && isBrowser && !params?.blocking
@@ -221,7 +143,6 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 			artifact,
 			variables: newVariables,
 			store,
-			updateStore,
 			cached: policy !== CachePolicy.NetworkOnly,
 			setLoadPending: (val) => {
 				loadPending = val
@@ -438,7 +359,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	artifact,
 	variables,
 	store,
-	updateStore,
 	cached,
 	ignoreFollowup,
 	setLoadPending,
@@ -449,7 +369,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	artifact: QueryArtifact
 	variables: _Input
 	store: Writable<QueryResult<_Data, _Input>>
-	updateStore: boolean
 	cached: boolean
 	ignoreFollowup?: boolean
 	setLoadPending: (pending: boolean) => void
@@ -477,37 +396,35 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 		})
 	}
 
-	if (updateStore) {
-		// unmarshal the result into complex scalars if its a response from the server
-		const unmarshaled =
-			source === DataSource.Cache
-				? result.data
-				: unmarshalSelection(config, artifact.selection, result.data)
+	// unmarshal the result into complex scalars if its a response from the server
+	const unmarshaled =
+		source === DataSource.Cache
+			? result.data
+			: unmarshalSelection(config, artifact.selection, result.data)
 
-		// since we know we're not prefetching, we need to update the store with any errors
-		if (result.errors && result.errors.length > 0) {
-			store.update((s) => ({
-				...s,
-				errors: result.errors,
-				isFetching: false,
-				partial: false,
-				data: unmarshaled as _Data,
-				source,
-				variables,
-			}))
+	// since we know we're not prefetching, we need to update the store with any errors
+	if (result.errors && result.errors.length > 0) {
+		store.update((s) => ({
+			...s,
+			errors: result.errors,
+			isFetching: false,
+			partial: false,
+			data: unmarshaled as _Data,
+			source,
+			variables,
+		}))
 
-			// don't go any further
-			throw result.errors
-		} else {
-			store.set({
-				data: (unmarshaled || {}) as _Data,
-				variables: variables || ({} as _Input),
-				errors: null,
-				isFetching: false,
-				partial: request.partial,
-				source: request.source,
-			})
-		}
+		// don't go any further
+		throw result.errors
+	} else {
+		store.set({
+			data: (unmarshaled || {}) as _Data,
+			variables: variables || ({} as _Input),
+			errors: null,
+			isFetching: false,
+			partial: request.partial,
+			source: request.source,
+		})
 	}
 
 	if (!ignoreFollowup) {
@@ -521,7 +438,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 				variables,
 				store,
 				cached: false,
-				updateStore,
 				ignoreFollowup: true,
 				setLoadPending,
 				policy,
@@ -537,7 +453,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 				variables,
 				store,
 				cached: false,
-				updateStore,
 				ignoreFollowup: true,
 				setLoadPending,
 				policy,
