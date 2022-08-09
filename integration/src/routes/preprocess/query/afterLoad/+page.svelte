@@ -1,14 +1,3 @@
-<script context="module">
-  // @ts-ignore
-  export function afterLoad({ data }) {
-    return {
-      props: {
-        message: data.PreprocessorAfterLoadTestQuery.user.name[0]
-      }
-    };
-  }
-</script>
-
 <script lang="ts">
   export let message = '';
 

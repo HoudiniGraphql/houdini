@@ -1,16 +1,14 @@
-<script context="module" lang="ts">
+<script lang="ts">
+  import { query, graphql, type PlusComponentRouteQuery } from '$houdini';
+
+  // svelte-ignore unused-export-let
+  export let id = '';
+
   export function PlusComponentRouteQueryVariables({ props }: { props: { id?: string } }) {
     return {
       id: props.id || '3'
     };
   }
-</script>
-
-<script lang="ts">
-  import { query, graphql, type PlusComponentRouteQuery } from '$houdini';
-
-  // svelte-ignore unused-export-let
-  export const id = '';
 
   const { data } = query<PlusComponentRouteQuery>(graphql`
     query PlusComponentRouteQuery($id: ID!) {

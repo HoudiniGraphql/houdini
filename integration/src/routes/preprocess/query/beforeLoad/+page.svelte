@@ -1,13 +1,3 @@
-<script context="module">
-  export function beforeLoad() {
-    return {
-      props: {
-        message: 'hello'
-      }
-    };
-  }
-</script>
-
 <script lang="ts">
   export let message = '';
 
