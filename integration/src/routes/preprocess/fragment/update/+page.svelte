@@ -18,12 +18,12 @@
   `);
 
   let user = fragment<UserFragmentTestFragment>(
+    $data?.node ?? null,
     graphql`
       fragment UserFragmentTestFragment on User {
         name
       }
-    `,
-    $data?.node ?? null
+    `
   );
 </script>
 
