@@ -3,7 +3,7 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import { Config, operation_requires_variables, ParsedFile, Script } from '../../common'
-import { find_exported_fn } from '../ast'
+import { find_exported_fn, find_insert_index } from '../ast'
 import { artifact_import, ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
 import { walk_graphql_tags } from '../walk'
@@ -21,14 +21,9 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 	}
 
 	// we need to use the global stores for non routes
-	const store_id = (name: string) =>
-		AST.identifier(
-			store_import({
-				config: page.config,
-				artifact: { name },
-				script: page.script,
-			}).id
-		)
+	const store_id = (name: string) => {
+		return AST.identifier(`_houdini_` + name)
+	}
 
 	// build up a list of the inline queries
 	const queries = await find_inline_queries(page, page.script, store_id)
@@ -58,7 +53,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 		script: page.script,
 		import: ['getHoudiniContext'],
 		sourceModule: '$houdini/runtime/lib/context',
-	}).added
+	})
 
 	// import the browser check
 	ensure_imports({
@@ -66,7 +61,28 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 		script: page.script,
 		import: ['isBrowser'],
 		sourceModule: '$houdini/runtime/adapter',
-	}).added
+	})
+
+	// define the store values at the top of the file
+	for (const query of queries) {
+		const factory = ensure_imports({
+			import: [`${query.name}Store`],
+			sourceModule: config.storeImportPath(query.name),
+			config: page.config,
+			script: page.script,
+		}).ids[0]
+
+		page.script.body.splice(
+			find_insert_index(page.script),
+			0,
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					store_id(query.name),
+					AST.callExpression(AST.identifier(factory), [])
+				),
+			])
+		)
+	}
 
 	// define some things we'll need when fetching
 	page.script.body.push(

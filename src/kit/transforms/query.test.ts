@@ -16,13 +16,15 @@ test('no variables', async function () {
 
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { isBrowser } from "$houdini/runtime/adapter";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+		const _houdini_TestQuery = TestQueryStore();
 
 		const {
 		    data
-		} = query(GQL_TestQuery);
+		} = query(_houdini_TestQuery);
 
 		const _houdini_context_DO_NOT_USE = getHoudiniContext();
 
@@ -62,9 +64,11 @@ test('with variables', async function () {
 
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { isBrowser } from "$houdini/runtime/adapter";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
+		const _houdini_TestQuery = TestQueryStore();
 
 		export function TestQueryVariables() {
 		    return {
@@ -78,7 +82,7 @@ test('with variables', async function () {
 
 		const {
 		    data
-		} = query(GQL_TestQuery);
+		} = query(_houdini_TestQuery);
 
 		const _houdini_context_DO_NOT_USE = getHoudiniContext();
 
@@ -128,18 +132,22 @@ test('2 queries, one paginated one not', async function () {
     `)
 
 	expect(route).toMatchInlineSnapshot(`
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
 		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
+		import { TestQuery2Store } from "$houdini/stores/TestQuery2";
+		import { TestQuery1Store } from "$houdini/stores/TestQuery1";
+		import { isBrowser } from "$houdini/runtime/adapter";
+		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+		const _houdini_TestQuery2 = TestQuery2Store();
+		const _houdini_TestQuery1 = TestQuery1Store();
 
 		const {
 		    data
-		} = query(GQL_TestQuery1);
+		} = query(_houdini_TestQuery1);
 
 		const {
 		    data: data2
-		} = paginatedQuery(GQL_TestQuery2);
+		} = paginatedQuery(_houdini_TestQuery2);
 
 		const _houdini_context_DO_NOT_USE = getHoudiniContext();
 
