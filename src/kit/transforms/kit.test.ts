@@ -19,26 +19,19 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+		$:
+		({
+		    TestQuery: _houdini_TestQuery
+		} = $$props.data);
 
 		const {
 		    data
-		} = query(GQL_TestQuery);
-
-		const _houdini_context_DO_NOT_USE = getHoudiniContext();
-
-		$:
-		isBrowser && GQL_TestQuery.fetch({
-		    context: _houdini_context_DO_NOT_USE,
-		    variables: inputs["TestQuery"]
-		});
+		} = query(_houdini_TestQuery);
 	`)
 		expect(route.script).toMatchInlineSnapshot(`
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		import { load_TestQuery } from "$houdini/stores/TestQuery";
 		import { RequestContext } from "$houdini/runtime/lib/network";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
@@ -86,7 +79,10 @@ describe('kit route processor', function () {
 		})
 
 		// make sure we added the right stuff
-		expect(route.script).toMatchInlineSnapshot(`export async function load() {}`)
+		expect(route.script).toMatchInlineSnapshot(`
+		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
+		export async function load() {}
+	`)
 	})
 
 	test('multiple inline queries', async function () {
@@ -113,39 +109,26 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
-		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+		$:
+		({
+		    TestQuery1: _houdini_TestQuery1,
+		    TestQuery2: _houdini_TestQuery2
+		} = $$props.data);
 
 		const {
 		    data: data1
-		} = query(GQL_TestQuery1);
+		} = query(_houdini_TestQuery1);
 
 		const {
 		    data: data2
-		} = query(GQL_TestQuery2);
-
-		const _houdini_context_DO_NOT_USE = getHoudiniContext();
-
-		$:
-		isBrowser && GQL_TestQuery1.fetch({
-		    context: _houdini_context_DO_NOT_USE,
-		    variables: inputs["TestQuery1"]
-		});
-
-		$:
-		isBrowser && GQL_TestQuery2.fetch({
-		    context: _houdini_context_DO_NOT_USE,
-		    variables: inputs["TestQuery2"]
-		});
+		} = query(_houdini_TestQuery2);
 	`)
 		expect(route.script).toMatchInlineSnapshot(`
-		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
 		import { load_TestQuery2 } from "$houdini/stores/TestQuery2";
-		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 		import { load_TestQuery1 } from "$houdini/stores/TestQuery1";
 		import { RequestContext } from "$houdini/runtime/lib/network";
+		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
+		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 
 		export async function load(context) {
 		    const houdini_context = new RequestContext(context);
@@ -204,9 +187,9 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.script).toMatchInlineSnapshot(`
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		import { load_TestQuery } from "$houdini/stores/TestQuery";
 		import { RequestContext } from "$houdini/runtime/lib/network";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export function TestQueryVariables(page) {
 		    return {
@@ -261,9 +244,9 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		import { isBrowser } from "$houdini/runtime/adapter";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		const {
 		    data
@@ -325,44 +308,23 @@ describe('kit route processor', function () {
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
-		import { GQL_MyQuery2 } from "$houdini/stores/MyQuery2";
-		import { GQL_MyQuery1 } from "$houdini/stores/MyQuery1";
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
+		$:
+		({
+		    TestQuery: _houdini_TestQuery
+		} = $$props.data);
 
 		const {
 		    data
-		} = query(GQL_TestQuery);
-
-		const _houdini_context_DO_NOT_USE = getHoudiniContext();
-
-		$:
-		isBrowser && GQL_TestQuery.fetch({
-		    context: _houdini_context_DO_NOT_USE,
-		    variables: inputs["TestQuery"]
-		});
-
-		$:
-		isBrowser && GQL_MyQuery1.fetch({
-		    context: _houdini_context_DO_NOT_USE,
-		    variables: inputs["MyQuery1"]
-		});
-
-		$:
-		isBrowser && GQL_MyQuery2.fetch({
-		    context: _houdini_context_DO_NOT_USE,
-		    variables: inputs["MyQuery2"]
-		});
+		} = query(_houdini_TestQuery);
 	`)
 		expect(route.script).toMatchInlineSnapshot(`
+		import { GQL_MyQuery1 } from "$houdini/stores/MyQuery1";
 		import { GQL_MyQuery2 } from "$houdini/stores/MyQuery2";
 		import { load_MyQuery2 } from "$houdini/stores/MyQuery2";
-		import { GQL_MyQuery1 } from "$houdini/stores/MyQuery1";
 		import { load_MyQuery1 } from "$houdini/stores/MyQuery1";
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		import { load_TestQuery } from "$houdini/stores/TestQuery";
 		import { RequestContext } from "$houdini/runtime/lib/network";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		const store1 = GQL_MyQuery1;
 		const store2 = GQL_MyQuery2;
 		export function MyQuery2Variables() {}
@@ -421,18 +383,9 @@ describe('kit route processor', function () {
 			`,
 		})
 
-		expect(route.component).toMatchInlineSnapshot(`
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
-		const _houdini_context_DO_NOT_USE = getHoudiniContext();
-
-		$:
-		isBrowser && GQL_TestQuery.fetch({
-		    context: _houdini_context_DO_NOT_USE,
-		    variables: inputs["TestQuery"]
-		});
-	`)
+		expect(route.component).toMatchInlineSnapshot(
+			`import { GQL_TestQuery } from "$houdini/stores/TestQuery";`
+		)
 		expect(route.script).toMatchInlineSnapshot(`
 		import { load_TestQuery } from "$houdini/stores/TestQuery";
 		import { RequestContext } from "$houdini/runtime/lib/network";
@@ -493,9 +446,9 @@ test('beforeLoad hook', async function () {
 	})
 
 	expect(route.script).toMatchInlineSnapshot(`
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		import { load_TestQuery } from "$houdini/stores/TestQuery";
 		import { RequestContext } from "$houdini/runtime/lib/network";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export async function beforeLoad() {
 		    return this.redirect(302, "/test");
@@ -577,11 +530,11 @@ test('beforeLoad hook - multiple queries', async function () {
 	})
 
 	expect(route.script).toMatchInlineSnapshot(`
-		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
 		import { load_TestQuery2 } from "$houdini/stores/TestQuery2";
-		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 		import { load_TestQuery1 } from "$houdini/stores/TestQuery1";
 		import { RequestContext } from "$houdini/runtime/lib/network";
+		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
+		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 
 		export async function beforeLoad() {
 		    return this.redirect(302, "/test");
@@ -659,9 +612,9 @@ test('afterLoad hook', async function () {
 	})
 
 	expect(route.script).toMatchInlineSnapshot(`
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		import { load_TestQuery } from "$houdini/stores/TestQuery";
 		import { RequestContext } from "$houdini/runtime/lib/network";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export async function afterLoad() {
 		    return this.redirect(302, "/test");
@@ -744,11 +697,11 @@ test('afterLoad hook - multiple queries', async function () {
 	})
 
 	expect(route.script).toMatchInlineSnapshot(`
-		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
 		import { load_TestQuery2 } from "$houdini/stores/TestQuery2";
-		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 		import { load_TestQuery1 } from "$houdini/stores/TestQuery1";
 		import { RequestContext } from "$houdini/runtime/lib/network";
+		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
+		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 
 		export async function afterLoad() {
 		    return this.redirect(302, "/test");
@@ -831,9 +784,9 @@ test('both beforeLoad and afterLoad hooks', async function () {
 	})
 
 	expect(route.script).toMatchInlineSnapshot(`
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		import { load_TestQuery } from "$houdini/stores/TestQuery";
 		import { RequestContext } from "$houdini/runtime/lib/network";
+		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 
 		export async function beforeLoad() {
 		    return this.redirect(302, "/test");
