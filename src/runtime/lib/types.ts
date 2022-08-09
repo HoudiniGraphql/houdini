@@ -40,6 +40,13 @@ export enum ArtifactKind {
 	Fragment = 'HoudiniFragment',
 }
 
+export const CompiledFragmentKind = ArtifactKind.Fragment
+export const CompiledMutationKind = ArtifactKind.Mutation
+export const CompiledQueryKind = ArtifactKind.Query
+export const CompiledSubscriptionKind = ArtifactKind.Subcription
+
+export type CompiledDocumentKind = ArtifactKind
+
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: ArtifactKind.Query
 	policy?: CachePolicy
@@ -268,17 +275,6 @@ export type MutationOperation = {
 	position?: 'first' | 'last'
 	when?: ListWhen
 }
-
-export const CompiledFragmentKind = 'HoudiniFragment'
-export const CompiledMutationKind = 'HoudiniMutation'
-export const CompiledQueryKind = 'HoudiniQuery'
-export const CompiledSubscriptionKind = 'HoudiniSubscription'
-
-export type CompiledDocumentKind =
-	| 'HoudiniFragment'
-	| 'HoudiniMutation'
-	| 'HoudiniQuery'
-	| 'HoudiniSubscription'
 
 export type GraphQLObject = { [key: string]: GraphQLValue }
 

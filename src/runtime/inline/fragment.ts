@@ -1,28 +1,46 @@
 import { Readable } from 'svelte/store'
 
+import * as log from '../lib/log'
 import { wrapPaginationStore, PaginatedDocumentHandlers, PageInfo } from '../lib/pagination'
-import type { Fragment, GraphQLTagResult } from '../lib/types'
+import { ArtifactKind, Fragment, GraphQLTagResult } from '../lib/types'
+
+let hasWarned = false
 
 // function overloads meant to only return a nullable value
 // if the reference type was nullable
 export function fragment<_Fragment extends Fragment<any>>(
-	fragment: GraphQLTagResult,
-	ref: _Fragment
+	ref: _Fragment,
+	fragment: GraphQLTagResult
 ): Readable<NonNullable<_Fragment['shape']>> & {
 	data: Readable<_Fragment>
 }
 export function fragment<_Fragment extends Fragment<any>>(
-	fragment: GraphQLTagResult,
-	ref: _Fragment | null
+	ref: _Fragment | null,
+	fragment: GraphQLTagResult
 ): Readable<NonNullable<_Fragment['shape']> | null> & {
 	data: Readable<_Fragment | null>
 }
 export function fragment<_Fragment extends Fragment<any>>(
-	store: GraphQLTagResult,
-	ref: _Fragment | null
+	ref: _Fragment | null,
+	store: GraphQLTagResult
 ): Readable<NonNullable<_Fragment['shape']>> & {
 	data: Readable<_Fragment | null>
 } {
+	// @ts-ignore
+	const oldAPI = 'kind' in (ref || {}) && Object.keys(ArtifactKind).includes(ref.kind)
+	if (!hasWarned && oldAPI) {
+		hasWarned = true
+
+		log.info(`${log.red(
+			'⚠️ argument order for fragment() has changed. The graphql tag now goes second:'
+		)}
+		
+export let prop
+
+$: data = fragment(prop, graphql\`...\`)
+`)
+	}
+
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniFragment' || false) {
 		throw new Error('getFragment can only take fragment documents')
@@ -44,15 +62,15 @@ export function fragment<_Fragment extends Fragment<any>>(
 }
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
-	document: GraphQLTagResult,
-	initialValue: _Fragment | null
+	initialValue: _Fragment | null,
+	document: GraphQLTagResult
 ): { data: Readable<_Fragment['shape'] | null> } & Omit<
 	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
 	'refetch'
 >
 export function paginatedFragment<_Fragment extends Fragment<any>>(
-	document: GraphQLTagResult,
-	initialValue: _Fragment
+	initialValue: _Fragment,
+	document: GraphQLTagResult
 ): { data: Readable<_Fragment['shape']> } & Omit<
 	Omit<
 		PaginatedDocumentHandlers<_Fragment['shape'], {}>,
@@ -62,8 +80,8 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 >
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
-	store: GraphQLTagResult,
-	initialValue: _Fragment | null
+	initialValue: _Fragment | null,
+	store: GraphQLTagResult
 ): { data: Readable<_Fragment['shape']> } & Omit<
 	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
 	'pageInfos' | 'refetch' | 'onUnsubscribe'
