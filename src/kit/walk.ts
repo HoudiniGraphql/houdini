@@ -13,8 +13,6 @@ import {
 	CompiledSubscriptionKind,
 } from '../runtime/lib/types'
 
-type Program = ReturnType<typeof recast.types.builders['program']>
-
 export type EmbeddedGraphqlDocument = {
 	parsedDocument: graphql.DocumentNode
 	artifact: {
@@ -41,8 +39,6 @@ export async function walk_graphql_tags(
 	parsedScript: Script,
 	walker: GraphqlTagWalker
 ): Promise<void> {
-	const dependencies: string[] = []
-
 	await asyncWalk(parsedScript!, {
 		async enter(node, parent) {
 			// if we are looking at the graphql template tag

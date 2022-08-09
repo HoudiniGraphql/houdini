@@ -40,6 +40,18 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 		return
 	}
 
+	// the name to use for inline query documents
+	const inline_query_store = (name: string) =>
+		AST.identifier(
+			is_route
+				? '_houdini_' + name
+				: store_import({
+						config: page.config,
+						script: page.script,
+						artifact: { name },
+				  }).id
+		)
+
 	// we need to collect all of the various queries associated with the query file
 	const [page_query, inline_queries, page_info] = await Promise.all([
 		find_page_query(page),
@@ -52,7 +64,8 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 						await parseSvelte(
 							(await readFile(page.config.routePagePath(page.filepath))) || ''
 						)
-				  )?.script ?? null
+				  )?.script ?? null,
+			inline_query_store
 		),
 		find_page_info(page),
 	])
@@ -67,37 +80,26 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 	}
 
 	// if we are processing a route component (+page.svelte)
-	if (is_route) {
-		const input_obj = AST.identifier('inputs')
-
-		page.script.body.push(
-			AST.variableDeclaration('const', [
-				AST.variableDeclarator(
-					ctx_id,
-					AST.callExpression(AST.identifier('getHoudiniContext'), [])
-				),
-			])
-		)
-
-		await process_component({
-			page,
-			queries,
-			input_id: (name) => AST.memberExpression(input_obj, AST.literal(name)),
-		})
-
-		// now that we have the load, we need a reference to the loaded inputs added above
+	if (is_route && inline_queries.length > 0) {
+		// we need to pull out the correct store references for every inline query we found
 		page.script.body.splice(
 			find_insert_index(page.script),
 			0,
 			AST.labeledStatement(
 				AST.identifier('$'),
 				AST.expressionStatement(
-					AST.assignmentExpression(
-						'=',
-						input_obj,
-						AST.memberExpression(
-							AST.memberExpression(AST.identifier('$$props'), AST.identifier('data')),
-							AST.identifier('inputs')
+					AST.parenthesizedExpression(
+						AST.assignmentExpression(
+							'=',
+							AST.objectPattern(
+								inline_queries.map((query) =>
+									AST.objectProperty(
+										AST.identifier(query.name),
+										inline_query_store(query.name)
+									)
+								)
+							),
+							AST.memberExpression(AST.identifier('$$props'), AST.identifier('data'))
 						)
 					)
 				)
@@ -164,8 +166,10 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 
 	// some local variables
 	const request_context = AST.identifier('houdini_context')
-	const input_obj = AST.identifier('inputs')
 	const promise_list = AST.identifier('promises')
+	const return_value = AST.memberExpression(request_context, AST.identifier('returnValue'))
+	const result_obj = AST.identifier('result')
+	const input_obj = AST.identifier('inputs')
 
 	// build up a list of metadata for every store that we have to load
 
@@ -183,25 +187,22 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 				),
 			]),
 
-			// the final return value from load is an object containing all of the inputs
-			// for every query that we generated
-			AST.variableDeclaration('const', [
-				AST.variableDeclarator(input_obj, AST.objectExpression([])),
-			]),
-
 			// and a list of all of the promises we generate
 			AST.variableDeclaration('const', [
 				AST.variableDeclarator(promise_list, AST.arrayExpression([])),
+			]),
+
+			// and an object we'll build up the compute inputs
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(input_obj, AST.objectExpression([])),
 			]),
 
 			// regardless of what happens between the contenxt instantiation and return,
 			// all we have to do is mix the return value with the props we want to send one
 			AST.returnStatement(
 				AST.objectExpression([
-					AST.spreadElement(
-						AST.memberExpression(request_context, AST.identifier('returnValue'))
-					),
-					AST.objectProperty(AST.identifier('inputs'), input_obj),
+					AST.spreadElement(return_value),
+					AST.spreadElement(result_obj),
 				])
 			),
 		])
@@ -212,11 +213,52 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 	// export the function from the module
 	page.script.body.push(AST.exportNamedDeclaration(preload_fn) as ExportNamedDeclaration)
 
-	// we can start inserting statements after we define the context
+	// we can start inserting statements in the generated load after the 2 statements we
+	// added when defining the function
 	let insert_index = 3
 
 	// every query that we found needs to be triggered in this function
 	for (const query of queries) {
+		const { ids } = ensure_imports({
+			config: page.config,
+			script: page.script,
+			import: [`load_${query.name}`],
+			sourceModule: page.config.storeImportPath(query.name),
+		})
+
+		const load_fn = ids[0]
+
+		const variables = page_info.exports.includes(query_variable_fn(query.name))
+			? AST.callExpression(
+					AST.memberExpression(request_context, AST.identifier('computeInput')),
+					[
+						AST.objectExpression([
+							AST.objectProperty(
+								AST.literal('config'),
+								AST.identifier('houdiniConfig')
+							),
+							AST.objectProperty(
+								AST.literal('variableFunction'),
+								AST.identifier(query_variable_fn(query.name))
+							),
+							AST.objectProperty(
+								AST.literal('artifact'),
+								AST.memberExpression(
+									AST.identifier(
+										store_import({
+											config: page.config,
+											script: page.script,
+											artifact: query,
+										}).id
+									),
+									AST.identifier('artifact')
+								)
+							),
+						]),
+					]
+			  )
+			: AST.objectExpression([])
+
 		preload_fn.body.body.splice(
 			insert_index++,
 			0,
@@ -224,81 +266,63 @@ could not find required variable function: ${variable_fn}. maybe its not exporte
 				AST.assignmentExpression(
 					'=',
 					AST.memberExpression(input_obj, AST.literal(query.name)),
-					page_info.exports.includes(query_variable_fn(query.name))
-						? AST.callExpression(
-								AST.memberExpression(
-									request_context,
-									AST.identifier('computeInput')
-								),
-								[
-									AST.objectExpression([
-										AST.objectProperty(
-											AST.literal('config'),
-											AST.identifier('houdiniConfig')
-										),
-										AST.objectProperty(
-											AST.literal('variableFunction'),
-											AST.identifier(query_variable_fn(query.name))
-										),
-										AST.objectProperty(
-											AST.literal('artifact'),
-											AST.memberExpression(
-												query.store_id,
-												AST.literal('artifact')
-											)
-										),
-									]),
-								]
-						  )
-						: AST.objectExpression([])
+					variables
 				)
-			),
-			// push the result of the fetch onto the list of promises
-			AST.expressionStatement(
-				AST.callExpression(AST.memberExpression(promise_list, AST.identifier('push')), [
-					AST.callExpression(
-						AST.memberExpression(query.store_id, AST.identifier('fetch')),
-						[
-							AST.objectExpression([
-								AST.objectProperty(
-									AST.literal('variables'),
-									AST.memberExpression(input_obj, AST.literal(query.name))
-								),
-								AST.objectProperty(AST.literal('event'), AST.identifier('context')),
-								AST.objectProperty(
-									AST.literal('blocking'),
-									AST.booleanLiteral(!!after_load)
-								),
-							]),
-						]
-					),
-				])
 			)
 		)
 
-		// we added 2 elements
-		insert_index++
+		preload_fn.body.body.splice(
+			insert_index++,
+			0,
+			// push the result of the fetch onto the list of promises
+			AST.expressionStatement(
+				AST.callExpression(AST.memberExpression(promise_list, AST.identifier('push')), [
+					AST.callExpression(AST.identifier(load_fn), [
+						AST.objectExpression([
+							AST.objectProperty(
+								AST.literal('variables'),
+								AST.memberExpression(input_obj, AST.literal(query.name))
+							),
+							AST.objectProperty(AST.literal('event'), AST.identifier('context')),
+							AST.objectProperty(
+								AST.literal('blocking'),
+								AST.booleanLiteral(!!after_load)
+							),
+						]),
+					]),
+				])
+			)
+		)
 	}
 
-	// now that the promise list is done, let's wait for everything to finish
-	const resolved_promises = AST.identifier('result')
 	preload_fn.body.body.splice(
 		insert_index++,
 		0,
 		AST.variableDeclaration('const', [
 			AST.variableDeclarator(
-				resolved_promises,
-				AST.awaitExpression(
-					AST.callExpression(
-						AST.memberExpression(AST.identifier('Promise'), AST.identifier('all')),
-						[promise_list]
-					)
+				result_obj,
+				AST.callExpression(
+					AST.memberExpression(AST.identifier('Object'), AST.identifier('assign')),
+					[
+						AST.objectExpression([]),
+						AST.spreadElement(
+							AST.awaitExpression(
+								AST.callExpression(
+									AST.memberExpression(
+										AST.identifier('Promise'),
+										AST.identifier('all')
+									),
+									[promise_list]
+								)
+							)
+						),
+					]
 				)
 			),
 		])
 	)
 
-	let args = [request_context, page.config, queries, input_obj, resolved_promises] as const
+	let args = [request_context, queries, input_obj, result_obj] as const
 
 	// add calls to user before/after load functions
 	if (before_load) {
@@ -357,9 +381,8 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 function load_hook_statements(
 	name: 'beforeLoad' | 'afterLoad',
 	request_context: namedTypes.Identifier,
-	config: Config,
 	queries: LoadTarget[],
-	input_obj: IdentifierKind,
+	input_id: IdentifierKind,
 	result_id: IdentifierKind
 ) {
 	return [
@@ -377,21 +400,8 @@ function load_hook_statements(
 							// after load: pass query data to the hook
 							...(name === 'afterLoad'
 								? [
-										AST.objectProperty(AST.literal('input'), input_obj),
-										AST.objectProperty(
-											AST.literal('data'),
-											AST.objectExpression(
-												queries.map((query, i) =>
-													AST.objectProperty(
-														AST.stringLiteral(query.name),
-														AST.memberExpression(
-															result_id,
-															AST.literal(i)
-														)
-													)
-												)
-											)
-										),
+										AST.objectProperty(AST.literal('input'), input_id),
+										AST.objectProperty(AST.literal('data'), result_id),
 								  ]
 								: []),
 						]),

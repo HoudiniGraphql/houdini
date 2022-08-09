@@ -12,6 +12,7 @@ const AST = recast.types.builders
 
 type ExportNamedDeclaration = recast.types.namedTypes.ExportNamedDeclaration
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
+type Identifier = recast.types.namedTypes.Identifier
 
 export default async function QueryProcessor(config: Config, page: TransformPage) {
 	// only consider consider components in this processor
@@ -19,8 +20,18 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 		return
 	}
 
+	// we need to use the global stores for non routes
+	const store_id = (name: string) =>
+		AST.identifier(
+			store_import({
+				config: page.config,
+				artifact: { name },
+				script: page.script,
+			}).id
+		)
+
 	// build up a list of the inline queries
-	const queries = await find_inline_queries(page, page.script)
+	const queries = await find_inline_queries(page, page.script, store_id)
 	// if there aren't any, we're done
 	if (queries.length === 0) {
 		return
@@ -212,7 +223,8 @@ export async function process_component({
 
 export async function find_inline_queries(
 	page: TransformPage,
-	parsed: Script | null
+	parsed: Script | null,
+	store_id: (name: string) => Identifier
 ): Promise<LoadTarget[]> {
 	// if there's nothing to parse, we're done
 	if (!parsed) {
@@ -249,21 +261,15 @@ export async function find_inline_queries(
 					// an operation requires variables if there is any non-null variable that doesn't have a default value
 					variables: operation_requires_variables(operation),
 				})
+
+				tag.node.replaceWith(store_id(operation.name!.value))
 			}
 		},
 	})
 
 	return queries.map((query) => {
-		// we need to make sure that we have reference to the store
-		// for every query
-		const { id } = store_import({
-			config: page.config,
-			artifact: query,
-			script: page.script,
-		})
-
 		return {
-			store_id: AST.identifier(id),
+			store_id: AST.identifier(''),
 			name: query.name,
 			variables: query.variables,
 		}

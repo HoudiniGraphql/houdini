@@ -37,6 +37,16 @@ const factory = () => queryStore({
 	variables: ${JSON.stringify(variables)},
 })
 
+export async function load_${artifactName}(params) {
+	const store = factory()
+	
+	await store.fetch(params)
+
+	return {
+		${storeName}: store,
+	}
+}
+
 export const ${storeName} = factory()
 
 export const ${config.storeFactoryName(artifactName)} = factory
@@ -53,7 +63,7 @@ export default ${storeName}
 	const VariableInputsType = withVariableInputs ? `${artifactName}$input` : 'null'
 
 	// type definitions
-	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
+	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy, QueryStoreLoadParams} from '$houdini'
 import { type QueryStore } from '../runtime/lib/types'
 ${paginationExtras.typeImports}
 
@@ -62,6 +72,8 @@ export declare const ${storeName}: QueryStore<${artifactName}$result | undefined
 	}> ${paginationExtras.types}
 
 export declare const ${config.storeFactoryName(artifactName)}: () => typeof ${storeName}
+
+export declare const load_${artifactName}: (params: QueryStoreLoadParams<${artifactName}$input>) => Promise<${storeName}>
 
 export default ${storeName}
 `

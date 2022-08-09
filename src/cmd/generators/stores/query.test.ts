@@ -62,6 +62,16 @@ test('basic store', async function () {
 						variables: false,
 					})
 
+					export async function load_TestQuery(params) {
+						const store = factory()
+						
+						await store.fetch(params)
+
+						return {
+							GQL_TestQuery: store,
+						}
+					}
+
 					export const GQL_TestQuery = factory()
 
 					export const TestQueryStore = factory
@@ -103,6 +113,16 @@ test('store with required variables', async function () {
 					    paginationMethods: [],
 						variables: true,
 					})
+
+					export async function load_TestQuery(params) {
+						const store = factory()
+						
+						await store.fetch(params)
+
+						return {
+							GQL_TestQuery: store,
+						}
+					}
 
 					export const GQL_TestQuery = factory()
 
@@ -146,6 +166,16 @@ test('store with nullable variables', async function () {
 						variables: false,
 					})
 
+					export async function load_TestQuery(params) {
+						const store = factory()
+						
+						await store.fetch(params)
+
+						return {
+							GQL_TestQuery: store,
+						}
+					}
+
 					export const GQL_TestQuery = factory()
 
 					export const TestQueryStore = factory
@@ -187,6 +217,16 @@ test('store with non-null variables with default value', async function () {
 					    paginationMethods: [],
 						variables: false,
 					})
+
+					export async function load_TestQuery(params) {
+						const store = factory()
+						
+						await store.fetch(params)
+
+						return {
+							GQL_TestQuery: store,
+						}
+					}
 
 					export const GQL_TestQuery = factory()
 
@@ -232,9 +272,19 @@ test('forward cursor pagination', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
-					    paginationMethods: ["loadNextPage","fetch","loading"],
+					    paginationMethods: ["loadNextPage","fetch","loading","pageInfo"],
 						variables: false,
 					})
+
+					export async function load_TestQuery(params) {
+						const store = factory()
+						
+						await store.fetch(params)
+
+						return {
+							GQL_TestQuery: store,
+						}
+					}
 
 					export const GQL_TestQuery = factory()
 
@@ -280,9 +330,19 @@ test('backwards cursor pagination', async function () {
 					    config: defaultConfigValues(houdiniConfig),
 					    storeName: "GQL_TestQuery",
 					    paginated: true,
-					    paginationMethods: ["loadPreviousPage","fetch","loading"],
+					    paginationMethods: ["loadPreviousPage","fetch","loading","pageInfo"],
 						variables: false,
 					})
+
+					export async function load_TestQuery(params) {
+						const store = factory()
+						
+						await store.fetch(params)
+
+						return {
+							GQL_TestQuery: store,
+						}
+					}
 
 					export const GQL_TestQuery = factory()
 
@@ -327,6 +387,16 @@ test('offset pagination', async function () {
 					    paginationMethods: ["loadNextPage","fetch","loading"],
 						variables: false,
 					})
+
+					export async function load_TestQuery(params) {
+						const store = factory()
+						
+						await store.fetch(params)
+
+						return {
+							GQL_TestQuery: store,
+						}
+					}
 
 					export const GQL_TestQuery = factory()
 
