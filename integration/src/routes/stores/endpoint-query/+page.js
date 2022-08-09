@@ -1,6 +1,6 @@
 import { GQL_Hello } from '$houdini';
 
-export async function get(event) {
+export async function GET(event) {
   const { data } = await GQL_Hello.fetch({ event, fetch });
 
   return {

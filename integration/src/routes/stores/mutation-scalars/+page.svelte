@@ -1,13 +1,3 @@
-<script context="module" lang="ts">
-  import { GQL_usersList } from '$houdini';
-  import type { LoadEvent } from '@sveltejs/kit';
-
-  export async function load(event: LoadEvent) {
-    await GQL_usersList.fetch({ event, variables: { limit: 5 } });
-    return {};
-  }
-</script>
-
 <script lang="ts">
   import { GQL_UpdateUser } from '$houdini';
 

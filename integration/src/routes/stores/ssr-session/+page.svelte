@@ -1,15 +1,12 @@
-<script context="module" lang="ts">
-  import { GQL_Session } from '$houdini';
-  import type { LoadEvent } from '@sveltejs/kit';
+<script>
+  /** @type {import('./$types').Data} */
+  export let data;
 
-  export async function load(event: LoadEvent) {
-    await GQL_Session.fetch({ event });
-    return {};
-  }
+  $: ({ Session } = data);
 </script>
 
 <h1>SSR Session</h1>
 
 <div id="result">
-  {$GQL_Session.data?.session}
+  {$Session.data?.session}
 </div>

@@ -1,20 +1,11 @@
-<script context="module" lang="ts">
-  import { browser } from '$app/env';
-  import { GQL_UpdateUser, GQL_usersList, type usersList$input } from '$houdini';
-  import { stry } from '@kitql/helper';
-  import type { LoadEvent } from '@sveltejs/kit';
-
-  export async function load(event: LoadEvent) {
-    const variables = { limit: 5 };
-    await GQL_usersList.fetch({ event, variables });
-    return { props: { variables } };
-  }
-</script>
-
 <script lang="ts">
-  export let variables: usersList$input;
+  import { GQL_UpdateUser } from '$houdini';
+  import { stry } from '@kitql/helper';
+  import type { Data } from './$types';
 
-  $: browser && GQL_usersList.fetch({ variables });
+  export let data: Data;
+
+  $: ({ usersList } = data);
 
   async function update() {
     await GQL_UpdateUser.mutate({
@@ -34,7 +25,7 @@
 <button id="revert" on:click={revert}>Reset User</button>
 
 <ul>
-  {#each $GQL_usersList.data?.usersList ?? [] as user}
+  {#each $usersList.data?.usersList ?? [] as user}
     <li>
       {user.id} - {user.name}
     </li>

@@ -1,9 +1,7 @@
-<script context="module" lang="ts">
+<script lang="ts">
   import { browser } from '$app/env';
   import { GQL_UsersListSubUnSub } from '$houdini';
-</script>
 
-<script lang="ts">
   $: browser && GQL_UsersListSubUnSub.fetch();
 </script>
 

@@ -1,24 +1,11 @@
-<script context="module" lang="ts">
-  import { page } from '$app/stores';
-  import { GQL_User, isBrowser } from '$houdini';
-  import { stry } from '@kitql/helper';
-  import type { LoadEvent } from '@sveltejs/kit';
-
-  export async function load(event: LoadEvent) {
-    let variables = { id: event.params.userId };
-    await GQL_User.fetch({ event, variables });
-    return {
-      props: {
-        variables
-      }
-    };
-  }
-</script>
-
 <script lang="ts">
-  export let variables = { id: 'default' };
+  import { page } from '$app/stores';
+  import type { Data } from './$types';
+  import { stry } from '@kitql/helper';
 
-  $: isBrowser && GQL_User.fetch({ variables });
+  export let data: Data;
+
+  $: ({ User } = data);
 </script>
 
 <h1>Prefetch - [userId: {$page.params.userId}]</h1>
@@ -29,6 +16,6 @@
 
 <div id="result">
   <pre>
-    {stry($GQL_User, 0)}
+    {stry($User, 0)}
   </pre>
 </div>

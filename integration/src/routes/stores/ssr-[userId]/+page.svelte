@@ -1,34 +1,26 @@
-<script context="module" lang="ts">
-  import { browser } from '$app/env';
-  import { page } from '$app/stores';
-  import { CachePolicy, getHoudiniContext, GQL_User, type User$input } from '$houdini';
-  import { stry } from '@kitql/helper';
-  import type { LoadEvent } from '@sveltejs/kit';
-
-  export async function load(event: LoadEvent) {
-    const variables = { id: event.params.userId, tmp: false };
-    await GQL_User.fetch({ event, variables });
-    return { props: { variables } };
-  }
-</script>
-
 <script lang="ts">
-  export let variables: User$input;
-  const context = getHoudiniContext();
+  import { getHoudiniContext, CachePolicy } from '$houdini';
+  import { page } from '$app/stores';
+  import { stry } from '@kitql/helper';
+  import type { Data } from './$types';
 
-  $: browser && GQL_User.fetch({ variables });
+  export let data: Data;
+
+  $: ({ User } = data);
+
+  const context = getHoudiniContext();
 
   async function refresh(id: string | null) {
     if (id) {
-      await GQL_User.fetch({ variables: { id, tmp: false } });
+      await User.fetch({ variables: { id, tmp: false } });
     } else {
       // context not usefull here, but we can put it!
-      await GQL_User.fetch({ context, policy: CachePolicy.NetworkOnly });
+      await User.fetch({ context, policy: CachePolicy.NetworkOnly });
     }
   }
 
   async function refresh2WithVariableDifferentOrder() {
-    await GQL_User.fetch({ variables: { tmp: false, id: '2' } });
+    await User.fetch({ variables: { tmp: false, id: '2' } });
   }
 </script>
 
@@ -40,14 +32,14 @@
 <button id="refresh-77" on:click={() => refresh('77')}>Fetch 77</button>
 <button id="refresh-2Star" on:click={() => refresh2WithVariableDifferentOrder()}>Fetch 2*</button>
 
-{#if $GQL_User.isFetching}
+{#if $User.isFetching}
   <p>Loading...</p>
-{:else if $GQL_User.errors}
+{:else if $User.errors}
   <pre>
-    {stry($GQL_User.errors)}
+    {stry($User.errors)}
   </pre>
 {:else}
   <div id="result">
-    {$GQL_User.data?.user.id} - {$GQL_User.data?.user.name}
+    {$User.data?.user.id} - {$User.data?.user.name}
   </div>
 {/if}

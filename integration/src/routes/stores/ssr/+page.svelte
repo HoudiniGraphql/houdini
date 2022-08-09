@@ -1,25 +1,14 @@
-<script context="module" lang="ts">
-  import { browser } from '$app/env';
-  import { GQL_Hello, GQL_usersList } from '$houdini';
-  import type { LoadEvent } from '@sveltejs/kit';
-
-  export async function load(event: LoadEvent) {
-    await GQL_usersList.fetch({ event });
-    await GQL_Hello.fetch({ event });
-
-    return {};
-  }
-</script>
-
 <script lang="ts">
-  $: browser && GQL_usersList.fetch();
-  $: browser && GQL_Hello.fetch();
+  import type { Data } from './$types';
+  export let data: Data;
+
+  $: ({ usersList, Hello } = data);
 </script>
 
 <h1>SSR</h1>
 
 <ul>
-  {#each $GQL_usersList.data?.usersList ?? [] as user}
+  {#each $usersList.data?.usersList ?? [] as user}
     <li>
       {user.id} - {user.name}
     </li>
@@ -27,5 +16,5 @@
 </ul>
 
 <div id="result">
-  {$GQL_Hello.data?.hello}
+  {$Hello.data?.hello}
 </div>

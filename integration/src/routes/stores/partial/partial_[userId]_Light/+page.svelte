@@ -1,25 +1,8 @@
-<script context="module" lang="ts">
-  import { browser } from '$app/env';
-  import { GQL_Partial_User_Light, type Partial_User$input } from '$houdini';
-  import type { Load } from './__types/partial_[userId]_Light';
-
-  export const load: Load<{}, { variables: Partial_User$input }> = async (event) => {
-    const variables = { id: event.params.userId };
-
-    await GQL_Partial_User_Light.fetch({ event, variables });
-
-    return {
-      props: {
-        variables
-      }
-    };
-  };
-</script>
-
 <script lang="ts">
-  export let variables: Partial_User$input;
+  import type { Data } from './$types';
+  export let data: Data;
 
-  $: browser && GQL_Partial_User_Light.fetch({ variables });
+  $: ({ Partial_User_List } = data);
 </script>
 
 <a href="./partial_List">Back to the list</a>
@@ -28,8 +11,8 @@
 <br />
 
 <div id="id">
-  {$GQL_Partial_User_Light.data?.user.id}
+  {$Partial_User_List.data?.user.id}
 </div>
 <div id="name">
-  {$GQL_Partial_User_Light.data?.user.name}
+  {$Partial_User_List.data?.user.name}
 </div>
