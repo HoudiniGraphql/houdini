@@ -10,15 +10,16 @@ export function graphql(str: TemplateStringsArray): GraphQLTagResult {
 	// if we are executing this function as part of the plugin, we need to return
 	// the query instead of throwing an error. We don't want to bundle the graphql
 	// module into the runtime so all we can do is return the query string
-	try {
-		if (globalThis.process.env.HOUDINI_PLUGIN) {
-			// @ts-ignore: this is a totally internal type. the user will never see it, we won't
-			//             and ever get a typed value of this since it's only used in the result of a dynamic
-			//             import
-			return str
-		}
-	} catch {}
+	if (globalThis?.process?.env?.HOUDINI_PLUGIN) {
+		// @ts-ignore: this is a totally internal/hidden value. user will never see it and we won't
+		//             and ever get a typed value of this since it's only used in the result of a dynamic
+		//             import from the plugin which gives Record<string, any>
+		return str
+	}
 
 	// if this is executed, the preprocessor is not enabled
-	throw new Error("Looks like you don't have the preprocessor enabled.")
+	throw new Error(`⚠️ graphql template was invoked at runtime. This should never happen and usually means that your project isn't properly configured. 
+	
+Please make sure you have the appropriate plugin/preprocessor enabled. For more information, visit this link: https://www.houdinigraphql.com/guides/setting-up-your-project
+`)
 }
