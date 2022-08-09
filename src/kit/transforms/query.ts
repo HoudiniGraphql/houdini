@@ -254,16 +254,8 @@ export async function find_inline_queries(
 	})
 
 	return queries.map((query) => {
-		// we need to make sure that we have reference to the store
-		// for every query
-		const { id } = store_import({
-			config: page.config,
-			artifact: query,
-			script: page.script,
-		})
-
 		return {
-			store_id: AST.identifier(id),
+			store_id: AST.identifier(''),
 			name: query.name,
 			variables: query.variables,
 		}

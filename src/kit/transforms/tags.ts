@@ -14,7 +14,7 @@ export default async function GraphQLTagProcessor(config: Config, ctx: Transform
 		dependency: ctx.addWatchFile,
 		tag(tag) {
 			// pull out what we need
-			const { node, parsedDocument, parent } = tag
+			const { node, parsedDocument } = tag
 			const operation = parsedDocument.definitions[0] as graphql.ExecutableDefinitionNode
 
 			// we're going to turn the graphql tag into a reference to the document's
