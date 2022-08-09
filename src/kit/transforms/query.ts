@@ -1,4 +1,4 @@
-import { ExpressionKind } from 'ast-types/gen/kinds'
+import { ExpressionKind, StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
@@ -52,117 +52,6 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 		})
 	)
 
-	// define some things we'll need when fetching
-	page.script.body.push(
-		// houdini context
-		AST.variableDeclaration('const', [
-			AST.variableDeclarator(
-				ctx_id,
-				AST.callExpression(AST.identifier('getHoudiniContext'), [])
-			),
-		]),
-
-		// a variable to hold the query input
-		...queries.map((query) => {
-			// the identifier to use for this variables inputs
-			const input_name = local_input_id(query.name)
-
-			// if the query does not have variables, just define something local
-			const variable_fn = query_variable_fn(query.name)
-			if (!find_exported_fn(page.script.body, variable_fn)) {
-				return AST.variableDeclaration('const', [
-					AST.variableDeclarator(input_name, AST.objectExpression([])),
-				])
-			}
-
-			// there is a variable function we need a reactive expression that computes it
-			return AST.labeledStatement(
-				AST.identifier('$'),
-				//
-				AST.expressionStatement(
-					AST.assignmentExpression(
-						'=',
-						input_name,
-						AST.callExpression(AST.identifier('marshalInputs'), [
-							AST.objectExpression([
-								AST.objectProperty(
-									AST.identifier('config'),
-									AST.identifier('houdiniConfig')
-								),
-								AST.objectProperty(
-									AST.identifier('artifact'),
-									AST.identifier(
-										artifact_import({
-											config: page.config,
-											artifact: query,
-											script: page.script,
-										}).ids[0]
-									)
-								),
-								AST.objectProperty(
-									AST.identifier('input'),
-									AST.callExpression(
-										AST.memberExpression(
-											AST.identifier(variable_fn),
-											AST.identifier('call')
-										),
-										[
-											ctx_id,
-											AST.objectExpression([
-												AST.objectProperty(
-													AST.identifier('props'),
-													// pass every prop explicitly
-													AST.objectExpression(
-														props.map((prop) =>
-															AST.objectProperty(
-																AST.identifier(prop),
-																AST.identifier(prop)
-															)
-														)
-													)
-												),
-												// pull session, stuff, and url from the context
-												...['session', 'url'].map((name) =>
-													AST.objectProperty(
-														AST.identifier(name),
-														AST.callExpression(
-															AST.memberExpression(
-																ctx_id,
-																AST.identifier(name)
-															),
-															[]
-														)
-													)
-												),
-											]),
-										]
-									)
-								),
-							]),
-						])
-					)
-				)
-			)
-		})
-	)
-
-	// add the necessary logic to the component source
-	await process_component({
-		page,
-		queries,
-		input_id: local_input_id,
-	})
-}
-
-export async function process_component({
-	page,
-	queries,
-	input_id,
-}: {
-	page: TransformPage
-	queries: LoadTarget[]
-	input_id: (name: string) => ExpressionKind
-}) {
 	// add an import for the context utility
 	ensure_imports({
 		config: page.config,
@@ -179,45 +68,133 @@ export async function process_component({
 		sourceModule: '$houdini/runtime/adapter',
 	}).added
 
-	// make sure that we have imports for every store
-	const store_ids: Record<string, string> = {}
-	for (const query of queries) {
-		const { id } = store_import({
-			config: page.config,
-			artifact: query,
-			script: page.script,
-		})
-		store_ids[query.name] = id
-	}
-
-	// we need to add the client side fetches for every query that we ran into
+	// define some things we'll need when fetching
 	page.script.body.push(
-		...queries.map((query) =>
-			AST.labeledStatement(
-				AST.identifier('$'),
-				AST.expressionStatement(
-					AST.logicalExpression(
-						'&&',
-						AST.identifier('isBrowser'),
-						AST.callExpression(
-							AST.memberExpression(
-								AST.identifier(store_ids[query.name]),
-								AST.identifier('fetch')
-							),
-							[
-								AST.objectExpression([
-									AST.objectProperty(AST.identifier('context'), ctx_id),
-									AST.objectProperty(
-										AST.identifier('variables'),
-										input_id(query.name)
-									),
-								]),
-							]
+		// houdini context
+		AST.variableDeclaration('const', [
+			AST.variableDeclarator(
+				ctx_id,
+				AST.callExpression(AST.identifier('getHoudiniContext'), [])
+			),
+		]),
+
+		// a variable to hold the query input
+		...queries.flatMap<StatementKind>((query) => {
+			// the identifier to use for this variables inputs
+			const input_name = local_input_id(query.name)
+
+			// if the query does not have variables, just define something local
+			const variable_fn = query_variable_fn(query.name)
+			const has_variables = find_exported_fn(page.script.body, variable_fn)
+
+			return [
+				// define the inputs for the query
+				AST.labeledStatement(
+					AST.identifier('$'),
+					//
+					AST.expressionStatement(
+						AST.assignmentExpression(
+							'=',
+							input_name,
+							has_variables
+								? AST.callExpression(AST.identifier('marshalInputs'), [
+										AST.objectExpression([
+											AST.objectProperty(
+												AST.identifier('config'),
+												AST.identifier('houdiniConfig')
+											),
+											AST.objectProperty(
+												AST.identifier('artifact'),
+												AST.memberExpression(
+													AST.identifier(
+														store_import({
+															config: page.config,
+															artifact: query,
+															script: page.script,
+														}).id
+													),
+													AST.identifier('artifact')
+												)
+											),
+											AST.objectProperty(
+												AST.identifier('input'),
+												AST.callExpression(
+													AST.memberExpression(
+														AST.identifier(variable_fn),
+														AST.identifier('call')
+													),
+													[
+														ctx_id,
+														AST.objectExpression([
+															AST.objectProperty(
+																AST.identifier('props'),
+																// pass every prop explicitly
+																AST.objectExpression(
+																	props.map((prop) =>
+																		AST.objectProperty(
+																			AST.identifier(prop),
+																			AST.identifier(prop)
+																		)
+																	)
+																)
+															),
+															// pull session, stuff, and url from the context
+															...['session', 'url'].map((name) =>
+																AST.objectProperty(
+																	AST.identifier(name),
+																	AST.callExpression(
+																		AST.memberExpression(
+																			ctx_id,
+																			AST.identifier(name)
+																		),
+																		[]
+																	)
+																)
+															),
+														]),
+													]
+												)
+											),
+										]),
+								  ])
+								: AST.objectExpression([])
 						)
 					)
-				)
-			)
-		)
+				),
+
+				// load the query
+				AST.labeledStatement(
+					AST.identifier('$'),
+					AST.expressionStatement(
+						AST.logicalExpression(
+							'&&',
+							AST.identifier('isBrowser'),
+							AST.callExpression(
+								AST.memberExpression(
+									AST.identifier(
+										store_import({
+											config: page.config,
+											artifact: query,
+											script: page.script,
+										}).id
+									),
+									AST.identifier('fetch')
+								),
+								[
+									AST.objectExpression([
+										AST.objectProperty(AST.identifier('context'), ctx_id),
+										AST.objectProperty(
+											AST.identifier('variables'),
+											local_input_id(query.name)
+										),
+									]),
+								]
+							)
+						)
+					)
+				),
+			]
+		})
 	)
 }
 

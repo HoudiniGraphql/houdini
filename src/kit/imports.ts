@@ -92,10 +92,11 @@ export function artifact_import({
 	script: Script
 	local?: string
 }) {
-	return ensure_imports({
+	const { ids, added } = ensure_imports({
 		config,
 		script,
 		sourceModule: config.artifactImportPath(artifact.name),
 		import: local || `_${artifact.name}Artifact`,
 	})
+	return { id: ids[0], added }
 }

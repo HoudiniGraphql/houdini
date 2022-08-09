@@ -3,25 +3,12 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import {
-	Config,
-	operation_requires_variables,
-	parseJS,
-	parseSvelte,
-	readFile,
-	stat,
-} from '../../common'
+import { Config, operation_requires_variables, parseSvelte, readFile, stat } from '../../common'
 import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
 import { find_insert_index } from '../ast'
 import { ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
-import {
-	LoadTarget,
-	ctx_id,
-	find_inline_queries,
-	process_component,
-	query_variable_fn,
-} from './query'
+import { LoadTarget, find_inline_queries, query_variable_fn } from './query'
 
 const AST = recast.types.builders
 

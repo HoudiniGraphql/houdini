@@ -253,7 +253,9 @@ describe('kit route processor', function () {
 		} = query(GQL_TestQuery);
 
 		const _houdini_context_DO_NOT_USE = getHoudiniContext();
-		const _TestQuery_Input = {};
+
+		$:
+		_TestQuery_Input = {};
 
 		$:
 		isBrowser && GQL_TestQuery.fetch({
