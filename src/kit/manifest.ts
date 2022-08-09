@@ -2,7 +2,7 @@ import { transform } from '@babel/core'
 import path from 'path'
 import { transformWithEsbuild } from 'vite'
 
-import { Config, parseJS } from '../common'
+import { Config, formatErrors, parseJS } from '../common'
 import * as fs from '../common/fs'
 
 // safely import the files when we're transforming
@@ -49,8 +49,8 @@ async function walk_route_dir(
 			try {
 				transformed = (await transformWithEsbuild(contents, child_path)).code
 			} catch (e) {
-				// TODO: text
-				console.log(e)
+				formatErrors({ message: (e as Error).message, filepath: child_path })
+				throw new Error('For more information, scroll up ☝️')
 			}
 			if (!transformed) {
 				continue

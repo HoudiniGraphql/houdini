@@ -8,6 +8,7 @@ import {
 	ParsedFile,
 	parseSvelte,
 	findScriptInnerBounds,
+	formatErrors,
 } from '../../common'
 import { TransformPage } from '../plugin'
 import svelteKit from './kit'
@@ -62,8 +63,7 @@ export default async function apply_transforms(
 	try {
 		await runPipeline(config, pipeline, result)
 	} catch (e) {
-		// TODO: text
-		console.log(e)
+		formatErrors({ message: (e as Error).message, filepath: page.filepath })
 		return { code: content }
 	}
 

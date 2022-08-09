@@ -1,14 +1,11 @@
 import { Command } from 'commander'
-import { glob } from 'glob'
-import path from 'path'
 
-import { formatErrors, getConfig, LogLevel, readConfigFile, Config } from '../common'
+import { formatErrors, getConfig, LogLevel, Config } from '../common'
 import { ConfigFile } from '../runtime'
 import generate from './generate'
 import init from './init'
 import pullSchema from './pullSchema'
 import { HoudiniError } from './types'
-import { writeSchema } from './utils/writeSchema'
 
 // build up the cli
 const program = new Command()

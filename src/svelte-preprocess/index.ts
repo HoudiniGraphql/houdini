@@ -1,3 +1,5 @@
+import { logGreen } from '@kitql/helper'
+
 import { getConfig } from '../common'
 import transform from '../kit/transforms'
 import { ConfigFile } from '../runtime'
@@ -19,8 +21,21 @@ export default function houdiniPreprocessor(
 
 			// if we detected a kit project using the preprocessor, tell them they need to update
 			if (config.framework === 'kit') {
-				// TODO: text
-				throw new Error('Please use the vite plugin.')
+				throw new Error(`⚠️ houdini/preprocess has been replaced by houdini/kit.
+Please remove the configuration from your svelte.config.js and update your vite.config.js to look like the following 👇
+
+Order for plugins is important. Make sure houdini comes before sveltekit
+
+import { sveltekit } from '@sveltejs/kit/vite';
+${logGreen("import 'houdini' from 'houdini/kit';")}
+
+/** @type {import('vite').UserConfig} */
+const config = {
+  plugins: [${logGreen('houdini()')}, sveltekit()] 
+};
+
+export default config;
+`)
 			}
 
 			// build up the necessary context to run the vite transform

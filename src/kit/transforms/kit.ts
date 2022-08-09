@@ -3,7 +3,14 @@ import { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, operation_requires_variables, parseSvelte, readFile, stat } from '../../common'
+import {
+	Config,
+	formatErrors,
+	operation_requires_variables,
+	parseSvelte,
+	readFile,
+	stat,
+} from '../../common'
 import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
 import { find_insert_index } from '../ast'
 import { ensure_imports, store_import } from '../imports'
@@ -124,12 +131,11 @@ function add_load({
 		const variable_fn = query_variable_fn(query.name)
 		// if the page doesn't export a function with the correct name, something is wrong
 		if (!page_info.exports.includes(variable_fn) && query.variables) {
-			// TODO: text
 			// tell them we're missing something
-			console.log()
-			console.log(page_info.exports)
-			console.log(`error in ${page.filepath}:
-could not find required variable function: ${variable_fn}. maybe its not exported?`)
+			formatErrors({
+				filepath: page.filepath,
+				message: `Could not find required variable function: ${variable_fn}. maybe its not exported? `,
+			})
 
 			// don't go any further
 			invalid = true
@@ -346,8 +352,7 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 	) as graphql.OperationDefinitionNode
 	// if it doesn't exist, there is an error, but no discovered query either
 	if (!definition) {
-		// TODO: text
-		console.log('page.gql must contain a query')
+		formatErrors({ message: 'page.gql must contain a query.', filpath: page_query_path })
 		return null
 	}
 
@@ -462,8 +467,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 			try {
 				parsed = graphql.parse(document)
 			} catch {
-				// TODO: text
-				console.log("we got a string that isn't a graphql query")
+				formatErrors(loadError(route_path))
 				continue
 			}
 
@@ -473,8 +477,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 					defn.kind === 'OperationDefinition' && defn.operation === 'query'
 			)
 			if (!query) {
-				// TODO: text
-				console.log('houdini_load must contain store references')
+				formatErrors(loadError(route_path))
 				return nil
 			}
 
@@ -483,8 +486,10 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 
 			// make sure a store only shows up once
 			if (seen.has(name)) {
-				// TODO: text
-				console.log('a store can only appear once')
+				formatErrors({
+					filepath: route_path,
+					message: `encountered multiple references to ${name} in houdini_load. A store can only appear once.`,
+				})
 				return nil
 			}
 			seen.add(name)
@@ -499,7 +504,7 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 		else {
 			// validate the kind (so we know its a store)
 			if (document.kind !== CompiledQueryKind) {
-				console.log('you must pass query stores to houdini_load')
+				formatErrors(loadError(route_path))
 				continue
 			}
 
@@ -524,3 +529,8 @@ type QueryInfo = {
 	name: string
 	variables: boolean
 }
+
+const loadError = (filepath: string) => ({
+	filepath,
+	message: 'encountered an invalid entry in houdini_load. ',
+})
