@@ -109,34 +109,32 @@ arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) hook.
 
 ```svelte
 <script context="module">
-    // It has access to the same arguments,
-    // this.error, and this.redirect as the variable functions
-    export function beforeLoad({page, session}){
-        if(!session.authenticated){
-            return this.redirect(302, '/login')
-        }
+	// It has access to the same arguments,
+	// this.error, and this.redirect as the variable functions
+	export function beforeLoad({ page, session }) {
+		if (!session.authenticated) {
+			return this.redirect(302, '/login')
+		}
 
-    	return {
-            props: {
-                message: "Number of items:"
-            }
-        }
-    }
+		return {
+			message: 'Number of items:'
+		}
+	}
 </script>
 
 <script>
-    import { query, graphql } from '$houdini'
+	import { query, graphql } from '$houdini'
 
-    export let message
+	export let message
 
-    // load the items
-    const { data } = query(graphql`
-        query AllItems {
-            items {
-                id
-            }
-        }
-    `)
+	// load the items
+	const { data } = query(graphql`
+		query AllItems {
+			items {
+				id
+			}
+		}
+	`)
 </script>
 
 {message}: {$data.items.length}
@@ -153,29 +151,31 @@ docs.
 
 ```svelte
 <script context="module">
-    export function MyProfileVariables({ page: { params: { id } } }) {
-        return { id }
-    }
-    export function afterLoad({ data }){
-        if(!data.MyProfile){
-            return this.error(404)
-        }
+	export function MyProfileVariables({
+		page: {
+			params: { id }
+		}
+	}) {
+		return { id }
+	}
+	export function afterLoad({ data }) {
+		if (!data.MyProfile) {
+			return this.error(404)
+		}
 
-        return {
-            props: {
-                message: "Hello I'm"
-            }
-        }
-    }
+		return {
+			message: "Hello I'm"
+		}
+	}
 </script>
 
 <script>
-    import { query, graphql } from '$houdini'
+	import { query, graphql } from '$houdini'
 
-    export let message
+	export let message
 
-    // load the items
-    const { data } = query(graphql`
+	// load the items
+	const { data } = query(graphql`
         query MyProfile {
             profile(id) {
                 name
