@@ -1,0 +1,166 @@
+---
+title: Fragment
+index: 2
+description: Fragments in Houdini
+---
+
+<script>
+    import { HeaderWithMode } from '~/components'
+    import { Highlight, HighlightAuto } from 'svelte-highlight'
+    import { Transformation } from '~/components'
+    import { graphql } from '~/lib/highlight'
+
+
+	 const forwardPaginationStoreBefore = `
+fragment UserInfo on User {
+    friends(first: 10) @paginate( name: "My_Friends") {
+        edges {
+            node {
+                id
+            }
+        }
+    }
+}
+`
+	const forwardPaginationStoreAfter = `
+type UserInfoStore = FragmentStore & {
+    loadNextPage(
+        houdiniContext: HoudiniContext,
+        pageCount?: number,
+        after?: string | number
+    ): Promise<void>,
+
+    pageInfo: Readable<PageInfo>
+}
+`
+	 const backwardsPaginationStoreBefore = `
+fragment UserInfo on User {
+    friends(last: 10) @paginate(name: "My_Friends") {
+        edges {
+            node {
+                id
+            }
+        }
+    }
+}
+`
+	const backwardsPaginationStoreAfter = `
+type UserInfoStore = FragmentStore & {
+    loadPreviousPage(
+        houdiniContext: HoudiniContext,
+        pageCount?: number,
+        before?: string | number
+    ): Promise<void>,
+
+  pageInfo: Readable<PageInfo>
+}
+`
+	 const offsetPaginationStoreBefore = `
+fragment UserInfo on User {
+    friends(limit: 10) @paginate(name: "My_Friends") {
+        id
+    }
+}
+`
+	const offsetPaginationStoreAfter = `
+type UserInfoStore = FragmentStore & {
+    loadNextPage(
+        houdiniContext: HoudiniContext,
+        limit?: number,
+        offset?: number
+    ): Promise<void>,
+}
+`
+</script>
+
+<HeaderWithMode title="Fragment"  />
+
+Load a snapshot of data for a particular object that has had the fragment applied.
+
+```svelte
+<script>
+    import UserAvatarStore from '$houdini/stores/UserAvatar'
+
+    // the reference will get passed as a prop
+    export let user
+
+    // load the necessary data to the UserAvatar for the specified object
+    $: data = UserAvatar.get(user)
+</script>
+
+<img src={$data.profilePicture} />
+```
+
+## Fragment Arguments
+
+In some situations it's necessary to configure the documents inside of a fragment. For example,
+you might want to extend the `UserAvatar` component to allow for different sized profile pictures.
+To support this, houdini provides two directives `@arguments` and `@with` which declare arguments
+for a fragment and provide values, respectively.
+
+Default values can be provided to fragment arguments with the `default` key:
+
+```graphql
+fragment UserAvatar on User @arguments(width: { type: "Int", default: 50 }) {
+	profilePicture(width: $width)
+}
+```
+
+In order to mark an argument as required, pass the type with a `!` at the end.
+If no value is provided, an error will be thrown when generating your runtime.
+
+```graphql
+fragment UserAvatar on User @arguments(width: { type: "Int!" }) {
+	profilePicture(width: $width)
+}
+```
+
+Providing values for fragments is done with the `@with` decorator:
+
+```graphql
+query AllUsers {
+	users {
+		...UserAvatar @with(width: 100)
+	}
+}
+```
+
+> Keep in mind, if you are using fragment variables inside of a field flagged for
+> list operations, you'll have to pass a value for the variable when performing the operation
+
+## Paginated Fragments
+
+If the fragment contains the pagination directive then the generated store will have extra fields/methods
+according to the pagination strategy and direction. For more information about pagination in general, check
+out [this guide](/guides/pagination).
+
+### Forward cursor pagination
+
+If the decorated field implements cursor-based pagination and provides a `first` argument, the query store will be
+generated with an extra method that loads more data and a field pointing to a store with the current `pageInfo`
+object. This extra field can be used to track if there are more pages to load:
+
+<Transformation>
+	<Highlight slot="from" code={forwardPaginationStoreBefore} language={graphql} />
+	<HighlightAuto slot="to" code={forwardPaginationStoreAfter} />
+</Transformation>
+
+### Backwards cursor pagination
+
+If the decorated field implements cursor-based pagination and provides a `last` argument, the query store will be
+generated with an extra method that loads more data and a field pointing to a store with the current `pageInfo`
+object. This extra field can be used to track if there are more pages to load:
+
+<Transformation>
+	<Highlight slot="from" code={backwardsPaginationStoreBefore} language={graphql} />
+	<HighlightAuto slot="to" code={backwardsPaginationStoreAfter} />
+</Transformation>
+
+### Offset/limit Pagination
+
+If the decorated field implements offset/limit pagination and provides a `limit` argument, the query store will be generated with an extra methods that lets it load more pages after the one the current one:
+
+<Transformation>
+	<Highlight slot="from" code={offsetPaginationStoreBefore} language={graphql} />
+	<HighlightAuto slot="to" code={offsetPaginationStoreAfter} />
+</Transformation>

@@ -1,0 +1,61 @@
+---
+title: Config
+index: 6
+description: A description of every valid configuration value for Houdini.
+---
+
+# Config File
+
+All configuration for your houdini application is defined in a single file that is imported by both the runtime and the command-line tool (called `houdini.config.js`). Because of this, you must make sure that any imports and logic are resolvable in both environments. This means that if you rely on process.env or other node-specifics you will have to use a plugin to replace the expression with something that can run in the browser.
+
+## Fields
+
+It can contain the following values:
+
+- `sourceGlob`: a glob telling the runtime generator where to look for your graphql documents
+- `schemaPath` (optional): the path to the static representation of your schema, can be a glob pointing to multiple files. One of `schema` or `schemaPath` is required
+- `schema` (optional): a string containing your entire schema (mostly useful for testing). One of `schema` or `schemaPath` is required
+- `framework` (optional): One of `"kit"`, `"sapper"`, or `"svelte"`. Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: `kit`)
+- `module` (optional): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create. (default: `esm`)
+- `definitionsPath` (optional): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
+- `apiUrl` (optional): A url to use to pull the schema. For more information see the [generate command docs](/api/cli#generate)
+- `static` (optional): A boolean that tells the preprocessor to treat every component as a non-route. This is useful for projects built with the static-adapter
+- `scalars` (optional): An object describing custom scalars for your project (see below).
+- `cacheBufferSize` (optional): The number of queries that must occur before a value is removed from the cache. For more information, see the [Caching Guide](/guides/caching-data).
+- `defaultCachePolicy` (optional): The default cache policy to use for queries. For a list of the policies or other information see the [Caching Guide](/guides/caching-data).
+- `defaultPartial` (optional): specifies wether or not the cache should always use partial data. For more information, check out the [Partial Data guide](/guides/caching-data#partial-data).
+- `defaultKeys` (optional): A list of fields to use when computing a record's id. The default value is `['id']`. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
+- `types` (optional): an object that customizes the resolution behavior for a specific type. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
+- `logLevel` (optional): Specifies the style of logging houdini will use when generating your file. One of "quiet", "full", "summary", or "short-summary".
+- `disableMasking` (optional): A boolean indicating whether fields from referenced fragments should be included in a document's selection set
+- `routesDir` (optional): The directory containing your project routes. For default Kit and Sapper projects, this value is ./src/routes
+- `routes` (optional): A function to customize the logic houdini uses to identify a route or component when the file is _inside_ of the routesDir. You do not need to define this if you have a custom value in your SvelteKit config file - Houdini will use what's there.
+- `frameworkConfigFile` (optional): The path to your framework config file relative to the houdini config file. By default, Houdini will look for your framework config file in process.cwd() however that's not always valid. Use this option to customize where houdini looks.
+
+## Custom Scalars
+
+Configuring your runtime to handle custom scalars is done under the `scalars` key in your config:
+
+```javascript
+// houdini.config.js
+
+export default {
+	// ...
+
+	scalars: {
+		// the name of the scalar we are configuring
+		DateTime: {
+			// the corresponding typescript type
+			type: 'Date',
+			// turn the api's response into that type
+			unmarshal(val) {
+				return new Date(val)
+			},
+			// turn the value into something the API can use
+			marshal(date) {
+				return date.getTime()
+			}
+		}
+	}
+}
+```

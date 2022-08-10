@@ -1,0 +1,92 @@
+---
+title: Frequently Asked Questions
+index: 0
+description: A list of frequently asked questions when working with Houdini
+---
+
+# F.A.Q.
+
+Here are some answers to common questions you might have while working with Houdini
+
+### Can I use queries in endpoints?
+
+Yep! You can use queries or any document anywhere you can use a svelte store. Just define your query in an external file and use the store api as described in [Query Store](/api/query/store) api docs.
+
+### Can I define graphql documents in external files?
+
+Yes! You'll just have to rely on the store apis for your documents and write your route's loads manually.
+For more information on using your document's stores check out [Working with GraphQL](/guides/working-with-graphql) guide.
+
+### What's the best way to build a Full-Stack application with SvelteKit?
+
+Simple answer, we recommend [KitQL](https://www.kitql.dev/). It gives you everything you need when building a full-stack application with GraphQL (including [Houdini](https://www.houdinigraphql.com/) of course 😉). For more information about our collaboration, head over to this [blog post](https://www.the-guild.dev/blog/houdini-and-kitql).
+
+### How do I customize the fetching logic on a case-by-case basis?
+
+You should use the `metadata` parameter in the document store to pass arbitrary information into your client's network function. For more information,
+please visit [the query store docs](/api/query/store#passing-metadata).
+
+### How does the preprocessor work?
+
+If you are familiar with the SvelteKit API, you probably noticed that you don't need to define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading) when using inline documents. Don't worry, your routes are still rendered on the server thanks to the preprocessor. One of its responsibilities is moving the actual fetch into a `load`.
+
+For example, consider this query:
+
+```svelte
+<script>
+    import { query, graphql } from '$houdini'
+
+    const { data } = query(graphql`
+        query SpeciesInfo {
+            species(id: 1) {
+                name
+                flavor_text
+                sprites {
+                    front
+                }
+            }
+        }
+    `)
+</script>
+
+<div>
+    {$data.species.name}
+</div>
+```
+
+You can think of it as equivalent to:
+
+```svelte
+<script context="module">
+    import SpeciesInfoStore from '$houdini/stores/SpeciesInfo'
+    import { browser } from '$app/env'
+
+    export async function load({ event }) {
+        await SpeciesInfoStore.fetch({ event } )
+    }
+</script>
+
+<script>
+    const { data } = $SpeciesInfoStore
+
+    $: browser && SpeciesInfoStore.fetch()
+</script>
+```
+
+If you haven't seen Houdini's document stores before, please check out the [Working with GraphQL](/guides/working-with-graphql) guide.
+
+### Why is the inline query variable API so weird?
+
+To understand why things are designed the way they are, you should consider the output of the preprocessor (shown above). Any logic that's used to compute the query variables needs to be hoisted up to the module context block so that the value could be passed onto the server. Since the user would naturally want to execute arbitrary logic when computing this value, we have to make sure that any imports or function definitions are available to the module context so that they can run.
+
+### My IDE is complaining that the internal directives and fragments don't exist.
+
+Every plugin and editor is different so we can't give you an exact answer but Houdini will write a file inside of the `$houdini` directory that contains all of the custom definitions that it relies on. Be default this file is located at `$houdini/graphql/schema.graphql` and `$houdini/graphql/documents.gql`. You can configure this value in your [config file](/api/config) under the `definitionsPath` value.
+
+### When will version `1.0` be released?
+
+Quick answer is when svelekit gets to `1.0`. Until then, we want to be able to break the API in order to create the most convenient experience for the majority of users.
+
+### Does Houdini support Framework X?
+
+At the moment, Houdini only support SvelteKit, Sapper, and vanilla Svelte projects. If you are interested in integrating Houdini into another framework, please reach out! We are very interested in adding support for additional frameworks, we just don't have an abundance of time 😅

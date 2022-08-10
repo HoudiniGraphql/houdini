@@ -1,0 +1,251 @@
+---
+title: Fetching Data
+index: 1
+description: The first part of the Houdini intro focusing on how to fetch data
+---
+
+<script>
+    import { GraphQLExplained, DeepDive } from '~/components'
+</script>
+
+# Fetching Data
+
+Before we do anything _too_ complicated, lets get something on the screen. Open up `src/routes/index.svelte` and fill it with the following content. Don't worry if you see an error after saving, we'll address that next.
+
+```svelte
+<!-- src/routes/index.svelte -->
+
+<script>
+    import { query, graphql } from '$houdini'
+    import { Container, Display, Sprite, Panel } from '~/components'
+
+    const { data } = query(graphql`
+        query SpeciesInfo {
+            species(id: 1) {
+                name
+                flavor_text
+                sprites {
+                    front
+                }
+            }
+        }
+    `)
+</script>
+
+<Container>
+    <Panel slot="left">
+		<Display id="species-name">
+			{$data.species.name}
+			<span>no.{$data.species.id}</span>
+		</Display>
+        <Sprite
+            id="species-sprite"
+            src={$data.species.sprites.front}
+            speciesName={$data.species.name}
+        />
+        <Display id="species-flavor_text">
+            {$data.species.flavor_text}
+        </Display>
+    </Panel>
+</Container>
+```
+
+In this example, you can see we are taking a graphql query named `SpeciesInfo` and rendering the result using some components from the project's `components` directory. There is a lot of stuff going on under the hood here but let's not worry about it for now - what matters most is that we passed a named query with `graphql` into the `query` function and got back a store that we are using to access the result of our query.
+
+<GraphQLExplained title="Queries">
+
+A GraphQL query is a string that describes what information you want from the API. For example, the following defines a query named `QueryUserInfo`. In Houdini, all documents like queries must be named for reasons that will become more clear later.
+
+```graphql
+query CurrentUserInfo {
+	current_user {
+		firstName
+	}
+}
+```
+
+The result of the above query might look something like:
+
+```json
+{
+	"data": {
+		"current_user": {
+			"firstName": "Bill"
+		}
+	}
+}
+```
+
+Notice how the fields in the query match the values? The format of the original query is meant to model the response type.
+
+Fields in a query can take arguments to customize their behavior, for example:
+
+```graphql
+query CurrentUserInfo {
+	current_user {
+		# specify the format for the date time stamp
+		lastLogin(format: "YYYY-MM-DD")
+	}
+}
+```
+
+might return something like this:
+
+```json
+{
+	"data": {
+		"current_user": {
+			"lastLogin": "2022-12-25"
+		}
+	}
+}
+```
+
+For more information on GraphQL Queries, [this is a good resource](https://graphql.org/learn/queries/#fields).
+
+</GraphQLExplained>
+
+If everything is set up properly, you should see a message printed in your terminal once you save the file. Behind the scenes, Houdini is constantly validating and processing
+your queries so you can catch errors as quickly as possible.
+
+By the way, if you ever change your schema and you need to update the local version, you can pass `-p` to `generate` and it will pull the latest version from your API before generating everything.
+
+Anyway, now that you have the necessary files, you should see a description of the first species in the generation 1 Pokédex - the ever popular Bulbasaur. If you are still running into issues, please reach out to us on the svelte discord and we'd be happy to help.
+
+<DeepDive title="What happened to load?">
+
+If you were looking carefully, you might have noticed that we didn't define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading). Don't worry, this route is still rendered on the server thanks to the preprocessor. One of its responsibilities is moving the actual fetch into a `load`. You can think of the block at the top of this section as equivalent to:
+
+```svelte
+<script context="module">
+    export async function load({ fetch }) {
+            return {
+                props: {
+                    _data: await fetch(API_URL, {
+                        text: `
+                            query SpeciesInfo {
+                                species(id: 1) {
+                                    name
+                                    flavor_text
+                                    sprites {
+                                        front
+                                    }
+                                }
+                            }
+                        `
+                    })
+                },
+            }
+    }
+</script>
+
+<script>
+    export let _data
+
+    const data = readable(_data, ...)
+</script>
+
+<!-- the rest of the components -->
+```
+
+</DeepDive>
+
+## Query Variables
+
+This is a good start but we will need to be able to show information for more species than just Bulbasaur. Let's set up our application to take look at the url for the id of the species we are interested in. To do that, rename `index.svelte` to `[...id].svelte`. That will let us have an optional parameter in the url which we will interpret as the ID (ie, `/` and `/1` will both render Bulbasaur's page).
+
+<GraphQLExplained title="Query Variables">
+
+All of the queries we've seen so far have had static arguments. However, most of the time you will need to want to give an argument a dynamic value based on something in your application. For example, the text of an input when filtering a list. GraphQL allows us to define references to dynamic values that must be fulfilled when sending the query. These values are known as variables and can be applied to not just queries: mutations and subscription too!
+
+Defining variables for your document looks like the follow:
+
+```graphql
+query MyQuery($variable1: Boolean) {
+	myField(argument: $variable1)
+}
+```
+
+Notice the `($variable1: Boolean)`? That's how we say that the `MyQuery` query takes one argument, called `$variable1`, that is a `Boolean`. All variables in GraphQL must start with a `$` (makes the compilers job easier) and are optional by default. In order to mark a variable as required, you have to put `!` at the end of the type:
+
+```graphql
+query MyQuery($variable1: Boolean, variable2: String!) {
+	myField(arg1: $variable1, arg2: $variable2)
+}
+```
+
+</GraphQLExplained>
+
+Now that we have the actual route defined, we will have to change our query so that it can accept a variable. Doing this is relatively simple, just update the string inside of the `graphql` tag to look like the following:
+
+```graphql
+query SpeciesInfo($id: Int!) {
+	species(id: $id) {
+		name
+		flavor_text
+		sprites {
+			front
+		}
+	}
+}
+```
+
+In order to tell the runtime how to compute that value, you have to define a function called `SpeciesInfoVariables` in the `module` context of your component that returns the correct value. Add the following block of code under the closing `script` tag in your component:
+
+```svelte
+<script context="module">
+    export function SpeciesInfoVariables({ params }) {
+        return {
+            id: params.id ? parseInt(params.id) :  1
+        }
+    }
+</script>
+```
+
+Once that's done, you should be able to navigate to `/6` to see Charizard's information. It's worth mentioning that if you _did_ run `generate` after adding the variable to the query, you don't need to run it again because of the new function. You only need to run it when you change something inside of a `graphql` tag.
+
+Note: the name of the function that returns the values for a query's variables must follow a very specific format. It must be called `{QueryName}Variables`. If you look at the query we are working with, you'll see its named `SpeciesInfo` which is why this function is named `SpeciesInfoVariables`.
+
+For completeness, let's quickly add some buttons to navigate between the different species. Copy and paste this block of code as the last child of the `Container` component:
+
+```svelte
+<Panel slot="right">
+    <nav>
+        <a href={$data.species.id - 1} disabled={$data.species.id <= 1}>
+            previous
+        </a>
+        <a href={$data.species.id + 1} disabled={$data.species.id >= 151}>
+            next
+        </a>
+    </nav>
+</Panel>
+```
+
+## Error Handling
+
+So far so good! There is one slight problem: there are only 151 species in the first generation of Pokémon. The buttons we added in the last section prevent the user from going beyond those bounds, but if we navigate to `/152` directly we will get an error since `$data.species` is null. Go ahead, give it a try.
+
+In order to prevent this, we need to check if `id` is between `1` and `151` and if not, render an error for the user. This is accomplished by updating `SpeciesInfoVariables` to look like:
+
+```javascript
+export function SpeciesInfoVariables({ params }) {
+	// if we were given an id, convert the string to a number
+	const id = params.id ? parseInt(params.id) : 1
+
+	// check that the id falls between 1 and 151
+	if (id < 1 || id > 151) {
+		// return a status code 400 along with the error
+		return this.error(400, 'id must be between 1 and 151')
+	}
+
+	return {
+		id
+	}
+}
+```
+
+We could also take the opportunity to make sure that the user didn't try to navigate to a nested route like `/1/foo` but we'll leave that as an exercise for you.
+
+## What's Next?
+
+Now that you've seen the basics of fetching data from the server, we're going to start to dig a little deeper into how we should be organizing our queries. In the next section we're going to give our Svelte components the power to define their own data requirements so we don't have to worry about their concerns when building this route's query.

@@ -1,0 +1,186 @@
+---
+title: Caching Data
+index: 4
+description: A guide to all things caching in Houdini
+---
+
+# Caching Data
+
+By default, Houdini will only try to load queries against its local cache when you indicate it is safe to do so.
+This can be done with the `@cache` directive:
+
+```graphql
+query AllItems @cache(policy: CacheOrNetwork) {
+	items {
+		id
+		text
+	}
+}
+```
+
+There are 3 different policies that can be specified:
+
+- `CacheOrNetwork` will first check if a query can be resolved from the cache. If it can, it will return the cached value and only send a network request if data was missing. If you have opted into partial data with `@cache(partial: true)` and the result contains partial data (some but not all of the data is available in the cache), you will get the partial data first and then a network request will trigger - almost like it behaves like `CacheAndNetwork`.
+- `CacheAndNetwork` will use cached data if it exists and always send a network request after the component has mounted to retrieve the latest data from the server. The cached portion of this might contain partial data if you opt-in.
+- `NetworkOnly` will never check if the data exists in the cache and always send a network request
+- `CacheOnly` will only ever return cache data which can be a partial response
+
+The default cache policy as well as other parameters can be changed in your [config file](/api/config).
+
+## Optimistic Responses
+
+A lot of the time we know the value that a mutation will trigger assuming everything goes right. For example, a `toggleItem` mutation in a todo list will invert the value of the `checked` field of a particular item. In these situations, we don't have to wait for a mutation to resolve in order to apply the update to the cache. Instead, we can assume that it will succeed and provide an "optimistic response" for the mutation with the second argument to a mutation handler:
+
+```svelte
+<script>
+	import ToggleItem  from '$houdini/stores/ToggleItem'
+
+	export let itemID
+</script>
+
+<button
+	on:click={() => {
+		ToggleItemStore.mutate({
+            variables: { id: itemID },
+            optimisticResponse: {
+                toggleItem: {
+                    item: {
+                        id: '1',
+                        checked: true
+                    }
+                }
+            }
+        })
+	}}
+>
+	toggle item
+</button>
+```
+
+When the mutation resolves, the old values will be erased entirely and the new values will be committed to the cache. If instead the mutation fails, the optimistic changes will be reverted and the handler's promise will reject with the error message as usual.
+
+Remember to always request and specify an `id` when dealing with optimistic responses so that the cache can make sure to update the correct records. Also, it's worth mentioning that you don't have to provide a complete response for an optimistic value, the cache will write whatever information you give it (as long as its found in the mutation body).
+
+## Partial Data
+
+As your users navigate through your application, their cache will build up with the data that they encounter. This means that a lot of the times, they will have already seen the data that a new view wants. Houdini's cache can be told to render a view if only some of the necessary data is present using the `@cache` directive:
+
+```graphql
+query AllItems @cache(partial: true) {
+	items {
+		id
+		text
+	}
+}
+```
+
+This means that you will have to deal with a lot of `null` states in order to accommodate the missing data but it can result in a much snappier interface for your users. Keep in mind that Houdini tries its hardest to keep your data "correct". This means that if a value is missing that isn't allowed to be null according to your project's schema it will turn an entire object `null`. This behavior is described by the [GraphQL spec](http://spec.graphql.org/June2018/#sec-Errors-and-Non-Nullability). 
+
+The default partial state can be configured with the `defaultPartial` value in your config file:
+
+```js
+// houdini.config.js
+
+export default {
+	// ...
+	defaultPartial: true
+}
+```
+
+## Data Retention
+
+Houdini will retain a query's data for a configurable number of queries (default 10).
+For a concrete example, consider an example app that has 3 routes. If you load one of the
+routes and then click between the other two 5 times, the first route's data will still be
+resolvable (and the counter will reset if you visit it).
+If you then toggle between the other routes 10 times and then try to load the first
+route, a network request will be sent. This number is configurable with the
+`cacheBufferSize` value in your config file:
+
+```js
+// houdini.config.js
+
+export default {
+	// ...
+	cacheBufferSize: 5
+}
+```
+
+## Custom IDs
+
+Some applications cannot rely on the [Global Object Identification spec](https://graphql.org/learn/global-object-identification/) for one reason or another. Maybe your types do not have an `id` field or maybe your API does not support the `node` query field. Either way, Houdini lets you configure both parts of this interaction so you can tell Houdini how to do the right thing.
+
+If all you need to do is change the way that Houdini resolves a particular type, you can use the following configuration:
+
+```javascript
+export default {
+	// ...
+	defaultPartial: true
+    types: {
+        User: {
+            resolve: {
+                queryField: "user",
+            }
+        }
+    }
+}
+```
+
+This tells Houdini that in order to resolve a particular `User`, it needs to use a query field on our API that looks like: `user(id: ID!)`. By default, Houdini takes the keys of an object and passes each one as the input for the query field. If you need to change this behavior, you can pass an `arguments` field to the `resolve` object:
+
+```javascript
+export default {
+	// ...
+	defaultPartial: true
+    types: {
+        User: {
+            resolve: {
+                queryField: "user",
+                arguments: (user) => ({
+                    userID: user.id,
+                })
+            }
+        }
+    }
+}
+```
+
+Note: Houdini's generator guarantees that your entities will always have its keys so there's no need to check if `user.id` is defined.
+
+If you want to configure Houdini to use a different key for computing your records' ID, you can configure the specific type with the `types` config value:
+
+```javascript
+export default {
+	// ...
+	defaultPartial: true
+    types: {
+        User: {
+            keys: ['firstName', 'lastName'],
+            resolve: {
+                queryField: 'user'
+            }
+        }
+    }
+}
+```
+
+Remember, Houdini will take every key for an object and pass it as an argument to the query with the same name. Ie, the following configuration is equivalent to the one above:
+
+```javascript
+export default {
+	// ...
+	defaultPartial: true
+    types: {
+        User: {
+            keys: ['firstName', 'lastName' ],
+            resolve: {
+                queryField: 'user',
+                arguments: (user) => ({
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                })
+            }
+        }
+    }
+}
+```

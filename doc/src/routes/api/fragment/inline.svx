@@ -1,0 +1,118 @@
+---
+title: Fragment
+index: 2
+description: Fragments in Houdini
+---
+
+<script>
+    import { HeaderWithMode } from '~/components'
+</script>
+
+<HeaderWithMode title="Fragment"  />
+
+Specify the data requirements for a Svelte component.
+
+```svelte
+<script>
+	import { fragment, graphql } from '$houdini'
+
+	// the reference will get passed as a prop
+	export let user
+
+	$: data = fragment(
+		graphql`
+			fragment UserAvatar on User {
+				profilePicture
+			}
+		`,
+		user
+	)
+</script>
+
+<img src={$data.profilePicture} />
+```
+
+### Inputs
+
+1. A string tagged with `graphql` containing a single document with fragment
+2. The prop containing the fragment reference (to be passed by another component that mixed in the fragment)
+
+### Return Values
+
+`fragment` returns a store containing the fragment values. These values will be updated as query, mutations, and subscriptions get new values.
+
+## Fragment Arguments
+
+In some situations it's necessary to configure the documents inside of a fragment. For example,
+you might want to extend the `UserAvatar` component to allow for different sized profile pictures.
+To support this, houdini provides two directives `@arguments` and `@with` which declare arguments
+for a fragment and provide values, respectively.
+
+Default values can be provided to fragment arguments with the `default` key:
+
+```graphql
+fragment UserAvatar on User @arguments(width: { type: "Int", default: 50 }) {
+	profilePicture(width: $width)
+}
+```
+
+In order to mark an argument as required, pass the type with a `!` at the end.
+If no value is provided, an error will be thrown when generating your runtime.
+
+```graphql
+fragment UserAvatar on User @arguments(width: { type: "Int!" }) {
+	profilePicture(width: $width)
+}
+```
+
+Providing values for fragments is done with the `@with` decorator:
+
+```graphql
+query AllUsers {
+	users {
+		...UserAvatar @with(width: 100)
+	}
+}
+```
+
+> Keep in mind, if you are using fragment variables inside of a field flagged for
+> list operations, you'll have to pass a value for the variable when performing the operation
+
+## Paginated Fragments
+
+Fragments may also contain a paginated field, similar to queries. A paginated fragment must use the `paginatedFragment` function and have a field tagged with the `@paginate` directive. For more information Houdini's support for pagination, please visit the [Pagination guide](/guides/pagination).
+
+```svelte
+<script>
+	import { paginatedFragment, graphql } from '$houdini'
+
+	// the reference will get passed as a prop
+	export let user
+
+	const { loadNextPage, data } = paginatedFragment(
+		graphql`
+			fragment UserWithFriends on User {
+				friends(first: 10) @paginate {
+					edges {
+						node {
+							id
+						}
+					}
+				}
+			}
+		`,
+		user
+	)
+</script>
+```
+
+### Return Values
+
+`paginatedQuery` returns a single object with the following keys:
+
+- `data` is a store containing the fragment's data
+- `loadNextPage` is an async function that loads the next page. It takes one optional argument: the page size to load for the next request.
+- `loadPreviousPage` is an async function that loads the previous page. It takes one optional argument: the page size to load for the next request.
+- `loading` is a store containing a boolean value that tracks the loading state of the pagination requests
+- `pageInfo` is a store that contains the page info (`hasPreviousPage`, `hasNextPage`, etc.) Only valid for cursor-based pagination.
+- `partial` is a store containing a boolean that indicates if the result has a partial match

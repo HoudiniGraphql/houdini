@@ -1,0 +1,251 @@
+---
+title: Rendering Long Lists
+index: 4
+description: The fourth part of the Houdini intro focusing on how to render long lists of data
+---
+
+<script>
+	import { Highlight } from 'svelte-highlight'
+	import graphql from '~/lib/graphql-language'
+	import { GraphQLExplained } from '~/components'
+
+	const explainedSchema = `
+`
+</script>
+
+# Rendering Long Lists
+
+You'll often run into the situation where you want to render a long list of data. It's also common for that list to be much too long to query or even render on the screen. In order to address this, most APIs will accept a set of arguments on the field designed to window the list and leave it up to the client to keep a running total if the situation calls for it.
+
+As GraphQL has matured, these arguments have somewhat standardized and fall roughly into two categories: cursor-based pagination and offset-based pagination. Houdini supports both but since our API relies on cursor-based pagination that's what we're going to show here. If you want to read more about pagination, head over to the [pagination guide](/guides/pagination).
+
+<GraphQLExplained title="Cursor-Based Pagination">
+
+If you are familiar with cursor-based pagination you can safely skip this section.
+
+Cursor-based pagination is an approach popularized in GraphQL by Facebook's client, [Relay](http://relay.dev). Their flavor of cursor-based pagination is known as "Connections" and relies on some additional types to help us traverse the list. For a practical example, take a look at the API for our Pokédex, specifically the `moves` field on the `Species` type which lets us look up the list of moves that a species can learn:
+
+```graphql
+type Species {
+	moves(first: Int, after: String): SpeciesMoveConnection!
+}
+
+type SpeciesMove {
+	learned_at: Int!
+	method: String!
+	move: Move!
+}
+
+type SpeciesMoveConnection {
+	edges: [SpeciesMoveEdge!]!
+	pageInfo: PageInfo!
+	totalCount: Int!
+}
+
+type SpeciesMoveEdge {
+	cursor: String
+	node: SpeciesMove
+}
+
+type PageInfo {
+	endCursor: String
+	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String
+}
+```
+
+Any time we have a field that would return a list we want to paginate, we instead return a Connection type that provides some meta data about the list like our current position (defined by the `cursor`) and whether or not there is more data to query. To see how this works in practice, let's look at a query that gets the first 10 items in this list:
+
+```graphql
+query {
+	species(id: 1) {
+		moves(first: 10) {
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+			edges {
+				cursor
+				# this is the move object
+				node {
+					learned_at
+					move {
+						name
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+The result of this query looks something like:
+
+```json
+{
+	"species": {
+		"moves": {
+			"pageInfo": {
+				"hasNextPage": true,
+				"endCursor": "k"
+			},
+			"edges": [
+				{
+					"cursor": "a",
+					"node": {
+						"learned_at": 1,
+						"move": {
+							"name": "Growl"
+						}
+					}
+				},
+				...,
+				{
+					"cursor": "k",
+					"node": {
+						"learned_at": 0,
+						"move": {
+							"name": "Substitute"
+						}
+					}
+				}
+			]
+		}
+	}
+}
+```
+
+If we want to look up the next 10 items in the list, we just have to take the `endCursor` value in the `pageInfo` object and send it as the `after` argument for our next query:
+
+```graphql
+query {
+	species(id: 1) {
+		moves(first: 10, after: "k") {
+			pageInfo {
+				hasNextPage
+				endCursor
+			}
+			edges {
+				cursor
+				node {
+					learned_at
+					move {
+						name
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+That will give us the next 10 items after the last item we saw from our previous query. Houdini takes care of most of this interaction automatically so you don't need to worry too much about it. Just know that if you are writing a query against a field with connection-based pagination, it looks something like this:
+
+```graphql
+query {
+	species(id: 1) {
+		moves {
+			edges {
+				node {
+					learned_at
+				}
+			}
+		}
+	}
+}
+```
+
+For more information on the Connection model, check out [this blog post](https://www.apollographql.com/blog/graphql/explaining-graphql-connections/).
+</GraphQLExplained>
+
+## Paginated Queries
+
+Interacting with a paginated query is pretty similar to everything we've been doing so far. Just use the `paginatedQuery` instead of `query` and decorate the paginated field with the `@paginate` directive. Go ahead and change the query with the `SpeciesInfo` document to look like this:
+
+```svelte
+<script>
+	import { paginatedQuery } from '$houdini'
+
+	const { data, loadNextPage, pageInfo } = paginatedQuery(graphql`
+		query SpeciesInfo($id: Int!) {
+			species(id: $id) {
+				name
+				flavor_text
+				favorite
+				evolution_chain {
+					...SpeciesPreview
+				}
+				moves(first: 1) @paginate {
+					edges {
+						node {
+							...MoveDisplay
+						}
+					}
+				}
+				...SpriteInfo
+			}
+		}
+	`);
+</script>
+```
+
+At the surface, `paginatedQuery` is basically the same thing as `query` except for a few extra utilities you can pull from the return value. They're pretty self-explanatory but just in case there's any confusion: `pageInfo` is a store pointing to an object boolean values to indicate whether there is more information to look up and `loadNextPage` is an async function that will load the next page and append the result of the field tagged with `@paginate` to the existing value in our cache. For a more in-depth summary of what you can do with `paginatedQuery` and `@paginate`, you can check out the [Pagination Guide](/guides/pagination).
+
+It's time to add some visuals. Add an import for the `MoveDisplay` component and copy the following block as the second child in the right panel (between `div#species-evolution-chain` and the `nav`):
+
+```svelte
+<MoveDisplay move={$data.species.moves.edges[0].node} />
+```
+
+In most situations houdini's automatic appending is great since it covers popular patterns like infinite scrolling or any kind of list that just keeps growing. Unfortunately, we are only showing one move at a time so we can't just display all of the information we're holding onto in memory. Also, the user might want to step back in the list and we won't need to load the next or previous page if we already have it loaded. In order to address this, we need hold onto a bit of local state that will track the index of the move on display. When we load the next move we will first check if we already have the element loaded and if not, we will trigger `loadNextPage` to grab it and then update our state to display the new result.
+
+```svelte
+<script>
+	import { navigating } from '$app/stores'
+	import { UpButton, DownButton } from '~/components'
+
+	let moveIndex = 0
+	$: hasPrevMove = moveIndex > 0
+	$: hasNextMove = moveIndex < $data.species.moves.edges.length -1 || $pageInfo.hasNextPage
+
+    const loadNextMove = async () => {
+        // if we haven't already seen this page
+        if (!$data.species.moves.edges[moveIndex + 1] && $pageInfo.hasNextPage) {
+            // load the next page of data
+            await loadNextPage()
+        }
+
+		// its safe to increment the move index
+		moveIndex += 1
+    }
+
+    const loadPrevMove = () => {
+        moveIndex--
+    }
+
+	// when we navigate to another species, reset the move index
+	navigating.subscribe(() => {
+		moveIndex = 0
+	})
+</script>
+
+<!-- Use this instead of the move display we added earlier -->
+<div id="move-summary">
+	<MoveDisplay move={$data.species.moves.edges[moveIndex].node} />
+	<div id="move-controls">
+		<UpButton disabled={!hasPrevMove} on:click={loadPrevMove} />
+		<DownButton disabled={!hasNextMove} on:click={loadNextMove} />
+	</div>
+</div>
+```
+
+You can now verify that it all works by opening the network tab and clicking on the up and down arrows. You should only see network requests being sent when loading a move we haven't seen before.
+
+Admittedly this example is a little bit complicated for a first-time introduction into pagination but hopefully it illustrates just how much we can do with houdini's API. Most of the time, you will just be able to use `loadNextPage` and `pageInfo` directly without all of the extra state management.
+
+## What's next?
+
+This is the last topic we wanted to cover as part of the guide! Thank you so much for getting all the way through - we really appreciate the dedication. If there were any sections that were confusing, or changes you think would be helpful, please open up a discussion on Github.
+
+If you want to read more about what Houdini can do, we recommending checking out the [Working with GraphQL](/guides/working-with-graphql) guide next.
