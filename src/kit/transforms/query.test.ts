@@ -16,7 +16,6 @@ test('no variables', async function () {
 
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { isBrowser } from "$houdini/runtime/adapter";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
@@ -32,7 +31,7 @@ test('no variables', async function () {
 		_TestQuery_Input = {};
 
 		$:
-		isBrowser && GQL_TestQuery.fetch({
+		isBrowser && _houdini_TestQuery.fetch({
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _TestQuery_Input
 		});
@@ -64,7 +63,6 @@ test('with variables', async function () {
 
 	// make sure we added the right stuff
 	expect(route).toMatchInlineSnapshot(`
-		import { GQL_TestQuery } from "$houdini/stores/TestQuery";
 		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { isBrowser } from "$houdini/runtime/adapter";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
@@ -89,7 +87,7 @@ test('with variables', async function () {
 		$:
 		_TestQuery_Input = marshalInputs({
 		    config: houdiniConfig,
-		    artifact: GQL_TestQuery.artifact,
+		    artifact: _houdini_TestQuery.artifact,
 
 		    input: TestQueryVariables.call(_houdini_context_DO_NOT_USE, {
 		        props: {
@@ -105,7 +103,7 @@ test('with variables', async function () {
 		});
 
 		$:
-		isBrowser && GQL_TestQuery.fetch({
+		isBrowser && _houdini_TestQuery.fetch({
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _TestQuery_Input
 		});
@@ -132,8 +130,6 @@ test('2 queries, one paginated one not', async function () {
     `)
 
 	expect(route).toMatchInlineSnapshot(`
-		import { GQL_TestQuery2 } from "$houdini/stores/TestQuery2";
-		import { GQL_TestQuery1 } from "$houdini/stores/TestQuery1";
 		import { TestQuery2Store } from "$houdini/stores/TestQuery2";
 		import { TestQuery1Store } from "$houdini/stores/TestQuery1";
 		import { isBrowser } from "$houdini/runtime/adapter";
@@ -155,7 +151,7 @@ test('2 queries, one paginated one not', async function () {
 		_TestQuery1_Input = {};
 
 		$:
-		isBrowser && GQL_TestQuery1.fetch({
+		isBrowser && _houdini_TestQuery1.fetch({
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _TestQuery1_Input
 		});
@@ -164,7 +160,7 @@ test('2 queries, one paginated one not', async function () {
 		_TestQuery2_Input = {};
 
 		$:
-		isBrowser && GQL_TestQuery2.fetch({
+		isBrowser && _houdini_TestQuery2.fetch({
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _TestQuery2_Input
 		});

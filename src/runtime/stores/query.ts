@@ -15,7 +15,7 @@ import {
 	HoudiniFetchContext,
 } from '../lib'
 import type { ConfigFile, QueryArtifact } from '../lib'
-import { nullHoudiniContext } from '../lib/context'
+import { getHoudiniContext, nullHoudiniContext } from '../lib/context'
 import * as log from '../lib/log'
 import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
@@ -56,6 +56,10 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	let subscriberCount = 0
 
 	let ctx: HoudiniFetchContext | null = null
+	// try to get the current context in case the factory was invoked somewhere that allows for it
+	try {
+		ctx = getHoudiniContext()
+	} catch {}
 
 	// a function to update the store's cache subscriptions
 	function refreshSubscription(newVariables: _Input) {

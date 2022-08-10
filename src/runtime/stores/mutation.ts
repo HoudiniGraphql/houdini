@@ -22,6 +22,8 @@ export function mutationStore<_Data, _Input>({
 }): MutationStore<_Data, _Input> {
 	const store: Writable<MutationResult<_Data, _Input>> = writable(nullMutationStore())
 
+	let rootContext: HoudiniFetchContext | null = null
+
 	const mutate: MutationStore<_Data, _Input>['mutate'] = async ({
 		variables,
 		context,
@@ -29,9 +31,10 @@ export function mutationStore<_Data, _Input>({
 		fetch,
 		...mutationConfig
 	}) => {
-		let fetchContext: HoudiniFetchContext | { session: () => null } = context || {
-			session: () => null,
-		}
+		let fetchContext: HoudiniFetchContext | { session: () => null } = rootContext ||
+			context || {
+				session: () => null,
+			}
 
 		store.update((c) => {
 			return { ...c, isFetching: true }
@@ -166,6 +169,9 @@ export function mutationStore<_Data, _Input>({
 		subscribe(...args: Parameters<Readable<MutationResult<_Data, _Input>>['subscribe']>) {
 			// use it's value
 			return store.subscribe(...args)
+		},
+		setContext(ctx) {
+			rootContext = ctx
 		},
 		mutate,
 	}

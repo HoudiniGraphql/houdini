@@ -36,15 +36,13 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 
 	// the name to use for inline query documents
 	const inline_query_store = (name: string) =>
-		AST.identifier(
-			is_route
-				? '_houdini_' + name
-				: store_import({
-						config: page.config,
-						script: page.script,
-						artifact: { name },
-				  }).id
-		)
+		is_route
+			? AST.identifier('_houdini_' + name)
+			: store_import({
+					config: page.config,
+					script: page.script,
+					artifact: { name },
+			  }).id
 
 	// we need to collect all of the various queries associated with the query file
 	const [page_query, inline_queries, page_info] = await Promise.all([
@@ -108,6 +106,30 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 			queries,
 			page_info,
 		})
+	}
+
+	// we need this to happen last so it that the context always gets injected first
+	if (is_route) {
+		ensure_imports({
+			config: page.config,
+			script: page.script,
+			import: ['injectContext'],
+			sourceModule: '$houdini/runtime/lib/context',
+		})
+
+		// add the current context to any of the stores that we got from the load
+		page.script.body.splice(
+			find_insert_index(page.script),
+			0,
+			AST.labeledStatement(
+				AST.identifier('$'),
+				AST.expressionStatement(
+					AST.callExpression(AST.identifier('injectContext'), [
+						AST.memberExpression(AST.identifier('$$props'), AST.identifier('data')),
+					])
+				)
+			)
+		)
 	}
 }
 
@@ -237,13 +259,11 @@ function add_load({
 							AST.objectProperty(
 								AST.literal('artifact'),
 								AST.memberExpression(
-									AST.identifier(
-										store_import({
-											config: page.config,
-											script: page.script,
-											artifact: query,
-										}).id
-									),
+									store_import({
+										config: page.config,
+										script: page.script,
+										artifact: query,
+									}).id,
 									AST.identifier('artifact')
 								)
 							),
@@ -270,7 +290,7 @@ function add_load({
 			// push the result of the fetch onto the list of promises
 			AST.expressionStatement(
 				AST.callExpression(AST.memberExpression(promise_list, AST.identifier('push')), [
-					AST.callExpression(AST.identifier(load_fn), [
+					AST.callExpression(load_fn, [
 						AST.objectExpression([
 							AST.objectProperty(
 								AST.literal('variables'),
@@ -364,7 +384,7 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 	})
 
 	return {
-		store_id: AST.identifier(id),
+		store_id: id,
 		name: definition.name!.value,
 		variables: operation_requires_variables(definition),
 	}

@@ -34,7 +34,7 @@ export function fragment<_Fragment extends Fragment<any>>(
 		log.info(`${log.red(
 			'⚠️ argument order for fragment() has changed. The graphql tag now goes second:'
 		)}
-		
+
 export let prop
 
 $: data = fragment(prop, graphql\`...\`)
@@ -48,12 +48,6 @@ $: data = fragment(prop, graphql\`...\`)
 
 	// load the fragment store for the value
 	const fragmentStore = store.get(ref)
-
-	// make sure the store always stays up to date with the fragment value
-	fragmentStore.proxy.listen((val: _Fragment) => {
-		// update the fragment value to match the new value
-		fragmentStore.update(val)
-	})
 
 	return {
 		...fragmentStore,

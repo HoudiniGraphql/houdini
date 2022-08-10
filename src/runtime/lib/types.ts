@@ -180,10 +180,8 @@ export type QueryStoreLoadParams<_Input> =
 	| RequestEventFetchParams<_Input>
 
 export type HoudiniFetchContext = {
-	url: () => URL | null
 	session: () => App.Session | null
 	variables: () => {}
-	stuff: () => App.Stuff
 }
 
 export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
@@ -197,18 +195,9 @@ export type FragmentStore<_Shape> = {
 	name: string
 	kind: typeof CompiledFragmentKind
 	paginated: boolean
-	get<T extends Fragment<_Shape>>(
-		value: T
-	): Readable<_Shape> & {
-		update: (parent: _Shape | null) => void
-		proxy: HoudiniDocumentProxy
-	}
-	get<T extends Fragment<_Shape>>(
-		value: T | null
-	): Readable<_Shape | null> & {
-		update: (parent: _Shape | null) => void
-		proxy: HoudiniDocumentProxy
-	}
+	setContext(ctx: HoudiniFetchContext): void
+	get<T extends Fragment<_Shape>>(value: T): Readable<_Shape>
+	get<T extends Fragment<_Shape>>(value: T | null): Readable<_Shape | null>
 }
 
 export type QueryStore<_Data, _Input, _Extra = {}> = Readable<
@@ -232,6 +221,7 @@ export type QueryStore<_Data, _Input, _Extra = {}> = Readable<
 export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result, _Input>> & {
 	name: string
 	kind: typeof CompiledMutationKind
+	setContext(ctx: HoudiniFetchContext): void
 	mutate: (
 		params: {
 			variables: _Input

@@ -5,7 +5,9 @@ import { Config, Script } from '../common'
 
 const AST = recast.types.builders
 
-export function ensure_imports<_Count extends string[] | string>({
+type Identifier = recast.types.namedTypes.Identifier
+
+export function ensure_imports({
 	config,
 	script,
 	import: importID,
@@ -14,11 +16,41 @@ export function ensure_imports<_Count extends string[] | string>({
 }: {
 	config: Config
 	script: Script
-	import: _Count
+	import: string
+	as?: never
 	sourceModule: string
 	importKind?: 'value' | 'type'
-}): { ids: _Count; added: number } {
-	const idList = Array.isArray(importID) ? importID : [importID]
+}): { ids: Identifier; added: number }
+export function ensure_imports({
+	config,
+	script,
+	import: importID,
+	sourceModule,
+	importKind,
+}: {
+	config: Config
+	script: Script
+	import: string[]
+	as?: string[]
+	sourceModule: string
+	importKind?: 'value' | 'type'
+}): { ids: Identifier[]; added: number }
+export function ensure_imports({
+	config,
+	script,
+	import: importID,
+	sourceModule,
+	importKind,
+	as,
+}: {
+	config: Config
+	script: Script
+	import: string[] | string
+	as?: string[]
+	sourceModule: string
+	importKind?: 'value' | 'type'
+}): { ids: Identifier[] | Identifier; added: number } {
+	const idList = (Array.isArray(importID) ? importID : [importID]).map((id) => AST.identifier(id))
 
 	// figure out the list of things to import
 	const toImport = idList.filter(
@@ -30,12 +62,12 @@ export function ensure_imports<_Count extends string[] | string>({
 						(importSpecifier) =>
 							(importSpecifier.type === 'ImportSpecifier' &&
 								importSpecifier.imported.type === 'Identifier' &&
-								importSpecifier.imported.name === identifier &&
-								importSpecifier.local.name === identifier) ||
+								importSpecifier.imported.name === identifier.name &&
+								importSpecifier.local.name === identifier.name) ||
 							(importSpecifier.type === 'ImportDefaultSpecifier' &&
 								importSpecifier.local.type === 'Identifier' &&
-								importSpecifier.local.name === identifier &&
-								importSpecifier.local.name === identifier)
+								importSpecifier.local.name === identifier.name &&
+								importSpecifier.local.name === identifier.name)
 					)
 			)
 	)
@@ -45,13 +77,20 @@ export function ensure_imports<_Count extends string[] | string>({
 		script.body.unshift({
 			type: 'ImportDeclaration',
 			source: AST.stringLiteral(sourceModule),
-			specifiers: toImport.map((identifier) =>
+			specifiers: toImport.map((identifier, i) =>
 				!Array.isArray(importID)
-					? AST.importDefaultSpecifier(AST.identifier(identifier))
-					: AST.importSpecifier(AST.identifier(identifier), AST.identifier(identifier))
+					? AST.importDefaultSpecifier(identifier)
+					: AST.importSpecifier(identifier, as?.[i] ? AST.identifier(as[i]) : identifier)
 			),
 			importKind,
 		})
+	}
+
+	// the resulting identifiers might have been aliased the as aliases if they exist
+	for (const [i, target] of (as ?? []).entries()) {
+		if (target) {
+			idList[i] = AST.identifier(target)
+		}
 	}
 
 	return {
@@ -70,15 +109,15 @@ export function store_import({
 	artifact: { name: string }
 	script: Script
 	local?: string
-}): { id: string; added: number } {
+}): { id: Identifier; added: number } {
 	const { ids, added } = ensure_imports({
 		config,
 		script,
 		sourceModule: config.storeImportPath(artifact.name),
-		import: [`GQL_${artifact.name}`],
+		import: `GQL_${artifact.name}`,
 	})
 
-	return { id: ids[0], added }
+	return { id: ids, added }
 }
 
 export function artifact_import({
@@ -98,5 +137,5 @@ export function artifact_import({
 		sourceModule: config.artifactImportPath(artifact.name),
 		import: local || `_${artifact.name}Artifact`,
 	})
-	return { id: ids[0], added }
+	return { id: ids, added }
 }

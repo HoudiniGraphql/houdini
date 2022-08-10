@@ -9,6 +9,7 @@ import {
 	GraphQLObject,
 	QueryArtifact,
 	HoudiniDocumentProxy,
+	HoudiniFetchContext,
 } from '../lib'
 import { extractPageInfo, fragmentHandlers, PageInfo, PaginatedHandlers } from '../lib/pagination'
 
@@ -29,10 +30,15 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 	paginationMethods: (keyof PaginatedHandlers<_Data, _Input>)[]
 	storeName: string
 }): FragmentStore<_Data | null> {
+	let ctx: HoudiniFetchContext | null = null
+
 	return {
 		name: artifact.name,
 		kind: CompiledFragmentKind,
 		paginated: !!paginatedArtifact,
+		setContext(context) {
+			ctx = context
+		},
 		get(initialValue: _Data | null) {
 			// at the moment a fragment store doesn't really do anything
 			// but we're going to keep it wrapped in a store so we can eventually
@@ -49,6 +55,7 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 					config,
 					paginationArtifact: paginatedArtifact,
 					store,
+					getContext: () => ctx,
 				})
 
 				extraMethods = Object.fromEntries(

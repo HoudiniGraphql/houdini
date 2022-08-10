@@ -76,10 +76,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 			find_insert_index(page.script),
 			0,
 			AST.variableDeclaration('const', [
-				AST.variableDeclarator(
-					store_id(query.name),
-					AST.callExpression(AST.identifier(factory), [])
-				),
+				AST.variableDeclarator(store_id(query.name), AST.callExpression(factory, [])),
 			])
 		)
 	}
@@ -122,13 +119,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 											AST.objectProperty(
 												AST.identifier('artifact'),
 												AST.memberExpression(
-													AST.identifier(
-														store_import({
-															config: page.config,
-															artifact: query,
-															script: page.script,
-														}).id
-													),
+													store_id(query.name),
 													AST.identifier('artifact')
 												)
 											),
@@ -186,16 +177,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 							'&&',
 							AST.identifier('isBrowser'),
 							AST.callExpression(
-								AST.memberExpression(
-									AST.identifier(
-										store_import({
-											config: page.config,
-											artifact: query,
-											script: page.script,
-										}).id
-									),
-									AST.identifier('fetch')
-								),
+								AST.memberExpression(store_id(query.name), AST.identifier('fetch')),
 								[
 									AST.objectExpression([
 										AST.objectProperty(AST.identifier('context'), ctx_id),

@@ -1,22 +1,15 @@
 import * as recast from 'recast'
 
-import {
-	Config,
-	parseJS,
-	runPipeline,
-	Transform,
-	ParsedFile,
-	parseSvelte,
-	findScriptInnerBounds,
-	formatErrors,
-} from '../../common'
+import { Config, parseJS, runPipeline, ParsedFile, parseSvelte, formatErrors } from '../../common'
 import { TransformPage } from '../plugin'
+import context from './context'
 import svelteKit from './kit'
 import query from './query'
 import tags from './tags'
 
 // tags must be processed last so we don't lose the graphql tags we look for
-const pipeline = [svelteKit, query, tags]
+// context must go last since it looks for GQL_ imports
+const pipeline = [svelteKit, query, tags, context]
 
 export default async function apply_transforms(
 	config: Config,

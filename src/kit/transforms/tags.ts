@@ -20,13 +20,11 @@ export default async function GraphQLTagProcessor(config: Config, ctx: Transform
 			// we're going to turn the graphql tag into a reference to the document's
 			// store
 			node.replaceWith(
-				AST.identifier(
-					store_import({
-						config,
-						script: ctx.script,
-						artifact: { name: operation.name!.value },
-					}).id
-				)
+				store_import({
+					config,
+					script: ctx.script,
+					artifact: { name: operation.name!.value },
+				}).id
 			)
 		},
 	})
