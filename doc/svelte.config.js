@@ -1,15 +1,12 @@
 import adapter from '@sveltejs/adapter-auto'
-import preprocess from 'svelte-preprocess'
-import { mdsvex } from 'mdsvex'
-import path from 'path'
 import hljs from 'highlight.js'
 import hljs_svelte from 'highlightjs-svelte'
-import graphqlLang from './src/lib/graphql-language.js'
-import { replaceCodePlugin } from 'vite-plugin-replace'
-import { loadOutline } from './src/lib/loadOutline.js'
-import { loadContent } from './src/lib/loadContent.js'
-import rehypeSlug from 'rehype-slug'
+import { mdsvex } from 'mdsvex'
+import path from 'path'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypeSlug from 'rehype-slug'
+import preprocess from 'svelte-preprocess'
+import graphqlLang from './src/lib/graphql-language.js'
 
 // add svelte syntax highlighting support
 hljs_svelte(hljs)
@@ -53,26 +50,7 @@ const config = {
 
 	kit: {
 		adapter: adapter(),
-		routes: (route) => !route.startsWith('_') || route === '_content.js',
-		vite: {
-			optimizeDeps: {
-				include: ['highlight.js/lib/core']
-			},
-			resolve: {
-				alias: {
-					// these are the aliases and paths to them
-					'~': path.resolve('./src')
-				}
-			},
-			plugins: [
-				replaceCodePlugin({
-					replacements: [
-						{ from: 'REPLACE_WITH_OUTLINE', to: JSON.stringify(await loadOutline()) },
-						{ from: 'REPLACE_WITH_CONTENT', to: JSON.stringify(await loadContent()) }
-					]
-				})
-			]
-		}
+		routes: (route) => !route.startsWith('_') || route === '_content.js'
 	}
 }
 
