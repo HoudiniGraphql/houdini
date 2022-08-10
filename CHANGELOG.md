@@ -1,5 +1,11 @@
 # houdini
 
+## 0.15.9
+
+### Patch Changes
+
+-   [#443](https://github.com/HoudiniGraphql/houdini/pull/443) [`801d7e8`](https://github.com/HoudiniGraphql/houdini/commit/801d7e87f5199cb5e352001826d8f2d4c454bcc3) Thanks [@jycouet](https://github.com/jycouet)! - warn user when Node interface is not properly defined and throw an error on Node usage (when not properly defined)
+
 ## 0.15.8
 
 ### Patch Changes
