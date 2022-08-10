@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getHoudiniContext, CachePolicy } from '$houdini';
+  import { CachePolicy } from '$houdini';
   import { page } from '$app/stores';
   import { stry } from '@kitql/helper';
   import type { Data } from './$types';
@@ -8,14 +8,12 @@
 
   $: ({ User } = data);
 
-  const context = getHoudiniContext();
-
   async function refresh(id: string | null) {
     if (id) {
       await User.fetch({ variables: { id, tmp: false } });
     } else {
       // context not usefull here, but we can put it!
-      await User.fetch({ context, policy: CachePolicy.NetworkOnly });
+      await User.fetch({ policy: CachePolicy.NetworkOnly });
     }
   }
 

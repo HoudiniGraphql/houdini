@@ -1,8 +1,6 @@
 <script lang="ts">
   import { browser } from '$app/env';
-  import { getHoudiniContext, GQL_Session, GQL_UpdateUserSubUnsub } from '$houdini';
-
-  const context = getHoudiniContext();
+  import { GQL_Session, GQL_UpdateUserSubUnsub } from '$houdini';
 
   async function mutate() {
     await GQL_UpdateUserSubUnsub.mutate({
@@ -14,7 +12,7 @@
     });
   }
 
-  $: browser && GQL_Session.fetch({ context, metadata: { logResult: true } });
+  $: browser && GQL_Session.fetch({ metadata: { logResult: true } });
 </script>
 
 <h1>Metadata</h1>

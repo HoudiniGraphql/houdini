@@ -20,24 +20,12 @@ type FetchFn<_Data = any, _Input = any> = (
 ) => Promise<QueryResult<_Data, _Input>>
 
 export function wrapPaginationStore<_Data, _Input>(
-	store: Readable<_Data> | ReturnType<FragmentStore<_Data>['get']>
+	store: QueryStore<_Data, _Input> | ReturnType<FragmentStore<_Data>['get']>
 ) {
-	// @ts-ignore
-	const { loadNextPage, loadPreviousPage, paginationStrategy, subscribe, ...rest } = store
+	const { paginationStrategy, subscribe, ...rest } = store
 
-	// grab the current houdini context
-	const context = getHoudiniContext()
-
+	// add the page info key if there is pagination
 	const result = rest
-	if (loadNextPage) {
-		// @ts-ignore
-		result.loadNextPage = (...args) => loadNextPage(context, ...args)
-	}
-	if (loadPreviousPage) {
-		// @ts-ignore
-		result.loadPreviousPage = (...args) => loadPreviousPage(context, ...args)
-	}
-
 	if (paginationStrategy === 'cursor') {
 		// @ts-ignore
 		result.pageInfo = derived([{ subscribe }], ([$store]) => {
@@ -325,7 +313,11 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 
 	return {
 		loading,
-		loadNextPage: async (houdiniContext: HoudiniFetchContext, pageCount?: number) => {
+		loadNextPage: async (pageCount?: number, after?: string, ctx?: HoudiniFetchContext) => {
+			const houdiniContext = getContext() ?? ctx
+			if (!houdiniContext) {
+				throw contextError
+			}
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(getValue(), artifact.refetch!.path)
 
@@ -336,7 +328,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 
 			// only specify the page count if we're given one
 			const input: Record<string, any> = {
-				after: currentPageInfo.endCursor,
+				after: after ?? currentPageInfo.endCursor,
 			}
 			if (pageCount) {
 				input.first = pageCount
@@ -350,7 +342,15 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 				input,
 			})
 		},
-		loadPreviousPage: async (houdiniContext: HoudiniFetchContext, pageCount?: number) => {
+		loadPreviousPage: async (
+			pageCount?: number,
+			before?: string,
+			ctx?: HoudiniFetchContext
+		) => {
+			const houdiniContext = getContext() ?? ctx
+			if (!houdiniContext) {
+				throw contextError
+			}
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(getValue(), artifact.refetch!.path)
 
@@ -361,7 +361,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 
 			// only specify the page count if we're given one
 			const input: Record<string, any> = {
-				before: currentPageInfo.startCursor,
+				before: before ?? currentPageInfo.startCursor,
 			}
 			if (pageCount) {
 				input.last = pageCount
@@ -466,8 +466,13 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 	}
 
 	return {
-		loadPage: async (houdiniContext: HoudiniFetchContext, limit?: number) => {
-			const offset = currentOffset(houdiniContext)
+		loadPage: async (limit?: number, offset?: number, ctx?: HoudiniFetchContext) => {
+			const houdiniContext = getContext() ?? ctx
+			if (!houdiniContext) {
+				throw contextError
+			}
+
+			offset ??= currentOffset(houdiniContext)
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
@@ -475,7 +480,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 				...extraVariables(),
 				offset,
 			}
-			if (limit) {
+			if (limit || limit === 0) {
 				queryVariables.limit = limit
 			}
 
@@ -570,14 +575,14 @@ export type PaginatedDocumentHandlers<_Data, _Input> = {
 
 export type PaginatedHandlers<_Data, _Input> = {
 	loadNextPage(
-		houdiniContext: HoudiniFetchContext,
 		pageCount?: number,
-		after?: string | number
+		after?: string | number,
+		houdiniContext?: HoudiniFetchContext
 	): Promise<void>
 	loadPreviousPage(
-		houdiniContext: HoudiniFetchContext,
 		pageCount?: number,
-		before?: string
+		before?: string,
+		houdiniContext?: HoudiniFetchContext
 	): Promise<void>
 	loading: Readable<boolean>
 	pageInfo?: Writable<PageInfo>
@@ -651,3 +656,5 @@ const nullPageInfo = (): PageInfo => ({
 	hasNextPage: false,
 	hasPreviousPage: false,
 })
+
+const contextError = ``

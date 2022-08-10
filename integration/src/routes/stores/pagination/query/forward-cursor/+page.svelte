@@ -1,13 +1,11 @@
 <script lang="ts">
   import { browser } from '$app/env';
-  import { CachePolicy, getHoudiniContext, GQL_StoreForwardCursorPaginationQuery } from '$houdini';
-
-  const context = getHoudiniContext();
+  import { CachePolicy, GQL_StoreForwardCursorPaginationQuery } from '$houdini';
 
   $: browser && GQL_StoreForwardCursorPaginationQuery.fetch();
 
   function loadNextPage() {
-    GQL_StoreForwardCursorPaginationQuery.loadNextPage(context);
+    GQL_StoreForwardCursorPaginationQuery.loadNextPage();
   }
 
   function refetch() {

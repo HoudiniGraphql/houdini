@@ -21,7 +21,7 @@ export default function pagination(
 		typeImports = `import { type HoudiniFetchContext } from '../runtime/lib/types`
 
 		types = `{
-	loadNextPage: (context: HoudiniFetchContext, limit?: number) => Promise<void>
+	loadNextPage: (limit?: number) => Promise<void>
 }`
 		methods = ['loadNextPage', 'fetch', 'loading']
 	}
@@ -37,7 +37,7 @@ import type { PageInfo } from '../runtime/lib/utils'`
 		// forwards cursor pagination
 		if (doc.refetch?.direction === 'forward') {
 			types = `{
-    loadNextPage: (context: HoudiniFetchContext, pageCount?: number, after?: string | number) => Promise<void>
+    loadNextPage: (pageCount?: number, after?: string | number) => Promise<void>
     ${which === 'query' ? 'pageInfo: Readable<PageInfo>' : ''}
 }`
 			methods = ['loadNextPage', 'fetch', 'loading', 'pageInfo']
@@ -45,7 +45,7 @@ import type { PageInfo } from '../runtime/lib/utils'`
 			// backwards cursor pagination
 		} else {
 			types = `{
-    loadPreviousPage: (context: HoudiniFetchContext, pageCount?: number, before?: string) => Promise<void>
+    loadPreviousPage: (pageCount?: number, before?: string) => Promise<void>
 }`
 			methods = ['loadPreviousPage', 'fetch', 'loading', 'pageInfo']
 		}

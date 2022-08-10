@@ -1,12 +1,8 @@
 <script lang="ts">
-  import { getHoudiniContext, GQL_Session } from '$houdini';
-
-  const context = getHoudiniContext();
+  import { GQL_Session } from '$houdini';
 
   async function getToken() {
-    GQL_Session.fetch({
-      context
-    });
+    GQL_Session.fetch();
   }
 </script>
 
