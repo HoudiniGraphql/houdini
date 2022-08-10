@@ -1,8 +1,15 @@
 import { derived, get, Readable, Writable, writable } from 'svelte/store'
 
-import { deepEquals, FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams } from '..'
+import {
+	deepEquals,
+	FetchContext,
+	FragmentStore,
+	QueryResult,
+	QueryStore,
+	QueryStoreFetchParams,
+} from '..'
 import cache from '../cache'
-import { fetchContext } from '../stores/query'
+import { fetchParams } from '../stores/query'
 import { ConfigFile, keyFieldsForType } from './config'
 import { getHoudiniContext } from './context'
 import { executeQuery } from './network'
@@ -47,11 +54,13 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 	paginationArtifact,
 	store,
 	storeName,
+	getContext,
 }: {
 	storeName: string
 	config: ConfigFile
 	paginationArtifact: QueryArtifact
 	store: Readable<_Data | null>
+	getContext: () => HoudiniFetchContext | null
 }) {
 	const { targetType } = paginationArtifact.refetch || {}
 	const typeConfig = config.types?.[targetType || '']
@@ -91,6 +100,7 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 		getValue: () => {
 			return get(store) as _Data
 		},
+		getContext,
 	})
 }
 
@@ -101,6 +111,7 @@ export function queryHandlers<_Data extends GraphQLObject, _Input>({
 	fetch,
 	queryVariables,
 	storeName,
+	getContext,
 }: {
 	config: ConfigFile
 	artifact: QueryArtifact
@@ -109,6 +120,7 @@ export function queryHandlers<_Data extends GraphQLObject, _Input>({
 	queryVariables: () => _Input | null
 	pageInfo?: Readable<PageInfo>
 	storeName: string
+	getContext: () => HoudiniFetchContext | null
 }) {
 	// if there's no refetch config for the artifact there's a problem
 	if (!artifact.refetch) {
@@ -123,6 +135,7 @@ export function queryHandlers<_Data extends GraphQLObject, _Input>({
 		config,
 		storeName,
 		getValue: () => get(store)?.data ?? null,
+		getContext,
 	})
 }
 
@@ -133,6 +146,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	config,
 	storeName,
 	getValue,
+	getContext,
 }: {
 	artifact: QueryArtifact
 	getValue: () => _Data | null
@@ -142,6 +156,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	config: ConfigFile
 	pageInfo?: Writable<PageInfo>
 	storeName: string
+	getContext: () => HoudiniFetchContext | null
 }): PaginatedHandlers<_Data, _Input> {
 	// start with the defaults and no meaningful page info
 	let loadPreviousPage: PaginatedHandlers<_Data, _Input>['loadPreviousPage'] = async (
@@ -172,6 +187,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 			config,
 			storeName,
 			getValue,
+			getContext,
 		})
 		// always track pageInfo
 		extra.pageInfo = cursor.pageInfo
@@ -198,6 +214,7 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 			storeName,
 			loading: paginationLoadingState,
 			getValue,
+			getContext,
 		})
 
 		loadNextPage = offset.loadPage
@@ -226,6 +243,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	fetch,
 	storeName,
 	getValue,
+	getContext,
 }: {
 	config: ConfigFile
 	artifact: QueryArtifact
@@ -234,6 +252,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	loading: Writable<boolean>
 	fetch: FetchFn
 	storeName: string
+	getContext: () => HoudiniFetchContext | null
 }) {
 	const pageInfo = writable<PageInfo | null>(null)
 
@@ -359,7 +378,7 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		pageInfo,
 		async fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
 			// validate and prepare the request context for the current environment (client vs server)
-			const { context, params } = fetchContext(artifact, storeName, args)
+			const { params } = fetchParams(getContext(), artifact, storeName, args)
 
 			const { variables } = params ?? {}
 
@@ -423,6 +442,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 	config,
 	loading,
 	storeName,
+	getContext,
 }: {
 	config: ConfigFile
 	artifact: QueryArtifact
@@ -431,6 +451,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 	getValue: () => _Data | null
 	loading: Writable<boolean>
 	storeName: string
+	getContext: () => HoudiniFetchContext | null
 }): {
 	loadPage: PaginatedHandlers<_Data, _Input>['loadNextPage']
 	fetch: PaginatedHandlers<_Data, _Input>['fetch']
@@ -492,7 +513,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 			loading.set(false)
 		},
 		async fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
-			const { params, context } = fetchContext(artifact, storeName, args)
+			const { params } = fetchParams(getContext(), artifact, storeName, args)
 
 			const { variables } = params ?? {}
 

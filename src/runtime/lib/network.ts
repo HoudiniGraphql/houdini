@@ -167,7 +167,6 @@ export type FetchParams = {
 export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
 	session: App.Session | null
-	stuff: App.Stuff | null
 	// @ts-ignore
 	metadata?: App.Metadata | null
 }

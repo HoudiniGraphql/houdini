@@ -1,7 +1,7 @@
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { Readable } from 'svelte/store'
 
-import { HoudiniDocumentProxy } from '..'
+import { FetchContext, HoudiniDocumentProxy } from '..'
 import { MutationConfig } from '../inline/mutation'
 
 export type { ConfigFile } from './config'
@@ -218,6 +218,7 @@ export type QueryStore<_Data, _Input, _Extra = {}> = Readable<
 	kind: typeof CompiledQueryKind
 	variables: boolean
 	artifact: QueryArtifact
+	setContext(ctx: HoudiniFetchContext): void
 
 	/**
 	 * Fetch the data from the server

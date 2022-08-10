@@ -3,7 +3,7 @@ import { get } from 'svelte/store'
 
 import { getPage, getSession } from '../adapter'
 import * as log from './log'
-import { HoudiniFetchContext } from './types'
+import { CompiledQueryKind, HoudiniFetchContext, QueryStore } from './types'
 
 export const setVariables = (vars: () => {}) => setContext('variables', vars)
 
@@ -48,5 +48,22 @@ called at the top of your component (outside any event handlers or function defi
 </script>`
 		)
 		throw new Error(e as any)
+	}
+}
+
+export function injectContext(props: Record<string, any>) {
+	// grab the current context
+	const context = getHoudiniContext()
+
+	// we need to find every store and attach the current context
+	for (const value of Object.values(props)) {
+		if (typeof value !== 'object' || !('kind' in value) || value.kind !== CompiledQueryKind) {
+			continue
+		}
+
+		// we found a store!
+		let store = value as QueryStore<unknown, unknown>
+		// set its context
+		store.setContext(context)
 	}
 }
