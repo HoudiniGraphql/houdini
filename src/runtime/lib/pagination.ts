@@ -1,17 +1,10 @@
 import { derived, get, Readable, Writable, writable } from 'svelte/store'
 
-import {
-	deepEquals,
-	FetchContext,
-	FragmentStore,
-	QueryResult,
-	QueryStore,
-	QueryStoreFetchParams,
-} from '..'
+import { deepEquals, FragmentStore, QueryResult, QueryStore, QueryStoreFetchParams } from '..'
 import cache from '../cache'
+import * as log from '../lib/log'
 import { fetchParams } from '../stores/query'
 import { ConfigFile, keyFieldsForType } from './config'
-import { getHoudiniContext } from './context'
 import { executeQuery } from './network'
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from './types'
 
@@ -22,6 +15,7 @@ type FetchFn<_Data = any, _Input = any> = (
 export function wrapPaginationStore<_Data, _Input>(
 	store: QueryStore<_Data, _Input> | ReturnType<FragmentStore<_Data>['get']>
 ) {
+	// @ts-ignore
 	const { paginationStrategy, subscribe, ...rest } = store
 
 	// add the page info key if there is pagination
@@ -657,4 +651,17 @@ const nullPageInfo = (): PageInfo => ({
 	hasPreviousPage: false,
 })
 
-const contextError = ``
+const contextError = `${log.red('⚠️ Could not find houdini context for a pagination method ⚠️')}
+This really shouldn't happen. Please open a ticket describing your situation. 
+
+In the meantime, you will need to do something like the following. Make sure getHoudiniContext is 
+called at the top of your component (outside any event handlers or function definitions) and then 
+passed to the method:
+
+<script lang="ts">
+    const ${log.yellow('context')} = getHoudiniContext();
+
+    const onClick = () => GQL_${log.cyan('[YOUR_STORE]')}.loadNextPage(null, null, ${log.yellow(
+	'context'
+)});
+</script>`
