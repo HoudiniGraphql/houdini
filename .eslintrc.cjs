@@ -28,7 +28,7 @@ module.exports = {
 		'object-shorthand': 'off',
 		// 'no-console': ['error', { allow: ['info', 'warn', 'error', 'time', 'timeEnd'] }],
 	},
-	ignorePatterns: ['integration', 'example'],
+	ignorePatterns: ['integration', 'example', 'site'],
 	parserOptions: {
 		sourceType: 'module',
 		ecmaVersion: 2020,
