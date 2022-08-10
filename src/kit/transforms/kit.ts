@@ -109,7 +109,7 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 	}
 
 	// we need this to happen last so it that the context always gets injected first
-	if (is_route) {
+	if (is_route && queries.length > 0) {
 		ensure_imports({
 			config: page.config,
 			script: page.script,
@@ -125,7 +125,17 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 				AST.identifier('$'),
 				AST.expressionStatement(
 					AST.callExpression(AST.identifier('injectContext'), [
-						AST.memberExpression(AST.identifier('$$props'), AST.identifier('data')),
+						AST.arrayExpression(
+							queries.map((query) =>
+								AST.memberExpression(
+									AST.memberExpression(
+										AST.identifier('$$props'),
+										AST.identifier('data')
+									),
+									AST.identifier(query.name)
+								)
+							)
+						),
 					])
 				)
 			)

@@ -390,7 +390,7 @@ export function fetchParams<_Data, _Input>(
 		policy = artifact.policy ?? CachePolicy.CacheOrNetwork
 	}
 
-	let houdiniContext = parentContext || (params && 'context' in params && params.context) || null
+	let houdiniContext = parentContext || (params && 'context' in params && params.context)
 	houdiniContext ??= nullHoudiniContext()
 
 	// looking at the session will error while prerendering
@@ -411,9 +411,6 @@ export function fetchParams<_Data, _Input>(
 
 	// figure out the right fetch to use
 	let fetchFn: LoadEvent['fetch'] | null = null
-	try {
-		fetchFn = fetch
-	} catch {}
 
 	if (params) {
 		if ('fetch' in params && params.fetch) {
@@ -427,7 +424,7 @@ export function fetchParams<_Data, _Input>(
 		if (isBrowser) {
 			fetchFn = window.fetch.bind(window)
 		} else {
-			throw new Error('Cannot find fetch to use')
+			fetchFn = fetch
 		}
 	}
 

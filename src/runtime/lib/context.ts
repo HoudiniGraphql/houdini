@@ -56,12 +56,12 @@ called at the top of your component (outside any event handlers or function defi
 	}
 }
 
-export function injectContext(props: Record<string, any>) {
+export function injectContext(props: any[]) {
 	// grab the current context
 	const context = getHoudiniContext()
 
 	// we need to find every store and attach the current context
-	for (const value of Object.values(props)) {
+	for (const value of props) {
 		if (
 			typeof value !== 'object' ||
 			!('kind' in value) ||

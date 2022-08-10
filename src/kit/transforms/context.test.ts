@@ -12,11 +12,7 @@ describe('context processor', function () {
 		import { injectContext } from "$houdini/runtime/lib/context";
 		import { GQL_Foo } from "$houdini";
 		import { GQL_Bar } from "$houdini";
-
-		injectContext({
-		    GQL_Foo: GQL_Foo,
-		    GQL_Bar: GQL_Bar
-		});
+		injectContext([GQL_Foo, GQL_Bar]);
 	`)
 	})
 
@@ -28,10 +24,7 @@ describe('context processor', function () {
 		expect(route).toMatchInlineSnapshot(`
 		import { injectContext } from "$houdini/runtime/lib/context";
 		import Foo from "$houdini/stores/Foo";
-
-		injectContext({
-		    Foo: Foo
-		});
+		injectContext([Foo]);
 	`)
 	})
 })

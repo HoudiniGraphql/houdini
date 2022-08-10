@@ -19,16 +19,9 @@ describe('kit route processor', function () {
 			`,
 		})
 		expect(route.component).toMatchInlineSnapshot(`
-		import GQL_TestQuery from "$houdini/stores/TestQuery";
 		import { injectContext } from "$houdini/runtime/lib/context";
-
-		injectContext({
-		    GQL_TestQuery: GQL_TestQuery
-		});
-
-		$:
-		injectContext($$props.data);
-
+		import GQL_TestQuery from "$houdini/stores/TestQuery";
+		injectContext([GQL_TestQuery]);
 		const store = GQL_TestQuery;
 	`)
 	})
@@ -53,7 +46,7 @@ describe('kit route processor', function () {
 		import { injectContext } from "$houdini/runtime/lib/context";
 
 		$:
-		injectContext($$props.data);
+		injectContext([$$props.data.TestQuery]);
 
 		$:
 		({
@@ -148,7 +141,7 @@ describe('kit route processor', function () {
 		import { injectContext } from "$houdini/runtime/lib/context";
 
 		$:
-		injectContext($$props.data);
+		injectContext([$$props.data.TestQuery1, $$props.data.TestQuery2]);
 
 		$:
 		({
@@ -355,7 +348,7 @@ describe('kit route processor', function () {
 		import { injectContext } from "$houdini/runtime/lib/context";
 
 		$:
-		injectContext($$props.data);
+		injectContext([$$props.data.TestQuery, $$props.data.MyQuery1, $$props.data.MyQuery2]);
 
 		$:
 		({
@@ -435,13 +428,10 @@ describe('kit route processor', function () {
 		expect(route.component).toMatchInlineSnapshot(`
 		import { injectContext } from "$houdini/runtime/lib/context";
 		import GQL_TestQuery from "$houdini/stores/TestQuery";
-
-		injectContext({
-		    GQL_TestQuery: GQL_TestQuery
-		});
+		injectContext([GQL_TestQuery]);
 
 		$:
-		injectContext($$props.data);
+		injectContext([$$props.data.TestQuery]);
 	`)
 		expect(route.script).toMatchInlineSnapshot(`
 		import { load_TestQuery } from "$houdini/stores/TestQuery";

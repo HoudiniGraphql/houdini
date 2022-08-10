@@ -68,11 +68,7 @@ export default async function ContextProcessor(config: Config, page: TransformPa
 		0,
 		AST.expressionStatement(
 			AST.callExpression(inject_fn, [
-				AST.objectExpression(
-					local_stores.map((store) =>
-						AST.objectProperty(AST.identifier(store.name), AST.identifier(store.name))
-					)
-				),
+				AST.arrayExpression(local_stores.map((store) => AST.identifier(store.name))),
 			])
 		)
 	)
