@@ -2,7 +2,7 @@
 
 interface SessionData {
 	// Your session data
-	mode: 'inline' | 'store'
+	mode?: 'inline' | 'store'
 }
 
 // See https://kit.svelte.dev/docs#typescript
