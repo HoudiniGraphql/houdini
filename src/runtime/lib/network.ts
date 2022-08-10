@@ -168,6 +168,7 @@ export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
 	session: App.Session | null
 	stuff: App.Stuff | null
+	// @ts-ignore
 	metadata?: App.Metadata | null
 }
 
@@ -474,7 +475,7 @@ type LoadResult = Promise<{ [key: string]: QueryStore<unknown, unknown> }>
 type LoadAllInput = LoadResult | Record<string, LoadResult>
 
 export async function loadAll(
-	loads: LoadAllInput[]
+	...loads: LoadAllInput[]
 ): Promise<Record<string, QueryStore<unknown, unknown>>> {
 	// we need to collect all of the promises in a single list that we will await in promise.all and then build up
 	const promises: LoadResult[] = []
