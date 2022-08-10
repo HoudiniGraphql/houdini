@@ -1,0 +1,40 @@
+---
+title: Getting Started
+index: 0
+description: A getting started guide for Houdini
+---
+
+# Welcome to Houdini
+
+This goal of this guide is to show you enough to start building your own applications. There are a lot of different approaches to building interfaces with GraphQL and rather than assume you are familiar with ours, we’re going to start from the ground up and show you how to best structure your projects to take full advantage of Houdini. We will try to introduce the relevant GraphQL concepts as we go so don't worry if you aren't a GraphQL expert.
+
+What we’ll cover here:
+
+- A simple query
+- Building reusable components
+- Sending a mutation to the server
+- How to paginate large lists of data
+
+If you are looking for a more exhaustive coverage of Houdini’s features and APIs, you should check out the [API docs](/api/welcome).
+
+## What We'll Build
+
+Instead of the usual todo list, we're going to build a little app to explore the wide array of monsters available in the first generation of Pokémon.
+
+<div style="text-align: center">
+    <img src="/images/pokedex-preview.png" style="max-width: 610px; margin-bottom: 60px" alt="a screenshot of the pokedex we will build throughout this guide"/>
+</div>
+
+## Getting Started
+
+We’re going to start off with a project that’s already been configured so we can jump right to the fun stuff. You can pull down the demo by executing the following commands in your terminal:
+
+```bash
+npx degit houdinigraphql/intro hello-houdini
+cd hello-houdini
+npm i
+```
+
+If you look inside of this directory, you’ll see its a barebones SvelteKit application with a few extra config files as well as some components we'll use to lay out our Pokédex. Don’t worry too much about the extra bits right now - we’ll highlight the important things as we work through this guide. When you’re ready to set up your own application, head over to the [Setting Up Your Project](/guides/setting-up-your-project) guide.
+
+Once you're ready to go, navigate to the project directory and start the dev server with `npm run dev`.

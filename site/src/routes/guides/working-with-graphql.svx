@@ -1,0 +1,191 @@
+---
+title: Working With GraphQL
+index: 2
+description: An overview of the store-based API provided by Houdini and how it relates to documents found inside of svelte files.
+---
+
+<script>
+    import { Highlight } from 'svelte-highlight'
+    import { Transformation, DeepDive } from '~/components'
+    import { graphql, typescript } from '~/lib/highlight'
+
+    const storeSource = `
+    # Operation defined in a .gql or .graphql file
+    query ViewerProfile {
+        viewer {
+            firstName
+        }
+    }`
+
+    const storeTypeDef = `
+// Generated Store
+type ViewerProfileStore = {
+    subscribe: Readable<ViewerProfile>
+    fetch(...): Promise<void>
+}`
+</script>
+
+# Working with GraphQL
+
+There are two different ways you can define graphql documents in a Houdini application.
+
+- **External documents**: you write your graphql operations in dedicated graphql files (`.gql` or
+  `.graphql` for example) and interact with the store API directly.
+- **Inline documents**: you write your graphql operations inside your `.svelte` files and the preprocessor
+  will take care of all the boilerplate code for you.
+
+While the two approaches are totally equivalent in functionality, they have different strengths
+and weaknesses so you'll often find yourself mixing and matching the techniques in a given project.
+That's their real power: you can use the right technique for the right place!
+
+Before we get to the actual differences we should first go over the core abstraction powering
+Houdini's data fetching: Document Stores.
+
+## Document Stores
+
+When you run the `generate` command, Houdini creates a dedicated store for every document it encounters
+in a `.svelte` file or an external graphql file (`.gql` or `.graphql`). These stores power
+inline documents **and** external files.
+
+For example, a graphql document containing a query will have a corresponding store generated that is not only responsible for
+querying your API but also subscribing to changes in Houdini's cache so everything is kept in sync when mutations and subscriptions fire.
+
+<Transformation>
+    <Highlight language={graphql} code={storeSource} slot="from"/>
+    <Highlight language={typescript} code={storeTypeDef} slot="to" />
+</Transformation>
+
+## External documents
+
+When working with external documents, you will need to interact directly with the store API.
+These stores can be imported and used anywhere in your project including components, endpoints,
+hooks, etc. Here's an example of a SvelteKit route that uses a query document:
+
+```svelte
+<script context="module">
+    import ViewerProfileStore from '$houdini/stores/ViewerProfile'
+    import { browser } from '$app/env'
+
+    export async load(event) {
+        // make sure the store has the latest data
+        await ViewerProfileStore.fetch({ event })
+
+        // have to return _something_ to make sveltekit happy
+        return {}
+    }
+</script>
+
+<script>
+    <!-- make sure that the latest value is always fetched -->
+    $: browser && ViewerProfileStore.fetch()
+</script>
+
+{$ViewerProfileStore.data.viewer.firstName}
+```
+
+And mutation store looks something like
+
+```svelte
+<script>
+    import AddUser from '$houdini/stores/AddUser'
+    import { getHoudiniContext } from '$houdini/runtime'
+
+    // the context must be pulled out at the root of your component
+    // so your HoudiniClient's fetch function has everything it needs
+    const context = getHoudiniContext()
+
+    // a function to invoke the mutation
+    const addUser = () => AddUser.mutate({
+        context,
+        variables: { firstName: "Houdini" }
+    })
+</script>
+
+<button on:click={addUser} />
+```
+
+<DeepDive title="Importing Document Stores">
+
+All document stores can be imported in three different ways. You can either import the default export of the path which will provide an
+instance of the store you can work with easily:
+
+```javascript
+import store from '$houdini/stores/MyQuery'
+```
+
+You can import the same instance from the root of the runtime with `GQL_` prepended to the store's name.
+
+```javascript
+import { GQL_MyQuery } from '$houdini'
+```
+
+Or, you can import a factory from the module that will let you instantiate multiple copies of the same store if you need to:
+
+```javascript
+import { MyQueryStore } from '$houdini/stores/MyQuery'
+
+const store = MyQueryStore()
+```
+
+</DeepDive>
+
+While the stores are incredibly flexible, we're already starting to see the biggest downside:
+there is a good amount of boilerplate required to connect your component and store. If this seems like a lot
+to remember, don't worry - that's where the preprocessor comes in.
+
+## Inline Documents
+
+Houdini's preprocessor is a powerful tool that enables a more declarative API and hides a lot of the
+complexity we saw in the previous section. To use the preprocessor, you must define your queries directly inside of your
+svelte components. For example, a route that depends on the result of a query looks something like this:
+
+```svelte
+<script>
+	import { graphql, query } from '$houdini'
+
+	const { data } = query(graphql`
+		query ViewerProfile {
+			viewer {
+				firstName
+			}
+		}
+	`)
+</script>
+
+{$data.viewer.firstName}
+```
+
+Notice that you didn't have to define a loader for your route? That the magic of the preprocessor.
+It generates all of that for you!
+
+Mutations also have a simpler API with the preprocessor. Notice how there's no more need to pass `context`:
+
+```svelte
+<script>
+    import AddUser from '$houdini/stores/AddUser'
+
+    // a function to invoke the mutation
+    const addUser = mutation(graphql`
+        mutation AddUser($firstName: String!) {
+            addUser(firstName: $firstName) {
+                newUser {
+                    id
+                }
+            }
+        }
+    `)
+</script>
+
+<button on:click={() => addUser({ firstName: "Houdini" })} />
+```
+
+## Which is Better?
+
+So does that mean you should just always use the preprocessor and ignore the document stores? Well.... no. Not always.
+
+What you gain in simplicity with the preprocessor, you lose in flexibility.
+The preprocessor can only run on `.svelte` files so if you want to do things inside of an endpoint or
+any random file, you'll need to use the store api. If you want to send custom headers for just a single
+request, you'll need the store api. You should think of a document store's api as a lower level mechanism for
+interacting with your graphql documents when you need to do something special with a query but you will be responsible
+for the details.

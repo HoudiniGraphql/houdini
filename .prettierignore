@@ -1,3 +1,4 @@
 .yarn/
 **/build/**
 README.md
+.github/**

@@ -1,0 +1,37 @@
+---
+title: Subscription
+index: 4
+description: Subscriptions in Houdini
+---
+
+<script>
+    import { HeaderWithMode } from '~/components'
+    import SubscriptionClient from '~/sections/subscription-client.svx'
+</script>
+
+<HeaderWithMode title="Subscription" />
+
+Listen for real-time updates from your server using GraphQL Subscriptions.
+
+```svelte
+<script>
+	import ItemUpdate from '$houdini/stores/ItemUpdate'
+
+	ItemUpdate.listen({ id: itemID })
+</script>
+
+latestValue: {$ItemUpdate.item.text}
+```
+
+### Store Methods
+
+A subscription store holds onto the latest value from the subscription and has the following methods:
+
+- `listen`: takes an optional object to use as variables and causes the store to start listening for events
+- `unlisten`: causes the store to stop listening. This gets called automatically when using the `$` syntax to retrieve the value
+
+## List Operations
+
+Subscription bodies can contain all of the list operations described in [this document](/api/graphql).
+
+<SubscriptionClient />

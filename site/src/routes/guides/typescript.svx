@@ -1,0 +1,69 @@
+---
+title: Typescript
+index: 5
+description: An overview of Houdini's support for Typescript
+---
+
+# Typescript
+
+Houdini is written in typescript and will generate types to match every document you wrap with `graphql`. This means you get a fully-typesafe layer that corresponds to the exact queries you are sending:
+
+```svelte
+<script lang="typescript">
+    import { query, graphql, AllItems } from '$houdini'
+
+    // load the items
+    const { data } = query<AllItems>(graphql`
+        query AllItems {
+            items {
+                id
+                text
+            }
+        }
+    `)
+</script>
+
+{#each $data.items as item}
+    <div>{item.text}</div>
+{/each}
+```
+
+```svelte
+<script lang="typescript">
+    import { fragment, graphql, UserAvatar } from '$houdini'
+
+    // the reference will get passed as a prop
+    export let user: UserAvatar
+
+    const data = fragment(graphql`
+        fragment UserAvatar on User {
+            profilePicture
+        }
+    `, user)
+</script>
+
+<img src={$data.profilePicture} />
+```
+
+```svelte
+<script lang="typescript">
+    import { mutation, graphql, UncheckItem } from '$houdini'
+
+    let itemID: string
+
+    const uncheckItem = mutation<UncheckItem>(graphql`
+        mutation UncheckItem($id: ID!) {
+            uncheckItem(item: $id) {
+                item {
+                    id
+                    completed
+                }
+            }
+        }
+    `)
+</script>
+
+<button on:click={() => uncheckItem({ id: itemID })}>
+    Uncheck Item
+</button>
+```
