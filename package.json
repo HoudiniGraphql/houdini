@@ -3,6 +3,7 @@
 	"version": "0.15.8",
 	"description": "The disappearing graphql client for SvelteKit",
 	"workspaces": [
+		"site",
 		"integration",
 		"."
 	],

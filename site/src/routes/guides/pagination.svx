@@ -1,0 +1,132 @@
+---
+title: Pagination
+index: 3
+description: A guide to pagination in Houdini
+---
+
+# Pagination
+
+It's often the case that you want to avoid querying an entire list from your API in order
+to minimize the amount of data transfers over the network. To support this, GraphQL APIs will
+"paginate" a field, allowing users to query a slice of the list. The strategy used to access
+slices of a list fall into two categories. Offset-based pagination relies `offset` and `limit`
+arguments and mimics the mechanisms provided by most database engines. Cursor-based pagination
+is a bi-directional strategy that relies on `first`/`after` or `last`/`before` arguments and
+is designed to handle modern pagination features such a infinite scrolling.
+
+Regardless of the strategy used, houdini follows a simple pattern: wrap your document in a
+"paginated" function (ie, `paginatedQuery` or `paginatedFragment`), mark the field with
+`@paginate`, and provide the "page size" via the `first`, `last` or `limit` arguments to the field.
+`paginatedQuery` and `paginatedFragment` behave identically: they return a field containing
+a svelte store with your full dataset and functions you can call to load the next or previous
+page, as well as a readable store with a boolean loading state. For example, a field
+supporting offset-based pagination would look something like:
+
+```javascript
+const { data, loadNextPage, loading } = paginatedQuery(graphql`
+	query UserList {
+		friends(limit: 10) @paginate {
+			id
+		}
+	}
+`)
+```
+
+and a field that supports cursor-based pagination starting at the end of the list would look something like:
+
+```javascript
+const { data, loadPreviousPage } = paginatedQuery(graphql`
+	query UserList {
+		friends(last: 10) @paginate {
+			edges {
+				node {
+					id
+				}
+			}
+		}
+	}
+`)
+```
+
+If you are paginating a field with a cursor-based strategy (forward or backwards), the current page
+info can be looked up with the `pageInfo` store returned from the paginated function:
+
+```svelte
+<script>
+    const { data, loadNextPage, pageInfo } = paginatedQuery(graphql`
+        query UserList {
+            friends(first: 10) @paginate {
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    `)
+</script>
+
+{#if $pageInfo.hasNextPage}
+    <button onClick={() => loadNextPage()}> load more </button>
+{/if}
+```
+
+## Paginated Fragments
+
+`paginatedFragment` functions very similarly to `paginatedQuery` with a few caveats.
+Consider the following:
+
+```javascript
+const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
+	fragment UserWithFriends on User {
+		friends(first: 10) @paginate {
+			edges {
+				node {
+					id
+				}
+			}
+		}
+	}
+`)
+```
+
+In order to look up the next page for the user's friend. We need a way to query the specific user
+that this fragment has been spread into. In order to pull this off, houdini relies on the generic `Node`
+interface and corresponding query:
+
+```graphql
+interface Node {
+	id: ID!
+}
+
+type Query {
+	node(id: ID!): Node
+}
+```
+
+In short, this means that any paginated fragment must be of a type that implements the Node interface
+(so it can be looked up in the api). You can read more information about the `Node` interface in
+[this section](https://graphql.org/learn/global-object-identification/) of the graphql community website.
+This is only a requirement for paginated fragments. If your application only uses paginated queries,
+you do not need to implement the Node interface and resolver.
+
+For information about how to customize this behavior, check out the [Caching Data guide](/guides/caching-data#custom-ids).
+
+## Mutation Operations
+
+A paginated field can be marked as a potential target for a mutation operation by passing
+a `name` argument to the `@paginate` directive. For more information, see [this document](/api/mutation/inline#lists).
+
+```javascript
+const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
+	fragment UserWithFriends on User {
+		friends(first: 10) @paginate(name: "User_Friends") {
+			edges {
+				node {
+					id
+				}
+			}
+		}
+	}
+`)
+```

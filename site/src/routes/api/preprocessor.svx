@@ -1,0 +1,30 @@
+---
+title: Preprocessor
+index: 8
+description: A summary of configuration values for Houdini's preprocessor
+---
+
+# Preprocessor
+
+Houdini's preprocessor is responsibile for generating the code necessary to
+power [inline documents](/guides/working-with-graphql). Adding it to your project
+is done in your project's config file.
+
+```javascript
+/// svelte.config.js
+
+import houdini from 'houdini/preprocess'
+
+export default {
+    // ...
+	preprocess: [houdini()],
+}
+```
+
+## Configuration
+
+The preprocessor can be optionally take configuration parameters by passing an object to
+the preprocessor containing all of the [config values](/api/config) as well as:
+
+- `configFile` (optional): a fully resolved path pointing to your houdini config file
+

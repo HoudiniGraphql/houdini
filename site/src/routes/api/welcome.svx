@@ -1,0 +1,144 @@
+---
+title: API Reference
+index: 0
+description: A listing of every top-level export from the Houdini runtime
+---
+
+<script>
+    import { APIShowcase } from '~/components'
+    import bash from "svelte-highlight/src/languages/bash";
+    import mode from '~/lib/mode'
+
+    const queryExample = `const { data } = query(graphql\`
+    query AllTodoItems {
+        items {
+            text
+        }
+    }
+\`)`
+
+const mutationExample = `const addFriend = mutation(graphql\`
+    mutation FollowFriend {
+        followFriend(id: 1) {
+            friend {
+                followed_by_viewer
+            }
+        }
+    }
+\`)`
+
+const graphqlExample = `const addFriend = mutation(graphql\`
+    mutation SetFavorite {
+        setFavoriteRecipe(id: 1) {
+            recipe {
+                ...Favorites_insert
+            }
+        }
+    }
+\`)`
+
+const fragmentExample = `const data = fragment(graphql\`
+    fragment UserAvatar on User {
+        firstName
+        lastName
+        email
+    }
+\`)`
+
+const configExample = `export default {
+    schemaPath: './schema.graphql',
+    sourceGlob: 'src/**/*.svelte',
+    module: 'esm',
+    framework: 'kit',
+    apiUrl: 'http://localhost:4000'
+}`
+
+const subscriptionExample = `subscription(graphql\`
+    subscription PostLiked {
+        postLiked {
+            post {
+                like_count
+            }
+        }
+    }
+\`)`
+
+const cliExample = `houdini generate --pull-schema`
+
+const preprocessorExample = `// svelte.config.js
+import houdini from 'houdini/preprocess'
+
+export default {
+    preprocess: [houdini()],
+}
+`
+</script>
+
+# Houdini API Reference
+
+Every GraphQL document in your Houdini application has two different ways of interacting with it. You can either define
+your document inside of your svelte components or in an external file. While the approaches are equivalent, their APIs
+do vary slightly for the situation. In order to accommodate this, each document page has a toggle in the top right to flip between the store
+and inline APIs. For more information about the differences in the APIs, checkout out the
+[Working With GraphQL](/guides/working-with-graphql) guide.
+
+## GraphQL Documents
+
+<APIShowcase
+title="query"
+description="Fetch data from the server"
+href={`/api/query/${$mode}`}
+example={queryExample}
+/>
+
+<APIShowcase
+title="fragment"
+description="Reuse part of a query"
+href={`/api/fragment/${$mode}`}
+example={fragmentExample}
+/>
+
+<APIShowcase
+title="mutation"
+description="Send updates to the server and keep the local cache up to date"
+href={`/api/mutation/${$mode}`}
+example={mutationExample}
+/>
+
+<APIShowcase
+title="subscription"
+description="Real-time updates"
+href={`/api/subscription/${$mode}`}
+example={subscriptionExample}
+/>
+
+<APIShowcase
+title="Extra Bits"
+description="A summary of the custom things houdini lets you do in your graphql documents"
+href="/api/graphql"
+example={graphqlExample}
+/>
+
+## Setup
+
+<APIShowcase
+title="Config"
+description="The config file format"
+href="/api/config"
+example={configExample}
+/>
+
+<APIShowcase
+title="Command Line"
+description="Command line tool commands and arguments"
+href="/api/cli"
+example={cliExample}
+language={bash}
+/>
+
+<APIShowcase
+title="Preprocessor"
+description="A powerful tool to enable Houdini's declarative API"
+href="/api/preprocessor"
+example={preprocessorExample}
+/>

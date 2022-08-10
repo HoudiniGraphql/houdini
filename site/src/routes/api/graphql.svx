@@ -1,0 +1,137 @@
+---
+title: GraphQL
+index: 5
+description: The GraphQL API provided by Houdini
+---
+
+<script>
+	import mode from '~/lib/mode'
+</script>
+
+# GraphQL API
+
+Houdini adds a number of runtime definitions to your GraphQL schema in order to support its declarative API.
+
+## Fragments
+
+### List Operations
+
+A field marked with `@list` or by passing a name to `@paginate` can use the following fragments in mutations or subscriptions to update the list:
+
+- `[ListName]_insert`: insert the reference into the list
+- `[ListName]_remove`: remove the reference from the list
+- `[ListName]_toggle`: if the reference is already in the list, remove it; otherwise, add it to the list
+
+Some things worth mentioning:
+
+- Insert locations for for the `insert` and `toggle` fragments can be specified using the `prepend` or `append` directives specified below
+- Conditions for the operations can be specified with `@when` or `@when_not` shown below.
+- These fragments can be applied to lists and single values.
+- Sometimes the runtime needs a little help to hunt down the list you want to mutate. For more information on how to use `@parentID` to help, [see below](#parentidvalue-string).
+
+For more information on using these fragments, head over to the [mutation docs](/api/mutation/{$mode}#lists).
+
+## Directives
+
+### `@list(name: String!)`
+
+`@list` marks a field as the target for list operations. Must be passed a name which defines the fragments that can be used to mutate the list. See the [list operations](#list-operations) for more information.
+
+### `@prepend(parentID: ID)`
+
+`@prepend` is used in conjunction with the [list operation fragments](#list-operations) to tell the runtime to add the element at the start of the list. Can be used with both `_insert` and `_toggle` fragments. If the list is a member of a fragment, you will have to pass a value for the `parentID` so the correct list can be updated, otherwise the argument should be omitted.
+
+### `@append(parentID: ID)`
+
+`@append` is used in conjunction with the [list operation fragments](#list-operations) to tell the runtime to add the element at the end of the list. Can be used with both `_insert` and `_toggle` fragments. If the list is a member of a fragment, you will have to pass a value for the `parentID` so the correct list can be updated, otherwise the argument should be omitted.
+
+### `@when`
+
+`@when` provides a conditional under which the [list operation](#list-operations) should be executed. It takes arguments that match the arguments of the field tagged with `@list` or `@paginate`. For more information, check out the [mutation docs](/api/mutation/{$mode}#lists).
+
+```graphql
+mutation UncompleteItem($id: ID!) {
+	uncheckItem(item: $id) {
+		item {
+			# only remove the item from the list of filtered items
+			# if we are only showing the completed ones
+			...All_Items_remove @when(completed: true)
+		}
+	}
+}
+```
+
+### `@when_not`
+
+`@when` provides a conditional under which the [list operation](#list-operations) should not be executed. It takes arguments that match the arguments of the field tagged with `@list` or `@paginate`. For more information, check out the [mutation docs](/api/mutation/{$mode}#lists)
+
+```graphql
+mutation NewItem($input: AddItemInput!) {
+	addItem(input: $input) {
+		# only add the item to the list if we can see uncompleted items
+		...All_Items_insert @when_not(completed: true)
+	}
+}
+```
+
+### `@cache(policy: CachePolicy, partial: Boolean)`
+
+`@cache` is used on a query document to customize the cache behavior. This includes informaton like what [cache policy](/guides/caching-data) should be used by the runtime or if you are okay with partial results from the cache. For a full list of cache policies, check out the [caching guide](/guides/caching-data) and for more information on partial responses, see the [section on partial data](/guides/caching-data#partial-data).
+
+### `@paginate(name: String)`
+
+A field marked with `@paginate` is updated with calls to the page loaders returned by the pagination function. For more information on pagination check out the [guide](/guides/pagination). If you pass a value for the `name` argument, the underlying list can be updated using the [operation fragments](/api/mutation/{$mode}#lists).
+
+### `@[TypeName]_delete`
+
+`@[TypeName]_delete` (ie, something like `@User_delete`) is used to delete the user with an id found in the body of a subscription or mutation. Like the operation fragments, this directive can be applied to lists or singular values. For more information see the [mutation docs](/api/mutation/{$mode}#lists).
+
+```graphql
+mutation DeleteItem($input: DeleteItemInput!) {
+	deleteItem(input: $input) {
+		# this will delete the item with the matching id from the cache
+		# and remove it from all lists
+		deletedID @Item_delete
+	}
+}
+```
+
+### `@parentID(value: String!)`
+
+`@parentID` is used to identify the parent ID for the field marked with `@list` or `@paginate` when it cannot be inferred. For example, imagine a situation where there are multiple users rendered on a view that shows their top 5 bands. That listing is retrieved with a query containing `@list(name: "Favorite_Bands")`:
+
+```graphql
+query MyFriendsBandList {
+	viewer {
+		friends {
+			favoriteBands @list(name: "Favorite_Bands") {
+				name
+			}
+		}
+	}
+}
+```
+
+If you want to add a band to the list of a specific user, you need to pass the `id` field of the user found in the `friend` list:
+
+```graphql
+mutation FavoriteBand($input: FavoriteBandInput!, $userID: String!) {
+	setFavorite(input: $input) {
+		# only add the item to the list if we can see uncompleted items
+		...Favorite_Bands_insert @parentID(value: $userID)
+	}
+}
+```
+
+## Enums
+
+Houdini generates runtime representations of every enum in your schema. They can be imported directly from
+`$houdini`:
+
+```javascript
+import { MyEnum, GQL_MyMutation } from '$houdini
+
+function onClick() {
+	GQL_MyMutation.mutate({ variables: { input: MyEnum.Value1 }})
+}
+```

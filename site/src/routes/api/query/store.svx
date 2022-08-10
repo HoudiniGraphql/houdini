@@ -1,0 +1,299 @@
+---
+title: Query
+index: 1
+description: Queries in Houdini
+---
+
+<script>
+    import { HeaderWithMode, DeepDive } from '~/components'
+    import { Highlight, HighlightAuto } from 'svelte-highlight'
+    import { Transformation } from '~/components'
+    import { graphql } from '~/lib/highlight'  
+
+  const forwardPaginationStoreBefore = `
+query MyFriends {
+  viewer {
+    friends(first: 10) @paginate( name: "My_Friends") {
+      edges {
+        node {
+          id
+        }
+      }
+  }
+}
+`
+	const forwardPaginationStoreAfter = `
+type MyFriendsStore = QueryStore & {
+  loadNextPage(
+    houdiniContext: HoudiniContext,
+    pageCount?: number,
+    after?: string | number
+  ): Promise<void>,
+
+  pageInfo: Readable<PageInfo>
+}
+`
+	 const backwardsPaginationStoreBefore = `
+query MyFriends {
+  viewer {
+    friends(last: 10) @paginate(name: "My_Friends") {
+      edges {
+        node {
+          id
+        }
+      }
+  }
+}
+`
+	const backwardsPaginationStoreAfter = `
+type MyFriendsStore = QueryStore & {
+  loadPreviousPage(
+    houdiniContext: HoudiniContext,
+    pageCount?: number,
+    before?: string | number
+  ): Promise<void>,
+
+  pageInfo: Readable<PageInfo>
+}
+`
+	 const offsetPaginationStoreBefore = `
+query MyFriends {
+  viewer {
+    friends(limit: 10) @paginate(name: "My_Friends") {
+      id
+    }
+  }
+}
+`
+	const offsetPaginationStoreAfter = `
+type MyFriendsStore = QueryStore & {
+  loadNextPage(
+    houdiniContext: HoudiniContext,
+    limit?: number,
+    offset?: number
+  ): Promise<void>,
+}
+`
+</script>
+
+<HeaderWithMode title="Query" />
+
+Load data from the server and subscribe to any changes of fields we detect from mutations, subscriptions, and other queries.
+
+```svelte
+<script context="module">
+    import ViewerProfileStore from '$houdini/stores/ViewerProfile'
+    import { browser } from '$app/env'
+
+    export async load(event) {
+        // make sure the store has the latest data
+        await ViewerProfileStore.fetch({ event })
+
+        // have to return _something_ to make SvelteKit happy
+        return {}
+    }
+</script>
+
+<script>
+  // retrieve the latest value from the cache
+  $: browser && ViewerProfileStore.fetch()
+</script>
+
+{$ViewerProfileStore.data.viewerProfile.firstName}
+
+```
+
+### Store Value
+
+A query store holds onto an object containing a variety of metadata
+about the last query that was sent:
+
+- `data`: holds the result of the query
+- `errors`: a list of objects with a `message` field
+- `isFetching`: a boolean that tracks the fetchingState (always false after a request)
+- `partial`: a boolean indicating of the query has partial results. For more information see the [caching guide](/guides/caching-data#partial-data)
+- `source`: one of `"network"` or `"cache"`. Indicates wether the result was read from the cache or the network
+- `variables`: the variables used for the request
+
+## Fetching Data
+
+The quickest way to load data into a store is to call the `fetch` method when running in the browser. In a
+SvelteKit route, this looks something like:
+
+```svelte
+<script>
+  import { browser } from '$app/env'
+  import MyQueryStore from '$houdini/stores/MyQuery'
+
+  $: browser && MyQueryStore.fetch({ variables: { ... } })
+</script>
+
+{$MyQueryStore.data.value}
+```
+
+## Server-Side Rendering
+
+In frameworks like Sapper or SvelteKit, you can fetch data for your component so that it loads before the
+the component mounts. To do this, you have to use the `fetch` method inside of your `load` function:
+
+```svelte
+<script context="module">
+  import { browser } from '$app/env'
+  import MyQueryStore from '$houdini/stores/MyQuery'
+
+  export async function load(event) {
+    await MyQueryStore.fetch({ event })
+
+    return {}
+  }
+</script>
+
+<script>
+  $: browser && MyQueryStore.fetch()
+</script>
+
+{$MyQueryStore.data.value}
+```
+
+If your query has variables, you can avoid repeating them using a prop:
+
+```svelte
+<script context="module">
+  import { browser } from '$app/env'
+  import MyQueryStore from '$houdini/stores/MyQuery'
+
+  export async function load(event) {
+    const variables = { ... }
+
+    await MyQueryStore.fetch({ event, variables })
+
+    return {
+      props: { variables }
+    }
+  }
+</script>
+
+<script>
+  export let variables
+
+  $: browser && MyQueryStore.fetch({ variables })
+</script>
+
+{$MyQueryStore.data.value}
+```
+
+<DeepDive title="Blocking Navigation">
+
+If we're not careful, the above code will cause every route transition to
+block while the store waits for the server. While this sounds great
+for server-side rendered views, this is usually not what we want for
+client-side transitions. In order to accommodate this, awaiting
+`fetch` does not actually wait for the promise to resolve when
+the request happens on the browser. This means that if you want to
+do something with the response, you have to pass `blocking: true`
+which will make the `await` behave like normal:
+
+```javascript
+export async function load(event) {
+	// blocking:true makes this await "real"
+	const { data } = await MyStore.fetch({ event, blocking: true })
+
+	// check the response of the query and redirect when appropriate
+	if (!data.fieldName) {
+		return {
+			redirect: '/not-field-name'
+		}
+	}
+
+	return {}
+}
+```
+
+</DeepDive>
+
+### Passing Metadata
+
+Sometimes you need to do something very custom for a specific route. Maybe you need special headers or some other contextual information.
+Whatever the case may be, you can pass a `metadata` parameter to fetch:
+
+```svelte
+<script context="module">
+  import { browser } from '$app/env'
+  import MyQueryStore from '$houdini/stores/MyQuery'
+
+</script>
+
+<script>
+  export let variables
+
+  $: browser && MyQueryStore.fetch({ variables, metadata: { ... } })
+</script>
+```
+
+This value will get forwarded to the network function in your client definition, usually found in `src/client.js`:
+
+```typescript
+async function fetchQuery({ fetch, text, variables, session, metadata }) {
+	// do anything with metadata inside of here
+}
+
+// Export the Houdini client
+export default new HoudiniClient(fetchQuery)
+```
+
+## Endpoints
+
+Using a query store inside of an endpoint looks very similar to the `load` function: just pass the event you
+are handed in your route function along with your preferred fetch implementation:
+
+```javascript
+import { GQL_MyQuery } from '$houdini'
+import fetch from 'node-fetch'
+
+export async function get(event) {
+	const { data } = await GQL_MyQuery.fetch({ event, fetch })
+
+	return {
+		body: {
+			data
+		}
+	}
+}
+```
+
+## Paginated Queries
+
+If the query contains the pagination directive then the generated store will have extra fields/methods
+according to the pagination strategy and direction. For more information about pagination in general, check
+out [this guide](/guides/pagination).
+
+### Forward cursor pagination
+
+If the decorated field implements cursor-based pagination and provides a `first` argument, the query store will be
+generated with an extra method that loads more data and a field pointing to a store with the current `pageInfo`
+object. This extra field can be used to track if there are more pages to load:
+
+<Transformation>
+	<Highlight slot="from" code={forwardPaginationStoreBefore} language={graphql} />
+	<HighlightAuto slot="to" code={forwardPaginationStoreAfter} />
+</Transformation>
+
+### Backwards cursor pagination
+
+If the decorated field implements cursor-based pagination and provides a `last` argument, the query store will be
+generated with an extra method that loads more data and a field pointing to a store with the current `pageInfo`
+object. This extra field can be used to track if there are more pages to load:
+
+<Transformation>
+	<Highlight slot="from" code={backwardsPaginationStoreBefore} language={graphql} />
+	<HighlightAuto slot="to" code={backwardsPaginationStoreAfter} />
+</Transformation>
+
+### Offset/limit Pagination
+
+If the decorated field implements offset/limit pagination and provides a `limit` argument, the query store will be generated with an extra methods that lets it load more pages after the one the current one:
+
+<Transformation>
+	<Highlight slot="from" code={offsetPaginationStoreBefore} language={graphql} />
+	<HighlightAuto slot="to" code={offsetPaginationStoreAfter} />
+</Transformation>
