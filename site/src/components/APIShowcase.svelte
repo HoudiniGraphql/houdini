@@ -52,6 +52,8 @@
 
 	:global(.api-showcase-container pre) {
 		margin-bottom: 0 !important;
+		padding-left: 0 !important;
+		padding-right: 0 !important;
 	}
 
 	p {

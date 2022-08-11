@@ -1,7 +1,7 @@
 ---
-title: Preprocessor
+title: Plugin
 index: 8
-description: A summary of configuration values for Houdini's preprocessor
+description: A summary of configuration values for Houdini's kit plugin
 ---
 
 # Preprocessor
@@ -16,8 +16,8 @@ is done in your project's config file.
 import houdini from 'houdini/preprocess'
 
 export default {
-    // ...
-	preprocess: [houdini()],
+	// ...
+	preprocess: [houdini()]
 }
 ```
 
@@ -27,4 +27,3 @@ The preprocessor can be optionally take configuration parameters by passing an o
 the preprocessor containing all of the [config values](/api/config) as well as:
 
 - `configFile` (optional): a fully resolved path pointing to your houdini config file
-

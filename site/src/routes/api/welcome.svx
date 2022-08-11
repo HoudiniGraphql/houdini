@@ -36,7 +36,7 @@ const graphqlExample = `const addFriend = mutation(graphql\`
     }
 \`)`
 
-const fragmentExample = `const data = fragment(graphql\`
+const fragmentExample = `$: data = fragment(graphql\`
     fragment UserAvatar on User {
         firstName
         lastName
@@ -64,11 +64,11 @@ const subscriptionExample = `subscription(graphql\`
 
 const cliExample = `houdini generate --pull-schema`
 
-const preprocessorExample = `// svelte.config.js
-import houdini from 'houdini/preprocess'
+const preprocessorExample = `// vite.config.js
+import houdini from 'houdini/kit'
 
 export default {
-    preprocess: [houdini()],
+    plugins: [houdini(), ...],
 }
 `
 </script>
@@ -138,6 +138,6 @@ language="bash"
 <APIShowcase
 title="Preprocessor"
 description="A powerful tool to enable Houdini's declarative API"
-href="/api/preprocessor"
+href="/api/plugin"
 example={preprocessorExample}
 />

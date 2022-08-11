@@ -7,5 +7,5 @@
 </script>
 
 <pre class="code showcase-example" {...$$props}>
-{@html Prism.highlight(code, Prism.languages[language])}
+{@html Prism.highlight(code, Prism.languages[language] || Prism.languages['javascript'])}
 </pre>

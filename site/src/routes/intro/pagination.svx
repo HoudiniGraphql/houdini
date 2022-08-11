@@ -6,9 +6,6 @@ description: The fourth part of the Houdini intro focusing on how to render long
 
 <script>
 	import { GraphQLExplained } from '~/components'
-
-	const explainedSchema = `
-`
 </script>
 
 # Rendering Long Lists
