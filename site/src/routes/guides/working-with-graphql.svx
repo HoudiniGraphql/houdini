@@ -1,11 +1,11 @@
 ---
 title: Working With GraphQL
 index: 2
-description: An overview of the store-based API provided by Houdini and how it relates to documents found inside of svelte files.
+description: An overview of the various ways Houdini applications can leverage GraphQL documents.
 ---
 
 <script>
-    import { Transformation, DeepDive, Highlight} from '~/components'
+    import { Transformation, DeepDive, Highlight, Warning } from '~/components'
 
     const storeSource = `
     # Operation defined in a .gql or .graphql file
@@ -25,77 +25,61 @@ type ViewerProfileStore = {
 
 # Working with GraphQL
 
-There are two different ways you can define graphql documents in a Houdini application.
+Everyone's has different needs from their GraphQL client. That means that in order to provide a high quality
+developer experience, Houdini must support a few different APIs that overlap. While this is great for the
+community as a whole, it creates a challenge for newcomers since there isn't a clear path for how to
+structure their applications.
 
-- **External documents**: you write your graphql operations in dedicated graphql files (`.gql` or
-  `.graphql` for example) and interact with the store API directly.
-- **Inline documents**: you write your graphql operations inside your `.svelte` files and the preprocessor
-  will take care of all the boilerplate code for you.
+The goal of this guide is to walk you through the various ways Houdini lets you work with GraphQL so you can hopefully find something that maps
+onto the way you think. If nothing's clicking, please reach out on Discord or GitHub. I'm sure we can figure _something_ out. Also, don't worry:
+we do have an official recommendation at the end for a structure that we think works well.
 
-While the two approaches are totally equivalent in functionality, they have different strengths
-and weaknesses so you'll often find yourself mixing and matching the techniques in a given project.
-That's their real power: you can use the right technique for the right place!
-
-Before we get to the actual differences we should first go over the core abstraction powering
-Houdini's data fetching: Document Stores.
+Let's start by going over the core abstraction powering Houdini's data fetching: Document Stores.
 
 ## Document Stores
 
-When you run the `generate` command, Houdini creates a dedicated store for every document it encounters
-in a `.svelte` file or an external graphql file (`.gql` or `.graphql`). These stores power
-inline documents **and** external files.
-
-For example, a graphql document containing a query will have a corresponding store generated that is not only responsible for
-querying your API but also subscribing to changes in Houdini's cache so everything is kept in sync when mutations and subscriptions fire.
+When Houdini detects a graphql document in your project, it generates a [Svelte store](https://svelte.dev/tutorial/writable-stores) that you
+can use to interact with your data. Every document type (query, mutation, subscription) generates a different kind of store with different methods.
 
 <Transformation>
     <Highlight language="graphql" code={storeSource} slot="from"/>
     <Highlight language="typescript" code={storeTypeDef} slot="to" />
 </Transformation>
 
-## External documents
+These stores are your primary tools in a Houdini application. So how how do you define your documents so Houdini can do its magic?
 
-When working with external documents, you will need to interact directly with the store API.
-These stores can be imported and used anywhere in your project including components, endpoints,
-hooks, etc. Here's an example of a SvelteKit route that uses a query document:
+## Defining Documents
 
-```svelte
-<script context="module">
-    import ViewerProfileStore from '$houdini/stores/ViewerProfile'
-    import { browser } from '$app/env'
+There are two different ways you can define graphql documents in a Houdini application:
 
-    export async load(event) {
-        // make sure the store has the latest data
-        await ViewerProfileStore.fetch({ event })
+- **External documents**: you write your graphql documents in dedicated graphql files (`.gql` or
+  `.graphql` for example) and interact with stores that you import from `$houdini`.
+- **Inline documents**: you define your graphql documents inside your `.svelte`, `.ts` or `.js` files and
+  interact with stores that are provided by the `graphql` tag.
 
-        // have to return _something_ to make sveltekit happy
-        return {}
-    }
-</script>
+The following examples all show query documents but everything holds true for all document types (queries, mutations, fragments, and subscriptions).
 
-<script>
-    <!-- make sure that the latest value is always fetched -->
-    $: browser && ViewerProfileStore.fetch()
-</script>
+### External Documents
 
-{$ViewerProfileStore.data.viewer.firstName}
+External documents are pretty self explanatory: define your graphql documents a file (one definition per file) and then import your
+store from `$houdini` as `GQL_DocumentName`:
+
+```graphql
+# src/lib/queries/MyAwesomeQuery.gql
+
+query MyAwesomeQuery {
+	viewer {
+		isAwesome
+	}
+}
 ```
 
-And mutation store looks something like
-
-```svelte
-<script>
-	import AddUser from '$houdini/stores/AddUser'
-
-	// a function to invoke the mutation
-	const addUser = () =>
-		AddUser.mutate({
-			variables: { firstName: 'Houdini' }
-		})
-</script>
-
-<button on:click={addUser} />
+```javascript
+// src/routes/myRoute/+page.js
+import { GQL_MyAwesomeQuery } from '$houdini'
 ```
+
+Note the prefix `GQL_` is to enable easy autocompletion in your editor - give it a try!
 
 <DeepDive title="Importing Document Stores">
 
@@ -122,22 +106,190 @@ const store = MyQueryStore()
 
 </DeepDive>
 
-While the stores are incredibly flexible, we're already starting to see the biggest downside:
-there is a good amount of boilerplate required to connect your component and store. If this seems like a lot
-to remember, don't worry - that's where the preprocessor comes in.
+### Inline Documents
 
-## Inline Documents
-
-Houdini's preprocessor is a powerful tool that enables a more declarative API and hides a lot of the
-complexity we saw in the previous section. To use the preprocessor, you must define your queries directly inside of your
-svelte components. For example, a route that depends on the result of a query looks something like this:
+Another option is to define your document directly inside of your source code (ie, in a `.svelte`, `.js`, or `.ts` file). To
+do that, import `graphql` from `$houdini` and wrap your query inside of the template tag:
 
 ```svelte
+<!-- src/routes/myRoute/+page.svelte -->
+<script>
+	import { graphql } from '$houdini'
+
+	const store = graphql`
+		query ViewerSettings {
+			viewer {
+				isAwesome
+			}
+		}
+	`
+</script>
+```
+
+```javascript
+// src/routes/myRoute/+page.js
+
+import { graphql } from '$houdini'
+
+const store = graphql`
+	query MyAwesomeQuery {
+		viewer {
+			isAwesome
+		}
+	}
+`
+```
+
+### More Information
+
+For more information on each store type, please visit the [api docs](/api/welcome).
+
+## Loading Data
+
+Once you have your store, the next step is to start using it. Explanations for fragments, mutations, and subscriptions,
+are better left for the <a href="/api/welcome/" target="_blank" rel="noreferrer">api docs</a> but
+queries have some unique requirements that are worth covering in detail. In fact, the rest of this section
+is going to focus exclusively on loading data into SvelteKit routes.
+
+Usually, your route's `.svelte` files will receive their stores as props. This often looks something like:
+
+```svelte
+<!-- src/routes/myProfile/+page.svelte -->
+<script>
+	export let data
+
+	$: ({ UserProfile } = data)
+</script>
+
+{$UserProfile.data.viewer.firstName}
+```
+
+Of course, you could have also defined an inline store, but most of the time, you'll want to SSR your views which means we have to define
+a `load` function in `+page.js`. This leads us to the next question: do you want Houdini to generate the load function for you?
+
+### Manual Loads
+
+If you are the kind of person who doesn't like hidden details, you are totally free to define your own load function as long as you call
+the store's `fetch` method. In order to streamline this, Houdini provides a function for each of your stores that you can use to render
+your route on the server. These functions take the same parameters as fetch:
+
+```typescript
+//  src/routes/myProfile/+page.js
+
+import { load_MyQuery } from '$houdini'
+
+export async function load(event) {
+	return {
+		...(await load_MyQuery({ event }))
+	}
+}
+```
+
+If even _that_ is too much magic for you, rest assured all it's doing is instantiating a store and calling `.fetch`. You can check out the definition yourself
+inside of the `$houdini/stores/MyStore.js`. If you still want to do something custom, you are free to structure things however you want
+just make sure that you instantiate stores inside of `load` and pass them to your route's `.svelte` file as props.
+
+<Warning>
+
+Do not use global stores (ie, `GQL_MyQuery`) in `load` functions unless you have a very good reason. Global stores are not safe for SSR because they get mutated
+by multiple users at the same time. By instantiating a new store on every load, you automatically support complex flows like prefetching and concurrent requests
+without any hassle.
+
+Also, be careful when loading multiple stores in a single load. You want to make sure that you aren't blocking one request while you wait for another. For
+help in this situation, check out the loadAll function. It's described inside the Deep Dive, <a href="/api/query/store#sveltekit" target="_blank" rel="noreferrer">here</a>.
+
+</Warning>
+
+### Automatic Loads
+
+On the other hand, maybe you are the kind of person who gets really tired of typing the same code over and over. For those people, Houdini's vite plugin offers some powerful
+features that dramatically reduce the amount of boilerplate that you are responsible for.
+
+You can tell houdini to generate a load for you by exporting a `houdini_load` value from `+page.js` that contains one or more query stores that you want to use in your route:
+
+```javascript
+//  src/routes/myProfile/+page.js
+import { GQL_ProjectList, graphql } from '$houdini'
+
+const userInfo = graphql`
+	query UserInfo {
+		viewer {
+			firstName
+		}
+	}
+`
+
+export const houdini_load = [GQL_ProjectList, userInfo]
+```
+
+With that in place, your route will be passed two props: `ProjectList` and `UserInfo`:
+
+```svelte
+<!-- src/routes/myProfile/+page.svelte -->
+<script>
+	export let data
+
+	$: ({ ProjectList, UserInfo } = data)
+
+	$: { firstName } = $UserInfo.data.viewer
+	$: { length } = $ProjectList.data.projects
+</script>
+
+{firstName} can see {length} projects
+```
+
+Keep in mind that `houdini_load` can also take a single query, which allows for an interesting approach:
+
+```javascript
+// src/routes/myProfile/+page.js
+
+import { graphql } from '$houdini'
+
+export const houdini_load = graphql`
+	query UserInfo {
+		viewer {
+			firstName
+		}
+	}
+`
+```
+
+For more information on working with generated loads (ie, how to pass variables, perform logic before or after the actual fetch, etc), check out the [Inline Query docs](/api/query/inline).
+It's fundamentally the same API even if those examples are for a slightly different situation than what we've seen so far.
+
+This last approach works nicely when you have lots of different variables and hooks for a particular query since it allows all of that logic to be co-located:
+
+```javascript
+// src/routes/myProfile/+page.js
+
+import { graphql } from '$houdini'
+
+export const houdini_load = graphql`
+	query UserInfo($id: ID!) {
+		user(id: $id) {
+			firstName
+		}
+	}
+`
+
+export function UserInfoVariables({ params }) {
+	return {
+		id: params.id
+	}
+}
+```
+
+### Inline Queries
+
+Another way to get a generate load for your route queries, is to define your query inside of your `+page.svelte` wrapped inside of a `query` function:
+
+```svelte
+<!-- src/routes/myProfile/+page.svelte -->
 <script>
 	import { graphql, query } from '$houdini'
 
 	const { data } = query(graphql`
-		query ViewerProfile {
+		query UserInfo {
 			viewer {
 				firstName
 			}
@@ -148,37 +300,48 @@ svelte components. For example, a route that depends on the result of a query lo
 {$data.viewer.firstName}
 ```
 
-Notice that you didn't have to define a loader for your route? That the magic of the preprocessor.
-It generates all of that for you!
+This approach behaves exactly the same as what we saw before. Benefit of this approach is that we didn't have to
+modify `+page.js` just because we added a query to our route. However, the moment we want to do anything extra (variables, hooks, etc) those
+will have to go inside of `+page.js` so this approach can feel a little scattered at times.
 
-Mutations also have a simpler API with the preprocessor. Notice how there's no more need to pass `context`:
+### Page Queries
 
-```svelte
-<script>
-	import AddUser from '$houdini/stores/AddUser'
+The final approach for loading your data that we need to cover is by defining a page query. A page query is a query defined inside of a `+page.gql`
+file inside of your route directory. This file behaves like the rest of SvelteKit's `+page` files and automatically configures your route to load the
+provided query. For example, with the following query defined:
 
-	// a function to invoke the mutation
-	const addUser = mutation(graphql`
-		mutation AddUser($firstName: String!) {
-			addUser(firstName: $firstName) {
-				newUser {
-					id
-				}
-			}
-		}
-	`)
-</script>
+```graphql
+# src/routes/myProfile/+page.gql
 
-<button on:click={() => addUser({ firstName: 'Houdini' })} />
+query UserInfo {
+	viewer {
+		firstName
+	}
+}
 ```
 
-## Which is Better?
+You can now define a `+page.svelte` file that looks like the following and your route will be SSR'd without any extra configuration:
 
-So does that mean you should just always use the preprocessor and ignore the document stores? Well.... no. Not always.
+```svelte
+<!-- src/routes/myProfile/+page.svelte -->
+<script>
+	export let data
 
-What you gain in simplicity with the preprocessor, you lose in flexibility.
-The preprocessor can only run on `.svelte` files so if you want to do things inside of an endpoint or
-any random file, you'll need to use the store api. If you want to send custom headers for just a single
-request, you'll need the store api. You should think of a document store's api as a lower level mechanism for
-interacting with your graphql documents when you need to do something special with a query but you will be responsible
-for the details.
+	$: ({ UserInfo } = data)
+</script>
+
+{$UserInfo.data.viewer.firstName}
+```
+
+Keep in mind, if you want to define variable functions or hooks, those will go in `+page.js`.
+
+## Conclusion
+
+I know, that was a lot.
+
+Hopefully something along the way clicked for you but if you are still struggling to figure out how you want to structure your apps, here's our
+recommendation to start:
+
+- route queries should go in `+page.gql` with variable definitions and hooks inside of `+page.ts` (remember, there's no need to define `houdini_load` if you're using `+page.gql`)
+- fragments should be defined inline, inside of your `.svelte` components using the `fragment` function
+- mutations and subscriptions are safe to use globally (assuming you don't render the value) so we usually grab them as `GQL_` imports from `$houdini`

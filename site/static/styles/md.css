@@ -86,11 +86,17 @@ h3 > code {
 	color: #a1c5f8;
 }
 
-h3 > code {
-	font-size: 20px;
+.message > p > code {
+	color: white !important;
 }
 
-#doc-content em {
+.message p a {
+	color: white !important;
+	text-decoration: underline !important;
+}
+
+h3 > code {
+	font-size: 20px;
 }
 
 #doc-content ol {
