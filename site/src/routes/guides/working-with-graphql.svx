@@ -7,38 +7,73 @@ description: An overview of the various ways Houdini applications can leverage G
 <script>
     import { Transformation, DeepDive, Highlight, Warning } from '~/components'
 
-    const storeSource = `
-    # Operation defined in a .gql or .graphql file
-    query ViewerProfile {
-        viewer {
-            firstName
-        }
-    }`
+    const storeSource = `# Operation defined in a .gql or .graphql file
+query ViewerProfile {
+	viewer {
+		firstName
+	}
+}`
 
-    const storeTypeDef = `
-// Generated Store
+    const storeTypeDef = `// Generated Store
 type ViewerProfileStore = {
     subscribe: Readable<ViewerProfile>
     fetch(...): Promise<void>
 }`
+
+    const inlineMutation = `import { mutation, graphql } from '$houdini'
+
+const mutate = mutation(graphql\`
+    mutation UpdateUser($input: UpdateUserInput!) { 
+        updateUser(input: $input) { 
+            user { 
+                firstName
+            }
+        }
+    }
+\`)`
+
+    const externalMutationGraphQL = `
+# src/lib/graphql/UpdateUser.gql
+
+mutation UpdateUser($input: UpdateUserInput!) { 
+    updateUser(input: $input) { 
+        user { 
+            firstName
+        }
+    }
+} 
+`
+
+    const externalMutation = `
+// src/routes/myProfile/+page.svelte
+
+import { GQL_UpdateUser } from '$houdini'
+
+const mutate = GQL_UpdateUser.mutate
+`
+
 </script>
 
 # Working with GraphQL
 
-Everyone's has different needs from their GraphQL client. That means that in order to provide a high quality
+Everyone has different needs from their GraphQL client. That means that in order to provide a high quality
 developer experience, Houdini must support a few different APIs that overlap. While this is great for the
 community as a whole, it creates a challenge for newcomers since there isn't a clear path for how to
 structure their applications.
 
+Hopefully, by the end of this guide you will have a good understanding of how things should be organized.
+
 ## Our Recommendation
 
-The first part of this guide is more of a style guide than detailed summary. Rather than make you sit through a bunch of examples of
-alternate ways of implementing the same thing over and over, we wanted to jump right to the answer. We recommend reading this list
-a second time after you are done with the explanations in the next section.
+This first part is more of a style guide than detailed summary. Rather than make you sit through a bunch of examples of
+alternate ways of implementing the same thing over and over, we wanted to jump right to our recommendation. Don't worry if the comments don't make
+sense immediately. Come back and read this list a second time after you are done with the explanations in the next section and
+hopefully your confusion will be cleared.
 
 ### Route Queries
 
-The first one is straight forward: define your route queries in `+page.gql`:
+The first one is straight forward: define your route queries in a file named `+page.gql` inside of your route directory. When houdini detects this file, it will handle
+all of the details for you and your route will receive the query store as a prop with the same name:
 
 ```graphql
 # src/routes/myProfile/+page.gql
@@ -50,9 +85,23 @@ query MyProfile {
 }
 ```
 
-While this does have a nice benefit of not needing to define `houdini_load`, the real reason for this is that
-it provides a nice balance between editing experience, co-location, and reliable directory structure.
-If all route queries are in `+page.gql` then we can tell if a route loads data the moment we look inside the directory.
+```svelte
+<!--  src/routes/myProfile/+page.svelte -->
+<script>
+	export let data
+
+	$: ({ MyProfile } = data)
+</script>
+
+<div>
+	{$MyProfile.data.viewer.firstName}
+</div>
+```
+
+The reason for this is that it provides a nice balance between editing experience, co-location, and reliable directory structure.
+If all route queries are in `+page.gql` then we know if a route loads data the moment we look inside the directory. When you need to
+start doing more complicated things with your queries like variables or custom logic, head over to [plugin docs](/api/plugin#generated-loads) to see
+how you can customize the load function that houdini will generate for you.
 
 ### Fragments
 
@@ -81,19 +130,24 @@ Fragments should be defined inside of your `.svelte` components using the inline
 This keeps everything nicely isolated within a single `.svelte` file and at times feels like giving your svelte components a whole new
 superpower.
 
-While not necessary in Houdini, consider using Relay's convention for fragment names. If you ever add a second prop to the `UserAvatar` component,
-you will likely want to update this fragment to use a different name (since there would be 2 fragments associated with `UserAvatar`).
-To reduce this burden, you can name your fragment something like `UserAvatar_user` to signify that the fragment belongs
-to the value passed to the `user` prop. It also provides a clear way to add a second, conflict-free fragment to the `UserAvatar` component.
+### Mutations
 
-### Mutations and Subscriptions
+Mutations tend to live a more fluid lifestyle than the rest of the documents. At first, we find its fastest to define your documents inline
+while you are putting stuff together. However, as your app grows you'll probably want to share those mutations across multiple components. When
+that happens, it's easy to pull the document into an external file and import it from `$houdini`:
 
-Mutations and subscriptions are safe to use globally (assuming you don't render the value) so we usually grab them as `GQL_` imports from `$houdini`
+<Transformation>
+    <Highlight slot="from" code={inlineMutation} language="typescript" />
+    <div slot="to">
+        <Highlight code={externalMutationGraphQL} language="graphql" />
+        <Highlight code={externalMutation} language="typescript" />
+    </div>
+</Transformation>
 
 ### That's it!
 
 If that's enough for you, then I hope you have a great rest of your day and please come tell us what about you're building with houdini. We'd love to hear from you.
-Up next, we're going to break down all of the different approach that you use to to interact with your project's GraphQL Documents.
+If you want to read more, in the next section we're going to break down all of the different ways that you can work with your project's GraphQL Documents.
 
 <div style="height: 100px"></div>
 
@@ -270,9 +324,10 @@ help in this situation, check out the loadAll function. It's described inside th
 ### Automatic Loads
 
 On the other hand, maybe you are the kind of person who gets really tired of typing the same code over and over. For those people, Houdini's vite plugin offers some powerful
-features that dramatically reduce the amount of boilerplate that you are responsible for.
+features that dramatically reduce the amount of boilerplate that you are responsible for. As you'll see there are a few different ways to get houdini to generate a load for you
+but they all behave the exact same and can be [customized the same way](/api/plugin#generated-loads).
 
-You can tell houdini to generate a load for you by exporting a `houdini_load` value from `+page.js` that contains one or more query stores that you want to use in your route:
+The first way to tell houdini to generate a load for you is by exporting a `houdini_load` value from `+page.js` that contains one or more query stores that you want to use in your route:
 
 ```javascript
 //  src/routes/myProfile/+page.js
@@ -289,7 +344,7 @@ const userInfo = graphql`
 export const houdini_load = [GQL_ProjectList, userInfo]
 ```
 
-With that in place, your route will be passed two props: `ProjectList` and `UserInfo`:
+With that in place, your route will be passed two props, named after the queries: `ProjectList` and `UserInfo`:
 
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
@@ -298,14 +353,14 @@ With that in place, your route will be passed two props: `ProjectList` and `User
 
 	$: ({ ProjectList, UserInfo } = data)
 
-	$: { firstName } = $UserInfo.data.viewer
-	$: { length } = $ProjectList.data.projects
+	$: firstName = $UserInfo.data.viewer.firstName
+	$: length = $ProjectList.data.projects.length
 </script>
 
 {firstName} can see {length} projects
 ```
 
-Keep in mind that `houdini_load` can also take a single query, which allows for an interesting approach:
+Keep in mind that `houdini_load` can also take a single store, which allows for something interesting:
 
 ```javascript
 // src/routes/myProfile/+page.js
@@ -321,7 +376,8 @@ export const houdini_load = graphql`
 `
 ```
 
-This approach works nicely when you have lots of different variables and hooks for a particular query since it allows all of that logic to be co-located:
+Your route will be rendered with a single prop: `UserInfo`. This approach works nicely when you have lots of different variables and
+hooks for a particular query since it allows all of that logic to be co-located:
 
 ```javascript
 // src/routes/myProfile/+page.js
@@ -343,15 +399,12 @@ export function UserInfoVariables({ params }) {
 }
 ```
 
-For more information on working with generated loads (ie, how to pass variables, perform logic before or after the actual fetch, etc), check out the [Inline Query docs](/api/query/inline).
-It's fundamentally the same API even if those examples are for a slightly different situation than what we've seen so far.
-
 ### Inline Queries
 
-Another way to get a generate load for your route queries, is to define your query inside of your `+page.svelte` wrapped inside of a `query` function:
+Another way to get a generated load for your route queries, is to define your query inside of your `+page.svelte` wrapped inside of a `query` function:
 
 ```svelte
-<!-- src/routes/myProfile/+page.svelte -->
+<!-- src/lib/UserList.svelte -->
 <script>
 	import { graphql, query } from '$houdini'
 
@@ -367,9 +420,11 @@ Another way to get a generate load for your route queries, is to define your que
 {$data.viewer.firstName}
 ```
 
-This approach behaves exactly the same as what we saw before. Benefit of this approach is that we didn't have to
-modify `+page.js` just because we added a query to our route. However, the moment we want to do anything extra (variables, hooks, etc) those
-will have to go inside of `+page.js` so this approach can feel a little scattered at times.
+This is the recommended approach for non-route components that don't care about server-side rendering.
+
+Inline queries also work well for simple routes since we can co-locate our data needs close to the query without
+having to move between files. Unfortunately, this can lead to the moment we want to do anything extra (variables, hooks, etc), that logic has to be
+defined inside of `+page.js` so routes using this pattern can feel a little scattered at times.
 
 ### Page Queries
 
