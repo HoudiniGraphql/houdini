@@ -12,13 +12,15 @@ All configuration for your houdini application is defined in a single file that 
 
 It can contain the following values:
 
-- `sourceGlob`: a glob telling the runtime generator where to look for your graphql documents
+- `include` (optional, default: `src/**/*.{svelte,graphql,gql,ts,js}`): a pattern to identify source code files
+- `exclude` (optional): a pattern that filters out files that match the include pattern
+- `sourceGlob` (optional, default: `./schema.graphql`): a glob telling the runtime generator where to look for your graphql documents
 - `schemaPath` (optional): the path to the static representation of your schema, can be a glob pointing to multiple files. One of `schema` or `schemaPath` is required
 - `schema` (optional): a string containing your entire schema (mostly useful for testing). One of `schema` or `schemaPath` is required
 - `framework` (optional): One of `"kit"`, `"sapper"`, or `"svelte"`. Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: `kit`)
 - `module` (optional): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create. (default: `esm`)
 - `definitionsPath` (optional): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
-- `apiUrl` (optional): A url to use to pull the schema. For more information see the [generate command docs](/api/cli#generate)
+- `apiUrl` (optional): A url to use to pull the schema. If you don't pass an `apiUrl`, the kit plugin will not poll for schema changes. For more information see the [generate command docs](/api/cli#generate).
 - `static` (optional): A boolean that tells the preprocessor to treat every component as a non-route. This is useful for projects built with the static-adapter
 - `scalars` (optional): An object describing custom scalars for your project (see below).
 - `cacheBufferSize` (optional): The number of queries that must occur before a value is removed from the cache. For more information, see the [Caching Guide](/guides/caching-data).
@@ -31,6 +33,8 @@ It can contain the following values:
 - `routesDir` (optional): The directory containing your project routes. For default Kit and Sapper projects, this value is ./src/routes
 - `routes` (optional): A function to customize the logic houdini uses to identify a route or component when the file is _inside_ of the routesDir. You do not need to define this if you have a custom value in your SvelteKit config file - Houdini will use what's there.
 - `frameworkConfigFile` (optional): The path to your framework config file relative to the houdini config file. By default, Houdini will look for your framework config file in process.cwd() however that's not always valid. Use this option to customize where houdini looks.
+- `schemaPollHeaders` (optional): An object specifying the headers to use when pulling your schema. Keys of the object are header names and its values can be either a string pointing to the environment variable to use as the header value or a function that takes the current `process.env` and returns the the value to use.
+- `schemaPollInterval` (optional, default: `2000`): Configures the schema polling behavior for the kit plugin. If its value is greater than `0`, the plugin will poll the set number of milliseconds. If set to `0`, the plugin will only pull the schema when you first run `dev`. If you set to `null`, the plugin will never look for schema changes. You can see use the [pull-schema command] to get updates.
 
 ## Custom Scalars
 
