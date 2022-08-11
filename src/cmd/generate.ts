@@ -134,13 +134,9 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		// if the user is coming from a version pre-15, point them to the migration guide
 		const major = parseInt(previousVersion.split('.')[1])
 		if (major < 16) {
-			console.log(`❓ For a description of what's changed, visit this guide: https://www.houdinigraphql.com/guides/migrating-to-0.16.0
-❓ Don't forget to update your sourceGlob config value if you want to define documents in external files.`)
-		} else if (major < 15) {
-			console.log(`❓ Looks like it's been awhile since you last updated - lot's has changed.")
-Here are a few links you should check if you want more info:
- - https://www.houdinigraphql.com/guides/migrating-to-0.15.0
- - https://www.houdinigraphql.com/guides/migrating-to-0.16.0`)
+			console.log(
+				`❓ For a description of what's changed, visit this guide: https://www.houdinigraphql.com/guides/release-notes`
+			)
 		}
 	}
 	// print summaries of the changes
