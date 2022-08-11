@@ -78,26 +78,29 @@ type MyFriendsStore = QueryStore & {
 
 Load data from the server and subscribe to any changes of fields we detect from mutations, subscriptions, and other queries.
 
-```svelte
-<script context="module">
-    import ViewerProfileStore from '$houdini/stores/ViewerProfile'
-    import { browser } from '$app/env'
+```javascript
+// src/routs/myRoute/+page.js
 
-    export async load(event) {
-        // make sure the store has the latest data
-        await ViewerProfileStore.fetch({ event })
+import { load_ViewerProfile } from '$houdini'
 
-        // have to return _something_ to make SvelteKit happy
-        return {}
+export async load(event) {
+    return {
+      ...await load_ViewerProfile({ event })
     }
-</script>
+}
+```
+
+```svelte
+<!-- src/routs/myRoute/+page.js -->
 
 <script>
-	// retrieve the latest value from the cache
-	$: browser && ViewerProfileStore.fetch()
+  export let data
+
+  // pull the store reference from the route props
+  $: ({ ViewerProfile } = data)
 </script>
 
-{$ViewerProfileStore.data.viewerProfile.firstName}
+{$ViewerProfile.data.viewerProfile.firstName}
 ```
 
 ### Store Value
@@ -114,70 +117,102 @@ about the last query that was sent:
 
 ## Fetching Data
 
-The quickest way to load data into a store is to call the `fetch` method when running in the browser. In a
-SvelteKit route, this looks something like:
+The quickest way to load data into a store is to call the `fetch` method when running in the browser:
 
 ```svelte
 <script>
   import { browser } from '$app/env'
-  import MyQueryStore from '$houdini/stores/MyQuery'
+  import { GQL_MyQuery } from '$houdini'
 
-  $: browser && MyQueryStore.fetch({ variables: { ... } })
+  $: browser && GQL_MyQuery.fetch({ variables: { ... } })
 </script>
 
-{$MyQueryStore.data.value}
+{$GQL_MyQuery.data.value}
 ```
 
-## Server-Side Rendering
+## SvelteKit
 
-In frameworks SvelteKit, you can fetch data for your component so that it loads before the
-the component mounts. To do this, you have to use the `fetch` method inside of your `load` function:
+In SvelteKit, `fetch` needs to be called inside of your `load` function. In order to streamline this, houdini provides
+a function for each of your stores that you can use to render your route on the server.
 
-```svelte
-<script context="module">
-	import { browser } from '$app/env'
-	import MyQueryStore from '$houdini/stores/MyQuery'
+```javascript
+import { load_MyQuery } from '$houdini'
 
-	export async function load(event) {
-		await MyQueryStore.fetch({ event })
-
-		return {}
-	}
-</script>
-
-<script>
-	$: browser && MyQueryStore.fetch()
-</script>
-
-{$MyQueryStore.data.value}
-```
-
-If your query has variables, you can avoid repeating them using a prop:
-
-```svelte
-<script context="module">
-  import { browser } from '$app/env'
-  import MyQueryStore from '$houdini/stores/MyQuery'
-
-  export async function load(event) {
-    const variables = { ... }
-
-    await MyQueryStore.fetch({ event, variables })
-
-    return {
-      props: { variables }
-    }
+export async function load(event) {
+  return {
+    ...await load_MyQuery({ event })
   }
-</script>
-
-<script>
-	export let variables
-
-	$: browser && MyQueryStore.fetch({ variables })
-</script>
-
-{$MyQueryStore.data.value}
+}
 ```
+
+In case you were wondering, the `load_` prefix is there so you can autocomplete your loads by just typing `load_<tab>`.
+Anyway, with this in place, you can pull your route will recieve props for each of the stores that you have loaded:
+
+```svelte
+<script>
+  export let data
+
+  $: ({ MyQuery } = data)
+</script>
+
+{$MyQuery.data.value}
+```
+
+If your query has variables, you can pass them straight to the loader:
+
+```javascript
+import { load_MyQuery } from '$houdini'
+
+export async function load(event) {
+  return {
+    ...await load_MyQuery({ event, variables: { ... } })
+  }
+}
+```
+
+<DeepDive title="Loading multiple stores simulatenously">
+
+Be careful when loading multiple stores at once.
+
+Each of your loads should be performed inside of an `await Promise.all` so you perform the queries in parallel.
+This can get rather tedious so houdini provides a `loadAll` function you can use to simplify this process:
+
+
+```javascript
+import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
+
+export async function load(event) {
+  return {
+    ...await loadAll(
+      load_MyQuery({ event }),
+      load_MyOtherQuery({ event })
+    )
+  }
+}
+```
+
+If you want to load the same store twice or customize the props that will get passed to your
+route, you can pass any combination of single loaders and objects that map the result to a prop value:
+
+```javascript
+import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
+
+export async function load(event) {
+  return {
+    ...await loadAll(
+      load_MyQuery({ event }),
+      {
+        propA: load_MyOtherQuery({ event, variables: { foo: "A" } }),
+        propB: load_MyOtherQuery({ event, variables: { foo: "B" } }),
+      }
+    )
+  }
+}
+```
+
+The above example will provide 3 props to your route: `MyQuery` containing an instance of `MyQuery`, `propA` with an instance of `MyOtherQuery` with the variables `{foo: "A"}` loaded, and `propB` with an instance of `MyOtherQuery` with the variables `{foo: "B"}` loaded.
+
+</DeepDive>
 
 <DeepDive title="Blocking Navigation">
 
@@ -185,7 +220,7 @@ If we're not careful, the above code will cause every route transition to
 block while the store waits for the server. While this sounds great
 for server-side rendered views, this is usually not what we want for
 client-side transitions. In order to accommodate this, awaiting
-`fetch` does not actually wait for the promise to resolve when
+`fetch` or a loader does not actually wait for the promise to resolve when
 the request happens on the browser. This means that if you want to
 do something with the response, you have to pass `blocking: true`
 which will make the `await` behave like normal:
