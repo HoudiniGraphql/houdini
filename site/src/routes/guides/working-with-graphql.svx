@@ -61,7 +61,7 @@ developer experience, Houdini supports a few different APIs that overlap. While 
 community as a whole, it creates a challenge for newcomers since there isn't a clear path for how to
 structure their applications.
 
-Hopefully, by the end of this guide you will have a good understanding of how you want to organize your applications.
+Hopefully, by the end of this guide you will have a much better understanding of how to do that.
 
 ## Our Recommendation
 
@@ -459,5 +459,5 @@ Keep in mind, if you want to define variable functions or hooks, those will go i
 
 ## That's all for now!
 
-Thanks for making it this far. Hopefully if you made it this far you have some idea for how you want to structure your application. If not, head to the
+Thanks for making it this far. Hopefully you have some idea for how you want to structure your application. If not, head to the
 top of this guide and start with our suggestion, we think its a pretty compelling experience for building GraphQL applications.
