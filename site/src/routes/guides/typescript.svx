@@ -35,11 +35,11 @@ Houdini is written in typescript and will generate types to match every document
     // the reference will get passed as a prop
     export let user: UserAvatar
 
-    const data = fragment(graphql`
+    const data = fragment(user, graphql`
         fragment UserAvatar on User {
             profilePicture
         }
-    `, user)
+    `)
 </script>
 
 <img src={$data.profilePicture} />

@@ -36,7 +36,7 @@ const graphqlExample = `const addFriend = mutation(graphql\`
     }
 \`)`
 
-const fragmentExample = `$: data = fragment(graphql\`
+const fragmentExample = `$: data = fragment(user, graphql\`
     fragment UserAvatar on User {
         firstName
         lastName

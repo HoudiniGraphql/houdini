@@ -77,7 +77,7 @@ info can be looked up with the `pageInfo` store returned from the paginated func
 Consider the following:
 
 ```javascript
-const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
+const { loadNextPage, data, pageInfo } = paginatedFragment(user, graphql`
 	fragment UserWithFriends on User {
 		friends(first: 10) @paginate {
 			edges {
@@ -118,7 +118,7 @@ A paginated field can be marked as a potential target for a mutation operation b
 a `name` argument to the `@paginate` directive. For more information, see [this document](/api/mutation/inline#lists).
 
 ```javascript
-const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
+const { loadNextPage, data, pageInfo } = paginatedFragment(user, graphql`
 	fragment UserWithFriends on User {
 		friends(first: 10) @paginate(name: "User_Friends") {
 			edges {

@@ -54,7 +54,7 @@ query {
     species(id: 1) {
         ...MyFragment
     }
-}`} 
+}`}
     />
         <p style="margin-left: 10px; margin-right: 10px">
             <Icon name="arrow-right" height="30px" width="30px"/>
@@ -63,7 +63,7 @@ query {
 query {
     species(id: 1) {
         name
-        flavor_text 
+        flavor_text
     }
 }`} />
 </div>
@@ -81,17 +81,14 @@ Defining a fragment inside of your component looks a lot like the query from bef
 
 	export let species
 
-	const data = fragment(
-		graphql`
-			fragment SpriteInfo on Species {
-				name
-				sprites {
-					front
-				}
+	const data = fragment(species, graphql`
+		fragment SpriteInfo on Species {
+			name
+			sprites {
+				front
 			}
-		`,
-		species
-	)
+		}
+	`)
 </script>
 
 <div id={$$props.id} class="sprite">
@@ -147,17 +144,14 @@ It's worth mentioning explicitly that you are free to mix and match fragments ho
 	export let species
 	export let number
 
-	const data = fragment(
-		graphql`
-			fragment SpeciesPreview on Species {
-				name
-				id
+	const data = fragment(species, graphql`
+		fragment SpeciesPreview on Species {
+			name
+			id
 
-				...SpriteInfo
-			}
-		`,
-		species
-	)
+			...SpriteInfo
+		}
+	`)
 </script>
 
 <a href={$data.id}>

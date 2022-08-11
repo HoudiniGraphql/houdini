@@ -65,16 +65,13 @@ Take for example, an `TodoItemRow` component:
 
 	// the resulting store will stay up to date whenever `checkItem`
 	// is triggered
-	const data = fragment(
-		graphql`
-			fragment TodoItemRow on TodoItem {
-				id
-				text
-				completed
-			}
-		`,
-		item
-	)
+	data : fragment(item, graphql`
+		fragment TodoItemRow on TodoItem {
+			id
+			text
+			completed
+		}
+	`)
 
 	const checkItem = mutation<CompleteItem>(graphql`
 		mutation CompleteItem($id: ID!) {

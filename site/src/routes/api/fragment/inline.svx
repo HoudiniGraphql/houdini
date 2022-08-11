@@ -19,14 +19,11 @@ Specify the data requirements for a Svelte component.
 	// the reference will get passed as a prop
 	export let user
 
-	$: data = fragment(
-		graphql`
-			fragment UserAvatar on User {
-				profilePicture
-			}
-		`,
-		user
-	)
+	$: data = fragment(user, graphql`
+		fragment UserAvatar on User {
+			profilePicture
+		}
+	`)
 </script>
 
 <img src={$data.profilePicture} />
@@ -89,20 +86,17 @@ Fragments may also contain a paginated field, similar to queries. A paginated fr
 	// the reference will get passed as a prop
 	export let user
 
-	const { loadNextPage, data } = paginatedFragment(
-		graphql`
-			fragment UserWithFriends on User {
-				friends(first: 10) @paginate {
-					edges {
-						node {
-							id
-						}
+	$: { loadNextPage, data } = paginatedFragment(user, graphql`
+		fragment UserWithFriends on User {
+			friends(first: 10) @paginate {
+				edges {
+					node {
+						id
 					}
 				}
 			}
-		`,
-		user
-	)
+		}
+	`)
 </script>
 ```
 
