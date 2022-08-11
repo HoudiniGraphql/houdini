@@ -240,14 +240,13 @@ export default new HoudiniClient(fetchQuery)
 ## Endpoints
 
 Using a query store inside of an endpoint looks very similar to the `load` function: just pass the event you
-are handed in your route function along with your preferred fetch implementation:
+are handed in your route function:
 
 ```javascript
 import { GQL_MyQuery } from '$houdini'
-import fetch from 'node-fetch'
 
 export async function get(event) {
-	const { data } = await GQL_MyQuery.fetch({ event, fetch })
+	const { data } = await GQL_MyQuery.fetch({ event })
 
 	return {
 		body: {
