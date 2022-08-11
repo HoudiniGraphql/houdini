@@ -30,9 +30,77 @@ developer experience, Houdini must support a few different APIs that overlap. Wh
 community as a whole, it creates a challenge for newcomers since there isn't a clear path for how to
 structure their applications.
 
-The goal of this guide is to walk you through the various ways Houdini lets you work with GraphQL so you can hopefully find something that maps
-onto the way you think. If nothing's clicking, please reach out on Discord or GitHub. I'm sure we can figure _something_ out. Also, don't worry:
-we do have an official recommendation at the end for a structure that we think works well.
+## Our Recommendation
+
+The first part of this guide is more of a style guide than detailed summary. Rather than make you sit through a bunch of examples of
+alternate ways of implementing the same thing over and over, we wanted to jump right to the answer. We recommend reading this list
+a second time after you are done with the explanations in the next section.
+
+### Route Queries
+
+The first one is straight forward: define your route queries in `+page.gql`:
+
+```graphql
+# src/routes/myProfile/+page.gql
+
+query MyProfile {
+	viewer {
+		firstName
+	}
+}
+```
+
+While this does have a nice benefit of not needing to define `houdini_load`, the real reason for this is that
+it provides a nice balance between editing experience, co-location, and reliable directory structure.
+If all route queries are in `+page.gql` then we can tell if a route loads data the moment we look inside the directory.
+
+### Fragments
+
+Fragments should be defined inside of your `.svelte` components using the inline fragment function.
+
+```svelte
+<!-- src/lib/components/UserAvatar.svelte -->
+<script>
+	import { fragment, graphql } from '$houdini'
+
+	export let user
+
+	$: data = fragment(
+		user,
+		graphql`
+			fragment UserAvatar on User {
+				avatar
+			}
+		`
+	)
+</script>
+
+<img src={$data.avatar} />
+```
+
+This keeps everything nicely isolated within a single `.svelte` file and at times feels like giving your svelte components a whole new
+superpower.
+
+While not necessary in Houdini, consider using Relay's convention for fragment names. If you ever add a second prop to the `UserAvatar` component,
+you will likely want to update this fragment to use a different name (since there would be 2 fragments associated with `UserAvatar`).
+To reduce this burden, you can name your fragment something like `UserAvatar_user` to signify that the fragment belongs
+to the value passed to the `user` prop. It also provides a clear way to add a second, conflict-free fragment to the `UserAvatar` component.
+
+### Mutations and Subscriptions
+
+Mutations and subscriptions are safe to use globally (assuming you don't render the value) so we usually grab them as `GQL_` imports from `$houdini`
+
+### That's it!
+
+If that's enough for you, then I hope you have a great rest of your day and please come tell us what about you're building with houdini. We'd love to hear from you.
+Up next, we're going to break down all of the different approach that you use to to interact with your project's GraphQL Documents.
+
+<div style="height: 100px"></div>
+
+# Working with GraphQL, part 2
+
+Now that we have the recommendation out of the way, we can assume that you are reading this section because you are interested in a deeper
+summary of houdini's GraphQL APIs.
 
 Let's start by going over the core abstraction powering Houdini's data fetching: Document Stores.
 
@@ -46,16 +114,16 @@ can use to interact with your data. Every document type (query, mutation, subscr
     <Highlight language="typescript" code={storeTypeDef} slot="to" />
 </Transformation>
 
-These stores are your primary tools in a Houdini application. So how how do you define your documents so Houdini can do its magic?
+These stores are your primary tools in a Houdini application. So how do you define your documents so Houdini can do its magic?
 
 ## Defining Documents
 
-There are two different ways you can define graphql documents in a Houdini application:
+There are two different ways you can define graphql documents:
 
 - **External documents**: you write your graphql documents in dedicated graphql files (`.gql` or
-  `.graphql` for example) and interact with stores that you import from `$houdini`.
+  `.graphql`) and interact with stores that you import from `$houdini`
 - **Inline documents**: you define your graphql documents inside your `.svelte`, `.ts` or `.js` files and
-  interact with stores that are provided by the `graphql` tag.
+  interact with stores that are provided by the `graphql` tag
 
 The following examples all show query documents but everything holds true for all document types (queries, mutations, fragments, and subscriptions).
 
@@ -146,12 +214,11 @@ For more information on each store type, please visit the [api docs](/api/welcom
 
 ## Loading Data
 
-Once you have your store, the next step is to start using it. Explanations for fragments, mutations, and subscriptions,
-are better left for the <a href="/api/welcome/" target="_blank" rel="noreferrer">api docs</a> but
-queries have some unique requirements that are worth covering in detail. In fact, the rest of this section
-is going to focus exclusively on loading data into SvelteKit routes.
+For the rest of the guide, we are going to focus on [SvelteKit routes](https://kit.svelte.dev/docs/routing). If you want more information on
+fragments, mutations, or subscriptions, you can head over to the <a href="/api/welcome/" target="_blank" rel="noreferrer">api docs</a> and come
+back.
 
-Usually, your route's `.svelte` files will receive their stores as props. This often looks something like:
+Once you have your store, the next step is to start using it. Usually, your route's `.svelte` files will receive their stores as props. This often looks something like:
 
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
@@ -334,14 +401,3 @@ You can now define a `+page.svelte` file that looks like the following and your 
 ```
 
 Keep in mind, if you want to define variable functions or hooks, those will go in `+page.js`.
-
-## Conclusion
-
-I know, that was a lot.
-
-Hopefully something along the way clicked for you but if you are still struggling to figure out how you want to structure your apps, here's our
-recommendation to start:
-
-- route queries should go in `+page.gql` with variable definitions and hooks inside of `+page.ts` (remember, there's no need to define `houdini_load` if you're using `+page.gql`)
-- fragments should be defined inline, inside of your `.svelte` components using the `fragment` function
-- mutations and subscriptions are safe to use globally (assuming you don't render the value) so we usually grab them as `GQL_` imports from `$houdini`
