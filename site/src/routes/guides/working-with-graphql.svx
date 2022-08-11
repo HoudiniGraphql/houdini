@@ -254,10 +254,7 @@ export const houdini_load = graphql`
 `
 ```
 
-For more information on working with generated loads (ie, how to pass variables, perform logic before or after the actual fetch, etc), check out the [Inline Query docs](/api/query/inline).
-It's fundamentally the same API even if those examples are for a slightly different situation than what we've seen so far.
-
-This last approach works nicely when you have lots of different variables and hooks for a particular query since it allows all of that logic to be co-located:
+This approach works nicely when you have lots of different variables and hooks for a particular query since it allows all of that logic to be co-located:
 
 ```javascript
 // src/routes/myProfile/+page.js
@@ -278,6 +275,9 @@ export function UserInfoVariables({ params }) {
 	}
 }
 ```
+
+For more information on working with generated loads (ie, how to pass variables, perform logic before or after the actual fetch, etc), check out the [Inline Query docs](/api/query/inline).
+It's fundamentally the same API even if those examples are for a slightly different situation than what we've seen so far.
 
 ### Inline Queries
 
