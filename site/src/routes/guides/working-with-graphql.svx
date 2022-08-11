@@ -456,3 +456,8 @@ You can now define a `+page.svelte` file that looks like the following and your 
 ```
 
 Keep in mind, if you want to define variable functions or hooks, those will go in `+page.js`.
+
+## That's all for now!
+
+Thanks for making it this far. Hopefully if you made it this far you have some idea for how you want to structure your application. If not, head to the
+top of this guide and start with our suggestion, we think its a pretty compelling experience for building GraphQL applications.
