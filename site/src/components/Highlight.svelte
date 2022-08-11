@@ -6,6 +6,6 @@
 	export let code
 </script>
 
-<pre class="code showcase-example" {...$$props}>
+<pre {...$$props} class={`code ${$$props.class ?? ''}`}>
 {@html Prism.highlight(code, Prism.languages[language] || Prism.languages['javascript'])}
 </pre>

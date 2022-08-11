@@ -155,7 +155,7 @@
 								{point.text}
 							</p>
 						</div>
-						<Highlight code={point.example} />
+						<Highlight code={point.example} class="showcase-example" />
 					</div>
 				{/each}
 			</div>
