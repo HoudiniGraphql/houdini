@@ -1,12 +1,11 @@
 <script>
-	import Highlight from 'svelte-highlight'
-	import typescript from 'svelte-highlight/src/languages/typescript'
+	import { Highlight } from '~/components'
 
 	export let title
 	export let description
 	export let href
 	export let example
-	export let language = typescript
+	export let language = 'typescript'
 </script>
 
 <a class="api-showcase-container" {href} sveltekit:prefetch>
@@ -17,10 +16,11 @@
 		<p>
 			{description}
 		</p>
-		<Highlight {language} code={example} class="hidden-big" />
+
+		<Highlight code={example} class="hidden-big" {language} />
 		<button tabindex="-1"> More Info </button>
 	</div>
-	<Highlight {language} code={example} class="hidden-small" />
+	<Highlight code={example} class="hidden-small" {language} />
 </a>
 
 <style>

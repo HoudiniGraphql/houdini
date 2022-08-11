@@ -5,9 +5,7 @@ description: An overview of the store-based API provided by Houdini and how it r
 ---
 
 <script>
-    import { Highlight } from 'svelte-highlight'
-    import { Transformation, DeepDive } from '~/components'
-    import { graphql, typescript } from '~/lib/highlight'
+    import { Transformation, DeepDive, Highlight} from '~/components'
 
     const storeSource = `
     # Operation defined in a .gql or .graphql file
@@ -51,8 +49,8 @@ For example, a graphql document containing a query will have a corresponding sto
 querying your API but also subscribing to changes in Houdini's cache so everything is kept in sync when mutations and subscriptions fire.
 
 <Transformation>
-    <Highlight language={graphql} code={storeSource} slot="from"/>
-    <Highlight language={typescript} code={storeTypeDef} slot="to" />
+    <Highlight language="graphql" code={storeSource} slot="from"/>
+    <Highlight language="typescript" code={storeTypeDef} slot="to" />
 </Transformation>
 
 ## External documents
@@ -87,18 +85,19 @@ And mutation store looks something like
 
 ```svelte
 <script>
-    import AddUser from '$houdini/stores/AddUser'
-    import { getHoudiniContext } from '$houdini/runtime'
+	import AddUser from '$houdini/stores/AddUser'
+	import { getHoudiniContext } from '$houdini/runtime'
 
-    // the context must be pulled out at the root of your component
-    // so your HoudiniClient's fetch function has everything it needs
-    const context = getHoudiniContext()
+	// the context must be pulled out at the root of your component
+	// so your HoudiniClient's fetch function has everything it needs
+	const context = getHoudiniContext()
 
-    // a function to invoke the mutation
-    const addUser = () => AddUser.mutate({
-        context,
-        variables: { firstName: "Houdini" }
-    })
+	// a function to invoke the mutation
+	const addUser = () =>
+		AddUser.mutate({
+			context,
+			variables: { firstName: 'Houdini' }
+		})
 </script>
 
 <button on:click={addUser} />
@@ -162,21 +161,21 @@ Mutations also have a simpler API with the preprocessor. Notice how there's no m
 
 ```svelte
 <script>
-    import AddUser from '$houdini/stores/AddUser'
+	import AddUser from '$houdini/stores/AddUser'
 
-    // a function to invoke the mutation
-    const addUser = mutation(graphql`
-        mutation AddUser($firstName: String!) {
-            addUser(firstName: $firstName) {
-                newUser {
-                    id
-                }
-            }
-        }
-    `)
+	// a function to invoke the mutation
+	const addUser = mutation(graphql`
+		mutation AddUser($firstName: String!) {
+			addUser(firstName: $firstName) {
+				newUser {
+					id
+				}
+			}
+		}
+	`)
 </script>
 
-<button on:click={() => addUser({ firstName: "Houdini" })} />
+<button on:click={() => addUser({ firstName: 'Houdini' })} />
 ```
 
 ## Which is Better?

@@ -5,10 +5,8 @@ description: Queries in Houdini
 ---
 
 <script>
-    import { HeaderWithMode, DeepDive } from '~/components'
-    import { Highlight, HighlightAuto } from 'svelte-highlight'
+    import { HeaderWithMode, DeepDive, Highlight } from '~/components'
     import { Transformation } from '~/components'
-    import { graphql } from '~/lib/highlight'  
 
   const forwardPaginationStoreBefore = `
 query MyFriends {
@@ -95,12 +93,11 @@ Load data from the server and subscribe to any changes of fields we detect from 
 </script>
 
 <script>
-  // retrieve the latest value from the cache
-  $: browser && ViewerProfileStore.fetch()
+	// retrieve the latest value from the cache
+	$: browser && ViewerProfileStore.fetch()
 </script>
 
 {$ViewerProfileStore.data.viewerProfile.firstName}
-
 ```
 
 ### Store Value
@@ -138,18 +135,18 @@ the component mounts. To do this, you have to use the `fetch` method inside of y
 
 ```svelte
 <script context="module">
-  import { browser } from '$app/env'
-  import MyQueryStore from '$houdini/stores/MyQuery'
+	import { browser } from '$app/env'
+	import MyQueryStore from '$houdini/stores/MyQuery'
 
-  export async function load(event) {
-    await MyQueryStore.fetch({ event })
+	export async function load(event) {
+		await MyQueryStore.fetch({ event })
 
-    return {}
-  }
+		return {}
+	}
 </script>
 
 <script>
-  $: browser && MyQueryStore.fetch()
+	$: browser && MyQueryStore.fetch()
 </script>
 
 {$MyQueryStore.data.value}
@@ -174,9 +171,9 @@ If your query has variables, you can avoid repeating them using a prop:
 </script>
 
 <script>
-  export let variables
+	export let variables
 
-  $: browser && MyQueryStore.fetch({ variables })
+	$: browser && MyQueryStore.fetch({ variables })
 </script>
 
 {$MyQueryStore.data.value}
@@ -218,9 +215,8 @@ Whatever the case may be, you can pass a `metadata` parameter to fetch:
 
 ```svelte
 <script context="module">
-  import { browser } from '$app/env'
-  import MyQueryStore from '$houdini/stores/MyQuery'
-
+	import { browser } from '$app/env'
+	import MyQueryStore from '$houdini/stores/MyQuery'
 </script>
 
 <script>
@@ -274,8 +270,8 @@ generated with an extra method that loads more data and a field pointing to a st
 object. This extra field can be used to track if there are more pages to load:
 
 <Transformation>
-	<Highlight slot="from" code={forwardPaginationStoreBefore} language={graphql} />
-	<HighlightAuto slot="to" code={forwardPaginationStoreAfter} />
+	<Highlight slot="from" code={forwardPaginationStoreBefore} language="graphql" />
+	<Highlight slot="to" code={forwardPaginationStoreAfter} language="typescript"/>
 </Transformation>
 
 ### Backwards cursor pagination
@@ -285,8 +281,8 @@ generated with an extra method that loads more data and a field pointing to a st
 object. This extra field can be used to track if there are more pages to load:
 
 <Transformation>
-	<Highlight slot="from" code={backwardsPaginationStoreBefore} language={graphql} />
-	<HighlightAuto slot="to" code={backwardsPaginationStoreAfter} />
+	<Highlight slot="from" code={backwardsPaginationStoreBefore} language="graphql" />
+	<Highlight slot="to" code={backwardsPaginationStoreAfter} language="typescript"/>
 </Transformation>
 
 ### Offset/limit Pagination
@@ -294,6 +290,6 @@ object. This extra field can be used to track if there are more pages to load:
 If the decorated field implements offset/limit pagination and provides a `limit` argument, the query store will be generated with an extra methods that lets it load more pages after the one the current one:
 
 <Transformation>
-	<Highlight slot="from" code={offsetPaginationStoreBefore} language={graphql} />
-	<HighlightAuto slot="to" code={offsetPaginationStoreAfter} />
+	<Highlight slot="from" code={offsetPaginationStoreBefore} language="graphql" />
+	<Highlight slot="to" code={offsetPaginationStoreAfter} language="typescript"/>
 </Transformation>

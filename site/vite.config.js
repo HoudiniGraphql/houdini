@@ -6,9 +6,6 @@ import { replaceCodePlugin } from 'vite-plugin-replace'
 
 /** @type {import('vite').UserConfig} */
 const config = {
-	optimizeDeps: {
-		include: ['highlight.js/lib/core']
-	},
 	resolve: {
 		alias: {
 			// these are the aliases and paths to them

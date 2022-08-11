@@ -8177,27 +8177,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.js@npm:11.5.0":
-  version: 11.5.0
-  resolution: "highlight.js@npm:11.5.0"
-  checksum: a4339278d5be464fa29047fd00bc91f3d3966f5acbbb861ec51a09f3eea7c79ca63c2e0a2ba0c7b3d3663ee56b11c6470ab2759c7278e0d11af5cb0efa26e6eb
-  languageName: node
-  linkType: hard
-
-"highlight.js@npm:^11.6.0":
-  version: 11.6.0
-  resolution: "highlight.js@npm:11.6.0"
-  checksum: 3908eb34a4b442ca1e20c1ae6415ea935fbbcdb2b532a89948d82b0fa4ad41fc5de3802a0de4e88a0bcb7d97d4445579048cd2aab1d105ac47f59dd58a9a98ae
-  languageName: node
-  linkType: hard
-
-"highlightjs-svelte@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "highlightjs-svelte@npm:1.0.6"
-  checksum: d9624e8a1e187033bfad120be57a3a66df4433d81398aa9347d6189916c061e693c9e6b8083007a37ebf0b54c3ae3bbeae7178159cfbdc8027d6280d555dceec
-  languageName: node
-  linkType: hard
-
 "hosted-git-info@npm:^2.1.4":
   version: 2.8.8
   resolution: "hosted-git-info@npm:2.8.8"
@@ -12134,7 +12113,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prismjs@npm:^1.17.1":
+"prism-svelte@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "prism-svelte@npm:0.5.0"
+  checksum: f2c3c6eafcb04a77a08b0a280d327952d3da2eed326956db41729fcd487ebdf939c86f54955f59ea65002e1c8d4eb60018530276493c4ee33768483f8ca79f21
+  languageName: node
+  linkType: hard
+
+"prismjs@npm:^1.17.1, prismjs@npm:^1.28.0":
   version: 1.28.0
   resolution: "prismjs@npm:1.28.0"
   checksum: bde93fb2beb45b7243219fc53855f59ee54b3fa179f315e8f9d66244d756ef984462e10561bbdc6713d3d7e051852472d7c284f5794a8791eeaefea2fb910b16
@@ -13332,8 +13318,6 @@ resolve@^1.19.0:
     eslint-plugin-svelte3: ^4.0.0
     feather-icons: ^4.28.0
     flexsearch: ^0.7.21
-    highlight.js: ^11.6.0
-    highlightjs-svelte: ^1.0.6
     husky: ^7.0.4
     lint-staged: ^12.3.4
     lodash: ^4.17.21
@@ -13341,11 +13325,12 @@ resolve@^1.19.0:
     node-html-parser: ^5.3.3
     prettier: ^2.5.1
     prettier-plugin-svelte: ^2.7.0
+    prism-svelte: ^0.5.0
+    prismjs: ^1.28.0
     rehype-autolink-headings: ^6.1.1
     rehype-slug: ^5.0.1
     svelte: ^3.47.0
     svelte-check: ^2.8.0
-    svelte-highlight: ^5.2.1
     svelte-kit-cookie-session: 3.0.6
     svelte-preprocess: ^4.10.1
     tslib: ^2.3.1
@@ -14036,15 +14021,6 @@ resolve@^1.19.0:
   bin:
     svelte-check: bin/svelte-check
   checksum: af574f088182ea0db489cb5e0a1b4be7266d4c4c2fd80bfb0e1bbe89456bc4773e3e912d1963b6ce79c7941a4e2f460c3f8baa0b659a1977b95200fa0d70daf7
-  languageName: node
-  linkType: hard
-
-"svelte-highlight@npm:^5.2.1":
-  version: 5.3.2
-  resolution: "svelte-highlight@npm:5.3.2"
-  dependencies:
-    highlight.js: 11.5.0
-  checksum: fcf8a0305b7692105d2aa740403be2b051a1ee2f59b868459765937b50c17f45b6fc7f2e73d0ab804b0e5559745b3e8fa82520090780ecffd6c134b8db35313a
   languageName: node
   linkType: hard
 

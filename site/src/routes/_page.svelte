@@ -1,5 +1,5 @@
 <script>
-	import { page, navigating, session } from '$app/stores'
+	import { page, navigating } from '$app/stores'
 	import { Icon, SEO, SearchInput, SearchDialog, searching } from '~/components'
 	import { onMount } from 'svelte'
 	import throttle from 'lodash/throttle.js'

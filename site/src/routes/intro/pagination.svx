@@ -5,8 +5,6 @@ description: The fourth part of the Houdini intro focusing on how to render long
 ---
 
 <script>
-	import { Highlight } from 'svelte-highlight'
-	import graphql from '~/lib/graphql-language'
 	import { GraphQLExplained } from '~/components'
 
 	const explainedSchema = `
@@ -186,7 +184,7 @@ Interacting with a paginated query is pretty similar to everything we've been do
 				...SpriteInfo
 			}
 		}
-	`);
+	`)
 </script>
 ```
 
@@ -207,22 +205,22 @@ In most situations houdini's automatic appending is great since it covers popula
 
 	let moveIndex = 0
 	$: hasPrevMove = moveIndex > 0
-	$: hasNextMove = moveIndex < $data.species.moves.edges.length -1 || $pageInfo.hasNextPage
+	$: hasNextMove = moveIndex < $data.species.moves.edges.length - 1 || $pageInfo.hasNextPage
 
-    const loadNextMove = async () => {
-        // if we haven't already seen this page
-        if (!$data.species.moves.edges[moveIndex + 1] && $pageInfo.hasNextPage) {
-            // load the next page of data
-            await loadNextPage()
-        }
+	const loadNextMove = async () => {
+		// if we haven't already seen this page
+		if (!$data.species.moves.edges[moveIndex + 1] && $pageInfo.hasNextPage) {
+			// load the next page of data
+			await loadNextPage()
+		}
 
 		// its safe to increment the move index
 		moveIndex += 1
-    }
+	}
 
-    const loadPrevMove = () => {
-        moveIndex--
-    }
+	const loadPrevMove = () => {
+		moveIndex--
+	}
 
 	// when we navigate to another species, reset the move index
 	navigating.subscribe(() => {

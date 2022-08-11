@@ -5,11 +5,7 @@ description: Fragments in Houdini
 ---
 
 <script>
-    import { HeaderWithMode } from '~/components'
-    import { Highlight, HighlightAuto } from 'svelte-highlight'
-    import { Transformation } from '~/components'
-    import { graphql } from '~/lib/highlight'
-
+    import { Transformation, HeaderWithMode, Highlight } from '~/components'
 
 	 const forwardPaginationStoreBefore = `
 fragment UserInfo on User {
@@ -79,13 +75,13 @@ Load a snapshot of data for a particular object that has had the fragment applie
 
 ```svelte
 <script>
-    import UserAvatarStore from '$houdini/stores/UserAvatar'
+	import UserAvatarStore from '$houdini/stores/UserAvatar'
 
-    // the reference will get passed as a prop
-    export let user
+	// the reference will get passed as a prop
+	export let user
 
-    // load the necessary data to the UserAvatar for the specified object
-    $: data = UserAvatar.get(user)
+	// load the necessary data to the UserAvatar for the specified object
+	$: data = UserAvatar.get(user)
 </script>
 
 <img src={$data.profilePicture} />
@@ -141,8 +137,8 @@ generated with an extra method that loads more data and a field pointing to a st
 object. This extra field can be used to track if there are more pages to load:
 
 <Transformation>
-	<Highlight slot="from" code={forwardPaginationStoreBefore} language={graphql} />
-	<HighlightAuto slot="to" code={forwardPaginationStoreAfter} />
+	<Highlight slot="from" code={forwardPaginationStoreBefore} language="graphql" />
+	<Highlight slot="to" code={forwardPaginationStoreAfter} language="typescript" />
 </Transformation>
 
 ### Backwards cursor pagination
@@ -152,8 +148,8 @@ generated with an extra method that loads more data and a field pointing to a st
 object. This extra field can be used to track if there are more pages to load:
 
 <Transformation>
-	<Highlight slot="from" code={backwardsPaginationStoreBefore} language={graphql} />
-	<HighlightAuto slot="to" code={backwardsPaginationStoreAfter} />
+	<Highlight slot="from" code={backwardsPaginationStoreBefore} language="graphql" />
+	<Highlight slot="to" code={backwardsPaginationStoreAfter} language="typescript" />
 </Transformation>
 
 ### Offset/limit Pagination
@@ -161,6 +157,6 @@ object. This extra field can be used to track if there are more pages to load:
 If the decorated field implements offset/limit pagination and provides a `limit` argument, the query store will be generated with an extra methods that lets it load more pages after the one the current one:
 
 <Transformation>
-	<Highlight slot="from" code={offsetPaginationStoreBefore} language={graphql} />
-	<HighlightAuto slot="to" code={offsetPaginationStoreAfter} />
+	<Highlight slot="from" code={offsetPaginationStoreBefore} language="graphql" />
+	<Highlight slot="to" code={offsetPaginationStoreAfter} language="typescript" />
 </Transformation>

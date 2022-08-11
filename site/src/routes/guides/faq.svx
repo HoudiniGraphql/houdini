@@ -34,23 +34,23 @@ For example, consider this query:
 
 ```svelte
 <script>
-    import { query, graphql } from '$houdini'
+	import { query, graphql } from '$houdini'
 
-    const { data } = query(graphql`
-        query SpeciesInfo {
-            species(id: 1) {
-                name
-                flavor_text
-                sprites {
-                    front
-                }
-            }
-        }
-    `)
+	const { data } = query(graphql`
+		query SpeciesInfo {
+			species(id: 1) {
+				name
+				flavor_text
+				sprites {
+					front
+				}
+			}
+		}
+	`)
 </script>
 
 <div>
-    {$data.species.name}
+	{$data.species.name}
 </div>
 ```
 
@@ -58,26 +58,22 @@ You can think of it as equivalent to:
 
 ```svelte
 <script context="module">
-    import SpeciesInfoStore from '$houdini/stores/SpeciesInfo'
-    import { browser } from '$app/env'
+	import SpeciesInfoStore from '$houdini/stores/SpeciesInfo'
+	import { browser } from '$app/env'
 
-    export async function load({ event }) {
-        await SpeciesInfoStore.fetch({ event } )
-    }
+	export async function load({ event }) {
+		await SpeciesInfoStore.fetch({ event })
+	}
 </script>
 
 <script>
-    const { data } = $SpeciesInfoStore
+	const { data } = $SpeciesInfoStore
 
-    $: browser && SpeciesInfoStore.fetch()
+	$: browser && SpeciesInfoStore.fetch()
 </script>
 ```
 
 If you haven't seen Houdini's document stores before, please check out the [Working with GraphQL](/guides/working-with-graphql) guide.
-
-### Why is the inline query variable API so weird?
-
-To understand why things are designed the way they are, you should consider the output of the preprocessor (shown above). Any logic that's used to compute the query variables needs to be hoisted up to the module context block so that the value could be passed onto the server. Since the user would naturally want to execute arbitrary logic when computing this value, we have to make sure that any imports or function definitions are available to the module context so that they can run.
 
 ### My IDE is complaining that the internal directives and fragments don't exist.
 

@@ -1,8 +1,8 @@
 <script>
-	import { HighlightSvelte } from 'svelte-highlight'
-	import { SEO, Icon } from '~/components'
+	import { SEO, Icon, Highlight } from '~/components'
 
 	const heroExample = `<script>
+    // src/routes/items/+page.svelte
     import { query, graphql } from '$houdini'
 
     const { data } = query(graphql\`
@@ -16,11 +16,9 @@
 
 {#each $data.items as item}
     <div>{item.text}</div>
-{/each}
-`
+{/each}`
 
 	const bullets = [
-		'The same API for Kit, Sapper, or vanilla Svelte',
 		'Normalized cache with declarative field updates and list mutations',
 		'Colocate data requirements or define operations in external files with generated stores',
 		'First-class support for advanced patterns like subscriptions and pagination'
@@ -85,8 +83,7 @@
 
 {#each $data.items as item}
     <div>{item.text}</div>
-{/each}
-`
+{/each}`
 		}
 	]
 
@@ -140,7 +137,7 @@
 			</nav>
 		</div>
 		<div>
-			<HighlightSvelte code={heroExample} class="shadow" />
+			<Highlight code={heroExample} class="shadow" />
 		</div>
 	</section>
 	<div class="tease">
@@ -158,7 +155,7 @@
 								{point.text}
 							</p>
 						</div>
-						<HighlightSvelte code={point.example} class="showcase-example" />
+						<Highlight code={point.example} />
 					</div>
 				{/each}
 			</div>
@@ -428,9 +425,6 @@
 
 	:global(#main pre) {
 		overflow: hidden;
-	}
-
-	:global(#hero code) {
 		padding: 34px;
 	}
 
