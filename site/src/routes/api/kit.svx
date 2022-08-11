@@ -81,15 +81,12 @@ export function AllItemsVariables(event): AllItems$input {
 
 Sometimes you will need to add additional logic to a component's query. For example, you might want to
 check if the current session is valid before a query is sent to the server. In order to support this,
-Houdini will look for hook functions defined in your `+page.{js,ts}` files.
-
-Hooks can be used to pass data to components as well as populate your SvelteKit route's `stuff` by returning an
-object with `props` or `stuff` keys.
+Houdini will look for hook functions defined in your `+page.js` files.
 
 #### `beforeLoad`
 
 Called before Houdini executes load queries against the server. You can expect the same
-arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) hook.
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
 
 ```typescript
 // src/routes/myRoute/+page.js
@@ -119,13 +116,15 @@ export function beforeLoad({ page, session }) {
 #### `afterLoad`
 
 Called after Houdini executes load queries against the server. You can expect the same
-arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) hook, plus an additional
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function, plus an additional
 `data` property referencing query result data. Keep in mind that if you define this hook, Houdini
 will have to block requests to the route in order to wait for the result. For more information about
 blocking during navigation, check out [this section](/api/query/store#server-side-blocking) of the query store
 docs.
 
 ```typescript
+// src/routes/myRoute/+page.js
+
 export const houdini_load = graphql`
 	query MyProfile($id: ID!) {
 		profile(id: $id) {
@@ -134,7 +133,6 @@ export const houdini_load = graphql`
 	}
 `
 
-// src/routes/myRoute/+page.js
 export function MyProfileVariables({
 	page: {
 		params: { id }
