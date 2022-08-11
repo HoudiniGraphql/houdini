@@ -71,7 +71,6 @@ client and pass it directly:
 import { createClient } from 'graphql-ws'
 import { browser } from '$app/env'
 
-// in sapper, this would be something like `(process as any).browser`
 let socketClient = browser
 	? new createClient({
 			url: 'ws://api.url'

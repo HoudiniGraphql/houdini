@@ -130,7 +130,7 @@ SvelteKit route, this looks something like:
 
 ## Server-Side Rendering
 
-In frameworks like Sapper or SvelteKit, you can fetch data for your component so that it loads before the
+In frameworks SvelteKit, you can fetch data for your component so that it loads before the
 the component mounts. To do this, you have to use the `fetch` method inside of your `load` function:
 
 ```svelte

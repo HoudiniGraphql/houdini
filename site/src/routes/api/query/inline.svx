@@ -41,10 +41,8 @@ Load data from the server and subscribe to any changes of fields we detect from 
 ## Query Variables
 
 At the moment, query variables are declared as a function in the module context of your component.
-This function must be named after your query and in a sapper application, it takes the same arguments
-that are passed to the `preload` function described in the [Sapper](https://sapper.svelte.dev/docs#Pages)
-documentation. In a SvelteKit project, this function takes the same arguments passed to the `load` function
-described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. Regardless of the framework, you can return
+This function must be named after your query and takes the same arguments passed to the `load` function
+described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. You can return
 the value from `this.error` and `this.redirect` in order to change the behavior of the response. Here is a
 modified example [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
 
@@ -87,7 +85,7 @@ modified example [from the source repository](https://github.com/HoudiniGraphql/
 ## Loading State
 
 In short, the recommendation is to rely on the `isFetching` store instead of using the `$navigating` store or similar mechanisms
-provided by Sapper or SvelteKit. The reason for this is that those stores have a hard time capturing the state of the transition
+provided by SvelteKit. The reason for this is that those stores have a hard time capturing the state of the transition
 when a load function is [not always blocking](/api/query/store#fetching-data).
 
 ## Hooks

@@ -12,7 +12,7 @@ project.
 What we'll cover:
 
 - Where to get Houdini from
-- How to add the necessary configuration files for each supported platform (SvelteKit, Sapper, and Svelte)
+- How to add the necessary configuration files for each supported platform (SvelteKit or Svelte)
 
 ## Installation
 
