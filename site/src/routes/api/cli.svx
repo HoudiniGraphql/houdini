@@ -19,8 +19,8 @@ Generates the runtime and the artifacts for every document in your project
 ### Flags:
 
 - `--pull-schema` or `-p` pulls the latest schema before generating. Keep in mind you only need to do this if you don't already have the most up to date version of your schema in your local filesystem. If you are defining your graphql schema inside of you SvelteKit application or are in a monorepo, you don't need to use this flag.
-- `--persist-output` or `-po` specifies a location for the runtime generator to leave a query map for certain flavors of [persisted queries](/guides/persisted-queries).
-- `--pull-header` or `-ph` specifies headers to use when pulling your schema. Should be passed as KEY=VALUE
+- `--output` or `-o` specifies a location for the runtime generator to leave a query map for certain flavors of [persisted queries](/guides/persisted-queries).
+- `--headers` or `-h` specifies headers to use when pulling your schema. Should be passed as KEY=VALUE
 - `--log` or `-l` specifies the log level for the generation. One of "summary", "short-summary", "quiet" or "full".
 
 ## Init
@@ -33,4 +33,4 @@ Bootstraps a new project with the necessary files to start using houdini
 
 ### Flags:
 
-- `--pull-header` or `-ph` specifies headers to use when pulling your schema. Should be passed as KEY=VALUE
+- `--headers` or `-h` specifies headers to use when pulling your schema. Should be passed as KEY=VALUE

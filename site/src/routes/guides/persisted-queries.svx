@@ -66,13 +66,13 @@ export default new Environment(async function (args) {
 
 If you don't want the flexibility of Automatic Persisted Queries, you will need
 a fixed association of hash to query for every document that your client will send.
-To support this, you can pass the `--persist-output` flag to the `generate` command
+To support this, you can pass the `--output` flag to the `generate` command
 and provide a path to save the map:
 
 ```bash
-npx houdini generate --persist-output ./queries.json
+npx houdini generate --output ./queries.json
 # or
-npx houdini generate -po ./queries.json
+npx houdini generate -o ./queries.json
 ```
 
 Once this map has been created, you will have to make it available to your server.

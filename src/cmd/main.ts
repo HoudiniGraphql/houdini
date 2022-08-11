@@ -104,7 +104,7 @@ program
 	.usage('[path] [options]')
 	.description('initialize a new houdini project')
 	.option(
-		'-ph, --pull-header <headers...>',
+		'-h, --headers <headers...>',
 		'header to use when pulling your schema. Should be passed as KEY=VALUE'
 	)
 	.action(init)

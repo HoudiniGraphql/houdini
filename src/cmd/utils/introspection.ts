@@ -3,7 +3,7 @@ import fetch from 'node-fetch'
 
 import { writeFile } from '../../common/fs'
 
-export async function writeSchema(
+export async function pullSchema(
 	url: string,
 	schemaPath: string,
 	headers?: Record<string, string>

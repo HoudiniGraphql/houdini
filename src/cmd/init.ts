@@ -6,15 +6,26 @@ import path from 'path'
 import { readFile, writeFile } from '../common'
 import * as fs from '../common/fs'
 import { ConfigFile } from '../runtime'
-import { writeSchema } from './utils/writeSchema'
+import { pullSchema } from './utils/introspection'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
 export default async function init(
 	_path: string | undefined,
-	args: { pullHeader?: string[]; yes: boolean },
+	args: { headers?: string[]; yes: boolean },
 	withRunningCheck = true
 ): Promise<void> {
+	let headers = {}
+	if ((args.headers ?? []).length > 0) {
+		headers = args.headers!.reduce((total, header) => {
+			const [key, value] = header.split('=')
+			return {
+				...total,
+				[key]: value,
+			}
+		}, {})
+	}
+
 	// if no path was given, we	'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
 
@@ -47,6 +58,7 @@ export default async function init(
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
+				...headers,
 			},
 			body: JSON.stringify({
 				query: getIntrospectionQuery(),
@@ -117,18 +129,7 @@ export default async function init(
 
 	await updatePackageJSON(targetPath)
 
-	// generate the necessary files
-	let headers = {}
-	if ((args.pullHeader ?? []).length > 0) {
-		headers = args.pullHeader!.reduce((total, header) => {
-			const [key, value] = header.split('=')
-			return {
-				...total,
-				[key]: value,
-			}
-		}, {})
-	}
-	await writeSchema(url, path.join(targetPath, schemaPath), headers)
+	await pullSchema(url, path.join(targetPath, schemaPath), headers)
 	await writeConfigFile({
 		targetPath,
 		configPath,
@@ -141,18 +142,13 @@ export default async function init(
 	await graphqlRCFile(targetPath)
 	await gitIgnore(targetPath)
 
-	// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
-	if (framework !== 'kit') {
-		await aliasPaths(targetPath)
-		await updateSvelteConfig(targetPath)
-	}
-	// only update the layout file if we're generating a kit or sapper project
-	if (framework !== 'svelte') {
-		await updateLayoutFile(framework, targetPath, typescript)
-	}
 	// add the sveltekit config files
 	if (framework === 'kit') {
+		await updateLayoutFile(targetPath, typescript)
 		await updateKitConfig(targetPath)
+	} else {
+		await aliasPaths(targetPath)
+		await updateSvelteConfig(targetPath)
 	}
 
 	// we're done!
@@ -278,10 +274,10 @@ async function aliasPaths(targetPath: string) {
 	return false
 }
 
-async function updateLayoutFile(framework: 'kit', targetPath: string, ts: boolean) {
+async function updateLayoutFile(targetPath: string, ts: boolean) {
 	const layoutFile = path.join(targetPath, 'src', 'routes', '+layout.svelte')
 
-	const content = `<script context="module" ${ts ? ' lang="ts"' : ''}>
+	const content = `<script ${ts ? ' lang="ts"' : ''}>
 	import client from '../client'
 
 	client.init()
@@ -330,11 +326,57 @@ export default config;
 		content: viteConfig,
 		old: [oldViteConfig],
 	})
+
+	await updateSvelteConfig(
+		path.join(targetPath, 'svelte.config.js'),
+		`
+import adapter from '@sveltejs/adapter-auto';
+import preprocess from 'svelte-preprocess';
+import houdini from 'houdini/preprocess';
+
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
+	// Consult https://github.com/sveltejs/svelte-preprocess
+	// for more information about preprocessors
+	preprocess: [preprocess(), houdini()],
+
+	kit: {
+		adapter: adapter(),
+		alias: {
+			$houdini: './$houdini',
+		}
+	}
+};
+
+export default config;
+`
+	)
 }
 
-async function updateSvelteConfig(targetPath: string) {
+async function updateSvelteConfig(
+	targetPath: string,
+	newContent = `import adapter from '@sveltejs/adapter-auto';
+import preprocess from 'svelte-preprocess';
+import houdini from 'houdini/preprocess';
+
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
+	// Consult https://github.com/sveltejs/svelte-preprocess
+	// for more information about preprocessors
+	preprocess: [preprocess(), houdini()],
+
+	kit: {
+		adapter: adapter(),
+		alias: {
+			$houdini: './$houdini',
+		}
+	}
+};
+
+export default config;
+`
+) {
 	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
-	const viteConfigPath = path.join(targetPath, 'vite.config.js')
 
 	const oldSvelteConfig1 = `import adapter from '@sveltejs/adapter-auto';
 import preprocess from 'svelte-preprocess';
@@ -364,32 +406,11 @@ const config = {
 export default config;
 `
 
-	const svelteConfig = `import adapter from '@sveltejs/adapter-auto';
-import preprocess from 'svelte-preprocess';
-import houdini from 'houdini/preprocess';
-
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	// Consult https://github.com/sveltejs/svelte-preprocess
-	// for more information about preprocessors
-	preprocess: [preprocess(), houdini()],
-
-	kit: {
-		adapter: adapter(),
-		alias: {
-			$houdini: './$houdini',
-		}
-	}
-};
-
-export default config;
-`
-
 	// write the svelte config file
 	await updateFile({
 		projectPath: targetPath,
 		filepath: svelteConfigPath,
-		content: svelteConfig,
+		content: newContent,
 		old: [oldSvelteConfig1, oldSvelteConfig2],
 	})
 }
