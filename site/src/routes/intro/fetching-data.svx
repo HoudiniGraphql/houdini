@@ -196,7 +196,7 @@ export function SpeciesInfoVariables({ params }) {
 }
 ```
 
-Once that's done, you should be able to navigate to `/6` to see Charizard's information. It's worth mentioning that if you _did_ run `generate` after adding the variable to the query, you don't need to run it again because of the new function. You only need to run it when you change something inside of a `graphql` tag.
+Once that's done, you should be able to navigate to `/6` to see Charizard's information.
 
 Note: the name of the function that returns the values for a query's variables must follow a very specific format. It must be called `{QueryName}Variables`. If you look at the query we are working with, you'll see its named `SpeciesInfo` which is why this function is named `SpeciesInfoVariables`.
 

@@ -133,7 +133,8 @@ The quickest way to load data into a store is to call the `fetch` method when ru
 ## SvelteKit
 
 In SvelteKit, `fetch` needs to be called inside of your `load` function. In order to streamline this, houdini provides
-a function for each of your stores that you can use to render your route on the server.
+a function for each of your stores that you can use to render your route on the server. These functions take the same
+parameters as `fetch`:
 
 ```javascript
 import { load_MyQuery } from '$houdini'
@@ -146,7 +147,7 @@ export async function load(event) {
 ```
 
 In case you were wondering, the `load_` prefix is there so you can autocomplete your loads by just typing `load_<tab>`.
-Anyway, with this in place, you can pull your route will recieve props for each of the stores that you have loaded:
+Anyway, with this in place, your route will recieve props for each of the stores that you have loaded:
 
 ```svelte
 <script>
@@ -249,15 +250,13 @@ Sometimes you need to do something very custom for a specific route. Maybe you n
 Whatever the case may be, you can pass a `metadata` parameter to fetch:
 
 ```svelte
-<script context="module">
-	import { browser } from '$app/env'
-	import MyQueryStore from '$houdini/stores/MyQuery'
-</script>
 
 <script>
-  export let variables
+	import { browser } from '$app/env'
+	import MyQueryStore from '$houdini/stores/MyQuery'
 
-  $: browser && MyQueryStore.fetch({ variables, metadata: { ... } })
+
+  $: browser && MyQueryStore.fetch({ metadata: { ... } })
 </script>
 ```
 

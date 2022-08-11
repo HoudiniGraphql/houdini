@@ -10,8 +10,6 @@ export function mutation<_Mutation extends Operation<any, any>>(store: GraphQLTa
 		throw new Error('mutation() must be passed a mutation store')
 	}
 
-	const context = getHoudiniContext()
-
 	return async (
 		variables: _Mutation['input'],
 		mutationConfig?: MutationConfig<_Mutation['result'], _Mutation['input']>
@@ -19,7 +17,6 @@ export function mutation<_Mutation extends Operation<any, any>>(store: GraphQLTa
 		const { data } = await store.mutate({
 			variables,
 			...mutationConfig,
-			context,
 		})
 
 		return data

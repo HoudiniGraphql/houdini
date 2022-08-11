@@ -31,8 +31,8 @@ Specify the data requirements for a Svelte component.
 
 ### Inputs
 
-1. A string tagged with `graphql` containing a single document with fragment
-2. The prop containing the fragment reference (to be passed by another component that mixed in the fragment)
+1. The prop containing the fragment reference (to be passed by another component that mixed in the fragment)
+2. A string tagged with `graphql` containing a single document with fragment
 
 ### Return Values
 
