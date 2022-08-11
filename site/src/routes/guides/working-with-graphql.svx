@@ -423,7 +423,7 @@ Another way to get a generated load for your route queries, is to define your qu
 This is the recommended approach for non-route components that don't care about server-side rendering.
 
 Inline queries also work well for simple routes since we can co-locate our data needs close to the query without
-having to move between files. Unfortunately, this can lead to the moment we want to do anything extra (variables, hooks, etc), that logic has to be
+having to move between files. Unfortunately, the moment we want to do anything extra (variables, hooks, etc), that logic has to be
 defined inside of `+page.js` so routes using this pattern can feel a little scattered at times.
 
 ### Page Queries
