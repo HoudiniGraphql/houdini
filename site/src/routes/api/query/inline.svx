@@ -46,7 +46,6 @@ described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. You can 
 the value from `this.error` and `this.redirect` in order to change the behavior of the response. Here is a
 modified example [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
 
-
 ```svelte
 <!-- src/routes/[filter]/+page.svelte -->
 <script lang="ts">
@@ -85,12 +84,6 @@ export function AllItemsVariables(event): AllItems$input {
 }
 ```
 
-## Loading State
-
-In short, the recommendation is to rely on the `isFetching` store instead of using the `$navigating` store or similar mechanisms
-provided by SvelteKit. The reason for this is that those stores have a hard time capturing the state of the transition
-when a load function is [not always blocking](/api/query/store#fetching-data).
-
 ## Hooks
 
 Sometimes you will need to add additional logic to a component's query. For example, you might want to
@@ -105,10 +98,8 @@ object with `props` or `stuff` keys.
 Called before Houdini executes load queries against the server. You can expect the same
 arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) hook.
 
-
 ```svelte
 <!-- src/routes/myRoute/+page.svelte -->
-
 <script>
 	import { query, graphql } from '$houdini'
 
@@ -160,12 +151,12 @@ docs.
 
 	// load the items
 	const { data } = query(graphql`
-        query MyProfile($id: ID!) {
-            profile(id: $id) {
-                name
-            }
-        }
-    `)
+		query MyProfile($id: ID!) {
+			profile(id: $id) {
+				name
+			}
+		}
+	`)
 </script>
 
 {message} {$data.profile.name}
@@ -191,6 +182,12 @@ export function afterLoad({ data }) {
 	}
 }
 ```
+
+## Loading State
+
+In short, the recommendation is to rely on the `isFetching` store instead of using the `$navigating` store or similar mechanisms
+provided by SvelteKit. The reason for this is that those stores have a hard time capturing the state of the transition
+when a load function is [not always blocking](/api/query/store#fetching-data).
 
 ## Paginated Queries
 

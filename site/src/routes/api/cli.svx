@@ -1,6 +1,6 @@
 ---
 title: Command Line
-index: 7
+index: 8
 description: A listing of all of the commands and arguments provided by the Houdini cli
 ---
 
@@ -34,7 +34,6 @@ Bootstraps a new project with the necessary files to start using houdini
 ### Flags:
 
 - `--headers` or `-h` specifies headers to use when pulling your schema. Should be passed as KEY=VALUE
-
 
 ## Pull Schema
 

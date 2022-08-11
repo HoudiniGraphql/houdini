@@ -92,12 +92,11 @@ export async load(event) {
 
 ```svelte
 <!-- src/routs/myRoute/+page.js -->
-
 <script>
-  export let data
+	export let data
 
-  // pull the store reference from the route props
-  $: ({ ViewerProfile } = data)
+	// pull the store reference from the route props
+	$: ({ ViewerProfile } = data)
 </script>
 
 {$ViewerProfile.data.viewerProfile.firstName}
@@ -140,9 +139,9 @@ parameters as `fetch`:
 import { load_MyQuery } from '$houdini'
 
 export async function load(event) {
-  return {
-    ...await load_MyQuery({ event })
-  }
+	return {
+		...(await load_MyQuery({ event }))
+	}
 }
 ```
 
@@ -151,9 +150,9 @@ Anyway, with this in place, your route will recieve props for each of the stores
 
 ```svelte
 <script>
-  export let data
+	export let data
 
-  $: ({ MyQuery } = data)
+	$: ({ MyQuery } = data)
 </script>
 
 {$MyQuery.data.value}
@@ -178,17 +177,13 @@ Be careful when loading multiple stores at once.
 Each of your loads should be performed inside of an `await Promise.all` so you perform the queries in parallel.
 This can get rather tedious so houdini provides a `loadAll` function you can use to simplify this process:
 
-
 ```javascript
 import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 
 export async function load(event) {
-  return {
-    ...await loadAll(
-      load_MyQuery({ event }),
-      load_MyOtherQuery({ event })
-    )
-  }
+	return {
+		...(await loadAll(load_MyQuery({ event }), load_MyOtherQuery({ event })))
+	}
 }
 ```
 
@@ -199,15 +194,12 @@ route, you can pass any combination of single loaders and objects that map the r
 import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
 
 export async function load(event) {
-  return {
-    ...await loadAll(
-      load_MyQuery({ event }),
-      {
-        propA: load_MyOtherQuery({ event, variables: { foo: "A" } }),
-        propB: load_MyOtherQuery({ event, variables: { foo: "B" } }),
-      }
-    )
-  }
+	return {
+		...(await loadAll(load_MyQuery({ event }), {
+			propA: load_MyOtherQuery({ event, variables: { foo: 'A' } }),
+			propB: load_MyOtherQuery({ event, variables: { foo: 'B' } })
+		}))
+	}
 }
 ```
 
@@ -250,7 +242,6 @@ Sometimes you need to do something very custom for a specific route. Maybe you n
 Whatever the case may be, you can pass a `metadata` parameter to fetch:
 
 ```svelte
-
 <script>
 	import { browser } from '$app/env'
 	import MyQueryStore from '$houdini/stores/MyQuery'
@@ -269,6 +260,17 @@ async function fetchQuery({ fetch, text, variables, session, metadata }) {
 
 // Export the Houdini client
 export default new HoudiniClient(fetchQuery)
+```
+
+## Generating a route load
+
+If a query store is providing all of the information for a SvelteKit route, you might
+want to consider having houdini generate your load function for you so you can focus on what matters most. In order to do this, export `houdini_load` from your `+page.js` file and houdini will take care of the rest. You can provide one or more queries that you want to be loaded into your route (and provided as props). For more information, check out the [Working with GraphQL guide](/guides/working-with-graphql#automatic-loads).
+
+```typescript
+import { GQL_MyQuery } from '$houdini'
+
+export const houdini_load = GQL_MyQuery
 ```
 
 ## Endpoints

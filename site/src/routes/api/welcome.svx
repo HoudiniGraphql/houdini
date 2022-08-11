@@ -64,7 +64,7 @@ const subscriptionExample = `subscription(graphql\`
 
 const cliExample = `houdini generate --pull-schema`
 
-const preprocessorExample = `// vite.config.js
+const pluginExample = `// vite.config.js
 import houdini from 'houdini/kit'
 
 export default {
@@ -128,16 +128,16 @@ example={configExample}
 />
 
 <APIShowcase
+title="SvelteKit Plugin"
+description="A powerful tool to enable Houdini's declarative API in your svelte+vite projects"
+href="/api/ki"
+example={pluginExample}
+/>
+
+<APIShowcase
 title="Command Line"
 description="Command line tool commands and arguments"
 href="/api/cli"
 example={cliExample}
 language="bash"
-/>
-
-<APIShowcase
-title="Preprocessor"
-description="A powerful tool to enable Houdini's declarative API"
-href="/api/plugin"
-example={preprocessorExample}
 />

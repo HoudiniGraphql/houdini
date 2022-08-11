@@ -1,6 +1,6 @@
 ---
 title: Config
-index: 6
+index: 7
 description: A description of every valid configuration value for Houdini.
 ---
 
@@ -14,7 +14,6 @@ It can contain the following values:
 
 - `include` (optional, default: `src/**/*.{svelte,graphql,gql,ts,js}`): a pattern to identify source code files
 - `exclude` (optional): a pattern that filters out files that match the include pattern
-- `sourceGlob` (optional, default: `./schema.graphql`): a glob telling the runtime generator where to look for your graphql documents
 - `schemaPath` (optional): the path to the static representation of your schema, can be a glob pointing to multiple files. One of `schema` or `schemaPath` is required
 - `schema` (optional): a string containing your entire schema (mostly useful for testing). One of `schema` or `schemaPath` is required
 - `framework` (optional): Either `"kit"` or `"svelte"`. Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: `kit`)
@@ -30,7 +29,7 @@ It can contain the following values:
 - `types` (optional): an object that customizes the resolution behavior for a specific type. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
 - `logLevel` (optional): Specifies the style of logging houdini will use when generating your file. One of "quiet", "full", "summary", or "short-summary".
 - `disableMasking` (optional): A boolean indicating whether fields from referenced fragments should be included in a document's selection set
-- `frameworkConfigFile` (optional): The path to your framework config file relative to the houdini config file. By default, Houdini will look for your framework config file in process.cwd() however that's not always valid. Use this option to customize where houdini looks.
+- `frameworkConfigFile` (optional): The path to your framework config file relative to the houdini config file. By default, Houdini will look for your framework config file in `process.cwd()` however that's not always valid. Use this option to customize where houdini looks.
 - `schemaPollHeaders` (optional): An object specifying the headers to use when pulling your schema. Keys of the object are header names and its values can be either a string pointing to the environment variable to use as the header value or a function that takes the current `process.env` and returns the the value to use.
 - `schemaPollInterval` (optional, default: `2000`): Configures the schema polling behavior for the kit plugin. If its value is greater than `0`, the plugin will poll the set number of milliseconds. If set to `0`, the plugin will only pull the schema when you first run `dev`. If you set to `null`, the plugin will never look for schema changes. You can see use the [pull-schema command] to get updates.
 

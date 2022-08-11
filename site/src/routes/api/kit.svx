@@ -1,0 +1,155 @@
+---
+title: SvelteKit Plugin
+index: 6
+description: A summary of configuration values for Houdini's kit plugin
+---
+
+# SvelteKit Plugin
+
+Houdini's SvelteKit plugin is responsible for generating the code necessary to
+power [its GraphQL APIs](/guides/working-with-graphql). Adding it to your project
+is done in your vite config file. Make sure that Houdini's plugin comes before SvelteKit:
+
+```javascript
+// vite.config.js
+
+import sveltekit from '@sveltejs/kit/vite'
+import houdini from 'houdini/kit'
+
+export default {
+	plugins: [houdini(), sveltekit()]
+}
+```
+
+The plugin is primarily responsible for a few tasks:
+
+- transforming `graphql` tags into store references
+- generating the hidden load functions for our routes
+- watching your project source for changes to validate and process your project
+- watching for changes in your APIs schema
+
+## Configuration
+
+The plugin can be optionally configured with an object containing any of the [config values](/api/config) as well as
+the `configFile` key which can be used to provide an absolute path to your `houdini.config.js` (useful in monorepos).
+
+## Generating Route Loads
+
+As described in the [Working with GraphQL guide](/guides/working-with-graphql), there are 3 things that you can do to
+get houdini to create a load function for your route:
+
+- export `houdini_load` from your `+page.js` file
+- wrap an inline query in your `+page.svelte` file with the `query` function
+- define a `+page.gql` file in your route directory
+
+Regardless of which pattern you are using, you will quickly need to customize your query's behavior. This could be because you need to add variables to the query, or maybe you need to perform some logic before and/or after the data is fetched.
+
+### Query Variables
+
+Query variables must be exported from your `+page.js` files and named after your query. This function takes the same arguments passed to the `load` function
+described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. You can return
+the value from `this.error` and `this.redirect` in order to change the behavior of the response. Here is a
+modified example [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
+
+```typescript
+// src/routes/[filter]/+page.ts
+
+export const houdini_load = graphql`
+	query AllItems($completed: Boolean) {
+		items(completed: $completed) {
+			id
+			text
+		}
+	}
+`
+
+// This is the function for the AllItems query.
+// Query variable functions must be named <QueryName>Variables.
+export function AllItemsVariables(event): AllItems$input {
+	// make sure we recognize the value
+	if (!['active', 'completed'].includes(event.params.filter)) {
+		return this.error(400, 'invalid filter')
+	}
+
+	return {
+		completed: event.params.filter === 'completed'
+	}
+}
+```
+
+### Hooks
+
+Sometimes you will need to add additional logic to a component's query. For example, you might want to
+check if the current session is valid before a query is sent to the server. In order to support this,
+Houdini will look for hook functions defined in your `+page.{js,ts}` files.
+
+Hooks can be used to pass data to components as well as populate your SvelteKit route's `stuff` by returning an
+object with `props` or `stuff` keys.
+
+#### `beforeLoad`
+
+Called before Houdini executes load queries against the server. You can expect the same
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) hook.
+
+```typescript
+// src/routes/myRoute/+page.js
+
+export const houdini_load = graphql`
+	query AllItems($completed: Boolean) {
+		items(completed: $completed) {
+			id
+			text
+		}
+	}
+`
+
+// It has access to the same arguments,
+// this.error, and this.redirect as the variable functions
+export function beforeLoad({ page, session }) {
+	if (!session.authenticated) {
+		return this.redirect(302, '/login')
+	}
+
+	return {
+		message: 'Number of items:'
+	}
+}
+```
+
+#### `afterLoad`
+
+Called after Houdini executes load queries against the server. You can expect the same
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) hook, plus an additional
+`data` property referencing query result data. Keep in mind that if you define this hook, Houdini
+will have to block requests to the route in order to wait for the result. For more information about
+blocking during navigation, check out [this section](/api/query/store#server-side-blocking) of the query store
+docs.
+
+```typescript
+export const houdini_load = graphql`
+	query MyProfile($id: ID!) {
+		profile(id: $id) {
+			name
+		}
+	}
+`
+
+// src/routes/myRoute/+page.js
+export function MyProfileVariables({
+	page: {
+		params: { id }
+	}
+}) {
+	return { id }
+}
+
+export function afterLoad({ data }) {
+	if (!data.MyProfile) {
+		return this.error(404)
+	}
+
+	return {
+		message: "Hello I'm"
+	}
+}
+```

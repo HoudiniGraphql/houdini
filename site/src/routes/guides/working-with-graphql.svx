@@ -67,8 +67,7 @@ Hopefully, by the end of this guide you will have a much better understanding of
 
 This first part is more of a style guide than detailed summary. Rather than make you sit through a bunch of examples of
 alternate ways of implementing the same thing over and over, we wanted to jump right to our recommendation. Don't worry if the comments don't make
-sense immediately. Come back and read this list a second time after you are done with the explanations in the next section and
-hopefully your confusion will be cleared.
+sense immediately. Come back and read this list a second time after you are done and hopefully your confusion will be cleared.
 
 ### Route Queries
 
@@ -100,7 +99,7 @@ query MyProfile {
 
 The reason we recommend this pattern is that it provides a nice balance between editing experience, co-location, and reliable directory structure.
 If a route directory contains a `+page.gql` file, we immediately know that the route loads data from our API. When you need to
-start doing more complicated things with your queries like variables or custom logic, head over to [plugin docs](/api/plugin#generated-loads) to see
+start doing more complicated things with your queries like variables or custom logic, head over to [plugin docs](/api/kit#generating-route-loads) to see
 how you can customize the load function that houdini will generate for you.
 
 ### Fragments
@@ -161,7 +160,7 @@ Let's start by going over the core abstraction powering Houdini's data fetching:
 ## Document Stores
 
 When Houdini detects a graphql document in your project, it generates a [Svelte store](https://svelte.dev/tutorial/writable-stores) that you
-can use to interact with your data. Every document type (query, mutation, subscription) generates a different kind of store with different methods.
+can use to interact with your data. Every document type (query, mutation, fragment, and subscription) generates a different kind of store with different methods.
 
 <Transformation>
     <Highlight language="graphql" code={storeSource} slot="from"/>
@@ -325,7 +324,7 @@ help in this situation, check out the loadAll function. It's described inside th
 
 On the other hand, maybe you are the kind of person who gets really tired of typing the same code over and over. For those people, Houdini's vite plugin offers some powerful
 features that dramatically reduce the amount of boilerplate that you are responsible for. As you'll see there are a few different ways to get houdini to generate a load for you
-but they all behave the exact same and can be [customized the same way](/api/plugin#generated-loads).
+but they all behave the exact same and can be [customized the same way](/api/kit#generating-route-loads).
 
 The first way to tell houdini to generate a load for you is by exporting a `houdini_load` value from `+page.js` that contains one or more query stores that you want to use in your route:
 
