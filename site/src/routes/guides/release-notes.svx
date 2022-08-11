@@ -3,6 +3,7 @@ title: Release Notes
 index: 9
 description: A guide to migrating your application to each breaking version of houdini
 ---
+
 # Release Notes
 
 ## 0.16.0
@@ -10,6 +11,7 @@ description: A guide to migrating your application to each breaking version of h
 `v0.16.0` updates houdini's APIs to be compatible with the updates to SvelteKit as described here: https://github.com/sveltejs/kit/discussions/5774.
 
 Just to get some points out of the way for people worried about major breaking changes:
+
 - SvelteKit projects will now need to use the vite plugin defined at `houdini/kit` which replaces the old preprocessor (and the ugly `server.fs.allow` config). But don't worry, there are **lots** of really cool things that we're getting with this move.
 - The external document store api for SvelteKit routes is changing. This means that if you rely heavily on the document stores, you will have to update your load functions but as a result you can delete a lot of the code in your components and the overall mental model is a lot simpler (no more passing around `context`)
 - inline queries are staying the same. Inline fragmnets have their argument order inverted (graphql tag comes second). At a high level, everything that used to be defined in `context="module"` is now defined in `+page.js/ts`.
@@ -18,7 +20,7 @@ For additional breaking changes and notes, check out the section at the bottom o
 
 ### Vite Plugin
 
-For kit projects, the preprocessor has moved to `houdini/kit` and should be included as a plugin in your `vite.config.js`. You should also remove the the `fs.server.allow` config since its baked into the plugin.  This plugin not only processes our components and javascript files, but it also integrates into vite's `dev` script to bring some huge improvements:
+For kit projects, the preprocessor has moved to `houdini/kit` and should be included as a plugin in your `vite.config.js`. You should also remove the the `fs.server.allow` config since its baked into the plugin. This plugin not only processes our components and javascript files, but it also integrates into vite's `dev` script to bring some huge improvements:
 
 - automatically generates your artifacts and stores whenever it detects a change in your source code. if you have configured your own watcher, it might not be necessary anymore.
 - poll your api for changes in your schema and regenerate when they are detected. This behavior is customizable between 3 modes: a duration in milliseconds, only pull when the project first starts, and never pull.
@@ -31,10 +33,10 @@ The core of this change is that instead of using stores that you import, your co
 
 ```svelte
 <script>
-  /** @type {import('./$types').Data */
-  export let data: Data;
+	/** @type {import('./$types').Data */
+	export let data: Data
 
-  $: ({ UserInfo } = data);
+	$: ({ UserInfo } = data)
 </script>
 
 {$UserInfo.data.firstName}
@@ -48,9 +50,9 @@ In order to make this work, your `load` functions need to now return instances o
 import { load_UserInfo } from '$houdini'
 
 export async function load(event) {
-    return {
-        ...await load_UserInfo({ event })
-    }
+	return {
+		...(await load_UserInfo({ event }))
+	}
 }
 ```
 
@@ -72,7 +74,7 @@ query MyQuery {
 }
 ```
 
-With that file in place, you can just import and use the `MyQuery`  store passed to your route and the view will be SSR'd automatically.
+With that file in place, you can just import and use the `MyQuery` store passed to your route and the view will be SSR'd automatically.
 
 ### Inline Stores
 
@@ -80,7 +82,6 @@ The `graphql` template tag can now be used to define your stores in your javascr
 
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
-
 <script>
 	// this is only a store. no fetching has happened behind the scenes here
 	const store = graphql`
@@ -99,7 +100,7 @@ id: {$store.data?.viewer.id}
 
 ### Generating Loads For Stores
 
-You can now tell the houdini plugin to generate loads for your stores. To do this, you need to export a `houdini_load` variable from your `+page.js/ts`  file:
+You can now tell the houdini plugin to generate loads for your stores. To do this, you need to export a `houdini_load` variable from your `+page.js/ts` file:
 
 ```jsx
 // src/routes/myProfile/+page.ts
@@ -107,7 +108,7 @@ import { GQL_MyQuery, GQL_Query1, GQL_Query2 } from '$houdini'
 
 export const houdini_load = GQL_MyQuery
 // or
-export const houdini_load = [ GQL_Query1, GQL_Query2 ]
+export const houdini_load = [GQL_Query1, GQL_Query2]
 ```
 
 This can be mixed with the new `graphql` tag api to define your queries inside of your javascript files:
@@ -125,6 +126,7 @@ const otherQuery = graphql`
 
 export const houdini_load = [ GQL_MyQuery, otherQuery ]
 ```
+
 or
 
 ```typescript
@@ -146,10 +148,9 @@ export const houdini_load = graphql`
 - `config.sourceGlob` is no longer required and has been deprecated in favor of `config.include` which has a default value that covers most projects
 - added `config.exclude` to filter out files that match the `include` pattern
 - `generate --pull-header` is now `generate --header` (abbreviated `-h`)
-- `generate  --persist-output` is now `generate --output` (abbreviated `-o`)
+- `generate --persist-output` is now `generate --output` (abbreviated `-o`)
 - added `schemaPullHeaders` config value to specify the headers sent when pulling the schema
--  svelte projects not using kit should now import the preprocessor from `houdini/svelte-preprocess`
-
+- svelte projects not using kit should now import the preprocessor from `houdini/svelte-preprocess`
 
 ## 0.15.0
 
@@ -188,7 +189,7 @@ import `HoudiniClient` from your runtime and instantiate it as you used to do wi
 Beyond just the name there was also a change in the way you configure your runtime to use your environment. Now,
 instead of `setEnvironment(client)` you should just use `client.init()`.
 
-## Session and Fetch
+### Session and Fetch
 
 The `session` and `fetch` arguments are now passed to your client's network function in the same object as `text`. You should update
 your client definition to look something like:
