@@ -18,16 +18,13 @@ mutation response as the store value:
 ```svelte
 <script>
 	import UncheckItemStore from '$houdini/stores/UncheckItem'
-    import { getHoudiniContext } from '$houdini/runtime'
+    import from '$houdini/runtime'
 
 	let itemID
-
-    const context = getHoudiniContext()
 </script>
 
 <button
     on:click={() => UncheckItemStore.mutate({
-        context,
         variables: { id: itemID }
     })}
 >
@@ -50,7 +47,7 @@ The store's value is an object with the following keys:
 Triggering a mutation is done with the `mutate` method on the store as seen above. `mutate` returns a promise that resolves with an object matching the store's value
 (described above) and takes the following inputs:
 
-- `context`: optional. An opaque object of information necessary for the mutation. Only required if your environment needs `session` in its fetch function
+- `context`: optional. An opaque object of information necessary for the mutation. Only required if your environment needs `session` in its fetch function and the runtime was not able to infer the context (you'll get an error message).
 - `variables`: an object with the variables to use for the mutation
 - `optimisticResponse`: an object containing the optimistic response for the mutation. [See below](/api/mutation/store#optimistic-responses).
 

@@ -56,7 +56,7 @@ Don't worry about generating the runtime right away, we're going to have to gene
 </button>
 ```
 
-With that in place we can now define a function that will invoke the `toggleFavorite` mutation and pass it to our button. Import `mutation` from the `$houdini` package and add the declaration for `toggleFavorite` shown below to your `script` tag (the standard one, not the one with `context="module"`).
+With that in place we can now define a function that will invoke the `toggleFavorite` mutation and pass it to our button. Import `mutation` from the `$houdini` package and add the declaration for `toggleFavorite` shown below to your `script` tag:
 
 ```svelte
 <script>

@@ -23,9 +23,9 @@ query MyFriends {
 	const forwardPaginationStoreAfter = `
 type MyFriendsStore = QueryStore & {
   loadNextPage(
-    houdiniContext: HoudiniContext,
     pageCount?: number,
     after?: string | number
+    houdiniContext?: HoudiniContext,
   ): Promise<void>,
 
   pageInfo: Readable<PageInfo>
@@ -46,9 +46,9 @@ query MyFriends {
 	const backwardsPaginationStoreAfter = `
 type MyFriendsStore = QueryStore & {
   loadPreviousPage(
-    houdiniContext: HoudiniContext,
     pageCount?: number,
     before?: string | number
+    houdiniContext?: HoudiniContext,
   ): Promise<void>,
 
   pageInfo: Readable<PageInfo>
@@ -66,9 +66,9 @@ query MyFriends {
 	const offsetPaginationStoreAfter = `
 type MyFriendsStore = QueryStore & {
   loadNextPage(
-    houdiniContext: HoudiniContext,
     limit?: number,
     offset?: number
+    houdiniContext?: HoudiniContext,
   ): Promise<void>,
 }
 `

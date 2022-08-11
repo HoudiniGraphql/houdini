@@ -21,9 +21,9 @@ fragment UserInfo on User {
 	const forwardPaginationStoreAfter = `
 type UserInfoStore = FragmentStore & {
     loadNextPage(
-        houdiniContext: HoudiniContext,
         pageCount?: number,
         after?: string | number
+        houdiniContext?: HoudiniContext,
     ): Promise<void>,
 
     pageInfo: Readable<PageInfo>
@@ -43,9 +43,9 @@ fragment UserInfo on User {
 	const backwardsPaginationStoreAfter = `
 type UserInfoStore = FragmentStore & {
     loadPreviousPage(
-        houdiniContext: HoudiniContext,
         pageCount?: number,
         before?: string | number
+        houdiniContext?: HoudiniContext,
     ): Promise<void>,
 
   pageInfo: Readable<PageInfo>
@@ -61,9 +61,9 @@ fragment UserInfo on User {
 	const offsetPaginationStoreAfter = `
 type UserInfoStore = FragmentStore & {
     loadNextPage(
-        houdiniContext: HoudiniContext,
         limit?: number,
         offset?: number
+        houdiniContext?: HoudiniContext,
     ): Promise<void>,
 }
 `

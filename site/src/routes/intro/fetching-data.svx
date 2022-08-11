@@ -10,10 +10,10 @@ description: The first part of the Houdini intro focusing on how to fetch data
 
 # Fetching Data
 
-Before we do anything _too_ complicated, lets get something on the screen. Open up `src/routes/index.svelte` and fill it with the following content. Don't worry if you see an error after saving, we'll address that next.
+Before we do anything _too_ complicated, lets get something on the screen. Open up `src/routes/+page.svelte` and fill it with the following content
 
 ```svelte
-<!-- src/routes/index.svelte -->
+<!-- src/routes/+page.svelte -->
 
 <script>
     import { query, graphql } from '$houdini'
@@ -108,51 +108,45 @@ For more information on GraphQL Queries, [this is a good resource](https://graph
 If everything is set up properly, you should see a message printed in your terminal once you save the file. Behind the scenes, Houdini is constantly validating and processing
 your queries so you can catch errors as quickly as possible.
 
-By the way, if you ever change your schema and you need to update the local version, you can pass `-p` to `generate` and it will pull the latest version from your API before generating everything.
-
-Anyway, now that you have the necessary files, you should see a description of the first species in the generation 1 Pokédex - the ever popular Bulbasaur. If you are still running into issues, please reach out to us on the svelte discord and we'd be happy to help.
+Anyway, now that you have the necessary files, you should see Bulbasaur's description. If you are still running into issues, please reach out to us on the svelte discord and we'd be happy to help.
 
 <DeepDive title="What happened to load?">
 
 If you were looking carefully, you might have noticed that we didn't define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading). Don't worry, this route is still rendered on the server thanks to the preprocessor. One of its responsibilities is moving the actual fetch into a `load`. You can think of the block at the top of this section as equivalent to:
 
 ```svelte
-<script context="module">
-    export async function load({ fetch }) {
-            return {
-                props: {
-                    _data: await fetch(API_URL, {
-                        text: `
-                            query SpeciesInfo {
-                                species(id: 1) {
-                                    name
-                                    flavor_text
-                                    sprites {
-                                        front
-                                    }
-                                }
-                            }
-                        `
-                    })
-                },
-            }
-    }
-</script>
+<!-- src/routes/myRoute/+page.svelte -->
 
 <script>
-    export let _data
+	// the store gets passed to us as a prop
+	export let data
 
-    const data = readable(_data, ...)
+	$:( { SpeciesInfoStore } : $$props.data)
+
+	const { data } = $SpeciesInfoStore
+
 </script>
+```
 
-<!-- the rest of the components -->
+```typescript
+// src/routes/myRoute/+page.js
+
+import SpeciesInfoStore from '$houdini/stores/SpeciesInfo'
+
+export async function load({ event }) {
+	await SpeciesInfoStore.fetch({ event })
+
+	return {
+		SpeciesInfoStore: SpeciesInfoStore
+	}
+}
 ```
 
 </DeepDive>
 
 ## Query Variables
 
-This is a good start but we will need to be able to show information for more species than just Bulbasaur. Let's set up our application to take look at the url for the id of the species we are interested in. To do that, rename `index.svelte` to `[...id].svelte`. That will let us have an optional parameter in the url which we will interpret as the ID (ie, `/` and `/1` will both render Bulbasaur's page).
+This is a good start but we will need to be able to show information for more species than just Bulbasaur. Let's set up our application to take look at the url for the id of the species we are interested in. To do that, rename `+page.svelte` to `[...id]/+page.svelte`. That will let us have an optional parameter in the url which we will interpret as the ID (ie, `/` and `/1` will both render Bulbasaur's page).
 
 <GraphQLExplained title="Query Variables">
 
@@ -190,16 +184,16 @@ query SpeciesInfo($id: Int!) {
 }
 ```
 
-In order to tell the runtime how to compute that value, you have to define a function called `SpeciesInfoVariables` in the `module` context of your component that returns the correct value. Add the following block of code under the closing `script` tag in your component:
+In order to tell the runtime how to compute that value, you have to define a function called `SpeciesInfoVariables` in your route's `+page.js` files that returns the correct value. Create `src/routes/[...id]/+page.js` and paste the following content:
 
-```svelte
-<script context="module">
-    export function SpeciesInfoVariables({ params }) {
-        return {
-            id: params.id ? parseInt(params.id) :  1
-        }
+```javascript
+// src/routes/[...id]/+page.js
+
+export function SpeciesInfoVariables({ params }) {
+    return {
+        id: params.id ? parseInt(params.id) :  1
     }
-</script>
+}
 ```
 
 Once that's done, you should be able to navigate to `/6` to see Charizard's information. It's worth mentioning that if you _did_ run `generate` after adding the variable to the query, you don't need to run it again because of the new function. You only need to run it when you change something inside of a `graphql` tag.

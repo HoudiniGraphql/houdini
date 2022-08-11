@@ -57,20 +57,30 @@ For example, consider this query:
 You can think of it as equivalent to:
 
 ```svelte
-<script context="module">
-	import SpeciesInfoStore from '$houdini/stores/SpeciesInfo'
-	import { browser } from '$app/env'
-
-	export async function load({ event }) {
-		await SpeciesInfoStore.fetch({ event })
-	}
-</script>
+<!-- src/routes/myRoute/+page.svelte -->
 
 <script>
+	// the store gets passed to us as a prop
+	export let data
+
+	$:( { SpeciesInfoStore } : $$props.data)
+
 	const { data } = $SpeciesInfoStore
 
-	$: browser && SpeciesInfoStore.fetch()
 </script>
+```
+
+```typescript
+// ssrc/routes/myRoute/+page.ts
+import SpeciesInfoStore from '$houdini/stores/SpeciesInfo'
+
+export async function load({ event }) {
+	await SpeciesInfoStore.fetch({ event })
+
+	return {
+		SpeciesInfoStore: SpeciesInfoStore
+	}
+}
 ```
 
 If you haven't seen Houdini's document stores before, please check out the [Working with GraphQL](/guides/working-with-graphql) guide.

@@ -86,16 +86,10 @@ And mutation store looks something like
 ```svelte
 <script>
 	import AddUser from '$houdini/stores/AddUser'
-	import { getHoudiniContext } from '$houdini/runtime'
-
-	// the context must be pulled out at the root of your component
-	// so your HoudiniClient's fetch function has everything it needs
-	const context = getHoudiniContext()
 
 	// a function to invoke the mutation
 	const addUser = () =>
 		AddUser.mutate({
-			context,
 			variables: { firstName: 'Houdini' }
 		})
 </script>

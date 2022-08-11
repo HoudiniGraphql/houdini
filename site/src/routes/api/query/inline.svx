@@ -16,6 +16,7 @@ Load data from the server and subscribe to any changes of fields we detect from 
 ```svelte
 <script>
 	import { query, graphql } from '$houdini'
+
 	const { data, refetch, loading, error } = query(graphql`
 		query MyQuery {
 			myField
@@ -40,29 +41,14 @@ Load data from the server and subscribe to any changes of fields we detect from 
 
 ## Query Variables
 
-At the moment, query variables are declared as a function in the module context of your component.
-This function must be named after your query and takes the same arguments passed to the `load` function
+Query variables must be exported from your `+page.js` files and named after your query. This function takes the same arguments passed to the `load` function
 described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. You can return
 the value from `this.error` and `this.redirect` in order to change the behavior of the response. Here is a
 modified example [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
 
+
 ```svelte
-<script context="module" lang="ts">
-	// This is the function for the AllItems query.
-	// Query variable functions must be named <QueryName>Variables.
-	export function AllItemsVariables(event): AllItems$input {
-		// make sure we recognize the value
-		if (!['active', 'completed'].includes(event.params.filter)) {
-			return this.error(400, 'invalid filter')
-		}
-
-		return {
-			completed: event.params.filter === 'completed'
-		}
-	}
-</script>
-
-<!-- src/routes/[filter].svelte -->
+<!-- src/routes/[filter]/+page.svelte -->
 <script lang="ts">
 	import { query, graphql, type AllItems } from '$houdini'
 
@@ -82,6 +68,23 @@ modified example [from the source repository](https://github.com/HoudiniGraphql/
 {/each}
 ```
 
+```typescript
+// src/routes/[filter]/+page.ts
+
+// This is the function for the AllItems query.
+// Query variable functions must be named <QueryName>Variables.
+export function AllItemsVariables(event): AllItems$input {
+	// make sure we recognize the value
+	if (!['active', 'completed'].includes(event.params.filter)) {
+		return this.error(400, 'invalid filter')
+	}
+
+	return {
+		completed: event.params.filter === 'completed'
+	}
+}
+```
+
 ## Loading State
 
 In short, the recommendation is to rely on the `isFetching` store instead of using the `$navigating` store or similar mechanisms
@@ -92,8 +95,7 @@ when a load function is [not always blocking](/api/query/store#fetching-data).
 
 Sometimes you will need to add additional logic to a component's query. For example, you might want to
 check if the current session is valid before a query is sent to the server. In order to support this,
-Houdini will look for hook functions defined in the module context which can be used to perform
-any logic you need.
+Houdini will look for hook functions defined in your `+page.{js,ts}` files.
 
 Hooks can be used to pass data to components as well as populate your SvelteKit route's `stuff` by returning an
 object with `props` or `stuff` keys.
@@ -103,20 +105,9 @@ object with `props` or `stuff` keys.
 Called before Houdini executes load queries against the server. You can expect the same
 arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) hook.
 
-```svelte
-<script context="module">
-	// It has access to the same arguments,
-	// this.error, and this.redirect as the variable functions
-	export function beforeLoad({ page, session }) {
-		if (!session.authenticated) {
-			return this.redirect(302, '/login')
-		}
 
-		return {
-			message: 'Number of items:'
-		}
-	}
-</script>
+```svelte
+<!-- src/routes/myRoute/+page.svelte -->
 
 <script>
 	import { query, graphql } from '$houdini'
@@ -136,6 +127,22 @@ arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) hook.
 {message}: {$data.items.length}
 ```
 
+```typescript
+// src/routes/myRoute/+page.js
+
+// It has access to the same arguments,
+// this.error, and this.redirect as the variable functions
+export function beforeLoad({ page, session }) {
+	if (!session.authenticated) {
+		return this.redirect(302, '/login')
+	}
+
+	return {
+		message: 'Number of items:'
+	}
+}
+```
+
 ### `afterLoad`
 
 Called after Houdini executes load queries against the server. You can expect the same
@@ -146,25 +153,6 @@ blocking during navigation, check out [this section](/api/query/store#server-sid
 docs.
 
 ```svelte
-<script context="module">
-	export function MyProfileVariables({
-		page: {
-			params: { id }
-		}
-	}) {
-		return { id }
-	}
-	export function afterLoad({ data }) {
-		if (!data.MyProfile) {
-			return this.error(404)
-		}
-
-		return {
-			message: "Hello I'm"
-		}
-	}
-</script>
-
 <script>
 	import { query, graphql } from '$houdini'
 
@@ -172,8 +160,8 @@ docs.
 
 	// load the items
 	const { data } = query(graphql`
-        query MyProfile {
-            profile(id) {
+        query MyProfile($id: ID!) {
+            profile(id: $id) {
                 name
             }
         }
@@ -181,6 +169,27 @@ docs.
 </script>
 
 {message} {$data.profile.name}
+```
+
+```typescript
+// src/routes/myRoute/+page.js
+export function MyProfileVariables({
+	page: {
+		params: { id }
+	}
+}) {
+	return { id }
+}
+
+export function afterLoad({ data }) {
+	if (!data.MyProfile) {
+		return this.error(404)
+	}
+
+	return {
+		message: "Hello I'm"
+	}
+}
 ```
 
 ## Paginated Queries
