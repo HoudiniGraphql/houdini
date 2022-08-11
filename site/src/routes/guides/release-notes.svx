@@ -102,8 +102,9 @@ id: {$store.data?.viewer.id}
 
 You can now tell the houdini plugin to generate loads for your stores. To do this, you need to export a `houdini_load` variable from your `+page.js/ts` file:
 
-```jsx
+```typescript
 // src/routes/myProfile/+page.ts
+
 import { GQL_MyQuery, GQL_Query1, GQL_Query2 } from '$houdini'
 
 export const houdini_load = GQL_MyQuery
@@ -114,6 +115,8 @@ export const houdini_load = [GQL_Query1, GQL_Query2]
 This can be mixed with the new `graphql` tag api to define your queries inside of your javascript files:
 
 ```typescript
+// src/routes/myProfile/+page.ts
+
 import { GQL_MyQuery, graphql. } from '$houdini'
 
 const otherQuery = graphql`

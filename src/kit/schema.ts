@@ -3,11 +3,11 @@ import glob from 'glob'
 import path from 'path'
 import { Plugin } from 'vite'
 
-import { writeSchema } from '../cmd/utils'
+import { pullSchema } from '../cmd/utils'
 import { getConfig } from '../common'
 
 export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
-	let interval_id: NodeJS.Timeout | null = null
+	let go = true
 
 	return {
 		name: 'houdini-watch-schema',
@@ -33,11 +33,10 @@ export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 			if (interval === null) {
 				return
 			}
-
 			// the function to call on the appropriate interval
-			async function pullSchema(poll: boolean) {
+			async function pull(poll: boolean) {
 				// Write the schema
-				await writeSchema(
+				await pullSchema(
 					config.apiUrl!,
 					config.schemaPath ?? path.resolve(process.cwd(), 'schema.json'),
 					config.pullHeaders
@@ -46,12 +45,15 @@ export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 				// if we are supposed to poll, wait the appropriate amount of time and then do it again
 				if (poll) {
 					await sleep(interval!)
-					pullSchema(poll)
+
+					if (go) {
+						pull(poll)
+					}
 				}
 			}
 
 			// its safe to pull the schema
-			await pullSchema(false)
+			await pull(false)
 
 			// if we aren't supposed to poll at all
 			if (interval <= 0) {
@@ -62,12 +64,10 @@ export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 			await sleep(interval)
 
 			// start listening
-			await pullSchema(true)
+			await pull(true)
 		},
 		buildEnd() {
-			if (interval_id !== null) {
-				clearInterval(interval_id)
-			}
+			go = false
 		},
 	}
 }

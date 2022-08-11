@@ -1,7 +1,7 @@
 import path from 'path'
 
 import { getConfig } from '../common'
-import { writeSchema } from './utils'
+import { pullSchema } from './utils'
 
 export default async function (args: { headers: string[] }) {
 	const config = await getConfig()
@@ -33,7 +33,7 @@ export default async function (args: { headers: string[] }) {
 	}
 
 	// Write the schema
-	await writeSchema(
+	await pullSchema(
 		config.apiUrl,
 		config.schemaPath ? config.schemaPath : path.resolve(targetPath, 'schema.json'),
 		headers
