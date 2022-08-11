@@ -57,11 +57,11 @@ const mutate = GQL_UpdateUser.mutate
 # Working with GraphQL
 
 Everyone has different needs from their GraphQL client. That means that in order to provide a high quality
-developer experience, Houdini must support a few different APIs that overlap. While this is great for the
+developer experience, Houdini supports a few different APIs that overlap. While this is great for the
 community as a whole, it creates a challenge for newcomers since there isn't a clear path for how to
 structure their applications.
 
-Hopefully, by the end of this guide you will have a good understanding of how things should be organized.
+Hopefully, by the end of this guide you will have a good understanding of how you want to organize your applications.
 
 ## Our Recommendation
 
@@ -98,8 +98,8 @@ query MyProfile {
 </div>
 ```
 
-The reason for this is that it provides a nice balance between editing experience, co-location, and reliable directory structure.
-If all route queries are in `+page.gql` then we know if a route loads data the moment we look inside the directory. When you need to
+The reason we recommend this pattern is that it provides a nice balance between editing experience, co-location, and reliable directory structure.
+If a route directory contains a `+page.gql` file, we immediately know that the route loads data from our API. When you need to
 start doing more complicated things with your queries like variables or custom logic, head over to [plugin docs](/api/plugin#generated-loads) to see
 how you can customize the load function that houdini will generate for you.
 
@@ -127,13 +127,13 @@ Fragments should be defined inside of your `.svelte` components using the inline
 <img src={$data.avatar} />
 ```
 
-This keeps everything nicely isolated within a single `.svelte` file and at times feels like giving your svelte components a whole new
+This keeps everything nicely isolated within a single `.svelte` file and feels like giving your svelte components a whole new
 superpower.
 
 ### Mutations
 
-Mutations tend to live a more fluid lifestyle than the rest of the documents. At first, we find its fastest to define your documents inline
-while you are putting stuff together. However, as your app grows you'll probably want to share those mutations across multiple components. When
+At first, we find its fastest to define your documents directly inside of your components. However, as your app grows you'll
+probably want to share those mutations in multiple places. When
 that happens, it's easy to pull the document into an external file and import it from `$houdini`:
 
 <Transformation>
@@ -146,7 +146,7 @@ that happens, it's easy to pull the document into an external file and import it
 
 ### That's it!
 
-If that's enough for you, then I hope you have a great rest of your day and please come tell us what about you're building with houdini. We'd love to hear from you.
+If that's enough for you, then I hope you have a great rest of your day. Please come tell us what about you're building with houdini - we'd love to hear from you!
 If you want to read more, in the next section we're going to break down all of the different ways that you can work with your project's GraphQL Documents.
 
 <div style="height: 100px"></div>
@@ -285,7 +285,7 @@ Once you have your store, the next step is to start using it. Usually, your rout
 {$UserProfile.data.viewer.firstName}
 ```
 
-Of course, you could have also defined an inline store, but most of the time, you'll want to SSR your views which means we have to define
+Of course, you could have also defined an inline store, but most of the time, you'll want to render your views on the server which means we have to define
 a `load` function in `+page.js`. This leads us to the next question: do you want Houdini to generate the load function for you?
 
 ### Manual Loads
@@ -312,7 +312,7 @@ just make sure that you instantiate stores inside of `load` and pass them to you
 
 <Warning>
 
-Do not use global stores (ie, `GQL_MyQuery`) in `load` functions unless you have a very good reason. Global stores are not safe for SSR because they get mutated
+Do not use global stores (ie, `GQL_MyQuery`) in `load` functions unless you have a very good reason. Global stores are not safe to use on the server because they get mutated
 by multiple users at the same time. By instantiating a new store on every load, you automatically support complex flows like prefetching and concurrent requests
 without any hassle.
 
@@ -442,7 +442,7 @@ query UserInfo {
 }
 ```
 
-You can now define a `+page.svelte` file that looks like the following and your route will be SSR'd without any extra configuration:
+You can now define a `+page.svelte` file that looks like the following and your route will be rendered on the server without any extra configuration:
 
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->

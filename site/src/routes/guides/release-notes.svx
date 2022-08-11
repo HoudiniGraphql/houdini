@@ -74,7 +74,7 @@ query MyQuery {
 }
 ```
 
-With that file in place, you can just import and use the `MyQuery` store passed to your route and the view will be SSR'd automatically.
+With that file in place, you can just import and use the `MyQuery` store passed to your route and the view will be rendered on the server automatically.
 
 ### Inline Stores
 
