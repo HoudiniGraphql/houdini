@@ -449,3 +449,7 @@ pre > code.diff-highlight .token.token.inserted:not(.prefix) *::selection {
 .prism-previewer-easing.prism-previewer-easing circle {
 	fill: transparent;
 }
+
+.language-graphql .property {
+	color: white;
+}

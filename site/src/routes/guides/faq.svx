@@ -28,7 +28,7 @@ please visit [the query store docs](/api/query/store#passing-metadata).
 
 ### How does the plugin generate loads?
 
-If you are familiar with the SvelteKit API, you probably noticed that you don't need to define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading) when using inline documents. Don't worry, your routes are still rendered on the server thanks to the preprocessor. One of its responsibilities is moving the actual fetch into a `load`.
+If you are familiar with the SvelteKit API, you probably noticed that you don't need to define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading) when using inline documents. Don't worry, your routes are still rendered on the server thanks to the [SvelteKit plugin](/api/kit). One of its responsibilities is generating your load for you.
 
 For example, consider this query:
 

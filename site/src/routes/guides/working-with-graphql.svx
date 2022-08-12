@@ -9,9 +9,9 @@ description: An overview of the various ways Houdini applications can leverage G
 
     const storeSource = `# Operation defined in a .gql or .graphql file
 query ViewerProfile {
-	viewer {
-		firstName
-	}
+    viewer {
+        firstName
+    }
 }`
 
     const storeTypeDef = `// Generated Store
@@ -23,9 +23,9 @@ type ViewerProfileStore = {
     const inlineMutation = `import { mutation, graphql } from '$houdini'
 
 const mutate = mutation(graphql\`
-    mutation UpdateUser($input: UpdateUserInput!) { 
-        updateUser(input: $input) { 
-            user { 
+    mutation UpdateUser($input: UpdateUserInput!) {
+        updateUser(input: $input) {
+            user {
                 firstName
             }
         }
@@ -35,13 +35,13 @@ const mutate = mutation(graphql\`
     const externalMutationGraphQL = `
 # src/lib/graphql/UpdateUser.gql
 
-mutation UpdateUser($input: UpdateUserInput!) { 
-    updateUser(input: $input) { 
-        user { 
+mutation UpdateUser($input: UpdateUserInput!) {
+    updateUser(input: $input) {
+        user {
             firstName
         }
     }
-} 
+}
 `
 
     const externalMutation = `
@@ -78,22 +78,22 @@ all of the details for you and your route will receive the query store as a prop
 # src/routes/myProfile/+page.gql
 
 query MyProfile {
-	viewer {
-		firstName
-	}
+    viewer {
+        firstName
+    }
 }
 ```
 
 ```svelte
 <!--  src/routes/myProfile/+page.svelte -->
 <script>
-	export let data
+    export let data
 
-	$: ({ MyProfile } = data)
+    $: ({ MyProfile } = data)
 </script>
 
 <div>
-	{$MyProfile.data.viewer.firstName}
+    {$MyProfile.data.viewer.firstName}
 </div>
 ```
 
@@ -109,18 +109,18 @@ Fragments should be defined inside of your `.svelte` components using the inline
 ```svelte
 <!-- src/lib/components/UserAvatar.svelte -->
 <script>
-	import { fragment, graphql } from '$houdini'
+    import { fragment, graphql } from '$houdini'
 
-	export let user
+    export let user
 
-	$: data = fragment(
-		user,
-		graphql`
-			fragment UserAvatar on User {
-				avatar
-			}
-		`
-	)
+    $: data = fragment(
+        user,
+        graphql`
+            fragment UserAvatar on User {
+                avatar
+            }
+        `
+    )
 </script>
 
 <img src={$data.avatar} />
@@ -189,9 +189,9 @@ store from `$houdini` as `GQL_DocumentName`:
 # src/lib/queries/MyAwesomeQuery.gql
 
 query MyAwesomeQuery {
-	viewer {
-		isAwesome
-	}
+    viewer {
+        isAwesome
+    }
 }
 ```
 
@@ -235,15 +235,15 @@ do that, import `graphql` from `$houdini` and wrap your query inside of the temp
 ```svelte
 <!-- src/routes/myRoute/+page.svelte -->
 <script>
-	import { graphql } from '$houdini'
+    import { graphql } from '$houdini'
 
-	const store = graphql`
-		query ViewerSettings {
-			viewer {
-				isAwesome
-			}
-		}
-	`
+    const store = graphql`
+        query ViewerSettings {
+            viewer {
+                isAwesome
+            }
+        }
+    `
 </script>
 ```
 
@@ -253,11 +253,11 @@ do that, import `graphql` from `$houdini` and wrap your query inside of the temp
 import { graphql } from '$houdini'
 
 const store = graphql`
-	query MyAwesomeQuery {
-		viewer {
-			isAwesome
-		}
-	}
+    query MyAwesomeQuery {
+        viewer {
+            isAwesome
+        }
+    }
 `
 ```
 
@@ -276,9 +276,9 @@ Once you have your store, the next step is to start using it. Usually, your rout
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
 <script>
-	export let data
+    export let data
 
-	$: ({ UserProfile } = data)
+    $: ({ UserProfile } = data)
 </script>
 
 {$UserProfile.data.viewer.firstName}
@@ -299,9 +299,9 @@ your route on the server. These functions take the same parameters as fetch:
 import { load_MyQuery } from '$houdini'
 
 export async function load(event) {
-	return {
-		...(await load_MyQuery({ event }))
-	}
+    return {
+        ...(await load_MyQuery({ event }))
+    }
 }
 ```
 
@@ -333,11 +333,11 @@ The first way to tell houdini to generate a load for you is by exporting a `houd
 import { GQL_ProjectList, graphql } from '$houdini'
 
 const userInfo = graphql`
-	query UserInfo {
-		viewer {
-			firstName
-		}
-	}
+    query UserInfo {
+        viewer {
+            firstName
+        }
+    }
 `
 
 export const houdini_load = [GQL_ProjectList, userInfo]
@@ -348,12 +348,12 @@ With that in place, your route will be passed two props, named after the queries
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
 <script>
-	export let data
+    export let data
 
-	$: ({ ProjectList, UserInfo } = data)
+    $: ({ ProjectList, UserInfo } = data)
 
-	$: firstName = $UserInfo.data.viewer.firstName
-	$: length = $ProjectList.data.projects.length
+    $: firstName = $UserInfo.data.viewer.firstName
+    $: length = $ProjectList.data.projects.length
 </script>
 
 {firstName} can see {length} projects
@@ -367,11 +367,11 @@ Keep in mind that `houdini_load` can also take a single store, which allows for 
 import { graphql } from '$houdini'
 
 export const houdini_load = graphql`
-	query UserInfo {
-		viewer {
-			firstName
-		}
-	}
+    query UserInfo {
+        viewer {
+            firstName
+        }
+    }
 `
 ```
 
@@ -384,17 +384,17 @@ hooks for a particular query since it allows all of that logic to be co-located:
 import { graphql } from '$houdini'
 
 export const houdini_load = graphql`
-	query UserInfo($id: ID!) {
-		user(id: $id) {
-			firstName
-		}
-	}
+    query UserInfo($id: ID!) {
+        user(id: $id) {
+            firstName
+        }
+    }
 `
 
 export function UserInfoVariables({ params }) {
-	return {
-		id: params.id
-	}
+    return {
+        id: params.id
+    }
 }
 ```
 
@@ -405,15 +405,15 @@ Another way to get a generated load for your route queries, is to define your qu
 ```svelte
 <!-- src/lib/UserList.svelte -->
 <script>
-	import { graphql, query } from '$houdini'
+    import { graphql, query } from '$houdini'
 
-	const { data } = query(graphql`
-		query UserInfo {
-			viewer {
-				firstName
-			}
-		}
-	`)
+    const { data } = query(graphql`
+        query UserInfo {
+            viewer {
+                firstName
+            }
+        }
+    `)
 </script>
 
 {$data.viewer.firstName}
@@ -435,9 +435,9 @@ provided query. For example, with the following query defined:
 # src/routes/myProfile/+page.gql
 
 query UserInfo {
-	viewer {
-		firstName
-	}
+    viewer {
+        firstName
+    }
 }
 ```
 
@@ -446,9 +446,9 @@ You can now define a `+page.svelte` file that looks like the following and your 
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
 <script>
-	export let data
+    export let data
 
-	$: ({ UserInfo } = data)
+    $: ({ UserInfo } = data)
 </script>
 
 {$UserInfo.data.viewer.firstName}
