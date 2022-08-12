@@ -4,7 +4,7 @@ export async function post({ locals, request, ...args }) {
 		return {}
 	}
 
-	locals.session.data = { mode }
+	await locals.session.set({ mode })
 
 	return {
 		body: 'OK'
