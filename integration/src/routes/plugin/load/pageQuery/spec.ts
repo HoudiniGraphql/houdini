@@ -1,11 +1,6 @@
 import { routes } from '../../../../lib/utils/routes.js';
-import {
-  expectGraphQLResponse,
-  expectNoGraphQLRequest,
-  expectToBe,
-  navSelector
-} from '../../../../lib/utils/testsHelper.js';
-import { expect, test } from '@playwright/test';
+import { expectNoGraphQLRequest, expectToBe } from '../../../../lib/utils/testsHelper.js';
+import { test } from '@playwright/test';
 
 test.describe('query preprocessor', () => {
   test('happy path query - SSR', async ({ page }) => {
