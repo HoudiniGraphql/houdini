@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { Data } from './$types';
-
-  export let data: Data;
+  export let data: any;
 
   $: ({ PageQuery } = data);
 </script>

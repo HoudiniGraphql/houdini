@@ -1,4 +1,5 @@
 import minimatch from 'minimatch'
+import path from 'path'
 import type { Plugin } from 'vite'
 
 import generate from '../cmd/generate'
@@ -33,7 +34,7 @@ export default function ({
 					}
 
 					// if the filepath does not match the include, ignore it
-					if (!minimatch(filepath, config.include)) {
+					if (!minimatch(filepath, path.join(process.cwd(), config.include))) {
 						return false
 					}
 

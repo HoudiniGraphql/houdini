@@ -13,7 +13,7 @@ export type Options = {
 	/**
 	 * watch files to trigger the run action (glob format)
 	 */
-	watch?: string | (() => Promise<string>)
+	watch?: string
 
 	watchFile?: (filepath: string) => Promise<boolean>
 	/**
@@ -51,7 +51,7 @@ export type StateDetail = {
 	run: string | (() => void | Promise<void>)
 	delay: number
 	isRunning: boolean
-	watchFile?: (filepath: string) => boolean
+	watchFile?: (filepath: string) => boolean | Promise<boolean>
 	watch?: string
 	name?: string | null
 }
@@ -91,22 +91,32 @@ async function checkConf(params: Options[]) {
 			isRunning: false,
 			name: param.name,
 			quiet: !!param.quiet,
+			watch: param.watch,
+			watchFile: param.watchFile,
 		})
 	}
 
 	return paramsChecked
 }
 
-function shouldRun(
+async function shouldRun(
 	absolutePath: string | null,
 	watchKind: WatchKind,
 	watchAndRunConf: StateDetail[]
-): StateDetail | null {
+): Promise<StateDetail | null> {
 	for (const info of watchAndRunConf) {
+		if (!absolutePath || (!info.watchFile && !info.watch)) {
+			continue
+		}
+
 		const isWatched = info.kind.includes(watchKind)
-		let isPathMatching =
-			absolutePath &&
-			(info.watchFile?.(absolutePath) ?? micromatch.isMatch(absolutePath, info.watch!))
+		let isPathMatching = false
+
+		if (info.watchFile) {
+			isPathMatching = await info.watchFile(absolutePath)
+		} else {
+			isPathMatching = micromatch.isMatch(absolutePath, info.watch!)
+		}
 
 		const isWatchKindWithoutPath = kindWithoutPath.includes(watchKind as KindWithoutPath)
 		if (!info.isRunning && isWatched && (isPathMatching || isWatchKindWithoutPath)) {
@@ -125,7 +135,7 @@ async function watcher(
 	watchKind: WatchKind,
 	watchAndRunConf: StateDetail[]
 ) {
-	const info = shouldRun(absolutePath, watchKind, watchAndRunConf)
+	const info = await shouldRun(absolutePath, watchKind, watchAndRunConf)
 	if (info) {
 		info.isRunning = true
 

@@ -61,7 +61,7 @@ export default async function walkTaggedDocuments(
 				const tagContent = expr.quasi.quasis[0].value.raw
 				const parsedTag = graphql.parse(tagContent)
 
-				// @ts-ignore
+				// @ts-ignore (these are only here because of babel which doesn't officially conform to the AST that asyncWalk wants)
 				const id = `${node.start},${node.end}`
 				if (seen.has(id)) {
 					return
