@@ -18,7 +18,9 @@ export default function houdiniPreprocessor(
 
 			// if we detected a kit project using the preprocessor, tell them they need to update
 			if (config.framework === 'kit') {
-				throw new Error('Please use the vite plugin.')
+				throw new Error(`Please use the new vite plugin for SvelteKit. You can import it from houdini/kit and include it in your vite.config.js.
+For more information, check out this link: https://www.houdinigraphql.com/guides/release-notes
+	`)
 			}
 
 			// regardless, this isn't the right package
