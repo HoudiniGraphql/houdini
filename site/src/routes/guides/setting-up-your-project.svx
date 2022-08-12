@@ -53,15 +53,15 @@ First, we need to add houdini's plugin to your `vite.config.js`. Make sure that 
 ```javascript
 // vite.config.js
 
-import { sveltekit } from '@sveltejs/kit/vite';
-import houdini from 'houdini/kit';
+import { sveltekit } from '@sveltejs/kit/vite'
+import houdini from 'houdini/kit'
 
 /** @type {import('vite').UserConfig} */
 const config = {
-  plugins: [houdini(), sveltekit()]
-};
+	plugins: [houdini(), sveltekit()]
+}
 
-export default config;
+export default config
 ```
 
 Then, update your `svelte.config.js` to support the `$houdini` alias:
@@ -100,10 +100,10 @@ svelte config
 
 ```javascript
 // svelte.config.js
-import houdini from 'houdini/svelte-preprocess'
+import houdini from 'houdini/preprocess'
 
 export default {
-	preprocess: [ houdini() ]
+	preprocess: [houdini()]
 }
 ```
 
@@ -114,8 +114,6 @@ you aren't using kit.
 Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the
 redirect as it will update your browsers `location` attribute, causing a hard transition to that url. Instead, you should
 use `this.error` to return an error and handle the redirect in a way that's appropriate for your application.
-
-
 
 ### Typescript
 

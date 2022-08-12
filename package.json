@@ -17,10 +17,6 @@
 			"import": "./build/preprocess-esm/index.js",
 			"require": "./build/preprocess-cjs/index.js"
 		},
-		"./svelte-preprocess": {
-			"import": "./build/preprocess-esm/index.js",
-			"require": "./build/preprocess-cjs/index.js"
-		},
 		"./kit": {
 			"import": "./build/kit-esm/index.js",
 			"require": "./build/kit-cjs/index.js"
@@ -48,9 +44,6 @@
 		"build:preprocess": "concurrently \"npm run build:preprocess:esm\" \"npm run build:preprocess:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
 		"build:preprocess:cjs": "TARGET=cjs WHICH=preprocess rollup --config rollup.config.js",
 		"build:preprocess:esm": "TARGET=esm WHICH=preprocess rollup --config rollup.config.js",
-		"build:svelte-preprocess": "concurrently \"npm run build:svelte-preprocess:esm\" \"npm run build:svelte-preprocess:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
-		"build:svelte-preprocess:cjs": "TARGET=cjs WHICH=svelte-preprocess rollup --config rollup.config.js",
-		"build:svelte-preprocess:esm": "TARGET=esm WHICH=svelte-preprocess rollup --config rollup.config.js",
 		"build:kit": "concurrently \"npm run build:kit:esm\" \"npm run build:kit:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
 		"build:kit:cjs": "TARGET=cjs WHICH=kit rollup --config rollup.config.js",
 		"build:kit:esm": "TARGET=esm WHICH=kit rollup --config rollup.config.js",

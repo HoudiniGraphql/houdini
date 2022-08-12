@@ -153,7 +153,6 @@ export const houdini_load = graphql`
 - `generate --pull-header` is now `generate --header` (abbreviated `-h`)
 - `generate --persist-output` is now `generate --output` (abbreviated `-o`)
 - added `schemaPullHeaders` config value to specify the headers sent when pulling the schema
-- svelte projects not using kit should now import the preprocessor from `houdini/svelte-preprocess`
 
 ## 0.15.0
 
