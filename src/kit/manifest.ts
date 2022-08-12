@@ -50,7 +50,7 @@ async function walk_route_dir(
 				transformed = (await transformWithEsbuild(contents, child_path)).code
 			} catch (e) {
 				formatErrors({ message: (e as Error).message, filepath: child_path })
-				throw new Error('For more information, scroll up ☝️')
+				throw new Error('More information above ☝️')
 			}
 			if (!transformed) {
 				continue
