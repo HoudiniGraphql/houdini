@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "prepare": "svelte-kit sync",
+    "postinstall": "svelte-kit sync",
     "generate": "houdini generate",
     "generatep": "houdini generate -p",
     "web": "cross-env TZ=utc vite dev",
