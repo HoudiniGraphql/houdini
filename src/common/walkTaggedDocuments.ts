@@ -43,9 +43,12 @@ export default async function walkTaggedDocuments(
 	walker: GraphqlTagWalker,
 	ignoreDeps: boolean = false
 ): Promise<void> {
-	// @ts-ignore
+	// asyncWalk sometimes returns the same expression twice. we can identify an expression
+	// by the start and end values
+	const seen = new Set<string>()
+
 	await asyncWalk(parsedScript, {
-		async enter(node, parent) {
+		async enter(node, parent, key, index) {
 			// if we are looking at the graphql template tag
 			if (
 				node.type === 'TaggedTemplateExpression' &&
@@ -57,6 +60,13 @@ export default async function walkTaggedDocuments(
 				// first, lets parse the tag contents to get the info we need
 				const tagContent = expr.quasi.quasis[0].value.raw
 				const parsedTag = graphql.parse(tagContent)
+
+				// @ts-ignore
+				const id = `${node.start},${node.end}`
+				if (seen.has(id)) {
+					return
+				}
+				seen.add(id)
 
 				// make sure there is only one definition
 				if (parsedTag.definitions.length > 1) {
