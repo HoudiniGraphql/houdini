@@ -29,7 +29,7 @@ function start(sessionStore: Writable<App.Session | null>) {
 	sessionStore.subscribe((val) => (session = val))
 }
 
-export function getHoudiniContext(): HoudiniFetchContext {
+export function getHoudiniContext(suppressLogs?: boolean): HoudiniFetchContext {
 	try {
 		// hold onto references to the current session and url values
 		const sessionStore = getSession()
@@ -42,16 +42,18 @@ export function getHoudiniContext(): HoudiniFetchContext {
 			variables: svelteContext('variables') || (() => ({})),
 		}
 	} catch (e) {
-		log.info(
-			`${log.red('⚠️ getHoudiniContext() was not called in the right place ⚠️')}
-You should do something like the following. Make sure getHoudiniContext is 
+		if (!suppressLogs) {
+			log.info(
+				`${log.red('⚠️ getHoudiniContext() was not called in the right place ⚠️')}
+You should do something like the following. Make sure getHoudiniContext is
 called at the top of your component (outside any event handlers or function definitions).
 
 <script lang="ts">
     const ${log.yellow('context')} = getHoudiniContext();
     const onClick = () => GQL_${log.cyan('[YOUR_STORE]')}.mutate({ ${log.yellow('context')} });
 </script>`
-		)
+			)
+		}
 		throw new Error(e as any)
 	}
 }

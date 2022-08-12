@@ -130,7 +130,7 @@ example={configExample}
 <APIShowcase
 title="SvelteKit Plugin"
 description="A powerful tool to enable Houdini's declarative API in your svelte+vite projects"
-href="/api/ki"
+href="/api/kit"
 example={pluginExample}
 />
 

@@ -58,7 +58,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	let ctx: HoudiniFetchContext | null = null
 	// try to get the current context in case the factory was invoked somewhere that allows for it
 	try {
-		ctx = getHoudiniContext()
+		ctx = getHoudiniContext(true)
 	} catch {}
 
 	// a function to update the store's cache subscriptions
@@ -120,7 +120,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 
 		// if there is a pending load, don't do anything
 		if (loadPending && isComponentFetch) {
-			log.error(`⚠️ Encountered fetch from your component while ${storeName}.load was running. 
+			log.error(`⚠️ Encountered fetch from your component while ${storeName}.load was running.
 This will result in duplicate queries. If you are trying to ensure there is always a good value, please a CachePolicy instead.
 If this is leftovers from old versions of houdini, you can safely remove this \`${storeName}\`.fetch() from your component.
 `)
