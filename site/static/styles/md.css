@@ -75,7 +75,8 @@ ol {
 
 p > code,
 li > code,
-h3 > code {
+h3 > code,
+h4 > code {
 	/* background: #ffffff; */
 	/* padding: 2px 6px; */
 	border-radius: 5px;

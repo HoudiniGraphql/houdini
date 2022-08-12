@@ -51,7 +51,7 @@ described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. You can 
 the value from `this.error` and `this.redirect` in order to change the behavior of the response. Here is a
 modified example [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
 
-```typescript
+```javascript
 // src/routes/[filter]/+page.ts
 
 export const houdini_load = graphql`
@@ -88,7 +88,7 @@ Houdini will look for hook functions defined in your `+page.js` files.
 Called before Houdini executes load queries against the server. You can expect the same
 arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
 
-```typescript
+```javascript
 // src/routes/myRoute/+page.js
 
 export const houdini_load = graphql`
@@ -122,7 +122,7 @@ will have to block requests to the route in order to wait for the result. For mo
 blocking during navigation, check out [this section](/api/query/store#server-side-blocking) of the query store
 docs.
 
-```typescript
+```javascript
 // src/routes/myRoute/+page.js
 
 export const houdini_load = graphql`

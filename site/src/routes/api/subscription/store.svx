@@ -34,4 +34,6 @@ A subscription store holds onto the latest value from the subscription and has t
 
 Subscription bodies can contain all of the list operations described in [this document](/api/graphql).
 
+## Configuring the client
+
 <SubscriptionClient />
