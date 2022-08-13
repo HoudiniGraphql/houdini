@@ -124,7 +124,7 @@ export default async function typeCheck(
 
 					// if we have a non-null type, unwrap it
 					if (graphql.isNonNullType(rootType)) {
-						rootType = rootType.ofType
+						rootType = rootType.ofType as graphql.GraphQLNamedType
 					}
 
 					// if we hit a scalar
@@ -625,13 +625,12 @@ function validateFragmentArguments(
 				// every argument corresponds to one defined in the fragment
 				else {
 					// zip together the provided argument with the one in the fragment definition
-					const zipped: [
-						graphql.ArgumentNode,
-						string
-					][] = appliedArgumentNames.map((name) => [
-						appliedArguments[name],
-						fragmentArguments[fragmentName].find((arg) => arg.name === name)!.type,
-					])
+					const zipped: [graphql.ArgumentNode, string][] = appliedArgumentNames.map(
+						(name) => [
+							appliedArguments[name],
+							fragmentArguments[fragmentName].find((arg) => arg.name === name)!.type,
+						]
+					)
 
 					for (const [applied, target] of zipped) {
 						// TODO: validate these types
@@ -802,31 +801,35 @@ function noUnusedFragmentArguments(config: Config) {
 
 		return {
 			// when we first see a fragment definition
-			enter: {
-				FragmentDefinition(node) {
-					const definitionArguments = node.directives
-						?.filter((directive) => directive.name.value === config.argumentsDirective)
-						.flatMap((directive) => directive.arguments!)
+			enter(node) {
+				if (node.kind !== graphql.Kind.FRAGMENT_DEFINITION) {
+					return
+				}
 
-					for (const arg of definitionArguments?.map((arg) => arg?.name.value) || []) {
-						args.add(arg)
-					}
-				},
-				Variable(node) {
-					args.delete(node.name.value)
-				},
+				const definitionArguments = node.directives
+					?.filter((directive) => directive.name.value === config.argumentsDirective)
+					.flatMap((directive) => directive.arguments!)
+
+				for (const arg of definitionArguments?.map((arg) => arg?.name.value) || []) {
+					args.add(arg)
+				}
 			},
-			leave: {
-				// once we're done with the definition make sure we used everything
-				FragmentDefinition(node) {
-					if (args.size > 0) {
-						ctx.reportError(
-							new graphql.GraphQLError(
-								'Encountered unused fragment arguments: ' + [...args].join(',')
-							)
+			Variable(node) {
+				args.delete(node.name.value)
+			},
+			// once we're done with the definition make sure we used everything
+			leave(node) {
+				if (node.kind !== graphql.Kind.FRAGMENT_DEFINITION) {
+					return
+				}
+
+				if (args.size > 0) {
+					ctx.reportError(
+						new graphql.GraphQLError(
+							'Encountered unused fragment arguments: ' + [...args].join(',')
 						)
-					}
-				},
+					)
+				}
 			},
 		}
 	}

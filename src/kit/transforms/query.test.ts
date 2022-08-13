@@ -1,4 +1,5 @@
-import '../../../jest.setup'
+import { test, expect } from 'vitest'
+
 import { component_test } from '../tests'
 
 test('no variables', async function () {

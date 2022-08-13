@@ -167,11 +167,11 @@ class CacheInternal {
 		this.cache = cache
 		this.lifetimes = lifetimes
 
-		// the cache should always be disabled on the server
+		// the cache should always be disabled on the server, unless we're testing
 		try {
-			this._disabled = typeof window === 'undefined'
+			this._disabled = process.env.TEST !== 'true'
 		} catch {
-			this._disabled = true
+			this._disabled = typeof globalThis.window === 'undefined'
 		}
 	}
 

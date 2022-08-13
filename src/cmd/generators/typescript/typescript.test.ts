@@ -1,7 +1,7 @@
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
+import { test, expect, describe } from 'vitest'
 
-import '../../../../jest.setup'
 import { readFile, testConfig } from '../../../common'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'

@@ -1,9 +1,8 @@
-import { ProgramKind } from 'ast-types/gen/kinds'
-import path, { parse } from 'path'
+import path from 'path'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
+import { test, expect } from 'vitest'
 
-import '../../../../jest.setup'
 import { testConfig } from '../../../common'
 import * as fs from '../../../common/fs'
 import { runPipeline } from '../../generate'

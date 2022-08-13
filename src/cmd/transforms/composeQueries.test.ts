@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
+import { expect } from 'vitest'
 
-import '../../../jest.setup'
 import { pipelineTest } from '../testUtils'
 import { CollectedGraphQLDocument } from '../types'
 

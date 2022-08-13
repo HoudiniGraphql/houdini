@@ -1,11 +1,8 @@
-import { createPubSub, GraphQLYogaError } from '@graphql-yoga/node';
+import { GraphQLYogaError } from '@graphql-yoga/node';
 import { sleep } from '@kitql/helper';
+import fs from 'fs-extra';
 import { GraphQLScalarType, Kind } from 'graphql';
 import { connectionFromArray } from 'graphql-relay';
-
-import fs from 'fs-extra';
-
-const pubSub = createPubSub();
 
 const sourceFiles = ['api/schema.graphql', 'api/schema-hello.graphql'];
 export const typeDefs = sourceFiles.map((filepath) => fs.readFileSync(filepath, 'utf-8'));

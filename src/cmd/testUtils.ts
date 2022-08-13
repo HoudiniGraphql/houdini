@@ -1,4 +1,5 @@
 import * as graphql from 'graphql'
+import { test } from 'vitest'
 
 import { testConfig } from '../common'
 import { ArtifactKind } from '../runtime/lib/types'

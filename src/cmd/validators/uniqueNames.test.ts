@@ -1,4 +1,3 @@
-import '../../../jest.setup'
 import { pipelineTest } from '../testUtils'
 import { CollectedGraphQLDocument, HoudiniError } from '../types'
 

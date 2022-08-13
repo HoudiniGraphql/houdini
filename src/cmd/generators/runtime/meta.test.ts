@@ -1,4 +1,5 @@
-import '../../../../jest.setup'
+import { test, expect } from 'vitest'
+
 import { readFile, testConfig } from '../../../common'
 import { runPipeline } from '../../generate'
 

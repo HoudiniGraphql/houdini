@@ -1,3 +1,5 @@
+import { test, vi, expect } from 'vitest'
+
 import { testConfigFile } from '../../../common'
 import { Cache } from '../cache'
 
@@ -92,7 +94,7 @@ test("subscribed data shouldn't be garbage collected", function () {
 				},
 			},
 		},
-		set: jest.fn(),
+		set: vi.fn(),
 	})
 
 	// tick the garbage collector enough times to fill up the buffer size
@@ -146,7 +148,7 @@ test('resubscribing to fields marked for garbage collection resets counter', fun
 		cache._internal_unstable.collectGarbage()
 	}
 
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -283,7 +285,7 @@ test('ticks of gc delete list handlers', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	cache.subscribe(
 		{

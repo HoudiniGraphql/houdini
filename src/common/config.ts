@@ -71,7 +71,6 @@ export class Config {
 			types = {},
 			logLevel,
 			disableMasking = false,
-			routesDir = 'src/routes',
 			schemaPollInterval = 2000,
 			schemaPollHeaders = {},
 			pageQueryFilename = '+page.gql',
@@ -134,7 +133,7 @@ ${
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 		this.disableMasking = disableMasking
-		this.routesDir = path.join(this.projectRoot, routesDir)
+		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = schemaPollInterval
 		this.schemaPollHeaders = schemaPollHeaders
 		this.rootDir = path.join(this.projectRoot, '$houdini')

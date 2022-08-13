@@ -1,5 +1,6 @@
-import '../../../jest.setup'
-import { component_test, route_test } from '../tests'
+import { test, expect, describe } from 'vitest'
+
+import { component_test } from '../tests'
 
 describe('context processor', function () {
 	test('multiple imports', async function () {

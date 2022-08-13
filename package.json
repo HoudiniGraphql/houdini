@@ -32,9 +32,12 @@
 			]
 		}
 	},
+	"resolutions": {
+		"graphql": "^15.5.0"
+	},
 	"types": "./build/cmd/index.d.ts",
 	"scripts": {
-		"tests": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest",
+		"tests": "vitest",
 		"tests:integration": "yarn workspace integration tests --workers 5",
 		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
 		"build": "concurrently \"npm run build:runtime\" \"npm run build:cmd\" \"npm run build:preprocess\"  \"npm run build:kit\"  -n \"run,cmd,pre,vit\" -c \"blue.bold,green.bold,yellow.bold,cyan.bold\" && npm run build:typeModule",
@@ -91,7 +94,6 @@
 		"fs-extra": "^10.0.1",
 		"husky": "^6.0.0",
 		"install": "^0.13.0",
-		"jest": "^26.6.3",
 		"memfs": "^3.4.7",
 		"memory-fs": "^0.5.0",
 		"micromatch": "^4.0.5",
@@ -104,14 +106,15 @@
 		"rollup": "2.68.0",
 		"rollup-plugin-typescript2": "^0.31.2",
 		"ts-ast-serializer": "^1.0.1",
-		"ts-jest": "^26.0.0",
 		"ts-node": "^9.1.1",
 		"tslib": "^2.4.0",
-		"typescript": "^4.6.3"
+		"typescript": "^4.6.3",
+		"vite": "^3.0.7",
+		"vitest": "^0.21.1"
 	},
 	"dependencies": {
 		"@babel/parser": "^7.17.2",
-		"@graphql-tools/schema": "^8.3.7",
+		"@graphql-tools/schema": "^9.0.1",
 		"@kitql/helper": "^0.3.4",
 		"@kitql/vite-plugin-watch-and-run": "^0.4.2",
 		"@types/memory-fs": "^0.3.3",

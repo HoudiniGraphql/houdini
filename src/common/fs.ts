@@ -1,3 +1,4 @@
+import fsExtra from 'fs-extra'
 import fs from 'fs/promises'
 import { fs as memfs, vol } from 'memfs'
 import path from 'path'
@@ -71,6 +72,15 @@ export async function mkdir(filepath: string) {
 	}
 
 	return memfs.mkdirSync(filepath)
+}
+
+export async function mkdirp(filepath: string) {
+	// no mock in production
+	if (process.env.NODE_ENV !== 'test') {
+		return await fsExtra.mkdirp(filepath)
+	}
+
+	return memfs.mkdirpSync(filepath)
 }
 
 export async function rmdir(filepath: string) {
