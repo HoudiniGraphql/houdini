@@ -139,9 +139,11 @@ export function inlineType({
 		// turn the set of selected fields into their own type
 		result = AST.tsTypeLiteral([
 			// every field gets an entry in the object
-			...((selectedFields || []).filter(
-				(field) => field.kind === 'Field'
-			) as graphql.FieldNode[]).map((selection) => {
+			...(
+				(selectedFields || []).filter(
+					(field) => field.kind === 'Field'
+				) as graphql.FieldNode[]
+			).map((selection) => {
 				// grab the type info for the selection
 				const { type, field } = selectionTypeInfo(
 					config.schema,
@@ -372,7 +374,7 @@ export function selectionTypeInfo(
 			message: `Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`,
 		}
 	}
-	const fieldType = (graphql.getNamedType(field.type) as unknown) as graphql.GraphQLNamedType
+	const fieldType = graphql.getNamedType(field.type) as unknown as graphql.GraphQLNamedType
 	if (!fieldType) {
 		throw {
 			filepath,

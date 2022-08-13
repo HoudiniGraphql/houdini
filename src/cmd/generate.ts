@@ -227,7 +227,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 				return await processGraphQLDocument(config, filepath, document)
 			} catch (e) {
 				throw {
-					...((e as unknown) as Error),
+					...(e as unknown as Error),
 					filepath,
 				}
 			}
