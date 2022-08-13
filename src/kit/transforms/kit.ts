@@ -367,6 +367,9 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 	// figure out the filepath for the page query
 	const page_query_path = page.config.pageQueryPath(page.filepath)
 
+	// make sure we watch the page query for updates
+	page.addWatchFile(page_query_path)
+
 	// if the file doesn't exist, we're done
 	const contents = await readFile(page_query_path)
 	if (!contents) {
