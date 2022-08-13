@@ -47,7 +47,6 @@ export function clearMock() {
 	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'routes'))
 	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'lib'))
 }
-clearMock()
 
 export async function access(filepath: string) {
 	// no mock in production

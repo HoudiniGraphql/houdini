@@ -3,9 +3,14 @@ import { toMatchInlineSnapshot } from 'jest-snapshot'
 import path from 'path'
 import * as recast from 'recast'
 import typeScriptParser from 'recast/parsers/typescript'
-import { expect } from 'vitest'
+import { expect, afterEach } from 'vitest'
 
+import { clearMock } from './src/common/fs'
 import * as fs from './src/common/fs'
+
+clearMock()
+
+afterEach(fs.clearMock)
 
 expect.addSnapshotSerializer({
 	test: (val) => val && Object.keys(recast.types.namedTypes).includes(val.type),
