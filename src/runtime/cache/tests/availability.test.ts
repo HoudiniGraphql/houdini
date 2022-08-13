@@ -366,8 +366,6 @@ test('missing cursor of item in connection from operation should not trigger nul
 		},
 	})
 
-	console.log('writing', cache.read({ selection }))
-
 	cache.subscribe({
 		set: vi.fn(),
 		selection,
