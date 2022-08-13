@@ -114,19 +114,6 @@ export type ConfigFile = {
 	disableMasking?: boolean
 
 	/**
-	 * The directory containing your project routes. For default Kit projects, this
-	 * value is ./src/routes
-	 */
-	routesDir?: string
-
-	/**
-	 * The path to your framework config file relative to the houdini config file. By
-	 * default, Houdini will look for your framework config file in process.cwd()
-	 * however that's not always valid. Use this option to customize where houdini looks.
-	 */
-	frameworkConfigFile?: string
-
-	/**
 	 * Configures the houdini plugin's schema polling behavior. By default, houdini will poll your APIs
 	 * during development in order to keep it's definition of your schema up to date. The schemaPollingInterval
 	 * config value sets the amount of time between each request in milliseconds (default 2 seconds).
@@ -148,6 +135,11 @@ export type ConfigFile = {
 	 * @default +page.gql
 	 */
 	pageQueryFilename?: string
+
+	/**
+	 * The path to the SvelteKit project relative to process.cwd()
+	 */
+	projectDir?: string
 }
 
 export type TypeConfig = {

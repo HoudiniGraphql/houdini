@@ -1,5 +1,4 @@
 import { mergeSchemas } from '@graphql-tools/schema'
-import fs from 'fs-extra'
 import { glob } from 'glob'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
@@ -9,7 +8,7 @@ import { promisify } from 'util'
 
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy } from '../runtime/lib/types'
-import { readFile } from './fs'
+import * as fs from './fs'
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -22,7 +21,6 @@ export class Config {
 	persistedQueryPath?: string
 	include: string
 	exclude?: string
-	static?: boolean
 	scalars?: ConfigFile['scalars']
 	framework: 'kit' | 'svelte' = 'kit'
 	module: 'commonjs' | 'esm' = 'esm'
@@ -61,7 +59,6 @@ export class Config {
 			apiUrl,
 			framework = 'kit',
 			module = 'esm',
-			static: staticSite,
 			scalars,
 			cacheBufferSize,
 			definitionsPath,
@@ -71,10 +68,10 @@ export class Config {
 			types = {},
 			logLevel,
 			disableMasking = false,
-			routesDir = 'src/routes',
 			schemaPollInterval = 2000,
 			schemaPollHeaders = {},
 			pageQueryFilename = '+page.gql',
+			projectDir,
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -125,8 +122,9 @@ ${
 		this.exclude = exclude
 		this.framework = framework
 		this.module = module
-		this.projectRoot = path.dirname(filepath)
-		this.static = staticSite
+		this.projectRoot = path.dirname(
+			projectDir ? path.join(process.cwd(), projectDir) : filepath
+		)
 		this.scalars = scalars
 		this.cacheBufferSize = cacheBufferSize
 		this.defaultCachePolicy = defaultCachePolicy
@@ -134,7 +132,7 @@ ${
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
 		this.disableMasking = disableMasking
-		this.routesDir = path.join(this.projectRoot, routesDir)
+		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = schemaPollInterval
 		this.schemaPollHeaders = schemaPollHeaders
 		this.rootDir = path.join(this.projectRoot, '$houdini')
@@ -153,9 +151,9 @@ ${
 	}
 
 	// compute if a path points to a component query or not
-	isRoute(filepath: string, root: string = this.projectRoot): boolean {
+	isRoute(filepath: string): boolean {
 		// a vanilla svelte app is never considered in a route
-		if (this.framework === 'svelte' || this.static) {
+		if (this.framework === 'svelte') {
 			return false
 		}
 
@@ -249,6 +247,14 @@ ${
 		return path.join(this.rootDir, 'index.d.ts')
 	}
 
+	get typeRootDir() {
+		return path.join(this.rootDir, 'types')
+	}
+
+	get typeRouteDir() {
+		return path.join(this.typeRootDir, 'src', 'routes')
+	}
+
 	artifactTypePath(document: graphql.DocumentNode) {
 		return path.join(this.artifactTypeDirectory, `${this.documentName(document)}.d.ts`)
 	}
@@ -329,6 +335,7 @@ ${
 			fs.mkdirp(this.runtimeDirectory),
 			fs.mkdirp(this.storesDirectory),
 			fs.mkdirp(this.definitionsDirectory),
+			fs.mkdirp(this.typeRouteDir),
 		])
 	}
 
@@ -619,7 +626,7 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 
 		return mergeSchemas({
 			typeDefs: await Promise.all(
-				sourceFiles.map(async (filepath) => (await readFile(filepath))!)
+				sourceFiles.map(async (filepath) => (await fs.readFile(filepath))!)
 			),
 		})
 	}
@@ -629,7 +636,7 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 		throw new Error(`Schema file does not exist! Create it using houdini generate -p`)
 	}
 
-	const contents = (await readFile(schemaPath))!
+	const contents = (await fs.readFile(schemaPath))!
 
 	// if the schema points to an sdl file
 	if (schemaPath.endsWith('gql') || schemaPath.endsWith('graphql')) {

@@ -153,6 +153,7 @@ export const houdini_load = graphql`
 - `generate --pull-header` is now `generate --header` (abbreviated `-h`)
 - `generate --persist-output` is now `generate --output` (abbreviated `-o`)
 - added `schemaPullHeaders` config value to specify the headers sent when pulling the schema
+- removed unnecessary config values: `config.routesDir`, `config.static` (replaced by setting `framework: "svelte"`)
 
 ## 0.15.0
 

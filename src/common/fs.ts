@@ -1,3 +1,4 @@
+import fsExtra from 'fs-extra'
 import fs from 'fs/promises'
 import { fs as memfs, vol } from 'memfs'
 import path from 'path'
@@ -62,6 +63,15 @@ export async function access(filepath: string) {
 	// split up the path in accessors and keep going until we get undefined
 	// or we get a value
 	return memfs.statSync(filepath)
+}
+
+export async function mkdirp(filepath: string) {
+	// no mock in production
+	if (process.env.NODE_ENV !== 'test') {
+		return await fsExtra.mkdirp(filepath)
+	}
+
+	return memfs.mkdirpSync(filepath)
 }
 
 export async function mkdir(filepath: string) {
