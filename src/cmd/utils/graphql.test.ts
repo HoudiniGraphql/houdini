@@ -1,4 +1,5 @@
 import * as graphql from 'graphql'
+import { test, expect, describe } from 'vitest'
 
 import { testConfig } from '../../common'
 import { TypeWrapper, unwrapType } from './graphql'
@@ -6,13 +7,13 @@ import { TypeWrapper, unwrapType } from './graphql'
 describe('unwrapType', () => {
 	test('list of lists', function () {
 		const type: graphql.TypeNode = {
-			kind: 'ListType',
+			kind: graphql.Kind.LIST_TYPE,
 			type: {
-				kind: 'NonNullType',
+				kind: graphql.Kind.NON_NULL_TYPE,
 				type: {
-					kind: 'NamedType',
+					kind: graphql.Kind.NAMED_TYPE,
 					name: {
-						kind: 'Name',
+						kind: graphql.Kind.NAME,
 						value: 'User',
 					},
 				},

@@ -1,13 +1,9 @@
-import { jest } from '@jest/globals'
+import { test, expect, describe } from 'vitest'
 
 import { testConfigFile } from '../../common'
 import { RequestContext } from './network'
 import { marshalSelection, unmarshalSelection } from './scalars'
 import { ArtifactKind, QueryArtifact } from './types'
-
-jest.mock('../cache', function () {
-	return
-})
 
 // a mock request context
 const ctx = new RequestContext({

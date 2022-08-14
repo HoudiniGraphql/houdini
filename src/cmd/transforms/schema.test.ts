@@ -1,4 +1,5 @@
-import '../../../jest.setup'
+import { describe } from 'vitest'
+
 import { pipelineTest } from '../testUtils'
 
 describe('schema transform', function () {

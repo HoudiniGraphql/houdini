@@ -1,4 +1,5 @@
-import '../../../jest.setup'
+import { test, expect, describe } from 'vitest'
+
 import { route_test } from '../tests'
 
 describe('kit route processor', function () {

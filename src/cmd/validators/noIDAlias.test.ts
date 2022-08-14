@@ -1,6 +1,5 @@
-import * as graphql from 'graphql'
+import { test, expect } from 'vitest'
 
-import '../../../jest.setup'
 import { pipelineTest } from '../testUtils'
 import { CollectedGraphQLDocument, HoudiniError } from '../types'
 

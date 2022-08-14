@@ -70,10 +70,13 @@ directive @${config.argumentsDirective} on FRAGMENT_DEFINITION
 directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${config.cachePartialArg}: Boolean) on QUERY
 `
 
-	config.newSchema += internalSchema
+	// if the config does not have the cache directive, then we need to add it
+	let currentSchema = graphql.printSchema(config.schema)
+	if (!currentSchema.includes(`directive @${config.listDirective}`)) {
+		currentSchema += internalSchema
+	}
 
+	config.newSchema += internalSchema
 	// add the static extra bits that will be used by other transforms
-	config.schema = mergeSchemas({
-		schemas: [config.schema, graphql.buildSchema(internalSchema)],
-	})
+	config.schema = graphql.buildSchema(currentSchema)
 }

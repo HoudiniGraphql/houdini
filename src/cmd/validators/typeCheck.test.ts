@@ -1,4 +1,5 @@
-import '../../../jest.setup'
+import { test, expect, describe } from 'vitest'
+
 import { pipelineTest } from '../testUtils'
 import { CollectedGraphQLDocument, HoudiniError } from '../types'
 

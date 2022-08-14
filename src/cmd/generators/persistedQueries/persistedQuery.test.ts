@@ -1,6 +1,6 @@
 import path from 'path'
+import { test, expect } from 'vitest'
 
-import '../../../../jest.setup'
 import { readFile, testConfig } from '../../../common'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
