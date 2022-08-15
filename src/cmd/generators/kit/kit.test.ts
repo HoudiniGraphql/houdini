@@ -32,5 +32,7 @@ test('generates variables and hook definitions for inline queries', async functi
 	// execute the generator
 	await runPipeline(config, [])
 
-	expect(fs.readFile(path.join(config.typeRouteDir, routeRelative))).toMatchInlineSnapshot(``)
+	await expect(fs.readFile(path.join(config.typeRouteDir, routeRelative))).toMatchInlineSnapshot(
+		``
+	)
 })

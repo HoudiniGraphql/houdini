@@ -1,8 +1,13 @@
+import * as recast from 'recast'
 import { transformWithEsbuild } from 'vite'
 
-import { Config } from '../../../common'
+import { Config, ensureImports, parseJS } from '../../../common'
 import * as fs from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
+
+type Identifier = recast.types.namedTypes.Identifier
+
+const AST = recast.types.builders
 
 export default async function svelteKitGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
 	// if we're not in a sveltekit project, don't do anything
@@ -46,8 +51,58 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 				}
 			}
 
-			// we need to create a typescript file that has
-			console.log(queries)
+			// if we have no queries, there's nothing to do
+			if (queries.length === 0) {
+				return
+			}
+
+			// we need to create a typescript file that has a definition of the variable and hook functions
+			const typedefs = AST.program([])
+
+			ensureImports({
+				body: typedefs.body,
+				config,
+				import: ['VariableFunction', 'AfterLoadFunction', 'BeforeLoadFunction'],
+				sourceModule: '$houdini',
+				importKind: 'type',
+			})
+			ensureImports({
+				body: typedefs.body,
+				config,
+				import: ['Params'],
+				sourceModule: './$types',
+				importKind: 'type',
+			})
+
+			// we already compute the input types for every query so we just need
+			// to get them from the typedef
+			for (const query of queries) {
+				const name = query.name!.value
+
+				ensureImports({
+					body: typedefs.body,
+					config,
+					import: [name + '$input', name],
+					sourceModule: config.artifactImportPath(name),
+					importKind: 'type',
+				})[0]
+
+				typedefs.body.push(
+					...(await parseJS(
+						`export type ${config.variableFunctionName(
+							name
+						)} = VariableFunction<Params, ${name}$input>
+						`
+					))!.script.body
+				)
+			}
+
+			// add type definitions for the hooks
+
+			// write the printed type definitions to the appropriate place
+			const printed = recast.print(typedefs).code
+
+			console.log(printed)
 		},
 	})
 }

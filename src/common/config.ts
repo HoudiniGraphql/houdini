@@ -9,7 +9,6 @@ import { promisify } from 'util'
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy, CompiledQueryKind, GraphQLTagResult } from '../runtime/lib/types'
 import * as fs from './fs'
-import { operation_requires_variables } from './graphql'
 import { parseSvelte } from './parse'
 import { walkGraphQLTags } from './walk'
 
@@ -788,6 +787,10 @@ ${
 		}
 
 		return definition
+	}
+
+	variableFunctionName(name: string) {
+		return name + 'Variables'
 	}
 }
 

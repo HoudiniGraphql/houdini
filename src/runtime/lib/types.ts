@@ -308,3 +308,7 @@ export type SubscriptionSpec = {
 	parentID?: string
 	variables?: () => any
 }
+
+export type VariableFunction<_Params extends Record<string, string>, _Input> = (
+	event: LoadEvent<_Params>
+) => _Input
