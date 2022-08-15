@@ -1,5 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
+import { graphql } from '../../runtime'
 import { route_test } from '../tests'
 
 describe('kit route processor', function () {
@@ -302,6 +303,18 @@ describe('kit route processor', function () {
 	})
 
 	test('route with page stores and inline queries', async function () {
+		const MyQuery1 = `
+			query MyQuery1 {
+				field
+			}
+		`
+
+		const MyQuery2 = `
+			query MyQuery2($input: Int) {
+				field(input: $input)
+			}
+		`
+
 		const route = await route_test({
 			component: `
 				<script>
@@ -316,15 +329,11 @@ describe('kit route processor', function () {
 			`,
 			script: `
 				const store1 = graphql\`
-					query MyQuery1 {
-						field
-					}
+					${MyQuery1}
 				\`
 
 				const store2 = graphql\`
-					query MyQuery2($input: Int) {
-						field(input: $input)
-					}
+					${MyQuery2}
 				\`
 
 				export function MyQuery2Variables() {
@@ -338,10 +347,7 @@ describe('kit route processor', function () {
 				// exports when generating the load function to centralize the logic
 				// across inline, page, and load queries
 				exports: ['MyQuery2Variables', 'houdini_load'],
-				load: [
-					{ name: 'MyQuery1', variables: false },
-					{ name: 'MyQuery2', variables: false },
-				],
+				houdini_load: [MyQuery1, MyQuery2],
 			},
 		})
 

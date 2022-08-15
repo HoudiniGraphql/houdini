@@ -11,7 +11,7 @@ import {
 	parseSvelte,
 	ParsedFile,
 	LogLevel,
-	walkTaggedDocuments,
+	walkGraphQLTags,
 	TransformDocument,
 	readFile,
 	parseJS,
@@ -256,16 +256,10 @@ async function processJSFile(
 		// add the filepath to the error message
 		throw { message: (e as Error).message, filepath }
 	}
-	const doc: TransformDocument = {
-		instance: program,
-		config,
-		dependencies: [],
-		filename: filepath,
-	}
 
 	// look for a graphql template tag
-	await walkTaggedDocuments(config, doc, program, {
-		onTag(tag) {
+	await walkGraphQLTags(config, program, {
+		tag(tag) {
 			documents.push({ document: tag.tagContent, filepath })
 		},
 	})

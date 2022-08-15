@@ -1,10 +1,17 @@
+import * as graphql from 'graphql'
 import path from 'path'
-import * as recast from 'recast'
 
-import { ParsedFile, parseJS, parseSvelte, Script, testConfig, writeFile } from '../common'
+import {
+	HoudiniRouteScript,
+	ParsedFile,
+	parseJS,
+	parseSvelte,
+	Script,
+	testConfig,
+	writeFile,
+} from '../common'
 import { ConfigFile } from '../runtime'
 import runTransforms from './transforms'
-import { PageScriptInfo } from './transforms/kit'
 
 const schema = `
 	type User {
@@ -31,7 +38,7 @@ export async function route_test({
 	script?: string
 	query?: string
 	config?: Partial<ConfigFile>
-	script_info?: PageScriptInfo
+	script_info?: { houdini_load?: string[]; exports: string[] }
 }): Promise<{ component: Script | null; script: Script | null }> {
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema, ...extra })
@@ -46,6 +53,21 @@ export async function route_test({
 		writeFile(config.pageQueryPath(filepath), query),
 	])
 
+	const mock_page_info = !script_info
+		? {
+				exports: [],
+		  }
+		: {
+				...script_info,
+				houdini_load: !script_info.houdini_load
+					? undefined
+					: script_info.houdini_load.map(
+							(query) =>
+								graphql.parse(query)
+									.definitions[0] as graphql.OperationDefinitionNode
+					  ),
+		  }
+
 	// we want to run the transformer on both the component and script paths
 	const [componentResult, scriptResult] = await Promise.all([
 		runTransforms(
@@ -54,7 +76,7 @@ export async function route_test({
 				config,
 				filepath,
 				addWatchFile: () => {},
-				mock_page_info: script_info,
+				mock_page_info,
 				load: async () => null,
 			},
 			component
@@ -65,7 +87,7 @@ export async function route_test({
 				config,
 				filepath: config.routeDataPath(filepath),
 				addWatchFile: () => {},
-				mock_page_info: script_info,
+				mock_page_info,
 				load: async () => null,
 			},
 			script

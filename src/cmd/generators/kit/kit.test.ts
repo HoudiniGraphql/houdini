@@ -1,6 +1,6 @@
 import path from 'path'
+import { test, expect } from 'vitest'
 
-import '../../../../jest.setup'
 import { testConfig } from '../../../common'
 import * as fs from '../../../common/fs'
 import { runPipeline } from '../../generate'
@@ -17,18 +17,20 @@ test('generates variables and hook definitions for inline queries', async functi
 	await fs.writeFile(
 		path.join(config.routesDir, routeRelative),
 		`
-            const { data  } = graphql\`
-                query Foo {
-                    viewer { 
-                        id
-                    }
-                }
-            \`
+			<script>
+				const { data  } = graphql\`
+					query Foo {
+						viewer { 
+							id
+						}
+					}
+				\`
+			</script>
         `
 	)
 
 	// execute the generator
 	await runPipeline(config, [])
 
-	expect(fs.readFile(path.join(config.typeRouteDir, routeRelative))).toMatchInlineSnapshot(`{}`)
+	expect(fs.readFile(path.join(config.typeRouteDir, routeRelative))).toMatchInlineSnapshot(``)
 })

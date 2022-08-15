@@ -36,7 +36,6 @@
 	"scripts": {
 		"tests": "vitest",
 		"tests:integration": "yarn workspace integration tests --workers 5",
-		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
 		"build": "concurrently \"npm run build:runtime\" \"npm run build:cmd\" \"npm run build:preprocess\"  \"npm run build:kit\"  -n \"run,cmd,pre,vit\" -c \"blue.bold,green.bold,yellow.bold,cyan.bold\" && npm run build:typeModule",
 		"build:runtime": "concurrently \"npm run build:runtime:esm\" \"npm run build:runtime:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
 		"build:runtime:cjs": "tsc --p tsconfig.runtime.cjs.json",
@@ -84,6 +83,7 @@
 		"@types/micromatch": "^4.0.2",
 		"@types/mock-fs": "^4.13.0",
 		"@types/node-fetch": "^2.6.1",
+		"@vitest/ui": "^0.21.1",
 		"babel-jest": "^26.6.3",
 		"babel-plugin-transform-import-meta": "^2.1.1",
 		"concurrently": "^7.1.0",

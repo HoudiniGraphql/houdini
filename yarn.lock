@@ -2999,6 +2999,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@polka/url@npm:^1.0.0-next.20":
+  version: 1.0.0-next.21
+  resolution: "@polka/url@npm:1.0.0-next.21"
+  checksum: c7654046d38984257dd639eab3dc770d1b0340916097b2fac03ce5d23506ada684e05574a69b255c32ea6a144a957c8cd84264159b545fca031c772289d88788
+  languageName: node
+  linkType: hard
+
 "@repeaterjs/repeater@npm:^3.0.4":
   version: 3.0.4
   resolution: "@repeaterjs/repeater@npm:3.0.4"
@@ -3943,6 +3950,15 @@ __metadata:
   bin:
     nft: out/cli.js
   checksum: 4c1c01ee1d9273b793fd2a580a82e91bf1afae8adc63105475c3c3df40c7599a074c44e79427ead77e6ece64c2c5d4841a9cfb0091f422fedb49cfdb5caa130c
+  languageName: node
+  linkType: hard
+
+"@vitest/ui@npm:^0.21.1":
+  version: 0.21.1
+  resolution: "@vitest/ui@npm:0.21.1"
+  dependencies:
+    sirv: ^2.0.2
+  checksum: 0ed4cb7d35846f6fab77a6ed1474a8c7ca0f88d0fb35aa162ab97cdd5be73c442c0de53a77d4499fc0046c48805a09e37e8158025b2955e345c78fa7056f4c46
   languageName: node
   linkType: hard
 
@@ -8284,6 +8300,7 @@ __metadata:
     "@types/micromatch": ^4.0.2
     "@types/mock-fs": ^4.13.0
     "@types/node-fetch": ^2.6.1
+    "@vitest/ui": ^0.21.1
     babel-jest: ^26.6.3
     babel-plugin-transform-import-meta: ^2.1.1
     babylon: ^7.0.0-beta.47
@@ -13397,6 +13414,17 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
+"sirv@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "sirv@npm:2.0.2"
+  dependencies:
+    "@polka/url": ^1.0.0-next.20
+    mrmime: ^1.0.0
+    totalist: ^3.0.0
+  checksum: 6982f8ecee9392d246d7eeea8144e50334fe1b46a4fa942995a844ea88c2d518b17cce781bb09926c9a5692a7002a207d18dfd67af2aa538a15e733dc2042298
+  languageName: node
+  linkType: hard
+
 "sisteransi@npm:^1.0.5":
   version: 1.0.5
   resolution: "sisteransi@npm:1.0.5"
@@ -14389,6 +14417,13 @@ resolve@^1.19.0:
     regex-not: ^1.0.2
     safe-regex: ^1.1.0
   checksum: 4ed4a619059b64e204aad84e4e5f3ea82d97410988bcece7cf6cbfdbf193d11bff48cf53842d88b8bb00b1bfc0d048f61f20f0709e6f393fd8fe0122662d9db4
+  languageName: node
+  linkType: hard
+
+"totalist@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "totalist@npm:3.0.0"
+  checksum: ec499bddfc73d5b6c73f8ff68afd7bed286705797f928a11177fee5d1ee80e9052ffcb434638437702e16864bd5490f437a54f79bfea9564e875d34ed3254bca
   languageName: node
   linkType: hard
 

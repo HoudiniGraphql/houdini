@@ -2,11 +2,16 @@ import { ExpressionKind, StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, operation_requires_variables, ParsedFile, Script } from '../../common'
+import {
+	Config,
+	operation_requires_variables,
+	ParsedFile,
+	Script,
+	walkGraphQLTags,
+} from '../../common'
 import { find_exported_fn, find_insert_index } from '../ast'
 import { artifact_import, ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
-import { walk_graphql_tags } from '../walk'
 
 const AST = recast.types.builders
 
@@ -213,7 +218,7 @@ export async function find_inline_queries(
 	}[] = []
 
 	// look for inline queries
-	await walk_graphql_tags(page.config, parsed, {
+	await walkGraphQLTags(page.config, parsed, {
 		where(tag) {
 			return !!tag.definitions.find(
 				(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
@@ -225,12 +230,8 @@ export async function find_inline_queries(
 			// part of an inline document. if the operation is a query, we need to add it to the list
 			// so that the load function can have the correct contents
 			const { parsedDocument, parent } = tag
-			const operation = parsedDocument.definitions[0] as graphql.ExecutableDefinitionNode
-			if (
-				operation.kind === 'OperationDefinition' &&
-				operation.operation === 'query' &&
-				parent.type === 'CallExpression'
-			) {
+			const operation = page.config.extractDefinition(parsedDocument)
+			if (parent.type === 'CallExpression' && operation.kind === 'OperationDefinition') {
 				queries.push({
 					name: operation.name!.value,
 					// an operation requires variables if there is any non-null variable that doesn't have a default value

@@ -7,8 +7,11 @@ import path from 'path'
 import { promisify } from 'util'
 
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
-import { CachePolicy } from '../runtime/lib/types'
+import { CachePolicy, CompiledQueryKind, GraphQLTagResult } from '../runtime/lib/types'
 import * as fs from './fs'
+import { operation_requires_variables } from './graphql'
+import { parseSvelte } from './parse'
+import { walkGraphQLTags } from './walk'
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -343,6 +346,13 @@ ${
 		return path.join(this.rootDir, '.build')
 	}
 
+	compiledAssetPath(filepath: string) {
+		return path.join(
+			this.compiledAssetsDir,
+			path.relative(process.cwd(), filepath).replaceAll(path.sep, '_').replace('.ts', '.js')
+		)
+	}
+
 	includeFile(filepath: string) {
 		// if the filepath doesn't match the include we're done
 		if (!minimatch(filepath, path.join(process.cwd(), this.include))) {
@@ -554,15 +564,15 @@ ${
 		return filename.replace('.svelte', '.js')
 	}
 
+	routePagePath(filename: string) {
+		return filename.replace('.js', '.svelte').replace('.ts', '.svelte')
+	}
+
 	isRouteScript(filename: string) {
 		return (
 			this.framework === 'kit' &&
 			(filename.endsWith('+page.js') || filename.endsWith('+page.ts'))
 		)
-	}
-
-	routePagePath(filename: string) {
-		return filename.replace('.js', '.svelte').replace('.ts', '.svelte')
 	}
 
 	isComponent(filename: string) {
@@ -576,6 +586,208 @@ ${
 
 	pageQueryPath(filename: string) {
 		return path.join(path.dirname(filename), this.pageQueryFilename)
+	}
+
+	async walkRouteDir(visitor: RouteVisitor, dirpath = this.routesDir) {
+		// if we run into any child with a query, we have a route
+		let isRoute = false
+
+		// we need to collect the important values from each special child
+		// for the visitor.route handler
+		let routeQuery: graphql.OperationDefinitionNode | null = null
+		const inlineQueries: graphql.OperationDefinitionNode[] = []
+		let routeScript: string | null = null
+
+		// process the children
+		for (const child of await fs.readdir(dirpath)) {
+			const childPath = path.join(dirpath, child)
+			// if we run into another directory, keep walking down
+			if ((await fs.stat(childPath)).isDirectory()) {
+				await this.walkRouteDir(visitor, childPath)
+			}
+
+			// route scripts
+			else if (this.isRouteScript(child)) {
+				if (!visitor.routeScript) {
+					continue
+				}
+				isRoute = true
+				routeScript = childPath
+				visitor.routeScript(childPath, childPath)
+			}
+
+			// route queries
+			else if (child === this.pageQueryFilename) {
+				isRoute = true
+				if (!visitor.routeQuery) {
+					continue
+				}
+
+				// load the contents
+				const contents = await fs.readFile(childPath)
+				if (!contents) {
+					continue
+				}
+
+				// invoke the visitor
+				try {
+					routeQuery = this.extractQueryDefinition(graphql.parse(contents))
+				} catch (e) {
+					throw routeQueryError(childPath)
+				}
+
+				visitor.routeQuery(routeQuery, childPath)
+			}
+
+			// inline queries
+			else if (this.isComponent(child)) {
+				// load the contents and parse it
+				const contents = await fs.readFile(childPath)
+				if (!contents) {
+					continue
+				}
+				const parsed = await parseSvelte(contents)
+				if (!parsed) {
+					continue
+				}
+
+				// look for any graphql tags and invoke the walker's handler
+				await walkGraphQLTags(this, parsed.script, {
+					tag: ({ parsedDocument }) => {
+						let definition: graphql.OperationDefinitionNode
+						try {
+							definition = this.extractQueryDefinition(parsedDocument)
+						} catch {
+							throw routeQueryError(childPath)
+						}
+
+						isRoute = true
+
+						visitor.inlineQuery?.(definition, childPath)
+						inlineQueries.push(definition)
+					},
+				})
+			}
+		}
+
+		// if this path is a route, invoke the handler
+		if (visitor.route && isRoute) {
+			visitor.route(
+				{
+					dirpath,
+					routeQuery,
+					inlineQueries,
+					routeScript,
+				},
+				dirpath
+			)
+		}
+	}
+
+	async importLoadFunction(
+		filepath: string,
+		loadFn?: (filepath: string) => Promise<Record<string, any> | null>
+	): Promise<HoudiniRouteScript> {
+		// let's check for existence by importing the file
+		let module: RawHoudiniRouteScript
+		if (loadFn) {
+			module = (await loadFn(filepath)) as RawHoudiniRouteScript
+		} else {
+			module = (await import(filepath)) as RawHoudiniRouteScript
+		}
+
+		const result: HoudiniRouteScript = {
+			houdini_load: [],
+			exports: Object.keys(module),
+		}
+
+		// if there are no page stores we're done
+		if (!module.houdini_load) {
+			return result
+		}
+
+		// if the load is not a list, embed it in one
+		if (!Array.isArray(module.houdini_load)) {
+			module.houdini_load = [module.houdini_load]
+		}
+
+		const seen = new Set<string>()
+
+		for (const document of module.houdini_load) {
+			// if the document is a string then it's the result of a graphql template tag
+			// we need to parse the string for data
+			if (typeof document === 'string') {
+				// parse the document
+				let parsed: graphql.DocumentNode
+				try {
+					parsed = graphql.parse(document)
+				} catch {
+					throw loadError(filepath)
+				}
+
+				// look for a query definition
+				const query = parsed.definitions.find(
+					(defn): defn is graphql.OperationDefinitionNode =>
+						defn.kind === 'OperationDefinition' && defn.operation === 'query'
+				)
+				if (!query) {
+					throw loadError(filepath)
+				}
+
+				// dry up the name
+				const name = query.name!.value
+
+				// make sure a store only shows up once
+				if (seen.has(name)) {
+					throw {
+						filepath: filepath,
+						message: `encountered multiple references to ${name} in houdini_load. A store can only appear once.`,
+					}
+				}
+				seen.add(name)
+
+				result.houdini_load!.push(query)
+			}
+			// the document is not a string
+			else {
+				// validate the kind (so we know its a store)
+				if (document.kind !== CompiledQueryKind) {
+					throw loadError(filepath)
+				}
+				const definition = this.extractQueryDefinition(graphql.parse(document.artifact.raw))
+
+				result.houdini_load!.push(definition)
+			}
+		}
+
+		// we're done
+		return result
+	}
+
+	extractDefinition(document: graphql.DocumentNode): graphql.ExecutableDefinitionNode {
+		// make sure there's only one definition
+		if (document.definitions.length !== 1) {
+			throw new Error('Encountered document with multiple definitions')
+		}
+
+		// get the definition
+		const definition = document.definitions[0]
+
+		// make sure that it's an operation definition or a fragment definition
+		if (definition.kind !== 'OperationDefinition' && definition.kind !== 'FragmentDefinition') {
+			throw new Error('Encountered document without a fragment or operation definition')
+		}
+
+		return definition
+	}
+
+	extractQueryDefinition(document: graphql.DocumentNode): graphql.OperationDefinitionNode {
+		const definition = this.extractDefinition(document)
+		if (definition.kind !== 'OperationDefinition' || definition.operation !== 'query') {
+			throw new Error('Encountered document with non query definition')
+		}
+
+		return definition
 	}
 }
 
@@ -688,3 +900,37 @@ export enum LogLevel {
 }
 
 const posixify = (str: string) => str.replace(/\\/g, '/')
+
+export type RouteVisitor = {
+	routeQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
+	inlineQuery?: RouteVisitorHandler<graphql.OperationDefinitionNode>
+	routeScript?: RouteVisitorHandler<string>
+	route?: RouteVisitorHandler<{
+		dirpath: string
+		routeScript: string | null
+		routeQuery: graphql.OperationDefinitionNode | null
+		inlineQueries: graphql.OperationDefinitionNode[]
+	}>
+}
+
+type RouteVisitorHandler<_Payload> = (value: _Payload, filepath: string) => Promise<void> | void
+
+type RawHoudiniRouteScript = {
+	houdini_load?: (string | GraphQLTagResult) | (string | GraphQLTagResult)[]
+	[key: string]: any
+}
+
+export type HoudiniRouteScript = {
+	houdini_load?: graphql.OperationDefinitionNode[]
+	exports: string[]
+}
+
+const loadError = (filepath: string) => ({
+	filepath,
+	message: 'encountered an invalid entry in houdini_load. ',
+})
+
+const routeQueryError = (filepath: string) => ({
+	filepath,
+	message: '',
+})

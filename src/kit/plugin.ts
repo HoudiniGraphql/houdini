@@ -1,13 +1,21 @@
-import minimatch from 'minimatch'
+import * as graphql from 'graphql'
 import path from 'path'
 import { Plugin } from 'vite'
 
 import generate from '../cmd/generate'
-import { Config, formatErrors, getConfig, mkdir, readFile, rmdir, Script } from '../common'
+import {
+	Config,
+	formatErrors,
+	getConfig,
+	HoudiniRouteScript,
+	mkdir,
+	readFile,
+	rmdir,
+	Script,
+} from '../common'
 import './fsPatch'
 import { load_manifest } from './manifest'
 import apply_transforms from './transforms'
-import { PageScriptInfo } from './transforms/kit'
 
 export default function HoudiniPlugin(configFile?: string): Plugin {
 	let config: Config
@@ -129,6 +137,6 @@ export interface TransformPage {
 	script: Script
 	filepath: string
 	addWatchFile: (path: string) => void
-	mock_page_info?: PageScriptInfo
+	mock_page_info?: HoudiniRouteScript
 	load: (path: string) => Promise<Record<string, any> | null>
 }
