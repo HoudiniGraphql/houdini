@@ -95,8 +95,8 @@ export class Config {
 		if (sourceGlob) {
 			const hasDefault = sourceGlob === 'src/**/*.{svelte,gql,graphql}'
 
-			console.warn(`⚠️ config value \`sourceGlob\` has been renamed to \`include\`. 
-Please update your config file. Keep in mind, the new config parameter is optional and has a default of "src/**/*.{svelte,graphql,gql,ts,js}". 
+			console.warn(`⚠️ config value \`sourceGlob\` has been renamed to \`include\`.
+Please update your config file. Keep in mind, the new config parameter is optional and has a default of "src/**/*.{svelte,graphql,gql,ts,js}".
 ${
 	hasDefault
 		? 'You might prefer to remove the config value all together since you are using the old default value.'
@@ -255,6 +255,10 @@ ${
 
 	get typeRouteDir() {
 		return path.join(this.typeRootDir, 'src', 'routes')
+	}
+
+	get typeRootFile() {
+		return '$houdini.d.ts'
 	}
 
 	artifactTypePath(document: graphql.DocumentNode) {

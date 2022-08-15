@@ -312,3 +312,13 @@ export type SubscriptionSpec = {
 export type VariableFunction<_Params extends Record<string, string>, _Input> = (
 	event: LoadEvent<_Params>
 ) => _Input
+
+export type AfterLoadFunction<_Params extends Record<string, string>, _Data, _Input> = (args: {
+	event: LoadEvent<_Params>
+	data: _Data
+	input: _Input
+}) => void
+
+export type BeforeLoadFunction<_Params extends Record<string, string>> = (
+	event: LoadEvent<_Params>
+) => Record<string, string> | void

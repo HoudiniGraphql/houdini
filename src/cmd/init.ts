@@ -312,8 +312,8 @@ import houdini from 'houdini/vite'
 /** @type {import('vite').UserConfig} */
 const config = {
 	plugins: [
-		sveltekit(),
 		houdini(),
+		sveltekit(),
 	],
 };
 

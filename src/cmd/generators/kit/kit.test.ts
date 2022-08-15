@@ -20,7 +20,7 @@ test('generates variables and hook definitions for inline queries', async functi
 			<script>
 				const { data  } = graphql\`
 					query Foo {
-						viewer { 
+						viewer {
 							id
 						}
 					}
@@ -32,7 +32,8 @@ test('generates variables and hook definitions for inline queries', async functi
 	// execute the generator
 	await runPipeline(config, [])
 
-	await expect(fs.readFile(path.join(config.typeRouteDir, routeRelative))).toMatchInlineSnapshot(
-		``
-	)
+	console.log('checking', path.join(config.typeRouteDir, 'myProfile', config.typeRootFile))
+	expect(
+		await fs.readFile(path.join(config.typeRouteDir, 'myProfile', config.typeRootFile))
+	).toMatchInlineSnapshot('')
 })

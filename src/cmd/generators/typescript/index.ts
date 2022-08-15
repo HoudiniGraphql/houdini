@@ -179,7 +179,6 @@ async function generateOperationTypeDefs(
 	// the name of the types we will define
 	const inputTypeName = `${definition.name!.value}$input`
 	const shapeTypeName = `${definition.name!.value}$result`
-	const afterLoadTypeName = `${definition.name!.value}$afterLoad`
 
 	// dry
 	const hasInputs = definition.variableDefinitions && definition.variableDefinitions.length > 0
@@ -235,62 +234,6 @@ async function generateOperationTypeDefs(
 			)
 		)
 	)
-
-	// generate type for the afterload function
-	const properties: ReturnType<typeof readonlyProperty>[] = [
-		readonlyProperty(
-			AST.tsPropertySignature(
-				AST.stringLiteral('data'),
-				AST.tsTypeAnnotation(
-					AST.tsTypeLiteral([
-						readonlyProperty(
-							AST.tsPropertySignature(
-								AST.stringLiteral(definition.name!.value),
-								AST.tsTypeAnnotation(
-									AST.tsTypeReference(AST.identifier(shapeTypeName))
-								)
-							)
-						),
-					])
-				)
-			)
-		),
-	]
-
-	if (hasInputs) {
-		properties.splice(
-			0,
-			0,
-			readonlyProperty(
-				AST.tsPropertySignature(
-					AST.stringLiteral('input'),
-					AST.tsTypeAnnotation(
-						AST.tsTypeLiteral([
-							readonlyProperty(
-								AST.tsPropertySignature(
-									AST.stringLiteral(definition.name!.value),
-									AST.tsTypeAnnotation(
-										AST.tsTypeReference(AST.identifier(inputTypeName))
-									)
-								)
-							),
-						])
-					)
-				)
-			)
-		)
-	}
-
-	if (definition.operation === 'query') {
-		body.push(
-			AST.exportNamedDeclaration(
-				AST.tsTypeAliasDeclaration(
-					AST.identifier(afterLoadTypeName),
-					AST.tsTypeLiteral(properties)
-				)
-			)
-		)
-	}
 
 	// if there are variables in this query
 	if (hasInputs && definition.variableDefinitions && definition.variableDefinitions.length > 0) {

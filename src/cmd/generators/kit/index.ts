@@ -1,7 +1,8 @@
+import path from 'path'
 import * as recast from 'recast'
 import { transformWithEsbuild } from 'vite'
 
-import { Config, ensureImports, parseJS } from '../../../common'
+import { Config } from '../../../common'
 import * as fs from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
 
@@ -57,52 +58,62 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 			}
 
 			// we need to create a typescript file that has a definition of the variable and hook functions
-			const typedefs = AST.program([])
+			const typeDefs = `import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '$houdini'
+import { Params } from './$types'
 
-			ensureImports({
-				body: typedefs.body,
-				config,
-				import: ['VariableFunction', 'AfterLoadFunction', 'BeforeLoadFunction'],
-				sourceModule: '$houdini',
-				importKind: 'type',
-			})
-			ensureImports({
-				body: typedefs.body,
-				config,
-				import: ['Params'],
-				sourceModule: './$types',
-				importKind: 'type',
-			})
+${queries
+	.map((query) => {
+		const name = query.name!.value
 
-			// we already compute the input types for every query so we just need
-			// to get them from the typedef
-			for (const query of queries) {
-				const name = query.name!.value
+		return `import { ${name}$result, ${name}$input } from '${config.artifactImportPath(name)}'`
+	})
+	.join('\n')}
 
-				ensureImports({
-					body: typedefs.body,
-					config,
-					import: [name + '$input', name],
-					sourceModule: config.artifactImportPath(name),
-					importKind: 'type',
-				})[0]
+${queries
+	.map((query) => {
+		const name = query.name!.value
 
-				typedefs.body.push(
-					...(await parseJS(
-						`export type ${config.variableFunctionName(
-							name
-						)} = VariableFunction<Params, ${name}$input>
-						`
-					))!.script.body
-				)
-			}
+		return `export type ${config.variableFunctionName(
+			name
+		)} = VariableFunction<Params, ${name}$input>`
+	})
+	.join('\n')}
 
-			// add type definitions for the hooks
+type AfterLoadData = {
+	${queries
+		.map((query) => {
+			const name = query.name!.value
 
-			// write the printed type definitions to the appropriate place
-			const printed = recast.print(typedefs).code
+			return [name, name + '$result'].join(': ')
+		})
+		.join('\n')}
+}
 
-			console.log(printed)
+type AfterLoadInput = {
+	${queries
+		.map((query) => {
+			const name = query.name!.value
+
+			return [name, name + '$input'].join(': ')
+		})
+		.join('\n')}
+}
+
+export type AfterLoad = AfterLoadFunction<Params, AfterLoadData, AfterLoadInput>
+
+export type BeforeLoad = BeforeLoadFunction<Params>
+`
+			// we need to write the type defs to the same route path relative to the type root
+			// const targetPath = path.join(config.typeRouteDir,
+			const relativePath = path.relative(config.routesDir, dirpath)
+			const target = path.join(config.typeRouteDir, relativePath, config.typeRootFile)
+
+			// make sure we have a home for the directory
+			await fs.mkdirp(target)
+
+			// write the file
+			await fs.writeFile(target, typeDefs)
+			console.log('writing', target)
 		},
 	})
 }
