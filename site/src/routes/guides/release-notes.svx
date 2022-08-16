@@ -60,6 +60,39 @@ This means that when adding a query to a route, tasks like adding a store to a l
 
 Also, on a slightly unrelated note: you don't need to pass `context` everywhere anymore! that all happens behind the scenes now.
 
+### Route Type Definitions
+
+You can now import generated typedefs for all of the special functions you define for your routes. They can be imported from from `'./$houdini'` (the relative import is important):
+
+```typescript
+/// src/routes/myProifle/+page.ts
+
+import { graphql } from '$houdini'
+import type { AfterLoad } from './$houdini' // <--- relative houdini import gets route information
+
+export const houdini_load = graphql`
+	query MyProfile {
+		viewer {
+			id
+		}
+	}
+`
+
+export const afterLoad: AfterLoad = ({ data }) => {
+	console.log(data.MyProfile.viewer.id)
+}
+```
+
+In order to make this work, you have to change your tsconfig file to look like this:
+
+```json
+{
+	"compilerOptions": {
+		"rootDirs": [".", "./.svelte-kit/types", "./.$houdini/types"]
+	}
+}
+```
+
 ### Page Queries
 
 You can now define a `+page.gql` file inside of a route directory to automatically opt-into a generated load without having to do anything else:
