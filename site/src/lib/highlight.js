@@ -1,3 +1,5 @@
+import Prism from 'prismjs'
+
 Prism.languages.graphql = {
 	comment: /#.*/,
 	description: {
