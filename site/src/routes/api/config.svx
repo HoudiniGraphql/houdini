@@ -12,22 +12,23 @@ All configuration for your houdini application is defined in a single file that 
 
 It can contain the following values:
 
-- `include` (optional, default: `src/**/*.{svelte,graphql,gql,ts,js}`): a pattern to identify source code files
+- `include` (optional, default: `"src/**/*.{svelte,graphql,gql,ts,js}"`): a pattern to identify source code files
 - `exclude` (optional): a pattern that filters out files that match the include pattern
-- `schemaPath` (optional): the path to the static representation of your schema, can be a glob pointing to multiple files. One of `schema` or `schemaPath` is required
+- `projectDir` (optional, default: `process.cwd()`): an absolute path pointing to your SvelteKit project (useful for monorepos)
+- `schemaPath` (optional, default: `"./schema.graphql"`): the path to the static representation of your schema, can be a glob pointing to multiple files. One of `schema` or `schemaPath` is required
 - `schema` (optional): a string containing your entire schema (mostly useful for testing). One of `schema` or `schemaPath` is required
-- `framework` (optional): Either `"kit"` or `"svelte"`. Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: `kit`)
-- `module` (optional): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create. (default: `esm`)
-- `definitionsPath` (optional): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
+- `framework` (optional, default: `"kit"`): Either `"kit"` or `"svelte"`. Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: `kit`)
+- `module` (optional, default: `"esm"`): One of `"esm"` or `"commonjs"`. Used to tell the artifact generator what kind of modules to create. (default: `esm`)
+- `definitionsPath` (optional, default: `"$houdini/graphql"`): a path that the generator will use to write `schema.graphql` and `documents.gql` files containing all of the internal fragment and directive definitions used in the project.
 - `apiUrl` (optional): A url to use to pull the schema. If you don't pass an `apiUrl`, the kit plugin will not poll for schema changes. For more information see the [pull-schema command docs](/api/cli#pull-schema).
 - `scalars` (optional): An object describing custom scalars for your project (see below).
-- `cacheBufferSize` (optional): The number of queries that must occur before a value is removed from the cache. For more information, see the [Caching Guide](/guides/caching-data).
-- `defaultCachePolicy` (optional): The default cache policy to use for queries. For a list of the policies or other information see the [Caching Guide](/guides/caching-data).
-- `defaultPartial` (optional): specifies wether or not the cache should always use partial data. For more information, check out the [Partial Data guide](/guides/caching-data#partial-data).
-- `defaultKeys` (optional): A list of fields to use when computing a record's id. The default value is `['id']`. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
+- `cacheBufferSize` (optional, default: `10`): The number of queries that must occur before a value is removed from the cache. For more information, see the [Caching Guide](/guides/caching-data).
+- `defaultCachePolicy` (optional, default: `"CacheOrNetwork"`): The default cache policy to use for queries. For a list of the policies or other information see the [Caching Guide](/guides/caching-data).
+- `defaultPartial` (optional, default: `false`): specifies wether or not the cache should always use partial data. For more information, check out the [Partial Data guide](/guides/caching-data#partial-data).
+- `defaultKeys` (optional, default: `["id"]`): A list of fields to use when computing a record's id. The default value is `['id']`. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
 - `types` (optional): an object that customizes the resolution behavior for a specific type. For more information see the [Caching Guide](/guides/caching-data#custom-ids).
-- `logLevel` (optional): Specifies the style of logging houdini will use when generating your file. One of "quiet", "full", "summary", or "short-summary".
-- `disableMasking` (optional): A boolean indicating whether fields from referenced fragments should be included in a document's selection set
+- `logLevel` (optional, default: `"summary"`): Specifies the style of logging houdini will use when generating your file. One of "quiet", "full", "summary", or "short-summary".
+- `disableMasking` (optional, default: `false`): A boolean indicating whether fields from referenced fragments should be included in a document's selection set
 - `schemaPollHeaders` (optional): An object specifying the headers to use when pulling your schema. Keys of the object are header names and its values can be either a string pointing to the environment variable to use as the header value or a function that takes the current `process.env` and returns the the value to use.
 - `schemaPollInterval` (optional, default: `2000`): Configures the schema polling behavior for the kit plugin. If its value is greater than `0`, the plugin will poll the set number of milliseconds. If set to `0`, the plugin will only pull the schema when you first run `dev`. If you set to `null`, the plugin will never look for schema changes. You can see use the [pull-schema command] to get updates.
 

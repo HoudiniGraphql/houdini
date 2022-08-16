@@ -3,6 +3,7 @@ import path from 'path'
 
 import {
 	HoudiniRouteScript,
+	mkdirp,
 	ParsedFile,
 	parseJS,
 	parseSvelte,
@@ -45,6 +46,8 @@ export async function route_test({
 
 	// scripts live in src/routes/+page.svelte
 	const filepath = path.join(process.cwd(), 'src/routes', '+page.svelte')
+
+	await mkdirp(path.dirname(filepath))
 
 	// write the content
 	await Promise.all([
@@ -110,6 +113,7 @@ export async function component_test(
 	const filepath = path.join(process.cwd(), 'src/lib', 'component.svelte')
 
 	// write the content
+	await mkdirp(path.dirname(filepath))
 	await writeFile(filepath, `<script>${content}</script>`)
 
 	// we want to run the transformer on both the component and script paths

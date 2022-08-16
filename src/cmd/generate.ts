@@ -12,7 +12,6 @@ import {
 	ParsedFile,
 	LogLevel,
 	walkGraphQLTags,
-	TransformDocument,
 	readFile,
 	parseJS,
 } from '../common'
@@ -39,6 +38,7 @@ export default async function compile(config: Config) {
 export async function runPipeline(config: Config, docs: CollectedGraphQLDocument[]) {
 	// we need to create the runtime folder structure
 	await config.createDirectories()
+	console.log(config.rootDir)
 
 	// reset the newSchema accumulator
 	config.newSchema = ''
