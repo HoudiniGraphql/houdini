@@ -41,7 +41,7 @@ export async function extractLoadFunction(
 	}
 
 	// analyze the script for its exports and loaded function
-	const { exports, load } = await processScript(config, parsed, mockArtifacts)
+	const { exports, load } = await processScript(config, filepath, parsed, mockArtifacts)
 
 	return {
 		exports,
@@ -54,6 +54,7 @@ export async function extractLoadFunction(
 
 async function processScript(
 	config: Config,
+	filepath: string,
 	program: Program,
 	mockArtifacts?: Record<string, { raw: string }>
 ): Promise<{ load: string[]; exports: string[] }> {
@@ -106,7 +107,7 @@ async function processScript(
 					// compute the artifact path
 					const artifact =
 						mockArtifacts?.[query] ||
-						(await import(path.join(config.artifactDirectory, query + '.js')))
+						(await import(path.join(config.artifactDirectory, query + '.js'))).default
 
 					// save the query
 					globalImports[name] = artifact.raw
@@ -170,7 +171,16 @@ async function processScript(
 			}
 
 			if (element.type === 'Identifier') {
-				load.push(globalImports[element.name])
+				const result = globalImports[element.name]
+				load.push(result)
+				if (!result) {
+					throw new Error(
+						'Could not find query for computing houdini_load: ' +
+							element.name +
+							'. filepath: ' +
+							filepath
+					)
+				}
 			} else if (element.type === 'TaggedTemplateExpression') {
 				if (element.tag.type !== 'Identifier' || element.tag.name !== 'graphql') {
 					throw new Error('only graphql template tags can be passed to houdini_load')

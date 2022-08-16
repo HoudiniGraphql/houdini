@@ -1,10 +1,11 @@
 // @ts-nocheck
 import filesystem from 'fs'
+import path from 'path'
 
-import { getConfig } from '../common'
+import { getConfig, readFile } from '../common'
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
-export default function HoudiniFsPatch(configPath?: string): Plugin {
+export default function HoudiniFsPatch(configFile?: string): Plugin {
 	let config: Config
 
 	return {

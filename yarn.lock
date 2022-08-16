@@ -3628,6 +3628,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prompts@npm:^2.0.14":
+  version: 2.4.0
+  resolution: "@types/prompts@npm:2.4.0"
+  checksum: ec75655f07fbc3cb2df60a3e3bdd13bfda0554a16f5541285c4b1cc0610756838a2863dccfc911cbb1385492054c07210512164e3dbef272ec638d631783b278
+  languageName: node
+  linkType: hard
+
 "@types/pug@npm:^2.0.4":
   version: 2.0.4
   resolution: "@types/pug@npm:2.0.4"
@@ -8300,6 +8307,7 @@ __metadata:
     "@types/micromatch": ^4.0.2
     "@types/mock-fs": ^4.13.0
     "@types/node-fetch": ^2.6.1
+    "@types/prompts": ^2.0.14
     "@vitest/ui": ^0.21.1
     babel-jest: ^26.6.3
     babel-plugin-transform-import-meta: ^2.1.1
@@ -8327,6 +8335,7 @@ __metadata:
     pinst: ^3.0.0
     prettier: ^2.0.5
     pretty-quick: ^3.1.1
+    prompts: ^2.4.2
     recast: ^0.20.4
     remove: ^0.1.5
     rollup: 2.68.0
@@ -8642,7 +8651,6 @@ __metadata:
     svelte: ^3.47.0
     svelte-check: ^2.2.6
     svelte-preprocess: ^4.10.1
-    tsconfck: ^2.0.1
     tslib: ^2.3.1
     typescript: ~4.6.2
     vite: 3
@@ -12293,6 +12301,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prompts@npm:^2.4.2":
+  version: 2.4.2
+  resolution: "prompts@npm:2.4.2"
+  dependencies:
+    kleur: ^3.0.3
+    sisteransi: ^1.0.5
+  checksum: d8fd1fe63820be2412c13bfc5d0a01909acc1f0367e32396962e737cb2fc52d004f3302475d5ce7d18a1e8a79985f93ff04ee03007d091029c3f9104bffc007d
+  languageName: node
+  linkType: hard
+
 "promzard@npm:^0.3.0":
   version: 0.3.0
   resolution: "promzard@npm:0.3.0"
@@ -14588,20 +14606,6 @@ resolve@^1.19.0:
     ts-node-transpile-only: dist/bin-transpile.js
     ts-script: dist/bin-script-deprecated.js
   checksum: 356e2647b8b1e6ab00380c0537fa569b63bd9b6f006cc40fd650f81fae1817bd8fecc075300036950d8f45c1d85b95be33cd1e48a1a424a7d86c3dbb42bf60e5
-  languageName: node
-  linkType: hard
-
-"tsconfck@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "tsconfck@npm:2.0.1"
-  peerDependencies:
-    typescript: ^4.3.5
-  peerDependenciesMeta:
-    typescript:
-      optional: true
-  bin:
-    tsconfck: bin/tsconfck.js
-  checksum: 9d98edfea40f58bf64ee14a0cf9a28f0051c36762362ca31bd22f7a2aaf7f7fda6cad590fe5f30d9a5d22e94ae58ffdcfce5674d13f958e539ae927eb26c5f47
   languageName: node
   linkType: hard
 
