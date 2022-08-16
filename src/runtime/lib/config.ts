@@ -135,11 +135,6 @@ export type ConfigFile = {
 	 * @default +page.gql
 	 */
 	pageQueryFilename?: string
-
-	/**
-	 * The path to the SvelteKit project relative to process.cwd()
-	 */
-	projectDir?: string
 }
 
 export type TypeConfig = {
