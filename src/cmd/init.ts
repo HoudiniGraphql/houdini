@@ -1,5 +1,4 @@
 import { getIntrospectionQuery } from 'graphql'
-import inquirer from 'inquirer'
 import fetch from 'node-fetch'
 import path from 'path'
 

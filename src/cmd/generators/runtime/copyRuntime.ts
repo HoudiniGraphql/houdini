@@ -1,4 +1,3 @@
-import { parse } from 'commander'
 import path from 'path'
 import * as recast from 'recast'
 import { fileURLToPath } from 'url'
@@ -57,7 +56,9 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 	if ((await fs.stat(source)).isDirectory()) {
 		// look in the contents of the source directory
 		await Promise.all(
-			(await fs.readdir(source)).map(async (child) => {
+			(
+				await fs.readdir(source)
+			).map(async (child) => {
 				// figure out the full path of the source
 				const childPath = path.join(source, child)
 

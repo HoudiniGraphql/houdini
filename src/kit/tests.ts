@@ -77,7 +77,6 @@ export async function route_test({
 				filepath,
 				addWatchFile: () => {},
 				mock_page_info,
-				load: async () => null,
 			},
 			component
 		),
@@ -88,7 +87,6 @@ export async function route_test({
 				filepath: config.routeDataPath(filepath),
 				addWatchFile: () => {},
 				mock_page_info,
-				load: async () => null,
 			},
 			script
 		),
@@ -121,7 +119,6 @@ export async function component_test(
 			config,
 			filepath,
 			addWatchFile: () => {},
-			load: async () => null,
 		},
 		`<script>${content}</script>`
 	)

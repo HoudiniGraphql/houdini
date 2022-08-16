@@ -1,6 +1,8 @@
 // @ts-nocheck
 import filesystem from 'fs'
 
+import { getConfig } from '../common'
+
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default function HoudiniFsPatch(configPath?: string): Plugin {
 	let config: Config
@@ -8,7 +10,7 @@ export default function HoudiniFsPatch(configPath?: string): Plugin {
 	return {
 		name: 'houdini-fs-patch',
 
-		async configResolved(viteConfig) {
+		async configResolved() {
 			config = await getConfig({ configFile })
 		},
 
