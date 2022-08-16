@@ -1,3 +1,4 @@
+import { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
@@ -61,6 +62,9 @@ async function processScript(
 	// we need a mapping to global imports and their query
 	const globalImports: Record<string, string> = {}
 
+	// hold onto the houdini_load reference when we find it
+	let houdiniLoad: null | ExpressionKind = null
+
 	// process the file
 	for (const statement of program.body) {
 		// import analysis
@@ -121,6 +125,12 @@ async function processScript(
 				statement.declaration.declarations[0].id.type === 'Identifier'
 			) {
 				exports.push(statement.declaration.declarations[0].id.name)
+				if (
+					statement.declaration.declarations[0].id.name === 'houdini_load' &&
+					statement.declaration.declarations[0].init
+				) {
+					houdiniLoad = statement.declaration.declarations[0].init
+				}
 			} else if (
 				statement.declaration?.type === 'FunctionDeclaration' &&
 				statement.declaration.id?.type === 'Identifier'
@@ -130,7 +140,7 @@ async function processScript(
 
 			// if the exported value is a relevant statement
 			if (statement.declaration?.type === 'VariableDeclaration') {
-				const reference = identifyStoreReference(globalImports, statement.declaration)
+				const reference = identifyQueryReference(globalImports, statement.declaration)
 				if (reference) {
 					globalImports[reference.local] = reference.query
 				}
@@ -141,22 +151,43 @@ async function processScript(
 
 		// local variables
 		if (statement?.type === 'VariableDeclaration') {
-			const reference = identifyStoreReference(globalImports, statement)
+			const reference = identifyQueryReference(globalImports, statement)
 			if (reference) {
 				globalImports[reference.local] = reference.query
 			}
 		}
 	}
 
-	// non-locals can come in either as a prefixed import or from the store factory
-	console.log(globalImports)
+	// if we found a load function while we were processing things, we should have all the information
+	// we need in order to recreat the final list
+	const load: string[] = []
+	if (houdiniLoad) {
+		const elements =
+			houdiniLoad.type === 'ArrayExpression' ? houdiniLoad.elements : [houdiniLoad]
+		for (const element of elements) {
+			if (!element) {
+				continue
+			}
 
-	return { load: [], exports }
+			if (element.type === 'Identifier') {
+				load.push(globalImports[element.name])
+			} else if (element.type === 'TaggedTemplateExpression') {
+				if (element.tag.type !== 'Identifier' || element.tag.name !== 'graphql') {
+					throw new Error('only graphql template tags can be passed to houdini_load')
+				}
+				load.push(element.quasi.quasis[0].value.raw)
+			}
+		}
+	}
+
+	return { load, exports }
 }
 
-// a statement is a store reference if its an identifier that matches a global import
-// or is a call expression of a global import (store factory)
-function identifyStoreReference(
+// a statement is a query reference if its
+// - an identifier that matches a global import
+// - is a call expression of a global import (store factory)
+// - is a template expression with graphql
+function identifyQueryReference(
 	imports: Record<string, string>,
 	statement: VariableDeclaration
 ): null | { local: string; query: string } {
@@ -182,7 +213,7 @@ function identifyStoreReference(
 		return null
 	}
 
-	// check the two cases
+	// check the cases
 	if (value.type === 'Identifier' && value.name in imports) {
 		return { local, query: imports[value.name] }
 	}
@@ -192,6 +223,12 @@ function identifyStoreReference(
 		value.callee.name in imports
 	) {
 		return { local, query: imports[value.callee.name] }
+	}
+	if (value.type === 'TaggedTemplateExpression') {
+		if (value.tag.type !== 'Identifier' || value.tag.name !== 'graphql') {
+			throw new Error('only graphql template tags can be passed to houdini_load')
+		}
+		return { local, query: value.quasi.quasis[0].value.raw }
 	}
 
 	// it wasn't valid
