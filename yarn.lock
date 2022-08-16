@@ -2146,6 +2146,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cloudflare/workers-types@npm:^3.14.0":
+  version: 3.14.1
+  resolution: "@cloudflare/workers-types@npm:3.14.1"
+  checksum: eba53686f24ec671a6930da07c7872e2c05420ffdff78e179bc440775fa0dc6fd673e1febf3069ac5099fc4725c68281be100af89dcc7855eacbffee244da5f9
+  languageName: node
+  linkType: hard
+
 "@cnakazawa/watch@npm:^1.0.3":
   version: 1.0.4
   resolution: "@cnakazawa/watch@npm:1.0.4"
@@ -2999,6 +3006,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@polka/url@npm:^1.0.0-next.20":
+  version: 1.0.0-next.21
+  resolution: "@polka/url@npm:1.0.0-next.21"
+  checksum: c7654046d38984257dd639eab3dc770d1b0340916097b2fac03ce5d23506ada684e05574a69b255c32ea6a144a957c8cd84264159b545fca031c772289d88788
+  languageName: node
+  linkType: hard
+
 "@repeaterjs/repeater@npm:^3.0.4":
   version: 3.0.4
   resolution: "@repeaterjs/repeater@npm:3.0.4"
@@ -3175,6 +3189,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sveltejs/adapter-auto@npm:1.0.0-next.64":
+  version: 1.0.0-next.64
+  resolution: "@sveltejs/adapter-auto@npm:1.0.0-next.64"
+  dependencies:
+    "@sveltejs/adapter-cloudflare": 1.0.0-next.31
+    "@sveltejs/adapter-netlify": 1.0.0-next.71
+    "@sveltejs/adapter-vercel": 1.0.0-next.66
+  checksum: 690055556d1987aec7718dd1210a95ceae72958fb899104e25a02080a06d89ec1f795997f7fbddb07b9f5cc0352c3d8a1cac3d405e2867471de0d175cefe4b0f
+  languageName: node
+  linkType: hard
+
 "@sveltejs/adapter-cloudflare@npm:1.0.0-next.26":
   version: 1.0.0-next.26
   resolution: "@sveltejs/adapter-cloudflare@npm:1.0.0-next.26"
@@ -3182,6 +3207,17 @@ __metadata:
     esbuild: ^0.14.42
     worktop: 0.8.0-next.14
   checksum: 2b8e21a372a92589ee9652f976aa796a7673dac3b320e82b8ef182655915f1e2e11b74419b1eaf79a655fea13a82ec1f56902c51d36d2bc9dccf05bd7a8df00a
+  languageName: node
+  linkType: hard
+
+"@sveltejs/adapter-cloudflare@npm:1.0.0-next.31":
+  version: 1.0.0-next.31
+  resolution: "@sveltejs/adapter-cloudflare@npm:1.0.0-next.31"
+  dependencies:
+    "@cloudflare/workers-types": ^3.14.0
+    esbuild: ^0.14.48
+    worktop: 0.8.0-next.14
+  checksum: fad1a695f8e666892894a0d2cc716ca64231570ada3f702bb4dc08d51aaaa186c3bf4eac74467895dd0fd31b8e9071f33a9496a05c3a226dc338bb8a1a6aa882
   languageName: node
   linkType: hard
 
@@ -3197,6 +3233,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sveltejs/adapter-netlify@npm:1.0.0-next.71":
+  version: 1.0.0-next.71
+  resolution: "@sveltejs/adapter-netlify@npm:1.0.0-next.71"
+  dependencies:
+    "@iarna/toml": ^2.2.5
+    esbuild: ^0.14.48
+    set-cookie-parser: ^2.4.8
+    tiny-glob: ^0.2.9
+  checksum: 4eaaaaef1b434ec788e5d7ea3d195362f24b117d8a7e44c7ea521eb19044a2d79d401eea49ffdfcf366d65fd9ecab9079ea46cfea46d6476abd8150248bf028b
+  languageName: node
+  linkType: hard
+
 "@sveltejs/adapter-vercel@npm:1.0.0-next.60":
   version: 1.0.0-next.60
   resolution: "@sveltejs/adapter-vercel@npm:1.0.0-next.60"
@@ -3204,6 +3252,16 @@ __metadata:
     "@vercel/nft": ^0.20.0
     esbuild: ^0.14.42
   checksum: 8164acd62eccce4b100c7069fa0d05cd72e20663e50e22b9bdcb97f8b89657d59462391acd1889063edfa9366df362786219de2e8e08bd017829f36dffdecacf
+  languageName: node
+  linkType: hard
+
+"@sveltejs/adapter-vercel@npm:1.0.0-next.66":
+  version: 1.0.0-next.66
+  resolution: "@sveltejs/adapter-vercel@npm:1.0.0-next.66"
+  dependencies:
+    "@vercel/nft": ^0.21.0
+    esbuild: ^0.14.48
+  checksum: 7193daaefa78932889a666268e9c7124f988f6fb7528fdd5a9ca92396c38418b609374707f47d1210e71d7d18c32bb063a5614c5157045b1e9399fca872c2bd5
   languageName: node
   linkType: hard
 
@@ -3223,19 +3281,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sveltejs/kit@npm:1.0.0-next.403":
-  version: 1.0.0-next.403
-  resolution: "@sveltejs/kit@npm:1.0.0-next.403"
+"@sveltejs/kit@npm:1.0.0-next.411":
+  version: 1.0.0-next.411
+  resolution: "@sveltejs/kit@npm:1.0.0-next.411"
   dependencies:
     "@sveltejs/vite-plugin-svelte": ^1.0.1
     chokidar: ^3.5.3
+    cookie: ^0.5.0
+    devalue: ^2.0.1
+    kleur: ^4.1.4
+    magic-string: ^0.26.2
+    mime: ^3.0.0
+    node-fetch: ^3.2.4
     sade: ^1.8.1
+    set-cookie-parser: ^2.4.8
+    sirv: ^2.0.2
+    tiny-glob: ^0.2.9
+    undici: ^5.8.1
   peerDependencies:
     svelte: ^3.44.0
     vite: ^3.0.0
   bin:
     svelte-kit: svelte-kit.js
-  checksum: e8b291441dd84d2e32d846b9f974430615c1a1331f198f7e18a2ea214065a81be64aae91fcb4bd479c8c70d4359803c1c3078ddba3fbe1e33163aa57b6078ed9
+  checksum: 7868523696b91b8c47aad7b568d464f9d2047687b98a4b89c6639997f08a43aa5febd2de011cf0f342a95d4b34976e3b1654943d4bf3e64541ab8e369f61f94c
   languageName: node
   linkType: hard
 
@@ -3946,6 +4014,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/nft@npm:^0.21.0":
+  version: 0.21.0
+  resolution: "@vercel/nft@npm:0.21.0"
+  dependencies:
+    "@mapbox/node-pre-gyp": ^1.0.5
+    acorn: ^8.6.0
+    async-sema: ^3.1.1
+    bindings: ^1.4.0
+    estree-walker: 2.0.2
+    glob: ^7.1.3
+    graceful-fs: ^4.2.9
+    micromatch: ^4.0.2
+    node-gyp-build: ^4.2.2
+    resolve-from: ^5.0.0
+    rollup-pluginutils: ^2.8.2
+  bin:
+    nft: out/cli.js
+  checksum: 832e71f0770ce0f1a01da432ebceedc3a20bca1f6b99db1451134b889a96e69c23e9774f2eebeb507798f448de13770997bd851eecd80fff6b15fd1cfc5b1dda
+  languageName: node
+  linkType: hard
+
 "@yarn-tool/resolve-package@npm:^1.0.40":
   version: 1.0.46
   resolution: "@yarn-tool/resolve-package@npm:1.0.46"
@@ -4438,6 +4527,13 @@ __metadata:
   version: 2.0.0
   resolution: "astral-regex@npm:2.0.0"
   checksum: 876231688c66400473ba505731df37ea436e574dd524520294cc3bbc54ea40334865e01fa0d074d74d036ee874ee7e62f486ea38bc421ee8e6a871c06f011766
+  languageName: node
+  linkType: hard
+
+"async-sema@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "async-sema@npm:3.1.1"
+  checksum: 07b8c51f6cab107417ecdd8126b7a9fe5a75151b7f69fdd420dcc8ee08f9e37c473a217247e894b56e999b088b32e902dbe41637e4e9b594d3f8dfcdddfadc5e
   languageName: node
   linkType: hard
 
@@ -5516,6 +5612,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cookie@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "cookie@npm:0.5.0"
+  checksum: 1f4bd2ca5765f8c9689a7e8954183f5332139eb72b6ff783d8947032ec1fdf43109852c178e21a953a30c0dd42257828185be01b49d1eb1a67fd054ca588a180
+  languageName: node
+  linkType: hard
+
 "copy-descriptor@npm:^0.1.0":
   version: 0.1.1
   resolution: "copy-descriptor@npm:0.1.1"
@@ -5725,6 +5828,13 @@ __metadata:
   dependencies:
     assert-plus: ^1.0.0
   checksum: 3634c249570f7f34e3d34f866c93f866c5b417f0dd616275decae08147dcdf8fccfaa5947380ccfb0473998ea3a8057c0b4cd90c875740ee685d0624b2983598
+  languageName: node
+  linkType: hard
+
+"data-uri-to-buffer@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "data-uri-to-buffer@npm:4.0.0"
+  checksum: a010653869abe8bb51259432894ac62c52bf79ad761d418d94396f48c346f2ae739c46b254e8bb5987bded8a653d467db1968db3a69bab1d33aa5567baa5cfc7
   languageName: node
   linkType: hard
 
@@ -5958,6 +6068,13 @@ __metadata:
   version: 3.1.0
   resolution: "detect-newline@npm:3.1.0"
   checksum: ae6cd429c41ad01b164c59ea36f264a2c479598e61cba7c99da24175a7ab80ddf066420f2bec9a1c57a6bead411b4655ff15ad7d281c000a89791f48cbe939e7
+  languageName: node
+  linkType: hard
+
+"devalue@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "devalue@npm:2.0.1"
+  checksum: 94bedfba0311b3404ca3281180c56baf0259481b8411eae1cae8ffd5741e1add47092d560c2ea9091086c9eef940a887a3ce86c63128d9c310b7486002762a08
   languageName: node
   linkType: hard
 
@@ -6616,7 +6733,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:^0.14.47":
+"esbuild@npm:^0.14.47, esbuild@npm:^0.14.48":
   version: 0.14.54
   resolution: "esbuild@npm:0.14.54"
   dependencies:
@@ -7414,6 +7531,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fetch-blob@npm:^3.1.2, fetch-blob@npm:^3.1.4":
+  version: 3.2.0
+  resolution: "fetch-blob@npm:3.2.0"
+  dependencies:
+    node-domexception: ^1.0.0
+    web-streams-polyfill: ^3.0.3
+  checksum: f19bc28a2a0b9626e69fd7cf3a05798706db7f6c7548da657cbf5026a570945f5eeaedff52007ea35c8bcd3d237c58a20bf1543bc568ab2422411d762dd3d5bf
+  languageName: node
+  linkType: hard
+
 "figures@npm:^3.0.0":
   version: 3.2.0
   resolution: "figures@npm:3.2.0"
@@ -7584,6 +7711,15 @@ __metadata:
     node-domexception: 1.0.0
     web-streams-polyfill: 4.0.0-beta.1
   checksum: e1d7aae7d579775b813ddc8ea4511fee613552715e81b36afb188d3a65b3d4df2ef69017106079ba52d9ab1e3367fea0206862d8ae64c02008ababdb341d2c3d
+  languageName: node
+  linkType: hard
+
+"formdata-polyfill@npm:^4.0.10":
+  version: 4.0.10
+  resolution: "formdata-polyfill@npm:4.0.10"
+  dependencies:
+    fetch-blob: ^3.1.2
+  checksum: 82a34df292afadd82b43d4a740ce387bc08541e0a534358425193017bf9fb3567875dc5f69564984b1da979979b70703aa73dee715a17b6c229752ae736dd9db
   languageName: node
   linkType: hard
 
@@ -8605,8 +8741,8 @@ __metadata:
     "@kitql/vite-plugin-watch-and-run": ^0.4.0
     "@playwright/test": ^1.21.0
     "@replayio/playwright": ^0.2.21
-    "@sveltejs/adapter-auto": 1.0.0-next.55
-    "@sveltejs/kit": 1.0.0-next.403
+    "@sveltejs/adapter-auto": 1.0.0-next.64
+    "@sveltejs/kit": 1.0.0-next.411
     "@typescript-eslint/eslint-plugin": ^5.10.1
     "@typescript-eslint/parser": ^5.10.1
     concurrently: 7.1.0
@@ -8626,7 +8762,7 @@ __metadata:
     svelte-preprocess: ^4.10.1
     tslib: ^2.3.1
     typescript: ~4.6.2
-    vite: 3
+    vite: 3.0.8
   languageName: unknown
   linkType: soft
 
@@ -10710,6 +10846,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mime@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "mime@npm:3.0.0"
+  bin:
+    mime: cli.js
+  checksum: f43f9b7bfa64534e6b05bd6062961681aeb406a5b53673b53b683f27fcc4e739989941836a355eef831f4478923651ecc739f4a5f6e20a76487b432bfd4db928
+  languageName: node
+  linkType: hard
+
 "mimic-fn@npm:^2.1.0":
   version: 2.1.0
   resolution: "mimic-fn@npm:2.1.0"
@@ -11042,7 +11187,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-domexception@npm:1.0.0":
+"node-domexception@npm:1.0.0, node-domexception@npm:^1.0.0":
   version: 1.0.0
   resolution: "node-domexception@npm:1.0.0"
   checksum: ee1d37dd2a4eb26a8a92cd6b64dfc29caec72bff5e1ed9aba80c294f57a31ba4895a60fd48347cf17dd6e766da0ae87d75657dfd1f384ebfa60462c2283f5c7f
@@ -11067,6 +11212,17 @@ __metadata:
     encoding:
       optional: true
   checksum: 8d816ffd1ee22cab8301c7756ef04f3437f18dace86a1dae22cf81db8ef29c0bf6655f3215cb0cdb22b420b6fe141e64b26905e7f33f9377a7fa59135ea3e10b
+  languageName: node
+  linkType: hard
+
+"node-fetch@npm:^3.2.4":
+  version: 3.2.10
+  resolution: "node-fetch@npm:3.2.10"
+  dependencies:
+    data-uri-to-buffer: ^4.0.0
+    fetch-blob: ^3.1.4
+    formdata-polyfill: ^4.0.10
+  checksum: e65322431f4897ded04197aa5923eaec63a8d53e00432de4e70a4f7006625c8dc32629c5c35f4fe8ee719a4825544d07bf53f6e146a7265914262f493e8deac1
   languageName: node
   linkType: hard
 
@@ -12073,17 +12229,6 @@ __metadata:
   version: 0.1.1
   resolution: "posix-character-classes@npm:0.1.1"
   checksum: dedb99913c60625a16050cfed2fb5c017648fc075be41ac18474e1c6c3549ef4ada201c8bd9bd006d36827e289c571b6092e1ef6e756cdbab2fd7046b25c6442
-  languageName: node
-  linkType: hard
-
-"postcss@npm:^8.4.14":
-  version: 8.4.14
-  resolution: "postcss@npm:8.4.14"
-  dependencies:
-    nanoid: ^3.3.4
-    picocolors: ^1.0.0
-    source-map-js: ^1.0.2
-  checksum: fe58766ff32e4becf65a7d57678995cfd239df6deed2fe0557f038b47c94e4132e7e5f68b5aa820c13adfec32e523b693efaeb65798efb995ce49ccd83953816
   languageName: node
   linkType: hard
 
@@ -13397,6 +13542,17 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
+"sirv@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "sirv@npm:2.0.2"
+  dependencies:
+    "@polka/url": ^1.0.0-next.20
+    mrmime: ^1.0.0
+    totalist: ^3.0.0
+  checksum: 6982f8ecee9392d246d7eeea8144e50334fe1b46a4fa942995a844ea88c2d518b17cce781bb09926c9a5692a7002a207d18dfd67af2aa538a15e733dc2042298
+  languageName: node
+  linkType: hard
+
 "sisteransi@npm:^1.0.5":
   version: 1.0.5
   resolution: "sisteransi@npm:1.0.5"
@@ -14392,6 +14548,13 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
+"totalist@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "totalist@npm:3.0.0"
+  checksum: ec499bddfc73d5b6c73f8ff68afd7bed286705797f928a11177fee5d1ee80e9052ffcb434638437702e16864bd5490f437a54f79bfea9564e875d34ed3254bca
+  languageName: node
+  linkType: hard
+
 "tough-cookie@npm:^2.3.3, tough-cookie@npm:~2.5.0":
   version: 2.5.0
   resolution: "tough-cookie@npm:2.5.0"
@@ -14796,6 +14959,13 @@ resolve@^1.19.0:
   version: 5.3.0
   resolution: "undici@npm:5.3.0"
   checksum: b81ec73f0dbab3b6804a5fe221ed29e564934723a5c8babdd23dfefc250efc46a49447c8bc7af5cef6c270d2d1613c64bfe12c4113ca5672f613d8bd7057e5ea
+  languageName: node
+  linkType: hard
+
+"undici@npm:^5.8.1":
+  version: 5.8.2
+  resolution: "undici@npm:5.8.2"
+  checksum: 726e04bb37e2e285b4f632600c792efc9eaa5e06e37f9f34338352ac5e1dbd8ae3cdd12dd8761abfecffc5f200d1c7b91b41efb3a31c4e804ea341e5808ddfcf
   languageName: node
   linkType: hard
 
@@ -15210,15 +15380,15 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
-"vite@npm:3":
-  version: 3.0.4
-  resolution: "vite@npm:3.0.4"
+"vite@npm:3.0.8":
+  version: 3.0.8
+  resolution: "vite@npm:3.0.8"
   dependencies:
     esbuild: ^0.14.47
     fsevents: ~2.3.2
-    postcss: ^8.4.14
+    postcss: ^8.4.16
     resolve: ^1.22.1
-    rollup: ^2.75.6
+    rollup: ">=2.75.6 <2.77.0 || ~2.77.0"
   peerDependencies:
     less: "*"
     sass: "*"
@@ -15238,7 +15408,7 @@ resolve@^1.19.0:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: f13eceb94f7b399942ce5e7c10df73314f7b073171d6594228b078cc1203042c4cdb9e8356fe64ad444c3533c31437abb3c64ac56478f0865fab598e924cf68b
+  checksum: ec3f57d52f2bf28f2f89898053c2156f025a108a95e9308ce6580f43d8fdaae866f7988afa8207a8c8509069d3a0b50ee79b9a8050590a825f4b7771646c2755
   languageName: node
   linkType: hard
 
@@ -15395,7 +15565,7 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
-"web-streams-polyfill@npm:^3.2.0":
+"web-streams-polyfill@npm:^3.0.3, web-streams-polyfill@npm:^3.2.0":
   version: 3.2.1
   resolution: "web-streams-polyfill@npm:3.2.1"
   checksum: b119c78574b6d65935e35098c2afdcd752b84268e18746606af149e3c424e15621b6f1ff0b42b2676dc012fc4f0d313f964b41a4b5031e525faa03997457da02

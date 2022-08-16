@@ -1,18 +1,5 @@
-<script context="module" lang="ts">
-  import type { LoadEvent } from '@sveltejs/kit';
-
-  export function load(event: LoadEvent) {
-    console.log(`error`, event.error);
-    return {
-      props: {
-        title: `${event.status}: ${event.error?.message}`
-      }
-    };
-  }
+<script>
+  import { page } from '$app/stores';
 </script>
 
-<script lang="ts">
-  export let title: string;
-</script>
-
-<h1>{title}</h1>
+<h1>{$page.status}: {$page.error.message}</h1>
