@@ -8,10 +8,11 @@ import {
 	formatErrors,
 	operation_requires_variables,
 	parseSvelte,
+	HoudiniRouteScript,
 	readFile,
 	stat,
 } from '../../common'
-import { CompiledQueryKind, GraphQLTagResult } from '../../runtime'
+import * as fs from '../../common/fs'
 import { find_insert_index } from '../ast'
 import { ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
@@ -63,10 +64,10 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 	])
 
 	const queries = inline_queries.concat(page_query ?? [])
-	for (const [i, target] of (page_info.load ?? []).entries()) {
+	for (const [i, target] of (page_info.houdini_load ?? []).entries()) {
 		queries.push({
-			name: target.name,
-			variables: target.variables,
+			name: target.name!.value,
+			variables: operation_requires_variables(target),
 			store_id: AST.memberExpression(AST.identifier('houdini_load'), AST.literal(i)),
 		})
 	}
@@ -150,7 +151,7 @@ function add_load({
 }: {
 	queries: LoadTarget[]
 	page: TransformPage
-	page_info: PageScriptInfo
+	page_info: HoudiniRouteScript
 }) {
 	// if there is already a load function defined, don't do anything
 	if (page_info.exports.includes('load')) {
@@ -434,16 +435,9 @@ function load_hook_statements(
 	]
 }
 
-async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
-	const nil: PageScriptInfo = { load: [], exports: [] }
-
-	// if the page has mocked page stores return them
-	if (process.env.NODE_ENV === 'test') {
-		return page.mock_page_info ?? nil
-	}
-
+async function find_page_info(page: TransformPage): Promise<HoudiniRouteScript> {
 	if (!page.config.isRouteScript(page.filepath) && !page.config.isRoute(page.filepath)) {
-		return nil
+		return { houdini_load: [], exports: [] }
 	}
 
 	// make sure we consider the typescript path first (so if it fails we resort to the .js one)
@@ -454,113 +448,5 @@ async function find_page_info(page: TransformPage): Promise<PageScriptInfo> {
 		route_path = route_path.replace('.js', '.ts')
 	}
 
-	// let's check for existence by importing the file
-	let module: {
-		houdini_load?: (string | GraphQLTagResult) | (string | GraphQLTagResult)[]
-		[key: string]: any
-	}
-
-	try {
-		module = (await page.load(route_path)) as typeof module
-	} catch (e) {
-		if (!(e as Error).toString().includes('ERR_MODULE_NOT_FOUND')) {
-			console.log(e)
-		}
-
-		return nil
-	}
-
-	// add the exports to the default return value
-	nil.exports = Object.keys(module)
-
-	// if there are no page stores we're done
-	if (!module.houdini_load) {
-		return nil
-	}
-
-	// if the load is not a list, embed it in one
-	if (!Array.isArray(module.houdini_load)) {
-		module.houdini_load = [module.houdini_load]
-	}
-
-	// build up a list of the referenced stores
-	const load: QueryInfo[] = []
-
-	const seen = new Set<string>()
-
-	for (const document of module.houdini_load) {
-		// if the document is a string then it's the result of a graphql template tag
-		// we need to parse the string for data
-		if (typeof document === 'string') {
-			// parse the document
-			let parsed: graphql.DocumentNode
-			try {
-				parsed = graphql.parse(document)
-			} catch {
-				formatErrors(loadError(route_path))
-				continue
-			}
-
-			// look for a query definition
-			const query = parsed.definitions.find(
-				(defn): defn is graphql.OperationDefinitionNode =>
-					defn.kind === 'OperationDefinition' && defn.operation === 'query'
-			)
-			if (!query) {
-				formatErrors(loadError(route_path))
-				return nil
-			}
-
-			// dry up the name
-			const name = query.name!.value
-
-			// make sure a store only shows up once
-			if (seen.has(name)) {
-				formatErrors({
-					filepath: route_path,
-					message: `encountered multiple references to ${name} in houdini_load. A store can only appear once.`,
-				})
-				return nil
-			}
-			seen.add(name)
-
-			// add the store to the list
-			load.push({
-				name,
-				variables: operation_requires_variables(query),
-			})
-		}
-		// the document is not a string
-		else {
-			// validate the kind (so we know its a store)
-			if (document.kind !== CompiledQueryKind) {
-				formatErrors(loadError(route_path))
-				continue
-			}
-
-			// add the store to the list
-			load.push(document)
-		}
-	}
-
-	// we're done
-	return {
-		...nil,
-		load,
-	}
+	return await page.config.extractLoadFunction(route_path)
 }
-
-export type PageScriptInfo = {
-	load?: QueryInfo[]
-	exports: string[]
-}
-
-type QueryInfo = {
-	name: string
-	variables: boolean
-}
-
-const loadError = (filepath: string) => ({
-	filepath,
-	message: 'encountered an invalid entry in houdini_load. ',
-})

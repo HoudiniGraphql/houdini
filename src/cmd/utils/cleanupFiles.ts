@@ -1,10 +1,10 @@
-import { readdir, remove } from 'fs-extra'
 import path from 'path'
 
+import { readdir, remove } from '../../common/fs'
+
 export async function cleanupFiles(pathFolder: string, listOfObj: string[]): Promise<string[]> {
-	const listFile = await readdir(pathFolder, { withFileTypes: true })
+	const listFile = await readdir(pathFolder)
 	const storeListFile = listFile
-		.map((c) => c.name)
 		.filter((c) => c.endsWith('.js') && c !== 'index.js')
 		.map((c) => c.slice(0, -3))
 		.sort()

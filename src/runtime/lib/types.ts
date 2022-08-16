@@ -1,7 +1,6 @@
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { Readable } from 'svelte/store'
 
-import { FetchContext, HoudiniDocumentProxy } from '..'
 import { MutationConfig } from '../inline/mutation'
 
 export type { ConfigFile } from './config'
@@ -308,3 +307,17 @@ export type SubscriptionSpec = {
 	parentID?: string
 	variables?: () => any
 }
+
+export type VariableFunction<_Params extends Record<string, string>, _Input> = (
+	event: LoadEvent<_Params>
+) => _Input
+
+export type AfterLoadFunction<_Params extends Record<string, string>, _Data, _Input> = (args: {
+	event: LoadEvent<_Params>
+	data: _Data
+	input: _Input
+}) => void
+
+export type BeforeLoadFunction<_Params extends Record<string, string>> = (
+	event: LoadEvent<_Params>
+) => Record<string, string> | void

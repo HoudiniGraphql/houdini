@@ -7,5 +7,5 @@ export * from './imports'
 export * from './tests'
 export * from './fs'
 
-export { default as walkTaggedDocuments } from './walkTaggedDocuments'
-export type { EmbeddedGraphqlDocument } from './walkTaggedDocuments'
+export * from './walk'
+export type { EmbeddedGraphqlDocument } from './walk'

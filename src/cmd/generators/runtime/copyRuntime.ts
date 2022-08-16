@@ -1,4 +1,3 @@
-import { parse } from 'commander'
 import path from 'path'
 import * as recast from 'recast'
 import { fileURLToPath } from 'url'

@@ -246,23 +246,17 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly firstName: string
-		    } | null
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly user: {
+			        readonly firstName: string
+			    } | null
+			};
+		`)
 	})
 
 	test('query with root list', async function () {
@@ -286,23 +280,17 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly users: ({
-		        readonly firstName: string
-		    } | null)[] | null
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly users: ({
+			        readonly firstName: string
+			    } | null)[] | null
+			};
+		`)
 	})
 
 	test('query with input', async function () {
@@ -323,33 +311,24 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		import type { MyEnum } from "$houdini/graphql/enums";
+			import type { MyEnum } from "$houdini/graphql/enums";
 
-		export type Query = {
-		    readonly "input": Query$input,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": Query$input,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly firstName: string
-		    } | null
-		};
+			export type Query$result = {
+			    readonly user: {
+			        readonly firstName: string
+			    } | null
+			};
 
-		export type Query$afterLoad = {
-		    readonly "input": {
-		        readonly "Query": Query$input
-		    },
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-
-		export type Query$input = {
-		    id: string,
-		    enum?: MyEnum | null | undefined
-		};
-	`)
+			export type Query$input = {
+			    id: string,
+			    enum?: MyEnum | null | undefined
+			};
+		`)
 	})
 
 	test('interface on interface', async function () {
@@ -376,27 +355,21 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type MyTestQuery = {
-		    readonly "input": null,
-		    readonly "result": MyTestQuery$result | undefined
-		};
+			export type MyTestQuery = {
+			    readonly "input": null,
+			    readonly "result": MyTestQuery$result | undefined
+			};
 
-		export type MyTestQuery$result = {
-		    readonly entity: {} & (({
-		        readonly id: string,
-		        readonly __typename: "Cat"
-		    }) | ({
-		        readonly id: string,
-		        readonly __typename: "User"
-		    }))
-		};
-
-		export type MyTestQuery$afterLoad = {
-		    readonly "data": {
-		        readonly "MyTestQuery": MyTestQuery$result
-		    }
-		};
-	`)
+			export type MyTestQuery$result = {
+			    readonly entity: {} & (({
+			        readonly id: string,
+			        readonly __typename: "Cat"
+			    }) | ({
+			        readonly id: string,
+			        readonly __typename: "User"
+			    }))
+			};
+		`)
 	})
 
 	test('mutation with input list', async function () {
@@ -495,48 +468,39 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		import type { MyEnum } from "$houdini/graphql/enums";
+			import type { MyEnum } from "$houdini/graphql/enums";
 
-		export type Query = {
-		    readonly "input": Query$input,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": Query$input,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly firstName: string
-		    } | null
-		};
+			export type Query$result = {
+			    readonly user: {
+			        readonly firstName: string
+			    } | null
+			};
 
-		export type Query$afterLoad = {
-		    readonly "input": {
-		        readonly "Query": Query$input
-		    },
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
+			type NestedUserFilter = {
+			    id: string,
+			    firstName: string,
+			    admin?: boolean | null | undefined,
+			    age?: number | null | undefined,
+			    weight?: number | null | undefined
+			};
 
-		type NestedUserFilter = {
-		    id: string,
-		    firstName: string,
-		    admin?: boolean | null | undefined,
-		    age?: number | null | undefined,
-		    weight?: number | null | undefined
-		};
+			type UserFilter = {
+			    middle?: NestedUserFilter | null | undefined,
+			    listRequired: (string)[],
+			    nullList?: (string | null | undefined)[] | null | undefined,
+			    recursive?: UserFilter | null | undefined,
+			    enum?: MyEnum | null | undefined
+			};
 
-		type UserFilter = {
-		    middle?: NestedUserFilter | null | undefined,
-		    listRequired: (string)[],
-		    nullList?: (string | null | undefined)[] | null | undefined,
-		    recursive?: UserFilter | null | undefined,
-		    enum?: MyEnum | null | undefined
-		};
-
-		export type Query$input = {
-		    filter: UserFilter
-		};
-	`)
+			export type Query$input = {
+			    filter: UserFilter
+			};
+		`)
 	})
 
 	test('generates index file', async function () {
@@ -582,25 +546,19 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly $fragments: {
-		            Foo: true
-		        }
-		    } | null
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly user: {
+			        readonly $fragments: {
+			            Foo: true
+			        }
+			    } | null
+			};
+		`)
 	})
 
 	test('fragment spreads no masking', async function () {
@@ -624,26 +582,20 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly firstName: string,
-		        readonly $fragments: {
-		            Foo: true
-		        }
-		    }
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly user: {
+			        readonly firstName: string,
+			        readonly $fragments: {
+			            Foo: true
+			        }
+			    }
+			};
+		`)
 	})
 
 	test('interfaces', async function () {
@@ -675,27 +627,21 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly nodes: ({} & (({
-		        readonly id: string,
-		        readonly __typename: "User"
-		    }) | ({
-		        readonly id: string,
-		        readonly __typename: "Cat"
-		    })))[]
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly nodes: ({} & (({
+			        readonly id: string,
+			        readonly __typename: "User"
+			    }) | ({
+			        readonly id: string,
+			        readonly __typename: "Cat"
+			    })))[]
+			};
+		`)
 	})
 
 	test('unions', async function () {
@@ -727,27 +673,21 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly entities: ({} & (({
-		        readonly id: string,
-		        readonly __typename: "User"
-		    }) | ({
-		        readonly id: string,
-		        readonly __typename: "Cat"
-		    })) | null)[] | null
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly entities: ({} & (({
+			        readonly id: string,
+			        readonly __typename: "User"
+			    }) | ({
+			        readonly id: string,
+			        readonly __typename: "Cat"
+			    })) | null)[] | null
+			};
+		`)
 	})
 
 	test('discriminated interface', async function () {
@@ -780,29 +720,23 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly nodes: ({
-		        readonly id: string
-		    } & (({
-		        readonly firstName: string,
-		        readonly __typename: "User"
-		    }) | ({
-		        readonly kitty: boolean,
-		        readonly __typename: "Cat"
-		    })))[]
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly nodes: ({
+			        readonly id: string
+			    } & (({
+			        readonly firstName: string,
+			        readonly __typename: "User"
+			    }) | ({
+			        readonly kitty: boolean,
+			        readonly __typename: "Cat"
+			    })))[]
+			};
+		`)
 	})
 
 	test('intersecting interface', async function () {
@@ -837,28 +771,22 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly entities: ({} & (({
-		        readonly isAnimal: boolean,
-		        readonly kitty: boolean,
-		        readonly __typename: "Cat"
-		    }) | ({
-		        readonly firstName: string,
-		        readonly __typename: "User"
-		    })) | null)[] | null
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly entities: ({} & (({
+			        readonly isAnimal: boolean,
+			        readonly kitty: boolean,
+			        readonly __typename: "Cat"
+			    }) | ({
+			        readonly firstName: string,
+			        readonly __typename: "User"
+			    })) | null)[] | null
+			};
+		`)
 	})
 
 	test('fragment with custom scalars', async function () {
@@ -904,23 +832,17 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly allItems: ({
-		        readonly createdAt: Date
-		    })[]
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly allItems: ({
+			        readonly createdAt: Date
+			    })[]
+			};
+		`)
 	})
 
 	test('input with custom scalars', async function () {
@@ -968,30 +890,21 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": Query$input,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": Query$input,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly allItems: ({
-		        readonly createdAt: Date
-		    })[]
-		};
+			export type Query$result = {
+			    readonly allItems: ({
+			        readonly createdAt: Date
+			    })[]
+			};
 
-		export type Query$afterLoad = {
-		    readonly "input": {
-		        readonly "Query": Query$input
-		    },
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-
-		export type Query$input = {
-		    date: Date
-		};
-	`)
+			export type Query$input = {
+			    date: Date
+			};
+		`)
 	})
 
 	test('can generate types for list of lists', async function () {
@@ -1019,24 +932,18 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly listOfLists: (({
-		        readonly firstName: string,
-		        readonly nickname: string | null
-		    } | null)[] | null)[]
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly listOfLists: (({
+			        readonly firstName: string,
+			        readonly nickname: string | null
+			    } | null)[] | null)[]
+			};
+		`)
 	})
 
 	test('duplicate fields', async function () {
@@ -1065,26 +972,20 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type Query = {
+			    readonly "input": null,
+			    readonly "result": Query$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly parent: {
-		            readonly firstName: string,
-		            readonly nickname: string | null
-		        } | null
-		    } | null
-		};
-
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type Query$result = {
+			    readonly user: {
+			        readonly parent: {
+			            readonly firstName: string,
+			            readonly nickname: string | null
+			        } | null
+			    } | null
+			};
+		`)
 	})
 
 	test('can reference list fragments', async function () {

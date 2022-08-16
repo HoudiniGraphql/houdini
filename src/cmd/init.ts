@@ -1,7 +1,7 @@
 import { getIntrospectionQuery } from 'graphql'
-import inquirer from 'inquirer'
 import fetch from 'node-fetch'
 import path from 'path'
+import prompts from 'prompts'
 
 import { readFile, writeFile } from '../common'
 import * as fs from '../common/fs'
@@ -29,28 +29,28 @@ export default async function init(
 	// if no path was given, we	'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
 
-	// we need to collect some information from the user before we
-	// can continue
-	let { url, running } = await inquirer.prompt<{ url: string; running: boolean }>([
-		{
-			message: 'Is your GraphQL API running?',
-			name: 'running',
-			type: 'confirm',
-			when: withRunningCheck,
-		},
-		{
-			message: "What's the URL for your api?",
-			name: 'url',
-			type: 'input',
-			default: 'http://localhost:3000/api/graphql',
-			when: ({ running }) => !withRunningCheck || running,
-		},
-	])
-
-	if (withRunningCheck && !running) {
+	// make sure its running
+	let running = true
+	if (withRunningCheck) {
+		running = (
+			await prompts({
+				message: 'Is your GraphQL API running?',
+				name: 'running',
+				type: 'confirm',
+			})
+		).running
+	}
+	if (!running) {
 		console.log('❌ Your API must be running order to continue')
 		return
 	}
+
+	let { url } = await prompts({
+		message: "What's the URL for your api?",
+		name: 'url',
+		type: 'text',
+		initial: 'http://localhost:3000/api/graphql',
+	})
 
 	try {
 		// verify we can send graphql queries to the server
@@ -312,8 +312,8 @@ import houdini from 'houdini/vite'
 /** @type {import('vite').UserConfig} */
 const config = {
 	plugins: [
-		sveltekit(),
 		houdini(),
+		sveltekit(),
 	],
 };
 
@@ -528,13 +528,11 @@ async function updateFile({
 ${content}`)
 
 		// ask the user if we should continue
-		const { done } = await inquirer.prompt<{ done: boolean }>([
-			{
-				name: 'done',
-				type: 'confirm',
-				message: 'Should we overwrite the file? If not, please update it manually.',
-			},
-		])
+		const { done } = await prompts({
+			name: 'done',
+			type: 'confirm',
+			message: 'Should we overwrite the file? If not, please update it manually.',
+		})
 
 		if (!done) {
 			return

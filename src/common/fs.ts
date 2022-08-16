@@ -1,6 +1,9 @@
+import fsExtra from 'fs-extra'
 import fs from 'fs/promises'
 import { fs as memfs, vol } from 'memfs'
 import path from 'path'
+
+import { testConfig } from './tests'
 
 export async function readFile(filepath: string): Promise<string | null> {
 	if (process.env.NODE_ENV === 'test') {
@@ -37,16 +40,16 @@ export async function writeFile(filepath: string, data: string) {
 	return await fs.writeFile(filepath, data, 'utf8')
 }
 
-export function clearMock() {
+export async function clearMock() {
+	const config = testConfig()
+
 	vol.reset()
-	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'runtime'))
-	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'stores'))
-	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'artifacts'))
-	memfs.mkdirpSync(path.join(process.cwd(), '$houdini', 'graphql'))
-	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'routes'))
-	memfs.mkdirpSync(path.join(process.cwd(), 'src', 'lib'))
+	await Promise.all([
+		config.createDirectories(),
+		memfs.mkdirpSync(path.join(process.cwd(), 'src', 'routes')),
+		memfs.mkdirpSync(path.join(process.cwd(), 'src', 'lib')),
+	])
 }
-clearMock()
 
 export async function access(filepath: string) {
 	// no mock in production
@@ -64,6 +67,15 @@ export async function access(filepath: string) {
 	return memfs.statSync(filepath)
 }
 
+export async function mkdirp(filepath: string) {
+	// no mock in production
+	if (process.env.NODE_ENV !== 'test') {
+		return await fsExtra.mkdirp(filepath)
+	}
+
+	return memfs.mkdirpSync(filepath)
+}
+
 export async function mkdir(filepath: string) {
 	// no mock in production
 	if (process.env.NODE_ENV !== 'test') {
@@ -76,12 +88,12 @@ export async function mkdir(filepath: string) {
 export async function rmdir(filepath: string) {
 	// no mock in production
 	if (process.env.NODE_ENV !== 'test') {
-		return await fs.rmdir(filepath, {
+		return await fs.rm(filepath, {
 			recursive: true,
 		})
 	}
 
-	return memfs.rmdirSync(filepath, {
+	return memfs.rmSync(filepath, {
 		recursive: true,
 	})
 }
@@ -112,4 +124,13 @@ export async function readdir(filepath: string): Promise<string[]> {
 	}
 
 	return memfs.readdirSync(filepath) as string[]
+}
+
+export async function remove(filepath: string) {
+	// no mock in production
+	if (process.env.NODE_ENV !== 'test') {
+		return await fs.rm(filepath)
+	}
+
+	return memfs.rmSync(filepath)
 }

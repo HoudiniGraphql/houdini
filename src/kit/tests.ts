@@ -1,10 +1,18 @@
+import * as graphql from 'graphql'
 import path from 'path'
-import * as recast from 'recast'
 
-import { ParsedFile, parseJS, parseSvelte, Script, testConfig, writeFile } from '../common'
+import {
+	HoudiniRouteScript,
+	mkdirp,
+	ParsedFile,
+	parseJS,
+	parseSvelte,
+	Script,
+	testConfig,
+	writeFile,
+} from '../common'
 import { ConfigFile } from '../runtime'
 import runTransforms from './transforms'
-import { PageScriptInfo } from './transforms/kit'
 
 const schema = `
 	type User {
@@ -31,7 +39,7 @@ export async function route_test({
 	script?: string
 	query?: string
 	config?: Partial<ConfigFile>
-	script_info?: PageScriptInfo
+	script_info?: { houdini_load?: string[]; exports: string[] }
 }): Promise<{ component: Script | null; script: Script | null }> {
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema, ...extra })
@@ -39,12 +47,29 @@ export async function route_test({
 	// scripts live in src/routes/+page.svelte
 	const filepath = path.join(process.cwd(), 'src/routes', '+page.svelte')
 
+	await mkdirp(path.dirname(filepath))
+
 	// write the content
 	await Promise.all([
 		writeFile(filepath, component),
 		writeFile(config.routeDataPath(filepath), script),
 		writeFile(config.pageQueryPath(filepath), query),
 	])
+
+	const mock_page_info = !script_info
+		? {
+				exports: [],
+		  }
+		: {
+				...script_info,
+				houdini_load: !script_info.houdini_load
+					? undefined
+					: script_info.houdini_load.map(
+							(query) =>
+								graphql.parse(query)
+									.definitions[0] as graphql.OperationDefinitionNode
+					  ),
+		  }
 
 	// we want to run the transformer on both the component and script paths
 	const [componentResult, scriptResult] = await Promise.all([
@@ -54,8 +79,7 @@ export async function route_test({
 				config,
 				filepath,
 				addWatchFile: () => {},
-				mock_page_info: script_info,
-				load: async () => null,
+				mock_page_info,
 			},
 			component
 		),
@@ -65,8 +89,7 @@ export async function route_test({
 				config,
 				filepath: config.routeDataPath(filepath),
 				addWatchFile: () => {},
-				mock_page_info: script_info,
-				load: async () => null,
+				mock_page_info,
 			},
 			script
 		),
@@ -90,6 +113,7 @@ export async function component_test(
 	const filepath = path.join(process.cwd(), 'src/lib', 'component.svelte')
 
 	// write the content
+	await mkdirp(path.dirname(filepath))
 	await writeFile(filepath, `<script>${content}</script>`)
 
 	// we want to run the transformer on both the component and script paths
@@ -99,7 +123,6 @@ export async function component_test(
 			config,
 			filepath,
 			addWatchFile: () => {},
-			load: async () => null,
 		},
 		`<script>${content}</script>`
 	)

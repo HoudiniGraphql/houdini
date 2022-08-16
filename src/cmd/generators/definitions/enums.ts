@@ -54,7 +54,7 @@ ${definition.values?.map((value) => `    ${value.name.value} = "${value.name.val
 
 	// the index file for the definitions directory
 	const definitionsIndex = `
-export * from './enums'
+export * from './enums.js'
 	`
 
 	// write the typedefinition to disk

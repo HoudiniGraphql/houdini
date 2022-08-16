@@ -48,16 +48,18 @@ export function ensureArtifactImport({
 	artifact,
 	body,
 	local,
+	withExtension,
 }: {
 	config: Config
 	artifact: { name: string }
 	body: Statement[]
 	local?: string
+	withExtension?: boolean
 }) {
 	return ensureImports({
 		config,
 		body,
-		sourceModule: config.artifactImportPath(artifact.name),
+		sourceModule: config.artifactImportPath(artifact.name) + (withExtension ? '.js' : ''),
 		import: local || `_${artifact.name}Artifact`,
 	})
 }
