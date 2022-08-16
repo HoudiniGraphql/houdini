@@ -6,64 +6,83 @@ description: An overview of Houdini's support for Typescript
 
 # Typescript
 
-Houdini is written in typescript and will generate types to match every document you wrap with `graphql`. This means you get a fully-typesafe layer that corresponds to the exact queries you are sending:
+Houdini is written in typescript and will generate types for all of your documents and special functions you define for houdini.
+
+## Configuration
+
+In order to setup your project to take full advantage of Houdini's generated types, you need to change your tsconfig file to look like the following:
+
+```json
+{
+	"compilerOptions": {
+		"rootDirs": [".", "./.svelte-kit/types", "./.$houdini/types"]
+	}
+}
+```
+
+## SvelteKit Routes
+
+When working with Houdini's [generated load functions](/api/kit#generating-route-loads), you can import type definition for your variable functions and hooks from `./$houdini` (a relative import):
+
+```typescript
+/// src/routes/myProifle/+page.ts
+
+import { graphql } from '$houdini'
+import type { AfterLoad } from './$houdini'
+
+export const houdini_load = graphql`
+	query MyProfile {
+		viewer {
+			id
+		}
+	}
+`
+
+export const afterLoad: AfterLoad = ({ data }) => {
+	return {
+		computedValue: data.MyProfile.viewer.id + '_new'
+	}
+}
+```
+
+## Inline Documents
+
+All of the inline document functions take a type parameter describing the shape of the result. You can import the generated types for your documents
+from `$houdini` and pass it in:
 
 ```svelte
 <script lang="typescript">
-    import { query, graphql, AllItems } from '$houdini'
+	import { query, graphql, AllItems } from '$houdini'
 
-    // load the items
-    const { data } = query<AllItems>(graphql`
-        query AllItems {
-            items {
-                id
-                text
-            }
-        }
-    `)
+	// load the items
+	const { data } = query<AllItems>(graphql`
+		query AllItems {
+			items {
+				id
+				text
+			}
+		}
+	`)
 </script>
 
 {#each $data.items as item}
-    <div>{item.text}</div>
+	<div>{item.text}</div>
 {/each}
 ```
 
-```svelte
-<script lang="typescript">
-    import { fragment, graphql, UserAvatar } from '$houdini'
+## Inline Stores
 
-    // the reference will get passed as a prop
-    export let user: UserAvatar
+If you are working with inline stores, you will have to add your types explicitly:
 
-    const data = fragment(user, graphql`
-        fragment UserAvatar on User {
-            profilePicture
-        }
-    `)
-</script>
+```typescript
+import type { AllItemsStore, graphql } from '$houdini'
 
-<img src={$data.profilePicture} />
-```
-
-```svelte
-<script lang="typescript">
-    import { mutation, graphql, UncheckItem } from '$houdini'
-
-    let itemID: string
-
-    const uncheckItem = mutation<UncheckItem>(graphql`
-        mutation UncheckItem($id: ID!) {
-            uncheckItem(item: $id) {
-                item {
-                    id
-                    completed
-                }
-            }
-        }
-    `)
-</script>
-
-<button on:click={() => uncheckItem({ id: itemID })}>
-    Uncheck Item
-</button>
+const store: AllItemsStore = graphql`
+	query AllItems {
+		items {
+			id
+			text
+		}
+	}
+`
 ```

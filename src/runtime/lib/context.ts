@@ -1,8 +1,7 @@
-import type { Page } from '@sveltejs/kit'
 import { getContext as svelteContext, setContext } from 'svelte'
-import { get, Writable, Readable } from 'svelte/store'
+import { Writable } from 'svelte/store'
 
-import { getPage, getSession } from '../adapter'
+import { getSession } from '../adapter'
 import * as log from './log'
 import {
 	CompiledQueryKind,

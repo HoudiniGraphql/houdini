@@ -11,11 +11,13 @@ const AST = recast.types.builders
 // single place to avoid conflicting exported types
 export default async function definitionsGenerator(config: Config) {
 	// grab every enum definition in the project's schema
-	const enums = (graphql
-		.parse(graphql.printSchema(config.schema))
-		.definitions.filter(
-			(definition) => definition.kind === 'EnumTypeDefinition'
-		) as graphql.EnumTypeDefinitionNode[]).filter((def) => !config.isInternalEnum(def))
+	const enums = (
+		graphql
+			.parse(graphql.printSchema(config.schema))
+			.definitions.filter(
+				(definition) => definition.kind === 'EnumTypeDefinition'
+			) as graphql.EnumTypeDefinitionNode[]
+	).filter((def) => !config.isInternalEnum(def))
 
 	// generate the runtime definitions
 	const runtimeDefinitions = recast.print(
@@ -54,7 +56,7 @@ ${definition.values?.map((value) => `    ${value.name.value} = "${value.name.val
 
 	// the index file for the definitions directory
 	const definitionsIndex = `
-export * from './enums'
+export * from './enums.js'
 	`
 
 	// write the typedefinition to disk

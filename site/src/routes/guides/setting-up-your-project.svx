@@ -16,12 +16,14 @@ What we'll cover:
 
 ## Installation
 
-houdini is available on npm:
+houdini is available on npm and should be installed as a dev dependency:
 
 ```bash
 yarn add -D houdini
 # or
 npm install --save-dev houdini
+# or
+pnpm install --save-dev houdini
 ```
 
 ## Starting a New Project
@@ -89,10 +91,6 @@ this, add the following block of code to `src/routes/+layout.svelte` and any nam
 </script>
 ```
 
-**Note**: If you are building your application with
-[`adapter-static`](https://github.com/sveltejs/kit/tree/master/packages/adapter-static) (or any other adapter that turns
-your application into a static site), you will need to set the `static` value in your config file to `true`.
-
 ### Svelte
 
 While your exact situation might change, somehow you should import houdini's preprocessor and pass it to your
@@ -117,21 +115,15 @@ use `this.error` to return an error and handle the redirect in a way that's appr
 
 ### Typescript
 
-If you are in a SvelteKit project, this step is done automatically.
-
-The only thing required to configure when setting up a project with typescript is to teach the compiler how to resolve the `$houdini`
-import:
+When using Typescript and SvelteKit, you will need to add houdini to your rootDir value so that you can use the generated
+variable and hooks types in your routes:
 
 ```typescript
 {
 	// ...
     "compilerOptions": {
-        "paths": {
-            // ...
-            "$houdini": [
-                "./$houdini/"
-            ]
-        }
+        // ...
+        "rootDirs": [".", "./.svelte-kit/types", "./$houdini/types"]
     }
 }
 ```

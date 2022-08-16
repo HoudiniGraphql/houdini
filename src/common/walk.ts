@@ -2,7 +2,6 @@ import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kind
 import { BaseNode } from 'estree'
 import { asyncWalk } from 'estree-walker'
 import * as graphql from 'graphql'
-import recast from 'recast'
 
 import { Config, Script } from '../common'
 import {
@@ -34,7 +33,7 @@ type GraphqlTagWalker = {
 }
 
 // yield the tagged graphql documents contained within the provided AST
-export async function walk_graphql_tags(
+export async function walkGraphQLTags(
 	config: Config,
 	parsedScript: Script,
 	walker: GraphqlTagWalker
@@ -53,11 +52,6 @@ export async function walk_graphql_tags(
 				const tagContent = expr.quasi.quasis[0].value.raw
 				const parsedTag = graphql.parse(tagContent)
 
-				// make sure there is only one definition
-				if (parsedTag.definitions.length > 1) {
-					throw new Error('Encountered multiple definitions in a tag')
-				}
-
 				// if there is a predicate and the graphql tag does not satisfy it
 				if (walker.where && !walker.where(parsedTag)) {
 					// ignore the tag
@@ -65,7 +59,7 @@ export async function walk_graphql_tags(
 				}
 
 				// pull out the name of the thing
-				const definition = parsedTag.definitions[0] as
+				const definition = config.extractDefinition(parsedTag) as
 					| graphql.OperationDefinitionNode
 					| graphql.FragmentDefinitionNode
 				const name = definition.name?.value

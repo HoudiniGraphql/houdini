@@ -44,7 +44,7 @@ export default async function ContextProcessor(config: Config, page: TransformPa
 
 					// if the specifier is for `$houdini` then we want any of the GQL specifiers
 					if (specifier.type === 'ImportSpecifier') {
-						return specifier.local?.name.startsWith('GQL_')
+						return specifier.local?.name.startsWith(config.storePrefix)
 					}
 				})
 				.map((specifier) => specifier.local!)

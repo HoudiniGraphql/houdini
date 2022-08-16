@@ -9,11 +9,6 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
-    "paths": {
-      "$lib": ["./src/lib"],
-      "$lib/*": ["./src/lib/*"],
-      "$houdini": ["./$houdini"],
-      "$houdini/*": ["./$houdini/*"]
-    }
+    "rootDirs": [".", "./.svelte-kit/types", "./.$houdini/types"]
   }
 }

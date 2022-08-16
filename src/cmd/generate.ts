@@ -11,8 +11,7 @@ import {
 	parseSvelte,
 	ParsedFile,
 	LogLevel,
-	walkTaggedDocuments,
-	TransformDocument,
+	walkGraphQLTags,
 	readFile,
 	parseJS,
 } from '../common'
@@ -39,6 +38,7 @@ export default async function compile(config: Config) {
 export async function runPipeline(config: Config, docs: CollectedGraphQLDocument[]) {
 	// we need to create the runtime folder structure
 	await config.createDirectories()
+	console.log(config.rootDir)
 
 	// reset the newSchema accumulator
 	config.newSchema = ''
@@ -85,6 +85,9 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				generators.persistOutput,
 				generators.definitions,
 				generators.stores,
+
+				// this has to go after runtime and artifacts
+				generators.kit,
 			],
 			docs
 		)
@@ -227,7 +230,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 				return await processGraphQLDocument(config, filepath, document)
 			} catch (e) {
 				throw {
-					...((e as unknown) as Error),
+					...(e as unknown as Error),
 					filepath,
 				}
 			}
@@ -255,16 +258,10 @@ async function processJSFile(
 		// add the filepath to the error message
 		throw { message: (e as Error).message, filepath }
 	}
-	const doc: TransformDocument = {
-		instance: program,
-		config,
-		dependencies: [],
-		filename: filepath,
-	}
 
 	// look for a graphql template tag
-	await walkTaggedDocuments(config, doc, program, {
-		onTag(tag) {
+	await walkGraphQLTags(config, program, {
+		tag(tag) {
 			documents.push({ document: tag.tagContent, filepath })
 		},
 	})

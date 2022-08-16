@@ -1,19 +1,20 @@
-import minimatch from 'minimatch'
-import path from 'path'
 import { Plugin } from 'vite'
 
 import generate from '../cmd/generate'
-import { Config, formatErrors, getConfig, mkdir, readFile, rmdir, Script } from '../common'
-import './fsPatch'
+import {
+	Config,
+	formatErrors,
+	getConfig,
+	HoudiniRouteScript,
+	mkdir,
+	rmdir,
+	Script,
+} from '../common'
 import { load_manifest } from './manifest'
 import apply_transforms from './transforms'
-import { PageScriptInfo } from './transforms/kit'
 
 export default function HoudiniPlugin(configFile?: string): Plugin {
 	let config: Config
-
-	// the function to load a module
-	let load = async (val: string): Promise<Record<string, any> | null> => null
 
 	return {
 		name: 'houdini',
@@ -22,26 +23,8 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 		enforce: 'pre',
 
 		// add watch-and-run to their vite config
-		async config(viteConfig, { command }) {
+		async config(viteConfig) {
 			config = await getConfig({ configFile })
-
-			// if we are running this to build, we need to generate the route manifest so our import can load it
-			if (command === 'build') {
-				try {
-					// delete the old build dir
-					await rmdir(config.compiledAssetsDir)
-				} catch (e) {}
-				try {
-					await mkdir(config.rootDir)
-				} catch {}
-				try {
-					// create a new build directory we can put the transpiled routes
-					await mkdir(config.compiledAssetsDir)
-				} catch {}
-
-				// create and load a new manifest
-				load = await load_manifest(config)
-			}
 
 			return {
 				server: {
@@ -51,12 +34,6 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 						allow: ['.'].concat(viteConfig.server?.fs?.allow || []),
 					},
 				},
-			}
-		},
-
-		configureServer(server) {
-			load = (str) => {
-				return server.ssrLoadModule(str)
 			}
 		},
 
@@ -83,43 +60,12 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 				addWatchFile: this.addWatchFile,
 				config: config,
 				filepath,
-				load,
 			}
 
 			// run the plugin pipeline
 			const result = await apply_transforms(config, ctx, code)
 
 			return result
-		},
-
-		// resolveId, load, and the fsPatch import are needed to trick vite into thinking that
-		// SvelteKit route scripts exist even if they aren't present on the filesystem
-
-		resolveId(id, _, { ssr }) {
-			if (!ssr) {
-				return null
-			}
-
-			// if we are resolving a route script, pretend its always there
-			if (config.isRouteScript(id)) {
-				return {
-					id: path.relative(process.cwd(), id),
-				}
-			}
-
-			return null
-		},
-
-		async load(id) {
-			// if we are processing a route script, we should always return _something_
-			if (config.isRouteScript(id)) {
-				return {
-					code: (await readFile(id)) || '',
-				}
-			}
-
-			// do the normal thing
-			return null
 		},
 	}
 }
@@ -129,6 +75,5 @@ export interface TransformPage {
 	script: Script
 	filepath: string
 	addWatchFile: (path: string) => void
-	mock_page_info?: PageScriptInfo
-	load: (path: string) => Promise<Record<string, any> | null>
+	mock_page_info?: HoudiniRouteScript
 }
