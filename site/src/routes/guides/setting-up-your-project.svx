@@ -16,12 +16,14 @@ What we'll cover:
 
 ## Installation
 
-houdini is available on npm:
+houdini is available on npm and should be installed as a dev dependency:
 
 ```bash
 yarn add -D houdini
 # or
 npm install --save-dev houdini
+# or
+pnpm install --save-dev houdini
 ```
 
 ## Starting a New Project
@@ -120,12 +122,8 @@ variable and hooks types in your routes:
 {
 	// ...
     "compilerOptions": {
-		// ...
-		"rootDirs": [
-			".",
-			"./.svelte-kit/types",
-			"./$houdini/types",
-		]
+        // ...
+        "rootDirs": [".", "./.svelte-kit/types", "./$houdini/types"]
     }
 }
 ```
