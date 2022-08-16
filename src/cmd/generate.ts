@@ -85,6 +85,8 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				generators.persistOutput,
 				generators.definitions,
 				generators.stores,
+
+				// this has to go after runtime and artifacts
 				generators.kit,
 			],
 			docs

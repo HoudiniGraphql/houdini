@@ -86,12 +86,12 @@ export async function mkdir(filepath: string) {
 export async function rmdir(filepath: string) {
 	// no mock in production
 	if (process.env.NODE_ENV !== 'test') {
-		return await fs.rmdir(filepath, {
+		return await fs.rm(filepath, {
 			recursive: true,
 		})
 	}
 
-	return memfs.rmdirSync(filepath, {
+	return memfs.rmSync(filepath, {
 		recursive: true,
 	})
 }

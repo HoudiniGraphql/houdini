@@ -12,6 +12,7 @@ import {
 	readFile,
 	stat,
 } from '../../common'
+import * as fs from '../../common/fs'
 import { find_insert_index } from '../ast'
 import { ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
@@ -435,15 +436,8 @@ function load_hook_statements(
 }
 
 async function find_page_info(page: TransformPage): Promise<HoudiniRouteScript> {
-	const nil: HoudiniRouteScript = { houdini_load: [], exports: [] }
-
-	// if the page has mocked page stores return them
-	if (process.env.NODE_ENV === 'test') {
-		return page.mock_page_info ?? nil
-	}
-
 	if (!page.config.isRouteScript(page.filepath) && !page.config.isRoute(page.filepath)) {
-		return nil
+		return { houdini_load: [], exports: [] }
 	}
 
 	// make sure we consider the typescript path first (so if it fails we resort to the .js one)
@@ -454,13 +448,5 @@ async function find_page_info(page: TransformPage): Promise<HoudiniRouteScript> 
 		route_path = route_path.replace('.js', '.ts')
 	}
 
-	try {
-		return await page.config.importLoadFunction(route_path, page.load)
-	} catch (e) {
-		if (!(e as Error).toString().includes('ERR_MODULE_NOT_FOUND')) {
-			console.log(e)
-		}
-
-		return nil
-	}
+	return await page.config.extractLoadFunction(route_path)
 }

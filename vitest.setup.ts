@@ -5,6 +5,7 @@ import * as recast from 'recast'
 import typeScriptParser from 'recast/parsers/typescript'
 import { expect, afterEach } from 'vitest'
 
+import { parseJS } from './src/common'
 import { clearMock } from './src/common/fs'
 import * as fs from './src/common/fs'
 
@@ -54,6 +55,16 @@ expect.extend({
 		// @ts-ignore
 		return toMatchInlineSnapshot.call(this, parsed, ...rest)
 	},
+	async toMatchJavascriptSnapshot(value, ...rest) {
+		// The error (and its stacktrace) must be created before any `await`
+		this.error = new Error()
+
+		// parse the contents
+		const parsed = await parseJS(value)
+
+		// @ts-ignore
+		return toMatchInlineSnapshot.call(this, parsed?.script, ...rest)
+	},
 })
 
 function documentName(document: graphql.DocumentNode) {
@@ -75,7 +86,7 @@ function documentName(document: graphql.DocumentNode) {
 	// look for a fragment definition
 	const fragmentDefinitions = document.definitions.filter(
 		({ kind }) => kind === graphql.Kind.FRAGMENT_DEFINITION
-	)
+	) as graphql.FragmentDefinitionNode[]
 	if (fragmentDefinitions.length) {
 		// join all of the fragment definitions into one
 		return fragmentDefinitions.map((fragment) => fragment.name).join('_')

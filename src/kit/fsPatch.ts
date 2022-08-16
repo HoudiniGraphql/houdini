@@ -1,6 +1,46 @@
 // @ts-nocheck
 import filesystem from 'fs'
 
+// this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
+export default function HoudiniFsPatch(configPath?: string): Plugin {
+	let config: Config
+
+	return {
+		name: 'houdini-fs-patch',
+
+		async configResolved(viteConfig) {
+			config = await getConfig({ configFile })
+		},
+
+		resolveId(id, _, { ssr }) {
+			if (!ssr) {
+				return null
+			}
+
+			// if we are resolving a route script, pretend its always there
+			if (config.isRouteScript(id)) {
+				return {
+					id: path.relative(process.cwd(), id),
+				}
+			}
+
+			return null
+		},
+
+		async load(id) {
+			// if we are processing a route script, we should always return _something_
+			if (config.isRouteScript(id)) {
+				return {
+					code: (await readFile(id)) || '',
+				}
+			}
+
+			// do the normal thing
+			return null
+		},
+	}
+}
+
 const _readDirSync = filesystem.readdirSync
 const _statSync = filesystem.statSync
 

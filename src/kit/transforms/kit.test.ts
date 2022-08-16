@@ -93,9 +93,6 @@ describe('kit route processor', function () {
 
 					}
 				`,
-			script_info: {
-				exports: ['load'],
-			},
 			component: `
 					<script>
 						const { data } = query(graphql\`
@@ -205,9 +202,6 @@ describe('kit route processor', function () {
 						}
 					}
 				`,
-			script_info: {
-				exports: ['TestQueryVariables'],
-			},
 			component: `
 					<script>
 						const { data } = query(graphql\`
@@ -342,13 +336,6 @@ describe('kit route processor', function () {
 
 				export const houdini_load = [store1, store2]
 			`,
-			script_info: {
-				// neither query _require_ variables. we need to look at the file's
-				// exports when generating the load function to centralize the logic
-				// across inline, page, and load queries
-				exports: ['MyQuery2Variables', 'houdini_load'],
-				houdini_load: [MyQuery1, MyQuery2],
-			},
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
@@ -483,9 +470,6 @@ test('beforeLoad hook', async function () {
 				}
 			}
 		`,
-		script_info: {
-			exports: ['beforeLoad', 'TestQueryVariables'],
-		},
 		component: `
 				<script>
 					const { data } = query(graphql\`
@@ -560,9 +544,6 @@ test('beforeLoad hook - multiple queries', async function () {
 				}
 			}
 		`,
-		script_info: {
-			exports: ['beforeLoad', 'TestQueryVariables'],
-		},
 		component: `
 				<script>
 					const { data: data1 } = query(graphql\`
@@ -649,9 +630,6 @@ test('afterLoad hook', async function () {
 					}
 				}
 		`,
-		script_info: {
-			exports: ['afterLoad', 'TestQueryVariables'],
-		},
 		component: `
 				<script>
 					const { data } = query(graphql\`
@@ -727,9 +705,6 @@ test('afterLoad hook - multiple queries', async function () {
 				}
 			}
 		`,
-		script_info: {
-			exports: ['afterLoad', 'TestQueryVariables'],
-		},
 		component: `
 			<script>
 				const { data: data1 } = query(graphql\`
@@ -821,9 +796,6 @@ test('both beforeLoad and afterLoad hooks', async function () {
 				}
 			}
 		`,
-		script_info: {
-			exports: ['afterLoad', 'TestQueryVariables', 'beforeLoad'],
-		},
 		component: `
 			<script>
 				const { data } = query(graphql\`

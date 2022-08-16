@@ -1,4 +1,4 @@
-import { LoadEvent, Page } from '@sveltejs/kit'
+import { LoadEvent } from '@sveltejs/kit'
 
 // @ts-ignore
 // import { error, redirect } from '@sveltejs/kit/data'
@@ -14,7 +14,6 @@ import {
 	MutationArtifact,
 	QueryArtifact,
 	QueryStore,
-	QueryStoreFetchParams,
 	SubscriptionArtifact,
 } from './types'
 

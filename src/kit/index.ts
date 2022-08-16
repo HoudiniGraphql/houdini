@@ -5,6 +5,7 @@ import type { Plugin } from 'vite'
 import generate from '../cmd/generate'
 import { getConfig } from '../common'
 import { ConfigFile } from '../runtime'
+import fs_patch from './fsPatch'
 import houdini from './plugin'
 import schema from './schema'
 import watch_and_run from './watch-and-run'
@@ -20,6 +21,7 @@ export default function ({
 	return [
 		houdini(configPath),
 		schema(configPath),
+		fs_patch(configPath),
 		watch_and_run([
 			{
 				name: 'Houdini',

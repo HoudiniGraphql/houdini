@@ -1,16 +1,24 @@
-import path from 'path'
+import { build, ResolvedConfig } from 'vite'
 
 import { Config } from '../common'
 import * as fs from '../common/fs'
 
 // safely import the files when we're transforming
 export async function load_manifest(
-	config: Config
+	config: Config,
+	viteConfig: ResolvedConfig
 ): Promise<(filepath: string) => Promise<Record<string, any>>> {
 	// if this isn't a sveltekit project, just use imports
 	if (config.framework !== 'kit') {
 		return (filepath: string) => import(filepath)
 	}
+
+	// lets start off by building the project
+	const result = await build({
+		plugins: viteConfig.plugins.filter((plugin) => plugin.name !== 'houdini'),
+	})
+
+	console.log('built')
 
 	// we need to walk down the route directory and find every route script
 	const paths: Record<string, string> = {}

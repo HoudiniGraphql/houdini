@@ -8337,6 +8337,7 @@ __metadata:
     ts-node: ^9.1.1
     tslib: ^2.4.0
     typescript: ^4.6.3
+    vite: ^3.0.7
     vitest: ^0.21.1
   peerDependencies:
     graphql: ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
@@ -8641,6 +8642,7 @@ __metadata:
     svelte: ^3.47.0
     svelte-check: ^2.2.6
     svelte-preprocess: ^4.10.1
+    tsconfck: ^2.0.1
     tslib: ^2.3.1
     typescript: ~4.6.2
     vite: 3
@@ -14589,6 +14591,20 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
+"tsconfck@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "tsconfck@npm:2.0.1"
+  peerDependencies:
+    typescript: ^4.3.5
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  bin:
+    tsconfck: bin/tsconfck.js
+  checksum: 9d98edfea40f58bf64ee14a0cf9a28f0051c36762362ca31bd22f7a2aaf7f7fda6cad590fe5f30d9a5d22e94ae58ffdcfce5674d13f958e539ae927eb26c5f47
+  languageName: node
+  linkType: hard
+
 "tsconfig-paths@npm:^3.14.1":
   version: 3.14.1
   resolution: "tsconfig-paths@npm:3.14.1"
@@ -15277,7 +15293,7 @@ resolve@^1.19.0:
   languageName: node
   linkType: hard
 
-"vite@npm:^2.9.12 || ^3.0.0-0":
+"vite@npm:^2.9.12 || ^3.0.0-0, vite@npm:^3.0.7":
   version: 3.0.7
   resolution: "vite@npm:3.0.7"
   dependencies:
