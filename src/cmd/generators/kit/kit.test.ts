@@ -48,7 +48,7 @@ test('typedefs for inline queries without variables', async function () {
 `)
 })
 
-test('typedefs for inline queries without variables', async function () {
+test('typedefs for inline queries with variables', async function () {
 	// the path of the route page (relative to routes Dir)
 	const routeRelative = 'myProfile/+page.svelte'
 	await fs.mkdirp(path.join(config.routesDir, 'myProfile'))
