@@ -11,7 +11,7 @@ const ctx = new RequestContext({
 	page: {} as any,
 	stuff: {},
 	session: {},
-	fetch: ((() => {}) as unknown) as (input: RequestInfo, init?: RequestInit) => Promise<any>,
+	fetch: (() => {}) as unknown as (input: RequestInfo, init?: RequestInit) => Promise<any>,
 })
 
 const config = testConfigFile({
