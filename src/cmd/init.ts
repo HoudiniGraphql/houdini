@@ -124,6 +124,8 @@ export default async function init(
 	const houdiniClientPath = typescript
 		? path.join(sourceDir, 'client.ts')
 		: path.join(sourceDir, 'client.js')
+	// houdini client import path
+	const houdiniClientImport = './src/client'
 
 	console.log('🚧 Generating project files...')
 
@@ -137,6 +139,7 @@ export default async function init(
 		framework,
 		module,
 		url,
+		houdiniClientImport,
 	})
 	await writeFile(houdiniClientPath, networkFile(url, typescript))
 	await graphqlRCFile(targetPath)
@@ -200,6 +203,7 @@ const writeConfigFile = async ({
 	framework,
 	module,
 	url,
+	houdiniClientImport,
 }: {
 	targetPath: string
 	configPath: string
@@ -207,8 +211,10 @@ const writeConfigFile = async ({
 	framework: 'kit' | 'svelte'
 	module: 'esm' | 'commonjs'
 	url: string
+	houdiniClientImport: string
 }): Promise<boolean> => {
 	const config: ConfigFile = {
+		client: houdiniClientImport,
 		apiUrl: url,
 	}
 
