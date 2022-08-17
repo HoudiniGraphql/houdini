@@ -6,18 +6,20 @@ import {
 	CompiledSubscriptionKind,
 	ConfigFile,
 	deepEquals,
+	HoudiniClient,
 	SubscriptionArtifact,
 	SubscriptionStore,
 } from '../lib'
-import { getCurrentClient } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 
 export function subscriptionStore<_Data, _Input>({
 	config,
 	artifact,
+	client,
 }: {
 	config: ConfigFile
 	artifact: SubscriptionArtifact
+	client: HoudiniClient
 }): SubscriptionStore<_Data | null, _Input> {
 	// a store that holds the latest value
 	const result = writable<_Data | null>(null)
@@ -43,11 +45,7 @@ export function subscriptionStore<_Data, _Input>({
 			}
 
 			// pull out the current client
-			const env = getCurrentClient()
-			// if there isn't one, yell loudly
-			if (!env) {
-				throw new Error('Could not find Houdini Client')
-			}
+			const env = client
 			// we need to make sure that the user provided a socket connection
 			if (!env.socket) {
 				throw new Error(

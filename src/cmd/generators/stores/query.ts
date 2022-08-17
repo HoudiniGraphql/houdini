@@ -22,7 +22,7 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	const paginationExtras = pagination(config, doc, 'query')
 
 	// store definition
-	const storeData = `import { houdiniConfig } from '$houdini';
+	const storeData = `import { houdiniConfig, houdiniClient } from '$houdini';
 import { queryStore } from '../runtime/stores'
 import artifact from '../artifacts/${artifactName}'
 import { defaultConfigValues } from '../runtime/lib'
@@ -30,6 +30,7 @@ import { defaultConfigValues } from '../runtime/lib'
 // create the query store
 const factory = () => queryStore({
     artifact,
+	client: houdiniClient,
     config: defaultConfigValues(houdiniConfig),
     storeName: ${JSON.stringify(storeName)},
     paginated: ${JSON.stringify(Boolean(doc.refetch?.paginated))},

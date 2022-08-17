@@ -100,7 +100,19 @@ async function fetchQuery({
 
 	init() {
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		currentClient = this
+		log.info(
+			`${log.red('⚠️  HoudiniClient.init has been removed ⚠️')}
+You should update your config file to look like the following:
+
+import ${log.green('houdiniClient')} from './src/houdiniClient'
+
+export default { 
+	client: ${log.green('houdiniClient')},
+}
+
+For more information, please visit this link: https://www.houdinigraphql.com/guides/release-notes#0.16.0
+`
+		)
 	}
 }
 
@@ -120,30 +132,6 @@ For more information, please visit this link: https://www.houdinigraphql.com/gui
 `
 		)
 	}
-}
-
-let currentClient: HoudiniClient | null = null
-
-export function setEnvironment(env: HoudiniClient) {
-	log.info(
-		`${log.red('⚠️  setEnvironment is now replaced by environment.init() ⚠️')}
-You should update your __layout files to look something like the following:
-
-<script context="module">
-  import client from 'path/to/client'
-
-  client.init()
-</script>
-
-
-For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0#environment
-`
-	)
-	env.init()
-}
-
-export function getCurrentClient(): HoudiniClient | null {
-	return currentClient
 }
 
 export type SubscriptionHandler = {
@@ -234,12 +222,14 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 	config,
 	metadata,
 	fetch,
+	client,
 }: {
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
 	session: App.Session | null
 	cached: boolean
 	config: ConfigFile
+	client: HoudiniClient
 	// @ts-ignore
 	metadata?: App.Metadata
 	fetch?: LoadEvent['fetch']
@@ -263,6 +253,7 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 		artifact,
 		variables,
 		cached,
+		client,
 	})
 
 	// we could have gotten a null response
@@ -286,6 +277,7 @@ export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: 
 
 export async function fetchQuery<_Data extends GraphQLObject, _Input>({
 	config,
+	client,
 	context,
 	artifact,
 	variables,
@@ -298,11 +290,10 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input>({
 	variables: _Input
 	cached?: boolean
 	policy?: CachePolicy
+	client: HoudiniClient | null
 }): Promise<FetchQueryResult<_Data>> {
-	// grab the current environment
-	const environment = currentClient
 	// if there is no environment
-	if (!environment) {
+	if (!client) {
 		return {
 			result: { data: null, errors: [{ message: 'could not find houdini environment' }] },
 			source: null,
@@ -362,7 +353,7 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input>({
 	}, 0)
 
 	// the request must be resolved against the network
-	const result = await environment.sendRequest<_Data>(
+	const result = await client.sendRequest<_Data>(
 		context,
 		{ text: artifact.raw, hash: artifact.hash, variables },
 		context.session

@@ -38,4 +38,4 @@ async function fetchQuery({
 }
 
 // Export the Houdini client
-export const houdiniClient = new HoudiniClient(fetchQuery);
+export default new HoudiniClient(fetchQuery);

@@ -1,5 +1,6 @@
 import type { GraphQLSchema } from 'graphql'
 
+import { HoudiniClient } from '..'
 import { CachePolicy } from './types'
 
 export type ScalarSpec = {
@@ -15,6 +16,11 @@ type ScalarMap = { [typeName: string]: ScalarSpec }
 
 // the values we can take in from the config file
 export type ConfigFile = {
+	/**
+	 * A relative path from your houdini.config.js to the file that exports your client as its default value
+	 */
+	client: string
+
 	/**
 	 * @deprecated use include instead. although you might not need it at all, check the default value.
 	 */

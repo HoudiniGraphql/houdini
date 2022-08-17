@@ -46,7 +46,7 @@ test('basic store', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { houdiniConfig } from '$houdini';
+		import { houdiniConfig, houdiniClient } from '$houdini';
 		import { queryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 		import { defaultConfigValues } from '../runtime/lib'
@@ -54,6 +54,7 @@ test('basic store', async function () {
 		// create the query store
 		const factory = () => queryStore({
 		    artifact,
+			client: houdiniClient,
 		    config: defaultConfigValues(houdiniConfig),
 		    storeName: "GQL_TestQuery",
 		    paginated: false,
@@ -98,7 +99,7 @@ test('store with required variables', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { houdiniConfig } from '$houdini';
+		import { houdiniConfig, houdiniClient } from '$houdini';
 		import { queryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 		import { defaultConfigValues } from '../runtime/lib'
@@ -106,6 +107,7 @@ test('store with required variables', async function () {
 		// create the query store
 		const factory = () => queryStore({
 		    artifact,
+			client: houdiniClient,
 		    config: defaultConfigValues(houdiniConfig),
 		    storeName: "GQL_TestQuery",
 		    paginated: false,
@@ -150,7 +152,7 @@ test('store with nullable variables', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { houdiniConfig } from '$houdini';
+		import { houdiniConfig, houdiniClient } from '$houdini';
 		import { queryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 		import { defaultConfigValues } from '../runtime/lib'
@@ -158,6 +160,7 @@ test('store with nullable variables', async function () {
 		// create the query store
 		const factory = () => queryStore({
 		    artifact,
+			client: houdiniClient,
 		    config: defaultConfigValues(houdiniConfig),
 		    storeName: "GQL_TestQuery",
 		    paginated: false,
@@ -202,7 +205,7 @@ test('store with non-null variables with default value', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { houdiniConfig } from '$houdini';
+		import { houdiniConfig, houdiniClient } from '$houdini';
 		import { queryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 		import { defaultConfigValues } from '../runtime/lib'
@@ -210,6 +213,7 @@ test('store with non-null variables with default value', async function () {
 		// create the query store
 		const factory = () => queryStore({
 		    artifact,
+			client: houdiniClient,
 		    config: defaultConfigValues(houdiniConfig),
 		    storeName: "GQL_TestQuery",
 		    paginated: false,
@@ -260,7 +264,7 @@ test('forward cursor pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { houdiniConfig } from '$houdini';
+		import { houdiniConfig, houdiniClient } from '$houdini';
 		import { queryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 		import { defaultConfigValues } from '../runtime/lib'
@@ -268,6 +272,7 @@ test('forward cursor pagination', async function () {
 		// create the query store
 		const factory = () => queryStore({
 		    artifact,
+			client: houdiniClient,
 		    config: defaultConfigValues(houdiniConfig),
 		    storeName: "GQL_TestQuery",
 		    paginated: true,
@@ -318,7 +323,7 @@ test('backwards cursor pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { houdiniConfig } from '$houdini';
+		import { houdiniConfig, houdiniClient } from '$houdini';
 		import { queryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 		import { defaultConfigValues } from '../runtime/lib'
@@ -326,6 +331,7 @@ test('backwards cursor pagination', async function () {
 		// create the query store
 		const factory = () => queryStore({
 		    artifact,
+			client: houdiniClient,
 		    config: defaultConfigValues(houdiniConfig),
 		    storeName: "GQL_TestQuery",
 		    paginated: true,
@@ -372,7 +378,7 @@ test('offset pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { houdiniConfig } from '$houdini';
+		import { houdiniConfig, houdiniClient } from '$houdini';
 		import { queryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 		import { defaultConfigValues } from '../runtime/lib'
@@ -380,6 +386,7 @@ test('offset pagination', async function () {
 		// create the query store
 		const factory = () => queryStore({
 		    artifact,
+			client: houdiniClient,
 		    config: defaultConfigValues(houdiniConfig),
 		    storeName: "GQL_TestQuery",
 		    paginated: true,

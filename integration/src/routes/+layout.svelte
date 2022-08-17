@@ -1,7 +1,10 @@
 <script lang="ts">
   import { browser } from '$app/env';
   import cache from '$houdini/runtime/cache';
+  import houdiniClient from '$lib/graphql/houdiniClient';
   import { routes } from '$lib/utils/routes';
+
+  houdiniClient.init();
 
   if (browser) {
     // @ts-ignore

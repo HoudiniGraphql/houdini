@@ -28,7 +28,6 @@ export default async function apply_transforms(
 			script = await parseJS(content)
 		}
 	} catch (e) {
-		console.log(page.filepath, content)
 		return { code: content }
 	}
 

@@ -1,5 +1,6 @@
 /** @type {import('houdini').ConfigFile} */
 const config = {
+  client: './src/lib/graphql/houdiniClient',
   schemaPath: './api/*.graphql',
   apiUrl: 'http://localhost:4000/graphql',
   defaultCachePolicy: 'CacheOrNetwork',

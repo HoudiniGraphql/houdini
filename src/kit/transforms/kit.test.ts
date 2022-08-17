@@ -45,45 +45,45 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-		import { injectContext } from "$houdini/runtime/lib/context";
+			import { injectContext } from "$houdini/runtime/lib/context";
 
-		$:
-		injectContext([$$props.data.TestQuery]);
+			$:
+			injectContext([$$props.data.TestQuery]);
 
-		$:
-		({
-		    TestQuery: _houdini_TestQuery
-		} = $$props.data);
+			$:
+			({
+			    TestQuery: _houdini_TestQuery
+			} = $$props.data);
 
-		const {
-		    data
-		} = query(_houdini_TestQuery);
-	`)
+			const {
+			    data
+			} = query(_houdini_TestQuery);
+		`)
 		expect(route.script).toMatchInlineSnapshot(`
-		import { load_TestQuery } from "$houdini/stores/TestQuery";
-		import { RequestContext } from "$houdini/runtime/lib/network";
-		import GQL_TestQuery from "$houdini/stores/TestQuery";
+			import { load_TestQuery } from "$houdini/stores/TestQuery";
+			import { RequestContext } from "$houdini/runtime/lib/network";
+			import GQL_TestQuery from "$houdini/stores/TestQuery";
 
-		export async function load(context) {
-		    const houdini_context = new RequestContext(context);
-		    const promises = [];
-		    const inputs = {};
-		    inputs["TestQuery"] = {};
+			export async function load(context) {
+			    const houdini_context = new RequestContext(context);
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestQuery"] = {};
 
-		    promises.push(load_TestQuery({
-		        "variables": inputs["TestQuery"],
-		        "event": context,
-		        "blocking": false
-		    }));
+			    promises.push(load_TestQuery({
+			        "variables": inputs["TestQuery"],
+			        "event": context,
+			        "blocking": false
+			    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+			    const result = Object.assign({}, ...(await Promise.all(promises)));
 
-		    return {
-		        ...houdini_context.returnValue,
-		        ...result
-		    };
-		}
-	`)
+			    return {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
+			}
+		`)
 	})
 
 	test("existing loads aren't modified", async function () {
@@ -108,9 +108,9 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.script).toMatchInlineSnapshot(`
-		import GQL_TestQuery1 from "$houdini/stores/TestQuery1";
-		export async function load() {}
-	`)
+			import GQL_TestQuery1 from "$houdini/stores/TestQuery1";
+			export async function load() {}
+		`)
 	})
 
 	test('multiple inline queries', async function () {
@@ -137,60 +137,60 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-		import { injectContext } from "$houdini/runtime/lib/context";
+			import { injectContext } from "$houdini/runtime/lib/context";
 
-		$:
-		injectContext([$$props.data.TestQuery1, $$props.data.TestQuery2]);
+			$:
+			injectContext([$$props.data.TestQuery1, $$props.data.TestQuery2]);
 
-		$:
-		({
-		    TestQuery1: _houdini_TestQuery1,
-		    TestQuery2: _houdini_TestQuery2
-		} = $$props.data);
+			$:
+			({
+			    TestQuery1: _houdini_TestQuery1,
+			    TestQuery2: _houdini_TestQuery2
+			} = $$props.data);
 
-		const {
-		    data: data1
-		} = query(_houdini_TestQuery1);
+			const {
+			    data: data1
+			} = query(_houdini_TestQuery1);
 
-		const {
-		    data: data2
-		} = query(_houdini_TestQuery2);
-	`)
+			const {
+			    data: data2
+			} = query(_houdini_TestQuery2);
+		`)
 		expect(route.script).toMatchInlineSnapshot(`
-		import { load_TestQuery2 } from "$houdini/stores/TestQuery2";
-		import { load_TestQuery1 } from "$houdini/stores/TestQuery1";
-		import { RequestContext } from "$houdini/runtime/lib/network";
-		import GQL_TestQuery2 from "$houdini/stores/TestQuery2";
-		import GQL_TestQuery1 from "$houdini/stores/TestQuery1";
+			import { load_TestQuery2 } from "$houdini/stores/TestQuery2";
+			import { load_TestQuery1 } from "$houdini/stores/TestQuery1";
+			import { RequestContext } from "$houdini/runtime/lib/network";
+			import GQL_TestQuery2 from "$houdini/stores/TestQuery2";
+			import GQL_TestQuery1 from "$houdini/stores/TestQuery1";
 
-		export async function load(context) {
-		    const houdini_context = new RequestContext(context);
-		    const promises = [];
-		    const inputs = {};
-		    inputs["TestQuery1"] = {};
+			export async function load(context) {
+			    const houdini_context = new RequestContext(context);
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestQuery1"] = {};
 
-		    promises.push(load_TestQuery1({
-		        "variables": inputs["TestQuery1"],
-		        "event": context,
-		        "blocking": false
-		    }));
+			    promises.push(load_TestQuery1({
+			        "variables": inputs["TestQuery1"],
+			        "event": context,
+			        "blocking": false
+			    }));
 
-		    inputs["TestQuery2"] = {};
+			    inputs["TestQuery2"] = {};
 
-		    promises.push(load_TestQuery2({
-		        "variables": inputs["TestQuery2"],
-		        "event": context,
-		        "blocking": false
-		    }));
+			    promises.push(load_TestQuery2({
+			        "variables": inputs["TestQuery2"],
+			        "event": context,
+			        "blocking": false
+			    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+			    const result = Object.assign({}, ...(await Promise.all(promises)));
 
-		    return {
-		        ...houdini_context.returnValue,
-		        ...result
-		    };
-		}
-	`)
+			    return {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
+			}
+		`)
 	})
 
 	test('compute variables', async function () {
@@ -217,41 +217,41 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.script).toMatchInlineSnapshot(`
-		import { load_TestQuery } from "$houdini/stores/TestQuery";
-		import { RequestContext } from "$houdini/runtime/lib/network";
-		import GQL_TestQuery from "$houdini/stores/TestQuery";
+			import { load_TestQuery } from "$houdini/stores/TestQuery";
+			import { RequestContext } from "$houdini/runtime/lib/network";
+			import GQL_TestQuery from "$houdini/stores/TestQuery";
 
-		export function TestQueryVariables(page) {
-		    return {
-		        test: true
-		    };
-		}
+			export function TestQueryVariables(page) {
+			    return {
+			        test: true
+			    };
+			}
 
-		export async function load(context) {
-		    const houdini_context = new RequestContext(context);
-		    const promises = [];
-		    const inputs = {};
+			export async function load(context) {
+			    const houdini_context = new RequestContext(context);
+			    const promises = [];
+			    const inputs = {};
 
-		    inputs["TestQuery"] = houdini_context.computeInput({
-		        "config": houdiniConfig,
-		        "variableFunction": TestQueryVariables,
-		        "artifact": GQL_TestQuery.artifact
-		    });
+			    inputs["TestQuery"] = houdini_context.computeInput({
+			        "config": houdiniConfig,
+			        "variableFunction": TestQueryVariables,
+			        "artifact": GQL_TestQuery.artifact
+			    });
 
-		    promises.push(load_TestQuery({
-		        "variables": inputs["TestQuery"],
-		        "event": context,
-		        "blocking": false
-		    }));
+			    promises.push(load_TestQuery({
+			        "variables": inputs["TestQuery"],
+			        "event": context,
+			        "blocking": false
+			    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+			    const result = Object.assign({}, ...(await Promise.all(promises)));
 
-		    return {
-		        ...houdini_context.returnValue,
-		        ...result
-		    };
-		}
-	`)
+			    return {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
+			}
+		`)
 	})
 
 	test('bare svelte component in route filepath', async function () {
@@ -339,73 +339,73 @@ describe('kit route processor', function () {
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
-		import { injectContext } from "$houdini/runtime/lib/context";
+			import { injectContext } from "$houdini/runtime/lib/context";
 
-		$:
-		injectContext([$$props.data.TestQuery, $$props.data.MyQuery1, $$props.data.MyQuery2]);
+			$:
+			injectContext([$$props.data.TestQuery, $$props.data.MyQuery1, $$props.data.MyQuery2]);
 
-		$:
-		({
-		    TestQuery: _houdini_TestQuery
-		} = $$props.data);
+			$:
+			({
+			    TestQuery: _houdini_TestQuery
+			} = $$props.data);
 
-		const {
-		    data
-		} = query(_houdini_TestQuery);
-	`)
+			const {
+			    data
+			} = query(_houdini_TestQuery);
+		`)
 		expect(route.script).toMatchInlineSnapshot(`
-		import GQL_MyQuery1 from "$houdini/stores/MyQuery1";
-		import GQL_MyQuery2 from "$houdini/stores/MyQuery2";
-		import { load_MyQuery2 } from "$houdini/stores/MyQuery2";
-		import { load_MyQuery1 } from "$houdini/stores/MyQuery1";
-		import { load_TestQuery } from "$houdini/stores/TestQuery";
-		import { RequestContext } from "$houdini/runtime/lib/network";
-		import GQL_TestQuery from "$houdini/stores/TestQuery";
-		const store1 = GQL_MyQuery1;
-		const store2 = GQL_MyQuery2;
-		export function MyQuery2Variables() {}
-		export const houdini_load = [store1, store2];
+			import GQL_MyQuery1 from "$houdini/stores/MyQuery1";
+			import GQL_MyQuery2 from "$houdini/stores/MyQuery2";
+			import { load_MyQuery2 } from "$houdini/stores/MyQuery2";
+			import { load_MyQuery1 } from "$houdini/stores/MyQuery1";
+			import { load_TestQuery } from "$houdini/stores/TestQuery";
+			import { RequestContext } from "$houdini/runtime/lib/network";
+			import GQL_TestQuery from "$houdini/stores/TestQuery";
+			const store1 = GQL_MyQuery1;
+			const store2 = GQL_MyQuery2;
+			export function MyQuery2Variables() {}
+			export const houdini_load = [store1, store2];
 
-		export async function load(context) {
-		    const houdini_context = new RequestContext(context);
-		    const promises = [];
-		    const inputs = {};
-		    inputs["TestQuery"] = {};
+			export async function load(context) {
+			    const houdini_context = new RequestContext(context);
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestQuery"] = {};
 
-		    promises.push(load_TestQuery({
-		        "variables": inputs["TestQuery"],
-		        "event": context,
-		        "blocking": false
-		    }));
+			    promises.push(load_TestQuery({
+			        "variables": inputs["TestQuery"],
+			        "event": context,
+			        "blocking": false
+			    }));
 
-		    inputs["MyQuery1"] = {};
+			    inputs["MyQuery1"] = {};
 
-		    promises.push(load_MyQuery1({
-		        "variables": inputs["MyQuery1"],
-		        "event": context,
-		        "blocking": false
-		    }));
+			    promises.push(load_MyQuery1({
+			        "variables": inputs["MyQuery1"],
+			        "event": context,
+			        "blocking": false
+			    }));
 
-		    inputs["MyQuery2"] = houdini_context.computeInput({
-		        "config": houdiniConfig,
-		        "variableFunction": MyQuery2Variables,
-		        "artifact": GQL_MyQuery2.artifact
-		    });
+			    inputs["MyQuery2"] = houdini_context.computeInput({
+			        "config": houdiniConfig,
+			        "variableFunction": MyQuery2Variables,
+			        "artifact": GQL_MyQuery2.artifact
+			    });
 
-		    promises.push(load_MyQuery2({
-		        "variables": inputs["MyQuery2"],
-		        "event": context,
-		        "blocking": false
-		    }));
+			    promises.push(load_MyQuery2({
+			        "variables": inputs["MyQuery2"],
+			        "event": context,
+			        "blocking": false
+			    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+			    const result = Object.assign({}, ...(await Promise.all(promises)));
 
-		    return {
-		        ...houdini_context.returnValue,
-		        ...result
-		    };
-		}
-	`)
+			    return {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
+			}
+		`)
 	})
 
 	test('route with page query', async function () {
@@ -420,38 +420,38 @@ describe('kit route processor', function () {
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
-		import { injectContext } from "$houdini/runtime/lib/context";
-		import GQL_TestQuery from "$houdini/stores/TestQuery";
-		injectContext([GQL_TestQuery]);
+			import { injectContext } from "$houdini/runtime/lib/context";
+			import GQL_TestQuery from "$houdini/stores/TestQuery";
+			injectContext([GQL_TestQuery]);
 
-		$:
-		injectContext([$$props.data.TestQuery]);
-	`)
+			$:
+			injectContext([$$props.data.TestQuery]);
+		`)
 		expect(route.script).toMatchInlineSnapshot(`
-		import { load_TestQuery } from "$houdini/stores/TestQuery";
-		import { RequestContext } from "$houdini/runtime/lib/network";
-		import GQL_TestQuery from "$houdini/stores/TestQuery";
+			import { load_TestQuery } from "$houdini/stores/TestQuery";
+			import { RequestContext } from "$houdini/runtime/lib/network";
+			import GQL_TestQuery from "$houdini/stores/TestQuery";
 
-		export async function load(context) {
-		    const houdini_context = new RequestContext(context);
-		    const promises = [];
-		    const inputs = {};
-		    inputs["TestQuery"] = {};
+			export async function load(context) {
+			    const houdini_context = new RequestContext(context);
+			    const promises = [];
+			    const inputs = {};
+			    inputs["TestQuery"] = {};
 
-		    promises.push(load_TestQuery({
-		        "variables": inputs["TestQuery"],
-		        "event": context,
-		        "blocking": false
-		    }));
+			    promises.push(load_TestQuery({
+			        "variables": inputs["TestQuery"],
+			        "event": context,
+			        "blocking": false
+			    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+			    const result = Object.assign({}, ...(await Promise.all(promises)));
 
-		    return {
-		        ...houdini_context.returnValue,
-		        ...result
-		    };
-		}
-	`)
+			    return {
+			        ...houdini_context.returnValue,
+			        ...result
+			    };
+			}
+		`)
 	})
 
 	test.todo('fails if variable function is not present')
