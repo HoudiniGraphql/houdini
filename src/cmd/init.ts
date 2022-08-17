@@ -471,10 +471,11 @@ async function updatePackageJSON(targetPath: string) {
 		packageJSON = JSON.parse(packageFile)
 	}
 
-	// and houdini should be a dev dependency
+	// houdini & graphql should be a dev dependencies
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
 		houdini: '^HOUDINI_VERSION',
+		graphql: '^16.6.0',
 	}
 
 	await writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
