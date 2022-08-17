@@ -144,17 +144,16 @@ export default async function init(
 
 	// kit only config files
 	if (framework === 'kit') {
+		// todo => layout.tjs
 		await updateLayoutFile(targetPath, typescript)
-		await updateViteConfig(targetPath)
 		await updateSvelteConfig(targetPath)
 	} else if (framework === 'svelte') {
-		await updateSvelteConfig(targetPath) // in svelte only there is a svelte.config.js??
 		// todo:
-		//   - Where do we init?
-		//   - Should we updateViteConfig? default svelte is now also with vite :npm create vite@latest myapp -- --template svelte
+		//   - Where do we init? => main.js
 	}
 
 	// kit & svelte config files
+	await updateViteConfig(targetPath, framework)
 	await tjsConfig(targetPath, framework)
 
 	// we're done!
@@ -271,7 +270,11 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 		}
 
 		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
-		tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './.$houdini/types']
+		if (framework === 'kit') {
+			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './.$houdini/types']
+		} else {
+			tjsConfig.compilerOptions.rootDirs = ['.', './.$houdini/types']
+		}
 
 		// In kit, no need to add manually the path. Why? Because:
 		//   The config [svelte.config.js => kit => alias => $houdini]
@@ -309,10 +312,10 @@ async function updateLayoutFile(targetPath: string, ts: boolean) {
 	})
 }
 
-async function updateViteConfig(targetPath: string) {
+async function updateViteConfig(targetPath: string, framework: 'kit' | 'svelte') {
 	const viteConfigPath = path.join(targetPath, 'vite.config.js')
 
-	const oldViteConfig = `import { sveltekit } from '@sveltejs/kit/vite';
+	const oldViteConfig1 = `import { sveltekit } from '@sveltejs/kit/vite';
 
 /** @type {import('vite').UserConfig} */
 const config = {
@@ -321,7 +324,17 @@ const config = {
 
 export default config;
 `
-	const viteConfig = `import { sveltekit } from '@sveltejs/kit/vite';
+
+	const oldViteConfig2 = `import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [svelte()]
+})
+`
+
+	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite';
 import houdini from 'houdini/kit';
 
 /** @type {import('vite').UserConfig} */
@@ -331,12 +344,24 @@ const config = {
 
 export default config;
 `
+
+	const viteConfigSvelte = `import { svelte } from '@sveltejs/vite-plugin-svelte';
+import houdini from 'houdini/kit';
+
+/** @type {import('vite').UserConfig} */
+const config = {
+	plugins: [houdini(), svelte()],
+}
+
+export default config;
+`
+
 	// write the vite config file
 	await updateFile({
 		projectPath: targetPath,
 		filepath: viteConfigPath,
-		content: viteConfig,
-		old: [oldViteConfig],
+		content: framework === 'kit' ? viteConfigKit : viteConfigSvelte,
+		old: [oldViteConfig1, oldViteConfig2],
 	})
 }
 
