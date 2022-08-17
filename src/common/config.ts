@@ -359,7 +359,7 @@ ${
 
 	includeFile(filepath: string) {
 		// if the filepath doesn't match the include we're done
-		if (!minimatch(filepath, path.join(process.cwd(), this.include))) {
+		if (!minimatch(filepath, path.join(this.projectRoot, this.include))) {
 			return false
 		}
 

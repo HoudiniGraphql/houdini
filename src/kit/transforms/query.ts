@@ -38,11 +38,13 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 	}
 
 	// find all of the props of the component by looking for export let
-	const props = (page.script.body.filter(
-		(statement) =>
-			statement.type === 'ExportNamedDeclaration' &&
-			statement.declaration?.type === 'VariableDeclaration'
-	) as ExportNamedDeclaration[]).flatMap(({ declaration }) =>
+	const props = (
+		page.script.body.filter(
+			(statement) =>
+				statement.type === 'ExportNamedDeclaration' &&
+				statement.declaration?.type === 'VariableDeclaration'
+		) as ExportNamedDeclaration[]
+	).flatMap(({ declaration }) =>
 		(declaration as VariableDeclaration)!.declarations.map((dec) => {
 			if (dec.type === 'VariableDeclarator') {
 				return dec.id.type === 'Identifier' ? dec.id.name : ''

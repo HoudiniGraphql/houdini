@@ -1,19 +1,13 @@
-<script context="module">
+<script lang="ts">
   import { browser } from '$app/env';
-
-  import { houdiniClient } from '$lib/graphql/houdiniClient';
-  import { routes } from '$lib/utils/routes';
   import cache from '$houdini/runtime/cache';
-
-  houdiniClient.init();
+  import { routes } from '$lib/utils/routes';
 
   if (browser) {
     // @ts-ignore
     window.cache = cache;
   }
-</script>
 
-<script lang="ts">
   let routesKvp = Object.keys(routes).map((key: string) => {
     return { key, value: (routes as Record<string, string>)[key] };
   });

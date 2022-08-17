@@ -191,7 +191,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {
 	// the first step we have to do is grab a list of every file in the source tree
-	let sourceFiles = await await promisify(glob)(config.include)
+	let sourceFiles = await promisify(glob)(config.include)
 	if (config.exclude) {
 		sourceFiles = sourceFiles.filter((filepath) => !minimatch(filepath, config.exclude!))
 	}
@@ -230,7 +230,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 				return await processGraphQLDocument(config, filepath, document)
 			} catch (e) {
 				throw {
-					...((e as unknown) as Error),
+					...(e as unknown as Error),
 					filepath,
 				}
 			}

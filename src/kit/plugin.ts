@@ -1,16 +1,8 @@
+import path from 'path'
 import { Plugin } from 'vite'
 
 import generate from '../cmd/generate'
-import {
-	Config,
-	formatErrors,
-	getConfig,
-	HoudiniRouteScript,
-	mkdir,
-	rmdir,
-	Script,
-} from '../common'
-import { load_manifest } from './manifest'
+import { Config, formatErrors, getConfig, HoudiniRouteScript, Script } from '../common'
 import apply_transforms from './transforms'
 
 export default function HoudiniPlugin(configFile?: string): Plugin {
@@ -49,8 +41,15 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 
 		// transform the user's code
 		async transform(code, filepath) {
+			if (filepath.startsWith('/src/')) {
+				filepath = path.join(process.cwd(), filepath)
+			}
+
 			// if the file is not in our configured source path, we need to ignore it
 			if (!config.includeFile(filepath)) {
+				if (filepath.endsWith('+page.js')) {
+					console.log('skipping', filepath)
+				}
 				return
 			}
 
@@ -64,6 +63,8 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 
 			// run the plugin pipeline
 			const result = await apply_transforms(config, ctx, code)
+
+			console.log('done', filepath, result.code)
 
 			return result
 		},

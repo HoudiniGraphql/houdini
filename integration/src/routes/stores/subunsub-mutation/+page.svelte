@@ -1,8 +1,5 @@
-<script context="module" lang="ts">
-  import { GQL_UpdateUserSubUnsub } from '$houdini';
-</script>
-
 <script lang="ts">
+  import { GQL_UpdateUserSubUnsub } from '$houdini';
   async function mutate() {
     await GQL_UpdateUserSubUnsub.mutate({
       variables: {
