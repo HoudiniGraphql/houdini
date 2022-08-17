@@ -9,7 +9,7 @@ import tags from './tags'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports
-const pipeline = [svelteKit, query, tags, context]
+const pipeline = [query, tags, context]
 
 export default async function apply_transforms(
 	config: Config,
@@ -28,7 +28,6 @@ export default async function apply_transforms(
 			script = await parseJS(content)
 		}
 	} catch (e) {
-		console.log(page.filepath, content)
 		return { code: content }
 	}
 

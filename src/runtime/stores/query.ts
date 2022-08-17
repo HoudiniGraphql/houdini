@@ -2,7 +2,7 @@ import type { LoadEvent } from '@sveltejs/kit'
 import { derived, get, readable, Readable, Writable, writable } from 'svelte/store'
 
 // internals
-import { CachePolicy, DataSource, fetchQuery, GraphQLObject, QueryStore } from '..'
+import { CachePolicy, DataSource, fetchQuery, GraphQLObject, HoudiniClient, QueryStore } from '..'
 import { clientStarted, isBrowser } from '../adapter'
 import cache from '../cache'
 import {
@@ -22,6 +22,7 @@ import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 
 export function queryStore<_Data extends GraphQLObject, _Input>({
 	config,
+	client,
 	artifact,
 	storeName,
 	paginationMethods,
@@ -29,6 +30,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	variables,
 }: {
 	config: ConfigFile
+	client: HoudiniClient
 	artifact: QueryArtifact
 	paginated: boolean
 	storeName: string
@@ -89,7 +91,17 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		args?: QueryStoreFetchParams<_Input>
 	): Promise<QueryResult<_Data, _Input>> {
 		// validate and prepare the request context for the current environment (client vs server)
-		const { context, policy, params } = fetchParams(ctx, artifact, storeName, args)
+		const { context, policy, parentContext, params } = fetchParams(
+			ctx,
+			artifact,
+			storeName,
+			args
+		)
+
+		// save the context we were given (if there is one)
+		if (!ctx && parentContext) {
+			ctx = parentContext
+		}
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
@@ -145,6 +157,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 		// perform the network request
 		const request = fetchAndCache({
+			client,
 			config,
 			context,
 			artifact,
@@ -231,9 +244,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 					// clear the variable counter
 					lastVariables = null
-
-					// reset the store value
-					store.set(initialState())
 				}
 
 				// we're done
@@ -255,6 +265,7 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	ignoreFollowup,
 	setLoadPending,
 	policy,
+	client,
 }: {
 	config: ConfigFile
 	context: FetchContext
@@ -265,6 +276,7 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	ignoreFollowup?: boolean
 	setLoadPending: (pending: boolean) => void
 	policy?: CachePolicy
+	client: HoudiniClient
 }) {
 	const request = await fetchQuery<_Data, _Input>({
 		config,
@@ -273,6 +285,7 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 		variables,
 		cached,
 		policy,
+		client,
 	})
 	const { result, source, partial } = request
 
@@ -324,6 +337,7 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 		// network request to be sent after the data was loaded, load the data
 		if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
 			fetchAndCache<_Data, _Input>({
+				client,
 				config,
 				context,
 				artifact,
@@ -339,6 +353,7 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 		// from the network, send the request
 		if (partial && artifact.policy === CachePolicy.CacheOrNetwork) {
 			fetchAndCache<_Data, _Input>({
+				client,
 				config,
 				context,
 				artifact,
@@ -371,7 +386,12 @@ export function fetchParams<_Data, _Input>(
 	artifact: QueryArtifact,
 	storeName: string,
 	params?: QueryStoreFetchParams<_Input>
-): { context: FetchContext; policy: CachePolicy; params: QueryStoreFetchParams<_Input> } {
+): {
+	context: FetchContext
+	parentContext?: HoudiniFetchContext
+	policy: CachePolicy
+	params: QueryStoreFetchParams<_Input>
+} {
 	// if we aren't on the browser but there's no event there's a big mistake
 	if (
 		!isBrowser &&
@@ -436,6 +456,7 @@ export function fetchParams<_Data, _Input>(
 		},
 		policy,
 		params: params ?? {},
+		parentContext: houdiniContext,
 	}
 }
 

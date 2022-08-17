@@ -47,6 +47,8 @@ test('runtime index file - commonjs', async function () {
 
 		var houdiniConfig = require("../config.cjs");
 		Object.defineProperty(exports, "houdiniConfig", { enumerable: true, get: function () { return __importDefault(houdiniConfig).default; } });
+		var houdiniClient = require("./../my/client/path");
+		Object.defineProperty(exports, "houdiniClient", { enumerable: true, get: function () { return __importDefault(houdiniClient).default; } });
 
 		__exportStar(require("./runtime"), exports);
 		__exportStar(require("./artifacts"), exports);
@@ -69,6 +71,7 @@ test('runtime index file - esm', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		export { default as houdiniConfig } from "../config.cjs"
+		export { default as houdiniClient } from "./../my/client/path"
 		export * from "./runtime"
 		export * from "./artifacts"
 		export * from "./stores"

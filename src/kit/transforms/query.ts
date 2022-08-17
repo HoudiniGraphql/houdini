@@ -226,7 +226,7 @@ export async function find_inline_queries(
 				(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
 			)
 		},
-		dependency: page.addWatchFile,
+		dependency: page.watch_file,
 		tag(tag) {
 			// if the graphql tag was inside of a call expression, we need to assume that it's a
 			// part of an inline document. if the operation is a query, we need to add it to the list

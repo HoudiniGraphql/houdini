@@ -164,6 +164,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 			},
 		},
 		logLevel: LogLevel.Quiet,
+		client: './my/client/path',
 		...config,
 	}
 }

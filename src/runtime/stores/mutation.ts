@@ -6,6 +6,7 @@ import {
 	CompiledMutationKind,
 	ConfigFile,
 	executeQuery,
+	HoudiniClient,
 	HoudiniFetchContext,
 	MutationResult,
 	MutationStore,
@@ -16,8 +17,10 @@ import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scal
 export function mutationStore<_Data, _Input>({
 	config,
 	artifact,
+	client,
 }: {
 	config: ConfigFile
+	client: HoudiniClient
 	artifact: MutationArtifact
 }): MutationStore<_Data, _Input> {
 	const store: Writable<MutationResult<_Data, _Input>> = writable(nullMutationStore())
@@ -88,6 +91,7 @@ export function mutationStore<_Data, _Input>({
 		try {
 			// trigger the mutation
 			const { result } = await executeQuery({
+				client,
 				config,
 				artifact,
 				variables: newVariables,

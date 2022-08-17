@@ -17,6 +17,12 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 	const definitionsDir =
 		'./' + path.relative(config.rootDir, config.definitionsDirectory).split(path.sep).join('/')
 	const configPath = path.relative(config.rootDir, config.filepath).split(path.sep).join('/')
+	const clientPath =
+		'./' +
+		path
+			.relative(config.rootDir, path.join(config.projectRoot, config.client))
+			.split(path.sep)
+			.join('/')
 
 	// make sure the content uses the correct module system
 	let body = ''
@@ -24,6 +30,7 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 		body = `${cjsIndexFilePreamble}
 
 ${exportDefaultFrom(configPath, 'houdiniConfig')}
+${exportDefaultFrom(clientPath, 'houdiniClient')}
 
 ${exportStarFrom(runtimeDir)}
 ${exportStarFrom(artifactDir)}
@@ -34,6 +41,7 @@ ${exportStarFrom(definitionsDir)}
 	else {
 		body = `
 export { default as houdiniConfig } from "${configPath}"
+export { default as houdiniClient } from "${clientPath}"
 export * from "${runtimeDir}"
 export * from "${artifactDir}"
 export * from "${storesDir}"

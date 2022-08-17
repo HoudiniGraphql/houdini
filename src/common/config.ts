@@ -6,7 +6,13 @@ import os from 'os'
 import path from 'path'
 import { promisify } from 'util'
 
-import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
+import {
+	computeID,
+	ConfigFile,
+	defaultConfigValues,
+	HoudiniClient,
+	keyFieldsForType,
+} from '../runtime/lib'
 import { CachePolicy, GraphQLTagResult } from '../runtime/lib/types'
 import { extractLoadFunction } from './extractLoadFunction'
 import * as fs from './fs'
@@ -44,6 +50,7 @@ export class Config {
 	schemaPollHeaders: Record<string, string | ((env: any) => string)>
 	pageQueryFilename: string
 	plugin: boolean = false
+	client: string
 
 	constructor({
 		filepath,
@@ -75,6 +82,7 @@ export class Config {
 			schemaPollHeaders = {},
 			pageQueryFilename = '+page.gql',
 			projectDir,
+			client,
 		} = this.configFile
 
 		// make sure we got some kind of schema
@@ -140,6 +148,7 @@ ${
 		this.schemaPollHeaders = schemaPollHeaders
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 		this.pageQueryFilename = pageQueryFilename
+		this.client = client
 
 		// hold onto the key config
 		if (defaultKeys) {
