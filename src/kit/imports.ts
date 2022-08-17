@@ -58,7 +58,7 @@ export function ensure_imports({
 			!script.body.find(
 				(statement) =>
 					statement.type === 'ImportDeclaration' &&
-					((statement as unknown) as ImportDeclaration).specifiers.find(
+					(statement as unknown as ImportDeclaration).specifiers.find(
 						(importSpecifier) =>
 							(importSpecifier.type === 'ImportSpecifier' &&
 								importSpecifier.imported.type === 'Identifier' &&
