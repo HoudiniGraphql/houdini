@@ -142,17 +142,16 @@ export default async function init(
 	await graphqlRCFile(targetPath)
 	await gitIgnore(targetPath)
 
-	// kit only config files
+	// Config files for:
+	// - kit only
+	// - svelte only
+	// - both (with small variants)
 	if (framework === 'kit') {
-		// todo => layout.tjs
 		await updateLayoutFile(targetPath, typescript)
 		await updateSvelteConfig(targetPath)
 	} else if (framework === 'svelte') {
-		// todo:
-		//   - Where do we init? => main.js
+		await updateSvelteMainJs(targetPath)
 	}
-
-	// kit & svelte config files
 	await updateViteConfig(targetPath, framework)
 	await tjsConfig(targetPath, framework)
 
@@ -418,6 +417,40 @@ export default config;
 		filepath: svelteConfigPath,
 		content: newContent,
 		old: [oldSvelteConfig1, oldSvelteConfig2],
+	})
+}
+
+async function updateSvelteMainJs(targetPath: string) {
+	const svelteMainJsPath = path.join(targetPath, 'main.js')
+
+	const newContent = `import client from "../client";
+import './app.css'
+import App from './App.svelte'
+
+client.init();
+
+const app = new App({
+	target: document.getElementById('app')
+})
+
+export default app
+`
+
+	const oldContent = `import './app.css'
+import App from './App.svelte'
+
+const app = new App({
+	target: document.getElementById('app')
+})
+
+export default app
+`
+
+	await updateFile({
+		projectPath: targetPath,
+		filepath: svelteMainJsPath,
+		content: newContent,
+		old: [oldContent],
 	})
 }
 
