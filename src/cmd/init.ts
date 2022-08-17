@@ -294,15 +294,11 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 }
 
 async function updateLayoutFile(targetPath: string, ts: boolean) {
-	const layoutFile = path.join(targetPath, 'src', 'routes', '+layout.svelte')
+	const layoutFile = path.join(targetPath, 'src', 'routes', ts ? '+layout.ts' : '+layout.js')
 
-	const content = `<script ${ts ? ' lang="ts"' : ''}>
-	import client from '../client'
+	const content = `import client from '../client';
 
-	client.init()
-</script>
-
-<slot />
+client.init();
 `
 
 	await updateFile({
