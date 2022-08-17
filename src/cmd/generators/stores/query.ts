@@ -43,7 +43,7 @@ export async function load_${artifactName}(params) {
 	await store.fetch(params)
 
 	return {
-		${storeName}: store,
+		${artifactName}: store,
 	}
 }
 
