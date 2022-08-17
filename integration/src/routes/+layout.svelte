@@ -1,9 +1,12 @@
 <script lang="ts">
+  import { browser } from '$app/env';
   import cache from '$houdini/runtime/cache';
   import { routes } from '$lib/utils/routes';
 
-  // @ts-ignore
-  window.cache = cache;
+  if (browser) {
+    // @ts-ignore
+    window.cache = cache;
+  }
 
   let routesKvp = Object.keys(routes).map((key: string) => {
     return { key, value: (routes as Record<string, string>)[key] };

@@ -16,14 +16,10 @@ export default function HoudiniFsPatch(configFile?: string): Plugin {
 		},
 
 		resolveId(id, _, { ssr }) {
-			if (!ssr) {
-				return null
-			}
-
 			// if we are resolving a route script, pretend its always there
 			if (config.isRouteScript(id)) {
 				return {
-					id: path.relative(process.cwd(), id),
+					id,
 				}
 			}
 
@@ -31,10 +27,12 @@ export default function HoudiniFsPatch(configFile?: string): Plugin {
 		},
 
 		async load(id) {
+			let filepath = id
 			// if we are processing a route script, we should always return _something_
-			if (config.isRouteScript(id)) {
+			if (config.isRouteScript(filepath)) {
 				return {
-					code: (await readFile(path.join(process.cwd(), id))) || '',
+					// code: '',
+					code: (await readFile(filepath)) || '',
 				}
 			}
 
@@ -53,7 +51,7 @@ filesystem.readFileSync = function (filepath, options) {
 		try {
 			return _readFileSync(filepath, options)
 		} catch {
-			return options ? '' : Buffer.from('')
+			return options.encoding ? '' : Buffer.from('')
 		}
 	}
 	return _readFileSync(filepath, options)
