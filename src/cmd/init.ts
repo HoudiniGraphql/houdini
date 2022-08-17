@@ -142,14 +142,20 @@ export default async function init(
 	await graphqlRCFile(targetPath)
 	await gitIgnore(targetPath)
 
-	// add the sveltekit config files
+	// kit only config files
 	if (framework === 'kit') {
 		await updateLayoutFile(targetPath, typescript)
-		await updateKitConfig(targetPath)
-	} else {
-		await aliasPaths(targetPath)
+		await updateViteConfig(targetPath)
 		await updateSvelteConfig(targetPath)
+	} else if (framework === 'svelte') {
+		await updateSvelteConfig(targetPath) // in svelte only there is a svelte.config.js??
+		// todo:
+		//   - Where do we init?
+		//   - Should we updateViteConfig? default svelte is now also with vite :npm create vite@latest myapp -- --template svelte
 	}
+
+	// kit & svelte config files
+	await tjsConfig(targetPath, framework)
 
 	// we're done!
 	console.log()
@@ -161,8 +167,9 @@ export default async function init(
 `)
 }
 
-const networkFile = (url: string, typescript: boolean) => `
-import { HoudiniClient${typescript ? ', type RequestHandlerArgs' : ''} } from '$houdini';
+const networkFile = (url: string, typescript: boolean) => `import { HoudiniClient${
+	typescript ? ', type RequestHandlerArgs' : ''
+} } from '$houdini';
 
 async function fetchQuery({
 	fetch,
@@ -240,7 +247,7 @@ module.exports = config
 	return false
 }
 
-async function aliasPaths(targetPath: string) {
+async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 	// if there is no tsconfig.json, there could be a jsconfig.json
 	let configFile = path.join(targetPath, 'tsconfig.json')
 	try {
@@ -258,17 +265,26 @@ async function aliasPaths(targetPath: string) {
 
 	// check if the tsconfig.json file exists
 	try {
-		const tsConfigFile = await readFile(configFile)
-		if (tsConfigFile) {
-			var tsConfig = JSON.parse(tsConfigFile)
+		const tjsConfigFile = await readFile(configFile)
+		if (tjsConfigFile) {
+			var tjsConfig = JSON.parse(tjsConfigFile)
 		}
 
-		tsConfig.compilerOptions.paths = {
-			...tsConfig.compilerOptions.paths,
-			$houdini: ['./$houdini/'],
+		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
+		tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './.$houdini/types']
+
+		// In kit, no need to add manually the path. Why? Because:
+		//   The config [svelte.config.js => kit => alias => $houdini]
+		//   will make this automatically in "extends": "./.svelte-kit/tsconfig.json"
+		// In svelte, we need to add the path manually
+		if (framework === 'svelte') {
+			tjsConfig.compilerOptions.paths = {
+				...tjsConfig.compilerOptions.paths,
+				$houdini: ['./$houdini/'],
+			}
 		}
 
-		await writeFile(configFile, JSON.stringify(tsConfig, null, 4))
+		await writeFile(configFile, JSON.stringify(tjsConfig, null, 4))
 	} catch {}
 
 	return false
@@ -293,7 +309,7 @@ async function updateLayoutFile(targetPath: string, ts: boolean) {
 	})
 }
 
-async function updateKitConfig(targetPath: string) {
+async function updateViteConfig(targetPath: string) {
 	const viteConfigPath = path.join(targetPath, 'vite.config.js')
 
 	const oldViteConfig = `import { sveltekit } from '@sveltejs/kit/vite';
@@ -306,16 +322,12 @@ const config = {
 export default config;
 `
 	const viteConfig = `import { sveltekit } from '@sveltejs/kit/vite';
-import path from 'path'
-import houdini from 'houdini/vite'
+import houdini from 'houdini/kit';
 
 /** @type {import('vite').UserConfig} */
 const config = {
-	plugins: [
-		houdini(),
-		sveltekit(),
-	],
-};
+	plugins: [houdini(), sveltekit()],
+}
 
 export default config;
 `
@@ -326,57 +338,30 @@ export default config;
 		content: viteConfig,
 		old: [oldViteConfig],
 	})
-
-	await updateSvelteConfig(
-		path.join(targetPath, 'svelte.config.js'),
-		`
-import adapter from '@sveltejs/adapter-auto';
-import preprocess from 'svelte-preprocess';
-import houdini from 'houdini/preprocess';
-
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	// Consult https://github.com/sveltejs/svelte-preprocess
-	// for more information about preprocessors
-	preprocess: [preprocess(), houdini()],
-
-	kit: {
-		adapter: adapter(),
-		alias: {
-			$houdini: './$houdini',
-		}
-	}
-};
-
-export default config;
-`
-	)
 }
 
-async function updateSvelteConfig(
-	targetPath: string,
-	newContent = `import adapter from '@sveltejs/adapter-auto';
-import preprocess from 'svelte-preprocess';
-import houdini from 'houdini/preprocess';
-
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	// Consult https://github.com/sveltejs/svelte-preprocess
-	// for more information about preprocessors
-	preprocess: [preprocess(), houdini()],
-
-	kit: {
-		adapter: adapter(),
-		alias: {
-			$houdini: './$houdini',
-		}
-	}
-};
-
-export default config;
-`
-) {
+async function updateSvelteConfig(targetPath: string) {
 	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
+
+	const newContent = `import adapter from '@sveltejs/adapter-auto';
+	import preprocess from 'svelte-preprocess';
+	
+	/** @type {import('@sveltejs/kit').Config} */
+	const config = {
+		// Consult https://github.com/sveltejs/svelte-preprocess
+		// for more information about preprocessors
+		preprocess: preprocess(),
+	
+		kit: {
+			adapter: adapter(),
+			alias: {
+				$houdini: './$houdini',
+			}
+		}
+	};
+	
+	export default config;
+`
 
 	const oldSvelteConfig1 = `import adapter from '@sveltejs/adapter-auto';
 import preprocess from 'svelte-preprocess';
