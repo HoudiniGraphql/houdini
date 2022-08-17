@@ -209,8 +209,12 @@ const writeConfigFile = async ({
 	url: string
 }): Promise<boolean> => {
 	const config: ConfigFile = {
-		schemaPath,
 		apiUrl: url,
+	}
+
+	// if it's different for defaults, write it down
+	if (schemaPath !== './schema.graphql') {
+		config.schemaPath = schemaPath
 	}
 	if (module !== 'esm') {
 		config.module = module
