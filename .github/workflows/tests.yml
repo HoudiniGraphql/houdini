@@ -201,11 +201,11 @@ jobs:
                   ${{ runner.os }}-pnpm-store-
               
             - name: Build packages
-              run: pnpm --filter integration run build
+              run: cd integration && pnpm run build
 
             # needs to run after build & houdini generate
             - name: Integration lint
-              run: pnpm --filter integration run lint
+              run: pnpm run lint
 
             - name: Integration check
-              run: pnpm --filter integration run check
+              run: pnpm run check
