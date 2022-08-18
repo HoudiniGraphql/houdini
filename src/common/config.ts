@@ -94,6 +94,15 @@ export class Config {
 			}
 		}
 
+		if (!client) {
+			throw {
+				filepath,
+				message: 'Invalid config file: missing client value.',
+				description:
+					'Please set it to the relative path (from houdini.config.js) to your client file. The file must have a default export with an instance of HoudiniClient.',
+			}
+		}
+
 		// if we're given a schema string
 		if (typeof schema === 'string') {
 			this.schema = graphql.buildSchema(schema)
