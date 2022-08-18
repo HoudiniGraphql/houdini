@@ -32,6 +32,7 @@ importers:
             '@types/node-fetch': ^2.6.1
             '@types/prompts': ^2.0.14
             '@vitest/ui': ^0.21.1
+            ast-types: ^0.14.2
             babel-jest: ^26.6.3
             babel-plugin-transform-import-meta: ^2.1.1
             babylon: ^7.0.0-beta.47
@@ -115,6 +116,7 @@ importers:
             '@types/node-fetch': 2.6.2
             '@types/prompts': 2.4.0
             '@vitest/ui': 0.21.1
+            ast-types: 0.14.2
             babel-jest: 26.6.3_@babel+core@7.18.10
             babel-plugin-transform-import-meta: 2.2.0_@babel+core@7.18.10
             concurrently: 7.3.0
@@ -4626,7 +4628,6 @@ packages:
         engines: { node: '>=4' }
         dependencies:
             tslib: 2.4.0
-        dev: false
 
     /astral-regex/2.0.0:
         resolution:
