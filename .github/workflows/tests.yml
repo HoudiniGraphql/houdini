@@ -136,6 +136,9 @@ jobs:
               id: pnpm-install
               with:
                 version: 7
+
+            - name: Install dependencies
+              run: pnpm install
               
             - name: Build packages
               run: cd integration && pnpm run build
