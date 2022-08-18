@@ -59,7 +59,6 @@ expect.extend({
 		// The error (and its stacktrace) must be created before any `await`
 		this.error = new Error()
 
-		console.log(value)
 		// parse the contents
 		const parsed = await parseJS(value)
 
