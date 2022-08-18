@@ -45,7 +45,12 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 
 			// we need to create a typescript file that has a definition of the variable and hook functions
 			const typeDefs = `import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/runtime/lib/types'
-import { Params } from './$types'
+import type { PageLoad } from './$types'
+
+type Params = PageLoad extends Kit.Load<infer X, infer Y, infer Z).LayoutData>
+  ? X
+  : never;
+
 
 ${queries
 	.map((query) => {

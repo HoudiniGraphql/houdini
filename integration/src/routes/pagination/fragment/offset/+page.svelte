@@ -16,6 +16,7 @@
   `);
 
   const { data: userData, loadNextPage } = paginatedFragment<OffsetFragment>(
+    $data ? $data.user : null,
     graphql`
       fragment OffsetFragment on User {
         friendsList(limit: 2) @paginate {
@@ -23,8 +24,7 @@
         }
       }
     `,
-    $data ? $data.user : null
-  );
+  )
 </script>
 
 <div id="result">

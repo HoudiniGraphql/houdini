@@ -1,9 +1,9 @@
 <script lang="ts">
   import { page } from '$app/stores';
-  import type { Data } from './$types';
   import { stry } from '@kitql/helper';
-
-  export let data: Data;
+  import type { PageData } from './$types';
+  
+  export let data: PageData;
 
   $: ({ User } = data);
 </script>

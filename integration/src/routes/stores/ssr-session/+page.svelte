@@ -1,8 +1,9 @@
-<script>
-  /** @type {import('./$types').Data} */
-  export let data;
+<script lang="ts">
+  import type { PageData } from './$types';
+  
+  export let data: PageData;
 
-  $: ({ Session } = data);
+  $: ({Session} = data)
 </script>
 
 <h1>SSR Session</h1>

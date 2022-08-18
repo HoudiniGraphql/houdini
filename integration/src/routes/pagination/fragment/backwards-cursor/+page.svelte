@@ -20,18 +20,18 @@
     pageInfo,
     loadPreviousPage
   } = paginatedFragment<BackwardsCursorFragment>(
-    graphql`
-      fragment BackwardsCursorFragment on User {
-        friendsConnection(last: 2) @paginate {
-          edges {
-            node {
-              name
+      $data ? $data.user : null,
+      graphql`
+        fragment BackwardsCursorFragment on User {
+          friendsConnection(last: 2) @paginate {
+            edges {
+              node {
+                name
+              }
             }
           }
         }
-      }
-    `,
-    $data ? $data.user : null
+      `,
   );
 </script>
 

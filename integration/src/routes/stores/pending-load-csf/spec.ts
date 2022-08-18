@@ -1,10 +1,5 @@
 import { routes } from '../../../lib/utils/routes.js';
-import {
-  clientSideNavigation,
-  expectGraphQLResponse,
-  expectNoGraphQLRequest,
-  expectToBe
-} from '../../../lib/utils/testsHelper.js';
+import { clientSideNavigation, expectGraphQLResponse } from '../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
 
 test('Simultaneous Pending Load and CSF', async ({ page }) => {

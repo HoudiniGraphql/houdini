@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { Data } from './$types';
-  export let data: Data;
+  import type { PageData } from './$types';
+  export let data: PageData;
 
   $: ({ Partial_List } = data);
 </script>

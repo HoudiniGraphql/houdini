@@ -1,4 +1,4 @@
-<!-- <script context="module" lang="ts">
+<script context="module" lang="ts">
   export function FragmentQueryVarsVariables({ props }: { props: { id?: string } }) {
     return {
       id: props.id || '3'
@@ -21,5 +21,4 @@
   `);
 </script>
 
-{$data?.user.name} -->
-<!-- // todo migration -->
+{$data?.user.name}
