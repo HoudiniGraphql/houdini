@@ -7,9 +7,6 @@ import * as fs from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
 import generateAdapter from './adapter'
 
-type ExportNamedDeclaration = recast.types.namedTypes.ExportNamedDeclaration
-type TSDeclareFunction = recast.types.namedTypes.TSDeclareFunction
-
 // @ts-ignore
 const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
 
@@ -63,17 +60,6 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 				// figure out the full path of the source
 				const childPath = path.join(source, child)
 
-				// TODO: find a better way of handling this. The runtime needs to be able to import the config file
-				//       to support features like custom scalars. In order to pull this off, this generator
-				//       copies the compiled runtime and then manually adds an import to the config file.
-				//       The runtime index file already exports the config file but for some reason vite
-				//       can't find the exported value when it comes from inside. It has no problem
-				//       finding the config reference exported from $houdini from the preprocessor 🤷
-				const isCacheIndex =
-					source.substring(source.lastIndexOf(path.sep) + 1) === 'cache' &&
-					child === 'index.js'
-				const cacheIndexPath = path.join(config.runtimeDirectory, 'cache', 'index.js')
-
 				// if the child is a directory
 				if ((await fs.stat(childPath)).isDirectory()) {
 					// keep walking down
@@ -86,25 +72,7 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 					if (targetPath.endsWith('/runtime/adapter.js')) {
 						return
 					}
-
-					let contents = await fs.readFile(childPath)
-
-					// if we are writing to the cache index file, modify the contents
-					if (isCacheIndex) {
-						const relativePath = path
-							.relative(cacheIndexPath, config.filepath)
-							.slice('../'.length)
-							.split(path.sep)
-							.join('/')
-
-						contents =
-							(config.module === 'esm'
-								? `import config from "${relativePath}"\n`
-								: `var config = require('${relativePath}');`) +
-							(contents || '').replace('"use strict";', '')
-					}
-
-					await fs.writeFile(targetPath, contents || '')
+					await fs.writeFile(targetPath, (await fs.readFile(childPath)) || '')
 				}
 			})
 		)

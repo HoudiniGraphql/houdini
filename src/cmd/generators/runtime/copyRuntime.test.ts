@@ -22,7 +22,7 @@ test('cache index runtime imports config file - commonjs', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		var config = require('../../../config.cjs');
+		"use strict";
 		Object.defineProperty(exports, "__esModule", { value: true });
 		const cache_1 = require("./cache");
 		let cache;
@@ -52,7 +52,6 @@ test('cache index runtime imports config file - esm', async function () {
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		import config from "../../../config.cjs"
 		import { Cache } from './cache';
 		let cache;
 		try {

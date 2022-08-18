@@ -40,6 +40,7 @@ export * from "${definitionsDir}"
 `
 	}
 
+	console.log('writing to', path.join(config.rootDir, 'index.js'))
 	// write the index file that exports the runtime
 	await fs.writeFile(path.join(config.rootDir, 'index.js'), body)
 }
