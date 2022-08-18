@@ -206,7 +206,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 export async function find_inline_queries(
 	page: TransformPage,
 	parsed: Script | null,
-	store_id: (name: string) => Identifier
+	store_id: (name: string) => ExpressionKind
 ): Promise<LoadTarget[]> {
 	// if there's nothing to parse, we're done
 	if (!parsed) {

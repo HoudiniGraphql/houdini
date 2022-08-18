@@ -344,14 +344,9 @@ describe('kit route processor', function () {
 			$:
 			injectContext([$$props.data.TestQuery, $$props.data.MyQuery1, $$props.data.MyQuery2]);
 
-			$:
-			({
-			    TestQuery: _houdini_TestQuery
-			} = $$props.data);
-
 			const {
 			    data
-			} = query(_houdini_TestQuery);
+			} = query($$props.data.TestQuery);
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import GQL_MyQuery1 from "$houdini/stores/MyQuery1";

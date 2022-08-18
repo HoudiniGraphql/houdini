@@ -38,7 +38,10 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 	// the name to use for inline query documents
 	const inline_query_store = (name: string) =>
 		is_route
-			? AST.identifier('_houdini_' + name)
+			? AST.memberExpression(
+					AST.memberExpression(AST.identifier('$$props'), AST.identifier('data')),
+					AST.identifier(name)
+			  )
 			: store_import({
 					config: page.config,
 					script: page.script,
@@ -72,35 +75,8 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 		})
 	}
 
-	// if we are processing a route component (+page.svelte)
-	if (is_route && inline_queries.length > 0) {
-		// we need to pull out the correct store references for every inline query we found
-		page.script.body.splice(
-			find_insert_index(page.script),
-			0,
-			AST.labeledStatement(
-				AST.identifier('$'),
-				AST.expressionStatement(
-					AST.parenthesizedExpression(
-						AST.assignmentExpression(
-							'=',
-							AST.objectPattern(
-								inline_queries.map((query) =>
-									AST.objectProperty(
-										AST.identifier(query.name),
-										inline_query_store(query.name)
-									)
-								)
-							),
-							AST.memberExpression(AST.identifier('$$props'), AST.identifier('data'))
-						)
-					)
-				)
-			)
-		)
-	}
 	// if we are processing a route config file (+page.ts)
-	else if (is_route_script) {
+	if (is_route_script) {
 		// add the load function to the query file
 		add_load({
 			page,
