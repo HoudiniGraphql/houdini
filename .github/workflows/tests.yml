@@ -27,18 +27,16 @@ jobs:
               uses: actions/setup-node@v3
               with:
                   node-version: 16.14.2
-                  cache: 'yarn'
+                  cache: 'pnpm'
 
             - name: Install Dependencies
-              run: yarn install
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+              run: pnpm install
 
             - name: Check prettier
-              run: yarn format:check
+              run: pnpm run format:check
 
             - name: Check lint
-              run: yarn lint
+              run: pnpm run lint
 
     tests:
         name: Tests
@@ -53,19 +51,17 @@ jobs:
             - name: Setup Node
               uses: actions/setup-node@v3
               with:
-                  cache: 'yarn'
+                  cache: 'pnpm'
                   node-version: 16.14.2
 
             - name: Install Dependencies
-              run: yarn install
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+              run: pnpm install
 
             - name: Build packages
-              run: yarn build
+              run: pnpm run build
 
             - name: Tests
-              run: yarn tests
+              run: pnpm run tests
 
     integration:
         name: Integration Tests
@@ -80,7 +76,7 @@ jobs:
             - name: Setup Node
               uses: actions/setup-node@v3
               with:
-                  cache: 'yarn'
+                  cache: 'pnpm'
                   node-version: 16.14.2
 
             - name: Cache playwright binaries
@@ -92,12 +88,10 @@ jobs:
                   key: cache-playwright-linux-1.21.0
 
             - name: Install dependencies
-              run: yarn install --immutable
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+              run: pnpm install --immutable
 
             - name: Build packages
-              run: yarn build
+              run: pnpm run build
 
             - name: Install Playwright
               if: steps.playwright-cache.outputs.cache-hit != 'true'
@@ -128,26 +122,25 @@ jobs:
             - name: Setup Node
               uses: actions/setup-node@v3
               with:
-                  cache: 'yarn'
+                  cache: 'pnpm'
                   node-version: 16.14.2
 
             - name: Install dependencies
-              run: yarn install
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+              run: pnpm install
 
             - name: Build packages
-              run: yarn build
+              run: pnpm run build
+
 
             - name: Generate runtime
-              run: yarn workspace integration generate
+              run: cd integration && pnpm run generate
 
             - name: Build kit assets
-              run: yarn workspace integration build
+              run: pnpm run build
 
             # needs to run after build & houdini generate
             - name: Integration lint
-              run: yarn workspace integration lint
+              run: pnpm run lint
 
             - name: Integration check
-              run: yarn workspace integration check
+              run: pnpm run check
