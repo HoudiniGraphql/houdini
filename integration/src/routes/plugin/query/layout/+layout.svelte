@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { query, graphql, type LayoutTestQuery } from '$houdini';
+  import { query, graphql, type LayoutTestQuery } from '$houdini/index.js';
 
   const { data } = query<LayoutTestQuery>(graphql`
     query LayoutTestQuery {
