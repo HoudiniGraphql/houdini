@@ -147,11 +147,11 @@ jobs:
               run: cd integration && npx svelte-kit sync
               
             - name: Build SvelteKit Project
-              run:  pnpm run build
+              run: cd integration && pnpm run build
 
             # needs to run after build & houdini generate
             - name: Integration lint
-              run: pnpm run lint
+              run: cd integration && lint
 
             - name: Integration check
-              run: pnpm run check
+              run: cd integration && check

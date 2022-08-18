@@ -174,11 +174,13 @@ importers:
             tslib: ^2.3.1
             typescript: ~4.6.2
             vite: 3.0.8
+            ws: ^8.8.1
         dependencies:
             '@graphql-yoga/node': 2.13.7_graphql@16.6.0
             graphql-relay: 0.10.0_graphql@16.6.0
             graphql-tag: 2.12.6_graphql@16.6.0
             graphql-ws: 5.10.0_graphql@16.6.0
+            ws: 8.8.1
         devDependencies:
             '@kitql/vite-plugin-watch-and-run': 0.4.2
             '@playwright/test': 1.25.0
@@ -14454,6 +14456,22 @@ packages:
             utf-8-validate:
                 optional: true
         dev: true
+
+    /ws/8.8.1:
+        resolution:
+            {
+                integrity: sha512-bGy2JzvzkPowEJV++hF07hAD6niYSr0JzBNo/J29WsB57A2r7Wlc1UFcTR9IzrPvuNVO4B8LGqF8qcpsVOhJCA==,
+            }
+        engines: { node: '>=10.0.0' }
+        peerDependencies:
+            bufferutil: ^4.0.1
+            utf-8-validate: ^5.0.2
+        peerDependenciesMeta:
+            bufferutil:
+                optional: true
+            utf-8-validate:
+                optional: true
+        dev: false
 
     /xml-name-validator/3.0.0:
         resolution:
