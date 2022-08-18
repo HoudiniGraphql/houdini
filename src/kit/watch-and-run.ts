@@ -158,6 +158,7 @@ async function watcher(
 			// if the run value is a function, we just have to call it and we're done
 			if (typeof info.run === 'function') {
 				info.run()
+				info.isRunning = false
 				return
 			}
 
