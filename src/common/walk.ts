@@ -1,6 +1,5 @@
 import { TaggedTemplateExpressionKind, IdentifierKind } from 'ast-types/gen/kinds'
-import { BaseNode } from 'estree'
-import { asyncWalk } from 'estree-walker'
+import { asyncWalk, BaseNode } from 'estree-walker'
 import * as graphql from 'graphql'
 
 import { Config, Script } from '../common'
