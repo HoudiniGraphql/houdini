@@ -1,23 +1,33 @@
 import { derived, Readable } from 'svelte/store'
 
 import { getHoudiniContext } from '../lib/context'
-import { wrapPaginationStore, PaginatedDocumentHandlers, PageInfo } from '../lib/pagination'
-import { GraphQLTagResult, Operation, QueryResult, CachePolicy } from '../lib/types'
+import {
+	GraphQLTagResult,
+	Operation,
+	ForwardCursorPaginatedQueryStore,
+	BackwardCursorPaginatedQueryStore,
+	OffsetPaginatedQueryStore,
+	CachePolicy,
+	CompiledQueryKind,
+} from '..'
+import { QueryResult, QueryStore } from '../stores/query'
 
 export function query<_Query extends Operation<any, any>>(
 	store: GraphQLTagResult
 ): QueryResponse<_Query['result'], _Query['input']> {
 	// make sure we got a query document
-	if (store.kind !== 'HoudiniQuery') {
+	if (store.kind !== CompiledQueryKind) {
 		throw new Error('query() must be passed a query document')
 	}
 
+	const queryStore = store as QueryStore<any, unknown>
+
 	// build some derived stores for the atomic values
-	const data = derived(store, ($store) => $store.data)
-	const loading = derived(store, ($store) => $store.isFetching)
-	const partial = derived(store, ($store) => $store.partial)
-	const errors = derived(store, ($store) => $store.errors)
-	const variables = derived(store, ($store) => $store.variables)
+	const data = derived(queryStore, ($store) => $store.data)
+	const loading = derived(queryStore, ($store) => $store.isFetching)
+	const partial = derived(queryStore, ($store) => $store.partial)
+	const errors = derived(queryStore, ($store) => $store.errors)
+	const variables = derived(queryStore, ($store) => $store.variables)
 
 	// load the current houdini context
 	const context = getHoudiniContext()
@@ -26,7 +36,7 @@ export function query<_Query extends Operation<any, any>>(
 		...store,
 		data,
 		refetch: (variables?: _Query['input'], config?: RefetchConfig) => {
-			return store.fetch({
+			return queryStore.fetch({
 				context,
 				variables,
 				policy: CachePolicy.NetworkOnly,
@@ -57,12 +67,12 @@ type RefetchConfig = {
 
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	document: GraphQLTagResult
-): QueryResponse<_Query['result'], _Query['input']> &
-	Omit<PaginatedDocumentHandlers<_Query['result'], _Query['input']>, 'pageInfos'> & {
-		pageInfo: Readable<PageInfo>
-	} {
+):
+	| ForwardCursorPaginatedQueryStore<_Query['result'], _Query['input']>
+	| BackwardCursorPaginatedQueryStore<_Query['result'], _Query['input']>
+	| OffsetPaginatedQueryStore<_Query['result'], _Query['input']> {
 	// TODO: fix type checking paginated
 	// @ts-ignore: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
-	return wrapPaginationStore(query(document))
+	return query(document)
 }

@@ -1,20 +1,24 @@
-import { Operation, GraphQLTagResult } from '../lib/index'
-
-export type MutationConfig<_Result, _Input> = {
-	optimisticResponse?: _Result
-}
+import {
+	Operation,
+	GraphQLTagResult,
+	MutationConfig,
+	CompiledMutationKind,
+	MutationStore,
+} from '..'
 
 export function mutation<_Mutation extends Operation<any, any>>(store: GraphQLTagResult) {
 	// make sure we got a query store
-	if (store.kind !== 'HoudiniMutation') {
+	if (store.kind !== CompiledMutationKind) {
 		throw new Error('mutation() must be passed a mutation store')
 	}
+
+	const mutationStore = store as MutationStore<any, any>
 
 	return async (
 		variables: _Mutation['input'],
 		mutationConfig?: MutationConfig<_Mutation['result'], _Mutation['input']>
 	): Promise<_Mutation['result']> => {
-		const { data } = await store.mutate({
+		const { data } = await mutationStore.mutate({
 			variables,
 			...mutationConfig,
 		})

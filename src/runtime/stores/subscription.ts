@@ -1,4 +1,4 @@
-import { writable } from 'svelte/store'
+import { writable, Writable } from 'svelte/store'
 
 import { isBrowser } from '../adapter'
 import cache from '../cache'
@@ -9,103 +9,105 @@ import {
 	getCurrentClient,
 	getCurrentConfig,
 	SubscriptionArtifact,
-	SubscriptionStore,
 } from '../lib'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
+import { BaseStore } from './store'
 
-export function subscriptionStore<_Data, _Input>({
-	artifact,
-}: {
+export class SubscriptionStore<_Data, _Input> extends BaseStore {
 	artifact: SubscriptionArtifact
-}): SubscriptionStore<_Data | null, _Input> {
-	// a store that holds the latest value
-	const result = writable<_Data | null>(null)
+	kind = CompiledSubscriptionKind
 
-	// @ts-expect-error: typechecking cjs/esm interop is hard
-	// pull the query text out of the compiled artifact
-	const { raw: text, selection } = artifact.default || artifact
-
+	private store: Writable<_Data | null>
 	// the function to call to unregister the subscription
-	let clearSubscription = () => {}
-
+	private clearSubscription = () => {}
 	// listen might be called multiple times while mounted
-	let lastVariables: _Input | null = null
+	private lastVariables: _Input | null = null
 
-	return {
-		name: artifact.name,
-		kind: CompiledSubscriptionKind,
-		subscribe: result.subscribe,
-		async listen(variables: _Input) {
-			// subscription.listen is a no-op on the server
-			if (!isBrowser) {
-				return
-			}
-			// pull out the current client
-			const config = await getCurrentConfig()
-			const env = await getCurrentClient()
-			// we need to make sure that the user provided a socket connection
-			if (!env.socket) {
-				throw new Error(
-					'The current Houdini Client is not configured to handle subscriptions. Make sure you ' +
-						'passed a socketClient to HoudiniClient constructor.'
-				)
-			}
+	constructor({ artifact }: { artifact: SubscriptionArtifact }) {
+		super()
+		this.artifact = artifact
+		this.store = writable(null)
+	}
 
-			// marshal the inputs into their raw values
-			const marshaledVariables = marshalInputs({
-				input: variables || {},
-				config,
-				artifact,
-			}) as _Input
+	subscribe(...args: Parameters<Writable<_Data | null>['subscribe']>) {
+		return this.store?.subscribe(...args)
+	}
 
-			// if the variables haven't changed, don't do anything
-			if (deepEquals(lastVariables, marshaledVariables)) {
-				return
-			}
+	async listen(variables: _Input) {
+		// @ts-expect-error: typechecking cjs/esm interop is hard
+		// pull the query text out of the compiled artifact
+		const { raw: text, selection } = artifact.default || artifact
 
-			// clear any existing subscription
-			clearSubscription()
-
-			// save the last set
-			lastVariables = marshaledVariables
-
-			// start listening for updates from the server
-			clearSubscription = env.socket.subscribe(
-				{
-					query: text,
-					variables: marshaledVariables,
-				},
-				{
-					next({ data, errors }) {
-						// make sure there were no errors
-						if (errors) {
-							throw errors
-						}
-
-						// if we got a result
-						if (data) {
-							// update the cache with the result
-							cache.write({
-								selection,
-								data,
-								variables: marshaledVariables,
-							})
-
-							// update the local store
-							result.set(
-								unmarshalSelection(config, artifact.selection, data) as _Data
-							)
-						}
-					},
-					error(data) {},
-					complete() {},
-				}
+		// subscription.listen is a no-op on the server
+		if (!isBrowser) {
+			return
+		}
+		// pull out the current client
+		const config = await getCurrentConfig()
+		const env = await getCurrentClient()
+		// we need to make sure that the user provided a socket connection
+		if (!env.socket) {
+			throw new Error(
+				'The current Houdini Client is not configured to handle subscriptions. Make sure you ' +
+					'passed a socketClient to HoudiniClient constructor.'
 			)
-		},
-		unlisten() {
-			clearSubscription()
-			clearSubscription = () => {}
-			lastVariables = null
-		},
+		}
+
+		// marshal the inputs into their raw values
+		const marshaledVariables = marshalInputs({
+			input: variables || {},
+			config,
+			artifact: this.artifact,
+		}) as _Input
+
+		// if the variables haven't changed, don't do anything
+		if (deepEquals(this.lastVariables, marshaledVariables)) {
+			return
+		}
+
+		// clear any existing subscription
+		this.clearSubscription()
+
+		// save the last set
+		this.lastVariables = marshaledVariables
+
+		// start listening for updates from the server
+		this.clearSubscription = env.socket.subscribe(
+			{
+				query: text,
+				variables: marshaledVariables,
+			},
+			{
+				next: ({ data, errors }) => {
+					// make sure there were no errors
+					if (errors) {
+						throw errors
+					}
+
+					// if we got a result
+					if (data) {
+						// update the cache with the result
+						cache.write({
+							selection,
+							data,
+							variables: marshaledVariables,
+						})
+
+						// update the local store
+						this.store.set(
+							unmarshalSelection(config, this.artifact.selection, data) as _Data
+						)
+					}
+				},
+				error(data) {},
+				complete() {},
+			}
+		)
+	}
+
+	unlisten() {
+		this.clearSubscription()
+		this.clearSubscription = () => {}
+		this.lastVariables = null
 	}
 }

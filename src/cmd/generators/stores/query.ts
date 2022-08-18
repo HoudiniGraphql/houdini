@@ -3,12 +3,12 @@ import path from 'path'
 
 import { Config, operation_requires_variables, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import pagination from './pagination'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {
 	const fileName = doc.name
-	const storeName = config.storeName(doc)
 	const artifactName = `${doc.name}`
+	const storeName = artifactName + 'Store'
+	const globalStoreName = config.globalStoreName(doc)
 
 	let variables = false
 	const operation = doc.originalDocument.definitions.find(
@@ -19,23 +19,39 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 		variables = operation_requires_variables(operation)
 	}
 
-	const paginationExtras = pagination(config, doc, 'query')
+	// which functions we pull from the handlers depends on the pagination method
+	// specified by the artifact
+	const paginationMethod = doc.refetch?.paginated && doc.refetch.method
+
+	// in order to build the store, we need to know what class we're going to import from
+	let queryClass = 'QueryStore'
+	if (paginationMethod === 'cursor') {
+		queryClass =
+			doc.refetch?.direction === 'forward'
+				? 'ForwardCursorPaginatedQueryStore'
+				: 'BackwardCursorPaginatedQueryStore'
+	} else if (paginationMethod === 'offset') {
+		queryClass = 'OffsetPaginatedQueryStore'
+	}
 
 	// store definition
-	const storeData = `import { queryStore } from '../runtime/stores'
+	const storeData = `import { ${queryClass} } from '../runtime/stores'
 import artifact from '../artifacts/${artifactName}'
 
 // create the query store
-const factory = () => queryStore({
-    artifact,
-    storeName: ${JSON.stringify(storeName)},
-    paginated: ${JSON.stringify(Boolean(doc.refetch?.paginated))},
-    paginationMethods: ${JSON.stringify(paginationExtras.methods)},
-	variables: ${JSON.stringify(variables)},
-})
+
+export class ${storeName} extends ${queryClass} {
+    constructor() {
+        super({
+			artifact,
+			storeName: ${JSON.stringify(storeName)},
+			variables: ${JSON.stringify(variables)},
+		})
+	}
+}
 
 export async function load_${artifactName}(params) {
-	const store = factory()
+	const store = new ${storeName}()
 	
 	await store.fetch(params)
 
@@ -44,11 +60,9 @@ export async function load_${artifactName}(params) {
 	}
 }
 
-export const ${storeName} = factory()
+export const ${globalStoreName} = new ${storeName}()
 
-export const ${config.storeFactoryName(artifactName)} = factory
-
-export default ${storeName}
+export default ${globalStoreName}
 `
 
 	// look for the operation
@@ -57,20 +71,20 @@ export default ${storeName}
 	) as graphql.OperationDefinitionNode[]
 	const inputs = operations[0]?.variableDefinitions
 	const withVariableInputs = inputs && inputs.length > 0
-	const VariableInputsType = withVariableInputs ? `${artifactName}$input` : 'null'
+	const variableInputsType = withVariableInputs ? `${artifactName}$input` : 'null'
+
+	const _data = `${artifactName}$result`
 
 	// type definitions
-	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy, QueryStoreLoadParams} from '$houdini'
-import { type QueryStore } from '../runtime/lib/types'
-${paginationExtras.typeImports}
+	const typeDefs = `import type { ${_data}, ${queryClass}, ${
+		variableInputsType ? `${artifactName}$input` : ''
+	}} from '$houdini'
 
-export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}, ${
-		paginationExtras.storeExtras
-	}> ${paginationExtras.types}
+export declare class ${storeName} extends ${queryClass}<${_data}, ${variableInputsType}> 
 
-export declare const ${config.storeFactoryName(artifactName)}: () => typeof ${storeName}
+export const ${globalStoreName}: ${storeName}
 
-export declare const load_${artifactName}: (params: QueryStoreLoadParams<${artifactName}$input>) => Promise<${storeName}>
+export declare const load_${artifactName}: (params: QueryStoreLoadParams<${variableInputsType}>) => Promise<${storeName}>
 
 export default ${storeName}
 `

@@ -301,12 +301,8 @@ ${
 		return `$houdini/${this.storesDirectoryName}/${name}`
 	}
 
-	storeName({ name }: { name: string }) {
+	globalStoreName({ name }: { name: string }) {
 		return this.storePrefix + name
-	}
-
-	storeFactoryName(name: string): string {
-		return name + 'Store'
 	}
 
 	keyFieldsForType(type: string) {
