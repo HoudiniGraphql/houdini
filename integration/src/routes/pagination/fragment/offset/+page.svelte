@@ -23,8 +23,8 @@
           name
         }
       }
-    `,
-  )
+    `
+  );
 </script>
 
 <div id="result">

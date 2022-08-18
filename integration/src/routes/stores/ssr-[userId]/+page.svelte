@@ -3,7 +3,7 @@
   import { page } from '$app/stores';
   import { stry } from '@kitql/helper';
   import type { PageData } from './$types';
-  
+
   export let data: PageData;
 
   $: ({ User } = data);

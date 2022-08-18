@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
-  
+
   export let data: PageData;
 
   $: ({ store1, store2 } = data);
