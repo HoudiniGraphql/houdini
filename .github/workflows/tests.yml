@@ -146,18 +146,15 @@ jobs:
             - name: Build Package
               run: pnpm run build
 
-            - name: Build packages
-              run: yarn build
-
             - name: SvelteKit Sync
               run: cd integration && npx svelte-kit sync
 
             - name: Build kit assets
-              run: yarn workspace integration build
+              run: run: pnpm --filter integration run build
 
             # needs to run after build & houdini generate
             - name: Integration lint
-              run: cd integration && lint
+              run: pnpm --filter integration run lint
 
             - name: Integration check
-              run: cd integration && check
+              run: pnpm --filter integration run check
