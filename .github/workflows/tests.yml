@@ -154,7 +154,7 @@ jobs:
               run: npx playwright install --with-deps
 
             - name: Integration Tests
-              run: yarn workspace integration tests
+              run: pnpm --filter integration tests
               env:
                   RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
 
@@ -199,19 +199,13 @@ jobs:
                 key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
                 restore-keys: |
                   ${{ runner.os }}-pnpm-store-
-
-            - name: Install dependencies
-              run: pnpm install
               
             - name: Build packages
-              run: pnpm run build
-
-            - name: Build kit assets
-              run: pnpm run build
+              run: pnpm --filter integration run build
 
             # needs to run after build & houdini generate
             - name: Integration lint
-              run: pnpm run lint
+              run: pnpm --filter integration run lint
 
             - name: Integration check
-              run: pnpm run check
+              run: pnpm --filter integration run check
