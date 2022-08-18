@@ -51,7 +51,7 @@
 		"lint": "eslint --ignore-path .prettierignore .",
 		"changeset": "changeset",
 		"version": "changeset version",
-		"release": "yarn build && changeset publish",
+		"release": "npm run build && changeset publish",
 		"postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
 		"prepack": "pinst --disable",
 		"postpack": "pinst --enable"
@@ -132,6 +132,5 @@
 	},
 	"peerDependencies": {
 		"graphql": "^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0"
-	},
-	"packageManager": "yarn@3.2.0"
+	}
 }

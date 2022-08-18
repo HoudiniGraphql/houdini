@@ -2,5 +2,4 @@ integration/
 example/
 .changeset/
 .github/
-.yarn
 *.test.ts

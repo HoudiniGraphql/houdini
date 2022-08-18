@@ -1,23 +1,15 @@
-.DS_Store
 node_modules
-yarn-error.log
+.DS_Store
 .vscode
 
 build
 bin
 
-.yarn/*
-!.yarn/releases
-!.yarn/plugins
-!.yarn/sdks
-!.yarn/versions
 .pnp.*
 __tests__
 
 example/.svelte-kit
 example/functions
 example/$houdini
-
-yarn-error.log
 
 /playground.js

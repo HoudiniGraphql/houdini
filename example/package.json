@@ -6,7 +6,7 @@
 		"generate": "houdini generate",
 		"web": "vite dev",
 		"api": "node api.mjs",
-		"dev": "npm run prepare && npm run generate && concurrently \"yarn web\" \"yarn api\" -n \"web,api\" -c \"green,magenta\"",
+		"dev": "npm run prepare && npm run generate && concurrently \"npm run web\" \"npm run api\" -n \"web,api\" -c \"green,magenta\"",
 		"build": "vite build",
 		"start": "vite preview"
 	},
