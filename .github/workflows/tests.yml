@@ -139,9 +139,11 @@ jobs:
 
             - name: Install dependencies
               run: pnpm install
+
+            
               
             - name: Build packages
-              run: cd integration && pnpm run build
+              run: pnpm run build && cd integration && pnpm run build
 
             # needs to run after build & houdini generate
             - name: Integration lint
