@@ -4,4 +4,4 @@
   $: ({ PageQuery } = data);
 </script>
 
-{$PageQuery.data.user.id}
+{$PageQuery.data?.user.id}

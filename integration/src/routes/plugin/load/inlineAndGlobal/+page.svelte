@@ -1,7 +1,7 @@
 <script lang="ts">
   export let data: any;
 
-  $: ({ Hello, ListLoadQuery2 } = data);
+  $: ({ Hello, InlineAndGlobalLoadQuery2 } = data);
 </script>
 
-{$Hello.data.hello},{$ListLoadQuery2.data.user.id}
+{$Hello.data?.hello},{$InlineAndGlobalLoadQuery2.data?.user.id}

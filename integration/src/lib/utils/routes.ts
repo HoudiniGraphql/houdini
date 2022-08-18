@@ -37,8 +37,8 @@ export const routes = {
   Plugin_mutation_mutation: '/plugin/mutation/mutation',
   Plugin_fragment_update: '/plugin/fragment/update',
 
-  Plugin_load_simple: '/plugin/load/simple',
-  Plugin_load_loadAndGlobal: '/plugin/load/loadAndGlobal',
+  Plugin_load_single: '/plugin/load/single',
+  Plugin_load_loadAndGlobal: '/plugin/load/inlineAndGlobal',
   Plugin_load_list: '/plugin/load/list',
   Plugin_load_pageQuery: '/plugin/load/pageQuery',
 

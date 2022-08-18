@@ -4,4 +4,4 @@
   $: ({ ListLoadQuery1, ListLoadQuery2 } = data);
 </script>
 
-{$ListLoadQuery1.data.user.id},{$ListLoadQuery2.data.user.id}
+{$ListLoadQuery1.data?.user.id},{$ListLoadQuery2.data?.user.id}

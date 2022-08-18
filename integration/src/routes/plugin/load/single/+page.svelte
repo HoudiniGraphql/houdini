@@ -4,4 +4,4 @@
   $: ({ SingleLoadQuery } = data);
 </script>
 
-{$SingleLoadQuery.data.user.id}
+{$SingleLoadQuery.data?.user.id}
