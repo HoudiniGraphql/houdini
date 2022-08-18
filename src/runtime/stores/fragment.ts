@@ -17,13 +17,11 @@ import { fragmentHandlers, PageInfo, PaginatedHandlers } from '../lib/pagination
 // fragment store for the object the store has been mixed into
 export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 	artifact,
-	config,
 	paginatedArtifact,
 	paginationMethods,
 	storeName,
 }: {
 	artifact: QueryArtifact
-	config: ConfigFile
 	paginated: QueryArtifact
 	paginatedArtifact?: QueryArtifact
 	paginationMethods: (keyof PaginatedHandlers<_Data, _Input>)[]
@@ -51,7 +49,6 @@ export function fragmentStore<_Data extends GraphQLObject, _Input = {}>({
 			if (paginatedArtifact) {
 				const handlers = fragmentHandlers<_Data, {}>({
 					storeName,
-					config,
 					paginationArtifact: paginatedArtifact,
 					store,
 					getContext: () => ctx,

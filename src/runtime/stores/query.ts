@@ -13,6 +13,7 @@ import {
 	deepEquals,
 	CompiledQueryKind,
 	HoudiniFetchContext,
+	getCurrentConfig,
 } from '../lib'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { getHoudiniContext, nullHoudiniContext } from '../lib/context'
@@ -21,16 +22,12 @@ import { PageInfo, PaginatedHandlers, queryHandlers } from '../lib/pagination'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 
 export function queryStore<_Data extends GraphQLObject, _Input>({
-	config,
-	client,
 	artifact,
 	storeName,
 	paginationMethods,
 	paginated,
 	variables,
 }: {
-	config: ConfigFile
-	client: HoudiniClient
 	artifact: QueryArtifact
 	paginated: boolean
 	storeName: string
@@ -42,7 +39,7 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 		initialState()
 	)
 	const setFetching = (isFetching: boolean) => store?.update((s) => ({ ...s, isFetching }))
-	const getVariables = (): _Input | null => get(store)?.variables || null
+	const getVariables = async (): Promise<_Input | null> => get(store)?.variables || null
 
 	// we will be reading and write the last known variables often, avoid frequent gets and updates
 	let lastVariables: _Input | null = null
@@ -90,6 +87,8 @@ export function queryStore<_Data extends GraphQLObject, _Input>({
 	async function fetch(
 		args?: QueryStoreFetchParams<_Input>
 	): Promise<QueryResult<_Data, _Input>> {
+		const config = await getCurrentConfig()
+
 		// validate and prepare the request context for the current environment (client vs server)
 		const { context, policy, parentContext, params } = fetchParams(
 			ctx,
@@ -157,7 +156,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 		// perform the network request
 		const request = fetchAndCache({
-			client,
 			config,
 			context,
 			artifact,
@@ -186,7 +184,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 	if (paginated) {
 		const handlers = queryHandlers<_Data, _Input>({
 			storeName,
-			config,
 			artifact,
 			store,
 			async fetch(params) {
@@ -265,7 +262,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	ignoreFollowup,
 	setLoadPending,
 	policy,
-	client,
 }: {
 	config: ConfigFile
 	context: FetchContext
@@ -276,7 +272,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 	ignoreFollowup?: boolean
 	setLoadPending: (pending: boolean) => void
 	policy?: CachePolicy
-	client: HoudiniClient
 }) {
 	const request = await fetchQuery<_Data, _Input>({
 		config,
@@ -285,7 +280,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 		variables,
 		cached,
 		policy,
-		client,
 	})
 	const { result, source, partial } = request
 
@@ -337,7 +331,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 		// network request to be sent after the data was loaded, load the data
 		if (source === DataSource.Cache && artifact.policy === CachePolicy.CacheAndNetwork) {
 			fetchAndCache<_Data, _Input>({
-				client,
 				config,
 				context,
 				artifact,
@@ -353,7 +346,6 @@ async function fetchAndCache<_Data extends GraphQLObject, _Input>({
 		// from the network, send the request
 		if (partial && artifact.policy === CachePolicy.CacheOrNetwork) {
 			fetchAndCache<_Data, _Input>({
-				client,
 				config,
 				context,
 				artifact,

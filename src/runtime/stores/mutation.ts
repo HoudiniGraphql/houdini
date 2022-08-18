@@ -6,7 +6,7 @@ import {
 	CompiledMutationKind,
 	ConfigFile,
 	executeQuery,
-	HoudiniClient,
+	getCurrentConfig,
 	HoudiniFetchContext,
 	MutationResult,
 	MutationStore,
@@ -15,12 +15,8 @@ import type { SubscriptionSpec, MutationArtifact } from '../lib'
 import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
 
 export function mutationStore<_Data, _Input>({
-	config,
 	artifact,
-	client,
 }: {
-	config: ConfigFile
-	client: HoudiniClient
 	artifact: MutationArtifact
 }): MutationStore<_Data, _Input> {
 	const store: Writable<MutationResult<_Data, _Input>> = writable(nullMutationStore())
@@ -34,6 +30,8 @@ export function mutationStore<_Data, _Input>({
 		fetch,
 		...mutationConfig
 	}) => {
+		const config = await getCurrentConfig()
+
 		let fetchContext: HoudiniFetchContext | { session: () => null } = rootContext ||
 			context || {
 				session: () => null,
@@ -91,7 +89,6 @@ export function mutationStore<_Data, _Input>({
 		try {
 			// trigger the mutation
 			const { result } = await executeQuery({
-				client,
 				config,
 				artifact,
 				variables: newVariables,

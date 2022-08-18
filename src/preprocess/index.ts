@@ -42,7 +42,7 @@ export default config;
 			const page = {
 				config,
 				filepath: filename,
-				addWatchFile: () => {},
+				watch_file: () => {},
 				load: async (fp: string) => await import(fp),
 			}
 

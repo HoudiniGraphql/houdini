@@ -191,3 +191,8 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 
 	return id.slice(0, -2)
 }
+
+export async function getCurrentConfig(): Promise<ConfigFile> {
+	// @ts-ignore
+	return defaultConfigValues((await import('HOUDINI_CONFIG_PATH')).default)
+}

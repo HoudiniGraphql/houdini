@@ -2,7 +2,7 @@ import path from 'path'
 import * as recast from 'recast'
 import { fileURLToPath } from 'url'
 
-import { Config, parseJS } from '../../../common'
+import { Config } from '../../../common'
 import * as fs from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
 import generateAdapter from './adapter'
@@ -35,7 +35,8 @@ export default async function runtimeGenerator(config: Config, docs: CollectedGr
 	await recursiveCopy(config, source, config.runtimeDirectory)
 
 	// generate the adapter to normalize interactions with the framework
-	await Promise.all([generateAdapter(config)])
+	// update the generated runtime to point to the client
+	await Promise.all([generateAdapter(config), addClientImport(config), addConfigImport(config)])
 }
 
 async function recursiveCopy(config: Config, source: string, target: string, notRoot?: boolean) {
@@ -108,4 +109,43 @@ async function recursiveCopy(config: Config, source: string, target: string, not
 			})
 		)
 	}
+}
+
+async function addClientImport(config: Config) {
+	// all we need to do is compute the relative path from the generated network file
+	// to the client in the config file and replace HOUDINI_CLIENT_PATH with the value
+
+	// the path to the network file
+	const networkFilePath = path.join(config.runtimeDirectory, 'lib', 'network.js')
+	// the relative path
+	const relativePath = path.relative(
+		path.dirname(networkFilePath),
+		path.join(config.projectRoot, config.client)
+	)
+
+	// read the file, replace the string, update the file
+	const contents = await fs.readFile(networkFilePath)
+	if (!contents) {
+		return
+	}
+
+	await fs.writeFile(networkFilePath, contents.replace('HOUDINI_CLIENT_PATH', relativePath))
+}
+
+async function addConfigImport(config: Config) {
+	// all we need to do is compute the relative path from the generated network file
+	// to the config in the config file and replace HOUDINI_config_PATH with the value
+
+	// the path to the network file
+	const networkFilePath = path.join(config.runtimeDirectory, 'lib', 'config.js')
+	// the relative path
+	const relativePath = path.relative(path.dirname(networkFilePath), config.filepath)
+
+	// read the file, replace the string, update the file
+	const contents = await fs.readFile(networkFilePath)
+	if (!contents) {
+		return
+	}
+
+	await fs.writeFile(networkFilePath, contents.replace('HOUDINI_CONFIG_PATH', relativePath))
 }

@@ -73,7 +73,7 @@
 		"@rollup/plugin-json": "^4.1.0",
 		"@rollup/plugin-node-resolve": "^13.2.0",
 		"@rollup/plugin-replace": "^4.0.0",
-		"@sveltejs/kit": "1.0.0-next.370",
+		"@sveltejs/kit": "1.0.0-next.411",
 		"@theguild/eslint-config": "^0.0.1-alpha-8209242.0",
 		"@trivago/prettier-plugin-sort-imports": "^3.3.0",
 		"@types/fs-extra": "^9.0.13",

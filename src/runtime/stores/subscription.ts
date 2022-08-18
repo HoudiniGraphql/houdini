@@ -6,20 +6,17 @@ import {
 	CompiledSubscriptionKind,
 	ConfigFile,
 	deepEquals,
-	HoudiniClient,
+	getCurrentClient,
+	getCurrentConfig,
 	SubscriptionArtifact,
 	SubscriptionStore,
 } from '../lib'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 
 export function subscriptionStore<_Data, _Input>({
-	config,
 	artifact,
-	client,
 }: {
-	config: ConfigFile
 	artifact: SubscriptionArtifact
-	client: HoudiniClient
 }): SubscriptionStore<_Data | null, _Input> {
 	// a store that holds the latest value
 	const result = writable<_Data | null>(null)
@@ -38,14 +35,14 @@ export function subscriptionStore<_Data, _Input>({
 		name: artifact.name,
 		kind: CompiledSubscriptionKind,
 		subscribe: result.subscribe,
-		listen(variables: _Input) {
+		async listen(variables: _Input) {
 			// subscription.listen is a no-op on the server
 			if (!isBrowser) {
 				return
 			}
-
 			// pull out the current client
-			const env = client
+			const config = await getCurrentConfig()
+			const env = await getCurrentClient()
 			// we need to make sure that the user provided a socket connection
 			if (!env.socket) {
 				throw new Error(

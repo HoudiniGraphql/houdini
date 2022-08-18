@@ -4,7 +4,7 @@ import { deepEquals, FragmentStore, QueryResult, QueryStore, QueryStoreFetchPara
 import cache from '../cache'
 import * as log from '../lib/log'
 import { fetchParams } from '../stores/query'
-import { ConfigFile, keyFieldsForType } from './config'
+import { ConfigFile, getCurrentConfig, keyFieldsForType } from './config'
 import { executeQuery } from './network'
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from './types'
 
@@ -32,48 +32,43 @@ export function wrapPaginationStore<_Data, _Input>(
 }
 
 export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
-	config,
 	paginationArtifact,
 	store,
 	storeName,
 	getContext,
 }: {
 	storeName: string
-	config: ConfigFile
 	paginationArtifact: QueryArtifact
 	store: Readable<_Data | null>
 	getContext: () => HoudiniFetchContext | null
 }) {
-	const { targetType } = paginationArtifact.refetch || {}
-	const typeConfig = config.types?.[targetType || '']
-	if (!typeConfig) {
-		throw new Error(
-			`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
-		)
-	}
+	let queryVariables = async () => {
+		const config = await getCurrentConfig()
 
-	let queryVariables = () => ({} as _Input)
-	// if the query is embedded we have to figure out the correct variables to pass
-	if (paginationArtifact.refetch!.embedded) {
+		const { targetType } = paginationArtifact.refetch || {}
+		const typeConfig = config.types?.[targetType || '']
+		if (!typeConfig) {
+			throw new Error(
+				`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
+			)
+		}
 		// if we have a specific function to use when computing the variables
+		const value = get(store)
 		if (typeConfig.resolve?.arguments) {
-			queryVariables = () => {
-				const value = get(store)
-				return (typeConfig.resolve!.arguments?.(value) || {}) as _Input
-			}
+			return (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')
-			queryVariables = () => {
-				const value = get(store)
-				// @ts-ignore
-				return Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
-			}
+
+			// @ts-ignore
+			return Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
 		}
+	}
+	// if the query is embedded we have to figure out the correct variables to pass
+	if (paginationArtifact.refetch!.embedded) {
 	}
 
 	return paginationHandlers<_Data, _Input>({
 		storeName,
-		config,
 		artifact: paginationArtifact,
 		queryVariables,
 		fetch: async () => {
@@ -87,7 +82,6 @@ export function fragmentHandlers<_Data extends GraphQLObject, _Input>({
 }
 
 export function queryHandlers<_Data extends GraphQLObject, _Input>({
-	config,
 	artifact,
 	store,
 	fetch,
@@ -95,11 +89,10 @@ export function queryHandlers<_Data extends GraphQLObject, _Input>({
 	storeName,
 	getContext,
 }: {
-	config: ConfigFile
 	artifact: QueryArtifact
 	store: Writable<QueryResult<_Data, _Input>>
 	fetch: FetchFn<_Data, _Input>
-	queryVariables: () => _Input | null
+	queryVariables: () => Promise<_Input | null>
 	pageInfo?: Readable<PageInfo>
 	storeName: string
 	getContext: () => HoudiniFetchContext | null
@@ -114,7 +107,6 @@ export function queryHandlers<_Data extends GraphQLObject, _Input>({
 		artifact,
 		queryVariables,
 		fetch,
-		config,
 		storeName,
 		getValue: () => get(store)?.data ?? null,
 		getContext,
@@ -125,17 +117,15 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 	artifact,
 	queryVariables,
 	fetch,
-	config,
 	storeName,
 	getValue,
 	getContext,
 }: {
 	artifact: QueryArtifact
 	getValue: () => _Data | null
-	queryVariables: () => _Input | null
+	queryVariables: () => Promise<_Input | null>
 	documentLoading?: Readable<boolean>
 	fetch: FetchFn<_Data, _Input>
-	config: ConfigFile
 	pageInfo?: Writable<PageInfo>
 	storeName: string
 	getContext: () => HoudiniFetchContext | null
@@ -166,7 +156,6 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 			queryVariables,
 			loading: paginationLoadingState,
 			fetch,
-			config,
 			storeName,
 			getValue,
 			getContext,
@@ -192,7 +181,6 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 			artifact,
 			queryVariables,
 			fetch,
-			config,
 			storeName,
 			loading: paginationLoadingState,
 			getValue,
@@ -218,7 +206,6 @@ function paginationHandlers<_Data extends GraphQLObject, _Input>({
 }
 
 function cursorHandlers<_Data extends GraphQLObject, _Input>({
-	config,
 	artifact,
 	queryVariables: extraVariables,
 	loading,
@@ -227,10 +214,9 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	getValue,
 	getContext,
 }: {
-	config: ConfigFile
 	artifact: QueryArtifact
 	getValue: () => _Data | null
-	queryVariables: () => _Input | null
+	queryVariables: () => Promise<_Input | null>
 	loading: Writable<boolean>
 	fetch: FetchFn
 	storeName: string
@@ -250,12 +236,14 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		functionName: string
 		input: {}
 	}) => {
+		const config = await getCurrentConfig()
+
 		// set the loading state to true
 		loading.set(true)
 
 		// build up the variables to pass to the query
 		const loadVariables: Record<string, any> = {
-			...extraVariables?.(),
+			...(await extraVariables?.()),
 			...houdiniContext.variables(),
 			...input,
 		}
@@ -377,13 +365,14 @@ function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			const { variables } = params ?? {}
 
 			// build up the variables to pass to the query
+			const extra = await extraVariables()
 			const queryVariables: Record<string, any> = {
-				...extraVariables(),
+				...extra,
 				...variables,
 			}
 
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && !deepEquals(extraVariables(), variables)) {
+			if (variables && !deepEquals(extra, variables)) {
 				const result = await fetch(params)
 				pageInfo.set(extractPageInfo(result, artifact.refetch!.path))
 			}
@@ -433,14 +422,12 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 	queryVariables: extraVariables,
 	fetch,
 	getValue,
-	config,
 	loading,
 	storeName,
 	getContext,
 }: {
-	config: ConfigFile
 	artifact: QueryArtifact
-	queryVariables: () => _Input | null
+	queryVariables: () => Promise<_Input | null>
 	fetch: FetchFn
 	getValue: () => _Data | null
 	loading: Writable<boolean>
@@ -461,6 +448,8 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 
 	return {
 		loadPage: async (limit?: number, offset?: number, ctx?: HoudiniFetchContext) => {
+			const config = await getCurrentConfig()
+
 			const houdiniContext = getContext() ?? ctx
 			if (!houdiniContext) {
 				throw contextError
@@ -471,7 +460,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
 				...houdiniContext.variables(),
-				...extraVariables(),
+				...(await extraVariables()),
 				offset,
 			}
 			if (limit || limit === 0) {
@@ -516,8 +505,10 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 
 			const { variables } = params ?? {}
 
+			const extra = await extraVariables()
+
 			// if the input is different than the query variables then we just do everything like normal
-			if (variables && !deepEquals(extraVariables(), variables)) {
+			if (variables && !deepEquals(extra, variables)) {
 				return fetch(params)
 			}
 
@@ -528,7 +519,7 @@ function offsetPaginationHandler<_Data extends GraphQLObject, _Input>({
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...extraVariables(),
+				...extra,
 			}
 
 			// if there are more records than the first page, we need fetch to load everything
