@@ -1,4 +1,3 @@
-import { ImportDeclaration } from 'estree'
 import * as recast from 'recast'
 
 import { Config, Script } from '../common'
@@ -6,6 +5,7 @@ import { Config, Script } from '../common'
 const AST = recast.types.builders
 
 type Identifier = recast.types.namedTypes.Identifier
+type ImportDeclaration = recast.types.namedTypes.ImportDeclaration
 
 export function ensure_imports({
 	config,
@@ -58,14 +58,14 @@ export function ensure_imports({
 			!script.body.find(
 				(statement) =>
 					statement.type === 'ImportDeclaration' &&
-					(statement as unknown as ImportDeclaration).specifiers.find(
+					(statement as unknown as ImportDeclaration).specifiers?.find(
 						(importSpecifier) =>
 							(importSpecifier.type === 'ImportSpecifier' &&
 								importSpecifier.imported.type === 'Identifier' &&
 								importSpecifier.imported.name === identifier.name &&
-								importSpecifier.local.name === identifier.name) ||
+								importSpecifier.local?.name === identifier.name) ||
 							(importSpecifier.type === 'ImportDefaultSpecifier' &&
-								importSpecifier.local.type === 'Identifier' &&
+								importSpecifier.local?.type === 'Identifier' &&
 								importSpecifier.local.name === identifier.name &&
 								importSpecifier.local.name === identifier.name)
 					)
