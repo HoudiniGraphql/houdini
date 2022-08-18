@@ -7,7 +7,7 @@ const config: PlaywrightTestConfig = {
     screenshot: 'only-on-failure'
   },
   webServer: {
-    command: 'npm run generate && npm run build && npm run preview',
+    command: 'npm run build && npm run preview',
     port: 3007
   }
 };
