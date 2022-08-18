@@ -2,8 +2,8 @@ import { mergeSchemas } from '@graphql-tools/schema'
 import { glob } from 'glob'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
-import os from 'node:os'
-import path from 'node:path'
+import os from 'os'
+import path from 'path'
 import { promisify } from 'util'
 
 import {

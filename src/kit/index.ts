@@ -1,5 +1,5 @@
 import minimatch from 'minimatch'
-import path from 'node:path'
+import path from 'path'
 import type { Plugin } from 'vite'
 
 import generate from '../cmd/generate'
