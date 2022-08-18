@@ -37,7 +37,7 @@ jobs:
             - name: Setup Node
               uses: actions/setup-node@v1
               with:
-                  node-version: 16.14.2
+                  node-version: 18.7.0
 
             - name: Set Git Identity
               run: |
