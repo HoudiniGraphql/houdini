@@ -139,9 +139,15 @@ jobs:
 
             - name: Install dependencies
               run: pnpm install
+
+            - name: Build Package
+              run: pnpm run build
+
+            - name: SvelteKit Sync
+              run: cd integration && npx svelte-kit sync
               
-            - name: Build packages
-              run: pnpm run build && cd integration && pnpm run build
+            - name: Build SvelteKit Project
+              run:  pnpm run build
 
             # needs to run after build & houdini generate
             - name: Integration lint
