@@ -206,10 +206,6 @@ jobs:
             - name: Build packages
               run: pnpm run build
 
-
-            - name: Generate runtime
-              run: cd integration && pnpm run generate
-
             - name: Build kit assets
               run: pnpm run build
 
