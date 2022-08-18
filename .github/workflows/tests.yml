@@ -150,7 +150,7 @@ jobs:
               run: cd integration && npx svelte-kit sync
 
             - name: Build kit assets
-              run: run: pnpm --filter integration run build
+              run: pnpm --filter integration run build
 
             # needs to run after build & houdini generate
             - name: Integration lint
