@@ -6,7 +6,6 @@ import { ProgramKind } from 'ast-types/gen/kinds'
 import * as recast from 'recast'
 // local imports
 import { testConfig } from '../../../common'
-import '../../../../jest.setup'
 import { runPipeline } from '../../generate'
 import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
@@ -18,7 +17,7 @@ const docs: CollectedGraphQLDocument[] = [
 ]
 
 test('runtime index file - sapper', async function () {
-	const config = testConfig({ module: 'commonjs', framework: 'sapper' })
+	const config = testConfig({ module: 'commonjs' })
 	// execute the generator
 	await runPipeline(config, docs)
 
