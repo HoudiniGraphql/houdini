@@ -50,14 +50,9 @@ describe('kit route processor', function () {
 			$:
 			injectContext([$$props.data.TestQuery]);
 
-			$:
-			({
-			    TestQuery: _houdini_TestQuery
-			} = $$props.data);
-
 			const {
 			    data
-			} = query(_houdini_TestQuery);
+			} = query($$props.data.TestQuery);
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import { load_TestQuery } from "$houdini/stores/TestQuery";
@@ -142,19 +137,13 @@ describe('kit route processor', function () {
 			$:
 			injectContext([$$props.data.TestQuery1, $$props.data.TestQuery2]);
 
-			$:
-			({
-			    TestQuery1: _houdini_TestQuery1,
-			    TestQuery2: _houdini_TestQuery2
-			} = $$props.data);
-
 			const {
 			    data: data1
-			} = query(_houdini_TestQuery1);
+			} = query($$props.data.TestQuery1);
 
 			const {
 			    data: data2
-			} = query(_houdini_TestQuery2);
+			} = query($$props.data.TestQuery2);
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import { load_TestQuery2 } from "$houdini/stores/TestQuery2";
