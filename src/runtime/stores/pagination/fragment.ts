@@ -6,8 +6,9 @@ import {
 	getCurrentConfig,
 	QueryArtifact,
 	keyFieldsForType,
+	CompiledFragmentKind,
 } from '../../lib'
-import { StoreConfig } from '../query'
+import { ClientFetchParams, QueryResult, StoreConfig } from '../query'
 import { FragmentStore } from '../fragment'
 import { nullPageInfo, PageInfo } from './pageInfo'
 import { offsetHandlers } from './offset'
@@ -180,3 +181,13 @@ export type FragmentStorePaginated<_Data extends GraphQLObject, _Input> =
 	| FragmentStoreBackwardCursor<_Data, _Input>
 	| FragmentStoreForwardCursor<_Data, _Input>
 	| FragmentStoreOffset<_Data, _Input>
+
+export interface QueryStorePaginated<_Data extends GraphQLObject, _Input> {
+	kind: typeof CompiledFragmentKind
+
+	fetch(params?: ClientFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
+
+	loadNextPage: CursorHandlers<_Data, _Input>['loadNextPage']
+	loadPreviousPage: CursorHandlers<_Data, _Input>['loadPreviousPage']
+	loadPage: CursorHandlers<_Data, _Input>['pageInfo']
+}

@@ -1,6 +1,6 @@
-import { get, Writable, writable } from 'svelte/store'
+import { get, Readable } from 'svelte/store'
 
-import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from '../../lib'
+import { GraphQLObject, HoudiniFetchContext, QueryArtifact, CompiledQueryKind } from '../../lib'
 import {
 	QueryStore,
 	StoreConfig,
@@ -10,9 +10,9 @@ import {
 	ClientFetchParams,
 	QueryResult,
 } from '../query'
-import { nullPageInfo, PageInfo } from './pageInfo'
 import { CursorHandlers, cursorHandlers } from './cursor'
 import { offsetHandlers, OffsetHandlers } from './offset'
+import { PageInfo } from './pageInfo'
 
 // both cursor paginated stores add a page info to their subscribe
 class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QueryStore<_Data, _Input> {
@@ -25,14 +25,16 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QuerySto
 		super(config)
 		this.handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
-			fetch: super.fetch,
-			setFetching: this.setFetching,
-			queryVariables: this.currentVariables,
+			fetch: (...args) => super.fetch(...args),
+			setFetching: (val: boolean) => this.setFetching(val),
+			queryVariables: () => this.currentVariables(),
 			storeName: this.name,
 			getContext: () => this.context,
 			getValue: () => get(this.store).data,
 		})
 	}
+
+	foo() {}
 
 	fetch(params?: RequestEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: LoadEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
@@ -83,8 +85,8 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 			fetch: super.fetch,
 			getContext: () => this.context,
 			getValue: () => get(this.store).data,
-			setFetching: this.setFetching,
-			queryVariables: this.currentVariables,
+			setFetching: (...args) => this.setFetching(...args),
+			queryVariables: () => this.currentVariables(),
 			storeName: this.name,
 		})
 	}
@@ -102,7 +104,9 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 	}
 }
 
-export type QueryStorePaginated<_Data extends GraphQLObject, _Input> =
-	| QueryStoreOffset<_Data, _Input>
-	| QueryStoreForwardCursor<_Data, _Input>
-	| QueryStoreBackwardCursor<_Data, _Input>
+export interface QueryStorePaginated<_Data extends GraphQLObject, _Input> {
+	loadNextPage: CursorHandlers<_Data, _Input>['loadNextPage']
+	loadPreviousPage: CursorHandlers<_Data, _Input>['loadPreviousPage']
+	loadPage: CursorHandlers<_Data, _Input>['pageInfo']
+	pageInfo: Readable<PageInfo>
+}

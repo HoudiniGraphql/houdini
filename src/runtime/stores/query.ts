@@ -160,7 +160,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		return this.artifact.name
 	}
 
-	async currentVariables() {
+	protected async currentVariables() {
 		return get(this.store).variables
 	}
 

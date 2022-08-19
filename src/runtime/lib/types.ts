@@ -102,8 +102,6 @@ export type GraphQLTagResult =
 	| FragmentStore<any>
 	| MutationStore<any, any>
 	| SubscriptionStore<any, any>
-	| QueryStorePaginated<any, any>
-	| FragmentStorePaginated<any, any>
 
 export type HoudiniFetchContext = {
 	session: () => App.Session | null

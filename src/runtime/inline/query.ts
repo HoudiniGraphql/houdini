@@ -4,6 +4,7 @@ import { getHoudiniContext } from '../lib/context'
 import { GraphQLTagResult, Operation, CachePolicy, CompiledQueryKind } from '..'
 import { QueryStorePaginated } from '../stores/pagination/query'
 import { QueryResult, QueryStore } from '../stores/query'
+import { CursorHandlers } from '../stores/pagination/cursor'
 
 export function query<_Query extends Operation<any, any>>(
 	store: GraphQLTagResult
@@ -60,7 +61,8 @@ type RefetchConfig = {
 
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	store: GraphQLTagResult
-): QueryStorePaginated<_Query['result'], _Query['input']> {
+): QueryResponse<_Query['result'], _Query['input']> &
+	CursorHandlers<_Query['result'], _Query['input']> {
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniQuery') {
 		throw new Error('paginatedQuery() must be passed a query document')
@@ -73,5 +75,13 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	// TODO: fix type checking paginated
 	// @ts-ignore: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
-	return query(document)
+	return {
+		...query(store),
+		// @ts-ignore
+		pageInfo: store.pageInfo,
+		// @ts-ignore
+		loadNextPage: store.loadNextPage?.bind(store),
+		// @ts-ignore
+		loadPreviousPage: store.loadPreviousPage?.bind(store),
+	}
 }
