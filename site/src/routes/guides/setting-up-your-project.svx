@@ -106,7 +106,7 @@ export default {
 ```
 
 You also have to configure the compiler and preprocessor to generate the correct logic by setting the `framework`
-field in your config file to `"svelte"`. If you are using vite, you should use the `houdini/kit` plugin even if
+field in your config file to `"svelte"`. If you are using vite, you should use the `houdini/vite` plugin even if
 you aren't using kit.
 
 Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the

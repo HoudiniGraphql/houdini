@@ -172,7 +172,7 @@ export class FragmentStoreOffset<
 			...parent,
 			loading: { subscribe: loading.subscribe },
 			fetch: handlers.fetch,
-			loadPage: handlers.loadPage,
+			loadNextPage: handlers.loadNextPage,
 		}
 	}
 }

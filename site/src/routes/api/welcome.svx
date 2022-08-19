@@ -65,7 +65,7 @@ const subscriptionExample = `subscription(graphql\`
 const cliExample = `houdini generate --pull-schema`
 
 const pluginExample = `// vite.config.js
-import houdini from 'houdini/kit'
+import houdini from 'houdini/vite'
 
 export default {
     plugins: [houdini(), ...],

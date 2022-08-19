@@ -25,9 +25,9 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QuerySto
 		super(config)
 		this.handlers = cursorHandlers<_Data, _Input>({
 			artifact: this.artifact,
-			fetch: (...args) => super.fetch(...args),
-			setFetching: (val: boolean) => this.setFetching(val),
-			queryVariables: () => this.currentVariables(),
+			fetch: super.fetch.bind(this),
+			setFetching: this.setFetching.bind(this),
+			queryVariables: this.currentVariables.bind(this),
 			storeName: this.name,
 			getContext: () => this.context,
 			getValue: () => get(this.store).data,
@@ -39,7 +39,7 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QuerySto
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		return this.handlers!.fetch(args)
+		return this.handlers!.fetch.call(this, args)
 	}
 
 	get pageInfo() {
@@ -89,8 +89,8 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 		})
 	}
 
-	async loadPage(limit?: number, offset?: number, ctx?: HoudiniFetchContext) {
-		return this.handlers.loadPage(limit, offset, ctx)
+	async loadNextPage(limit?: number, offset?: number, ctx?: HoudiniFetchContext) {
+		return this.handlers.loadNextPage.call(this, limit, offset, ctx)
 	}
 
 	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
@@ -98,7 +98,8 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		return this.handlers.fetch(args)
+		console.log('here?', this)
+		return this.handlers.fetch.call(this, args)
 	}
 }
 

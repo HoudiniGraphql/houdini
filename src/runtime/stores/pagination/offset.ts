@@ -26,16 +26,13 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 	getContext: () => HoudiniFetchContext | null
 }) {
 	// we need to track the most recent offset for this handler
-	let currentOffset = (ctx: HoudiniFetchContext) => {
-		return (
-			(artifact.refetch?.start as number) ||
-			countPage(artifact.refetch!.path, getValue()) ||
-			artifact.refetch!.pageSize
-		)
-	}
+	let currentOffset =
+		(artifact.refetch?.start as number) ||
+		countPage(artifact.refetch!.path, getValue()) ||
+		artifact.refetch!.pageSize
 
 	return {
-		loadPage: async (limit?: number, offset?: number, ctx?: HoudiniFetchContext) => {
+		loadNextPage: async (limit?: number, offset?: number, ctx?: HoudiniFetchContext) => {
 			const config = await getCurrentConfig()
 
 			const houdiniContext = getContext() ?? ctx
@@ -43,7 +40,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 				throw contextError
 			}
 
-			offset ??= currentOffset(houdiniContext)
+			offset ??= currentOffset
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
@@ -99,7 +96,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(extra, variables)) {
-				return fetch(params)
+				return fetch.call(this, params)
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
@@ -121,7 +118,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			setFetching(true)
 
 			// send the query
-			const result = await fetch({
+			const result = await fetch.call(this, {
 				...params,
 				variables: queryVariables as _Input,
 			})
@@ -142,6 +139,6 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 }
 
 export type OffsetHandlers<_Data extends GraphQLObject, _Input, _ReturnType> = {
-	loadPage: (limit?: number, offset?: number, ctx?: HoudiniFetchContext) => Promise<void>
+	loadNextPage: (limit?: number, offset?: number, ctx?: HoudiniFetchContext) => Promise<void>
 	fetch(args?: QueryStoreFetchParams<_Data, _Input> | undefined): Promise<_ReturnType>
 }
