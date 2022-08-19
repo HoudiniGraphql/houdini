@@ -1,12 +1,12 @@
 export {
-	FragmentStorePaginated,
+	type FragmentStorePaginated,
 	FragmentStoreBackwardCursor,
 	FragmentStoreForwardCursor,
 	FragmentStoreOffset,
 } from './fragment'
 
 export {
-	QueryStorePaginated,
+	type QueryStorePaginated,
 	QueryStoreBackwardCursor,
 	QueryStoreForwardCursor,
 	QueryStoreOffset,

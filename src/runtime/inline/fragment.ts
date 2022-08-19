@@ -2,7 +2,8 @@ import { Readable } from 'svelte/store'
 
 import * as log from '../lib/log'
 import { ArtifactKind, Fragment, GraphQLTagResult } from '../lib/types'
-import { FragmentStore, FragmentStorePaginated } from '../stores'
+import { FragmentStore } from '../stores'
+import type { FragmentStorePaginated } from '../stores/pagination/fragment'
 
 let hasWarned = false
 
