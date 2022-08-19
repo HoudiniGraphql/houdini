@@ -86,7 +86,7 @@ export const ${globalStoreName}: ${storeName}
 
 export declare const load_${artifactName}: (params: QueryStoreFetchParams<${variableInputsType}>) => Promise<${storeName}>
 
-export default ${storeName}
+export default ${globalStoreName}
 `
 
 	await Promise.all([

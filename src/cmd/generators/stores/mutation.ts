@@ -8,25 +8,33 @@ export async function generateIndividualStoreMutation(
 	doc: CollectedGraphQLDocument
 ) {
 	const fileName = doc.name
-	const storeName = config.globalStoreName(doc)
+	const storeName = doc.name + 'Store'
+	const globalStoreName = config.globalStoreName(doc)
 	const artifactName = `${doc.name}`
 
 	// store content
 	const storeData = `import artifact from '../artifacts/${artifactName}'
-import { mutationStore } from '../runtime/stores'
+import { MutationStore } from '../runtime/stores'
 
-export const ${storeName} = mutationStore({
-	artifact,
-})
+export class ${storeName} extends MutationStore {
+	constructor() {
+		super({
+			artifact,
+		})
+	}
+}
 
-export default ${storeName}
+export const ${globalStoreName} = new ${storeName}()
+
+export default ${globalStoreName}
 `
 
 	// type definitions
-	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result } from '$houdini'
-import type { MutationStore } from '../runtime/lib/types'
+	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, MutationStore } from '$houdini'
 
-export declare const ${storeName}: MutationStore<${artifactName}$result | undefined, ${artifactName}$input>
+export declare class ${storeName} extends MutationStore<${artifactName}$result | undefined, ${artifactName}$input>
+
+export const ${globalStoreName}: ${storeName}
 
 export default ${storeName}
   `

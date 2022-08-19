@@ -21,8 +21,6 @@ import { serializeValue } from './utils'
 
 const AST = recast.types.builders
 
-type NodeWithArguments = graphql.FieldNode | graphql.DirectiveNode
-
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
 export default function artifactGenerator(stats: {
@@ -37,7 +35,7 @@ export default function artifactGenerator(stats: {
 
 		for (const doc of docs) {
 			graphql.visit(doc.document, {
-				// look for any field marked with alist
+				// look for any field marked with a list
 				Directive(node, _, __, ___, ancestors) {
 					// we only care about lists
 					if (node.name.value !== config.listDirective) {

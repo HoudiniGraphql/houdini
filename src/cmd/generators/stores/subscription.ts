@@ -6,19 +6,25 @@ import { CollectedGraphQLDocument } from '../../types'
 
 export async function generateSubscriptionStore(config: Config, doc: CollectedGraphQLDocument) {
 	const fileName = doc.name
-	const storeName = config.globalStoreName(doc)
+	const globalStoreName = config.globalStoreName(doc)
 	const artifactName = `${doc.name}`
+	const storeName = artifactName + 'Store'
 
 	// the content of the store
 	const storeContent = `import artifact from '../artifacts/${artifactName}'
-import { subscriptionStore } from '../runtime/stores'
-import { defaultConfigValues } from '../runtime/lib'
+import { SubscriptionStore } from '../runtime/stores'
 
-export const ${storeName} = subscriptionStore({
-	artifact,
-})
+export class ${storeName} extends SubscriptionStore {
+	constructor() {
+		super({
+			artifact,
+		})
+	}
+}
 
-export default ${storeName}
+export const ${globalStoreName} = new ${storeName}()
+
+export default ${globalStoreName}
 `
 
 	// look for the operation
@@ -29,10 +35,11 @@ export default ${storeName}
 	const withVariableInputs = inputs && inputs.length > 0
 	const VariableInputsType = withVariableInputs ? `${artifactName}["input"]` : 'null'
 	// the type definitions for the store
-	const typeDefs = `import type { ${artifactName}, ${artifactName}$result, CachePolicy } from '$houdini'
-import { SubscriptionStore } from '../runtime/lib/types'
+	const typeDefs = `import type { ${artifactName}, ${artifactName}$result, MutationStore } from '$houdini'
 
-export declare const ${storeName}: SubscriptionStore<${artifactName}$result | undefined, ${VariableInputsType}>
+export declare class ${storeName} extends MutationStore<${artifactName}$result | undefined, ${VariableInputsType}>
+
+export const ${globalStoreName}: ${storeName}
 
 export default ${storeName}
 `
