@@ -44,7 +44,7 @@
 		"build:cmd": "concurrently \"npm run build:cmd:main\" \"npm run build:cmd:types\" -n \"exe,typ\" -c \"green,yellow\"",
 		"build:cmd:main": "cross-env TARGET=esm WHICH=cmd rollup --config rollup.config.js",
 		"build:cmd:types": "tsc --p tsconfig.root.json",
-		"build:typeModule": "node ./tools/buildTypeModule",
+		"build:typeModule": "node ./typeModule",
 		"format": "prettier \"src/**/*.ts\"",
 		"format:write": "npm run format -- -w",
 		"format:check": "npm run format -- --check",
