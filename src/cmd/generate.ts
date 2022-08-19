@@ -53,7 +53,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		deleted: [],
 	}
 
-	// run the generate command before we print so
+	// run the generate command before we print "🎩 Generating runtime..." because we don't know upfront artifactStats.
 	let error: Error | null = null
 	try {
 		await run(
@@ -114,7 +114,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		artifactStats.new.length -
 		artifactStats.deleted.length
 
-	// notify the user we are starting the generation process
+	// If triggered from the plugin, we show logs ONLY if there are changes.
 	const printMessage = !config.plugin || unchanged !== artifactStats.total.length
 	if (!printMessage || config.logLevel === LogLevel.Quiet) {
 		if (error) {
@@ -140,6 +140,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				`❓ For a description of what's changed, visit this guide: https://www.houdinigraphql.com/guides/release-notes`
 			)
 		}
+	}
+	// print a line showing that the process is finished (wo document)
+	else if (artifactStats.total.length === 0) {
+		console.log(`💡 Finished, no operation found`)
 	}
 	// print summaries of the changes
 	else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
