@@ -78,9 +78,9 @@ all of the details for you and your route will receive the query store as a prop
 # src/routes/myProfile/+page.gql
 
 query MyProfile {
-    viewer {
-        firstName
-    }
+	viewer {
+		firstName
+	}
 }
 ```
 
@@ -189,9 +189,9 @@ store from `$houdini` as `GQL_DocumentName`:
 # src/lib/queries/MyAwesomeQuery.gql
 
 query MyAwesomeQuery {
-    viewer {
-        isAwesome
-    }
+	viewer {
+		isAwesome
+	}
 }
 ```
 
@@ -217,12 +217,12 @@ You can import the same instance from the root of the runtime with `GQL_` prepen
 import { GQL_MyQuery } from '$houdini'
 ```
 
-Or, you can import a factory from the module that will let you instantiate multiple copies of the same store if you need to:
+Or, you can import the store's class from the module so you can instantiate multiple copies of the same store if you need to:
 
 ```javascript
 import { MyQueryStore } from '$houdini/stores/MyQuery'
 
-const store = MyQueryStore()
+const store = new MyQueryStore()
 ```
 
 </DeepDive>
@@ -253,11 +253,11 @@ do that, import `graphql` from `$houdini` and wrap your query inside of the temp
 import { graphql } from '$houdini'
 
 const store = graphql`
-    query MyAwesomeQuery {
-        viewer {
-            isAwesome
-        }
-    }
+	query MyAwesomeQuery {
+		viewer {
+			isAwesome
+		}
+	}
 `
 ```
 
@@ -299,9 +299,9 @@ your route on the server. These functions take the same parameters as fetch:
 import { load_MyQuery } from '$houdini'
 
 export async function load(event) {
-    return {
-        ...(await load_MyQuery({ event }))
-    }
+	return {
+		...(await load_MyQuery({ event }))
+	}
 }
 ```
 
@@ -333,11 +333,11 @@ The first way to tell houdini to generate a load for you is by exporting a `houd
 import { GQL_ProjectList, graphql } from '$houdini'
 
 const userInfo = graphql`
-    query UserInfo {
-        viewer {
-            firstName
-        }
-    }
+	query UserInfo {
+		viewer {
+			firstName
+		}
+	}
 `
 
 export const houdini_load = [GQL_ProjectList, userInfo]
@@ -367,11 +367,11 @@ Keep in mind that `houdini_load` can also take a single store, which allows for 
 import { graphql } from '$houdini'
 
 export const houdini_load = graphql`
-    query UserInfo {
-        viewer {
-            firstName
-        }
-    }
+	query UserInfo {
+		viewer {
+			firstName
+		}
+	}
 `
 ```
 
@@ -384,17 +384,17 @@ hooks for a particular query since it allows all of that logic to be co-located:
 import { graphql } from '$houdini'
 
 export const houdini_load = graphql`
-    query UserInfo($id: ID!) {
-        user(id: $id) {
-            firstName
-        }
-    }
+	query UserInfo($id: ID!) {
+		user(id: $id) {
+			firstName
+		}
+	}
 `
 
 export function UserInfoVariables({ params }) {
-    return {
-        id: params.id
-    }
+	return {
+		id: params.id
+	}
 }
 ```
 
@@ -435,9 +435,9 @@ provided query. For example, with the following query defined:
 # src/routes/myProfile/+page.gql
 
 query UserInfo {
-    viewer {
-        firstName
-    }
+	viewer {
+		firstName
+	}
 }
 ```
 

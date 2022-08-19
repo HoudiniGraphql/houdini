@@ -1,4 +1,4 @@
-export async function post({ locals, request, ...args }) {
+export async function POST({ locals, request, ...args }) {
 	const { mode } = await request.json()
 	if (!['store', 'inline'].includes(mode)) {
 		return {}
