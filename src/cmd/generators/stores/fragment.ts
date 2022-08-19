@@ -26,7 +26,7 @@ export async function generateFragmentStore(config: Config, doc: CollectedGraphQ
 	const storeContent = `import { ${queryClass} } from '../runtime/stores'
 import artifact from '../artifacts/${artifactName}'
 ${
-	!!paginationMethod
+	paginationMethod
 		? ''
 		: `import _PaginationArtifact from '${config.artifactImportPath(
 				config.paginationQueryName(doc.name)
