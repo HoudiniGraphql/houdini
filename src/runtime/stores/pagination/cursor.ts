@@ -169,7 +169,9 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			})
 		},
 		pageInfo,
-		async fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+		async fetch(
+			args?: QueryStoreFetchParams<_Data, _Input>
+		): Promise<QueryResult<_Data, _Input>> {
 			// validate and prepare the request context for the current environment (client vs server)
 			const { params } = fetchParams(getContext(), artifact, storeName, args)
 
@@ -184,8 +186,15 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(extra, variables)) {
-				const result = await fetch(params)
-				pageInfo.set(extractPageInfo(result, artifact.refetch!.path))
+				// TODO: this needs to block to get a value but it can't block without blocking all the time?
+				// how did we get around this before?
+				const result = await fetch({
+					...params,
+					then(data) {
+						pageInfo.set(extractPageInfo(data, artifact.refetch!.path))
+					},
+				})
+				return result
 			}
 
 			// we are updating the current set of items, count the number of items that currently exist
@@ -227,7 +236,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	}
 }
 
-export type CursorHandlers<_Data, _Input> = {
+export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
 	loadNextPage: (
 		pageCount?: number | undefined,
 		after?: string | undefined,
@@ -239,5 +248,7 @@ export type CursorHandlers<_Data, _Input> = {
 		ctx?: HoudiniFetchContext | undefined
 	) => Promise<void>
 	pageInfo: Writable<PageInfo>
-	fetch(args?: QueryStoreFetchParams<_Input> | undefined): Promise<QueryResult<_Data, _Input>>
+	fetch(
+		args?: QueryStoreFetchParams<_Data, _Input> | undefined
+	): Promise<QueryResult<_Data, _Input>>
 }

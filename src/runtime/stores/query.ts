@@ -61,11 +61,11 @@ export class QueryStore<_Data extends GraphQLObject, _Input> extends BaseStore {
 	/**
 	 * Fetch the data from the server
 	 */
-	fetch(params?: RequestEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: LoadEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: ClientFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	async fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: LoadEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		const config = await getCurrentConfig()
 
 		// validate and prepare the request context for the current environment (client vs server)
@@ -103,7 +103,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input> extends BaseStore {
 		// update the subscribers. do that before the fetch so we don't accidentally
 		// cause the new data to trigger the old subscription after the store has been
 		// update with fetchAndCache
-		if (isComponentFetch && variableChange) {
+		if (variableChange && isBrowser) {
 			this.refreshSubscription(newVariables)
 			this.store.update((s) => ({ ...s, variables: newVariables }))
 		}
@@ -146,6 +146,9 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 				this.setFetching(val)
 			},
 		})
+		if (params.then) {
+			request.then((val) => params.then?.(val.result.data))
+		}
 
 		// if the await isn't fake, await it
 		if (!fakeAwait) {
@@ -353,16 +356,16 @@ export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
 
 type StoreState<_Data, _Input> = QueryResult<_Data, _Input>
 
-export function fetchParams<_Data, _Input>(
+export function fetchParams<_Data extends GraphQLObject, _Input>(
 	parentContext: HoudiniFetchContext | null,
 	artifact: QueryArtifact,
 	storeName: string,
-	params?: QueryStoreFetchParams<_Input>
+	params?: QueryStoreFetchParams<_Data, _Input>
 ): {
 	context: FetchContext
 	parentContext?: HoudiniFetchContext
 	policy: CachePolicy
-	params: QueryStoreFetchParams<_Input>
+	params: QueryStoreFetchParams<_Data, _Input>
 } {
 	// if we aren't on the browser but there's no event there's a big mistake
 	if (
@@ -473,7 +476,7 @@ const contextError = (storeName: string) => `
 
 `
 
-type FetchGlobalParams<_Input> = {
+type FetchGlobalParams<_Data extends GraphQLObject, _Input> = {
 	variables?: _Input
 
 	/**
@@ -496,16 +499,27 @@ type FetchGlobalParams<_Input> = {
 	 * transitions to pause while loading data.
 	 */
 	blocking?: boolean
+
+	/**
+	 * A function to call after the fetch happens (wether fake or not)
+	 */
+	then?: (val: _Data | null) => void | Promise<void>
 }
 
-export type LoadEventFetchParams<_Input> = FetchGlobalParams<_Input> & {
+export type LoadEventFetchParams<_Data extends GraphQLObject, _Input> = FetchGlobalParams<
+	_Data,
+	_Input
+> & {
 	/**
 	 * Directly the `even` param coming from the `load` function
 	 */
 	event?: LoadEvent
 }
 
-export type RequestEventFetchParams<_Input> = FetchGlobalParams<_Input> & {
+export type RequestEventFetchParams<_Data extends GraphQLObject, _Input> = FetchGlobalParams<
+	_Data,
+	_Input
+> & {
 	/**
 	 * A RequestEvent should be provided when the store is being used in an endpoint.
 	 * When this happens, fetch also needs to be provided
@@ -517,7 +531,10 @@ export type RequestEventFetchParams<_Input> = FetchGlobalParams<_Input> & {
 	fetch?: LoadEvent['fetch']
 }
 
-export type ClientFetchParams<_Input> = FetchGlobalParams<_Input> & {
+export type ClientFetchParams<_Data extends GraphQLObject, _Input> = FetchGlobalParams<
+	_Data,
+	_Input
+> & {
 	/**
 	 * An object containing all of the current info necessary for a
 	 * client-side fetch. Must be called in component initialization with
@@ -526,11 +543,13 @@ export type ClientFetchParams<_Input> = FetchGlobalParams<_Input> & {
 	context?: HoudiniFetchContext
 }
 
-export type QueryStoreFetchParams<_Input> = QueryStoreLoadParams<_Input> | ClientFetchParams<_Input>
+export type QueryStoreFetchParams<_Data extends GraphQLObject, _Input> =
+	| QueryStoreLoadParams<_Data, _Input>
+	| ClientFetchParams<_Data, _Input>
 
-export type QueryStoreLoadParams<_Input> =
-	| LoadEventFetchParams<_Input>
-	| RequestEventFetchParams<_Input>
+export type QueryStoreLoadParams<_Data extends GraphQLObject, _Input> =
+	| LoadEventFetchParams<_Data, _Input>
+	| RequestEventFetchParams<_Data, _Input>
 
 export type QueryResult<_Data, _Input> = {
 	data: _Data | null

@@ -19,7 +19,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 }: {
 	artifact: QueryArtifact
 	queryVariables: () => Promise<_Input | null>
-	fetch: FetchFn
+	fetch: FetchFn<_Data, _Input>
 	getValue: () => _Data | null
 	storeName: string
 	setFetching: (val: boolean) => void
@@ -88,7 +88,9 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			// we're not loading any more
 			setFetching(false)
 		},
-		async fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+		async fetch(
+			args?: QueryStoreFetchParams<_Data, _Input>
+		): Promise<QueryResult<_Data, _Input>> {
 			const { params } = fetchParams(getContext(), artifact, storeName, args)
 
 			const { variables } = params ?? {}
@@ -121,7 +123,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			// send the query
 			const result = await fetch({
 				...params,
-				variables: queryVariables,
+				variables: queryVariables as _Input,
 			})
 
 			// we're not loading any more
@@ -139,7 +141,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 	}
 }
 
-export type OffsetHandlers<_Data, _Input, _ReturnType> = {
+export type OffsetHandlers<_Data extends GraphQLObject, _Input, _ReturnType> = {
 	loadPage: (limit?: number, offset?: number, ctx?: HoudiniFetchContext) => Promise<void>
-	fetch(args?: QueryStoreFetchParams<_Input> | undefined): Promise<_ReturnType>
+	fetch(args?: QueryStoreFetchParams<_Data, _Input> | undefined): Promise<_ReturnType>
 }

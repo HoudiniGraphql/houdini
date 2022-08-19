@@ -185,7 +185,7 @@ export type FragmentStorePaginated<_Data extends GraphQLObject, _Input> =
 export interface QueryStorePaginated<_Data extends GraphQLObject, _Input> {
 	kind: typeof CompiledFragmentKind
 
-	fetch(params?: ClientFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 
 	loadNextPage: CursorHandlers<_Data, _Input>['loadNextPage']
 	loadPreviousPage: CursorHandlers<_Data, _Input>['loadPreviousPage']

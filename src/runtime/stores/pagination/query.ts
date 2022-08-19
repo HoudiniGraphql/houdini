@@ -34,13 +34,11 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QuerySto
 		})
 	}
 
-	foo() {}
-
-	fetch(params?: RequestEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: LoadEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: ClientFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	async fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: LoadEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		return this.handlers!.fetch(args)
 	}
 
@@ -95,11 +93,11 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 		return this.handlers.loadPage(limit, offset, ctx)
 	}
 
-	fetch(params?: RequestEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: LoadEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: ClientFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>>
-	fetch(args?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input>> {
+	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: LoadEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
+	fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		return this.handlers.fetch(args)
 	}
 }
