@@ -58,7 +58,7 @@ export async function load(event) {
 
 This means that when adding a query to a route, tasks like adding a store to a load, pulling that store out of data in your component, etc can be auto completed from just starting with `load_` in your route's load function. It does make the manual logic that uses a fetch result kind of messy since they have to pull out UserInfo but I think that’s a rare situation so I’m in favor of supporting the most people with the clean API and letting the advanced users deal with the complexity.
 
-There's one more change to the API for users that were manually creating stores using the store factories. Now, you must instantiate new stores with `new MyQueryStore`.
+There's one more change to the API for users that were manually creating stores using the store factories. Now, you must instantiate new stores with `new MyQueryStore()`.
 
 Also, on a slightly unrelated note: you don't need to pass `context` everywhere anymore! that all happens behind the scenes now.
 
