@@ -39,6 +39,7 @@ importers:
             babylon: ^7.0.0-beta.47
             commander: ^7.1.0
             concurrently: ^7.1.0
+            cross-env: ^7.0.3
             eslint: ^8.21.0
             estree-walker: ^2.0.2
             fs-extra: ^10.0.1
@@ -81,6 +82,7 @@ importers:
             '@types/memory-fs': 0.3.3
             babylon: 7.0.0-beta.47
             commander: 7.2.0
+            cross-env: 7.0.3
             estree-walker: 2.0.2
             glob: 8.0.3
             global: 4.4.0
@@ -5806,7 +5808,6 @@ packages:
         hasBin: true
         dependencies:
             cross-spawn: 7.0.3
-        dev: true
 
     /cross-spawn/5.1.0:
         resolution:
@@ -5843,7 +5844,6 @@ packages:
             path-key: 3.1.1
             shebang-command: 2.0.0
             which: 2.0.2
-        dev: true
 
     /css-select/4.3.0:
         resolution:
@@ -8960,7 +8960,6 @@ packages:
             {
                 integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==,
             }
-        dev: true
 
     /isobject/2.1.0:
         resolution:
@@ -11330,7 +11329,6 @@ packages:
                 integrity: sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q==,
             }
         engines: { node: '>=8' }
-        dev: true
 
     /path-parse/1.0.7:
         resolution:
@@ -12460,7 +12458,6 @@ packages:
         engines: { node: '>=8' }
         dependencies:
             shebang-regex: 3.0.0
-        dev: true
 
     /shebang-regex/1.0.0:
         resolution:
@@ -12476,7 +12473,6 @@ packages:
                 integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==,
             }
         engines: { node: '>=8' }
-        dev: true
 
     /shell-quote/1.7.3:
         resolution:
@@ -14438,7 +14434,6 @@ packages:
         hasBin: true
         dependencies:
             isexe: 2.0.0
-        dev: true
 
     /wide-align/1.1.5:
         resolution:
