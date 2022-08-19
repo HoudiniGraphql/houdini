@@ -1,6 +1,6 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 import { devices as replayDevices } from '@replayio/playwright';
-import defaultConfig from './playwright.config.ts';
+import defaultConfig from './playwright.config';
 
 const config: PlaywrightTestConfig = {
   ...defaultConfig,
