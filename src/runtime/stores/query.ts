@@ -147,6 +147,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			},
 		})
 		if (params.then) {
+			// eslint-disable-next-line promise/no-nesting
 			request.then((val) => params.then?.(val.result.data))
 		}
 
