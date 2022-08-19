@@ -46,20 +46,23 @@ test('basic store', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { queryStore } from '../runtime/stores'
+		import { QueryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 
 		// create the query store
-		const factory = () => queryStore({
-		    artifact,
-		    storeName: "GQL_TestQuery",
-		    paginated: false,
-		    paginationMethods: [],
-			variables: false,
-		})
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
 
 		export async function load_TestQuery(params) {
-			const store = factory()
+			const store = new TestQueryStore()
 			
 			await store.fetch(params)
 
@@ -68,9 +71,7 @@ test('basic store', async function () {
 			}
 		}
 
-		export const GQL_TestQuery = factory()
-
-		export const TestQueryStore = factory
+		export const GQL_TestQuery = new TestQueryStore()
 
 		export default GQL_TestQuery
 	`)
@@ -95,20 +96,23 @@ test('store with required variables', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { queryStore } from '../runtime/stores'
+		import { QueryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 
 		// create the query store
-		const factory = () => queryStore({
-		    artifact,
-		    storeName: "GQL_TestQuery",
-		    paginated: false,
-		    paginationMethods: [],
-			variables: true,
-		})
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: true,
+				})
+			}
+		}
 
 		export async function load_TestQuery(params) {
-			const store = factory()
+			const store = new TestQueryStore()
 			
 			await store.fetch(params)
 
@@ -117,9 +121,7 @@ test('store with required variables', async function () {
 			}
 		}
 
-		export const GQL_TestQuery = factory()
-
-		export const TestQueryStore = factory
+		export const GQL_TestQuery = new TestQueryStore()
 
 		export default GQL_TestQuery
 	`)
@@ -144,20 +146,23 @@ test('store with nullable variables', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { queryStore } from '../runtime/stores'
+		import { QueryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 
 		// create the query store
-		const factory = () => queryStore({
-		    artifact,
-		    storeName: "GQL_TestQuery",
-		    paginated: false,
-		    paginationMethods: [],
-			variables: false,
-		})
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
 
 		export async function load_TestQuery(params) {
-			const store = factory()
+			const store = new TestQueryStore()
 			
 			await store.fetch(params)
 
@@ -166,9 +171,7 @@ test('store with nullable variables', async function () {
 			}
 		}
 
-		export const GQL_TestQuery = factory()
-
-		export const TestQueryStore = factory
+		export const GQL_TestQuery = new TestQueryStore()
 
 		export default GQL_TestQuery
 	`)
@@ -193,20 +196,23 @@ test('store with non-null variables with default value', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { queryStore } from '../runtime/stores'
+		import { QueryStore } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 
 		// create the query store
-		const factory = () => queryStore({
-		    artifact,
-		    storeName: "GQL_TestQuery",
-		    paginated: false,
-		    paginationMethods: [],
-			variables: false,
-		})
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
 
 		export async function load_TestQuery(params) {
-			const store = factory()
+			const store = new TestQueryStore()
 			
 			await store.fetch(params)
 
@@ -215,9 +221,7 @@ test('store with non-null variables with default value', async function () {
 			}
 		}
 
-		export const GQL_TestQuery = factory()
-
-		export const TestQueryStore = factory
+		export const GQL_TestQuery = new TestQueryStore()
 
 		export default GQL_TestQuery
 	`)
@@ -248,20 +252,23 @@ test('forward cursor pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { queryStore } from '../runtime/stores'
+		import { QueryStoreForwardCursor } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 
 		// create the query store
-		const factory = () => queryStore({
-		    artifact,
-		    storeName: "GQL_TestQuery",
-		    paginated: true,
-		    paginationMethods: ["loadNextPage","fetch","loading","pageInfo"],
-			variables: false,
-		})
+
+		export class TestQueryStore extends QueryStoreForwardCursor {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
 
 		export async function load_TestQuery(params) {
-			const store = factory()
+			const store = new TestQueryStore()
 			
 			await store.fetch(params)
 
@@ -270,9 +277,7 @@ test('forward cursor pagination', async function () {
 			}
 		}
 
-		export const GQL_TestQuery = factory()
-
-		export const TestQueryStore = factory
+		export const GQL_TestQuery = new TestQueryStore()
 
 		export default GQL_TestQuery
 	`)
@@ -303,20 +308,23 @@ test('backwards cursor pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { queryStore } from '../runtime/stores'
+		import { QueryStoreBackwardCursor } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 
 		// create the query store
-		const factory = () => queryStore({
-		    artifact,
-		    storeName: "GQL_TestQuery",
-		    paginated: true,
-		    paginationMethods: ["loadPreviousPage","fetch","loading","pageInfo"],
-			variables: false,
-		})
+
+		export class TestQueryStore extends QueryStoreBackwardCursor {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
 
 		export async function load_TestQuery(params) {
-			const store = factory()
+			const store = new TestQueryStore()
 			
 			await store.fetch(params)
 
@@ -325,9 +333,7 @@ test('backwards cursor pagination', async function () {
 			}
 		}
 
-		export const GQL_TestQuery = factory()
-
-		export const TestQueryStore = factory
+		export const GQL_TestQuery = new TestQueryStore()
 
 		export default GQL_TestQuery
 	`)
@@ -354,20 +360,23 @@ test('offset pagination', async function () {
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-		import { queryStore } from '../runtime/stores'
+		import { QueryStoreOffset } from '../runtime/stores'
 		import artifact from '../artifacts/TestQuery'
 
 		// create the query store
-		const factory = () => queryStore({
-		    artifact,
-		    storeName: "GQL_TestQuery",
-		    paginated: true,
-		    paginationMethods: ["loadNextPage","fetch","loading"],
-			variables: false,
-		})
+
+		export class TestQueryStore extends QueryStoreOffset {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
 
 		export async function load_TestQuery(params) {
-			const store = factory()
+			const store = new TestQueryStore()
 			
 			await store.fetch(params)
 
@@ -376,9 +385,7 @@ test('offset pagination', async function () {
 			}
 		}
 
-		export const GQL_TestQuery = factory()
-
-		export const TestQueryStore = factory
+		export const GQL_TestQuery = new TestQueryStore()
 
 		export default GQL_TestQuery
 	`)

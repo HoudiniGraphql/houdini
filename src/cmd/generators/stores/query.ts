@@ -41,8 +41,8 @@ import artifact from '../artifacts/${artifactName}'
 // create the query store
 
 export class ${storeName} extends ${queryClass} {
-    constructor() {
-        super({
+	constructor() {
+		super({
 			artifact,
 			storeName: ${JSON.stringify(storeName)},
 			variables: ${JSON.stringify(variables)},
