@@ -6,13 +6,7 @@ import os from 'os'
 import path from 'path'
 import { promisify } from 'util'
 
-import {
-	computeID,
-	ConfigFile,
-	defaultConfigValues,
-	HoudiniClient,
-	keyFieldsForType,
-} from '../runtime/lib'
+import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy, GraphQLTagResult } from '../runtime/lib/types'
 import { extractLoadFunction } from './extractLoadFunction'
 import * as fs from './fs'
@@ -372,6 +366,9 @@ ${
 	}
 
 	includeFile(filepath: string) {
+		// deal with any relative imports from compiled assets
+		filepath = this.resolveRelative(filepath)
+
 		// if the filepath doesn't match the include we're done
 		if (!minimatch(filepath, path.join(this.projectRoot, this.include))) {
 			return false
@@ -579,11 +576,11 @@ ${
 
 	routeDataPath(filename: string) {
 		// replace the .svelte with .js
-		return filename.replace('.svelte', '.js')
+		return this.resolveRelative(filename).replace('.svelte', '.js')
 	}
 
 	routePagePath(filename: string) {
-		return filename.replace('.js', '.svelte').replace('.ts', '.svelte')
+		return this.resolveRelative(filename).replace('.js', '.svelte').replace('.ts', '.svelte')
 	}
 
 	isRouteScript(filename: string) {
@@ -607,7 +604,16 @@ ${
 	}
 
 	pageQueryPath(filename: string) {
-		return path.join(path.dirname(filename), this.pageQueryFilename)
+		return path.join(path.dirname(this.resolveRelative(filename)), this.pageQueryFilename)
+	}
+
+	resolveRelative(filename: string) {
+		const relativeMath = filename.match('^(../)+src/routes')
+		if (filename.startsWith('../../../src/routes')) {
+			filename = path.join(this.projectRoot, filename.substring('../../../'.length))
+		}
+
+		return filename
 	}
 
 	async walkRouteDir(visitor: RouteVisitor, dirpath = this.routesDir) {

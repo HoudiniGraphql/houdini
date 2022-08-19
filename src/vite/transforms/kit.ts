@@ -161,6 +161,12 @@ function add_load({
 		import: ['RequestContext'],
 		sourceModule: '$houdini/runtime/lib/network',
 	})
+	ensure_imports({
+		config: page.config,
+		script: page.script,
+		import: ['getCurrentConfig'],
+		sourceModule: '$houdini/runtime/lib/config',
+	})
 
 	// look for any hooks
 	let before_load = page_info.exports.includes('beforeLoad')
@@ -186,6 +192,14 @@ function add_load({
 				AST.variableDeclarator(
 					request_context,
 					AST.newExpression(AST.identifier('RequestContext'), [AST.identifier('context')])
+				),
+			]),
+
+			// get the current config
+			AST.variableDeclaration('const', [
+				AST.variableDeclarator(
+					AST.identifier('houdiniConfig'),
+					AST.awaitExpression(AST.callExpression(AST.identifier('getCurrentConfig'), []))
 				),
 			]),
 
@@ -217,7 +231,7 @@ function add_load({
 
 	// we can start inserting statements in the generated load after the 2 statements we
 	// added when defining the function
-	let insert_index = 3
+	let insert_index = 4
 
 	// every query that we found needs to be triggered in this function
 	for (const query of queries) {

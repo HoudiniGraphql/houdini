@@ -12,14 +12,14 @@ export async function generateFragmentStore(config: Config, doc: CollectedGraphQ
 	const paginationMethod = doc.refetch?.method
 
 	// in order to build the store, we need to know what class we're going to import from
-	let queryClass = 'QueryStore'
+	let queryClass = 'FragmentStore'
 	if (paginationMethod === 'cursor') {
 		queryClass =
 			doc.refetch?.direction === 'forward'
-				? 'QueryStoreForwardCursor'
-				: 'QueryStoreBackwardCursor'
+				? 'FragmentStoreForwardCursor'
+				: 'FragmentStoreBackwardCursor'
 	} else if (paginationMethod === 'offset') {
-		queryClass = 'QueryStoreOffset'
+		queryClass = 'FragmentStoreOffset'
 	}
 
 	// store definition

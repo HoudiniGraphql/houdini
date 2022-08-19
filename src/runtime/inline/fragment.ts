@@ -22,8 +22,8 @@ export function fragment<_Fragment extends Fragment<any>>(
 	data: Readable<_Fragment | null>
 }
 export function fragment<_Fragment extends Fragment<any>>(
-	ref: _Fragment | null,
-	store: GraphQLTagResult
+	store: GraphQLTagResult,
+	ref: _Fragment | null
 ): Readable<NonNullable<_Fragment['shape']>> & {
 	data: Readable<_Fragment | null>
 } {
@@ -44,7 +44,7 @@ $: data = fragment(prop, graphql\`...\`)
 
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniFragment') {
-		throw new Error('getFragment can only take fragment documents')
+		throw new Error(`fragment can only take fragment documents. Found: ${store.kind}`)
 	}
 
 	// load the fragment store for the value
