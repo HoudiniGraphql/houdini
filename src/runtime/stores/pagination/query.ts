@@ -98,7 +98,6 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		console.log('here?', this)
 		return this.handlers.fetch.call(this, args)
 	}
 }

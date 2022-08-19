@@ -67,7 +67,6 @@ export class QueryStore<_Data extends GraphQLObject, _Input> extends BaseStore {
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		const config = await getCurrentConfig()
-		console.log(this)
 
 		// validate and prepare the request context for the current environment (client vs server)
 		const { context, policy, parentContext, params } = fetchParams(
