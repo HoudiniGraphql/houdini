@@ -344,7 +344,7 @@ export default defineConfig({
 `
 
 	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite';
-import houdini from 'houdini/kit';
+import houdini from 'houdini/vite';
 
 /** @type {import('vite').UserConfig} */
 const config = {
@@ -355,7 +355,7 @@ export default config;
 `
 
 	const viteConfigSvelte = `import { svelte } from '@sveltejs/vite-plugin-svelte';
-import houdini from 'houdini/kit';
+import houdini from 'houdini/vite';
 
 /** @type {import('vite').UserConfig} */
 const config = {

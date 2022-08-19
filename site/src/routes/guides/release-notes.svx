@@ -12,7 +12,7 @@ description: A guide to migrating your application to each breaking version of h
 
 Just to get some points out of the way for people worried about major breaking changes:
 
-- SvelteKit projects will now need to use the vite plugin defined at `houdini/kit` which replaces the old preprocessor (and the ugly `server.fs.allow` config). But don't worry, there are **lots** of really cool things that we're getting with this move.
+- SvelteKit projects will now need to use the vite plugin defined at `houdini/vite` which replaces the old preprocessor (and the ugly `server.fs.allow` config). But don't worry, there are **lots** of really cool things that we're getting with this move.
 - The external document store api for SvelteKit routes is changing. This means that if you rely heavily on the document stores, you will have to update your load functions but as a result you can delete a lot of the code in your components and the overall mental model is a lot simpler (no more passing around `context`)
 - inline queries are staying the same. Inline fragments have their argument order inverted (graphql tag comes second). At a high level, everything that used to be defined in `context="module"` is now defined in `+page.js/ts`.
 
@@ -20,7 +20,7 @@ For additional breaking changes and notes, check out the section at the bottom o
 
 ### Vite Plugin
 
-For kit projects, the preprocessor has moved to `houdini/kit` and should be included as a plugin in your `vite.config.js`. You should also remove the the `fs.server.allow` config since its baked into the plugin. This plugin not only processes our components and javascript files, but it also integrates into vite's `dev` script to bring some huge improvements:
+For kit projects, the preprocessor has moved to `houdini/vite` and should be included as a plugin in your `vite.config.js`. You should also remove the the `fs.server.allow` config since its baked into the plugin. This plugin not only processes our components and javascript files, but it also integrates into vite's `dev` script to bring some huge improvements:
 
 - automatically generates your artifacts and stores whenever it detects a change in your source code. if you have configured your own watcher, it might not be necessary anymore.
 - poll your api for changes in your schema and regenerate when they are detected. This behavior is customizable between 3 modes: a duration in milliseconds, only pull when the project first starts, and never pull.
@@ -84,6 +84,7 @@ export const afterLoad: AfterLoad = ({ data }) => {
 ```
 
 In order to make this work, you have to change your tsconfig file to look like this:
+`
 
 ```json
 {

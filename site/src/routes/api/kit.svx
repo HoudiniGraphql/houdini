@@ -14,7 +14,7 @@ is done in your vite config file. Make sure that Houdini's plugin comes before S
 // vite.config.js
 
 import sveltekit from '@sveltejs/kit/vite'
-import houdini from 'houdini/kit'
+import houdini from 'houdini/vite'
 
 export default {
 	plugins: [houdini(), sveltekit()]

@@ -56,7 +56,7 @@ First, we need to add houdini's plugin to your `vite.config.js`. Make sure that 
 // vite.config.js
 
 import { sveltekit } from '@sveltejs/kit/vite'
-import houdini from 'houdini/kit'
+import houdini from 'houdini/vite'
 
 /** @type {import('vite').UserConfig} */
 const config = {
