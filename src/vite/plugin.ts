@@ -47,9 +47,6 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 
 			// if the file is not in our configured source path, we need to ignore it
 			if (!config.includeFile(filepath)) {
-				if (filepath.endsWith('+page.js')) {
-					console.log('skipping', filepath)
-				}
 				return
 			}
 

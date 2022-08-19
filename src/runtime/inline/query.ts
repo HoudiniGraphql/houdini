@@ -13,7 +13,6 @@ export function query<_Query extends Operation<any, any>>(
 	if (store.kind !== CompiledQueryKind) {
 		throw new Error('query() must be passed a query document')
 	}
-
 	const queryStore = store as QueryStore<any, unknown>
 
 	// build some derived stores for the atomic values
