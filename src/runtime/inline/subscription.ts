@@ -8,7 +8,7 @@ import { SubscriptionStore } from '../stores'
 // subscription holds open a live connection to the server. it returns a store
 // containing the requested data. Houdini will also update the cache with any
 // information that it encounters in the response.
-export function subscription<_Subscription extends Operation<any, any>>(
+export function subscription<_Subscription extends Operation<_Data, _Input>, _Data, _Input>(
 	store: GraphQLTagResult,
 	variables?: _Subscription['input']
 ): {
@@ -18,9 +18,12 @@ export function subscription<_Subscription extends Operation<any, any>>(
 	if (store.kind !== 'HoudiniSubscription') {
 		throw new Error('subscription() must be passed a subscription document')
 	}
+	const subscriptionStore = store as Required<SubscriptionStore<any, any>>
 
 	// an inline document's value is just the store
-	const value = { data: { subscribe: store.subscribe } }
+	const value = {
+		data: { subscribe: subscriptionStore.subscribe },
+	}
 
 	// invoking subscription on the server doesn't do anything
 	if (!isBrowser) {

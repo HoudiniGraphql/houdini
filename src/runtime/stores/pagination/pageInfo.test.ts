@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
 
-import { extractPageInfo, countPage } from './pagination'
+import { extractPageInfo, countPage } from './pageInfo'
 
 test('can extract current page info', function () {
 	const data = {

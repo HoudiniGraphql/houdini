@@ -28,10 +28,10 @@ export async function generateIndividualStoreQuery(config: Config, doc: Collecte
 	if (paginationMethod === 'cursor') {
 		queryClass =
 			doc.refetch?.direction === 'forward'
-				? 'ForwardCursorPaginatedQueryStore'
-				: 'BackwardCursorPaginatedQueryStore'
+				? 'QueryStoreForwardCursor'
+				: 'QueryStoreBackwardCursor'
 	} else if (paginationMethod === 'offset') {
-		queryClass = 'OffsetPaginatedQueryStore'
+		queryClass = 'QueryStoreOffset'
 	}
 
 	// store definition
@@ -78,13 +78,13 @@ export default ${globalStoreName}
 	// type definitions
 	const typeDefs = `import type { ${_data}, ${queryClass}, ${
 		variableInputsType ? `${artifactName}$input` : ''
-	}} from '$houdini'
+	}, QueryStoreFetchParams} from '$houdini'
 
 export declare class ${storeName} extends ${queryClass}<${_data}, ${variableInputsType}> 
 
 export const ${globalStoreName}: ${storeName}
 
-export declare const load_${artifactName}: (params: QueryStoreLoadParams<${variableInputsType}>) => Promise<${storeName}>
+export declare const load_${artifactName}: (params: QueryStoreFetchParams<${variableInputsType}>) => Promise<${storeName}>
 
 export default ${storeName}
 `

@@ -14,7 +14,7 @@ import {
 	getCurrentConfig,
 } from '../lib'
 import type { ConfigFile, QueryArtifact } from '../lib'
-import { getHoudiniContext, nullHoudiniContext } from '../lib/context'
+import { nullHoudiniContext } from '../lib/context'
 import * as log from '../lib/log'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import { BaseStore } from './store'
@@ -48,7 +48,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input> extends BaseStore {
 	// the string identifying the store
 	protected storeName: string
 
-	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input>) {
+	constructor({ artifact, storeName, variables }: StoreConfig<_Data, _Input, QueryArtifact>) {
 		super()
 
 		// set the initial state
@@ -345,8 +345,8 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 }
 
 // the parameters we will be passed from the generator
-export type StoreConfig<_Data extends GraphQLObject, _Input> = {
-	artifact: QueryArtifact
+export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
+	artifact: _Artifact
 	storeName: string
 	variables: boolean
 }

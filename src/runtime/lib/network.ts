@@ -11,9 +11,9 @@ import {
 	GraphQLObject,
 	MutationArtifact,
 	QueryArtifact,
-	QueryStore,
 	SubscriptionArtifact,
 } from './types'
+import { QueryStore } from '../stores'
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
@@ -437,12 +437,12 @@ export class RequestContext {
 type KitBeforeLoad = (ctx: BeforeLoadContext) => Record<string, any>
 type KitAfterLoad = (ctx: AfterLoadContext) => Record<string, any>
 
-type LoadResult = Promise<{ [key: string]: QueryStore<unknown, unknown> }>
+type LoadResult = Promise<{ [key: string]: QueryStore<any, unknown> }>
 type LoadAllInput = LoadResult | Record<string, LoadResult>
 
 export async function loadAll(
 	...loads: LoadAllInput[]
-): Promise<Record<string, QueryStore<unknown, unknown>>> {
+): Promise<Record<string, QueryStore<any, unknown>>> {
 	// we need to collect all of the promises in a single list that we will await in promise.all and then build up
 	const promises: LoadResult[] = []
 

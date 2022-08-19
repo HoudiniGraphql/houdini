@@ -2,46 +2,64 @@ import path from 'path'
 
 import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import pagination from './pagination'
 
 export async function generateFragmentStore(config: Config, doc: CollectedGraphQLDocument) {
-	const storeName = config.storeName(doc)
 	const fileName = doc.name
-
 	const artifactName = `${doc.name}`
-	const paginated = !!doc.refetch?.paginated
-	const paginationExtras = pagination(config, doc, 'fragment')
+	const storeName = artifactName + 'Store'
+	const globalStoreName = config.globalStoreName(doc)
 
-	// the content of the store
-	const storeContent = `import { fragmentStore } from '../runtime/stores'
+	const paginationMethod = doc.refetch?.method
+
+	// in order to build the store, we need to know what class we're going to import from
+	let queryClass = 'QueryStore'
+	if (paginationMethod === 'cursor') {
+		queryClass =
+			doc.refetch?.direction === 'forward'
+				? 'QueryStoreForwardCursor'
+				: 'QueryStoreBackwardCursor'
+	} else if (paginationMethod === 'offset') {
+		queryClass = 'QueryStoreOffset'
+	}
+
+	// store definition
+	const storeContent = `import { ${queryClass} } from '../runtime/stores'
 import artifact from '../artifacts/${artifactName}'
-
 ${
-	!paginated
+	!!paginationMethod
 		? ''
 		: `import _PaginationArtifact from '${config.artifactImportPath(
 				config.paginationQueryName(doc.name)
 		  )}'`
 }
 
-export const ${storeName} = fragmentStore({
-    artifact,
-    paginatedArtifact: ${paginated ? '_PaginationArtifact' : 'null'},
-    paginationMethods: ${JSON.stringify(paginationExtras.methods, null, 4).replaceAll(
-		'\n',
-		'\n    '
-	)},
-})
+// create the query store
 
-export default ${storeName}
+export class ${storeName} extends ${queryClass} {
+    constructor() {
+        super({
+			artifact,
+			storeName: ${JSON.stringify(storeName)},
+			variables: ${JSON.stringify(true)},
+		})
+	}
+}
+
+export const ${globalStoreName} = new ${storeName}()
+
+export default ${globalStoreName}
 `
 
-	// the type definitions for the store
-	const typeDefs = `import type { ${doc.name}$data } from '$houdini'
-import { FragmentStore } from '../runtime/lib/types'
-${paginationExtras.typeImports}
+	const _data = `${artifactName}$data`
 
-export declare const ${storeName}: FragmentStore<${doc.name}$data, {}, ${paginationExtras.storeExtras}> ${paginationExtras.types}
+	// the type definitions for the store
+	const typeDefs = `import type { ${_data}, ${queryClass}, QueryStoreFetchParams} from '$houdini'
+
+export declare class ${storeName} extends ${queryClass}<${_data}, {}> 
+
+export const ${globalStoreName}: ${storeName}
+
+export declare const load_${artifactName}: (params: QueryStoreFetchParams<{}>) => Promise<${storeName}>
 
 export default ${storeName}
 `

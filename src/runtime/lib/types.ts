@@ -1,7 +1,13 @@
 import type { LoadEvent } from '@sveltejs/kit'
-import { Readable } from 'svelte/store'
 
-import { QueryStore, MutationStore, SubscriptionStore } from '../stores'
+import {
+	QueryStore,
+	MutationStore,
+	SubscriptionStore,
+	FragmentStore,
+	QueryStorePaginated,
+	FragmentStorePaginated,
+} from '../stores'
 
 export type { ConfigFile } from './config'
 
@@ -101,27 +107,12 @@ export type GraphQLTagResult =
 	| FragmentStore<any>
 	| MutationStore<any, any>
 	| SubscriptionStore<any, any>
-
-export type MutationResult<_Data, _Input> = {
-	data: _Data | null
-	errors: { message: string }[] | null
-	isFetching: boolean
-	isOptimisticResponse: boolean
-	variables: _Input | null
-}
+	| QueryStorePaginated<any, any>
+	| FragmentStorePaginated<any, any>
 
 export type HoudiniFetchContext = {
 	session: () => App.Session | null
 	variables: () => {}
-}
-
-export type FragmentStore<_Shape> = {
-	name: string
-	kind: typeof CompiledFragmentKind
-	paginated: boolean
-	setContext(ctx: HoudiniFetchContext): void
-	get<T extends Fragment<_Shape>>(value: T): Readable<_Shape>
-	get<T extends Fragment<_Shape>>(value: T | null): Readable<_Shape | null>
 }
 
 type Filter = { [key: string]: string | boolean | number }

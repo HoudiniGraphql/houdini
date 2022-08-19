@@ -2,15 +2,7 @@ import { Readable } from 'svelte/store'
 import { Writable, writable } from 'svelte/store'
 
 import cache from '../cache'
-import {
-	CompiledMutationKind,
-	executeQuery,
-	getCurrentConfig,
-	getHoudiniContext,
-	GraphQLObject,
-	HoudiniFetchContext,
-	MutationResult,
-} from '../lib'
+import { executeQuery, getCurrentConfig, GraphQLObject, HoudiniFetchContext } from '../lib'
 import type { SubscriptionSpec, MutationArtifact } from '../lib'
 import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
 import { LoadEvent } from '@sveltejs/kit'
@@ -193,4 +185,12 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 
 export type MutationConfig<_Result, _Input> = {
 	optimisticResponse?: _Result
+}
+
+export type MutationResult<_Data, _Input> = {
+	data: _Data | null
+	errors: { message: string }[] | null
+	isFetching: boolean
+	isOptimisticResponse: boolean
+	variables: _Input | null
 }

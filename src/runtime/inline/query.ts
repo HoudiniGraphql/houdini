@@ -1,15 +1,8 @@
 import { derived, Readable } from 'svelte/store'
 
 import { getHoudiniContext } from '../lib/context'
-import {
-	GraphQLTagResult,
-	Operation,
-	ForwardCursorPaginatedQueryStore,
-	BackwardCursorPaginatedQueryStore,
-	OffsetPaginatedQueryStore,
-	CachePolicy,
-	CompiledQueryKind,
-} from '..'
+import { GraphQLTagResult, Operation, CachePolicy, CompiledQueryKind } from '..'
+import { QueryStorePaginated } from '../stores/pagination/query'
 import { QueryResult, QueryStore } from '../stores/query'
 
 export function query<_Query extends Operation<any, any>>(
@@ -66,11 +59,17 @@ type RefetchConfig = {
 }
 
 export function paginatedQuery<_Query extends Operation<any, any>>(
-	document: GraphQLTagResult
-):
-	| ForwardCursorPaginatedQueryStore<_Query['result'], _Query['input']>
-	| BackwardCursorPaginatedQueryStore<_Query['result'], _Query['input']>
-	| OffsetPaginatedQueryStore<_Query['result'], _Query['input']> {
+	store: GraphQLTagResult
+): QueryStorePaginated<_Query['result'], _Query['input']> {
+	// make sure we got a query document
+	if (store.kind !== 'HoudiniQuery') {
+		throw new Error('paginatedQuery() must be passed a query document')
+	}
+	// if we don't have a pagination query there is a problem
+	if (!('paginated' in store)) {
+		throw new Error('paginatedQuery() must be passed a query with @paginate')
+	}
+
 	// TODO: fix type checking paginated
 	// @ts-ignore: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation

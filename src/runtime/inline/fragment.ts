@@ -1,8 +1,8 @@
 import { Readable } from 'svelte/store'
 
 import * as log from '../lib/log'
-import { wrapPaginationStore, PaginatedDocumentHandlers, PageInfo } from '../lib/pagination'
 import { ArtifactKind, Fragment, GraphQLTagResult } from '../lib/types'
+import { FragmentStore, FragmentStorePaginated } from '../stores'
 
 let hasWarned = false
 
@@ -42,12 +42,12 @@ $: data = fragment(prop, graphql\`...\`)
 	}
 
 	// make sure we got a query document
-	if (store.kind !== 'HoudiniFragment' || false) {
+	if (store.kind !== 'HoudiniFragment') {
 		throw new Error('getFragment can only take fragment documents')
 	}
 
 	// load the fragment store for the value
-	const fragmentStore = store.get(ref)
+	const fragmentStore = (store as FragmentStore<any>).get(ref)
 
 	return {
 		...fragmentStore,
@@ -58,39 +58,28 @@ $: data = fragment(prop, graphql\`...\`)
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment | null,
 	document: GraphQLTagResult
-): { data: Readable<_Fragment['shape'] | null> } & Omit<
-	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
-	'refetch'
->
+): FragmentStorePaginated<_Fragment['shape'], {}>
+
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment,
 	document: GraphQLTagResult
-): { data: Readable<_Fragment['shape']> } & Omit<
-	Omit<
-		PaginatedDocumentHandlers<_Fragment['shape'], {}>,
-		'pageInfo' & { pageInfo: Readable<PageInfo> }
-	>,
-	'refetch'
->
+): FragmentStorePaginated<_Fragment['shape'], {}>
 
 export function paginatedFragment<_Fragment extends Fragment<any>>(
 	initialValue: _Fragment | null,
 	store: GraphQLTagResult
-): { data: Readable<_Fragment['shape']> } & Omit<
-	PaginatedDocumentHandlers<_Fragment['shape'], {}>,
-	'pageInfos' | 'refetch' | 'onUnsubscribe'
-> & { pageInfo: Readable<PageInfo> } {
+): FragmentStorePaginated<_Fragment['shape'], {}> {
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniFragment') {
 		throw new Error('paginatedFragment() must be passed a fragment document')
 	}
 	// if we don't have a pagination fragment there is a problem
-	if (!store.paginated) {
-		throw new Error('paginatedFragment must be passed a fragment with @paginate')
+	if (!('paginated' in store)) {
+		throw new Error('paginatedFragment() must be passed a fragment with @paginate')
 	}
 
 	// TODO: fix type checking paginated
 	// @ts-ignore: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
-	return wrapPaginationStore(fragment(store, initialValue))
+	return fragment(store, initialValue)
 }
