@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { paginatedQuery, graphql, type OffsetPaginationQuery } from '$houdini';
+  import { paginatedQuery, graphql, type OffsetPaginationQuery, CachePolicy } from '$houdini';
 
   const result = paginatedQuery<OffsetPaginationQuery>(graphql`
     query OffsetPaginationQuery {
@@ -16,4 +16,6 @@
 
 <button id="next" on:click={() => result.loadNextPage()}>next</button>
 
-<button id="refetch" on:click={() => result.refetch()}>refetch</button>
+<button id="refetch" on:click={() => result.fetch({ policy: CachePolicy.NetworkOnly })}
+  >refetch</button
+>

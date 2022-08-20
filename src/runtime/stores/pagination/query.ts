@@ -1,4 +1,4 @@
-import { get, Readable } from 'svelte/store'
+import { derived, get, Readable, Subscriber } from 'svelte/store'
 
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact, CompiledQueryKind } from '../../lib'
 import {
@@ -42,8 +42,19 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QuerySto
 		return this.handlers!.fetch.call(this, args)
 	}
 
-	get pageInfo() {
-		return this.handlers.pageInfo
+	subscribe(
+		run: Subscriber<QueryResult<_Data, _Input, { pageInfo: PageInfo }>>,
+		invalidate?: ((value?: QueryResult<_Data, _Input> | undefined) => void) | undefined
+	): () => void {
+		const combined = derived(
+			[{ subscribe: super.subscribe.bind(this) }, this.handlers.pageInfo],
+			([$parent, $pageInfo]) => ({
+				...$parent,
+				pageInfo: $pageInfo,
+			})
+		)
+
+		return combined.subscribe(run, invalidate)
 	}
 }
 
@@ -102,7 +113,16 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 	}
 }
 
-export type QueryStorePaginated<_Data extends GraphQLObject, _Input> =
-	| QueryStoreBackwardCursor<_Data, _Input>
-	| QueryStoreForwardCursor<_Data, _Input>
-	| QueryStoreOffset<_Data, _Input>
+export type QueryStorePaginated<_Data extends GraphQLObject, _Input> = QueryStore<_Data, _Input> & {
+	loadNextPage(
+		pageCount?: number,
+		after?: string | number,
+		houdiniContext?: HoudiniFetchContext
+	): Promise<void>
+	loadPreviousPage(
+		pageCount?: number,
+		before?: string,
+		houdiniContext?: HoudiniFetchContext
+	): Promise<void>
+	pageInfo: Readable<PageInfo>
+}

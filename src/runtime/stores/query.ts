@@ -549,11 +549,11 @@ export type QueryStoreLoadParams<_Data extends GraphQLObject, _Input> =
 	| LoadEventFetchParams<_Data, _Input>
 	| RequestEventFetchParams<_Data, _Input>
 
-export type QueryResult<_Data, _Input> = {
+export type QueryResult<_Data, _Input, _Extra = {}> = {
 	data: _Data | null
 	errors: { message: string }[] | null
 	isFetching: boolean
 	partial: boolean
 	source: DataSource | null
 	variables: _Input | null
-}
+} & _Extra

@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { graphql, paginatedQuery, type BackwardsCursorPaginationQuery } from '$houdini';
+  import {
+    CachePolicy,
+    graphql,
+    paginatedQuery,
+    type BackwardsCursorPaginationQuery
+  } from '$houdini';
 
   const result = paginatedQuery<BackwardsCursorPaginationQuery>(graphql`
     query BackwardsCursorPaginationQuery {
@@ -24,4 +29,6 @@
 
 <button id="previous" on:click={() => result.loadPreviousPage()}>previous</button>
 
-<button id="refetch" on:click={() => result.refetch()}>refetch</button>
+<button id="refetch" on:click={() => result.fetch({ policy: CachePolicy.NetworkOnly })}
+  >refetch</button
+>
