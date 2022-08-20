@@ -22,8 +22,8 @@ export function fragment<_Fragment extends Fragment<any>>(
 	data: Readable<_Fragment | null>
 }
 export function fragment<_Fragment extends Fragment<any>>(
-	store: GraphQLTagResult,
-	ref: _Fragment | null
+	ref: _Fragment | null,
+	store: GraphQLTagResult
 ): Readable<NonNullable<_Fragment['shape']>> & {
 	data: Readable<_Fragment | null>
 } {
@@ -82,5 +82,5 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 	// TODO: fix type checking paginated
 	// @ts-ignore: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
-	return fragment(store, initialValue)
+	return fragment(initialValue, store)
 }

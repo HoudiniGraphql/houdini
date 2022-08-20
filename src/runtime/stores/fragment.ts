@@ -36,6 +36,7 @@ export class FragmentStore<
 		let store = writable(initialValue) as Writable<(_Data | null) & _ExtraFields>
 
 		return {
+			kind: CompiledFragmentKind,
 			subscribe: (
 				...args: Parameters<Readable<(_Data | null) & _ExtraFields>['subscribe']>
 			) => {

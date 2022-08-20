@@ -7,7 +7,7 @@
     type UserFragmentTestFragment
   } from '$houdini';
 
-  const { data, refetch } = query<FragmentUpdateTestQuery>(graphql`
+  const userInfo = query<FragmentUpdateTestQuery>(graphql`
     query FragmentUpdateTestQuery($id: ID!) {
       node(id: $id) {
         ... on User {
@@ -17,8 +17,8 @@
     }
   `);
 
-  let user = fragment<UserFragmentTestFragment>(
-    $data?.node ?? null,
+  $: user = fragment<UserFragmentTestFragment>(
+    $userInfo.data?.node ?? null,
     graphql`
       fragment UserFragmentTestFragment on User {
         name
@@ -29,4 +29,6 @@
 
 <div id="result">{$user?.name}</div>
 
-<button id="refetch" on:click={() => refetch({ id: 'preprocess-fragment:2' })}>refetch</button>
+<button id="refetch" on:click={() => userInfo.fetch({ variables: { id: 'preprocess-fragment:2' } })}
+  >refetch</button
+>

@@ -98,6 +98,7 @@ class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePagin
 		}
 
 		return {
+			kind: CompiledFragmentKind,
 			data: store,
 			subscribe: subscribe,
 			loading: loading as Readable<boolean>,
@@ -195,6 +196,7 @@ export class FragmentStoreOffset<
 		// add the offset handlers
 		return {
 			...parent,
+			kind: CompiledFragmentKind,
 			fetch: handlers.fetch,
 			loadNextPage: handlers.loadNextPage,
 		}
