@@ -22,9 +22,10 @@ test('no variables', async function () {
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
 		const _houdini_TestQuery = TestQueryStore();
 
-		const {
+		$:
+		({
 		    data
-		} = query(_houdini_TestQuery);
+		} = query(_houdini_TestQuery));
 
 		const _houdini_context_DO_NOT_USE = getHoudiniContext();
 
@@ -79,9 +80,10 @@ test('with variables', async function () {
 		export const prop2 = "goodbye";
 		export let prop3, prop4;
 
-		const {
+		$:
+		({
 		    data
-		} = query(_houdini_TestQuery);
+		} = query(_houdini_TestQuery));
 
 		const _houdini_context_DO_NOT_USE = getHoudiniContext();
 
@@ -138,13 +140,15 @@ test('2 queries, one paginated one not', async function () {
 		const _houdini_TestQuery2 = TestQuery2Store();
 		const _houdini_TestQuery1 = TestQuery1Store();
 
-		const {
+		$:
+		({
 		    data
-		} = query(_houdini_TestQuery1);
+		} = query(_houdini_TestQuery1));
 
-		const {
+		$:
+		({
 		    data: data2
-		} = paginatedQuery(_houdini_TestQuery2);
+		} = paginatedQuery(_houdini_TestQuery2));
 
 		const _houdini_context_DO_NOT_USE = getHoudiniContext();
 

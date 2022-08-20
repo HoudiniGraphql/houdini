@@ -10,7 +10,7 @@
     };
   }
 
-  const { data } = query<PlusComponentRouteQuery>(graphql`
+  const result = query<PlusComponentRouteQuery>(graphql`
     query PlusComponentRouteQuery($id: ID!) {
       user(id: $id, snapshot: "component-route") {
         name
@@ -19,4 +19,4 @@
   `);
 </script>
 
-{$data?.user.name}
+{$result.data?.user.name}

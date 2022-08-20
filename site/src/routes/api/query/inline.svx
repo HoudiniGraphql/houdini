@@ -17,7 +17,7 @@ Load data from the server and subscribe to any changes of fields we detect from 
 <script>
 	import { query, graphql } from '$houdini'
 
-	const { data, refetch, loading, error } = query(graphql`
+	$: { data, refetch, loading, error } = query(graphql`
 		query MyQuery {
 			myField
 		}

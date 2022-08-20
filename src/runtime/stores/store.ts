@@ -1,4 +1,5 @@
-import { getHoudiniContext, HoudiniFetchContext } from '../lib'
+import { HoudiniFetchContext } from '../lib/types'
+import { getHoudiniContext } from '../lib/context'
 
 export class BaseStore {
 	protected context: HoudiniFetchContext | null = null

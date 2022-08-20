@@ -1,7 +1,7 @@
 <script lang="ts">
   import { query, graphql, type PreprocessorTestQueryError } from '$houdini';
 
-  const { data } = query<PreprocessorTestQueryError>(graphql`
+  const result = query<PreprocessorTestQueryError>(graphql`
     query PreprocessorTestQueryError($id: ID!) {
       user(id: $id, snapshot: "preprocess-query-variable") {
         name
@@ -11,5 +11,5 @@
 </script>
 
 <div id="result">
-  {$data?.user.name}
+  {$result.data?.user.name}
 </div>

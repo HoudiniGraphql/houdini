@@ -102,9 +102,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 	}
 }
 
-export interface QueryStorePaginated<_Data extends GraphQLObject, _Input> {
-	loadNextPage: CursorHandlers<_Data, _Input>['loadNextPage']
-	loadPreviousPage: CursorHandlers<_Data, _Input>['loadPreviousPage']
-	loadPage: CursorHandlers<_Data, _Input>['pageInfo']
-	pageInfo: Readable<PageInfo>
-}
+export type QueryStorePaginated<_Data extends GraphQLObject, _Input> =
+	| QueryStoreBackwardCursor<_Data, _Input>
+	| QueryStoreForwardCursor<_Data, _Input>
+	| QueryStoreOffset<_Data, _Input>

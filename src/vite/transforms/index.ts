@@ -3,13 +3,16 @@ import * as recast from 'recast'
 import { Config, parseJS, runPipeline, ParsedFile, parseSvelte, formatErrors } from '../../common'
 import { TransformPage } from '../plugin'
 import context from './context'
-import svelteKit from './kit'
+import kit from './kit'
 import query from './query'
 import tags from './tags'
+import reactive from './reactive'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports
-const pipeline = [svelteKit, query, tags, context]
+// reactiveQueries must go first since it looks for inline queries that
+// are destroyed by the sveltekit and query processors
+const pipeline = [reactive, kit, query, tags, context]
 
 export default async function apply_transforms(
 	config: Config,

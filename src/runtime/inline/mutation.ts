@@ -1,10 +1,5 @@
-import {
-	Operation,
-	GraphQLTagResult,
-	MutationConfig,
-	CompiledMutationKind,
-	MutationStore,
-} from '..'
+import { MutationConfig, MutationStore } from '../stores'
+import { Operation, GraphQLTagResult, CompiledMutationKind } from '../lib/types'
 
 export function mutation<_Mutation extends Operation<any, any>>(store: GraphQLTagResult) {
 	// make sure we got a query store

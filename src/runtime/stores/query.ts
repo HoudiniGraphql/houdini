@@ -2,17 +2,14 @@ import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
 // internals
-import { CachePolicy, DataSource, fetchQuery, GraphQLObject, HoudiniClient } from '..'
+import { CachePolicy, DataSource, GraphQLObject } from '../lib/types'
+import { fetchQuery } from '../lib/network'
 import { clientStarted, isBrowser } from '../adapter'
 import cache from '../cache'
-import {
-	FetchContext,
-	SubscriptionSpec,
-	deepEquals,
-	CompiledQueryKind,
-	HoudiniFetchContext,
-	getCurrentConfig,
-} from '../lib'
+import { SubscriptionSpec, CompiledQueryKind, HoudiniFetchContext } from '../lib/types'
+import { deepEquals } from '../lib/deepEquals'
+import { getCurrentConfig } from '../lib/config'
+import { FetchContext } from '../lib/network'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { nullHoudiniContext } from '../lib/context'
 import * as log from '../lib/log'
@@ -185,11 +182,11 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 				// clean up any cache subscriptions
 				if (isBrowser && this.subscriptionSpec) {
 					cache.unsubscribe(this.subscriptionSpec, this.lastVariables || {})
-					this.subscriptionSpec = null
 				}
 
 				// clear the variable counter
 				this.lastVariables = null
+				this.subscriptionSpec = null
 			}
 
 			// we're done

@@ -1,4 +1,4 @@
-import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
+import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
 import { computeID, ConfigFile, keyFieldsForType, deepEquals } from '../lib'
 import { defaultConfigValues } from '../lib/config'
 import { GarbageCollector } from './gc'
@@ -226,7 +226,7 @@ class CacheInternal {
 			const key = evaluateKey(keyRaw, variables)
 
 			// the current set of subscribers
-			const currentSubcribers = this.subscriptions.get(parent, key)
+			const currentSubscribers = this.subscriptions.get(parent, key)
 
 			// look up the previous value
 			const { value: previousValue, displayLayers } = this.storage.get(parent, key)
@@ -264,7 +264,7 @@ class CacheInternal {
 				if (displayLayer && (valueChanged || forceNotify)) {
 					// we need to add the fields' subscribers to the set of callbacks
 					// we need to invoke
-					toNotify.push(...currentSubcribers)
+					toNotify.push(...currentSubscribers)
 				}
 
 				// write value to the layer
@@ -280,13 +280,13 @@ class CacheInternal {
 				const previousLinks = flattenList<string>([previousValue as string | string[]])
 
 				for (const link of previousLinks) {
-					this.subscriptions.remove(link, fields, currentSubcribers, variables)
+					this.subscriptions.remove(link, fields, currentSubscribers, variables)
 				}
 
 				layer.writeLink(parent, key, null)
 
 				// add the list of subscribers for this field
-				toNotify.push(...currentSubcribers)
+				toNotify.push(...currentSubscribers)
 			}
 			// the field could point to a linked object
 			else if (value instanceof Object && !Array.isArray(value)) {
@@ -330,7 +330,7 @@ class CacheInternal {
 						this.subscriptions.remove(
 							previousValue,
 							fields,
-							currentSubcribers,
+							currentSubscribers,
 							variables
 						)
 					}
@@ -339,11 +339,11 @@ class CacheInternal {
 					this.subscriptions.addMany({
 						parent: linkedID,
 						selection: fields,
-						subscribers: currentSubcribers,
+						subscribers: currentSubscribers,
 						variables,
 					})
 
-					toNotify.push(...currentSubcribers)
+					toNotify.push(...currentSubscribers)
 				}
 
 				// if the link target points to another record in the cache we need to walk down its
@@ -500,7 +500,7 @@ class CacheInternal {
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				if (contentChanged || forceNotify) {
-					toNotify.push(...currentSubcribers)
+					toNotify.push(...currentSubscribers)
 				}
 
 				// any ids that don't show up in the new list need to have their subscribers wiped
@@ -509,7 +509,7 @@ class CacheInternal {
 						continue
 					}
 
-					this.subscriptions.remove(lostID, fields, currentSubcribers, variables)
+					this.subscriptions.remove(lostID, fields, currentSubscribers, variables)
 				}
 
 				// if there was a change in the list
@@ -527,7 +527,7 @@ class CacheInternal {
 					this.subscriptions.addMany({
 						parent: id,
 						selection: fields,
-						subscribers: currentSubcribers,
+						subscribers: currentSubscribers,
 						variables,
 					})
 				}

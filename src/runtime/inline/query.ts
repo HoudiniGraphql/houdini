@@ -1,46 +1,23 @@
 import { derived, Readable } from 'svelte/store'
 
 import { getHoudiniContext } from '../lib/context'
-import { GraphQLTagResult, Operation, CachePolicy, CompiledQueryKind } from '..'
-import { QueryStorePaginated } from '../stores/pagination/query'
+import { GraphQLTagResult, Operation, CachePolicy, CompiledQueryKind } from '../lib/types'
 import { QueryResult, QueryStore } from '../stores/query'
 import { CursorHandlers } from '../stores/pagination/cursor'
+import { QueryStorePaginated } from '..'
 
 export function query<_Query extends Operation<any, any>>(
 	store: GraphQLTagResult
-): QueryResponse<_Query['result'], _Query['input']> {
+): QueryStore<_Query['result'], _Query['input']> {
 	// make sure we got a query document
 	if (store.kind !== CompiledQueryKind) {
 		throw new Error('query() must be passed a query document')
 	}
-	const queryStore = store as QueryStore<any, unknown>
 
-	// build some derived stores for the atomic values
-	const data = derived(queryStore, ($store) => $store.data)
-	const loading = derived(queryStore, ($store) => $store.isFetching)
-	const partial = derived(queryStore, ($store) => $store.partial)
-	const errors = derived(queryStore, ($store) => $store.errors)
-	const variables = derived(queryStore, ($store) => $store.variables)
+	// set the store's context
+	store.setContext(getHoudiniContext())
 
-	// load the current houdini context
-	const context = getHoudiniContext()
-
-	return {
-		...store,
-		data,
-		refetch: (variables?: _Query['input'], config?: RefetchConfig) => {
-			return queryStore.fetch({
-				context,
-				variables,
-				policy: CachePolicy.NetworkOnly,
-				...config,
-			})
-		},
-		errors,
-		loading,
-		partial,
-		variables,
-	}
+	return store as QueryStore<_Query['result'], _Query['input']>
 }
 
 // we need to wrap the response from a query in something that we can
@@ -60,8 +37,7 @@ type RefetchConfig = {
 
 export function paginatedQuery<_Query extends Operation<any, any>>(
 	store: GraphQLTagResult
-): QueryResponse<_Query['result'], _Query['input']> &
-	CursorHandlers<_Query['result'], _Query['input']> {
+): QueryStorePaginated<_Query['result'], _Query['input']> {
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniQuery') {
 		throw new Error('paginatedQuery() must be passed a query document')
@@ -74,13 +50,5 @@ export function paginatedQuery<_Query extends Operation<any, any>>(
 	// TODO: fix type checking paginated
 	// @ts-ignore: the query store will only include the methods when it needs to
 	// and the userland type checking happens as part of the query type generation
-	return {
-		...query(store),
-		// @ts-ignore
-		pageInfo: store.pageInfo,
-		// @ts-ignore
-		loadNextPage: store.loadNextPage?.bind(store),
-		// @ts-ignore
-		loadPreviousPage: store.loadPreviousPage?.bind(store),
-	}
+	return query(store)
 }

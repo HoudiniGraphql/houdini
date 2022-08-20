@@ -14,7 +14,7 @@ Just to get some points out of the way for people worried about major breaking c
 
 - SvelteKit projects will now need to use the vite plugin defined at `houdini/vite` which replaces the old preprocessor (and the ugly `server.fs.allow` config). But don't worry, there are **lots** of really cool things that we're getting with this move.
 - The external document store api for SvelteKit routes is changing. This means that if you rely heavily on the document stores, you will have to update your load functions but as a result you can delete a lot of the code in your components and the overall mental model is a lot simpler (no more passing around `context`)
-- inline queries are staying the same. Inline fragments have their argument order inverted (graphql tag comes second). At a high level, everything that used to be defined in `context="module"` is now defined in `+page.js/ts`.
+- inline queries are staying the same except for now requiring `$:` before your function calls. Inline fragments have their argument order inverted (graphql tag comes second). At a high level, everything that used to be defined in `context="module"` is now defined in `+page.js/ts`.
 
 For additional breaking changes and notes, check out the section at the bottom of this. We know this is a lot of changes but we have been thinking about some of these for awhile and since SvelteKit has forced us to change the API, it seemed like a good time to shift some things around.
 

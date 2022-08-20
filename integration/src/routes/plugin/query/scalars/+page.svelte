@@ -1,7 +1,7 @@
 <script>
   import { query, graphql } from '$houdini';
 
-  const { data } = query(graphql`
+  const result = query(graphql`
     query PreprocessorTestQueryScalars {
       user(id: "1", snapshot: "preprocess-query-scalars") {
         id
@@ -13,12 +13,12 @@
 
 ISO:
 <div id="result-date">
-  {$data?.user.birthDate.toISOString()}
+  {$result.data?.user.birthDate.toISOString()}
 </div>
 
 <br />
 
 Local:
 <div id="result-date-local">
-  {$data?.user.birthDate.toLocaleString()}
+  {$result.data?.user.birthDate.toLocaleString()}
 </div>

@@ -2,15 +2,9 @@ import { ExpressionKind, StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import {
-	Config,
-	operation_requires_variables,
-	ParsedFile,
-	Script,
-	walkGraphQLTags,
-} from '../../common'
+import { Config, operation_requires_variables, Script, walkGraphQLTags } from '../../common'
 import { find_exported_fn, find_insert_index } from '../ast'
-import { artifact_import, ensure_imports, store_import } from '../imports'
+import { ensure_imports } from '../imports'
 import { TransformPage } from '../plugin'
 
 const AST = recast.types.builders
@@ -37,7 +31,7 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 		return
 	}
 
-	// find all of the props of the component by looking for export let
+	// find all of the props of the component by looking for export statements
 	const props = (
 		page.script.body.filter(
 			(statement) =>

@@ -1,14 +1,12 @@
-import { derived, readable, Writable, writable } from 'svelte/store'
+import { Writable, writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 
 import {
 	CompiledFragmentKind,
-	ConfigFile,
 	GraphQLObject,
 	FragmentArtifact,
-	HoudiniDocumentProxy,
 	HoudiniFetchContext,
-} from '../lib'
+} from '../lib/types'
 import { BaseStore } from './store'
 
 // a fragment store exists in multiple places in a given application so we

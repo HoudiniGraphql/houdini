@@ -2,14 +2,10 @@ import { writable, Writable } from 'svelte/store'
 
 import { isBrowser } from '../adapter'
 import cache from '../cache'
-import {
-	CompiledSubscriptionKind,
-	ConfigFile,
-	deepEquals,
-	getCurrentClient,
-	getCurrentConfig,
-	SubscriptionArtifact,
-} from '../lib'
+import { CompiledSubscriptionKind, SubscriptionArtifact } from '../lib/types'
+import { deepEquals } from '../lib/deepEquals'
+import { getCurrentConfig } from '../lib/config'
+import { getCurrentClient } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import { BaseStore } from './store'
 

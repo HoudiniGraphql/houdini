@@ -1,4 +1,5 @@
 import { IdentifierKind } from 'ast-types/gen/kinds'
+import { StatementKind } from 'ast-types/gen/kinds'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
@@ -12,7 +13,6 @@ import {
 	readFile,
 	stat,
 } from '../../common'
-import * as fs from '../../common/fs'
 import { find_insert_index } from '../ast'
 import { ensure_imports, store_import } from '../imports'
 import { TransformPage } from '../plugin'
@@ -38,10 +38,7 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 	// the name to use for inline query documents
 	const inline_query_store = (name: string) =>
 		is_route
-			? AST.memberExpression(
-					AST.memberExpression(AST.identifier('$$props'), AST.identifier('data')),
-					AST.identifier(name)
-			  )
+			? AST.memberExpression(AST.identifier('data'), AST.identifier(name))
 			: store_import({
 					config: page.config,
 					script: page.script,
@@ -94,26 +91,47 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 			sourceModule: '$houdini/runtime/lib/context',
 		})
 
+		// we need to check if there is a declared data prop
+		const has_data = page.script.body.find(
+			(statement) =>
+				statement.type === 'ExportNamedDeclaration' &&
+				statement.declaration?.type === 'VariableDeclaration' &&
+				statement.declaration.declarations.length === 1 &&
+				statement.declaration.declarations[0].type === 'VariableDeclarator' &&
+				statement.declaration.declarations[0].id.type === 'Identifier' &&
+				statement.declaration.declarations[0].id.name === 'data'
+		)
+
 		// add the current context to any of the stores that we got from the load
 		page.script.body.splice(
 			find_insert_index(page.script),
 			0,
-			AST.labeledStatement(
-				AST.identifier('$'),
-				AST.expressionStatement(
-					AST.callExpression(AST.identifier('injectContext'), [
-						AST.arrayExpression(
-							queries.map((query) =>
-								AST.memberExpression(
+			...(
+				(!has_data
+					? [
+							AST.exportNamedDeclaration(
+								AST.variableDeclaration('let', [AST.identifier('data')])
+							),
+					  ]
+					: []) as StatementKind[]
+			).concat(
+				AST.labeledStatement(
+					AST.identifier('$'),
+					AST.expressionStatement(
+						AST.callExpression(AST.identifier('injectContext'), [
+							AST.arrayExpression(
+								queries.map((query) =>
 									AST.memberExpression(
-										AST.identifier('$$props'),
-										AST.identifier('data')
-									),
-									AST.identifier(query.name)
+										AST.memberExpression(
+											AST.identifier('$$props'),
+											AST.identifier('data')
+										),
+										AST.identifier(query.name)
+									)
 								)
-							)
-						),
-					])
+							),
+						])
+					)
 				)
 			)
 		)
