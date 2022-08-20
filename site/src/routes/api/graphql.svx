@@ -4,10 +4,6 @@ index: 5
 description: The GraphQL API provided by Houdini
 ---
 
-<script>
-	import mode from '~/lib/mode'
-</script>
-
 # GraphQL API
 
 Houdini adds a number of runtime definitions to your GraphQL schema in order to support its declarative API.

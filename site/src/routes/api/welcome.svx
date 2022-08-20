@@ -6,17 +6,16 @@ description: A listing of every top-level export from the Houdini runtime
 
 <script>
     import { APIShowcase } from '~/components'
-    import mode from '~/lib/mode'
 
-    const queryExample = `const { data } = query(graphql\`
+    const queryExample = `const store = graphql\`
     query AllTodoItems {
         items {
             text
         }
     }
-\`)`
+\``
 
-const mutationExample = `const addFriend = mutation(graphql\`
+const mutationExample = `const addFriend = graphql\`
     mutation FollowFriend {
         followFriend(id: 1) {
             friend {
@@ -24,9 +23,9 @@ const mutationExample = `const addFriend = mutation(graphql\`
             }
         }
     }
-\`)`
+\``
 
-const graphqlExample = `const addFriend = mutation(graphql\`
+const graphqlExample = `const addFriend = graphql\`
     mutation SetFavorite {
         setFavoriteRecipe(id: 1) {
             recipe {
@@ -34,7 +33,7 @@ const graphqlExample = `const addFriend = mutation(graphql\`
             }
         }
     }
-\`)`
+\``
 
 const fragmentExample = `$: data = fragment(user, graphql\`
     fragment UserAvatar on User {
@@ -86,28 +85,28 @@ and inline APIs. For more information about the differences in the APIs, checkou
 <APIShowcase
 title="query"
 description="Fetch data from the server"
-href={`/api/query/${$mode}`}
+href="/api/query"
 example={queryExample}
 />
 
 <APIShowcase
 title="fragment"
 description="Reuse part of a query"
-href={`/api/fragment/${$mode}`}
+href="/api/fragment"
 example={fragmentExample}
 />
 
 <APIShowcase
 title="mutation"
 description="Send updates to the server and keep the local cache up to date"
-href={`/api/mutation/${$mode}`}
+href="/api/mutation"
 example={mutationExample}
 />
 
 <APIShowcase
 title="subscription"
 description="Real-time updates"
-href={`/api/subscription/${$mode}`}
+href="/api/subscription"
 example={subscriptionExample}
 />
 

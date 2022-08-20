@@ -104,9 +104,9 @@
 		<img src="/images/logo.svg" alt="Houdini Logo" width="175px" />
 	</a>
 	<nav>
-		<a href={files.intro.index.slug} class="nav-link" sveltekit:prefetch>Get Started</a>
-		<a href={files.guides.index.slug} class="nav-link small-hidden" sveltekit:prefetch>Guides</a>
-		<a href={files.api.index.slug} class="nav-link small-hidden" sveltekit:prefetch>API</a>
+		<a href="/intro/welcome" class="nav-link" sveltekit:prefetch>Get Started</a>
+		<a href="/guides/faq" class="nav-link small-hidden" sveltekit:prefetch>Guides</a>
+		<a href="/api/welcome" class="nav-link small-hidden" sveltekit:prefetch>API</a>
 		<a href="https://opencollective.com/houdini" class="nav-link small-hidden" target="_blank">
 			Sponsor
 		</a>
@@ -125,7 +125,7 @@
 		<div>
 			<h1>
 				The disappearing <span id="graphql-text">GraphQL</span>
-				client for the <span class="svelte-text">Svelte</span> community.
+				client for <span class="svelte-text">SvelteKit</span>.
 			</h1>
 			<ul>
 				{#each bullets as bullet}
@@ -245,7 +245,7 @@
 	}
 
 	.content {
-		max-width: 1300px;
+		max-width: 1150px;
 		margin: 0 auto;
 		width: 100%;
 	}

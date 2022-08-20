@@ -1,14 +1,10 @@
 ---
-title: Fragment
+title: Fragments
 index: 2
 description: Fragments in Houdini
 ---
 
-<script>
-    import { HeaderWithMode } from '~/components'
-</script>
-
-<HeaderWithMode title="Fragment"  />
+# Fragments
 
 Specify the data requirements for a Svelte component.
 
@@ -29,6 +25,10 @@ Specify the data requirements for a Svelte component.
 <img src={$data.profilePicture} />
 ```
 
+## Inline Fragments
+
+Inline fragments can defined using `fragment` imported from `$houdini` as shown above.
+
 ### Inputs
 
 1. The prop containing the fragment reference (to be passed by another component that mixed in the fragment)
@@ -37,6 +37,24 @@ Specify the data requirements for a Svelte component.
 ### Return Values
 
 `fragment` returns a store containing the fragment values. These values will be updated as query, mutations, and subscriptions get new values.
+
+## External Documents
+
+Fragments stores can be created from your external documents by using the `.get` method on the global store in `$houdini`:
+
+```svelte
+<script>
+	import { GQL_UserAvatar } from '$houdini'
+
+	// the reference will get passed as a prop
+	export let user
+
+	// load the the required UserAvatar for this component
+	$: data = GQL_UserAvatar.get(user)
+</script>
+
+<img src={$data.profilePicture} />
+```
 
 ## Fragment Arguments
 
@@ -86,27 +104,34 @@ Fragments may also contain a paginated field, similar to queries. A paginated fr
 	// the reference will get passed as a prop
 	export let user
 
-	$: { loadNextPage, data } = paginatedFragment(user, graphql`
+	$: friendList = paginatedFragment(user, graphql`
 		fragment UserWithFriends on User {
 			friends(first: 10) @paginate {
-				edges {
-					node {
-						id
-					}
-				}
+				name
 			}
 		}
 	`)
 </script>
+
+<button on:click={() => friendsList.loadNextPage()}>
+	load more
+</button>
+
+{#each $friendsList.data.friends.edges as { node }}
+	<div>{node.name}</div>
+{/each}
 ```
 
 ### Return Values
 
-`paginatedQuery` returns a single object with the following keys:
+`paginatedQuery` returns a store that holds an object with the following keys:
 
-- `data` is a store containing the fragment's data
+- `data` contains the fragment's data
+- `loading` contains a boolean value that tracks the loading state of the pagination requests
+- `pageInfo` ts contains the page info (`hasPreviousPage`, `hasNextPage`, etc.) Only valid for cursor-based pagination.
+- `partial` contains a boolean that indicates if the result has a partial match
+
+and has one of the following methods (depending on your fields pagination direction):
+
 - `loadNextPage` is an async function that loads the next page. It takes one optional argument: the page size to load for the next request.
 - `loadPreviousPage` is an async function that loads the previous page. It takes one optional argument: the page size to load for the next request.
-- `loading` is a store containing a boolean value that tracks the loading state of the pagination requests
-- `pageInfo` is a store that contains the page info (`hasPreviousPage`, `hasNextPage`, etc.) Only valid for cursor-based pagination.
-- `partial` is a store containing a boolean that indicates if the result has a partial match

@@ -1,7 +1,85 @@
 ---
-sidebar: false
-layout: blank
+title: Subscription
+index: 4
+description: Subscriptions in Houdini
 ---
+
+# Subscriptions
+
+Listen for real-time updates from your server using GraphQL Subscriptions.
+
+```svelte
+<script>
+	import { graphql, subscription } from '$houdini'
+
+	// this information should usually come from a fragment
+	export let itemID
+
+	// will start listening onMount (browser only)
+	subscription(
+		graphql`
+			subscription ItemUpdate($id: ID!) {
+				itemUpdate(id: $id) {
+					item {
+						id
+						completed
+						text
+					}
+				}
+			}
+		`,
+		{ id: itemID }
+	)
+</script>
+```
+
+### Inputs
+
+1. A string tagged with `graphql` containing a single document with one named subscription
+2. An object containing any arguments for the subscription
+
+### Return Values
+
+`subscription` returns a store containing the latest version of the subscription value
+
+Note: mutations usually do best when combined with at least one fragment grabbing
+the information needed for the mutation (for an example of this pattern, see below.)
+
+## External Documents
+
+Subscriptions defined in external documents can be trigger using the subscription store's `listen` method:
+
+```svelte
+
+<script>
+	import { graphql, subscription } from '$houdini'
+
+	// this information should usually come from a fragment
+	export let itemID
+
+	const store = graphql`
+		subscription ItemUpdate($id: ID!) {
+			itemUpdate(id: $id) {
+				item {
+					id
+					completed
+					text
+				}
+			}
+		}
+	`
+</script>
+
+<button on:click={() => store.listen({ itemID })}>
+listen
+</button>
+```
+
+## List Operations
+
+Subscription bodies can contain all of the list operations described in [this document](/api/mutation#lists).
+
+## Configuring the client
 
 Houdini can work with any websocket client as long as you can provide an object that satisfies
 the `SubscriptionHandler` interface as the second argument to the HoudiniClient's constructor. Keep in mind

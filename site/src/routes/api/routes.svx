@@ -1,13 +1,12 @@
 ---
-title: Query
+title: Routes
 index: 1
 description: Queries in Houdini
 ---
 
 <script>
-    import { HeaderWithMode, DeepDive, Highlight } from '~/components'
-    import { Transformation } from '~/components'
-
+    import { DeepDive, Warning, Transformation, Highlight } from '~/components'
+	
   const forwardPaginationStoreBefore = `
 query MyFriends {
   viewer {
@@ -74,64 +73,175 @@ type MyFriendsStore = QueryStore & {
 `
 </script>
 
-<HeaderWithMode title="Query" />
+# Routes
 
 Load data from the server and subscribe to any changes of fields we detect from mutations, subscriptions, and other queries.
 
-```javascript
-// src/routs/myRoute/+page.js
+```graphql
+# src/routes/myRoute/+page.gql
 
-import { load_ViewerProfile } from '$houdini'
-
-export async load(event) {
-    return {
-      ...await load_ViewerProfile({ event })
-    }
+query MyProfileInfo {
+	viewer {
+		firstName
+		avatar
+	}
 }
 ```
 
 ```svelte
-<!-- src/routs/myRoute/+page.js -->
+<!-- src/routes/myRoute/+page.js -->
+
 <script>
 	export let data
 
 	// pull the store reference from the route props
-	$: ({ ViewerProfile } = data)
+	$: ({ MyProfileInfo } = data)
 </script>
 
-{$ViewerProfile.data.viewerProfile.firstName}
+{$MyProfileInfo.data.viewerProfile.firstName}
 ```
 
-### Store Value
+This example takes advantage of Houdini's powerful [load generator](#generating-loaders) and
+is just one of many ways to get access to a store that can drive your server-side rendered routes.
+For more information, check out the [Working with GraphQL](/guides/working-with-graphql) guide.
 
-A query store holds onto an object containing a variety of metadata
-about the last query that was sent:
+### Store Fields
 
-- `data`: holds the result of the query
-- `errors`: a list of objects with a `message` field
-- `isFetching`: a boolean that tracks the fetchingState (always false after a request)
-- `partial`: a boolean indicating of the query has partial results. For more information see the [caching guide](/guides/caching-data#partial-data)
-- `source`: one of `"network"` or `"cache"`. Indicates wether the result was read from the cache or the network
-- `variables`: the variables used for the request
+A query store holds an object with the following fields that accessed like `$store.data`:
 
-## Fetching Data
+- `data` contains the result of the query. It's value will update as mutations, subscriptions, and other queries provide more recent information.
+- `loading` contains the loading state (`true` or `false`) for a query found outside of a route component (ie, not defined in `src/routes`)
+- `errors` contains any error values that occur for a query found outside of a route component (ie, not defined in `src/routes`)
+- `partial` contains a boolean that indicates if the result has a partial match
 
-The quickest way to load data into a store is to call the `fetch` method when running in the browser:
+### Methods
 
-```svelte
-<script>
-  import { browser } from '$app/env'
-  import { GQL_MyQuery } from '$houdini'
+A query store has the following methods that invoked without the $, ie `store.fetch(...)`:
 
-  $: browser && GQL_MyQuery.fetch({ variables: { ... } })
-</script>
+- `fetch` is a function that can be used to load the most recent data from your API (subject to its [Cache Policy](/guides/caching-data)). If you want to force the request to always resolve against the API, set `policy: 'NetworkOnly'`.
 
-{$GQL_MyQuery.data.value}
+## Automatic Loading
+
+As described in the [Working with GraphQL guide](/guides/working-with-graphql), there are 3 things that you can do to
+get houdini to create a load function for your route:
+
+- export `houdini_load` from your `+page.js` file
+- wrap an inline query in your `+page.svelte` file with the `query` function
+- define a `+page.gql` file in your route directory
+
+Regardless of which pattern you are using, you will quickly need to customize your query's behavior. This could be because you need to add variables to the query, or maybe you need to perform some logic before and/or after the data is fetched.
+
+### Query Variables
+
+Query variables must be exported from your `+page.js` files and named after your query. This function takes the same arguments passed to the `load` function
+described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. You can return
+the value from `this.error` and `this.redirect` in order to change the behavior of the response. Here is a
+modified example [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
+
+```javascript
+// src/routes/[filter]/+page.ts
+
+export const houdini_load = graphql`
+	query AllItems($completed: Boolean) {
+		items(completed: $completed) {
+			id
+			text
+		}
+	}
+`
+
+// This is the function for the AllItems query.
+// Query variable functions must be named <QueryName>Variables.
+export function AllItemsVariables(event): AllItems$input {
+	// make sure we recognize the value
+	if (!['active', 'completed'].includes(event.params.filter)) {
+		return this.error(400, 'invalid filter')
+	}
+
+	return {
+		completed: event.params.filter === 'completed'
+	}
+}
 ```
 
-## SvelteKit
+### Hooks
 
-In SvelteKit, `fetch` needs to be called inside of your `load` function. In order to streamline this, houdini provides
+Sometimes you will need to add additional logic to a component's query. For example, you might want to
+check if the current session is valid before a query is sent to the server. In order to support this,
+Houdini will look for hook functions defined in your `+page.js` files.
+
+#### `beforeLoad`
+
+Called before Houdini executes load queries against the server. You can expect the same
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
+
+```javascript
+// src/routes/myRoute/+page.js
+
+export const houdini_load = graphql`
+	query AllItems($completed: Boolean) {
+		items(completed: $completed) {
+			id
+			text
+		}
+	}
+`
+
+// It has access to the same arguments,
+// this.error, and this.redirect as the variable functions
+export function beforeLoad({ page, session }) {
+	if (!session.authenticated) {
+		return this.redirect(302, '/login')
+	}
+
+	return {
+		message: 'Number of items:'
+	}
+}
+```
+
+#### `afterLoad`
+
+Called after Houdini executes load queries against the server. You can expect the same
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function, plus an additional
+`data` property referencing query result data. Keep in mind that if you define this hook, Houdini
+will have to block requests to the route in order to wait for the result. For more information about
+blocking during navigation, check out [this section](/api/query/store#server-side-blocking) of the query store
+docs.
+
+```javascript
+// src/routes/myRoute/+page.js
+
+export const houdini_load = graphql`
+	query MyProfile($id: ID!) {
+		profile(id: $id) {
+			name
+		}
+	}
+`
+
+export function MyProfileVariables({
+	page: {
+		params: { id }
+	}
+}) {
+	return { id }
+}
+
+export function afterLoad({ data }) {
+	if (!data.MyProfile) {
+		return this.error(404)
+	}
+
+	return {
+		message: "Hello I'm"
+	}
+}
+```
+
+## Manual Loading
+
+If you are writing your route's load functions by hand, you'll want to instantiate a store, calls its `fetch` method and return the store to your vite. In order to streamline this, houdini provides
 a function for each of your stores that you can use to render your route on the server. These functions take the same
 parameters as `fetch`:
 
@@ -236,41 +346,30 @@ export async function load(event) {
 
 </DeepDive>
 
-### Passing Metadata
+## Components Queries
 
-Sometimes you need to do something very custom for a specific route. Maybe you need special headers or some other contextual information.
-Whatever the case may be, you can pass a `metadata` parameter to fetch:
+Not every query will be inside of a route. In this situations, you can either work with your
+query stores directly, or use the same `query` function to instruct the plugin to generate a client-side
+equivalent of the load function.
 
 ```svelte
 <script>
-	import { browser } from '$app/env'
-	import MyQueryStore from '$houdini/stores/MyQuery'
+  import { query, graphql } from '$houdini'
 
+ export function MyComponentQueryVariables({ props }) {
+	return { id: props.id }
+ }
 
-  $: browser && MyQueryStore.fetch({ metadata: { ... } })
+ const store = query(graphql`
+	query MyComponentQuery($id: ID!) {
+		user(id: $id) {
+			id
+		}
+	}
+ `)
 </script>
-```
 
-This value will get forwarded to the network function in your client definition, usually found in `src/client.js`:
-
-```typescript
-async function fetchQuery({ fetch, text, variables, session, metadata }) {
-	// do anything with metadata inside of here
-}
-
-// Export the Houdini client
-export default new HoudiniClient(fetchQuery)
-```
-
-## Generating a route load
-
-If a query store is providing all of the information for a SvelteKit route, you might
-want to consider having houdini generate your load function for you so you can focus on what matters most. In order to do this, export `houdini_load` from your `+page.js` file and houdini will take care of the rest. You can provide one or more queries that you want to be loaded into your route (and provided as props). For more information, check out the [Working with GraphQL guide](/guides/working-with-graphql#automatic-loads).
-
-```typescript
-import { GQL_MyQuery } from '$houdini'
-
-export const houdini_load = GQL_MyQuery
+{$store.data.value}
 ```
 
 ## Endpoints

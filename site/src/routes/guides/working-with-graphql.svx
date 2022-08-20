@@ -108,19 +108,17 @@ Fragments should be defined inside of your `.svelte` components using the inline
 
 ```svelte
 <!-- src/lib/components/UserAvatar.svelte -->
+
 <script>
     import { fragment, graphql } from '$houdini'
 
     export let user
 
-    $: data = fragment(
-        user,
-        graphql`
-            fragment UserAvatar on User {
-                avatar
-            }
-        `
-    )
+    $: data = fragment(user, graphql`
+        fragment UserAvatar on User {
+            avatar
+        }
+    `)
 </script>
 
 <img src={$data.avatar} />

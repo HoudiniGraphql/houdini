@@ -1,25 +1,22 @@
 ---
-title: Mutation
+title: Mutations
 index: 3
 description: Mutations in Houdini
 ---
 
 <script>
-    import { HeaderWithMode } from '~/components'
 	import ListOperations from '~/sections/list-operations.svx'
 </script>
 
-<HeaderWithMode title="Mutation" />
+# Mutations
 
 Send a mutation to the server and updating your client-side cache with any changes.
 
 ```svelte
-<script>
-	import { mutation, graphql } from '$houdini'
+<script lang="ts">
+	import { graphql, type UncheckItemStore } from '$houdini'
 
-	let itemID
-
-	const uncheckItem = mutation(graphql`
+	const uncheckItem: UncheckItemStore = graphql`
 		mutation UncheckItem($id: ID!) {
 			uncheckItem(item: $id) {
 				item {
@@ -28,19 +25,15 @@ Send a mutation to the server and updating your client-side cache with any chang
 				}
 			}
 		}
-	`)
+	`
 </script>
 
-<button on:click={() => uncheckItem({ id: itemID })}> Uncheck Item </button>
+<button on:click={() => uncheckItem.mutate({ id: 'my-item' })}>
+	Uncheck Item
+</button>
 ```
 
-### Inputs
-
-1. A string tagged with `graphql` containing a single document with one named mutation
-
-### Return Values
-
-`mutation` returns an asynchronous function that invokes the specified mutation with the inputs specified by the first argument to the handler. The second argument to the result of `mutation` can be used to configure its behavior. The following values can be provided:
+Mutation stores provide a `mutate` method that invokes the specified mutation with the inputs specified by the first argument to the handler. The second argument to the result of `mutation` can be used to configure its behavior. The following values can be provided:
 
 - `optimisticResponse` specifies a value to use instead of waiting for the server to return a value. For more information, see the [optimistic responses](#optimistic-responses) section.
 
@@ -59,13 +52,18 @@ Take for example, an `TodoItemRow` component:
 
 ```svelte
 <script lang="ts">
-	import { fragment, mutation, graphql, TodoItemRow } from '$houdini'
+	import {
+		fragment,
+		graphql,
+		TodoItemRow,
+		CheckItemStore
+	} from '$houdini'
 
 	export let item: TodoItemRow
 
 	// the resulting store will stay up to date whenever `checkItem`
 	// is triggered
-	data : fragment(item, graphql`
+	$: data = fragment(item, graphql`
 		fragment TodoItemRow on TodoItem {
 			id
 			text
@@ -73,8 +71,8 @@ Take for example, an `TodoItemRow` component:
 		}
 	`)
 
-	const checkItem = mutation<CompleteItem>(graphql`
-		mutation CompleteItem($id: ID!) {
+	const store: CheckItemStore = graphql`
+		mutation CheckItem($id: ID!) {
 			checkItem(item: $id) {
 				item {
 					id
@@ -82,7 +80,12 @@ Take for example, an `TodoItemRow` component:
 				}
 			}
 		}
-	`)
+	`
+
+	function checkItem() {
+		store.mutate({ id: $data.id })
+	}
+
 </script>
 
 <li class:completed={$data.completed}>
@@ -94,7 +97,7 @@ Take for example, an `TodoItemRow` component:
 		on:click={handleClick}
 	/>
 	<label for={$data.text}>{$data.text}</label>
-	<button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
+	<button class="destroy" on:click={checkItem} />
 </li>
 ```
 
@@ -108,11 +111,11 @@ A lot of the time we know the value that a mutation will trigger assuming everyt
 
 ```svelte
 <script>
-	import { mutation, graphql } from '$houdini'
+	import { ToggleItemStore, graphql } from '$houdini'
 
 	export let itemID
 
-	const toggleItem = mutation(graphql`
+	const store: ToggleItemStore = graphql`
 		mutation ToggleItem($id: ID!) {
 			toggleItem {
 				item {
@@ -121,26 +124,23 @@ A lot of the time we know the value that a mutation will trigger assuming everyt
 				}
 			}
 		}
-	`)
-</script>
+	`
 
-<button
-	on:click={() => {
-		toggleItem(
-			{ id: itemID },
-			{
-				optimisticResponse: {
-					toggleItem: {
-						item: {
-							id: '1',
-							checked: true
-						}
+	function toggleItem() {
+		toggleItem.mutate({ id: itemID }, {
+			optimisticResponse: {
+				toggleItem: {
+					item: {
+						id: '1',
+						checked: true
 					}
 				}
 			}
-		)
-	}}
->
+		}s)
+	}
+</script>
+
+<button on:click={toggleItem}>
 	toggle item
 </button>
 ```
@@ -148,3 +148,31 @@ A lot of the time we know the value that a mutation will trigger assuming everyt
 When the mutation resolves, the old values will be erased entirely and the new values will be committed to the cache. If instead the mutation fails, the optimistic changes will be reverted and the handler's promise will reject with the error message as usual.
 
 Remember to always request and specify an `id` when dealing with optimistic responses so that the cache can make sure to update the correct records. Also, it's worth mentioning that you don't have to provide a complete response for an optimistic value, the cache will write whatever information you give it (as long as its found in the mutation body).
+
+## Utilities
+
+### Mutation Function
+
+Sometimes it's convenient to get the `mutate` function out without having to access the store directly.
+In those situations, you can use the `mutation` function:
+
+```svelte
+<script>
+	import { graphql, mutation } from '$houdini'
+
+	const uncheckItem: UncheckItemStore = mutation(graphql`
+		mutation UncheckItem($id: ID!) {
+			uncheckItem(item: $id) {
+				item {
+					id
+					completed
+				}
+			}
+		}
+	`)
+</script>
+
+<button on:click={() => uncheckItem({ id: 'my-item' })}>
+	Uncheck Item
+</button>
+```
