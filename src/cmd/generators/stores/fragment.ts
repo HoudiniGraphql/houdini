@@ -41,6 +41,7 @@ export class ${storeName} extends ${queryClass} {
 			artifact,
 			storeName: ${JSON.stringify(storeName)},
 			variables: ${JSON.stringify(true)},
+			${paginationMethod ? 'paginationArtifact: _PaginationArtifact,' : ''}
 		})
 	}
 }

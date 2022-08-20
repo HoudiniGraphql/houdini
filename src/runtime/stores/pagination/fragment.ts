@@ -5,6 +5,7 @@ import {
 	FragmentArtifact,
 	QueryArtifact,
 	HoudiniFetchContext,
+	CompiledFragmentKind,
 } from '../../lib/types'
 import { keyFieldsForType, getCurrentConfig } from '../../lib/config'
 import { StoreConfig } from '../query'
@@ -26,6 +27,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 
 	protected paginationArtifact: QueryArtifact
 	name: string
+	kind = CompiledFragmentKind
 
 	constructor(config: FragmentStoreConfig<_Data, _Input>) {
 		super()
@@ -44,7 +46,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 			)
 		}
 		// if we have a specific function to use when computing the variables
-		const value = get(store)
+		const value = get(store).data
 		if (typeConfig.resolve?.arguments) {
 			return (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 		} else {
@@ -115,7 +117,7 @@ class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePagin
 			},
 			getContext: () => this.context,
 			getValue: () => get(store).data,
-			queryVariables: () => this.queryVariables(store),
+			queryVariables: async () => this.queryVariables(store),
 			setFetching,
 			storeName: this.name,
 		})

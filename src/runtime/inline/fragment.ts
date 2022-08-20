@@ -72,7 +72,7 @@ export function paginatedFragment<_Fragment extends Fragment<any>>(
 ): FragmentStorePaginated<_Fragment['shape'], {}> {
 	// make sure we got a query document
 	if (store.kind !== 'HoudiniFragment') {
-		throw new Error('paginatedFragment() must be passed a fragment document')
+		throw new Error('paginatedFragment() must be passed a fragment document: ' + store.kind)
 	}
 	// if we don't have a pagination fragment there is a problem
 	if (!('paginated' in store)) {

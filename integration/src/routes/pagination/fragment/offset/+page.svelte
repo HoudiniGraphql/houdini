@@ -28,7 +28,7 @@
 </script>
 
 <div id="result">
-  {$fragmentResult.data.userData?.friendsList.map((node) => node?.name).join(', ')}
+  {$fragmentResult.data?.friendsList.map((node) => node?.name).join(', ')}
 </div>
 
 <button id="next" on:click={() => fragmentResult.loadNextPage()}>next</button>
