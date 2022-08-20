@@ -1,8 +1,8 @@
 import path from 'path'
+import { test, expect } from 'vitest'
 
 import { parseJS, testConfig } from '../../../common'
 import * as fs from '../../../common/fs'
-import { test, expect } from 'vitest'
 import { runPipeline } from '../../generate'
 
 const config = testConfig()

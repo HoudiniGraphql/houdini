@@ -1,7 +1,7 @@
 import filesystem from 'fs'
 import type { Plugin } from 'vite'
-import { Config } from '../common'
 
+import { Config } from '../common'
 import { getConfig, readFile } from '../common'
 
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit

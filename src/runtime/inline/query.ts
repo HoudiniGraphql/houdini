@@ -1,10 +1,10 @@
 import { derived, Readable } from 'svelte/store'
 
+import { QueryStorePaginated } from '..'
 import { getHoudiniContext } from '../lib/context'
 import { GraphQLTagResult, Operation, CachePolicy, CompiledQueryKind } from '../lib/types'
-import { QueryResult, QueryStore } from '../stores/query'
 import { CursorHandlers } from '../stores/pagination/cursor'
-import { QueryStorePaginated } from '..'
+import { QueryResult, QueryStore } from '../stores/query'
 
 export function query<_Query extends Operation<any, any>>(
 	store: GraphQLTagResult

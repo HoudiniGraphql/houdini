@@ -1,6 +1,6 @@
-import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
 import { computeID, ConfigFile, keyFieldsForType, deepEquals } from '../lib'
 import { defaultConfigValues } from '../lib/config'
+import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'

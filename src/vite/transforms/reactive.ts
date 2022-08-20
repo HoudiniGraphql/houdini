@@ -1,7 +1,8 @@
 import { walk } from 'estree-walker'
+import * as recast from 'recast'
+
 import { Config } from '../../common'
 import { TransformPage } from '../plugin'
-import * as recast from 'recast'
 
 const AST = recast.types.builders
 

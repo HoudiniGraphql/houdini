@@ -1,12 +1,13 @@
 import { Writable, writable } from 'svelte/store'
 
-import { deepEquals } from '../../lib/deepEquals'
-import { QueryResult, QueryStoreFetchParams } from '../query'
 import cache from '../../cache'
-import { fetchParams } from '../query'
 import { getCurrentConfig } from '../../lib/config'
+import { deepEquals } from '../../lib/deepEquals'
 import { executeQuery } from '../../lib/network'
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from '../../lib/types'
+import { QueryResult, QueryStoreFetchParams } from '../query'
+import { fetchParams } from '../query'
+import { FetchFn } from './fetch'
 import {
 	contextError,
 	countPage,
@@ -15,7 +16,6 @@ import {
 	nullPageInfo,
 	PageInfo,
 } from './pageInfo'
-import { FetchFn } from './fetch'
 
 export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	artifact,

@@ -1,10 +1,11 @@
 // externals
 import path from 'path'
+
 // locals
 import { Config } from '../../../common'
+import * as fs from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
 import { cjsIndexFilePreamble, exportStarFrom } from '../../utils'
-import * as fs from '../../../common/fs'
 
 // every document in the application should be re-exported from the root. this allows the user to balance
 // code-splitting concerns with the "cleanliness" of importing from a single location
