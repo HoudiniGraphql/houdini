@@ -9,6 +9,8 @@ import { parseJS } from './src/common'
 import { clearMock } from './src/common/fs'
 import * as fs from './src/common/fs'
 
+process.env.TEST = 'true'
+
 clearMock()
 
 afterEach(fs.clearMock)
