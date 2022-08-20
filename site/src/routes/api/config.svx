@@ -12,6 +12,7 @@ All configuration for your houdini application is defined in a single file that 
 
 It can contain the following values:
 
+- `client`: a relative path (from houdini.config.js) to a file that exports your houdini client as its default.
 - `include` (optional, default: `"src/**/*.{svelte,graphql,gql,ts,js}"`): a pattern to identify source code files
 - `exclude` (optional): a pattern that filters out files that match the include pattern
 - `projectDir` (optional, default: `process.cwd()`): an absolute path pointing to your SvelteKit project (useful for monorepos)
