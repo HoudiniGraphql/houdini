@@ -16,7 +16,7 @@ import * as log from '../lib/log'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import { BaseStore } from './store'
 
-export class QueryStore<_Data extends GraphQLObject, _Input> extends BaseStore {
+export class QueryStore<_Data extends GraphQLObject, _Input, _ExtraFields = {}> extends BaseStore {
 	// the underlying artifact
 	artifact: QueryArtifact
 
@@ -27,7 +27,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input> extends BaseStore {
 	kind = CompiledQueryKind
 
 	// at its core, a query store is a writable store with extra methods{
-	protected store: Writable<StoreState<_Data, _Input>>
+	protected store: Writable<StoreState<_Data, _Input, _ExtraFields>>
 
 	// we will be reading and write the last known variables often, avoid frequent gets and updates
 	protected lastVariables: _Input | null = null
@@ -165,7 +165,9 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		return get(this.store).variables
 	}
 
-	subscribe(...args: Parameters<Readable<QueryResult<_Data, _Input>>['subscribe']>) {
+	subscribe(
+		...args: Parameters<Readable<QueryResult<_Data, _Input, _ExtraFields>>['subscribe']>
+	) {
 		const bubbleUp = this.store.subscribe(...args)
 
 		// we have a new subscriber
@@ -333,7 +335,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		this.store?.update((s) => ({ ...s, isFetching }))
 	}
 
-	private get initialState() {
+	private get initialState(): QueryResult<_Data, _Input> & _ExtraFields {
 		return {
 			data: null,
 			errors: null,
@@ -341,7 +343,12 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			partial: false,
 			source: null,
 			variables: null,
+			...this.extraFields(),
 		}
+	}
+
+	extraFields(): _ExtraFields {
+		return {} as _ExtraFields
 	}
 }
 
@@ -352,7 +359,7 @@ export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
 	variables: boolean
 }
 
-type StoreState<_Data, _Input> = QueryResult<_Data, _Input>
+type StoreState<_Data, _Input, _Extra = {}> = QueryResult<_Data, _Input> & _Extra
 
 export function fetchParams<_Data extends GraphQLObject, _Input>(
 	parentContext: HoudiniFetchContext | null,

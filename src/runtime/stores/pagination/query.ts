@@ -12,10 +12,14 @@ import {
 } from '../query'
 import { CursorHandlers, cursorHandlers } from './cursor'
 import { offsetHandlers, OffsetHandlers } from './offset'
-import { PageInfo } from './pageInfo'
+import { nullPageInfo, PageInfo } from './pageInfo'
 
 // both cursor paginated stores add a page info to their subscribe
-class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QueryStore<_Data, _Input> {
+class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QueryStore<
+	_Data,
+	_Input,
+	{ pageInfo: PageInfo }
+> {
 	// all paginated stores need to have a flag to distinguish from other query stores
 	paginated = true
 
@@ -42,9 +46,17 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QuerySto
 		return this.handlers!.fetch.call(this, args)
 	}
 
+	extraFields(): { pageInfo: PageInfo } {
+		return {
+			pageInfo: nullPageInfo(),
+		}
+	}
+
 	subscribe(
 		run: Subscriber<QueryResult<_Data, _Input, { pageInfo: PageInfo }>>,
-		invalidate?: ((value?: QueryResult<_Data, _Input> | undefined) => void) | undefined
+		invalidate?:
+			| ((value?: QueryResult<_Data, _Input, { pageInfo: PageInfo }> | undefined) => void)
+			| undefined
 	): () => void {
 		const combined = derived(
 			[{ subscribe: super.subscribe.bind(this) }, this.handlers.pageInfo],
@@ -113,7 +125,11 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 	}
 }
 
-export type QueryStorePaginated<_Data extends GraphQLObject, _Input> = QueryStore<_Data, _Input> & {
+export type QueryStorePaginated<_Data extends GraphQLObject, _Input> = QueryStore<
+	_Data,
+	_Input,
+	{ pageInfo: PageInfo }
+> & {
 	loadNextPage(
 		pageCount?: number,
 		after?: string | number,
@@ -124,5 +140,4 @@ export type QueryStorePaginated<_Data extends GraphQLObject, _Input> = QueryStor
 		before?: string,
 		houdiniContext?: HoudiniFetchContext
 	): Promise<void>
-	pageInfo: Readable<PageInfo>
 }
