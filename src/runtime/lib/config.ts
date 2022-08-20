@@ -1,4 +1,5 @@
 import type { GraphQLSchema } from 'graphql'
+import { getMockConfig } from './test'
 
 import { CachePolicy } from './types'
 
@@ -191,27 +192,12 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 	return id.slice(0, -2)
 }
 
-let configFile: ConfigFile | null = null
-
 export async function getCurrentConfig(): Promise<ConfigFile> {
-	// store the config value once
-	configFile = import.meta.env.TEST
-		? {
-				client: '',
-				scalars: {
-					DateTime: {
-						type: 'Date',
-						unmarshal(val: number): Date {
-							return new Date(val)
-						},
-						marshal(date: Date): number {
-							return date.getTime()
-						},
-					},
-				},
-		  }
-		: // @ts-ignore
-		  defaultConfigValues((await import('HOUDINI_CONFIG_PATH')).default)
+	const mockConfig = getMockConfig()
+	if (mockConfig) {
+		return mockConfig
+	}
 
-	return configFile
+	// @ts-ignore
+	return defaultConfigValues((await import('HOUDINI_CONFIG_PATH')).default)
 }

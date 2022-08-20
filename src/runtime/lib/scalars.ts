@@ -9,13 +9,11 @@ import {
 export async function marshalSelection({
 	selection,
 	data,
-	config,
 }: {
 	selection: SubscriptionSelection
 	data: unknown
-	config?: ConfigFile
 }): Promise<{} | null | undefined> {
-	config ??= await getCurrentConfig()
+	const config = await getCurrentConfig()
 
 	if (data === null || typeof data === 'undefined') {
 		return data
@@ -24,9 +22,7 @@ export async function marshalSelection({
 	// if we are looking at a list
 	if (Array.isArray(data)) {
 		// unmarshal every entry in the list
-		return await Promise.all(
-			data.map((val) => marshalSelection({ selection, data: val, config }))
-		)
+		return await Promise.all(data.map((val) => marshalSelection({ selection, data: val })))
 	}
 
 	// we're looking at an object, build it up from the current input
@@ -43,10 +39,7 @@ export async function marshalSelection({
 
 				// if there is a sub selection, walk down the selection
 				if (fields) {
-					return [
-						fieldName,
-						await marshalSelection({ selection: fields, data: value, config }),
-					]
+					return [fieldName, await marshalSelection({ selection: fields, data: value })]
 				}
 
 				// is the type something that requires marshaling

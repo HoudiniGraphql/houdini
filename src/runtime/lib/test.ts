@@ -1,5 +1,15 @@
 import { ConfigFile } from './config'
 
+let mockConfig: ConfigFile | null = null
+
+export function getMockConfig() {
+	return mockConfig
+}
+
+export function setMockConfig(config: ConfigFile | null) {
+	mockConfig = config
+}
+
 export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 	return {
 		schema: `

@@ -1,9 +1,27 @@
-import { test, expect, describe } from 'vitest'
+import { test, expect, describe, afterEach, beforeEach } from 'vitest'
 
 import { testConfigFile } from '../../common'
 import { RequestContext } from './network'
 import { marshalSelection, unmarshalSelection } from './scalars'
+import { setMockConfig } from './test'
 import { ArtifactKind, QueryArtifact } from './types'
+
+beforeEach(() =>
+	setMockConfig({
+		client: '',
+		scalars: {
+			DateTime: {
+				type: 'Date',
+				unmarshal(val: number): Date {
+					return new Date(val)
+				},
+				marshal(date: Date): number {
+					return date.getTime()
+				},
+			},
+		},
+	})
+)
 
 // a mock request context
 const ctx = new RequestContext({
@@ -669,13 +687,15 @@ describe('marshal selection', function () {
 	})
 
 	test('missing marshal function', async function () {
-		const config = testConfigFile({
-			scalars: {
-				DateTime: {
-					type: 'Date',
+		setMockConfig(
+			testConfigFile({
+				scalars: {
+					DateTime: {
+						type: 'Date',
+					},
 				},
-			},
-		})
+			})
+		)
 
 		const data = {
 			items: [
@@ -687,8 +707,6 @@ describe('marshal selection', function () {
 
 		await expect(() =>
 			marshalSelection({
-				// @ts-ignore
-				config,
 				selection: artifact.selection,
 				data,
 			})
