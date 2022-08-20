@@ -64,11 +64,10 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 			toNotify = cache.write({
 				selection: this.artifact.selection,
 				// make sure that any scalar values get processed into something we can cache
-				data: marshalSelection({
-					config,
+				data: (await marshalSelection({
 					selection: this.artifact.selection,
 					data: optimisticResponse,
-				})!,
+				}))!,
 				variables,
 				layer: layer.id,
 			})
@@ -85,11 +84,10 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 			this.store.set(storeData)
 		}
 
-		const newVariables = marshalInputs({
+		const newVariables = (await marshalInputs({
 			input: variables,
 			artifact: this.artifact,
-			config,
-		}) as _Input
+		})) as _Input
 
 		try {
 			// trigger the mutation

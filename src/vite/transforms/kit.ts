@@ -122,10 +122,7 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 							AST.arrayExpression(
 								queries.map((query) =>
 									AST.memberExpression(
-										AST.memberExpression(
-											AST.identifier('$$props'),
-											AST.identifier('data')
-										),
+										AST.identifier('data'),
 										AST.identifier(query.name)
 									)
 								)
@@ -263,31 +260,33 @@ function add_load({
 		const load_fn = ids[0]
 
 		const variables = page_info.exports.includes(query_variable_fn(query.name))
-			? AST.callExpression(
-					AST.memberExpression(request_context, AST.identifier('computeInput')),
-					[
-						AST.objectExpression([
-							AST.objectProperty(
-								AST.literal('config'),
-								AST.identifier('houdiniConfig')
-							),
-							AST.objectProperty(
-								AST.literal('variableFunction'),
-								AST.identifier(query_variable_fn(query.name))
-							),
-							AST.objectProperty(
-								AST.literal('artifact'),
-								AST.memberExpression(
-									store_import({
-										config: page.config,
-										script: page.script,
-										artifact: query,
-									}).id,
-									AST.identifier('artifact')
-								)
-							),
-						]),
-					]
+			? AST.awaitExpression(
+					AST.callExpression(
+						AST.memberExpression(request_context, AST.identifier('computeInput')),
+						[
+							AST.objectExpression([
+								AST.objectProperty(
+									AST.literal('config'),
+									AST.identifier('houdiniConfig')
+								),
+								AST.objectProperty(
+									AST.literal('variableFunction'),
+									AST.identifier(query_variable_fn(query.name))
+								),
+								AST.objectProperty(
+									AST.literal('artifact'),
+									AST.memberExpression(
+										store_import({
+											config: page.config,
+											script: page.script,
+											artifact: query,
+										}).id,
+										AST.identifier('artifact')
+									)
+								),
+							]),
+						]
+					)
 			  )
 			: AST.objectExpression([])
 

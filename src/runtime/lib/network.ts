@@ -14,6 +14,8 @@ import {
 	SubscriptionArtifact,
 } from './types'
 import { QueryStore } from '../stores'
+import { get } from 'svelte/store'
+import { QueryResult } from '../stores/query'
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
@@ -350,11 +352,16 @@ export class RequestContext {
 		if (variant === 'before') {
 			hookCall = (hookFn as KitBeforeLoad).call(this, this.loadEvent as BeforeLoadContext)
 		} else {
-			hookCall = (hookFn as KitAfterLoad).call(this, {
-				...this.loadEvent,
+			Object.assign(this.loadEvent, {
 				input,
-				data,
-			} as AfterLoadContext)
+				data: Object.fromEntries(
+					Object.entries(data).map(([key, store]) => [
+						key,
+						get<QueryResult<any, any>>(store).data,
+					])
+				),
+			})
+			hookCall = (hookFn as KitAfterLoad).call(this, this.loadEvent as AfterLoadContext)
 		}
 
 		let result = await hookCall
@@ -372,20 +379,18 @@ export class RequestContext {
 	}
 
 	// compute the inputs for an operation should reflect the framework's conventions.
-	computeInput({
-		config,
+	async computeInput({
 		variableFunction,
 		artifact,
 	}: {
 		variableFunction: KitBeforeLoad
 		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
-		config: ConfigFile
 	}) {
 		// call the variable function to match the framework
 		let input = variableFunction.call(this, this.loadEvent)
 
 		// and pass page and session
-		return marshalInputs({ artifact, config, input })
+		return await marshalInputs({ artifact, input })
 	}
 }
 

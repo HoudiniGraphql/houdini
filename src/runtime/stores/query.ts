@@ -83,11 +83,10 @@ export class QueryStore<_Data extends GraphQLObject, _Input, _ExtraFields = {}> 
 		const isComponentFetch = !isLoadFetch
 
 		// compute the variables we need to use for the query
-		const input = (marshalInputs({
+		const input = ((await marshalInputs({
 			artifact: this.artifact,
-			config,
 			input: params?.variables,
-		}) || {}) as _Input
+		})) || {}) as _Input
 		const newVariables = {
 			...this.lastVariables,
 			...input,

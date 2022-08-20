@@ -50,11 +50,10 @@ export class SubscriptionStore<_Data, _Input> extends BaseStore {
 		}
 
 		// marshal the inputs into their raw values
-		const marshaledVariables = marshalInputs({
+		const marshaledVariables = (await marshalInputs({
 			input: variables || {},
-			config,
 			artifact: this.artifact,
-		}) as _Input
+		})) as _Input
 
 		// if the variables haven't changed, don't do anything
 		if (deepEquals(this.lastVariables, marshaledVariables)) {

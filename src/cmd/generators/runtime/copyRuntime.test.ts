@@ -81,17 +81,17 @@ test('updates the network file with the client path', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import { error, redirect } from '@sveltejs/kit';
-		import { isPrerender } from '../adapter';
 		import cache from '../cache';
 		import * as log from './log';
 		import { marshalInputs } from './scalars';
 		import { CachePolicy, DataSource, } from './types';
+		import { get } from 'svelte/store';
 		export class HoudiniClient {
 		    constructor(networkFn, subscriptionHandler) {
 		        this.fetchFn = networkFn;
 		        this.socket = subscriptionHandler;
 		    }
-		    async sendRequest(ctx, params, session) {
+		    async sendRequest(ctx, params) {
 		        let url = '';
 		        // wrap the user's fetch function so we can identify SSR by checking
 		        // the response.url
@@ -103,36 +103,9 @@ test('updates the network file with the client path', async function () {
 		            return response;
 		        };
 		        // invoke the function
-		        const result = await this.fetchFn.call({
-		            ...ctx,
-		            get fetch() {
-		                log.info(\`\${log.red("⚠️ fetch and session are now passed as arguments to your client's network function ⚠️")}
-		You should update your client to look something like the following:
-
-		async function fetchQuery({
-			\${log.yellow('fetch')},
-			text = '',
-			variables = {},
-			\${log.yellow('session')},
-			metadata,
-		}: RequestHandlerArgs) {
-			const result =  await fetch( ... );
-
-			return await result.json();
-		}
-		\`);
-		                return wrapper;
-		            },
-		        }, {
+		        const result = await this.fetchFn({
 		            fetch: wrapper,
 		            ...params,
-		            get session() {
-		                // using session while prerendering is not meaningful
-		                if (isPrerender) {
-		                    throw new Error('Attempted to access session from a prerendered page. Session would never be populated.');
-		                }
-		                return session;
-		            },
 		            metadata: ctx.metadata,
 		        });
 		        // return the result
@@ -160,11 +133,10 @@ test('updates the network file with the client path', async function () {
 		}
 		// This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
 		// It is mainly used for mutations, refetch and possible other client side operations in the future.
-		export async function executeQuery({ artifact, variables, session, cached, config, metadata, fetch, }) {
+		export async function executeQuery({ artifact, variables, cached, config, metadata, fetch, }) {
 		    // Simulate the fetch/load context
 		    const fetchCtx = {
 		        fetch: fetch !== null && fetch !== void 0 ? fetch : window.fetch.bind(window),
-		        session,
 		        stuff: {},
 		        page: {
 		            host: '',
@@ -244,7 +216,11 @@ test('updates the network file with the client path', async function () {
 		        cache._internal_unstable.collectGarbage();
 		    }, 0);
 		    // the request must be resolved against the network
-		    const result = await client.sendRequest(context, { text: artifact.raw, hash: artifact.hash, variables }, context.session);
+		    const result = await client.sendRequest(context, {
+		        text: artifact.raw,
+		        hash: artifact.hash,
+		        variables,
+		    });
 		    return {
 		        result: result.body,
 		        source: result.ssr ? DataSource.Ssr : DataSource.Network,
@@ -284,11 +260,14 @@ test('updates the network file with the client path', async function () {
 		            hookCall = hookFn.call(this, this.loadEvent);
 		        }
 		        else {
-		            hookCall = hookFn.call(this, {
-		                ...this.loadEvent,
+		            Object.assign(this.loadEvent, {
 		                input,
-		                data,
+		                data: Object.fromEntries(Object.entries(data).map(([key, store]) => [
+		                    key,
+		                    get(store).data,
+		                ])),
 		            });
+		            hookCall = hookFn.call(this, this.loadEvent);
 		        }
 		        let result = await hookCall;
 		        // If the returnValue is already set through this.error or this.redirect return early
@@ -302,54 +281,12 @@ test('updates the network file with the client path', async function () {
 		        this.returnValue = result;
 		    }
 		    // compute the inputs for an operation should reflect the framework's conventions.
-		    computeInput({ config, variableFunction, artifact, }) {
+		    async computeInput({ variableFunction, artifact, }) {
 		        // call the variable function to match the framework
 		        let input = variableFunction.call(this, this.loadEvent);
 		        // and pass page and session
-		        return marshalInputs({ artifact, config, input });
+		        return await marshalInputs({ artifact, input });
 		    }
-		}
-		export async function loadAll(...loads) {
-		    // we need to collect all of the promises in a single list that we will await in promise.all and then build up
-		    const promises = [];
-		    // the question we have to answer is wether entry is a promise or an object of promises
-		    const isPromise = (val) => 'then' in val && 'finally' in val && 'catch' in val;
-		    for (const entry of loads) {
-		        if (!isPromise(entry) && 'then' in entry) {
-		            throw new Error('❌ \`then\` is not a valid key for an object passed to loadAll');
-		        }
-		        // identify an entry with the \`.then\` method
-		        if (isPromise(entry)) {
-		            promises.push(entry);
-		        }
-		        else {
-		            for (const [key, value] of Object.entries(entry)) {
-		                if (isPromise(value)) {
-		                    promises.push(value);
-		                }
-		                else {
-		                    throw new Error(\`❌ \${key} is not a valid value for an object passed to loadAll. You must pass the result of a load_Store function\`);
-		                }
-		            }
-		        }
-		    }
-		    // now that we've collected all of the promises, wait for them
-		    await Promise.all(promises);
-		    // all of the promises are resolved so go back over the value we were given a reconstruct it
-		    let result = {};
-		    for (const entry of loads) {
-		        // if we're looking at a promise, it will contain the key
-		        if (isPromise(entry)) {
-		            Object.assign(result, await entry);
-		        }
-		        else {
-		            Object.assign(result, 
-		            // await every value in the object and assign it to result
-		            Object.fromEntries(await Promise.all(Object.entries(entry).map(async ([key, value]) => [key, await value]))));
-		        }
-		    }
-		    // we're done
-		    return result;
 		}
 	`)
 })
@@ -367,38 +304,5 @@ test('updates the config file with import path', async function () {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
-	expect(parsedQuery).toMatchInlineSnapshot(`
-		export function defaultConfigValues(file) {
-		    return {
-		        defaultKeys: ['id'],
-		        ...file,
-		        types: {
-		            Node: {
-		                keys: ['id'],
-		                resolve: {
-		                    queryField: 'node',
-		                    arguments: (node) => ({ id: node.id }),
-		                },
-		            },
-		            ...file.types,
-		        },
-		    };
-		}
-		export function keyFieldsForType(configFile, type) {
-		    var _a, _b;
-		    return ((_b = (_a = configFile.types) === null || _a === void 0 ? void 0 : _a[type]) === null || _b === void 0 ? void 0 : _b.keys) || configFile.defaultKeys;
-		}
-		export function computeID(configFile, type, data) {
-		    const fields = keyFieldsForType(configFile, type);
-		    let id = '';
-		    for (const field of fields) {
-		        id += data[field] + '__';
-		    }
-		    return id.slice(0, -2);
-		}
-		export async function getCurrentConfig() {
-		    // @ts-ignore
-		    return defaultConfigValues((await import('../../../config.cjs')).default);
-		}
-	`)
+	expect(recast.print(parsedQuery).code).toContain("import('../../../config.cjs')")
 })

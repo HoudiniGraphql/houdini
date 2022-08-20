@@ -14,47 +14,6 @@ const ctx = new RequestContext({
 	fetch: (() => {}) as unknown as (input: RequestInfo, init?: RequestInit) => Promise<any>,
 })
 
-const config = testConfigFile({
-	schema: `
-		scalar DateTime
-
-		input NestedDate {
-			name: String
-			date: DateTime!
-			dates: [DateTime]
-			nested: NestedDate!
-		}
-
-		type TodoItem {
-			text: String!
-			createdAt: DateTime!
-			dates: [DateTime]
-			creator: User!
-		}
-
-		type User {
-			firstName: String!
-		}
-
-		type Query {
-			items(date: NestedDate, booleanValue: Boolean): [TodoItem!]!
-			item: TodoItem
-			rootBool: Boolean!
-		}
-	`,
-	scalars: {
-		DateTime: {
-			type: 'Date',
-			unmarshal(val: number): Date {
-				return new Date(val)
-			},
-			marshal(date: Date): number {
-				return date.getTime()
-			},
-		},
-	},
-})
-
 // the test artifact
 const artifact: QueryArtifact = {
 	name: 'AllItems',
@@ -120,15 +79,14 @@ const artifact: QueryArtifact = {
 }
 
 describe('marshal inputs', function () {
-	test('lists of objects', function () {
+	test('lists of objects', async function () {
 		// some dates to check against
 		const date1 = new Date(0)
 		const date2 = new Date(1)
 		const date3 = new Date(2)
 
 		// compute the inputs
-		const inputs = ctx.computeInput({
-			config,
+		const inputs = await ctx.computeInput({
 			artifact,
 			variableFunction() {
 				return {
@@ -165,14 +123,13 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('list of scalars', function () {
+	test('list of scalars', async function () {
 		// some dates to check against
 		const date1 = new Date(0)
 		const date2 = new Date(1)
 
 		// compute the inputs
-		const inputs = ctx.computeInput({
-			config,
+		const inputs = await ctx.computeInput({
 			artifact,
 			variableFunction() {
 				return {
@@ -195,10 +152,9 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('empty list of scalars', function () {
+	test('empty list of scalars', async function () {
 		// compute the inputs
-		const inputs = ctx.computeInput({
-			config,
+		const inputs = await ctx.computeInput({
 			artifact,
 			variableFunction() {
 				return {
@@ -221,10 +177,9 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('root fields', function () {
+	test('root fields', async function () {
 		// compute the inputs
-		const inputs = ctx.computeInput({
-			config,
+		const inputs = await ctx.computeInput({
 			artifact,
 			variableFunction() {
 				return {
@@ -239,10 +194,9 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('non-custom scalar fields of objects', function () {
+	test('non-custom scalar fields of objects', async function () {
 		// compute the inputs
-		const inputs = ctx.computeInput({
-			config,
+		const inputs = await ctx.computeInput({
 			artifact,
 			variableFunction() {
 				return {
@@ -261,10 +215,9 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('non-custom scalar fields of lists', function () {
+	test('non-custom scalar fields of lists', async function () {
 		// compute the inputs
-		const inputs = ctx.computeInput({
-			config,
+		const inputs = await ctx.computeInput({
 			artifact,
 			variableFunction() {
 				return {
@@ -287,10 +240,9 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('null', function () {
+	test('null', async function () {
 		// compute the inputs
-		const inputs = ctx.computeInput({
-			config,
+		const inputs = await ctx.computeInput({
 			artifact,
 			variableFunction() {
 				return {
@@ -305,10 +257,9 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('undefined', function () {
+	test('undefined', async function () {
 		// compute the inputs
-		const inputs = ctx.computeInput({
-			config,
+		const inputs = await ctx.computeInput({
 			artifact,
 			variableFunction() {
 				return {
@@ -323,10 +274,9 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('enums', function () {
+	test('enums', async function () {
 		// compute the inputs
-		const inputs = ctx.computeInput({
-			config,
+		const inputs = await ctx.computeInput({
 			artifact,
 			variableFunction() {
 				return {
@@ -341,10 +291,9 @@ describe('marshal inputs', function () {
 		})
 	})
 
-	test('list of enums', function () {
+	test('list of enums', async function () {
 		// compute the inputs
-		const inputs = ctx.computeInput({
-			config,
+		const inputs = await ctx.computeInput({
 			artifact,
 			variableFunction() {
 				return {
@@ -376,7 +325,7 @@ describe('unmarshal selection', function () {
 			],
 		}
 
-		expect(unmarshalSelection(config, artifact.selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), artifact.selection, data)).toEqual({
 			items: [
 				{
 					createdAt: date,
@@ -401,7 +350,7 @@ describe('unmarshal selection', function () {
 			],
 		}
 
-		expect(unmarshalSelection(config, artifact.selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), artifact.selection, data)).toEqual({
 			items: [
 				{
 					dates: [date1, date2],
@@ -419,7 +368,7 @@ describe('unmarshal selection', function () {
 			],
 		}
 
-		expect(unmarshalSelection(config, artifact.selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), artifact.selection, data)).toEqual({
 			items: [
 				{
 					dates: [],
@@ -429,6 +378,17 @@ describe('unmarshal selection', function () {
 	})
 
 	test('missing unmarshal function', function () {
+		const config = testConfigFile({
+			scalars: {
+				DateTime: {
+					type: 'Date',
+					marshal(date: Date): number {
+						return date.getTime()
+					},
+				},
+			},
+		})
+
 		const data = {
 			items: [
 				{
@@ -437,19 +397,8 @@ describe('unmarshal selection', function () {
 			],
 		}
 
-		const badConfig = {
-			...config,
-			scalars: {
-				...config.scalars,
-				DateTime: {
-					...config.scalars!.DateTime,
-					unmarshal: undefined,
-				},
-			},
-		}
-
 		// @ts-ignore
-		expect(() => unmarshalSelection(badConfig, artifact.selection, data)).toThrow(
+		expect(() => unmarshalSelection(config, artifact.selection, data)).toThrow(
 			/scalar type DateTime is missing an `unmarshal` function/
 		)
 	})
@@ -473,7 +422,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(config, selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			item: undefined,
 		})
 	})
@@ -497,7 +446,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(config, selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			item: null,
 		})
 	})
@@ -523,7 +472,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(config, selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			item: {
 				createdAt: null,
 			},
@@ -574,7 +523,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(config, selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			item: {
 				createdAt: date,
 				creator: {
@@ -596,7 +545,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(config, selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			rootBool: true,
 		})
 	})
@@ -613,7 +562,7 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(config, selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			enumValue: 'Hello',
 		})
 	})
@@ -630,14 +579,14 @@ describe('unmarshal selection', function () {
 			},
 		}
 
-		expect(unmarshalSelection(config, selection, data)).toEqual({
+		expect(unmarshalSelection(testConfigFile(), selection, data)).toEqual({
 			enumValue: ['Hello', 'World'],
 		})
 	})
 })
 
 describe('marshal selection', function () {
-	test('list of objects', function () {
+	test('list of objects', async function () {
 		// the date to compare against
 		const date = new Date()
 
@@ -652,13 +601,12 @@ describe('marshal selection', function () {
 			],
 		}
 
-		expect(
+		await expect(
 			marshalSelection({
-				config,
 				selection: artifact.selection,
 				data,
 			})
-		).toEqual({
+		).resolves.toEqual({
 			items: [
 				{
 					createdAt: date.getTime(),
@@ -670,7 +618,7 @@ describe('marshal selection', function () {
 		})
 	})
 
-	test('list of scalars', function () {
+	test('list of scalars', async function () {
 		// the date to compare against
 		const date1 = new Date(1)
 		const date2 = new Date(2)
@@ -683,13 +631,12 @@ describe('marshal selection', function () {
 			],
 		}
 
-		expect(
+		await expect(
 			marshalSelection({
-				config,
 				selection: artifact.selection,
 				data,
 			})
-		).toEqual({
+		).resolves.toEqual({
 			items: [
 				{
 					dates: [date1.getTime(), date2.getTime()],
@@ -698,7 +645,7 @@ describe('marshal selection', function () {
 		})
 	})
 
-	test('empty list of scalars', function () {
+	test('empty list of scalars', async function () {
 		const data = {
 			items: [
 				{
@@ -707,13 +654,12 @@ describe('marshal selection', function () {
 			],
 		}
 
-		expect(
+		await expect(
 			marshalSelection({
-				config,
 				selection: artifact.selection,
 				data,
 			})
-		).toEqual({
+		).resolves.toEqual({
 			items: [
 				{
 					dates: [],
@@ -722,7 +668,15 @@ describe('marshal selection', function () {
 		})
 	})
 
-	test('missing marshal function', function () {
+	test('missing marshal function', async function () {
+		const config = testConfigFile({
+			scalars: {
+				DateTime: {
+					type: 'Date',
+				},
+			},
+		})
+
 		const data = {
 			items: [
 				{
@@ -731,29 +685,17 @@ describe('marshal selection', function () {
 			],
 		}
 
-		const badConfig = {
-			...config,
-			scalars: {
-				...config.scalars,
-				DateTime: {
-					...config.scalars!.DateTime,
-					marshal: undefined,
-				},
-			},
-		}
-
-		// @ts-ignore
-		expect(() =>
+		await expect(() =>
 			marshalSelection({
 				// @ts-ignore
-				config: badConfig,
+				config,
 				selection: artifact.selection,
 				data,
 			})
-		).toThrow(/scalar type DateTime is missing a `marshal` function/)
+		).rejects.toThrow(/scalar type DateTime is missing a `marshal` function/)
 	})
 
-	test('undefined', function () {
+	test('undefined', async function () {
 		const data = {
 			item: undefined,
 		}
@@ -772,18 +714,17 @@ describe('marshal selection', function () {
 			},
 		}
 
-		expect(
+		await expect(
 			marshalSelection({
-				config,
 				selection,
 				data,
 			})
-		).toEqual({
+		).resolves.toEqual({
 			item: undefined,
 		})
 	})
 
-	test('null', function () {
+	test('null', async function () {
 		const data = {
 			item: null,
 		}
@@ -802,18 +743,17 @@ describe('marshal selection', function () {
 			},
 		}
 
-		expect(
+		await expect(
 			marshalSelection({
-				config,
 				selection,
 				data,
 			})
-		).toEqual({
+		).resolves.toEqual({
 			item: null,
 		})
 	})
 
-	test('nested objects', function () {
+	test('nested objects', async function () {
 		// the date to compare against
 		const date = new Date()
 
@@ -857,13 +797,12 @@ describe('marshal selection', function () {
 			},
 		}
 
-		expect(
+		await expect(
 			marshalSelection({
-				config,
 				selection,
 				data,
 			})
-		).toEqual({
+		).resolves.toEqual({
 			item: {
 				createdAt: date.getTime(),
 				creator: {
@@ -873,7 +812,7 @@ describe('marshal selection', function () {
 		})
 	})
 
-	test('fields on root', function () {
+	test('fields on root', async function () {
 		const data = {
 			rootBool: true,
 		}
@@ -885,18 +824,17 @@ describe('marshal selection', function () {
 			},
 		}
 
-		expect(
+		await expect(
 			marshalSelection({
-				config,
 				selection,
 				data,
 			})
-		).toEqual({
+		).resolves.toEqual({
 			rootBool: true,
 		})
 	})
 
-	test('enums', function () {
+	test('enums', async function () {
 		const data = {
 			enumValue: 'Hello',
 		}
@@ -908,18 +846,17 @@ describe('marshal selection', function () {
 			},
 		}
 
-		expect(
+		await expect(
 			marshalSelection({
-				config,
 				selection,
 				data,
 			})
-		).toEqual({
+		).resolves.toEqual({
 			enumValue: 'Hello',
 		})
 	})
 
-	test('list of enums', function () {
+	test('list of enums', async function () {
 		const data = {
 			enumValue: ['Hello', 'World'],
 		}
@@ -931,13 +868,12 @@ describe('marshal selection', function () {
 			},
 		}
 
-		expect(
+		await expect(
 			marshalSelection({
-				config,
 				selection,
 				data,
 			})
-		).toEqual({
+		).resolves.toEqual({
 			enumValue: ['Hello', 'World'],
 		})
 	})

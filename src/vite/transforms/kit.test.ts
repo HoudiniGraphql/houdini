@@ -49,7 +49,7 @@ describe('kit route processor', function () {
 			export let data;
 
 			$:
-			injectContext([$$props.data.TestQuery]);
+			injectContext([data.TestQuery]);
 
 			$:
 			({
@@ -140,7 +140,7 @@ describe('kit route processor', function () {
 			export let data;
 
 			$:
-			injectContext([$$props.data.TestQuery1, $$props.data.TestQuery2]);
+			injectContext([data.TestQuery1, data.TestQuery2]);
 
 			$:
 			({
@@ -232,7 +232,7 @@ describe('kit route processor', function () {
 			    const promises = [];
 			    const inputs = {};
 
-			    inputs["TestQuery"] = houdini_context.computeInput({
+			    inputs["TestQuery"] = await houdini_context.computeInput({
 			        "config": houdiniConfig,
 			        "variableFunction": TestQueryVariables,
 			        "artifact": GQL_TestQuery.artifact
@@ -276,8 +276,9 @@ describe('kit route processor', function () {
 		expect(route.component).toMatchInlineSnapshot(`
 			import { TestQueryStore } from "$houdini/stores/TestQuery";
 			import { isBrowser } from "$houdini/runtime/adapter";
+			import { marshalInputs } from "$houdini/runtime/lib/scalars";
 			import { getHoudiniContext } from "$houdini/runtime/lib/context";
-			const _houdini_TestQuery = TestQueryStore();
+			const _houdini_TestQuery = new TestQueryStore();
 
 			$:
 			({
@@ -285,15 +286,16 @@ describe('kit route processor', function () {
 			} = query(_houdini_TestQuery));
 
 			const _houdini_context_DO_NOT_USE = getHoudiniContext();
+			let _TestQuery_Input = {};
 
 			$:
-			_TestQuery_Input = {};
-
-			$:
-			isBrowser && _houdini_TestQuery.fetch({
+			marshalInputs({
+			    artifact: _houdini_TestQuery.artifact,
+			    input: {}
+			}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
 			    context: _houdini_context_DO_NOT_USE,
 			    variables: _TestQuery_Input
-			});
+			}));
 		`)
 	})
 
@@ -344,7 +346,7 @@ describe('kit route processor', function () {
 			export let data;
 
 			$:
-			injectContext([$$props.data.TestQuery, $$props.data.MyQuery1, $$props.data.MyQuery2]);
+			injectContext([data.TestQuery, data.MyQuery1, data.MyQuery2]);
 
 			$:
 			({
@@ -386,7 +388,7 @@ describe('kit route processor', function () {
 			        "blocking": false
 			    }));
 
-			    inputs["MyQuery2"] = houdini_context.computeInput({
+			    inputs["MyQuery2"] = await houdini_context.computeInput({
 			        "config": houdiniConfig,
 			        "variableFunction": MyQuery2Variables,
 			        "artifact": GQL_MyQuery2.artifact
@@ -426,7 +428,7 @@ describe('kit route processor', function () {
 			export let data;
 
 			$:
-			injectContext([$$props.data.TestQuery]);
+			injectContext([data.TestQuery]);
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import { load_TestQuery } from "$houdini/stores/TestQuery";
@@ -514,7 +516,7 @@ test('beforeLoad hook', async function () {
 		    const promises = [];
 		    const inputs = {};
 
-		    inputs["TestQuery"] = houdini_context.computeInput({
+		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "variableFunction": TestQueryVariables,
 		        "artifact": GQL_TestQuery.artifact
@@ -672,7 +674,7 @@ test('afterLoad hook', async function () {
 		    const promises = [];
 		    const inputs = {};
 
-		    inputs["TestQuery"] = houdini_context.computeInput({
+		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "variableFunction": TestQueryVariables,
 		        "artifact": GQL_TestQuery.artifact
@@ -852,7 +854,7 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		    const promises = [];
 		    const inputs = {};
 
-		    inputs["TestQuery"] = houdini_context.computeInput({
+		    inputs["TestQuery"] = await houdini_context.computeInput({
 		        "config": houdiniConfig,
 		        "variableFunction": TestQueryVariables,
 		        "artifact": GQL_TestQuery.artifact

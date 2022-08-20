@@ -19,8 +19,9 @@ test('no variables', async function () {
 	expect(route).toMatchInlineSnapshot(`
 		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { isBrowser } from "$houdini/runtime/adapter";
+		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		const _houdini_TestQuery = TestQueryStore();
+		const _houdini_TestQuery = new TestQueryStore();
 
 		$:
 		({
@@ -28,15 +29,16 @@ test('no variables', async function () {
 		} = query(_houdini_TestQuery));
 
 		const _houdini_context_DO_NOT_USE = getHoudiniContext();
+		let _TestQuery_Input = {};
 
 		$:
-		_TestQuery_Input = {};
-
-		$:
-		isBrowser && _houdini_TestQuery.fetch({
+		marshalInputs({
+		    artifact: _houdini_TestQuery.artifact,
+		    input: {}
+		}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _TestQuery_Input
-		});
+		}));
 	`)
 })
 
@@ -67,8 +69,9 @@ test('with variables', async function () {
 	expect(route).toMatchInlineSnapshot(`
 		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { isBrowser } from "$houdini/runtime/adapter";
+		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		const _houdini_TestQuery = TestQueryStore();
+		const _houdini_TestQuery = new TestQueryStore();
 
 		export function TestQueryVariables() {
 		    return {
@@ -86,10 +89,10 @@ test('with variables', async function () {
 		} = query(_houdini_TestQuery));
 
 		const _houdini_context_DO_NOT_USE = getHoudiniContext();
+		let _TestQuery_Input = {};
 
 		$:
-		_TestQuery_Input = marshalInputs({
-		    config: houdiniConfig,
+		marshalInputs({
 		    artifact: _houdini_TestQuery.artifact,
 
 		    input: TestQueryVariables.call(_houdini_context_DO_NOT_USE, {
@@ -98,18 +101,12 @@ test('with variables', async function () {
 		            prop2: prop2,
 		            prop3: prop3,
 		            prop4: prop4
-		        },
-
-		        session: _houdini_context_DO_NOT_USE.session(),
-		        url: _houdini_context_DO_NOT_USE.url()
+		        }
 		    })
-		});
-
-		$:
-		isBrowser && _houdini_TestQuery.fetch({
+		}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _TestQuery_Input
-		});
+		}));
 	`)
 })
 
@@ -136,9 +133,10 @@ test('2 queries, one paginated one not', async function () {
 		import { TestQuery2Store } from "$houdini/stores/TestQuery2";
 		import { TestQuery1Store } from "$houdini/stores/TestQuery1";
 		import { isBrowser } from "$houdini/runtime/adapter";
+		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		import { getHoudiniContext } from "$houdini/runtime/lib/context";
-		const _houdini_TestQuery2 = TestQuery2Store();
-		const _houdini_TestQuery1 = TestQuery1Store();
+		const _houdini_TestQuery2 = new TestQuery2Store();
+		const _houdini_TestQuery1 = new TestQuery1Store();
 
 		$:
 		({
@@ -151,23 +149,26 @@ test('2 queries, one paginated one not', async function () {
 		} = paginatedQuery(_houdini_TestQuery2));
 
 		const _houdini_context_DO_NOT_USE = getHoudiniContext();
+		let _TestQuery1_Input = {};
 
 		$:
-		_TestQuery1_Input = {};
-
-		$:
-		isBrowser && _houdini_TestQuery1.fetch({
+		marshalInputs({
+		    artifact: _houdini_TestQuery1.artifact,
+		    input: {}
+		}).then(_TestQuery1_Input => isBrowser && _houdini_TestQuery1.fetch({
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _TestQuery1_Input
-		});
+		}));
+
+		let _TestQuery2_Input = {};
 
 		$:
-		_TestQuery2_Input = {};
-
-		$:
-		isBrowser && _houdini_TestQuery2.fetch({
+		marshalInputs({
+		    artifact: _houdini_TestQuery2.artifact,
+		    input: {}
+		}).then(_TestQuery2_Input => isBrowser && _houdini_TestQuery2.fetch({
 		    context: _houdini_context_DO_NOT_USE,
 		    variables: _TestQuery2_Input
-		});
+		}));
 	`)
 })
