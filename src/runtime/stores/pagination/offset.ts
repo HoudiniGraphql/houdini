@@ -1,12 +1,12 @@
 import { deepEquals } from '../..'
-import { QueryResult, QueryStoreFetchParams } from '../query'
 import cache from '../../cache'
-import { fetchParams } from '../query'
 import { getCurrentConfig } from '../../lib/config'
 import { executeQuery } from '../../lib/network'
 import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from '../../lib/types'
-import { contextError, countPage, missingPageSizeError } from './pageInfo'
+import { QueryResult, QueryStoreFetchParams } from '../query'
+import { fetchParams } from '../query'
 import { FetchFn } from './fetch'
+import { contextError, countPage, missingPageSizeError } from './pageInfo'
 
 export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 	artifact,

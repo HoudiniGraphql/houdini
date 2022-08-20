@@ -1,6 +1,6 @@
 import type { GraphQLSchema } from 'graphql'
-import { getMockConfig } from './test'
 
+import { getMockConfig } from './test'
 import { CachePolicy } from './types'
 
 export type ScalarSpec = {

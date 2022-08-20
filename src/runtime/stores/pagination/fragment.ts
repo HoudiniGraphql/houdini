@@ -1,5 +1,6 @@
 import { derived, get, readable, Readable, Subscriber, Writable, writable } from 'svelte/store'
 
+import { keyFieldsForType, getCurrentConfig } from '../../lib/config'
 import {
 	GraphQLObject,
 	FragmentArtifact,
@@ -7,13 +8,12 @@ import {
 	HoudiniFetchContext,
 	CompiledFragmentKind,
 } from '../../lib/types'
-import { keyFieldsForType, getCurrentConfig } from '../../lib/config'
-import { StoreConfig } from '../query'
 import { FragmentStore } from '../fragment'
-import { nullPageInfo, PageInfo } from './pageInfo'
-import { offsetHandlers } from './offset'
-import { cursorHandlers, CursorHandlers } from './cursor'
+import { StoreConfig } from '../query'
 import { BaseStore } from '../store'
+import { cursorHandlers, CursorHandlers } from './cursor'
+import { offsetHandlers } from './offset'
+import { nullPageInfo, PageInfo } from './pageInfo'
 
 type FragmentStoreConfig<_Data extends GraphQLObject, _Input> = StoreConfig<
 	_Data,

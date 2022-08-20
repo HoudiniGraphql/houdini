@@ -5,8 +5,8 @@ import { TransformPage } from '../plugin'
 import context from './context'
 import kit from './kit'
 import query from './query'
-import tags from './tags'
 import reactive from './reactive'
+import tags from './tags'
 
 // tags must be processed last so we don't lose the graphql tags we look for
 // context must go last since it looks for GQL_ imports

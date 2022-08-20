@@ -1,39 +1,22 @@
 import path from 'path'
-import * as recast from 'recast'
-import { fileURLToPath } from 'url'
 
 import { Config } from '../../../common'
 import * as fs from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
 import generateAdapter from './adapter'
 
-// @ts-ignore
-const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
-
 export default async function runtimeGenerator(config: Config, docs: CollectedGraphQLDocument[]) {
-	// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
-	// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
-	const relative = process.env.TEST
-		? path.join(currentDir, '../../../../')
-		: // TODO: it's very possible this breaks someones setup. the old version walked up from currentDir
-		  // there isn't a consistent number of steps up anymore since the vite plugin and cmd live at different depths
-		  // a better approach could be to start at current dir and walk up until we find a `houdini` dir
-		  path.join(path.dirname(config.filepath), 'node_modules', 'houdini')
-
-	// we want to copy the typescript source code for the templates and then compile the files according
-	// to the requirements of the platform
-	const source = path.resolve(
-		relative,
-		'build',
-		config.module === 'esm' ? 'runtime-esm' : 'runtime-cjs'
-	)
-
 	// copy the compiled source code to the target directory
-	await recursiveCopy(config, source, config.runtimeDirectory)
+	await recursiveCopy(config, config.runtimeSource, config.runtimeDirectory)
 
 	// generate the adapter to normalize interactions with the framework
 	// update the generated runtime to point to the client
-	await Promise.all([generateAdapter(config), addClientImport(config), addConfigImport(config)])
+	await Promise.all([
+		generateAdapter(config),
+		addClientImport(config),
+		addConfigImport(config),
+		meta(config),
+	])
 }
 
 async function recursiveCopy(config: Config, source: string, target: string, notRoot?: boolean) {
@@ -116,4 +99,20 @@ async function addConfigImport(config: Config) {
 	}
 
 	await fs.writeFile(networkFilePath, contents.replace('HOUDINI_CONFIG_PATH', relativePath))
+}
+
+async function meta(config: Config) {
+	// the path to the network file
+	const staticMeta = await fs.readFile(path.join(config.runtimeSource, 'meta.json'))
+	if (!staticMeta) {
+		return
+	}
+
+	await fs.writeFile(
+		config.metaFilePath,
+		JSON.stringify({
+			...JSON.parse(staticMeta),
+			client: config.client,
+		})
+	)
 }
