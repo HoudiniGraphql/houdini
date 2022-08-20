@@ -13,7 +13,5 @@ test('generates runtime meta data file', async function () {
 
 	expect(fileContents).toBeTruthy()
 	// verify contents
-	expect(fileContents).toMatchInlineSnapshot(
-		'"{\\"version\\":\\"HOUDINI_VERSION\\",\\"client\\":\\"./my/client/path\\"}"'
-	)
+	expect(fileContents).toContain(`"client":"./my/client/path"`)
 })

@@ -1,6 +1,7 @@
 import glob from 'glob'
 import * as graphql from 'graphql'
 import minimatch from 'minimatch'
+import path from 'path'
 import * as recast from 'recast'
 import * as svelte from 'svelte/compiler'
 import { promisify } from 'util'
@@ -56,16 +57,27 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	// the last version the runtime was generated with
 	let previousVersion = ''
 	let newClientPath = false
-	try {
-		const content = await readFile(config.metaFilePath)
-		if (content) {
+	let newTimestamp = false
+	const content = await readFile(config.metaFilePath)
+	if (content) {
+		try {
 			const parsed = JSON.parse(content)
-			previousVersion = parsed.version
+			previousVersion = parsed.version + parsed.createdOn
 			newClientPath = parsed.client !== config.client
-		}
-	} catch {}
-	// if the previous version is different from the current version
-	const versionChanged = previousVersion && previousVersion !== 'HOUDINI_VERSION'
+
+			// look up the source metadata (so we can figure out if the version actually changed)
+			const sourceMeta = await readFile(path.join(config.runtimeSource, 'meta.json'))
+			if (!sourceMeta) {
+				throw new Error('skip')
+			}
+
+			// if the two timestamps are not the same, we have a new version
+			newTimestamp = JSON.parse(sourceMeta).timestamp !== parsed.timestamp
+		} catch {}
+	}
+
+	// generate the runtime if the version changed, if its a new project, or they changed their client path
+	const generateRuntime = newTimestamp || newClientPath || !previousVersion
 
 	// run the generate command before we print "🎩 Generating runtime..." because we don't know upfront artifactStats.
 	let error: Error | null = null
@@ -95,7 +107,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 				// the runtime is a static thing most of the time. It only needs to be regenerated if
 				// the user is upgrading versions or the client path changed
-				versionChanged || process.env.TEST || newClientPath ? generators.runtime : null,
+				generateRuntime ? generators.runtime : null,
 				generators.artifacts(artifactStats),
 				generators.typescript,
 				generators.persistOutput,
@@ -136,7 +148,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	}
 
 	// if we detected a version change, we're nuking everything so don't bother with a summary
-	if (versionChanged) {
+	if (newTimestamp) {
 		console.log('💣 Detected new version of Houdini. Regenerating all documents...')
 		console.log('🎉 Welcome to HOUDINI_VERSION!')
 		// if the user is coming from a version pre-15, point them to the migration guide

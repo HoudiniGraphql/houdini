@@ -5,7 +5,7 @@ import minimatch from 'minimatch'
 import os from 'os'
 import path from 'path'
 import { promisify } from 'util'
-import * as recast from 'recast'
+import { fileURLToPath } from 'url'
 
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy, GraphQLTagResult } from '../runtime/lib/types'
@@ -13,6 +13,9 @@ import { extractLoadFunction } from './extractLoadFunction'
 import * as fs from './fs'
 import { parseSvelte } from './parse'
 import { walkGraphQLTags } from './walk'
+
+// @ts-ignore
+const currentDir = global.__dirname || path.dirname(fileURLToPath(import.meta.url))
 
 // a place to hold conventions and magic strings
 export class Config {
@@ -273,6 +276,25 @@ ${
 
 	get typeRootFile() {
 		return '$houdini.d.ts'
+	}
+
+	get runtimeSource() {
+		// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
+		// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
+		const relative = process.env.TEST
+			? path.join(currentDir, '../../')
+			: // TODO: it's very possible this breaks someones setup. the old version walked up from currentDir
+			  // there isn't a consistent number of steps up anymore since the vite plugin and cmd live at different depths
+			  // a better approach could be to start at current dir and walk up until we find a `houdini` dir
+			  path.join(path.dirname(this.filepath), 'node_modules', 'houdini')
+
+		// we want to copy the typescript source code for the templates and then compile the files according
+		// to the requirements of the platform
+		return path.resolve(
+			relative,
+			'build',
+			this.module === 'esm' ? 'runtime-esm' : 'runtime-cjs'
+		)
 	}
 
 	artifactTypePath(document: graphql.DocumentNode) {
