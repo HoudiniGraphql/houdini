@@ -134,3 +134,22 @@ export async function remove(filepath: string) {
 
 	return memfs.rmSync(filepath)
 }
+
+type MockFilesystem = { [key: string]: string | MockFilesystem }
+
+export async function mock(target: MockFilesystem[string], filepath: string = '') {
+	// assuming mock is always called with an object, process every key
+	await Promise.all(
+		Object.entries(target).map(async ([key, value]) => {
+			const childPath = path.join(filepath, key)
+			// if our value is a string, we need to write the contents
+			if (typeof value === 'string') {
+				await writeFile(childPath, value)
+			} else {
+				// the key is the new directory name
+				await mkdirp(childPath)
+				return await mock(value, childPath)
+			}
+		})
+	)
+}

@@ -5,6 +5,7 @@ import minimatch from 'minimatch'
 import os from 'os'
 import path from 'path'
 import { promisify } from 'util'
+import * as recast from 'recast'
 
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy, GraphQLTagResult } from '../runtime/lib/types'
@@ -641,7 +642,7 @@ ${
 				if (!visitor.routeScript) {
 					continue
 				}
-				visitor.routeScript(childPath, childPath)
+				await visitor.routeScript(childPath, childPath)
 			}
 
 			// route queries
@@ -664,7 +665,7 @@ ${
 				if (!visitor.routeQuery) {
 					continue
 				}
-				visitor.routeQuery(routeQuery, childPath)
+				await visitor.routeQuery(routeQuery, childPath)
 			}
 
 			// inline queries
@@ -688,11 +689,11 @@ ${
 							return false
 						}
 					},
-					tag: ({ parsedDocument }) => {
+					tag: async ({ parsedDocument }) => {
 						isRoute = true
 
 						let definition = this.extractQueryDefinition(parsedDocument)
-						visitor.inlineQuery?.(definition, childPath)
+						await visitor.inlineQuery?.(definition, childPath)
 						inlineQueries.push(definition)
 					},
 				})
@@ -701,7 +702,7 @@ ${
 
 		// if this path is a route, invoke the handler
 		if (visitor.route && isRoute) {
-			visitor.route(
+			await visitor.route(
 				{
 					dirpath,
 					routeQuery,

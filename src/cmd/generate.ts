@@ -55,10 +55,13 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 	// the last version the runtime was generated with
 	let previousVersion = ''
+	let newClientPath = false
 	try {
 		const content = await readFile(config.metaFilePath)
 		if (content) {
-			previousVersion = JSON.parse(content).version
+			const parsed = JSON.parse(content)
+			previousVersion = parsed.version
+			newClientPath = parsed.client !== config.client
 		}
 	} catch {}
 	// if the previous version is different from the current version
@@ -89,7 +92,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				transforms.composeQueries,
 
 				// generators
-				versionChanged || process.env.TEST ? generators.runtime : null,
+
+				// the runtime is a static thing most of the time. It only needs to be regenerated if
+				// the user is upgrading versions or the client path changed
+				versionChanged || process.env.TEST || newClientPath ? generators.runtime : null,
 				generators.artifacts(artifactStats),
 				generators.typescript,
 				generators.persistOutput,

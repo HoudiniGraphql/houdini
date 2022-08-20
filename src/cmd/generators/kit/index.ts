@@ -1,3 +1,4 @@
+import { OperationDefinitionNode } from 'graphql'
 import path from 'path'
 
 import { Config } from '../../../common'
@@ -17,6 +18,8 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 			// used in a specific route so we can generate versions of the variable functions with
 			// the Params type from './$types' provided by the sveltekit rootDir
 
+			let scriptExports: string[] = []
+
 			// build up the names of queries that
 			const queries = inlineQueries.concat(routeQuery ?? [])
 
@@ -24,10 +27,11 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 			// and what's inside.
 			if (routeScript) {
 				// import the houdini_load function
-				const { houdini_load } = await config.extractLoadFunction(routeScript)
+				const { houdini_load, exports } = await config.extractLoadFunction(routeScript)
 
 				// add every load to the list
 				queries.push(...(houdini_load ?? []))
+				scriptExports = exports
 			}
 
 			// if we have no queries, there's nothing to do
@@ -39,28 +43,39 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 			// const targetPath = path.join(config.typeRouteDir,
 			const relativePath = path.relative(config.routesDir, dirpath)
 			const target = path.join(config.typeRouteDir, relativePath, config.typeRootFile)
+			const targetRelative = path.relative(target, dirpath)
 
 			// we can't import from $houdini so we need to compute the relative path from the import
 			const houdiniRelative = path.relative(target, config.typeRootDir)
 
+			// the unique set of query names
+			const queryNames: string[] = []
+			const uniqueQueries: OperationDefinitionNode[] = []
+			for (const query of queries) {
+				if (!queryNames.includes(query.name!.value)) {
+					queryNames.push(query.name!.value)
+					uniqueQueries.push(query)
+				}
+			}
+
+			const afterLoad = scriptExports.includes('afterLoad')
+
 			// we need to create a typescript file that has a definition of the variable and hook functions
 			const typeDefs = `import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/runtime/lib/types'
-import type { PageLoad } from './$types'
+import type { PageLoad, PageData as KitPageData } from './$types'
+${afterLoad ? `import { afterLoad } from '${targetRelative}/+page.ts' ` : ''}
 
-type Params = PageLoad extends Kit.Load<infer X, infer Y, infer Z).LayoutData>
-  ? X
-  : never;
-
-
-${queries
+${uniqueQueries
 	.map((query) => {
 		const name = query.name!.value
 
 		return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${config.artifactDirectoryName}/${name}'`
 	})
 	.join('\n')}
+	
+type Params = PageLoad extends Kit.Load<infer X, infer Y, infer Z>['LayoutData'] ? X : never;
 
-${queries
+${uniqueQueries
 	.map((query) => {
 		const name = query.name!.value
 		// if the query does not have any variables, don't include anything
@@ -74,34 +89,33 @@ ${queries
 	})
 	.join('\n')}
 
-type AfterLoadData = {
+export type PageData = {
 	${queries
 		.map((query) => {
 			const name = query.name!.value
 
 			return [name, name + '$result'].join(': ')
 		})
-		.join('\n')}
-}
+		.join(', \n')}
+}${afterLoad ? '& ReturnType<typeof afterLoad>' : ''} 
 
 type AfterLoadInput = {
 	${queries
+		.filter((query) => query.variableDefinitions?.length)
 		.map((query) => {
 			// if the query does not have any variables, don't include anything
-			if (!query.variableDefinitions?.length) {
-				return ''
-			}
 
 			const name = query.name!.value
 
 			return [name, name + '$input'].join(': ')
 		})
-		.join('\n')}
+		.join(', \n')}
 }
 
-export type AfterLoad = AfterLoadFunction<Params, AfterLoadData, AfterLoadInput>
+export type AfterLoad = AfterLoadFunction<Params, PageData, AfterLoadInput>
 
 export type BeforeLoad = BeforeLoadFunction<Params>
+
 `
 
 			// make sure we have a home for the directory
