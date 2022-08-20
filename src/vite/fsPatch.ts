@@ -1,6 +1,6 @@
-// @ts-nocheck
 import filesystem from 'fs'
-import path from 'path'
+import type { Plugin } from 'vite'
+import { Config } from '../common'
 
 import { getConfig, readFile } from '../common'
 
@@ -46,18 +46,20 @@ const _readDirSync = filesystem.readdirSync
 const _statSync = filesystem.statSync
 const _readFileSync = filesystem.readFileSync
 
+// @ts-ignore
 filesystem.readFileSync = function (filepath, options) {
-	if (filepath.endsWith('+page.js') || filepath.endsWith('+page.ts')) {
+	if (filepath.toString().endsWith('+page.js') || filepath.toString().endsWith('+layout.js')) {
 		try {
 			return _readFileSync(filepath, options)
 		} catch {
-			return options.encoding ? '' : Buffer.from('')
+			return typeof options === 'string' || options?.encoding ? '' : Buffer.from('')
 		}
 	}
 	return _readFileSync(filepath, options)
 }
 
-filesystem.statSync = function (path, options) {
+// @ts-ignore
+filesystem.statSync = function (path: string, options: Parameters<filesystem.StatSyncFn>[1]) {
 	if (!path.includes('routes')) return _statSync(path, options)
 	try {
 		const result = _statSync(path, options)
@@ -69,14 +71,24 @@ filesystem.statSync = function (path, options) {
 	}
 }
 
-filesystem.readdirSync = function (filepath, options) {
-	if (!filepath.includes('routes')) return _readDirSync(filepath, options)
-	const result = _readDirSync(filepath, options)
+// @ts-ignore
+filesystem.readdirSync = function (
+	filepath,
+	options: Parameters<typeof filesystem.readdirSync>[1]
+) {
+	if (!filepath.toString().includes('routes')) return _readDirSync(filepath, options)
+	const result: string[] = _readDirSync(filepath, options).map((res) => res.toString())
 
 	// if there is a route component but no script, add the script
 	const loadFiles = ['+page.js', '+page.ts', '+page.server.js', '+page.server.ts']
 	if (result.includes('+page.svelte') && !result.find((fp) => loadFiles.includes(fp))) {
 		result.push('+page.js')
+	}
+
+	// if there is a layout file but no layout.js, we need to make one
+	const layoutLoadFiles = ['+layout.ts', '+layout.js']
+	if (result.includes('+layout.svelte') && !result.find((fp) => layoutLoadFiles.includes(fp))) {
+		result.push('+layout.js')
 	}
 
 	return result

@@ -353,7 +353,7 @@ function add_load({
 		])
 	)
 
-	let args = [request_context, queries, input_obj, result_obj] as const
+	let args = [request_context, input_obj, result_obj] as const
 
 	// add calls to user before/after load functions
 	if (before_load) {
@@ -411,7 +411,6 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 function load_hook_statements(
 	name: 'beforeLoad' | 'afterLoad',
 	request_context: namedTypes.Identifier,
-	queries: LoadTarget[],
 	input_id: IdentifierKind,
 	result_id: IdentifierKind
 ) {

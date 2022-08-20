@@ -882,3 +882,138 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		}
 	`)
 })
+
+test('layout loads', async function () {
+	const route = await route_test({
+		layout_script: `
+			const store1 = graphql\`
+				query MyQuery1 {
+					field
+				}
+			\`
+
+			const store2 = graphql\`
+				query MyQuery2($input: Int) {
+					field(input: $input)
+				}
+			\`
+
+			export function MyQuery2Variables() {
+
+			}
+
+			export const houdini_load = [store1, store2]
+		`,
+	})
+
+	expect(route.layout_script).toMatchInlineSnapshot(`
+		import GQL_MyQuery1 from "$houdini/stores/MyQuery1";
+		import GQL_MyQuery2 from "$houdini/stores/MyQuery2";
+		import { load_MyQuery2 } from "$houdini/stores/MyQuery2";
+		import { load_MyQuery1 } from "$houdini/stores/MyQuery1";
+		import { getCurrentConfig } from "$houdini/runtime/lib/config";
+		import { RequestContext } from "$houdini/runtime/lib/network";
+		const store1 = GQL_MyQuery1;
+		const store2 = GQL_MyQuery2;
+		export function MyQuery2Variables() {}
+		export const houdini_load = [store1, store2];
+
+		export async function load(context) {
+		    const houdini_context = new RequestContext(context);
+		    const houdiniConfig = await getCurrentConfig();
+		    const promises = [];
+		    const inputs = {};
+		    inputs["MyQuery1"] = {};
+
+		    promises.push(load_MyQuery1({
+		        "variables": inputs["MyQuery1"],
+		        "event": context,
+		        "blocking": false
+		    }));
+
+		    inputs["MyQuery2"] = await houdini_context.computeInput({
+		        "config": houdiniConfig,
+		        "variableFunction": MyQuery2Variables,
+		        "artifact": GQL_MyQuery2.artifact
+		    });
+
+		    promises.push(load_MyQuery2({
+		        "variables": inputs["MyQuery2"],
+		        "event": context,
+		        "blocking": false
+		    }));
+
+		    const result = Object.assign({}, ...(await Promise.all(promises)));
+
+		    return {
+		        ...houdini_context.returnValue,
+		        ...result
+		    };
+		}
+	`)
+
+	expect(route.layout).toMatchInlineSnapshot(`
+		import { injectContext } from "$houdini/runtime/lib/context";
+		export let data;
+
+		$:
+		injectContext([data.MyQuery1, data.MyQuery2]);
+	`)
+})
+
+test('layout inline query', async function () {
+	const route = await route_test({
+		layout: `
+			<script>
+				const { data } = query(graphql\`
+					query TestQuery {
+						viewer {
+							id
+						}
+					}
+				\`)
+			</script>
+		`,
+	})
+
+	expect(route.layout).toMatchInlineSnapshot(`
+		import { injectContext } from "$houdini/runtime/lib/context";
+		export let data;
+
+		$:
+		injectContext([data.TestQuery]);
+
+		$:
+		({
+		    data
+		} = query(data.TestQuery));
+	`)
+
+	expect(route.layout_script).toMatchInlineSnapshot(`
+		import { load_TestQuery } from "$houdini/stores/TestQuery";
+		import { getCurrentConfig } from "$houdini/runtime/lib/config";
+		import { RequestContext } from "$houdini/runtime/lib/network";
+		import GQL_TestQuery from "$houdini/stores/TestQuery";
+
+		export async function load(context) {
+		    const houdini_context = new RequestContext(context);
+		    const houdiniConfig = await getCurrentConfig();
+		    const promises = [];
+		    const inputs = {};
+		    inputs["TestQuery"] = {};
+
+		    promises.push(load_TestQuery({
+		        "variables": inputs["TestQuery"],
+		        "event": context,
+		        "blocking": false
+		    }));
+
+		    const result = Object.assign({}, ...(await Promise.all(promises)));
+
+		    return {
+		        ...houdini_context.returnValue,
+		        ...result
+		    };
+		}
+	`)
+})

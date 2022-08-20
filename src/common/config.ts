@@ -566,7 +566,7 @@ ${
 		for (let i = fragmentName.length - 1; i >= 0; i--) {
 			// if we hit a _
 			if (fragmentName[i] === '_') {
-				return fragmentName.substr(0, i)
+				return fragmentName.slice(0, i)
 			}
 		}
 
@@ -587,7 +587,10 @@ ${
 	isRouteScript(filename: string) {
 		return (
 			this.framework === 'kit' &&
-			(filename.endsWith('+page.js') || filename.endsWith('+page.ts'))
+			(filename.endsWith('+page.js') ||
+				filename.endsWith('+page.ts') ||
+				filename.endsWith('+layout.js') ||
+				filename.endsWith('+layout.ts'))
 		)
 	}
 

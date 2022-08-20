@@ -32,20 +32,29 @@ export async function route_test({
 	component = '',
 	script = '',
 	query = '',
+	layout = '',
+	layout_script = '',
 	config: extra,
-	script_info,
 }: {
 	component?: string
 	script?: string
 	query?: string
+	layout?: string
+	layout_script?: string
 	config?: Partial<ConfigFile>
-	script_info?: { houdini_load?: string[]; exports: string[] }
-}): Promise<{ component: Script | null; script: Script | null }> {
+}): Promise<{
+	component: Script | null
+	script: Script | null
+	layout: Script | null
+	layout_script: Script | null
+}> {
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema, ...extra })
 
 	// scripts live in src/routes/+page.svelte
 	const filepath = path.join(process.cwd(), 'src/routes', '+page.svelte')
+	const layout_path = path.join(process.cwd(), 'src/routes', '+layout.svelte')
+	const layout_script_path = config.routeDataPath(layout_path)
 
 	await mkdirp(path.dirname(filepath))
 
@@ -54,51 +63,57 @@ export async function route_test({
 		writeFile(filepath, component),
 		writeFile(config.routeDataPath(filepath), script),
 		writeFile(config.pageQueryPath(filepath), query),
+		writeFile(layout_path, layout),
+		writeFile(layout_script_path, layout_script),
 	])
-
-	const mock_page_info = !script_info
-		? {
-				exports: [],
-		  }
-		: {
-				...script_info,
-				houdini_load: !script_info.houdini_load
-					? undefined
-					: script_info.houdini_load.map(
-							(query) =>
-								graphql.parse(query)
-									.definitions[0] as graphql.OperationDefinitionNode
-					  ),
-		  }
 
 	// we want to run the transformer on both the component and script paths
-	const [componentResult, scriptResult] = await Promise.all([
-		runTransforms(
-			config,
-			{
+	const [component_result, script_result, layout_result, layout_script_result] =
+		await Promise.all([
+			runTransforms(
 				config,
-				filepath,
-				watch_file: () => {},
-				mock_page_info,
-			},
-			component
-		),
-		runTransforms(
-			config,
-			{
+				{
+					config,
+					filepath,
+					watch_file: () => {},
+				},
+				component
+			),
+			runTransforms(
 				config,
-				filepath: config.routeDataPath(filepath),
-				watch_file: () => {},
-				mock_page_info,
-			},
-			script
-		),
-	])
+				{
+					config,
+					filepath: config.routeDataPath(filepath),
+					watch_file: () => {},
+				},
+				script
+			),
+			runTransforms(
+				config,
+				{
+					config,
+					filepath: layout_path,
+					watch_file: () => {},
+				},
+				layout
+			),
+			runTransforms(
+				config,
+				{
+					config,
+					filepath: layout_script_path,
+					watch_file: () => {},
+				},
+				layout_script
+			),
+		])
 
 	// return both
 	return {
-		component: (await parseSvelte(componentResult.code))?.script ?? null,
-		script: (await parseJS(scriptResult.code))?.script ?? null,
+		component: (await parseSvelte(component_result.code))?.script ?? null,
+		script: (await parseJS(script_result.code))?.script ?? null,
+		layout: (await parseSvelte(layout_result.code))?.script ?? null,
+		layout_script: (await parseJS(layout_script_result.code))?.script ?? null,
 	}
 }
 
