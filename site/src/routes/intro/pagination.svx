@@ -162,7 +162,7 @@ Interacting with a paginated query is pretty similar to everything we've been do
 <script>
 	import { paginatedQuery } from '$houdini'
 
-	const { data, loadNextPage, pageInfo } = paginatedQuery(graphql`
+	const speciesInfo = paginatedQuery(graphql`
 		query SpeciesInfo($id: Int!) {
 			species(id: $id) {
 				name
@@ -190,7 +190,7 @@ At the surface, `paginatedQuery` is basically the same thing as `query` except f
 It's time to add some visuals. Add an import for the `MoveDisplay` component and copy the following block as the second child in the right panel (between `div#species-evolution-chain` and the `nav`):
 
 ```svelte
-<MoveDisplay move={$data.species.moves.edges[0].node} />
+<MoveDisplay move={$speciesInfo.data.species.moves.edges[0].node} />
 ```
 
 In most situations houdini's automatic appending is great since it covers popular patterns like infinite scrolling or any kind of list that just keeps growing. Unfortunately, we are only showing one move at a time so we can't just display all of the information we're holding onto in memory. Also, the user might want to step back in the list and we won't need to load the next or previous page if we already have it loaded. In order to address this, we need hold onto a bit of local state that will track the index of the move on display. When we load the next move we will first check if we already have the element loaded and if not, we will trigger `loadNextPage` to grab it and then update our state to display the new result.
@@ -202,13 +202,13 @@ In most situations houdini's automatic appending is great since it covers popula
 
 	let moveIndex = 0
 	$: hasPrevMove = moveIndex > 0
-	$: hasNextMove = moveIndex < $data.species.moves.edges.length - 1 || $pageInfo.hasNextPage
+	$: hasNextMove = moveIndex < $speciesInfo.data.species.moves.edges.length - 1 || $pageInfo.hasNextPage
 
 	const loadNextMove = async () => {
 		// if we haven't already seen this page
-		if (!$data.species.moves.edges[moveIndex + 1] && $pageInfo.hasNextPage) {
+		if (!$speciesInfo.data.species.moves.edges[moveIndex + 1] && $pageInfo.hasNextPage) {
 			// load the next page of data
-			await loadNextPage()
+			await speciesInfo.loadNextPage()
 		}
 
 		// its safe to increment the move index
@@ -227,10 +227,10 @@ In most situations houdini's automatic appending is great since it covers popula
 
 <!-- Use this instead of the move display we added earlier -->
 <div id="move-summary">
-	<MoveDisplay move={$data.species.moves.edges[moveIndex].node} />
+	<MoveDisplay move={$speciesInfo.data.species.moves.edges[moveIndex].node} />
 	<div id="move-controls">
-		<UpButton disabled={!hasPrevMove} on:click={loadPrevMove} />
-		<DownButton disabled={!hasNextMove} on:click={loadNextMove} />
+		<UpButton disabled={!hasPrevMove} on:click={speciesInfo.loadPrevMove} />
+		<DownButton disabled={!hasNextMove} on:click={speciesInfo.loadNextMove} />
 	</div>
 </div>
 ```

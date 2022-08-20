@@ -64,7 +64,7 @@ With that in place we can now define a function that will invoke the `toggleFavo
 
     import { mutation } from '$houdini'
 
-    const toggleFavorite = mutation(graphql`
+    const toggleFavorite = graphql`
         mutation ToggleFavorite($id: Int!) {
             toggleFavorite(id: $id) {
                 species {
@@ -73,14 +73,14 @@ With that in place we can now define a function that will invoke the `toggleFavo
                 }
             }
         }
-    `)
+    `
 </script>
 ```
 
 `mutation` returns an asynchronous function that takes an object with fields to match the mutation's input and returns a promise that will resolve with the response from the mutation. With that in place, we can now configure the button we added earlier to call this function:
 
 ```svelte
-<button on:click={() => toggleFavorite({id: $data.species.id})}>
+<button on:click={() => toggleFavorite.mutate({id: $data.species.id})}>
 ```
 
 Now, try clicking on the grey star for any species. It should flip between gold and grey every time you click it.
@@ -110,7 +110,7 @@ Before we get too far, let's add a place in our UI to show us the list of favori
 
     // this is a second query in the same route but we could
     // have just added the favorites selection to the existing one
-    const { data: favoriteData } = query(graphql`
+    const favorites = query(graphql`
         query Favorites {
             favorites @list(name:"FavoriteSpecies") {
                 ...FavoritePreview
@@ -121,7 +121,7 @@ Before we get too far, let's add a place in our UI to show us the list of favori
 
 <!-- this should go in the root of your component -->
 <FavoritesContainer>
-	{#each $favoriteData.favorites as favorite}
+	{#each $favorites.data.favorites as favorite}
 		<FavoritePreview species={favorite} />
 	{:else}
 		<p>
