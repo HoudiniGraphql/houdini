@@ -165,9 +165,8 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	else if (artifactStats.total.length === 0) {
 		console.log(`💡 Finished, no operation found`)
 	}
-
 	// print summaries of the changes
-	if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
+	else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
 		// if we have any unchanged artifacts
 		if (unchanged > 0 && printMessage && !config.plugin) {
 			console.log(`📃 Unchanged: ${unchanged}`)
@@ -392,39 +391,53 @@ function logStyled(
 	plugin: boolean
 ) {
 	if (stat.length > 0) {
+		// Let's prepare the one liner in the plugin mode, of a bit more in other lol level.
 		const msg = []
+
 		// in plugin mode, it will be very short, let's put a hat first.
 		if (plugin) {
-			msg.push(`🎩`)
+			msg.push(`🎩 `)
 		}
 
 		if (kind === 'CREATED') {
-			msg.push(`✨ New: ${stat.length}`)
+			msg.push(`✨ `)
+			if (!plugin) {
+				msg.push(`New: ${stat.length}`)
+			}
 		} else if (kind === 'UPDATED') {
-			msg.push(`✏️  Changed: ${stat.length}`)
+			msg.push(`✏️  `)
+			if (!plugin) {
+				msg.push(`Changed: ${stat.length}`)
+			}
 		} else if (kind === 'DELETED') {
-			msg.push(`🧹 Deleted: ${stat.length}`)
+			msg.push(`🧹 `)
+			if (!plugin) {
+				msg.push(`Deleted: ${stat.length}`)
+			}
 		}
 
+		// let's do a summary for x elements
+		const nbToDisplay = 5
+
+		// format for plugin
 		if (plugin) {
-			msg.push(` - ${stat.slice(0, 5).join(', ')}`)
+			msg.push(`${stat.slice(0, nbToDisplay).join(', ')}`)
+			if (stat.length > 5) {
+				msg.push(`, ... ${stat.length - nbToDisplay} more`)
+			}
 		}
 
-		console.log(msg.join())
+		console.log(msg.join(''))
 
+		// Format for not plugin & Summary mode
 		if (!plugin && logLevel === LogLevel.Summary) {
-			logFirst5(stat)
+			for (const artifact of stat.slice(0, nbToDisplay)) {
+				console.log(`    ${artifact}`)
+			}
+			// if there are more than 5 just tell them how many
+			if (stat.length > nbToDisplay) {
+				console.log(`    ... ${stat.length - nbToDisplay} more`)
+			}
 		}
-	}
-}
-
-function logFirst5(values: string[]) {
-	// grab the first 5 changed documents
-	for (const artifact of values.slice(0, 5)) {
-		console.log(`    ${artifact}`)
-	}
-	// if there are more than 5 just tell them how many
-	if (values.length > 5) {
-		console.log(`    ... ${values.length - 5} more`)
 	}
 }
