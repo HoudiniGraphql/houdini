@@ -1,8 +1,6 @@
 import type { LoadEvent } from '@sveltejs/kit'
 
-import { QueryStore, MutationStore, SubscriptionStore, FragmentStore } from '../stores'
-import type { QueryStorePaginated } from '../stores/pagination/query'
-import type { FragmentStorePaginated } from '../stores/pagination/fragment'
+import type { QueryStore, MutationStore, SubscriptionStore, FragmentStore } from '../stores'
 
 export type { ConfigFile } from './config'
 

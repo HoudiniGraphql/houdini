@@ -1,6 +1,6 @@
 import { Writable, writable } from 'svelte/store'
 
-import { deepEquals } from '../..'
+import { deepEquals } from '../../lib/deepEquals'
 import { QueryResult, QueryStoreFetchParams } from '../query'
 import cache from '../../cache'
 import { fetchParams } from '../query'

@@ -3,11 +3,11 @@
   import { MultiUserStore } from '$houdini';
 
   const variables1 = { id: '1' };
-  const u1 = MultiUserStore();
+  const u1 = new MultiUserStore();
   $: browser && u1.fetch({ variables: variables1 });
 
   const variables5 = { id: '5' };
-  const u5 = MultiUserStore();
+  const u5 = new MultiUserStore();
   $: browser && u5.fetch({ variables: variables5 });
 </script>
 

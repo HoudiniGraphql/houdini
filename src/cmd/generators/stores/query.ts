@@ -80,11 +80,13 @@ export default ${globalStoreName}
 		variableInputsType ? `${artifactName}$input` : ''
 	}, QueryStoreFetchParams} from '$houdini'
 
-export declare class ${storeName} extends ${queryClass}<${_data}, ${variableInputsType}> 
+export declare class ${storeName} extends ${queryClass}<${_data}, ${variableInputsType}> {
+	constructor() {}
+}
 
 export const ${globalStoreName}: ${storeName}
 
-export declare const load_${artifactName}: (params: QueryStoreFetchParams<${variableInputsType}>) => Promise<${storeName}>
+export declare const load_${artifactName}: (params: QueryStoreFetchParams<${variableInputsType}>) => Promise<{${artifactName}: ${storeName}}>
 
 export default ${storeName}
 `
