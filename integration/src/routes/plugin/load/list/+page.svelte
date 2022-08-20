@@ -1,5 +1,7 @@
 <script lang="ts">
-  export let data: any;
+  import type { PageData } from './$types';
+
+  export let data: PageData;
 
   $: ({ ListLoadQuery1, ListLoadQuery2 } = data);
 </script>

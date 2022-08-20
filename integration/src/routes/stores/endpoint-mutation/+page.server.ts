@@ -1,5 +1,5 @@
 import { GQL_AddUser } from '$houdini';
-import type { Action } from './$types';
+// import type { Action } from './$types';
 
 export const POST = async () => {
   const store = await GQL_AddUser.mutate({
