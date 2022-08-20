@@ -129,7 +129,9 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		return
 	}
 
-	console.log('🎩 Generating runtime...')
+	if (!config.plugin) {
+		console.log('🎩 Generating runtime...')
+	}
 
 	if (error) {
 		throw error
@@ -151,33 +153,17 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	else if (artifactStats.total.length === 0) {
 		console.log(`💡 Finished, no operation found`)
 	}
+
 	// print summaries of the changes
-	else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
+	if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
 		// if we have any unchanged artifacts
-		if (unchanged > 0 && printMessage) {
+		if (unchanged > 0 && printMessage && !config.plugin) {
 			console.log(`📃 Unchanged: ${unchanged}`)
 		}
 
-		if (artifactStats.changed.length > 0) {
-			console.log(`✏️  Changed: ${artifactStats.changed.length}`)
-			if (config.logLevel === LogLevel.Summary) {
-				logFirst5(artifactStats.changed)
-			}
-		}
-
-		if (artifactStats.new.length > 0) {
-			console.log(`✨ New: ${artifactStats.new.length}`)
-			if (config.logLevel === LogLevel.Summary) {
-				logFirst5(artifactStats.new)
-			}
-		}
-
-		if (artifactStats.deleted.length > 0) {
-			console.log(`🧹 Deleted: ${artifactStats.deleted.length}`)
-			if (config.logLevel === LogLevel.Summary) {
-				logFirst5(artifactStats.deleted)
-			}
-		}
+		logStyled('CREATED', artifactStats.new, config.logLevel, config.plugin)
+		logStyled('UPDATED', artifactStats.changed, config.logLevel, config.plugin)
+		logStyled('DELETED', artifactStats.deleted, config.logLevel, config.plugin)
 	}
 	// print the status of every file
 	else if (config.logLevel === LogLevel.Full) {
@@ -384,6 +370,39 @@ async function processGraphQLDocument(
 		generateArtifact: true,
 		generateStore: true,
 		originalString: document,
+	}
+}
+
+function logStyled(
+	kind: 'CREATED' | 'UPDATED' | 'DELETED',
+	stat: string[],
+	logLevel: LogLevel,
+	plugin: boolean
+) {
+	if (stat.length > 0) {
+		const msg = []
+		// in plugin mode, it will be very short, let's put a hat first.
+		if (plugin) {
+			msg.push(`🎩`)
+		}
+
+		if (kind === 'CREATED') {
+			msg.push(`✨ New: ${stat.length}`)
+		} else if (kind === 'UPDATED') {
+			msg.push(`✏️  Changed: ${stat.length}`)
+		} else if (kind === 'DELETED') {
+			msg.push(`🧹 Deleted: ${stat.length}`)
+		}
+
+		if (plugin) {
+			msg.push(` - ${stat.slice(0, 5).join(', ')}`)
+		}
+
+		console.log(msg.join())
+
+		if (!plugin && logLevel === LogLevel.Summary) {
+			logFirst5(stat)
+		}
 	}
 }
 
