@@ -102,7 +102,6 @@ export type GraphQLTagResult =
 	| SubscriptionStore<any, any>
 
 export type HoudiniFetchContext = {
-	session: () => App.Session | null
 	variables: () => {}
 }
 

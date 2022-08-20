@@ -26,8 +26,7 @@ export class HoudiniClient {
 
 	async sendRequest<_Data>(
 		ctx: FetchContext,
-		params: FetchParams,
-		session?: FetchSession
+		params: FetchParams
 	): Promise<RequestPayloadMagic<_Data>> {
 		let url = ''
 
@@ -43,48 +42,11 @@ export class HoudiniClient {
 		}
 
 		// invoke the function
-		const result = await this.fetchFn.call(
-			{
-				...ctx,
-				get fetch() {
-					log.info(
-						`${log.red(
-							"⚠️ fetch and session are now passed as arguments to your client's network function ⚠️"
-						)}
-You should update your client to look something like the following:
-
-async function fetchQuery({
-	${log.yellow('fetch')},
-	text = '',
-	variables = {},
-	${log.yellow('session')},
-	metadata,
-}: RequestHandlerArgs) {
-	const result =  await fetch( ... );
-
-	return await result.json();
-}
-`
-					)
-					return wrapper
-				},
-			},
-			{
-				fetch: wrapper,
-				...params,
-				get session() {
-					// using session while prerendering is not meaningful
-					if (isPrerender) {
-						throw new Error(
-							'Attempted to access session from a prerendered page. Session would never be populated.'
-						)
-					}
-
-					return session
-				},
-				metadata: ctx.metadata,
-			}
-		)
+		const result = await this.fetchFn({
+			fetch: wrapper,
+			...params,
+			metadata: ctx.metadata,
+		})
 
 		// return the result
 		return {
@@ -133,7 +95,6 @@ export type FetchParams = {
 
 export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
-	session: App.Session | null
 	// @ts-ignore
 	metadata?: App.Metadata | null
 }
@@ -187,17 +148,13 @@ export type RequestPayload<_Data = any> = {
  */
 export type RequestHandlerArgs = Omit<FetchContext & FetchParams, 'stuff'>
 
-export type RequestHandler<_Data> = (
-	args: RequestHandlerArgs,
-	session?: FetchSession
-) => Promise<RequestPayload<_Data>>
+export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<RequestPayload<_Data>>
 
 // This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
 export async function executeQuery<_Data extends GraphQLObject, _Input>({
 	artifact,
 	variables,
-	session,
 	cached,
 	config,
 	metadata,
@@ -205,7 +162,6 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 }: {
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
-	session: App.Session | null
 	cached: boolean
 	config: ConfigFile
 	// @ts-ignore
@@ -215,7 +171,6 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 	// Simulate the fetch/load context
 	const fetchCtx = {
 		fetch: fetch ?? window.fetch.bind(window),
-		session,
 		stuff: {},
 		page: {
 			host: '',
@@ -330,11 +285,11 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input>({
 	}, 0)
 
 	// the request must be resolved against the network
-	const result = await client.sendRequest<_Data>(
-		context,
-		{ text: artifact.raw, hash: artifact.hash, variables },
-		context.session
-	)
+	const result = await client.sendRequest<_Data>(context, {
+		text: artifact.raw,
+		hash: artifact.hash,
+		variables,
+	})
 
 	return {
 		result: result.body,

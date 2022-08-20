@@ -69,7 +69,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		const { result } = await executeQuery<GraphQLObject, {}>({
 			artifact,
 			variables: loadVariables,
-			session: houdiniContext.session?.(),
 			cached: false,
 			config,
 		})

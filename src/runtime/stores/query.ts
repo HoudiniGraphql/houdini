@@ -373,11 +373,7 @@ export function fetchParams<_Data extends GraphQLObject, _Input>(
 	params: QueryStoreFetchParams<_Data, _Input>
 } {
 	// if we aren't on the browser but there's no event there's a big mistake
-	if (
-		!isBrowser &&
-		!(params && 'fetch' in params) &&
-		(!params || !('event' in params) || !('fetch' in (params.event || {})))
-	) {
+	if (!isBrowser && !(params && 'fetch' in params) && (!params || !('event' in params))) {
 		// prettier-ignore
 		log.error(contextError(storeName))
 
@@ -392,22 +388,6 @@ export function fetchParams<_Data extends GraphQLObject, _Input>(
 
 	let houdiniContext = parentContext || (params && 'context' in params && params.context)
 	houdiniContext ??= nullHoudiniContext()
-
-	// looking at the session will error while prerendering
-	let session: App.Session | null = null
-	try {
-		if (
-			params &&
-			'event' in params &&
-			params.event &&
-			'session' in params.event &&
-			params.event.session
-		) {
-			session = params.event.session
-		} else {
-			session = houdiniContext.session?.()
-		}
-	} catch {}
 
 	// figure out the right fetch to use
 	let fetchFn: LoadEvent['fetch'] | null = null
@@ -432,7 +412,6 @@ export function fetchParams<_Data extends GraphQLObject, _Input>(
 		context: {
 			fetch: fetchFn,
 			metadata: params?.metadata ?? {},
-			session,
 		},
 		policy,
 		params: params ?? {},

@@ -15,29 +15,13 @@ export const setVariables = (vars: () => {}) => setContext('variables', vars)
 
 export function nullHoudiniContext(): HoudiniFetchContext {
 	return {
-		session: () => null,
 		variables: async () => {},
 	}
 }
 
-let listening = false
-let session: App.Session | null = null
-
-function start(sessionStore: Writable<App.Session | null>) {
-	listening = true
-	sessionStore.subscribe((val) => (session = val))
-}
-
 export function getHoudiniContext(suppressLogs?: boolean): HoudiniFetchContext {
 	try {
-		// hold onto references to the current session and url values
-		const sessionStore = getSession()
-		if (!listening) {
-			start(sessionStore)
-		}
-
 		return {
-			session: () => session,
 			variables: svelteContext('variables') || (() => ({})),
 		}
 	} catch (e) {
