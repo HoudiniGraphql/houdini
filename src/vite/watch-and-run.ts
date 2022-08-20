@@ -2,6 +2,7 @@ import { Log, logCyan, logGreen, logMagneta, logRed } from '@kitql/helper'
 import { spawn } from 'child_process'
 import micromatch from 'micromatch'
 import { Plugin } from 'vite'
+import { formatErrors } from '../common'
 
 function getArraysIntersection(a1: readonly any[], a2: readonly any[]) {
 	return a1.filter((n) => {
@@ -154,10 +155,17 @@ async function watcher(
 		}
 
 		// Run after a delay
-		setTimeout(() => {
+		setTimeout(async () => {
 			// if the run value is a function, we just have to call it and we're done
 			if (typeof info.run === 'function') {
-				info.run()
+				const promise = info.run()
+				try {
+					if (promise) {
+						await promise
+					}
+				} catch (e) {
+					formatErrors(e)
+				}
 				info.isRunning = false
 				return
 			}

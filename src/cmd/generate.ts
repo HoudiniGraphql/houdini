@@ -53,6 +53,17 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		deleted: [],
 	}
 
+	// the last version the runtime was generated with
+	let previousVersion = ''
+	try {
+		const content = await readFile(config.metaFilePath)
+		if (content) {
+			previousVersion = JSON.parse(content).version
+		}
+	} catch {}
+	// if the previous version is different from the current version
+	const versionChanged = previousVersion && previousVersion !== 'HOUDINI_VERSION'
+
 	// run the generate command before we print "🎩 Generating runtime..." because we don't know upfront artifactStats.
 	let error: Error | null = null
 	try {
@@ -78,7 +89,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				transforms.composeQueries,
 
 				// generators
-				generators.runtime,
+				versionChanged || process.env.TEST ? generators.runtime : null,
 				generators.artifacts(artifactStats),
 				generators.typescript,
 				generators.persistOutput,
@@ -95,17 +106,6 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	}
 
 	/// Summary
-
-	// the last version the runtime was generated with
-	let previousVersion = ''
-	try {
-		const content = await readFile(config.metaFilePath)
-		if (content) {
-			previousVersion = JSON.parse(content).version
-		}
-	} catch {}
-	// if the previous version is different from the current version
-	const versionChanged = previousVersion && previousVersion !== 'HOUDINI_VERSION'
 
 	// count the number of unchanged
 	const unchanged =
