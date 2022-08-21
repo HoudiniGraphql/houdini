@@ -34,7 +34,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	storeName: string
 	getContext: () => HoudiniFetchContext | null
 }): CursorHandlers<_Data, _Input> {
-	const pageInfo = writable<PageInfo>(nullPageInfo())
+	const pageInfo = writable<PageInfo>(extractPageInfo(getValue(), artifact.refetch!.path))
 
 	// dry up the page-loading logic
 	const loadPage = async ({
