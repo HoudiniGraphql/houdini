@@ -35,18 +35,16 @@ test('generates types for inline queries', async function () {
 	const parsedQuery = (await parseJS(queryContents!))?.script
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
+		import type * as Kit from "@sveltejs/kit";
 		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../runtime/lib/types";
-		import type { PageLoad, PageData as KitPageData } from "./$types";
+		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyInlineQuery$result, MyInlineQuery$input } from "../../../../artifacts/MyInlineQuery";
-		type Params = PageLoad extends Kit.Load<infer X, infer Y, infer Z>["LayoutData"] ? X : never;
+		import { MyInlineQueryStore } from "../../../../stores/MyInlineQuery";
+		type Params = PageLoadEvent["params"];
 
 		export type PageData = {
-		    MyInlineQuery: MyInlineQuery$result
+		    MyInlineQuery: MyInlineQueryStore
 		};
-
-		type AfterLoadInput = {};
-		export type AfterLoad = AfterLoadFunction<Params, PageData, AfterLoadInput>;
-		export type BeforeLoad = BeforeLoadFunction<Params>;
 	`)
 })
 
@@ -78,18 +76,16 @@ query MyPageQuery {
 	const parsedQuery = (await parseJS(queryContents!))?.script
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
+		import type * as Kit from "@sveltejs/kit";
 		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../runtime/lib/types";
-		import type { PageLoad, PageData as KitPageData } from "./$types";
+		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyPageQuery$result, MyPageQuery$input } from "../../../../artifacts/MyPageQuery";
-		type Params = PageLoad extends Kit.Load<infer X, infer Y, infer Z>["LayoutData"] ? X : never;
+		import { MyPageQueryStore } from "../../../../stores/MyPageQuery";
+		type Params = PageLoadEvent["params"];
 
 		export type PageData = {
-		    MyPageQuery: MyPageQuery$result
+		    MyPageQuery: MyPageQueryStore
 		};
-
-		type AfterLoadInput = {};
-		export type AfterLoad = AfterLoadFunction<Params, PageData, AfterLoadInput>;
-		export type BeforeLoad = BeforeLoadFunction<Params>;
 	`)
 })
 
@@ -136,24 +132,37 @@ test('generates types for after load', async function () {
 
 	// verify contents
 	expect((await parseJS(queryContents!))?.script).toMatchInlineSnapshot(`
+		import type * as Kit from "@sveltejs/kit";
 		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../runtime/lib/types";
-		import type { PageLoad, PageData as KitPageData } from "./$types";
-		import { afterLoad } from "../../../../../../src/routes/myProfile/+page.ts";
+		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
 		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
+		import { MyPageLoad1QueryStore } from "../../../../stores/MyPageLoad1Query";
 		import { MyPageLoad2Query$result, MyPageLoad2Query$input } from "../../../../artifacts/MyPageLoad2Query";
-		type Params = PageLoad extends Kit.Load<infer X, infer Y, infer Z>["LayoutData"] ? X : never;
+		import { MyPageLoad2QueryStore } from "../../../../stores/MyPageLoad2Query";
+		type Params = PageLoadEvent["params"];
 		export type MyPageLoad1QueryVariables = VariableFunction<Params, MyPageLoad1Query$input>;
+		type AfterLoadReturn = ReturnType<typeof import("./+page").afterLoad>;
 
-		export type PageData = {
+		type AfterLoadData = {
 		    MyPageLoad1Query: MyPageLoad1Query$result,
 		    MyPageLoad2Query: MyPageLoad2Query$result
-		} & ReturnType<typeof afterLoad>;
+		};
 
 		type AfterLoadInput = {
 		    MyPageLoad1Query: MyPageLoad1Query$input
 		};
 
-		export type AfterLoad = AfterLoadFunction<Params, PageData, AfterLoadInput>;
-		export type BeforeLoad = BeforeLoadFunction<Params>;
+		export type AfterLoadEvent = {
+		    event: LoadEvent,
+		    data: AfterLoadData,
+		    input: AfterLoadInput
+		};
+
+		export type AfterLoad = AfterLoadFunction<Params, AfterLoadData, AfterLoadInput>;
+
+		export type PageData = {
+		    MyPageLoad1Query: MyPageLoad1QueryStore,
+		    MyPageLoad2Query: MyPageLoad2QueryStore
+		} & AfterLoadReturn;
 	`)
 })
