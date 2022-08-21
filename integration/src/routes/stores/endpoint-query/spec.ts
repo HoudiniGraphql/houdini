@@ -9,6 +9,6 @@ test.describe('query endpoint', () => {
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
 
-    await expectToBe(page, JSON.stringify({ hello: 'Hello World! // From Houdini!' }));
+    await expectToBe(page, JSON.stringify({ data: { hello: 'Hello World! // From Houdini!' } }));
   });
 });
