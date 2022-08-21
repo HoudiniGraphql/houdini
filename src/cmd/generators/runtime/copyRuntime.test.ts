@@ -93,18 +93,17 @@ test('updates the network file with the client path', async function () {
 		    }
 		    async sendRequest(ctx, params) {
 		        let url = '';
-		        // wrap the user's fetch function so we can identify SSR by checking
-		        // the response.url
-		        const wrapper = async (...args) => {
-		            const response = await ctx.fetch(...args);
-		            if (response.url) {
-		                url = response.url;
-		            }
-		            return response;
-		        };
 		        // invoke the function
 		        const result = await this.fetchFn({
-		            fetch: wrapper,
+		            // wrap the user's fetch function so we can identify SSR by checking
+		            // the response.url
+		            fetch: async (...args) => {
+		                const response = await ctx.fetch(...args);
+		                if (response.url) {
+		                    url = response.url;
+		                }
+		                return response;
+		            },
 		            ...params,
 		            metadata: ctx.metadata,
 		        });
