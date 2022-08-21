@@ -58,12 +58,12 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 			}
 
 			const afterLoad = scriptExports.includes('afterLoad')
+			const beforeLoad = scriptExports.includes('beforeLoad')
 
 			// we need to create a typescript file that has a definition of the variable and hook functions
 			const typeDefs = `import type * as Kit from '@sveltejs/kit';
 import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/runtime/lib/types'
 import type { PageLoadEvent, PageData as KitPageData } from './$types'
-${afterLoad ? `import { afterLoad } from './+page' ` : ''}
 
 ${uniqueQueries
 	.map((query) => {
@@ -89,20 +89,11 @@ ${uniqueQueries
 		)} = VariableFunction<Params, ${name}$input>`
 	})
 	.join('\n')}
-
-export type PageData = {
-	${queries
-		.map((query) => {
-			const name = query.name!.value
-
-			return [name, name + 'Store'].join(': ')
-		})
-		.join(', \n')}
-}
-
 ${
 	afterLoad
 		? `
+type AfterLoadReturn = ReturnType<typeof import('./+page').afterLoad>;
+
 type AfterLoadData = {
 	${queries
 		.map((query) => {
@@ -128,12 +119,38 @@ type AfterLoadInput = {
 		.join(', \n')}
 }
 
+export type AfterLoadEvent = {
+	event: LoadEvent
+	data: AfterLoadData
+	input: AfterLoadInput
+}
+
 export type AfterLoad = AfterLoadFunction<Params, AfterLoadData, AfterLoadInput>
 `
 		: ''
 }
 
-export type BeforeLoad = BeforeLoadFunction<Params>
+${
+	beforeLoad
+		? `
+
+export type BeforeLoadEvent = LoadEvent
+
+type BeforeLoadReturn = ReturnType<typeof import('./+page').beforeLoad>;
+`
+		: ''
+}
+
+
+export type PageData = {
+	${queries
+		.map((query) => {
+			const name = query.name!.value
+
+			return [name, name + 'Store'].join(': ')
+		})
+		.join(', \n')}
+} ${afterLoad ? '& AfterLoadReturn ' : ''} ${beforeLoad ? '& BeforeLoadReturn ' : ''}
 
 `
 

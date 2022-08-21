@@ -28,7 +28,7 @@ When working with Houdini's [generated load functions](/api/kit#generating-route
 /// src/routes/myProifle/+page.ts
 
 import { graphql } from '$houdini'
-import type { AfterLoad } from './$houdini'
+import type { AfterLoadEvent } from './$houdini'
 
 export const houdini_load = graphql`
 	query MyProfile {
@@ -38,7 +38,7 @@ export const houdini_load = graphql`
 	}
 `
 
-export const afterLoad: AfterLoad = ({ data }) => {
+export function afterLoad({ data }: AfterLoadEvent){
 	return {
 		computedValue: data.MyProfile.viewer.id + '_new'
 	}

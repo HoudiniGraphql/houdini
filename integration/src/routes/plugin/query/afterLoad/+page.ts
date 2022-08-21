@@ -1,6 +1,6 @@
-import type { AfterLoad } from './$houdini';
+import type { AfterLoadEvent } from './$houdini';
 
-export const afterLoad: AfterLoad = ({ data, event }) => {
+export const afterLoad = ({ data }: AfterLoadEvent) => {
   return {
     message: data.PreprocessorAfterLoadTestQuery.user.name[0]
   };

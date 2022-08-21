@@ -185,12 +185,14 @@ export type VariableFunction<_Params extends Record<string, string>, _Input> = (
 	event: LoadEvent<_Params>
 ) => _Input
 
-export type AfterLoadFunction<_Params extends Record<string, string>, _Data, _Input> = (args: {
-	event: LoadEvent<_Params>
-	data: _Data
-	input: _Input
-}) => any
+export type AfterLoadFunction<
+	_Params extends Record<string, string>,
+	_Data,
+	_Input,
+	_ReturnType extends Record<string, any>
+> = (args: { event: LoadEvent<_Params>; data: _Data; input: _Input }) => _ReturnType
 
-export type BeforeLoadFunction<_Params extends Record<string, string>> = (
-	event: LoadEvent<_Params>
-) => Record<string, string> | void
+export type BeforeLoadFunction<
+	_Params extends Record<string, string>,
+	_ReturnType extends Record<string, any> | void
+> = (event: LoadEvent<_Params>) => _ReturnType
