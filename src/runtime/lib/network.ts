@@ -30,20 +30,18 @@ export class HoudiniClient {
 	): Promise<RequestPayloadMagic<_Data>> {
 		let url = ''
 
-		// wrap the user's fetch function so we can identify SSR by checking
-		// the response.url
-		const wrapper = async (...args: Parameters<FetchContext['fetch']>) => {
-			const response = await ctx.fetch(...args)
-			if (response.url) {
-				url = response.url
-			}
-
-			return response
-		}
-
 		// invoke the function
 		const result = await this.fetchFn({
-			fetch: wrapper,
+			// wrap the user's fetch function so we can identify SSR by checking
+			// the response.url
+			fetch: async (...args: Parameters<FetchContext['fetch']>) => {
+				const response = await ctx.fetch(...args)
+				if (response.url) {
+					url = response.url
+				}
+
+				return response
+			},
 			...params,
 			metadata: ctx.metadata,
 		})

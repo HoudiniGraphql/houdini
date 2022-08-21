@@ -1,6 +1,4 @@
-import type { BeforeLoadEvent } from './$houdini';
-
-export const beforeLoad = (event: BeforeLoadEvent) => {
+export const beforeLoad = () => {
   return {
     message: 'hello'
   };

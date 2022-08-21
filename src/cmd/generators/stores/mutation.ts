@@ -32,7 +32,9 @@ export default ${globalStoreName}
 	// type definitions
 	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, MutationStore } from '$houdini'
 
-export declare class ${storeName} extends MutationStore<${artifactName}$result | undefined, ${artifactName}$input>
+export declare class ${storeName} extends MutationStore<${artifactName}$result | undefined, ${artifactName}$input>{
+	constructor() {}
+}
 
 export const ${globalStoreName}: ${storeName}
 

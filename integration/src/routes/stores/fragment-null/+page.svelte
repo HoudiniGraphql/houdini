@@ -1,7 +1,7 @@
 <script lang="ts">
-  import UserInfoStore from '$houdini/stores/UserInfo';
+  import { GQL_UserInfo } from '$houdini';
 
-  const data = UserInfoStore.get(null);
+  const data = GQL_UserInfo.get(null);
 </script>
 
 <div id="result">

@@ -3,13 +3,7 @@ import { HoudiniClient } from '$houdini/runtime/lib/network';
 import { stry } from '@kitql/helper';
 
 // For Query & Mutation
-async function fetchQuery({
-  fetch,
-  text = '',
-  variables = {},
-  session,
-  metadata
-}: RequestHandlerArgs) {
+async function fetchQuery({ fetch, text = '', variables = {}, metadata }: RequestHandlerArgs) {
   // Prepare the request
   const url = import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
 
@@ -17,8 +11,8 @@ async function fetchQuery({
   const result = await fetch(url, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session?.token}` // session usage example
+      'Content-Type': 'application/json'
+      // Authorization: `Bearer ${session?.token}` // session usage example
     },
     body: JSON.stringify({
       query: text,
