@@ -5,4 +5,6 @@
   $: ({ PageQuery } = data);
 </script>
 
-{$PageQuery.data?.user.id}
+<div id="result">
+  {$PageQuery.data?.user.id}
+</div>

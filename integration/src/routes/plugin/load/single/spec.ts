@@ -4,11 +4,11 @@ import { test } from '@playwright/test';
 
 test.describe('query preprocessor', () => {
   test('happy path query - SSR', async ({ page }) => {
-    await page.goto(routes.Plugin_load_pageQuery);
+    await page.goto(routes.Plugin_load_single);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
 
-    await expectToBe(page, 'Bruce Willis');
+    await expectToBe(page, 'single-load-query:1');
   });
 });

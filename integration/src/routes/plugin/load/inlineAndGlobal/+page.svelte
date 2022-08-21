@@ -6,4 +6,6 @@
   $: ({ Hello, InlineAndGlobalLoadQuery2 } = data);
 </script>
 
-{$Hello.data?.hello},{$InlineAndGlobalLoadQuery2.data?.user.id}
+<div id="result">
+  {$Hello.data?.hello},{$InlineAndGlobalLoadQuery2.data?.user.id}
+</div>

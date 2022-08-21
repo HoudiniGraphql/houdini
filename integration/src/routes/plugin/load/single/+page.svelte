@@ -6,4 +6,6 @@
   $: ({ SingleLoadQuery } = data);
 </script>
 
-{$SingleLoadQuery.data?.user.id}
+<div id="result">
+  {$SingleLoadQuery.data?.user.id}
+</div>

@@ -9,6 +9,6 @@ test.describe('query preprocessor', () => {
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
 
-    await expectToBe(page, 'Bruce Willis');
+    await expectToBe(page, 'page-query:1');
   });
 });
