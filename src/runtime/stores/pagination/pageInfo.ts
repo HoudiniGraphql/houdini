@@ -8,10 +8,10 @@ export function nullPageInfo(): PageInfo {
 export const contextError = `${log.red(
 	'⚠️ Could not find houdini context for a pagination method ⚠️'
 )}
-This really shouldn't happen. Please open a ticket describing your situation. 
+This really shouldn't happen. Please open a ticket describing your situation.
 
-In the meantime, you will need to do something like the following. Make sure getHoudiniContext is 
-called at the top of your component (outside any event handlers or function definitions) and then 
+In the meantime, you will need to do something like the following. Make sure getHoudiniContext is
+called at the top of your component (outside any event handlers or function definitions) and then
 passed to the method:
 
 <script lang="ts">
@@ -30,8 +30,9 @@ export type PageInfo = {
 }
 
 export function missingPageSizeError(fnName: string) {
-	// TODO: text
-	return 'missing page size. need good content here.'
+	return {
+		message: `${fnName} is missing the required page arguments. For more information, please visit this link: https://www.houdinigraphql.com/guides/pagination`,
+	}
 }
 
 export function extractPageInfo(data: any, path: string[]): PageInfo {

@@ -185,8 +185,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 
 			// if the input is different than the query variables then we just do everything like normal
 			if (variables && !deepEquals(extra, variables)) {
-				// TODO: this needs to block to get a value but it can't block without blocking all the time?
-				// how did we get around this before?
 				const result = await fetch({
 					...params,
 					then(data) {

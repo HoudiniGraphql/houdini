@@ -163,7 +163,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 	}
 	// print a line showing that the process is finished (wo document)
 	else if (artifactStats.total.length === 0) {
-		console.log(`💡 Finished, no operation found`)
+		console.log(`💡 No operation found. If that's unexpected, please check your config.`)
 	}
 	// print summaries of the changes
 	else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
