@@ -8,12 +8,6 @@ test.describe('Partial Pages', () => {
     // Go to the list
     await page.goto(routes.Stores_Partial_List);
 
-    // We should have the list
-    expectToBe(
-      page,
-      'Full Light Partial:1 - Bruce Willis Full Light Partial:2 - Samuel Jackson Full Light Partial:3 - Morgan Freeman Full Light Partial:4 - Tom Hanks'
-    );
-
     // Go on the light page 2
     await page.locator('a[id="l_2"]').click();
 
