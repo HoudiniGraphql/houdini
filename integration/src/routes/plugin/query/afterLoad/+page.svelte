@@ -1,6 +1,6 @@
 <script lang="ts">
   import { query, graphql, type PreprocessorTestQuery1 } from '$houdini';
-  import type { PageData } from './$types';
+  import type { PageData } from './$houdini';
 
   export let data: PageData;
 

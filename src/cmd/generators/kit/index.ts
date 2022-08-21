@@ -43,7 +43,6 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 			// const targetPath = path.join(config.typeRouteDir,
 			const relativePath = path.relative(config.routesDir, dirpath)
 			const target = path.join(config.typeRouteDir, relativePath, config.typeRootFile)
-			const targetRelative = path.relative(target, dirpath)
 
 			// we can't import from $houdini so we need to compute the relative path from the import
 			const houdiniRelative = path.relative(target, config.typeRootDir)
@@ -61,19 +60,21 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 			const afterLoad = scriptExports.includes('afterLoad')
 
 			// we need to create a typescript file that has a definition of the variable and hook functions
-			const typeDefs = `import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/runtime/lib/types'
-import type { PageLoad, PageData as KitPageData } from './$types'
-${afterLoad ? `import { afterLoad } from '${targetRelative}/+page.ts' ` : ''}
+			const typeDefs = `import type * as Kit from '@sveltejs/kit';
+import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction }  from '${houdiniRelative}/runtime/lib/types'
+import type { PageLoadEvent, PageData as KitPageData } from './$types'
+${afterLoad ? `import { afterLoad } from './+page' ` : ''}
 
 ${uniqueQueries
 	.map((query) => {
 		const name = query.name!.value
 
-		return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${config.artifactDirectoryName}/${name}'`
+		return `import { ${name}$result, ${name}$input } from '${houdiniRelative}/${config.artifactDirectoryName}/${name}'
+import { ${name}Store } from '${houdiniRelative}/${config.storesDirectoryName}/${name}'`
 	})
 	.join('\n')}
-	
-type Params = PageLoad extends Kit.Load<infer X, infer Y, infer Z>['LayoutData'] ? X : never;
+
+type Params = PageLoadEvent['params']
 
 ${uniqueQueries
 	.map((query) => {
@@ -94,10 +95,25 @@ export type PageData = {
 		.map((query) => {
 			const name = query.name!.value
 
+			return [name, name + 'Store'].join(': ')
+		})
+		.join(', \n')}
+}
+
+${
+	afterLoad
+		? `
+type AfterLoadData = {
+	${queries
+		.map((query) => {
+			// if the query does not have any variables, don't include anything
+
+			const name = query.name!.value
+
 			return [name, name + '$result'].join(': ')
 		})
 		.join(', \n')}
-}${afterLoad ? '& ReturnType<typeof afterLoad>' : ''} 
+}
 
 type AfterLoadInput = {
 	${queries
@@ -112,7 +128,10 @@ type AfterLoadInput = {
 		.join(', \n')}
 }
 
-export type AfterLoad = AfterLoadFunction<Params, PageData, AfterLoadInput>
+export type AfterLoad = AfterLoadFunction<Params, AfterLoadData, AfterLoadInput>
+`
+		: ''
+}
 
 export type BeforeLoad = BeforeLoadFunction<Params>
 

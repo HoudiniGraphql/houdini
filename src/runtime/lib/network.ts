@@ -1,9 +1,7 @@
 import { LoadEvent, error, redirect } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
-import { isPrerender } from '../adapter'
 import cache from '../cache'
-import { QueryStore } from '../stores'
 import { QueryResult } from '../stores/query'
 import type { ConfigFile } from './config'
 import * as log from './log'

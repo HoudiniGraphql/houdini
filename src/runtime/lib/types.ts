@@ -189,7 +189,7 @@ export type AfterLoadFunction<_Params extends Record<string, string>, _Data, _In
 	event: LoadEvent<_Params>
 	data: _Data
 	input: _Input
-}) => void
+}) => any
 
 export type BeforeLoadFunction<_Params extends Record<string, string>> = (
 	event: LoadEvent<_Params>
