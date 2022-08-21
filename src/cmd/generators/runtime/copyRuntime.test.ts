@@ -81,11 +81,11 @@ test('updates the network file with the client path', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import { error, redirect } from '@sveltejs/kit';
+		import { get } from 'svelte/store';
 		import cache from '../cache';
 		import * as log from './log';
 		import { marshalInputs } from './scalars';
 		import { CachePolicy, DataSource, } from './types';
-		import { get } from 'svelte/store';
 		export class HoudiniClient {
 		    constructor(networkFn, subscriptionHandler) {
 		        this.fetchFn = networkFn;

@@ -101,6 +101,17 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 				statement.declaration.declarations[0].id.type === 'Identifier' &&
 				statement.declaration.declarations[0].id.name === 'data'
 		)
+		const has_unexported_data = page.script.body.find(
+			(statement) =>
+				statement.type === 'VariableDeclaration' &&
+				statement.declarations.length === 1 &&
+				statement.declarations[0].type === 'VariableDeclarator' &&
+				statement.declarations[0].id.type === 'Identifier' &&
+				statement.declarations[0].id.name === 'data'
+		)
+		if (has_unexported_data) {
+			throw unexported_data_error(page.filepath)
+		}
 
 		// add the current context to any of the stores that we got from the load
 		page.script.body.splice(
@@ -455,4 +466,12 @@ async function find_page_info(page: TransformPage): Promise<HoudiniRouteScript> 
 	}
 
 	return await page.config.extractLoadFunction(route_path)
+}
+
+function unexported_data_error(filepath: string) {
+	return {
+		filepath,
+		message: `Encountered unexported local variable name data`,
+		description: `This is not allowed in a route since it would conflict with Houdini's generated code`,
+	}
 }
