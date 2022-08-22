@@ -1,9 +1,6 @@
 /// <reference types="@sveltejs/kit" />
 
-interface SessionData {
-	// Your session data
-	mode?: 'inline' | 'store'
-}
+interface SessionData {}
 
 // See https://kit.svelte.dev/docs#typescript
 // for information about these interfaces
