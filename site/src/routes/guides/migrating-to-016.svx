@@ -75,8 +75,8 @@ Here is a summary of the config changes and new defaults so you can clean up you
   }
 ```
 
-Update your vite config file to use Houdini's new plugin. It must come before the sveltekit plugin. Also,
-while you're here, you can delete that ugly `server.fs.allow` config you had before.
+Update your vite config file to pass Houdini's new plugin before the sveltekit one. With this set up, you'll never have to run `generate` again!
+Also, while you're here, you can delete that ugly `server.fs.allow` config you had before.
 
 ### `./svelte.config.js`
 
