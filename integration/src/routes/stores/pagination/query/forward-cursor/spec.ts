@@ -12,9 +12,6 @@ test.describe('forwards cursor paginatedQuery', () => {
   test('loadNextPage', async ({ page }) => {
     await goto(page, routes.Pagination_query_forward_cursor);
 
-    // We should have the data without a GraphQL request in the client
-    await expectNoGraphQLRequest(page);
-
     await expectToBe(page, 'Bruce Willis, Samuel Jackson');
 
     // wait for the api response
@@ -26,8 +23,6 @@ test.describe('forwards cursor paginatedQuery', () => {
 
   test('refetch', async ({ page }) => {
     await goto(page, routes.Pagination_query_forward_cursor);
-
-    await expectNoGraphQLRequest(page);
 
     // wait for the api response
     let response = await expectGraphQLResponse(page, 'button[id=next]');

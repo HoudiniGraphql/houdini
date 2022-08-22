@@ -1,19 +1,16 @@
+import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import {
-  clientSideNavigation,
   expectNGraphQLResponse,
   expectNoGraphQLRequest,
   expectToBe,
   goto,
   navSelector
 } from '../../../lib/utils/testsHelper.js';
-import { expect, test } from '@playwright/test';
 
 test.describe('SSR Page', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
     await goto(page, routes.Stores_SSR);
-
-    await expectNoGraphQLRequest(page);
   });
 
   test('expect the hello result (from another *.graphql file)', async ({ page }) => {
@@ -45,8 +42,7 @@ test.describe('SSR Page', () => {
   }) => {
     await goto(page, routes.Stores_SSR);
 
-    await clientSideNavigation(page, routes.Stores_Network);
-    await expectNoGraphQLRequest(page);
+    await expectNoGraphQLRequest(page, navSelector(routes.Stores_Network));
   });
 
   test('From HOME, navigate to page (only 2 graphql queries should happen, not more!)', async ({

@@ -1,3 +1,4 @@
+import { test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
@@ -6,14 +7,10 @@ import {
   expectToContain,
   goto
 } from '../../../../lib/utils/testsHelper.js';
-import { test } from '@playwright/test';
 
 test.describe('forwards cursor paginatedFragment', () => {
   test('loadNextPage', async ({ page }) => {
     await goto(page, routes.Pagination_fragment_forward_cursor);
-
-    // We should have the data without a GraphQL request in the client
-    await expectNoGraphQLRequest(page);
 
     await expectToBe(page, 'Bruce Willis, Samuel Jackson');
 
@@ -47,7 +44,6 @@ test.describe('forwards cursor paginatedFragment', () => {
 
     await expectToContain(page, `"hasNextPage":false`);
 
-    await page.locator('button[id=next]').click();
-    await expectNoGraphQLRequest(page);
+    await expectNoGraphQLRequest(page, 'button[id=next]');
   });
 });

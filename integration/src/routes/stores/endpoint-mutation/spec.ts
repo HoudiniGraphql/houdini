@@ -1,12 +1,10 @@
-import { routes } from '../../../lib/utils/routes.js';
-import { expectNoGraphQLRequest, goto } from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
+import { routes } from '../../../lib/utils/routes.js';
+import { goto } from '../../../lib/utils/testsHelper.js';
 
 test.describe('Mutations', () => {
   test('Work in Endpoints', async ({ page }) => {
     await goto(page, routes.Stores_Endpoint_Mutation);
-
-    await expectNoGraphQLRequest(page);
 
     // click on the button and make sure there's no error
     await Promise.all([

@@ -11,8 +11,6 @@ test.describe('prefetch-[userId] Page', () => {
   test('Right Data in <h1> elements (SSR)', async ({ page }) => {
     await goto(page, routes.Stores_Prefetch_UserId_2);
 
-    await expectNoGraphQLRequest(page);
-
     const dataDisplayedSSR =
       '{"data":{"user":{"id":"store-user-query:2","name":"Samuel Jackson"}},"errors":null,"isFetching":false,"partial":false,"source":"ssr","variables":{"id":"2"}}';
 

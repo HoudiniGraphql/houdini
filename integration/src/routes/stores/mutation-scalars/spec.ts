@@ -1,16 +1,10 @@
 import { routes } from '../../../lib/utils/routes.js';
-import {
-  expectGraphQLResponse,
-  expectNoGraphQLRequest,
-  expectToBe
-} from '../../../lib/utils/testsHelper.js';
+import { expectGraphQLResponse, goto, expectToBe } from '../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
 
 test.describe('mutation store', function () {
   test('mutation inputs and values get marshaled into complex values', async function ({ page }) {
-    page.goto(routes.Stores_Mutation_Scalars);
-
-    await expectNoGraphQLRequest(page);
+    await goto(page, routes.Stores_Mutation_Scalars);
 
     // trigger the mutation and wait for a response
     await expectGraphQLResponse(page, 'button[id=mutate]');

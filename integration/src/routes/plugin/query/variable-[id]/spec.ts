@@ -1,19 +1,15 @@
+import { test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
-  expectNoGraphQLRequest,
   expectToBe,
   goto,
   navSelector
 } from '../../../../lib/utils/testsHelper.js';
-import { test } from '@playwright/test';
 
 test.describe('query preprocessor variables', () => {
   test('default value', async ({ page }) => {
     await goto(page, routes.Plugin_query_variable_1);
-
-    // We should have the data without a GraphQL request in the client
-    await expectNoGraphQLRequest(page);
 
     await expectToBe(page, 'Bruce Willis');
 

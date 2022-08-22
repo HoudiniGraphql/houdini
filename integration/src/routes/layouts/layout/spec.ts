@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import {
-  clientSideNavigation,
   expectNoGraphQLRequest,
-  goto_and_expectNGraphQLResponse
+  goto_and_expectNGraphQLResponse,
+  navSelector
 } from '../../../lib/utils/testsHelper.js';
 
 test.describe('Layout & comp', () => {
@@ -16,8 +16,8 @@ test.describe('Layout & comp', () => {
       'Query Comp - Number of users: 3'
     ]);
 
-    await clientSideNavigation(page, routes.Stores_Layouts);
-    await expectNoGraphQLRequest(page);
+    await expectNoGraphQLRequest(page, navSelector(routes.Stores_Layouts));
+
     const pContentIndex = await page.locator('p').allTextContents();
     expect(pContentIndex).toEqual(['Query Comp - Number of users: 3']);
   });

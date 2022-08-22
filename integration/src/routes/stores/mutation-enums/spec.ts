@@ -1,16 +1,10 @@
-import { routes } from '../../../lib/utils/routes.js';
-import {
-  expectGraphQLResponse,
-  expectNoGraphQLRequest,
-  expectToBe
-} from '../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
+import { routes } from '../../../lib/utils/routes.js';
+import { expectGraphQLResponse, expectToBe, goto } from '../../../lib/utils/testsHelper.js';
 
 test.describe('mutation store', function () {
   test('can pass enums to mutations', async function ({ page }) {
-    page.goto(routes.Stores_Mutation_Enums);
-
-    await expectNoGraphQLRequest(page);
+    await goto(page, routes.Stores_Mutation_Enums);
 
     // trigger the mutation and wait for a response
     await expectGraphQLResponse(page, 'button[id=mutate]');

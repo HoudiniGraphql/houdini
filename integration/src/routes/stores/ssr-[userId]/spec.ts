@@ -22,8 +22,6 @@ import { expect, test } from '@playwright/test';
 test.describe('SSR-[userId] Page', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
     await goto(page, routes.Stores_SSR_UserId_2);
-
-    await expectNoGraphQLRequest(page);
   });
 
   test('Right Data in <h1> elements (SSR)', async ({ page }) => {

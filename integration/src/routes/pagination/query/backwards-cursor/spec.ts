@@ -1,3 +1,4 @@
+import { expect, test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
@@ -6,14 +7,10 @@ import {
   expectToContain,
   goto
 } from '../../../../lib/utils/testsHelper.js';
-import { expect, test } from '@playwright/test';
 
 test.describe('backwards cursor paginatedQuery', () => {
   test('loadPreviousPage', async ({ page }) => {
     await goto(page, routes.Pagination_query_backwards_cursor);
-
-    // We should have the data without a GraphQL request in the client
-    await expectNoGraphQLRequest(page);
 
     await expectToBe(page, 'Eddie Murphy, Clint Eastwood');
 

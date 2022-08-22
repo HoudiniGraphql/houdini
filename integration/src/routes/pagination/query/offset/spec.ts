@@ -1,18 +1,10 @@
-import { routes } from '../../../../lib/utils/routes.js';
-import {
-  expectGraphQLResponse,
-  expectNoGraphQLRequest,
-  expectToBe,
-  goto
-} from '../../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
+import { routes } from '../../../../lib/utils/routes.js';
+import { expectGraphQLResponse, expectToBe, goto } from '../../../../lib/utils/testsHelper.js';
 
 test.describe('offset paginatedQuery', () => {
   test('loadNextPage', async ({ page }) => {
     await goto(page, routes.Pagination_query_offset);
-
-    // We should have the data without a GraphQL request in the client
-    await expectNoGraphQLRequest(page);
 
     await expectToBe(page, 'Bruce Willis, Samuel Jackson');
 
