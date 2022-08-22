@@ -4,11 +4,14 @@ import { sleep } from '@kitql/helper';
 import { test } from '@playwright/test';
 
 test.describe('Partial Pages', () => {
+  // Note that the query has a delay (1000ms) to show the behavior.
+  // We have to introduce sleep here and there to make sure that client side navigation happend.
+
   test('From the list to the detail should see 2 info then the date coming', async ({ page }) => {
     // Go to the list
     await goto(page, routes.Stores_Partial_List);
 
-    // Go on the light page 2
+    // Go on the page 2: LIGHT
     await page.locator('a[id="l_2"]').click();
 
     // Wait a bit so that the server respond with 2 fields
@@ -21,8 +24,10 @@ test.describe('Partial Pages', () => {
     // go back to the list
     await clientSideNavigation(page, routes.Stores_Partial_List);
 
-    // Go on the light page 2 FULL
+    // Go on the page 2: FULL
     await page.locator('a[id="f_2"]').click();
+    // wait the navigation to happen
+    await sleep(300);
 
     // Click on the link and check directly the 3 divs
     expectToBe(page, 'Partial:2', 'div[id="id"]');
