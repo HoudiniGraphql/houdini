@@ -20,6 +20,8 @@ export async function expectNoGraphQLRequest(
     ]);
     info = res;
   } catch (error: unknown) {
+    console.log(`error`, { error });
+
     if (error instanceof Error) {
       expect(error.name).toBe('TimeoutError');
       nbError++;
