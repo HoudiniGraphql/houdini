@@ -252,3 +252,9 @@ To set this up, you have to add `$houdini/types` as a `rootDir` in your typescri
 	}
 }
 ```
+
+## That's it!
+
+Good luck with your migration! We appreciate your patience as Houdini adapts to SvelteKit's changes. Hopefully you agree
+that this new world is a major improvement from where we were a month ago. At the very least, the variables API for
+automatic loaders doesn't feel so awkward any more 😅
