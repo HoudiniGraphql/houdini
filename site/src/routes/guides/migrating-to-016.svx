@@ -246,9 +246,9 @@ To set this up, you have to add `$houdini/types` as a `rootDir` in your typescri
 ```json
 {
 	// ...
-    "compilerOptions": {
-        // ...
-        "rootDirs": [".", "./.svelte-kit/types", "./$houdini/types"]
-    }
+	"compilerOptions": {
+		// ...
+		"rootDirs": [".", "./.svelte-kit/types", "./$houdini/types"]
+	}
 }
 ```
