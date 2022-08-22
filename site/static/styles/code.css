@@ -124,16 +124,14 @@ pre[class*='language-'] {
 .token.property,
 .token.tag,
 .token.symbol,
-.token.deleted,
 .token.important {
-	color: hsl(355, 65%, 65%);
+	color: rgb(128, 176, 255);
 }
 
 .token.selector,
 .token.string,
 .token.char,
 .token.builtin,
-.token.inserted,
 .token.regex,
 .token.attr-value,
 .token.attr-value > .token.punctuation {
@@ -452,4 +450,19 @@ pre > code.diff-highlight .token.token.inserted:not(.prefix) *::selection {
 
 .language-graphql .property {
 	color: white;
+}
+
+.inserted,
+.inserted * {
+	color: hsl(95, 38%, 62%) !important;
+}
+
+.inserted,
+.inserted * {
+	color: hsl(95, 38%, 62%) !important;
+}
+
+.deleted,
+.deleted * {
+	color: hsl(355, 65%, 65%) !important;
 }

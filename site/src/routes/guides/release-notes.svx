@@ -8,24 +8,31 @@ description: A guide to migrating your application to each breaking version of h
 
 ## 0.16.0
 
-`v0.16.0` updates houdini's APIs to be compatible with the updates to SvelteKit as described here: https://github.com/sveltejs/kit/discussions/5774.
+`v0.16.0` updates houdini's APIs to be compatible with the updates to SvelteKit as described in [@sveltejs/kit#5774](https://github.com/sveltejs/kit/discussions/5774). While this is a very exciting change for the community, we were forced to dramatically change a few things in order to adapt to the new world.
 
-Just to get some points out of the way for people worried about major breaking changes:
+If you are looking for a step-by-step guide for updating your project, you can find that [here](/guides/migrating-to-016). Keep in mind, that guide does not cover new features, so you'll probably want to come back
+here and see what's new.
+
+### Breaking Changes
+
+Let's get the scary stuff out of the way. We know this might seem like a lot but we have been
+holding onto some of these for awhile, and it seemed like a good opportunity to address a few pieces of debt
+since SvelteKit is already forcing us to break the API.
 
 - You will have to add a configuration value to your `houdini.config.js` but can likely delete everything else.
 - SvelteKit projects will now need to use the vite plugin defined at `houdini/vite` which replaces the old preprocessor (and the ugly `server.fs.allow` config). But don't worry, there are **lots** of really cool things that we're getting with this move.
 - The external document store api for SvelteKit routes is changing. This means that if you rely heavily on the document stores, you will have to update your load functions but as a result you can delete a lot of the code in your components and the overall mental model is a lot simpler (no more passing around `context`)
-- inline queries have to change too (since kit made `data` a magic word in a route). At a high level, you'll now use the result of `query` directly instead of destructuring data. Also, everything that used to be defined in `context="module"` is now defined in `+page.js/ts`.
+- inline queries have to change too (since kit made `data` a magic word in a route). At a high level, you'll now use the result of `query` directly instead of destructuring data. This also unified the document APIs between internal and external files which simplifies things dramatically.
 
-For additional breaking changes and notes, check out the section at the bottom of this. We know this is a lot of changes but we have been thinking about some of these for awhile and since SvelteKit has forced us to change the API, it seemed like a good time to shift some things around.
+For additional breaking changes and notes, check out the section at the bottom of the `0.16.0` release notes.
 
-### Config Value Changes
+### New Required Config Value
 
 One new configuration value was added that you _must_ set. `client` needs to be set to a relative path (from your `houdini.config.js` file) to the file that contains your Houdini Client. That file must now have a default export providing the client.
 
 ### Vite Plugin
 
-For kit projects, the preprocessor has moved to `houdini/vite` and should be included as a plugin in your `vite.config.js`. You should also remove the the `fs.server.allow` config since its baked into the plugin. This plugin not only processes our components and javascript files, but it also integrates into vite's `dev` script to bring some huge improvements:
+For projects using vite, the preprocessor has moved to `houdini/vite` and should be included as a plugin in your `vite.config.js`. You should also remove the the `fs.server.allow` config since its baked into the plugin. This plugin not only processes our components and javascript files, but it also integrates into vite's `dev` script to bring some huge improvements:
 
 - automatically generates your artifacts and stores whenever it detects a change in your source code. if you have configured your own watcher, it might not be necessary anymore.
 - poll your api for changes in your schema and regenerate when they are detected. This behavior is customizable between 3 modes: a duration in milliseconds, only pull when the project first starts, and never pull.
@@ -39,8 +46,8 @@ with the underlying query store directly
 
 ```svelte
 <script>
-	const queryStore = query(graphql`
-		query My Query {
+	const MyQuery = query(graphql`
+		query MyQuery {
 			viewer  {
 				id
 			}
@@ -49,7 +56,7 @@ with the underlying query store directly
 </script>
 
 <div>
-	{$queryStore.data.viewer.id}
+	{$MyQuery.data.viewer.id}
 </div>
 ```
 

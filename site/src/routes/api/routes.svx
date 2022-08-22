@@ -241,7 +241,7 @@ export function afterLoad({ data }) {
 
 ## Manual Loading
 
-If you are writing your route's load functions by hand, you'll want to instantiate a store, calls its `fetch` method and return the store to your vite. In order to streamline this, houdini provides
+If you are writing your route's load functions by hand, you'll want to instantiate a store, calls its `fetch` method and return the store to your route. In order to streamline this, houdini provides
 a function for each of your stores that you can use to render your route on the server. These functions take the same
 parameters as `fetch`:
 

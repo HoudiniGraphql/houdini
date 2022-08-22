@@ -60,7 +60,7 @@ export class Config {
 		// apply defaults and pull out the values
 		let {
 			schema,
-			schemaPath,
+			schemaPath = './schema.graphql',
 			sourceGlob,
 			include = `src/**/*.{svelte,graphql,gql,ts,js}`,
 			exclude,

@@ -4,6 +4,7 @@ import path from 'path'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeSlug from 'rehype-slug'
 import preprocess from 'svelte-preprocess'
+import './src/lib/highlight.js'
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {

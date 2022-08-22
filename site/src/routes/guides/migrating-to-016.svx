@@ -1,0 +1,140 @@
+---
+sidebar: false
+---
+
+<script>
+    import { DeepDive } from '~/components'
+    import '~/lib/highlight'
+</script>
+
+# Migrating to 0.16.0
+
+[Lots changed](/guides/release-notes#0160) in 0.16.0. This document outlines the steps you will have to
+take to upgrade the houdini-related portions of your app. We recommend doing this while you upgrade
+your SvelteKit version since you will be checking/modifying the same files.
+
+If you are migrating a SvelteKit project, please run the official migration script before following along. Here it is in case you don't have it nearby:
+
+```bash
+npx svelte-migrate routes
+```
+
+## 1. Update configuration files
+
+### `./houdini.config.js`
+
+`client` and `include` are the only two things that you **need** to modify here.
+
+- `client` needs to be set to a relative path from `houdini.config.js` to a file in
+  your project that default exports your client:
+- `include` replaces `sourceGlob` but it's not required anymore. The default value is `src/**/*.{svelte,graphql,gql,ts,js}`
+  so unless you are doing something special, you can probably just delete it. If you _are_ doing something special,
+  make sure that you include `.js` in your extensions so that the generated `+page.js` can be picked up if you use
+  an automatic loader. Keep in mind there is a new `exclude` value that might be better suited to your situation.
+
+```diff
+
+  export default {
++   client: "./src/lib/client.ts",
+    apiUrl: "http://localhost:4000/graphql",
+-   sourceGlob: "./src/**/*.{svelte,graphql,gql},
+-   schemaPath: './schema.graphql',
+-   framework: "kit",
+  }
+```
+
+There are also new defaults that likely cover your situation. If you are interested in
+cleaning up your config some more, click on this Deep Dive:
+
+<DeepDive title="Cleaning up old values">
+
+Here is a summary of the config changes and new defaults so you can clean up your config file:
+
+- `schemaPath` now has a default value of `./schema.graphql`.
+- `static` has been removed. If you were setting it to true, you should now set `framework` to `"svelte"`.
+- `apiUrl` is not required anymore if you have a local schema (ie a monorepo or projects like KitQL where everything is being handled by SvelteKit). This will cause the vite plugin to not poll for
+- `framework` defaults to `"kit"`
+- `module` defaults to `"esm"`
+- `routesDir` has been removed. There is now a `projectDir` value that should be used to handle monorepo-like scenarios
+
+</DeepDive>
+
+### `./vite.config.js`
+
+```diff
+  import sveltekit from '@sveltejs/kit/vite'
++ import houdini from 'houdini/vite'
+
+  export default {
++   plugins: [ houdini(), sveltekit()],
+
+-   server: {
+-     fs: {
+-         allow: ['.']
+-     }
+-   }
+  }
+```
+
+Update your vite config file to use Houdini's new plugin. It must come before the sveltekit plugin. Also,
+while you're here, you can delete that ugly `server.fs.allow` config you had before.
+
+### `./svelte.config.js`
+
+```diff
+  import adapter from '@sveltejs/adapter-auto'
+- import houdini from 'houdini/preprocess'
+  import path from 'path'
+  import preprocess from 'svelte-preprocess'
+
+  /** @type {import('@sveltejs/kit').Config} */
+  const config = {
+-  	preprocess: [preprocess(), houdini()],
++  	preprocess: [preprocess()],
+
+  	kit: {
+  		adapter: adapter(),
+
+  		alias: {
+  			$houdini: path.resolve('./$houdini'),
+  			$lib: path.resolve('./src/lib'),
+  		},
+  	},
+  }
+
+  export default config
+```
+
+Remove the old preprocessor but leave the alias config.
+
+## 2.a Inline Queries
+
+```diff
+  import adapter from '@sveltejs/adapter-auto'
+- import houdini from 'houdini/preprocess'
+  import path from 'path'
+  import preprocess from 'svelte-preprocess'
+
+  /** @type {import('@sveltejs/kit').Config} */
+  const config = {
+-  	preprocess: [preprocess(), houdini()],
++  	preprocess: [preprocess()],
+
+  	kit: {
+  		adapter: adapter(),
+
+  		alias: {
+  			$houdini: path.resolve('./$houdini'),
+  			$lib: path.resolve('./src/lib'),
+  		},
+  	},
+  }
+
+  export default config
+```
+
+Query data can no longer be destructured from the result of the function. Instead, you
+
+## 3. Update external documents and manual loaders
+
+## 4. TypeScript Config
