@@ -1,12 +1,10 @@
+import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import {
   clientSideNavigation,
-  expectNGraphQLResponse,
   expectNoGraphQLRequest,
-  goto,
   goto_and_expectNGraphQLResponse
 } from '../../../lib/utils/testsHelper.js';
-import { expect, test } from '@playwright/test';
 
 test.describe('Layout & comp', () => {
   test('From page 2 to index the store should still be filled', async ({ page }) => {
