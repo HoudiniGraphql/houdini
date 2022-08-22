@@ -1,7 +1,7 @@
 import { sleep, stry } from '@kitql/helper';
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { expectToBe, goto } from '../../../lib/utils/testsHelper.js';
+import { expectToBe, goto, locator_click } from '../../../lib/utils/testsHelper.js';
 
 test.describe('Mutation Page', () => {
   test('No GraphQL request & default data in the store', async ({ page }) => {
@@ -20,11 +20,10 @@ test.describe('Mutation Page', () => {
   test('Add User + Optimistic + Result', async ({ page }) => {
     await goto(page, routes.Stores_Mutation);
 
-    const buttonAdd = page.locator(`button[id="mutate"]`);
-
     // 1 Optimistic Response
     // Await the click to have optimisticResponse data in the store
-    await buttonAdd.click();
+    await locator_click(page, `button[id="mutate"]`);
+
     const optiStoreValues = {
       data: {
         addUser: {
@@ -45,7 +44,8 @@ test.describe('Mutation Page', () => {
     await expectToBe(page, stry(optiStoreValues) ?? '', 'pre');
 
     // 2 Real Response
-    await sleep(2000); // The fake delai is of 2 sec
+    await sleep(2000); // The fake delai is of 1 sec
+
     const pre = await page.locator('pre').textContent();
     expect(pre?.trim(), 'Content of <pre> element').not.toContain('...optimisticResponse...'); // So it's the real response (id can change... That's why we don't compare a full result)
     expect(pre?.trim(), 'Content of <pre> element').toContain('"isOptimisticResponse": false');

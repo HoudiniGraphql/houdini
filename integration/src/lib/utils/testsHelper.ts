@@ -139,10 +139,15 @@ export function navSelector(route: string) {
  * if you want to check GraphQLResponse after, use `expectGraphQLResponse(page, navSelector(routes.XXX))`
  */
 export async function clientSideNavigation(page: Page, route: string) {
-  // Get the a link
-  const linkToPage = page.locator(navSelector(route));
+  await locator_click(page, navSelector(route));
+}
+
+export async function locator_click(page: Page, selector: string) {
+  const locator = page.locator(selector);
   // Trigger a client side navigation
-  await linkToPage.click();
+  await locator.click();
+  // wait for the navigation to happen
+  await sleep(111);
 }
 
 /**

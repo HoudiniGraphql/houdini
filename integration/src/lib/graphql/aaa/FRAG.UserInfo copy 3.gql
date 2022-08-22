@@ -1,5 +1,0 @@
-fragment UserInfo4 on User {
-  id
-  name
-  birthDate
-}

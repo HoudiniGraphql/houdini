@@ -1,6 +1,11 @@
 import { test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
-import { expect_1_gql, expectToBe, goto } from '../../../../lib/utils/testsHelper.js';
+import {
+  expect_1_gql,
+  expectToBe,
+  goto,
+  locator_click
+} from '../../../../lib/utils/testsHelper.js';
 
 test.describe('Mutation Preprocessor', () => {
   test('happy path', async ({ page }) => {
@@ -13,6 +18,6 @@ test.describe('Mutation Preprocessor', () => {
     await expectToBe(page, 'tmp name update');
 
     // revert the mutation
-    await page.locator('button[id=revert]').click();
+    await locator_click(page, 'button[id=revert]');
   });
 });

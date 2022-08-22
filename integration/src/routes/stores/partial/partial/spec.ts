@@ -1,5 +1,10 @@
 import { routes } from '../../../../lib/utils/routes.js';
-import { clientSideNavigation, expectToBe, goto } from '../../../../lib/utils/testsHelper.js';
+import {
+  clientSideNavigation,
+  expectToBe,
+  goto,
+  locator_click
+} from '../../../../lib/utils/testsHelper.js';
 import { sleep } from '@kitql/helper';
 import { test } from '@playwright/test';
 
@@ -12,7 +17,7 @@ test.describe('Partial Pages', () => {
     await goto(page, routes.Stores_Partial_List);
 
     // Go on the page 2: LIGHT
-    await page.locator('a[id="l_2"]').click();
+    await locator_click(page, 'a[id="l_2"]');
 
     // Wait a bit so that the server respond with 2 fields
     await sleep(2345);
@@ -25,9 +30,7 @@ test.describe('Partial Pages', () => {
     await clientSideNavigation(page, routes.Stores_Partial_List);
 
     // Go on the page 2: FULL
-    await page.locator('a[id="f_2"]').click();
-    // wait the navigation to happen
-    await sleep(300);
+    await locator_click(page, 'a[id="f_2"]');
 
     // Click on the link and check directly the 3 divs
     expectToBe(page, 'Partial:2', 'div[id="id"]');

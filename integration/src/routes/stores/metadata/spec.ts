@@ -1,4 +1,3 @@
-import { sleep } from '@kitql/helper';
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import { expect_1_gql, goto_expect_n_gql } from '../../../lib/utils/testsHelper.js';
@@ -7,9 +6,6 @@ test.describe('Metadata Page', () => {
   test('Mutation => Should display the raw result in the console as info', async ({ page }) => {
     // Go on the page
     await goto_expect_n_gql(page, routes.Stores_Metadata, 1);
-
-    // Wait a bit
-    await sleep(999);
 
     // Listen to the console
     let displayed = '';
