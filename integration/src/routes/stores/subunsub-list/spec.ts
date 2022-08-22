@@ -1,18 +1,16 @@
+import { test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import {
   clientSideNavigation,
   expectGraphQLResponse,
   expectToBe,
-  goto
+  goto_and_expectNGraphQLResponse
 } from '../../../lib/utils/testsHelper.js';
-import { test } from '@playwright/test';
 
 test.describe('SubUnsub Page', () => {
   test('Sub > Unsub > Mutate > Sub => Data should be updated & displayed', async ({ page }) => {
     // Go to the list and subscribe to the list
-    await goto(page, routes.Stores_subunsub_list);
-
-    await expectGraphQLResponse(page, null);
+    await goto_and_expectNGraphQLResponse(page, routes.Stores_subunsub_list, 1);
 
     await expectToBe(
       page,

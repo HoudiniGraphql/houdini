@@ -3,14 +3,14 @@ import {
   clientSideNavigation,
   expectNGraphQLResponse,
   expectNoGraphQLRequest,
-  goto
+  goto,
+  goto_and_expectNGraphQLResponse
 } from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('Layout & comp', () => {
   test('From page 2 to index the store should still be filled', async ({ page }) => {
-    await goto(page, routes.Stores_Layouts_page2);
-    await expectNGraphQLResponse(page, null, 2);
+    await goto_and_expectNGraphQLResponse(page, routes.Stores_Layouts_page2, 2);
 
     const pContent = await page.locator('p').allTextContents();
     expect(pContent).toEqual([

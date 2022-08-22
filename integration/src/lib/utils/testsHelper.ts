@@ -177,10 +177,23 @@ export async function clientSideNavigation(page: Page, route: string) {
 /**
  * Change the default of page.goto to wait for the page to be domcontentloaded!
  */
-export async function goto(page: Page, url: string): Promise<null | Response> {
-  const res = await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await sleep(33);
+export async function goto(
+  page: Page,
+  url: string,
+  waitUntil: 'domcontentloaded' | 'load' | 'networkidle' | 'commit' = 'domcontentloaded'
+): Promise<null | Response> {
+  const res = await page.goto(url, { waitUntil });
+  await sleep(44);
   return res;
+}
+
+export async function goto_and_expectNGraphQLResponse(
+  page: Page,
+  url: string,
+  n: number
+): Promise<string[]> {
+  await page.goto(url, { waitUntil: 'load' });
+  return expectNGraphQLResponse(page, null, n);
 }
 
 /**
