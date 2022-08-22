@@ -178,7 +178,9 @@ export async function clientSideNavigation(page: Page, route: string) {
  * Change the default of page.goto to wait for the page to be domcontentloaded!
  */
 export async function goto(page: Page, url: string): Promise<null | Response> {
-  return await page.goto(url, { waitUntil: 'domcontentloaded' });
+  const res = await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await sleep(33);
+  return res;
 }
 
 /**
