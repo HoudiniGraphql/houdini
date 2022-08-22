@@ -1,10 +1,14 @@
 import { routes } from '../../../lib/utils/routes.js';
-import { expectGraphQLResponse, expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.js';
+import {
+  expectGraphQLResponse,
+  expectNoGraphQLRequest,
+  goto
+} from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('Mutation Update Page', () => {
   test('Right Data, mutation, list update, revet', async ({ page }) => {
-    await page.goto(routes.Stores_Mutation_Update);
+    await goto(page, routes.Stores_Mutation_Update);
 
     const data = [
       'store-user-query:1 - Bruce Willis',

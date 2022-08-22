@@ -2,13 +2,14 @@ import { routes } from '../../../lib/utils/routes.js';
 import {
   clientSideNavigation,
   expectNGraphQLResponse,
-  expectNoGraphQLRequest
+  expectNoGraphQLRequest,
+  goto
 } from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('Layout & comp', () => {
   test('From page 2 to index the store should still be filled', async ({ page }) => {
-    await page.goto(routes.Stores_Layouts_page2);
+    await goto(page, routes.Stores_Layouts_page2);
     await expectNGraphQLResponse(page, null, 2);
 
     const pContent = await page.locator('p').allTextContents();

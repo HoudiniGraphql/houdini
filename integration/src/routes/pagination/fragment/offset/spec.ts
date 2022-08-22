@@ -2,13 +2,14 @@ import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
   expectNoGraphQLRequest,
-  expectToBe
+  expectToBe,
+  goto
 } from '../../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
 
 test.describe('offset paginatedFragment', () => {
   test('loadNextPage', async ({ page }) => {
-    await page.goto(routes.Pagination_fragment_offset);
+    await goto(page, routes.Pagination_fragment_offset);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);

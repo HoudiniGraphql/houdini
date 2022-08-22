@@ -1,11 +1,11 @@
 import { routes } from '../../../lib/utils/routes.js';
-import { expectNoGraphQLRequest, expectToBe } from '../../../lib/utils/testsHelper.js';
+import { expectNoGraphQLRequest, expectToBe, goto } from '../../../lib/utils/testsHelper.js';
 import { sleep, stry } from '@kitql/helper';
 import { expect, test } from '@playwright/test';
 
 test.describe('Mutation Page', () => {
   test('No GraphQL request & default data in the store', async ({ page }) => {
-    await page.goto(routes.Stores_Mutation);
+    await goto(page, routes.Stores_Mutation);
 
     await expectNoGraphQLRequest(page);
 
@@ -20,7 +20,7 @@ test.describe('Mutation Page', () => {
   });
 
   test('Add User + Optimistic + Result', async ({ page }) => {
-    await page.goto(routes.Stores_Mutation);
+    await goto(page, routes.Stores_Mutation);
 
     const buttonAdd = page.locator(`button[id="mutate"]`);
 

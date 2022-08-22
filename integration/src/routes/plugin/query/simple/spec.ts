@@ -3,13 +3,14 @@ import {
   expectGraphQLResponse,
   expectNoGraphQLRequest,
   expectToBe,
+  goto,
   navSelector
 } from '../../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('query preprocessor', () => {
   test('happy path query - SRR', async ({ page }) => {
-    await page.goto(routes.Plugin_query_simple);
+    await goto(page, routes.Plugin_query_simple);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
@@ -19,7 +20,7 @@ test.describe('query preprocessor', () => {
 
   test('happy path query - Network', async ({ page }) => {
     // Go to home
-    await page.goto(routes.Home);
+    await goto(page, routes.Home);
 
     const result = await expectGraphQLResponse(page, navSelector(routes.Plugin_query_simple));
     expect(result).toBe(

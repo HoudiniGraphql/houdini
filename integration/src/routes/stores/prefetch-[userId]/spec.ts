@@ -2,13 +2,14 @@ import { routes } from '../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
   expectNoGraphQLRequest,
-  expectToBe
+  expectToBe,
+  goto
 } from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('prefetch-[userId] Page', () => {
   test('Right Data in <h1> elements (SSR)', async ({ page }) => {
-    await page.goto(routes.Stores_Prefetch_UserId_2);
+    await goto(page, routes.Stores_Prefetch_UserId_2);
 
     await expectNoGraphQLRequest(page);
 

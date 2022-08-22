@@ -1,10 +1,10 @@
 import { routes } from '../../../../lib/utils/routes.js';
-import { expectNoGraphQLRequest, expectToBe } from '../../../../lib/utils/testsHelper.js';
+import { expectNoGraphQLRequest, expectToBe, goto } from '../../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
 
 test.describe('query preprocessor', () => {
   test('happy path query - SSR', async ({ page }) => {
-    await page.goto(routes.Plugin_load_list);
+    await goto(page, routes.Plugin_load_list);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);

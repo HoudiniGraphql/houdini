@@ -3,6 +3,7 @@ import {
   expectGraphQLResponse,
   expectNoGraphQLRequest,
   expectToBe,
+  goto,
   navSelector
 } from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
@@ -15,32 +16,32 @@ import { expect, test } from '@playwright/test';
 //     console.log('<<', response.status(), response.url());
 //   });
 
-//   await page.goto(routes.Stores_SSR);
+//   await goto(page, routes.Stores_SSR);
 // });
 
 test.describe('SSR-[userId] Page', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
-    await page.goto(routes.Stores_SSR_UserId_2);
+    await goto(page, routes.Stores_SSR_UserId_2);
 
     await expectNoGraphQLRequest(page);
   });
 
   test('Right Data in <h1> elements (SSR)', async ({ page }) => {
-    await page.goto(routes.Stores_SSR_UserId_2);
+    await goto(page, routes.Stores_SSR_UserId_2);
 
     await expectToBe(page, 'SSR - [userId: 2]', 'h1');
     await expectToBe(page, 'store-user-query:2 - Samuel Jackson');
   });
 
   test('From HOME, navigate to page (a graphql query must happen)', async ({ page }) => {
-    await page.goto(routes.Home);
+    await goto(page, routes.Home);
 
     const response = await expectGraphQLResponse(page, navSelector(routes.Stores_SSR_UserId_2));
     expect(response).toBe('{"data":{"user":{"id":"store-user-query:2","name":"Samuel Jackson"}}}');
   });
 
   test('Check refresh', async ({ page }) => {
-    await page.goto(routes.Stores_SSR_UserId_2);
+    await goto(page, routes.Stores_SSR_UserId_2);
 
     await expectToBe(page, 'store-user-query:2 - Samuel Jackson');
 
@@ -66,7 +67,7 @@ test.describe('SSR-[userId] Page', () => {
   });
 
   test('Check that variables order doesnt matter', async ({ page }) => {
-    await page.goto(routes.Stores_SSR_UserId_2);
+    await goto(page, routes.Stores_SSR_UserId_2);
 
     await expectNoGraphQLRequest(page, 'button[id="refresh-2"]');
 

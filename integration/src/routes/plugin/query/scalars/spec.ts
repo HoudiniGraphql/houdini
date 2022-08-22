@@ -2,13 +2,14 @@ import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
   expectToBe,
+  goto,
   navSelector
 } from '../../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('query preprocessor variables', () => {
   test('query values get unmarshaled into complex values', async function ({ page }) {
-    await page.goto(routes.Home);
+    await goto(page, routes.Home);
 
     // We want the query in the frontend, so we navigate to the page
     // to zoom on scalar test & data

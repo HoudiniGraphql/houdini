@@ -1,12 +1,12 @@
 import { routes } from '../../../lib/utils/routes.js';
-import { expectGraphQLResponse } from '../../../lib/utils/testsHelper.js';
+import { expectGraphQLResponse, goto } from '../../../lib/utils/testsHelper.js';
 import { sleep } from '@kitql/helper';
 import { expect, test } from '@playwright/test';
 
 test.describe('Metadata Page', () => {
   test('Mutation => Should display the raw result in the console as info', async ({ page }) => {
     // Go on the page
-    await page.goto(routes.Stores_Metadata);
+    await goto(page, routes.Stores_Metadata);
 
     // Wait a bit
     await sleep(999);

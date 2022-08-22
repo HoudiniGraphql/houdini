@@ -2,13 +2,14 @@ import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
   expectNoGraphQLRequest,
-  expectToBe
+  expectToBe,
+  goto
 } from '../../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
 
 test.describe('Mutation Preprocessor', () => {
   test('happy path', async ({ page }) => {
-    await page.goto(routes.Plugin_mutation_mutation);
+    await goto(page, routes.Plugin_mutation_mutation);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);

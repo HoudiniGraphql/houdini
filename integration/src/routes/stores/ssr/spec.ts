@@ -4,25 +4,26 @@ import {
   expectNGraphQLResponse,
   expectNoGraphQLRequest,
   expectToBe,
+  goto,
   navSelector
 } from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('SSR Page', () => {
   test('No GraphQL request & response happen (SSR)', async ({ page }) => {
-    await page.goto(routes.Stores_SSR);
+    await goto(page, routes.Stores_SSR);
 
     await expectNoGraphQLRequest(page);
   });
 
   test('expect the hello result (from another *.graphql file)', async ({ page }) => {
-    await page.goto(routes.Stores_SSR);
+    await goto(page, routes.Stores_SSR);
 
     await expectToBe(page, 'Hello World! // From Houdini!');
   });
 
   test('Right Data in <li> elements (SSR)', async ({ page }) => {
-    const body = await page.goto(routes.Stores_SSR);
+    const body = await goto(page, routes.Stores_SSR);
 
     const text = await body?.text();
 
@@ -42,7 +43,7 @@ test.describe('SSR Page', () => {
   test('From SSR to another page containing the same query should use the cache', async ({
     page
   }) => {
-    await page.goto(routes.Stores_SSR);
+    await goto(page, routes.Stores_SSR);
 
     await clientSideNavigation(page, routes.Stores_Network);
     await expectNoGraphQLRequest(page);
@@ -51,7 +52,7 @@ test.describe('SSR Page', () => {
   test('From HOME, navigate to page (only 2 graphql queries should happen, not more!)', async ({
     page
   }) => {
-    await page.goto(routes.Home);
+    await goto(page, routes.Home);
 
     const listStr = await expectNGraphQLResponse(page, navSelector(routes.Stores_SSR), 2);
     const expected = [

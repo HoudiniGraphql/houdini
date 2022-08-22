@@ -1,10 +1,10 @@
 import { routes } from '../../../lib/utils/routes.js';
-import { expectNoGraphQLRequest } from '../../../lib/utils/testsHelper.js';
+import { expectNoGraphQLRequest, goto } from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('Mutations', () => {
   test('Work in Endpoints', async ({ page }) => {
-    await page.goto(routes.Stores_Endpoint_Mutation);
+    await goto(page, routes.Stores_Endpoint_Mutation);
 
     await expectNoGraphQLRequest(page);
 

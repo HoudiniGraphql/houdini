@@ -1,5 +1,5 @@
 import { routes } from '../../../lib/utils/routes.js';
-import { expectNGraphQLResponse } from '../../../lib/utils/testsHelper.js';
+import { expectNGraphQLResponse, goto } from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('NETWORK Page', () => {
@@ -14,14 +14,14 @@ test.describe('NETWORK Page', () => {
       })
     );
 
-    await page.goto(routes.Stores_Network);
+    await goto(page, routes.Stores_Network);
 
     const ele = await page.content();
     expect(ele).toContain('<ul></ul>');
   });
 
   test('Getting the right data in a network mode (CSR)', async ({ page }) => {
-    await page.goto(routes.Stores_Network);
+    await goto(page, routes.Stores_Network);
 
     const listStr = await expectNGraphQLResponse(page, null, 2);
     const expected = [

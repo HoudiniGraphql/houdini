@@ -1,11 +1,11 @@
 import { routes } from '../../../lib/utils/routes.js';
-import { expectToBe } from '../../../lib/utils/testsHelper.js';
+import { expectToBe, goto } from '../../../lib/utils/testsHelper.js';
 import { sleep } from '@kitql/helper';
 import { test } from '@playwright/test';
 
 test.describe('network-one-store-multivariables Page', () => {
   test('Getting the right data in a network mode (CSR)', async ({ page }) => {
-    await page.goto(routes.Stores_Network_One_Store_Multivariables);
+    await goto(page, routes.Stores_Network_One_Store_Multivariables);
 
     await sleep(2000);
 

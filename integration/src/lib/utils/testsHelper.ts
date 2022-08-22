@@ -129,9 +129,6 @@ export async function expectNGraphQLResponse(
   // wait for the first of 10 seconds or n responses
   await Promise.race([sleep(10000), responsePromise]);
 
-  // Remove listeners
-  page.removeListener('response', fnRes);
-
   // if we got this far without resolving the promise, clean it up
   if (!resolved) {
     resolve();
@@ -141,16 +138,22 @@ export async function expectNGraphQLResponse(
   if (waitTime !== null) {
     await sleep(waitTime);
 
+    // Remove listeners
+    page.removeListener('response', fnRes);
+
     // if we got an extra request, fail
     if (nbResponse > n) {
-      throw new Error('Encountered too many responses');
+      expect(nbResponse, `Encountered too many responses (selector: ${selector})`).toBe(n);
     }
+  } else {
+    // Remove listeners
+    page.removeListener('response', fnRes);
   }
 
   // if we didn't get enough responses, we need to fail the test
   if (!resolved) {
     // we failed the test
-    throw new Error('Timeout waiting for api requests');
+    expect(nbResponse, `Encountered not enough responses (selector: ${selector})`).toBe(n);
   }
 
   return listStr.sort();
@@ -169,6 +172,13 @@ export async function clientSideNavigation(page: Page, route: string) {
   const linkToPage = page.locator(navSelector(route));
   // Trigger a client side navigation
   await linkToPage.click();
+}
+
+/**
+ * Change the default of page.goto to wait for the page to be domcontentloaded!
+ */
+export async function goto(page: Page, url: string): Promise<null | Response> {
+  return await page.goto(url, { waitUntil: 'domcontentloaded' });
 }
 
 /**

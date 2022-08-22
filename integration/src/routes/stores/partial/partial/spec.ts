@@ -1,12 +1,12 @@
 import { routes } from '../../../../lib/utils/routes.js';
-import { clientSideNavigation, expectToBe } from '../../../../lib/utils/testsHelper.js';
+import { clientSideNavigation, expectToBe, goto } from '../../../../lib/utils/testsHelper.js';
 import { sleep } from '@kitql/helper';
 import { test } from '@playwright/test';
 
 test.describe('Partial Pages', () => {
   test('From the list to the detail should see 2 info then the date coming', async ({ page }) => {
     // Go to the list
-    await page.goto(routes.Stores_Partial_List);
+    await goto(page, routes.Stores_Partial_List);
 
     // Go on the light page 2
     await page.locator('a[id="l_2"]').click();

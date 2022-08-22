@@ -3,13 +3,14 @@ import {
   expectGraphQLResponse,
   expectNoGraphQLRequest,
   expectToBe,
-  expectToContain
+  expectToContain,
+  goto
 } from '../../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('backwards cursor paginatedQuery', () => {
   test('loadPreviousPage', async ({ page }) => {
-    await page.goto(routes.Pagination_query_backwards_cursor);
+    await goto(page, routes.Pagination_query_backwards_cursor);
 
     // We should have the data without a GraphQL request in the client
     await expectNoGraphQLRequest(page);
@@ -24,7 +25,7 @@ test.describe('backwards cursor paginatedQuery', () => {
   });
 
   test('refetch', async ({ page }) => {
-    await page.goto(routes.Pagination_query_backwards_cursor);
+    await goto(page, routes.Pagination_query_backwards_cursor);
 
     // wait for the api response
     await expectGraphQLResponse(page, 'button[id=previous]');
@@ -37,7 +38,7 @@ test.describe('backwards cursor paginatedQuery', () => {
   });
 
   test('page info tracks connection state', async ({ page }) => {
-    await page.goto(routes.Pagination_query_backwards_cursor);
+    await goto(page, routes.Pagination_query_backwards_cursor);
 
     const data = [
       'Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood',
