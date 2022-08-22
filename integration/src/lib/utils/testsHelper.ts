@@ -152,7 +152,8 @@ export async function locator_click(page: Page, selector: string) {
 
 /**
  * Change the default of page.goto to wait for the page to be domcontentloaded!
- * By default goto expect NO graphql response, if you expect some, use: `goto_and_expectNGraphQLResponse`
+ * By default goto expect NO graphql response, if you expect some, use: `goto_expect_n_gql`
+ * @returns The response of the page
  */
 export async function goto(
   page: Page,
@@ -164,6 +165,9 @@ export async function goto(
   return res;
 }
 
+/**
+ * @returns The response of graphql queries
+ */
 export async function goto_expect_n_gql(page: Page, url: string, n: number): Promise<string[]> {
   await page.goto(url, { waitUntil: 'load' });
   return expect_n_gql(page, null, n);
