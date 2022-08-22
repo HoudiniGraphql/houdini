@@ -2,15 +2,15 @@ import { test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import {
   clientSideNavigation,
-  expectGraphQLResponse,
+  expect_1_gql,
   expectToBe,
-  goto_and_expectNGraphQLResponse
+  goto_expect_n_gql
 } from '../../../lib/utils/testsHelper.js';
 
 test.describe('SubUnsub Page', () => {
   test('Sub > Unsub > Mutate > Sub => Data should be updated & displayed', async ({ page }) => {
     // Go to the list and subscribe to the list
-    await goto_and_expectNGraphQLResponse(page, routes.Stores_subunsub_list, 1);
+    await goto_expect_n_gql(page, routes.Stores_subunsub_list, 1);
 
     await expectToBe(
       page,
@@ -22,7 +22,7 @@ test.describe('SubUnsub Page', () => {
     await clientSideNavigation(page, routes.Stores_subunsub_mutation);
 
     // Mutate the data (that will be displayed in the list)
-    await expectGraphQLResponse(page, 'button[id=mutate]');
+    await expect_1_gql(page, 'button[id=mutate]');
 
     // Go back to the list page and check that the data are updated
     await clientSideNavigation(page, routes.Stores_subunsub_list);

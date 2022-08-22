@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import {
-  expectNGraphQLResponse,
-  expectNoGraphQLResponse,
+  expect_n_gql,
+  expect_0_gql,
   expectToBe,
   goto,
   navSelector
@@ -42,7 +42,7 @@ test.describe('SSR Page', () => {
   }) => {
     await goto(page, routes.Stores_SSR);
 
-    await expectNoGraphQLResponse(page, navSelector(routes.Stores_Network));
+    await expect_0_gql(page, navSelector(routes.Stores_Network));
   });
 
   test('From HOME, navigate to page (only 2 graphql queries should happen, not more!)', async ({
@@ -50,7 +50,7 @@ test.describe('SSR Page', () => {
   }) => {
     await goto(page, routes.Home);
 
-    const listStr = await expectNGraphQLResponse(page, navSelector(routes.Stores_SSR), 2);
+    const listStr = await expect_n_gql(page, navSelector(routes.Stores_SSR), 2);
     const expected = [
       `{"data":{"hello":"Hello World! // From Houdini!"}}`,
       `{"data":{"usersList":[{"id":"store-user-query:1","name":"Bruce Willis","birthDate":-466732800000},{"id":"store-user-query:2","name":"Samuel Jackson","birthDate":-663638400000},{"id":"store-user-query:3","name":"Morgan Freeman","birthDate":-1028419200000},{"id":"store-user-query:4","name":"Tom Hanks","birthDate":-425433600000}]}}`

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { expectGraphQLResponse, goto } from '../../../lib/utils/testsHelper.js';
+import { expect_1_gql, goto } from '../../../lib/utils/testsHelper.js';
 
 test.describe('Mutation Update Page', () => {
   test('Right Data, mutation, list update, revet', async ({ page }) => {
@@ -34,7 +34,7 @@ test.describe('Mutation Update Page', () => {
 
     // 2 Updated data
     // 2.1 One request should happen
-    await expectGraphQLResponse(page, 'button[id="mutate"]');
+    await expect_1_gql(page, 'button[id="mutate"]');
 
     li = page.locator('li');
     for (let i = 0; i < count; ++i) {
@@ -43,7 +43,7 @@ test.describe('Mutation Update Page', () => {
     }
 
     // 3 Revert data
-    await expectGraphQLResponse(page, 'button[id="revert"]');
+    await expect_1_gql(page, 'button[id="revert"]');
     li = page.locator('li');
     for (let i = 0; i < count; ++i) {
       const text = await li.nth(i).textContent();

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
-import { goto, goto_and_expectNGraphQLResponse } from '../../../lib/utils/testsHelper.js';
+import { goto, goto_expect_n_gql } from '../../../lib/utils/testsHelper.js';
 
 test.describe('NETWORK Page', () => {
   test('we have no li element(s) in <ul></ul> (no data from SSR)', async ({ page }) => {
@@ -16,7 +16,7 @@ test.describe('NETWORK Page', () => {
   });
 
   test('Getting the right data in a network mode (CSR)', async ({ page }) => {
-    const listStr = await goto_and_expectNGraphQLResponse(page, routes.Stores_Network, 2);
+    const listStr = await goto_expect_n_gql(page, routes.Stores_Network, 2);
 
     const expected = [
       `{"data":{"hello":"Hello World! // From Houdini!"}}`,

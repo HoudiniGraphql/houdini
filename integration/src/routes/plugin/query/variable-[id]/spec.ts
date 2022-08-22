@@ -1,11 +1,6 @@
 import { test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
-import {
-  expectGraphQLResponse,
-  expectToBe,
-  goto,
-  navSelector
-} from '../../../../lib/utils/testsHelper.js';
+import { expect_1_gql, expectToBe, goto, navSelector } from '../../../../lib/utils/testsHelper.js';
 
 test.describe('query preprocessor variables', () => {
   test('default value', async ({ page }) => {
@@ -16,7 +11,7 @@ test.describe('query preprocessor variables', () => {
     await expectToBe(page, '{"id":"1"}', '#variables');
 
     // We should have the data with only 1 GraphQL request in the client
-    await expectGraphQLResponse(page, navSelector(routes.Plugin_query_variable_2));
+    await expect_1_gql(page, navSelector(routes.Plugin_query_variable_2));
 
     await expectToBe(page, 'Samuel Jackson');
 

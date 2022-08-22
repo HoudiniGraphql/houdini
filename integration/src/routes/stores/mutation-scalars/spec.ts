@@ -1,5 +1,5 @@
 import { routes } from '../../../lib/utils/routes.js';
-import { expectGraphQLResponse, goto, expectToBe } from '../../../lib/utils/testsHelper.js';
+import { expect_1_gql, goto, expectToBe } from '../../../lib/utils/testsHelper.js';
 import { test } from '@playwright/test';
 
 test.describe('mutation store', function () {
@@ -7,7 +7,7 @@ test.describe('mutation store', function () {
     await goto(page, routes.Stores_Mutation_Scalars);
 
     // trigger the mutation and wait for a response
-    await expectGraphQLResponse(page, 'button[id=mutate]');
+    await expect_1_gql(page, 'button[id=mutate]');
 
     // make sure that the result updated with unmarshaled data
     await expectToBe(

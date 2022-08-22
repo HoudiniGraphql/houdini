@@ -1,10 +1,5 @@
 import { routes } from '../../../lib/utils/routes.js';
-import {
-  expectGraphQLResponse,
-  expectNoGraphQLResponse,
-  expectToBe,
-  goto
-} from '../../../lib/utils/testsHelper.js';
+import { expect_1_gql, expect_0_gql, expectToBe, goto } from '../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('prefetch-[userId] Page', () => {
@@ -18,19 +13,19 @@ test.describe('prefetch-[userId] Page', () => {
     await expectToBe(page, dataDisplayedSSR);
 
     // Hovering previous link should not change the data displayed
-    let response = await expectGraphQLResponse(page, 'a[id=previous]', 'hover');
+    let response = await expect_1_gql(page, 'a[id=previous]', 'hover');
     expect(JSON.parse(response ?? '{}').data.user.id).toBe('store-user-query:1'); // Should get the right data
     // Data displayed should still be the same
     await expectToBe(page, dataDisplayedSSR);
 
     // Hovering next link should not change the data displayed
-    response = await expectGraphQLResponse(page, 'a[id=next]', 'hover');
+    response = await expect_1_gql(page, 'a[id=next]', 'hover');
     expect(JSON.parse(response ?? '{}').data.user.id).toBe('store-user-query:3'); // Should get the right data
     // Data displayed should still be the same
     await expectToBe(page, dataDisplayedSSR);
 
     // Hovering again previous link should not trigger a new request (it's already ion the cache) AND should not change sur data displayed
-    await expectNoGraphQLResponse(page, `a[id=previous]`, 'hover');
+    await expect_0_gql(page, `a[id=previous]`, 'hover');
     // Data displayed should still be the same
     await expectToBe(page, dataDisplayedSSR);
   });

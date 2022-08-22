@@ -1,10 +1,5 @@
 import { routes } from '../../../../lib/utils/routes.js';
-import {
-  expectGraphQLResponse,
-  expectToBe,
-  goto,
-  navSelector
-} from '../../../../lib/utils/testsHelper.js';
+import { expect_1_gql, expectToBe, goto, navSelector } from '../../../../lib/utils/testsHelper.js';
 import { expect, test } from '@playwright/test';
 
 test.describe('query preprocessor variables', () => {
@@ -13,7 +8,7 @@ test.describe('query preprocessor variables', () => {
 
     // We want the query in the frontend, so we navigate to the page
     // to zoom on scalar test & data
-    const result = await expectGraphQLResponse(page, navSelector(routes.Plugin_query_scalars));
+    const result = await expect_1_gql(page, navSelector(routes.Plugin_query_scalars));
     const json = JSON.parse(result ?? '');
     expect(json.data.user.birthDate).toBe(-466732800000);
 

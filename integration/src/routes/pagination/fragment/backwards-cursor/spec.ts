@@ -1,8 +1,8 @@
 import { test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
 import {
-  expectGraphQLResponse,
-  expectNoGraphQLResponse,
+  expect_1_gql,
+  expect_0_gql,
   expectToBe,
   expectToContain,
   goto
@@ -15,7 +15,7 @@ test.describe('backwards cursor paginatedFragment', () => {
     await expectToBe(page, 'Eddie Murphy, Clint Eastwood');
 
     // wait for the api response
-    await expectGraphQLResponse(page, 'button[id=previous]');
+    await expect_1_gql(page, 'button[id=previous]');
 
     // make sure we got the new content
     await expectToBe(page, 'Will Smith, Harrison Ford, Eddie Murphy, Clint Eastwood');
@@ -33,7 +33,7 @@ test.describe('backwards cursor paginatedFragment', () => {
     // load the previous 3 pages
     for (let i = 0; i < 3; i++) {
       // wait for the request to resolve
-      await expectGraphQLResponse(page, 'button[id=previous]');
+      await expect_1_gql(page, 'button[id=previous]');
       // check the page info
       await expectToBe(page, data[i]);
     }
@@ -43,6 +43,6 @@ test.describe('backwards cursor paginatedFragment', () => {
 
     await expectToContain(page, `"hasPreviousPage":false`);
 
-    await expectNoGraphQLResponse(page, 'button[id=previous]');
+    await expect_0_gql(page, 'button[id=previous]');
   });
 });

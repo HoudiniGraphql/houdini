@@ -8,13 +8,12 @@ import { expect } from '@playwright/test';
  * @param selector example: "button[id=next]"
  * @returns
  */
-export async function expectGraphQLResponse(
+export async function expect_0_gql(
   page: Page,
   selector?: string | null,
   action: 'click' | 'hover' = 'click'
 ) {
-  const listStr = await expectNGraphQLResponse(page, selector || null, 1, action);
-  return listStr[0];
+  await expect_n_gql(page, selector || null, 0, action);
 }
 
 /**
@@ -22,12 +21,13 @@ export async function expectGraphQLResponse(
  * @param selector example: "button[id=next]"
  * @returns
  */
-export async function expectNoGraphQLResponse(
+export async function expect_1_gql(
   page: Page,
   selector?: string | null,
   action: 'click' | 'hover' = 'click'
 ) {
-  await expectNGraphQLResponse(page, selector || null, 0, action);
+  const listStr = await expect_n_gql(page, selector || null, 1, action);
+  return listStr[0];
 }
 
 /**
@@ -35,7 +35,7 @@ export async function expectNoGraphQLResponse(
  * @param selector example: "button[id=next]"
  * @returns The list of response. We will sort results by Alphabetical order (because we can't do any thing else :))
  */
-export async function expectNGraphQLResponse(
+export async function expect_n_gql(
   page: Page,
   selector: string | null,
   n: number,
@@ -155,17 +155,13 @@ export async function goto(
   waitUntil: 'domcontentloaded' | 'load' | 'networkidle' | 'commit' = 'domcontentloaded'
 ): Promise<null | Response> {
   const res = await page.goto(url, { waitUntil });
-  await expectNGraphQLResponse(page, null, 0);
+  await expect_n_gql(page, null, 0);
   return res;
 }
 
-export async function goto_and_expectNGraphQLResponse(
-  page: Page,
-  url: string,
-  n: number
-): Promise<string[]> {
+export async function goto_expect_n_gql(page: Page, url: string, n: number): Promise<string[]> {
   await page.goto(url, { waitUntil: 'load' });
-  return expectNGraphQLResponse(page, null, n);
+  return expect_n_gql(page, null, n);
 }
 
 /**

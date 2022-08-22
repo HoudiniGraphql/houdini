@@ -1,7 +1,7 @@
 import { routes } from '../../../../../lib/utils/routes.js';
 import {
-  expectGraphQLResponse,
-  expectNoGraphQLResponse,
+  expect_1_gql,
+  expect_0_gql,
   expectToBe,
   expectToContain,
   goto
@@ -15,7 +15,7 @@ test.describe('forwards cursor paginatedQuery', () => {
     await expectToBe(page, 'Bruce Willis, Samuel Jackson');
 
     // wait for the api response
-    await expectGraphQLResponse(page, 'button[id=next]');
+    await expect_1_gql(page, 'button[id=next]');
 
     // // make sure we got the new content
     await expectToBe(page, 'Bruce Willis, Samuel Jackson, Morgan Freeman, Tom Hanks');
@@ -25,7 +25,7 @@ test.describe('forwards cursor paginatedQuery', () => {
     await goto(page, routes.Pagination_query_forward_cursor);
 
     // wait for the api response
-    let response = await expectGraphQLResponse(page, 'button[id=next]');
+    let response = await expect_1_gql(page, 'button[id=next]');
     expect(response).not.toContain(
       '"name":"Bruce Willis","id":"pagination-query-forwards-cursor:1"'
     );
@@ -36,7 +36,7 @@ test.describe('forwards cursor paginatedQuery', () => {
     expect(response).toContain('"name":"Tom Hanks","id":"pagination-query-forwards-cursor:4"');
 
     // wait for the api response
-    response = await expectGraphQLResponse(page, 'button[id=refetch]');
+    response = await expect_1_gql(page, 'button[id=refetch]');
 
     expect(response).toContain('"name":"Bruce Willis","id":"pagination-query-forwards-cursor:1"');
     expect(response).toContain('"name":"Samuel Jackson","id":"pagination-query-forwards-cursor:2"');
@@ -63,7 +63,7 @@ test.describe('forwards cursor paginatedQuery', () => {
       expect(Array.isArray(JSON.parse(pageInfo))).toBeFalsy();
 
       // wait for the request to resolve
-      await expectGraphQLResponse(page, 'button[id=next]');
+      await expect_1_gql(page, 'button[id=next]');
 
       // check the data
       await expectToBe(page, data[i]);
@@ -74,6 +74,6 @@ test.describe('forwards cursor paginatedQuery', () => {
 
     await expectToContain(page, `"hasNextPage":false`);
 
-    await expectNoGraphQLResponse(page, 'button[id=next]');
+    await expect_0_gql(page, 'button[id=next]');
   });
 });
