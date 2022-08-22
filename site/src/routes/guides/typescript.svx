@@ -38,7 +38,7 @@ export const houdini_load = graphql`
 	}
 `
 
-export function afterLoad({ data }: AfterLoadEvent){
+export function afterLoad({ data }: AfterLoadEvent) {
 	return {
 		computedValue: data.MyProfile.viewer.id + '_new'
 	}
@@ -48,10 +48,10 @@ export function afterLoad({ data }: AfterLoadEvent){
 Your `PageData` component will also come from `./$houdini` since SvelteKit's generated type definitions don't know about the generated load:
 
 ```svelte
-// src/routes/myProfile/+page.svelte
+<!-- src/routes/myProfile/+page.svelte -->
 
 <script>
-    import { PageData } from './$houdini'
+	import { PageData } from './$houdini'
 
 	export let data: PageData
 
@@ -71,7 +71,7 @@ from `$houdini` and pass it in:
 	import { query, graphql, AllItems } from '$houdini'
 
 	// load the items
-	const { data } = query<AllItems>(graphql`
+	const allItems = query<AllItems>(graphql`
 		query AllItems {
 			items {
 				id
@@ -81,7 +81,7 @@ from `$houdini` and pass it in:
 	`)
 </script>
 
-{#each $data.items as item}
+{#each $allItems.data.items as item}
 	<div>{item.text}</div>
 {/each}
 ```

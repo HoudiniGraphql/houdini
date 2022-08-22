@@ -65,7 +65,7 @@ Here is a summary of the config changes and new defaults so you can clean up you
 + import houdini from 'houdini/vite'
 
   export default {
-+   plugins: [ houdini(), sveltekit()],
++   plugins: [houdini(), sveltekit()],
 
 -   server: {
 -     fs: {
@@ -231,8 +231,8 @@ argument is the variables for the mutation and any additional config comes after
     import { GQL_MyUpdate } from '$houdini'
   </script>
 
-- <button on:click={() => GQL_MyUpdate.mutate({variables: { ... }})}>
-+ <button on:click={() => GQL_MyUpdate.mutate({ ... })}>
+- <button on:click={() => GQL_MyUpdate.mutate({ variables: { ... } policy: 'NetworkOnly' })}>
++ <button on:click={() => GQL_MyUpdate.mutate({ ... }, { policy: 'NetworkOnly' })}>
     submit
   </button>
 
