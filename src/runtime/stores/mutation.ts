@@ -22,25 +22,21 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 		this.store = writable(this.nullState)
 	}
 
-	async mutate({
-		variables,
-		context,
-		metadata,
-		fetch,
-		...mutationConfig
-	}: {
-		variables: _Input
-		// @ts-ignore
-		metadata?: App.Metadata
-		context?: HoudiniFetchContext
-		fetch?: LoadEvent['fetch']
-	} & MutationConfig<_Data, _Input>) {
+	async mutate(
+		variables: _Input,
+		{
+			context,
+			metadata,
+			fetch,
+			...mutationConfig
+		}: {
+			// @ts-ignore
+			metadata?: App.Metadata
+			context?: HoudiniFetchContext
+			fetch?: LoadEvent['fetch']
+		} & MutationConfig<_Data, _Input> = {}
+	) {
 		const config = await getCurrentConfig()
-
-		let fetchContext: HoudiniFetchContext | { session: () => null } = context ??
-			this.context ?? {
-				session: () => null,
-			}
 
 		this.store.update((c) => {
 			return { ...c, isFetching: true }

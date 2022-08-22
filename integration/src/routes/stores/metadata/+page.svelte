@@ -3,13 +3,15 @@
   import { GQL_Session, GQL_UpdateUserSubUnsub } from '$houdini';
 
   async function mutate() {
-    await GQL_UpdateUserSubUnsub.mutate({
-      variables: {
+    await GQL_UpdateUserSubUnsub.mutate(
+      {
         id: '5',
         name: 'Hello!'
       },
-      metadata: { logResult: true }
-    });
+      {
+        metadata: { logResult: true }
+      }
+    );
   }
 
   $: browser && GQL_Session.fetch({ metadata: { logResult: true } });

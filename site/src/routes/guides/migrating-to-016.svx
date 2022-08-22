@@ -1,5 +1,6 @@
 ---
-sidebar: false
+title: Migrating to 0.16.0
+index: 2
 ---
 
 <script>
@@ -13,20 +14,18 @@ sidebar: false
 take to upgrade the houdini-related portions of your app. We recommend doing this while you upgrade
 your SvelteKit version since you will be checking/modifying the same files.
 
-If you are migrating a SvelteKit project, please run the official migration script before following along. Here it is in case you don't have it nearby:
-
 ```bash
 npx svelte-migrate routes
 ```
 
-## 1. Update configuration files
+## 1. Configuration files
 
 ### `./houdini.config.js`
 
-`client` and `include` are the only two things that you **need** to modify here.
+`client` and `include` are the only two things that you **need** to add here.
 
 - `client` needs to be set to a relative path from `houdini.config.js` to a file in
-  your project that default exports your client:
+  your project that default exports your client. It can point to a typescript file if appropriate.
 - `include` replaces `sourceGlob` but it's not required anymore. The default value is `src/**/*.{svelte,graphql,gql,ts,js}`
   so unless you are doing something special, you can probably just delete it. If you _are_ doing something special,
   make sure that you include `.js` in your extensions so that the generated `+page.js` can be picked up if you use
@@ -107,34 +106,149 @@ while you're here, you can delete that ugly `server.fs.allow` config you had bef
 
 Remove the old preprocessor but leave the alias config.
 
-## 2.a Inline Queries
+## 2. Inline Documents
+
+`subscription` and `mutation` are the same for the most part but `query` and `fragment` both
+have changes to their API that will require some manual manipulation.
+
+### 2.a Inline Queries
+
+A majority of the work will be done by the SvelteKit migration tool. Anything that used
+to be defined in `context="module"` needs to be in `+page.js` (or the typescript equivalent).
+This includes variable functions, hooks, etc. You can use the generated `@migration`
+comments to track which queries need updating.
+
+Apart from that, the way you access your query data has changed.
 
 ```diff
-  import adapter from '@sveltejs/adapter-auto'
-- import houdini from 'houdini/preprocess'
-  import path from 'path'
-  import preprocess from 'svelte-preprocess'
+  <script>
+-   const { data } = query(graphql`
++   const UserInfo = query(graphql`
+      query UserInfo {
+        viewer {
+          firstName
+        }
+      }
+    `)
+  </script>
 
-  /** @type {import('@sveltejs/kit').Config} */
-  const config = {
--  	preprocess: [preprocess(), houdini()],
-+  	preprocess: [preprocess()],
-
-  	kit: {
-  		adapter: adapter(),
-
-  		alias: {
-  			$houdini: path.resolve('./$houdini'),
-  			$lib: path.resolve('./src/lib'),
-  		},
-  	},
-  }
-
-  export default config
+  <div>
+-    {$data.viewer.firstName}
++    {$UserInfo.data.viewer.firstName}
+  </div>
 ```
 
-Query data can no longer be destructured from the result of the function. Instead, you
+You can no longer destructure data when using `query`. Instead, `query` returns a store
+that holds an object with the data. Methods like `fetch` and `loadNextPage` are attached to
+the store itself and do not need the `$`:
 
-## 3. Update external documents and manual loaders
+```diff
+- <button on:click={loadNextPage}>
++ <button on:click={MyStore.loadNextPage}>
+    load next
+  </button>
+```
 
-## 4. TypeScript Config
+### 2.b Inline Fragments
+
+The order for the arguments to inline fragments has been inverted.
+
+```diff
+  <script>
+-   const avatarInfo = fragment(graphql`
++   const avatarInfo = fragment(user, graphql`
+        viewer {
+          firstName
+        }
+      }
+-     `,
+-     user
+-   )
++   `)
+  </script>
+
+  <div>
+     {$avatarInfo.firstName}
+  </div>
+```
+
+## 3. External Queries
+
+There are 2 different parts to change for every route that used an external document: `+page.svelte` and `+page.js`
+
+### 3.a Page components (`+page.svelte`)
+
+Instead of importing the stores, your components now get them from a
+prop passed to your routes. Typescript users can use the standard `PageData` provided by SvelteKit to get type
+information for the store. This not only simplifies the mental model but also means we can remove a lot of boilerplate:
+
+```diff
+  <script>
+-   import { browser } from ' $app/env'
+-   import { GQL_MyUserInfo } from '$houdini'
++   export let data
+
++   $: ({ MyUserInfo } = data)
+-   $: browser && GQL_MyUserInfo.fetch()
+  </script>
+
++ {$MyUserInfo.data.viewer.id}
+- {$GQL_MyUserInfo.data.viewer.id}
+```
+
+### 3.b Page loaders (`+page.js` or `+page.ts`)
+
+The second thing you need to update is the load function. The official migration script will
+have already moved everything into the `+page.js/ts` files but you now need to modify the load function
+to return a prop that points to your store. To streamline this, Houdini provides a new family
+of utility functions:
+
+```diff
+- import { GQL_UserInfo } from "$houdini"
++ import { load_UserInfo } from "$houdini"
+
+  export async function load(event) {
+-   GQL_UserInfo.fetch({event, variables: { ... }})
+-   return {}
++   return {
++     ...await load_MyUserInfo({event, variables: { ... }})
++   }
+  }
+
+```
+
+By the way, what we used to call "external documents" we now refer to as "manual loading"
+since Houdini can now generate automatic loaders for your external files. Interested?
+Check out the new [Working with GraphQL](/guides/working-with-graphql) guide.
+
+## 4. External Mutations
+
+The `mutate` method of mutation stores now reflects the inline equivalent. The first
+argument is the variables for the mutation and any additional config comes after:
+
+```diff
+  <script>
+    import { GQL_MyUpdate } from '$houdini'
+  </script>
+
+- <button on:click={() => GQL_MyUpdate.mutate({variables: { ... }})}>
++ <button on:click={() => GQL_MyUpdate.mutate({ ... })}>
+    submit
+  </button>
+
+```
+
+## 5. TypeScript Config
+
+Houdini now provides type definitions for all of your load functions (variables, hooks, etc).
+To set this up, you have to add `$houdini/types` as a `rootDir` in your typescript config file:
+
+```json
+{
+	// ...
+    "compilerOptions": {
+        // ...
+        "rootDirs": [".", "./.svelte-kit/types", "./$houdini/types"]
+    }
+}
+```

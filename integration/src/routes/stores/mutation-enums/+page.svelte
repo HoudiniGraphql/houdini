@@ -3,13 +3,11 @@
 
   async function update() {
     await GQL_EnumMutation.mutate({
-      variables: {
-        birthDate: new Date(),
-        name: 'Foo',
-        snapshot: 'foo',
-        value: MyEnum.Value1,
-        types: [TypeOfUser.COOL, TypeOfUser.NICE]
-      }
+      birthDate: new Date(),
+      name: 'Foo',
+      snapshot: 'foo',
+      value: MyEnum.Value1,
+      types: [TypeOfUser.COOL, TypeOfUser.NICE]
     });
   }
 </script>

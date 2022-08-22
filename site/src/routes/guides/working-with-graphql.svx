@@ -1,6 +1,6 @@
 ---
 title: Working With GraphQL
-index: 2
+index: 3
 description: An overview of the various ways Houdini applications can leverage GraphQL documents.
 ---
 

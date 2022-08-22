@@ -1,6 +1,6 @@
 ---
 title: Caching Data
-index: 4
+index: 6
 description: A guide to all things caching in Houdini
 ---
 
@@ -74,7 +74,7 @@ query AllItems @cache(partial: true) {
 }
 ```
 
-This means that you will have to deal with a lot of `null` states in order to accommodate the missing data but it can result in a much snappier interface for your users. Keep in mind that Houdini tries its hardest to keep your data "correct". This means that if a value is missing that isn't allowed to be null according to your project's schema it will turn an entire object `null`. This behavior is described by the [GraphQL spec](http://spec.graphql.org/June2018/#sec-Errors-and-Non-Nullability). 
+This means that you will have to deal with a lot of `null` states in order to accommodate the missing data but it can result in a much snappier interface for your users. Keep in mind that Houdini tries its hardest to keep your data "correct". This means that if a value is missing that isn't allowed to be null according to your project's schema it will turn an entire object `null`. This behavior is described by the [GraphQL spec](http://spec.graphql.org/June2018/#sec-Errors-and-Non-Nullability).
 
 The default partial state can be configured with the `defaultPartial` value in your config file:
 

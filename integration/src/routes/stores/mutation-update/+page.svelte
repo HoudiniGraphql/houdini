@@ -9,12 +9,14 @@
 
   async function update() {
     await GQL_UpdateUser.mutate({
-      variables: { id: '5', name: 'tmp name update' }
+      id: '5',
+      name: 'tmp name update'
     });
   }
   async function revert() {
     await GQL_UpdateUser.mutate({
-      variables: { id: '5', name: 'Will Smith' }
+      id: '5',
+      name: 'Will Smith'
     });
   }
 </script>

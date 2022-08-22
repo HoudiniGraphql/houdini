@@ -1,6 +1,6 @@
 ---
 title: Contributing to Houdini
-index: 8
+index: 10
 description: A guide for contributing to Houdini
 ---
 

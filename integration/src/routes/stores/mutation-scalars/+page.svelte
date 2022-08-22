@@ -3,7 +3,8 @@
 
   async function update() {
     await GQL_UpdateUser.mutate({
-      variables: { id: '6', birthDate: new Date('1986-11-07') }
+      id: '6',
+      birthDate: new Date('1986-11-07')
     });
   }
 </script>

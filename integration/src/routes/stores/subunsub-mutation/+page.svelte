@@ -2,10 +2,8 @@
   import { GQL_UpdateUserSubUnsub } from '$houdini';
   async function mutate() {
     await GQL_UpdateUserSubUnsub.mutate({
-      variables: {
-        id: '1',
-        name: 'JYC & Alec!'
-      }
+      id: '1',
+      name: 'JYC & Alec!'
     });
   }
 </script>
