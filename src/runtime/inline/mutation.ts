@@ -13,10 +13,7 @@ export function mutation<_Mutation extends Operation<any, any>>(store: GraphQLTa
 		variables: _Mutation['input'],
 		mutationConfig?: MutationConfig<_Mutation['result'], _Mutation['input']>
 	): Promise<_Mutation['result']> => {
-		const { data } = await mutationStore.mutate({
-			variables,
-			...mutationConfig,
-		})
+		const { data } = await mutationStore.mutate(variables, { ...mutationConfig })
 
 		return data
 	}
