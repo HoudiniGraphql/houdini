@@ -59,62 +59,33 @@ export async function expectNGraphQLResponse(
   n: number,
   action: 'click' | 'hover' = 'click'
 ) {
-  // we are going to wait for n responses or 10seconds (whichever  comes first)
+  const start = new Date().valueOf();
+  const timing: number[] = [];
 
-  // a promise that we'll resolve when we have all the responses
-  let resolve: () => void = () => {};
-  let resolved = false;
-  const responsePromise = new Promise<void>((res) => {
-    resolve = res;
-  });
-
-  // keep track of how many responses we've seen
+  // let nbRequest = 0;
   let nbResponse = 0;
-
-  // and a stringified version of the response
   const listStr: string[] = [];
 
-  let lock = false;
+  // function fnReq(request: any) {
+  //   // console.log('>>', request.method(), request.url());
+  //   if (request.url().endsWith(routes.GraphQL)) {
+  //     nbRequest++;
+  //   }
+  // }
 
-  let waitTime: number | null = null;
-  const start = new Date().valueOf();
-
-  // the function to call on each response
   async function fnRes(response: Response) {
-    // if the response isn't for our API, don't count it
-    if (!response.url().endsWith(routes.GraphQL)) {
-      return;
-    }
-    if (waitTime === null) {
-      waitTime = new Date().valueOf() - start;
-    }
-
-    while (lock) {
-      await sleep(10);
-    }
-
-    lock = true;
-
-    // increment the count
-    nbResponse++;
-
-    // if we're still waiting for a response, add the body to the list
-    if (nbResponse <= n) {
+    // console.log('<<', response.status(), response.url());
+    if (response.url().endsWith(routes.GraphQL)) {
+      nbResponse++;
+      timing.push(new Date().valueOf() - start);
       const json = await response.json();
       const str = stry(json, 0);
       listStr.push(str as string);
     }
-
-    // if we got enough responses, resolve the promise
-    if (nbResponse == n) {
-      resolved = true;
-      resolve();
-    }
-
-    lock = false;
   }
 
   // Listen
+  // page.on('request', fnReq);
   page.on('response', fnRes);
 
   // Trigger the action
@@ -126,36 +97,23 @@ export async function expectNGraphQLResponse(
     }
   }
 
-  // wait for the first of 10 seconds or n responses
-  await Promise.race([sleep(10000), responsePromise]);
+  // Wait a bit...
+  await sleep(1111);
 
-  // if we got this far without resolving the promise, clean it up
-  if (!resolved) {
-    resolve();
-  }
+  // Remove listeners
+  // page.removeListener('request', fnReq);
+  page.removeListener('response', fnRes);
 
-  // if we have a wait time, then wait
-  if (waitTime !== null) {
-    await sleep(waitTime);
+  // Check if numbers are ok
+  // expect(nbRequest, 'nbRequest').toBe(n);
+  expect(
+    nbResponse,
+    `Didn't encountered the right number of responses (selector: ${selector})`
+  ).toBe(n);
 
-    // Remove listeners
-    page.removeListener('response', fnRes);
+  console.log(`timing`, timing);
 
-    // if we got an extra request, fail
-    if (nbResponse > n) {
-      expect(nbResponse, `Encountered too many responses (selector: ${selector})`).toBe(n);
-    }
-  } else {
-    // Remove listeners
-    page.removeListener('response', fnRes);
-  }
-
-  // if we didn't get enough responses, we need to fail the test
-  if (!resolved) {
-    // we failed the test
-    expect(nbResponse, `Encountered not enough responses (selector: ${selector})`).toBe(n);
-  }
-
+  // Sort and return!
   return listStr.sort();
 }
 
