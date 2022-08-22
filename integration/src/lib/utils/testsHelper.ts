@@ -4,42 +4,6 @@ import type { Page, Response } from '@playwright/test';
 import { expect } from '@playwright/test';
 
 /**
- * We must have a selector, if you expect to use this after page.goto... Use goto or goto_and_expectNGraphQLResponse directly!
- */
-export async function expectNoGraphQLRequest(
-  page: Page,
-  selector: string,
-  action: 'click' | 'hover' = 'click'
-) {
-  let nbError = 0;
-  let info;
-  try {
-    const [res] = await Promise.all([
-      page.waitForRequest(routes.GraphQL, { timeout: 777 }), // It's the request... It should be fairly fast. (Magic number to find it easily)
-      action === 'click' ? page.click(selector) : page.hover(selector)
-    ]);
-    info = res;
-  } catch (error: unknown) {
-    console.log(`error`, { error });
-
-    if (error instanceof Error) {
-      expect(error.name).toBe('TimeoutError');
-      nbError++;
-    } else {
-      // We should never come here!
-      expect(0, 'a catch that was not an instanceof Error! It should NOT happen').toBe(1);
-    }
-  }
-  if (nbError === 0) {
-    console.error(`The body of the query that shouldn't happen: `, info?.postDataJSON());
-  }
-  expect(
-    nbError,
-    'A GraphQL request happend, and it should NOT be the case! (We Expected 1 error)'
-  ).toBe(1);
-}
-
-/**
  *
  * @param selector example: "button[id=next]"
  * @returns
@@ -51,6 +15,19 @@ export async function expectGraphQLResponse(
 ) {
   const listStr = await expectNGraphQLResponse(page, selector || null, 1, action);
   return listStr[0];
+}
+
+/**
+ *
+ * @param selector example: "button[id=next]"
+ * @returns
+ */
+export async function expectNoGraphQLResponse(
+  page: Page,
+  selector?: string | null,
+  action: 'click' | 'hover' = 'click'
+) {
+  await expectNGraphQLResponse(page, selector || null, 0, action);
 }
 
 /**

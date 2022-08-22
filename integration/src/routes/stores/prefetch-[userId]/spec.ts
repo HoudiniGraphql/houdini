@@ -1,7 +1,7 @@
 import { routes } from '../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
-  expectNoGraphQLRequest,
+  expectNoGraphQLResponse,
   expectToBe,
   goto
 } from '../../../lib/utils/testsHelper.js';
@@ -30,7 +30,7 @@ test.describe('prefetch-[userId] Page', () => {
     await expectToBe(page, dataDisplayedSSR);
 
     // Hovering again previous link should not trigger a new request (it's already ion the cache) AND should not change sur data displayed
-    await expectNoGraphQLRequest(page, `a[id=previous]`, 'hover');
+    await expectNoGraphQLResponse(page, `a[id=previous]`, 'hover');
     // Data displayed should still be the same
     await expectToBe(page, dataDisplayedSSR);
   });

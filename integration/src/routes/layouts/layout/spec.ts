@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import {
-  expectNoGraphQLRequest,
+  expectNoGraphQLResponse,
   goto_and_expectNGraphQLResponse,
   navSelector
 } from '../../../lib/utils/testsHelper.js';
@@ -16,7 +16,7 @@ test.describe('Layout & comp', () => {
       'Query Comp - Number of users: 3'
     ]);
 
-    await expectNoGraphQLRequest(page, navSelector(routes.Stores_Layouts));
+    await expectNoGraphQLResponse(page, navSelector(routes.Stores_Layouts));
 
     const pContentIndex = await page.locator('p').allTextContents();
     expect(pContentIndex).toEqual(['Query Comp - Number of users: 3']);

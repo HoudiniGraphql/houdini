@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { routes } from '../../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
-  expectNoGraphQLRequest,
+  expectNoGraphQLResponse,
   expectToBe,
   expectToContain,
   goto
@@ -44,6 +44,6 @@ test.describe('forwards cursor paginatedFragment', () => {
 
     await expectToContain(page, `"hasNextPage":false`);
 
-    await expectNoGraphQLRequest(page, 'button[id=next]');
+    await expectNoGraphQLResponse(page, 'button[id=next]');
   });
 });

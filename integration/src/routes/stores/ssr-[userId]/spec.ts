@@ -1,7 +1,7 @@
 import { routes } from '../../../lib/utils/routes.js';
 import {
   expectGraphQLResponse,
-  expectNoGraphQLRequest,
+  expectNoGraphQLResponse,
   expectToBe,
   goto,
   navSelector
@@ -49,7 +49,7 @@ test.describe('SSR-[userId] Page', () => {
     await expectToBe(page, 'store-user-query:1 - Bruce Willis');
 
     // 2 go back to (id = 2) with default policy (CacheOrNetwork) => No request should happen and Data should be updated
-    await expectNoGraphQLRequest(page, `button[id="refresh-2"]`);
+    await expectNoGraphQLResponse(page, `button[id="refresh-2"]`);
     await expectToBe(page, 'store-user-query:2 - Samuel Jackson');
 
     // 3 Refresh without variables (so should take the last one, here 2) with policy NetworkOnly to have a graphql request
@@ -67,9 +67,9 @@ test.describe('SSR-[userId] Page', () => {
   test('Check that variables order doesnt matter', async ({ page }) => {
     await goto(page, routes.Stores_SSR_UserId_2);
 
-    await expectNoGraphQLRequest(page, 'button[id="refresh-2"]');
+    await expectNoGraphQLResponse(page, 'button[id="refresh-2"]');
 
     // Switch the order of variables, should not retrigger
-    await expectNoGraphQLRequest(page, `button[id="refresh-2Star"]`);
+    await expectNoGraphQLResponse(page, `button[id="refresh-2Star"]`);
   });
 });

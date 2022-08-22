@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { routes } from '../../../lib/utils/routes.js';
 import {
   expectNGraphQLResponse,
-  expectNoGraphQLRequest,
+  expectNoGraphQLResponse,
   expectToBe,
   goto,
   navSelector
@@ -42,7 +42,7 @@ test.describe('SSR Page', () => {
   }) => {
     await goto(page, routes.Stores_SSR);
 
-    await expectNoGraphQLRequest(page, navSelector(routes.Stores_Network));
+    await expectNoGraphQLResponse(page, navSelector(routes.Stores_Network));
   });
 
   test('From HOME, navigate to page (only 2 graphql queries should happen, not more!)', async ({
