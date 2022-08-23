@@ -30,7 +30,6 @@
 	"types": "./build/cmd/index.d.ts",
 	"scripts": {
 		"tests": "vitest",
-		"tests:integration": "cd integration && pnpm run tests --workers 5",
 		"build": "concurrently \"npm run build:runtime\" \"npm run build:cmd\" \"npm run build:preprocess\"  \"npm run build:vite\"  -n \"run,cmd,pre,vit\" -c \"blue.bold,green.bold,yellow.bold,cyan.bold\" && npm run build:typeModule",
 		"build:runtime": "concurrently \"npm run build:runtime:esm\" \"npm run build:runtime:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
 		"build:runtime:cjs": "tsc --p tsconfig.runtime.cjs.json && WHICH=cjs node ./runtimeMeta",
