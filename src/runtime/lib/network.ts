@@ -15,11 +15,15 @@ import {
 	SubscriptionArtifact,
 } from './types'
 
-export class HoudiniClient {
-	private fetchFn: RequestHandler<any>
+export class HoudiniClient<SessionData = undefined> {
+	private fetchFn: RequestHandler<any, SessionData>
 	socket: SubscriptionHandler | null | undefined
+	getSession: (() => SessionData | Promise<SessionData>) | undefined
 
-	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
+	constructor(
+		networkFn: RequestHandler<any, SessionData>,
+		subscriptionHandler?: SubscriptionHandler | null
+	) {
 		this.fetchFn = networkFn
 		this.socket = subscriptionHandler
 	}
@@ -29,6 +33,8 @@ export class HoudiniClient {
 		params: FetchParams
 	): Promise<RequestPayloadMagic<_Data>> {
 		let url = ''
+
+		const session = this.getSession ? await this.getSession() : undefined
 
 		// invoke the function
 		const result = await this.fetchFn({
@@ -44,6 +50,7 @@ export class HoudiniClient {
 			},
 			...params,
 			metadata: ctx.metadata,
+			session,
 		})
 
 		// return the result
@@ -56,7 +63,7 @@ export class HoudiniClient {
 	init() {}
 }
 
-export class Environment extends HoudiniClient {
+export class Environment extends HoudiniClient<any> {
 	constructor(...args: ConstructorParameters<typeof HoudiniClient>) {
 		super(...args)
 		log.info(
@@ -142,9 +149,13 @@ export type RequestPayload<_Data = any> = {
  * ```
  *
  */
-export type RequestHandlerArgs = Omit<FetchContext & FetchParams, 'stuff'>
+export type RequestHandlerArgs<SessionData> = Omit<FetchContext & FetchParams, 'stuff'> & {
+	session: SessionData | undefined
+}
 
-export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<RequestPayload<_Data>>
+export type RequestHandler<_Data, SessionData> = (
+	args: RequestHandlerArgs<SessionData>
+) => Promise<RequestPayload<_Data>>
 
 // This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
