@@ -1,7 +1,7 @@
 import type { PlaywrightTestConfig } from '@playwright/test';
 import { devices as replayDevices } from '@replayio/playwright';
 
-// manual swithc for now
+// manual switch for now until replayio is fixed (currently breaking our tests)
 const with_replayio = false;
 
 const use = with_replayio
@@ -24,7 +24,7 @@ if (with_replayio) {
 
 const config: PlaywrightTestConfig = {
   // retries: 2,
-  workers: 60,
+  workers: 5,
   reporter,
   use,
   webServer: {
