@@ -1,5 +1,5 @@
 import type { RequestHandlerArgs } from '$houdini';
-import { HoudiniClient } from '$houdini/runtime/lib/network';
+import { HoudiniClient } from '$houdini';
 import { stry } from '@kitql/helper';
 
 // For Query & Mutation
