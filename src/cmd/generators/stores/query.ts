@@ -86,7 +86,7 @@ export declare class ${storeName} extends ${queryClass}<${_data}, ${variableInpu
 
 export const ${globalStoreName}: ${storeName}
 
-export declare const load_${artifactName}: (params: QueryStoreFetchParams<${variableInputsType}>) => Promise<{${artifactName}: ${storeName}}>
+export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${variableInputsType}>) => Promise<{${artifactName}: ${storeName}}>
 
 export default ${storeName}
 `
