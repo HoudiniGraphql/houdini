@@ -18,7 +18,7 @@ import {
 export class HoudiniClient<SessionData = undefined> {
 	private fetchFn: RequestHandler<any, SessionData>
 	socket: SubscriptionHandler | null | undefined
-	getSession: (() => SessionData | Promise<SessionData>) | undefined
+	private session: SessionData | undefined
 
 	constructor(
 		networkFn: RequestHandler<any, SessionData>,
@@ -34,8 +34,6 @@ export class HoudiniClient<SessionData = undefined> {
 	): Promise<RequestPayloadMagic<_Data>> {
 		let url = ''
 
-		const session = this.getSession ? await this.getSession() : undefined
-
 		// invoke the function
 		const result = await this.fetchFn({
 			// wrap the user's fetch function so we can identify SSR by checking
@@ -50,7 +48,7 @@ export class HoudiniClient<SessionData = undefined> {
 			},
 			...params,
 			metadata: ctx.metadata,
-			session,
+			session: this.session,
 		})
 
 		// return the result
@@ -61,6 +59,10 @@ export class HoudiniClient<SessionData = undefined> {
 	}
 
 	init() {}
+
+	setSession(session: SessionData | undefined) {
+		this.session = session
+	}
 }
 
 export class Environment extends HoudiniClient<any> {
