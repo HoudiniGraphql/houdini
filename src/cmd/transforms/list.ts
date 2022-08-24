@@ -209,7 +209,7 @@ export default async function addListFragments(
 
 					// if there is no selection set
 					if (!selection) {
-						throw new HoudiniError(null, 'Lists must have a selection')
+						throw new HoudiniError({ message: 'Lists must have a selection' })
 					}
 
 					// we need a copy of the field's selection set that we can mutate

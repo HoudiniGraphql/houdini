@@ -15,6 +15,7 @@ import {
 	walkGraphQLTags,
 	readFile,
 	parseJS,
+	HoudiniError,
 } from '../common'
 import * as generators from './generators'
 import * as transforms from './transforms'
@@ -235,10 +236,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			try {
 				return await processGraphQLDocument(config, filepath, document)
 			} catch (e) {
-				throw {
-					...(e as unknown as Error),
-					filepath,
-				}
+				throw new HoudiniError({ filepath, message: (e as unknown as Error).message })
 			}
 		})
 	)
@@ -262,7 +260,7 @@ async function processJSFile(
 		program = (await parseJS(contents))!.script
 	} catch (e) {
 		// add the filepath to the error message
-		throw { message: (e as Error).message, filepath }
+		throw new HoudiniError({ filepath, message: (e as Error).message })
 	}
 
 	// look for a graphql template tag
@@ -286,7 +284,10 @@ async function processSvelteFile(filepath: string, contents: string): Promise<Di
 		const err = e as Error
 
 		// add the filepath to the error message
-		throw { message: `Encountered error parsing ${filepath}`, description: err.message }
+		throw new HoudiniError({
+			message: `Encountered error parsing ${filepath}`,
+			description: err.message,
+		})
 	}
 
 	// we need to look for multiple script tags to support sveltekit
@@ -336,13 +337,19 @@ async function processGraphQLDocument(
 	)
 	// if there is more than one operation, throw an error
 	if (operations.length > 1) {
-		throw { filepath, message: 'Operation documents can only have one operation' }
+		throw new HoudiniError({
+			filepath,
+			message: 'Operation documents can only have one operation',
+		})
 	}
 	// we are looking at a fragment document
 	else {
 		// if there is more than one fragment, throw an error
 		if (fragments.length > 1) {
-			throw { filepath, message: 'Fragment documents can only have one fragment' }
+			throw new HoudiniError({
+				filepath,
+				message: 'Fragment documents can only have one fragment',
+			})
 		}
 	}
 

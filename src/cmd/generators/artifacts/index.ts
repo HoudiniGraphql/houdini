@@ -5,6 +5,7 @@ import {
 	Config,
 	getRootType,
 	hashDocument,
+	HoudiniError,
 	parentTypeFromAncestors,
 	readFile,
 	writeFile,
@@ -47,10 +48,10 @@ export default function artifactGenerator(stats: {
 						(arg) => arg.name.value === config.listNameArg
 					)
 					if (!nameArg || nameArg.value.kind !== 'StringValue') {
-						throw {
+						throw new HoudiniError({
 							filepath: doc.filename,
 							message: 'could not find name arg in list directive',
-						}
+						})
 					}
 					const listName = nameArg.value.value
 
@@ -71,10 +72,10 @@ export default function artifactGenerator(stats: {
 					]) as graphql.GraphQLObjectType
 					const parentField = parentType.getFields()[field.name.value]
 					if (!parentField) {
-						throw {
+						throw new HoudiniError({
 							filepath: doc.filename,
 							message: 'Could not find field information when computing filters',
-						}
+						})
 					}
 					const fieldType = getRootType(parentField.type).toString()
 
@@ -182,13 +183,13 @@ export default function artifactGenerator(stats: {
 							rootType = config.schema.getSubscriptionType()?.name
 						}
 						if (!rootType) {
-							throw {
+							throw new HoudiniError({
 								filepath: doc.filename,
 								message:
 									'could not find root type for operation: ' +
 									operation.operation +
 									'. Maybe you need to re-run the introspection query?',
-							}
+							})
 						}
 
 						// use this selection set
@@ -202,10 +203,10 @@ export default function artifactGenerator(stats: {
 							(fragment) => fragment.name.value === name
 						)
 						if (!matchingFragment) {
-							throw {
+							throw new HoudiniError({
 								filepath: doc.filename,
 								message: `Fragment "${name}" doesn't exist in its own document?!`,
-							}
+							})
 						}
 						rootType = matchingFragment.typeCondition.name.value
 						selectionSet = matchingFragment.selectionSet

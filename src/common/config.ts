@@ -86,11 +86,12 @@ export class Config {
 		} = this.configFile
 
 		if (!client) {
-			throw new HoudiniError(
+			throw new HoudiniError({
 				filepath,
-				'Invalid config file: missing client value.',
-				'Please set it to the relative path (from houdini.config.js) to your client file. The file must have a default export with an instance of HoudiniClient.'
-			)
+				message: 'Invalid config file: missing client value.',
+				description:
+					'Please set it to the relative path (from houdini.config.js) to your client file. The file must have a default export with an instance of HoudiniClient.',
+			})
 		}
 
 		// if we're given a schema string

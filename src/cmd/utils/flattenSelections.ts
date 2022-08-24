@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { Config } from '../../common'
+import { Config, HoudiniError } from '../../common'
 
 export function flattenSelections({
 	config,
@@ -128,11 +128,11 @@ class FieldCollection {
 
 			const definition = this.fragmentDefinitions[selection.name.value]
 			if (!definition) {
-				throw {
+				throw new HoudiniError({
 					filepath: this.filepath,
 					message:
 						'Could not find referenced fragment definition: ' + selection.name.value,
-				}
+				})
 			}
 
 			for (const subselect of definition.selectionSet.selections) {

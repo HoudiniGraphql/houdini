@@ -20,10 +20,10 @@ export default async function noIDAlias(
 				// if there is an alias on the node
 				if (config.keyFieldsForType(fieldType).includes(node.alias?.value || '')) {
 					errors.push(
-						new HoudiniError(
-							filename,
-							'Encountered field with an alias that overwrites an id field'
-						)
+						new HoudiniError({
+							filepath: filename,
+							message: 'Encountered field with an alias that overwrites an id field',
+						})
 					)
 				}
 			},

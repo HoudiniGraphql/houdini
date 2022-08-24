@@ -2,7 +2,7 @@ import { TSTypeKind, StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, ensureImports } from '../../../common'
+import { Config, ensureImports, HoudiniError } from '../../../common'
 import { TypeWrapper, unwrapType } from '../../utils'
 import { enumDeclaration, nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
@@ -369,17 +369,17 @@ export function selectionTypeInfo(
 	const field = fields[selectionName]
 
 	if (!field) {
-		throw {
+		throw new HoudiniError({
 			filepath,
 			message: `Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`,
-		}
+		})
 	}
 	const fieldType = graphql.getNamedType(field.type) as unknown as graphql.GraphQLNamedType
 	if (!fieldType) {
-		throw {
+		throw new HoudiniError({
 			filepath,
 			message: `Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`,
-		}
+		})
 	}
 
 	const fieldTypeName = fieldType.name
@@ -388,7 +388,7 @@ export function selectionTypeInfo(
 	// @ts-ignore
 	const selectionType = schema.getType(fieldTypeName) as graphql.GraphQLObjectType
 	if (!selectionType) {
-		throw { filepath, message: 'Could not find type for ' + fieldTypeName }
+		throw new HoudiniError({ filepath, message: 'Could not find type for ' + fieldTypeName })
 	}
 
 	return { field, type: selectionType }
