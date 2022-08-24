@@ -147,6 +147,14 @@ export type ConfigFile = {
 	 * @default process.cwd()
 	 */
 	projectDir?: string
+
+	/**
+	 * The default prefix of your global stores.
+	 *
+	 * _Note: it's nice to have a prefix so that your editor finds all your stores by just typings this prefix_
+	 * @default GQL_
+	 */
+	globalStorePrefix?: string
 }
 
 export type TypeConfig = {

@@ -145,7 +145,7 @@ export type PageData = {
 		.map((query) => {
 			const name = query.name!.value
 
-			return [name, name + 'Store'].join(': ')
+			return [name, name + config.storeSuffix].join(': ')
 		})
 		.join(', \n')}
 } ${afterLoad ? '& AfterLoadReturn ' : ''} ${beforeLoad ? '& BeforeLoadReturn ' : ''}

@@ -51,6 +51,7 @@ export class Config {
 	pageQueryFilename: string
 	plugin: boolean = false
 	client: string
+	globalStorePrefix: string
 
 	constructor({
 		filepath,
@@ -83,6 +84,7 @@ export class Config {
 			pageQueryFilename = '+page.gql',
 			projectDir,
 			client,
+			globalStorePrefix = 'GQL_',
 		} = this.configFile
 
 		if (!client) {
@@ -149,6 +151,7 @@ ${
 		this.rootDir = path.join(this.projectRoot, '$houdini')
 		this.pageQueryFilename = pageQueryFilename
 		this.client = client
+		this.globalStorePrefix = globalStorePrefix
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -159,6 +162,16 @@ ${
 				...this.typeConfig,
 				...types,
 			}
+		}
+
+		// Check that storeName & globalStoreName are not overlapping.
+		// Not possible today, but maybe in the future if storeName starts to be configurable.
+		if (this.storeName({ name: 'QueryName' }) === this.globalStoreName({ name: 'QueryName' })) {
+			throw new HoudiniError({
+				filepath,
+				message: 'Invalid config file: "globalStoreName" and "storeName" are overlapping',
+				description: `Here, both gives: ${this.storeName({ name: 'QueryName' })}`,
+			})
 		}
 	}
 
@@ -311,8 +324,16 @@ ${
 		return `$houdini/${this.storesDirectoryName}/${name}`
 	}
 
+	get storeSuffix() {
+		return 'Store'
+	}
+
+	storeName({ name }: { name: string }) {
+		return name + this.storeSuffix
+	}
+
 	globalStoreName({ name }: { name: string }) {
-		return this.storePrefix + name
+		return this.globalStorePrefix + name
 	}
 
 	keyFieldsForType(type: string) {
@@ -621,10 +642,6 @@ ${
 				!this.isRouteScript(filename) &&
 				!this.isRoute(filename))
 		)
-	}
-
-	get storePrefix() {
-		return 'GQL_'
 	}
 
 	pageQueryPath(filename: string) {

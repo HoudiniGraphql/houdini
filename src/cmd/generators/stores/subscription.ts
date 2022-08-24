@@ -6,9 +6,9 @@ import { CollectedGraphQLDocument } from '../../types'
 
 export async function generateSubscriptionStore(config: Config, doc: CollectedGraphQLDocument) {
 	const fileName = doc.name
+	const storeName = config.storeName(doc)
 	const globalStoreName = config.globalStoreName(doc)
 	const artifactName = `${doc.name}`
-	const storeName = artifactName + 'Store'
 
 	// the content of the store
 	const storeContent = `import artifact from '../artifacts/${artifactName}'

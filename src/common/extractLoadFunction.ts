@@ -83,14 +83,14 @@ async function processScript(
 				let query = ''
 
 				// if we are importing a prefixed store
-				if (name.startsWith(config.storePrefix)) {
+				if (name.startsWith(config.globalStorePrefix)) {
 					// the name of the query is the parts after the prefix
-					query = name.substring(config.storePrefix.length)
+					query = name.substring(config.globalStorePrefix.length)
 				}
 
 				// if we are importing a store factory
-				else if (name.endsWith('Store')) {
-					query = name.substring(0, name.length - config.storePrefix.length - 1)
+				else if (name.endsWith(config.storeSuffix)) {
+					query = name.substring(0, name.length - config.globalStorePrefix.length - 1)
 				}
 
 				// if we are import directly from a store path

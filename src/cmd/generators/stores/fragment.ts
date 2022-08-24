@@ -6,7 +6,7 @@ import { CollectedGraphQLDocument } from '../../types'
 export async function generateFragmentStore(config: Config, doc: CollectedGraphQLDocument) {
 	const fileName = doc.name
 	const artifactName = `${doc.name}`
-	const storeName = artifactName + 'Store'
+	const storeName = config.storeName(doc)
 	const globalStoreName = config.globalStoreName(doc)
 
 	const paginationMethod = doc.refetch?.method

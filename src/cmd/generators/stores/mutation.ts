@@ -8,7 +8,7 @@ export async function generateIndividualStoreMutation(
 	doc: CollectedGraphQLDocument
 ) {
 	const fileName = doc.name
-	const storeName = doc.name + 'Store'
+	const storeName = config.storeName(doc)
 	const globalStoreName = config.globalStoreName(doc)
 	const artifactName = `${doc.name}`
 
