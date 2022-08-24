@@ -1,5 +1,5 @@
 import { pipelineTest } from '../testUtils'
-import { CollectedGraphQLDocument, HoudiniError } from '../types'
+import { CollectedGraphQLDocument } from '../types'
 
 const table: Row[] = [
 	{
@@ -47,7 +47,7 @@ type Row =
 			title: string
 			pass: false
 			documents: string[]
-			check?: (result: HoudiniError | HoudiniError[]) => void
+			check?: (result: Error | Error[]) => void
 	  }
 
 // run the tests

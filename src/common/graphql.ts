@@ -2,8 +2,6 @@ import crypto from 'crypto'
 import * as graphql from 'graphql'
 import path from 'path'
 
-import { HoudiniError } from '../cmd'
-
 export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	// if the type is non-null, unwrap and go again
 	if (graphql.isNonNullType(type)) {
@@ -167,11 +165,14 @@ export function definitionFromAncestors(ancestors: readonly any[]) {
 
 export function formatErrors(e: unknown, afterError?: (e: Error) => void) {
 	// we need an array of errors to loop through
-	const errors = (Array.isArray(e) ? e : [e]) as HoudiniError[]
+	const errors = (Array.isArray(e) ? e : [e]) as (Error & {
+		filepath?: string
+		description?: string
+	})[]
 
 	for (const error of errors) {
 		// if we have filepath, show that to the user
-		if ('filepath' in error) {
+		if ('filepath' in error && error.filepath) {
 			const relative = path.relative(process.cwd(), error.filepath)
 			console.error(`❌ Encountered error in ${relative}`)
 			if (error.message) {

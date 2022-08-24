@@ -182,7 +182,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			// figure out the emoji to use
 			let emoji = '📃'
 			if (artifactStats.changed.includes(artifact)) {
-				emoji = '✏️ '
+				emoji = '✏️'
 			} else if (artifactStats.new.includes(artifact)) {
 				emoji = '✨'
 			} else if (artifactStats.deleted.includes(artifact)) {

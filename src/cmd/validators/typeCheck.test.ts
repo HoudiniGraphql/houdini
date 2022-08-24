@@ -1,7 +1,7 @@
 import { test, expect, describe } from 'vitest'
 
 import { pipelineTest } from '../testUtils'
-import { CollectedGraphQLDocument, HoudiniError } from '../types'
+import { CollectedGraphQLDocument } from '../types'
 
 // since generation will catch a lot of these errors for us, the goal of these tests is to make sure
 // errors are caught __before__ we get to the generation stage. This means that our failure tests
@@ -398,7 +398,7 @@ const table: Row[] = [
 				query UserFriends {
 					user {
 						friendsByCursor @list(name: "Friends") {
-							edges { 
+							edges {
 								node {
 									id
 								}
@@ -539,14 +539,14 @@ const table: Row[] = [
 		documents: [
 			`
 			fragment UserPaginatedA on User {
-				friendsByOffset(limit: 10) @paginate { 
+				friendsByOffset(limit: 10) @paginate {
 					id
 				}
 			}
 			`,
 			`
 			fragment UserPaginatedB on User {
-				friendsByOffset(limit: 10) @paginate { 
+				friendsByOffset(limit: 10) @paginate {
 					id
 				}
 			}
@@ -560,8 +560,8 @@ const table: Row[] = [
 			`
 			fragment UserPaginatedA on User {
 				friendsByCursor(first: 10) @paginate {
-					edges { 
-						node { 
+					edges {
+						node {
 							id
 						}
 					}
@@ -571,8 +571,8 @@ const table: Row[] = [
 			`
 			fragment UserPaginatedB on User {
 				friendsByCursor(first: 10) @paginate {
-					edges { 
-						node { 
+					edges {
+						node {
 							id
 						}
 					}
@@ -587,7 +587,7 @@ const table: Row[] = [
 		documents: [
 			`
 				fragment UserCursorPaginatedA on User {
-					friendsByCursor @paginate { 
+					friendsByCursor @paginate {
 						edges {
 							node {
 								id
@@ -598,18 +598,18 @@ const table: Row[] = [
 			`,
 			`
 				fragment UserCursorPaginatedB on User {
-					friendsByCursor @paginate { 
-						edges { 
-							node { 
+					friendsByCursor @paginate {
+						edges {
+							node {
 								id
 							}
-						}	
+						}
 					}
 				}
 			`,
 			`
 				fragment UserCursorPaginatedC on User {
-					friendsByCursor(first: 10) @paginate { 
+					friendsByCursor(first: 10) @paginate {
 						edges {
 							node {
 								id
@@ -627,8 +627,8 @@ const table: Row[] = [
 			`
 			fragment UserPaginatedA on User {
 				friendsByCursor(first: 10, last: 10) @paginate {
-					edges { 
-						node { 
+					edges {
+						node {
 							id
 						}
 					}
@@ -638,8 +638,8 @@ const table: Row[] = [
 			`
 			fragment UserPaginatedB on User {
 				friendsByCursor(first: 10, last: 10) @paginate {
-					edges { 
-						node { 
+					edges {
+						node {
 							id
 						}
 					}
@@ -655,8 +655,8 @@ const table: Row[] = [
 			`
 			fragment UserPaginatedA on User @arguments(foo: { type: "String!" }) {
 				friendsByCursor(first: 10, after: $foo) @paginate {
-					edges { 
-						node { 
+					edges {
+						node {
 							id
 						}
 					}
@@ -666,8 +666,8 @@ const table: Row[] = [
 			`
 			fragment UserPaginatedB on User @arguments(foo: { type: "String!" }) {
 				friendsByCursor(first: 10, after: $foo) @paginate {
-					edges { 
-						node { 
+					edges {
+						node {
 							id
 						}
 					}
@@ -682,21 +682,21 @@ const table: Row[] = [
 		documents: [
 			`
 				fragment UserPaginatedA on User {
-					friendsByOffset @paginate { 
+					friendsByOffset @paginate {
 						id
 					}
 				}
 			`,
 			`
 				fragment UserPaginatedB on User {
-					friendsByOffset @paginate { 
+					friendsByOffset @paginate {
 						id
 					}
 				}
 			`,
 			`
 				fragment UserPaginatedC on User {
-					friendsByOffset(limit: 10) @paginate { 
+					friendsByOffset(limit: 10) @paginate {
 						id
 					}
 				}
@@ -709,12 +709,12 @@ const table: Row[] = [
 		documents: [
 			`
 			fragment UserPaginatedA on User {
-				friendsByOffset(limit: 10) @paginate { 
+				friendsByOffset(limit: 10) @paginate {
 					id
 				}
 				friendsByCursor(first: 10) @paginate {
 					edges {
-						node { 
+						node {
 							id
 						}
 					}
@@ -723,12 +723,12 @@ const table: Row[] = [
 			`,
 			`
 			fragment UserPaginatedB on User {
-				friendsByOffset(limit: 10) @paginate { 
+				friendsByOffset(limit: 10) @paginate {
 					id
 				}
 				friendsByCursor(first: 10) @paginate {
 					edges {
-						node { 
+						node {
 							id
 						}
 					}
@@ -744,7 +744,7 @@ const table: Row[] = [
 			`
 			fragment UserPaginatedA on User {
 				friends {
-					friendsByOffset(limit: 10) @paginate { 
+					friendsByOffset(limit: 10) @paginate {
 						id
 					}
 				}
@@ -753,7 +753,7 @@ const table: Row[] = [
 			`
 			fragment UserPaginatedB on User {
 				friends {
-					friendsByOffset(limit: 10) @paginate { 
+					friendsByOffset(limit: 10) @paginate {
 						id
 					}
 				}
@@ -767,9 +767,9 @@ const table: Row[] = [
 		documents: [
 			`
 			fragment UserPaginatedA on Legend {
-				believers (first: 10) @paginate { 
-					edges { 
-						node { 
+				believers (first: 10) @paginate {
+					edges {
+						node {
 							name
 						}
 					}
@@ -778,9 +778,9 @@ const table: Row[] = [
 			`,
 			`
 			fragment UserPaginatedA on Legend {
-				believers (first: 10) @paginate { 
-					edges { 
-						node { 
+				believers (first: 10) @paginate {
+					edges {
+						node {
 							name
 						}
 					}
@@ -795,9 +795,9 @@ const table: Row[] = [
 		documents: [
 			`
 			fragment UserPaginatedA on User {
-				believesInConnection (first: 10) @paginate { 
-					edges { 
-						node { 
+				believesInConnection (first: 10) @paginate {
+					edges {
+						node {
 							name
 						}
 					}
@@ -806,9 +806,9 @@ const table: Row[] = [
 			`,
 			`
 			fragment UserPaginatedB on User {
-				believesInConnection (first: 10) @paginate { 
-					edges { 
-						node { 
+				believesInConnection (first: 10) @paginate {
+					edges {
+						node {
 							name
 						}
 					}
@@ -823,9 +823,9 @@ const table: Row[] = [
 		documents: [
 			`
 			fragment GhostPaginatedA on Ghost {
-				friendsConnection (first: 10) @paginate { 
-					edges { 
-						node { 
+				friendsConnection (first: 10) @paginate {
+					edges {
+						node {
 							name
 						}
 					}
@@ -834,9 +834,9 @@ const table: Row[] = [
 			`,
 			`
 			fragment GhostPaginatedB on Ghost {
-				friendsConnection (first: 10) @paginate { 
-					edges { 
-						node { 
+				friendsConnection (first: 10) @paginate {
+					edges {
+						node {
 							name
 						}
 					}
@@ -858,7 +858,7 @@ type Row =
 			title: string
 			pass: false
 			documents: string[]
-			check?: (result: HoudiniError | HoudiniError[]) => void
+			check?: (result: Error | Error[]) => void
 	  }
 
 // run the tests
@@ -872,7 +872,7 @@ for (const { title, pass, documents, check } of table) {
 			pass
 				? undefined
 				: check ||
-						function (e: HoudiniError | HoudiniError[]) {
+						function (e: Error | Error[]) {
 							expect(e).toHaveLength(2)
 						}
 		)
