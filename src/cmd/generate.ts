@@ -159,7 +159,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		const major = parseInt(previousVersion.split('.')[1])
 		if (major < 16) {
 			console.log(
-				`❓ For a description of what's changed, visit this guide: https://www.houdinigraphql.com/guides/release-notes`
+				`❓ For a description of what's changed, visit this guide: http://docs-next-mjp4kdn5r-houdinigraphql.vercel.app/guides/release-notes`
 			)
 		}
 	}
