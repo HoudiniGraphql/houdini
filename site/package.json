@@ -20,7 +20,7 @@
 		"eslint-plugin-svelte3": "^4.0.0",
 		"husky": "^7.0.4",
 		"lint-staged": "^12.3.4",
-		"mdsvex": "^0.10.5",
+		"mdsvex": "^0.10.6",
 		"node-html-parser": "^5.3.3",
 		"prettier": "^2.5.1",
 		"prettier-plugin-svelte": "^2.7.0",

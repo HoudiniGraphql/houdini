@@ -45,6 +45,7 @@
     "graphql-relay": "^0.10.0",
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.8.2",
+    "mdsvex": "^0.10.5",
     "ws": "^8.8.1"
   },
   "type": "module"
