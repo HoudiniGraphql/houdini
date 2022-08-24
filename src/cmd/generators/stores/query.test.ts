@@ -3,7 +3,7 @@ import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
 import { test, expect } from 'vitest'
 
-import { testConfig } from '../../../common'
+import { Config, testConfig } from '../../../common'
 import * as fs from '../../../common/fs'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
@@ -74,6 +74,102 @@ test('basic store', async function () {
 		export const GQL_TestQuery = new TestQueryStore()
 
 		export default GQL_TestQuery
+	`)
+})
+
+test('change globalStorePrefix to "yop___"', async function () {
+	const docs = [mockCollectedDoc(`query TestQuery { version }`)]
+
+	let configTweaked = testConfig()
+	configTweaked.globalStorePrefix = 'yop___'
+	// run the generator
+	await runPipeline(configTweaked, docs)
+
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	await expect(parsed).toMatchInlineSnapshot(`
+		import { QueryStore } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
+
+		// create the query store
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
+
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
+
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const yop___TestQuery = new TestQueryStore()
+
+		export default yop___TestQuery
+	`)
+})
+
+test('change globalStorePrefix to ""', async function () {
+	const docs = [mockCollectedDoc(`query TestQuery { version }`)]
+
+	let configTweaked = testConfig()
+	configTweaked.globalStorePrefix = ''
+	// run the generator
+	await runPipeline(configTweaked, docs)
+
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	await expect(parsed).toMatchInlineSnapshot(`
+		import { QueryStore } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
+
+		// create the query store
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
+
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
+
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const TestQuery = new TestQueryStore()
+
+		export default TestQuery
 	`)
 })
 
