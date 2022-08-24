@@ -2,12 +2,11 @@
   import {
     fragment,
     graphql,
-    query,
-    type FragmentUpdateTestQuery,
+    type FragmentUpdateTestQueryStore,
     type UserFragmentTestFragment
   } from '$houdini';
 
-  const userInfo = query<FragmentUpdateTestQuery>(graphql`
+  const userInfo: FragmentUpdateTestQueryStore = graphql`
     query FragmentUpdateTestQuery($id: ID!) {
       node(id: $id) {
         ... on User {
@@ -15,7 +14,7 @@
         }
       }
     }
-  `);
+  `;
 
   $: user = fragment<UserFragmentTestFragment>(
     $userInfo.data?.node ?? null,

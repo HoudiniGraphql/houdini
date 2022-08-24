@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { paginatedQuery, graphql, type OffsetPaginationQuery, CachePolicy } from '$houdini';
+  import { graphql, type OffsetPaginationQueryStore, CachePolicy } from '$houdini';
 
-  const result = paginatedQuery<OffsetPaginationQuery>(graphql`
+  const result: OffsetPaginationQueryStore = graphql`
     query OffsetPaginationQuery {
       usersList(limit: 2, snapshot: "pagination-query-offset") @paginate {
         name
       }
     }
-  `);
+  `;
 </script>
 
 <div id="result">

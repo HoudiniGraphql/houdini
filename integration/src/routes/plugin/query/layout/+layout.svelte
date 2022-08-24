@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { query, graphql } from '$houdini';
-  import type { LayoutTestQuery } from '$houdini';
+  import { graphql } from '$houdini';
+  import type { LayoutTestQueryStore } from '$houdini';
 
-  const result = query<LayoutTestQuery>(graphql`
+  const result: LayoutTestQueryStore = graphql`
     query LayoutTestQuery {
       user(id: "1", snapshot: "preprocess-query-simple") {
         name
       }
     }
-  `);
+  `;
 </script>
 
 <div id="result">

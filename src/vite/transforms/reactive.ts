@@ -9,6 +9,7 @@ const AST = recast.types.builders
 type VariableDeclaration = recast.types.namedTypes.VariableDeclaration
 type VariableDeclarator = recast.types.namedTypes.VariableDeclarator
 type CallExpression = recast.types.namedTypes.CallExpression
+type TaggedTemplateExpression = recast.types.namedTypes.TaggedTemplateExpression
 
 export default async function ReactiveProcessor(config: Config, page: TransformPage) {
 	// if a file imports graphql from $houdini then they might have an inline document
@@ -19,7 +20,7 @@ export default async function ReactiveProcessor(config: Config, page: TransformP
 	//
 	// ie:
 	//
-	// const { foo } = query(graphql``) -> $: ({ foo } = query(graphql``))
+	// const value = graphql`` -> $: value = query(graphql``)
 	//
 
 	// look for the list of magic functions the user has imported
@@ -47,28 +48,28 @@ export default async function ReactiveProcessor(config: Config, page: TransformP
 				return
 			}
 			const declaration = expr.declarations[0] as VariableDeclarator
-
-			// the right hand side of the declaration has to be a call expression
-			// that matches a magic function that was imported from the runtime
-			if (
-				declaration.init?.type !== 'CallExpression' ||
-				declaration.init.callee.type !== 'Identifier' ||
-				!magicFunctions.includes(declaration.init.callee.name)
-			) {
+			const value = declaration.init
+			if (!value) {
 				return
 			}
-			const callExpr = declaration.init as CallExpression
 
-			// one of the arguments to the function must be a tagged template literal
-			// with the graphql tag
-			const tag = callExpr.arguments.find(
-				(arg) =>
-					arg.type === 'TaggedTemplateExpression' &&
-					arg.tag.type === 'Identifier' &&
-					arg.tag.name === 'graphql'
-			)
-			if (!tag) {
+			// call expressions
+			if (value.type === 'CallExpression') {
+				if (!filterCallExpr(value)) {
+					return
+				}
+			} else if (value.type === 'TaggedTemplateExpression') {
+				if (!filterTaggedTemplate(value)) {
+					return
+				}
+			} else {
 				return
+			}
+
+			// we need to remove the type annotation from the id because it conflicts with
+			// the reactive statement
+			if (declaration.id.type === 'Identifier') {
+				declaration.id.typeAnnotation = null
 			}
 
 			// if we got this far then we have a declaration of an inline document so
@@ -76,9 +77,42 @@ export default async function ReactiveProcessor(config: Config, page: TransformP
 			this.replace(
 				AST.labeledStatement(
 					AST.identifier('$'),
-					AST.expressionStatement(AST.assignmentExpression('=', declaration.id, callExpr))
+					AST.expressionStatement(AST.assignmentExpression('=', declaration.id, value))
 				)
 			)
 		},
 	})
+}
+
+function filterCallExpr(expr: CallExpression) {
+	if (expr.type !== 'CallExpression' || expr.callee.type !== 'Identifier') {
+		// the right hand side of the declaration has to be a call expression
+		// that matches a magic function that was imported from the runtime
+		return
+	}
+	const callExpr = expr as CallExpression
+
+	// one of the arguments to the function must be a tagged template literal
+	// with the graphql tag
+	const tag = callExpr.arguments.find(
+		(arg) =>
+			arg.type === 'TaggedTemplateExpression' &&
+			arg.tag.type === 'Identifier' &&
+			arg.tag.name === 'graphql'
+	)
+	if (!tag) {
+		return
+	}
+
+	return true
+}
+
+function filterTaggedTemplate(expr: TaggedTemplateExpression) {
+	// one of the arguments to the function must be a tagged template literal
+	// with the graphql tag
+	return (
+		expr.type === 'TaggedTemplateExpression' &&
+		expr.tag.type === 'Identifier' &&
+		expr.tag.name === 'graphql'
+	)
 }

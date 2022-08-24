@@ -2,18 +2,17 @@
   import {
     paginatedFragment,
     graphql,
-    query,
-    type UserFragmentForwardsCursorQuery,
+    type UserFragmentForwardsCursorQueryStore,
     type ForwardsCursorFragment
   } from '$houdini';
 
-  const queryResult = query<UserFragmentForwardsCursorQuery>(graphql`
+  const queryResult: UserFragmentForwardsCursorQueryStore = graphql`
     query UserFragmentForwardsCursorQuery {
       user(id: "1", snapshot: "pagination-fragment-forwards-cursor") {
         ...ForwardsCursorFragment
       }
     }
-  `);
+  `;
 
   const fragmentResult = paginatedFragment<ForwardsCursorFragment>(
     $queryResult.data?.user ?? null,

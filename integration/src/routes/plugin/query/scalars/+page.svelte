@@ -1,14 +1,14 @@
 <script>
-  import { query, graphql } from '$houdini';
+  import { graphql } from '$houdini';
 
-  const result = query(graphql`
+  const result = graphql`
     query PreprocessorTestQueryScalars {
       user(id: "1", snapshot: "preprocess-query-scalars") {
         id
         birthDate
       }
     }
-  `);
+  `;
 </script>
 
 ISO:

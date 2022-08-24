@@ -400,6 +400,10 @@ ${
 
 	*/
 
+	get houdiniDirective() {
+		return 'houdini'
+	}
+
 	get listDirective() {
 		return 'list'
 	}
@@ -534,6 +538,7 @@ ${
 				this.withDirective,
 				this.paginateDirective,
 				this.cacheDirective,
+				this.houdiniDirective,
 			].includes(name.value) || this.isDeleteDirective(name.value)
 		)
 	}
@@ -882,7 +887,8 @@ export async function getConfig({
 				// make sure we don't have a pattern pointing to multiple files and a remove URL
 				if (glob.hasMagic(_config.schemaPath)) {
 					console.log(
-						'⚠️ Your houdini configuration contains an apiUrl and a path pointing to multiple files'
+						`⚠️  Your houdini configuration contains an apiUrl and a path pointing to multiple files.
+This will prevent your schema from being pulled (potentially resulting in errors).`
 					)
 				}
 				// we might have to create the file

@@ -2,25 +2,25 @@
   import {
     query,
     graphql,
-    type PreprocessorTestQuery3,
-    type PreprocessorTestQuery4
+    type PreprocessorTestQuery3Store,
+    type PreprocessorTestQuery4Store
   } from '$houdini';
 
-  const result1 = query<PreprocessorTestQuery3>(graphql`
+  const result1: PreprocessorTestQuery3Store = graphql`
     query PreprocessorTestQuery3 {
       user(id: "1", snapshot: "preprocess-query-multiple") {
         name
       }
     }
-  `);
+  `;
 
-  const result2 = query<PreprocessorTestQuery4>(graphql`
+  const result2: PreprocessorTestQuery4Store = graphql`
     query PreprocessorTestQuery4 {
       user(id: "2", snapshot: "preprocess-query-multiple") {
         name
       }
     }
-  `);
+  `;
 </script>
 
 <div id="result1">

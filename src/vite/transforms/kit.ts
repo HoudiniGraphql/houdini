@@ -131,7 +131,7 @@ function add_load({
 	page_info: HoudiniRouteScript
 }) {
 	// if there is already a load function defined, don't do anything
-	if (page_info.exports.includes('load')) {
+	if (page_info.exports.includes('load') || queries.length === 0) {
 		return
 	}
 

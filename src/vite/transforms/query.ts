@@ -196,8 +196,26 @@ export async function find_inline_queries(
 	// look for inline queries
 	await walkGraphQLTags(page.config, parsed, {
 		where(tag) {
-			return !!tag.definitions.find(
-				(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
+			// only consider query documents
+			const definition = tag.definitions.find((defn) => defn.kind === 'OperationDefinition')
+			if (!definition) {
+				return false
+			}
+			const queryOperation = definition as graphql.OperationDefinitionNode
+			if (queryOperation.operation !== 'query') {
+				return false
+			}
+
+			// as long as they don't have the @houdini directive with load set to false
+			return !queryOperation.directives?.find(
+				(directive) =>
+					directive.name.value === page.config.houdiniDirective &&
+					directive.arguments?.find(
+						(arg) =>
+							arg.name.value === 'load' &&
+							arg.value.kind === 'BooleanValue' &&
+							!arg.value.value
+					)
 			)
 		},
 		dependency: page.watch_file,
@@ -206,16 +224,14 @@ export async function find_inline_queries(
 			// part of an inline document. if the operation is a query, we need to add it to the list
 			// so that the load function can have the correct contents
 			const { parsedDocument, parent } = tag
-			const operation = page.config.extractDefinition(parsedDocument)
-			if (parent.type === 'CallExpression' && operation.kind === 'OperationDefinition') {
-				queries.push({
-					name: operation.name!.value,
-					// an operation requires variables if there is any non-null variable that doesn't have a default value
-					variables: operation_requires_variables(operation),
-				})
+			const operation = page.config.extractQueryDefinition(parsedDocument)
+			queries.push({
+				name: operation.name!.value,
+				// an operation requires variables if there is any non-null variable that doesn't have a default value
+				variables: operation_requires_variables(operation),
+			})
 
-				tag.node.replaceWith(store_id(operation.name!.value))
-			}
+			tag.node.replaceWith(store_id(operation.name!.value))
 		},
 	})
 

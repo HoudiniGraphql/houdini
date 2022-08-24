@@ -1,6 +1,5 @@
 import { test, expect, describe } from 'vitest'
 
-import { graphql } from '../../runtime'
 import { route_test } from '../tests'
 
 describe('kit route processor', function () {
@@ -21,8 +20,10 @@ describe('kit route processor', function () {
 			`,
 		})
 		expect(route.component).toMatchInlineSnapshot(`
-			import GQL_TestQuery from "$houdini/stores/TestQuery";
-			const store = GQL_TestQuery;
+			export let data;
+
+			$:
+			store = data.TestQuery;
 		`)
 	})
 
@@ -30,13 +31,13 @@ describe('kit route processor', function () {
 		const route = await route_test({
 			component: `
 				<script>
-					const { data } = query(graphql\`
+					const result = graphql\`
 						query TestQuery {
 							viewer {
 								id
 							}
 						}
-					\`)
+					\`
 				</script>
 			`,
 		})
@@ -46,9 +47,7 @@ describe('kit route processor', function () {
 			export let data;
 
 			$:
-			({
-			    data
-			} = query(data.TestQuery));
+			result = data.TestQuery;
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import { load_TestQuery } from "$houdini/stores/TestQuery";
@@ -79,6 +78,31 @@ describe('kit route processor', function () {
 		`)
 	})
 
+	test('inline query, no ssr', async function () {
+		const route = await route_test({
+			component: `
+				<script>
+					const result = graphql\`
+						query TestQuery @houdini(load: false) {
+							viewer {
+								id
+							}
+						}
+					\`
+				</script>
+			`,
+		})
+
+		// make sure we added the right stuff
+		expect(route.component).toMatchInlineSnapshot(`
+			import GQL_TestQuery from "$houdini/stores/TestQuery";
+
+			$:
+			result = GQL_TestQuery;
+		`)
+		expect(route.script).toMatchInlineSnapshot('')
+	})
+
 	test("existing loads aren't modified", async function () {
 		const route = await route_test({
 			script: `
@@ -88,13 +112,13 @@ describe('kit route processor', function () {
 				`,
 			component: `
 					<script>
-						const { data } = query(graphql\`
+						const result = graphql\`
 							query TestQuery1 {
 								viewer {
 									id
 								}
 							}
-						\`)
+						\`
 					</script>
 				`,
 		})
@@ -110,20 +134,20 @@ describe('kit route processor', function () {
 		const route = await route_test({
 			component: `
 				<script>
-					const { data: data1 } = query(graphql\`
+					const data1 = graphql\`
 						query TestQuery1 {
 							viewer {
 								id
 							}
 						}
-					\`)
-					const { data: data2 } = query(graphql\`
+					\`
+					const data2 = graphql\`
 						query TestQuery2 {
 							viewer {
 								id
 							}
 						}
-					\`)
+					\`
 				</script>
 			`,
 		})
@@ -133,14 +157,10 @@ describe('kit route processor', function () {
 			export let data;
 
 			$:
-			({
-			    data: data1
-			} = query(data.TestQuery1));
+			data1 = data.TestQuery1;
 
 			$:
-			({
-			    data: data2
-			} = query(data.TestQuery2));
+			data2 = data.TestQuery2;
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import { load_TestQuery2 } from "$houdini/stores/TestQuery2";
@@ -192,13 +212,13 @@ describe('kit route processor', function () {
 				`,
 			component: `
 					<script>
-						const { data } = query(graphql\`
+						const data1 = graphql\`
 							query TestQuery($test: Boolean!) {
 								viewer {
 									id
 								}
 							}
-						\`)
+						\`
 					</script>
 				`,
 		})
@@ -248,13 +268,13 @@ describe('kit route processor', function () {
 		const route = await route_test({
 			component: `
 					<script>
-						const { data } = query(graphql\`
+						const test = graphql\`
 							query TestQuery {
 								viewer {
 									id
 								}
 							}
-						\`)
+						\`
 					</script>
 				`,
 			config: {
@@ -270,9 +290,7 @@ describe('kit route processor', function () {
 			const _houdini_TestQuery = new TestQueryStore();
 
 			$:
-			({
-			    data
-			} = query(_houdini_TestQuery));
+			test = _houdini_TestQuery;
 
 			let _TestQuery_Input = {};
 
@@ -302,13 +320,13 @@ describe('kit route processor', function () {
 		const route = await route_test({
 			component: `
 				<script>
-					const { data } = query(graphql\`
+					const result = graphql\`
 						query TestQuery {
 							viewer {
 								id
 							}
 						}
-					\`)
+					\`
 				</script>
 			`,
 			script: `
@@ -332,9 +350,7 @@ describe('kit route processor', function () {
 			export let data;
 
 			$:
-			({
-			    data
-			} = query(data.TestQuery));
+			result = data.TestQuery;
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import GQL_MyQuery1 from "$houdini/stores/MyQuery1";
@@ -345,8 +361,13 @@ describe('kit route processor', function () {
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/runtime/lib/network";
 			import GQL_TestQuery from "$houdini/stores/TestQuery";
-			const store1 = GQL_MyQuery1;
-			const store2 = GQL_MyQuery2;
+
+			$:
+			store1 = GQL_MyQuery1;
+
+			$:
+			store2 = GQL_MyQuery2;
+
 			export function MyQuery2Variables() {}
 			export const houdini_load = [store1, store2];
 
@@ -455,13 +476,13 @@ test('beforeLoad hook', async function () {
 		`,
 		component: `
 				<script>
-					const { data } = query(graphql\`
+					const result = graphql\`
 						query TestQuery($test: Boolean!) {
 							viewer {
 								id
 							}
 						}
-					\`)
+					\`
 				</script>
 			`,
 	})
@@ -531,20 +552,20 @@ test('beforeLoad hook - multiple queries', async function () {
 		`,
 		component: `
 				<script>
-					const { data: data1 } = query(graphql\`
+					const { data: data1 } = graphql\`
 						query TestQuery1 {
 							viewer {
 								id
 							}
 						}
-					\`)
-					const { data: data2 } = query(graphql\`
+					\`
+					const { data: data2 } = graphql\`
 						query TestQuery2 {
 							viewer {
 								id
 							}
 						}
-					\`)
+					\`
 				</script>
 			`,
 	})
@@ -619,13 +640,13 @@ test('afterLoad hook', async function () {
 		`,
 		component: `
 				<script>
-					const { data } = query(graphql\`
+					const result = graphql\`
 						query TestQuery($test: Boolean!) {
 							viewer {
 								id
 							}
 						}
-					\`)
+					\`
 				</script>
 			`,
 	})
@@ -696,20 +717,20 @@ test('afterLoad hook - multiple queries', async function () {
 		`,
 		component: `
 			<script>
-				const { data: data1 } = query(graphql\`
+				const { data: data1 } = graphql\`
 					query TestQuery1 {
 						viewer {
 							id
 						}
 					}
-				\`)
-				const { data: data2 } = query(graphql\`
+				\`
+				const { data: data2 } = graphql\`
 					query TestQuery2 {
 						viewer {
 							id
 						}
 					}
-				\`)
+				\`
 			</script>
 		`,
 	})
@@ -789,13 +810,13 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		`,
 		component: `
 			<script>
-				const { data } = query(graphql\`
+				const result = graphql\`
 					query TestQuery($test: Boolean!) {
 						viewer {
 							id
 						}
 					}
-				\`)
+				\`
 			</script>
 		`,
 	})
@@ -891,8 +912,13 @@ test('layout loads', async function () {
 		import { load_MyQuery1 } from "$houdini/stores/MyQuery1";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/runtime/lib/network";
-		const store1 = GQL_MyQuery1;
-		const store2 = GQL_MyQuery2;
+
+		$:
+		store1 = GQL_MyQuery1;
+
+		$:
+		store2 = GQL_MyQuery2;
+
 		export function MyQuery2Variables() {}
 		export const houdini_load = [store1, store2];
 
@@ -937,13 +963,13 @@ test('layout inline query', async function () {
 	const route = await route_test({
 		layout: `
 			<script>
-				const { data } = query(graphql\`
+				const result = graphql\`
 					query TestQuery {
 						viewer {
 							id
 						}
 					}
-				\`)
+				\`
 			</script>
 		`,
 	})
@@ -952,9 +978,7 @@ test('layout inline query', async function () {
 		export let data;
 
 		$:
-		({
-		    data
-		} = query(data.TestQuery));
+		result = data.TestQuery;
 	`)
 
 	expect(route.layout_script).toMatchInlineSnapshot(`

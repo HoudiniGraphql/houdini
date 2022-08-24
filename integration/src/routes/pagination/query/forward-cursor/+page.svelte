@@ -1,12 +1,7 @@
 <script lang="ts">
-  import {
-    CachePolicy,
-    graphql,
-    paginatedQuery,
-    type ForwardCursorPaginationQuery
-  } from '$houdini';
+  import { CachePolicy, graphql, type ForwardCursorPaginationQueryStore } from '$houdini';
 
-  const result = paginatedQuery<ForwardCursorPaginationQuery>(graphql`
+  const result: ForwardCursorPaginationQueryStore = graphql`
     query ForwardCursorPaginationQuery {
       usersConnection(first: 2, snapshot: "pagination-query-forwards-cursor") @paginate {
         edges {
@@ -16,7 +11,7 @@
         }
       }
     }
-  `);
+  `;
 </script>
 
 <div id="result">

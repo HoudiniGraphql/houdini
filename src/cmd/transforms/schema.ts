@@ -68,6 +68,11 @@ directive @${config.argumentsDirective} on FRAGMENT_DEFINITION
 	@${config.cacheDirective} is used to specify cache rules for a query
 """
 directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${config.cachePartialArg}: Boolean) on QUERY
+
+"""
+	@${config.houdiniDirective} is used to configure houdini's internal behavior such as opting-in an automatic load
+"""
+directive @${config.houdiniDirective}(load: Boolean = true) on QUERY
 `
 
 	// if the config does not have the cache directive, then we need to add it

@@ -2,15 +2,15 @@
   import type { PageData } from './$houdini';
   export let data: PageData;
 
-  import { query, graphql, type PreprocessorTestQuery1 } from '$houdini';
+  import { graphql, type PreprocessorTestQuery1Store } from '$houdini';
 
-  const result = query<PreprocessorTestQuery1>(graphql`
+  const result: PreprocessorTestQuery1Store = graphql`
     query PreprocessorBeforeLoadTestQuery {
       user(id: "1", snapshot: "preprocess-before-load-test-simple") {
         name
       }
     }
-  `);
+  `;
 </script>
 
 <div id="result">

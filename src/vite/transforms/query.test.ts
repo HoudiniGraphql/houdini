@@ -5,13 +5,13 @@ import { component_test } from '../tests'
 test('no variables', async function () {
 	const route = await component_test(
 		`
-            const { data } = query(graphql\`
+            const value = graphql\`
                 query TestQuery {
                     viewer {
                         id
                     }
                 }
-            \`)
+            \`
 		`
 	)
 
@@ -23,9 +23,7 @@ test('no variables', async function () {
 		const _houdini_TestQuery = new TestQueryStore();
 
 		$:
-		({
-		    data
-		} = query(_houdini_TestQuery));
+		value = _houdini_TestQuery;
 
 		let _TestQuery_Input = {};
 
@@ -52,13 +50,13 @@ test('with variables', async function () {
             export const prop2 = 'goodbye'
             export let prop3, prop4
 
-            const { data } = query(graphql\`
+            const result = graphql\`
                 query TestQuery($test: String!) {
                     users(stringValue: $test) {
                         id
                     }
                 }
-            \`)
+            \`
 		`
 	)
 
@@ -80,9 +78,7 @@ test('with variables', async function () {
 		export let prop3, prop4;
 
 		$:
-		({
-		    data
-		} = query(_houdini_TestQuery));
+		result = _houdini_TestQuery;
 
 		let _TestQuery_Input = {};
 
@@ -100,65 +96,6 @@ test('with variables', async function () {
 		    })
 		}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
 		    variables: _TestQuery_Input
-		}));
-	`)
-})
-
-test('2 queries, one paginated one not', async function () {
-	const route = await component_test(`
-        const { data } = query(graphql\`
-            query TestQuery1($test: Boolean!) {
-                viewer {
-                    id
-                }
-            }
-        \`)
-
-        const { data: data2 } = paginatedQuery(graphql\`
-            query TestQuery2($test: Boolean!) {
-                viewer {
-                    id
-                }
-            }
-        \`)
-    `)
-
-	expect(route).toMatchInlineSnapshot(`
-		import { TestQuery2Store } from "$houdini/stores/TestQuery2";
-		import { TestQuery1Store } from "$houdini/stores/TestQuery1";
-		import { isBrowser } from "$houdini/runtime/adapter";
-		import { marshalInputs } from "$houdini/runtime/lib/scalars";
-		const _houdini_TestQuery2 = new TestQuery2Store();
-		const _houdini_TestQuery1 = new TestQuery1Store();
-
-		$:
-		({
-		    data
-		} = query(_houdini_TestQuery1));
-
-		$:
-		({
-		    data: data2
-		} = paginatedQuery(_houdini_TestQuery2));
-
-		let _TestQuery1_Input = {};
-
-		$:
-		marshalInputs({
-		    artifact: _houdini_TestQuery1.artifact,
-		    input: {}
-		}).then(_TestQuery1_Input => isBrowser && _houdini_TestQuery1.fetch({
-		    variables: _TestQuery1_Input
-		}));
-
-		let _TestQuery2_Input = {};
-
-		$:
-		marshalInputs({
-		    artifact: _houdini_TestQuery2.artifact,
-		    input: {}
-		}).then(_TestQuery2_Input => isBrowser && _houdini_TestQuery2.fetch({
-		    variables: _TestQuery2_Input
 		}));
 	`)
 })

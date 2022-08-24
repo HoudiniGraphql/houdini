@@ -63,6 +63,8 @@ test('adds internal documents to schema', async function () {
 		"""@cache is used to specify cache rules for a query"""
 		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
+		"""@houdini is used to configure houdini's internal behavior such as opting-in an automatic load"""
+		directive @houdini(load: Boolean = true) on QUERY
 	`)
 })
 
@@ -122,8 +124,10 @@ test('list operations are included', async function () {
 		"""@cache is used to specify cache rules for a query"""
 		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-		directive @User_delete repeatable on FIELD
+		"""@houdini is used to configure houdini's internal behavior such as opting-in an automatic load"""
+		directive @houdini(load: Boolean = true) on QUERY
 
+		directive @User_delete repeatable on FIELD
 	`)
 
 	// read the documents file
@@ -200,5 +204,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 		"""@cache is used to specify cache rules for a query"""
 		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
+		"""@houdini is used to configure houdini's internal behavior such as opting-in an automatic load"""
+		directive @houdini(load: Boolean = true) on QUERY
 	`)
 })

@@ -2,18 +2,17 @@
   import {
     paginatedFragment,
     graphql,
-    query,
     type OffsetFragment,
-    type UserFragmentOffsetQuery
+    type UserFragmentOffsetQueryStore
   } from '$houdini';
 
-  const queryResult = query<UserFragmentOffsetQuery>(graphql`
+  const queryResult: UserFragmentOffsetQueryStore = graphql`
     query UserFragmentOffsetQuery {
       user(id: "1", snapshot: "pagination-fragment-offset") {
         ...OffsetFragment
       }
     }
-  `);
+  `;
 
   const fragmentResult = paginatedFragment<OffsetFragment>(
     $queryResult.data?.user ?? null,
