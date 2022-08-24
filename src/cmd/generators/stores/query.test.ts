@@ -63,7 +63,7 @@ test('basic store', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
-			
+
 			await store.fetch(params)
 
 			return {
@@ -113,7 +113,7 @@ test('store with required variables', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
-			
+
 			await store.fetch(params)
 
 			return {
@@ -163,7 +163,7 @@ test('store with nullable variables', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
-			
+
 			await store.fetch(params)
 
 			return {
@@ -213,7 +213,7 @@ test('store with non-null variables with default value', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
-			
+
 			await store.fetch(params)
 
 			return {
@@ -269,7 +269,7 @@ test('forward cursor pagination', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
-			
+
 			await store.fetch(params)
 
 			return {
@@ -325,7 +325,7 @@ test('backwards cursor pagination', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
-			
+
 			await store.fetch(params)
 
 			return {
@@ -377,7 +377,7 @@ test('offset pagination', async function () {
 
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
-			
+
 			await store.fetch(params)
 
 			return {
