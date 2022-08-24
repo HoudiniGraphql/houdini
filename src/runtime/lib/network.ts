@@ -142,14 +142,23 @@ export type RequestPayload<_Data = any> = {
 /**
  * ## Tip 👇
  *
- * To define types for your metadata, create a file `src/app.d.ts` containing the followingI:
+ * To define types for your metadata, create a file `src/app.d.ts` containing the following:
  *
  * ```ts
- * declare namespace App { *
- * 	interface Metadata {}
+ * declare namespace App {
+ * 	 interface Metadata {}
+ *
+ *   interface SessionData {
+ *     accessToken: string
+ *   }
  * }
  * ```
  *
+ * To define the shape of session data, pass a type or type literal as generic to the client constructor:
+ *
+ * ```ts
+ * export default new HoudiniClient<App.SessionData>(fetchFn);
+ * ```
  */
 export type RequestHandlerArgs<SessionData> = FetchContext &
 	FetchParams & {
