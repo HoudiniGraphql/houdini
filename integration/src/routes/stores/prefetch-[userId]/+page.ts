@@ -1,10 +1,16 @@
 import { load_User } from '$houdini';
-import type { LoadEvent } from '@sveltejs/kit';
+import { routes } from '$lib/utils/routes';
+import { redirect } from '@sveltejs/kit';
+import type { PageLoad } from './$types';
 
-export async function load(event: LoadEvent) {
+export const load: PageLoad = async (event) => {
+  if (!event.params.userId) {
+    throw redirect(307, routes.Home);
+  }
+
   const variables = { id: event.params.userId };
 
   return {
     ...(await load_User({ event, variables }))
   };
-}
+};
