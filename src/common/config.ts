@@ -325,6 +325,7 @@ ${
 	}
 
 	get storeSuffix() {
+		// if this changes, we might have more forbiddenNames to add in the validator
 		return 'Store'
 	}
 
