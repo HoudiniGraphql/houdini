@@ -151,9 +151,10 @@ export type RequestPayload<_Data = any> = {
  * ```
  *
  */
-export type RequestHandlerArgs<SessionData> = Omit<FetchContext & FetchParams, 'stuff'> & {
-	session: SessionData | undefined
-}
+export type RequestHandlerArgs<SessionData> = FetchContext &
+	FetchParams & {
+		session: SessionData | undefined
+	}
 
 export type RequestHandler<_Data, SessionData> = (
 	args: RequestHandlerArgs<SessionData>
