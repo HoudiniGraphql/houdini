@@ -62,8 +62,6 @@ With that in place we can now define a function that will invoke the `toggleFavo
 <script>
     // ... everything from before
 
-    import { mutation } from '$houdini'
-
     const toggleFavorite = graphql`
         mutation ToggleFavorite($id: Int!) {
             toggleFavorite(id: $id) {

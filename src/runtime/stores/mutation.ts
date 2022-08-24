@@ -25,14 +25,12 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 	async mutate(
 		variables: _Input,
 		{
-			context,
 			metadata,
 			fetch,
 			...mutationConfig
 		}: {
 			// @ts-ignore
 			metadata?: App.Metadata
-			context?: HoudiniFetchContext
 			fetch?: LoadEvent['fetch']
 		} & MutationConfig<_Data, _Input> = {}
 	) {

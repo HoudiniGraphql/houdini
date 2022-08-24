@@ -83,16 +83,16 @@ and inline APIs. For more information about the differences in the APIs, checkou
 ## GraphQL Documents
 
 <APIShowcase
-title="query"
+title="routes"
 description="Fetch data from the server"
-href="/api/query"
+href="/api/routes"
 example={queryExample}
 />
 
 <APIShowcase
 title="fragment"
 description="Reuse part of a query"
-href="/api/fragment"
+href="/api/fragments"
 example={fragmentExample}
 />
 

@@ -133,16 +133,14 @@ export type RequestPayload<_Data = any> = {
 /**
  * ## Tip 👇
  *
- * Create a file `src/app.d.ts` containing the following:
+ * To define types for your metadata, create a file `src/app.d.ts` containing the followingI:
  *
  * ```ts
  * declare namespace App { *
- * 	interface Session {}
  * 	interface Metadata {}
  * }
  * ```
  *
- * Now Session and Metadata are typed everywhere!
  */
 export type RequestHandlerArgs = Omit<FetchContext & FetchParams, 'stuff'>
 
