@@ -2,20 +2,14 @@ import { Writable, writable } from 'svelte/store'
 
 import cache from '../../cache'
 import { getCurrentConfig } from '../../lib/config'
+import { getVariables } from '../../lib/context'
 import { deepEquals } from '../../lib/deepEquals'
 import { executeQuery } from '../../lib/network'
-import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from '../../lib/types'
+import { GraphQLObject, QueryArtifact } from '../../lib/types'
 import { QueryResult, QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
 import { FetchFn } from './fetch'
-import {
-	contextError,
-	countPage,
-	extractPageInfo,
-	missingPageSizeError,
-	nullPageInfo,
-	PageInfo,
-} from './pageInfo'
+import { countPage, extractPageInfo, missingPageSizeError, PageInfo } from './pageInfo'
 
 export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	artifact,
@@ -24,7 +18,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	fetch,
 	storeName,
 	getValue,
-	getContext,
 }: {
 	artifact: QueryArtifact
 	getValue: () => _Data | null
@@ -32,21 +25,22 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	setFetching: (val: boolean) => void
 	fetch: FetchFn<_Data, _Input>
 	storeName: string
-	getContext: () => HoudiniFetchContext | null
 }): CursorHandlers<_Data, _Input> {
 	const pageInfo = writable<PageInfo>(extractPageInfo(getValue(), artifact.refetch!.path))
 
 	// dry up the page-loading logic
 	const loadPage = async ({
-		houdiniContext,
 		pageSizeVar,
 		input,
 		functionName,
+		metadata = {},
+		fetch,
 	}: {
-		houdiniContext: HoudiniFetchContext
 		pageSizeVar: string
 		functionName: string
 		input: {}
+		metadata?: {}
+		fetch?: typeof globalThis.fetch
 	}) => {
 		const config = await getCurrentConfig()
 
@@ -56,7 +50,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		// build up the variables to pass to the query
 		const loadVariables: Record<string, any> = {
 			...(await extraVariables?.()),
-			...houdiniContext.variables(),
+			...getVariables(),
 			...input,
 		}
 
@@ -71,6 +65,8 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			variables: loadVariables,
 			cached: false,
 			config,
+			fetch,
+			metadata,
 		})
 
 		// if the query is embedded in a node field (paginated fragments)
@@ -105,11 +101,17 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	}
 
 	return {
-		loadNextPage: async (pageCount?: number, after?: string, ctx?: HoudiniFetchContext) => {
-			const houdiniContext = getContext() ?? ctx
-			if (!houdiniContext) {
-				throw contextError
-			}
+		loadNextPage: async ({
+			first,
+			after,
+			fetch,
+			metadata,
+		}: {
+			first?: number
+			after?: string
+			fetch?: typeof globalThis.fetch
+			metadata: {}
+		}) => {
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(getValue(), artifact.refetch!.path)
 
@@ -122,27 +124,30 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			const input: Record<string, any> = {
 				after: after ?? currentPageInfo.endCursor,
 			}
-			if (pageCount) {
-				input.first = pageCount
+			if (first) {
+				input.first = first
 			}
 
 			// load the page
 			return await loadPage({
-				houdiniContext,
 				pageSizeVar: 'first',
 				functionName: 'loadNextPage',
 				input,
+				fetch,
+				metadata,
 			})
 		},
-		loadPreviousPage: async (
-			pageCount?: number,
-			before?: string,
-			ctx?: HoudiniFetchContext
-		) => {
-			const houdiniContext = getContext() ?? ctx
-			if (!houdiniContext) {
-				throw contextError
-			}
+		loadPreviousPage: async ({
+			last,
+			before,
+			fetch,
+			metadata,
+		}: {
+			last?: number
+			before?: string
+			fetch?: typeof globalThis.fetch
+			metadata: {}
+		}) => {
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(getValue(), artifact.refetch!.path)
 
@@ -155,16 +160,17 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			const input: Record<string, any> = {
 				before: before ?? currentPageInfo.startCursor,
 			}
-			if (pageCount) {
-				input.last = pageCount
+			if (last) {
+				input.last = last
 			}
 
 			// load the page
 			return await loadPage({
-				houdiniContext,
 				pageSizeVar: 'last',
 				functionName: 'loadPreviousPage',
 				input,
+				fetch,
+				metadata,
 			})
 		},
 		pageInfo,
@@ -172,7 +178,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			args?: QueryStoreFetchParams<_Data, _Input>
 		): Promise<QueryResult<_Data, _Input>> {
 			// validate and prepare the request context for the current environment (client vs server)
-			const { params } = fetchParams(getContext(), artifact, storeName, args)
+			const { params } = fetchParams(artifact, storeName, args)
 
 			const { variables } = params ?? {}
 
@@ -234,16 +240,18 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 }
 
 export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
-	loadNextPage: (
-		pageCount?: number | undefined,
-		after?: string | undefined,
-		ctx?: HoudiniFetchContext | undefined
-	) => Promise<void>
-	loadPreviousPage: (
-		pageCount?: number | undefined,
-		before?: string | undefined,
-		ctx?: HoudiniFetchContext | undefined
-	) => Promise<void>
+	loadNextPage: (args: {
+		first?: number
+		after?: string
+		fetch?: typeof globalThis.fetch
+		metadata: {}
+	}) => Promise<void>
+	loadPreviousPage: (args: {
+		last?: number
+		before?: string
+		fetch?: typeof globalThis.fetch
+		metadata: {}
+	}) => Promise<void>
 	pageInfo: Writable<PageInfo>
 	fetch(
 		args?: QueryStoreFetchParams<_Data, _Input> | undefined

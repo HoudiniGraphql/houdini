@@ -31,9 +31,9 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 		}: {
 			// @ts-ignore
 			metadata?: App.Metadata
-			fetch?: LoadEvent['fetch']
+			fetch?: typeof globalThis.fetch
 		} & MutationConfig<_Data, _Input> = {}
-	): Promise<_Data> {
+	): Promise<_Data | null> {
 		const config = await getCurrentConfig()
 
 		this.store.update((c) => {
@@ -140,7 +140,7 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 			this.store.set(storeData)
 
 			// return the value to the caller
-			return storeData
+			return storeData.data
 		} catch (error) {
 			this.store.update((s) => ({
 				...s,

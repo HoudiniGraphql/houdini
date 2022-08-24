@@ -5,7 +5,6 @@ import { clientStarted, isBrowser } from '../adapter'
 import cache from '../cache'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { getCurrentConfig } from '../lib/config'
-import { nullHoudiniContext } from '../lib/context'
 import { deepEquals } from '../lib/deepEquals'
 import * as log from '../lib/log'
 import { fetchQuery } from '../lib/network'
@@ -66,17 +65,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input, _ExtraFields = {}> 
 		const config = await getCurrentConfig()
 
 		// validate and prepare the request context for the current environment (client vs server)
-		const { context, policy, parentContext, params } = fetchParams(
-			this.context,
-			this.artifact,
-			this.storeName,
-			args
-		)
-
-		// save the context we were given (if there is one)
-		if (!this.context && parentContext) {
-			this.context = parentContext
-		}
+		const { policy, params, context } = fetchParams(this.artifact, this.storeName, args)
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
@@ -199,7 +188,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 	private async fetchAndCache({
 		config,
-		context,
 		artifact,
 		variables,
 		store,
@@ -207,9 +195,9 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		ignoreFollowup,
 		setLoadPending,
 		policy,
+		context,
 	}: {
 		config: ConfigFile
-		context: FetchContext
 		artifact: QueryArtifact
 		variables: _Input
 		store: Writable<QueryResult<_Data, _Input>>
@@ -217,14 +205,16 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		ignoreFollowup?: boolean
 		setLoadPending: (pending: boolean) => void
 		policy?: CachePolicy
+		context: FetchContext
 	}) {
 		const request = await fetchQuery<_Data, _Input>({
+			...context,
 			config,
-			context,
 			artifact,
 			variables,
 			cached,
 			policy,
+			context,
 		})
 		const { result, source, partial } = request
 
@@ -361,13 +351,11 @@ export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
 type StoreState<_Data, _Input, _Extra = {}> = QueryResult<_Data, _Input> & _Extra
 
 export function fetchParams<_Data extends GraphQLObject, _Input>(
-	parentContext: HoudiniFetchContext | null,
 	artifact: QueryArtifact,
 	storeName: string,
 	params?: QueryStoreFetchParams<_Data, _Input>
 ): {
 	context: FetchContext
-	parentContext?: HoudiniFetchContext
 	policy: CachePolicy
 	params: QueryStoreFetchParams<_Data, _Input>
 } {
@@ -384,9 +372,6 @@ export function fetchParams<_Data extends GraphQLObject, _Input>(
 		// use the artifact policy as the default, otherwise prefer the cache over the network
 		policy = artifact.policy ?? CachePolicy.CacheOrNetwork
 	}
-
-	let houdiniContext = parentContext || (params && 'context' in params && params.context)
-	houdiniContext ??= nullHoudiniContext()
 
 	// figure out the right fetch to use
 	let fetchFn: LoadEvent['fetch'] | null = null
@@ -414,7 +399,6 @@ export function fetchParams<_Data extends GraphQLObject, _Input>(
 		},
 		policy,
 		params: params ?? {},
-		parentContext: houdiniContext,
 	}
 }
 

@@ -21,11 +21,9 @@ describe('kit route processor', function () {
 			`,
 		})
 		expect(route.component).toMatchInlineSnapshot(`
-		import { injectContext } from "$houdini/runtime/lib/context";
-		import GQL_TestQuery from "$houdini/stores/TestQuery";
-		injectContext([GQL_TestQuery]);
-		const store = GQL_TestQuery;
-	`)
+			import GQL_TestQuery from "$houdini/stores/TestQuery";
+			const store = GQL_TestQuery;
+		`)
 	})
 
 	test('inline query', async function () {
@@ -45,11 +43,7 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-			import { injectContext } from "$houdini/runtime/lib/context";
 			export let data;
-
-			$:
-			injectContext([data.TestQuery]);
 
 			$:
 			({
@@ -136,11 +130,7 @@ describe('kit route processor', function () {
 
 		// make sure we added the right stuff
 		expect(route.component).toMatchInlineSnapshot(`
-			import { injectContext } from "$houdini/runtime/lib/context";
 			export let data;
-
-			$:
-			injectContext([data.TestQuery1, data.TestQuery2]);
 
 			$:
 			({
@@ -194,7 +184,7 @@ describe('kit route processor', function () {
 	test('compute variables', async function () {
 		const route = await route_test({
 			script: `
-					export function TestQueryVariables(page) {
+					export async function TestQueryVariables(page) {
 						return {
 							test: true
 						}
@@ -220,7 +210,7 @@ describe('kit route processor', function () {
 			import { RequestContext } from "$houdini/runtime/lib/network";
 			import GQL_TestQuery from "$houdini/stores/TestQuery";
 
-			export function TestQueryVariables(page) {
+			export async function TestQueryVariables(page) {
 			    return {
 			        test: true
 			    };
@@ -277,7 +267,6 @@ describe('kit route processor', function () {
 			import { TestQueryStore } from "$houdini/stores/TestQuery";
 			import { isBrowser } from "$houdini/runtime/adapter";
 			import { marshalInputs } from "$houdini/runtime/lib/scalars";
-			import { getHoudiniContext } from "$houdini/runtime/lib/context";
 			const _houdini_TestQuery = new TestQueryStore();
 
 			$:
@@ -285,7 +274,6 @@ describe('kit route processor', function () {
 			    data
 			} = query(_houdini_TestQuery));
 
-			const _houdini_context_DO_NOT_USE = getHoudiniContext();
 			let _TestQuery_Input = {};
 
 			$:
@@ -293,7 +281,6 @@ describe('kit route processor', function () {
 			    artifact: _houdini_TestQuery.artifact,
 			    input: {}
 			}).then(_TestQuery_Input => isBrowser && _houdini_TestQuery.fetch({
-			    context: _houdini_context_DO_NOT_USE,
 			    variables: _TestQuery_Input
 			}));
 		`)
@@ -342,11 +329,7 @@ describe('kit route processor', function () {
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
-			import { injectContext } from "$houdini/runtime/lib/context";
 			export let data;
-
-			$:
-			injectContext([data.TestQuery, data.MyQuery1, data.MyQuery2]);
 
 			$:
 			({
@@ -422,13 +405,8 @@ describe('kit route processor', function () {
 		})
 
 		expect(route.component).toMatchInlineSnapshot(`
-			import { injectContext } from "$houdini/runtime/lib/context";
 			import GQL_TestQuery from "$houdini/stores/TestQuery";
-			injectContext([GQL_TestQuery]);
 			export let data;
-
-			$:
-			injectContext([data.TestQuery]);
 		`)
 		expect(route.script).toMatchInlineSnapshot(`
 			import { load_TestQuery } from "$houdini/stores/TestQuery";
@@ -952,13 +930,7 @@ test('layout loads', async function () {
 		}
 	`)
 
-	expect(route.layout).toMatchInlineSnapshot(`
-		import { injectContext } from "$houdini/runtime/lib/context";
-		export let data;
-
-		$:
-		injectContext([data.MyQuery1, data.MyQuery2]);
-	`)
+	expect(route.layout).toMatchInlineSnapshot('export let data;')
 })
 
 test('layout inline query', async function () {
@@ -977,11 +949,7 @@ test('layout inline query', async function () {
 	})
 
 	expect(route.layout).toMatchInlineSnapshot(`
-		import { injectContext } from "$houdini/runtime/lib/context";
 		export let data;
-
-		$:
-		injectContext([data.TestQuery]);
 
 		$:
 		({

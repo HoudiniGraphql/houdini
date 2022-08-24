@@ -1,6 +1,6 @@
-import { derived, get, Readable, Subscriber } from 'svelte/store'
+import { derived, get, Subscriber } from 'svelte/store'
 
-import { GraphQLObject, HoudiniFetchContext, QueryArtifact, CompiledQueryKind } from '../../lib'
+import { GraphQLObject, QueryArtifact } from '../../lib'
 import {
 	QueryStore,
 	StoreConfig,
@@ -33,7 +33,6 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QuerySto
 			setFetching: this.setFetching.bind(this),
 			queryVariables: this.currentVariables.bind(this),
 			storeName: this.name,
-			getContext: () => this.context,
 			getValue: () => get(this.store).data,
 		})
 	}
@@ -75,8 +74,8 @@ export class QueryStoreForwardCursor<
 	_Data extends GraphQLObject,
 	_Input
 > extends CursorPaginatedStore<_Data, _Input> {
-	async loadNextPage(pageCount?: number, after?: string, ctx?: HoudiniFetchContext) {
-		return this.handlers.loadNextPage(pageCount, after, ctx)
+	async loadNextPage(args: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
+		return this.handlers.loadNextPage(args)
 	}
 }
 
@@ -85,8 +84,8 @@ export class QueryStoreBackwardCursor<
 	_Data extends GraphQLObject,
 	_Input
 > extends CursorPaginatedStore<_Data, _Input> {
-	async loadPreviousPage(pageCount?: number, before?: string, ctx?: HoudiniFetchContext) {
-		return this.handlers.loadPreviousPage(pageCount, before, ctx)
+	async loadPreviousPage(args: Parameters<CursorHandlers<_Data, _Input>['loadPreviousPage']>[0]) {
+		return this.handlers.loadPreviousPage(args)
 	}
 }
 
@@ -104,7 +103,6 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 		this.handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.artifact,
 			fetch: super.fetch,
-			getContext: () => this.context,
 			getValue: () => get(this.store).data,
 			setFetching: (...args) => this.setFetching(...args),
 			queryVariables: () => this.currentVariables(),
@@ -112,8 +110,12 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 		})
 	}
 
-	async loadNextPage(limit?: number, offset?: number, ctx?: HoudiniFetchContext) {
-		return this.handlers.loadNextPage.call(this, limit, offset, ctx)
+	async loadNextPage(
+		args: Parameters<
+			OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>>['loadNextPage']
+		>[0]
+	) {
+		return this.handlers.loadNextPage.call(this, args)
 	}
 
 	fetch(params?: RequestEventFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
@@ -123,21 +125,4 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 	fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
 		return this.handlers.fetch.call(this, args)
 	}
-}
-
-export type QueryStorePaginated<_Data extends GraphQLObject, _Input> = QueryStore<
-	_Data,
-	_Input,
-	{ pageInfo: PageInfo }
-> & {
-	loadNextPage(
-		pageCount?: number,
-		after?: string | number,
-		houdiniContext?: HoudiniFetchContext
-	): Promise<void>
-	loadPreviousPage(
-		pageCount?: number,
-		before?: string,
-		houdiniContext?: HoudiniFetchContext
-	): Promise<void>
 }

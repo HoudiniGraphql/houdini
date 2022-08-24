@@ -1,6 +1,7 @@
 import { derived, get, readable, Readable, Subscriber, Writable, writable } from 'svelte/store'
 
 import { keyFieldsForType, getCurrentConfig } from '../../lib/config'
+import { getVariables } from '../../lib/context'
 import {
 	GraphQLObject,
 	FragmentArtifact,
@@ -8,7 +9,6 @@ import {
 	HoudiniFetchContext,
 	CompiledFragmentKind,
 } from '../../lib/types'
-import { FragmentStore } from '../fragment'
 import { StoreConfig } from '../query'
 import { BaseStore } from '../store'
 import { cursorHandlers, CursorHandlers } from './cursor'
@@ -35,7 +35,9 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 		this.name = config.storeName
 	}
 
-	protected async queryVariables(store: Readable<FragmentPaginatedResult<_Data, unknown>>) {
+	protected async queryVariables(
+		store: Readable<FragmentPaginatedResult<_Data, unknown>>
+	): Promise<_Input> {
 		const config = await getCurrentConfig()
 
 		const { targetType } = this.paginationArtifact.refetch || {}
@@ -45,16 +47,24 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 				`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
 			)
 		}
+
 		// if we have a specific function to use when computing the variables
+		// then we need to collect those fields
+		let idVariables = {}
 		const value = get(store).data
 		if (typeConfig.resolve?.arguments) {
-			return (typeConfig.resolve!.arguments?.(value) || {}) as _Input
+			idVariables = (typeConfig.resolve!.arguments?.(value) || {}) as _Input
 		} else {
 			const keys = keyFieldsForType(config, targetType || '')
-
 			// @ts-ignore
-			return Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
+			idVariables = Object.fromEntries(keys.map((key) => [key, value[key]])) as _Input
 		}
+
+		// add the id variables to the query variables
+		return {
+			...idVariables,
+			...getVariables(),
+		} as _Input
 	}
 }
 
@@ -116,9 +126,8 @@ class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePagin
 			fetch: async () => {
 				return {} as any
 			},
-			getContext: () => this.context,
 			getValue: () => get(store).data,
-			queryVariables: async () => this.queryVariables(store),
+			queryVariables: () => this.queryVariables(store),
 			setFetching,
 			storeName: this.name,
 		})
@@ -186,7 +195,6 @@ export class FragmentStoreOffset<
 		const handlers = offsetHandlers<_Data, _Input>({
 			artifact: this.paginationArtifact,
 			fetch: async () => ({} as any),
-			getContext: () => this.context,
 			getValue: () => get(parent).data,
 			setFetching: (isFetching: boolean) => parent.update((p) => ({ ...p, isFetching })),
 			queryVariables: () => this.queryVariables({ subscribe: parent.subscribe }),

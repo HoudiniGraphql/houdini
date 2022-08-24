@@ -97,8 +97,8 @@ export type FetchContext = {
 	metadata?: App.Metadata | null
 }
 
-export type BeforeLoadContext = LoadEvent
-export type AfterLoadContext = LoadEvent & {
+export type BeforeLoadArgs = LoadEvent
+export type AfterLoadArgs = LoadEvent & {
 	input: Record<string, any>
 	data: Record<string, any>
 }
@@ -153,31 +153,21 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 	variables,
 	cached,
 	config,
-	metadata,
 	fetch,
+	metadata,
 }: {
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
 	cached: boolean
 	config: ConfigFile
-	// @ts-ignore
-	metadata?: App.Metadata
-	fetch?: LoadEvent['fetch']
+	fetch?: typeof globalThis.fetch
+	metadata?: {}
 }): Promise<{ result: RequestPayload; partial: boolean }> {
-	// Simulate the fetch/load context
-	const fetchCtx = {
-		fetch: fetch ?? window.fetch.bind(window),
-		stuff: {},
-		page: {
-			host: '',
-			path: '',
-			params: {},
-			query: new URLSearchParams(),
-		},
-	}
-
 	const { result: res, partial } = await fetchQuery<_Data, _Input>({
-		context: { ...fetchCtx, metadata },
+		context: {
+			fetch: fetch ?? globalThis.fetch.bind(globalThis),
+			metadata,
+		},
 		config,
 		artifact,
 		variables,
@@ -209,11 +199,11 @@ export async function getCurrentClient(): Promise<HoudiniClient> {
 }
 
 export async function fetchQuery<_Data extends GraphQLObject, _Input>({
-	context,
 	artifact,
 	variables,
 	cached = true,
 	policy,
+	context,
 }: {
 	config: ConfigFile
 	context: FetchContext
@@ -344,9 +334,10 @@ export class RequestContext {
 		// call the onLoad function to match the framework
 		let hookCall
 		if (variant === 'before') {
-			hookCall = (hookFn as KitBeforeLoad).call(this, this.loadEvent as BeforeLoadContext)
+			hookCall = (hookFn as KitBeforeLoad).call(this, this.loadEvent as BeforeLoadArgs)
 		} else {
-			Object.assign(this.loadEvent, {
+			hookCall = (hookFn as KitAfterLoad).call(this, {
+				...this.loadEvent,
 				input,
 				data: Object.fromEntries(
 					Object.entries(data).map(([key, store]) => [
@@ -354,8 +345,7 @@ export class RequestContext {
 						get<QueryResult<any, any>>(store).data,
 					])
 				),
-			})
-			hookCall = (hookFn as KitAfterLoad).call(this, this.loadEvent as AfterLoadContext)
+			} as AfterLoadArgs)
 		}
 
 		let result = await hookCall
@@ -381,12 +371,12 @@ export class RequestContext {
 		artifact: QueryArtifact | MutationArtifact | SubscriptionArtifact
 	}) {
 		// call the variable function to match the framework
-		let input = variableFunction.call(this, this.loadEvent)
+		let input = await variableFunction.call(this, this.loadEvent)
 
 		// and pass page and session
 		return await marshalInputs({ artifact, input })
 	}
 }
 
-type KitBeforeLoad = (ctx: BeforeLoadContext) => Record<string, any>
-type KitAfterLoad = (ctx: AfterLoadContext) => Record<string, any>
+type KitBeforeLoad = (ctx: BeforeLoadArgs) => Record<string, any> | Promise<Record<string, any>>
+type KitAfterLoad = (ctx: AfterLoadArgs) => Record<string, any>

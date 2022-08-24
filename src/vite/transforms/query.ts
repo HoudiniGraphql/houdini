@@ -48,13 +48,6 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 		})
 	)
 
-	// add an import for the context utility
-	ensure_imports({
-		config: page.config,
-		script: page.script,
-		import: ['getHoudiniContext'],
-		sourceModule: '$houdini/runtime/lib/context',
-	})
 	ensure_imports({
 		config: page.config,
 		script: page.script,
@@ -90,14 +83,6 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 
 	// define some things we'll need when fetching
 	page.script.body.push(
-		// houdini context
-		AST.variableDeclaration('const', [
-			AST.variableDeclarator(
-				ctx_id,
-				AST.callExpression(AST.identifier('getHoudiniContext'), [])
-			),
-		]),
-
 		// a variable to hold the query input
 		...queries.flatMap<StatementKind>((query) => {
 			// the identifier to use for this variables inputs
@@ -136,7 +121,6 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 															AST.identifier('call')
 														),
 														[
-															ctx_id,
 															AST.objectExpression([
 																AST.objectProperty(
 																	AST.identifier('props'),
@@ -175,10 +159,6 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 											),
 											[
 												AST.objectExpression([
-													AST.objectProperty(
-														AST.identifier('context'),
-														ctx_id
-													),
 													AST.objectProperty(
 														AST.identifier('variables'),
 														local_input_id(query.name)
@@ -259,4 +239,3 @@ export type LoadTarget = {
 }
 
 const local_input_id = (name: string) => AST.identifier(`_${name}_Input`)
-export const ctx_id = AST.identifier('_houdini_context_DO_NOT_USE')

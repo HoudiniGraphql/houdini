@@ -84,13 +84,6 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 
 	// we need this to happen last so it that the context always gets injected first
 	if (is_route && queries.length > 0) {
-		ensure_imports({
-			config: page.config,
-			script: page.script,
-			import: ['injectContext'],
-			sourceModule: '$houdini/runtime/lib/context',
-		})
-
 		// we need to check if there is a declared data prop
 		const has_data = page.script.body.find(
 			(statement) =>
@@ -117,31 +110,13 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 		page.script.body.splice(
 			find_insert_index(page.script),
 			0,
-			...(
-				(!has_data
-					? [
-							AST.exportNamedDeclaration(
-								AST.variableDeclaration('let', [AST.identifier('data')])
-							),
-					  ]
-					: []) as StatementKind[]
-			).concat(
-				AST.labeledStatement(
-					AST.identifier('$'),
-					AST.expressionStatement(
-						AST.callExpression(AST.identifier('injectContext'), [
-							AST.arrayExpression(
-								queries.map((query) =>
-									AST.memberExpression(
-										AST.identifier('data'),
-										AST.identifier(query.name)
-									)
-								)
-							),
-						])
-					)
-				)
-			)
+			...((!has_data
+				? [
+						AST.exportNamedDeclaration(
+							AST.variableDeclaration('let', [AST.identifier('data')])
+						),
+				  ]
+				: []) as StatementKind[])
 		)
 	}
 }

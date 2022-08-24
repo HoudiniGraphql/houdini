@@ -183,7 +183,7 @@ export type SubscriptionSpec = {
 
 export type VariableFunction<_Params extends Record<string, string>, _Input> = (
 	event: LoadEvent<_Params>
-) => _Input
+) => _Input | Promise<_Input>
 
 export type AfterLoadFunction<
 	_Params extends Record<string, string>,

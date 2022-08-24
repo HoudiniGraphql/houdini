@@ -5,23 +5,6 @@ export function nullPageInfo(): PageInfo {
 	return { startCursor: null, endCursor: null, hasNextPage: false, hasPreviousPage: false }
 }
 
-export const contextError = `${log.red(
-	'⚠️ Could not find houdini context for a pagination method ⚠️'
-)}
-This really shouldn't happen. Please open a ticket describing your situation.
-
-In the meantime, you will need to do something like the following. Make sure getHoudiniContext is
-called at the top of your component (outside any event handlers or function definitions) and then
-passed to the method:
-
-<script lang="ts">
-    const ${log.yellow('context')} = getHoudiniContext();
-
-    const onClick = () => GQL_${log.cyan('[YOUR_STORE]')}.loadNextPage(null, null, ${log.yellow(
-	'context'
-)});
-</script>`
-
 export type PageInfo = {
 	startCursor: string | null
 	endCursor: string | null

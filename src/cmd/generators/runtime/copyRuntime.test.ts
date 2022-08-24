@@ -282,7 +282,7 @@ test('updates the network file with the client path', async function () {
 		    // compute the inputs for an operation should reflect the framework's conventions.
 		    async computeInput({ variableFunction, artifact, }) {
 		        // call the variable function to match the framework
-		        let input = variableFunction.call(this, this.loadEvent);
+		        let input = await variableFunction.call(this, this.loadEvent);
 		        // and pass page and session
 		        return await marshalInputs({ artifact, input });
 		    }

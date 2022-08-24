@@ -1,12 +1,13 @@
 import { deepEquals } from '../..'
 import cache from '../../cache'
 import { getCurrentConfig } from '../../lib/config'
+import { getVariables } from '../../lib/context'
 import { executeQuery } from '../../lib/network'
-import { GraphQLObject, HoudiniFetchContext, QueryArtifact } from '../../lib/types'
+import { GraphQLObject, QueryArtifact } from '../../lib/types'
 import { QueryResult, QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
 import { FetchFn } from './fetch'
-import { contextError, countPage, missingPageSizeError } from './pageInfo'
+import { countPage, missingPageSizeError } from './pageInfo'
 
 export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 	artifact,
@@ -15,7 +16,6 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 	getValue,
 	setFetching,
 	storeName,
-	getContext,
 }: {
 	artifact: QueryArtifact
 	queryVariables: () => Promise<_Input | null>
@@ -23,7 +23,6 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 	getValue: () => _Data | null
 	storeName: string
 	setFetching: (val: boolean) => void
-	getContext: () => HoudiniFetchContext | null
 }) {
 	// we need to track the most recent offset for this handler
 	let currentOffset =
@@ -32,19 +31,24 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 		artifact.refetch!.pageSize
 
 	return {
-		loadNextPage: async (limit?: number, offset?: number, ctx?: HoudiniFetchContext) => {
+		loadNextPage: async ({
+			limit,
+			offset,
+			fetch,
+			metadata,
+		}: {
+			limit?: number
+			offset?: number
+			fetch?: typeof globalThis.fetch
+			metadata?: {}
+		}) => {
 			const config = await getCurrentConfig()
-
-			const houdiniContext = getContext() ?? ctx
-			if (!houdiniContext) {
-				throw contextError
-			}
 
 			offset ??= currentOffset
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...houdiniContext.variables(),
+				...getVariables(),
 				...(await extraVariables()),
 				offset,
 			}
@@ -67,6 +71,8 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 				variables: queryVariables,
 				cached: false,
 				config,
+				fetch,
+				metadata,
 			})
 
 			// update cache with the result
@@ -87,7 +93,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 		async fetch(
 			args?: QueryStoreFetchParams<_Data, _Input>
 		): Promise<QueryResult<_Data, _Input>> {
-			const { params } = fetchParams(getContext(), artifact, storeName, args)
+			const { params } = fetchParams(artifact, storeName, args)
 
 			const { variables } = params ?? {}
 
@@ -138,6 +144,11 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 }
 
 export type OffsetHandlers<_Data extends GraphQLObject, _Input, _ReturnType> = {
-	loadNextPage: (limit?: number, offset?: number, ctx?: HoudiniFetchContext) => Promise<void>
+	loadNextPage: (args: {
+		limit?: number
+		offset?: number
+		metadata?: {}
+		fetch?: typeof globalThis.fetch
+	}) => Promise<void>
 	fetch(args?: QueryStoreFetchParams<_Data, _Input> | undefined): Promise<_ReturnType>
 }
