@@ -35,9 +35,9 @@ export default ${globalStoreName}
 	const withVariableInputs = inputs && inputs.length > 0
 	const VariableInputsType = withVariableInputs ? `${artifactName}["input"]` : 'null'
 	// the type definitions for the store
-	const typeDefs = `import type { ${artifactName}, ${artifactName}$result, MutationStore } from '$houdini'
+	const typeDefs = `import type { ${artifactName}, ${artifactName}$result, SubscriptionStore } from '$houdini'
 
-export declare class ${storeName} extends MutationStore<${artifactName}$result | undefined, ${VariableInputsType}> {
+export declare class ${storeName} extends SubscriptionStore<${artifactName}$result | undefined, ${VariableInputsType}> {
 	constructor() {}
 }
 
