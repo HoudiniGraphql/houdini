@@ -33,7 +33,7 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 			metadata?: App.Metadata
 			fetch?: LoadEvent['fetch']
 		} & MutationConfig<_Data, _Input> = {}
-	) {
+	): Promise<_Data> {
 		const config = await getCurrentConfig()
 
 		this.store.update((c) => {
