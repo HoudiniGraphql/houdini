@@ -247,7 +247,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -256,6 +256,8 @@ describe('typescript', function () {
 			        readonly firstName: string
 			    } | null
 			};
+
+			export type Query$input = null;
 		`)
 	})
 
@@ -281,7 +283,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -290,6 +292,8 @@ describe('typescript', function () {
 			        readonly firstName: string
 			    } | null)[] | null
 			};
+
+			export type Query$input = null;
 		`)
 	})
 
@@ -356,7 +360,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyTestQuery = {
-			    readonly "input": null,
+			    readonly "input": MyTestQuery$input,
 			    readonly "result": MyTestQuery$result | undefined
 			};
 
@@ -369,6 +373,8 @@ describe('typescript', function () {
 			        readonly __typename: "User"
 			    }))
 			};
+
+			export type MyTestQuery$input = null;
 		`)
 	})
 
@@ -547,7 +553,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -558,6 +564,8 @@ describe('typescript', function () {
 			        }
 			    } | null
 			};
+
+			export type Query$input = null;
 		`)
 	})
 
@@ -583,7 +591,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -595,6 +603,8 @@ describe('typescript', function () {
 			        }
 			    }
 			};
+
+			export type Query$input = null;
 		`)
 	})
 
@@ -628,7 +638,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -641,6 +651,8 @@ describe('typescript', function () {
 			        readonly __typename: "Cat"
 			    })))[]
 			};
+
+			export type Query$input = null;
 		`)
 	})
 
@@ -674,7 +686,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -687,6 +699,8 @@ describe('typescript', function () {
 			        readonly __typename: "Cat"
 			    })) | null)[] | null
 			};
+
+			export type Query$input = null;
 		`)
 	})
 
@@ -721,7 +735,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -736,6 +750,8 @@ describe('typescript', function () {
 			        readonly __typename: "Cat"
 			    })))[]
 			};
+
+			export type Query$input = null;
 		`)
 	})
 
@@ -772,7 +788,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -786,6 +802,8 @@ describe('typescript', function () {
 			        readonly __typename: "User"
 			    })) | null)[] | null
 			};
+
+			export type Query$input = null;
 		`)
 	})
 
@@ -833,7 +851,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -842,6 +860,8 @@ describe('typescript', function () {
 			        readonly createdAt: Date
 			    })[]
 			};
+
+			export type Query$input = null;
 		`)
 	})
 
@@ -933,7 +953,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -943,6 +963,8 @@ describe('typescript', function () {
 			        readonly nickname: string | null
 			    } | null)[] | null)[]
 			};
+
+			export type Query$input = null;
 		`)
 	})
 
@@ -973,7 +995,7 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type Query = {
-			    readonly "input": null,
+			    readonly "input": Query$input,
 			    readonly "result": Query$result | undefined
 			};
 
@@ -985,6 +1007,8 @@ describe('typescript', function () {
 			        } | null
 			    } | null
 			};
+
+			export type Query$input = null;
 		`)
 	})
 

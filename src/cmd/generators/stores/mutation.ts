@@ -29,10 +29,13 @@ export const ${globalStoreName} = new ${storeName}()
 export default ${globalStoreName}
 `
 
-	// type definitions
-	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, MutationStore } from '$houdini'
+	const _input = `${artifactName}$input`
+	const _data = `${artifactName}$result`
 
-export declare class ${storeName} extends MutationStore<${artifactName}$result | undefined, ${artifactName}$input>{
+	// the type definitions for the store
+	const typeDefs = `import type { ${_input}, ${_data}, MutationStore } from '$houdini'
+
+export declare class ${storeName} extends MutationStore<${_data} | undefined, ${_input}>{
 	constructor() {}
 }
 

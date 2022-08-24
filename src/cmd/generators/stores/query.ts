@@ -52,7 +52,7 @@ export class ${storeName} extends ${queryClass} {
 
 export async function load_${artifactName}(params) {
 	const store = new ${storeName}()
-	
+
 	await store.fetch(params)
 
 	return {
@@ -65,28 +65,19 @@ export const ${globalStoreName} = new ${storeName}()
 export default ${globalStoreName}
 `
 
-	// look for the operation
-	const operations = doc.document.definitions.filter(
-		({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
-	) as graphql.OperationDefinitionNode[]
-	const inputs = operations[0]?.variableDefinitions
-	const withVariableInputs = inputs && inputs.length > 0
-	const variableInputsType = withVariableInputs ? `${artifactName}$input` : 'null'
-
+	const _input = `${artifactName}$input`
 	const _data = `${artifactName}$result`
 
-	// type definitions
-	const typeDefs = `import type { ${_data}, ${queryClass}, ${
-		variableInputsType ? `${artifactName}$input` : ''
-	}, QueryStoreFetchParams} from '$houdini'
+	// the type definitions for the store
+	const typeDefs = `import type { ${_input}, ${_data}, ${queryClass}, QueryStoreFetchParams} from '$houdini'
 
-export declare class ${storeName} extends ${queryClass}<${_data}, ${variableInputsType}> {
+export declare class ${storeName} extends ${queryClass}<${_data}, ${_input}> {
 	constructor() {}
 }
 
 export const ${globalStoreName}: ${storeName}
 
-export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${variableInputsType}>) => Promise<{${artifactName}: ${storeName}}>
+export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName}}>
 
 export default ${storeName}
 `

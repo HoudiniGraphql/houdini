@@ -27,17 +27,13 @@ export const ${globalStoreName} = new ${storeName}()
 export default ${globalStoreName}
 `
 
-	// look for the operation
-	const operations = doc.document.definitions.filter(
-		({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
-	) as graphql.OperationDefinitionNode[]
-	const inputs = operations[0]?.variableDefinitions
-	const withVariableInputs = inputs && inputs.length > 0
-	const VariableInputsType = withVariableInputs ? `${artifactName}["input"]` : 'null'
-	// the type definitions for the store
-	const typeDefs = `import type { ${artifactName}, ${artifactName}$result, MutationStore } from '$houdini'
+	const _input = `${artifactName}$input`
+	const _data = `${artifactName}$result`
 
-export declare class ${storeName} extends MutationStore<${artifactName}$result | undefined, ${VariableInputsType}> {
+	// the type definitions for the store
+	const typeDefs = `import type { ${_input}, ${_data}, SubscriptionStore } from '$houdini'
+
+export declare class ${storeName} extends SubscriptionStore<${_data} | undefined, ${_input}> {
 	constructor() {}
 }
 
