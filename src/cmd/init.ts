@@ -176,7 +176,6 @@ async function fetchQuery({
 	fetch,
 	text = '',
 	variables = {},
-	session,
 	metadata
 }${typescript ? ': RequestHandlerArgs' : ''}) {
 	const url = import.meta.env.VITE_GRAPHQL_ENDPOINT || '${url}';

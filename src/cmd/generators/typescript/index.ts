@@ -193,11 +193,7 @@ async function generateOperationTypeDefs(
 					readonlyProperty(
 						AST.tsPropertySignature(
 							AST.stringLiteral('input'),
-							AST.tsTypeAnnotation(
-								hasInputs
-									? AST.tsTypeReference(AST.identifier(inputTypeName))
-									: AST.tsNullKeyword()
-							)
+							AST.tsTypeAnnotation(AST.tsTypeReference(AST.identifier(inputTypeName)))
 						)
 					),
 					readonlyProperty(
@@ -268,6 +264,12 @@ async function generateOperationTypeDefs(
 						)
 					)
 				)
+			)
+		)
+	} else {
+		body.push(
+			AST.exportNamedDeclaration(
+				AST.tsTypeAliasDeclaration(AST.identifier(inputTypeName), AST.tsNullKeyword())
 			)
 		)
 	}

@@ -19,13 +19,12 @@ test('no variables', async function () {
 	expect(route).toMatchInlineSnapshot(`
 		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { isBrowser } from "$houdini/runtime/adapter";
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
 
 		$:
 		value = _houdini_TestQuery;
-
-		let _TestQuery_Input = {};
 
 		$:
 		marshalInputs({
@@ -64,6 +63,7 @@ test('with variables', async function () {
 	expect(route).toMatchInlineSnapshot(`
 		import { TestQueryStore } from "$houdini/stores/TestQuery";
 		import { isBrowser } from "$houdini/runtime/adapter";
+		import { RequestContext } from "$houdini/runtime/lib/network";
 		import { marshalInputs } from "$houdini/runtime/lib/scalars";
 		const _houdini_TestQuery = new TestQueryStore();
 
@@ -80,13 +80,11 @@ test('with variables', async function () {
 		$:
 		result = _houdini_TestQuery;
 
-		let _TestQuery_Input = {};
-
 		$:
 		marshalInputs({
 		    artifact: _houdini_TestQuery.artifact,
 
-		    input: TestQueryVariables.call({
+		    input: TestQueryVariables.call(new RequestContext(), {
 		        props: {
 		            prop1: prop1,
 		            prop2: prop2,

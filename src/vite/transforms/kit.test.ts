@@ -286,13 +286,12 @@ describe('kit route processor', function () {
 		expect(route.component).toMatchInlineSnapshot(`
 			import { TestQueryStore } from "$houdini/stores/TestQuery";
 			import { isBrowser } from "$houdini/runtime/adapter";
+			import { RequestContext } from "$houdini/runtime/lib/network";
 			import { marshalInputs } from "$houdini/runtime/lib/scalars";
 			const _houdini_TestQuery = new TestQueryStore();
 
 			$:
 			test = _houdini_TestQuery;
-
-			let _TestQuery_Input = {};
 
 			$:
 			marshalInputs({
@@ -361,13 +360,8 @@ describe('kit route processor', function () {
 			import { getCurrentConfig } from "$houdini/runtime/lib/config";
 			import { RequestContext } from "$houdini/runtime/lib/network";
 			import GQL_TestQuery from "$houdini/stores/TestQuery";
-
-			$:
-			store1 = GQL_MyQuery1;
-
-			$:
-			store2 = GQL_MyQuery2;
-
+			const store1 = GQL_MyQuery1;
+			const store2 = GQL_MyQuery2;
 			export function MyQuery2Variables() {}
 			export const houdini_load = [store1, store2];
 
@@ -912,13 +906,8 @@ test('layout loads', async function () {
 		import { load_MyQuery1 } from "$houdini/stores/MyQuery1";
 		import { getCurrentConfig } from "$houdini/runtime/lib/config";
 		import { RequestContext } from "$houdini/runtime/lib/network";
-
-		$:
-		store1 = GQL_MyQuery1;
-
-		$:
-		store2 = GQL_MyQuery2;
-
+		const store1 = GQL_MyQuery1;
+		const store2 = GQL_MyQuery2;
 		export function MyQuery2Variables() {}
 		export const houdini_load = [store1, store2];
 

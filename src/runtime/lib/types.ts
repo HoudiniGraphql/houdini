@@ -20,8 +20,6 @@ export type Operation<_Result, _Input> = {
 	readonly input: _Input
 }
 
-export type Session = any
-
 export type Maybe<T> = T | null | undefined
 
 // any compiled result
