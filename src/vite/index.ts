@@ -31,7 +31,8 @@ export default function ({
 					const config = await getConfig({ configFile: configPath, ...extraConfig })
 
 					// we need to watch some specific files
-					if ([config.filepath, config.schemaPath].includes(filepath)) {
+					const schemaPath = path.join(path.dirname(config.filepath), config.schemaPath!)
+					if ([schemaPath].includes(filepath)) {
 						return true
 					}
 
