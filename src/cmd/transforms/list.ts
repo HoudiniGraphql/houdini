@@ -1,9 +1,9 @@
 import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
-import { Config, parentTypeFromAncestors } from '../../common'
+import { Config, parentTypeFromAncestors, HoudiniError } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'
-import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
+import { CollectedGraphQLDocument } from '../types'
 import { TypeWrapper, unwrapType } from '../utils'
 import { pageInfoSelection } from './paginate'
 
@@ -21,7 +21,7 @@ export default async function addListFragments(
 		}
 	} = {}
 
-	const errors: HoudiniError[] = []
+	const errors: Error[] = []
 
 	// look at every document
 	for (const doc of documents) {
@@ -209,7 +209,7 @@ export default async function addListFragments(
 
 					// if there is no selection set
 					if (!selection) {
-						throw new HoudiniErrorTodo('Lists must have a selection')
+						throw new HoudiniError({ message: 'Lists must have a selection' })
 					}
 
 					// we need a copy of the field's selection set that we can mutate

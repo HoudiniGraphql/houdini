@@ -1,13 +1,19 @@
 import * as graphql from 'graphql'
 
-import { Config, definitionFromAncestors, LogLevel, parentTypeFromAncestors } from '../../common'
+import {
+	Config,
+	definitionFromAncestors,
+	LogLevel,
+	parentTypeFromAncestors,
+	HoudiniError,
+} from '../../common'
 import {
 	FragmentArgument,
 	fragmentArguments as collectFragmentArguments,
 	withArguments,
 } from '../transforms/fragmentVariables'
 import { connectionSelection } from '../transforms/list'
-import { CollectedGraphQLDocument, HoudiniError, HoudiniErrorTodo } from '../types'
+import { CollectedGraphQLDocument } from '../types'
 import { unwrapType } from '../utils'
 
 // typeCheck verifies that the documents are valid instead of waiting
@@ -17,7 +23,7 @@ export default async function typeCheck(
 	docs: CollectedGraphQLDocument[]
 ): Promise<void> {
 	// wrap the errors we run into in a HoudiniError
-	const errors: HoudiniError[] = []
+	const errors: Error[] = []
 
 	// we need to catch errors in the list API. this means that a user
 	// must provide parentID if they are using a list that is not all-objects
@@ -90,7 +96,12 @@ export default async function typeCheck(
 						? config.schema.getQueryType()
 						: config.schema.getType(definition.typeCondition.name.value)
 				if (!rootType) {
-					errors.push({ filepath: filename, message: 'Could not find root type' })
+					errors.push(
+						new HoudiniError({
+							filepath: filename,
+							message: 'Could not find root type',
+						})
+					)
 					return
 				}
 
@@ -108,7 +119,12 @@ export default async function typeCheck(
 
 					// if the directive isn't a field we have a problem
 					if (parent.kind !== 'Field') {
-						errors.push(new HoudiniErrorTodo("Shouldn't get here"))
+						errors.push(
+							new HoudiniError({
+								filepath: filename,
+								message: "Shouldn't get here",
+							})
+						)
 						return
 					}
 
@@ -145,9 +161,10 @@ export default async function typeCheck(
 					// if we need a parent, we can't paginate it
 					if (needsParent) {
 						errors.push(
-							new HoudiniErrorTodo(
-								`@${config.paginateDirective} cannot be below a list`
-							)
+							new HoudiniError({
+								filepath: filename,
+								message: `@${config.paginateDirective} cannot be below a list`,
+							})
 						)
 					}
 				}
@@ -164,7 +181,12 @@ export default async function typeCheck(
 				if (!nameArg) {
 					// if we are looking at @list there is an error
 					if (directive.name.value === config.listDirective) {
-						errors.push(new HoudiniErrorTodo('Could not find name arg'))
+						errors.push(
+							new HoudiniError({
+								filepath: filename,
+								message: 'Could not find name arg',
+							})
+						)
 					}
 
 					// regardless there's nothing more to process
@@ -172,9 +194,11 @@ export default async function typeCheck(
 				}
 				if (nameArg.value.kind !== 'StringValue') {
 					errors.push(
-						new HoudiniErrorTodo(
-							'Name arg must be a static string, it cannot be set to a variable.'
-						)
+						new HoudiniError({
+							filepath: filename,
+							message:
+								'Name arg must be a static string, it cannot be set to a variable.',
+						})
 					)
 					return
 				}
@@ -182,7 +206,12 @@ export default async function typeCheck(
 				// if we have already seen the list name there's a problem
 				const listName = nameArg.value.value
 				if (lists.includes(listName)) {
-					errors.push(new HoudiniErrorTodo('List names must be unique'))
+					errors.push(
+						new HoudiniError({
+							filepath: filename,
+							message: 'List names must be unique',
+						})
+					)
 					return
 				}
 
@@ -216,19 +245,22 @@ export default async function typeCheck(
 
 				if (missingIDFields.length > 0) {
 					if (error) {
-						errors.push({
-							message: error,
-							filepath: filename,
-						})
+						errors.push(
+							new HoudiniError({
+								filepath: filename,
+								message: error,
+							})
+						)
 					} else {
 						errors.push(
-							new HoudiniErrorTodo(
-								`@${
+							new HoudiniError({
+								filepath: filename,
+								message: `@${
 									config.listDirective
 								} can only be applied to types with the necessary id fields: ${missingIDFields.join(
 									', '
-								)}.`
-							)
+								)}.`,
+							})
 						)
 					}
 					return
@@ -301,10 +333,12 @@ export default async function typeCheck(
 	for (const { filename, document: parsed } of docs) {
 		// validate the document
 		for (const error of graphql.validate(config.schema, parsed, rules(filename))) {
-			errors.push({
-				...error,
-				filepath: filename,
-			})
+			errors.push(
+				new HoudiniError({
+					filepath: filename,
+					message: error.message,
+				})
+			)
 		}
 	}
 

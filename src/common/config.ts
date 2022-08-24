@@ -7,8 +7,10 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
 
+import { pullSchema } from '../cmd/utils'
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy, GraphQLTagResult } from '../runtime/lib/types'
+import { HoudiniError } from './error'
 import { extractLoadFunction } from './extractLoadFunction'
 import * as fs from './fs'
 import { parseSvelte } from './parse'
@@ -83,22 +85,13 @@ export class Config {
 			client,
 		} = this.configFile
 
-		// make sure we got some kind of schema
-		if (!schema) {
-			throw {
-				filepath,
-				message:
-					'Invalid config file: please provide one of schema or schemaPath. Also, export default config',
-			}
-		}
-
 		if (!client) {
-			throw {
+			throw new HoudiniError({
 				filepath,
 				message: 'Invalid config file: missing client value.',
 				description:
 					'Please set it to the relative path (from houdini.config.js) to your client file. The file must have a default export with an instance of HoudiniClient.',
-			}
+			})
 		}
 
 		// if we're given a schema string
@@ -846,6 +839,10 @@ async function loadSchemaFile(schemaPath: string): Promise<graphql.GraphQLSchema
 	return graphql.buildClientSchema(jsonContents)
 }
 
+// if multiple calls to getConfig happen simultaneously, we want to only load the
+// schema once (if it needs to happen, ie the file doesn't exist).
+let pendingConfigPromise: Promise<Config> | null = null
+
 // get the project's current configuration
 export async function getConfig({
 	configFile,
@@ -855,22 +852,55 @@ export async function getConfig({
 		return _config
 	}
 
-	// add the filepath and save the result
-	const configPath = configFile || DEFAULT_CONFIG_PATH
-	const config = await readConfigFile(configPath)
-
-	// look up the schema
-	let schema = config.schema
-	if (config.schemaPath) {
-		schema = await loadSchemaFile(config.schemaPath)
+	// if we have a pending promise, return the result of that
+	if (pendingConfigPromise) {
+		return await pendingConfigPromise
 	}
 
-	_config = new Config({
-		schema,
-		...config,
-		...extraConfig,
-		filepath: configPath,
+	// there isn't a pending config so let's make one to claim
+	let resolve: (cfg: Config | PromiseLike<Config>) => void = () => {}
+	let reject = (message?: any) => {}
+	pendingConfigPromise = new Promise((res, rej) => {
+		resolve = res
+		reject = rej
 	})
+
+	// add the filepath and save the result
+	const configPath = configFile || DEFAULT_CONFIG_PATH
+
+	try {
+		_config = new Config({
+			...(await readConfigFile(configPath)),
+			...extraConfig,
+			filepath: configPath,
+		})
+
+		// look up the schema if we need to
+		if (_config.schemaPath && !_config.schema) {
+			// we might have to pull the schema first
+			if (_config.apiUrl) {
+				// make sure we don't have a pattern pointing to multiple files and a remove URL
+				if (glob.hasMagic(_config.schemaPath)) {
+					console.log(
+						'⚠️ Your houdini configuration contains an apiUrl and a path pointing to multiple files'
+					)
+				}
+				// we might have to create the file
+				else if (!(await fs.readFile(_config.schemaPath))) {
+					console.log('⌛ Pulling schema from api')
+					await pullSchema(_config.apiUrl, _config.schemaPath)
+				}
+			}
+
+			// the schema is safe to load
+			_config.schema = await loadSchemaFile(_config.schemaPath)
+		}
+	} catch (e) {
+		reject(e)
+		throw e
+	}
+
+	resolve(_config)
 
 	return _config
 }

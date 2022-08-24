@@ -4,7 +4,7 @@ import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
 
-import { Config, writeFile } from '../../../common'
+import { Config, HoudiniError, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
@@ -173,7 +173,7 @@ async function generateOperationTypeDefs(
 		parentType = config.schema.getSubscriptionType()!
 	}
 	if (!parentType) {
-		throw { filepath, message: 'Could not find root type for document' }
+		throw new HoudiniError({ filepath, message: 'Could not find root type for document' })
 	}
 
 	// the name of the types we will define

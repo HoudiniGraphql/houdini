@@ -5,7 +5,6 @@ import { ConfigFile } from '../runtime'
 import generate from './generate'
 import init from './init'
 import pullSchema from './pullSchema'
-import { HoudiniError } from './types'
 
 // build up the cli
 const program = new Command()
@@ -86,7 +85,7 @@ program
 				await generate(config)
 			} catch (e) {
 				// we need an array of errors to loop through
-				const errors = (Array.isArray(e) ? e : [e]) as HoudiniError[]
+				const errors = (Array.isArray(e) ? e : [e]) as Error[]
 
 				formatErrors(errors, function (error) {
 					if (args.verbose && 'stack' in error && error.stack) {

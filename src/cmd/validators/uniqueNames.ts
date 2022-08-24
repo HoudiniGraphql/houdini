@@ -1,5 +1,5 @@
-import { Config } from '../../common'
-import { CollectedGraphQLDocument, HoudiniInfoError } from '../types'
+import { Config, HoudiniError } from '../../common'
+import { CollectedGraphQLDocument } from '../types'
 
 // uniqueDocumentNames verifies that the documents all have unique names
 export default async function uniqueDocumentNames(
@@ -16,16 +16,22 @@ export default async function uniqueDocumentNames(
 	)
 
 	// look for names with more than one entry and turn them into errors
-	const errors: HoudiniInfoError[] = Object.entries(nameMap)
+	const errors: HoudiniError[] = Object.entries(nameMap)
 		.filter(([_, filenames]) => filenames.length > 1)
-		.map(([docName, fileNames]) => ({
-			message: `Operation "${docName}" conflict. It should not be defined in multiple places!`,
-			description: fileNames,
-		}))
+		.map(
+			([docName, fileNames]) =>
+				new HoudiniError({
+					message: `Operation names must be unique. Encountered duplicate definitions of ${docName} in these files:`,
+					description: fileNames.join(', '),
+				})
+		)
 
 	// if we got errors
 	if (errors.length > 0) {
-		throw { filepath: errors[0].description?.join(' | '), message: errors[0].message }
+		throw new HoudiniError({
+			filepath: errors[0].description,
+			message: errors[0].message,
+		})
 	}
 
 	// we're done here

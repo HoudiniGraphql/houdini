@@ -2,7 +2,7 @@ import crypto from 'crypto'
 import * as graphql from 'graphql'
 import path from 'path'
 
-import { HoudiniError } from '../cmd'
+import { HoudiniError } from './error'
 
 export function getRootType(type: graphql.GraphQLType): graphql.GraphQLType {
 	// if the type is non-null, unwrap and go again
@@ -65,7 +65,7 @@ function walkAncestors(
 	}
 
 	if (!head) {
-		throw { filepath, message: 'Could not figure out type of field' }
+		throw new HoudiniError({ filepath, message: 'Could not figure out type of field' })
 	}
 
 	// if we are at the top of the definition stack
@@ -78,7 +78,7 @@ function walkAncestors(
 		}[head.operation]
 
 		if (!operationType) {
-			throw { filepath, message: 'Could not find operation type' }
+			throw new HoudiniError({ filepath, message: 'Could not find operation type' })
 		}
 		return operationType
 	}
@@ -87,10 +87,10 @@ function walkAncestors(
 		// look up the type condition in the schema
 		const result = schema.getType(head.typeCondition.name.value) as GraphQLParentType
 		if (!result) {
-			throw {
+			throw new HoudiniError({
 				filepath,
 				message: `Could not find definition for ${head.typeCondition.name.value} in the schema`,
-			}
+			})
 		}
 
 		// we're done here
@@ -115,10 +115,10 @@ function walkAncestors(
 		// look at the type condition to find the type
 		const wrapper = schema.getType(head.typeCondition.name.value) as GraphQLParentType
 		if (!wrapper) {
-			throw {
+			throw new HoudiniError({
 				filepath,
 				message: 'Could not find type with name: ' + head.typeCondition.name.value,
-			}
+			})
 		}
 
 		return wrapper
@@ -131,10 +131,10 @@ function walkAncestors(
 	// we are looking at a field so we can just access the field map of the parent type
 	const field = parent.getFields()[head.name.value]
 	if (!field) {
-		throw {
+		throw new HoudiniError({
 			filepath,
 			message: `Could not find definition of ${head.name.value} in ${parent.toString()}`,
-		}
+		})
 	}
 
 	return getRootType(field.type) as GraphQLParentType
@@ -167,11 +167,14 @@ export function definitionFromAncestors(ancestors: readonly any[]) {
 
 export function formatErrors(e: unknown, afterError?: (e: Error) => void) {
 	// we need an array of errors to loop through
-	const errors = (Array.isArray(e) ? e : [e]) as HoudiniError[]
+	const errors = (Array.isArray(e) ? e : [e]) as (Error & {
+		filepath?: string
+		description?: string
+	})[]
 
 	for (const error of errors) {
 		// if we have filepath, show that to the user
-		if ('filepath' in error) {
+		if ('filepath' in error && error.filepath) {
 			const relative = path.relative(process.cwd(), error.filepath)
 			console.error(`❌ Encountered error in ${relative}`)
 			if (error.message) {

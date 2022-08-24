@@ -1,7 +1,7 @@
 import * as graphql from 'graphql'
 import * as recast from 'recast'
 
-import { Config, parentTypeFromAncestors } from '../../../common'
+import { Config, HoudiniError, parentTypeFromAncestors } from '../../../common'
 import { MutationOperation } from '../../../runtime'
 import { convertValue } from './utils'
 
@@ -123,7 +123,7 @@ function operationObject({
 
 		// if both are applied, there's a problem
 		if (append && prepend) {
-			throw { filepath, message: 'you have both applied' }
+			throw new HoudiniError({ filepath, message: 'you have both applied' })
 		}
 		position = prepend ? 'first' : 'last'
 

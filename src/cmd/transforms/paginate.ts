@@ -1,6 +1,6 @@
 import * as graphql from 'graphql'
 
-import { Config, parentTypeFromAncestors } from '../../common'
+import { Config, HoudiniError, parentTypeFromAncestors } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { CollectedGraphQLDocument, RefetchUpdateMode } from '../types'
 import { unwrapType, wrapType } from '../utils'
@@ -178,10 +178,10 @@ export default async function paginate(
 				OperationDefinition(node) {
 					// make sure its a query
 					if (node.operation !== 'query') {
-						throw {
+						throw new HoudiniError({
 							filepath: doc.filename,
 							message: `@${config.paginateDirective} can only show up in a query or fragment document`,
-						}
+						})
 					}
 
 					refetchQueryName = node.name?.value || ''
