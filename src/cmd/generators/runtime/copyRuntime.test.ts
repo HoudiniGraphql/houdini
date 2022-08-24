@@ -130,7 +130,7 @@ test('updates the network file with the client path', async function () {
 		\`);
 		    }
 		}
-		// This function is responsible for simulating the fetch context, getting the current session and executing the fetchQuery.
+		// This function is responsible for simulating the fetch context and executing the query with fetchQuery.
 		// It is mainly used for mutations, refetch and possible other client side operations in the future.
 		export async function executeQuery({ artifact, variables, cached, config, fetch, metadata, }) {
 		    const { result: res, partial } = await fetchQuery({
@@ -242,8 +242,7 @@ test('updates the network file with the client path', async function () {
 		        }
 		        return this.error(500, 'Encountered invalid response: ' + JSON.stringify(payload));
 		    }
-		    // This hook fires before executing any queries, it allows to redirect/error based on session state for example
-		    // It also allows to return custom props that should be returned from the corresponding load function.
+		    // This hook fires before executing any queries, it allows custom props to be passed to the component.
 		    async invokeLoadHook({ variant, hookFn, input, data, }) {
 		        // call the onLoad function to match the framework
 		        let hookCall;
@@ -277,7 +276,6 @@ test('updates the network file with the client path', async function () {
 		    async computeInput({ variableFunction, artifact, }) {
 		        // call the variable function to match the framework
 		        let input = await variableFunction.call(this, this.loadEvent);
-		        // and pass page and session
 		        return await marshalInputs({ artifact, input });
 		    }
 		}

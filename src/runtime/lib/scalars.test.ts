@@ -23,13 +23,11 @@ beforeEach(() =>
 	})
 )
 
+// @ts-ignore
 // a mock request context
 const ctx = new RequestContext({
-	// @ts-ignore
-	page: {} as any,
-	stuff: {},
-	session: {},
 	fetch: (() => {}) as unknown as (input: RequestInfo, init?: RequestInit) => Promise<any>,
+	params: {},
 })
 
 // the test artifact

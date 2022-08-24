@@ -17,17 +17,9 @@ export default async function generateAdapter(config: Config) {
 }
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
-import { page, session } from '$app/stores';
 import { get } from 'svelte/store';
 import { browser, prerendering } from '$app/env'
 
-export function getSession() {
-    return session
-}
-
-export function getPage() {
-	return page
-}
 
 export function goTo(location, options) {
     go(location, options)
@@ -50,17 +42,6 @@ export const isPrerender = prerendering
 
 const svelteAdapter = `
 import { readable, writable } from 'svelte/store'
-
-const session = writable({})
-const page = readable({})
-
-export function getSession() {
-	return session
-}
-
-export function getPage() {
-	return page
-}
 
 export function goTo(location, options) {
 	window.location = location
