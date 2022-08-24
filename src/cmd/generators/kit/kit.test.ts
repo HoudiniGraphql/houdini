@@ -153,12 +153,10 @@ test('generates types for after load', async function () {
 		};
 
 		export type AfterLoadEvent = {
-		    event: LoadEvent,
+		    event: PageLoadEvent,
 		    data: AfterLoadData,
 		    input: AfterLoadInput
 		};
-
-		export type AfterLoad = AfterLoadFunction<Params, AfterLoadData, AfterLoadInput>;
 
 		export type PageData = {
 		    MyPageLoad1Query: MyPageLoad1QueryStore,
