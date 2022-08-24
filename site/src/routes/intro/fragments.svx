@@ -14,7 +14,7 @@ As you've seen, we can get pretty far by just using GraphQL queries to define ou
 
 ```svelte
 <script>
-	const result = query(graphql`
+	const info = graphql`
 		query SpeciesInfo($id: Int!) {
 			species(id: $id) {
 				name
@@ -23,10 +23,10 @@ As you've seen, we can get pretty far by just using GraphQL queries to define ou
 				}
 			}
 		}
-	`)
+	`
 </script>
 
-<Sprite id="species-sprite" src={$result.data.species.sprites.front} speciesName={$result.data.species.name} />
+<Sprite id="species-sprite" src={$info.data.species.sprites.front} speciesName={$info.data.species.name} />
 ```
 
 At first it might not be clear what the problem is. `Sprite` defines some props so we had to look up the necessary information in order to give those props their value. However, for the sake of argument, imagine that `Sprite` is used in many different views across our application. Every place where it shows up, we will have to remember to ask for these two pieces of data so that we can provide the props with the correct value. On top of that, as `Sprite` evolves to do more, we will have to make sure that everywhere we use it also asks for the new data. Our route is now tightly coupled to `Sprite`'s implementation.
@@ -112,7 +112,7 @@ query SpeciesInfo($id: Int!) {
 And change the instance of `Sprite` to look like:
 
 ```svelte
-<Sprite id="species-sprite" species={$result.data.species} />
+<Sprite id="species-sprite" species={$info.data.species} />
 ```
 
 Once that's all done, there shouldn't be any noticeable change in your browser.
@@ -125,7 +125,7 @@ That was pretty quick so let's review what we just did:
 
 1. Instead of asking for those bits of data directly as two individual props, the component now has a single prop, `species`, which we pass to the `fragment` function we imported from houdini in order to get the data we need. Notice we don't use this prop for anything in our component except to pass it into houdini, this ensures we are only using data we asked for in our fragment.
 
-1. We then updated the route's query to use the fragment we defined in the component and passed the `$result.data.species` reference we got from the query into our `Sprite` component as the new prop.
+1. We then updated the route's query to use the fragment we defined in the component and passed the `$info.data.species` reference we got from the query into our `Sprite` component as the new prop.
 
 Notice how our route is no longer tightly coupled to any of `Sprite`'s implementation? All that the route knows is that `Sprite` needs a `Species`, so it just had to connect the dots and let `Sprite` take care of the rest.
 
@@ -186,12 +186,12 @@ Next, copy and paste the following code above the `nav` in the right panel. You'
 </script>
 
 <div id="species-evolution-chain">
-	{#each $result.data.species.evolution_chain as form, i}
+	{#each $info.data.species.evolution_chain as form, i}
 		<SpeciesPreview species={form} number={i + 1} />
 	{/each}
 	<!-- if there are less than three species in the chain, leave a placeholder behind -->
-	{#each Array.from({ length: 3 - $result.data.species.evolution_chain?.length }) as _, i}
-		<SpeciesPreviewPlaceholder number={$result.data.species.evolution_chain.length + i + 1} />
+	{#each Array.from({ length: 3 - $info.data.species.evolution_chain?.length }) as _, i}
+		<SpeciesPreviewPlaceholder number={$info.data.species.evolution_chain.length + i + 1} />
 	{/each}
 </div>
 ```

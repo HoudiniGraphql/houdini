@@ -61,31 +61,6 @@ Your `PageData` component will also come from `./$houdini` since SvelteKit's gen
 {$MyProfile.data.viewer.id}: {data.computedValue}
 ```
 
-## Inline Documents
-
-All of the inline document functions take a type parameter describing the shape of the result. You can import the generated types for your documents
-from `$houdini` and pass it in:
-
-```svelte
-<script lang="typescript">
-	import { query, graphql, AllItems } from '$houdini'
-
-	// load the items
-	const allItems = query<AllItems>(graphql`
-		query AllItems {
-			items {
-				id
-				text
-			}
-		}
-	`)
-</script>
-
-{#each $allItems.data.items as item}
-	<div>{item.text}</div>
-{/each}
-```
-
 ## Inline Stores
 
 If you are working with inline stores, you will have to add your types explicitly:

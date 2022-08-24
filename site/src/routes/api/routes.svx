@@ -126,8 +126,8 @@ As described in the [Working with GraphQL guide](/guides/working-with-graphql), 
 get houdini to create a load function for your route:
 
 - export `houdini_load` from your `+page.js` file
-- wrap an inline query in your `+page.svelte` file with the `query` function
-- define a `+page.gql` file in your route directory
+- an inline query in `+page.svelte`
+- `+page.gql` file in your route directory
 
 Regardless of which pattern you are using, you will quickly need to customize your query's behavior. This could be because you need to add variables to the query, or maybe you need to perform some logic before and/or after the data is fetched.
 
@@ -237,6 +237,24 @@ export function afterLoad({ data }) {
 		message: "Hello I'm"
 	}
 }
+```
+
+### Disabling Inline Query Loading
+
+Sometimes it's useful to have a lazy query that only fires when you call `fetch` (for
+example in a search input). For these scenarios, you will want to turn off the
+automatic loader using the `@houdini` directive:
+
+```svelte
+<script>
+	const result = graphql`
+		query MyQuery @houdini(load: false) {
+			viewer {
+				id
+			}
+		}
+	`
+</script>
 ```
 
 ## Manual Loading

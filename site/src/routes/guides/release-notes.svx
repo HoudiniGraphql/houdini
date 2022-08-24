@@ -22,7 +22,7 @@ since SvelteKit is already forcing us to break the API.
 - You will have to add a configuration value to your `houdini.config.js` but can likely delete everything else.
 - SvelteKit projects will now need to use the vite plugin defined at `houdini/vite` which replaces the old preprocessor (and the ugly `server.fs.allow` config). But don't worry, there are **lots** of really cool things that we're getting with this move.
 - The external document store api for SvelteKit routes is changing. This means that if you rely heavily on the document stores, you will have to update your load functions but as a result you can delete a lot of the code in your components and the overall mental model is a lot simpler (no more passing around `context`)
-- inline queries have to change too (since kit made `data` a magic word in a route). At a high level, you'll now use the result of `query` directly instead of destructuring data. This also unified the document APIs between internal and external files which simplifies things dramatically.
+- inline queries have to change too (since kit made `data` a magic word in a route). At a high level, `query` has been removed and you'll now use the result of the graphql tag directly instead of destructuring data from a function. This also unified the document APIs between internal and external files which simplifies things dramatically.
 
 For additional breaking changes and notes, check out the section at the bottom of the `0.16.0` release notes.
 
@@ -223,6 +223,7 @@ export const houdini_load = graphql`
 - `generate --persist-output` is now `generate --output` (abbreviated `-o`)
 - added `schemaPullHeaders` config value to specify the headers sent when pulling the schema
 - removed unnecessary config values: `config.routesDir`, `config.static` (replaced by setting `framework: "svelte"`)
+- pagination handlers now take objects as arguments as well as fetch and metadata parameters
 
 ## 0.15.0
 

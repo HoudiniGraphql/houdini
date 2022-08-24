@@ -398,23 +398,23 @@ export function UserInfoVariables({ params }) {
 
 ### Inline Queries
 
-Another way to get a generated load for your route queries, is to define your query inside of your `+page.svelte` wrapped inside of a `query` function:
+Another way to get a generated load for your route queries, is to define your query inside of your `+page.svelte`:
 
 ```svelte
 <!-- src/lib/UserList.svelte -->
 <script>
-    import { graphql, query } from '$houdini'
+    import { graphql } from '$houdini'
 
-    const { data } = query(graphql`
+    const info = graphql`
         query UserInfo {
             viewer {
                 firstName
             }
         }
-    `)
+    `
 </script>
 
-{$data.viewer.firstName}
+{$info.data.viewer.firstName}
 ```
 
 This is the recommended approach for non-route components that don't care about server-side rendering.

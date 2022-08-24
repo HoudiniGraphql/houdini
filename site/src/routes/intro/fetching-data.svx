@@ -19,7 +19,7 @@ Before we do anything _too_ complicated, lets get something on the screen. Open 
     import { query, graphql } from '$houdini'
     import { Container, Display, Sprite, Panel } from '~/components'
 
-    const result = query(graphql`
+    const info = graphql`
         query SpeciesInfo {
             species(id: 1) {
                 name
@@ -29,22 +29,22 @@ Before we do anything _too_ complicated, lets get something on the screen. Open 
                 }
             }
         }
-    `)
+    `
 </script>
 
 <Container>
     <Panel slot="left">
 		<Display id="species-name">
-			{$result.data.species.name}
-			<span>no.{$result.data.species.id}</span>
+			{$info.data.species.name}
+			<span>no.{$info.data.species.id}</span>
 		</Display>
         <Sprite
             id="species-sprite"
-            src={$result.data.species.sprites.front}
-            speciesName={$result.data.species.name}
+            src={$info.data.species.sprites.front}
+            speciesName={$info.data.species.name}
         />
         <Display id="species-flavor_text">
-            {$result.data.species.flavor_text}
+            {$info.data.species.flavor_text}
         </Display>
     </Panel>
 </Container>
@@ -121,10 +121,7 @@ If you were looking carefully, you might have noticed that we didn't define a `l
 	// the store gets passed to us as a prop
 	export let data
 
-	$:( { SpeciesInfoStore } : $$props.data)
-
-	const { data } = $SpeciesInfoStore
-
+	$: info = data.SpeciesInfoStore
 </script>
 ```
 
@@ -205,10 +202,10 @@ For completeness, let's quickly add some buttons to navigate between the differe
 ```svelte
 <Panel slot="right">
     <nav>
-        <a href={$result.data.species.id - 1} disabled={$result.data.species.id <= 1}>
+        <a href={$info.data.species.id - 1} disabled={$info.data.species.id <= 1}>
             previous
         </a>
-        <a href={$result.data.species.id + 1} disabled={$result.data.species.id >= 151}>
+        <a href={$info.data.species.id + 1} disabled={$info.data.species.id >= 151}>
             next
         </a>
     </nav>
@@ -217,7 +214,7 @@ For completeness, let's quickly add some buttons to navigate between the differe
 
 ## Error Handling
 
-So far so good! There is one slight problem: there are only 151 species in the first generation of Pokémon. The buttons we added in the last section prevent the user from going beyond those bounds, but if we navigate to `/152` directly we will get an error since `$result.data.species` is null. Go ahead, give it a try.
+So far so good! There is one slight problem: there are only 151 species in the first generation of Pokémon. The buttons we added in the last section prevent the user from going beyond those bounds, but if we navigate to `/152` directly we will get an error since `$info.data.species` is null. Go ahead, give it a try.
 
 In order to prevent this, we need to check if `id` is between `1` and `151` and if not, render an error for the user. This is accomplished by updating `SpeciesInfoVariables` to look like:
 

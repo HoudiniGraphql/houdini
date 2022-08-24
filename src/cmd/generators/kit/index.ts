@@ -120,12 +120,10 @@ type AfterLoadInput = {
 }
 
 export type AfterLoadEvent = {
-	event: LoadEvent
+	event: PageLoadEvent
 	data: AfterLoadData
 	input: AfterLoadInput
 }
-
-export type AfterLoad = AfterLoadFunction<Params, AfterLoadData, AfterLoadInput>
 `
 		: ''
 }
@@ -134,7 +132,7 @@ ${
 	beforeLoad
 		? `
 
-export type BeforeLoadEvent = LoadEvent
+export type BeforeLoadEvent = PageLoadEvent
 
 type BeforeLoadReturn = ReturnType<typeof import('./+page').beforeLoad>;
 `

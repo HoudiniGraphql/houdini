@@ -108,8 +108,9 @@ Remove the old preprocessor but leave the alias config.
 
 ## 2. Inline Documents
 
-`subscription` and `mutation` are the same for the most part but `query` and `fragment` both
-have changes to their API that will require some manual manipulation.
+Apart from `fragment` and `paginatedFragment`, all functions that used to wrap
+inline documents have been removed. You will now just use the result of the graphql
+tag directly (as shown in the query example below).
 
 ### 2.a Inline Queries
 
@@ -118,18 +119,19 @@ to be defined in `context="module"` needs to be in `+page.js` (or the typescript
 This includes variable functions, hooks, etc. You can use the generated `@migration`
 comments to track which queries need updating.
 
-Apart from that, the way you access your query data has changed.
+Apart from the actual `query` function being removed, the way you access your query data has changed.
 
 ```diff
   <script>
 -   const { data } = query(graphql`
-+   const UserInfo = query(graphql`
++   const UserInfo = graphql`
       query UserInfo {
         viewer {
           firstName
         }
       }
-    `)
+-    `)
++    `
   </script>
 
   <div>
@@ -170,6 +172,25 @@ The order for the arguments to inline fragments has been inverted.
   <div>
      {$avatarInfo.firstName}
   </div>
+```
+
+### 2.c Inline Pagination
+
+Paginated handlers now get their arguments as an object:
+
+```diff
+  <script>
+    const userList = graphql`
+        friends @paginate {
+          firstName
+        }
+    `
+  </script>
+
+- <button on:click={() => userList.loadNextPage(10)}>
++ <button on:click={() => userList.loadNextPage({next: 10})}>
+    load next
+  </button>
 ```
 
 ## 3. External Queries

@@ -3,18 +3,18 @@
 
 	const heroExample = `<script>
     // src/routes/items/+page.svelte
-    import { query, graphql } from '$houdini'
+    import { graphql } from '$houdini'
 
-    const { data } = query(graphql\`
+    const allItems = graphql\`
         query AllTodoItems {
             items {
                 text
             }
         }
-    \`)
+    \`
 <\/script>
 
-{#each $data.items as item}
+{#each $allItems.data.items as item}
     <div>{item.text}</div>
 {/each}`
 
