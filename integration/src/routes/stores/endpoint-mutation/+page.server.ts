@@ -1,8 +1,11 @@
-import { GQL_AddUser } from '$houdini';
+import { AddUserStore } from '$houdini';
+import { get } from 'svelte/store';
 // import type { Action } from './$types';
 
 export const POST = async () => {
-  const store = await GQL_AddUser.mutate(
+  const store = new AddUserStore();
+
+  await store.mutate(
     {
       name: 'JYC',
       birthDate: new Date('1986-11-07'),
@@ -15,7 +18,7 @@ export const POST = async () => {
   return {
     status: 200,
     body: {
-      addUser: store.data?.addUser
+      addUser: get(store)?.data?.addUser ?? null
     }
   };
 };

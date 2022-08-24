@@ -21,7 +21,11 @@ export default async function ReactiveProcessor(config: Config, page: TransformP
 	// ie:
 	//
 	// const value = graphql`` -> $: value = query(graphql``)
+	// const { value } = graphql`` -> $: { value } = query(graphql``)
 	//
+	if (!page.config.isComponent(page.filepath) && !page.config.isRoute(page.filepath)) {
+		return
+	}
 
 	// look for the list of magic functions the user has imported
 	const magicFunctions = ['query', 'graphql', 'fragment', 'paginatedFragment', 'paginatedQuery']

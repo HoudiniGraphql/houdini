@@ -2,7 +2,6 @@ import { Writable, writable } from 'svelte/store'
 
 import cache from '../../cache'
 import { getCurrentConfig } from '../../lib/config'
-import { getVariables } from '../../lib/context'
 import { deepEquals } from '../../lib/deepEquals'
 import { executeQuery } from '../../lib/network'
 import { GraphQLObject, QueryArtifact } from '../../lib/types'
@@ -50,7 +49,6 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		// build up the variables to pass to the query
 		const loadVariables: Record<string, any> = {
 			...(await extraVariables?.()),
-			...getVariables(),
 			...input,
 		}
 
@@ -110,8 +108,8 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			first?: number
 			after?: string
 			fetch?: typeof globalThis.fetch
-			metadata: {}
-		}) => {
+			metadata?: {}
+		} = {}) => {
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(getValue(), artifact.refetch!.path)
 
@@ -146,8 +144,8 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			last?: number
 			before?: string
 			fetch?: typeof globalThis.fetch
-			metadata: {}
-		}) => {
+			metadata?: {}
+		} = {}) => {
 			// we need to find the connection object holding the current page info
 			const currentPageInfo = extractPageInfo(getValue(), artifact.refetch!.path)
 
@@ -240,17 +238,17 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 }
 
 export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
-	loadNextPage: (args: {
+	loadNextPage: (args?: {
 		first?: number
 		after?: string
 		fetch?: typeof globalThis.fetch
 		metadata: {}
 	}) => Promise<void>
-	loadPreviousPage: (args: {
+	loadPreviousPage: (args?: {
 		last?: number
 		before?: string
 		fetch?: typeof globalThis.fetch
-		metadata: {}
+		metadata?: {}
 	}) => Promise<void>
 	pageInfo: Writable<PageInfo>
 	fetch(

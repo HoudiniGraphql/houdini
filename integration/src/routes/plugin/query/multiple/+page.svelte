@@ -1,6 +1,5 @@
 <script lang="ts">
   import {
-    query,
     graphql,
     type PreprocessorTestQuery3Store,
     type PreprocessorTestQuery4Store

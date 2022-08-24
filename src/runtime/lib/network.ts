@@ -336,8 +336,9 @@ export class RequestContext {
 		if (variant === 'before') {
 			hookCall = (hookFn as KitBeforeLoad).call(this, this.loadEvent as BeforeLoadArgs)
 		} else {
-			hookCall = (hookFn as KitAfterLoad).call(this, {
-				...this.loadEvent,
+			// we have to assign input and data onto load so that we don't read values that
+			// are deprecated
+			Object.assign(this.loadEvent, {
 				input,
 				data: Object.fromEntries(
 					Object.entries(data).map(([key, store]) => [
@@ -345,7 +346,8 @@ export class RequestContext {
 						get<QueryResult<any, any>>(store).data,
 					])
 				),
-			} as AfterLoadArgs)
+			})
+			hookCall = (hookFn as KitAfterLoad).call(this, this.loadEvent as AfterLoadArgs)
 		}
 
 		let result = await hookCall

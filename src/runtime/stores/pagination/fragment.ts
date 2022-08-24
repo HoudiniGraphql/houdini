@@ -1,7 +1,6 @@
 import { derived, get, readable, Readable, Subscriber, Writable, writable } from 'svelte/store'
 
 import { keyFieldsForType, getCurrentConfig } from '../../lib/config'
-import { getVariables } from '../../lib/context'
 import {
 	GraphQLObject,
 	FragmentArtifact,
@@ -63,7 +62,6 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 		// add the id variables to the query variables
 		return {
 			...idVariables,
-			...getVariables(),
 		} as _Input
 	}
 }

@@ -331,7 +331,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			isFetching: false,
 			partial: false,
 			source: null,
-			variables: null,
+			variables: {} as _Input,
 			...this.extraFields(),
 		}
 	}
@@ -524,5 +524,5 @@ export type QueryResult<_Data, _Input, _Extra = {}> = {
 	isFetching: boolean
 	partial: boolean
 	source: DataSource | null
-	variables: _Input | null
+	variables: _Input
 } & _Extra

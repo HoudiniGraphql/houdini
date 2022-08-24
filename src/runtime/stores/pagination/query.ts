@@ -74,7 +74,7 @@ export class QueryStoreForwardCursor<
 	_Data extends GraphQLObject,
 	_Input
 > extends CursorPaginatedStore<_Data, _Input> {
-	async loadNextPage(args: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
+	async loadNextPage(args?: Parameters<CursorHandlers<_Data, _Input>['loadNextPage']>[0]) {
 		return this.handlers.loadNextPage(args)
 	}
 }
@@ -84,7 +84,9 @@ export class QueryStoreBackwardCursor<
 	_Data extends GraphQLObject,
 	_Input
 > extends CursorPaginatedStore<_Data, _Input> {
-	async loadPreviousPage(args: Parameters<CursorHandlers<_Data, _Input>['loadPreviousPage']>[0]) {
+	async loadPreviousPage(
+		args?: Parameters<Required<CursorHandlers<_Data, _Input>>['loadPreviousPage']>[0]
+	) {
 		return this.handlers.loadPreviousPage(args)
 	}
 }
@@ -111,7 +113,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 	}
 
 	async loadNextPage(
-		args: Parameters<
+		args?: Parameters<
 			OffsetHandlers<_Data, _Input, QueryResult<_Data, _Input>>['loadNextPage']
 		>[0]
 	) {

@@ -55,6 +55,13 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 		sourceModule: '$houdini/runtime/lib/scalars',
 	})
 
+	ensure_imports({
+		config: page.config,
+		script: page.script,
+		import: ['RequestContext'],
+		sourceModule: '$houdini/runtime/lib/network',
+	})
+
 	// import the browser check
 	ensure_imports({
 		config: page.config,
@@ -85,17 +92,11 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 	page.script.body.push(
 		// a variable to hold the query input
 		...queries.flatMap<StatementKind>((query) => {
-			// the identifier to use for this variables inputs
-			const input_name = local_input_id(query.name)
-
 			// if the query does not have variables, just define something local
 			const variable_fn = query_variable_fn(query.name)
 			const has_variables = find_exported_fn(page.script.body, variable_fn)
 
 			return [
-				AST.variableDeclaration('let', [
-					AST.variableDeclarator(input_name, AST.objectExpression([])),
-				]),
 				// define the inputs for the query
 				AST.labeledStatement(
 					AST.identifier('$'),
@@ -121,6 +122,10 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 															AST.identifier('call')
 														),
 														[
+															AST.newExpression(
+																AST.identifier('RequestContext'),
+																[]
+															),
 															AST.objectExpression([
 																AST.objectProperty(
 																	AST.identifier('props'),

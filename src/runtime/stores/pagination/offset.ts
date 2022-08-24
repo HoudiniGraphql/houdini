@@ -1,7 +1,6 @@
 import { deepEquals } from '../..'
 import cache from '../../cache'
 import { getCurrentConfig } from '../../lib/config'
-import { getVariables } from '../../lib/context'
 import { executeQuery } from '../../lib/network'
 import { GraphQLObject, QueryArtifact } from '../../lib/types'
 import { QueryResult, QueryStoreFetchParams } from '../query'
@@ -41,14 +40,13 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			offset?: number
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
-		}) => {
+		} = {}) => {
 			const config = await getCurrentConfig()
 
 			offset ??= currentOffset
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
-				...getVariables(),
 				...(await extraVariables()),
 				offset,
 			}
@@ -144,7 +142,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 }
 
 export type OffsetHandlers<_Data extends GraphQLObject, _Input, _ReturnType> = {
-	loadNextPage: (args: {
+	loadNextPage: (args?: {
 		limit?: number
 		offset?: number
 		metadata?: {}

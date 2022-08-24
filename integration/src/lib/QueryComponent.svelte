@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { query, graphql, type FragmentQueryVarsStore } from '$houdini';
+  import { graphql, FragmentQueryVarsStore } from '$houdini';
 
   export function FragmentQueryVarsVariables({ props }: { props: { id?: string } }) {
     return {
