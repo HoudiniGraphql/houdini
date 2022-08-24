@@ -87,7 +87,7 @@ const table: Row[] = [
                 }
             `,
 			`
-                mutation Mutation {
+                mutation MutationM {
 					addFriend {
 						...Friends_insert
 					}
@@ -111,7 +111,7 @@ const table: Row[] = [
                 }
             `,
 			`
-                mutation Mutation {
+                mutation MutationM {
 					addFriend {
 						...Friends_insert @prepend(parentID: "1234")
 					}
@@ -174,7 +174,7 @@ const table: Row[] = [
                 }
             `,
 			`
-                mutation Mutation($parentID: ID!) {
+                mutation MutationM($parentID: ID!) {
 					addFriend {
 						...Friends_insert @prepend(parentID: $parentID)
 					}
@@ -194,7 +194,7 @@ const table: Row[] = [
                 }
             `,
 			`
-                mutation Mutation {
+                mutation Mutation1 {
 					addFriend {
 						...Friends_insert
 					}
@@ -225,7 +225,7 @@ const table: Row[] = [
                 }
             `,
 			`
-                mutation Mutation {
+                mutation Mutation1 {
 					addFriend {
 						...Friends_insert @prepend
 					}
@@ -256,7 +256,7 @@ const table: Row[] = [
                 }
             `,
 			`
-                mutation Mutation {
+                mutation Mutation1 {
 					addFriend {
 						...Friends_insert @append
 					}
@@ -287,7 +287,7 @@ const table: Row[] = [
                 }
             `,
 			`
-                mutation Mutation {
+                mutation Mutation1 {
 					addFriend {
 						...Friends_insert
 					}

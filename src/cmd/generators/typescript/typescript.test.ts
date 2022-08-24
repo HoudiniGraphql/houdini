@@ -232,7 +232,7 @@ describe('typescript', function () {
 
 	test('query with no input', async function () {
 		// the document to test
-		const doc = mockCollectedDoc(`query Query { user { firstName } }`)
+		const doc = mockCollectedDoc(`query MyQuery { user { firstName } }`)
 
 		// execute the generator
 		await runPipeline(config, [doc])
@@ -246,25 +246,25 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly user: {
 			        readonly firstName: string
 			    } | null
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
 	test('query with root list', async function () {
 		// the document with the query
 		const queryDoc = mockCollectedDoc(`
-			query Query {
+			query MyQuery {
 				users {
 					firstName,
 				}
@@ -282,25 +282,25 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly users: ({
 			        readonly firstName: string
 			    } | null)[] | null
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
 	test('query with input', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			`query Query($id: ID!, $enum: MyEnum) { user(id: $id, enumArg: $enum ) { firstName } }`
+			`query MyQuery($id: ID!, $enum: MyEnum) { user(id: $id, enumArg: $enum ) { firstName } }`
 		)
 
 		// execute the generator
@@ -317,18 +317,18 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 			import type { MyEnum } from "$houdini/graphql/enums";
 
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly user: {
 			        readonly firstName: string
 			    } | null
 			};
 
-			export type Query$input = {
+			export type MyQuery$input = {
 			    id: string,
 			    enum?: MyEnum | null | undefined
 			};
@@ -381,7 +381,7 @@ describe('typescript', function () {
 	test('mutation with input list', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			`mutation Mutation(
+			`mutation MyMutation(
 				$filter: UserFilter,
 				$filterList: [UserFilter!]!,
 				$id: ID!
@@ -415,51 +415,51 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		import type { MyEnum } from "$houdini/graphql/enums";
+			import type { MyEnum } from "$houdini/graphql/enums";
 
-		export type Mutation = {
-		    readonly "input": Mutation$input,
-		    readonly "result": Mutation$result
-		};
+			export type MyMutation = {
+			    readonly "input": MyMutation$input,
+			    readonly "result": MyMutation$result
+			};
 
-		export type Mutation$result = {
-		    readonly doThing: {
-		        readonly firstName: string
-		    } | null
-		};
+			export type MyMutation$result = {
+			    readonly doThing: {
+			        readonly firstName: string
+			    } | null
+			};
 
-		type NestedUserFilter = {
-		    id: string,
-		    firstName: string,
-		    admin?: boolean | null | undefined,
-		    age?: number | null | undefined,
-		    weight?: number | null | undefined
-		};
+			type NestedUserFilter = {
+			    id: string,
+			    firstName: string,
+			    admin?: boolean | null | undefined,
+			    age?: number | null | undefined,
+			    weight?: number | null | undefined
+			};
 
-		type UserFilter = {
-		    middle?: NestedUserFilter | null | undefined,
-		    listRequired: (string)[],
-		    nullList?: (string | null | undefined)[] | null | undefined,
-		    recursive?: UserFilter | null | undefined,
-		    enum?: MyEnum | null | undefined
-		};
+			type UserFilter = {
+			    middle?: NestedUserFilter | null | undefined,
+			    listRequired: (string)[],
+			    nullList?: (string | null | undefined)[] | null | undefined,
+			    recursive?: UserFilter | null | undefined,
+			    enum?: MyEnum | null | undefined
+			};
 
-		export type Mutation$input = {
-		    filter?: UserFilter | null | undefined,
-		    filterList: (UserFilter)[],
-		    id: string,
-		    firstName: string,
-		    admin?: boolean | null | undefined,
-		    age?: number | null | undefined,
-		    weight?: number | null | undefined
-		};
-	`)
+			export type MyMutation$input = {
+			    filter?: UserFilter | null | undefined,
+			    filterList: (UserFilter)[],
+			    id: string,
+			    firstName: string,
+			    admin?: boolean | null | undefined,
+			    age?: number | null | undefined,
+			    weight?: number | null | undefined
+			};
+		`)
 	})
 
 	test('nested input objects', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			`query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
+			`query MyQuery($filter: UserFilter!) { user(filter: $filter) { firstName } }`
 		)
 
 		// execute the generator
@@ -476,12 +476,12 @@ describe('typescript', function () {
 		).toMatchInlineSnapshot(`
 			import type { MyEnum } from "$houdini/graphql/enums";
 
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly user: {
 			        readonly firstName: string
 			    } | null
@@ -503,7 +503,7 @@ describe('typescript', function () {
 			    enum?: MyEnum | null | undefined
 			};
 
-			export type Query$input = {
+			export type MyQuery$input = {
 			    filter: UserFilter
 			};
 		`)
@@ -512,7 +512,7 @@ describe('typescript', function () {
 	test('generates index file', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			`query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
+			`query MyQuery($filter: UserFilter!) { user(filter: $filter) { firstName } }`
 		)
 
 		// execute the generator
@@ -526,11 +526,11 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export * from "./artifacts/Query";
-		export * from "./runtime";
-		export * from "./stores";
-		export * from "./graphql";
-	`)
+			export * from "./artifacts/MyQuery";
+			export * from "./runtime";
+			export * from "./stores";
+			export * from "./graphql";
+		`)
 	})
 
 	test('fragment spreads', async function () {
@@ -538,7 +538,7 @@ describe('typescript', function () {
 		const fragment = mockCollectedDoc(`fragment Foo on User { firstName }`)
 
 		// the document to test
-		const query = mockCollectedDoc(`query Query { user { ...Foo } }`)
+		const query = mockCollectedDoc(`query MyQuery { user { ...Foo } }`)
 
 		// execute the generator
 		await runPipeline(config, [query, fragment])
@@ -552,12 +552,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly user: {
 			        readonly $fragments: {
 			            Foo: true
@@ -565,7 +565,7 @@ describe('typescript', function () {
 			    } | null
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
@@ -576,7 +576,7 @@ describe('typescript', function () {
 		const fragment = mockCollectedDoc(`fragment Foo on User { firstName }`)
 
 		// the document to test
-		const query = mockCollectedDoc(`query Query { user { ...Foo } }`)
+		const query = mockCollectedDoc(`query MyQuery { user { ...Foo } }`)
 
 		// execute the generator
 		await runPipeline(withoutMasking, [query, fragment])
@@ -590,12 +590,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly user: {
 			        readonly firstName: string,
 			        readonly $fragments: {
@@ -604,7 +604,7 @@ describe('typescript', function () {
 			    }
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
@@ -612,7 +612,7 @@ describe('typescript', function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query {
+			query MyQuery {
 				nodes {
 					... on User {
 						id
@@ -637,12 +637,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly nodes: ({} & (({
 			        readonly id: string,
 			        readonly __typename: "User"
@@ -652,7 +652,7 @@ describe('typescript', function () {
 			    })))[]
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
@@ -660,7 +660,7 @@ describe('typescript', function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query {
+			query MyQuery {
 				entities {
 					... on User {
 						id
@@ -685,12 +685,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly entities: ({} & (({
 			        readonly id: string,
 			        readonly __typename: "User"
@@ -700,7 +700,7 @@ describe('typescript', function () {
 			    })) | null)[] | null
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
@@ -708,7 +708,7 @@ describe('typescript', function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query {
+			query MyQuery {
 				nodes {
 					id
 					... on User {
@@ -734,12 +734,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly nodes: ({
 			        readonly id: string
 			    } & (({
@@ -751,7 +751,7 @@ describe('typescript', function () {
 			    })))[]
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
@@ -759,7 +759,7 @@ describe('typescript', function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query {
+			query MyQuery {
 				entities {
 					... on Animal {
 						isAnimal
@@ -787,12 +787,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly entities: ({} & (({
 			        readonly isAnimal: boolean,
 			        readonly kitty: boolean,
@@ -803,7 +803,7 @@ describe('typescript', function () {
 			    })) | null)[] | null
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
@@ -836,7 +836,7 @@ describe('typescript', function () {
 		})
 
 		// the document to test
-		const query = mockCollectedDoc(`query Query { allItems { createdAt } }`)
+		const query = mockCollectedDoc(`query MyQuery { allItems { createdAt } }`)
 
 		// execute the generator
 		await runPipeline(localConfig, [query])
@@ -850,18 +850,18 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly allItems: ({
 			        readonly createdAt: Date
 			    })[]
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
@@ -895,7 +895,7 @@ describe('typescript', function () {
 
 		// the document to test
 		const query = mockCollectedDoc(
-			`query Query($date: DateTime!) { allItems(createdAt: $date) { createdAt } }`
+			`query MyQuery($date: DateTime!) { allItems(createdAt: $date) { createdAt } }`
 		)
 
 		// execute the generator
@@ -910,18 +910,18 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly allItems: ({
 			        readonly createdAt: Date
 			    })[]
 			};
 
-			export type Query$input = {
+			export type MyQuery$input = {
 			    date: Date
 			};
 		`)
@@ -931,7 +931,7 @@ describe('typescript', function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query {
+			query MyQuery {
 				listOfLists {
 					firstName
 					nickname
@@ -952,25 +952,25 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly listOfLists: (({
 			        readonly firstName: string,
 			        readonly nickname: string | null
 			    } | null)[] | null)[]
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
 	test('duplicate fields', async function () {
 		// the document to test
-		const query = mockCollectedDoc(`query Query {
+		const query = mockCollectedDoc(`query MyQuery {
 			user {
 				parent {
 					firstName
@@ -994,12 +994,12 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-			export type Query = {
-			    readonly "input": Query$input,
-			    readonly "result": Query$result | undefined
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
-			export type Query$result = {
+			export type MyQuery$result = {
 			    readonly user: {
 			        readonly parent: {
 			            readonly firstName: string,
@@ -1008,7 +1008,7 @@ describe('typescript', function () {
 			    } | null
 			};
 
-			export type Query$input = null;
+			export type MyQuery$input = null;
 		`)
 	})
 
@@ -1025,7 +1025,7 @@ describe('typescript', function () {
 				}
 			`),
 			mockCollectedDoc(`
-				mutation Mutation(
+				mutation MyMutation(
 					$filter: UserFilter,
 					$filterList: [UserFilter!]!,
 					$id: ID!
@@ -1062,49 +1062,49 @@ describe('typescript', function () {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		import type { MyEnum } from "$houdini/graphql/enums";
+			import type { MyEnum } from "$houdini/graphql/enums";
 
-		export type Mutation = {
-		    readonly "input": Mutation$input,
-		    readonly "result": Mutation$result
-		};
+			export type MyMutation = {
+			    readonly "input": MyMutation$input,
+			    readonly "result": MyMutation$result
+			};
 
-		export type Mutation$result = {
-		    readonly doThing: {
-		        readonly id: string,
-		        readonly $fragments: {
-		            My_Users_remove: true,
-		            My_Users_insert: true
-		        }
-		    } | null
-		};
+			export type MyMutation$result = {
+			    readonly doThing: {
+			        readonly id: string,
+			        readonly $fragments: {
+			            My_Users_remove: true,
+			            My_Users_insert: true
+			        }
+			    } | null
+			};
 
-		type NestedUserFilter = {
-		    id: string,
-		    firstName: string,
-		    admin?: boolean | null | undefined,
-		    age?: number | null | undefined,
-		    weight?: number | null | undefined
-		};
+			type NestedUserFilter = {
+			    id: string,
+			    firstName: string,
+			    admin?: boolean | null | undefined,
+			    age?: number | null | undefined,
+			    weight?: number | null | undefined
+			};
 
-		type UserFilter = {
-		    middle?: NestedUserFilter | null | undefined,
-		    listRequired: (string)[],
-		    nullList?: (string | null | undefined)[] | null | undefined,
-		    recursive?: UserFilter | null | undefined,
-		    enum?: MyEnum | null | undefined
-		};
+			type UserFilter = {
+			    middle?: NestedUserFilter | null | undefined,
+			    listRequired: (string)[],
+			    nullList?: (string | null | undefined)[] | null | undefined,
+			    recursive?: UserFilter | null | undefined,
+			    enum?: MyEnum | null | undefined
+			};
 
-		export type Mutation$input = {
-		    filter?: UserFilter | null | undefined,
-		    filterList: (UserFilter)[],
-		    id: string,
-		    firstName: string,
-		    admin?: boolean | null | undefined,
-		    age?: number | null | undefined,
-		    weight?: number | null | undefined
-		};
-	`)
+			export type MyMutation$input = {
+			    filter?: UserFilter | null | undefined,
+			    filterList: (UserFilter)[],
+			    id: string,
+			    firstName: string,
+			    admin?: boolean | null | undefined,
+			    age?: number | null | undefined,
+			    weight?: number | null | undefined
+			};
+		`)
 	})
 
 	test.todo('fragments on interfaces')

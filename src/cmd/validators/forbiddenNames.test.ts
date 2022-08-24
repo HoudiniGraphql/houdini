@@ -3,11 +3,66 @@ import { CollectedGraphQLDocument } from '../types'
 
 const table: Row[] = [
 	{
-		title: 'base case',
+		title: 'QueryStore',
+		pass: false,
+		documents: [
+			`
+                query Query {
+                    version
+                }
+            `,
+		],
+	},
+	{
+		title: 'MutationStore',
+		pass: false,
+		documents: [
+			`
+                query Mutation {
+                    version
+                }
+            `,
+		],
+	},
+	{
+		title: 'SubscriptionStore',
+		pass: false,
+		documents: [
+			`
+                query Subscription {
+                    version
+                }
+            `,
+		],
+	},
+	{
+		title: 'FragmentStore',
+		pass: false,
+		documents: [
+			`
+                query Fragment {
+                    version
+                }
+            `,
+		],
+	},
+	{
+		title: 'BaseStore',
 		pass: false,
 		documents: [
 			`
                 query Base {
+                    version
+                }
+            `,
+		],
+	},
+	{
+		title: 'Perfect name',
+		pass: true,
+		documents: [
+			`
+                query Version {
                     version
                 }
             `,
