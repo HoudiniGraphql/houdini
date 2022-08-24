@@ -62,7 +62,7 @@ export declare class ${storeName} extends ${queryClass}<${_data}, {}> {
 
 export const ${globalStoreName}: ${storeName}
 
-export declare const load_${artifactName}: (params: QueryStoreFetchParams<{}>) => Promise<${storeName}>
+export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, {}>) => Promise<${storeName}>
 
 export default ${storeName}
 `
