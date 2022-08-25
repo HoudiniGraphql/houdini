@@ -25,19 +25,24 @@ jobs:
                   NPM_NAME: ${{ secrets.NPM_NAME }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-            - name: Checkout
-              uses: actions/checkout@v2
+            - name: Checkout source
+              uses: actions/checkout@master
               with:
-                  fetch-depth: 0
+                  ref: ${{ github.ref }}
 
-            - name: Attach Head
-              run: |
-                  git checkout ${{ github.event.pull_request.base.ref }}
-
-            - name: Setup Node
-              uses: actions/setup-node@v1
+            - name: Install Node.js
+              uses: actions/setup-node@v3
               with:
-                  node-version: 18.7.0
+                node-version: 16.17.0
+
+            - uses: pnpm/action-setup@v2.0.1
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 7
+
+            - name: Install dependencies
+              run: pnpm install
 
             - name: Set Git Identity
               run: |
@@ -46,15 +51,6 @@ jobs:
                   git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/$GITHUB_REPOSITORY
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            - uses: pnpm/action-setup@v2.0.1
-              name: Install pnpm
-              id: pnpm-install
-              with:
-                version: 7
-
-            - name: Install Dependencies
-              run: pnpm install
 
             - name: Create Release Pull Request or Deploy
               uses: changesets/action@v1
