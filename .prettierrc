@@ -4,5 +4,8 @@
 	"useTabs": true,
 	"singleQuote": true,
 	"printWidth": 100,
-	"trailingComma": "es5"
+	"trailingComma": "es5",
+	"plugins": ["@trivago/prettier-plugin-sort-imports"],
+	"importOrder": ["<THIRD_PARTY_MODULES>", "^[./]"],
+	"importOrderSeparation": true
 }

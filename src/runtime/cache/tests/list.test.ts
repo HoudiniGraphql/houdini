@@ -1,9 +1,8 @@
-// externals
-import { jest } from '@jest/globals'
-// locals
+import { test, expect, vi } from 'vitest'
+
 import { testConfigFile } from '../../../common'
-import { Cache } from '../cache'
 import { SubscriptionSelection, RefetchUpdateMode } from '../../lib/types'
+import { Cache } from '../cache'
 
 const config = testConfigFile()
 
@@ -218,7 +217,7 @@ test('append in list', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -307,7 +306,7 @@ test('prepend in list', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -425,13 +424,13 @@ test('remove from connection', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selection,
+		selection,
 	})
 
 	// remove user 2 from the list
@@ -546,13 +545,13 @@ test('element removed from list can be added back', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selection,
+		selection,
 	})
 
 	// remove user 2 from the list
@@ -679,7 +678,7 @@ test('append in connection', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -798,7 +797,7 @@ test('inserting data with an update overwrites a record inserted with list.appen
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -975,7 +974,7 @@ test('list filter - must_not positive', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -1076,7 +1075,7 @@ test('list filter - must_not negative', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -1163,7 +1162,7 @@ test('list filter - must positive', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -1264,7 +1263,7 @@ test('list filter - must negative', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -1345,13 +1344,13 @@ test('remove from list', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
 		rootType: 'Query',
 		set,
-		selection: selection,
+		selection,
 	})
 
 	// remove user 2 from the list
@@ -1425,7 +1424,7 @@ test('delete node', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -1528,7 +1527,7 @@ test('delete node from connection', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -1609,7 +1608,7 @@ test('append operation', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -1701,7 +1700,7 @@ test('append from list', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -1811,7 +1810,7 @@ test('toggle list', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -1918,7 +1917,7 @@ test('append when operation', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -2021,7 +2020,7 @@ test('prepend when operation', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -2139,7 +2138,7 @@ test('prepend operation', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -2250,7 +2249,7 @@ test('remove operation', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -2360,7 +2359,7 @@ test('remove operation from list', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -2465,7 +2464,7 @@ test('delete operation', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -2573,7 +2572,7 @@ test('delete operation from list', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -2720,7 +2719,7 @@ test('delete operation from connection', function () {
 				},
 			},
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -3337,7 +3336,7 @@ test('when conditions look for all matching lists', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields twice
 	cache.subscribe(
@@ -3456,7 +3455,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 			rootType: 'User',
 			selection: friendsSelection,
 			parentID: cache._internal_unstable.id('User', '1')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -3467,7 +3466,7 @@ test('parentID must be passed if there are multiple instances of a list handler'
 			rootType: 'User',
 			selection: friendsSelection,
 			parentID: cache._internal_unstable.id('User', '2')!,
-			set: jest.fn(),
+			set: vi.fn(),
 		},
 		{}
 	)
@@ -3542,7 +3541,7 @@ test('append in abstract list', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -3678,7 +3677,7 @@ test('list operations on interface fields without a well defined parent update t
 	})
 
 	// a function to call
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields (create the list handler)
 	cache.subscribe({

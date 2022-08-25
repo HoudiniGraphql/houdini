@@ -1,43 +1,42 @@
-// externals
-import { Readable, get } from 'svelte/store'
-import type { Writable } from 'svelte/store'
-// locals
-import {
-	ConfigFile,
-	executeQuery,
-	HoudiniFetchContext,
-	MutationResult,
-	MutationStore,
-} from '../lib'
-import type { SubscriptionSpec, MutationArtifact } from '../lib'
+import { LoadEvent } from '@sveltejs/kit'
+import { Readable } from 'svelte/store'
+import { Writable, writable } from 'svelte/store'
+
 import cache from '../cache'
+import type { SubscriptionSpec, MutationArtifact } from '../lib'
+import { getCurrentConfig } from '../lib/config'
+import { executeQuery } from '../lib/network'
 import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
-import { getSession } from '../adapter'
-import { sessionStore } from '../lib/session'
+import { GraphQLObject, HoudiniFetchContext } from '../lib/types'
+import { BaseStore } from './store'
 
-export function mutationStore<_Data, _Input>({
-	config,
-	artifact,
-}: {
-	config: ConfigFile
+export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStore {
 	artifact: MutationArtifact
-}): MutationStore<_Data, _Input> {
-	const stores: { [reqID: string]: Writable<MutationResult<_Data, _Input>> } = {}
+	kind = 'HoudiniMutation' as const
 
-	const mutate: MutationStore<_Data, _Input>['mutate'] = async ({
-		variables,
-		context,
-		metadata,
-		fetch,
-		...mutationConfig
-	}) => {
-		let fetchContext: HoudiniFetchContext | { session: () => null } = context || {
-			session: () => null,
-		}
+	private store: Writable<MutationResult<_Data, _Input>>
 
-		const store = sessionStore(fetchContext, stores, nullMutationStore)
+	constructor({ artifact }: { artifact: MutationArtifact }) {
+		super()
+		this.artifact = artifact
+		this.store = writable(this.nullState)
+	}
 
-		store.update((c) => {
+	async mutate(
+		variables: _Input,
+		{
+			metadata,
+			fetch,
+			...mutationConfig
+		}: {
+			// @ts-ignore
+			metadata?: App.Metadata
+			fetch?: typeof globalThis.fetch
+		} & MutationConfig<_Data, _Input> = {}
+	): Promise<_Data | null> {
+		const config = await getCurrentConfig()
+
+		this.store.update((c) => {
 			return { ...c, isFetching: true }
 		})
 
@@ -57,13 +56,12 @@ export function mutationStore<_Data, _Input>({
 		let toNotify: SubscriptionSpec[] = []
 		if (optimisticResponse) {
 			toNotify = cache.write({
-				selection: artifact.selection,
+				selection: this.artifact.selection,
 				// make sure that any scalar values get processed into something we can cache
-				data: marshalSelection({
-					config,
-					selection: artifact.selection,
+				data: (await marshalSelection({
+					selection: this.artifact.selection,
 					data: optimisticResponse,
-				})!,
+				}))!,
 				variables,
 				layer: layer.id,
 			})
@@ -77,29 +75,27 @@ export function mutationStore<_Data, _Input>({
 			}
 
 			// update the store value
-			store.set(storeData)
+			this.store.set(storeData)
 		}
 
-		const newVariables = marshalInputs({
+		const newVariables = (await marshalInputs({
 			input: variables,
-			artifact,
-			config,
-		}) as _Input
+			artifact: this.artifact,
+		})) as _Input
 
 		try {
 			// trigger the mutation
 			const { result } = await executeQuery({
 				config,
-				artifact,
+				artifact: this.artifact,
 				variables: newVariables,
-				session: fetchContext.session?.(),
 				cached: false,
 				metadata,
 				fetch,
 			})
 
 			if (result.errors && result.errors.length > 0) {
-				store.update((s) => ({
+				this.store.update((s) => ({
 					...s,
 					errors: result.errors,
 					isFetching: false,
@@ -115,7 +111,7 @@ export function mutationStore<_Data, _Input>({
 
 			// write the result of the mutation to the cache
 			cache.write({
-				selection: artifact.selection,
+				selection: this.artifact.selection,
 				data: result.data,
 				variables: newVariables,
 				// write to the mutation's layer
@@ -133,7 +129,7 @@ export function mutationStore<_Data, _Input>({
 
 			// prepare store data
 			const storeData: MutationResult<_Data, _Input> = {
-				data: unmarshalSelection(config, artifact.selection, result.data) as _Data,
+				data: unmarshalSelection(config, this.artifact.selection, result.data) as _Data,
 				errors: result.errors ?? null,
 				isFetching: false,
 				isOptimisticResponse: false,
@@ -141,12 +137,12 @@ export function mutationStore<_Data, _Input>({
 			}
 
 			// update the store value
-			store.set(storeData)
+			this.store.set(storeData)
 
 			// return the value to the caller
-			return storeData
+			return storeData.data
 		} catch (error) {
-			store.update((s) => ({
+			this.store.update((s) => ({
 				...s,
 				errors: error as { message: string }[],
 				isFetching: false,
@@ -164,23 +160,30 @@ export function mutationStore<_Data, _Input>({
 		}
 	}
 
-	return {
-		name: artifact.name,
-		subscribe(...args: Parameters<Readable<MutationResult<_Data, _Input>>['subscribe']>) {
-			// grab the appropriate store for the session
-			const requestStore = sessionStore(get(getSession()), stores, nullMutationStore)
+	subscribe(...args: Parameters<Readable<MutationResult<_Data, _Input>>['subscribe']>) {
+		// use it's value
+		return this.store.subscribe(...args)
+	}
 
-			// use it's value
-			return requestStore.subscribe(...args)
-		},
-		mutate,
+	private get nullState() {
+		return {
+			data: null as _Data | null,
+			errors: null,
+			isFetching: false,
+			isOptimisticResponse: false,
+			variables: null,
+		}
 	}
 }
 
-const nullMutationStore = <_Data = any, _Input = any>(): MutationResult<_Data, _Input> => ({
-	data: null as _Data | null,
-	errors: null,
-	isFetching: false,
-	isOptimisticResponse: false,
-	variables: null,
-})
+export type MutationConfig<_Result, _Input> = {
+	optimisticResponse?: _Result
+}
+
+export type MutationResult<_Data, _Input> = {
+	data: _Data | null
+	errors: { message: string }[] | null
+	isFetching: boolean
+	isOptimisticResponse: boolean
+	variables: _Input | null
+}

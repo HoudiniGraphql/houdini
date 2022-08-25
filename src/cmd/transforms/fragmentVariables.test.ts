@@ -1,12 +1,10 @@
-// external imports
-import path from 'path'
-import fs from 'fs/promises'
-import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
+import path from 'path'
 import * as recast from 'recast'
-// local imports
-import { testConfig } from '../../common'
-import '../../../jest.setup'
+import * as typeScriptParser from 'recast/parsers/typescript'
+import { test, expect } from 'vitest'
+
+import { readFile, testConfig } from '../../common'
 import { runPipeline } from '../generate'
 import { mockCollectedDoc } from '../testUtils'
 
@@ -35,13 +33,10 @@ test('pass argument values to generated fragments', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -111,13 +106,10 @@ test("nullable arguments with no values don't show up in the query", async funct
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -187,13 +179,10 @@ test("fragment arguments with default values don't rename the fragment", async f
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -271,13 +260,10 @@ test('thread query variables to inner fragments', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -367,13 +353,10 @@ test('inner fragment with intermediate default value', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -455,13 +438,10 @@ test("default values don't overwrite unless explicitly passed", async function (
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -535,13 +515,10 @@ test('default arguments', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -611,13 +588,10 @@ test('multiple with directives - no overlap', async function () {
 	const config = testConfig()
 	await runPipeline(config, docs)
 
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents

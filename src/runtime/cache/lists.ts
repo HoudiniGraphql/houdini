@@ -1,4 +1,3 @@
-// local imports
 import { SubscriptionSelection, ListWhen, SubscriptionSpec, RefetchUpdateMode } from '../lib/types'
 import { Cache, LinkedList, rootID } from './cache'
 import { flattenList } from './stuff'

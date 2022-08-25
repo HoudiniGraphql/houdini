@@ -1,12 +1,11 @@
-// locals
-import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '..'
 import { computeID, ConfigFile, keyFieldsForType, deepEquals } from '../lib'
+import { defaultConfigValues } from '../lib/config'
+import { GraphQLObject, GraphQLValue, SubscriptionSelection, SubscriptionSpec } from '../lib/types'
 import { GarbageCollector } from './gc'
 import { ListCollection, ListManager } from './lists'
 import { InMemoryStorage, Layer, LayerID } from './storage'
 import { evaluateKey, flattenList } from './stuff'
 import { InMemorySubscriptions } from './subscription'
-import { defaultConfigValues } from '../lib/config'
 
 export class Cache {
 	// the internal implementation for a lot of the cache's methods are moved into
@@ -168,11 +167,11 @@ class CacheInternal {
 		this.cache = cache
 		this.lifetimes = lifetimes
 
-		// the cache should always be disabled on the server
+		// the cache should always be disabled on the server, unless we're testing
 		try {
-			this._disabled = typeof window === 'undefined'
+			this._disabled = process.env.TEST !== 'true'
 		} catch {
-			this._disabled = true
+			this._disabled = typeof globalThis.window === 'undefined'
 		}
 	}
 
@@ -227,7 +226,7 @@ class CacheInternal {
 			const key = evaluateKey(keyRaw, variables)
 
 			// the current set of subscribers
-			const currentSubcribers = this.subscriptions.get(parent, key)
+			const currentSubscribers = this.subscriptions.get(parent, key)
 
 			// look up the previous value
 			const { value: previousValue, displayLayers } = this.storage.get(parent, key)
@@ -265,7 +264,7 @@ class CacheInternal {
 				if (displayLayer && (valueChanged || forceNotify)) {
 					// we need to add the fields' subscribers to the set of callbacks
 					// we need to invoke
-					toNotify.push(...currentSubcribers)
+					toNotify.push(...currentSubscribers)
 				}
 
 				// write value to the layer
@@ -281,13 +280,13 @@ class CacheInternal {
 				const previousLinks = flattenList<string>([previousValue as string | string[]])
 
 				for (const link of previousLinks) {
-					this.subscriptions.remove(link, fields, currentSubcribers, variables)
+					this.subscriptions.remove(link, fields, currentSubscribers, variables)
 				}
 
 				layer.writeLink(parent, key, null)
 
 				// add the list of subscribers for this field
-				toNotify.push(...currentSubcribers)
+				toNotify.push(...currentSubscribers)
 			}
 			// the field could point to a linked object
 			else if (value instanceof Object && !Array.isArray(value)) {
@@ -331,7 +330,7 @@ class CacheInternal {
 						this.subscriptions.remove(
 							previousValue,
 							fields,
-							currentSubcribers,
+							currentSubscribers,
 							variables
 						)
 					}
@@ -340,11 +339,11 @@ class CacheInternal {
 					this.subscriptions.addMany({
 						parent: linkedID,
 						selection: fields,
-						subscribers: currentSubcribers,
+						subscribers: currentSubscribers,
 						variables,
 					})
 
-					toNotify.push(...currentSubcribers)
+					toNotify.push(...currentSubscribers)
 				}
 
 				// if the link target points to another record in the cache we need to walk down its
@@ -421,7 +420,7 @@ class CacheInternal {
 					recordID: parent,
 					key,
 					linkedType,
-					variables: variables,
+					variables,
 					fields,
 					layer,
 					forceNotify,
@@ -501,7 +500,7 @@ class CacheInternal {
 
 				// we need to look at the last time we saw each subscriber to check if they need to be added to the spec
 				if (contentChanged || forceNotify) {
-					toNotify.push(...currentSubcribers)
+					toNotify.push(...currentSubscribers)
 				}
 
 				// any ids that don't show up in the new list need to have their subscribers wiped
@@ -510,7 +509,7 @@ class CacheInternal {
 						continue
 					}
 
-					this.subscriptions.remove(lostID, fields, currentSubcribers, variables)
+					this.subscriptions.remove(lostID, fields, currentSubscribers, variables)
 				}
 
 				// if there was a change in the list
@@ -528,7 +527,7 @@ class CacheInternal {
 					this.subscriptions.addMany({
 						parent: id,
 						selection: fields,
-						subscribers: currentSubcribers,
+						subscribers: currentSubscribers,
 						variables,
 					})
 				}

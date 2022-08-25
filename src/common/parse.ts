@@ -1,14 +1,11 @@
-// locals
-import type { Maybe, Script } from './types'
+import { parse as parseJavascript } from '@babel/parser'
 import * as svelte from 'svelte/compiler'
-import { parse as parseJS } from '@babel/parser'
 
-export type ParsedSvelteFile = {
-	instance: Maybe<Script>
-	module: Maybe<Script>
-}
+import type { Maybe, Script } from './types'
 
-export async function parseFile(str: string): Promise<ParsedSvelteFile> {
+export type ParsedFile = Maybe<{ script: Script; start: number; end: number }>
+
+export async function parseSvelte(str: string): Promise<ParsedFile> {
 	// parsing a file happens in two steps:
 	// - first we use svelte's parser to find the bounds of the script tag
 	// - then we run the contents through babel to parse it
@@ -29,40 +26,44 @@ export async function parseFile(str: string): Promise<ParsedSvelteFile> {
 	// parse the result to find the bounds
 	const parsed = svelte.parse(preprocessed.code)
 
-	// build up the result
-	const result: ParsedSvelteFile = { instance: null, module: null }
-
 	// look at the instance and module of the parsed result to find the correct bounds
-	for (const which of ['instance', 'module'] as ('instance' | 'module')[]) {
-		// figure out which we're parsing
-		const script = parsed[which]!
-		if (!script) {
-			continue
-		}
-
-		// now that we have the bounds we can find the appropriate string to parse
-		const [greaterThanIndex, lessThanIndex] = findScriptInnerBounds({
-			start: parsed[which]!.start,
-			end: parsed[which]!.end - 1,
-			text: str,
-		})
-
-		const string = str.slice(greaterThanIndex, lessThanIndex)
-
-		result[which] = {
-			// @ts-ignore
-			content: parseJS(string || '', {
-				plugins: ['typescript'],
-				sourceType: 'module',
-			}).program,
-			start: parsed[which]!.start,
-			// end has to exist to get this far
-			end: parsed[which]!.end! - 1,
-		}
+	// figure out which we're parsing
+	const script = parsed.instance
+	if (!script) {
+		return null
 	}
 
+	// now that we have the bounds we can find the appropriate string to parse
+	const [greaterThanIndex, lessThanIndex] = findScriptInnerBounds({
+		start: parsed.instance!.start,
+		end: parsed.instance!.end - 1,
+		text: str,
+	})
+
+	const string = str.slice(greaterThanIndex, lessThanIndex)
+
 	// we're done here
-	return result
+	const scriptParsed = await parseJS(string)
+
+	return scriptParsed
+		? {
+				script: scriptParsed.script,
+				start: greaterThanIndex,
+				end: lessThanIndex,
+		  }
+		: null
+}
+
+export async function parseJS(str: string): Promise<ParsedFile> {
+	return {
+		start: 0,
+		// @ts-ignore
+		script: parseJavascript(str || '', {
+			plugins: ['typescript'],
+			sourceType: 'module',
+		}).program,
+		end: str.length,
+	}
 }
 
 export function findScriptInnerBounds({

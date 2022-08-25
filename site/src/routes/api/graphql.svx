@@ -4,10 +4,6 @@ index: 5
 description: The GraphQL API provided by Houdini
 ---
 
-<script>
-	import mode from '~/lib/mode'
-</script>
-
 # GraphQL API
 
 Houdini adds a number of runtime definitions to your GraphQL schema in order to support its declarative API.
@@ -29,7 +25,7 @@ Some things worth mentioning:
 - These fragments can be applied to lists and single values.
 - Sometimes the runtime needs a little help to hunt down the list you want to mutate. For more information on how to use `@parentID` to help, [see below](#parentidvalue-string).
 
-For more information on using these fragments, head over to the [mutation docs](/api/mutation/{$mode}#lists).
+For more information on using these fragments, head over to the [mutation docs](/api/mutation#lists).
 
 ## Directives
 
@@ -47,7 +43,7 @@ For more information on using these fragments, head over to the [mutation docs](
 
 ### `@when`
 
-`@when` provides a conditional under which the [list operation](#list-operations) should be executed. It takes arguments that match the arguments of the field tagged with `@list` or `@paginate`. For more information, check out the [mutation docs](/api/mutation/{$mode}#lists).
+`@when` provides a conditional under which the [list operation](#list-operations) should be executed. It takes arguments that match the arguments of the field tagged with `@list` or `@paginate`. For more information, check out the [mutation docs](/api/mutation#lists).
 
 ```graphql
 mutation UncompleteItem($id: ID!) {
@@ -63,7 +59,7 @@ mutation UncompleteItem($id: ID!) {
 
 ### `@when_not`
 
-`@when` provides a conditional under which the [list operation](#list-operations) should not be executed. It takes arguments that match the arguments of the field tagged with `@list` or `@paginate`. For more information, check out the [mutation docs](/api/mutation/{$mode}#lists)
+`@when` provides a conditional under which the [list operation](#list-operations) should not be executed. It takes arguments that match the arguments of the field tagged with `@list` or `@paginate`. For more information, check out the [mutation docs](/api/mutation#lists)
 
 ```graphql
 mutation NewItem($input: AddItemInput!) {
@@ -80,11 +76,11 @@ mutation NewItem($input: AddItemInput!) {
 
 ### `@paginate(name: String)`
 
-A field marked with `@paginate` is updated with calls to the page loaders returned by the pagination function. For more information on pagination check out the [guide](/guides/pagination). If you pass a value for the `name` argument, the underlying list can be updated using the [operation fragments](/api/mutation/{$mode}#lists).
+A field marked with `@paginate` is updated with calls to the page loaders returned by the pagination function. For more information on pagination check out the [guide](/guides/pagination). If you pass a value for the `name` argument, the underlying list can be updated using the [operation fragments](/api/mutation#lists).
 
 ### `@[TypeName]_delete`
 
-`@[TypeName]_delete` (ie, something like `@User_delete`) is used to delete the user with an id found in the body of a subscription or mutation. Like the operation fragments, this directive can be applied to lists or singular values. For more information see the [mutation docs](/api/mutation/{$mode}#lists).
+`@[TypeName]_delete` (ie, something like `@User_delete`) is used to delete the user with an id found in the body of a subscription or mutation. Like the operation fragments, this directive can be applied to lists or singular values. For more information see the [mutation docs](/api/mutation#lists).
 
 ```graphql
 mutation DeleteItem($input: DeleteItemInput!) {
@@ -129,9 +125,9 @@ Houdini generates runtime representations of every enum in your schema. They can
 `$houdini`:
 
 ```javascript
-import { MyEnum, GQL_MyMutation } from '$houdini
+import { MyEnum, GQL_MyMutation } from '$houdini'
 
 function onClick() {
-	GQL_MyMutation.mutate({ variables: { input: MyEnum.Value1 }})
+	GQL_MyMutation.mutate({ variables: { input: MyEnum.Value1 } })
 }
 ```

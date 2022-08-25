@@ -1,6 +1,6 @@
 ---
 title: Contributing to Houdini
-index: 8
+index: 10
 description: A guide for contributing to Houdini
 ---
 
@@ -19,19 +19,18 @@ Keeping documentation up to date is as important as _any_ bug fix or new feature
 ## Local Development
 
 The quickest way to test and develop new features is by using the [example project](https://github.com/HoudiniGraphQL/houdini/tree/main/example).
-Starting with `yarn && yarn build` at the root of the repository will handle the details
-of linking everything up. Once yarn is done, run `yarn generate && yarn dev` inside of the example
+Starting with `pnpm i && pnpm run build` at the root of the repository will handle the details
+of linking everything up. Once pnpm is done, run `pnpm run generate && pnpm run dev` inside of the example
 directory to start both the web app & API development servers. After all of this, you
 should be able to visit `localhost:3000` in a web browser and see a working todo list.
 
 ## General Introduction
 
 At a high level, houdini is broken up into two parts: a [command-line tool](https://github.com/HoudiniGraphQL/houdini/tree/main/src/cmd)
-and a [preprocessor](https://github.com/HoudiniGraphQL/houdini/tree/main/src/preprocess). The command-line tool is responsible for a
+and a [plugin](https://github.com/HoudiniGraphQL/houdini/tree/main/src/plugin). The command-line tool is responsible for a
 variety of tasks, including scaffolding a new project, validating graphql documents, and
-generating the runtime and artifacts for the application. The preprocessor
-handles optimizing the user's code for their specific platform and "connects the dots"
-between what the user types and the houdini runtime.
+generating the runtime and artifacts for the application. The plugin
+transforms the user's project files from houdini's api into something that works with SvelteKit.
 
 ## The `generate` Command
 
@@ -82,13 +81,74 @@ situations. At a high level, the `raw` field is used when sending actual queries
 field is structured to save the runtime from wasting cycles (and bundle size) on parsing and "understanding" what the
 user wants when they use a specific document. For more information about how these are used, see the [cache section](#the-cache).
 
-## The Preprocessor
+## The Vite Plugin
 
-The preprocessor is defined in [src/preprocess/index.ts](https://github.com/HoudiniGraphQL/houdini/tree/main/src/preprocess/index.ts)
-as a pipeline that looks at every string tagged with `graphql` and mutates it into something the runtime can use.
-For most situations this means adding an import to file for the relevant artifact and passing it to the
-runtime (queries are a big exception). For a more detailed look into what actually happens with each document type,
-you should look at the [snapshot tests](https://github.com/HoudiniGraphQL/houdini/tree/main/src/preprocess/transforms) for the corresponding function.
+The vite plugin is defined in [src/plugin/index.ts](https://github.com/HoudiniGraphQL/houdini/tree/main/src/plugin/index.ts)
+as a pipeline that looks at every string tagged with `graphql` and mutates it into something the runtime can use. It is built out of
+a few different plugins that work together to deliver a seemless dev experience.
+
+### Faking `+page.js`
+
+Once of the core pieces of the plugin is the ability to fake the existence of `+page.js` in the eyes of vite and sveltekit.
+This logic lives in the [fsPatch](https://github.com/HoudiniGraphQL/houdini/tree/main/src/vite/fsPatch.ts) plugin and requires
+two things. First, we have to patch `node:fs` so that vite and kit think the file exists if necessary. And second,
+vite has to be configure so that an import for one of the fake `+page.js` With those two things in place, the transform
+pipeline treats the fake files as empty.
+
+### How does the plugin generate loads?
+
+To understand how this works, consider this query:
+
+```svelte
+<!-- src/routes/myRoute/+page.svelte -->
+<script>
+	import { query, graphql } from '$houdini'
+
+	const { data } = query(graphql`
+		query SpeciesInfo {
+			species(id: 1) {
+				name
+				flavor_text
+				sprites {
+					front
+				}
+			}
+		}
+	`)
+</script>
+
+<div>
+	{$data.species.name}
+</div>
+```
+
+By looking at the contents of every `graphql` tag in a component, the plugin can extract the query names and then generate/transform that one
+file into these two:
+
+```svelte
+<!-- src/routes/myRoute/+page.svelte -->
+<script>
+	// the store gets passed to us as a prop
+	export let data
+
+	$: ({ SpeciesInfo } = data)
+
+	const { data } = query($SpeciesInfo)
+</script>
+```
+
+```typescript
+// src/routes/myRoute/+page.ts
+import SpeciesInfoStore from '$houdini/stores/SpeciesInfo'
+
+export async function load({ event }) {
+	await SpeciesInfoStore.fetch({ event })
+
+	return {
+		SpeciesInfo: SpeciesInfoStore
+	}
+}
+```
 
 ## The Runtime
 

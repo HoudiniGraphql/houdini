@@ -1,9 +1,5 @@
-// external imports
-import * as graphql from 'graphql'
-// locals
 import { pipelineTest } from '../testUtils'
-import '../../../jest.setup'
-import { CollectedGraphQLDocument, HoudiniError } from '../types'
+import { CollectedGraphQLDocument } from '../types'
 
 const table: Row[] = [
 	{
@@ -38,11 +34,11 @@ const table: Row[] = [
 		documents: [
 			`
                 query QueryA {
-                    ghost { 
-						name: believers { 
+                    ghost {
+						name: believers {
 							id
 						}
-						aka: friends { 
+						aka: friends {
 							name
 						}
 					}
@@ -63,7 +59,7 @@ type Row =
 			title: string
 			pass: false
 			documents: string[]
-			check?: (result: HoudiniError | HoudiniError[]) => void
+			check?: (result: Error | Error[]) => void
 	  }
 
 // run the tests

@@ -1,10 +1,8 @@
-// external imports
-import fs from 'fs/promises'
 import * as recast from 'recast'
 import * as typeScriptParser from 'recast/parsers/typescript'
-// local imports
-import { testConfig } from '../../../common'
-import '../../../../jest.setup'
+import { test, expect, describe } from 'vitest'
+
+import { readFile, testConfig } from '../../../common'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
 
@@ -104,11 +102,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -139,11 +137,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -173,11 +171,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -208,11 +206,11 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
@@ -234,43 +232,39 @@ describe('typescript', function () {
 
 	test('query with no input', async function () {
 		// the document to test
-		const doc = mockCollectedDoc(`query Query { user { firstName } }`)
+		const doc = mockCollectedDoc(`query MyQuery { user { firstName } }`)
 
 		// execute the generator
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly firstName: string
-		    } | null
-		};
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly firstName: string
+			    } | null
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('query with root list', async function () {
 		// the document with the query
 		const queryDoc = mockCollectedDoc(`
-			query Query {
+			query MyQuery {
 				users {
 					firstName,
 				}
@@ -280,78 +274,65 @@ describe('typescript', function () {
 		await runPipeline(config, [queryDoc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(queryDoc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(queryDoc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly users: ({
-		        readonly firstName: string
-		    } | null)[] | null
-		};
+			export type MyQuery$result = {
+			    readonly users: ({
+			        readonly firstName: string
+			    } | null)[] | null
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('query with input', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			`query Query($id: ID!, $enum: MyEnum) { user(id: $id, enumArg: $enum ) { firstName } }`
+			`query MyQuery($id: ID!, $enum: MyEnum) { user(id: $id, enumArg: $enum ) { firstName } }`
 		)
 
 		// execute the generator
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		import type { MyEnum } from "$houdini/graphql/enums";
+			import type { MyEnum } from "$houdini/graphql/enums";
 
-		export type Query = {
-		    readonly "input": Query$input,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly firstName: string
-		    } | null
-		};
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly firstName: string
+			    } | null
+			};
 
-		export type Query$afterLoad = {
-		    readonly "input": {
-		        readonly "Query": Query$input
-		    },
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-
-		export type Query$input = {
-		    id: string,
-		    enum?: MyEnum | null | undefined
-		};
-	`)
+			export type MyQuery$input = {
+			    id: string,
+			    enum?: MyEnum | null | undefined
+			};
+		`)
 	})
 
 	test('interface on interface', async function () {
@@ -370,41 +351,37 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type MyTestQuery = {
-		    readonly "input": null,
-		    readonly "result": MyTestQuery$result | undefined
-		};
+			export type MyTestQuery = {
+			    readonly "input": MyTestQuery$input,
+			    readonly "result": MyTestQuery$result | undefined
+			};
 
-		export type MyTestQuery$result = {
-		    readonly entity: {} & (({
-		        readonly id: string,
-		        readonly __typename: "Cat"
-		    }) | ({
-		        readonly id: string,
-		        readonly __typename: "User"
-		    }))
-		};
+			export type MyTestQuery$result = {
+			    readonly entity: {} & (({
+			        readonly id: string,
+			        readonly __typename: "Cat"
+			    }) | ({
+			        readonly id: string,
+			        readonly __typename: "User"
+			    }))
+			};
 
-		export type MyTestQuery$afterLoad = {
-		    readonly "data": {
-		        readonly "MyTestQuery": MyTestQuery$result
-		    }
-		};
-	`)
+			export type MyTestQuery$input = null;
+		`)
 	})
 
 	test('mutation with input list', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			`mutation Mutation(
+			`mutation MyMutation(
 				$filter: UserFilter,
 				$filterList: [UserFilter!]!,
 				$id: ID!
@@ -430,139 +407,130 @@ describe('typescript', function () {
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		import type { MyEnum } from "$houdini/graphql/enums";
+			import type { MyEnum } from "$houdini/graphql/enums";
 
-		export type Mutation = {
-		    readonly "input": Mutation$input,
-		    readonly "result": Mutation$result
-		};
+			export type MyMutation = {
+			    readonly "input": MyMutation$input,
+			    readonly "result": MyMutation$result
+			};
 
-		export type Mutation$result = {
-		    readonly doThing: {
-		        readonly firstName: string
-		    } | null
-		};
+			export type MyMutation$result = {
+			    readonly doThing: {
+			        readonly firstName: string
+			    } | null
+			};
 
-		type NestedUserFilter = {
-		    id: string,
-		    firstName: string,
-		    admin?: boolean | null | undefined,
-		    age?: number | null | undefined,
-		    weight?: number | null | undefined
-		};
+			type NestedUserFilter = {
+			    id: string,
+			    firstName: string,
+			    admin?: boolean | null | undefined,
+			    age?: number | null | undefined,
+			    weight?: number | null | undefined
+			};
 
-		type UserFilter = {
-		    middle?: NestedUserFilter | null | undefined,
-		    listRequired: (string)[],
-		    nullList?: (string | null | undefined)[] | null | undefined,
-		    recursive?: UserFilter | null | undefined,
-		    enum?: MyEnum | null | undefined
-		};
+			type UserFilter = {
+			    middle?: NestedUserFilter | null | undefined,
+			    listRequired: (string)[],
+			    nullList?: (string | null | undefined)[] | null | undefined,
+			    recursive?: UserFilter | null | undefined,
+			    enum?: MyEnum | null | undefined
+			};
 
-		export type Mutation$input = {
-		    filter?: UserFilter | null | undefined,
-		    filterList: (UserFilter)[],
-		    id: string,
-		    firstName: string,
-		    admin?: boolean | null | undefined,
-		    age?: number | null | undefined,
-		    weight?: number | null | undefined
-		};
-	`)
+			export type MyMutation$input = {
+			    filter?: UserFilter | null | undefined,
+			    filterList: (UserFilter)[],
+			    id: string,
+			    firstName: string,
+			    admin?: boolean | null | undefined,
+			    age?: number | null | undefined,
+			    weight?: number | null | undefined
+			};
+		`)
 	})
 
 	test('nested input objects', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			`query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
+			`query MyQuery($filter: UserFilter!) { user(filter: $filter) { firstName } }`
 		)
 
 		// execute the generator
 		await runPipeline(config, [doc])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(doc.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(doc.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		import type { MyEnum } from "$houdini/graphql/enums";
+			import type { MyEnum } from "$houdini/graphql/enums";
 
-		export type Query = {
-		    readonly "input": Query$input,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly firstName: string
-		    } | null
-		};
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly firstName: string
+			    } | null
+			};
 
-		export type Query$afterLoad = {
-		    readonly "input": {
-		        readonly "Query": Query$input
-		    },
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
+			type NestedUserFilter = {
+			    id: string,
+			    firstName: string,
+			    admin?: boolean | null | undefined,
+			    age?: number | null | undefined,
+			    weight?: number | null | undefined
+			};
 
-		type NestedUserFilter = {
-		    id: string,
-		    firstName: string,
-		    admin?: boolean | null | undefined,
-		    age?: number | null | undefined,
-		    weight?: number | null | undefined
-		};
+			type UserFilter = {
+			    middle?: NestedUserFilter | null | undefined,
+			    listRequired: (string)[],
+			    nullList?: (string | null | undefined)[] | null | undefined,
+			    recursive?: UserFilter | null | undefined,
+			    enum?: MyEnum | null | undefined
+			};
 
-		type UserFilter = {
-		    middle?: NestedUserFilter | null | undefined,
-		    listRequired: (string)[],
-		    nullList?: (string | null | undefined)[] | null | undefined,
-		    recursive?: UserFilter | null | undefined,
-		    enum?: MyEnum | null | undefined
-		};
-
-		export type Query$input = {
-		    filter: UserFilter
-		};
-	`)
+			export type MyQuery$input = {
+			    filter: UserFilter
+			};
+		`)
 	})
 
 	test('generates index file', async function () {
 		// the document to test
 		const doc = mockCollectedDoc(
-			`query Query($filter: UserFilter!) { user(filter: $filter) { firstName } }`
+			`query MyQuery($filter: UserFilter!) { user(filter: $filter) { firstName } }`
 		)
 
 		// execute the generator
 		await runPipeline(config, [doc])
 
 		// read the type index file
-		const fileContents = await fs.readFile(config.typeIndexPath, 'utf-8')
+		const fileContents = await readFile(config.typeIndexPath)
 
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export * from "./artifacts/Query";
-		export * from "./runtime";
-		export * from "./stores";
-		export * from "./graphql";
-	`)
+			export * from "./artifacts/MyQuery";
+			export * from "./runtime";
+			export * from "./stores";
+			export * from "./graphql";
+		`)
 	})
 
 	test('fragment spreads', async function () {
@@ -570,39 +538,35 @@ describe('typescript', function () {
 		const fragment = mockCollectedDoc(`fragment Foo on User { firstName }`)
 
 		// the document to test
-		const query = mockCollectedDoc(`query Query { user { ...Foo } }`)
+		const query = mockCollectedDoc(`query MyQuery { user { ...Foo } }`)
 
 		// execute the generator
 		await runPipeline(config, [query, fragment])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly $fragments: {
-		            Foo: true
-		        }
-		    } | null
-		};
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly $fragments: {
+			            Foo: true
+			        }
+			    } | null
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('fragment spreads no masking', async function () {
@@ -612,47 +576,43 @@ describe('typescript', function () {
 		const fragment = mockCollectedDoc(`fragment Foo on User { firstName }`)
 
 		// the document to test
-		const query = mockCollectedDoc(`query Query { user { ...Foo } }`)
+		const query = mockCollectedDoc(`query MyQuery { user { ...Foo } }`)
 
 		// execute the generator
 		await runPipeline(withoutMasking, [query, fragment])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly firstName: string,
-		        readonly $fragments: {
-		            Foo: true
-		        }
-		    }
-		};
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly firstName: string,
+			        readonly $fragments: {
+			            Foo: true
+			        }
+			    }
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('interfaces', async function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query {
+			query MyQuery {
 				nodes {
 					... on User {
 						id
@@ -669,42 +629,38 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly nodes: ({} & (({
-		        readonly id: string,
-		        readonly __typename: "User"
-		    }) | ({
-		        readonly id: string,
-		        readonly __typename: "Cat"
-		    })))[]
-		};
+			export type MyQuery$result = {
+			    readonly nodes: ({} & (({
+			        readonly id: string,
+			        readonly __typename: "User"
+			    }) | ({
+			        readonly id: string,
+			        readonly __typename: "Cat"
+			    })))[]
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('unions', async function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query {
+			query MyQuery {
 				entities {
 					... on User {
 						id
@@ -721,42 +677,38 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly entities: ({} & (({
-		        readonly id: string,
-		        readonly __typename: "User"
-		    }) | ({
-		        readonly id: string,
-		        readonly __typename: "Cat"
-		    })) | null)[] | null
-		};
+			export type MyQuery$result = {
+			    readonly entities: ({} & (({
+			        readonly id: string,
+			        readonly __typename: "User"
+			    }) | ({
+			        readonly id: string,
+			        readonly __typename: "Cat"
+			    })) | null)[] | null
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('discriminated interface', async function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query {
+			query MyQuery {
 				nodes {
 					id
 					... on User {
@@ -774,44 +726,40 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly nodes: ({
-		        readonly id: string
-		    } & (({
-		        readonly firstName: string,
-		        readonly __typename: "User"
-		    }) | ({
-		        readonly kitty: boolean,
-		        readonly __typename: "Cat"
-		    })))[]
-		};
+			export type MyQuery$result = {
+			    readonly nodes: ({
+			        readonly id: string
+			    } & (({
+			        readonly firstName: string,
+			        readonly __typename: "User"
+			    }) | ({
+			        readonly kitty: boolean,
+			        readonly __typename: "Cat"
+			    })))[]
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('intersecting interface', async function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query {
+			query MyQuery {
 				entities {
 					... on Animal {
 						isAnimal
@@ -831,36 +779,32 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly entities: ({} & (({
-		        readonly isAnimal: boolean,
-		        readonly kitty: boolean,
-		        readonly __typename: "Cat"
-		    }) | ({
-		        readonly firstName: string,
-		        readonly __typename: "User"
-		    })) | null)[] | null
-		};
+			export type MyQuery$result = {
+			    readonly entities: ({} & (({
+			        readonly isAnimal: boolean,
+			        readonly kitty: boolean,
+			        readonly __typename: "Cat"
+			    }) | ({
+			        readonly firstName: string,
+			        readonly __typename: "User"
+			    })) | null)[] | null
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('fragment with custom scalars', async function () {
@@ -892,37 +836,33 @@ describe('typescript', function () {
 		})
 
 		// the document to test
-		const query = mockCollectedDoc(`query Query { allItems { createdAt } }`)
+		const query = mockCollectedDoc(`query MyQuery { allItems { createdAt } }`)
 
 		// execute the generator
 		await runPipeline(localConfig, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly allItems: ({
-		        readonly createdAt: Date
-		    })[]
-		};
+			export type MyQuery$result = {
+			    readonly allItems: ({
+			        readonly createdAt: Date
+			    })[]
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('input with custom scalars', async function () {
@@ -955,52 +895,43 @@ describe('typescript', function () {
 
 		// the document to test
 		const query = mockCollectedDoc(
-			`query Query($date: DateTime!) { allItems(createdAt: $date) { createdAt } }`
+			`query MyQuery($date: DateTime!) { allItems(createdAt: $date) { createdAt } }`
 		)
 
 		// execute the generator
 		await runPipeline(localConfig, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": Query$input,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly allItems: ({
-		        readonly createdAt: Date
-		    })[]
-		};
+			export type MyQuery$result = {
+			    readonly allItems: ({
+			        readonly createdAt: Date
+			    })[]
+			};
 
-		export type Query$afterLoad = {
-		    readonly "input": {
-		        readonly "Query": Query$input
-		    },
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-
-		export type Query$input = {
-		    date: Date
-		};
-	`)
+			export type MyQuery$input = {
+			    date: Date
+			};
+		`)
 	})
 
 	test('can generate types for list of lists', async function () {
 		// the document to test
 		const query = mockCollectedDoc(
 			`
-			query Query {
+			query MyQuery {
 				listOfLists {
 					firstName
 					nickname
@@ -1013,37 +944,33 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly listOfLists: (({
-		        readonly firstName: string,
-		        readonly nickname: string | null
-		    } | null)[] | null)[]
-		};
+			export type MyQuery$result = {
+			    readonly listOfLists: (({
+			        readonly firstName: string,
+			        readonly nickname: string | null
+			    } | null)[] | null)[]
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('duplicate fields', async function () {
 		// the document to test
-		const query = mockCollectedDoc(`query Query {
+		const query = mockCollectedDoc(`query MyQuery {
 			user {
 				parent {
 					firstName
@@ -1059,34 +986,30 @@ describe('typescript', function () {
 		await runPipeline(config, [query])
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(query.document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(query.document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		export type Query = {
-		    readonly "input": null,
-		    readonly "result": Query$result | undefined
-		};
+			export type MyQuery = {
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
+			};
 
-		export type Query$result = {
-		    readonly user: {
-		        readonly parent: {
-		            readonly firstName: string,
-		            readonly nickname: string | null
-		        } | null
-		    } | null
-		};
+			export type MyQuery$result = {
+			    readonly user: {
+			        readonly parent: {
+			            readonly firstName: string,
+			            readonly nickname: string | null
+			        } | null
+			    } | null
+			};
 
-		export type Query$afterLoad = {
-		    readonly "data": {
-		        readonly "Query": Query$result
-		    }
-		};
-	`)
+			export type MyQuery$input = null;
+		`)
 	})
 
 	test('can reference list fragments', async function () {
@@ -1102,7 +1025,7 @@ describe('typescript', function () {
 				}
 			`),
 			mockCollectedDoc(`
-				mutation Mutation(
+				mutation MyMutation(
 					$filter: UserFilter,
 					$filterList: [UserFilter!]!,
 					$id: ID!
@@ -1131,57 +1054,57 @@ describe('typescript', function () {
 		await runPipeline(unmaskedConfig, docs)
 
 		// look up the files in the artifact directory
-		const fileContents = await fs.readFile(config.artifactTypePath(docs[1].document), 'utf-8')
+		const fileContents = await readFile(config.artifactTypePath(docs[1].document))
 
 		// make sure they match what we expect
 		expect(
-			recast.parse(fileContents, {
+			recast.parse(fileContents!, {
 				parser: typeScriptParser,
 			})
 		).toMatchInlineSnapshot(`
-		import type { MyEnum } from "$houdini/graphql/enums";
+			import type { MyEnum } from "$houdini/graphql/enums";
 
-		export type Mutation = {
-		    readonly "input": Mutation$input,
-		    readonly "result": Mutation$result
-		};
+			export type MyMutation = {
+			    readonly "input": MyMutation$input,
+			    readonly "result": MyMutation$result
+			};
 
-		export type Mutation$result = {
-		    readonly doThing: {
-		        readonly id: string,
-		        readonly $fragments: {
-		            My_Users_remove: true,
-		            My_Users_insert: true
-		        }
-		    } | null
-		};
+			export type MyMutation$result = {
+			    readonly doThing: {
+			        readonly id: string,
+			        readonly $fragments: {
+			            My_Users_remove: true,
+			            My_Users_insert: true
+			        }
+			    } | null
+			};
 
-		type NestedUserFilter = {
-		    id: string,
-		    firstName: string,
-		    admin?: boolean | null | undefined,
-		    age?: number | null | undefined,
-		    weight?: number | null | undefined
-		};
+			type NestedUserFilter = {
+			    id: string,
+			    firstName: string,
+			    admin?: boolean | null | undefined,
+			    age?: number | null | undefined,
+			    weight?: number | null | undefined
+			};
 
-		type UserFilter = {
-		    middle?: NestedUserFilter | null | undefined,
-		    listRequired: (string)[],
-		    nullList?: (string | null | undefined)[] | null | undefined,
-		    recursive?: UserFilter | null | undefined,
-		    enum?: MyEnum | null | undefined
-		};
+			type UserFilter = {
+			    middle?: NestedUserFilter | null | undefined,
+			    listRequired: (string)[],
+			    nullList?: (string | null | undefined)[] | null | undefined,
+			    recursive?: UserFilter | null | undefined,
+			    enum?: MyEnum | null | undefined
+			};
 
-		export type Mutation$input = {
-		    filter?: UserFilter | null | undefined,
-		    filterList: (UserFilter)[],
-		    id: string,
-		    firstName: string,
-		    admin?: boolean | null | undefined,
-		    age?: number | null | undefined,
-		    weight?: number | null | undefined
-		};
-	`)
+			export type MyMutation$input = {
+			    filter?: UserFilter | null | undefined,
+			    filterList: (UserFilter)[],
+			    id: string,
+			    firstName: string,
+			    admin?: boolean | null | undefined,
+			    age?: number | null | undefined,
+			    weight?: number | null | undefined
+			};
+		`)
 	})
 
 	test.todo('fragments on interfaces')

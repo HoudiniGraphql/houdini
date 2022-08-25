@@ -1,6 +1,6 @@
 ---
 title: Pagination
-index: 3
+index: 5
 description: A guide to pagination in Houdini
 ---
 
@@ -14,38 +14,51 @@ arguments and mimics the mechanisms provided by most database engines. Cursor-ba
 is a bi-directional strategy that relies on `first`/`after` or `last`/`before` arguments and
 is designed to handle modern pagination features such a infinite scrolling.
 
-Regardless of the strategy used, houdini follows a simple pattern: wrap your document in a
-"paginated" function (ie, `paginatedQuery` or `paginatedFragment`), mark the field with
+Regardless of the strategy used, houdini follows a simple pattern: mark the field with
 `@paginate`, and provide the "page size" via the `first`, `last` or `limit` arguments to the field.
-`paginatedQuery` and `paginatedFragment` behave identically: they return a field containing
-a svelte store with your full dataset and functions you can call to load the next or previous
-page, as well as a readable store with a boolean loading state. For example, a field
+Once you've done that, you can wire up your query however you prefer. For example, an inline query
 supporting offset-based pagination would look something like:
 
-```javascript
-const { data, loadNextPage, loading } = paginatedQuery(graphql`
-	query UserList {
-		friends(limit: 10) @paginate {
-			id
+```svelte
+<script>
+	const userList = graphql`
+		query UserList {
+			friends(limit: 10) @paginate {
+				id
+			}
 		}
-	}
-`)
+	`
+</script>
+
+<button on:click={userList.loadNextPage}>
+	load next
+</button>
+
+{$userList.data.friends.map(friend => friend.id).join(',')}
 ```
 
 and a field that supports cursor-based pagination starting at the end of the list would look something like:
 
-```javascript
-const { data, loadPreviousPage } = paginatedQuery(graphql`
-	query UserList {
-		friends(last: 10) @paginate {
-			edges {
-				node {
-					id
+```svelte
+<script>
+	const userList = graphql`
+		query UserList {
+			friends(last: 10) @paginate {
+				edges {
+					node {
+						id
+					}
 				}
 			}
 		}
-	}
-`)
+	`
+</script>
+
+<button on:click={userList.loadNextPage}>
+	load next
+</button>
+
+{$userList.data.friends.map(friend => friend.id).join(',')}
 ```
 
 If you are paginating a field with a cursor-based strategy (forward or backwards), the current page
@@ -53,7 +66,7 @@ info can be looked up with the `pageInfo` store returned from the paginated func
 
 ```svelte
 <script>
-    const { data, loadNextPage, pageInfo } = paginatedQuery(graphql`
+    const userInfo = graphql`
         query UserList {
             friends(first: 10) @paginate {
                 edges {
@@ -63,11 +76,13 @@ info can be looked up with the `pageInfo` store returned from the paginated func
                 }
             }
         }
-    `)
+    `
 </script>
 
-{#if $pageInfo.hasNextPage}
-    <button onClick={() => loadNextPage()}> load more </button>
+{#if $userInfo.pageInfo.hasNextPage}
+	<button onClick={userInfo.loadNextPage}>
+		load more
+	</button>
 {/if}
 ```
 
@@ -77,17 +92,26 @@ info can be looked up with the `pageInfo` store returned from the paginated func
 Consider the following:
 
 ```javascript
-const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
-	fragment UserWithFriends on User {
-		friends(first: 10) @paginate {
-			edges {
-				node {
-					id
+const userWithFriends = paginatedFragment(
+	user,
+	graphql`
+		fragment UserWithFriends on User {
+			friends(first: 10) @paginate {
+				edges {
+					node {
+						id
+					}
 				}
 			}
 		}
-	}
-`)
+	`
+)
+
+{#if $userWithFriends.pageInfo.hasNextPage}
+	<button onClick={userWithFriends.loadNextPage}>
+		load more
+	</button>
+{/if}
 ```
 
 In order to look up the next page for the user's friend. We need a way to query the specific user
@@ -118,15 +142,18 @@ A paginated field can be marked as a potential target for a mutation operation b
 a `name` argument to the `@paginate` directive. For more information, see [this document](/api/mutation/inline#lists).
 
 ```javascript
-const { loadNextPage, data, pageInfo } = paginatedFragment(graphql`
-	fragment UserWithFriends on User {
-		friends(first: 10) @paginate(name: "User_Friends") {
-			edges {
-				node {
-					id
+const userWithFriends = paginatedFragment(
+	user,
+	graphql`
+		fragment UserWithFriends on User {
+			friends(first: 10) @paginate(name: "User_Friends") {
+				edges {
+					node {
+						id
+					}
 				}
 			}
 		}
-	}
-`)
+	`
+)
 ```

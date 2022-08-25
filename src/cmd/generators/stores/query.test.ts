@@ -1,16 +1,13 @@
-// external imports
-import path, { parse } from 'path'
-import fs from 'fs/promises'
-import * as typeScriptParser from 'recast/parsers/typescript'
-import { ProgramKind } from 'ast-types/gen/kinds'
+import path from 'path'
 import * as recast from 'recast'
-// local imports
-import { testConfig } from '../../../common'
-import '../../../../jest.setup'
+import * as typeScriptParser from 'recast/parsers/typescript'
+import { test, expect } from 'vitest'
+
+import { Config, testConfig } from '../../../common'
+import * as fs from '../../../common/fs'
 import { runPipeline } from '../../generate'
-import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
-import { readFile, stat } from 'fs/promises'
+import { CollectedGraphQLDocument } from '../../types'
 
 // the config to use in tests
 const config = testConfig()
@@ -40,35 +37,290 @@ test('basic store', async function () {
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
 
 	// parse the contents
-	const parsed = recast.parse(contents, {
+	const parsed = recast.parse(contents!, {
 		parser: typeScriptParser,
 	}).program
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { houdiniConfig } from '$houdini';
-					import { queryStore } from '../runtime/stores'
-					import artifact from '../artifacts/TestQuery'
-					import { defaultConfigValues } from '../runtime/lib'
+		import { QueryStore } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
 
-					// create the query store
-					const factory = () => queryStore({
-					    artifact,
-					    config: defaultConfigValues(houdiniConfig),
-					    storeName: "GQL_TestQuery",
-					    paginated: false,
-					    paginationMethods: [],
-					})
+		// create the query store
 
-					export const GQL_TestQuery = factory()
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
 
-					export const TestQueryStore = factory
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
 
-					export default GQL_TestQuery
-				`)
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const GQL_TestQuery = new TestQueryStore()
+
+		export default GQL_TestQuery
+	`)
+})
+
+test('change globalStorePrefix to "yop___"', async function () {
+	const docs = [mockCollectedDoc(`query TestQuery { version }`)]
+
+	let configTweaked = testConfig()
+	configTweaked.globalStorePrefix = 'yop___'
+	// run the generator
+	await runPipeline(configTweaked, docs)
+
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	await expect(parsed).toMatchInlineSnapshot(`
+		import { QueryStore } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
+
+		// create the query store
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
+
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
+
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const yop___TestQuery = new TestQueryStore()
+
+		export default yop___TestQuery
+	`)
+})
+
+test('change globalStorePrefix to ""', async function () {
+	const docs = [mockCollectedDoc(`query TestQuery { version }`)]
+
+	let configTweaked = testConfig()
+	configTweaked.globalStorePrefix = ''
+	// run the generator
+	await runPipeline(configTweaked, docs)
+
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	await expect(parsed).toMatchInlineSnapshot(`
+		import { QueryStore } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
+
+		// create the query store
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
+
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
+
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const TestQuery = new TestQueryStore()
+
+		export default TestQuery
+	`)
+})
+
+test('store with required variables', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`query TestQuery($intValue: Int!) { usersByOffset(offset: $intValue) { id }  }`
+		),
+	]
+
+	// run the generator
+	await runPipeline(config, docs)
+
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	await expect(parsed).toMatchInlineSnapshot(`
+		import { QueryStore } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
+
+		// create the query store
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: true,
+				})
+			}
+		}
+
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
+
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const GQL_TestQuery = new TestQueryStore()
+
+		export default GQL_TestQuery
+	`)
+})
+
+test('store with nullable variables', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`query TestQuery($intValue: Int) { usersByOffset(offset: $intValue) { id }  }`
+		),
+	]
+
+	// run the generator
+	await runPipeline(config, docs)
+
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	await expect(parsed).toMatchInlineSnapshot(`
+		import { QueryStore } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
+
+		// create the query store
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
+
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
+
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const GQL_TestQuery = new TestQueryStore()
+
+		export default GQL_TestQuery
+	`)
+})
+
+test('store with non-null variables with default value', async function () {
+	const docs = [
+		mockCollectedDoc(
+			`query TestQuery($intValue: Int = 2) { usersByOffset(offset: $intValue) { id }  }`
+		),
+	]
+
+	// run the generator
+	await runPipeline(config, docs)
+
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
+
+	// parse the contents
+	const parsed = recast.parse(contents!, {
+		parser: typeScriptParser,
+	}).program
+
+	// check the file contents
+	await expect(parsed).toMatchInlineSnapshot(`
+		import { QueryStore } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
+
+		// create the query store
+
+		export class TestQueryStore extends QueryStore {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
+
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
+
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const GQL_TestQuery = new TestQueryStore()
+
+		export default GQL_TestQuery
+	`)
 })
 
 test('forward cursor pagination', async function () {
@@ -87,35 +339,44 @@ test('forward cursor pagination', async function () {
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
 
 	// parse the contents
-	const parsed = recast.parse(contents, {
+	const parsed = recast.parse(contents!, {
 		parser: typeScriptParser,
 	}).program
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { houdiniConfig } from '$houdini';
-					import { queryStore } from '../runtime/stores'
-					import artifact from '../artifacts/TestQuery'
-					import { defaultConfigValues } from '../runtime/lib'
+		import { QueryStoreForwardCursor } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
 
-					// create the query store
-					const factory = () => queryStore({
-					    artifact,
-					    config: defaultConfigValues(houdiniConfig),
-					    storeName: "GQL_TestQuery",
-					    paginated: true,
-					    paginationMethods: ["loadNextPage","fetch","loading"],
-					})
+		// create the query store
 
-					export const GQL_TestQuery = factory()
+		export class TestQueryStore extends QueryStoreForwardCursor {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
 
-					export const TestQueryStore = factory
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
 
-					export default GQL_TestQuery
-				`)
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const GQL_TestQuery = new TestQueryStore()
+
+		export default GQL_TestQuery
+	`)
 })
 
 test('backwards cursor pagination', async function () {
@@ -134,35 +395,44 @@ test('backwards cursor pagination', async function () {
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
 
 	// parse the contents
-	const parsed = recast.parse(contents, {
+	const parsed = recast.parse(contents!, {
 		parser: typeScriptParser,
 	}).program
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { houdiniConfig } from '$houdini';
-					import { queryStore } from '../runtime/stores'
-					import artifact from '../artifacts/TestQuery'
-					import { defaultConfigValues } from '../runtime/lib'
+		import { QueryStoreBackwardCursor } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
 
-					// create the query store
-					const factory = () => queryStore({
-					    artifact,
-					    config: defaultConfigValues(houdiniConfig),
-					    storeName: "GQL_TestQuery",
-					    paginated: true,
-					    paginationMethods: ["loadPreviousPage","fetch","loading"],
-					})
+		// create the query store
 
-					export const GQL_TestQuery = factory()
+		export class TestQueryStore extends QueryStoreBackwardCursor {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
 
-					export const TestQueryStore = factory
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
 
-					export default GQL_TestQuery
-				`)
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const GQL_TestQuery = new TestQueryStore()
+
+		export default GQL_TestQuery
+	`)
 })
 
 test('offset pagination', async function () {
@@ -177,35 +447,44 @@ test('offset pagination', async function () {
 	// run the generator
 	await runPipeline(config, docs)
 
-	const contents = await readFile(path.join(config.storesDirectory, 'TestQuery.js'), 'utf-8')
+	const contents = await fs.readFile(path.join(config.storesDirectory, 'TestQuery.js'))
 
 	// parse the contents
-	const parsed = recast.parse(contents, {
+	const parsed = recast.parse(contents!, {
 		parser: typeScriptParser,
 	}).program
 
 	// check the file contents
 	await expect(parsed).toMatchInlineSnapshot(`
-					import { houdiniConfig } from '$houdini';
-					import { queryStore } from '../runtime/stores'
-					import artifact from '../artifacts/TestQuery'
-					import { defaultConfigValues } from '../runtime/lib'
+		import { QueryStoreOffset } from '../runtime/stores'
+		import artifact from '../artifacts/TestQuery'
 
-					// create the query store
-					const factory = () => queryStore({
-					    artifact,
-					    config: defaultConfigValues(houdiniConfig),
-					    storeName: "GQL_TestQuery",
-					    paginated: true,
-					    paginationMethods: ["loadNextPage","fetch","loading"],
-					})
+		// create the query store
 
-					export const GQL_TestQuery = factory()
+		export class TestQueryStore extends QueryStoreOffset {
+			constructor() {
+				super({
+					artifact,
+					storeName: "TestQueryStore",
+					variables: false,
+				})
+			}
+		}
 
-					export const TestQueryStore = factory
+		export async function load_TestQuery(params) {
+			const store = new TestQueryStore()
 
-					export default GQL_TestQuery
-				`)
+			await store.fetch(params)
+
+			return {
+				TestQuery: store,
+			}
+		}
+
+		export const GQL_TestQuery = new TestQueryStore()
+
+		export default GQL_TestQuery
+	`)
 })
 
 test('does not generate pagination store', async function () {
@@ -225,6 +504,6 @@ test('does not generate pagination store', async function () {
 	await runPipeline(config, docs)
 
 	await expect(
-		stat(path.join(config.storesDirectory, config.paginationQueryName('TestQuery') + '.js'))
+		fs.stat(path.join(config.storesDirectory, config.paginationQueryName('TestQuery') + '.js'))
 	).rejects.toBeTruthy()
 })

@@ -1,10 +1,9 @@
 <script>
-	import { page, navigating, session } from '$app/stores'
+	import { page, navigating } from '$app/stores'
 	import { Icon, SEO, SearchInput, SearchDialog, searching } from '~/components'
 	import { onMount } from 'svelte'
 	import throttle from 'lodash/throttle.js'
 	import { browser } from '$app/env'
-	import mode from '~/lib/mode'
 
 	export let title = ''
 	export let link = ''
@@ -13,9 +12,8 @@
 
 	// the list of files we can render
 	// @ts-ignore
-	const outline = REPLACE_WITH_OUTLINE
+	const categories = REPLACE_WITH_OUTLINE
 
-	let categories = outline[$mode]
 	// @ts-ignore
 	let categoryNames = Object.keys(categories)
 

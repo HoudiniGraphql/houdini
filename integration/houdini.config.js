@@ -1,13 +1,9 @@
 /** @type {import('houdini').ConfigFile} */
 const config = {
+  client: './src/lib/graphql/houdiniClient',
   schemaPath: './api/*.graphql',
-  sourceGlob: 'src/**/*.{svelte,gql}',
-  framework: 'kit',
-  module: 'esm',
-  apiUrl: 'http://localhost:4000/graphql',
   defaultCachePolicy: 'CacheOrNetwork',
   defaultPartial: true,
-  routes: (filepath) => filepath && !filepath.includes('_') && !filepath.includes('+'),
   scalars: {
     DateTime: {
       type: 'Date',

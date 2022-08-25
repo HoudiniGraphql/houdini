@@ -1,11 +1,10 @@
-// externals
-import { Config } from '../../common'
 import * as graphql from 'graphql'
-// locals
-import { CollectedGraphQLDocument } from '../types'
-import { collectFragments, FragmentDependency } from './composeQueries'
-import { murmurHash } from '../utils'
+
+import { Config, HoudiniError } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'
+import { CollectedGraphQLDocument } from '../types'
+import { murmurHash } from '../utils'
+import { collectFragments, FragmentDependency } from './composeQueries'
 
 const GraphqlKinds = graphql.Kind
 
@@ -210,13 +209,13 @@ export function inlineFragmentArgs({
 
 			// if there's no scope we can't evaluate it
 			if (!scope) {
-				throw {
+				throw new HoudiniError({
 					filepath,
 					message:
 						node.name.value +
 						' is not defined in the current scope: ' +
 						JSON.stringify(scope),
-				}
+				})
 			}
 
 			// is the variable in scope
@@ -230,7 +229,10 @@ export function inlineFragmentArgs({
 			}
 			// if the argument is required
 			if (definitionArgs[value.name.value] && definitionArgs[value.name.value].required) {
-				throw { filepath, message: 'Missing value for required arg: ' + value.name.value }
+				throw new HoudiniError({
+					filepath,
+					message: 'Missing value for required arg: ' + value.name.value,
+				})
 			}
 
 			// if we got this far, theres no value for a non-required arg, remove the node
@@ -292,7 +294,10 @@ export function fragmentArguments(
 			directive.arguments?.flatMap((arg) => {
 				// arguments must be object
 				if (arg.value.kind !== 'ObjectValue') {
-					throw { filepath, message: 'values of @argument must be objects' }
+					throw new HoudiniError({
+						filepath,
+						message: 'values of @argument must be objects',
+					})
 				}
 
 				// look for the type field
@@ -370,7 +375,10 @@ export function collectWithArguments(
 		if (value.kind === GraphqlKinds.VARIABLE) {
 			// if we don't have a scope the variable isn't defined
 			if (!scope || !scope[value.name.value]) {
-				throw { filepath, message: 'Encountered undefined variable: ' + value.name.value }
+				throw new HoudiniError({
+					filepath,
+					message: 'Encountered undefined variable: ' + value.name.value,
+				})
 			}
 
 			// use the value pulled from scope

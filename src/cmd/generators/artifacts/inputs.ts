@@ -1,10 +1,9 @@
-// externals
-import * as recast from 'recast'
 import * as graphql from 'graphql'
-// locals
+import * as recast from 'recast'
+
 import { Config } from '../../../common'
-import { unwrapType } from '../../utils'
 import type { InputObject } from '../../../runtime/lib/types'
+import { unwrapType } from '../../utils'
 
 const AST = recast.types.builders
 

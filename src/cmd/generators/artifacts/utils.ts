@@ -1,6 +1,8 @@
-import * as recast from 'recast'
 import { ExpressionKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
+import * as recast from 'recast'
+
+import { HoudiniError } from '../../../common'
 
 const AST = recast.types.builders
 
@@ -46,7 +48,7 @@ export function deepMerge(filepath: string, ...targets: {}[]): {} {
 		// make sure all of the values are the same
 		const matches = targets.filter((val) => val !== targets[0]).length === 0
 		if (!matches) {
-			throw { filepath, message: 'could not merge: ' + targets }
+			throw new HoudiniError({ filepath, message: 'could not merge: ' + targets })
 		}
 
 		// return the matching value

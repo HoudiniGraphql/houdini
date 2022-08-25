@@ -1,9 +1,8 @@
-// externals
-import * as recast from 'recast'
-import * as graphql from 'graphql'
 import { TSTypeKind, StatementKind } from 'ast-types/gen/kinds'
-// locals
-import { Config, ensureImports } from '../../../common'
+import * as graphql from 'graphql'
+import * as recast from 'recast'
+
+import { Config, ensureImports, HoudiniError } from '../../../common'
 import { TypeWrapper, unwrapType } from '../../utils'
 import { enumDeclaration, nullableField, readonlyProperty, scalarPropertyValue } from './types'
 
@@ -140,9 +139,11 @@ export function inlineType({
 		// turn the set of selected fields into their own type
 		result = AST.tsTypeLiteral([
 			// every field gets an entry in the object
-			...((selectedFields || []).filter(
-				(field) => field.kind === 'Field'
-			) as graphql.FieldNode[]).map((selection) => {
+			...(
+				(selectedFields || []).filter(
+					(field) => field.kind === 'Field'
+				) as graphql.FieldNode[]
+			).map((selection) => {
 				// grab the type info for the selection
 				const { type, field } = selectionTypeInfo(
 					config.schema,
@@ -368,17 +369,17 @@ export function selectionTypeInfo(
 	const field = fields[selectionName]
 
 	if (!field) {
-		throw {
+		throw new HoudiniError({
 			filepath,
 			message: `Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`,
-		}
+		})
 	}
-	const fieldType = (graphql.getNamedType(field.type) as unknown) as graphql.GraphQLNamedType
+	const fieldType = graphql.getNamedType(field.type) as unknown as graphql.GraphQLNamedType
 	if (!fieldType) {
-		throw {
+		throw new HoudiniError({
 			filepath,
 			message: `Could not find type information for field ${rootType.toString()}.${selectionName} ${field}`,
-		}
+		})
 	}
 
 	const fieldTypeName = fieldType.name
@@ -387,7 +388,7 @@ export function selectionTypeInfo(
 	// @ts-ignore
 	const selectionType = schema.getType(fieldTypeName) as graphql.GraphQLObjectType
 	if (!selectionType) {
-		throw { filepath, message: 'Could not find type for ' + fieldTypeName }
+		throw new HoudiniError({ filepath, message: 'Could not find type for ' + fieldTypeName })
 	}
 
 	return { field, type: selectionType }

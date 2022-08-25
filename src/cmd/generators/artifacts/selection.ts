@@ -1,13 +1,12 @@
-// externals
 import * as graphql from 'graphql'
 import * as recast from 'recast'
-// locals
-import { Config, getRootType } from '../../../common'
-import fieldKey from './fieldKey'
-import { CollectedGraphQLDocument } from '../../types'
+
+import { Config, getRootType, HoudiniError } from '../../../common'
 import type { MutationOperation, SubscriptionSelection } from '../../../runtime'
-import { convertValue, deepMerge } from './utils'
 import { connectionSelection } from '../../transforms/list'
+import { CollectedGraphQLDocument } from '../../types'
+import fieldKey from './fieldKey'
+import { convertValue, deepMerge } from './utils'
 
 const AST = recast.types.builders
 
@@ -43,11 +42,11 @@ export default function selection({
 				(defn) => defn.kind === 'FragmentDefinition' && defn.name.value === field.name.value
 			) as graphql.FragmentDefinitionNode
 			if (!fragmentDefinition) {
-				throw {
+				throw new HoudiniError({
 					filepath,
 					message:
 						'selection: could not find definition for fragment ' + field.name.value,
-				}
+				})
 			}
 
 			// merge the fragments selection into ours
@@ -88,7 +87,7 @@ export default function selection({
 			// look up the field
 			const type = config.schema.getType(rootType) as graphql.GraphQLObjectType
 			if (!type) {
-				throw { filepath, message: 'Could not find type' }
+				throw new HoudiniError({ filepath, message: 'Could not find type' })
 			}
 
 			const attributeName = field.alias?.value || field.name.value

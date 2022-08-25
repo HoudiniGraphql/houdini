@@ -1,4 +1,6 @@
 import * as graphql from 'graphql'
+import { test, expect } from 'vitest'
+
 import { parentTypeFromAncestors } from './graphql'
 
 test('can find ancestor from type', function () {

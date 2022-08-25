@@ -1,9 +1,8 @@
-// external imports
 import * as graphql from 'graphql'
-// locals
+import { expect } from 'vitest'
+
 import { pipelineTest } from '../testUtils'
 import { CollectedGraphQLDocument } from '../types'
-import '../../../jest.setup'
 
 const start = [
 	`

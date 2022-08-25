@@ -1,13 +1,12 @@
-// externals
+import { logCyan, logGreen } from '@kitql/helper'
 import { StatementKind } from 'ast-types/gen/kinds'
 import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
-import { logCyan, logGreen } from '@kitql/helper'
-// locals
-import { Config } from '../../../common'
+
+import { Config, HoudiniError, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { flattenSelections, writeFile } from '../../utils'
+import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
 import { fragmentKey, inlineType } from './inlineType'
 import { tsTypeReference } from './typeReference'
@@ -174,13 +173,12 @@ async function generateOperationTypeDefs(
 		parentType = config.schema.getSubscriptionType()!
 	}
 	if (!parentType) {
-		throw { filepath, message: 'Could not find root type for document' }
+		throw new HoudiniError({ filepath, message: 'Could not find root type for document' })
 	}
 
 	// the name of the types we will define
 	const inputTypeName = `${definition.name!.value}$input`
 	const shapeTypeName = `${definition.name!.value}$result`
-	const afterLoadTypeName = `${definition.name!.value}$afterLoad`
 
 	// dry
 	const hasInputs = definition.variableDefinitions && definition.variableDefinitions.length > 0
@@ -195,11 +193,7 @@ async function generateOperationTypeDefs(
 					readonlyProperty(
 						AST.tsPropertySignature(
 							AST.stringLiteral('input'),
-							AST.tsTypeAnnotation(
-								hasInputs
-									? AST.tsTypeReference(AST.identifier(inputTypeName))
-									: AST.tsNullKeyword()
-							)
+							AST.tsTypeAnnotation(AST.tsTypeReference(AST.identifier(inputTypeName)))
 						)
 					),
 					readonlyProperty(
@@ -237,62 +231,6 @@ async function generateOperationTypeDefs(
 		)
 	)
 
-	// generate type for the afterload function
-	const properties: ReturnType<typeof readonlyProperty>[] = [
-		readonlyProperty(
-			AST.tsPropertySignature(
-				AST.stringLiteral('data'),
-				AST.tsTypeAnnotation(
-					AST.tsTypeLiteral([
-						readonlyProperty(
-							AST.tsPropertySignature(
-								AST.stringLiteral(definition.name!.value),
-								AST.tsTypeAnnotation(
-									AST.tsTypeReference(AST.identifier(shapeTypeName))
-								)
-							)
-						),
-					])
-				)
-			)
-		),
-	]
-
-	if (hasInputs) {
-		properties.splice(
-			0,
-			0,
-			readonlyProperty(
-				AST.tsPropertySignature(
-					AST.stringLiteral('input'),
-					AST.tsTypeAnnotation(
-						AST.tsTypeLiteral([
-							readonlyProperty(
-								AST.tsPropertySignature(
-									AST.stringLiteral(definition.name!.value),
-									AST.tsTypeAnnotation(
-										AST.tsTypeReference(AST.identifier(inputTypeName))
-									)
-								)
-							),
-						])
-					)
-				)
-			)
-		)
-	}
-
-	if (definition.operation === 'query') {
-		body.push(
-			AST.exportNamedDeclaration(
-				AST.tsTypeAliasDeclaration(
-					AST.identifier(afterLoadTypeName),
-					AST.tsTypeLiteral(properties)
-				)
-			)
-		)
-	}
-
 	// if there are variables in this query
 	if (hasInputs && definition.variableDefinitions && definition.variableDefinitions.length > 0) {
 		for (const variableDefinition of definition.variableDefinitions) {
@@ -326,6 +264,12 @@ async function generateOperationTypeDefs(
 						)
 					)
 				)
+			)
+		)
+	} else {
+		body.push(
+			AST.exportNamedDeclaration(
+				AST.tsTypeAliasDeclaration(AST.identifier(inputTypeName), AST.tsNullKeyword())
 			)
 		)
 	}

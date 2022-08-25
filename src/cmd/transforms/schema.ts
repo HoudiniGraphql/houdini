@@ -1,10 +1,9 @@
-// externals
 import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
-// locals
+
 import { Config } from '../../common'
-import { CollectedGraphQLDocument } from '../types'
 import { CachePolicy } from '../../runtime/lib/types'
+import { CollectedGraphQLDocument } from '../types'
 
 // graphqlExtensions adds a few different things to the graphql schema
 export default async function graphqlExtensions(
@@ -69,12 +68,20 @@ directive @${config.argumentsDirective} on FRAGMENT_DEFINITION
 	@${config.cacheDirective} is used to specify cache rules for a query
 """
 directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${config.cachePartialArg}: Boolean) on QUERY
+
+"""
+	@${config.houdiniDirective} is used to configure houdini's internal behavior such as opting-in an automatic load
+"""
+directive @${config.houdiniDirective}(load: Boolean = true) on QUERY
 `
 
-	config.newSchema += internalSchema
+	// if the config does not have the cache directive, then we need to add it
+	let currentSchema = graphql.printSchema(config.schema)
+	if (!currentSchema.includes(`directive @${config.listDirective}`)) {
+		currentSchema += internalSchema
+	}
 
+	config.newSchema += internalSchema
 	// add the static extra bits that will be used by other transforms
-	config.schema = mergeSchemas({
-		schemas: [config.schema, graphql.buildSchema(internalSchema)],
-	})
+	config.schema = graphql.buildSchema(currentSchema)
 }

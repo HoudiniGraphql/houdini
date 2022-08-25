@@ -1,10 +1,11 @@
-// externals
 import * as recast from 'recast'
-import { Statement } from '@babel/types'
-// locals
+
 import { Config } from '.'
 
 const AST = recast.types.builders
+
+type Statement = recast.types.namedTypes.Statement
+type ImportDeclaration = recast.types.namedTypes.ImportDeclaration
 
 export function ensureStoreImport({
 	config,
@@ -47,16 +48,18 @@ export function ensureArtifactImport({
 	artifact,
 	body,
 	local,
+	withExtension,
 }: {
 	config: Config
 	artifact: { name: string }
 	body: Statement[]
 	local?: string
+	withExtension?: boolean
 }) {
 	return ensureImports({
 		config,
 		body,
-		sourceModule: config.artifactImportPath(artifact.name),
+		sourceModule: config.artifactImportPath(artifact.name) + (withExtension ? '.js' : ''),
 		import: local || `_${artifact.name}Artifact`,
 	})
 }
@@ -82,16 +85,15 @@ export function ensureImports<_Count extends string[] | string>({
 			!body.find(
 				(statement) =>
 					statement.type === 'ImportDeclaration' &&
-					statement.specifiers.find(
+					(statement as ImportDeclaration).specifiers!.find(
 						(importSpecifier) =>
 							(importSpecifier.type === 'ImportSpecifier' &&
 								importSpecifier.imported.type === 'Identifier' &&
 								importSpecifier.imported.name === identifier &&
-								importSpecifier.local.name === identifier) ||
+								importSpecifier.local!.name === identifier) ||
 							(importSpecifier.type === 'ImportDefaultSpecifier' &&
-								importSpecifier.local.type === 'Identifier' &&
-								importSpecifier.local.name === identifier &&
-								importSpecifier.local.name === identifier)
+								importSpecifier.local!.type === 'Identifier' &&
+								importSpecifier.local!.name === identifier)
 					)
 			)
 	)

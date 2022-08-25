@@ -1,9 +1,8 @@
 // external
-import fs from 'fs/promises'
 import * as graphql from 'graphql'
-// local imports
-import { testConfig } from '../../../common'
-import '../../../../jest.setup'
+import { test, expect } from 'vitest'
+
+import { readFile, testConfig } from '../../../common'
 import { runPipeline } from '../../generate'
 import { mockCollectedDoc } from '../../testUtils'
 import { CollectedGraphQLDocument } from '../../types'
@@ -20,8 +19,7 @@ test('adds internal documents to schema', async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file and make sure it got the internal documents
-	expect(graphql.parse(await fs.readFile(config.definitionsSchemaPath, 'utf-8')))
-		.toMatchInlineSnapshot(`
+	expect(graphql.parse((await readFile(config.definitionsSchemaPath))!)).toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
 		  CacheOnly
@@ -65,6 +63,8 @@ test('adds internal documents to schema', async function () {
 		"""@cache is used to specify cache rules for a query"""
 		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
+		"""@houdini is used to configure houdini's internal behavior such as opting-in an automatic load"""
+		directive @houdini(load: Boolean = true) on QUERY
 	`)
 })
 
@@ -80,8 +80,7 @@ test('list operations are included', async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file
-	expect(graphql.parse(await fs.readFile(config.definitionsSchemaPath, 'utf-8')))
-		.toMatchInlineSnapshot(`
+	expect(graphql.parse((await readFile(config.definitionsSchemaPath))!)).toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
 		  CacheOnly
@@ -125,12 +124,14 @@ test('list operations are included', async function () {
 		"""@cache is used to specify cache rules for a query"""
 		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-		directive @User_delete repeatable on FIELD
+		"""@houdini is used to configure houdini's internal behavior such as opting-in an automatic load"""
+		directive @houdini(load: Boolean = true) on QUERY
 
+		directive @User_delete repeatable on FIELD
 	`)
 
 	// read the documents file
-	expect(graphql.parse(await fs.readFile(config.definitionsDocumentsPath, 'utf-8')))
+	expect(graphql.parse((await readFile(config.definitionsDocumentsPath))!))
 		.toMatchInlineSnapshot(`
 		fragment Friends_insert on User {
 		  id
@@ -159,8 +160,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 	await runPipeline(config, docs)
 
 	// read the schema file and make sure it got the internal documents
-	expect(graphql.parse(await fs.readFile(config.definitionsSchemaPath, 'utf-8')))
-		.toMatchInlineSnapshot(`
+	expect(graphql.parse((await readFile(config.definitionsSchemaPath))!)).toMatchInlineSnapshot(`
 		enum CachePolicy {
 		  CacheAndNetwork
 		  CacheOnly
@@ -204,5 +204,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 		"""@cache is used to specify cache rules for a query"""
 		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
+		"""@houdini is used to configure houdini's internal behavior such as opting-in an automatic load"""
+		directive @houdini(load: Boolean = true) on QUERY
 	`)
 })

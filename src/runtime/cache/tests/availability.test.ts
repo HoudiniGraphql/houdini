@@ -1,4 +1,5 @@
-// locals
+import { test, expect, vi } from 'vitest'
+
 import { testConfigFile } from '../../../common'
 import { Cache } from '../cache'
 
@@ -366,7 +367,7 @@ test('missing cursor of item in connection from operation should not trigger nul
 	})
 
 	cache.subscribe({
-		set: jest.fn(),
+		set: vi.fn(),
 		selection,
 		rootType: 'Query',
 	})

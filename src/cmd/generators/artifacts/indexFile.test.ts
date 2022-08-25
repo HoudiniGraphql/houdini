@@ -1,15 +1,13 @@
-// external imports
-import path from 'path'
-import fs from 'fs/promises'
-import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
+import path from 'path'
 import * as recast from 'recast'
-// local imports
-import { testConfig } from '../../../common'
-import '../../../../jest.setup'
+import * as typeScriptParser from 'recast/parsers/typescript'
+import { test, expect } from 'vitest'
+
+import { readFile, testConfig } from '../../../common'
 import { runPipeline } from '../../generate'
-import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
+import { CollectedGraphQLDocument } from '../../types'
 
 // the config to use in tests
 const config = testConfig()
@@ -27,13 +25,10 @@ test('index file - esm', async function () {
 	await runPipeline(config, docs)
 
 	// open up the index file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactDirectory, 'index.js'),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactDirectory, 'index.js'))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -43,18 +38,15 @@ test('index file - esm', async function () {
 	`)
 })
 
-test('index file - sapper', async function () {
+test('index file - commonjs', async function () {
 	// execute the generator
 	await runPipeline(testConfig({ module: 'commonjs' }), docs)
 
 	// open up the index file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactDirectory, 'index.js'),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactDirectory, 'index.js'))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents

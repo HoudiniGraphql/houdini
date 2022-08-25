@@ -1,69 +1,79 @@
 ---
 title: Typescript
-index: 5
+index: 7
 description: An overview of Houdini's support for Typescript
 ---
 
 # Typescript
 
-Houdini is written in typescript and will generate types to match every document you wrap with `graphql`. This means you get a fully-typesafe layer that corresponds to the exact queries you are sending:
+Houdini is written in typescript and will generate types for all of your documents and special functions you define for houdini.
 
-```svelte
-<script lang="typescript">
-    import { query, graphql, AllItems } from '$houdini'
+## Configuration
 
-    // load the items
-    const { data } = query<AllItems>(graphql`
-        query AllItems {
-            items {
-                id
-                text
-            }
-        }
-    `)
-</script>
+In order to setup your project to take full advantage of Houdini's generated types, you need to change your tsconfig file to look like the following:
 
-{#each $data.items as item}
-    <div>{item.text}</div>
-{/each}
+```json
+{
+	"compilerOptions": {
+		"rootDirs": [".", "./.svelte-kit/types", "./.$houdini/types"]
+	}
+}
 ```
 
-```svelte
-<script lang="typescript">
-    import { fragment, graphql, UserAvatar } from '$houdini'
+## SvelteKit Routes
 
-    // the reference will get passed as a prop
-    export let user: UserAvatar
+When working with Houdini's [generated load functions](/api/kit#generating-route-loads), you can import type definition for your variable functions and hooks from `./$houdini` (a relative import):
 
-    const data = fragment(graphql`
-        fragment UserAvatar on User {
-            profilePicture
-        }
-    `, user)
-</script>
+```typescript
+/// src/routes/myProifle/+page.ts
 
-<img src={$data.profilePicture} />
+import { graphql } from '$houdini'
+import type { AfterLoadEvent } from './$houdini'
+
+export const houdini_load = graphql`
+	query MyProfile {
+		viewer {
+			id
+		}
+	}
+`
+
+export function afterLoad({ data }: AfterLoadEvent) {
+	return {
+		computedValue: data.MyProfile.viewer.id + '_new'
+	}
+}
 ```
 
+Your `PageData` component will also come from `./$houdini` since SvelteKit's generated type definitions don't know about the generated load:
+
 ```svelte
-<script lang="typescript">
-    import { mutation, graphql, UncheckItem } from '$houdini'
+<!-- src/routes/myProfile/+page.svelte -->
 
-    let itemID: string
+<script>
+	import { PageData } from './$houdini'
 
-    const uncheckItem = mutation<UncheckItem>(graphql`
-        mutation UncheckItem($id: ID!) {
-            uncheckItem(item: $id) {
-                item {
-                    id
-                    completed
-                }
-            }
-        }
-    `)
+	export let data: PageData
+
+	$({ MyProfile } = data)
 </script>
 
-<button on:click={() => uncheckItem({ id: itemID })}>
-    Uncheck Item
-</button>
+{$MyProfile.data.viewer.id}: {data.computedValue}
+```
+
+## Inline Stores
+
+If you are working with inline stores, you will have to add your types explicitly:
+
+```typescript
+import type { AllItemsStore, graphql } from '$houdini'
+
+const store: AllItemsStore = graphql`
+	query AllItems {
+		items {
+			id
+			text
+		}
+	}
+`
 ```

@@ -1,9 +1,11 @@
 // externals
 import path from 'path'
+
 // locals
 import { Config } from '../../../common'
+import * as fs from '../../../common/fs'
 import { CollectedGraphQLDocument } from '../../types'
-import { cjsIndexFilePreamble, exportStarFrom, exportDefaultFrom, writeFile } from '../../utils'
+import { cjsIndexFilePreamble, exportStarFrom } from '../../utils'
 
 // every document in the application should be re-exported from the root. this allows the user to balance
 // code-splitting concerns with the "cleanliness" of importing from a single location
@@ -23,17 +25,15 @@ export default async function writeIndexFile(config: Config, docs: CollectedGrap
 	if (config.module === 'commonjs') {
 		body = `${cjsIndexFilePreamble}
 
-${exportDefaultFrom(configPath, 'houdiniConfig')}
-
 ${exportStarFrom(runtimeDir)}
 ${exportStarFrom(artifactDir)}
 ${exportStarFrom(definitionsDir)}
+${exportStarFrom(storesDir)}
 `
 	}
 	// otherwise just use esm statements as the final result
 	else {
 		body = `
-export { default as houdiniConfig } from "${configPath}"
 export * from "${runtimeDir}"
 export * from "${artifactDir}"
 export * from "${storesDir}"
@@ -42,5 +42,5 @@ export * from "${definitionsDir}"
 	}
 
 	// write the index file that exports the runtime
-	await writeFile(path.join(config.rootDir, 'index.js'), body)
+	await fs.writeFile(path.join(config.rootDir, 'index.js'), body)
 }

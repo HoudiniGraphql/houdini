@@ -1,11 +1,9 @@
-// externals
-import { Config, parentTypeFromAncestors } from '../../common'
+import * as graphql from 'graphql'
+
+import { Config, HoudiniError, parentTypeFromAncestors } from '../../common'
 import { ArtifactKind } from '../../runtime/lib/types'
-// locals
 import { CollectedGraphQLDocument, RefetchUpdateMode } from '../types'
 import { unwrapType, wrapType } from '../utils'
-import { getAndVerifyNodeInterface } from '../validators/typeCheck'
-import * as graphql from 'graphql'
 
 // the paginate transform is responsible for preparing a fragment marked for pagination
 // to be embedded in the query that will be used to fetch additional data. That means it
@@ -90,13 +88,11 @@ export default async function paginate(
 				paginated = true
 
 				// loop over the args of the field once so we can check their existence
-				const fieldTypeFields = (parentTypeFromAncestors(
-					config.schema,
-					doc.filename,
-					ancestors
-				) as graphql.GraphQLObjectType | graphql.GraphQLInterfaceType).getFields()[
-					node.name.value
-				]
+				const fieldTypeFields = (
+					parentTypeFromAncestors(config.schema, doc.filename, ancestors) as
+						| graphql.GraphQLObjectType
+						| graphql.GraphQLInterfaceType
+				).getFields()[node.name.value]
 				const args = new Set(fieldTypeFields.args.map((arg) => arg.name))
 
 				// also look to see if the user wants to do forward pagination
@@ -105,8 +101,10 @@ export default async function paginate(
 				const specifiedBackwards = passedArgs.has('last')
 
 				cursorType =
-					(fieldTypeFields.args?.find((arg) => ['before', 'after'].includes(arg.name))
-						?.type as graphql.GraphQLNamedType)?.name || 'String'
+					(
+						fieldTypeFields.args?.find((arg) => ['before', 'after'].includes(arg.name))
+							?.type as graphql.GraphQLNamedType
+					)?.name || 'String'
 				flags.after.type = cursorType
 				flags.before.type = cursorType
 
@@ -129,15 +127,15 @@ export default async function paginate(
 				flags.offset.enabled = offsetPagination
 				flags.limit.enabled = offsetPagination
 
-				paginationPath = (ancestors
-					.filter(
-						(ancestor) =>
-							// @ts-ignore
-							!Array.isArray(ancestor) && ancestor.kind === graphql.Kind.FIELD
-					)
-					.concat(node) as graphql.FieldNode[]).map(
-					(field) => field.alias?.value || field.name.value
-				)
+				paginationPath = (
+					ancestors
+						.filter(
+							(ancestor) =>
+								// @ts-ignore
+								!Array.isArray(ancestor) && ancestor.kind === graphql.Kind.FIELD
+						)
+						.concat(node) as graphql.FieldNode[]
+				).map((field) => field.alias?.value || field.name.value)
 
 				// if the field supports cursor based pagination we need to make sure we have the
 				// page info field
@@ -180,10 +178,10 @@ export default async function paginate(
 				OperationDefinition(node) {
 					// make sure its a query
 					if (node.operation !== 'query') {
-						throw {
+						throw new HoudiniError({
 							filepath: doc.filename,
 							message: `@${config.paginateDirective} can only show up in a query or fragment document`,
-						}
+						})
 					}
 
 					refetchQueryName = node.name?.value || ''
@@ -199,17 +197,19 @@ export default async function paginate(
 						) || {}
 
 					// figure out the variables we want on the query
-					let newVariables: Record<
-						string,
-						graphql.VariableDefinitionNode
-					> = Object.fromEntries(
-						Object.entries(flags)
-							.filter(([, spec]) => spec.enabled)
-							.map(([fieldName, spec]) => [
-								fieldName,
-								staticVariableDefinition(fieldName, spec.type, spec.defaultValue),
-							])
-					)
+					let newVariables: Record<string, graphql.VariableDefinitionNode> =
+						Object.fromEntries(
+							Object.entries(flags)
+								.filter(([, spec]) => spec.enabled)
+								.map(([fieldName, spec]) => [
+									fieldName,
+									staticVariableDefinition(
+										fieldName,
+										spec.type,
+										spec.defaultValue
+									),
+								])
+						)
 
 					// the full list of variables comes from both source
 					const variableNames = new Set<string>(

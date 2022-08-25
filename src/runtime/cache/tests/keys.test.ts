@@ -1,3 +1,5 @@
+import { test, expect, describe } from 'vitest'
+
 import { evaluateKey } from '../stuff'
 
 describe('key evaluation', function () {

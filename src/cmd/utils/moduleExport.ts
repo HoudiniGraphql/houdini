@@ -1,13 +1,12 @@
-// externals
-import * as recast from 'recast'
 import { ExpressionKind } from 'ast-types/gen/kinds'
-// locals
+import * as recast from 'recast'
+
 import { Config } from '../../common'
 
 const AST = recast.types.builders
 
 export function moduleExport(config: Config, key: string, value: ExpressionKind) {
-	// module exports in sapper should be common js
+	// make sure we use valid commonjs if necessary
 	if (config.module === 'commonjs') {
 		// the thing to assign
 		let target = AST.memberExpression(AST.identifier('module'), AST.identifier('exports'))

@@ -1,57 +1,83 @@
 import * as graphql from 'graphql'
 import path from 'path'
-import { Config } from '../../../common'
+
+import { Config, operation_requires_variables, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { writeFile } from '../../utils'
-import pagination from './pagination'
 
 export async function generateIndividualStoreQuery(config: Config, doc: CollectedGraphQLDocument) {
 	const fileName = doc.name
-	const storeName = config.storeName(doc)
 	const artifactName = `${doc.name}`
+	const storeName = config.storeName(doc)
+	const globalStoreName = config.globalStoreName(doc)
 
-	const paginationExtras = pagination(config, doc, 'query')
+	let variables = false
+	const operation = doc.originalDocument.definitions.find(
+		(defn) => defn.kind === 'OperationDefinition' && defn.operation === 'query'
+	) as graphql.OperationDefinitionNode
+	if (operation) {
+		// an operation requires variables if there is any non-null variable that doesn't have a default value
+		variables = operation_requires_variables(operation)
+	}
+
+	// which functions we pull from the handlers depends on the pagination method
+	// specified by the artifact
+	const paginationMethod = doc.refetch?.paginated && doc.refetch.method
+
+	// in order to build the store, we need to know what class we're going to import from
+	let queryClass = 'QueryStore'
+	if (paginationMethod === 'cursor') {
+		queryClass =
+			doc.refetch?.direction === 'forward'
+				? 'QueryStoreForwardCursor'
+				: 'QueryStoreBackwardCursor'
+	} else if (paginationMethod === 'offset') {
+		queryClass = 'QueryStoreOffset'
+	}
 
 	// store definition
-	const storeData = `import { houdiniConfig } from '$houdini';
-import { queryStore } from '../runtime/stores'
+	const storeData = `import { ${queryClass} } from '../runtime/stores'
 import artifact from '../artifacts/${artifactName}'
-import { defaultConfigValues } from '../runtime/lib'
 
 // create the query store
-const factory = () => queryStore({
-    artifact,
-    config: defaultConfigValues(houdiniConfig),
-    storeName: ${JSON.stringify(storeName)},
-    paginated: ${JSON.stringify(Boolean(doc.refetch?.paginated))},
-    paginationMethods: ${JSON.stringify(paginationExtras.methods)},
-})
 
-export const ${storeName} = factory()
+export class ${storeName} extends ${queryClass} {
+	constructor() {
+		super({
+			artifact,
+			storeName: ${JSON.stringify(storeName)},
+			variables: ${JSON.stringify(variables)},
+		})
+	}
+}
 
-export const ${config.storeFactoryName(artifactName)} = factory
+export async function load_${artifactName}(params) {
+	const store = new ${storeName}()
 
-export default ${storeName}
+	await store.fetch(params)
+
+	return {
+		${artifactName}: store,
+	}
+}
+
+export const ${globalStoreName} = new ${storeName}()
+
+export default ${globalStoreName}
 `
 
-	// look for the operation
-	const operations = doc.document.definitions.filter(
-		({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
-	) as graphql.OperationDefinitionNode[]
-	const inputs = operations[0]?.variableDefinitions
-	const withVariableInputs = inputs && inputs.length > 0
-	const VariableInputsType = withVariableInputs ? `${artifactName}$input` : 'null'
+	const _input = `${artifactName}$input`
+	const _data = `${artifactName}$result`
 
-	// type definitions
-	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result, CachePolicy } from '$houdini'
-import { type QueryStore } from '../runtime/lib/types'
-${paginationExtras.typeImports}
+	// the type definitions for the store
+	const typeDefs = `import type { ${_input}, ${_data}, ${queryClass}, QueryStoreFetchParams} from '$houdini'
 
-export declare const ${storeName}: QueryStore<${artifactName}$result | undefined, ${VariableInputsType}, ${
-		paginationExtras.storeExtras
-	}> ${paginationExtras.types}
+export declare class ${storeName} extends ${queryClass}<${_data}, ${_input}> {
+	constructor() {}
+}
 
-export declare const ${config.storeFactoryName(artifactName)}: () => typeof ${storeName}
+export const ${globalStoreName}: ${storeName}
+
+export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName}}>
 
 export default ${storeName}
 `

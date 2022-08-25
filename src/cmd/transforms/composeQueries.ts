@@ -1,7 +1,6 @@
-// externals
 import graphql, { Kind as GraphqlKinds } from 'graphql'
-// locals
-import { Config } from '../../common'
+
+import { Config, HoudiniError } from '../../common'
 import { CollectedGraphQLDocument } from '../types'
 
 export type FragmentDependency = {
@@ -141,10 +140,10 @@ function flattenFragments(
 		// grab the referenced fragment
 		const targetFragment = fragments[nextFragment]
 		if (!targetFragment) {
-			throw {
+			throw new HoudiniError({
 				filepath,
 				message: 'compose: could not find definition for fragment ' + nextFragment,
-			}
+			})
 		}
 
 		// add this fragments dependents to the pile

@@ -1,7 +1,7 @@
 import path from 'path'
-import { Config } from '../../../common'
+
+import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { writeFile } from '../../utils'
 
 export async function generateIndividualStoreMutation(
 	config: Config,
@@ -9,27 +9,37 @@ export async function generateIndividualStoreMutation(
 ) {
 	const fileName = doc.name
 	const storeName = config.storeName(doc)
+	const globalStoreName = config.globalStoreName(doc)
 	const artifactName = `${doc.name}`
 
 	// store content
-	const storeData = `import { houdiniConfig } from '$houdini'
-import artifact from '../artifacts/${artifactName}'
-import { mutationStore } from '../runtime/stores'
-import { defaultConfigValues } from '../runtime/lib'
+	const storeData = `import artifact from '../artifacts/${artifactName}'
+import { MutationStore } from '../runtime/stores'
 
-export const ${storeName} = mutationStore({
-    config: defaultConfigValues(houdiniConfig),
-	artifact,
-})
+export class ${storeName} extends MutationStore {
+	constructor() {
+		super({
+			artifact,
+		})
+	}
+}
 
-export default ${storeName}
+export const ${globalStoreName} = new ${storeName}()
+
+export default ${globalStoreName}
 `
 
-	// type definitions
-	const typeDefs = `import type { ${artifactName}$input, ${artifactName}$result } from '$houdini'
-import type { MutationStore } from '../runtime/lib/types'
+	const _input = `${artifactName}$input`
+	const _data = `${artifactName}$result`
 
-export declare const ${storeName}: MutationStore<${artifactName}$result | undefined, ${artifactName}$input>
+	// the type definitions for the store
+	const typeDefs = `import type { ${_input}, ${_data}, MutationStore } from '$houdini'
+
+export declare class ${storeName} extends MutationStore<${_data} | undefined, ${_input}>{
+	constructor() {}
+}
+
+export const ${globalStoreName}: ${storeName}
 
 export default ${storeName}
   `

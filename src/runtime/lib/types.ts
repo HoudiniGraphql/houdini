@@ -1,8 +1,6 @@
-import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
-import { Readable } from 'svelte/store'
-import { MutationConfig } from '../inline/mutation'
-import type { ConfigFile } from './config'
-import { HoudiniDocumentProxy } from './proxy'
+import type { LoadEvent } from '@sveltejs/kit'
+
+import type { QueryStore, MutationStore, SubscriptionStore, FragmentStore } from '../stores'
 
 export type { ConfigFile } from './config'
 
@@ -22,8 +20,6 @@ export type Operation<_Result, _Input> = {
 	readonly input: _Input
 }
 
-export type Session = any
-
 export type Maybe<T> = T | null | undefined
 
 // any compiled result
@@ -39,6 +35,13 @@ export enum ArtifactKind {
 	Mutation = 'HoudiniMutation',
 	Fragment = 'HoudiniFragment',
 }
+
+export const CompiledFragmentKind = ArtifactKind.Fragment
+export const CompiledMutationKind = ArtifactKind.Mutation
+export const CompiledQueryKind = ArtifactKind.Query
+export const CompiledSubscriptionKind = ArtifactKind.Subcription
+
+export type CompiledDocumentKind = ArtifactKind
 
 export type QueryArtifact = BaseCompiledDocument & {
 	kind: ArtifactKind.Query
@@ -91,167 +94,13 @@ export type BaseCompiledDocument = {
 
 // the result of the template tag
 export type GraphQLTagResult =
-	| TaggedGraphqlQuery
-	| TaggedGraphqlFragment
-	| TaggedGraphqlMutation
-	| TaggedGraphqlSubscription
-
-export type TaggedGraphqlFragment = {
-	kind: 'HoudiniFragment'
-	artifact: FragmentArtifact
-	store: FragmentStore<any>
-	proxy: HoudiniDocumentProxy
-}
-
-export type QueryResult<_Data, _Input> = {
-	data: _Data | null
-	errors: { message: string }[] | null
-	isFetching: boolean
-	partial: boolean
-	source: DataSource | null
-	variables: _Input | null
-}
-
-export type MutationResult<_Data, _Input> = {
-	data: _Data | null
-	errors: { message: string }[] | null
-	isFetching: boolean
-	isOptimisticResponse: boolean
-	variables: _Input | null
-}
-
-type FetchGlobalParams<_Input> = {
-	variables?: _Input
-
-	/**
-	 * The policy to use when performing the fetch. If set to CachePolicy.NetworkOnly,
-	 * a request will always be sent, even if the variables are the same as the last call
-	 * to fetch.
-	 */
-	policy?: CachePolicy
-
-	/**
-	 * An object that will be passed to the fetch function.
-	 * You can do what you want with it!
-	 */
-	// @ts-ignore
-	metadata?: App.Metadata
-
-	/**
-	 * Set to true if you want the promise to pause while it's resolving.
-	 * Only enable this if you know what you are doing. This will cause route
-	 * transitions to pause while loading data.
-	 */
-	blocking?: boolean
-}
-
-type LoadEventFetchParams<_Input> = FetchGlobalParams<_Input> & {
-	/**
-	 * Directly the `even` param coming from the `load` function
-	 */
-	event?: LoadEvent
-}
-
-type RequestEventFetchParams<_Input> = FetchGlobalParams<_Input> & {
-	/**
-	 * A RequestEvent should be provided when the store is being used in an endpoint.
-	 * When this happens, fetch also needs to be provided
-	 */
-	event?: RequestEvent
-	/**
-	 * The fetch function to use when using this store in an endpoint.
-	 */
-	fetch?: LoadEvent['fetch']
-}
-
-type ClientFetchParams<_Input> = FetchGlobalParams<_Input> & {
-	/**
-	 * An object containing all of the current info necessary for a
-	 * client-side fetch. Must be called in component initialization with
-	 * something like this: `const context = getHoudiniFetchContext()`
-	 */
-	context?: HoudiniFetchContext
-}
-
-export type QueryStoreFetchParams<_Input> =
-	| LoadEventFetchParams<_Input>
-	| RequestEventFetchParams<_Input>
-	| ClientFetchParams<_Input>
+	| QueryStore<any, any>
+	| FragmentStore<any>
+	| MutationStore<any, any>
+	| SubscriptionStore<any, any>
 
 export type HoudiniFetchContext = {
-	url: () => URL | null
-	session: () => App.Session | null
 	variables: () => {}
-	stuff: () => App.Stuff
-}
-
-export type SubscriptionStore<_Shape, _Input> = Readable<_Shape> & {
-	name: string
-	listen: (input: _Input) => void
-	unlisten: () => void
-}
-
-export type FragmentStore<_Shape> = {
-	name: string
-	get<T extends Fragment<_Shape>>(
-		value: T
-	): Readable<_Shape> & {
-		update: (parent: _Shape | null) => void
-	}
-	get<T extends Fragment<_Shape>>(
-		value: T | null
-	): Readable<_Shape | null> & {
-		update: (parent: _Shape | null) => void
-	}
-}
-
-export type QueryStore<_Data, _Input, _Extra = {}> = Readable<
-	QueryResult<_Data, _Input> & _Extra
-> & {
-	name: string
-
-	/**
-	 * Fetch the data from the server
-	 */
-	fetch(params?: RequestEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input> & _Extra>
-	fetch(params?: LoadEventFetchParams<_Input>): Promise<QueryResult<_Data, _Input> & _Extra>
-	fetch(params?: ClientFetchParams<_Input>): Promise<QueryResult<_Data, _Input> & _Extra>
-	fetch(params?: QueryStoreFetchParams<_Input>): Promise<QueryResult<_Data, _Input> & _Extra>
-}
-
-// the result of tagging an operation
-export type TaggedGraphqlMutation = {
-	kind: 'HoudiniMutation'
-	store: MutationStore<any, any>
-}
-
-export type MutationStore<_Result, _Input> = Readable<MutationResult<_Result, _Input>> & {
-	name: string
-	mutate: (
-		params: {
-			variables: _Input
-			// @ts-ignore
-			metadata?: App.Metadata
-			context?: HoudiniFetchContext
-			fetch?: LoadEvent['fetch']
-		} & MutationConfig<_Result, _Input>
-	) => Promise<MutationResult<_Result, _Input>>
-}
-
-// the result of tagging an operation
-export type TaggedGraphqlSubscription = {
-	kind: 'HoudiniSubscription'
-	store: SubscriptionStore<any, any>
-	config: ConfigFile
-}
-
-// the result of tagging an operation
-export type TaggedGraphqlQuery = {
-	kind: 'HoudiniQuery'
-	component: boolean
-	store: QueryStore<any, any>
-	config: ConfigFile
-	artifact: QueryArtifact
 }
 
 type Filter = { [key: string]: string | boolean | number }
@@ -287,17 +136,6 @@ export type MutationOperation = {
 	position?: 'first' | 'last'
 	when?: ListWhen
 }
-
-export const CompiledFragmentKind = 'HoudiniFragment'
-export const CompiledMutationKind = 'HoudiniMutation'
-export const CompiledQueryKind = 'HoudiniQuery'
-export const CompiledSubscriptionKind = 'HoudiniSubscription'
-
-export type CompiledDocumentKind =
-	| 'HoudiniFragment'
-	| 'HoudiniMutation'
-	| 'HoudiniQuery'
-	| 'HoudiniSubscription'
 
 export type GraphQLObject = { [key: string]: GraphQLValue }
 
@@ -340,3 +178,19 @@ export type SubscriptionSpec = {
 	parentID?: string
 	variables?: () => any
 }
+
+export type VariableFunction<_Params extends Record<string, string>, _Input> = (
+	event: LoadEvent<_Params>
+) => _Input | Promise<_Input>
+
+export type AfterLoadFunction<
+	_Params extends Record<string, string>,
+	_Data,
+	_Input,
+	_ReturnType extends Record<string, any>
+> = (args: { event: LoadEvent<_Params>; data: _Data; input: _Input }) => _ReturnType
+
+export type BeforeLoadFunction<
+	_Params extends Record<string, string>,
+	_ReturnType extends Record<string, any> | void
+> = (event: LoadEvent<_Params>) => _ReturnType

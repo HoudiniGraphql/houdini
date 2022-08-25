@@ -1,22 +1,26 @@
-// externals
 import * as graphql from 'graphql'
-import { CollectedGraphQLDocument } from '../../types'
 import * as recast from 'recast'
-import fs from 'fs/promises'
-// locals
-import { Config, getRootType, hashDocument, parentTypeFromAncestors } from '../../../common'
-import { moduleExport, writeFile } from '../../utils'
-import selection from './selection'
-import { operationsByPath, FilterMap } from './operations'
+
+import {
+	Config,
+	getRootType,
+	hashDocument,
+	HoudiniError,
+	parentTypeFromAncestors,
+	readFile,
+	writeFile,
+} from '../../../common'
+import { ArtifactKind } from '../../../runtime/lib/types'
+import { CollectedGraphQLDocument } from '../../types'
+import { moduleExport } from '../../utils'
+import { cleanupFiles } from '../../utils/cleanupFiles'
 import writeIndexFile from './indexFile'
 import { inputObject } from './inputs'
+import { operationsByPath, FilterMap } from './operations'
+import selection from './selection'
 import { serializeValue } from './utils'
-import { ArtifactKind } from '../../../runtime/lib/types'
-import { cleanupFiles } from '../../utils/cleanupFiles'
 
 const AST = recast.types.builders
-
-type NodeWithArguments = graphql.FieldNode | graphql.DirectiveNode
 
 // the artifact generator creates files in the runtime directory for each
 // document containing meta data that the preprocessor might use
@@ -32,7 +36,7 @@ export default function artifactGenerator(stats: {
 
 		for (const doc of docs) {
 			graphql.visit(doc.document, {
-				// look for any field marked with alist
+				// look for any field marked with a list
 				Directive(node, _, __, ___, ancestors) {
 					// we only care about lists
 					if (node.name.value !== config.listDirective) {
@@ -44,10 +48,10 @@ export default function artifactGenerator(stats: {
 						(arg) => arg.name.value === config.listNameArg
 					)
 					if (!nameArg || nameArg.value.kind !== 'StringValue') {
-						throw {
+						throw new HoudiniError({
 							filepath: doc.filename,
 							message: 'could not find name arg in list directive',
-						}
+						})
 					}
 					const listName = nameArg.value.value
 
@@ -68,10 +72,10 @@ export default function artifactGenerator(stats: {
 					]) as graphql.GraphQLObjectType
 					const parentField = parentType.getFields()[field.name.value]
 					if (!parentField) {
-						throw {
+						throw new HoudiniError({
 							filepath: doc.filename,
 							message: 'Could not find field information when computing filters',
-						}
+						})
 					}
 					const fieldType = getRootType(parentField.type).toString()
 
@@ -179,13 +183,13 @@ export default function artifactGenerator(stats: {
 							rootType = config.schema.getSubscriptionType()?.name
 						}
 						if (!rootType) {
-							throw {
+							throw new HoudiniError({
 								filepath: doc.filename,
 								message:
 									'could not find root type for operation: ' +
 									operation.operation +
 									'. Maybe you need to re-run the introspection query?',
-							}
+							})
 						}
 
 						// use this selection set
@@ -199,10 +203,10 @@ export default function artifactGenerator(stats: {
 							(fragment) => fragment.name.value === name
 						)
 						if (!matchingFragment) {
-							throw {
+							throw new HoudiniError({
 								filepath: doc.filename,
 								message: `Fragment "${name}" doesn't exist in its own document?!`,
-							}
+							})
 						}
 						rootType = matchingFragment.typeCondition.name.value
 						selectionSet = matchingFragment.selectionSet
@@ -294,10 +298,8 @@ export default function artifactGenerator(stats: {
 					const countDocument = doc.generateStore
 
 					// check if the file exists (indicating a new document)
-					let existingArtifact = ''
-					try {
-						existingArtifact = await fs.readFile(artifactPath, 'utf-8')
-					} catch (e) {
+					let existingArtifact = await readFile(artifactPath)
+					if (existingArtifact === null) {
 						if (countDocument) {
 							stats.new.push(artifact.name)
 						}
@@ -312,7 +314,7 @@ export default function artifactGenerator(stats: {
 					}
 
 					// check if the artifact exists
-					const match = existingArtifact.match(/"HoudiniHash=(\w+)"/)
+					const match = existingArtifact && existingArtifact.match(/"HoudiniHash=(\w+)"/)
 					if (match && match[1] !== hashDocument(doc.originalString)) {
 						stats.changed.push(artifact.name)
 					}

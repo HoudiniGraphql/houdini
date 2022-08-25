@@ -1,26 +1,24 @@
 <script>
-	import { HighlightSvelte } from 'svelte-highlight'
-	import { SEO, Icon } from '~/components'
+	import { SEO, Icon, Highlight } from '~/components'
 
 	const heroExample = `<script>
-    import { query, graphql } from '$houdini'
+    // src/routes/items/+page.svelte
+    import { graphql } from '$houdini'
 
-    const { data } = query(graphql\`
+    const allItems = graphql\`
         query AllTodoItems {
             items {
                 text
             }
         }
-    \`)
+    \`
 <\/script>
 
-{#each $data.items as item}
+{#each $allItems.data.items as item}
     <div>{item.text}</div>
-{/each}
-`
+{/each}`
 
 	const bullets = [
-		'The same API for Kit, Sapper, or vanilla Svelte',
 		'Normalized cache with declarative field updates and list mutations',
 		'Colocate data requirements or define operations in external files with generated stores',
 		'First-class support for advanced patterns like subscriptions and pagination'
@@ -85,8 +83,7 @@
 
 {#each $data.items as item}
     <div>{item.text}</div>
-{/each}
-`
+{/each}`
 		}
 	]
 
@@ -107,9 +104,9 @@
 		<img src="/images/logo.svg" alt="Houdini Logo" width="175px" />
 	</a>
 	<nav>
-		<a href={files.intro.index.slug} class="nav-link" sveltekit:prefetch>Get Started</a>
-		<a href={files.guides.index.slug} class="nav-link small-hidden" sveltekit:prefetch>Guides</a>
-		<a href={files.api.index.slug} class="nav-link small-hidden" sveltekit:prefetch>API</a>
+		<a href="/intro/welcome" class="nav-link" sveltekit:prefetch>Get Started</a>
+		<a href="/guides/faq" class="nav-link small-hidden" sveltekit:prefetch>Guides</a>
+		<a href="/api/welcome" class="nav-link small-hidden" sveltekit:prefetch>API</a>
 		<a href="https://opencollective.com/houdini" class="nav-link small-hidden" target="_blank">
 			Sponsor
 		</a>
@@ -128,7 +125,7 @@
 		<div>
 			<h1>
 				The disappearing <span id="graphql-text">GraphQL</span>
-				client for the <span class="svelte-text">Svelte</span> community.
+				client for <span class="svelte-text">SvelteKit</span>.
 			</h1>
 			<ul>
 				{#each bullets as bullet}
@@ -140,7 +137,7 @@
 			</nav>
 		</div>
 		<div>
-			<HighlightSvelte code={heroExample} class="shadow" />
+			<Highlight code={heroExample} class="shadow" />
 		</div>
 	</section>
 	<div class="tease">
@@ -158,7 +155,7 @@
 								{point.text}
 							</p>
 						</div>
-						<HighlightSvelte code={point.example} class="showcase-example" />
+						<Highlight code={point.example} class="showcase-example" />
 					</div>
 				{/each}
 			</div>
@@ -248,7 +245,7 @@
 	}
 
 	.content {
-		max-width: 1300px;
+		max-width: 1150px;
 		margin: 0 auto;
 		width: 100%;
 	}
@@ -428,9 +425,6 @@
 
 	:global(#main pre) {
 		overflow: hidden;
-	}
-
-	:global(#hero code) {
 		padding: 34px;
 	}
 

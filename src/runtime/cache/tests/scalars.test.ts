@@ -1,7 +1,8 @@
-// locals
+import { test, expect } from 'vitest'
+
 import { testConfigFile } from '../../../common'
-import { Cache, rootID } from '../cache'
 import { SubscriptionSelection } from '../../lib/types'
+import { Cache, rootID } from '../cache'
 
 const config = testConfigFile({
 	scalars: {

@@ -23,19 +23,25 @@ jobs:
               with:
                   ref: ${{ github.ref }}
 
-            - name: Setup Node
+            - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                  node-version: 16.14.2
-                  cache: 'yarn'
+                node-version: 16.17.0
 
-            - name: Install Dependencies
-              run: yarn install
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+            - uses: pnpm/action-setup@v2.0.1
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 7
+
+            - name: Install dependencies
+              run: pnpm install
 
             - name: Check prettier
-              run: yarn format:check
+              run: pnpm run format:check
+
+            - name: Check lint
+              run: pnpm run lint
 
     tests:
         name: Tests
@@ -47,22 +53,38 @@ jobs:
               with:
                   ref: ${{ github.ref }}
 
-            - name: Setup Node
+            - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                  cache: 'yarn'
-                  node-version: 16.14.2
+                node-version: 16.17.0
 
-            - name: Install Dependencies
-              run: yarn install
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+            - uses: pnpm/action-setup@v2.0.1
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 7
+                
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: |
+                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
+            - uses: actions/cache@v3
+              name: Setup pnpm cache
+              with:
+                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: |
+                  ${{ runner.os }}-pnpm-store-
+
+            - name: Install dependencies
+              run: pnpm install
 
             - name: Build packages
-              run: yarn build
+              run: pnpm run build
 
             - name: Tests
-              run: yarn tests
+              run: pnpm run tests
 
     integration:
         name: Integration Tests
@@ -74,43 +96,62 @@ jobs:
               with:
                   ref: ${{ github.ref }}
 
-            - name: Setup Node
+            - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                  cache: 'yarn'
-                  node-version: 16.14.2
+                node-version: 16.17.0
 
+            - uses: pnpm/action-setup@v2.0.1
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 7
+                
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: |
+                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
+            - uses: actions/cache@v3
+              name: Setup pnpm cache
+              with:
+                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: |
+                  ${{ runner.os }}-pnpm-store-
+
+            - name: Install dependencies
+              run: pnpm install
+              
             - name: Cache playwright binaries
               uses: actions/cache@v2
               id: playwright-cache
               with:
                   path: |
                       ~/.cache/ms-playwright
-                  key: cache-playwright-linux-1.21.0
-
-            - name: Install dependencies
-              run: yarn install --immutable
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+                  key: cache-playwright-linux-1.25.0
 
             - name: Build packages
-              run: yarn build
+              run: pnpm run build
 
             - name: Install Playwright
               if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install --with-deps
 
+            - name: SvelteKit Sync
+              run: cd integration && npx svelte-kit sync
+
             - name: Integration Tests
-              run: yarn workspace integration tests
+              run: pnpm --filter integration tests
               env:
                   RECORD_REPLAY_TEST_RUN_ID: ${{ env.GITHUB_SHA }}
 
-            # - name: Upload videos
-            #   uses: replayio/action-upload@v0.4.1
-            #   if: ${{ always() }}
-            #   with:
-            #       api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
-            #       filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
+            - name: Upload videos
+              uses: replayio/action-upload@v0.4.1
+              if: ${{ always() }}
+              with:
+                  api-key: ${{ secrets.RECORD_REPLAY_API_KEY }}
+                  filter: ${{ 'function($v) { $v.metadata.test.result = "failed" and $v.status = "onDisk" }' }}
 
     integration_linter:
         name: Integration Linter
@@ -122,29 +163,45 @@ jobs:
               with:
                   ref: ${{ github.ref }}
 
-            - name: Setup Node
+            - name: Install Node.js
               uses: actions/setup-node@v3
               with:
-                  cache: 'yarn'
-                  node-version: 16.14.2
+                node-version: 16.17.0
+
+            - uses: pnpm/action-setup@v2.0.1
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 7
+                
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              run: |
+                echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
+
+            - uses: actions/cache@v3
+              name: Setup pnpm cache
+              with:
+                path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: |
+                  ${{ runner.os }}-pnpm-store-
 
             - name: Install dependencies
-              run: yarn install
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+              run: pnpm install
 
-            - name: Build packages
-              run: yarn build
+            - name: Build Package
+              run: pnpm run build
 
-            - name: Generate runtime
-              run: yarn workspace integration generate
+            - name: SvelteKit Sync
+              run: cd integration && npx svelte-kit sync
 
             - name: Build kit assets
-              run: yarn workspace integration build
+              run: pnpm --filter integration run build
 
             # needs to run after build & houdini generate
             - name: Integration lint
-              run: yarn workspace integration lint
+              run: pnpm --filter integration run lint
 
             - name: Integration check
-              run: yarn workspace integration check
+              run: pnpm --filter integration run check

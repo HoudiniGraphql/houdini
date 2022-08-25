@@ -10,16 +10,16 @@ description: The first part of the Houdini intro focusing on how to fetch data
 
 # Fetching Data
 
-Before we do anything _too_ complicated, lets get something on the screen. Open up `src/routes/index.svelte` and fill it with the following content. Don't worry if you see an error after saving, we'll address that next.
+Before we do anything _too_ complicated, lets get something on the screen. Open up `src/routes/+page.svelte` and fill it with the following content
 
 ```svelte
-<!-- src/routes/index.svelte -->
+<!-- src/routes/+page.svelte -->
 
 <script>
     import { query, graphql } from '$houdini'
     import { Container, Display, Sprite, Panel } from '~/components'
 
-    const { data } = query(graphql`
+    const info = graphql`
         query SpeciesInfo {
             species(id: 1) {
                 name
@@ -29,22 +29,22 @@ Before we do anything _too_ complicated, lets get something on the screen. Open 
                 }
             }
         }
-    `)
+    `
 </script>
 
 <Container>
     <Panel slot="left">
 		<Display id="species-name">
-			{$data.species.name}
-			<span>no.{$data.species.id}</span>
+			{$info.data.species.name}
+			<span>no.{$info.data.species.id}</span>
 		</Display>
         <Sprite
             id="species-sprite"
-            src={$data.species.sprites.front}
-            speciesName={$data.species.name}
+            src={$info.data.species.sprites.front}
+            speciesName={$info.data.species.name}
         />
         <Display id="species-flavor_text">
-            {$data.species.flavor_text}
+            {$info.data.species.flavor_text}
         </Display>
     </Panel>
 </Container>
@@ -108,51 +108,42 @@ For more information on GraphQL Queries, [this is a good resource](https://graph
 If everything is set up properly, you should see a message printed in your terminal once you save the file. Behind the scenes, Houdini is constantly validating and processing
 your queries so you can catch errors as quickly as possible.
 
-By the way, if you ever change your schema and you need to update the local version, you can pass `-p` to `generate` and it will pull the latest version from your API before generating everything.
-
-Anyway, now that you have the necessary files, you should see a description of the first species in the generation 1 Pokédex - the ever popular Bulbasaur. If you are still running into issues, please reach out to us on the svelte discord and we'd be happy to help.
+Anyway, now that you have the necessary files, you should see Bulbasaur's description. If you are still running into issues, please reach out to us on the svelte discord and we'd be happy to help.
 
 <DeepDive title="What happened to load?">
 
 If you were looking carefully, you might have noticed that we didn't define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading). Don't worry, this route is still rendered on the server thanks to the preprocessor. One of its responsibilities is moving the actual fetch into a `load`. You can think of the block at the top of this section as equivalent to:
 
 ```svelte
-<script context="module">
-    export async function load({ fetch }) {
-            return {
-                props: {
-                    _data: await fetch(API_URL, {
-                        text: `
-                            query SpeciesInfo {
-                                species(id: 1) {
-                                    name
-                                    flavor_text
-                                    sprites {
-                                        front
-                                    }
-                                }
-                            }
-                        `
-                    })
-                },
-            }
-    }
-</script>
+<!-- src/routes/myRoute/+page.svelte -->
 
 <script>
-    export let _data
+	// the store gets passed to us as a prop
+	export let data
 
-    const data = readable(_data, ...)
+	$: info = data.SpeciesInfoStore
 </script>
+```
 
-<!-- the rest of the components -->
+```typescript
+// src/routes/myRoute/+page.js
+
+import SpeciesInfoStore from '$houdini/stores/SpeciesInfo'
+
+export async function load({ event }) {
+	await SpeciesInfoStore.fetch({ event })
+
+	return {
+		SpeciesInfoStore: SpeciesInfoStore
+	}
+}
 ```
 
 </DeepDive>
 
 ## Query Variables
 
-This is a good start but we will need to be able to show information for more species than just Bulbasaur. Let's set up our application to take look at the url for the id of the species we are interested in. To do that, rename `index.svelte` to `[...id].svelte`. That will let us have an optional parameter in the url which we will interpret as the ID (ie, `/` and `/1` will both render Bulbasaur's page).
+This is a good start but we will need to be able to show information for more species than just Bulbasaur. Let's set up our application to take look at the url for the id of the species we are interested in. To do that, rename `+page.svelte` to `[...id]/+page.svelte`. That will let us have an optional parameter in the url which we will interpret as the ID (ie, `/` and `/1` will both render Bulbasaur's page).
 
 <GraphQLExplained title="Query Variables">
 
@@ -190,19 +181,19 @@ query SpeciesInfo($id: Int!) {
 }
 ```
 
-In order to tell the runtime how to compute that value, you have to define a function called `SpeciesInfoVariables` in the `module` context of your component that returns the correct value. Add the following block of code under the closing `script` tag in your component:
+In order to tell the runtime how to compute that value, you have to define a function called `SpeciesInfoVariables` in your route's `+page.js` files that returns the correct value. Create `src/routes/[...id]/+page.js` and paste the following content:
 
-```svelte
-<script context="module">
-    export function SpeciesInfoVariables({ params }) {
-        return {
-            id: params.id ? parseInt(params.id) :  1
-        }
-    }
-</script>
+```javascript
+// src/routes/[...id]/+page.js
+
+export function SpeciesInfoVariables({ params }) {
+	return {
+		id: params.id ? parseInt(params.id) : 1
+	}
+}
 ```
 
-Once that's done, you should be able to navigate to `/6` to see Charizard's information. It's worth mentioning that if you _did_ run `generate` after adding the variable to the query, you don't need to run it again because of the new function. You only need to run it when you change something inside of a `graphql` tag.
+Once that's done, you should be able to navigate to `/6` to see Charizard's information.
 
 Note: the name of the function that returns the values for a query's variables must follow a very specific format. It must be called `{QueryName}Variables`. If you look at the query we are working with, you'll see its named `SpeciesInfo` which is why this function is named `SpeciesInfoVariables`.
 
@@ -211,10 +202,10 @@ For completeness, let's quickly add some buttons to navigate between the differe
 ```svelte
 <Panel slot="right">
     <nav>
-        <a href={$data.species.id - 1} disabled={$data.species.id <= 1}>
+        <a href={$info.data.species.id - 1} disabled={$info.data.species.id <= 1}>
             previous
         </a>
-        <a href={$data.species.id + 1} disabled={$data.species.id >= 151}>
+        <a href={$info.data.species.id + 1} disabled={$info.data.species.id >= 151}>
             next
         </a>
     </nav>
@@ -223,7 +214,7 @@ For completeness, let's quickly add some buttons to navigate between the differe
 
 ## Error Handling
 
-So far so good! There is one slight problem: there are only 151 species in the first generation of Pokémon. The buttons we added in the last section prevent the user from going beyond those bounds, but if we navigate to `/152` directly we will get an error since `$data.species` is null. Go ahead, give it a try.
+So far so good! There is one slight problem: there are only 151 species in the first generation of Pokémon. The buttons we added in the last section prevent the user from going beyond those bounds, but if we navigate to `/152` directly we will get an error since `$info.data.species` is null. Go ahead, give it a try.
 
 In order to prevent this, we need to check if `id` is between `1` and `151` and if not, render an error for the user. This is accomplished by updating `SpeciesInfoVariables` to look like:
 

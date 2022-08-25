@@ -1,15 +1,14 @@
-// external imports
-import path from 'path'
-import fs from 'fs/promises'
-import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
+import path from 'path'
 import * as recast from 'recast'
-// local imports
-import { testConfig } from '../../../common'
-import '../../../../jest.setup'
+import * as typeScriptParser from 'recast/parsers/typescript'
+import { test, expect, describe } from 'vitest'
+
+import { readFile, testConfig } from '../../../common'
+import * as fs from '../../../common/fs'
 import { runPipeline } from '../../generate'
-import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
+import { CollectedGraphQLDocument } from '../../types'
 
 // the config to use in tests
 const config = testConfig()
@@ -36,12 +35,9 @@ test('adds kind, name, and raw, response, and selection', async function () {
 	await runPipeline(config, docs)
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -72,13 +68,10 @@ test('adds kind, name, and raw, response, and selection', async function () {
 		"HoudiniHash=4e7afee5e8aa689ee7f58f61f60955769c29fe630b05a32ca2a5d8f61620afe3";
 	`)
 
-	const fragmentContents = await fs.readFile(
-		path.join(config.artifactPath(docs[1].document)),
-		'utf-8'
-	)
+	const fragmentContents = await readFile(path.join(config.artifactPath(docs[1].document)))
 	expect(fragmentContents).toBeTruthy()
 	// parse the contents
-	const parsedFragment: ProgramKind = recast.parse(fragmentContents, {
+	const parsedFragment: ProgramKind = recast.parse(fragmentContents!, {
 		parser: typeScriptParser,
 	}).program
 	// and verify their content
@@ -119,13 +112,10 @@ test('selection includes fragments', async function () {
 
 	//
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(selectionDocs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(selectionDocs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -175,13 +165,10 @@ test('selection includes fragments', async function () {
 		"HoudiniHash=c8c8290bb733a727894c836300cd22e8ece993f2b7c2108998f1d63a595e6b5f";
 	`)
 
-	const fragmentContents = await fs.readFile(
-		path.join(config.artifactPath(docs[1].document)),
-		'utf-8'
-	)
+	const fragmentContents = await readFile(path.join(config.artifactPath(docs[1].document)))
 	expect(fragmentContents).toBeTruthy()
 	// parse the contents
-	const parsedFragment: ProgramKind = recast.parse(fragmentContents, {
+	const parsedFragment: ProgramKind = recast.parse(fragmentContents!, {
 		parser: typeScriptParser,
 	}).program
 	// and verify their content
@@ -218,13 +205,10 @@ test('internal directives are scrubbed', async function () {
 	])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -289,13 +273,10 @@ test('variables only used by internal directives are scrubbed', async function (
 	])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 
@@ -362,13 +343,10 @@ test('overlapping query and fragment selection', async function () {
 	])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -428,13 +406,10 @@ test('overlapping query and fragment nested selection', async function () {
 	])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -527,13 +502,10 @@ test('selections with interfaces', async function () {
 	await runPipeline(cfg, mutationDocs)
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(cfg.artifactPath(mutationDocs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(cfg.artifactPath(mutationDocs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -637,13 +609,10 @@ test('selections with unions', async function () {
 	await runPipeline(cfg, mutationDocs)
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(cfg.artifactPath(mutationDocs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(cfg.artifactPath(mutationDocs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -750,13 +719,10 @@ describe('mutation artifacts', function () {
 		await runPipeline(cfg, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(cfg.artifactPath(mutationDocs[0].document)),
-			'utf-8'
-		)
+		const queryContents = await readFile(path.join(cfg.artifactPath(mutationDocs[0].document)))
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -833,13 +799,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -927,13 +892,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1022,13 +986,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1107,13 +1070,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1178,13 +1140,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1257,13 +1218,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1356,13 +1316,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1455,13 +1414,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1554,13 +1512,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1654,13 +1611,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1754,13 +1710,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1854,13 +1809,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -1954,13 +1908,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -2059,13 +2012,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[1].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[1].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -2172,13 +2124,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -2272,13 +2223,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[1].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[1].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -2366,13 +2316,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[1].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[1].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -2547,13 +2496,12 @@ describe('mutation artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -2658,13 +2606,10 @@ describe('mutation artifacts', function () {
 		await runPipeline(cfg, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(cfg.artifactPath(mutationDocs[0].document)),
-			'utf-8'
-		)
+		const queryContents = await readFile(path.join(cfg.artifactPath(mutationDocs[0].document)))
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents
@@ -2778,13 +2723,10 @@ test('custom scalar shows up in artifact', async function () {
 	await runPipeline(localConfig, [mockCollectedDoc(`query TestQuery { allItems { createdAt } }`)])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -2883,13 +2825,10 @@ test('operation inputs', async function () {
 	])
 
 	// load the contents of the file
-	const queryContents = await fs.readFile(
-		path.join(config.artifactPath(docs[0].document)),
-		'utf-8'
-	)
+	const queryContents = await readFile(path.join(config.artifactPath(docs[0].document)))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -2976,13 +2915,12 @@ describe('subscription artifacts', function () {
 		await runPipeline(config, mutationDocs)
 
 		// load the contents of the file
-		const queryContents = await fs.readFile(
-			path.join(config.artifactPath(mutationDocs[0].document)),
-			'utf-8'
+		const queryContents = await readFile(
+			path.join(config.artifactPath(mutationDocs[0].document))
 		)
 		expect(queryContents).toBeTruthy()
 		// parse the contents
-		const parsedQuery: ProgramKind = recast.parse(queryContents, {
+		const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 			parser: typeScriptParser,
 		}).program
 		// verify contents

@@ -1,8 +1,7 @@
-// externals
-import * as recast from 'recast'
-import * as graphql from 'graphql'
 import { TSTypeKind } from 'ast-types/gen/kinds'
-// locals
+import * as graphql from 'graphql'
+import * as recast from 'recast'
+
 import { Config } from '../../../common'
 import { TypeWrapper, unwrapType } from '../../utils'
 import { nullableField, scalarPropertyValue } from './types'

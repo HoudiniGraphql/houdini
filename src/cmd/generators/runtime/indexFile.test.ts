@@ -1,15 +1,14 @@
-// external imports
-import path from 'path'
-import fs from 'fs/promises'
-import * as typeScriptParser from 'recast/parsers/typescript'
 import { ProgramKind } from 'ast-types/gen/kinds'
+import path from 'path'
 import * as recast from 'recast'
-// local imports
+import * as typeScriptParser from 'recast/parsers/typescript'
+import { test, expect } from 'vitest'
+
 import { testConfig } from '../../../common'
-import '../../../../jest.setup'
+import * as fs from '../../../common/fs'
 import { runPipeline } from '../../generate'
-import { CollectedGraphQLDocument } from '../../types'
 import { mockCollectedDoc } from '../../testUtils'
+import { CollectedGraphQLDocument } from '../../types'
 
 // the documents to test
 const docs: CollectedGraphQLDocument[] = [
@@ -18,15 +17,15 @@ const docs: CollectedGraphQLDocument[] = [
 ]
 
 test('runtime index file - sapper', async function () {
-	const config = testConfig({ module: 'commonjs', framework: 'sapper' })
+	const config = testConfig({ module: 'commonjs' })
 	// execute the generator
 	await runPipeline(config, docs)
 
 	// open up the index file
-	const queryContents = await fs.readFile(path.join(config.rootDir, 'index.js'), 'utf-8')
+	const queryContents = await fs.readFile(path.join(config.rootDir, 'index.js'))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
@@ -47,12 +46,10 @@ test('runtime index file - sapper', async function () {
 		};
 		Object.defineProperty(exports, "__esModule", { value: true });
 
-		var houdiniConfig = require("../../../config.cjs");
-		Object.defineProperty(exports, "houdiniConfig", { enumerable: true, get: function () { return __importDefault(houdiniConfig).default; } });
-
 		__exportStar(require("./runtime"), exports);
 		__exportStar(require("./artifacts"), exports);
 		__exportStar(require("./graphql"), exports);
+		__exportStar(require("./stores"), exports);
 	`)
 })
 
@@ -62,15 +59,14 @@ test('runtime index file - kit', async function () {
 	await runPipeline(config, docs)
 
 	// open up the index file
-	const queryContents = await fs.readFile(path.join(config.rootDir, 'index.js'), 'utf-8')
+	const queryContents = await fs.readFile(path.join(config.rootDir, 'index.js'))
 	expect(queryContents).toBeTruthy()
 	// parse the contents
-	const parsedQuery: ProgramKind = recast.parse(queryContents, {
+	const parsedQuery: ProgramKind = recast.parse(queryContents!, {
 		parser: typeScriptParser,
 	}).program
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
-		export { default as houdiniConfig } from "../config.cjs"
 		export * from "./runtime"
 		export * from "./artifacts"
 		export * from "./stores"

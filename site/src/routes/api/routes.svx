@@ -1,0 +1,447 @@
+---
+title: Routes
+index: 1
+description: Queries in Houdini
+---
+
+<script>
+    import { DeepDive, Warning, Transformation, Highlight } from '~/components'
+	
+  const forwardPaginationStoreBefore = `
+query MyFriends {
+  viewer {
+    friends(first: 10) @paginate( name: "My_Friends") {
+      edges {
+        node {
+          id
+        }
+      }
+  }
+}
+`
+	const forwardPaginationStoreAfter = `
+type MyFriendsStore = QueryStore & {
+  loadNextPage(
+    pageCount?: number,
+    after?: string | number
+    houdiniContext?: HoudiniContext,
+  ): Promise<void>,
+
+  pageInfo: Readable<PageInfo>
+}
+`
+	 const backwardsPaginationStoreBefore = `
+query MyFriends {
+  viewer {
+    friends(last: 10) @paginate(name: "My_Friends") {
+      edges {
+        node {
+          id
+        }
+      }
+  }
+}
+`
+	const backwardsPaginationStoreAfter = `
+type MyFriendsStore = QueryStore & {
+  loadPreviousPage(
+    pageCount?: number,
+    before?: string | number
+    houdiniContext?: HoudiniContext,
+  ): Promise<void>,
+
+  pageInfo: Readable<PageInfo>
+}
+`
+	 const offsetPaginationStoreBefore = `
+query MyFriends {
+  viewer {
+    friends(limit: 10) @paginate(name: "My_Friends") {
+      id
+    }
+  }
+}
+`
+	const offsetPaginationStoreAfter = `
+type MyFriendsStore = QueryStore & {
+  loadNextPage(
+    limit?: number,
+    offset?: number
+    houdiniContext?: HoudiniContext,
+  ): Promise<void>,
+}
+`
+</script>
+
+# Routes
+
+Load data from the server and subscribe to any changes of fields we detect from mutations, subscriptions, and other queries.
+
+```graphql
+# src/routes/myRoute/+page.gql
+
+query MyProfileInfo {
+	viewer {
+		firstName
+		avatar
+	}
+}
+```
+
+```svelte
+<!-- src/routes/myRoute/+page.js -->
+
+<script>
+	export let data
+
+	// pull the store reference from the route props
+	$: ({ MyProfileInfo } = data)
+</script>
+
+{$MyProfileInfo.data.viewerProfile.firstName}
+```
+
+This example takes advantage of Houdini's powerful [load generator](#generating-loaders) and
+is just one of many ways to get access to a store that can drive your server-side rendered routes.
+For more information, check out the [Working with GraphQL](/guides/working-with-graphql) guide.
+
+### Store Fields
+
+A query store holds an object with the following fields that accessed like `$store.data`:
+
+- `data` contains the result of the query. It's value will update as mutations, subscriptions, and other queries provide more recent information.
+- `loading` contains the loading state (`true` or `false`) for a query found outside of a route component (ie, not defined in `src/routes`)
+- `errors` contains any error values that occur for a query found outside of a route component (ie, not defined in `src/routes`)
+- `partial` contains a boolean that indicates if the result has a partial match
+
+### Methods
+
+A query store has the following methods that invoked without the $, ie `store.fetch(...)`:
+
+- `fetch` is a function that can be used to load the most recent data from your API (subject to its [Cache Policy](/guides/caching-data)). If you want to force the request to always resolve against the API, set `policy: 'NetworkOnly'`.
+
+## Automatic Loading
+
+As described in the [Working with GraphQL guide](/guides/working-with-graphql), there are 3 things that you can do to
+get houdini to create a load function for your route:
+
+- export `houdini_load` from your `+page.js` file
+- an inline query in `+page.svelte`
+- `+page.gql` file in your route directory
+
+Regardless of which pattern you are using, you will quickly need to customize your query's behavior. This could be because you need to add variables to the query, or maybe you need to perform some logic before and/or after the data is fetched.
+
+### Query Variables
+
+Query variables must be exported from your `+page.js` files and named after your query. This function takes the same arguments passed to the `load` function
+described in the [SvelteKit](https://kit.svelte.dev/docs#Loading) docs. You can return
+the value from `this.error` and `this.redirect` in order to change the behavior of the response. Here is a
+modified example [from the source repository](https://github.com/HoudiniGraphql/houdini/tree/main/example):
+
+```javascript
+// src/routes/[filter]/+page.ts
+
+export const houdini_load = graphql`
+	query AllItems($completed: Boolean) {
+		items(completed: $completed) {
+			id
+			text
+		}
+	}
+`
+
+// This is the function for the AllItems query.
+// Query variable functions must be named <QueryName>Variables.
+export function AllItemsVariables(event): AllItems$input {
+	// make sure we recognize the value
+	if (!['active', 'completed'].includes(event.params.filter)) {
+		return this.error(400, 'invalid filter')
+	}
+
+	return {
+		completed: event.params.filter === 'completed'
+	}
+}
+```
+
+### Hooks
+
+Sometimes you will need to add additional logic to a component's query. For example, you might want to
+check if the current session is valid before a query is sent to the server. In order to support this,
+Houdini will look for hook functions defined in your `+page.js` files.
+
+#### `beforeLoad`
+
+Called before Houdini executes load queries against the server. You can expect the same
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function.
+
+```javascript
+// src/routes/myRoute/+page.js
+
+export const houdini_load = graphql`
+	query AllItems($completed: Boolean) {
+		items(completed: $completed) {
+			id
+			text
+		}
+	}
+`
+
+// It has access to the same arguments,
+// this.error, and this.redirect as the variable functions
+export function beforeLoad({ page, session }) {
+	if (!session.authenticated) {
+		return this.redirect(302, '/login')
+	}
+
+	return {
+		message: 'Number of items:'
+	}
+}
+```
+
+#### `afterLoad`
+
+Called after Houdini executes load queries against the server. You can expect the same
+arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function, plus an additional
+`data` property referencing query result data. Keep in mind that if you define this hook, Houdini
+will have to block requests to the route in order to wait for the result. For more information about
+blocking during navigation, check out [this section](/api/query/store#server-side-blocking) of the query store
+docs.
+
+```javascript
+// src/routes/myRoute/+page.js
+
+export const houdini_load = graphql`
+	query MyProfile($id: ID!) {
+		profile(id: $id) {
+			name
+		}
+	}
+`
+
+export function MyProfileVariables({
+	page: {
+		params: { id }
+	}
+}) {
+	return { id }
+}
+
+export function afterLoad({ data }) {
+	if (!data.MyProfile) {
+		return this.error(404)
+	}
+
+	return {
+		message: "Hello I'm"
+	}
+}
+```
+
+### Disabling Inline Query Loading
+
+Sometimes it's useful to have a lazy query that only fires when you call `fetch` (for
+example in a search input). For these scenarios, you will want to turn off the
+automatic loader using the `@houdini` directive:
+
+```svelte
+<script>
+	const result = graphql`
+		query MyQuery @houdini(load: false) {
+			viewer {
+				id
+			}
+		}
+	`
+</script>
+```
+
+## Manual Loading
+
+If you are writing your route's load functions by hand, you'll want to instantiate a store, calls its `fetch` method and return the store to your route. In order to streamline this, houdini provides
+a function for each of your stores that you can use to render your route on the server. These functions take the same
+parameters as `fetch`:
+
+```javascript
+import { load_MyQuery } from '$houdini'
+
+export async function load(event) {
+	return {
+		...(await load_MyQuery({ event }))
+	}
+}
+```
+
+In case you were wondering, the `load_` prefix is there so you can autocomplete your loads by just typing `load_<tab>`.
+Anyway, with this in place, your route will recieve props for each of the stores that you have loaded:
+
+```svelte
+<script>
+	export let data
+
+	$: ({ MyQuery } = data)
+</script>
+
+{$MyQuery.data.value}
+```
+
+If your query has variables, you can pass them straight to the loader:
+
+```javascript
+import { load_MyQuery } from '$houdini'
+
+export async function load(event) {
+  return {
+    ...await load_MyQuery({ event, variables: { ... } })
+  }
+}
+```
+
+<DeepDive title="Loading multiple stores simulatenously">
+
+Be careful when loading multiple stores at once.
+
+Each of your loads should be performed inside of an `await Promise.all` so you perform the queries in parallel.
+This can get rather tedious so houdini provides a `loadAll` function you can use to simplify this process:
+
+```javascript
+import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
+
+export async function load(event) {
+	return {
+		...(await loadAll(load_MyQuery({ event }), load_MyOtherQuery({ event })))
+	}
+}
+```
+
+If you want to load the same store twice or customize the props that will get passed to your
+route, you can pass any combination of single loaders and objects that map the result to a prop value:
+
+```javascript
+import { loadAll, load_MyQuery, load_MyOtherQuery } from '$houdini'
+
+export async function load(event) {
+	return {
+		...(await loadAll(load_MyQuery({ event }), {
+			propA: load_MyOtherQuery({ event, variables: { foo: 'A' } }),
+			propB: load_MyOtherQuery({ event, variables: { foo: 'B' } })
+		}))
+	}
+}
+```
+
+The above example will provide 3 props to your route: `MyQuery` containing an instance of `MyQuery`, `propA` with an instance of `MyOtherQuery` with the variables `{foo: "A"}` loaded, and `propB` with an instance of `MyOtherQuery` with the variables `{foo: "B"}` loaded.
+
+</DeepDive>
+
+<DeepDive title="Blocking Navigation">
+
+If we're not careful, the above code will cause every route transition to
+block while the store waits for the server. While this sounds great
+for server-side rendered views, this is usually not what we want for
+client-side transitions. In order to accommodate this, awaiting
+`fetch` or a loader does not actually wait for the promise to resolve when
+the request happens on the browser. This means that if you want to
+do something with the response, you have to pass `blocking: true`
+which will make the `await` behave like normal:
+
+```javascript
+export async function load(event) {
+	// blocking:true makes this await "real"
+	const { data } = await MyStore.fetch({ event, blocking: true })
+
+	// check the response of the query and redirect when appropriate
+	if (!data.fieldName) {
+		return {
+			redirect: '/not-field-name'
+		}
+	}
+
+	return {}
+}
+```
+
+</DeepDive>
+
+## Components Queries
+
+Not every query will be inside of a route. In this situations, you can either work with your
+query stores directly, or use the same `query` function to instruct the plugin to generate a client-side
+equivalent of the load function.
+
+```svelte
+<script>
+  import { query, graphql } from '$houdini'
+
+ export function MyComponentQueryVariables({ props }) {
+	return { id: props.id }
+ }
+
+ const store = query(graphql`
+	query MyComponentQuery($id: ID!) {
+		user(id: $id) {
+			id
+		}
+	}
+ `)
+</script>
+
+{$store.data.value}
+```
+
+## Endpoints
+
+Using a query store inside of an endpoint looks very similar to the `load` function: just pass the event you
+are handed in your route function:
+
+```javascript
+import { GQL_MyQuery } from '$houdini'
+
+export async function get(event) {
+	const { data } = await GQL_MyQuery.fetch({ event })
+
+	return {
+		body: {
+			data
+		}
+	}
+}
+```
+
+## Paginated Queries
+
+If the query contains the pagination directive then the generated store will have extra fields/methods
+according to the pagination strategy and direction. For more information about pagination in general, check
+out [this guide](/guides/pagination).
+
+### Forward cursor pagination
+
+If the decorated field implements cursor-based pagination and provides a `first` argument, the query store will be
+generated with an extra method that loads more data and a field pointing to a store with the current `pageInfo`
+object. This extra field can be used to track if there are more pages to load:
+
+<Transformation>
+	<Highlight slot="from" code={forwardPaginationStoreBefore} language="graphql" />
+	<Highlight slot="to" code={forwardPaginationStoreAfter} language="typescript"/>
+</Transformation>
+
+### Backwards cursor pagination
+
+If the decorated field implements cursor-based pagination and provides a `last` argument, the query store will be
+generated with an extra method that loads more data and a field pointing to a store with the current `pageInfo`
+object. This extra field can be used to track if there are more pages to load:
+
+<Transformation>
+	<Highlight slot="from" code={backwardsPaginationStoreBefore} language="graphql" />
+	<Highlight slot="to" code={backwardsPaginationStoreAfter} language="typescript"/>
+</Transformation>
+
+### Offset/limit Pagination
+
+If the decorated field implements offset/limit pagination and provides a `limit` argument, the query store will be generated with an extra methods that lets it load more pages after the one the current one:
+
+<Transformation>
+	<Highlight slot="from" code={offsetPaginationStoreBefore} language="graphql" />
+	<Highlight slot="to" code={offsetPaginationStoreAfter} language="typescript"/>
+</Transformation>

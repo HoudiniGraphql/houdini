@@ -1,16 +1,28 @@
-// externals
 import glob from 'glob'
-import * as svelte from 'svelte/compiler'
-import fs from 'fs/promises'
 import * as graphql from 'graphql'
+import minimatch from 'minimatch'
+import path from 'path'
+import * as recast from 'recast'
+import * as svelte from 'svelte/compiler'
 import { promisify } from 'util'
-// locals
-import { Config, runPipeline as run, parseFile, ParsedSvelteFile, LogLevel } from '../common'
-import { CollectedGraphQLDocument, ArtifactKind, HoudiniErrorTodo } from './types'
-import * as transforms from './transforms'
+
+import {
+	Config,
+	runPipeline as run,
+	parseSvelte,
+	ParsedFile,
+	LogLevel,
+	walkGraphQLTags,
+	readFile,
+	parseJS,
+	HoudiniError,
+} from '../common'
 import * as generators from './generators'
+import * as transforms from './transforms'
+import { CollectedGraphQLDocument, ArtifactKind } from './types'
 import * as validators from './validators'
-import { Program } from '@babel/types'
+
+type Program = recast.types.namedTypes.Program
 
 // the main entry point of the compile script
 export default async function compile(config: Config) {
@@ -43,103 +55,136 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		deleted: [],
 	}
 
-	// notify the user we are starting the generation process
-	if (config.logLevel !== LogLevel.Quiet) {
+	// the last version the runtime was generated with
+	let previousVersion = ''
+	let newClientPath = false
+	let newTimestamp = false
+	const content = await readFile(config.metaFilePath)
+	if (content) {
+		try {
+			const parsed = JSON.parse(content)
+			previousVersion = parsed.version + parsed.createdOn
+			newClientPath = parsed.client !== config.client
+
+			// look up the source metadata (so we can figure out if the version actually changed)
+			const sourceMeta = await readFile(path.join(config.runtimeSource, 'meta.json'))
+			if (!sourceMeta) {
+				throw new Error('skip')
+			}
+
+			// if the two timestamps are not the same, we have a new version
+			newTimestamp = JSON.parse(sourceMeta).timestamp !== parsed.timestamp
+		} catch {}
+	}
+
+	// generate the runtime if the version changed, if its a new project, or they changed their client path
+	const generateRuntime = newTimestamp || newClientPath || !previousVersion
+
+	// run the generate command before we print "🎩 Generating runtime..." because we don't know upfront artifactStats.
+	let error: Error | null = null
+	try {
+		await run(
+			config,
+			[
+				// validators
+				validators.typeCheck,
+				validators.uniqueNames,
+				validators.noIDAlias,
+				validators.forbiddenNames,
+
+				// transforms
+				transforms.internalSchema,
+				transforms.addID,
+				transforms.typename,
+				// list transform must go before fragment variables
+				// so that the mutation fragments are defined before they get mixed in
+				transforms.list,
+				// paginate transform needs to go before fragmentVariables
+				// so that the variable definitions get hashed
+				transforms.paginate,
+				transforms.fragmentVariables,
+				transforms.composeQueries,
+
+				// generators
+
+				// the runtime is a static thing most of the time. It only needs to be regenerated if
+				// the user is upgrading versions or the client path changed
+				generateRuntime ? generators.runtime : null,
+				generators.artifacts(artifactStats),
+				generators.typescript,
+				generators.persistOutput,
+				generators.definitions,
+				generators.stores,
+
+				// this has to go after runtime and artifacts
+				generators.kit,
+			],
+			docs
+		)
+	} catch (e) {
+		error = e as Error
+	}
+
+	/// Summary
+
+	// count the number of unchanged
+	const unchanged =
+		artifactStats.total.length -
+		artifactStats.changed.length -
+		artifactStats.new.length -
+		artifactStats.deleted.length
+
+	// If triggered from the plugin, we show logs ONLY if there are changes.
+	const printMessage = !config.plugin || unchanged !== artifactStats.total.length
+	if (!printMessage || config.logLevel === LogLevel.Quiet) {
+		if (error) {
+			throw error
+		}
+		return
+	}
+
+	if (!config.plugin) {
 		console.log('🎩 Generating runtime...')
 	}
 
-	// the last version the runtime was generated with
-	let previousVersion = ''
-	try {
-		const content = JSON.parse(await fs.readFile(config.metaFilePath, 'utf-8'))
-		previousVersion = content.version
-	} catch {}
+	if (error) {
+		throw error
+	}
 
-	// if the previous version is different from the current version
-	const versionChanged = previousVersion && previousVersion !== 'HOUDINI_VERSION'
-
-	await run(
-		config,
-		[
-			// validators
-			validators.typeCheck,
-			validators.uniqueNames,
-			validators.noIDAlias,
-
-			// transforms
-			transforms.internalSchema,
-			transforms.addID,
-			transforms.typename,
-			// list transform must go before fragment variables
-			// so that the mutation fragments are defined before they get mixed in
-			transforms.list,
-			// paginate transform needs to go before fragmentVariables
-			// so that the variable definitions get hashed
-			transforms.paginate,
-			transforms.fragmentVariables,
-			transforms.composeQueries,
-
-			// generators
-			generators.runtime,
-			generators.artifacts(artifactStats),
-			generators.typescript,
-			generators.persistOutput,
-			generators.definitions,
-			generators.stores,
-		],
-		docs
-	)
-
-	// don't log anything if its quiet
-	if (config.logLevel === LogLevel.Quiet) {
-	} else if (versionChanged) {
+	// if we detected a version change, we're nuking everything so don't bother with a summary
+	if (newTimestamp) {
 		console.log('💣 Detected new version of Houdini. Regenerating all documents...')
 		console.log('🎉 Welcome to HOUDINI_VERSION!')
 		// if the user is coming from a version pre-15, point them to the migration guide
 		const major = parseInt(previousVersion.split('.')[1])
-		if (major < 15) {
-			console.log(`❓ For a description of what's changed, visit this guide: https://www.houdinigraphql.com/guides/migrating-to-0.15.0
-❓ Don't forget to update your sourceGlob config value if you want to define documents in external files.`)
+		if (major < 16) {
+			console.log(
+				`❓ For a description of what's changed, visit this guide: http://docs-next-kohl.vercel.app/guides/release-notes`
+			)
 		}
-	} else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
-		// count the number of unchanged
-		const unchanged =
-			artifactStats.total.length -
-			artifactStats.changed.length -
-			artifactStats.new.length -
-			artifactStats.deleted.length
-
+	}
+	// print a line showing that the process is finished (wo document)
+	else if (artifactStats.total.length === 0) {
+		console.log(`💡 No operation found. If that's unexpected, please check your config.`)
+	}
+	// print summaries of the changes
+	else if ([LogLevel.Summary, LogLevel.ShortSummary].includes(config.logLevel)) {
 		// if we have any unchanged artifacts
-		if (unchanged > 0) {
+		if (unchanged > 0 && printMessage && !config.plugin) {
 			console.log(`📃 Unchanged: ${unchanged}`)
 		}
 
-		if (artifactStats.changed.length > 0) {
-			console.log(`✏️  Changed: ${artifactStats.changed.length}`)
-			if (config.logLevel === LogLevel.Summary) {
-				logFirst5(artifactStats.changed)
-			}
-		}
-
-		if (artifactStats.new.length > 0) {
-			console.log(`✨ New: ${artifactStats.new.length}`)
-			if (config.logLevel === LogLevel.Summary) {
-				logFirst5(artifactStats.new)
-			}
-		}
-
-		if (artifactStats.deleted.length > 0) {
-			console.log(`🧹 Deleted: ${artifactStats.deleted.length}`)
-			if (config.logLevel === LogLevel.Summary) {
-				logFirst5(artifactStats.deleted)
-			}
-		}
-	} else if (config.logLevel === LogLevel.Full) {
+		logStyled('CREATED', artifactStats.new, config.logLevel, config.plugin)
+		logStyled('UPDATED', artifactStats.changed, config.logLevel, config.plugin)
+		logStyled('DELETED', artifactStats.deleted, config.logLevel, config.plugin)
+	}
+	// print the status of every file
+	else if (config.logLevel === LogLevel.Full) {
 		for (const artifact of artifactStats.total) {
 			// figure out the emoji to use
 			let emoji = '📃'
 			if (artifactStats.changed.includes(artifact)) {
-				emoji = '✏️ '
+				emoji = '✏️'
 			} else if (artifactStats.new.includes(artifact)) {
 				emoji = '✨'
 			} else if (artifactStats.deleted.includes(artifact)) {
@@ -154,7 +199,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 
 async function collectDocuments(config: Config): Promise<CollectedGraphQLDocument[]> {
 	// the first step we have to do is grab a list of every file in the source tree
-	const sourceFiles = await promisify(glob)(config.sourceGlob)
+	let sourceFiles = await promisify(glob)(config.include)
+	if (config.exclude) {
+		sourceFiles = sourceFiles.filter((filepath) => !minimatch(filepath, config.exclude!))
+	}
 
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []
@@ -163,18 +211,23 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	await Promise.all(
 		sourceFiles.map(async (filepath) => {
 			// read the file
-			const contents = await fs.readFile(filepath, 'utf-8')
+			const contents = await readFile(filepath)
+			if (!contents) {
+				return
+			}
 
 			// if the file ends with .svelte, we need to look for graphql template tags
 			if (filepath.endsWith('.svelte')) {
-				documents.push(...(await findGraphQLTemplates(filepath, contents)))
-			}
-			// otherwise just treat the file as a graphql file (the whole file contents constitute a graphql file)
-			else {
+				documents.push(...(await processSvelteFile(filepath, contents)))
+			} else if (filepath.endsWith('.graphql') || filepath.endsWith('.gql')) {
 				documents.push({
 					filepath,
 					document: contents,
 				})
+			}
+			// otherwise just treat the file as a javascript file
+			else {
+				documents.push(...(await processJSFile(config, filepath, contents)))
 			}
 		})
 	)
@@ -184,10 +237,7 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			try {
 				return await processGraphQLDocument(config, filepath, document)
 			} catch (e) {
-				throw {
-					...((e as unknown) as Error),
-					filepath,
-				}
+				throw new HoudiniError({ filepath, message: (e as unknown as Error).message })
 			}
 		})
 	)
@@ -198,23 +248,51 @@ type DiscoveredDoc = {
 	document: string
 }
 
-async function findGraphQLTemplates(filepath: string, contents: string): Promise<DiscoveredDoc[]> {
+async function processJSFile(
+	config: Config,
+	filepath: string,
+	contents: string
+): Promise<DiscoveredDoc[]> {
 	const documents: DiscoveredDoc[] = []
 
-	let parsedFile: ParsedSvelteFile
+	// parse the contents as js
+	let program: Program
 	try {
-		parsedFile = await parseFile(contents)
+		program = (await parseJS(contents))!.script
+	} catch (e) {
+		// add the filepath to the error message
+		throw new HoudiniError({ filepath, message: (e as Error).message })
+	}
+
+	// look for a graphql template tag
+	await walkGraphQLTags(config, program, {
+		tag(tag) {
+			documents.push({ document: tag.tagContent, filepath })
+		},
+	})
+
+	// we found every document in the file
+	return documents
+}
+
+async function processSvelteFile(filepath: string, contents: string): Promise<DiscoveredDoc[]> {
+	const documents: DiscoveredDoc[] = []
+
+	let parsedFile: ParsedFile
+	try {
+		parsedFile = await parseSvelte(contents)
 	} catch (e) {
 		const err = e as Error
 
 		// add the filepath to the error message
-		throw { message: `Encountered error parsing ${filepath}`, description: err.message }
+		throw new HoudiniError({
+			message: `Encountered error parsing ${filepath}`,
+			description: err.message,
+		})
 	}
 
 	// we need to look for multiple script tags to support sveltekit
-	const scripts = [parsedFile.instance, parsedFile.module]
-		.map((script) => (script ? script.content : null))
-		.filter(Boolean) as Program[]
+	const scripts = [parsedFile]
 
 	await Promise.all(
 		scripts.map(async (jsContent) => {
@@ -260,13 +338,19 @@ async function processGraphQLDocument(
 	)
 	// if there is more than one operation, throw an error
 	if (operations.length > 1) {
-		throw { filepath, message: 'Operation documents can only have one operation' }
+		throw new HoudiniError({
+			filepath,
+			message: 'Operation documents can only have one operation',
+		})
 	}
 	// we are looking at a fragment document
 	else {
 		// if there is more than one fragment, throw an error
 		if (fragments.length > 1) {
-			throw { filepath, message: 'Fragment documents can only have one fragment' }
+			throw new HoudiniError({
+				filepath,
+				message: 'Fragment documents can only have one fragment',
+			})
 		}
 	}
 
@@ -308,13 +392,60 @@ async function processGraphQLDocument(
 	}
 }
 
-function logFirst5(values: string[]) {
-	// grab the first 5 changed documents
-	for (const artifact of values.slice(0, 5)) {
-		console.log(`    ${artifact}`)
-	}
-	// if there are more than 5 just tell them how many
-	if (values.length > 5) {
-		console.log(`    ... ${values.length - 5} more`)
+function logStyled(
+	kind: 'CREATED' | 'UPDATED' | 'DELETED',
+	stat: string[],
+	logLevel: LogLevel,
+	plugin: boolean
+) {
+	if (stat.length > 0) {
+		// Let's prepare the one liner in the plugin mode, of a bit more in other lol level.
+		const msg = []
+
+		// in plugin mode, it will be very short, let's put a hat first.
+		if (plugin) {
+			msg.push(`🎩 `)
+		}
+
+		if (kind === 'CREATED') {
+			msg.push(`✨ `)
+			if (!plugin) {
+				msg.push(`New: ${stat.length}`)
+			}
+		} else if (kind === 'UPDATED') {
+			msg.push(`✏️  `)
+			if (!plugin) {
+				msg.push(`Changed: ${stat.length}`)
+			}
+		} else if (kind === 'DELETED') {
+			msg.push(`🧹 `)
+			if (!plugin) {
+				msg.push(`Deleted: ${stat.length}`)
+			}
+		}
+
+		// let's do a summary for x elements
+		const nbToDisplay = 5
+
+		// format for plugin
+		if (plugin) {
+			msg.push(`${stat.slice(0, nbToDisplay).join(', ')}`)
+			if (stat.length > 5) {
+				msg.push(`, ... ${stat.length - nbToDisplay} more`)
+			}
+		}
+
+		console.log(msg.join(''))
+
+		// Format for not plugin & Summary mode
+		if (!plugin && logLevel === LogLevel.Summary) {
+			for (const artifact of stat.slice(0, nbToDisplay)) {
+				console.log(`    ${artifact}`)
+			}
+			// if there are more than 5 just tell them how many
+			if (stat.length > nbToDisplay) {
+				console.log(`    ... ${stat.length - nbToDisplay} more`)
+			}
+		}
 	}
 }

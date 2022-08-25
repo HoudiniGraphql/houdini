@@ -1,25 +1,23 @@
-// externals
 import * as graphql from 'graphql'
-// locals
+import { test } from 'vitest'
+
 import { testConfig } from '../common'
-import { CollectedGraphQLDocument, HoudiniError } from './types'
-import { runPipeline } from './generate'
 import { ArtifactKind } from '../runtime/lib/types'
+import { runPipeline } from './generate'
+import { CollectedGraphQLDocument } from './types'
 
 export function pipelineTest(
 	title: string,
 	documents: string[],
 	shouldPass: boolean,
-	testBody?:
-		| ((result: HoudiniError | HoudiniError[]) => void)
-		| ((docs: CollectedGraphQLDocument[]) => void)
+	testBody?: ((result: Error | Error[]) => void) | ((docs: CollectedGraphQLDocument[]) => void)
 ) {
 	test(title, async function () {
 		// the first thing to do is to create the list of collected documents
 		const docs: CollectedGraphQLDocument[] = documents.map(mockCollectedDoc)
 
 		// we need to trap if we didn't fail
-		let error: HoudiniError[] = []
+		let error: Error[] = []
 
 		try {
 			// apply the transforms
@@ -29,7 +27,7 @@ export function pipelineTest(
 			if (shouldPass) {
 				throw e
 			}
-			error = e as HoudiniError[]
+			error = e as Error[]
 		}
 
 		// if we shouldn't pass but we did, we failed the test

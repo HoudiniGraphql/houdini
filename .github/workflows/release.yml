@@ -37,7 +37,7 @@ jobs:
             - name: Setup Node
               uses: actions/setup-node@v1
               with:
-                  node-version: 16.14.2
+                  node-version: 18.7.0
 
             - name: Set Git Identity
               run: |
@@ -47,16 +47,20 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+            - uses: pnpm/action-setup@v2.0.1
+              name: Install pnpm
+              id: pnpm-install
+              with:
+                version: 7
+
             - name: Install Dependencies
-              run: yarn install
-              env:
-                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
+              run: pnpm install
 
             - name: Create Release Pull Request or Deploy
               uses: changesets/action@v1
               with:
-                  version: yarn version
-                  publish: yarn release
+                  version: pnpm run version
+                  publish: pnpm run release
                   title: '📦 Version Update'
                   commit: '📦 v{VERSION}'
               env:

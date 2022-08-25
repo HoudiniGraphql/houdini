@@ -75,7 +75,8 @@ ol {
 
 p > code,
 li > code,
-h3 > code {
+h3 > code,
+h4 > code {
 	/* background: #ffffff; */
 	/* padding: 2px 6px; */
 	border-radius: 5px;
@@ -86,11 +87,17 @@ h3 > code {
 	color: #a1c5f8;
 }
 
-h3 > code {
-	font-size: 20px;
+.message > p > code {
+	color: white !important;
 }
 
-#doc-content em {
+.message p a {
+	color: white !important;
+	text-decoration: underline !important;
+}
+
+h3 > code {
+	font-size: 20px;
 }
 
 #doc-content ol {

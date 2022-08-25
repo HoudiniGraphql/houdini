@@ -1,4 +1,6 @@
 import type { GraphQLSchema } from 'graphql'
+
+import { getMockConfig } from './test'
 import { CachePolicy } from './types'
 
 export type ScalarSpec = {
@@ -15,10 +17,27 @@ type ScalarMap = { [typeName: string]: ScalarSpec }
 // the values we can take in from the config file
 export type ConfigFile = {
 	/**
-	 * A glob pointing at all your graphql operations
-	 * @example glob: `src/** /*.{svelte,gql}`
+	 * A relative path from your houdini.config.js to the file that exports your client as its default value
 	 */
-	sourceGlob: string
+	client: string
+
+	/**
+	 * @deprecated use include instead. although you might not need it at all, check the default value.
+	 */
+	sourceGlob?: string
+
+	/**
+	 * A glob pointing to all files that houdini should consider. Note, this must include .js files
+	 * for inline queries to work
+	 * @default `src/** /*.{svelte,graphql,gql,ts,js}`
+	 */
+	include?: string
+
+	/**
+	 * A pattern used to remove matches from files that satisfy the include value
+	 */
+	exclude?: string
+
 	/**
 	 * A static representation of your schema
 	 * @example path: `schema.graphql`
@@ -33,11 +52,6 @@ export type ConfigFile = {
 	 * FYI: `schemaPath` or `schema` should be defined
 	 */
 	schema?: string | GraphQLSchema
-
-	/**
-	 * @deprecated use logLevel instead.
-	 */
-	quiet?: boolean
 
 	/**
 	 * A url to use to pull the schema. For more information: https://www.houdinigraphql.com/api/cli#generate
@@ -60,9 +74,9 @@ export type ConfigFile = {
 	definitionsPath?: string
 
 	/**
-	 * One of "kit", "sapper", or "svelte". Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: kit)
+	 * One of "kit" or "svelte". Used to tell the preprocessor what kind of loading paradigm to generate for you. (default: kit)
 	 */
-	framework?: 'kit' | 'sapper' | 'svelte'
+	framework?: 'kit' | 'svelte'
 
 	/**
 	 * One of "esm" or "commonjs". Tells the artifact generator what kind of modules to create. (default: esm)
@@ -106,24 +120,41 @@ export type ConfigFile = {
 	disableMasking?: boolean
 
 	/**
-	 * A function to customize the logic houdini uses to identify a route or component when the file
-	 * is _inside_ of the routesDir. You do not need to define this if you have a custom value in
-	 * your SvelteKit config file - Houdini will use what's there.
+	 * Configures the houdini plugin's schema polling behavior. By default, houdini will poll your APIs
+	 * during development in order to keep it's definition of your schema up to date. The schemaPollingInterval
+	 * config value sets the amount of time between each request in milliseconds (default 2 seconds).
+	 * To limit the schema introspection to just on the start of the server, set schemaPollingInterval to 0.
+	 * To disable the schema introspection, set schemaPollingInterval to null.
 	 */
-	routes?: (filepath: string) => boolean
+	schemaPollInterval?: number | null
 
 	/**
-	 * The directory containing your project routes. For default Kit and Sapper projects, this
-	 * value is ./src/routes
+	 * An object containing the environment variables you want passed onto the api when polling for a new schema.
+	 * The keys dictate the header names. If the value is a string, the corresponding environment variable will be used
+	 * directly. If the value is a function, the current environment will be passed to your function so you can perform any
+	 * logic you need
 	 */
-	routesDir?: string
+	schemaPollHeaders?: Record<string, string | ((env: NodeJS.ProcessEnv) => string)>
 
 	/**
-	 * The path to your framework config file relative to the houdini config file. By
-	 * default, Houdini will look for your framework config file in process.cwd()
-	 * however that's not always valid. Use this option to customize where houdini looks.
+	 * The name of the file used to define page queries.
+	 * @default +page.gql
 	 */
-	frameworkConfigFile?: string
+	pageQueryFilename?: string
+
+	/**
+	 * The absolute path pointing to your SvelteKit project.
+	 * @default process.cwd()
+	 */
+	projectDir?: string
+
+	/**
+	 * The default prefix of your global stores.
+	 *
+	 * _Note: it's nice to have a prefix so that your editor finds all your stores by just typings this prefix_
+	 * @default GQL_
+	 */
+	globalStorePrefix?: string
 }
 
 export type TypeConfig = {
@@ -167,4 +198,14 @@ export function computeID(configFile: ConfigFile, type: string, data: any): stri
 	}
 
 	return id.slice(0, -2)
+}
+
+export async function getCurrentConfig(): Promise<ConfigFile> {
+	const mockConfig = getMockConfig()
+	if (mockConfig) {
+		return mockConfig
+	}
+
+	// @ts-ignore
+	return defaultConfigValues((await import('HOUDINI_CONFIG_PATH')).default)
 }

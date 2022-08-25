@@ -1,37 +1,19 @@
+import { routes } from './routes.js';
 import { sleep, stry } from '@kitql/helper';
 import type { Page, Response } from '@playwright/test';
-import { expect, test } from '@playwright/test';
-import { routes } from './routes.js';
+import { expect } from '@playwright/test';
 
-export async function expectNoGraphQLRequest(
+/**
+ *
+ * @param selector example: "button[id=next]"
+ * @returns
+ */
+export async function expect_0_gql(
   page: Page,
-  selector: string | null = null,
+  selector?: string | null,
   action: 'click' | 'hover' = 'click'
 ) {
-  let nbError = 0;
-  let info;
-  try {
-    const [res] = await Promise.all([
-      page.waitForRequest(routes.GraphQL, { timeout: 777 }), // It's the request... It should be fairly fast. (Magic number to find it easily)
-      selector ? (action === 'click' ? page.click(selector) : page.hover(selector)) : null
-    ]);
-    info = res;
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      expect(error.name).toBe('TimeoutError');
-      nbError++;
-    } else {
-      // We should never come here!
-      expect(0, 'a catch that was not an instanceof Error! It should NOT happen').toBe(1);
-    }
-  }
-  if (nbError === 0) {
-    console.error(`The body of the query that shouldn't happen: `, info?.postDataJSON());
-  }
-  expect(
-    nbError,
-    'A GraphQL request happend, and it should NOT be the case! (We Expected 1 error)'
-  ).toBe(1);
+  await expect_n_gql(page, selector || null, 0, action);
 }
 
 /**
@@ -39,12 +21,12 @@ export async function expectNoGraphQLRequest(
  * @param selector example: "button[id=next]"
  * @returns
  */
-export async function expectGraphQLResponse(
+export async function expect_1_gql(
   page: Page,
   selector?: string | null,
   action: 'click' | 'hover' = 'click'
 ) {
-  const listStr = await expectNGraphQLResponse(page, selector || null, 1, action);
+  const listStr = await expect_n_gql(page, selector || null, 1, action);
   return listStr[0];
 }
 
@@ -53,68 +35,46 @@ export async function expectGraphQLResponse(
  * @param selector example: "button[id=next]"
  * @returns The list of response. We will sort results by Alphabetical order (because we can't do any thing else :))
  */
-export async function expectNGraphQLResponse(
+export async function expect_n_gql(
   page: Page,
   selector: string | null,
   n: number,
   action: 'click' | 'hover' = 'click'
 ) {
-  // we are going to wait for n responses or 10seconds (whichever  comes first)
+  const start = new Date().valueOf();
+  const timing: number[] = [];
 
-  // a promise that we'll resolve when we have all the responses
-  let resolve: () => void = () => {};
-  let resolved = false;
-  const responsePromise = new Promise<void>((res) => {
-    resolve = res;
-  });
-
-  // keep track of how many responses we've seen
+  // let nbRequest = 0;
   let nbResponse = 0;
-
-  // and a stringified version of the response
   const listStr: string[] = [];
 
-  let lock = false;
+  // function fnReq(request: any) {
+  //   // console.log('>>', request.method(), request.url());
+  //   if (request.url().endsWith(routes.GraphQL)) {
+  //     nbRequest++;
+  //   }
+  // }
 
-  let waitTime: number | null = null;
-  const start = new Date().valueOf();
-
-  // the function to call on each response
   async function fnRes(response: Response) {
-    // if the response isn't for our API, don't count it
-    if (!response.url().endsWith(routes.GraphQL)) {
-      return;
+    // console.log('<<', response.status(), response.url());
+    if (response.url().endsWith(routes.GraphQL)) {
+      timing.push(new Date().valueOf() - start);
+      try {
+        const json = await response.json();
+        const str = stry(json, 0);
+        listStr.push(str as string);
+        nbResponse++;
+      } catch (error) {
+        // not a json returned
+        // it's ok as we speak about graphql here!
+        // This was used:
+        // await page.route('**/graphql', (route) => route.abort());
+      }
     }
-    if (waitTime === null) {
-      waitTime = new Date().valueOf() - start;
-    }
-
-    while (lock) {
-      await sleep(10);
-    }
-
-    lock = true;
-
-    // increment the count
-    nbResponse++;
-
-    // if we're still waiting for a response, add the body to the list
-    if (nbResponse <= n) {
-      const json = await response.json();
-      const str = stry(json, 0);
-      listStr.push(str as string);
-    }
-
-    // if we got enough responses, resolve the promise
-    if (nbResponse == n) {
-      resolved = true;
-      resolve();
-    }
-
-    lock = false;
   }
 
   // Listen
+  // page.on('request', fnReq);
   page.on('response', fnRes);
 
   // Trigger the action
@@ -126,33 +86,47 @@ export async function expectNGraphQLResponse(
     }
   }
 
-  // wait for the first of 10 seconds or n responses
-  await Promise.race([sleep(10000), responsePromise]);
+  // Wait algo
+  if (n === 0) {
+    // wait at least...
+    await sleep(1111);
+  } else {
+    // default increment
+    const tim_inc = 11;
 
-  // Remove listeners
-  page.removeListener('response', fnRes);
+    // total waiting time
+    let time_waiting = 0;
 
-  // if we got this far without resolving the promise, clean it up
-  if (!resolved) {
-    resolve();
-  }
+    // did he waited enough?
+    let waited_enough = false;
 
-  // if we have a wait time, then wait
-  if (waitTime !== null) {
-    await sleep(waitTime);
+    // While
+    // - n !== nbResponse => We don't have the right number of response
+    // - time_waiting < 9999 => We don't reach the global timeout
+    // - !waited_enough => We didn't wait enough
+    while (n !== nbResponse && time_waiting < 9999 && !waited_enough) {
+      // inc
+      time_waiting += tim_inc;
 
-    // if we got an extra request, fail
-    if (nbResponse > n) {
-      throw new Error('Encountered too many responses');
+      // if we have responses... Take the last one and double the number before saying, "OK we waited enough"
+      if (timing.length > 0 && timing[timing.length - 1] * 2 < time_waiting) {
+        waited_enough = true;
+      }
+
+      // Sleep a bit
+      await sleep(tim_inc);
     }
   }
 
-  // if we didn't get enough responses, we need to fail the test
-  if (!resolved) {
-    // we failed the test
-    throw new Error('Timeout waiting for api requests');
-  }
+  // Remove listeners
+  // page.removeListener('request', fnReq);
+  page.removeListener('response', fnRes);
 
+  // Check if numbers are ok
+  // expect(nbRequest, 'nbRequest').toBe(n);
+  expect(nbResponse, `Not the right number of responses (selector: ${selector})`).toBe(n);
+
+  // Sort and return!
   return listStr.sort();
 }
 
@@ -165,10 +139,38 @@ export function navSelector(route: string) {
  * if you want to check GraphQLResponse after, use `expectGraphQLResponse(page, navSelector(routes.XXX))`
  */
 export async function clientSideNavigation(page: Page, route: string) {
-  // Get the a link
-  const linkToPage = page.locator(navSelector(route));
+  await locator_click(page, navSelector(route));
+}
+
+export async function locator_click(page: Page, selector: string) {
+  const locator = page.locator(selector);
   // Trigger a client side navigation
-  await linkToPage.click();
+  await locator.click();
+  // wait for the navigation to happen
+  await sleep(111);
+}
+
+/**
+ * Change the default of page.goto to wait for the page to be domcontentloaded!
+ * By default goto expect NO graphql response, if you expect some, use: `goto_expect_n_gql`
+ * @returns The response of the page
+ */
+export async function goto(
+  page: Page,
+  url: string,
+  waitUntil: 'domcontentloaded' | 'load' | 'networkidle' | 'commit' = 'domcontentloaded'
+): Promise<null | Response> {
+  const res = await page.goto(url, { waitUntil });
+  await expect_n_gql(page, null, 0);
+  return res;
+}
+
+/**
+ * @returns The response of graphql queries
+ */
+export async function goto_expect_n_gql(page: Page, url: string, n: number): Promise<string[]> {
+  await page.goto(url, { waitUntil: 'load' });
+  return expect_n_gql(page, null, n);
 }
 
 /**

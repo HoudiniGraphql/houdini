@@ -1,7 +1,7 @@
-// locals
+import { test, expect, vi } from 'vitest'
+
 import { testConfigFile } from '../../../common'
 import { Cache } from '../cache'
-import { jest } from '@jest/globals'
 
 const config = testConfigFile()
 
@@ -43,7 +43,7 @@ test('root subscribe - field change', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -112,7 +112,7 @@ test('root subscribe - linked object changed', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -206,7 +206,7 @@ test("subscribing to null object doesn't explode", function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -274,7 +274,7 @@ test('overwriting a reference with null clears its subscribers', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -333,7 +333,7 @@ test('overwriting a linked list with null clears its subscribers', function () {
 	}
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -442,7 +442,7 @@ test('root subscribe - linked list lost entry', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -532,7 +532,7 @@ test("subscribing to list with null values doesn't explode", function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -622,7 +622,7 @@ test('root subscribe - linked list reorder', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -712,7 +712,7 @@ test('unsubscribe', function () {
 	const spec = {
 		rootType: 'Query',
 		selection,
-		set: jest.fn(),
+		set: vi.fn(),
 	}
 
 	// subscribe to the fields
@@ -765,7 +765,7 @@ test('subscribe to new list nodes', function () {
 	}
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -941,7 +941,7 @@ test('variables in query and subscription', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe(
@@ -1047,7 +1047,7 @@ test('deleting a node removes nested subscriptions', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -1127,7 +1127,7 @@ test('same record twice in a query survives one unsubscribe (reference counting)
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe(
@@ -1221,7 +1221,7 @@ test('embedded references', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe(
@@ -1359,7 +1359,7 @@ test('self-referencing linked lists can be unsubscribed (avoid infinite recursio
 
 	// subscribe to the list
 	const spec = {
-		set: jest.fn(),
+		set: vi.fn(),
 		selection,
 		rootType: 'Query',
 	}
@@ -1458,7 +1458,7 @@ test('self-referencing links can be unsubscribed (avoid infinite recursion)', fu
 
 	// subscribe to the list
 	const spec = {
-		set: jest.fn(),
+		set: vi.fn(),
 		selection,
 		rootType: 'Query',
 	}
@@ -1507,7 +1507,7 @@ test('overwriting a value in an optimistic layer triggers subscribers', function
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({
@@ -1579,7 +1579,7 @@ test('clearing a display layer updates subscribers', function () {
 	})
 
 	// a function to spy on that will play the role of set
-	const set = jest.fn()
+	const set = vi.fn()
 
 	// subscribe to the fields
 	cache.subscribe({

@@ -1,0 +1,10 @@
+{
+	"mode": "pre",
+	"tag": "next",
+	"initialVersions": {
+		"houdini": "0.15.8",
+		"integration": "0.0.1",
+		"site": "0.0.1"
+	},
+	"changesets": []
+}

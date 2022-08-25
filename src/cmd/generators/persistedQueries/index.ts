@@ -1,8 +1,8 @@
 //externals
 import * as graphql from 'graphql'
-import { writeFile } from 'fs/promises'
+
 // internals
-import { Config, hashDocument } from '../../../common'
+import { Config, hashDocument, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 
 // the persist output generator is responsible for generating a queryMap.json
@@ -52,5 +52,5 @@ export default async function persistOutputGenerator(
 	if (Object.keys(queryMap).length === 0) return
 
 	// Write the queryMap to the provided path
-	await writeFile(config.persistedQueryPath, JSON.stringify(queryMap, null, 4), 'utf-8')
+	await writeFile(config.persistedQueryPath, JSON.stringify(queryMap, null, 4))
 }

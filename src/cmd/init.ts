@@ -1,46 +1,56 @@
-import fs from 'fs/promises'
 import { getIntrospectionQuery } from 'graphql'
-import inquirer from 'inquirer'
 import fetch from 'node-fetch'
 import path from 'path'
-import { getConfig, LogLevel } from '../common'
+import prompts from 'prompts'
+
+import { readFile, writeFile } from '../common'
+import * as fs from '../common/fs'
 import { ConfigFile } from '../runtime'
-import generate from './generate'
-import { readFile, writeFile } from './utils'
-import { writeSchema } from './utils/writeSchema'
+import { pullSchema } from './utils/introspection'
 
 // the init command is responsible for scaffolding a few files
 // as well as pulling down the initial schema representation
 export default async function init(
 	_path: string | undefined,
-	args: { pullHeader?: string[]; yes: boolean },
+	args: { headers?: string[]; yes: boolean },
 	withRunningCheck = true
 ): Promise<void> {
+	let headers = {}
+	if ((args.headers ?? []).length > 0) {
+		headers = args.headers!.reduce((total, header) => {
+			const [key, value] = header.split('=')
+			return {
+				...total,
+				[key]: value,
+			}
+		}, {})
+	}
+
 	// if no path was given, we	'll use cwd
 	const targetPath = _path ? path.resolve(_path) : process.cwd()
 
-	// we need to collect some information from the user before we
-	// can continue
-	let { url, running } = await inquirer.prompt<{ url: string; running: boolean }>([
-		{
-			message: 'Is your GraphQL API running?',
-			name: 'running',
-			type: 'confirm',
-			when: withRunningCheck,
-		},
-		{
-			message: "What's the URL for your api?",
-			name: 'url',
-			type: 'input',
-			default: 'http://localhost:3000/api/graphql',
-			when: ({ running }) => !withRunningCheck || running,
-		},
-	])
-
-	if (withRunningCheck && !running) {
+	// make sure its running
+	let running = true
+	if (withRunningCheck) {
+		running = (
+			await prompts({
+				message: 'Is your GraphQL API running?',
+				name: 'running',
+				type: 'confirm',
+			})
+		).running
+	}
+	if (!running) {
 		console.log('❌ Your API must be running order to continue')
 		return
 	}
+
+	let { url } = await prompts({
+		message: "What's the URL for your api?",
+		name: 'url',
+		type: 'text',
+		initial: 'http://localhost:3000/api/graphql',
+	})
 
 	try {
 		// verify we can send graphql queries to the server
@@ -48,6 +58,7 @@ export default async function init(
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
+				...headers,
 			},
 			body: JSON.stringify({
 				query: getIntrospectionQuery(),
@@ -74,8 +85,6 @@ export default async function init(
 	// framework
 	if (framework === 'kit') {
 		console.log('✨ SvelteKit')
-	} else if (framework === 'sapper') {
-		console.log('✨ Sapper')
 	} else {
 		console.log('✨ Svelte')
 	}
@@ -99,9 +108,9 @@ export default async function init(
 
 	if (framework === 'sapper') {
 		console.log(
-			'⚠️  Support for sapper will be dropped in the next minor version. If this is a problem, please start a discussion on GitHub.'
+			'❌  Sorry, Houdini no longer supports Sapper. Please downgrade to v0.15.x or migrate to SvelteKit.'
 		)
-		console.log()
+		process.exit(1)
 	}
 
 	// the location for the schema
@@ -115,13 +124,14 @@ export default async function init(
 	const houdiniClientPath = typescript
 		? path.join(sourceDir, 'client.ts')
 		: path.join(sourceDir, 'client.js')
+	// houdini client import path
+	const houdiniClientImport = './src/client'
 
 	console.log('🚧 Generating project files...')
 
 	await updatePackageJSON(targetPath)
 
-	// generate the necessary files
-	await writeSchema(url, path.join(targetPath, schemaPath), args?.pullHeader)
+	await pullSchema(url, path.join(targetPath, schemaPath), headers)
 	await writeConfigFile({
 		targetPath,
 		configPath,
@@ -129,42 +139,43 @@ export default async function init(
 		framework,
 		module,
 		url,
+		houdiniClientImport,
 	})
 	await writeFile(houdiniClientPath, networkFile(url, typescript))
 	await graphqlRCFile(targetPath)
 	await gitIgnore(targetPath)
 
-	// in kit, the $houdini alias is supported add the necessary stuff for the $houdini alias
-	if (framework !== 'kit') {
-		await aliasPaths(targetPath)
-	}
-	// only update the layout file if we're generating a kit or sapper project
-	if (framework !== 'svelte') {
-		await updateLayoutFile(targetPath, typescript)
-	}
-	// add the sveltekit config file
+	// Config files for:
+	// - kit only
+	// - svelte only
+	// - both (with small variants)
 	if (framework === 'kit') {
-		await updateKitConfig(targetPath)
+		await updateLayoutFile(targetPath, typescript)
+		await updateSvelteConfig(targetPath)
+	} else if (framework === 'svelte') {
+		await updateSvelteMainJs(targetPath)
 	}
+	await updateViteConfig(targetPath, framework)
+	await tjsConfig(targetPath, framework)
 
 	// we're done!
 	console.log()
 	console.log('🎩 Welcome to Houdini!')
 	console.log(`
 👉 Next Steps
-1️⃣  Finalize your installation: npm/yarn/pnpm install 
+1️⃣  Finalize your installation: npm/yarn/pnpm install
 2️⃣  Start your application: npm run dev
 `)
 }
 
-const networkFile = (url: string, typescript: boolean) => `
-import { HoudiniClient${typescript ? ', type RequestHandlerArgs' : ''} } from '$houdini';
+const networkFile = (url: string, typescript: boolean) => `import { HoudiniClient${
+	typescript ? ', type RequestHandlerArgs' : ''
+} } from '$houdini';
 
 async function fetchQuery({
 	fetch,
 	text = '',
 	variables = {},
-	session,
 	metadata
 }${typescript ? ': RequestHandlerArgs' : ''}) {
 	const url = import.meta.env.VITE_GRAPHQL_ENDPOINT || '${url}';
@@ -191,20 +202,24 @@ const writeConfigFile = async ({
 	framework,
 	module,
 	url,
-	sourceGlob = 'src/**/*.{svelte,gql,graphql}',
+	houdiniClientImport,
 }: {
 	targetPath: string
 	configPath: string
 	schemaPath: string
-	framework: 'kit' | 'sapper' | 'svelte'
+	framework: 'kit' | 'svelte'
 	module: 'esm' | 'commonjs'
 	url: string
-	sourceGlob?: string
+	houdiniClientImport: string
 }): Promise<boolean> => {
 	const config: ConfigFile = {
-		schemaPath,
-		sourceGlob,
+		client: houdiniClientImport,
 		apiUrl: url,
+	}
+
+	// if it's different for defaults, write it down
+	if (schemaPath !== './schema.graphql') {
+		config.schemaPath = schemaPath
 	}
 	if (module !== 'esm') {
 		config.module = module
@@ -217,13 +232,13 @@ const writeConfigFile = async ({
 	const configObj = JSON.stringify(config, null, 4)
 	const content =
 		module === 'esm'
-			? // SvelteKit default config
+			? // ESM default config
 			  `/** @type {import('houdini').ConfigFile} */
 const config = ${configObj}
 
 export default config
 `
-			: // sapper default config
+			: // CommonJS default config
 			  `/** @type {import('houdini').ConfigFile} */
 const config = ${configObj}
 
@@ -239,7 +254,7 @@ module.exports = config
 	return false
 }
 
-async function aliasPaths(targetPath: string) {
+async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 	// if there is no tsconfig.json, there could be a jsconfig.json
 	let configFile = path.join(targetPath, 'tsconfig.json')
 	try {
@@ -257,26 +272,39 @@ async function aliasPaths(targetPath: string) {
 
 	// check if the tsconfig.json file exists
 	try {
-		const tsConfigFile = await readFile(configFile)
-		if (tsConfigFile) {
-			var tsConfig = JSON.parse(tsConfigFile)
+		const tjsConfigFile = await readFile(configFile)
+		if (tjsConfigFile) {
+			var tjsConfig = JSON.parse(tjsConfigFile)
 		}
 
-		tsConfig.compilerOptions.paths = {
-			...tsConfig.compilerOptions.paths,
-			$houdini: ['./$houdini/'],
+		// new rootDirs (will overwrite the one in "extends": "./.svelte-kit/tsconfig.json")
+		if (framework === 'kit') {
+			tjsConfig.compilerOptions.rootDirs = ['.', './.svelte-kit/types', './.$houdini/types']
+		} else {
+			tjsConfig.compilerOptions.rootDirs = ['.', './.$houdini/types']
 		}
 
-		await writeFile(configFile, JSON.stringify(tsConfig, null, 4))
+		// In kit, no need to add manually the path. Why? Because:
+		//   The config [svelte.config.js => kit => alias => $houdini]
+		//   will make this automatically in "extends": "./.svelte-kit/tsconfig.json"
+		// In svelte, we need to add the path manually
+		if (framework === 'svelte') {
+			tjsConfig.compilerOptions.paths = {
+				...tjsConfig.compilerOptions.paths,
+				$houdini: ['./$houdini/'],
+			}
+		}
+
+		await writeFile(configFile, JSON.stringify(tjsConfig, null, 4))
 	} catch {}
 
 	return false
 }
 
 async function updateLayoutFile(targetPath: string, ts: boolean) {
-	const layoutFile = path.join(targetPath, 'src', 'routes', '__layout.svelte')
+	const layoutFile = path.join(targetPath, 'src', 'routes', '+layout.svelte')
 
-	const content = `<script context="module" ${ts ? ' lang="ts"' : ''}>
+	const content = `<script ${ts ? ' lang="ts"' : ''}>
 	import client from '../client'
 
 	client.init()
@@ -292,11 +320,10 @@ async function updateLayoutFile(targetPath: string, ts: boolean) {
 	})
 }
 
-async function updateKitConfig(targetPath: string) {
-	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
+async function updateViteConfig(targetPath: string, framework: 'kit' | 'svelte') {
 	const viteConfigPath = path.join(targetPath, 'vite.config.js')
 
-	const oldViteConfig = `import { sveltekit } from '@sveltejs/kit/vite';
+	const oldViteConfig1 = `import { sveltekit } from '@sveltejs/kit/vite';
 
 /** @type {import('vite').UserConfig} */
 const config = {
@@ -305,39 +332,70 @@ const config = {
 
 export default config;
 `
-	const viteConfig = `import { sveltekit } from '@sveltejs/kit/vite';
-import path from 'path'
-import watchAndRun from '@kitql/vite-plugin-watch-and-run'
+
+	const oldViteConfig2 = `import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [svelte()]
+})
+`
+
+	const viteConfigKit = `import { sveltekit } from '@sveltejs/kit/vite';
+import houdini from 'houdini/vite';
 
 /** @type {import('vite').UserConfig} */
 const config = {
-	plugins: [
-		sveltekit(),
-		watchAndRun([
-			{
-				name: 'Houdini',
-				watch: path.resolve('src/**/*.(gql|graphql|svelte)'),
-				run: 'npm run generate',
-				delay: 100,
-				watchKind: ['ready', 'add', 'change', 'unlink'],
-			},
-			{
-				name: 'Houdini',
-				watch: path.resolve('houdini.config.js'),
-				run: 'npm run generate',
-				delay: 100,
-			}, 
-		])
-	],
-	server: {
-		fs: {
-			allow: ['.'],
-		},
-	},
-};
+	plugins: [houdini(), sveltekit()],
+}
 
 export default config;
 `
+
+	const viteConfigSvelte = `import { svelte } from '@sveltejs/vite-plugin-svelte';
+import houdini from 'houdini/vite';
+
+/** @type {import('vite').UserConfig} */
+const config = {
+	plugins: [houdini(), svelte()],
+}
+
+export default config;
+`
+
+	// write the vite config file
+	await updateFile({
+		projectPath: targetPath,
+		filepath: viteConfigPath,
+		content: framework === 'kit' ? viteConfigKit : viteConfigSvelte,
+		old: [oldViteConfig1, oldViteConfig2],
+	})
+}
+
+async function updateSvelteConfig(targetPath: string) {
+	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
+
+	const newContent = `import adapter from '@sveltejs/adapter-auto';
+	import preprocess from 'svelte-preprocess';
+	
+	/** @type {import('@sveltejs/kit').Config} */
+	const config = {
+		// Consult https://github.com/sveltejs/svelte-preprocess
+		// for more information about preprocessors
+		preprocess: preprocess(),
+	
+		kit: {
+			adapter: adapter(),
+			alias: {
+				$houdini: './$houdini',
+			}
+		}
+	};
+	
+	export default config;
+`
+
 	const oldSvelteConfig1 = `import adapter from '@sveltejs/adapter-auto';
 import preprocess from 'svelte-preprocess';
 
@@ -366,62 +424,63 @@ const config = {
 export default config;
 `
 
-	const svelteConfig = `import adapter from '@sveltejs/adapter-auto';
-import preprocess from 'svelte-preprocess';
-import houdini from 'houdini/preprocess';
-
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	// Consult https://github.com/sveltejs/svelte-preprocess
-	// for more information about preprocessors
-	preprocess: [preprocess(), houdini()],
-
-	kit: {
-		adapter: adapter(),
-		alias: {
-			$houdini: './$houdini',
-		}
-	}
-};
-
-export default config;
-`
-
 	// write the svelte config file
 	await updateFile({
 		projectPath: targetPath,
 		filepath: svelteConfigPath,
-		content: svelteConfig,
+		content: newContent,
 		old: [oldSvelteConfig1, oldSvelteConfig2],
 	})
+}
 
-	// write the vite config file
+async function updateSvelteMainJs(targetPath: string) {
+	const svelteMainJsPath = path.join(targetPath, 'main.js')
+
+	const newContent = `import client from "../client";
+import './app.css'
+import App from './App.svelte'
+
+client.init();
+
+const app = new App({
+	target: document.getElementById('app')
+})
+
+export default app
+`
+
+	const oldContent = `import './app.css'
+import App from './App.svelte'
+
+const app = new App({
+	target: document.getElementById('app')
+})
+
+export default app
+`
+
 	await updateFile({
 		projectPath: targetPath,
-		filepath: viteConfigPath,
-		content: viteConfig,
-		old: [oldViteConfig],
+		filepath: svelteMainJsPath,
+		content: newContent,
+		old: [oldContent],
 	})
 }
 
 async function updatePackageJSON(targetPath: string) {
+	let packageJSON: Record<string, any> = {}
+
 	const packagePath = path.join(targetPath, 'package.json')
 	const packageFile = await readFile(packagePath)
 	if (packageFile) {
-		var packageJSON = JSON.parse(packageFile)
+		packageJSON = JSON.parse(packageFile)
 	}
 
-	// add a generate script
-	packageJSON.scripts = {
-		...packageJSON.scripts,
-		generate: 'houdini generate',
-	}
-
-	// and houdini should be a dev dependency
+	// houdini & graphql should be a dev dependencies
 	packageJSON.devDependencies = {
 		...packageJSON.devDependencies,
 		houdini: '^HOUDINI_VERSION',
-		'@kitql/vite-plugin-watch-and-run': '^0.4.2',
+		graphql: '^16.6.0',
 	}
 
 	await writeFile(packagePath, JSON.stringify(packageJSON, null, 4))
@@ -481,8 +540,6 @@ async function detectTools(cwd: string): Promise<DetectedTools> {
 	let framework: ConfigFile['framework'] = 'svelte'
 	if (hasDependency('@sveltejs/kit')) {
 		framework = 'kit'
-	} else if (hasDependency('sapper')) {
-		framework = 'sapper'
 	}
 
 	let typescript = false
@@ -520,17 +577,15 @@ async function updateFile({
 		// show a message before we prompt their response
 		console.log()
 		console.log(`⚠️  ${relPath} already exists. We'd like to replace it with:
-	
+
 ${content}`)
 
 		// ask the user if we should continue
-		const { done } = await inquirer.prompt<{ done: boolean }>([
-			{
-				name: 'done',
-				type: 'confirm',
-				message: 'Should we overwrite the file? If not, please update it manually.',
-			},
-		])
+		const { done } = await prompts({
+			name: 'done',
+			type: 'confirm',
+			message: 'Should we overwrite the file? If not, please update it manually.',
+		})
 
 		if (!done) {
 			return

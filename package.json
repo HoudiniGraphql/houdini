@@ -2,11 +2,6 @@
 	"name": "houdini",
 	"version": "0.15.9",
 	"description": "The disappearing graphql client for SvelteKit",
-	"workspaces": [
-		"site",
-		"integration",
-		"."
-	],
 	"type": "module",
 	"bin": "./build/cmd.js",
 	"exports": {
@@ -16,43 +11,53 @@
 		"./preprocess": {
 			"import": "./build/preprocess-esm/index.js",
 			"require": "./build/preprocess-cjs/index.js"
+		},
+		"./vite": {
+			"import": "./build/vite-esm/index.js",
+			"require": "./build/vite-cjs/index.js"
 		}
 	},
 	"typesVersions": {
 		"*": {
-			"preprocess": [
+			"vite": [
+				"build/vite/index.d.ts"
+			],
+			"svelte-preprocess": [
 				"build/preprocess/index.d.ts"
 			]
 		}
 	},
 	"types": "./build/cmd/index.d.ts",
 	"scripts": {
-		"tests": "NODE_ENV=test node --experimental-vm-modules node_modules/.bin/jest",
-		"tests:integration": "yarn workspace integration tests --workers 5",
-		"tests:watch": "node --experimental-vm-modules node_modules/.bin/jest  --watch",
-		"build": "concurrently \"npm run build:runtime\" \"npm run build:cmd\" \"npm run build:preprocess\" -n \"run,cmd,pre\" -c \"blue.bold,green.bold,yellow.bold\" && npm run build:typeModule",
+		"tests": "vitest",
+		"build": "concurrently \"npm run build:runtime\" \"npm run build:cmd\" \"npm run build:preprocess\"  \"npm run build:vite\"  -n \"run,cmd,pre,vit\" -c \"blue.bold,green.bold,yellow.bold,cyan.bold\" && npm run build:typeModule",
 		"build:runtime": "concurrently \"npm run build:runtime:esm\" \"npm run build:runtime:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
-		"build:runtime:cjs": "tsc --p tsconfig.runtime.cjs.json",
-		"build:runtime:esm": "tsc --p tsconfig.runtime.esm.json",
+		"build:runtime:cjs": "tsc --p tsconfig.runtime.cjs.json && WHICH=cjs node ./runtimeMeta",
+		"build:runtime:esm": "tsc --p tsconfig.runtime.esm.json && WHICH=esm node ./runtimeMeta",
 		"build:preprocess": "concurrently \"npm run build:preprocess:esm\" \"npm run build:preprocess:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
-		"build:preprocess:cjs": "TARGET=cjs WHICH=preprocess rollup --config rollup.config.js",
-		"build:preprocess:esm": "TARGET=esm WHICH=preprocess rollup --config rollup.config.js",
+		"build:preprocess:cjs": "cross-env TARGET=cjs WHICH=preprocess rollup --config rollup.config.js",
+		"build:preprocess:esm": "cross-env TARGET=esm WHICH=preprocess rollup --config rollup.config.js",
+		"build:vite": "concurrently \"npm run build:vite:esm\" \"npm run build:vite:cjs\" -n \"esm,cjs\" -c \"green,yellow\"",
+		"build:vite:cjs": "cross-env TARGET=cjs WHICH=vite rollup --config rollup.config.js",
+		"build:vite:esm": "cross-env TARGET=esm WHICH=vite rollup --config rollup.config.js",
 		"build:cmd": "concurrently \"npm run build:cmd:main\" \"npm run build:cmd:types\" -n \"exe,typ\" -c \"green,yellow\"",
-		"build:cmd:main": "TARGET=esm WHICH=cmd rollup --config rollup.config.js",
+		"build:cmd:main": "cross-env TARGET=esm WHICH=cmd rollup --config rollup.config.js",
 		"build:cmd:types": "tsc --p tsconfig.root.json",
-		"build:typeModule": "./typeModule.sh",
+		"build:typeModule": "node ./typeModule",
 		"format": "prettier \"src/**/*.ts\"",
 		"format:write": "npm run format -- -w",
 		"format:check": "npm run format -- --check",
+		"lint": "eslint --ignore-path .prettierignore .",
 		"changeset": "changeset",
 		"version": "changeset version",
-		"release": "yarn build && changeset publish",
+		"release": "npm run build && changeset publish",
 		"postinstall": "node -e \"try { require('husky').install(); console.log('ran prepack') } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
 		"prepack": "pinst --disable",
 		"postpack": "pinst --enable"
 	},
 	"devDependencies": {
-		"@babel/core": "^7.12.10",
+		"@babel/core": "^7.18.10",
+		"@babel/plugin-transform-typescript": "^7.18.12",
 		"@babel/preset-env": "^7.12.11",
 		"@babel/preset-typescript": "^7.16.7",
 		"@changesets/changelog-git": "^0.1.11",
@@ -62,28 +67,42 @@
 		"@rollup/plugin-json": "^4.1.0",
 		"@rollup/plugin-node-resolve": "^13.2.0",
 		"@rollup/plugin-replace": "^4.0.0",
-		"@sveltejs/kit": "1.0.0-next.370",
+		"@sveltejs/kit": "1.0.0-next.411",
+		"@theguild/eslint-config": "^0.0.1-alpha-8209242.0",
+		"@trivago/prettier-plugin-sort-imports": "^3.3.0",
 		"@types/fs-extra": "^9.0.13",
 		"@types/glob": "^7.2.0",
 		"@types/inquirer": "^7.3.1",
 		"@types/jest": "^26.0.23",
+		"@types/micromatch": "^4.0.2",
+		"@types/minimatch": "^3.0.5",
 		"@types/mock-fs": "^4.13.0",
+		"@types/node": "^18.7.6",
 		"@types/node-fetch": "^2.6.1",
+		"@types/prompts": "^2.0.14",
+		"@vitest/ui": "^0.21.1",
+		"ast-types": "^0.14.2",
 		"babel-jest": "^26.6.3",
 		"babel-plugin-transform-import-meta": "^2.1.1",
 		"concurrently": "^7.1.0",
+		"eslint": "^8.21.0",
 		"fs-extra": "^10.0.1",
 		"husky": "^6.0.0",
 		"install": "^0.13.0",
 		"jest": "^26.6.3",
+		"jest-snapshot": "^28.1.3",
+		"memfs": "^3.4.7",
+		"memory-fs": "^0.5.0",
+		"micromatch": "^4.0.5",
+		"minimatch": "^5.1.0",
 		"mock-fs": "^4.13.0",
 		"npm": "^8.6.0",
 		"pinst": "^3.0.0",
 		"prettier": "^2.0.5",
 		"pretty-quick": "^3.1.1",
+		"prompts": "^2.4.2",
 		"rollup": "2.68.0",
 		"rollup-plugin-typescript2": "^0.31.2",
-		"ts-ast-serializer": "^1.0.1",
 		"ts-jest": "^26.0.0",
 		"ts-node": "^9.1.1",
 		"tslib": "^2.4.0",
@@ -93,8 +112,11 @@
 		"@babel/parser": "^7.17.2",
 		"@graphql-tools/schema": "^8.3.7",
 		"@kitql/helper": "^0.3.4",
+		"@kitql/vite-plugin-watch-and-run": "^0.4.2",
+		"@types/memory-fs": "^0.3.3",
 		"babylon": "^7.0.0-beta.47",
 		"commander": "^7.1.0",
+		"cross-env": "^7.0.3",
 		"estree-walker": "^2.0.2",
 		"glob": "^8.0.1",
 		"global": "^4.4.0",
@@ -104,10 +126,11 @@
 		"node-fetch": "^2.6.1",
 		"recast": "^0.20.4",
 		"remove": "^0.1.5",
-		"svelte": "^3.47.0"
+		"svelte": "^3.49.0",
+		"vite": "^3.0.7",
+		"vitest": "^0.21.1"
 	},
 	"peerDependencies": {
 		"graphql": "^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0"
-	},
-	"packageManager": "yarn@3.2.0"
+	}
 }

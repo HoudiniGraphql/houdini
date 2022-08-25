@@ -1,9 +1,8 @@
-// externals
-import * as recast from 'recast'
-import * as graphql from 'graphql'
 import { StatementKind, TSPropertySignatureKind } from 'ast-types/gen/kinds'
-// locals
-import { Config, ensureImports } from '../../../common'
+import * as graphql from 'graphql'
+import * as recast from 'recast'
+
+import { Config, ensureImports, HoudiniError } from '../../../common'
 import { unwrapType } from '../../utils'
 import { tsTypeReference } from './typeReference'
 
@@ -35,7 +34,7 @@ export function addReferencedInputTypes(
 	// if we ran into a union
 	if (graphql.isUnionType(type)) {
 		// we don't support them yet
-		throw { filepath, message: 'Input Unions are not supported yet. Sorry!' }
+		throw new HoudiniError({ filepath, message: 'Input Unions are not supported yet. Sorry!' })
 	}
 
 	// track that we are processing the type

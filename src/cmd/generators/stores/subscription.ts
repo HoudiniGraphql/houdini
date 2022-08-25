@@ -1,42 +1,43 @@
-// externals
-import path from 'path'
 import * as graphql from 'graphql'
-// locals
-import { Config } from '../../../common'
+import path from 'path'
+
+import { Config, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
-import { writeFile } from '../../utils'
 
 export async function generateSubscriptionStore(config: Config, doc: CollectedGraphQLDocument) {
 	const fileName = doc.name
 	const storeName = config.storeName(doc)
+	const globalStoreName = config.globalStoreName(doc)
 	const artifactName = `${doc.name}`
 
 	// the content of the store
-	const storeContent = `import { houdiniConfig } from '$houdini'
-import artifact from '../artifacts/${artifactName}'
-import { subscriptionStore } from '../runtime/stores'
-import { defaultConfigValues } from '../runtime/lib'
+	const storeContent = `import artifact from '../artifacts/${artifactName}'
+import { SubscriptionStore } from '../runtime/stores'
 
-export const ${storeName} = subscriptionStore({
-    config: defaultConfigValues(houdiniConfig),
-	artifact,
-})
+export class ${storeName} extends SubscriptionStore {
+	constructor() {
+		super({
+			artifact,
+		})
+	}
+}
 
-export default ${storeName}
+export const ${globalStoreName} = new ${storeName}()
+
+export default ${globalStoreName}
 `
 
-	// look for the operation
-	const operations = doc.document.definitions.filter(
-		({ kind }) => kind === graphql.Kind.OPERATION_DEFINITION
-	) as graphql.OperationDefinitionNode[]
-	const inputs = operations[0]?.variableDefinitions
-	const withVariableInputs = inputs && inputs.length > 0
-	const VariableInputsType = withVariableInputs ? `${artifactName}["input"]` : 'null'
-	// the type definitions for the store
-	const typeDefs = `import type { ${artifactName}, ${artifactName}$result, CachePolicy } from '$houdini'
-import { SubscriptionStore } from '../runtime/lib/types'
+	const _input = `${artifactName}$input`
+	const _data = `${artifactName}$result`
 
-export declare const ${storeName}: SubscriptionStore<${artifactName}$result | undefined, ${VariableInputsType}>
+	// the type definitions for the store
+	const typeDefs = `import type { ${_input}, ${_data}, SubscriptionStore } from '$houdini'
+
+export declare class ${storeName} extends SubscriptionStore<${_data} | undefined, ${_input}> {
+	constructor() {}
+}
+
+export const ${globalStoreName}: ${storeName}
 
 export default ${storeName}
 `
