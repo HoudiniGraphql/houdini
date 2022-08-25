@@ -116,7 +116,7 @@
 			target="_blank"
 			id="gh-link"
 		>
-			<img src="/images/github.svg" alt="Github" height="20px" />
+			<img src="/images/github.svg" alt="GitHub" height="20px" />
 		</a>
 	</nav>
 </header>

@@ -241,6 +241,6 @@ Admittedly this example is a little bit complicated for a first-time introductio
 
 ## What's next?
 
-This is the last topic we wanted to cover as part of the guide! Thank you so much for getting all the way through - we really appreciate the dedication. If there were any sections that were confusing, or changes you think would be helpful, please open up a discussion on Github.
+This is the last topic we wanted to cover as part of the guide! Thank you so much for getting all the way through - we really appreciate the dedication. If there were any sections that were confusing, or changes you think would be helpful, please open up a discussion on GitHub.
 
 If you want to read more about what Houdini can do, we recommending checking out the [Working with GraphQL](/guides/working-with-graphql) guide next.
