@@ -6,5 +6,19 @@
 		"integration": "0.0.1",
 		"site": "0.0.1"
 	},
-	"changesets": []
+	"changesets": [
+		"breezy-birds-end",
+		"cool-brooms-shop",
+		"fifty-doors-wait",
+		"good-trees-repair",
+		"green-melons-lick",
+		"mean-colts-sleep",
+		"neat-taxis-help",
+		"nice-items-fly",
+		"ninety-balloons-exercise",
+		"silent-pandas-design",
+		"slow-planes-sort",
+		"swift-ducks-camp",
+		"ten-pets-mix"
+	]
 }
