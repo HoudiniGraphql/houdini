@@ -1,4 +1,4 @@
-import filesystem from 'fs'
+import filesystem, { Dirent, PathLike } from 'fs'
 import type { Plugin } from 'vite'
 
 import { Config } from '../common'
@@ -73,22 +73,62 @@ filesystem.statSync = function (path: string, options: Parameters<filesystem.Sta
 
 // @ts-ignore
 filesystem.readdirSync = function (
-	filepath,
+	filepath: PathLike,
 	options: Parameters<typeof filesystem.readdirSync>[1]
 ) {
 	if (!filepath.toString().includes('routes')) return _readDirSync(filepath, options)
-	const result: string[] = _readDirSync(filepath, options).map((res) => res.toString())
+
+	// WORKAROUND: Using `unknown` type because our inherited options are not fully exhaustive.
+	const result: unknown[] = _readDirSync(filepath, options)
+
+	function getFileName(file: unknown) {
+		if (file instanceof Dirent) {
+			return file.name
+		} else if (typeof file === 'string') {
+			return file
+		} else {
+			return ''
+		}
+	}
+
+	function hasFileName(name: string) {
+		return result.some((file) => {
+			return getFileName(file) === name
+		})
+	}
+
+	function pushVirtualFileName(name: string) {
+		if (options.withFileTypes) {
+			const dirent: Dirent = {
+				name,
+				isFile: () => true,
+				isDirectory: () => false,
+				isBlockDevice: () => false,
+				isFIFO: () => false,
+				isCharacterDevice: () => false,
+				isSocket: () => false,
+				isSymbolicLink: () => false,
+			}
+
+			result.push(dirent)
+		} else {
+			result.push(name)
+		}
+	}
 
 	// if there is a route component but no script, add the script
 	const loadFiles = ['+page.js', '+page.ts', '+page.server.js', '+page.server.ts']
-	if (result.includes('+page.svelte') && !result.find((fp) => loadFiles.includes(fp))) {
-		result.push('+page.js')
+	if (hasFileName('+page.svelte') && !result.find((fp) => loadFiles.includes(getFileName(fp)))) {
+		pushVirtualFileName('+page.js')
 	}
 
 	// if there is a layout file but no layout.js, we need to make one
 	const layoutLoadFiles = ['+layout.ts', '+layout.js']
-	if (result.includes('+layout.svelte') && !result.find((fp) => layoutLoadFiles.includes(fp))) {
-		result.push('+layout.js')
+	if (
+		hasFileName('+layout.svelte') &&
+		!result.find((fp) => layoutLoadFiles.includes(getFileName(fp)))
+	) {
+		pushVirtualFileName('+layout.js')
 	}
 
 	return result
