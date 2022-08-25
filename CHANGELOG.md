@@ -2,31 +2,27 @@
 
 ## 0.16.0-next.0
 
-### Minor Changes
+### ⚠️ Breaking Changes
 
 -   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - remove inline document functions query, paginatedQuery, subscription, and mutation
 
 *   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - renamed `generate --pull-header` to `generate --header` and `generate --persist-output` to `generate --output`
 
--   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - added support for page queries
-
 *   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - inverted argument order for inline fragments
-
--   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - inline document functions return store references directly
 
 *   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Stores are now classes and need to be instantiated with `new MyQueryStore()`
 
 -   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - query stores must now be passed to routes as props instead of globally imported
 
-*   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - SvelteKit projects must now use houdini/kit as a vite plugin
+*   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - SvelteKit projects must now use `houdini/kit` as a vite plugin
 
 -   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - `config.sourceGlob` has been renamed to `config.include` and is now optional. Also added `config.exclude` to filter out files matched by `config.include`
 
-*   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - renamed `houdini/preprocess` to `houdini/svelte-preprocess`
+### ✨ Features
 
-### Patch Changes
+-   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - added support for page queries
 
--   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - You can now define the prefix of your global stores with globalStorePrefix param in the config.
+-   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@jycouet](https://github.com/jycouet)! - You can now define the prefix of your global stores with globalStorePrefix param in the config.
 
 *   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - graphql tags return store references
 
