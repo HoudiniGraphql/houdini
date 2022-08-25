@@ -67,7 +67,7 @@ importers:
             remove: ^0.1.5
             rollup: 2.68.0
             rollup-plugin-typescript2: ^0.31.2
-            svelte: ^3.47.0
+            svelte: ^3.49.0
             ts-jest: ^26.0.0
             ts-node: ^9.1.1
             tslib: ^2.4.0
