@@ -152,7 +152,8 @@ export default async function typeCheck(
 					// @ts-ignore
 					// look at the next entry for a list or something else that would make us
 					// require a parent ID
-					rootType = rootType?.getFields()[parent.name.value].type
+					// if [parent.name.value] doesnt't exist, the document is not valid and it will be catch later
+					rootType = rootType?.getFields()[parent.name.value]?.type
 				}
 
 				// if we found a pagination directive, make sure that it doesn't

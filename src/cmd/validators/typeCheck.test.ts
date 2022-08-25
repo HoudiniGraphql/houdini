@@ -96,6 +96,26 @@ const table: Row[] = [
 		],
 	},
 	{
+		title: '@list on query on field that doesn t exist',
+		pass: false,
+		documents: [
+			`
+                query TestQuery {
+					user {
+						friends_NOT_EXISTING_FIELD @list(name: "Friends") {
+							id
+						}
+					}
+                }
+            `,
+		],
+		check: (e: any) => {
+			expect(e.message).toMatchInlineSnapshot(
+				'"Could not find definition of friends_NOT_EXISTING_FIELD in User"'
+			)
+		},
+	},
+	{
 		title: '@list with parentID on query',
 		pass: true,
 		documents: [
