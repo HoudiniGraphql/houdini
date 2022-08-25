@@ -16,16 +16,16 @@
 <script>
     import { query, graphql } from '$houdini'
 
-    const { data } = query(graphql`
-        query AllTodoItems {
+    const AllItems = graphql`
+        query AllItems {
             items {
                 text
             }
         }
-    `)
+    `
 </script>
 
-{#each $data.items as item}
+{#each $AllItems.data.items as item}
     <div>{item.text}</div>
 {/each}
 ```
