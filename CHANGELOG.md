@@ -1,5 +1,11 @@
 # houdini
 
+## 0.16.0-next.2
+
+### Patch Changes
+
+-   [#483](https://github.com/HoudiniGraphql/houdini/pull/483) [`a69138a`](https://github.com/HoudiniGraphql/houdini/commit/a69138ae2908b0517cdbfe8b544b634e6f96df53) Thanks [@jycouet](https://github.com/jycouet)! - fix: check field existence before @list directive to have better error msg
+
 ## 0.16.0-next.1
 
 ### Patch Changes
