@@ -1,5 +1,11 @@
 # houdini
 
+## 0.16.0-next.1
+
+### Patch Changes
+
+-   [#479](https://github.com/HoudiniGraphql/houdini/pull/479) [`9a9d376`](https://github.com/HoudiniGraphql/houdini/commit/9a9d376d7d707889a5ca77a5b98ebddcef7d6272) Thanks [@janvotava](https://github.com/janvotava)! - fix readDirSync patch (fixing file.isDirectory is not a function)
+
 ## 0.16.0-next.0
 
 ### ⚠️ Breaking Changes
