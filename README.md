@@ -14,7 +14,8 @@
 
 ```svelte
 <script>
-    import { query, graphql } from '$houdini'
+    // src/routes/items/+page.svelte
+    import { graphql } from '$houdini'
 
     const AllItems = graphql`
         query AllItems {
