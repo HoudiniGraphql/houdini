@@ -41,7 +41,7 @@ Ideally, you shouldn't need to run `generate` ever again! It'll even get run whe
 
 ### New Inline Document API
 
-`data` is now a magic word in SvelteKit, and so it's no longer possible to destructure `data` out of the result of your store without interfering with SveltKit. To work around this, inline documents now work
+`data` is now a magic word in SvelteKit, and so it's no longer possible to destructure `data` out of the result of your store without interfering with SvelteKit. To work around this, inline documents now work
 with the underlying query store directly
 
 ```svelte
