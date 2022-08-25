@@ -98,7 +98,7 @@ filesystem.readdirSync = function (
 	}
 
 	function pushVirtualFileName(name: string) {
-		if (options.withFileTypes) {
+		if (options?.withFileTypes) {
 			const dirent: Dirent = {
 				name,
 				isFile: () => true,
