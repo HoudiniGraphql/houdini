@@ -81,17 +81,20 @@ test('updates the network file with the client path', async function () {
 	// verify contents
 	expect(parsedQuery).toMatchInlineSnapshot(`
 		import { error, redirect } from '@sveltejs/kit';
+		import { get_current_component } from 'svelte/internal';
 		import { get } from 'svelte/store';
+		import { isBrowser, isDev } from '../adapter';
 		import cache from '../cache';
 		import * as log from './log';
 		import { marshalInputs } from './scalars';
 		import { CachePolicy, DataSource, } from './types';
+		export const sessionKeyName = 'HOUDINI_SESSION_KEY_NAME';
 		export class HoudiniClient {
 		    constructor(networkFn, subscriptionHandler) {
 		        this.fetchFn = networkFn;
 		        this.socket = subscriptionHandler;
 		    }
-		    async sendRequest(ctx, params) {
+		    async sendRequest(ctx, params, session) {
 		        let url = '';
 		        // invoke the function
 		        const result = await this.fetchFn({
@@ -106,6 +109,7 @@ test('updates the network file with the client path', async function () {
 		            },
 		            ...params,
 		            metadata: ctx.metadata,
+		            session: session || this.clientSideSession,
 		        });
 		        // return the result
 		        return {
@@ -114,6 +118,33 @@ test('updates the network file with the client path', async function () {
 		        };
 		    }
 		    init() { }
+		    setServerSession(event, session) {
+		        ;
+		        event.locals[sessionKeyName] = session;
+		    }
+		    passServerSession(event) {
+		        if (isDev && !(sessionKeyName in event.locals)) {
+		            // todo: Warn the user that houdini session is not setup correctly.
+		        }
+		        return {
+		            [sessionKeyName]: event.locals[sessionKeyName],
+		        };
+		    }
+		    receiveServerSession(data) {
+		        // This may only be called during initialization of a component.
+		        // This is not really a technical limitation but to prevent users from sharing data on the server.
+		        // This call will throw outside of component initialization.
+		        get_current_component();
+		        this.clientSideSession = data[sessionKeyName];
+		    }
+		    setSession(session) {
+		        // This may not be called on the server. Otherwise multiple requests would share the session as this class is a global singleton on the server.
+		        if (!isBrowser) {
+		            // todo: Warn the user about the above fact.
+		            throw new Error();
+		        }
+		        this.clientSideSession = session;
+		    }
 		}
 		export class Environment extends HoudiniClient {
 		    constructor(...args) {
@@ -132,15 +163,15 @@ test('updates the network file with the client path', async function () {
 		}
 		// This function is responsible for simulating the fetch context and executing the query with fetchQuery.
 		// It is mainly used for mutations, refetch and possible other client side operations in the future.
-		export async function executeQuery({ artifact, variables, cached, config, fetch, metadata, }) {
+		export async function executeQuery({ artifact, variables, session, cached, fetch, metadata, }) {
 		    const { result: res, partial } = await fetchQuery({
 		        context: {
 		            fetch: fetch !== null && fetch !== void 0 ? fetch : globalThis.fetch.bind(globalThis),
 		            metadata,
 		        },
-		        config,
 		        artifact,
 		        variables,
+		        session,
 		        cached,
 		    });
 		    // we could have gotten a null response
@@ -156,7 +187,7 @@ test('updates the network file with the client path', async function () {
 		    // @ts-ignore
 		    return (await import('../../../my/client/path')).default;
 		}
-		export async function fetchQuery({ artifact, variables, cached = true, policy, context, }) {
+		export async function fetchQuery({ artifact, variables, session, cached = true, policy, context, }) {
 		    const client = await getCurrentClient();
 		    // if there is no environment
 		    if (!client) {
@@ -211,7 +242,7 @@ test('updates the network file with the client path', async function () {
 		        text: artifact.raw,
 		        hash: artifact.hash,
 		        variables,
-		    });
+		    }, session);
 		    return {
 		        result: result.body,
 		        source: result.ssr ? DataSource.Ssr : DataSource.Network,

@@ -80,6 +80,7 @@ export class MutationStore<
 				config,
 				artifact: this.artifact,
 				variables: newVariables,
+				session: undefined,
 				cached: false,
 				metadata,
 				fetch,

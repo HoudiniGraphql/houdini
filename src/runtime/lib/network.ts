@@ -1,6 +1,8 @@
-import { LoadEvent, error, redirect } from '@sveltejs/kit'
+import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
+import { get_current_component } from 'svelte/internal'
 import { get } from 'svelte/store'
 
+import { isBrowser, isDev } from '../adapter'
 import cache from '../cache'
 import { QueryResult } from '../stores/query'
 import type { ConfigFile } from './config'
@@ -15,18 +17,25 @@ import {
 	SubscriptionArtifact,
 } from './types'
 
-export class HoudiniClient {
-	private fetchFn: RequestHandler<any>
-	socket: SubscriptionHandler | null | undefined
+export const sessionKeyName = 'HOUDINI_SESSION_KEY_NAME'
 
-	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
+export class HoudiniClient<SessionData = undefined> {
+	private fetchFn: RequestHandler<any, SessionData | undefined>
+	socket: SubscriptionHandler | null | undefined
+	private clientSideSession: SessionData | undefined
+
+	constructor(
+		networkFn: RequestHandler<any, SessionData | undefined>,
+		subscriptionHandler?: SubscriptionHandler | null
+	) {
 		this.fetchFn = networkFn
 		this.socket = subscriptionHandler
 	}
 
 	async sendRequest<_Data>(
 		ctx: FetchContext,
-		params: FetchParams
+		params: FetchParams,
+		session: SessionData | undefined
 	): Promise<RequestPayloadMagic<_Data>> {
 		let url = ''
 
@@ -44,6 +53,7 @@ export class HoudiniClient {
 			},
 			...params,
 			metadata: ctx.metadata,
+			session: session || this.clientSideSession,
 		})
 
 		// return the result
@@ -54,6 +64,40 @@ export class HoudiniClient {
 	}
 
 	init() {}
+
+	setServerSession(event: RequestEvent, session: SessionData) {
+		;(event.locals as any)[sessionKeyName] = session
+	}
+
+	passServerSession(event: RequestEvent): {} {
+		if (isDev && !(sessionKeyName in event.locals)) {
+			// todo: Warn the user that houdini session is not setup correctly.
+		}
+
+		return {
+			[sessionKeyName]: (event.locals as any)[sessionKeyName],
+		}
+	}
+
+	receiveServerSession(data: {}) {
+		// This may only be called during initialization of a component.
+		// This is not really a technical limitation but to prevent users from sharing data on the server.
+
+		// This call will throw outside of component initialization.
+		get_current_component()
+
+		this.clientSideSession = (data as any)[sessionKeyName]
+	}
+
+	setSession(session: SessionData) {
+		// This may not be called on the server. Otherwise multiple requests would share the session as this class is a global singleton on the server.
+		if (!isBrowser) {
+			// todo: Warn the user about the above fact.
+			throw new Error()
+		}
+
+		this.clientSideSession = session
+	}
 }
 
 export class Environment extends HoudiniClient {
@@ -145,22 +189,25 @@ export type RequestPayload<_Data = any> = {
  * ```
  *
  */
-export type RequestHandlerArgs = Omit<FetchContext & FetchParams, 'stuff'>
+export type RequestHandlerArgs<SessionData> = FetchContext & FetchParams & { session: SessionData }
 
-export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<RequestPayload<_Data>>
+export type RequestHandler<_Data, SessionData> = (
+	args: RequestHandlerArgs<SessionData>
+) => Promise<RequestPayload<_Data>>
 
 // This function is responsible for simulating the fetch context and executing the query with fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
 export async function executeQuery<_Data extends GraphQLObject, _Input>({
 	artifact,
 	variables,
+	session,
 	cached,
-	config,
 	fetch,
 	metadata,
 }: {
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
+	session: any
 	cached: boolean
 	config: ConfigFile
 	fetch?: typeof globalThis.fetch
@@ -171,9 +218,9 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 			fetch: fetch ?? globalThis.fetch.bind(globalThis),
 			metadata,
 		},
-		config,
 		artifact,
 		variables,
+		session,
 		cached,
 	})
 
@@ -196,7 +243,7 @@ export type FetchQueryResult<_Data> = {
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 
-export async function getCurrentClient(): Promise<HoudiniClient> {
+export async function getCurrentClient(): Promise<HoudiniClient<any>> {
 	// @ts-ignore
 	return (await import('HOUDINI_CLIENT_PATH')).default
 }
@@ -204,14 +251,15 @@ export async function getCurrentClient(): Promise<HoudiniClient> {
 export async function fetchQuery<_Data extends GraphQLObject, _Input>({
 	artifact,
 	variables,
+	session,
 	cached = true,
 	policy,
 	context,
 }: {
-	config: ConfigFile
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
+	session: any
 	cached?: boolean
 	policy?: CachePolicy
 }): Promise<FetchQueryResult<_Data>> {
@@ -274,11 +322,15 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input>({
 	}, 0)
 
 	// the request must be resolved against the network
-	const result = await client.sendRequest<_Data>(context, {
-		text: artifact.raw,
-		hash: artifact.hash,
-		variables,
-	})
+	const result = await client.sendRequest<_Data>(
+		context,
+		{
+			text: artifact.raw,
+			hash: artifact.hash,
+			variables,
+		},
+		session
+	)
 
 	return {
 		result: result.body,
