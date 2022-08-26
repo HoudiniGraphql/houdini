@@ -6,7 +6,7 @@ export * from './config'
 export { errorsToGraphQLLayout } from './errors'
 
 export * from './types'
-export * from './log'
+export * as log from './log'
 export * from './deepEquals'
 
 type LoadResult = Promise<{ [key: string]: QueryStore<any, unknown> }>

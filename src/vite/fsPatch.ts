@@ -1,4 +1,5 @@
 import filesystem, { Dirent, PathLike } from 'fs'
+import path from 'path'
 import type { Plugin } from 'vite'
 
 import { Config } from '../common'
@@ -59,15 +60,13 @@ filesystem.readFileSync = function (filepath, options) {
 }
 
 // @ts-ignore
-filesystem.statSync = function (path: string, options: Parameters<filesystem.StatSyncFn>[1]) {
-	if (!path.includes('routes')) return _statSync(path, options)
+filesystem.statSync = function (filepath: string, options: Parameters<filesystem.StatSyncFn>[1]) {
+	if (!filepath.includes('routes')) return _statSync(filepath, options)
 	try {
-		const result = _statSync(path, options)
+		const result = _statSync(filepath, options)
 		return result
 	} catch (error) {
-		return {
-			isDirectory: () => false,
-		}
+		return virtualFile(path.basename(filepath), { withFileTypes: true })
 	}
 }
 
@@ -97,29 +96,10 @@ filesystem.readdirSync = function (
 		})
 	}
 
-	function pushVirtualFileName(name: string) {
-		if (options?.withFileTypes) {
-			const dirent: Dirent = {
-				name,
-				isFile: () => true,
-				isDirectory: () => false,
-				isBlockDevice: () => false,
-				isFIFO: () => false,
-				isCharacterDevice: () => false,
-				isSocket: () => false,
-				isSymbolicLink: () => false,
-			}
-
-			result.push(dirent)
-		} else {
-			result.push(name)
-		}
-	}
-
 	// if there is a route component but no script, add the script
 	const loadFiles = ['+page.js', '+page.ts', '+page.server.js', '+page.server.ts']
 	if (hasFileName('+page.svelte') && !result.find((fp) => loadFiles.includes(getFileName(fp)))) {
-		pushVirtualFileName('+page.js')
+		result.push(virtualFile('+page.js', options))
 	}
 
 	// if there is a layout file but no layout.js, we need to make one
@@ -128,7 +108,7 @@ filesystem.readdirSync = function (
 		hasFileName('+layout.svelte') &&
 		!result.find((fp) => layoutLoadFiles.includes(getFileName(fp)))
 	) {
-		pushVirtualFileName('+layout.js')
+		result.push(virtualFile('+layout.js', options))
 	}
 
 	return result
@@ -139,3 +119,18 @@ Object.defineProperty(globalThis, 'fs', {
 	enumerable: true,
 	value: filesystem,
 })
+
+function virtualFile(name: string, options: Parameters<typeof filesystem.readdirSync>[1]) {
+	return !options?.withFileTypes
+		? name
+		: {
+				name,
+				isFile: () => true,
+				isDirectory: () => false,
+				isBlockDevice: () => false,
+				isFIFO: () => false,
+				isCharacterDevice: () => false,
+				isSocket: () => false,
+				isSymbolicLink: () => false,
+		  }
+}
