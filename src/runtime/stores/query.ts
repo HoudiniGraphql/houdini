@@ -1,7 +1,7 @@
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
-import { clientStarted, isBrowser } from '../adapter'
+import { clientStarted, isBrowser, error } from '../adapter'
 import cache from '../cache'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { getCurrentConfig } from '../lib/config'
@@ -249,7 +249,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			}))
 
 			// don't go any further
-			throw result.errors
+			throw error(400, result.errors)
 		} else {
 			store.set({
 				data: (unmarshaled || {}) as _Data,
