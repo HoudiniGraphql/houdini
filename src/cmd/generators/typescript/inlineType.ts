@@ -16,7 +16,7 @@ export function inlineType({
 	rootType,
 	selections,
 	root,
-	readonly,
+	allowReadonly,
 	body,
 	visitedTypes,
 	missingScalars,
@@ -28,12 +28,12 @@ export function inlineType({
 	rootType: graphql.GraphQLNamedType
 	selections: readonly graphql.SelectionNode[] | undefined
 	root: boolean
-	readonly: boolean
+	allowReadonly: boolean
 	body: StatementKind[]
 	visitedTypes: Set<string>
 	missingScalars: Set<string>
 	includeFragments: boolean
-	allOptional?: boolean
+	allOptional: boolean
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	const { type, wrappers } = unwrapType(config, rootType)
@@ -166,7 +166,7 @@ export function inlineType({
 					rootType: field.type as graphql.GraphQLNamedType,
 					selections: selection.selectionSet?.selections as graphql.SelectionNode[],
 					root: false,
-					readonly,
+					allowReadonly,
 					visitedTypes,
 					body,
 					missingScalars,
@@ -180,7 +180,7 @@ export function inlineType({
 						AST.identifier(attributeName),
 						AST.tsTypeAnnotation(attributeType)
 					),
-					readonly
+					allowReadonly
 				)
 
 				if (allOptional) {
@@ -214,7 +214,7 @@ export function inlineType({
 							)
 						)
 					),
-					readonly
+					allowReadonly
 				)
 			)
 		}
@@ -236,7 +236,7 @@ export function inlineType({
 				filepath,
 				rootType: fragmentRootType,
 				selections: fragment,
-				readonly,
+				allowReadonly,
 				visitedTypes,
 				root,
 				body,
@@ -279,7 +279,7 @@ export function inlineType({
 							AST.identifier('__typename'),
 							AST.tsTypeAnnotation(AST.tsLiteralType(AST.stringLiteral(typeName)))
 						),
-						readonly
+						allowReadonly
 					)
 				)
 			}
