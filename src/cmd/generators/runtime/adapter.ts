@@ -18,7 +18,7 @@ export default async function generateAdapter(config: Config) {
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
 import { get } from 'svelte/store';
-import { browser, prerendering } from '$app/env'
+import { browser, dev, prerendering } from '$app/env'
 import { error as svelteKitError } from '@sveltejs/kit'
 
 
@@ -42,6 +42,7 @@ export const isPrerender = prerendering
 
 export const error = svelteKitError
 
+export const isDev = dev
 `
 
 const svelteAdapter = `
@@ -62,4 +63,7 @@ export const error = (code, message) => {
 	error.code = code
 	return err
 }
+
+// Hopefully everybody is already sing vite...
+export const isDev = import.meta.env.DEV
 `

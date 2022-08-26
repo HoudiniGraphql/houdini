@@ -89,6 +89,7 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 				config,
 				artifact: this.artifact,
 				variables: newVariables,
+				session: undefined,
 				cached: false,
 				metadata,
 				fetch,
