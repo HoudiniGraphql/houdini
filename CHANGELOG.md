@@ -1,5 +1,13 @@
 # houdini
 
+## 0.16.0-next.3
+
+### Patch Changes
+
+-   [#485](https://github.com/HoudiniGraphql/houdini/pull/485) [`c21942c`](https://github.com/HoudiniGraphql/houdini/commit/c21942c4a364dbaca4008dc0ad8263fdc940da84) Thanks [@jycouet](https://github.com/jycouet)! - fix peerDependencies of houdini, graphql needs to be <16
+
+*   [#487](https://github.com/HoudiniGraphql/houdini/pull/487) [`0544a28`](https://github.com/HoudiniGraphql/houdini/commit/0544a2846125673f2f0e67cb02135554458edfb0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issues when rendering kit applications with framework set to "svelte"
+
 ## 0.16.0-next.2
 
 ### Patch Changes
