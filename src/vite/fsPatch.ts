@@ -4,15 +4,17 @@ import type { Plugin } from 'vite'
 import { Config } from '../common'
 import { getConfig, readFile } from '../common'
 
+let config: Config
+let apply = false
+
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default function HoudiniFsPatch(configFile?: string): Plugin {
-	let config: Config
-
 	return {
 		name: 'houdini-fs-patch',
 
 		async configResolved() {
 			config = await getConfig({ configFile })
+			apply = config.framework === 'kit'
 		},
 
 		resolveId(id, _, { ssr }) {
@@ -48,7 +50,11 @@ const _readFileSync = filesystem.readFileSync
 
 // @ts-ignore
 filesystem.readFileSync = function (filepath, options) {
-	if (filepath.toString().endsWith('+page.js') || filepath.toString().endsWith('+layout.js')) {
+	if (
+		apply &&
+		((config?.framework === 'kit' && filepath.toString().endsWith('+page.js')) ||
+			filepath.toString().endsWith('+layout.js'))
+	) {
 		try {
 			return _readFileSync(filepath, options)
 		} catch {
@@ -60,7 +66,7 @@ filesystem.readFileSync = function (filepath, options) {
 
 // @ts-ignore
 filesystem.statSync = function (path: string, options: Parameters<filesystem.StatSyncFn>[1]) {
-	if (!path.includes('routes')) return _statSync(path, options)
+	if (!apply || !path.includes('routes')) return _statSync(path, options)
 	try {
 		const result = _statSync(path, options)
 		return result
@@ -76,7 +82,7 @@ filesystem.readdirSync = function (
 	filepath: PathLike,
 	options: Parameters<typeof filesystem.readdirSync>[1]
 ) {
-	if (!filepath.toString().includes('routes')) return _readDirSync(filepath, options)
+	if (!apply || !filepath.toString().includes('routes')) return _readDirSync(filepath, options)
 
 	// WORKAROUND: Using `unknown` type because our inherited options are not fully exhaustive.
 	const result: unknown[] = _readDirSync(filepath, options)

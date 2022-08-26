@@ -249,7 +249,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			}))
 
 			// don't go any further
-			throw error(400, result.errors)
+			throw error(500, result.errors.map((error) => error.message).join('. ') + '.')
 		} else {
 			store.set({
 				data: (unmarshaled || {}) as _Data,
@@ -384,12 +384,9 @@ export function fetchParams<_Data extends GraphQLObject, _Input>(
 		}
 	}
 
+	// if we still don't have a fetch function, use the global one (node and browsers both have fetch)
 	if (!fetchFn) {
-		if (isBrowser) {
-			fetchFn = window.fetch.bind(window)
-		} else {
-			fetchFn = fetch
-		}
+		fetchFn = globalThis.fetch.bind(globalThis)
 	}
 
 	return {

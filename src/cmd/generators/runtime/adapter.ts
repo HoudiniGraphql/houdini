@@ -19,7 +19,7 @@ export default async function generateAdapter(config: Config) {
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
 import { get } from 'svelte/store';
 import { browser, prerendering } from '$app/env'
-import { svelteKitError } from '@sveltejs/kit'
+import { error as svelteKitError } from '@sveltejs/kit'
 
 
 export function goTo(location, options) {
@@ -57,6 +57,9 @@ export const clientStarted = true
 
 export const isPrerender = false
 
-export const error = (code: number, message: string) => message
-
+export const error = (code, message) => {
+	const err = new Error(message)
+	error.code = code
+	return err
+}
 `
