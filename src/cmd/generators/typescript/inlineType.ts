@@ -33,7 +33,7 @@ export function inlineType({
 	visitedTypes: Set<string>
 	missingScalars: Set<string>
 	includeFragments: boolean
-	allOptional: boolean
+	allOptional?: boolean
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	const { type, wrappers } = unwrapType(config, rootType)
