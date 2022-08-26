@@ -16,20 +16,24 @@ export function inlineType({
 	rootType,
 	selections,
 	root,
-	allowReadonly,
+	readonly,
 	body,
 	visitedTypes,
 	missingScalars,
+	includeFragments,
+	allOptional,
 }: {
 	config: Config
 	filepath: string
 	rootType: graphql.GraphQLNamedType
 	selections: readonly graphql.SelectionNode[] | undefined
 	root: boolean
-	allowReadonly: boolean
+	readonly: boolean
 	body: StatementKind[]
 	visitedTypes: Set<string>
 	missingScalars: Set<string>
+	includeFragments: boolean
+	allOptional?: boolean
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	const { type, wrappers } = unwrapType(config, rootType)
@@ -162,20 +166,28 @@ export function inlineType({
 					rootType: field.type as graphql.GraphQLNamedType,
 					selections: selection.selectionSet?.selections as graphql.SelectionNode[],
 					root: false,
-					allowReadonly,
+					readonly,
 					visitedTypes,
 					body,
 					missingScalars,
+					includeFragments,
+					allOptional,
 				})
 
 				// we're done
-				return readonlyProperty(
+				const prop = readonlyProperty(
 					AST.tsPropertySignature(
 						AST.identifier(attributeName),
 						AST.tsTypeAnnotation(attributeType)
 					),
-					allowReadonly
+					readonly
 				)
+
+				if (allOptional) {
+					prop.optional = true
+				}
+
+				return prop
 			}),
 		])
 
@@ -184,7 +196,7 @@ export function inlineType({
 			| graphql.FragmentSpreadNode[]
 			| undefined
 
-		if (fragmentSpreads && fragmentSpreads.length) {
+		if (includeFragments && fragmentSpreads && fragmentSpreads.length) {
 			result.members.push(
 				readonlyProperty(
 					AST.tsPropertySignature(
@@ -202,7 +214,7 @@ export function inlineType({
 							)
 						)
 					),
-					allowReadonly
+					readonly
 				)
 			)
 		}
@@ -224,11 +236,13 @@ export function inlineType({
 				filepath,
 				rootType: fragmentRootType,
 				selections: fragment,
-				allowReadonly,
+				readonly,
 				visitedTypes,
 				root,
 				body,
 				missingScalars,
+				includeFragments,
+				allOptional,
 			})
 
 			// we need to handle __typename in the generated type. this means removing
@@ -265,7 +279,7 @@ export function inlineType({
 							AST.identifier('__typename'),
 							AST.tsTypeAnnotation(AST.tsLiteralType(AST.stringLiteral(typeName)))
 						),
-						allowReadonly
+						readonly
 					)
 				)
 			}

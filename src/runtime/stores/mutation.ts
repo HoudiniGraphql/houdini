@@ -7,10 +7,14 @@ import type { SubscriptionSpec, MutationArtifact } from '../lib'
 import { getCurrentConfig } from '../lib/config'
 import { executeQuery } from '../lib/network'
 import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
-import { GraphQLObject, HoudiniFetchContext } from '../lib/types'
+import { GraphQLObject } from '../lib/types'
 import { BaseStore } from './store'
 
-export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStore {
+export class MutationStore<
+	_Data extends GraphQLObject,
+	_Input,
+	_Optimistic extends GraphQLObject
+> extends BaseStore {
 	artifact: MutationArtifact
 	kind = 'HoudiniMutation' as const
 
@@ -32,7 +36,7 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 			// @ts-ignore
 			metadata?: App.Metadata
 			fetch?: typeof globalThis.fetch
-		} & MutationConfig<_Data, _Input> = {}
+		} & MutationConfig<_Data, _Input, _Optimistic> = {}
 	): Promise<_Data | null> {
 		const config = await getCurrentConfig()
 
@@ -65,17 +69,6 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 				variables,
 				layer: layer.id,
 			})
-
-			const storeData = {
-				data: optimisticResponse,
-				errors: null,
-				isFetching: true,
-				isOptimisticResponse: true,
-				variables,
-			}
-
-			// update the store value
-			this.store.set(storeData)
 		}
 
 		const newVariables = (await marshalInputs({
@@ -176,8 +169,8 @@ export class MutationStore<_Data extends GraphQLObject, _Input> extends BaseStor
 	}
 }
 
-export type MutationConfig<_Result, _Input> = {
-	optimisticResponse?: _Result
+export type MutationConfig<_Result, _Input, _Optimistic> = {
+	optimisticResponse?: _Optimistic
 }
 
 export type MutationResult<_Data, _Input> = {
