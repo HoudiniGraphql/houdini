@@ -33,9 +33,12 @@ Send a mutation to the server and updating your client-side cache with any chang
 </button>
 ```
 
-Mutation stores provide a `mutate` method that invokes the specified mutation with the inputs specified by the first argument to the handler. The second argument to the result of `mutation` can be used to configure its behavior. The following values can be provided:
+Mutation stores provide a `mutate` method that invokes the specified mutation with the inputs
+specified by the first argument to the handler. The second argument to the result of `mutation`
+can be used to configure its behavior. The following values can be provided:
 
-- `optimisticResponse` specifies a value to use instead of waiting for the server to return a value. For more information, see the [optimistic responses](#optimistic-responses) section.
+- `optimisticResponse` specifies a value to use instead of waiting for the server to return a value.
+For more information, see the [optimistic responses](#optimistic-responses) section.
 
 ### Notes
 
@@ -107,7 +110,11 @@ Take for example, an `TodoItemRow` component:
 
 ## Optimistic Responses
 
-A lot of the time we know the value that a mutation will trigger assuming everything goes right. For example, a `toggleItem` mutation in a todo list will invert the value of the `checked` field of a particular item. In these situations, we don't have to wait for a mutation to resolve in order to apply the update to the cache. Instead, we can assume that it will succeed and provide an "optimistic response" for the mutation with the second argument to a mutation handler:
+A lot of the time we know the value that a mutation will trigger assuming everything goes right.
+For example, a `toggleItem` mutation in a todo list will invert the value of the `checked`
+field of a particular item. In these situations, we don't have to wait for a mutation to
+resolve in order to apply the update to the cache. Instead, we can assume that it will succeed
+and provide an "optimistic response" for the mutation with the second argument to a mutation handler:
 
 ```svelte
 <script>
@@ -145,34 +152,26 @@ A lot of the time we know the value that a mutation will trigger assuming everyt
 </button>
 ```
 
-When the mutation resolves, the old values will be erased entirely and the new values will be committed to the cache. If instead the mutation fails, the optimistic changes will be reverted and the handler's promise will reject with the error message as usual.
+When the mutation resolves, the old values will be erased entirely and the new values will
+be committed to the cache. If instead the mutation fails, the optimistic changes will be
+reverted and the handler's promise will reject with the error message as usual.
 
-Remember to always request and specify an `id` when dealing with optimistic responses so that the cache can make sure to update the correct records. Also, it's worth mentioning that you don't have to provide a complete response for an optimistic value, the cache will write whatever information you give it (as long as its found in the mutation body).
+Remember to always request and specify an `id` when dealing with optimistic responses so
+that the cache can make sure to update the correct records. Also, it's worth mentioning that
+you don't have to provide a complete response for an optimistic value, the cache will write
+whatever information you give it (as long as its found in the mutation body). Because of this,
+the store value won't update until the mutation resolves.
 
-## Utilities
+### Why is typescript missing fields?
 
-### Mutation Function
+If you are using typescript, you might notice that the generated types for optimistic
+responses do not include any fields from fragments that you might have spread in.
+While surprising at first, this is by design. We believe that it is a mistake to
+tightly couple the invocation of the mutation with a fragment that's defined in
+some random file and whose definition might change unknowingly. If it did change,
+there would be a nasty error when the runtime tries to look up the schema information
+so the generated types are trying to guide you towards a safer practice.
 
-Sometimes it's convenient to get the `mutate` function out without having to access the store directly.
-In those situations, you can use the `mutation` function:
-
-```svelte
-<script>
-	import { graphql, mutation } from '$houdini'
-
-	const uncheckItem: UncheckItemStore = mutation(graphql`
-		mutation UncheckItem($id: ID!) {
-			uncheckItem(item: $id) {
-				item {
-					id
-					completed
-				}
-			}
-		}
-	`)
-</script>
-
-<button on:click={() => uncheckItem({ id: 'my-item' })}>
-	Uncheck Item
-</button>
-```
+There's no harm in duplicating a field that is part of a fragment so if you are going to
+provide an optimistic value, you should add those fields to the explicit selection
+set of the mutation.
