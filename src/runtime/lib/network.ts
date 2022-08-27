@@ -53,7 +53,7 @@ export class HoudiniClient<SessionData = undefined> {
 			},
 			...params,
 			metadata: ctx.metadata,
-			session: session || this.clientSideSession,
+			session: this.clientSideSession || session,
 		})
 
 		// return the result
