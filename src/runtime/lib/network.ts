@@ -38,6 +38,10 @@ export class HoudiniClient<SessionData = undefined> {
 	): Promise<RequestPayloadMagic<_Data>> {
 		let url = ''
 
+		if (isBrowser) {
+			session = this.clientSideSession
+		}
+
 		// invoke the function
 		const result = await this.fetchFn({
 			// wrap the user's fetch function so we can identify SSR by checking
@@ -52,7 +56,7 @@ export class HoudiniClient<SessionData = undefined> {
 			},
 			...params,
 			metadata: ctx.metadata,
-			session: this.clientSideSession || session,
+			session,
 		})
 
 		// return the result
