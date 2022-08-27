@@ -1,5 +1,4 @@
 import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
-import { get_current_component } from 'svelte/internal'
 import { get } from 'svelte/store'
 
 import { isBrowser, isDev } from '../adapter'
@@ -80,13 +79,10 @@ export class HoudiniClient<SessionData = undefined> {
 	}
 
 	receiveServerSession(data: {}) {
-		// This may only be called during initialization of a component.
-		// This is not really a technical limitation but to prevent users from sharing data on the server.
-
-		// This call will throw outside of component initialization.
-		get_current_component()
-
-		this.clientSideSession = (data as any)[sessionKeyName]
+		// This may only be called in the browser. But instead of throwing we must ignore calls on the server because otherwise ssr would also break.
+		if (isBrowser) {
+			this.clientSideSession = (data as any)[sessionKeyName]
+		}
 	}
 
 	setSession(session: SessionData) {
