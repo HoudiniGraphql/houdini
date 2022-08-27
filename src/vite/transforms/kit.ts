@@ -376,7 +376,7 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 	) as graphql.OperationDefinitionNode
 	// if it doesn't exist, there is an error, but no discovered query either
 	if (!definition) {
-		formatErrors({ message: 'page.gql must contain a query.', filpath: page_query_path })
+		formatErrors({ message: 'page.gql must contain a query.', filepath: page_query_path })
 		return null
 	}
 

@@ -453,6 +453,70 @@ describe('typescript', function () {
 			    age?: number | null | undefined,
 			    weight?: number | null | undefined
 			};
+
+			export type MyMutation$optimistic = {
+			    readonly doThing?: {
+			        readonly firstName?: string
+			    } | null
+			};
+		`)
+	})
+
+	test("mutation optimistic response type doesn't include fragments", async function () {
+		// the document to test
+		const docs = [
+			mockCollectedDoc(
+				`mutation MyMutation { 
+						doThing(
+						list: [],
+						id: "1"
+						firstName: "hello"
+					) {
+						firstName
+						...TestFragment,
+					}
+				}`
+			),
+			mockCollectedDoc(
+				`fragment TestFragment on User {
+					firstName
+				}`
+			),
+		]
+
+		// execute the generator
+		await runPipeline(config, docs)
+
+		// look up the files in the artifact directory
+		const fileContents = await readFile(config.artifactTypePath(docs[0].document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyMutation = {
+			    readonly "input": MyMutation$input,
+			    readonly "result": MyMutation$result
+			};
+
+			export type MyMutation$result = {
+			    readonly doThing: {
+			        readonly firstName: string,
+			        readonly $fragments: {
+			            TestFragment: true
+			        }
+			    } | null
+			};
+
+			export type MyMutation$input = null;
+
+			export type MyMutation$optimistic = {
+			    readonly doThing?: {
+			        readonly firstName?: string
+			    } | null
+			};
 		`)
 	})
 
@@ -1103,6 +1167,12 @@ describe('typescript', function () {
 			    admin?: boolean | null | undefined,
 			    age?: number | null | undefined,
 			    weight?: number | null | undefined
+			};
+
+			export type MyMutation$optimistic = {
+			    readonly doThing?: {
+			        readonly id?: string
+			    } | null
 			};
 		`)
 	})

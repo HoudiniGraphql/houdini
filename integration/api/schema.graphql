@@ -22,7 +22,7 @@ type Mutation {
     enumValue: MyEnum
     types: [TypeOfUser!]
   ): User!
-  updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime): User!
+  updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime, delay: Int): User!
 }
 
 interface Node {

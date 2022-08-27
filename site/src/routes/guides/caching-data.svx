@@ -61,6 +61,20 @@ When the mutation resolves, the old values will be erased entirely and the new v
 
 Remember to always request and specify an `id` when dealing with optimistic responses so that the cache can make sure to update the correct records. Also, it's worth mentioning that you don't have to provide a complete response for an optimistic value, the cache will write whatever information you give it (as long as its found in the mutation body).
 
+### Why is typescript missing fields?
+
+If you are using typescript, you might notice that the generated types for optimistic
+responses do not include any fields from fragments that you might have spread in.
+While surprising at first, this is by design. We believe that it is a mistake to
+tightly couple the invocation of the mutation with a fragment that's defined in
+some random file and whose definition might change unknowingly. If it did change,
+there would be a nasty error when the runtime tries to look up the schema information
+so the generated types are trying to guide you towards a safer practice.
+
+There's no harm in duplicating a field that is part of a fragment so if you are going to
+provide an optimistic value, you should add those fields to the explicit selection
+set of the mutation.
+
 ## Partial Data
 
 As your users navigate through your application, their cache will build up with the data that they encounter. This means that a lot of the times, they will have already seen the data that a new view wants. Houdini's cache can be told to render a view if only some of the necessary data is present using the `@cache` directive:

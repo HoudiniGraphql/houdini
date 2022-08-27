@@ -20,6 +20,8 @@ export function inlineType({
 	body,
 	visitedTypes,
 	missingScalars,
+	includeFragments,
+	allOptional,
 }: {
 	config: Config
 	filepath: string
@@ -30,6 +32,8 @@ export function inlineType({
 	body: StatementKind[]
 	visitedTypes: Set<string>
 	missingScalars: Set<string>
+	includeFragments: boolean
+	allOptional?: boolean
 }): TSTypeKind {
 	// start unwrapping non-nulls and lists (we'll wrap it back up before we return)
 	const { type, wrappers } = unwrapType(config, rootType)
@@ -166,16 +170,24 @@ export function inlineType({
 					visitedTypes,
 					body,
 					missingScalars,
+					includeFragments,
+					allOptional,
 				})
 
 				// we're done
-				return readonlyProperty(
+				const prop = readonlyProperty(
 					AST.tsPropertySignature(
 						AST.identifier(attributeName),
 						AST.tsTypeAnnotation(attributeType)
 					),
 					allowReadonly
 				)
+
+				if (allOptional) {
+					prop.optional = true
+				}
+
+				return prop
 			}),
 		])
 
@@ -184,7 +196,7 @@ export function inlineType({
 			| graphql.FragmentSpreadNode[]
 			| undefined
 
-		if (fragmentSpreads && fragmentSpreads.length) {
+		if (includeFragments && fragmentSpreads && fragmentSpreads.length) {
 			result.members.push(
 				readonlyProperty(
 					AST.tsPropertySignature(
@@ -229,6 +241,8 @@ export function inlineType({
 				root,
 				body,
 				missingScalars,
+				includeFragments,
+				allOptional,
 			})
 
 			// we need to handle __typename in the generated type. this means removing

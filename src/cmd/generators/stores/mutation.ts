@@ -31,11 +31,12 @@ export default ${globalStoreName}
 
 	const _input = `${artifactName}$input`
 	const _data = `${artifactName}$result`
+	const _optimistic = `${artifactName}$optimistic`
 
 	// the type definitions for the store
-	const typeDefs = `import type { ${_input}, ${_data}, MutationStore } from '$houdini'
+	const typeDefs = `import type { ${_input}, ${_data}, ${_optimistic}, MutationStore } from '$houdini'
 
-export declare class ${storeName} extends MutationStore<${_data} | undefined, ${_input}>{
+export declare class ${storeName} extends MutationStore<${_data} | undefined, ${_input}, ${_optimistic}>{
 	constructor() {}
 }
 

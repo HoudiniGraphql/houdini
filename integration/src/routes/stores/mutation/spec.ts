@@ -14,7 +14,7 @@ test.describe('Mutation Page', () => {
       isOptimisticResponse: false,
       variables: null
     };
-    await expectToBe(page, stry(defaultStoreValues) ?? '', 'pre');
+    await expectToBe(page, stry(defaultStoreValues)!, '[id="store-value"]');
   });
 
   test('Add User + Optimistic + Result', async ({ page }) => {
@@ -24,30 +24,12 @@ test.describe('Mutation Page', () => {
     // Await the click to have optimisticResponse data in the store
     await locator_click(page, `button[id="mutate"]`);
 
-    const optiStoreValues = {
-      data: {
-        addUser: {
-          birthDate: new Date('1986-11-07'),
-          id: '???',
-          name: '...optimisticResponse... I could have guessed JYC!'
-        }
-      },
-      errors: null,
-      isFetching: true,
-      isOptimisticResponse: true,
-      variables: {
-        birthDate: new Date('1986-11-07'),
-        delay: 1000,
-        name: 'JYC'
-      }
-    };
-    await expectToBe(page, stry(optiStoreValues) ?? '', 'pre');
+    await expectToBe(page, '...optimisticResponse... I could have guessed JYC!');
 
     // 2 Real Response
     await sleep(2000); // The fake delai is of 1 sec
 
-    const pre = await page.locator('pre').textContent();
-    expect(pre?.trim(), 'Content of <pre> element').not.toContain('...optimisticResponse...'); // So it's the real response (id can change... That's why we don't compare a full result)
-    expect(pre?.trim(), 'Content of <pre> element').toContain('"isOptimisticResponse": false');
+    const div = await page.locator('div[id=result]').textContent();
+    expect(div?.trim()).not.toContain('...optimisticResponse...'); // So it's the real response (id can change... That's why we don't compare a full result)
   });
 });

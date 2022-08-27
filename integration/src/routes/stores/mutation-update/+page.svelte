@@ -1,11 +1,16 @@
 <script lang="ts">
-  import { GQL_UpdateUser } from '$houdini';
+  import { GQL_UpdateUser, graphql, MutationUpdateUsersListStore } from '$houdini';
   import { stry } from '@kitql/helper';
-  import type { PageData } from './$types';
 
-  export let data: PageData;
-
-  $: ({ usersList } = data);
+  const usersList: MutationUpdateUsersListStore = graphql`
+    query MutationUpdateUsersList {
+      usersList(limit: 5, snapshot: "update-user-mutation") {
+        id
+        name
+        ...UserInfo
+      }
+    }
+  `;
 
   async function update() {
     await GQL_UpdateUser.mutate({
