@@ -96,7 +96,7 @@ export type BaseCompiledDocument = {
 export type GraphQLTagResult =
 	| QueryStore<any, any>
 	| FragmentStore<any>
-	| MutationStore<any, any>
+	| MutationStore<any, any, any>
 	| SubscriptionStore<any, any>
 
 export type HoudiniFetchContext = {
