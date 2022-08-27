@@ -32,7 +32,7 @@ export default function ({
 
 					// we need to watch some specific files
 					const schemaPath = path.join(path.dirname(config.filepath), config.schemaPath!)
-					if ([schemaPath].includes(filepath)) {
+					if (minimatch(filepath, schemaPath)) {
 						return true
 					}
 
