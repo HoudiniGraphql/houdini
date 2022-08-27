@@ -155,6 +155,12 @@ export type ConfigFile = {
 	 * @default GQL_
 	 */
 	globalStorePrefix?: string
+
+	/**
+	 * With this enabled, errors in your query will not be thrown as exceptions. You will have to handle
+	 * error state in your route components or by hand in your load (or the onError hook)
+	 */
+	quietQueryErrors?: boolean
 }
 
 export type TypeConfig = {

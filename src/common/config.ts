@@ -52,6 +52,7 @@ export class Config {
 	plugin: boolean = false
 	client: string
 	globalStorePrefix: string
+	quietQueryErrors: boolean
 
 	constructor({
 		filepath,
@@ -85,6 +86,7 @@ export class Config {
 			projectDir,
 			client,
 			globalStorePrefix = 'GQL_',
+			quietQueryErrors,
 		} = this.configFile
 
 		if (!client) {
@@ -152,6 +154,7 @@ ${
 		this.pageQueryFilename = pageQueryFilename
 		this.client = client
 		this.globalStorePrefix = globalStorePrefix
+		this.quietQueryErrors = quietQueryErrors || false
 
 		// hold onto the key config
 		if (defaultKeys) {
