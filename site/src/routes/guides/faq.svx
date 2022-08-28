@@ -17,6 +17,11 @@ Yep! You can use queries or any document anywhere you can use a svelte store. Ju
 Yes! You'll just have to rely on the store apis for your documents and write your route's loads manually.
 For more information on using your document's stores check out [Working with GraphQL](/guides/working-with-graphql) guide.
 
+### Are `+server` files supported?
+
+Unforunately, `+server` have additional constraints that make them a unique challenge to support (not impossible, just tricky). This is also an area of SvelteKit that is
+rapidly changing and so we are opting to not officially support `+server` files until things stabilize a bit more. Sorry for the inconvinience!
+
 ### What's the best way to build a Full-Stack application with SvelteKit?
 
 Simple answer, we recommend [KitQL](https://www.kitql.dev/). It gives you everything you need when building a full-stack application with GraphQL (including [Houdini](https://www.houdinigraphql.com/) of course 😉). For more information about our collaboration, head over to this [blog post](https://www.the-guild.dev/blog/houdini-and-kitql).
