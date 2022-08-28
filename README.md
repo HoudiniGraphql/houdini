@@ -31,6 +31,8 @@
 {/each}
 ```
 
+> If you are trying out the latest kit version, please use `houdini@next` and let us know how it goes here: https://github.com/HoudiniGraphql/houdini/discussions/475
+
 ## ✨&nbsp;&nbsp;Features
 
 -   Composable and colocated data requirements for your components

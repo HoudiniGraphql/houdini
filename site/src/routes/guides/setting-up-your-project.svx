@@ -93,8 +93,26 @@ this, add the following block of code to `src/routes/+layout.svelte` and any nam
 
 ### Svelte
 
-While your exact situation might change, somehow you should import houdini's preprocessor and pass it to your
-svelte config
+If you are building a vanilla svelte project, you will have to configure the compiler and preprocessor to generate the correct logic by setting the `framework`
+field in your config file to `"svelte"`.
+
+If you are using vite, you should use the `houdini/vite` plugin even if
+you aren't using kit. Update your `vite.config.js` file to look like this:
+
+```javascript
+// vite.config.js
+
+import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+import houdini from 'houdini/vite'
+
+export default defineConfig({
+	plugins: [houdini(), svelte()]
+})
+```
+
+If you aren't using vite, it's a lot harder to give an exact recommendation but somehow
+you should import houdini's preprocessor and pass it to your svelte config
 
 ```javascript
 // svelte.config.js
@@ -104,10 +122,6 @@ export default {
 	preprocess: [houdini()]
 }
 ```
-
-You also have to configure the compiler and preprocessor to generate the correct logic by setting the `framework`
-field in your config file to `"svelte"`. If you are using vite, you should use the `houdini/vite` plugin even if
-you aren't using kit.
 
 Please keep in mind that returning the response from a query, you should not rely on `this.redirect` to handle the
 redirect as it will update your browsers `location` attribute, causing a hard transition to that url. Instead, you should

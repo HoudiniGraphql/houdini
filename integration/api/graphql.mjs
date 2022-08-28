@@ -116,6 +116,10 @@ export const resolvers = {
       return user;
     },
     updateUser: async (_, args) => {
+      if (args.delay) {
+        await sleep(args.delay);
+      }
+
       const list = getSnapshot(args.snapshot);
       const userIndex = list.findIndex((c) => c.id === `${args.snapshot}:${args.id}`);
       if (userIndex === -1) {

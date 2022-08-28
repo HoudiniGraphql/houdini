@@ -30,6 +30,9 @@ npx svelte-migrate routes
   so unless you are doing something special, you can probably just delete it. If you _are_ doing something special,
   make sure that you include `.js` in your extensions so that the generated `+page.js` can be picked up if you use
   an automatic loader. Keep in mind there is a new `exclude` value that might be better suited to your situation.
+- `apiUrl` has a slightly new behavior. It now controls wether or not the vite plugin will poll for schema changes.
+  If the latest version of your schema is available locally then you should just omit the value. This is common in
+  monorepos and GraphQL apis that are resolved with a SvelteKit endpoint.
 
 ```diff
 
@@ -149,6 +152,18 @@ the store itself and do not need the `$`:
 + <button on:click={MyStore.loadNextPage}>
     load next
   </button>
+```
+
+`afterLoad` hooks also now take the whole load event as a single `event` parameter:
+
+```diff
+- export async function afterLoad({ params, data }) {
++ export async function afterLoad({ event, data }) {
+    return {
+-     message: params.message
++     message: event.params.message
+    }
+  }
 ```
 
 ### 2.b Inline Fragments

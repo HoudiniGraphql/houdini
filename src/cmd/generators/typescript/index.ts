@@ -179,6 +179,7 @@ async function generateOperationTypeDefs(
 	// the name of the types we will define
 	const inputTypeName = `${definition.name!.value}$input`
 	const shapeTypeName = `${definition.name!.value}$result`
+	const optimisticTypeName = `${definition.name!.value}$optimistic`
 
 	// dry
 	const hasInputs = definition.variableDefinitions && definition.variableDefinitions.length > 0
@@ -226,6 +227,7 @@ async function generateOperationTypeDefs(
 					visitedTypes,
 					body,
 					missingScalars,
+					includeFragments: true,
 				})
 			)
 		)
@@ -270,6 +272,30 @@ async function generateOperationTypeDefs(
 		body.push(
 			AST.exportNamedDeclaration(
 				AST.tsTypeAliasDeclaration(AST.identifier(inputTypeName), AST.tsNullKeyword())
+			)
+		)
+	}
+
+	// mutations need to have an optimistic response type defined
+	if (definition.operation === 'mutation') {
+		body.push(
+			AST.exportNamedDeclaration(
+				AST.tsTypeAliasDeclaration(
+					AST.identifier(optimisticTypeName),
+					inlineType({
+						config,
+						filepath,
+						rootType: parentType,
+						selections,
+						root: true,
+						allowReadonly: true,
+						visitedTypes,
+						body,
+						missingScalars,
+						includeFragments: false,
+						allOptional: true,
+					})
+				)
 			)
 		)
 	}
@@ -353,6 +379,7 @@ async function generateFragmentTypeDefs(
 						body,
 						visitedTypes,
 						missingScalars,
+						includeFragments: true,
 					})
 				)
 			)

@@ -1,16 +1,23 @@
 <script lang="ts">
-  import { GQL_AddUser } from '$houdini';
+  import { graphql, OptimisticUserQueryStore, GQL_UpdateUser } from '$houdini';
   import { stry } from '@kitql/helper';
 
+  const query: OptimisticUserQueryStore = graphql`
+    query OptimisticUserQuery {
+      user(id: "1", snapshot: "update-user-mutation") {
+        name
+      }
+    }
+  `;
+
   async function add() {
-    await GQL_AddUser.mutate(
-      { name: 'JYC', birthDate: new Date('1986-11-07'), delay: 1000 },
+    await GQL_UpdateUser.mutate(
+      { id: '1', name: 'JYC', birthDate: new Date('1986-11-07') },
       {
         optimisticResponse: {
-          addUser: {
-            id: '???',
-            name: '...optimisticResponse... I could have guessed JYC!',
-            birthDate: new Date('1986-11-07')
+          updateUser: {
+            id: 'update-user-mutation:1',
+            name: '...optimisticResponse... I could have guessed JYC!'
           }
         }
       }
@@ -22,6 +29,10 @@
 
 <button id="mutate" on:click={add}>Add User</button>
 
-<pre>
-  {stry($GQL_AddUser)}
-</pre>
+<div id="result">
+  {$query.data?.user.name}
+</div>
+
+<div id="store-value">
+  {stry($GQL_UpdateUser)}
+</div>
