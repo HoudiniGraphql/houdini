@@ -194,8 +194,14 @@ ${
 	get pullHeaders() {
 		return Object.fromEntries(
 			Object.entries(this.schemaPollHeaders || {}).map(([key, value]) => {
-				const headerValue =
-					typeof value === 'string' ? process.env[value] : value(process.env)
+				let headerValue
+				if (typeof value === 'function') {
+					headerValue = value(process.env)
+				} else if (value.startsWith('env:')) {
+					headerValue = process.env[value]
+				} else {
+					headerValue = value
+				}
 
 				// if there was no value, dont add anything
 				if (!headerValue) {

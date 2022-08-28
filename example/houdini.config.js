@@ -2,6 +2,9 @@
 const config = {
 	client: './src/client.ts',
 	apiUrl: 'http://localhost:4000/graphql',
+	schemaPollHeaders: {
+		foo: 'bar',
+	},
 	scalars: {
 		DateTime: {
 			type: 'Date',
