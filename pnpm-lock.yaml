@@ -13,7 +13,6 @@ importers:
             '@changesets/cli': ^2.22.0
             '@graphql-tools/schema': ^8.3.7
             '@kitql/helper': ^0.3.4
-            '@kitql/vite-plugin-watch-and-run': ^0.4.2
             '@rollup/plugin-commonjs': ^22.0.0
             '@rollup/plugin-json': ^4.1.0
             '@rollup/plugin-node-resolve': ^13.2.0
@@ -73,12 +72,12 @@ importers:
             tslib: ^2.4.0
             typescript: ^4.6.3
             vite: ^3.0.7
+            vite-plugin-watch-and-run: ^1.0.1
             vitest: ^0.21.1
         dependencies:
             '@babel/parser': 7.18.13
             '@graphql-tools/schema': 8.5.1_graphql@15.5.0
             '@kitql/helper': 0.3.5
-            '@kitql/vite-plugin-watch-and-run': 0.4.2
             '@types/memory-fs': 0.3.3
             babylon: 7.0.0-beta.47
             commander: 7.2.0
@@ -94,6 +93,7 @@ importers:
             remove: 0.1.5
             svelte: 3.49.0
             vite: 3.0.9
+            vite-plugin-watch-and-run: 1.0.1
             vitest: 0.21.1_@vitest+ui@0.21.1
         devDependencies:
             '@babel/core': 7.18.13
@@ -186,7 +186,6 @@ importers:
     integration:
         specifiers:
             '@graphql-yoga/node': ^2.8.0
-            '@kitql/vite-plugin-watch-and-run': ^0.4.0
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23
             '@sveltejs/adapter-auto': 1.0.0-next.66
@@ -221,7 +220,6 @@ importers:
             mdsvex: 0.10.6_svelte@3.49.0
             ws: 8.8.1
         devDependencies:
-            '@kitql/vite-plugin-watch-and-run': 0.4.2
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23_@playwright+test@1.25.0
             '@sveltejs/adapter-auto': 1.0.0-next.66
@@ -2910,6 +2908,7 @@ packages:
         dependencies:
             '@kitql/helper': 0.3.5
             micromatch: 4.0.5
+        dev: true
 
     /@manypkg/find-root/1.1.0:
         resolution:
@@ -14096,6 +14095,16 @@ packages:
             vite: ^2
         dependencies:
             vite: 3.0.9
+        dev: false
+
+    /vite-plugin-watch-and-run/1.0.1:
+        resolution:
+            {
+                integrity: sha512-7M3egaeipLiJgONfpzZs2cWf+u2zn99kGcYGHx6JvLVYVxbUwoQvQNhUt5VnZ4xCmohRww9YC/dI0wxWHvTEug==,
+            }
+        dependencies:
+            '@kitql/helper': 0.3.5
+            micromatch: 4.0.5
         dev: false
 
     /vite/3.0.8:

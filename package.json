@@ -112,7 +112,7 @@
 		"@babel/parser": "^7.17.2",
 		"@graphql-tools/schema": "^8.3.7",
 		"@kitql/helper": "^0.3.4",
-		"@kitql/vite-plugin-watch-and-run": "^0.4.2",
+		"vite-plugin-watch-and-run": "^1.0.1",
 		"@types/memory-fs": "^0.3.3",
 		"babylon": "^7.0.0-beta.47",
 		"commander": "^7.1.0",

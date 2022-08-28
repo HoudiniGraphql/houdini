@@ -17,13 +17,18 @@ Yep! You can use queries or any document anywhere you can use a svelte store. Ju
 Yes! You'll just have to rely on the store apis for your documents and write your route's loads manually.
 For more information on using your document's stores check out [Working with GraphQL](/guides/working-with-graphql) guide.
 
+### Are `+server` files supported?
+
+Unforunately, `+server` have additional constraints that make them a unique challenge to support (not impossible, just tricky). This is also an area of SvelteKit that is
+rapidly changing and so we are opting to not officially support `+server` files until things stabilize a bit more. Sorry for the inconvinience!
+
 ### What's the best way to build a Full-Stack application with SvelteKit?
 
 Simple answer, we recommend [KitQL](https://www.kitql.dev/). It gives you everything you need when building a full-stack application with GraphQL (including [Houdini](https://www.houdinigraphql.com/) of course 😉). For more information about our collaboration, head over to this [blog post](https://www.the-guild.dev/blog/houdini-and-kitql).
 
 ### How does the plugin generate loads?
 
-Curious how this works under the hook? Consider this query:
+Consider this query:
 
 ```svelte
 <!-- src/routes/myRoute/+page.svelte -->
@@ -82,6 +87,12 @@ If you haven't seen Houdini's document stores before, please check out the [Work
 
 You should use the `metadata` parameter in the document store to pass arbitrary information into your client's network function. For more information,
 please visit [the query store docs](/api/query/store#passing-metadata).
+
+### What is this `Generated an empty chunk...` warning from vite?
+
+If you have a route directory that does not contain a `+page.js` file and do not have an inline query in your `+page.svelte`, the
+plugin will generate an empty `+page.js` file that is never used. This confuses vite hence the warning. Don't worry - this empty
+file is never imported if you don't have an inline query so there's no performance implication.
 
 ### My IDE is complaining that the internal directives and fragments don't exist.
 

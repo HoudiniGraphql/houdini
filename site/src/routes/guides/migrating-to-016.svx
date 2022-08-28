@@ -154,6 +154,18 @@ the store itself and do not need the `$`:
   </button>
 ```
 
+`afterLoad` hooks also now take the whole load event as a single `event` parameter:
+
+```diff
+- export async function afterLoad({ params, data }) {
++ export async function afterLoad({ event, data }) {
+    return {
+-     message: params.message
++     message: event.params.message
+    }
+  }
+```
+
 ### 2.b Inline Fragments
 
 The order for the arguments to inline fragments has been inverted.

@@ -243,24 +243,32 @@ test('updates the network file with the client path', async function () {
 		        return this.error(500, 'Encountered invalid response: ' + JSON.stringify(payload));
 		    }
 		    // This hook fires before executing any queries, it allows custom props to be passed to the component.
-		    async invokeLoadHook({ variant, hookFn, input, data, }) {
+		    async invokeLoadHook({ variant, hookFn, input, data, error, }) {
 		        // call the onLoad function to match the framework
 		        let hookCall;
 		        if (variant === 'before') {
 		            hookCall = hookFn.call(this, this.loadEvent);
 		        }
-		        else {
+		        else if (variant === 'after') {
 		            // we have to assign input and data onto load so that we don't read values that
 		            // are deprecated
-		            Object.assign(this.loadEvent, {
+		            hookCall = hookFn.call(this, {
+		                event: this.loadEvent,
 		                input,
 		                data: Object.fromEntries(Object.entries(data).map(([key, store]) => [
 		                    key,
 		                    get(store).data,
 		                ])),
 		            });
-		            hookCall = hookFn.call(this, this.loadEvent);
 		        }
+		        else if (variant === 'error') {
+		            hookCall = hookFn.call(this, {
+		                event: this.loadEvent,
+		                input,
+		                error,
+		            });
+		        }
+		        // make sure any promises are resolved
 		        let result = await hookCall;
 		        // If the returnValue is already set through this.error or this.redirect return early
 		        if (!this.continue) {

@@ -4,7 +4,7 @@ import path from 'path'
 import { Plugin } from 'vite'
 
 import { pullSchema } from '../cmd/utils'
-import { getConfig } from '../common'
+import { formatErrors, getConfig } from '../common'
 
 export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 	let go = true
@@ -35,12 +35,16 @@ export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 			}
 			// the function to call on the appropriate interval
 			async function pull(poll: boolean) {
-				// Write the schema
-				await pullSchema(
-					config.apiUrl!,
-					config.schemaPath ?? path.resolve(process.cwd(), 'schema.json'),
-					config.pullHeaders
-				)
+				try {
+					// Write the schema
+					await pullSchema(
+						config.apiUrl!,
+						config.schemaPath ?? path.resolve(process.cwd(), 'schema.json'),
+						config.pullHeaders
+					)
+				} catch (e) {
+					formatErrors(e)
+				}
 
 				// if we are supposed to poll, wait the appropriate amount of time and then do it again
 				if (poll) {

@@ -29,6 +29,7 @@ export const routes = {
   Plugin_query_component: '/plugin/query/component',
   Plugin_query_beforeLoad: '/plugin/query/beforeLoad',
   Plugin_query_afterLoad: '/plugin/query/afterLoad',
+  Plugin_query_onError: '/plugin/query/onError',
   Plugin_query_layout: '/plugin/query/layout',
 
   Plugin_mutation_mutation: '/plugin/mutation/mutation',

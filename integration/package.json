@@ -17,7 +17,6 @@
     "format": "prettier --ignore-path .gitignore --write --plugin-search-dir=. ."
   },
   "devDependencies": {
-    "@kitql/vite-plugin-watch-and-run": "^0.4.0",
     "@playwright/test": "1.25.0",
     "@replayio/playwright": "0.2.23",
     "@sveltejs/adapter-auto": "1.0.0-next.66",
