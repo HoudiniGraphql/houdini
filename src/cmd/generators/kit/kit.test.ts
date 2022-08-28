@@ -148,14 +148,14 @@ test('generates types for after load', async function () {
 		    MyPageLoad2Query: MyPageLoad2Query$result
 		};
 
-		type AfterLoadInput = {
+		type LoadInput = {
 		    MyPageLoad1Query: MyPageLoad1Query$input
 		};
 
 		export type AfterLoadEvent = {
 		    event: PageLoadEvent,
 		    data: AfterLoadData,
-		    input: AfterLoadInput
+		    input: LoadInput
 		};
 
 		export type PageData = {
@@ -217,7 +217,13 @@ test('generates types for onError', async function () {
 		import { MyPageLoad2QueryStore } from "../../../../stores/MyPageLoad2Query";
 		type Params = PageLoadEvent["params"];
 		export type MyPageLoad1QueryVariables = VariableFunction<Params, MyPageLoad1Query$input>;
-		export type OnErrorEvent = PageLoadEvent;
+
+		export type OnErrorEvent = {
+		    event: LoadEvent,
+		    input: LoadInput,
+		    error: Error | Error[]
+		};
+
 		type OnErrorReturn = ReturnType<typeof import("./+page").onError>;
 
 		export type PageData = {
