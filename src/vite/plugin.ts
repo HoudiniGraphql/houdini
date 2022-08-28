@@ -6,8 +6,6 @@ import { Config, formatErrors, getConfig, HoudiniRouteScript, Script } from '../
 import apply_transforms from './transforms'
 
 export default function HoudiniPlugin(configFile?: string): Plugin {
-	let config: Config
-
 	return {
 		name: 'houdini',
 
@@ -16,8 +14,6 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 
 		// add watch-and-run to their vite config
 		async config(viteConfig) {
-			config = await getConfig({ configFile })
-
 			return {
 				server: {
 					...viteConfig.server,
@@ -32,7 +28,7 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 		// when the build starts, we need to make sure to generate
 		async buildStart() {
 			try {
-				await generate(config)
+				await generate(await getConfig({ configFile }))
 			} catch (e) {
 				formatErrors(e)
 			}
@@ -40,6 +36,14 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 
 		// transform the user's code
 		async transform(code, filepath) {
+			let config: Config
+			try {
+				config = await getConfig({ configFile })
+			} catch (e) {
+				formatErrors(e)
+				return
+			}
+
 			if (filepath.startsWith('/src/')) {
 				filepath = path.join(process.cwd(), filepath)
 			}
