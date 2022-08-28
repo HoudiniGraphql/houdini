@@ -1,10 +1,8 @@
-import { LoadEvent } from '@sveltejs/kit'
 import { Readable } from 'svelte/store'
 import { Writable, writable } from 'svelte/store'
 
 import cache from '../cache'
 import type { SubscriptionSpec, MutationArtifact } from '../lib'
-import { getCurrentConfig } from '../lib/config'
 import { executeQuery } from '../lib/network'
 import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
 import { GraphQLObject } from '../lib/types'
@@ -38,7 +36,7 @@ export class MutationStore<
 			fetch?: typeof globalThis.fetch
 		} & MutationConfig<_Data, _Input, _Optimistic> = {}
 	): Promise<_Data | null> {
-		const config = await getCurrentConfig()
+		const config = await this.getConfig()
 
 		this.store.update((c) => {
 			return { ...c, isFetching: true }

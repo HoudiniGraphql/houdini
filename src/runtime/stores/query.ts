@@ -4,7 +4,6 @@ import { get, Readable, Writable, writable } from 'svelte/store'
 import { clientStarted, isBrowser, error } from '../adapter'
 import cache from '../cache'
 import type { ConfigFile, QueryArtifact } from '../lib'
-import { getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import * as log from '../lib/log'
 import { fetchQuery } from '../lib/network'
@@ -62,7 +61,9 @@ export class QueryStore<_Data extends GraphQLObject, _Input, _ExtraFields = {}> 
 	fetch(params?: ClientFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	fetch(params?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>>
 	async fetch(args?: QueryStoreFetchParams<_Data, _Input>): Promise<QueryResult<_Data, _Input>> {
-		const config = await getCurrentConfig()
+		const config = await this.getConfig()
+		// set the cache's config
+		cache.setConfig(config)
 
 		// validate and prepare the request context for the current environment (client vs server)
 		const { policy, params, context } = fetchParams(this.artifact, this.storeName, args)
