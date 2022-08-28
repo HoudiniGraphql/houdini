@@ -1,1 +1,1 @@
-{ 'packages': ['site', 'integration', '.'] }
+{ 'packages': ['site', 'integration', '.', 'example'] }

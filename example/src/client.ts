@@ -4,13 +4,7 @@ import { HoudiniClient } from '$houdini'
 import { createClient as createWSClient } from 'graphql-ws'
 
 // For Query & Mutation
-async function fetchQuery({
-	fetch,
-	text = '',
-	variables = {},
-	session,
-	metadata,
-}: RequestHandlerArgs) {
+async function fetchQuery({ fetch, text = '', variables = {} }: RequestHandlerArgs) {
 	const result = await fetch('http://localhost:4000/graphql', {
 		method: 'POST',
 		headers: {
@@ -28,10 +22,11 @@ async function fetchQuery({
 // For subscription (client only)
 let socketClient: SubscriptionHandler | null = null
 if (browser) {
+	// @ts-ignore
 	socketClient = createWSClient({
 		url: 'ws://localhost:4000/graphql',
 	})
 }
 
 // Export the Houdini client
-export const houdiniClient = new HoudiniClient(fetchQuery, socketClient)
+export default new HoudiniClient(fetchQuery, socketClient)

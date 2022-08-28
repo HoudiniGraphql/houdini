@@ -37,7 +37,10 @@ export default ${globalStoreName}
 	const typeDefs = `import type { ${_input}, ${_data}, ${_optimistic}, MutationStore } from '$houdini'
 
 export declare class ${storeName} extends MutationStore<${_data} | undefined, ${_input}, ${_optimistic}>{
-	constructor() {}
+	constructor() {
+		// @ts-ignore
+		super({})
+	}
 }
 
 export const ${globalStoreName}: ${storeName}

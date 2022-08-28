@@ -195,10 +195,38 @@ ${
 	}
 
 	get pullHeaders() {
+		console.log(
+			this.schemaPollHeaders,
+			Object.fromEntries(
+				Object.entries(this.schemaPollHeaders || {}).flatMap(([key, value]) => {
+					let headerValue
+					if (typeof value === 'function') {
+						headerValue = value(process.env)
+					} else if (value.startsWith('env:')) {
+						headerValue = process.env[value.slice('env:'.length)]
+					} else {
+						headerValue = value
+					}
+
+					// if there was no value, dont add anything
+					if (!headerValue) {
+						return []
+					}
+
+					return [[key, headerValue]]
+				})
+			)
+		)
 		return Object.fromEntries(
 			Object.entries(this.schemaPollHeaders || {}).map(([key, value]) => {
-				const headerValue =
-					typeof value === 'string' ? process.env[value] : value(process.env)
+				let headerValue
+				if (typeof value === 'function') {
+					headerValue = value(process.env)
+				} else if (value.startsWith('env:')) {
+					headerValue = process.env[value.slice('env:'.length - 1)]
+				} else {
+					headerValue = value
+				}
 
 				// if there was no value, dont add anything
 				if (!headerValue) {

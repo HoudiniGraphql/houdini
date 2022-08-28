@@ -1,8 +1,3 @@
-directive @cacheControl(
-	maxAge: Int
-	scope: CacheControlScope
-) on FIELD_DEFINITION | INTERFACE | OBJECT
-
 input AddItemInput {
 	text: String!
 }
@@ -10,11 +5,6 @@ input AddItemInput {
 type AddItemOutput {
 	error: Error
 	item: TodoItem
-}
-
-enum CacheControlScope {
-	PRIVATE
-	PUBLIC
 }
 
 """
@@ -81,8 +71,3 @@ type UpdateItemOutput {
 	error: Error
 	item: TodoItem
 }
-
-"""
-The `Upload` scalar type represents a file upload.
-"""
-scalar Upload

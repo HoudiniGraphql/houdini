@@ -1,11 +1,3 @@
-<script context="module">
-	import { browser } from '$app/env'
-	import cache from '$houdini/runtime/cache'
-	import { houdiniClient } from '../client'
-
-	houdiniClient.init()
-</script>
-
 <svelte:head>
 	<title>Houdini • TodoMVC</title>
 	<link rel="stylesheet" href="//unpkg.com/todomvc-common/base.css" />

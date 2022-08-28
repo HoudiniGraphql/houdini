@@ -57,7 +57,10 @@ export default ${globalStoreName}
 	const typeDefs = `import type { ${_data}, ${queryClass}, QueryStoreFetchParams} from '$houdini'
 
 export declare class ${storeName} extends ${queryClass}<${_data}, {}> {
-	constructor() {}
+	constructor() {
+		// @ts-ignore
+		super({})
+	}
 }
 
 export const ${globalStoreName}: ${storeName}
