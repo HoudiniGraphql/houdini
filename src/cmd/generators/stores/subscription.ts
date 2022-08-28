@@ -34,7 +34,10 @@ export default ${globalStoreName}
 	const typeDefs = `import type { ${_input}, ${_data}, SubscriptionStore } from '$houdini'
 
 export declare class ${storeName} extends SubscriptionStore<${_data} | undefined, ${_input}> {
-	constructor() {}
+	constructor() {
+		// @ts-ignore
+		super({})
+	}
 }
 
 export const ${globalStoreName}: ${storeName}
