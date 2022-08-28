@@ -653,9 +653,9 @@ ${
 	}
 
 	resolveRelative(filename: string) {
-		const relativeMath = filename.match('^(../)+src/routes')
-		if (filename.startsWith('../../../src/routes')) {
-			filename = path.join(this.projectRoot, filename.substring('../../../'.length))
+		const match = filename.match('^(../)+src/routes')
+		if (match) {
+			filename = path.join(this.projectRoot, filename.substring(match[0].length))
 		}
 
 		return filename
