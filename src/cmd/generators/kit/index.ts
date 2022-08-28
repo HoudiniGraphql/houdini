@@ -59,6 +59,7 @@ export default async function svelteKitGenerator(config: Config, docs: Collected
 
 			const afterLoad = scriptExports.includes('afterLoad')
 			const beforeLoad = scriptExports.includes('beforeLoad')
+			const onError = scriptExports.includes('onError')
 
 			// we need to create a typescript file that has a definition of the variable and hook functions
 			const typeDefs = `import type * as Kit from '@sveltejs/kit';
@@ -138,7 +139,16 @@ type BeforeLoadReturn = ReturnType<typeof import('./+page').beforeLoad>;
 `
 		: ''
 }
+${
+	onError
+		? `
 
+export type OnErrorEvent = PageLoadEvent
+
+type OnErrorReturn = ReturnType<typeof import('./+page').onError>;
+`
+		: ''
+}
 
 export type PageData = {
 	${queries
@@ -148,7 +158,9 @@ export type PageData = {
 			return [name, name + config.storeSuffix].join(': ')
 		})
 		.join(', \n')}
-} ${afterLoad ? '& AfterLoadReturn ' : ''} ${beforeLoad ? '& BeforeLoadReturn ' : ''}
+} ${afterLoad ? '& AfterLoadReturn ' : ''} ${beforeLoad ? '& BeforeLoadReturn ' : ''} ${
+				onError ? '& OnErrorReturn ' : ''
+			} 
 
 `
 

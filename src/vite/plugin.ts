@@ -35,7 +35,6 @@ export default function HoudiniPlugin(configFile?: string): Plugin {
 				await generate(config)
 			} catch (e) {
 				formatErrors(e)
-				throw new Error('see above')
 			}
 		},
 

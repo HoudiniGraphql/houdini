@@ -68,7 +68,13 @@ describe('kit route processor', function () {
 			        "blocking": false
 			    }));
 
-			    const result = Object.assign({}, ...(await Promise.all(promises)));
+			    let result = {};
+
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
 
 			    return {
 			        ...houdini_context.returnValue,
@@ -191,7 +197,13 @@ describe('kit route processor', function () {
 			        "blocking": false
 			    }));
 
-			    const result = Object.assign({}, ...(await Promise.all(promises)));
+			    let result = {};
+
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
 
 			    return {
 			        ...houdini_context.returnValue,
@@ -254,7 +266,13 @@ describe('kit route processor', function () {
 			        "blocking": false
 			    }));
 
-			    const result = Object.assign({}, ...(await Promise.all(promises)));
+			    let result = {};
+
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
 
 			    return {
 			        ...houdini_context.returnValue,
@@ -398,7 +416,13 @@ describe('kit route processor', function () {
 			        "blocking": false
 			    }));
 
-			    const result = Object.assign({}, ...(await Promise.all(promises)));
+			    let result = {};
+
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
 
 			    return {
 			        ...houdini_context.returnValue,
@@ -442,7 +466,13 @@ describe('kit route processor', function () {
 			        "blocking": false
 			    }));
 
-			    const result = Object.assign({}, ...(await Promise.all(promises)));
+			    let result = {};
+
+			    try {
+			        result = Object.assign({}, ...(await Promise.all(promises)));
+			    } catch (err) {
+			        throw err;
+			    }
 
 			    return {
 			        ...houdini_context.returnValue,
@@ -521,7 +551,13 @@ test('beforeLoad hook', async function () {
 		        "blocking": false
 		    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
 
 		    return {
 		        ...houdini_context.returnValue,
@@ -609,7 +645,13 @@ test('beforeLoad hook - multiple queries', async function () {
 		        "blocking": false
 		    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
 
 		    return {
 		        ...houdini_context.returnValue,
@@ -679,7 +721,13 @@ test('afterLoad hook', async function () {
 		        "blocking": true
 		    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
 
 		    await houdini_context.invokeLoadHook({
 		        "variant": "after",
@@ -768,7 +816,13 @@ test('afterLoad hook - multiple queries', async function () {
 		        "blocking": true
 		    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
 
 		    await houdini_context.invokeLoadHook({
 		        "variant": "after",
@@ -859,7 +913,13 @@ test('both beforeLoad and afterLoad hooks', async function () {
 		        "blocking": true
 		    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
 
 		    await houdini_context.invokeLoadHook({
 		        "variant": "after",
@@ -936,7 +996,13 @@ test('layout loads', async function () {
 		        "blocking": false
 		    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
 
 		    return {
 		        ...houdini_context.returnValue,
@@ -989,7 +1055,94 @@ test('layout inline query', async function () {
 		        "blocking": false
 		    }));
 
-		    const result = Object.assign({}, ...(await Promise.all(promises)));
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        throw err;
+		    }
+
+		    return {
+		        ...houdini_context.returnValue,
+		        ...result
+		    };
+		}
+	`)
+})
+
+test('onError hook', async function () {
+	const route = await route_test({
+		script: `
+				export async function onError(){
+				   return this.redirect(302, "/test")
+				}
+
+				export function TestQueryVariables(page) {
+					return {
+						test: true
+					}
+				}
+		`,
+		component: `
+				<script>
+					const result = graphql\`
+						query TestQuery($test: Boolean!) {
+							viewer {
+								id
+							}
+						}
+					\`
+				</script>
+			`,
+	})
+
+	expect(route.script).toMatchInlineSnapshot(`
+		import { load_TestQuery } from "$houdini/stores/TestQuery";
+		import { getCurrentConfig } from "$houdini/runtime/lib/config";
+		import { RequestContext } from "$houdini/runtime/lib/network";
+		import GQL_TestQuery from "$houdini/stores/TestQuery";
+
+		export async function onError() {
+		    return this.redirect(302, "/test");
+		}
+
+		export function TestQueryVariables(page) {
+		    return {
+		        test: true
+		    };
+		}
+
+		export async function load(context) {
+		    const houdini_context = new RequestContext(context);
+		    const houdiniConfig = await getCurrentConfig();
+		    const promises = [];
+		    const inputs = {};
+
+		    inputs["TestQuery"] = await houdini_context.computeInput({
+		        "config": houdiniConfig,
+		        "variableFunction": TestQueryVariables,
+		        "artifact": GQL_TestQuery.artifact
+		    });
+
+		    promises.push(load_TestQuery({
+		        "variables": inputs["TestQuery"],
+		        "event": context,
+		        "blocking": false
+		    }));
+
+		    let result = {};
+
+		    try {
+		        result = Object.assign({}, ...(await Promise.all(promises)));
+		    } catch (err) {
+		        await houdini_context.invokeLoadHook({
+		            "variant": "error",
+		            "hookFn": onError,
+		            "error": err,
+		            "input": inputs
+		        });
+		    }
 
 		    return {
 		        ...houdini_context.returnValue,

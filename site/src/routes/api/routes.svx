@@ -111,7 +111,7 @@ A query store holds an object with the following fields that accessed like `$sto
 
 - `data` contains the result of the query. It's value will update as mutations, subscriptions, and other queries provide more recent information.
 - `loading` contains the loading state (`true` or `false`) for a query found outside of a route component (ie, not defined in `src/routes`)
-- `errors` contains any error values that occur for a query found outside of a route component (ie, not defined in `src/routes`)
+- `errors` contains any error values that occur for a query found outside of a route component (ie, not defined in `src/routes`). If you want to use this for managing your errors, you should enable the [quietQueryError](/api/config) configuration option.
 - `partial` contains a boolean that indicates if the result has a partial match
 
 ### Methods
@@ -239,6 +239,28 @@ export function afterLoad({ data }) {
 }
 ```
 
+#### `onError`
+
+If defined, the load function will invoked this function instead of throwing an error when an error is received.  
+It receives three inputs: the load event, the inputs for each query, and the error that was encountered. Just like
+the other hooks, `onError` can return an object that provides props to the route.
+
+```javascript
+// src/routes/myRoute/+page.js
+
+export const houdini_load = graphql`
+	query MyProfile {
+		profile {
+			name
+		}
+	}
+`
+
+export function onError({ error }) {
+	throw this.redirect(307, '/login')
+}
+```
+
 ### Disabling Inline Query Loading
 
 Sometimes it's useful to have a lazy query that only fires when you call `fetch` (for
@@ -298,7 +320,7 @@ export async function load(event) {
 }
 ```
 
-<DeepDive title="Loading multiple stores simulatenously">
+<DeepDive title="Loading multiple stores simultaneously">
 
 Be careful when loading multiple stores at once.
 

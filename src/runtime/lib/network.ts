@@ -98,9 +98,14 @@ export type FetchContext = {
 }
 
 export type BeforeLoadArgs = LoadEvent
-export type AfterLoadArgs = LoadEvent & {
+export type AfterLoadArgs = {
+	event: LoadEvent
 	input: Record<string, any>
 	data: Record<string, any>
+}
+export type OnErrorArgs = {
+	event: LoadEvent
+	input: Record<string, any>
 }
 
 export type KitLoadResponse = {
@@ -322,20 +327,23 @@ export class RequestContext {
 		hookFn,
 		input,
 		data,
+		error,
 	}: {
-		variant: 'before' | 'after'
-		hookFn: KitBeforeLoad | KitAfterLoad
+		variant: 'before' | 'after' | 'error'
+		hookFn: KitBeforeLoad | KitAfterLoad | KitOnError
 		input: Record<string, any>
 		data: Record<string, any>
+		error: unknown
 	}) {
 		// call the onLoad function to match the framework
 		let hookCall
 		if (variant === 'before') {
 			hookCall = (hookFn as KitBeforeLoad).call(this, this.loadEvent as BeforeLoadArgs)
-		} else {
+		} else if (variant === 'after') {
 			// we have to assign input and data onto load so that we don't read values that
 			// are deprecated
-			Object.assign(this.loadEvent, {
+			hookCall = (hookFn as KitAfterLoad).call(this, {
+				event: this.loadEvent,
 				input,
 				data: Object.fromEntries(
 					Object.entries(data).map(([key, store]) => [
@@ -343,10 +351,16 @@ export class RequestContext {
 						get<QueryResult<any, any>>(store).data,
 					])
 				),
-			})
-			hookCall = (hookFn as KitAfterLoad).call(this, this.loadEvent as AfterLoadArgs)
+			} as AfterLoadArgs)
+		} else if (variant === 'error') {
+			hookCall = (hookFn as KitOnError).call(this, {
+				event: this.loadEvent,
+				input,
+				error,
+			} as OnErrorArgs)
 		}
 
+		// make sure any promises are resolved
 		let result = await hookCall
 
 		// If the returnValue is already set through this.error or this.redirect return early
@@ -378,3 +392,4 @@ export class RequestContext {
 
 type KitBeforeLoad = (ctx: BeforeLoadArgs) => Record<string, any> | Promise<Record<string, any>>
 type KitAfterLoad = (ctx: AfterLoadArgs) => Record<string, any>
+type KitOnError = (ctx: OnErrorArgs) => Record<string, any>
