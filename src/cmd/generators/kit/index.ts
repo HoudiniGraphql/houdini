@@ -107,7 +107,7 @@ type AfterLoadData = {
 		.join(', \n')}
 }
 
-type AfterLoadInput = {
+type LoadInput = {
 	${queries
 		.filter((query) => query.variableDefinitions?.length)
 		.map((query) => {
@@ -123,7 +123,7 @@ type AfterLoadInput = {
 export type AfterLoadEvent = {
 	event: PageLoadEvent
 	data: AfterLoadData
-	input: AfterLoadInput
+	input: LoadInput
 }
 `
 		: ''
@@ -143,7 +143,7 @@ ${
 	onError
 		? `
 
-export type OnErrorEvent = PageLoadEvent
+export type OnErrorEvent =  { event: LoadEvent, input: LoadInput, error: Error | Error[] }
 
 type OnErrorReturn = ReturnType<typeof import('./+page').onError>;
 `
