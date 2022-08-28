@@ -1,5 +1,19 @@
 # houdini
 
+## 0.16.0-next.4
+
+### Patch Changes
+
+-   [#495](https://github.com/HoudiniGraphql/houdini/pull/495) [`fea1bbf`](https://github.com/HoudiniGraphql/houdini/commit/fea1bbfbcd6cdd704dee50e602c1bf725f016f1c) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - schemaPollHeaders requires env: prefix to reference environment variable
+
+*   [#490](https://github.com/HoudiniGraphql/houdini/pull/490) [`71caba7`](https://github.com/HoudiniGraphql/houdini/commit/71caba7c6b23e73754934fd604030f3cd1a9b74b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix generated types for optimistic responses
+
+-   [#494](https://github.com/HoudiniGraphql/houdini/pull/494) [`5573cfa`](https://github.com/HoudiniGraphql/houdini/commit/5573cfa184d2da322030695044997f5fbf6542bd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add onError hook
+
+*   [#496](https://github.com/HoudiniGraphql/houdini/pull/496) [`101b543`](https://github.com/HoudiniGraphql/houdini/commit/101b543fd647b7f12fc519044b382129b089f69e) Thanks [@jycouet](https://github.com/jycouet)! - refactoring to use directly vite-plugin-watch-and-run
+
+-   [#494](https://github.com/HoudiniGraphql/houdini/pull/494) [`5573cfa`](https://github.com/HoudiniGraphql/houdini/commit/5573cfa184d2da322030695044997f5fbf6542bd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add `quietQueryError` config value to supress all query errors
+
 ## 0.16.0-next.3
 
 ### Patch Changes
