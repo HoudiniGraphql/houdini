@@ -1,6 +1,6 @@
 import { deepEquals } from '../..'
 import cache from '../../cache'
-import { getCurrentConfig } from '../../lib/config'
+import { ConfigFile } from '../../lib/config'
 import { executeQuery } from '../../lib/network'
 import { GraphQLObject, QueryArtifact } from '../../lib/types'
 import { QueryResult, QueryStoreFetchParams } from '../query'
@@ -15,6 +15,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 	getValue,
 	setFetching,
 	storeName,
+	getConfig,
 }: {
 	artifact: QueryArtifact
 	queryVariables: () => Promise<_Input | null>
@@ -22,6 +23,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 	getValue: () => _Data | null
 	storeName: string
 	setFetching: (val: boolean) => void
+	getConfig: () => Promise<ConfigFile>
 }) {
 	// we need to track the most recent offset for this handler
 	let currentOffset =
@@ -41,7 +43,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
 		} = {}) => {
-			const config = await getCurrentConfig()
+			const config = await getConfig()
 
 			offset ??= currentOffset
 

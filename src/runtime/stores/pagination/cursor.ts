@@ -1,7 +1,7 @@
 import { Writable, writable } from 'svelte/store'
 
 import cache from '../../cache'
-import { getCurrentConfig } from '../../lib/config'
+import { ConfigFile } from '../../lib/config'
 import { deepEquals } from '../../lib/deepEquals'
 import { executeQuery } from '../../lib/network'
 import { GraphQLObject, QueryArtifact } from '../../lib/types'
@@ -17,6 +17,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	fetch,
 	storeName,
 	getValue,
+	getConfig,
 }: {
 	artifact: QueryArtifact
 	getValue: () => _Data | null
@@ -24,6 +25,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 	setFetching: (val: boolean) => void
 	fetch: FetchFn<_Data, _Input>
 	storeName: string
+	getConfig: () => Promise<ConfigFile>
 }): CursorHandlers<_Data, _Input> {
 	const pageInfo = writable<PageInfo>(extractPageInfo(getValue(), artifact.refetch!.path))
 
@@ -41,7 +43,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		metadata?: {}
 		fetch?: typeof globalThis.fetch
 	}) => {
-		const config = await getCurrentConfig()
+		const config = await getConfig()
 
 		// set the loading state to true
 		setFetching(true)

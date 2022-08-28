@@ -2,7 +2,6 @@ import { writable, Writable } from 'svelte/store'
 
 import { isBrowser } from '../adapter'
 import cache from '../cache'
-import { getCurrentConfig } from '../lib/config'
 import { deepEquals } from '../lib/deepEquals'
 import { getCurrentClient } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
@@ -39,7 +38,7 @@ export class SubscriptionStore<_Data, _Input> extends BaseStore {
 			return
 		}
 		// pull out the current client
-		const config = await getCurrentConfig()
+		const config = await this.getConfig()
 		const env = await getCurrentClient()
 		// we need to make sure that the user provided a socket connection
 		if (!env.socket) {

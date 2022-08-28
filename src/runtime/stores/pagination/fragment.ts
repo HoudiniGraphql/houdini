@@ -128,6 +128,7 @@ class FragmentStoreCursor<_Data extends GraphQLObject, _Input> extends BasePagin
 			queryVariables: () => this.queryVariables(store),
 			setFetching,
 			storeName: this.name,
+			getConfig: () => this.getConfig(),
 		})
 	}
 }
@@ -197,6 +198,7 @@ export class FragmentStoreOffset<
 			setFetching: (isFetching: boolean) => parent.update((p) => ({ ...p, isFetching })),
 			queryVariables: () => this.queryVariables({ subscribe: parent.subscribe }),
 			storeName: this.name,
+			getConfig: () => this.getConfig(),
 		})
 
 		// add the offset handlers

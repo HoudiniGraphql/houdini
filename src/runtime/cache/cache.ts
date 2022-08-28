@@ -132,6 +132,11 @@ export class Cache {
 		// delete the record from the store
 		this._internal_unstable.storage.delete(id)
 	}
+
+	// set the cache's config
+	setConfig(config: ConfigFile) {
+		this._internal_unstable.setConfig(config)
+	}
 }
 
 class CacheInternal {
@@ -173,6 +178,10 @@ class CacheInternal {
 		} catch {
 			this._disabled = typeof globalThis.window === 'undefined'
 		}
+	}
+
+	setConfig(config: ConfigFile) {
+		this.config = config
 	}
 
 	writeSelection({
@@ -699,6 +708,7 @@ class CacheInternal {
 
 			// if the field is a scalar
 			else if (!fields) {
+				console.log('pulling scalar', type, this.config)
 				// is the type a custom scalar with a specified unmarshal function
 				const fnUnmarshal = this.config.scalars?.[type]?.unmarshal
 				if (fnUnmarshal) {

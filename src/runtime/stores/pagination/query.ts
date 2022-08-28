@@ -34,6 +34,7 @@ class CursorPaginatedStore<_Data extends GraphQLObject, _Input> extends QuerySto
 			queryVariables: this.currentVariables.bind(this),
 			storeName: this.name,
 			getValue: () => get(this.store).data,
+			getConfig: () => this.getConfig(),
 		})
 	}
 
@@ -109,6 +110,7 @@ export class QueryStoreOffset<_Data extends GraphQLObject, _Input> extends Query
 			setFetching: (...args) => this.setFetching(...args),
 			queryVariables: () => this.currentVariables(),
 			storeName: this.name,
+			getConfig: () => this.getConfig(),
 		})
 	}
 

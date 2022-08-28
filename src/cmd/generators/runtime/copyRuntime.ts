@@ -84,21 +84,21 @@ async function addClientImport(config: Config) {
 }
 
 async function addConfigImport(config: Config) {
-	// all we need to do is compute the relative path from the generated network file
+	// all we need to do is compute the relative path from the generated config file
 	// to the config in the config file and replace HOUDINI_config_PATH with the value
 
-	// the path to the network file
-	const networkFilePath = path.join(config.runtimeDirectory, 'lib', 'config.js')
+	// the path to the config file
+	const configFilePath = path.join(config.runtimeDirectory, 'lib', 'config.js')
 	// the relative path
-	const relativePath = path.relative(path.dirname(networkFilePath), config.filepath)
+	const relativePath = path.relative(path.dirname(configFilePath), config.filepath)
 
 	// read the file, replace the string, update the file
-	const contents = await fs.readFile(networkFilePath)
+	const contents = await fs.readFile(configFilePath)
 	if (!contents) {
 		return
 	}
 
-	await fs.writeFile(networkFilePath, contents.replace('HOUDINI_CONFIG_PATH', relativePath))
+	await fs.writeFile(configFilePath, contents.replace('HOUDINI_CONFIG_PATH', relativePath))
 }
 
 async function meta(config: Config) {
