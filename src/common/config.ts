@@ -653,9 +653,11 @@ ${
 	}
 
 	resolveRelative(filename: string) {
-		const match = filename.match('^(../)+src/routes')
+		// kit generates relative import for our generated files. we need to fix that so that
+		// vites importer can find the file.
+		const match = filename.match('^((../)+)src/routes')
 		if (match) {
-			filename = path.join(this.projectRoot, filename.substring(match[0].length))
+			filename = path.join(this.projectRoot, filename.substring(match[1].length))
 		}
 
 		return filename
