@@ -21,8 +21,8 @@ export default async function uniqueDocumentNames(
 		.map(
 			([docName, fileNames]) =>
 				new HoudiniError({
-					message: `Operation names must be unique. Encountered duplicate definitions of ${docName} in these files:`,
-					description: fileNames.join(', '),
+					message: fileNames.join(', '),
+					description: `Operation names must be unique. Encountered duplicate definitions of ${docName} in these files:`,
 				})
 		)
 

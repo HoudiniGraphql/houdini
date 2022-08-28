@@ -249,7 +249,9 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			}))
 
 			// don't go any further
-			throw error(500, result.errors.map((error) => error.message).join('. ') + '.')
+			if (!config.quietQueryErrors) {
+				throw error(500, result.errors.map((error) => error.message).join('. ') + '.')
+			}
 		} else {
 			store.set({
 				data: (unmarshaled || {}) as _Data,

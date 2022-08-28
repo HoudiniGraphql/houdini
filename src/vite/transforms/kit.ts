@@ -172,6 +172,7 @@ function add_load({
 	// look for any hooks
 	let before_load = page_info.exports.includes('beforeLoad')
 	let after_load = page_info.exports.includes('afterLoad')
+	let on_error = page_info.exports.includes('onError')
 
 	// some local variables
 	const request_context = AST.identifier('houdini_context')
@@ -214,8 +215,8 @@ function add_load({
 				AST.variableDeclarator(input_obj, AST.objectExpression([])),
 			]),
 
-			// regardless of what happens between the contenxt instantiation and return,
-			// all we have to do is mix the return value with the props we want to send one
+			// regardless of what happens between the context instantiation and return,
+			// all we have to do is mix the return value with the props we want to send on
 			AST.returnStatement(
 				AST.objectExpression([
 					AST.spreadElement(return_value),
@@ -312,39 +313,88 @@ function add_load({
 		)
 	}
 
+	// the only thing that's left is to merge the list of load promises into a single
+	// object using something like Promise.all. We might need to do some custom wrapping
+	// of the error.
+	let args = [request_context, input_obj, result_obj] as const
+
 	preload_fn.body.body.splice(
 		insert_index++,
 		0,
-		AST.variableDeclaration('const', [
-			AST.variableDeclarator(
-				result_obj,
-				AST.callExpression(
-					AST.memberExpression(AST.identifier('Object'), AST.identifier('assign')),
-					[
-						AST.objectExpression([]),
-						AST.spreadElement(
-							AST.awaitExpression(
-								AST.callExpression(
-									AST.memberExpression(
-										AST.identifier('Promise'),
-										AST.identifier('all')
-									),
-									[promise_list]
+		AST.variableDeclaration('let', [
+			AST.variableDeclarator(result_obj, AST.objectExpression([])),
+		]),
+		AST.tryStatement(
+			AST.blockStatement([
+				AST.expressionStatement(
+					AST.assignmentExpression(
+						'=',
+						result_obj,
+						AST.callExpression(
+							AST.memberExpression(
+								AST.identifier('Object'),
+								AST.identifier('assign')
+							),
+							[
+								AST.objectExpression([]),
+								AST.spreadElement(
+									AST.awaitExpression(
+										AST.callExpression(
+											AST.memberExpression(
+												AST.identifier('Promise'),
+												AST.identifier('all')
+											),
+											[promise_list]
+										)
+									)
+								),
+							]
+						)
+					)
+				),
+			]),
+			AST.catchClause(
+				AST.identifier('err'),
+				null,
+				AST.blockStatement([
+					on_error
+						? AST.expressionStatement(
+								AST.awaitExpression(
+									AST.callExpression(
+										AST.memberExpression(
+											request_context,
+											AST.identifier('invokeLoadHook')
+										),
+										[
+											AST.objectExpression([
+												AST.objectProperty(
+													AST.literal('variant'),
+													AST.stringLiteral('error')
+												),
+												AST.objectProperty(
+													AST.literal('hookFn'),
+													AST.identifier('onError')
+												),
+												AST.objectProperty(
+													AST.literal('error'),
+													AST.identifier('err')
+												),
+												AST.objectProperty(AST.literal('input'), input_obj),
+											]),
+										]
+									)
 								)
-							)
-						),
-					]
-				)
-			),
-		])
+						  )
+						: AST.throwStatement(AST.identifier('err')),
+				])
+			)
+		)
 	)
-
-	let args = [request_context, input_obj, result_obj] as const
 
 	// add calls to user before/after load functions
 	if (before_load) {
 		if (before_load) {
-			preload_fn.body.body.splice(1, 0, ...load_hook_statements('beforeLoad', ...args))
+			preload_fn.body.body.splice(1, 0, load_hook_statements('beforeLoad', ...args))
 		}
 	}
 
@@ -352,7 +402,7 @@ function add_load({
 		preload_fn.body.body.splice(
 			preload_fn.body.body.length - 1,
 			0,
-			...load_hook_statements('afterLoad', ...args)
+			load_hook_statements('afterLoad', ...args)
 		)
 	}
 }
@@ -400,31 +450,29 @@ function load_hook_statements(
 	input_id: IdentifierKind,
 	result_id: IdentifierKind
 ) {
-	return [
-		AST.expressionStatement(
-			AST.awaitExpression(
-				AST.callExpression(
-					AST.memberExpression(request_context, AST.identifier('invokeLoadHook')),
-					[
-						AST.objectExpression([
-							AST.objectProperty(
-								AST.literal('variant'),
-								AST.stringLiteral(name === 'afterLoad' ? 'after' : 'before')
-							),
-							AST.objectProperty(AST.literal('hookFn'), AST.identifier(name)),
-							// after load: pass query data to the hook
-							...(name === 'afterLoad'
-								? [
-										AST.objectProperty(AST.literal('input'), input_id),
-										AST.objectProperty(AST.literal('data'), result_id),
-								  ]
-								: []),
-						]),
-					]
-				)
+	return AST.expressionStatement(
+		AST.awaitExpression(
+			AST.callExpression(
+				AST.memberExpression(request_context, AST.identifier('invokeLoadHook')),
+				[
+					AST.objectExpression([
+						AST.objectProperty(
+							AST.literal('variant'),
+							AST.stringLiteral(name === 'afterLoad' ? 'after' : 'before')
+						),
+						AST.objectProperty(AST.literal('hookFn'), AST.identifier(name)),
+						// after load: pass query data to the hook
+						...(name === 'afterLoad'
+							? [
+									AST.objectProperty(AST.literal('input'), input_id),
+									AST.objectProperty(AST.literal('data'), result_id),
+							  ]
+							: []),
+					]),
+				]
 			)
-		),
-	]
+		)
+	)
 }
 
 async function find_page_info(page: TransformPage): Promise<HoudiniRouteScript> {

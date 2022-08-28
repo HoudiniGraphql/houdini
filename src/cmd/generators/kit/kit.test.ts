@@ -148,19 +148,87 @@ test('generates types for after load', async function () {
 		    MyPageLoad2Query: MyPageLoad2Query$result
 		};
 
-		type AfterLoadInput = {
+		type LoadInput = {
 		    MyPageLoad1Query: MyPageLoad1Query$input
 		};
 
 		export type AfterLoadEvent = {
 		    event: PageLoadEvent,
 		    data: AfterLoadData,
-		    input: AfterLoadInput
+		    input: LoadInput
 		};
 
 		export type PageData = {
 		    MyPageLoad1Query: MyPageLoad1QueryStore,
 		    MyPageLoad2Query: MyPageLoad2QueryStore
 		} & AfterLoadReturn;
+	`)
+})
+
+test('generates types for onError', async function () {
+	// create the mock filesystem
+	await fs.mock({
+		[config.routesDir]: {
+			myProfile: {
+				'+page.js': `
+                    import { graphql } from '$houdini'
+
+                    const store1 = graphql\`query MyPageLoad1Query($id: ID!) { 
+                        viewer(id: $id) { 
+                            id
+                        }
+                    }\`
+
+                    const store2 = graphql\`query MyPageLoad2Query { 
+                        viewer { 
+                            id
+                        }
+                    }\`
+
+                    export const houdini_load = [ store1, store2 ]
+
+                    export function onError() {
+                        return { 
+                            hello: 'world'
+                        }
+                    }
+                `,
+			},
+		},
+	})
+
+	// execute the generator
+	await runPipeline(config, [])
+
+	// load the contents of the file
+	const queryContents = await fs.readFile(
+		path.join(config.typeRouteDir, 'myProfile', '$houdini.d.ts')
+	)
+	expect(queryContents).toBeTruthy()
+
+	// verify contents
+	expect((await parseJS(queryContents!))?.script).toMatchInlineSnapshot(`
+		import type * as Kit from "@sveltejs/kit";
+		import type { VariableFunction, AfterLoadFunction, BeforeLoadFunction } from "../../../../runtime/lib/types";
+		import type { PageLoadEvent, PageData as KitPageData } from "./$types";
+		import { MyPageLoad1Query$result, MyPageLoad1Query$input } from "../../../../artifacts/MyPageLoad1Query";
+		import { MyPageLoad1QueryStore } from "../../../../stores/MyPageLoad1Query";
+		import { MyPageLoad2Query$result, MyPageLoad2Query$input } from "../../../../artifacts/MyPageLoad2Query";
+		import { MyPageLoad2QueryStore } from "../../../../stores/MyPageLoad2Query";
+		type Params = PageLoadEvent["params"];
+		export type MyPageLoad1QueryVariables = VariableFunction<Params, MyPageLoad1Query$input>;
+
+		export type OnErrorEvent = {
+		    event: LoadEvent,
+		    input: LoadInput,
+		    error: Error | Error[]
+		};
+
+		type OnErrorReturn = ReturnType<typeof import("./+page").onError>;
+
+		export type PageData = {
+		    MyPageLoad1Query: MyPageLoad1QueryStore,
+		    MyPageLoad2Query: MyPageLoad2QueryStore
+		} & OnErrorReturn;
 	`)
 })

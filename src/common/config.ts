@@ -52,6 +52,7 @@ export class Config {
 	plugin: boolean = false
 	client: string
 	globalStorePrefix: string
+	quietQueryErrors: boolean
 
 	constructor({
 		filepath,
@@ -85,6 +86,7 @@ export class Config {
 			projectDir,
 			client,
 			globalStorePrefix = 'GQL_',
+			quietQueryErrors,
 		} = this.configFile
 
 		if (!client) {
@@ -152,6 +154,7 @@ ${
 		this.pageQueryFilename = pageQueryFilename
 		this.client = client
 		this.globalStorePrefix = globalStorePrefix
+		this.quietQueryErrors = quietQueryErrors || false
 
 		// hold onto the key config
 		if (defaultKeys) {
@@ -650,9 +653,11 @@ ${
 	}
 
 	resolveRelative(filename: string) {
-		const relativeMath = filename.match('^(../)+src/routes')
-		if (filename.startsWith('../../../src/routes')) {
-			filename = path.join(this.projectRoot, filename.substring('../../../'.length))
+		// kit generates relative import for our generated files. we need to fix that so that
+		// vites importer can find the file.
+		const match = filename.match('^((../)+)src/routes')
+		if (match) {
+			filename = path.join(this.projectRoot, filename.substring(match[1].length))
 		}
 
 		return filename
