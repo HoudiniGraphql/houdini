@@ -1,17 +1,8 @@
-<script lang="ts">
-	import {
-		fragment,
-		mutation,
-		graphql,
-		subscription,
-		type ItemEntry_item,
-		type CompleteItem,
-		type UncompleteItem,
-		type DeleteItem,
-	} from '$houdini'
+<script>
+	import { graphql, fragment } from '$houdini'
 
 	// the reference we're passed from our parents
-	export let item: ItemEntry_item
+	export let item
 
 	// get the information we need about the item
 	const data = fragment(
@@ -27,7 +18,7 @@
 	)
 
 	// create the functions we'll invoke to check, uncheck, and delete the item
-	const completeItem = mutation<CompleteItem>(graphql`
+	const completeItem = graphql`
 		mutation CompleteItem($id: ID!) {
 			checkItem(item: $id) {
 				item {
@@ -37,8 +28,8 @@
 				}
 			}
 		}
-	`)
-	const uncompleteItem = mutation<UncompleteItem>(graphql`
+	`
+	const uncompleteItem = graphql`
 		mutation UncompleteItem($id: ID!) {
 			uncheckItem(item: $id) {
 				item {
@@ -48,44 +39,40 @@
 				}
 			}
 		}
-	`)
-	const deleteItem = mutation<DeleteItem>(graphql`
+	`
+	const deleteItem = graphql`
 		mutation DeleteItem($id: ID!) {
 			deleteItem(item: $id) {
 				itemID @TodoItem_delete
 			}
 		}
-	`)
+	`
 
 	// make sure the todo items stay up to date
-	subscription(
-		graphql`
-			subscription ItemUpdate($id: ID!) {
-				itemUpdate(id: $id) {
-					item {
-						id
-						completed
-						text
-						createdAt
-					}
+	const itemUpdates = graphql`
+		subscription ItemUpdate($id: ID!) {
+			itemUpdate(id: $id) {
+				item {
+					id
+					completed
+					text
+					createdAt
 				}
 			}
-		`,
-		{
-			id: $data.id,
 		}
-	)
+	`
+	$: itemUpdates.listen({ id: $data.id })
 
 	async function handleClick() {
 		// if the item is already checked
 		if ($data.completed) {
 			// uncheck it
-			await uncompleteItem({ id: $data.id })
+			await uncompleteItem.mutate({ id: $data.id })
 		}
 		// the item is unchecked
 		else {
 			// check it
-			await completeItem({ id: $data.id })
+			await completeItem.mutate({ id: $data.id })
 		}
 	}
 </script>
@@ -105,7 +92,7 @@
 				{$data.createdAt.toLocaleDateString('en-US')}
 			</span>
 		</label>
-		<button class="destroy" on:click={() => deleteItem({ id: $data.id })} />
+		<button class="destroy" on:click={() => deleteItem.mutate({ id: $data.id })} />
 	</div>
 </li>
 

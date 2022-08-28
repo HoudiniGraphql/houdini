@@ -1,9 +1,6 @@
 /** @type {import('houdini').ConfigFile} */
 const config = {
-	schemaPath: './schema/schema.gql',
-	sourceGlob: 'src/**/*.{svelte,gql,graphql}',
-	framework: 'kit',
-	module: 'esm',
+	client: './src/client.ts',
 	apiUrl: 'http://localhost:4000/graphql',
 	scalars: {
 		DateTime: {

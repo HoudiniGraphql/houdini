@@ -1,8 +1,8 @@
 import { createServer } from '@graphql-yoga/node'
 import { useServer } from 'graphql-ws/lib/use/ws'
-import ws from 'ws'
+import { WebSocketServer } from 'ws'
+
 import { resolvers, typeDefs } from './schema/index.mjs'
-const WebSocketServer = ws.Server
 
 async function main() {
 	const yogaApp = createServer({
@@ -41,7 +41,7 @@ subscription SubToNewItem {
 			text
 		}
 	}
-}			
+}
 			`,
 		},
 	})

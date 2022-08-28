@@ -1,32 +1,11 @@
-<script context="module" lang="ts">
-	export function AllItemsVariables({ params }) {
-		// if there is no filter assigned, dont enforce one in the query
-		if (!params.filter || params.filter === 'all') {
-			return {
-				completed: undefined,
-			}
-		}
-
-		// make sure we recognize the value
-		if (!['active', 'completed', 'all'].includes(params.filter)) {
-			return this.error(400, "filter must be one of 'active' or 'completed'")
-		}
-
-		return {
-			completed: params.filter === 'completed',
-		}
-	}
-</script>
-
 <script lang="ts">
 	import { page } from '$app/stores'
-	import type { AddItem, AllItems } from '$houdini'
-	import { graphql, mutation, paginatedQuery, subscription } from '$houdini'
+	import { graphql, type AddItemStore, type AllItemsStore, type NewItemStore } from '$houdini'
 	import ItemEntry from '$lib/ItemEntry.svelte'
 	import { derived } from 'svelte/store'
 
 	// load the items
-	const { data, pageInfo, loadNextPage } = paginatedQuery<AllItems>(graphql`
+	const items: AllItemsStore = graphql`
 		query AllItems($completed: Boolean) @cache(policy: CacheOrNetwork) {
 			filteredItems: items(completed: $completed, first: 2)
 				@paginate(name: "Filtered_Items") {
@@ -47,10 +26,10 @@
 				}
 			}
 		}
-	`)
+	`
 
 	// state and handler for the new item input
-	const addItem = mutation<AddItem>(graphql`
+	const addItem: AddItemStore = graphql`
 		mutation AddItem($input: AddItemInput!) {
 			addItem(input: $input) {
 				error {
@@ -58,9 +37,9 @@
 				}
 			}
 		}
-	`)
+	`
 
-	subscription(graphql`
+	const subscription: NewItemStore = graphql`
 		subscription NewItem {
 			newItem {
 				item {
@@ -69,10 +48,12 @@
 				}
 			}
 		}
-	`)
+	`
 
-	$: numberOfItems = $data?.allItems.edges.length || 0
-	$: itemsLeft = $data?.allItems.edges.filter(({ node: item }) => !item?.completed).length
+	$: subscription.listen()
+
+	$: numberOfItems = $items.data?.allItems.edges.length || 0
+	$: itemsLeft = $items.data?.allItems.edges.filter(({ node: item }) => !item?.completed).length
 
 	// figure out the current page
 	const currentPage = derived(page, ($page) => {
@@ -96,6 +77,7 @@
 	}
 </script>
 
+s
 <header class="header">
 	<a href="/">
 		<h1>todos</h1>

@@ -1,18 +1,19 @@
 {
 	"name": "example-kit",
 	"version": "0.13.0",
+	"private": true,
 	"scripts": {
-		"prepare": "svelte-kit sync",
 		"generate": "houdini generate",
 		"web": "vite dev",
 		"api": "node api.mjs",
-		"dev": "npm run prepare && npm run generate && concurrently \"npm run web\" \"npm run api\" -n \"web,api\" -c \"green,magenta\"",
+		"dev": "concurrently \"npm run web\" \"npm run api\" -n \"web,api\" -c \"green,magenta\"",
 		"build": "vite build",
 		"start": "vite preview"
 	},
 	"devDependencies": {
+		"@graphql-yoga/node": "2.8.0",
 		"@kitql/vite-plugin-watch-and-run": "^0.4.0",
-		"@sveltejs/kit": "1.0.0-next.370",
+		"@sveltejs/kit": "1.0.0-next.435",
 		"concurrently": "^6.2.1",
 		"graphql": "15.5.0",
 		"houdini": "workspace:^",
@@ -20,10 +21,10 @@
 		"svelte-preprocess": "^4.0.0",
 		"tslib": "^2.2.0",
 		"typescript": "^4.0.0",
-		"vite": "^2.9.14"
+		"vite": "^3.0.0",
+		"ws": "^8.8.1"
 	},
 	"dependencies": {
-		"@graphql-yoga/node": "2.8.0",
 		"graphql-relay": "0.8.0",
 		"graphql-tag": "2.12.6",
 		"graphql-ws": "5.8.2"
