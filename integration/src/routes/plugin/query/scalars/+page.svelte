@@ -9,6 +9,8 @@
       }
     }
   `;
+
+  $: console.log($result.data?.user.birthDate);
 </script>
 
 ISO:
