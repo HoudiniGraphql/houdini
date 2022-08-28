@@ -17,7 +17,7 @@ importers:
             '@rollup/plugin-json': ^4.1.0
             '@rollup/plugin-node-resolve': ^13.2.0
             '@rollup/plugin-replace': ^4.0.0
-            '@sveltejs/kit': 1.0.0-next.442
+            '@sveltejs/kit': 1.0.0-next.445
             '@theguild/eslint-config': ^0.0.1-alpha-8209242.0
             '@trivago/prettier-plugin-sort-imports': ^3.3.0
             '@types/fs-extra': ^9.0.13
@@ -107,7 +107,7 @@ importers:
             '@rollup/plugin-json': 4.1.0_rollup@2.68.0
             '@rollup/plugin-node-resolve': 13.3.0_rollup@2.68.0
             '@rollup/plugin-replace': 4.0.0_rollup@2.68.0
-            '@sveltejs/kit': 1.0.0-next.442_svelte@3.49.0+vite@3.0.9
+            '@sveltejs/kit': 1.0.0-next.445_svelte@3.49.0+vite@3.0.9
             '@theguild/eslint-config': 0.0.1_eslint@8.23.0+typescript@4.7.4
             '@trivago/prettier-plugin-sort-imports': 3.3.0_prettier@2.7.1
             '@types/fs-extra': 9.0.13
@@ -152,7 +152,7 @@ importers:
         specifiers:
             '@graphql-yoga/node': 2.8.0
             '@kitql/vite-plugin-watch-and-run': ^0.4.0
-            '@sveltejs/kit': 1.0.0-next.435
+            '@sveltejs/kit': 1.0.0-next.445
             concurrently: ^6.2.1
             graphql: 15.5.0
             graphql-relay: 0.8.0
@@ -172,7 +172,7 @@ importers:
         devDependencies:
             '@graphql-yoga/node': 2.8.0_graphql@15.5.0
             '@kitql/vite-plugin-watch-and-run': 0.4.2
-            '@sveltejs/kit': 1.0.0-next.435_svelte@3.49.0+vite@3.0.9
+            '@sveltejs/kit': 1.0.0-next.445_svelte@3.49.0+vite@3.0.9
             concurrently: 6.5.1
             graphql: 15.5.0
             houdini: link:..
@@ -189,7 +189,7 @@ importers:
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23
             '@sveltejs/adapter-auto': 1.0.0-next.66
-            '@sveltejs/kit': 1.0.0-next.442
+            '@sveltejs/kit': 1.0.0-next.445
             '@typescript-eslint/eslint-plugin': ^5.10.1
             '@typescript-eslint/parser': ^5.10.1
             concurrently: 7.1.0
@@ -223,7 +223,7 @@ importers:
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23_@playwright+test@1.25.0
             '@sveltejs/adapter-auto': 1.0.0-next.66
-            '@sveltejs/kit': 1.0.0-next.442_svelte@3.49.0+vite@3.0.8
+            '@sveltejs/kit': 1.0.0-next.445_svelte@3.49.0+vite@3.0.8
             '@typescript-eslint/eslint-plugin': 5.35.1_3e381c73f64a66ea3e0ad47e9c76e5d1
             '@typescript-eslint/parser': 5.35.1_eslint@8.23.0+typescript@4.6.4
             concurrently: 7.1.0
@@ -3319,41 +3319,10 @@ packages:
             - supports-color
         dev: false
 
-    /@sveltejs/kit/1.0.0-next.435_svelte@3.49.0+vite@3.0.9:
+    /@sveltejs/kit/1.0.0-next.445_svelte@3.49.0+vite@3.0.8:
         resolution:
             {
-                integrity: sha512-3JR9Eqb20ZJcYmDgJH/EaQgISkXunIYrYTYcYf/hAZGpqOiLEfQ9b24AQcKEZ0fMZWeEew7+KiRpMZtyYkTZVw==,
-            }
-        engines: { node: '>=16.9' }
-        hasBin: true
-        requiresBuild: true
-        peerDependencies:
-            svelte: ^3.44.0
-            vite: ^3.0.0
-        dependencies:
-            '@sveltejs/vite-plugin-svelte': 1.0.1_svelte@3.49.0+vite@3.0.9
-            cookie: 0.5.0
-            devalue: 2.0.1
-            kleur: 4.1.5
-            magic-string: 0.26.2
-            mime: 3.0.0
-            node-fetch: 3.2.10
-            sade: 1.8.1
-            set-cookie-parser: 2.5.1
-            sirv: 2.0.2
-            svelte: 3.49.0
-            tiny-glob: 0.2.9
-            undici: 5.10.0
-            vite: 3.0.9
-        transitivePeerDependencies:
-            - diff-match-patch
-            - supports-color
-        dev: true
-
-    /@sveltejs/kit/1.0.0-next.442_svelte@3.49.0+vite@3.0.8:
-        resolution:
-            {
-                integrity: sha512-xFGgyQuQEvIrBpdfsGQNG9cHINxpqmaa5LMENUdAt0lpbLuRrc4V2Zi2T11MPT2znNBn3rHEFsqCH9zviEcCRw==,
+                integrity: sha512-E/d6lhJ+4cSGJmAk8JnlrBwJfa6xYeCZ1zBc8kTdrO/vNiFpMDRJM9pgT8DGlXYA7kI+OBud/p3Eipl5m5jntw==,
             }
         engines: { node: '>=16.9' }
         hasBin: true
@@ -3381,10 +3350,10 @@ packages:
             - supports-color
         dev: true
 
-    /@sveltejs/kit/1.0.0-next.442_svelte@3.49.0+vite@3.0.9:
+    /@sveltejs/kit/1.0.0-next.445_svelte@3.49.0+vite@3.0.9:
         resolution:
             {
-                integrity: sha512-xFGgyQuQEvIrBpdfsGQNG9cHINxpqmaa5LMENUdAt0lpbLuRrc4V2Zi2T11MPT2znNBn3rHEFsqCH9zviEcCRw==,
+                integrity: sha512-E/d6lhJ+4cSGJmAk8JnlrBwJfa6xYeCZ1zBc8kTdrO/vNiFpMDRJM9pgT8DGlXYA7kI+OBud/p3Eipl5m5jntw==,
             }
         engines: { node: '>=16.9' }
         hasBin: true
