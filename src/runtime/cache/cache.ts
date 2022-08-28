@@ -708,7 +708,6 @@ class CacheInternal {
 
 			// if the field is a scalar
 			else if (!fields) {
-				console.log('pulling scalar', type, this.config)
 				// is the type a custom scalar with a specified unmarshal function
 				const fnUnmarshal = this.config.scalars?.[type]?.unmarshal
 				if (fnUnmarshal) {
