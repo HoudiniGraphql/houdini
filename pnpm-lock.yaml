@@ -151,7 +151,6 @@ importers:
     integration:
         specifiers:
             '@graphql-yoga/node': ^2.8.0
-            '@kitql/vite-plugin-watch-and-run': ^0.4.0
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23
             '@sveltejs/adapter-auto': 1.0.0-next.66
@@ -186,7 +185,6 @@ importers:
             mdsvex: 0.10.6_svelte@3.49.0
             ws: 8.8.1
         devDependencies:
-            '@kitql/vite-plugin-watch-and-run': 0.4.2
             '@playwright/test': 1.25.0
             '@replayio/playwright': 0.2.23_@playwright+test@1.25.0
             '@sveltejs/adapter-auto': 1.0.0-next.66
@@ -2909,16 +2907,7 @@ packages:
             {
                 integrity: sha512-nq7naGKnSsQ3KudK5ENDYfGb62Yre6e7suKZxjsfBqIfeh3wkxRFFMpQu0buEKeKZlqwhevVTKqgN1TdKGRyZw==,
             }
-
-    /@kitql/vite-plugin-watch-and-run/0.4.2:
-        resolution:
-            {
-                integrity: sha512-GKt6Hwp/qsMZVSNRGzckJZ7s7+k3QEpkVLpjSwqtW+6XVUsWPQr2k0Bi55imd4CgD8Rr7RkwAmnjcOo57DugPg==,
-            }
-        dependencies:
-            '@kitql/helper': 0.3.5
-            micromatch: 4.0.5
-        dev: true
+        dev: false
 
     /@manypkg/find-root/1.1.0:
         resolution:
