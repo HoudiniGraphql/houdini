@@ -1,14 +1,14 @@
 import minimatch from 'minimatch'
 import path from 'path'
 import type { Plugin } from 'vite'
+import watch_and_run from 'vite-plugin-watch-and-run'
 
 import generate from '../cmd/generate'
-import { getConfig } from '../common'
+import { formatErrors, getConfig } from '../common'
 import { ConfigFile } from '../runtime'
 import fs_patch from './fsPatch'
 import houdini from './plugin'
 import schema from './schema'
-import watch_and_run from './watch-and-run'
 
 export default function ({
 	configPath,
@@ -56,6 +56,7 @@ export default function ({
 				},
 				delay: 100,
 				watchKind: ['add', 'change', 'unlink'],
+				formatErrors,
 			},
 		]),
 	]
