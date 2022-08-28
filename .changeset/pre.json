@@ -4,7 +4,8 @@
 	"initialVersions": {
 		"houdini": "0.15.8",
 		"integration": "0.0.1",
-		"site": "0.0.1"
+		"site": "0.0.1",
+		"example-kit": "0.13.0"
 	},
 	"changesets": [
 		"breezy-birds-end",
@@ -13,6 +14,8 @@
 		"fifty-doors-wait",
 		"good-trees-repair",
 		"green-melons-lick",
+		"lemon-chefs-smash",
+		"many-horses-provide",
 		"mean-colts-sleep",
 		"metal-panthers-smoke",
 		"neat-taxis-help",
@@ -23,6 +26,9 @@
 		"slow-planes-sort",
 		"stale-foxes-joke",
 		"swift-ducks-camp",
-		"ten-pets-mix"
+		"ten-pets-mix",
+		"tricky-mangos-brake",
+		"tricky-schools-rescue",
+		"twenty-crabs-admire"
 	]
 }
