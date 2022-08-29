@@ -220,7 +220,7 @@ information for the store. This not only simplifies the mental model but also me
 
 ```diff
   <script>
--   import { browser } from ' $app/env'
+-   import { browser } from ' $app/environment'
 -   import { GQL_MyUserInfo } from '$houdini'
 +   export let data
 

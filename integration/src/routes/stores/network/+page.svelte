@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { browser } from '$app/env';
+  import { browser } from '$app/environment';
   import { GQL_Hello, GQL_usersList } from '$houdini';
 
   $: browser && GQL_usersList.fetch();

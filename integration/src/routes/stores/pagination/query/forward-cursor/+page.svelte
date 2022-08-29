@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { browser } from '$app/env';
+  import { browser } from '$app/environment';
   import { CachePolicy, GQL_StoreForwardCursorPaginationQuery } from '$houdini';
 
   $: browser && GQL_StoreForwardCursorPaginationQuery.fetch();

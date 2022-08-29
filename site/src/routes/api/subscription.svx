@@ -95,7 +95,7 @@ client and pass it directly:
 // client.ts
 
 import { createClient } from 'graphql-ws'
-import { browser } from '$app/env'
+import { browser } from '$app/environment'
 
 let socketClient = browser
 	? new createClient({
@@ -115,7 +115,7 @@ you will have to slightly modify the above block:
 // client.ts
 
 import { SubscriptionClient } from 'subscriptions-transport-ws'
-import { browser } from '$app/env'
+import { browser } from '$app/environment'
 
 let socketClient: SubscriptionHandler | null = null
 if (browser) {
@@ -145,7 +145,7 @@ If your server supports the latest Server-Side events, you can use them to power
 
 ```javascript
 import { SubscriptionClient } from 'subscriptions-transport-ws'
-import { browser } from '$app/env'
+import { browser } from '$app/environment'
 
 let socketClient: SubscriptionHandler | null = null
 if (browser) {

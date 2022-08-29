@@ -18,7 +18,7 @@ export default async function generateAdapter(config: Config) {
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
 import { get } from 'svelte/store';
-import { browser, prerendering } from '$app/env'
+import { browser, prerendering } from '$app/environment'
 import { error as svelteKitError } from '@sveltejs/kit'
 
 
