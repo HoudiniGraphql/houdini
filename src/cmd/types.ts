@@ -1,5 +1,6 @@
 import type * as graphql from 'graphql'
 
+import { Config } from '../common'
 import { BaseCompiledDocument, ArtifactKind } from '../runtime/lib/types'
 
 export type { ConfigFile } from '../runtime/lib'
@@ -16,4 +17,25 @@ export type CollectedGraphQLDocument = {
 	generateStore: boolean
 	originalString: string
 	refetch?: BaseCompiledDocument['refetch']
+}
+
+export type TypeCheckTransformer = (
+	config: Config,
+	docs: CollectedGraphQLDocument[]
+) => Promise<void>
+
+export type PaginateTranformer = (
+	config: Config,
+	documents: CollectedGraphQLDocument[]
+) => Promise<void>
+
+export type ListTranformer = (
+	config: Config,
+	documents: CollectedGraphQLDocument[]
+) => Promise<void>
+
+export type CustomTransformers = {
+	typeCheck?: TypeCheckTransformer
+	paginate?: PaginateTranformer
+	list?: ListTranformer
 }

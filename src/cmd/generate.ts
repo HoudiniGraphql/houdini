@@ -87,7 +87,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 			config,
 			[
 				// validators
-				validators.typeCheck,
+				config.tranforms?.typeCheck ? config.tranforms.typeCheck : validators.typeCheck,
 				validators.uniqueNames,
 				validators.noIDAlias,
 				validators.forbiddenNames,
@@ -98,10 +98,10 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 				transforms.typename,
 				// list transform must go before fragment variables
 				// so that the mutation fragments are defined before they get mixed in
-				transforms.list,
+				config.tranforms?.list ? config.tranforms.list : transforms.list,
 				// paginate transform needs to go before fragmentVariables
 				// so that the variable definitions get hashed
-				transforms.paginate,
+				config.tranforms?.paginate ? config.tranforms.paginate : transforms.paginate,
 				transforms.fragmentVariables,
 				transforms.composeQueries,
 

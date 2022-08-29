@@ -7,6 +7,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { promisify } from 'util'
 
+import { type CustomTransformers } from '../cmd'
 import { pullSchema } from '../cmd/utils'
 import { computeID, ConfigFile, defaultConfigValues, keyFieldsForType } from '../runtime/lib'
 import { CachePolicy, GraphQLTagResult } from '../runtime/lib/types'
@@ -52,6 +53,7 @@ export class Config {
 	plugin: boolean = false
 	client: string
 	globalStorePrefix: string
+	tranforms?: CustomTransformers
 
 	constructor({
 		filepath,

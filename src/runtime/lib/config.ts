@@ -1,5 +1,6 @@
 import type { GraphQLSchema } from 'graphql'
 
+import { CustomTransformers } from '../../cmd/types'
 import { getMockConfig } from './test'
 import { CachePolicy } from './types'
 
@@ -155,6 +156,11 @@ export type ConfigFile = {
 	 * @default GQL_
 	 */
 	globalStorePrefix?: string
+
+	/**
+	 * Escape hatch for the paginate and list directives.
+	 */
+	tranforms?: CustomTransformers
 }
 
 export type TypeConfig = {

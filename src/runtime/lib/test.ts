@@ -184,6 +184,7 @@ export function testConfigFile(config: Partial<ConfigFile> = {}): ConfigFile {
 		},
 		logLevel: 'quiet',
 		client: './my/client/path',
+		tranforms: {},
 		...config,
 	}
 }
