@@ -1,5 +1,13 @@
 # houdini
 
+## 0.16.0-next.5
+
+### Patch Changes
+
+-   [#497](https://github.com/HoudiniGraphql/houdini/pull/497) [`062f1b7`](https://github.com/HoudiniGraphql/houdini/commit/062f1b7f6db201ccdcd2d9e4201d0e285801ecb5) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Errors when dev server starts shouldn't crash the server
+
+*   [#501](https://github.com/HoudiniGraphql/houdini/pull/501) [`2b8c8aa`](https://github.com/HoudiniGraphql/houdini/commit/2b8c8aa7755882180b03ef4ab753b418d69260a7) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Bump SvelteKit version
+
 ## 0.16.0-next.4
 
 ### Patch Changes
