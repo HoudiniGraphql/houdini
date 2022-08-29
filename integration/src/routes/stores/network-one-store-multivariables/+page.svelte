@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { browser } from '$app/env';
+  import { browser } from '$app/environment';
   import { MultiUserStore } from '$houdini';
 
   const variables1 = { id: '1' };

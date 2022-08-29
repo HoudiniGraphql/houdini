@@ -1,4 +1,4 @@
-import { browser } from '$app/env'
+import { browser } from '$app/environment'
 import type { RequestHandlerArgs, SubscriptionHandler } from '$houdini'
 import { HoudiniClient } from '$houdini'
 import { createClient as createWSClient } from 'graphql-ws'
