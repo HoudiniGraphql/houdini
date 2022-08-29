@@ -3,7 +3,7 @@
 	import { Icon, SEO, SearchInput, SearchDialog, searching } from '~/components'
 	import { onMount } from 'svelte'
 	import throttle from 'lodash/throttle.js'
-	import { browser } from '$app/environment'
+	import { browser } from '$app/env'
 
 	export let title = ''
 	export let link = ''
