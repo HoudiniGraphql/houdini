@@ -53,21 +53,17 @@
 			text: 'Your components can define what data they need to do their job by and you can mix them together however you want.',
 			example: `<script>
     import { graphql } from '$houdini'
-    import { UserAvatar } from '~/components'
 
 
-    const AllUsers = graphql\`
-        query AllUsers {
-            users {
-                ...UserAvatar
-            }
+    $: userInfo = graphql\`
+        fragment UserAvatar on User {
+			avatar
         }
     \`
 <\/script>
 
-{#each $AllUsers.data.users as user}
-    <UserAvatar {user} />
-{/each}`
+
+<img src={$userInfo.avatar} />`
 		},
 		{
 			header: 'Declarative',
