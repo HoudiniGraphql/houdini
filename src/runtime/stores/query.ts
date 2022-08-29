@@ -1,17 +1,21 @@
 import type { LoadEvent, RequestEvent } from '@sveltejs/kit'
 import { get, Readable, Writable, writable } from 'svelte/store'
 
-import { clientStarted, isBrowser, error } from '../adapter'
+import { clientStarted, isBrowser, error, getPageData } from '../adapter'
 import cache from '../cache'
-import type { ConfigFile, QueryArtifact } from '../lib'
+import type { ConfigFile, QueryArtifact, Session } from '../lib'
 import { deepEquals } from '../lib/deepEquals'
 import * as log from '../lib/log'
 import { fetchQuery } from '../lib/network'
-import { FetchContext } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
-// internals
-import { CachePolicy, DataSource, GraphQLObject } from '../lib/types'
-import { SubscriptionSpec, CompiledQueryKind, HoudiniFetchContext } from '../lib/types'
+import {
+	CachePolicy,
+	DataSource,
+	GraphQLObject,
+	FetchContext,
+	SubscriptionSpec,
+	CompiledQueryKind,
+} from '../lib/types'
 import { BaseStore } from './store'
 
 export class QueryStore<_Data extends GraphQLObject, _Input, _ExtraFields = {}> extends BaseStore {
@@ -378,7 +382,6 @@ export function fetchParams<_Data extends GraphQLObject, _Input>(
 
 	// figure out the right fetch to use
 	let fetchFn: LoadEvent['fetch'] | null = null
-
 	if (params) {
 		if ('fetch' in params && params.fetch) {
 			fetchFn = params.fetch
@@ -392,10 +395,25 @@ export function fetchParams<_Data extends GraphQLObject, _Input>(
 		fetchFn = globalThis.fetch.bind(globalThis)
 	}
 
+	// we need to figure out the right session source
+	let session: Session = {}
+	if (isBrowser) {
+		session = getPageData()
+	} else if (
+		params &&
+		'event' in params &&
+		params.event &&
+		'locals' in params.event &&
+		params.event.locals
+	) {
+		session = params.event.locals
+	}
+
 	return {
 		context: {
 			fetch: fetchFn,
 			metadata: params?.metadata ?? {},
+			session,
 		},
 		policy,
 		params: params ?? {},
@@ -501,14 +519,7 @@ export type RequestEventFetchParams<_Data extends GraphQLObject, _Input> = Fetch
 export type ClientFetchParams<_Data extends GraphQLObject, _Input> = FetchGlobalParams<
 	_Data,
 	_Input
-> & {
-	/**
-	 * An object containing all of the current info necessary for a
-	 * client-side fetch. Must be called in component initialization with
-	 * something like this: `const context = getHoudiniFetchContext()`
-	 */
-	context?: HoudiniFetchContext
-}
+> & {}
 
 export type QueryStoreFetchParams<_Data extends GraphQLObject, _Input> =
 	| QueryStoreLoadParams<_Data, _Input>

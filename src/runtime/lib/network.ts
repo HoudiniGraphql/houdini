@@ -13,6 +13,7 @@ import {
 	MutationArtifact,
 	QueryArtifact,
 	SubscriptionArtifact,
+	FetchContext,
 } from './types'
 
 export class HoudiniClient {
@@ -32,6 +33,7 @@ export class HoudiniClient {
 
 		// invoke the function
 		const result = await this.fetchFn({
+			...ctx,
 			// wrap the user's fetch function so we can identify SSR by checking
 			// the response.url
 			fetch: async (...args: Parameters<FetchContext['fetch']>) => {
@@ -43,7 +45,6 @@ export class HoudiniClient {
 				return response
 			},
 			...params,
-			metadata: ctx.metadata,
 		})
 
 		// return the result
@@ -89,12 +90,6 @@ export type FetchParams = {
 	text: string
 	hash: string
 	variables: { [key: string]: any }
-}
-
-export type FetchContext = {
-	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
-	// @ts-ignore
-	metadata?: App.Metadata | null
 }
 
 export type BeforeLoadArgs = LoadEvent
@@ -145,7 +140,7 @@ export type RequestPayload<_Data = any> = {
  * ```
  *
  */
-export type RequestHandlerArgs = Omit<FetchContext & FetchParams, 'stuff'>
+export type RequestHandlerArgs = FetchContext & FetchParams
 
 export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<RequestPayload<_Data>>
 
@@ -156,21 +151,16 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 	variables,
 	cached,
 	config,
-	fetch,
-	metadata,
+	context,
 }: {
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
 	cached: boolean
 	config: ConfigFile
-	fetch?: typeof globalThis.fetch
-	metadata?: {}
+	context: FetchContext
 }): Promise<{ result: RequestPayload; partial: boolean }> {
 	const { result: res, partial } = await fetchQuery<_Data, _Input>({
-		context: {
-			fetch: fetch ?? globalThis.fetch.bind(globalThis),
-			metadata,
-		},
+		context,
 		config,
 		artifact,
 		variables,

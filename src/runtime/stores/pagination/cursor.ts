@@ -1,5 +1,6 @@
 import { Writable, writable } from 'svelte/store'
 
+import { getPageData } from '../../adapter'
 import cache from '../../cache'
 import { ConfigFile } from '../../lib/config'
 import { deepEquals } from '../../lib/deepEquals'
@@ -35,12 +36,15 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		input,
 		functionName,
 		metadata = {},
+		locals,
 		fetch,
 	}: {
 		pageSizeVar: string
 		functionName: string
 		input: {}
 		metadata?: {}
+		// @ts-ignore
+		locals?: App.Locals
 		fetch?: typeof globalThis.fetch
 	}) => {
 		const config = await getConfig()
@@ -65,8 +69,11 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			variables: loadVariables,
 			cached: false,
 			config,
-			fetch,
-			metadata,
+			context: {
+				fetch: fetch ?? globalThis.fetch.bind(globalThis),
+				metadata,
+				session: locals ?? getPageData(),
+			},
 		})
 
 		// if the query is embedded in a node field (paginated fragments)
@@ -244,13 +251,19 @@ export type CursorHandlers<_Data extends GraphQLObject, _Input> = {
 		first?: number
 		after?: string
 		fetch?: typeof globalThis.fetch
-		metadata: {}
+		// @ts-ignore
+		metadata?: App.Metadata
+		// @ts-ignore
+		locals?: App.Locals
 	}) => Promise<void>
 	loadPreviousPage: (args?: {
 		last?: number
 		before?: string
 		fetch?: typeof globalThis.fetch
-		metadata?: {}
+		// @ts-ignore
+		metadata?: App.Metadata
+		// @ts-ignore
+		locals?: App.Locals
 	}) => Promise<void>
 	pageInfo: Writable<PageInfo>
 	fetch(

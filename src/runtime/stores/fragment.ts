@@ -1,12 +1,7 @@
 import { Writable, writable } from 'svelte/store'
 import type { Readable } from 'svelte/store'
 
-import {
-	CompiledFragmentKind,
-	GraphQLObject,
-	FragmentArtifact,
-	HoudiniFetchContext,
-} from '../lib/types'
+import { CompiledFragmentKind, GraphQLObject, FragmentArtifact } from '../lib/types'
 import { BaseStore } from './store'
 
 // a fragment store exists in multiple places in a given application so we
@@ -20,8 +15,6 @@ export class FragmentStore<
 	artifact: FragmentArtifact
 	name: string
 	kind = CompiledFragmentKind
-
-	protected context: HoudiniFetchContext | null = null
 
 	constructor({ artifact, storeName }: { artifact: FragmentArtifact; storeName: string }) {
 		super()

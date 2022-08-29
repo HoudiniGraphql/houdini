@@ -95,6 +95,7 @@ test('updates the network file with the client path', async function () {
 		        let url = '';
 		        // invoke the function
 		        const result = await this.fetchFn({
+		            ...ctx,
 		            // wrap the user's fetch function so we can identify SSR by checking
 		            // the response.url
 		            fetch: async (...args) => {
@@ -105,7 +106,6 @@ test('updates the network file with the client path', async function () {
 		                return response;
 		            },
 		            ...params,
-		            metadata: ctx.metadata,
 		        });
 		        // return the result
 		        return {
@@ -132,12 +132,9 @@ test('updates the network file with the client path', async function () {
 		}
 		// This function is responsible for simulating the fetch context and executing the query with fetchQuery.
 		// It is mainly used for mutations, refetch and possible other client side operations in the future.
-		export async function executeQuery({ artifact, variables, cached, config, fetch, metadata, }) {
+		export async function executeQuery({ artifact, variables, cached, config, context, }) {
 		    const { result: res, partial } = await fetchQuery({
-		        context: {
-		            fetch: fetch !== null && fetch !== void 0 ? fetch : globalThis.fetch.bind(globalThis),
-		            metadata,
-		        },
+		        context,
 		        config,
 		        artifact,
 		        variables,

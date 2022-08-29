@@ -19,6 +19,7 @@ export default async function generateAdapter(config: Config) {
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
 import { get } from 'svelte/store';
 import { browser, prerendering } from '$app/environment'
+import { page } from '$app/stores'
 import { error as svelteKitError } from '@sveltejs/kit'
 
 
@@ -42,6 +43,14 @@ export const isPrerender = prerendering
 
 export const error = svelteKitError
 
+let pageData = {}
+export function getPageData() {
+	return pageData
+}
+
+if (browser) {
+	page.subscribe(val => pageData = val)
+}
 `
 
 const svelteAdapter = `
@@ -61,5 +70,9 @@ export const error = (code, message) => {
 	const err = new Error(message)
 	error.code = code
 	return err
+}
+
+export function getPageData() {
+	return {}
 }
 `

@@ -18,3 +18,8 @@ export let clientStarted = false // Will be true on a client side navigation
 export let isPrerender = false
 
 export const error = (code: number, message: string) => message
+
+// @ts-ignore
+export function getPageData(): App.PageData {
+	return {}
+}

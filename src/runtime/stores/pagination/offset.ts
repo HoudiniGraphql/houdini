@@ -1,4 +1,5 @@
 import { deepEquals } from '../..'
+import { getPageData } from '../../adapter'
 import cache from '../../cache'
 import { ConfigFile } from '../../lib/config'
 import { executeQuery } from '../../lib/network'
@@ -37,11 +38,14 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			offset,
 			fetch,
 			metadata,
+			locals,
 		}: {
 			limit?: number
 			offset?: number
 			fetch?: typeof globalThis.fetch
 			metadata?: {}
+			// @ts-ignore
+			locals?: App.Locals
 		} = {}) => {
 			const config = await getConfig()
 
@@ -71,8 +75,11 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 				variables: queryVariables,
 				cached: false,
 				config,
-				fetch,
-				metadata,
+				context: {
+					fetch: fetch ?? globalThis.fetch.bind(globalThis),
+					metadata,
+					session: locals ?? getPageData(),
+				},
 			})
 
 			// update cache with the result
@@ -147,8 +154,11 @@ export type OffsetHandlers<_Data extends GraphQLObject, _Input, _ReturnType> = {
 	loadNextPage: (args?: {
 		limit?: number
 		offset?: number
-		metadata?: {}
 		fetch?: typeof globalThis.fetch
+		// @ts-ignore
+		metadata?: App.Metadata
+		// @ts-ignore
+		locals?: App.Locals
 	}) => Promise<void>
 	fetch(args?: QueryStoreFetchParams<_Data, _Input> | undefined): Promise<_ReturnType>
 }

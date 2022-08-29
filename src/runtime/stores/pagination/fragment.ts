@@ -5,7 +5,6 @@ import {
 	GraphQLObject,
 	FragmentArtifact,
 	QueryArtifact,
-	HoudiniFetchContext,
 	CompiledFragmentKind,
 } from '../../lib/types'
 import { StoreConfig } from '../query'
@@ -216,16 +215,8 @@ export type FragmentStorePaginated<_Data extends GraphQLObject, _Input> = Readab
 	isFetching: boolean
 	pageInfo: PageInfo
 }> & {
-	loadNextPage(
-		pageCount?: number,
-		after?: string | number,
-		houdiniContext?: HoudiniFetchContext
-	): Promise<void>
-	loadPreviousPage(
-		pageCount?: number,
-		before?: string,
-		houdiniContext?: HoudiniFetchContext
-	): Promise<void>
+	loadNextPage(pageCount?: number, after?: string | number): Promise<void>
+	loadPreviousPage(pageCount?: number, before?: string): Promise<void>
 }
 
 export type FragmentPaginatedResult<_Data, _ExtraFields = {}> = {

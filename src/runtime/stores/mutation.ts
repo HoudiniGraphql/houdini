@@ -1,6 +1,7 @@
 import { Readable } from 'svelte/store'
 import { Writable, writable } from 'svelte/store'
 
+import { getPageData } from '../adapter'
 import cache from '../cache'
 import type { SubscriptionSpec, MutationArtifact } from '../lib'
 import { executeQuery } from '../lib/network'
@@ -29,10 +30,13 @@ export class MutationStore<
 		{
 			metadata,
 			fetch,
+			locals,
 			...mutationConfig
 		}: {
 			// @ts-ignore
 			metadata?: App.Metadata
+			// @ts-ignore
+			locals?: App.Locals
 			fetch?: typeof globalThis.fetch
 		} & MutationConfig<_Data, _Input, _Optimistic> = {}
 	): Promise<_Data | null> {
@@ -81,8 +85,11 @@ export class MutationStore<
 				artifact: this.artifact,
 				variables: newVariables,
 				cached: false,
-				metadata,
-				fetch,
+				context: {
+					metadata,
+					fetch: fetch ?? globalThis.fetch.bind(globalThis),
+					session: locals ?? getPageData(),
+				},
 			})
 
 			if (result.errors && result.errors.length > 0) {

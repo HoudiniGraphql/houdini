@@ -99,10 +99,6 @@ export type GraphQLTagResult =
 	| MutationStore<any, any, any>
 	| SubscriptionStore<any, any>
 
-export type HoudiniFetchContext = {
-	variables: () => {}
-}
-
 type Filter = { [key: string]: string | boolean | number }
 
 export type ListWhen = {
@@ -194,3 +190,17 @@ export type BeforeLoadFunction<
 	_Params extends Record<string, string>,
 	_ReturnType extends Record<string, any> | void
 > = (event: LoadEvent<_Params>) => _ReturnType
+
+export type FetchContext = {
+	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
+	session: Session
+	// @ts-ignore
+	metadata?: App.Metadata | null
+}
+
+// the Houdini session is driven by App.Locals on the server and the page store on the client.
+// this means that the session has all of the fields that are in both types
+export type Session = {
+	// @ts-ignore
+	[K in keyof App.PageData & keyof App.Locals]: App.PageData[K] | App.Locals[K]
+}
