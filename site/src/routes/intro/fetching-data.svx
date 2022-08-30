@@ -112,7 +112,7 @@ Anyway, now that you have the necessary files, you should see Bulbasaur's descri
 
 <DeepDive title="What happened to load?">
 
-If you were looking carefully, you might have noticed that we didn't define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading). Don't worry, this route is still rendered on the server thanks to the preprocessor. One of its responsibilities is moving the actual fetch into a `load`. You can think of the block at the top of this section as equivalent to:
+If you were looking carefully, you might have noticed that we didn't define a `load` function as described in the [SvelteKit docs](https://kit.svelte.dev/docs/loading). Don't worry, this route is still rendered on the server thanks to the vite plugin. One of its responsibilities is moving the actual fetch into a `load`. You can think of the block at the top of this section as equivalent to:
 
 ```svelte
 <!-- src/routes/myRoute/+page.svelte -->

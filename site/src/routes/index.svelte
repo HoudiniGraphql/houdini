@@ -1,8 +1,9 @@
 <script>
 	import { SEO, Icon, Highlight } from '~/components'
 
-	const heroExample = `<script>
-    // src/routes/items/+page.svelte
+	const heroExample = `<!-- src/routes/items/+page.svelte -->
+
+<script>
     import { graphql } from '$houdini'
 
     const allItems = graphql\`
@@ -20,39 +21,58 @@
 
 	const bullets = [
 		'Normalized cache with declarative field updates and list mutations',
-		'Colocate data requirements or define operations in external files with generated stores',
+		'Colocate data requirements or define operations in external files',
 		'First-class support for advanced patterns like subscriptions and pagination'
 	]
 	// Server Side Rendering
 	// First Contentful Paint
 	const sellingPoints = [
 		{
+			header: 'Automatic Load Generation',
+			text: "Houdini's vite plugin can hide all of the details you don't care about when fetching your query. This is everything it takes for SSR 👉",
+			example: `<!-- src/routes/items/+page.svelte -->
+
+<script>
+    import { graphql } from '$houdini'
+
+    const allItems = graphql\`
+        query AllTodoItems {
+            items {
+                text
+            }
+        }
+    \`
+<\/script>
+
+{#each $allItems.data.items as item}
+    <div>{item.text}</div>
+{/each}`
+		},
+		{
 			header: 'Composable',
 			text: 'Your components can define what data they need to do their job by and you can mix them together however you want.',
 			example: `<script>
-    import { query, graphql } from '$houdini'
-    import { UserAvatar } from '~/components'
+    import { graphql, fragment } from '$houdini'
 
-    const { data } = query(graphql\`
-        query AllUsers {
-            users {
-                ...UserAvatar
-            }
+	export let user
+
+    $: userInfo = fragment(user, graphql\`
+        fragment UserAvatar on User {
+			avatar
         }
     \`)
 <\/script>
 
-{#each $data.users as user}
-    <UserAvatar {user} />
-{/each}`
+
+<img src={$userInfo.avatar} />`
 		},
 		{
 			header: 'Declarative',
 			text: 'Updates to your application cache are made with a set of declarative fragments that avoid the surgical logic necessary to keep your application up to date.',
 			example: `<script>
-    import { mutation, graphql } from '$houdini'
+    import { graphql } from '$houdini'
 
-    const createProject = mutation(graphql\`
+    const createProject = graphql\`
             mutation CreateProject {
                 createProject(name: "houdini") {
                     project {
@@ -60,25 +80,24 @@
                     }
                 }
             }
-    \`)
+    \`
 <\/script>
 
-<button onClick={createProject} />`
+<button onClick={createProject.mutate} />`
 		},
 		{
 			header: 'Type Safe',
 			text: 'Generate TypeScript definitions for every document in your application.',
 			example: `<script lang="ts">
-    import { query, graphql } from '$houdini'
-    import type { AllTodoItems } from '$houdini'
+    import { graphql, type AllTodoItemsStore } from '$houdini'
 
-    const { data } = query<AllTodoItems>(graphql\`
+    const store: AllTodoItemsStore = graphql\`
         query AllTodoItems {
             items {
                 text
             }
         }
-    \`)
+    \`
 <\/script>
 
 {#each $data.items as item}
@@ -619,5 +638,13 @@
 		.micro-hidden {
 			display: none;
 		}
+	}
+
+	.caption {
+		color: #161b22;
+		font-size: 18px;
+		margin-top: 12px;
+		padding: 0 30px;
+		margin-right: 0;
 	}
 </style>

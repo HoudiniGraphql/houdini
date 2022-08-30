@@ -160,9 +160,9 @@ Interacting with a paginated query is pretty similar to everything we've been do
 
 ```svelte
 <script>
-	import { paginatedQuery } from '$houdini'
+	import { graphql } from '$houdini'
 
-	const speciesInfo = paginatedQuery(graphql`
+	const speciesInfo = graphql`
 		query SpeciesInfo($id: Int!) {
 			species(id: $id) {
 				name
@@ -181,7 +181,7 @@ Interacting with a paginated query is pretty similar to everything we've been do
 				...SpriteInfo
 			}
 		}
-	`)
+	`
 </script>
 ```
 
