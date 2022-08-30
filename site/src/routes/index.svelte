@@ -52,14 +52,15 @@
 			header: 'Composable',
 			text: 'Your components can define what data they need to do their job by and you can mix them together however you want.',
 			example: `<script>
-    import { graphql } from '$houdini'
+    import { graphql, fragment } from '$houdini'
 
+	export let user
 
-    $: userInfo = graphql\`
+    $: userInfo = fragment(user, graphql\`
         fragment UserAvatar on User {
 			avatar
         }
-    \`
+    \`)
 <\/script>
 
 
