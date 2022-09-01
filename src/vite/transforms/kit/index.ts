@@ -6,6 +6,7 @@ import * as recast from 'recast'
 
 import { Config } from '../../../common'
 import { TransformPage } from '../../plugin'
+import init from './init'
 import load from './load'
 import session from './session'
 
@@ -15,5 +16,5 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 		return
 	}
 
-	await Promise.all([load(page), session(page)])
+	await Promise.all([load(page), session(page), init(page)])
 }

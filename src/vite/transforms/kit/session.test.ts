@@ -14,6 +14,7 @@ test('modifies root +layout.svelte with data prop', async function () {
 	)
 
 	expect(result).toMatchInlineSnapshot(`
+		import "$houdini/runtime/adapter";
 		import __houdini_client__ from "../../../my/client/path";
 		export let data;
 		__houdini_client__.receiveServerSession(data);
@@ -29,6 +30,7 @@ test('modifies root +layout.svelte without data prop', async function () {
 	)
 
 	expect(result).toMatchInlineSnapshot(`
+		import "$houdini/runtime/adapter";
 		import __houdini_client__ from "../../../my/client/path";
 		export let data;
 		__houdini_client__.receiveServerSession(data);

@@ -14,7 +14,7 @@ export function ensure_imports({
 	importKind,
 }: {
 	page: TransformPage
-	import: string
+	import?: string
 	as?: never
 	sourceModule: string
 	importKind?: 'value' | 'type'
@@ -26,7 +26,7 @@ export function ensure_imports({
 	importKind,
 }: {
 	page: TransformPage
-	import: string[]
+	import?: string[]
 	as?: string[]
 	sourceModule: string
 	importKind?: 'value' | 'type'
@@ -39,11 +39,29 @@ export function ensure_imports({
 	as,
 }: {
 	page: TransformPage
-	import: string[] | string
+	import?: string[] | string
 	as?: string[]
 	sourceModule: string
 	importKind?: 'value' | 'type'
 }): { ids: Identifier[] | Identifier; added: number } {
+	// if there is no import, we can simplify the logic, just look for something with a matching source
+	if (!importID) {
+		// look for an import from the source module
+		const has_import = page.script.body.find(
+			(statement) =>
+				statement.type === 'ImportDeclaration' && statement.source.value === sourceModule
+		)
+		if (!has_import) {
+			page.script.body.unshift({
+				type: 'ImportDeclaration',
+				source: AST.stringLiteral(sourceModule),
+				importKind,
+			})
+		}
+
+		return { ids: [], added: has_import ? 0 : 1 }
+	}
+
 	const idList = (Array.isArray(importID) ? importID : [importID]).map((id) => AST.identifier(id))
 
 	// figure out the list of things to import
