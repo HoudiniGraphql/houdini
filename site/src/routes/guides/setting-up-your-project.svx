@@ -80,17 +80,6 @@ export default {
 }
 ```
 
-And finally, we need to configure our application to use the generated network layer. To do
-this, add the following block of code to `src/routes/+layout.svelte` and any named layouts.
-
-```html
-<script>
-	import houdiniClient from '../houdiniClient'
-
-	houdiniClient.init()
-</script>
-```
-
 ### Svelte
 
 If you are building a vanilla svelte project, you will have to configure the compiler and preprocessor to generate the correct logic by setting the `framework`
@@ -112,7 +101,8 @@ export default defineConfig({
 ```
 
 If you aren't using vite, it's a lot harder to give an exact recommendation but somehow
-you should import houdini's preprocessor and pass it to your svelte config
+you should import houdini's preprocessor and pass it to your svelte config. You will also
+need to make sure that the `$houdini` alias resolves to the directory in the root of your project.
 
 ```javascript
 // svelte.config.js
