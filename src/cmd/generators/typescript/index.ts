@@ -4,6 +4,7 @@ import * as graphql from 'graphql'
 import path from 'path'
 import * as recast from 'recast'
 
+import { getSiteUrl } from '../../../../build/constants'
 import { Config, HoudiniError, writeFile } from '../../../common'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections } from '../../utils'
@@ -151,7 +152,7 @@ ${[...missingScalars]
   }
 }
 
-For more information, please visit this link: https://www.houdinigraphql.com/api/config#custom-scalars`)
+For more information, please visit this link: ${getSiteUrl()}/api/config#custom-scalars`)
 	}
 }
 

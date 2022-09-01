@@ -17,6 +17,7 @@ import {
 	parseJS,
 	HoudiniError,
 } from '../common'
+import { getSiteUrl } from '../constants'
 import * as generators from './generators'
 import * as transforms from './transforms'
 import { CollectedGraphQLDocument, ArtifactKind } from './types'
@@ -159,7 +160,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		const major = parseInt(previousVersion.split('.')[1])
 		if (major < 16) {
 			console.log(
-				`❓ For a description of what's changed, visit this guide: http://docs-next-kohl.vercel.app/guides/release-notes`
+				`❓ For a description of what's changed, visit this guide: ${getSiteUrl()}/guides/release-notes`
 			)
 		}
 	}

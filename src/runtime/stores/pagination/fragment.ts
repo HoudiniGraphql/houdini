@@ -1,5 +1,6 @@
 import { derived, get, readable, Readable, Subscriber, Writable, writable } from 'svelte/store'
 
+import { getSiteUrl } from '../../../constants'
 import { keyFieldsForType, getCurrentConfig } from '../../lib/config'
 import {
 	GraphQLObject,
@@ -43,7 +44,7 @@ class BasePaginatedFragmentStore<_Data extends GraphQLObject, _Input> extends Ba
 		const typeConfig = config.types?.[targetType || '']
 		if (!typeConfig) {
 			throw new Error(
-				`Missing type refetch configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
+				`Missing type refetch configuration for ${targetType}. For more information, see ${getSiteUrl()}/guides/pagination#paginated-fragments`
 			)
 		}
 

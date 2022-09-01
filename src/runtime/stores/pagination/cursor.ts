@@ -1,5 +1,6 @@
 import { Writable, writable } from 'svelte/store'
 
+import { getSiteUrl } from '../../../constants'
 import cache from '../../cache'
 import { ConfigFile } from '../../lib/config'
 import { deepEquals } from '../../lib/deepEquals'
@@ -77,7 +78,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			// make sure we have a type config for the pagination target type
 			if (!config.types?.[targetType]?.resolve) {
 				throw new Error(
-					`Missing type resolve configuration for ${targetType}. For more information, see https://www.houdinigraphql.com/guides/pagination#paginated-fragments`
+					`Missing type resolve configuration for ${targetType}. For more information, see ${getSiteUrl()}/guides/pagination#paginated-fragments`
 				)
 			}
 

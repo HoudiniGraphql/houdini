@@ -2,6 +2,7 @@ import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 
 import { Config } from '../../common'
+import { getSiteUrl } from '../../constants'
 import { CachePolicy } from '../../runtime/lib/types'
 import { CollectedGraphQLDocument } from '../types'
 
@@ -27,7 +28,7 @@ directive @${config.listDirective}(${config.listNameArg}: String!, connection: B
 
 """
 	@${config.paginateDirective} is used to to mark a field for pagination.
-	More info in the [doc](https://www.houdinigraphql.com/guides/pagination).
+	More info in the [doc](${getSiteUrl()}/guides/pagination).
 """
 directive @${config.paginateDirective}(${config.paginateNameArg}: String) on FIELD
 
@@ -39,23 +40,31 @@ directive @${config.listPrependDirective}(
 ) on FRAGMENT_SPREAD
 
 """
-	@${config.listAppendDirective} is used to tell the runtime to add the result to the start of the list
+	@${
+		config.listAppendDirective
+	} is used to tell the runtime to add the result to the start of the list
 """
 directive @${config.listAppendDirective}(${config.listDirectiveParentIDArg}: ID) on FRAGMENT_SPREAD
 
 """
-	@${config.listParentDirective} is used to provide a parentID without specifying position or in situations
+	@${
+		config.listParentDirective
+	} is used to provide a parentID without specifying position or in situations
 	where it doesn't make sense (eg when deleting a node.)
 """
 directive @${config.listParentDirective}(value: ID!) on FRAGMENT_SPREAD
 
 """
-	@${config.whenDirective} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+	@${
+		config.whenDirective
+	} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
 """
 directive @${config.whenDirective} on FRAGMENT_SPREAD
 
 """
-	@${config.whenNotDirective} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
+	@${
+		config.whenNotDirective
+	} is used to provide a conditional or in situations where it doesn't make sense (eg when removing or deleting a node.)
 """
 directive @${config.whenNotDirective} on FRAGMENT_SPREAD
 
@@ -67,10 +76,14 @@ directive @${config.argumentsDirective} on FRAGMENT_DEFINITION
 """
 	@${config.cacheDirective} is used to specify cache rules for a query
 """
-directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${config.cachePartialArg}: Boolean) on QUERY
+directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${
+		config.cachePartialArg
+	}: Boolean) on QUERY
 
 """
-	@${config.houdiniDirective} is used to configure houdini's internal behavior such as opting-in an automatic load
+	@${
+		config.houdiniDirective
+	} is used to configure houdini's internal behavior such as opting-in an automatic load
 """
 directive @${config.houdiniDirective}(load: Boolean = true) on QUERY
 `

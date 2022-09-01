@@ -1,6 +1,7 @@
 import { LoadEvent, error, redirect } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
+import { getSiteUrl } from '../../constants'
 import cache from '../cache'
 import { QueryResult } from '../stores/query'
 import type { ConfigFile } from './config'
@@ -68,7 +69,7 @@ import { HoudiniClient } from '$houdini/runtime'
 export default new HoudiniClient(fetchQuery)
 
 
-For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0#environment
+For more information, please visit this link: ${getSiteUrl()}/guides/migrating-to-0.15.0#environment
 `
 		)
 	}
