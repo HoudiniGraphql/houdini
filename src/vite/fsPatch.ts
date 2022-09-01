@@ -5,10 +5,10 @@ import type { Plugin } from 'vite'
 import { Config } from '../common'
 import { getConfig, readFile } from '../common'
 
+let config: Config
+
 // this plugin is responsible for faking `+page.js` existence in the eyes of sveltekit
 export default function HoudiniFsPatch(configFile?: string): Plugin {
-	let config: Config
-
 	return {
 		name: 'houdini-fs-patch',
 
@@ -17,8 +17,12 @@ export default function HoudiniFsPatch(configFile?: string): Plugin {
 		},
 
 		resolveId(id, _, { ssr }) {
-			// if we are resolving a route script or the root layout, pretend its always there
-			if (config.isRouteScript(id) || config.isRootLayout(id)) {
+			// if we are resolving any of the files we need to generate
+			if (
+				config.isRouteScript(id) ||
+				config.isRootLayout(id) ||
+				config.isRootLayoutServer(id)
+			) {
 				return {
 					id,
 				}
@@ -29,7 +33,7 @@ export default function HoudiniFsPatch(configFile?: string): Plugin {
 
 		async load(filepath) {
 			// if we are processing a route script or the root layout, we should always return _something_
-			if (config.isRouteScript(filepath)) {
+			if (config.isRouteScript(filepath) || config.isRootLayoutServer(filepath)) {
 				return {
 					code: (await readFile(filepath)) || '',
 				}
@@ -58,8 +62,8 @@ filesystem.readFileSync = function (fp, options) {
 
 	if (
 		filepath.endsWith('+page.js') ||
-		is_root_layout(filepath) ||
-		filepath.endsWith('+layout.js')
+		filepath.endsWith('+layout.js') ||
+		filepath.replace('.ts', '.js').endsWith('+layout.server.js')
 	) {
 		try {
 			return _readFileSync(filepath, options)
@@ -117,15 +121,17 @@ filesystem.readdirSync = function (
 		}
 	}
 
-	function hasFileName(name: string) {
+	function hasFileName(...names: string[]) {
 		return result.some((file) => {
-			return getFileName(file) === name
+			return names.includes(getFileName(file))
 		})
 	}
 
 	// if there is a route component but no script, add the script
-	const loadFiles = ['+page.js', '+page.ts', '+page.server.js', '+page.server.ts']
-	if (hasFileName('+page.svelte') && !result.find((fp) => loadFiles.includes(getFileName(fp)))) {
+	if (
+		hasFileName('+page.svelte') &&
+		!hasFileName('+page.js', '+page.ts', '+page.server.js', '+page.server.ts')
+	) {
 		result.push(virtualFile('+page.js', options))
 	}
 
@@ -142,6 +148,14 @@ filesystem.readdirSync = function (
 	// we need to create one
 	if (is_root_layout(filepath.toString()) && !hasFileName('+layout.svelte')) {
 		result.push(virtualFile('+layout.svelte', options))
+	}
+	// if we are in looking inside of src/routes and there's no +layout.server.js file
+	// we need to create one
+	if (
+		is_root_layout(filepath.toString()) &&
+		!hasFileName('+layout.server.js', '+layout.server.ts')
+	) {
+		result.push(virtualFile('+layout.server.js', options))
 	}
 
 	// we're done modifying the results
