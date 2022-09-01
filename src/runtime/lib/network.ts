@@ -67,9 +67,6 @@ You should update your client to look something like the following:
 import { HoudiniClient } from '$houdini/runtime'
 
 export default new HoudiniClient(fetchQuery)
-
-
-For more information, please visit this link: ${getSiteUrl()}/guides/migrating-to-0.15.0#environment
 `
 		)
 	}
