@@ -18,12 +18,29 @@ export function find_insert_index(script: Program) {
 	return insert_index
 }
 
-export function find_exported_fn(body: Statement[], name: string): ExportNamedDeclaration | null {
-	return body.find(
+export function find_exported_fn(body: Statement[], name: string): FunctionDeclaration | null {
+	const exported = body.find(
 		(expression) =>
 			expression.type === 'ExportNamedDeclaration' &&
 			(expression as ExportNamedDeclaration).declaration?.type === 'FunctionDeclaration' &&
 			((expression as ExportNamedDeclaration).declaration as FunctionDeclaration).id?.name ===
 				name
 	) as ExportNamedDeclaration
+	if (!exported) {
+		return null
+	}
+
+	return exported.declaration as FunctionDeclaration
+}
+
+export function find_exported_id(program: Program, name: string) {
+	return program.body.find<ExportNamedDeclaration>(
+		(statement): statement is ExportNamedDeclaration =>
+			statement.type === 'ExportNamedDeclaration' &&
+			statement.declaration?.type === 'VariableDeclaration' &&
+			statement.declaration.declarations.length === 1 &&
+			statement.declaration.declarations[0].type === 'VariableDeclarator' &&
+			statement.declaration.declarations[0].id.type === 'Identifier' &&
+			statement.declaration.declarations[0].id.name === name
+	)
 }

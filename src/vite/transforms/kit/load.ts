@@ -35,8 +35,7 @@ export default async function kit_load_generator(page: TransformPage) {
 		is_route
 			? AST.memberExpression(AST.identifier('data'), AST.identifier(name))
 			: store_import({
-					config: page.config,
-					script: page.script,
+					page,
 					artifact: { name },
 			  }).id
 
@@ -152,14 +151,12 @@ function add_load({
 
 	// make sure we have RequestContext imported
 	ensure_imports({
-		config: page.config,
-		script: page.script,
+		page,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/runtime/lib/network',
 	})
 	ensure_imports({
-		config: page.config,
-		script: page.script,
+		page,
 		import: ['getCurrentConfig'],
 		sourceModule: '$houdini/runtime/lib/config',
 	})
@@ -233,8 +230,7 @@ function add_load({
 	// every query that we found needs to be triggered in this function
 	for (const query of queries) {
 		const { ids } = ensure_imports({
-			config: page.config,
-			script: page.script,
+			page,
 			import: [`load_${query.name}`],
 			sourceModule: page.config.storeImportPath(query.name),
 		})
@@ -259,8 +255,7 @@ function add_load({
 									AST.literal('artifact'),
 									AST.memberExpression(
 										store_import({
-											config: page.config,
-											script: page.script,
+											page,
 											artifact: query,
 										}).id,
 										AST.identifier('artifact')
@@ -427,9 +422,8 @@ async function find_page_query(page: TransformPage): Promise<LoadTarget | null> 
 
 	// generate an import for the store
 	const { id } = store_import({
-		config: page.config,
+		page,
 		artifact: { name: definition.name!.value },
-		script: page.script,
 	})
 
 	return {

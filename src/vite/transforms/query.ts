@@ -49,23 +49,20 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 	)
 
 	ensure_imports({
-		config: page.config,
-		script: page.script,
+		page,
 		import: ['marshalInputs'],
 		sourceModule: '$houdini/runtime/lib/scalars',
 	})
 
 	ensure_imports({
-		config: page.config,
-		script: page.script,
+		page,
 		import: ['RequestContext'],
 		sourceModule: '$houdini/runtime/lib/network',
 	})
 
 	// import the browser check
 	ensure_imports({
-		config: page.config,
-		script: page.script,
+		page,
 		import: ['isBrowser'],
 		sourceModule: '$houdini/runtime/adapter',
 	})
@@ -73,10 +70,9 @@ export default async function QueryProcessor(config: Config, page: TransformPage
 	// define the store values at the top of the file
 	for (const query of queries) {
 		const factory = ensure_imports({
+			page,
 			import: [`${query.name}Store`],
 			sourceModule: config.storeImportPath(query.name),
-			config: page.config,
-			script: page.script,
 		}).ids[0]
 
 		page.script.body.splice(
