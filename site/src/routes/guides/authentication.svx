@@ -26,7 +26,7 @@ export async function handle({ event, resolve }) {
 }
 ```
 
-With that in place, you can now access the user information with the `session` parameter passed to your client's network function:
+The only thing that's left is to use the `session` parameter passed to your client's network function to access the information:
 
 ```typescript
 /// src/lib/client.ts
@@ -52,7 +52,7 @@ async function fetchQuery({ fetch, text, variables = {}, session }) {
 export default new HoudiniClient(fetchQuery)
 ```
 
-You can also type your Session & Metadata as follow in `src/app.d.ts`:
+Remember, you can define types for your Session & Metadata by adding this to `src/app.d.ts`:
 
 ```typescript
 /// <reference types="@sveltejs/kit" />
@@ -62,7 +62,7 @@ declare namespace App {
 	}
 
 	interface Metadata {
-		logResult?: boolean | null
+		abortController?: AbortController
 	}
 }
 ```

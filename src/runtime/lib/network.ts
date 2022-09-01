@@ -18,15 +18,15 @@ import {
 
 export const sessionKeyName = 'HOUDINI_SESSION_KEY_NAME'
 
-export class HoudiniClient<SessionData = undefined> {
-	private fetchFn: RequestHandler<any, SessionData | undefined>
+// @ts-ignore
+type SessionData = App.Session
+
+export class HoudiniClient {
+	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
 	private clientSideSession: SessionData | undefined
 
-	constructor(
-		networkFn: RequestHandler<any, SessionData | undefined>,
-		subscriptionHandler?: SubscriptionHandler | null
-	) {
+	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
 		this.fetchFn = networkFn
 		this.socket = subscriptionHandler
 	}
@@ -179,11 +179,9 @@ export type RequestPayload<_Data = any> = {
  * ```
  *
  */
-export type RequestHandlerArgs<SessionData> = FetchContext & FetchParams & { session: SessionData }
+export type RequestHandlerArgs = FetchContext & FetchParams & { session?: SessionData }
 
-export type RequestHandler<_Data, SessionData> = (
-	args: RequestHandlerArgs<SessionData>
-) => Promise<RequestPayload<_Data>>
+export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<RequestPayload<_Data>>
 
 // This function is responsible for simulating the fetch context and executing the query with fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
@@ -233,7 +231,7 @@ export type FetchQueryResult<_Data> = {
 
 export type QueryInputs<_Data> = FetchQueryResult<_Data> & { variables: { [key: string]: any } }
 
-export async function getCurrentClient(): Promise<HoudiniClient<any>> {
+export async function getCurrentClient(): Promise<HoudiniClient> {
 	// @ts-ignore
 	return (await import('HOUDINI_CLIENT_PATH')).default
 }
