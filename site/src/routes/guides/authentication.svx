@@ -10,14 +10,18 @@ Houdini's support for user sessions comes in 2 parts. First, you need to add a `
 session for that user:
 
 ```typescript
-import houdiniClient from './houdiniClient'
+/// src/hooks.js
 
-/** @type {import('@sveltejs/kit').Handle} */
+import houdiniClient from './lib/client'
+
 export async function handle({ event, resolve }) {
-	const user = await getUserInformation(event.request.headers.get('cookie'))
+	// get the user information however you want
+	const user = await authenticateUser(event)
 
+	// set the session information for this event
 	houdiniClient.setSession(event, { user })
 
+	// pass the event onto the default handle
 	return await resolve(event)
 }
 ```
@@ -25,17 +29,11 @@ export async function handle({ event, resolve }) {
 With that in place, you can now access the user information with the `session` parameter passed to your client's network function:
 
 ```typescript
-// client.ts
-import type { RequestHandlerArgs } from '$houdini'
+/// src/lib/client.ts
+
 import { HoudiniClient } from '$houdini'
 
-async function fetchQuery({
-	fetch,
-	text = '',
-	variables = {},
-	session,
-	metadata
-}: RequestHandlerArgs) {
+async function fetchQuery({ fetch, text, variables = {}, session }) {
 	const result = await fetch(import.meta.env.VITE_API_URL, {
 		method: 'POST',
 		headers: {
@@ -48,10 +46,7 @@ async function fetchQuery({
 		})
 	})
 
-	// extract and assign the json body of the response to a variable
-	const json = await result.json()
-
-	return json
+	return await result.json()
 }
 
 export default new HoudiniClient(fetchQuery)
