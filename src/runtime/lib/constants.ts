@@ -1,5 +1,6 @@
 export const getSiteUrl = () => {
 	// Now, manual return
+	// TESTS Snapshots needs to be updated as well when changing this.
 	const next_url = 'https://docs-next-kohl.vercel.app'
 	return next_url
 
