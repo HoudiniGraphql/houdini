@@ -1015,6 +1015,8 @@ test('layout loads', async function () {
 		import "$houdini/runtime/adapter";
 		import __houdini_client__ from "../../../my/client/path";
 		export let data;
+
+		$:
 		__houdini_client__.receiveServerSession(data);
 	`)
 })
@@ -1042,6 +1044,7 @@ test('layout inline query', async function () {
 		$:
 		result = data.TestQuery;
 
+		$:
 		__houdini_client__.receiveServerSession(data);
 	`)
 

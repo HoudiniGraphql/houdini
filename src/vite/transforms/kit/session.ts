@@ -45,10 +45,13 @@ function rootLayout(page: TransformPage) {
 
 	// invoke the client's method to set session
 	page.script.body.push(
-		AST.expressionStatement(
-			AST.callExpression(
-				AST.memberExpression(client_id, AST.identifier('receiveServerSession')),
-				[AST.identifier('data')]
+		AST.labeledStatement(
+			AST.identifier('$'),
+			AST.expressionStatement(
+				AST.callExpression(
+					AST.memberExpression(client_id, AST.identifier('receiveServerSession')),
+					[AST.identifier('data')]
+				)
 			)
 		)
 	)

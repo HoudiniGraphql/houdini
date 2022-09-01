@@ -17,6 +17,8 @@ test('modifies root +layout.svelte to import adapter', async function () {
 		import "$houdini/runtime/adapter";
 		import __houdini_client__ from "../../../my/client/path";
 		export let data;
+
+		$:
 		__houdini_client__.receiveServerSession(data);
 	`)
 })
