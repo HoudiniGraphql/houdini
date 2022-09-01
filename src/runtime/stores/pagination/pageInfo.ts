@@ -1,5 +1,5 @@
-import { getSiteUrl } from '../../../common/constants'
 import { GraphQLObject } from '../../lib'
+import { getSiteUrl } from '../../lib/constants'
 import * as log from '../../lib/log'
 
 export function nullPageInfo(): PageInfo {

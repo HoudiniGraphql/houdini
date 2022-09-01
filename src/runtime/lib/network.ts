@@ -1,10 +1,10 @@
 import { LoadEvent, error, redirect } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
-import { getSiteUrl } from '../../common/constants'
 import cache from '../cache'
 import { QueryResult } from '../stores/query'
 import type { ConfigFile } from './config'
+import { getSiteUrl } from './constants'
 import * as log from './log'
 import { marshalInputs } from './scalars'
 import {

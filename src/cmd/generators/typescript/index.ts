@@ -5,7 +5,7 @@ import path from 'path'
 import * as recast from 'recast'
 
 import { Config, HoudiniError, writeFile } from '../../../common'
-import { getSiteUrl } from '../../../common/constants'
+import { getSiteUrl } from '../../../runtime/lib/constants'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'

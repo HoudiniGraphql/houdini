@@ -1,4 +1,4 @@
-import { getSiteUrl } from '../common/constants'
+import { getSiteUrl } from './lib/constants'
 import { GraphQLTagResult } from './lib/types'
 
 export * from './lib'

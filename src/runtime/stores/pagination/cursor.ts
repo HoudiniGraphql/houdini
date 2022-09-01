@@ -1,8 +1,8 @@
 import { Writable, writable } from 'svelte/store'
 
-import { getSiteUrl } from '../../../common/constants'
 import cache from '../../cache'
 import { ConfigFile } from '../../lib/config'
+import { getSiteUrl } from '../../lib/constants'
 import { deepEquals } from '../../lib/deepEquals'
 import { executeQuery } from '../../lib/network'
 import { GraphQLObject, QueryArtifact } from '../../lib/types'

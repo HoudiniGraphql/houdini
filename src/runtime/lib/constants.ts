@@ -33,5 +33,5 @@ export const OutdatedFunctionInlineInfo = (
 	type: 'query' | 'paginatedQuery' | 'mutation' | 'subscription',
 	name: string
 ) => {
-	return `❌ inline function "${type}" no longer exist (used with: '${name}' ${type}).`
+	return `❌ inline function "${type}" no longer exist (update: '${name}' ${type}).`
 }
