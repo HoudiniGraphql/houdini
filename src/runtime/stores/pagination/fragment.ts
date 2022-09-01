@@ -1,6 +1,6 @@
 import { derived, get, readable, Readable, Subscriber, Writable, writable } from 'svelte/store'
 
-import { getSiteUrl } from '../../../constants'
+import { getSiteUrl } from '../../../common/constants'
 import { keyFieldsForType, getCurrentConfig } from '../../lib/config'
 import {
 	GraphQLObject,

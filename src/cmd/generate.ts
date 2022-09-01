@@ -17,7 +17,7 @@ import {
 	parseJS,
 	HoudiniError,
 } from '../common'
-import { getSiteUrl } from '../constants'
+import { getSiteUrl } from '../common/constants'
 import * as generators from './generators'
 import * as transforms from './transforms'
 import { CollectedGraphQLDocument, ArtifactKind } from './types'

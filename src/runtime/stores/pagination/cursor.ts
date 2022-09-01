@@ -1,6 +1,6 @@
 import { Writable, writable } from 'svelte/store'
 
-import { getSiteUrl } from '../../../constants'
+import { getSiteUrl } from '../../../common/constants'
 import cache from '../../cache'
 import { ConfigFile } from '../../lib/config'
 import { deepEquals } from '../../lib/deepEquals'

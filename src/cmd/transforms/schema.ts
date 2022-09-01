@@ -2,7 +2,7 @@ import { mergeSchemas } from '@graphql-tools/schema'
 import * as graphql from 'graphql'
 
 import { Config } from '../../common'
-import { getSiteUrl } from '../../constants'
+import { getSiteUrl } from '../../common/constants'
 import { CachePolicy } from '../../runtime/lib/types'
 import { CollectedGraphQLDocument } from '../types'
 

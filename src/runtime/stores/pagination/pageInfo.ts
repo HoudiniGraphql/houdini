@@ -1,4 +1,4 @@
-import { getSiteUrl } from '../../../constants'
+import { getSiteUrl } from '../../../common/constants'
 import { GraphQLObject } from '../../lib'
 import * as log from '../../lib/log'
 

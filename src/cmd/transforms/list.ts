@@ -2,7 +2,7 @@ import { logGreen, logYellow } from '@kitql/helper'
 import * as graphql from 'graphql'
 
 import { Config, parentTypeFromAncestors, HoudiniError } from '../../common'
-import { getSiteUrl } from '../../constants'
+import { getSiteUrl } from '../../common/constants'
 import { ArtifactKind } from '../../runtime/lib/types'
 import { CollectedGraphQLDocument } from '../types'
 import { TypeWrapper, unwrapType } from '../utils'
