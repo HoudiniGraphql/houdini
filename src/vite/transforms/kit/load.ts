@@ -12,22 +12,17 @@ import {
 	HoudiniRouteScript,
 	readFile,
 	stat,
-} from '../../common'
-import { find_insert_index } from '../ast'
-import { ensure_imports, store_import } from '../imports'
-import { TransformPage } from '../plugin'
-import { LoadTarget, find_inline_queries, query_variable_fn } from './query'
+} from '../../../common'
+import { find_insert_index } from '../../ast'
+import { ensure_imports, store_import } from '../../imports'
+import { TransformPage } from '../../plugin'
+import { LoadTarget, find_inline_queries, query_variable_fn } from '../query'
 
 const AST = recast.types.builders
 
 type ExportNamedDeclaration = ReturnType<typeof recast.types.builders['exportNamedDeclaration']>
 
-export default async function SvelteKitProcessor(config: Config, page: TransformPage) {
-	// if we aren't running on a kit project, don't do anything
-	if (page.config.framework !== 'kit') {
-		return
-	}
-
+export default async function kit_load_generator(page: TransformPage) {
 	// if this isn't a route, move on
 	const is_route = page.config.isRoute(page.filepath)
 	const is_route_script = page.config.isRouteScript(page.filepath)
