@@ -2,17 +2,18 @@ export type RTErrorType = 'default' | 'OutdatedFunction'
 
 // Houdini Runtime Error (something light-weighted)
 export class HoudiniRTError extends Error {
-	constructor({
-		message,
-		type = 'default',
-		extraInfo = [],
-		quiet = false,
-	}: {
-		message: string
-		type?: RTErrorType
-		extraInfo?: string[]
-		quiet?: boolean
-	}) {
+	constructor(
+		message: string,
+		{
+			type = 'default',
+			extraInfo = [],
+			quiet = false,
+		}: {
+			type?: RTErrorType
+			extraInfo?: string[]
+			quiet?: boolean
+		}
+	) {
 		// log extra info before throwing error
 		extraInfo?.forEach((line) => {
 			console.log(line)

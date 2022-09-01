@@ -4,9 +4,9 @@ import { GraphQLTagResult, Operation } from '../lib/types'
 
 export function query<_Query extends Operation<any, any>>(store: GraphQLTagResult) {
 	// no longer exist!
-	throw new HoudiniRTError({
+	throw new HoudiniRTError('query', {
 		type: 'OutdatedFunction',
-		message: 'query',
+
 		extraInfo: [
 			OutdatedFunctionInlineInfo('query', store.artifact.name),
 			InfoReleaseNote('#0160'),
@@ -17,9 +17,8 @@ export function query<_Query extends Operation<any, any>>(store: GraphQLTagResul
 
 export function paginatedQuery<_Query extends Operation<any, any>>(store: GraphQLTagResult) {
 	// no longer exist!
-	throw new HoudiniRTError({
+	throw new HoudiniRTError('paginatedQuery', {
 		type: 'OutdatedFunction',
-		message: 'paginatedQuery',
 		extraInfo: [
 			OutdatedFunctionInlineInfo('paginatedQuery', store.artifact.name),
 			InfoReleaseNote('#0160'),

@@ -7,9 +7,8 @@ export function subscription<_Subscription extends Operation<any, any>>(
 	variables?: _Subscription['input']
 ) {
 	// no longer exist!
-	throw new HoudiniRTError({
+	throw new HoudiniRTError('subscription', {
 		type: 'OutdatedFunction',
-		message: 'subscription',
 		extraInfo: [
 			OutdatedFunctionInlineInfo('subscription', store.artifact.name),
 			InfoReleaseNote('#0160'),
