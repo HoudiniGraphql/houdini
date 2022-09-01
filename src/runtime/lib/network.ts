@@ -68,7 +68,7 @@ export class HoudiniClient<SessionData = undefined> {
 
 	init() {}
 
-	setServerSession(event: RequestEvent, session: SessionData) {
+	setSession(event: RequestEvent, session: SessionData) {
 		;(event.locals as any)[sessionKeyName] = session
 	}
 
@@ -87,16 +87,6 @@ export class HoudiniClient<SessionData = undefined> {
 		if (isBrowser) {
 			this.clientSideSession = (data as any)[sessionKeyName]
 		}
-	}
-
-	setSession(session: SessionData) {
-		// This may not be called on the server. Otherwise multiple requests would share the session as this class is a global singleton on the server.
-		if (!isBrowser) {
-			// todo: Warn the user about the above fact.
-			throw new Error()
-		}
-
-		this.clientSideSession = session
 	}
 }
 
