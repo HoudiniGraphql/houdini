@@ -1,9 +1,16 @@
-import { getSiteUrl } from '../../common/constants'
+import { HoudiniRTError } from '../lib/HoudiniRTError'
+import { InfoReleaseNote, OutdatedFunctionInlineInfo } from '../lib/constants'
 import { GraphQLTagResult, Operation } from '../lib/index'
 
 export function mutation<_Mutation extends Operation<any, any>>(store: GraphQLTagResult) {
 	// no longer exist!
-	throw new Error(
-		`inline mutation( ... ) no longer exist, check this guide: ${getSiteUrl()}/guides/release-notes#0160`
-	)
+	throw new HoudiniRTError({
+		type: 'OutdatedFunction',
+		message: 'mutation',
+		extraInfo: [
+			OutdatedFunctionInlineInfo('mutation', store.artifact.name),
+			InfoReleaseNote('#0160'),
+		],
+		quiet: true,
+	})
 }

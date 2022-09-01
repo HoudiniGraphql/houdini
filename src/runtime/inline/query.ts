@@ -1,16 +1,29 @@
-import { getSiteUrl } from '../../common/constants'
+import { HoudiniRTError } from '../lib/HoudiniRTError'
+import { getSiteUrl, InfoReleaseNote, OutdatedFunctionInlineInfo } from '../lib/constants'
 import { GraphQLTagResult, Operation } from '../lib/types'
 
 export function query<_Query extends Operation<any, any>>(store: GraphQLTagResult) {
 	// no longer exist!
-	throw new Error(
-		`inline query( ... ) no longer exist, check this guide: ${getSiteUrl()}/guides/release-notes#0160`
-	)
+	throw new HoudiniRTError({
+		type: 'OutdatedFunction',
+		message: 'query',
+		extraInfo: [
+			OutdatedFunctionInlineInfo('query', store.artifact.name),
+			InfoReleaseNote('#0160'),
+		],
+		quiet: true,
+	})
 }
 
-export function paginatedQuery<_Query extends Operation<any, any>>(document: GraphQLTagResult) {
+export function paginatedQuery<_Query extends Operation<any, any>>(store: GraphQLTagResult) {
 	// no longer exist!
-	throw new Error(
-		`inline paginatedQuery( ... ) no longer exist, check this guide: ${getSiteUrl()}/guides/release-notes#0160`
-	)
+	throw new HoudiniRTError({
+		type: 'OutdatedFunction',
+		message: 'paginatedQuery',
+		extraInfo: [
+			OutdatedFunctionInlineInfo('paginatedQuery', store.artifact.name),
+			InfoReleaseNote('#0160'),
+		],
+		quiet: true,
+	})
 }
