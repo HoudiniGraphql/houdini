@@ -69,6 +69,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			const { result } = await executeQuery<GraphQLObject, {}>({
 				artifact,
 				variables: queryVariables,
+				session: undefined,
 				cached: false,
 				config,
 				fetch,

@@ -63,6 +63,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		const { result } = await executeQuery<GraphQLObject, {}>({
 			artifact,
 			variables: loadVariables,
+			session: undefined,
 			cached: false,
 			config,
 			fetch,

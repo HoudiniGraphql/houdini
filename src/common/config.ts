@@ -645,6 +645,20 @@ ${
 		)
 	}
 
+	isRootLayout(filename: string) {
+		return (
+			this.resolveRelative(filename).replace(this.projectRoot, '') ===
+			path.sep + path.join('src', 'routes', '+layout.svelte')
+		)
+	}
+
+	isRootLayoutServer(filename: string) {
+		return (
+			this.resolveRelative(filename).replace(this.projectRoot, '').replace('.ts', '.js') ===
+			path.sep + path.join('src', 'routes', '+layout.server.js')
+		)
+	}
+
 	isComponent(filename: string) {
 		return (
 			this.framework === 'svelte' ||

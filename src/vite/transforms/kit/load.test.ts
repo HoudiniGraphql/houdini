@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { route_test } from '../tests'
+import { route_test } from '../../tests'
 
 describe('kit route processor', function () {
 	test('inline store', async function () {
@@ -1011,7 +1011,12 @@ test('layout loads', async function () {
 		}
 	`)
 
-	expect(route.layout).toMatchInlineSnapshot('export let data;')
+	expect(route.layout).toMatchInlineSnapshot(`
+		import "$houdini/runtime/adapter";
+		import __houdini_client__ from "../../../my/client/path";
+		export let data;
+		__houdini_client__.receiveServerSession(data);
+	`)
 })
 
 test('layout inline query', async function () {
@@ -1030,10 +1035,14 @@ test('layout inline query', async function () {
 	})
 
 	expect(route.layout).toMatchInlineSnapshot(`
+		import "$houdini/runtime/adapter";
+		import __houdini_client__ from "../../../my/client/path";
 		export let data;
 
 		$:
 		result = data.TestQuery;
+
+		__houdini_client__.receiveServerSession(data);
 	`)
 
 	expect(route.layout_script).toMatchInlineSnapshot(`

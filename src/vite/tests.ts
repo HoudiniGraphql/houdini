@@ -145,3 +145,51 @@ export async function component_test(
 	// return both
 	return (await parseSvelte(result.code))?.script ?? null
 }
+
+export async function transform_svelte_test(filepath: string, content: string) {
+	// build up the document we'll pass to the processor
+	const config = testConfig({ schema })
+
+	// write the content
+	filepath = path.join(config.projectRoot, filepath)
+	await mkdirp(path.dirname(filepath))
+	await writeFile(filepath, content)
+
+	// we want to run the transformer on both the component and script paths
+	const result = await runTransforms(
+		config,
+		{
+			config,
+			filepath,
+			watch_file: () => {},
+		},
+		content
+	)
+
+	// return both
+	return (await parseSvelte(result.code))?.script ?? null
+}
+
+export async function transform_javascript_test(filepath: string, content: string) {
+	// build up the document we'll pass to the processor
+	const config = testConfig({ schema })
+
+	// write the content
+	filepath = path.join(config.projectRoot, filepath)
+	await mkdirp(path.dirname(filepath))
+	await writeFile(filepath, content)
+
+	// we want to run the transformer on both the component and script paths
+	const result = await runTransforms(
+		config,
+		{
+			config,
+			filepath,
+			watch_file: () => {},
+		},
+		content
+	)
+
+	// return both
+	return (await parseJS(result.code))?.script ?? null
+}

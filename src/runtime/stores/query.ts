@@ -6,7 +6,7 @@ import cache from '../cache'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { deepEquals } from '../lib/deepEquals'
 import * as log from '../lib/log'
-import { fetchQuery } from '../lib/network'
+import { fetchQuery, sessionKeyName } from '../lib/network'
 import { FetchContext } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 // internals
@@ -119,12 +119,27 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 		this.setFetching(true)
 
+		let session: any = undefined
+		// cannot re-use the variable from above
+		// we need to check for ourselves to satisfy typescript
+		if ('event' in params && params.event) {
+			// get the session either from the server side event or the client side event
+			if ('locals' in params.event) {
+				// this is a server side event (RequestEvent) -> extract the session from locals
+				session = (params.event.locals as any)[sessionKeyName]
+			} else {
+				// this is a client side event -> await the parent data which include the session
+				session = (await params.event.parent())[sessionKeyName]
+			}
+		}
+
 		// perform the network request
 		const request = this.fetchAndCache({
 			config,
 			context,
 			artifact: this.artifact,
 			variables: newVariables,
+			session,
 			store: this.store,
 			cached: policy !== CachePolicy.NetworkOnly,
 			setLoadPending: (val) => {
@@ -191,6 +206,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		config,
 		artifact,
 		variables,
+		session,
 		store,
 		cached,
 		ignoreFollowup,
@@ -201,6 +217,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		config: ConfigFile
 		artifact: QueryArtifact
 		variables: _Input
+		session: any
 		store: Writable<QueryResult<_Data, _Input>>
 		cached: boolean
 		ignoreFollowup?: boolean
@@ -210,9 +227,9 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 	}) {
 		const request = await fetchQuery<_Data, _Input>({
 			...context,
-			config,
 			artifact,
 			variables,
+			session,
 			cached,
 			policy,
 			context,
@@ -273,6 +290,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 					context,
 					artifact,
 					variables,
+					session,
 					store,
 					cached: false,
 					ignoreFollowup: true,
@@ -288,6 +306,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 					context,
 					artifact,
 					variables,
+					session,
 					store,
 					cached: false,
 					ignoreFollowup: true,

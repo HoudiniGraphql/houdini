@@ -7,10 +7,10 @@ import { TransformPage } from '../plugin'
 
 const AST = recast.types.builders
 
-export default async function GraphQLTagProcessor(config: Config, ctx: TransformPage) {
+export default async function GraphQLTagProcessor(config: Config, page: TransformPage) {
 	// all graphql template tags need to be turned into a reference to the appropriate store
-	await walkGraphQLTags(config, ctx.script, {
-		dependency: ctx.watch_file,
+	await walkGraphQLTags(config, page.script, {
+		dependency: page.watch_file,
 		tag(tag) {
 			// pull out what we need
 			const { node, parsedDocument } = tag
@@ -20,8 +20,7 @@ export default async function GraphQLTagProcessor(config: Config, ctx: Transform
 			// store
 			node.replaceWith(
 				store_import({
-					config,
-					script: ctx.script,
+					page,
 					artifact: { name: operation.name!.value },
 				}).id
 			)
