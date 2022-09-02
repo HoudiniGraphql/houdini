@@ -1,5 +1,4 @@
 import { graphql } from '$houdini';
-import type { OnErrorEvent } from './$houdini';
 
 export const houdini_load = graphql`
   query PreprocessorOnErrorTestQuery {
