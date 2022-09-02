@@ -146,3 +146,77 @@ test('modifies existing load +layout.server.js - rest params', async function ()
 		}
 	`)
 })
+
+test('modifies existing load +layout.server.js - const arrow function', async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.server.js',
+		`
+			export const load = ({ foo, bar, ...baz }) => {
+				console.log(foo)
+				return { 
+					some: 'value'
+				}
+			}
+		`
+	)
+
+	expect(result).toMatchInlineSnapshot(`
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
+
+		export const load = event => {
+		    let {
+		        foo,
+		        bar,
+		        ...baz
+		    } = event;
+
+		    console.log(foo);
+
+		    const __houdini__vite__plugin__return__value__ = {
+		        some: "value"
+		    };
+
+		    return {
+		        ...__houdini_client__.passServerSession(event),
+		        ...__houdini__vite__plugin__return__value__
+		    };
+		};
+	`)
+})
+
+test('modifies existing load +layout.server.js - const function', async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.server.js',
+		`
+			export const load = function({ foo, bar, ...baz }) {
+				console.log(foo)
+				return { 
+					some: 'value'
+				}
+			}
+		`
+	)
+
+	expect(result).toMatchInlineSnapshot(`
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
+
+		export const load = function(event) {
+		    let {
+		        foo,
+		        bar,
+		        ...baz
+		    } = event;
+
+		    console.log(foo);
+
+		    const __houdini__vite__plugin__return__value__ = {
+		        some: "value"
+		    };
+
+		    return {
+		        ...__houdini_client__.passServerSession(event),
+		        ...__houdini__vite__plugin__return__value__
+		    };
+		};
+	`)
+})

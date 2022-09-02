@@ -8,6 +8,7 @@ import { TransformPage } from '../../plugin'
 const AST = recast.types.builders
 
 type ReturnStatement = recast.types.namedTypes.ReturnStatement
+type BlockStatement = recast.types.namedTypes.BlockStatement
 
 // we have 2 different places we need to consider to string the session along:
 // - src/routes/+layout.server.js needs to pass the session onto the client at the root
@@ -75,6 +76,18 @@ function rootLayoutServer(page: TransformPage) {
 	let load_fn = find_exported_fn(page.script.body, 'load')
 	let event_id = AST.identifier('event')
 
+	// lets get a reference to the body of the function
+	let body: BlockStatement = AST.blockStatement([])
+	if (load_fn?.type === 'ArrowFunctionExpression') {
+		if (load_fn.body.type === 'BlockStatement') {
+			body = load_fn.body
+		} else {
+			body = AST.blockStatement([AST.returnStatement(load_fn.body)])
+		}
+	} else if (load_fn) {
+		body = load_fn.body
+	}
+
 	// if there is no load function, then we have to add one
 	if (!load_fn) {
 		load_fn = AST.functionDeclaration(
@@ -88,6 +101,7 @@ function rootLayoutServer(page: TransformPage) {
 			0,
 			AST.exportNamedDeclaration(load_fn)
 		)
+		body = load_fn.body
 	}
 	// there is a load function, we need the event
 	else {
@@ -108,7 +122,7 @@ function rootLayoutServer(page: TransformPage) {
 			load_fn.params[0] = event_id
 
 			// redefine the variables as let in the first statement of the function
-			load_fn.body.body.unshift(
+			body.body.unshift(
 				AST.variableDeclaration('let', [AST.variableDeclarator(pattern, event_id)])
 			)
 		}
@@ -125,29 +139,29 @@ function rootLayoutServer(page: TransformPage) {
 
 	// now we need to find the return statement and replace it with a local variable
 	// that we will use later
-	let return_statement_index = load_fn.body.body.findIndex(
+	let return_statement_index = body.body.findIndex(
 		(statement) => statement.type === 'ReturnStatement'
 	)
 	let return_statement: ReturnStatement
 	if (return_statement_index !== -1) {
-		return_statement = load_fn.body.body[return_statement_index] as ReturnStatement
+		return_statement = body.body[return_statement_index] as ReturnStatement
 	}
 	// there was no return statement so its safe to just push one at the end that sets an empty
 	// object
 	else {
 		return_statement = AST.returnStatement(AST.objectExpression([]))
-		load_fn.body.body.push(return_statement)
-		return_statement_index = load_fn.body.body.length - 1
+		body.body.push(return_statement)
+		return_statement_index = body.body.length - 1
 	}
 
 	// replace the return statement with the variable declaration
 	const local_return_var = AST.identifier('__houdini__vite__plugin__return__value__')
-	load_fn.body.body[return_statement_index] = AST.variableDeclaration('const', [
+	body.body[return_statement_index] = AST.variableDeclaration('const', [
 		AST.variableDeclarator(local_return_var, return_statement.argument),
 	])
 
 	// its safe to insert a return statement after the declaration that references event
-	load_fn.body.body.splice(
+	body.body.splice(
 		return_statement_index + 1,
 		0,
 		AST.returnStatement(
