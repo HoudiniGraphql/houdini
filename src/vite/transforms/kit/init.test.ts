@@ -1,10 +1,10 @@
 import { test, expect } from 'vitest'
 
-import { transform_svelte_test } from '../../tests'
+import { test_transform_svelte } from '../../tests'
 
 test('modifies root +layout.svelte to import adapter', async function () {
 	// run the test
-	const result = await transform_svelte_test(
+	const result = await test_transform_svelte(
 		'src/routes/+layout.svelte',
 		`
 <script>

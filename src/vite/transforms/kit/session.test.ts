@@ -1,16 +1,16 @@
 import { test, expect } from 'vitest'
 
-import { transform_javascript_test, transform_svelte_test } from '../../tests'
+import { test_transform_js, test_transform_svelte } from '../../tests'
 
 test('modifies root +layout.svelte with data prop', async function () {
 	// run the test
-	const result = await transform_svelte_test(
+	const result = await test_transform_svelte(
 		'src/routes/+layout.svelte',
 		`
-<script>
-    export let data
-</script>
-    `
+			<script>
+				export let data
+			</script>
+		`
 	)
 
 	expect(result).toMatchInlineSnapshot(`
@@ -25,11 +25,7 @@ test('modifies root +layout.svelte with data prop', async function () {
 
 test('modifies root +layout.svelte without data prop', async function () {
 	// run the test
-	const result = await transform_svelte_test(
-		'src/routes/+layout.svelte',
-		`
-    `
-	)
+	const result = await test_transform_svelte('src/routes/+layout.svelte', ``)
 
 	expect(result).toMatchInlineSnapshot(`
 		import "$houdini/runtime/adapter";
@@ -42,7 +38,7 @@ test('modifies root +layout.svelte without data prop', async function () {
 })
 
 test('adds load to +layout.server.js', async function () {
-	const result = await transform_javascript_test('src/routes/+layout.server.js', ``)
+	const result = await test_transform_js('src/routes/+layout.server.js', ``)
 
 	expect(result).toMatchInlineSnapshot(`
 		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
@@ -59,17 +55,17 @@ test('adds load to +layout.server.js', async function () {
 })
 
 test('modifies existing load +layout.server.js', async function () {
-	const result = await transform_javascript_test(
+	const result = await test_transform_js(
 		'src/routes/+layout.server.js',
 		`
-        export async function load() {
-            "some random stuff that's valid javascript" 
-            return { 
-                hello: "world",
-            }
-            
-        }
-    `
+			export async function load() {
+				"some random stuff that's valid javascript" 
+				return { 
+					hello: "world",
+				}
+				
+			}
+		`
 	)
 
 	expect(result).toMatchInlineSnapshot(`
@@ -90,13 +86,13 @@ test('modifies existing load +layout.server.js', async function () {
 })
 
 test('modifies existing load +layout.server.js - no return', async function () {
-	const result = await transform_javascript_test(
+	const result = await test_transform_js(
 		'src/routes/+layout.server.js',
 		`
-        export async function load() {
-            "some random stuff that's valid javascript" 
-        }
-    `
+			export async function load() {
+				"some random stuff that's valid javascript" 
+			}
+		`
 	)
 
 	expect(result).toMatchInlineSnapshot(`
@@ -115,16 +111,16 @@ test('modifies existing load +layout.server.js - no return', async function () {
 })
 
 test('modifies existing load +layout.server.js - rest params', async function () {
-	const result = await transform_javascript_test(
+	const result = await test_transform_js(
 		'src/routes/+layout.server.js',
 		`
-        export async function load({ foo, bar, ...baz }) {
-            console.log(foo)
-            return { 
-                some: 'value'
-            }
-        }
-    `
+			export async function load({ foo, bar, ...baz }) {
+				console.log(foo)
+				return { 
+					some: 'value'
+				}
+			}
+		`
 	)
 
 	expect(result).toMatchInlineSnapshot(`

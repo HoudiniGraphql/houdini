@@ -146,7 +146,7 @@ export async function component_test(
 	return (await parseSvelte(result.code))?.script ?? null
 }
 
-export async function transform_svelte_test(filepath: string, content: string) {
+export async function test_transform_svelte(filepath: string, content: string) {
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema })
 
@@ -170,7 +170,7 @@ export async function transform_svelte_test(filepath: string, content: string) {
 	return (await parseSvelte(result.code))?.script ?? null
 }
 
-export async function transform_javascript_test(filepath: string, content: string) {
+export async function test_transform_js(filepath: string, content: string) {
 	// build up the document we'll pass to the processor
 	const config = testConfig({ schema })
 
