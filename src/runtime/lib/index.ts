@@ -1,7 +1,6 @@
 import { QueryStore } from '../stores'
 
 export * from './network'
-export * from './proxy'
 export * from './config'
 export { errorsToGraphQLLayout } from './errors'
 
