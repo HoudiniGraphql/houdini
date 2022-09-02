@@ -40,7 +40,7 @@ function rootLayout(page: TransformPage) {
 	const client_id = ensure_imports({
 		page,
 		import: '__houdini_client__',
-		sourceModule: path.relative(page.filepath, page.config.client),
+		sourceModule: path.join(page.config.projectRoot, page.config.client),
 	}).ids
 
 	// invoke the client's method to set session
@@ -68,7 +68,7 @@ function rootLayoutServer(page: TransformPage) {
 	const client_id = ensure_imports({
 		page,
 		import: '__houdini_client__',
-		sourceModule: path.relative(page.filepath, page.config.client),
+		sourceModule: path.join(page.config.projectRoot, page.config.client),
 	}).ids
 
 	// before we do anything, we need to find the load function
@@ -83,7 +83,11 @@ function rootLayoutServer(page: TransformPage) {
 			AST.blockStatement([])
 		)
 		load_fn.async = true
-		page.script.body.splice(find_insert_index(page.script), 0, load_fn)
+		page.script.body.splice(
+			find_insert_index(page.script),
+			0,
+			AST.exportNamedDeclaration(load_fn)
+		)
 	}
 	// there is a load function, we need the event
 	else {

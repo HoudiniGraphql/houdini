@@ -16,6 +16,7 @@ export const routes = {
   Stores_Metadata: '/stores/metadata',
   Stores_Endpoint_Query: '/stores/endpoint-query',
   Stores_Endpoint_Mutation: '/stores/endpoint-mutation',
+  Stores_Session: '/stores/session',
 
   Stores_Partial_List: '/stores/partial/partial_List',
   Stores_Pagination_query_forward_cursor: '/stores/pagination/query/forward-cursor',
