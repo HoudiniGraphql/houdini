@@ -1,13 +1,12 @@
 import { routes } from '../../../../lib/utils/routes.js';
 import {
-  expect_1_gql,
   expectToBe,
   goto,
   navSelector,
   clientSideNavigation,
   expect_0_gql
 } from '../../../../lib/utils/testsHelper.js';
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 
 test.describe('query preprocessor variables', () => {
   test('query values get unmarshaled into complex values', async function ({ page }) {

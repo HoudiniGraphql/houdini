@@ -9,7 +9,7 @@ export const houdini_load = graphql`
   }
 `;
 
-export const onError = ({ error, input }: OnErrorEvent) => {
+export const onError = () => {
   return {
     fancyMessage: 'hello'
   };
