@@ -15,7 +15,7 @@ test('modifies root +layout.svelte with data prop', async function () {
 
 	expect(result).toMatchInlineSnapshot(`
 		import "$houdini/runtime/adapter";
-		import __houdini_client__ from "../../../my/client/path";
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 		export let data;
 
 		$:
@@ -33,7 +33,7 @@ test('modifies root +layout.svelte without data prop', async function () {
 
 	expect(result).toMatchInlineSnapshot(`
 		import "$houdini/runtime/adapter";
-		import __houdini_client__ from "../../../my/client/path";
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 		export let data;
 
 		$:
@@ -45,9 +45,9 @@ test('adds load to +layout.server.js', async function () {
 	const result = await transform_javascript_test('src/routes/+layout.server.js', ``)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "../../../my/client/path";
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 
-		async function load(event) {
+		export async function load(event) {
 		    const __houdini__vite__plugin__return__value__ = {};
 
 		    return {
@@ -73,7 +73,7 @@ test('modifies existing load +layout.server.js', async function () {
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "../../../my/client/path";
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 
 		export async function load(event) {
 		    "some random stuff that's valid javascript";
@@ -100,7 +100,7 @@ test('modifies existing load +layout.server.js - no return', async function () {
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "../../../my/client/path";
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 
 		export async function load(event) {
 		    "some random stuff that's valid javascript";
@@ -128,7 +128,7 @@ test('modifies existing load +layout.server.js - rest params', async function ()
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "../../../my/client/path";
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 
 		export async function load(event) {
 		    let {

@@ -1013,7 +1013,7 @@ test('layout loads', async function () {
 
 	expect(route.layout).toMatchInlineSnapshot(`
 		import "$houdini/runtime/adapter";
-		import __houdini_client__ from "../../../my/client/path";
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 		export let data;
 
 		$:
@@ -1038,7 +1038,7 @@ test('layout inline query', async function () {
 
 	expect(route.layout).toMatchInlineSnapshot(`
 		import "$houdini/runtime/adapter";
-		import __houdini_client__ from "../../../my/client/path";
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 		export let data;
 
 		$:

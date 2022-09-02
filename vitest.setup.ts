@@ -5,7 +5,7 @@ import * as recast from 'recast'
 import typeScriptParser from 'recast/parsers/typescript'
 import { expect, afterEach } from 'vitest'
 
-import { parseJS } from './src/common'
+import { parseJS, testConfig } from './src/common'
 import { clearMock } from './src/common/fs'
 import * as fs from './src/common/fs'
 
@@ -15,10 +15,12 @@ clearMock()
 
 afterEach(fs.clearMock)
 
+const config = testConfig()
+
 expect.addSnapshotSerializer({
 	test: (val) => val && Object.keys(recast.types.namedTypes).includes(val.type),
 	serialize: (val) => {
-		return recast.print(val).code
+		return recast.print(val).code.replaceAll(config.projectRoot, 'PROJECT_ROOT')
 	},
 })
 

@@ -15,7 +15,7 @@ test('modifies root +layout.svelte to import adapter', async function () {
 
 	expect(result).toMatchInlineSnapshot(`
 		import "$houdini/runtime/adapter";
-		import __houdini_client__ from "../../../my/client/path";
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 		export let data;
 
 		$:
