@@ -220,3 +220,27 @@ test('modifies existing load +layout.server.js - const function', async function
 		};
 	`)
 })
+
+test('modifies existing load +layout.server.js - implicit return', async function () {
+	const result = await test_transform_js(
+		'src/routes/+layout.server.js',
+		`
+			export const load = () => ({ hello: 'world'})
+		`
+	)
+
+	expect(result).toMatchInlineSnapshot(`
+		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
+
+		export const load = event => {
+		    const __houdini__vite__plugin__return__value__ = ({
+		        hello: "world"
+		    });
+
+		    return {
+		        ...__houdini_client__.passServerSession(event),
+		        ...__houdini__vite__plugin__return__value__
+		    };
+		};
+	`)
+})

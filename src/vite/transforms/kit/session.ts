@@ -83,6 +83,7 @@ function rootLayoutServer(page: TransformPage) {
 			body = load_fn.body
 		} else {
 			body = AST.blockStatement([AST.returnStatement(load_fn.body)])
+			load_fn.body = body
 		}
 	} else if (load_fn) {
 		body = load_fn.body
