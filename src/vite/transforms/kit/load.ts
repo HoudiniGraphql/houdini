@@ -294,7 +294,7 @@ function add_load({
 							AST.objectProperty(AST.literal('event'), AST.identifier('context')),
 							AST.objectProperty(
 								AST.literal('blocking'),
-								AST.booleanLiteral(!!after_load)
+								AST.booleanLiteral(after_load || on_error)
 							),
 						]),
 					]),
