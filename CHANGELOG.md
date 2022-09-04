@@ -1,5 +1,13 @@
 # houdini
 
+## 0.16.0-next.6
+
+### Patch Changes
+
+-   [#509](https://github.com/HoudiniGraphql/houdini/pull/509) [`4983a76`](https://github.com/HoudiniGraphql/houdini/commit/4983a76c46499acb98b73b3693c3e1f7da905ca9) Thanks [@jycouet](https://github.com/jycouet)! - warn users that inline functions no longer exist
+
+*   [#508](https://github.com/HoudiniGraphql/houdini/pull/508) [`60ecb33`](https://github.com/HoudiniGraphql/houdini/commit/60ecb333a1396f9aa7244eac2f38741a58e7281f) Thanks [@fehnomenal](https://github.com/fehnomenal)! - added support for sessions
+
 ## 0.16.0-next.5
 
 ### Patch Changes
