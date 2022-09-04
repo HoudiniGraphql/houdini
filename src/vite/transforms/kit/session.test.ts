@@ -14,10 +14,16 @@ test('modifies root +layout.svelte with data prop', async function () {
 	)
 
 	expect(result).toMatchInlineSnapshot(`
+		import { page } from "$app/stores";
+		import { setSession } from "$houdini/runtime/lib/network";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/runtime/adapter";
 		export let data;
 		onMount(() => setClientStarted());
+
+		page.subscribe(val => {
+		    setSession(val.data);
+		});
 	`)
 })
 
@@ -26,9 +32,15 @@ test('modifies root +layout.svelte without data prop', async function () {
 	const result = await test_transform_svelte('src/routes/+layout.svelte', ``)
 
 	expect(result).toMatchInlineSnapshot(`
+		import { page } from "$app/stores";
+		import { setSession } from "$houdini/runtime/lib/network";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/runtime/adapter";
 		onMount(() => setClientStarted());
+
+		page.subscribe(val => {
+		    setSession(val.data);
+		});
 	`)
 })
 
