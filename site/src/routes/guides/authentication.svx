@@ -6,31 +6,39 @@ description: A guide to authentication in Houdini
 
 # Authentication
 
-houdini defers to SvelteKit's sessions and/or metadata for authentication. Assuming that these args has been populated somehow, you can access it through arguments in the `fetchQuery` definition:
+Houdini's support for user sessions comes in 2 parts. First, you need to add a `hook.js` file that defines the
+session for that user:
 
 ```typescript
-// client.ts
+/// src/hooks.js
 
-import type { RequestHandlerArgs } from '$houdini'
+import houdiniClient from './lib/client'
+
+export async function handle({ event, resolve }) {
+	// get the user information however you want
+	const user = await authenticateUser(event)
+
+	// set the session information for this event
+	houdiniClient.setSession(event, { user })
+
+	// pass the event onto the default handle
+	return await resolve(event)
+}
+```
+
+The only thing that's left is to use the `session` parameter passed to your client's network function to access the information:
+
+```typescript
+/// src/lib/client.ts
+
 import { HoudiniClient } from '$houdini'
 
-// For Query & Mutation
-async function fetchQuery({
-	fetch,
-	text = '',
-	variables = {},
-	session,
-	metadata
-}: RequestHandlerArgs) {
-	// Prepare the request
-	const url = import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:4000/api/graphql'
-
-	// regular fetch (Server & Client)
-	const result = await fetch(url, {
+async function fetchQuery({ fetch, text, variables = {}, session }) {
+	const result = await fetch(import.meta.env.VITE_API_URL, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			Authorization: `Bearer ${session?.token}` // session usage example
+			Authorization: `Bearer ${session?.user.token}`
 		},
 		body: JSON.stringify({
 			query: text,
@@ -38,22 +46,13 @@ async function fetchQuery({
 		})
 	})
 
-	// extract and assign the json body of the response to a variable
-	const json = await result.json()
-
-	// metadata usage example
-	if (metadata?.logResult === true) {
-		console.info(JSON.stringify(json, null, 2))
-	}
-
-	return json
+	return await result.json()
 }
 
-// Export the Houdini client
-export const houdiniClient = new HoudiniClient(fetchQuery)
+export default new HoudiniClient(fetchQuery)
 ```
 
-You can also type your Session & Metadata as follow in `src/app.d.ts`:
+Remember, you can define types for your Session & Metadata by adding this to `src/app.d.ts`:
 
 ```typescript
 /// <reference types="@sveltejs/kit" />
@@ -63,7 +62,7 @@ declare namespace App {
 	}
 
 	interface Metadata {
-		logResult?: boolean | null
+		abortController?: AbortController
 	}
 }
 ```

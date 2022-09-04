@@ -150,7 +150,6 @@ export default async function init(
 	// - svelte only
 	// - both (with small variants)
 	if (framework === 'kit') {
-		await updateLayoutFile(targetPath, typescript)
 		await updateSvelteConfig(targetPath)
 	} else if (framework === 'svelte') {
 		await updateSvelteMainJs(targetPath)
@@ -299,25 +298,6 @@ async function tjsConfig(targetPath: string, framework: 'kit' | 'svelte') {
 	} catch {}
 
 	return false
-}
-
-async function updateLayoutFile(targetPath: string, ts: boolean) {
-	const layoutFile = path.join(targetPath, 'src', 'routes', '+layout.svelte')
-
-	const content = `<script ${ts ? ' lang="ts"' : ''}>
-	import client from '../client'
-
-	client.init()
-</script>
-
-<slot />
-`
-
-	await updateFile({
-		projectPath: targetPath,
-		filepath: layoutFile,
-		content,
-	})
 }
 
 async function updateViteConfig(targetPath: string, framework: 'kit' | 'svelte') {

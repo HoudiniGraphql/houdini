@@ -1,5 +1,5 @@
 import { HoudiniRTError } from '../lib/HoudiniRTError'
-import { getSiteUrl, InfoReleaseNote, OutdatedFunctionInlineInfo } from '../lib/constants'
+import { siteURL, InfoReleaseNote, OutdatedFunctionInlineInfo } from '../lib/constants'
 import { GraphQLTagResult, Operation } from '../lib/types'
 
 export function query<_Query extends Operation<any, any>>(store: GraphQLTagResult) {

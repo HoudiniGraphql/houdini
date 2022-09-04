@@ -6,7 +6,9 @@ declare namespace App {
   // interface Platform {}
 
   interface Session {
-    token?: string | null;
+    user?: {
+      token: string;
+    };
   }
 
   // interface Stuff {}

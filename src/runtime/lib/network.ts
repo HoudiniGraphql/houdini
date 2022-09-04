@@ -1,10 +1,10 @@
-import { LoadEvent, error, redirect } from '@sveltejs/kit'
+import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
+import { isBrowser } from '../adapter'
 import cache from '../cache'
 import { QueryResult } from '../stores/query'
 import type { ConfigFile } from './config'
-import { getSiteUrl } from './constants'
 import * as log from './log'
 import { marshalInputs } from './scalars'
 import {
@@ -16,9 +16,15 @@ import {
 	SubscriptionArtifact,
 } from './types'
 
+export const sessionKeyName = 'HOUDINI_SESSION_KEY_NAME'
+
+// @ts-ignore
+type SessionData = App.Session
+
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
+	private clientSideSession: SessionData | undefined
 
 	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
 		this.fetchFn = networkFn
@@ -45,6 +51,7 @@ export class HoudiniClient {
 			},
 			...params,
 			metadata: ctx.metadata,
+			session: (isBrowser ? this.clientSideSession : ctx.session) ?? {},
 		})
 
 		// return the result
@@ -55,6 +62,23 @@ export class HoudiniClient {
 	}
 
 	init() {}
+
+	setSession(event: RequestEvent, session: SessionData) {
+		;(event.locals as any)[sessionKeyName] = session
+	}
+
+	passServerSession(event: RequestEvent): {} {
+		if (!(sessionKeyName in event.locals)) {
+			// todo: Warn the user that houdini session is not setup correctly.
+			console.log(
+				`Could not find session in event.locals. This should never happen. Please open a ticket on Github and we'll sort it out.`
+			)
+		}
+
+		return {
+			[sessionKeyName]: (event.locals as any)[sessionKeyName],
+		}
+	}
 }
 
 export class Environment extends HoudiniClient {
@@ -93,6 +117,8 @@ export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
 	// @ts-ignore
 	metadata?: App.Metadata | null
+	// @ts-ignore
+	session: App.Session | null
 }
 
 export type BeforeLoadArgs = LoadEvent
@@ -143,22 +169,23 @@ export type RequestPayload<_Data = any> = {
  * ```
  *
  */
-export type RequestHandlerArgs = Omit<FetchContext & FetchParams, 'stuff'>
+export type RequestHandlerArgs = FetchContext & FetchParams & { session?: SessionData }
 
 export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<RequestPayload<_Data>>
 
 // This function is responsible for simulating the fetch context and executing the query with fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
-export async function executeQuery<_Data extends GraphQLObject, _Input>({
+export async function executeQuery<_Data extends GraphQLObject, _Input extends {}>({
 	artifact,
 	variables,
+	session,
 	cached,
-	config,
 	fetch,
 	metadata,
 }: {
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
+	session: any
 	cached: boolean
 	config: ConfigFile
 	fetch?: typeof globalThis.fetch
@@ -168,8 +195,8 @@ export async function executeQuery<_Data extends GraphQLObject, _Input>({
 		context: {
 			fetch: fetch ?? globalThis.fetch.bind(globalThis),
 			metadata,
+			session,
 		},
-		config,
 		artifact,
 		variables,
 		cached,
@@ -199,14 +226,13 @@ export async function getCurrentClient(): Promise<HoudiniClient> {
 	return (await import('HOUDINI_CLIENT_PATH')).default
 }
 
-export async function fetchQuery<_Data extends GraphQLObject, _Input>({
+export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>({
 	artifact,
 	variables,
 	cached = true,
 	policy,
 	context,
 }: {
-	config: ConfigFile
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
@@ -391,3 +417,15 @@ export class RequestContext {
 type KitBeforeLoad = (ctx: BeforeLoadArgs) => Record<string, any> | Promise<Record<string, any>>
 type KitAfterLoad = (ctx: AfterLoadArgs) => Record<string, any>
 type KitOnError = (ctx: OnErrorArgs) => Record<string, any>
+
+// @ts-ignore
+let session: App.Session | {} = {}
+
+// @ts-ignore
+export function setSession(val: App.Session) {
+	session = val
+}
+
+export function getSession() {
+	return session
+}

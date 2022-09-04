@@ -6,7 +6,7 @@ description: Queries in Houdini
 
 <script>
     import { DeepDive, Warning, Transformation, Highlight } from '~/components'
-	
+
   const forwardPaginationStoreBefore = `
 query MyFriends {
   viewer {
@@ -241,9 +241,12 @@ export function afterLoad({ data }) {
 
 #### `onError`
 
-If defined, the load function will invoked this function instead of throwing an error when an error is received.  
+If defined, the load function will invoked this function instead of throwing an error when an error is received.
 It receives three inputs: the load event, the inputs for each query, and the error that was encountered. Just like
-the other hooks, `onError` can return an object that provides props to the route.
+the other hooks, `onError` can return an object that provides props to the route. If you do define this hook, Houdini
+will have to block requests to the route in order to wait for the result. For more information about
+blocking during navigation, check out [this section](/api/query/store#server-side-blocking) of the query store
+docs.
 
 ```javascript
 // src/routes/myRoute/+page.js

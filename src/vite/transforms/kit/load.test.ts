@@ -1,6 +1,6 @@
 import { test, expect, describe } from 'vitest'
 
-import { route_test } from '../tests'
+import { route_test } from '../../tests'
 
 describe('kit route processor', function () {
 	test('inline store', async function () {
@@ -1011,7 +1011,18 @@ test('layout loads', async function () {
 		}
 	`)
 
-	expect(route.layout).toMatchInlineSnapshot('export let data;')
+	expect(route.layout).toMatchInlineSnapshot(`
+		import { page } from "$app/stores";
+		import { setSession } from "$houdini/runtime/lib/network";
+		import { onMount } from "svelte";
+		import { setClientStarted } from "$houdini/runtime/adapter";
+		export let data;
+		onMount(() => setClientStarted());
+
+		page.subscribe(val => {
+		    setSession(val.data);
+		});
+	`)
 })
 
 test('layout inline query', async function () {
@@ -1030,10 +1041,20 @@ test('layout inline query', async function () {
 	})
 
 	expect(route.layout).toMatchInlineSnapshot(`
+		import { page } from "$app/stores";
+		import { setSession } from "$houdini/runtime/lib/network";
+		import { onMount } from "svelte";
+		import { setClientStarted } from "$houdini/runtime/adapter";
 		export let data;
 
 		$:
 		result = data.TestQuery;
+
+		onMount(() => setClientStarted());
+
+		page.subscribe(val => {
+		    setSession(val.data);
+		});
 	`)
 
 	expect(route.layout_script).toMatchInlineSnapshot(`
@@ -1128,7 +1149,7 @@ test('onError hook', async function () {
 		    promises.push(load_TestQuery({
 		        "variables": inputs["TestQuery"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": true
 		    }));
 
 		    let result = {};

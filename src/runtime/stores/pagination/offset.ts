@@ -1,7 +1,7 @@
 import { deepEquals } from '../..'
 import cache from '../../cache'
 import { ConfigFile } from '../../lib/config'
-import { executeQuery } from '../../lib/network'
+import { executeQuery, getSession } from '../../lib/network'
 import { GraphQLObject, QueryArtifact } from '../../lib/types'
 import { QueryResult, QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
@@ -69,6 +69,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			const { result } = await executeQuery<GraphQLObject, {}>({
 				artifact,
 				variables: queryVariables,
+				session: getSession(),
 				cached: false,
 				config,
 				fetch,
@@ -93,7 +94,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 		async fetch(
 			args?: QueryStoreFetchParams<_Data, _Input>
 		): Promise<QueryResult<_Data, _Input>> {
-			const { params } = fetchParams(artifact, storeName, args)
+			const { params } = await fetchParams(artifact, storeName, args)
 
 			const { variables } = params ?? {}
 

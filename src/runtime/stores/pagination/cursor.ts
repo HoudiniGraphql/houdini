@@ -2,9 +2,9 @@ import { Writable, writable } from 'svelte/store'
 
 import cache from '../../cache'
 import { ConfigFile } from '../../lib/config'
-import { getSiteUrl } from '../../lib/constants'
+import { siteURL } from '../../lib/constants'
 import { deepEquals } from '../../lib/deepEquals'
-import { executeQuery } from '../../lib/network'
+import { executeQuery, getSession } from '../../lib/network'
 import { GraphQLObject, QueryArtifact } from '../../lib/types'
 import { QueryResult, QueryStoreFetchParams } from '../query'
 import { fetchParams } from '../query'
@@ -64,6 +64,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 		const { result } = await executeQuery<GraphQLObject, {}>({
 			artifact,
 			variables: loadVariables,
+			session: getSession(),
 			cached: false,
 			config,
 			fetch,
@@ -78,7 +79,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			// make sure we have a type config for the pagination target type
 			if (!config.types?.[targetType]?.resolve) {
 				throw new Error(
-					`Missing type resolve configuration for ${targetType}. For more information, see ${getSiteUrl()}/guides/pagination#paginated-fragments`
+					`Missing type resolve configuration for ${targetType}. For more information, see ${siteURL}/guides/pagination#paginated-fragments`
 				)
 			}
 
@@ -179,7 +180,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			args?: QueryStoreFetchParams<_Data, _Input>
 		): Promise<QueryResult<_Data, _Input>> {
 			// validate and prepare the request context for the current environment (client vs server)
-			const { params } = fetchParams(artifact, storeName, args)
+			const { params } = await fetchParams(artifact, storeName, args)
 
 			const { variables } = params ?? {}
 

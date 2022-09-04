@@ -6,15 +6,19 @@ import cache from '../cache'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { deepEquals } from '../lib/deepEquals'
 import * as log from '../lib/log'
-import { fetchQuery } from '../lib/network'
-import { FetchContext } from '../lib/network'
+import { fetchQuery, sessionKeyName } from '../lib/network'
+import { FetchContext, getSession } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 // internals
 import { CachePolicy, DataSource, GraphQLObject } from '../lib/types'
 import { SubscriptionSpec, CompiledQueryKind, HoudiniFetchContext } from '../lib/types'
 import { BaseStore } from './store'
 
-export class QueryStore<_Data extends GraphQLObject, _Input, _ExtraFields = {}> extends BaseStore {
+export class QueryStore<
+	_Data extends GraphQLObject,
+	_Input extends {},
+	_ExtraFields = {}
+> extends BaseStore {
 	// the underlying artifact
 	artifact: QueryArtifact
 
@@ -66,7 +70,7 @@ export class QueryStore<_Data extends GraphQLObject, _Input, _ExtraFields = {}> 
 		cache.setConfig(config)
 
 		// validate and prepare the request context for the current environment (client vs server)
-		const { policy, params, context } = fetchParams(this.artifact, this.storeName, args)
+		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
@@ -210,7 +214,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 	}) {
 		const request = await fetchQuery<_Data, _Input>({
 			...context,
-			config,
 			artifact,
 			variables,
 			cached,
@@ -353,15 +356,15 @@ export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
 
 type StoreState<_Data, _Input, _Extra = {}> = QueryResult<_Data, _Input> & _Extra
 
-export function fetchParams<_Data extends GraphQLObject, _Input>(
+export async function fetchParams<_Data extends GraphQLObject, _Input>(
 	artifact: QueryArtifact,
 	storeName: string,
 	params?: QueryStoreFetchParams<_Data, _Input>
-): {
+): Promise<{
 	context: FetchContext
 	policy: CachePolicy
 	params: QueryStoreFetchParams<_Data, _Input>
-} {
+}> {
 	// if we aren't on the browser but there's no event there's a big mistake
 	if (!isBrowser && !(params && 'fetch' in params) && (!params || !('event' in params))) {
 		// prettier-ignore
@@ -392,10 +395,31 @@ export function fetchParams<_Data extends GraphQLObject, _Input>(
 		fetchFn = globalThis.fetch.bind(globalThis)
 	}
 
+	let session: any = undefined
+	// cannot re-use the variable from above
+	// we need to check for ourselves to satisfy typescript
+	if (params && 'event' in params && params.event) {
+		// get the session either from the server side event or the client side event
+		if ('locals' in params.event) {
+			// this is a server side event (RequestEvent) -> extract the session from locals
+			session = (params.event.locals as any)[sessionKeyName]
+		} else {
+			// this is a client side event -> await the parent data which include the session
+			session = (await params.event.parent())[sessionKeyName]
+		}
+	} else if (isBrowser) {
+		session = getSession()
+	} else {
+		log.error(contextError(storeName))
+
+		throw new Error('Error, check above logs for help.')
+	}
+
 	return {
 		context: {
 			fetch: fetchFn,
 			metadata: params?.metadata ?? {},
+			session,
 		},
 		policy,
 		params: params ?? {},

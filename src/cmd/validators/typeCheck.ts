@@ -7,7 +7,7 @@ import {
 	parentTypeFromAncestors,
 	HoudiniError,
 } from '../../common'
-import { getSiteUrl } from '../../runtime/lib/constants'
+import { siteURL } from '../../runtime/lib/constants'
 import {
 	FragmentArgument,
 	fragmentArguments as collectFragmentArguments,
@@ -1018,7 +1018,7 @@ extend type Query {
 
 For more information, please visit these links:
 - https://graphql.org/learn/global-object-identification/
-- ${getSiteUrl()}/guides/caching-data#custom-ids
+- ${siteURL}/guides/caching-data#custom-ids
 `
 
 const paginateOnNonNodeMessage = (config: Config, directiveName: string) =>
@@ -1027,6 +1027,6 @@ If this is happening inside of a fragment, make sure that the fragment either im
 have defined a resolver entry for the fragment type.
 
 For more information, please visit these links:
-- ${getSiteUrl()}/guides/pagination#paginated-fragments
-- ${getSiteUrl()}/guides/caching-data#custom-ids
+- ${siteURL}/guides/pagination#paginated-fragments
+- ${siteURL}/guides/caching-data#custom-ids
 `

@@ -109,6 +109,16 @@ Also, while you're here, you can delete that ugly `server.fs.allow` config you h
 
 Remove the old preprocessor but leave the alias config.
 
+### `src/routes/+layout.svelte`
+
+```diff
+- import client from '../houdiniClient'
+-
+- client.init()
+```
+
+You no longer need to call `client.init`
+
 ## 2. Inline Documents
 
 Apart from `fragment` and `paginatedFragment`, all functions that used to wrap

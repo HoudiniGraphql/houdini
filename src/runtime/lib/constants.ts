@@ -1,18 +1,10 @@
-export const getSiteUrl = () => {
-	// Now, manual return
-	// TESTS Snapshots needs to be updated as well when changing this.
-	const next_url = 'https://docs-next-kohl.vercel.app'
-	return next_url
-
-	// const current_url = 'https://www.houdinigraphql.com'
-	// return next_url
-}
+export const siteURL = 'SITE_URL'
 
 /**
  * @param focus example "#0160"
  */
 export const InfoReleaseNote = (focus?: string) => {
-	return `❓ For more info, visit this guide: ${getSiteUrl()}/guides/release-notes${
+	return `❓ For more info, visit this guide: ${siteURL}/guides/release-notes${
 		focus ? `${focus}` : ''
 	}`
 }
