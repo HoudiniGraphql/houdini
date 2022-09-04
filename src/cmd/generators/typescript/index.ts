@@ -5,6 +5,7 @@ import path from 'path'
 import * as recast from 'recast'
 
 import { Config, HoudiniError, writeFile } from '../../../common'
+import { getSiteUrl } from '../../../runtime/lib/constants'
 import { CollectedGraphQLDocument } from '../../types'
 import { flattenSelections } from '../../utils'
 import { addReferencedInputTypes } from './addReferencedInputTypes'
@@ -151,7 +152,7 @@ ${[...missingScalars]
   }
 }
 
-For more information, please visit this link: https://www.houdinigraphql.com/api/config#custom-scalars`)
+For more information, please visit this link: ${getSiteUrl()}/api/config#custom-scalars`)
 	}
 }
 

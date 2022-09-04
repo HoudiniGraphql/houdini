@@ -1,4 +1,5 @@
 import { GraphQLObject } from '../../lib'
+import { getSiteUrl } from '../../lib/constants'
 import * as log from '../../lib/log'
 
 export function nullPageInfo(): PageInfo {
@@ -14,7 +15,7 @@ export type PageInfo = {
 
 export function missingPageSizeError(fnName: string) {
 	return {
-		message: `${fnName} is missing the required page arguments. For more information, please visit this link: https://www.houdinigraphql.com/guides/pagination`,
+		message: `${fnName} is missing the required page arguments. For more information, please visit this link: ${getSiteUrl()}/guides/pagination`,
 	}
 }
 

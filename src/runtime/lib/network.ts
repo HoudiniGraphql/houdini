@@ -5,6 +5,7 @@ import { isBrowser, isDev } from '../adapter'
 import cache from '../cache'
 import { QueryResult } from '../stores/query'
 import type { ConfigFile } from './config'
+import { getSiteUrl } from './constants'
 import * as log from './log'
 import { marshalInputs } from './scalars'
 import {
@@ -100,9 +101,6 @@ You should update your client to look something like the following:
 import { HoudiniClient } from '$houdini/runtime'
 
 export default new HoudiniClient(fetchQuery)
-
-
-For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0#environment
 `
 		)
 	}
