@@ -5,7 +5,6 @@ import { isBrowser, isDev } from '../adapter'
 import cache from '../cache'
 import { QueryResult } from '../stores/query'
 import type { ConfigFile } from './config'
-import { getSiteUrl } from './constants'
 import * as log from './log'
 import { marshalInputs } from './scalars'
 import {
@@ -183,7 +182,7 @@ export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<Reques
 
 // This function is responsible for simulating the fetch context and executing the query with fetchQuery.
 // It is mainly used for mutations, refetch and possible other client side operations in the future.
-export async function executeQuery<_Data extends GraphQLObject, _Input>({
+export async function executeQuery<_Data extends GraphQLObject, _Input extends {}>({
 	artifact,
 	variables,
 	session,
@@ -234,7 +233,7 @@ export async function getCurrentClient(): Promise<HoudiniClient> {
 	return (await import('HOUDINI_CLIENT_PATH')).default
 }
 
-export async function fetchQuery<_Data extends GraphQLObject, _Input>({
+export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>({
 	artifact,
 	variables,
 	session,

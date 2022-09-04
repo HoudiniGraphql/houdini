@@ -88,6 +88,5 @@ function replace_tag_content(source: string, start: number, end: number, insert:
 	return replace_between(source, start, end, insert)
 }
 
-// replaceSubstring replaces the substring string between the indices with the provided new value
 const replace_between = (origin: string, startIndex: number, endIndex: number, insertion: string) =>
 	origin.substring(0, startIndex) + insertion + origin.substring(endIndex)

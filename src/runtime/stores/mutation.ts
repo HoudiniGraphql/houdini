@@ -10,7 +10,7 @@ import { BaseStore } from './store'
 
 export class MutationStore<
 	_Data extends GraphQLObject,
-	_Input,
+	_Input extends {},
 	_Optimistic extends GraphQLObject
 > extends BaseStore {
 	artifact: MutationArtifact

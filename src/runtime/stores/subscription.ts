@@ -8,7 +8,7 @@ import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 import { CompiledSubscriptionKind, SubscriptionArtifact } from '../lib/types'
 import { BaseStore } from './store'
 
-export class SubscriptionStore<_Data, _Input> extends BaseStore {
+export class SubscriptionStore<_Data, _Input extends {}> extends BaseStore {
 	artifact: SubscriptionArtifact
 	kind = CompiledSubscriptionKind
 

@@ -8,14 +8,14 @@ export * from './types'
 export * as log from './log'
 export * from './deepEquals'
 
-type LoadResult = Promise<{ [key: string]: QueryStore<any, unknown> }>
+type LoadResult = Promise<{ [key: string]: QueryStore<any, {}> }>
 type LoadAllInput = LoadResult | Record<string, LoadResult>
 
 // putting this here was the only way i could find to reliably avoid import issues
 // its really the only thing from lib that users should import so it makes sense to have it here....
 export async function loadAll(
 	...loads: LoadAllInput[]
-): Promise<Record<string, QueryStore<any, unknown>>> {
+): Promise<Record<string, QueryStore<any, {}>>> {
 	// we need to collect all of the promises in a single list that we will await in promise.all and then build up
 	const promises: LoadResult[] = []
 

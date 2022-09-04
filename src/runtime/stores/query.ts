@@ -14,7 +14,11 @@ import { CachePolicy, DataSource, GraphQLObject } from '../lib/types'
 import { SubscriptionSpec, CompiledQueryKind, HoudiniFetchContext } from '../lib/types'
 import { BaseStore } from './store'
 
-export class QueryStore<_Data extends GraphQLObject, _Input, _ExtraFields = {}> extends BaseStore {
+export class QueryStore<
+	_Data extends GraphQLObject,
+	_Input extends {},
+	_ExtraFields = {}
+> extends BaseStore {
 	// the underlying artifact
 	artifact: QueryArtifact
 

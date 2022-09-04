@@ -1,4 +1,4 @@
-import { getSiteUrl } from './lib/constants'
+import { siteURL } from './lib/constants'
 import { GraphQLTagResult } from './lib/types'
 
 export * from './lib'
@@ -21,8 +21,8 @@ export function graphql(str: TemplateStringsArray): any {
 	}
 
 	// if this is executed, the preprocessor is not enabled
-	throw new Error(`⚠️ graphql template was invoked at runtime. This should never happen and usually means that your project isn't properly configured. 
-	
-Please make sure you have the appropriate plugin/preprocessor enabled. For more information, visit this link: ${getSiteUrl()}/guides/setting-up-your-project
+	throw new Error(`⚠️ graphql template was invoked at runtime. This should never happen and usually means that your project isn't properly configured.
+
+Please make sure you have the appropriate plugin/preprocessor enabled. For more information, visit this link: ${siteURL}/guides/setting-up-your-project
 `)
 }

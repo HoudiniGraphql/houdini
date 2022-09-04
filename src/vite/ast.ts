@@ -89,7 +89,6 @@ export function find_exported_fn(
 					).name === name))
 	) as ExportNamedDeclaration
 	if (!exported) {
-		console.log('could not find exported', name)
 		return null
 	}
 

@@ -2,7 +2,7 @@ import { Writable, writable } from 'svelte/store'
 
 import cache from '../../cache'
 import { ConfigFile } from '../../lib/config'
-import { getSiteUrl } from '../../lib/constants'
+import { siteURL } from '../../lib/constants'
 import { deepEquals } from '../../lib/deepEquals'
 import { executeQuery } from '../../lib/network'
 import { GraphQLObject, QueryArtifact } from '../../lib/types'
@@ -79,7 +79,7 @@ export function cursorHandlers<_Data extends GraphQLObject, _Input>({
 			// make sure we have a type config for the pagination target type
 			if (!config.types?.[targetType]?.resolve) {
 				throw new Error(
-					`Missing type resolve configuration for ${targetType}. For more information, see ${getSiteUrl()}/guides/pagination#paginated-fragments`
+					`Missing type resolve configuration for ${targetType}. For more information, see ${siteURL}/guides/pagination#paginated-fragments`
 				)
 			}
 

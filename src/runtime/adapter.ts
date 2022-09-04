@@ -20,3 +20,7 @@ export let isPrerender = false
 export const error = (code: number, message: string) => message
 
 export const isDev = true
+
+export function setClientStarted() {
+	clientStarted = true
+}

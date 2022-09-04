@@ -17,7 +17,7 @@ import {
 	parseJS,
 	HoudiniError,
 } from '../common'
-import { getSiteUrl } from '../runtime/lib/constants'
+import { siteURL } from '../runtime/lib/constants'
 import * as generators from './generators'
 import * as transforms from './transforms'
 import { CollectedGraphQLDocument, ArtifactKind } from './types'
@@ -160,7 +160,7 @@ export async function runPipeline(config: Config, docs: CollectedGraphQLDocument
 		const major = parseInt(previousVersion.split('.')[1])
 		if (major < 16) {
 			console.log(
-				`❓ For a description of what's changed, visit this guide: ${getSiteUrl()}/guides/release-notes`
+				`❓ For a description of what's changed, visit this guide: ${siteURL}/guides/release-notes`
 			)
 		}
 	}
