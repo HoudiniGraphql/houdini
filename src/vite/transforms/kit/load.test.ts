@@ -1149,7 +1149,7 @@ test('onError hook', async function () {
 		    promises.push(load_TestQuery({
 		        "variables": inputs["TestQuery"],
 		        "event": context,
-		        "blocking": false
+		        "blocking": true
 		    }));
 
 		    let result = {};
