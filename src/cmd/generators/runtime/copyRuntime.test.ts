@@ -124,9 +124,6 @@ test('updates the network file with the client path', async function () {
 		import { HoudiniClient } from '$houdini/runtime'
 
 		export default new HoudiniClient(fetchQuery)
-
-
-		For more information, please visit this link: https://www.houdinigraphql.com/guides/migrating-to-0.15.0#environment
 		\`);
 		    }
 		}
