@@ -10,61 +10,17 @@ const AST = recast.types.builders
 type ReturnStatement = recast.types.namedTypes.ReturnStatement
 type BlockStatement = recast.types.namedTypes.BlockStatement
 
-// we have 2 different places we need to consider to string the session along:
-// - src/routes/+layout.server.js needs to pass the session onto the client at the root
-// - src/routes/+layout.svelte needs to get the data from the layout and pass it to the client
-export default function (page: TransformPage) {
-	if (page.config.isRootLayout(page.filepath)) {
-		rootLayout(page)
-	} else if (page.config.isRootLayoutServer(page.filepath)) {
-		rootLayoutServer(page)
-	}
-}
-
-// the root layout (src/routes/+layout.svelte) needs to get the data from the server and pass
-// it to the client side client. This happens in two steps:
-// - define the data  prop if it doesn't exist
-// - pass the data prop onto `client.receiveServerSession`
-function rootLayout(page: TransformPage) {
-	// if there is no data prop defined, we need to add one
-	if (!find_exported_id(page.script, 'data')) {
-		page.script.body.splice(
-			find_insert_index(page.script),
-			0,
-			AST.exportNamedDeclaration(
-				AST.variableDeclaration('let', [AST.variableDeclarator(AST.identifier('data'))])
-			)
-		)
-	}
-
-	// make sure we have a reference to the client
-	const client_id = ensure_imports({
-		page,
-		import: '__houdini_client__',
-		sourceModule: path.join(page.config.projectRoot, page.config.client),
-	}).ids
-
-	// invoke the client's method to set session
-	page.script.body.push(
-		AST.labeledStatement(
-			AST.identifier('$'),
-			AST.expressionStatement(
-				AST.callExpression(
-					AST.memberExpression(client_id, AST.identifier('receiveServerSession')),
-					[AST.identifier('data')]
-				)
-			)
-		)
-	)
-}
-
 // the root layout server file (src/routes/+layout.server.js) needs to define a load that's accessible
 // to all routes that adds the session set in the application's hook file along with any existing values
 // This is done in three steps:
 // - define a load if there isn't one
 // - set the current return value to some internal name
 // - add a new return statement that mixes in `...client.passServerSession(event)`
-function rootLayoutServer(page: TransformPage) {
+export default function (page: TransformPage) {
+	if (!page.config.isRootLayoutServer(page.filepath)) {
+		return
+	}
+
 	// make sure we have a reference to the client
 	const client_id = ensure_imports({
 		page,

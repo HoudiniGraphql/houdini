@@ -1,7 +1,7 @@
 import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
-import { isBrowser, isDev } from '../adapter'
+import { isBrowser } from '../adapter'
 import cache from '../cache'
 import { QueryResult } from '../stores/query'
 import type { ConfigFile } from './config'
@@ -33,14 +33,9 @@ export class HoudiniClient {
 
 	async sendRequest<_Data>(
 		ctx: FetchContext,
-		params: FetchParams,
-		session: SessionData | undefined
+		params: FetchParams
 	): Promise<RequestPayloadMagic<_Data>> {
 		let url = ''
-
-		if (isBrowser) {
-			session = this.clientSideSession
-		}
 
 		// invoke the function
 		const result = await this.fetchFn({
@@ -56,7 +51,7 @@ export class HoudiniClient {
 			},
 			...params,
 			metadata: ctx.metadata,
-			session,
+			session: (isBrowser ? this.clientSideSession : ctx.session) ?? {},
 		})
 
 		// return the result
@@ -73,19 +68,12 @@ export class HoudiniClient {
 	}
 
 	passServerSession(event: RequestEvent): {} {
-		if (isDev && !(sessionKeyName in event.locals)) {
+		if (!(sessionKeyName in event.locals)) {
 			// todo: Warn the user that houdini session is not setup correctly.
 		}
 
 		return {
 			[sessionKeyName]: (event.locals as any)[sessionKeyName],
-		}
-	}
-
-	receiveServerSession(data: {}) {
-		// This may only be called in the browser. But instead of throwing we must ignore calls on the server because otherwise ssr would also break.
-		if (isBrowser) {
-			this.clientSideSession = (data as any)[sessionKeyName]
 		}
 	}
 }
@@ -126,6 +114,8 @@ export type FetchContext = {
 	fetch: (info: RequestInfo, init?: RequestInit) => Promise<Response>
 	// @ts-ignore
 	metadata?: App.Metadata | null
+	// @ts-ignore
+	session: App.Session | null
 }
 
 export type BeforeLoadArgs = LoadEvent
@@ -202,10 +192,10 @@ export async function executeQuery<_Data extends GraphQLObject, _Input extends {
 		context: {
 			fetch: fetch ?? globalThis.fetch.bind(globalThis),
 			metadata,
+			session,
 		},
 		artifact,
 		variables,
-		session,
 		cached,
 	})
 
@@ -236,7 +226,6 @@ export async function getCurrentClient(): Promise<HoudiniClient> {
 export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>({
 	artifact,
 	variables,
-	session,
 	cached = true,
 	policy,
 	context,
@@ -244,7 +233,6 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 	context: FetchContext
 	artifact: QueryArtifact | MutationArtifact
 	variables: _Input
-	session: any
 	cached?: boolean
 	policy?: CachePolicy
 }): Promise<FetchQueryResult<_Data>> {
@@ -307,15 +295,11 @@ export async function fetchQuery<_Data extends GraphQLObject, _Input extends {}>
 	}, 0)
 
 	// the request must be resolved against the network
-	const result = await client.sendRequest<_Data>(
-		context,
-		{
-			text: artifact.raw,
-			hash: artifact.hash,
-			variables,
-		},
-		session
-	)
+	const result = await client.sendRequest<_Data>(context, {
+		text: artifact.raw,
+		hash: artifact.hash,
+		variables,
+	})
 
 	return {
 		result: result.body,
@@ -430,3 +414,15 @@ export class RequestContext {
 type KitBeforeLoad = (ctx: BeforeLoadArgs) => Record<string, any> | Promise<Record<string, any>>
 type KitAfterLoad = (ctx: AfterLoadArgs) => Record<string, any>
 type KitOnError = (ctx: OnErrorArgs) => Record<string, any>
+
+// @ts-ignore
+let session: App.Session | {} = {}
+
+// @ts-ignore
+export function setSession(val: App.Session) {
+	session = val
+}
+
+export function getSession() {
+	return session
+}

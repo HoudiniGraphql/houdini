@@ -3,7 +3,7 @@ import { Writable, writable } from 'svelte/store'
 
 import cache from '../cache'
 import type { SubscriptionSpec, MutationArtifact } from '../lib'
-import { executeQuery } from '../lib/network'
+import { executeQuery, getSession } from '../lib/network'
 import { marshalInputs, marshalSelection, unmarshalSelection } from '../lib/scalars'
 import { GraphQLObject } from '../lib/types'
 import { BaseStore } from './store'
@@ -80,7 +80,7 @@ export class MutationStore<
 				config,
 				artifact: this.artifact,
 				variables: newVariables,
-				session: undefined,
+				session: getSession(),
 				cached: false,
 				metadata,
 				fetch,

@@ -1014,12 +1014,7 @@ test('layout loads', async function () {
 	expect(route.layout).toMatchInlineSnapshot(`
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/runtime/adapter";
-		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 		export let data;
-
-		$:
-		__houdini_client__.receiveServerSession(data);
-
 		onMount(() => setClientStarted());
 	`)
 })
@@ -1042,14 +1037,10 @@ test('layout inline query', async function () {
 	expect(route.layout).toMatchInlineSnapshot(`
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/runtime/adapter";
-		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 		export let data;
 
 		$:
 		result = data.TestQuery;
-
-		$:
-		__houdini_client__.receiveServerSession(data);
 
 		onMount(() => setClientStarted());
 	`)

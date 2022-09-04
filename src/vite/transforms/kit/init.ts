@@ -14,7 +14,7 @@ export default async function kit_init(page: TransformPage) {
 	// we need to call setClientStarted onMount
 
 	// make sure we have the right imports
-	const trigger = ensure_imports({
+	const set_client_started = ensure_imports({
 		page,
 		sourceModule: '$houdini/runtime/adapter',
 		import: ['setClientStarted'],
@@ -24,12 +24,40 @@ export default async function kit_init(page: TransformPage) {
 		sourceModule: 'svelte',
 		import: ['onMount'],
 	}).ids[0]
+	const set_session = ensure_imports({
+		page,
+		sourceModule: '$houdini/runtime/lib/network',
+		import: ['setSession'],
+	}).ids[0]
 
 	// add the onMount at the end of the component
 	page.script.body.push(
 		AST.expressionStatement(
 			AST.callExpression(on_mount, [
-				AST.arrowFunctionExpression([], AST.callExpression(trigger, [])),
+				AST.arrowFunctionExpression([], AST.callExpression(set_client_started, [])),
+			])
+		)
+	)
+
+	// we need to track updates in the page store as the client-side session
+	const store_id = ensure_imports({
+		page,
+		sourceModule: '$app/stores',
+		import: ['page'],
+	}).ids[0]
+	page.script.body.push(
+		AST.expressionStatement(
+			AST.callExpression(AST.memberExpression(store_id, AST.identifier('subscribe')), [
+				AST.arrowFunctionExpression(
+					[AST.identifier('val')],
+					AST.blockStatement([
+						AST.expressionStatement(
+							AST.callExpression(set_session, [
+								AST.memberExpression(AST.identifier('val'), AST.identifier('data')),
+							])
+						),
+					])
+				),
 			])
 		)
 	)

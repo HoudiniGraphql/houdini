@@ -16,12 +16,7 @@ test('modifies root +layout.svelte to import adapter', async function () {
 	expect(result).toMatchInlineSnapshot(`
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/runtime/adapter";
-		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
 		export let data;
-
-		$:
-		__houdini_client__.receiveServerSession(data);
-
 		onMount(() => setClientStarted());
 	`)
 })

@@ -3,13 +3,17 @@ import path from 'path'
 import { Config, writeFile } from '../../../common'
 
 export default async function generateAdapter(config: Config) {
+	// we only need to generate an adapter for kit (the default one is fine for vanilla svelte)
+	if (config.framework !== 'kit') {
+		return
+	}
+
 	// the location of the adapter
 	const adapterLocation = path.join(config.runtimeDirectory, 'adapter.js')
 
 	// figure out which adapter we need to lay down
 	const adapter = {
 		kit: sveltekitAdapter,
-		svelte: svelteAdapter,
 	}[config.framework]
 
 	// write the index file that exports the runtime
@@ -18,8 +22,10 @@ export default async function generateAdapter(config: Config) {
 
 const sveltekitAdapter = `import { goto as go } from '$app/navigation'
 import { get } from 'svelte/store';
-import { browser, dev, prerendering } from '$app/environment'
+import { browser, prerendering } from '$app/environment'
+import { page } from '$app/stores'
 import { error as svelteKitError } from '@sveltejs/kit'
+import { sessionKeyName } from './lib/network'
 
 export function goTo(location, options) {
     go(location, options)
@@ -36,33 +42,4 @@ export function setClientStarted() {
 export const isPrerender = prerendering
 
 export const error = svelteKitError
-
-export const isDev = dev
-`
-
-const svelteAdapter = `
-import { readable, writable } from 'svelte/store'
-
-export function goTo(location, options) {
-	window.location = location
-}
-
-export const isBrowser = true
-
-export const clientStarted = true
-
-export function setClientStarted() {
-	clientStarted = true
-}
-
-export const isPrerender = false
-
-export const error = (code, message) => {
-	const err = new Error(message)
-	error.code = code
-	return err
-}
-
-// Hopefully everybody is already sing vite...
-export const isDev = import.meta.env.DEV
 `

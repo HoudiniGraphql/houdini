@@ -7,7 +7,7 @@ import type { ConfigFile, QueryArtifact } from '../lib'
 import { deepEquals } from '../lib/deepEquals'
 import * as log from '../lib/log'
 import { fetchQuery, sessionKeyName } from '../lib/network'
-import { FetchContext } from '../lib/network'
+import { FetchContext, getSession } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 // internals
 import { CachePolicy, DataSource, GraphQLObject } from '../lib/types'
@@ -70,7 +70,7 @@ export class QueryStore<
 		cache.setConfig(config)
 
 		// validate and prepare the request context for the current environment (client vs server)
-		const { policy, params, context } = fetchParams(this.artifact, this.storeName, args)
+		const { policy, params, context } = await fetchParams(this.artifact, this.storeName, args)
 
 		// identify if this is a CSF or load
 		const isLoadFetch = Boolean('event' in params && params.event)
@@ -123,27 +123,12 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 		this.setFetching(true)
 
-		let session: any = undefined
-		// cannot re-use the variable from above
-		// we need to check for ourselves to satisfy typescript
-		if ('event' in params && params.event) {
-			// get the session either from the server side event or the client side event
-			if ('locals' in params.event) {
-				// this is a server side event (RequestEvent) -> extract the session from locals
-				session = (params.event.locals as any)[sessionKeyName]
-			} else {
-				// this is a client side event -> await the parent data which include the session
-				session = (await params.event.parent())[sessionKeyName]
-			}
-		}
-
 		// perform the network request
 		const request = this.fetchAndCache({
 			config,
 			context,
 			artifact: this.artifact,
 			variables: newVariables,
-			session,
 			store: this.store,
 			cached: policy !== CachePolicy.NetworkOnly,
 			setLoadPending: (val) => {
@@ -210,7 +195,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		config,
 		artifact,
 		variables,
-		session,
 		store,
 		cached,
 		ignoreFollowup,
@@ -221,7 +205,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		config: ConfigFile
 		artifact: QueryArtifact
 		variables: _Input
-		session: any
 		store: Writable<QueryResult<_Data, _Input>>
 		cached: boolean
 		ignoreFollowup?: boolean
@@ -233,7 +216,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			...context,
 			artifact,
 			variables,
-			session,
 			cached,
 			policy,
 			context,
@@ -294,7 +276,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 					context,
 					artifact,
 					variables,
-					session,
 					store,
 					cached: false,
 					ignoreFollowup: true,
@@ -310,7 +291,6 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 					context,
 					artifact,
 					variables,
-					session,
 					store,
 					cached: false,
 					ignoreFollowup: true,
@@ -376,15 +356,15 @@ export type StoreConfig<_Data extends GraphQLObject, _Input, _Artifact> = {
 
 type StoreState<_Data, _Input, _Extra = {}> = QueryResult<_Data, _Input> & _Extra
 
-export function fetchParams<_Data extends GraphQLObject, _Input>(
+export async function fetchParams<_Data extends GraphQLObject, _Input>(
 	artifact: QueryArtifact,
 	storeName: string,
 	params?: QueryStoreFetchParams<_Data, _Input>
-): {
+): Promise<{
 	context: FetchContext
 	policy: CachePolicy
 	params: QueryStoreFetchParams<_Data, _Input>
-} {
+}> {
 	// if we aren't on the browser but there's no event there's a big mistake
 	if (!isBrowser && !(params && 'fetch' in params) && (!params || !('event' in params))) {
 		// prettier-ignore
@@ -415,10 +395,31 @@ export function fetchParams<_Data extends GraphQLObject, _Input>(
 		fetchFn = globalThis.fetch.bind(globalThis)
 	}
 
+	let session: any = undefined
+	// cannot re-use the variable from above
+	// we need to check for ourselves to satisfy typescript
+	if (params && 'event' in params && params.event) {
+		// get the session either from the server side event or the client side event
+		if ('locals' in params.event) {
+			// this is a server side event (RequestEvent) -> extract the session from locals
+			session = (params.event.locals as any)[sessionKeyName]
+		} else {
+			// this is a client side event -> await the parent data which include the session
+			session = (await params.event.parent())[sessionKeyName]
+		}
+	} else if (isBrowser) {
+		session = getSession()
+	} else {
+		log.error(contextError(storeName))
+
+		throw new Error('Error, check above logs for help.')
+	}
+
 	return {
 		context: {
 			fetch: fetchFn,
 			metadata: params?.metadata ?? {},
+			session,
 		},
 		policy,
 		params: params ?? {},
