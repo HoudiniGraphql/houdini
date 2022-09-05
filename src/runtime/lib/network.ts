@@ -62,12 +62,6 @@ export class HoudiniClient {
 	setSession(event: RequestEvent, session: App.Session) {
 		;(event.locals as any)[sessionKeyName] = session
 	}
-
-	passServerSession(event: RequestEvent): {} {
-		return {
-			[sessionKeyName]: (event.locals as any)[sessionKeyName],
-		}
-	}
 }
 
 export class Environment extends HoudiniClient {
