@@ -46,13 +46,13 @@ with the underlying query store directly
 
 ```svelte
 <script>
-	const MyQuery = query(graphql`
+	const MyQuery = graphql`
 		query MyQuery {
 			viewer  {
 				id
 			}
 		}
-	`)
+	`
 </script>
 
 <div>
@@ -152,7 +152,6 @@ The `graphql` template tag can now be used to define your stores in your javascr
 ```svelte
 <!-- src/routes/myProfile/+page.svelte -->
 <script>
-	// this is only a store. no fetching has happened behind the scenes here
 	const store = graphql`
 		query ViewerInfo {
 			viewer {
@@ -221,7 +220,7 @@ export const houdini_load = graphql`
 - added `config.exclude` to filter out files that match the `include` pattern
 - `generate --pull-header` is now `generate --header` (abbreviated `-h`)
 - `generate --persist-output` is now `generate --output` (abbreviated `-o`)
-- added `schemaPullHeaders` config value to specify the headers sent when pulling the schema
+- added `schemaPollHeaders` config value to specify the headers sent when pulling the schema
 - removed unnecessary config values: `config.routesDir`, `config.static` (replaced by setting `framework: "svelte"`)
 - pagination handlers now take objects as arguments as well as fetch and metadata parameters
 

@@ -16,7 +16,7 @@ Before we do anything _too_ complicated, lets get something on the screen. Open 
 <!-- src/routes/+page.svelte -->
 
 <script>
-    import { query, graphql } from '$houdini'
+    import { graphql } from '$houdini'
     import { Container, Display, Sprite, Panel } from '~/components'
 
     const info = graphql`
@@ -50,7 +50,7 @@ Before we do anything _too_ complicated, lets get something on the screen. Open 
 </Container>
 ```
 
-In this example, you can see we are taking a graphql query named `SpeciesInfo` and rendering the result using some components from the project's `components` directory. There is a lot of stuff going on under the hood here but let's not worry about it for now - what matters most is that we passed a named query with `graphql` into the `query` function and got back a store that we are using to access the result of our query.
+In this example, you can see we are taking a graphql query named `SpeciesInfo` and rendering the result using some components from the project's `components` directory. There is a lot of stuff going on under the hood here but let's not worry about it for now - what matters most is that we defined a named query with `graphql` and got back a store that we are using to access the result of our query.
 
 <GraphQLExplained title="Queries">
 
