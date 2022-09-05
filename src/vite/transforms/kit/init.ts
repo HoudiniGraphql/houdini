@@ -24,11 +24,11 @@ export default async function kit_init(page: TransformPage) {
 		sourceModule: 'svelte',
 		import: ['onMount'],
 	}).ids[0]
-	const set_session = ensure_imports({
+	const [set_session, session_key_name] = ensure_imports({
 		page,
 		sourceModule: '$houdini/runtime/lib/network',
-		import: ['setSession'],
-	}).ids[0]
+		import: ['setSession', 'sessionKeyName'],
+	}).ids
 
 	// add the onMount at the end of the component
 	page.script.body.push(
@@ -53,7 +53,14 @@ export default async function kit_init(page: TransformPage) {
 					AST.blockStatement([
 						AST.expressionStatement(
 							AST.callExpression(set_session, [
-								AST.memberExpression(AST.identifier('val'), AST.identifier('data')),
+								AST.memberExpression(
+									AST.memberExpression(
+										AST.identifier('val'),
+										AST.identifier('data')
+									),
+									session_key_name,
+									true
+								),
 							])
 						),
 					])
