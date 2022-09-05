@@ -18,13 +18,10 @@ import {
 
 export const sessionKeyName = 'HOUDINI_SESSION_KEY_NAME'
 
-// @ts-ignore
-type SessionData = App.Session
-
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
-	private clientSideSession: SessionData | undefined
+	private clientSideSession: App.Session | undefined
 
 	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
 		this.fetchFn = networkFn
@@ -63,7 +60,8 @@ export class HoudiniClient {
 
 	init() {}
 
-	setSession(event: RequestEvent, session: SessionData) {
+	// @ts-ignore
+	setSession(event: RequestEvent, session: App.Session) {
 		;(event.locals as any)[sessionKeyName] = session
 	}
 
@@ -169,7 +167,8 @@ export type RequestPayload<_Data = any> = {
  * ```
  *
  */
-export type RequestHandlerArgs = FetchContext & FetchParams & { session?: SessionData }
+// @ts-ignore
+export type RequestHandlerArgs = FetchContext & FetchParams & { session?: App.Session }
 
 export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<RequestPayload<_Data>>
 
