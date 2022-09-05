@@ -15,7 +15,7 @@ import {
 	SubscriptionArtifact,
 } from './types'
 
-export const sessionKeyName = 'HOUDINI_SESSION_KEY_NAME'
+export const sessionKeyName = '__houdini__session__'
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
