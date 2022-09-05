@@ -64,13 +64,6 @@ export class HoudiniClient {
 	}
 
 	passServerSession(event: RequestEvent): {} {
-		if (!(sessionKeyName in event.locals)) {
-			// todo: Warn the user that houdini session is not setup correctly.
-			console.log(
-				`Could not find session in event.locals. This should never happen. Please open a ticket on Github and we'll sort it out.`
-			)
-		}
-
 		return {
 			[sessionKeyName]: (event.locals as any)[sessionKeyName],
 		}
