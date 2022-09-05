@@ -56,7 +56,7 @@ Don't worry about generating the runtime right away, we're going to have to gene
 </button>
 ```
 
-With that in place we can now define a function that will invoke the `toggleFavorite` mutation and pass it to our button. Import `mutation` from the `$houdini` package and add the declaration for `toggleFavorite` shown below to your `script` tag:
+With that in place we can now define a function that will invoke the `toggleFavorite` mutation and pass it to our button. Add the declaration for `toggleFavorite` shown below to your `script` tag:
 
 ```svelte
 <script>
@@ -75,7 +75,7 @@ With that in place we can now define a function that will invoke the `toggleFavo
 </script>
 ```
 
-`mutation` returns an asynchronous function that takes an object with fields to match the mutation's input and returns a promise that will resolve with the response from the mutation. With that in place, we can now configure the button we added earlier to call this function:
+A mutation store provides a `mutate` method to trigger your mutation. It takes an object with fields to match the mutation's input and returns a promise that will resolve with the response from the mutation. With that in place, we can now configure the button we added earlier to call this function:
 
 ```svelte
 <button on:click={() => toggleFavorite.mutate({id: $data.species.id})}>
@@ -108,13 +108,13 @@ Before we get too far, let's add a place in our UI to show us the list of favori
 
     // this is a second query in the same route but we could
     // have just added the favorites selection to the existing one
-    const favorites = query(graphql`
+    const favorites = graphql`
         query Favorites {
             favorites @list(name:"FavoriteSpecies") {
                 ...FavoritePreview
             }
         }
-    `)
+    `
 </script>
 
 <!-- this should go in the root of your component -->

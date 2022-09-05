@@ -156,7 +156,7 @@ For more information on the Connection model, check out [this blog post](https:/
 
 ## Paginated Queries
 
-Interacting with a paginated query is pretty similar to everything we've been doing so far. Just use the `paginatedQuery` instead of `query` and decorate the paginated field with the `@paginate` directive. Go ahead and change the query with the `SpeciesInfo` document to look like this:
+Interacting with a paginated query is pretty similar to everything we've been doing so far. Just use the `graphql` tag and decorate the paginated field with the `@paginate`directive. Go ahead and change the query with the`SpeciesInfo` document to look like this:
 
 ```svelte
 <script>
@@ -185,7 +185,7 @@ Interacting with a paginated query is pretty similar to everything we've been do
 </script>
 ```
 
-At the surface, `paginatedQuery` is basically the same thing as `query` except for a few extra utilities you can pull from the return value. They're pretty self-explanatory but just in case there's any confusion: `pageInfo` is a store pointing to an object boolean values to indicate whether there is more information to look up and `loadNextPage` is an async function that will load the next page and append the result of the field tagged with `@paginate` to the existing value in our cache. For a more in-depth summary of what you can do with `paginatedQuery` and `@paginate`, you can check out the [Pagination Guide](/guides/pagination).
+At the surface, a paginated query store is basically the same thing as a normal query except for a few extra utilities. They're pretty self-explanatory but just in case there's any confusion: `pageInfo` contains to an object boolean values to indicate whether there is more information to look up and `loadNextPage` is an async function that will load the next page and append the result of the field tagged with `@paginate` to the existing value in our cache. For a more in-depth summary of what you can do with `paginatedQuery` and `@paginate`, you can check out the [Pagination Guide](/guides/pagination).
 
 It's time to add some visuals. Add an import for the `MoveDisplay` component and copy the following block as the second child in the right panel (between `div#species-evolution-chain` and the `nav`):
 
