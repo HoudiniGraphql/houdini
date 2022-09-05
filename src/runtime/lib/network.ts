@@ -1,7 +1,6 @@
 import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
-import { isBrowser } from '../adapter'
 import cache from '../cache'
 import { QueryResult } from '../stores/query'
 import type { ConfigFile } from './config'
@@ -21,7 +20,6 @@ export const sessionKeyName = 'HOUDINI_SESSION_KEY_NAME'
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
-	private clientSideSession: App.Session | undefined
 
 	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
 		this.fetchFn = networkFn
@@ -48,7 +46,7 @@ export class HoudiniClient {
 			},
 			...params,
 			metadata: ctx.metadata,
-			session: (isBrowser ? this.clientSideSession : ctx.session) ?? {},
+			session: ctx.session ?? {},
 		})
 
 		// return the result
