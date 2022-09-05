@@ -46,7 +46,15 @@ export class HoudiniClient {
 			},
 			...params,
 			metadata: ctx.metadata,
-			session: ctx.session ?? {},
+			get session() {
+				if (ctx.session === sessionSentinel) {
+					console.log(
+						`Session was not passed correctly. This should never happen. Please open a ticket on Github and we'll sort it out.`
+					)
+				}
+
+				return ctx.session ?? {}
+			},
 		})
 
 		// return the result
@@ -402,8 +410,9 @@ type KitBeforeLoad = (ctx: BeforeLoadArgs) => Record<string, any> | Promise<Reco
 type KitAfterLoad = (ctx: AfterLoadArgs) => Record<string, any>
 type KitOnError = (ctx: OnErrorArgs) => Record<string, any>
 
+export const sessionSentinel = {}
 // @ts-ignore
-let session: App.Session | {} = {}
+let session: App.Session | {} = sessionSentinel
 
 // @ts-ignore
 export function setSession(val: App.Session) {
