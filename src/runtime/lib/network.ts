@@ -15,7 +15,7 @@ import {
 	SubscriptionArtifact,
 } from './types'
 
-export const sessionKeyName = '__houdini__session__'
+const sessionKeyName = '__houdini__session__'
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
@@ -66,8 +66,11 @@ export class HoudiniClient {
 
 	init() {}
 
-	// @ts-ignore
-	setSession(event: RequestEvent, session: App.Session) {
+	setSession(
+		event: RequestEvent,
+		session: // @ts-ignore
+		App.Session
+	) {
 		;(event.locals as any)[sessionKeyName] = session
 	}
 }
@@ -160,8 +163,11 @@ export type RequestPayload<_Data = any> = {
  * ```
  *
  */
-// @ts-ignore
-export type RequestHandlerArgs = FetchContext & FetchParams & { session?: App.Session }
+export type RequestHandlerArgs = FetchContext &
+	FetchParams & {
+		session?: // @ts-ignore
+		App.Session
+	}
 
 export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<RequestPayload<_Data>>
 
@@ -410,15 +416,45 @@ type KitBeforeLoad = (ctx: BeforeLoadArgs) => Record<string, any> | Promise<Reco
 type KitAfterLoad = (ctx: AfterLoadArgs) => Record<string, any>
 type KitOnError = (ctx: OnErrorArgs) => Record<string, any>
 
-export const sessionSentinel = {}
+const sessionSentinel = {}
 // @ts-ignore
 let session: App.Session | {} = sessionSentinel
 
-// @ts-ignore
-export function setSession(val: App.Session) {
+export function extractSession(val: {
+	[sessionKeyName]: // @ts-ignore
+	App.Session
+}) {
+	return val[sessionKeyName]
+}
+
+export function buildSessionObject(event: RequestEvent) {
+	return {
+		[sessionKeyName]: extractSession(event.locals as any),
+	}
+}
+
+export function setSession(
+	// @ts-ignore
+	val: App.Session
+) {
 	session = val
 }
 
-export function getSession() {
+export async function getSession(event?: RequestEvent | LoadEvent): Promise<
+	| {}
+	// @ts-ignore
+	| App.Session
+> {
+	if (event) {
+		// get the session either from the server side event or the client side event
+		if ('locals' in event) {
+			// this is a server side event (RequestEvent) -> extract the session from locals
+			return extractSession(event.locals as any) || sessionSentinel
+		} else {
+			// this is a client side event -> await the parent data which include the session
+			return extractSession((await event.parent()) as any) || sessionSentinel
+		}
+	}
+
 	return session
 }

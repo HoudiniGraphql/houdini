@@ -21,9 +21,9 @@ export default function (page: TransformPage) {
 		return
 	}
 
-	const session_key_name = ensure_imports({
+	const build_session_object = ensure_imports({
 		page,
-		import: ['sessionKeyName'],
+		import: ['buildSessionObject'],
 		sourceModule: '$houdini/runtime/lib/network',
 	}).ids[0]
 
@@ -116,22 +116,15 @@ export default function (page: TransformPage) {
 		AST.variableDeclarator(local_return_var, return_statement.argument),
 	])
 
-	const sessionProperty = AST.objectProperty(
-		session_key_name,
-		AST.memberExpression(
-			AST.memberExpression(event_id, AST.identifier('locals')),
-			session_key_name,
-			true
-		)
-	)
-	sessionProperty.computed = true
-
 	// its safe to insert a return statement after the declaration that references event
 	body.body.splice(
 		return_statement_index + 1,
 		0,
 		AST.returnStatement(
-			AST.objectExpression([sessionProperty, AST.spreadElement(local_return_var)])
+			AST.objectExpression([
+				AST.spreadElement(AST.callExpression(build_session_object, [event_id])),
+				AST.spreadElement(local_return_var),
+			])
 		)
 	)
 }
