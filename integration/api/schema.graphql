@@ -23,6 +23,11 @@ type Mutation {
     types: [TypeOfUser!]
   ): User!
   updateUser(id: ID!, name: String, snapshot: String!, birthDate: DateTime, delay: Int): User!
+  mutationUpdateFragmentInc: MutationUpdateFragmentData!
+}
+
+type MutationUpdateFragmentData {
+  data: Int!
 }
 
 interface Node {
@@ -49,6 +54,7 @@ type Query {
   ): UserConnection!
   usersList(limit: Int = 4, offset: Int, snapshot: String!): [User!]!
   session: String
+  mutationUpdateFragmentData: MutationUpdateFragmentData!
 }
 
 type User implements Node {

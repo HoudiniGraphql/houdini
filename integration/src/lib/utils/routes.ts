@@ -8,6 +8,7 @@ export const routes = {
   Stores_Prefetch_UserId_2: '/stores/prefetch-2',
   Stores_Mutation: '/stores/mutation',
   Stores_Mutation_Update: '/stores/mutation-update',
+  Stores_Mutation_Update_Fragment: '/stores/mutation-update-fragment',
   Stores_Mutation_Scalars: '/stores/mutation-scalars',
   Stores_Mutation_Enums: '/stores/mutation-enums',
   Stores_Network_One_Store_Multivariables: '/stores/network-one-store-multivariables',

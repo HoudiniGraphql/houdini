@@ -35,6 +35,8 @@ function getSnapshot(snapshot) {
   return snapshots[snapshot];
 }
 
+let mutationUpdateFragmentDataCounter = 0;
+
 export const resolvers = {
   Query: {
     hello: () => {
@@ -87,7 +89,8 @@ export const resolvers = {
         ...user,
         __typename: 'User'
       };
-    }
+    },
+    mutationUpdateFragmentData: () => ({})
   },
 
   User: {
@@ -132,7 +135,16 @@ export const resolvers = {
         list[userIndex].name = args.name;
       }
       return list[userIndex];
+    },
+    mutationUpdateFragmentInc: () => {
+      mutationUpdateFragmentDataCounter++;
+
+      return {};
     }
+  },
+
+  MutationUpdateFragmentData: {
+    data: () => mutationUpdateFragmentDataCounter
   },
 
   DateTime: new GraphQLScalarType({
