@@ -124,14 +124,14 @@ Fragments may also contain a paginated field, similar to queries. A paginated fr
 
 ### Return Values
 
-`paginatedQuery` returns a store that holds an object with the following keys:
+`paginatedFragment` returns a store that holds an object with the following keys:
 
 - `data` contains the fragment's data
 - `loading` contains a boolean value that tracks the loading state of the pagination requests
 - `pageInfo` ts contains the page info (`hasPreviousPage`, `hasNextPage`, etc.) Only valid for cursor-based pagination.
 - `partial` contains a boolean that indicates if the result has a partial match
 
-and has one of the following methods (depending on your fields pagination direction):
+The store also has one of the following methods (depending on your fields pagination direction):
 
 - `loadNextPage` is an async function that loads the next page. It takes one optional argument: the page size to load for the next request.
 - `loadPreviousPage` is an async function that loads the previous page. It takes one optional argument: the page size to load for the next request.

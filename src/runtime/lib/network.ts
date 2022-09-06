@@ -64,8 +64,6 @@ export class HoudiniClient {
 		}
 	}
 
-	init() {}
-
 	setSession(
 		event: RequestEvent,
 		session: // @ts-ignore

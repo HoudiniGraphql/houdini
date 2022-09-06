@@ -314,7 +314,7 @@ by multiple users at the same time. By instantiating a new store on every load, 
 without any hassle.
 
 Also, be careful when loading multiple stores in a single load. You want to make sure that you aren't blocking one request while you wait for another. For
-help in this situation, check out the loadAll function. It's described inside the Deep Dive, <a href="/api/query/store#sveltekit" target="_blank" rel="noreferrer">here</a>.
+help in this situation, check out the loadAll function. It's described inside the Deep Dive, <a href="/api/query#manual-loading" target="_blank" rel="noreferrer">here</a>.
 
 </Warning>
 

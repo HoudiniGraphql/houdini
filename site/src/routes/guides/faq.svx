@@ -10,7 +10,7 @@ Here are some answers to common questions you might have while working with Houd
 
 ### Can I use queries in endpoints?
 
-Yep! You can use queries or any document anywhere you can use a svelte store. Just define your query in an external file and use the store api as described in [Query Store](/api/query/store#endpoints) api docs.
+Yep! You can use queries or any document anywhere you can use a svelte store. Just define your query in an external file and use the store api as described in [Query Store](/api/query#endpoints) api docs.
 
 ### Can I define graphql documents in external files?
 
@@ -86,7 +86,7 @@ If you haven't seen Houdini's document stores before, please check out the [Work
 ### How do I customize the fetching logic on a case-by-case basis?
 
 You should use the `metadata` parameter in the document store to pass arbitrary information into your client's network function. For more information,
-please visit [the query store docs](/api/query/store#passing-metadata).
+please visit [the query store docs](/api/query#passing-metadata).
 
 ### What is this `Generated an empty chunk...` warning from vite?
 
