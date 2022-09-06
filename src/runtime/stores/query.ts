@@ -175,7 +175,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 			// or when there is still an active subscriber
 			if (this.subscriberCount <= 0) {
 				// clean up any cache subscriptions
-				if (isBrowser && this.subscriptionSpec) {
+				if (clientStarted && isBrowser && this.subscriptionSpec) {
 					cache.unsubscribe(this.subscriptionSpec, this.lastVariables || {})
 				}
 
