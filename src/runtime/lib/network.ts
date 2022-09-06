@@ -1,7 +1,6 @@
 import { error, LoadEvent, redirect, RequestEvent } from '@sveltejs/kit'
 import { get } from 'svelte/store'
 
-import { isBrowser } from '../adapter'
 import cache from '../cache'
 import { QueryResult } from '../stores/query'
 import type { ConfigFile } from './config'
@@ -16,15 +15,11 @@ import {
 	SubscriptionArtifact,
 } from './types'
 
-export const sessionKeyName = 'HOUDINI_SESSION_KEY_NAME'
-
-// @ts-ignore
-type SessionData = App.Session
+const sessionKeyName = '__houdini__session__'
 
 export class HoudiniClient {
 	private fetchFn: RequestHandler<any>
 	socket: SubscriptionHandler | null | undefined
-	private clientSideSession: SessionData | undefined
 
 	constructor(networkFn: RequestHandler<any>, subscriptionHandler?: SubscriptionHandler | null) {
 		this.fetchFn = networkFn
@@ -51,7 +46,15 @@ export class HoudiniClient {
 			},
 			...params,
 			metadata: ctx.metadata,
-			session: (isBrowser ? this.clientSideSession : ctx.session) ?? {},
+			get session() {
+				if (ctx.session === sessionSentinel) {
+					console.log(
+						`Session was not passed correctly. This should never happen. Please open a ticket on Github and we'll sort it out.`
+					)
+				}
+
+				return ctx.session ?? {}
+			},
 		})
 
 		// return the result
@@ -63,21 +66,12 @@ export class HoudiniClient {
 
 	init() {}
 
-	setSession(event: RequestEvent, session: SessionData) {
+	setSession(
+		event: RequestEvent,
+		session: // @ts-ignore
+		App.Session
+	) {
 		;(event.locals as any)[sessionKeyName] = session
-	}
-
-	passServerSession(event: RequestEvent): {} {
-		if (!(sessionKeyName in event.locals)) {
-			// todo: Warn the user that houdini session is not setup correctly.
-			console.log(
-				`Could not find session in event.locals. This should never happen. Please open a ticket on Github and we'll sort it out.`
-			)
-		}
-
-		return {
-			[sessionKeyName]: (event.locals as any)[sessionKeyName],
-		}
 	}
 }
 
@@ -169,7 +163,11 @@ export type RequestPayload<_Data = any> = {
  * ```
  *
  */
-export type RequestHandlerArgs = FetchContext & FetchParams & { session?: SessionData }
+export type RequestHandlerArgs = FetchContext &
+	FetchParams & {
+		session?: // @ts-ignore
+		App.Session
+	}
 
 export type RequestHandler<_Data> = (args: RequestHandlerArgs) => Promise<RequestPayload<_Data>>
 
@@ -418,14 +416,45 @@ type KitBeforeLoad = (ctx: BeforeLoadArgs) => Record<string, any> | Promise<Reco
 type KitAfterLoad = (ctx: AfterLoadArgs) => Record<string, any>
 type KitOnError = (ctx: OnErrorArgs) => Record<string, any>
 
+const sessionSentinel = {}
 // @ts-ignore
-let session: App.Session | {} = {}
+let session: App.Session | {} = sessionSentinel
 
-// @ts-ignore
-export function setSession(val: App.Session) {
+export function extractSession(val: {
+	[sessionKeyName]: // @ts-ignore
+	App.Session
+}) {
+	return val[sessionKeyName]
+}
+
+export function buildSessionObject(event: RequestEvent) {
+	return {
+		[sessionKeyName]: extractSession(event.locals as any),
+	}
+}
+
+export function setSession(
+	// @ts-ignore
+	val: App.Session
+) {
 	session = val
 }
 
-export function getSession() {
+export async function getSession(event?: RequestEvent | LoadEvent): Promise<
+	| {}
+	// @ts-ignore
+	| App.Session
+> {
+	if (event) {
+		// get the session either from the server side event or the client side event
+		if ('locals' in event) {
+			// this is a server side event (RequestEvent) -> extract the session from locals
+			return extractSession(event.locals as any) || sessionSentinel
+		} else {
+			// this is a client side event -> await the parent data which include the session
+			return extractSession((await event.parent()) as any) || sessionSentinel
+		}
+	}
+
 	return session
 }

@@ -1013,14 +1013,14 @@ test('layout loads', async function () {
 
 	expect(route.layout).toMatchInlineSnapshot(`
 		import { page } from "$app/stores";
-		import { setSession } from "$houdini/runtime/lib/network";
+		import { extractSession, setSession } from "$houdini/runtime/lib/network";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/runtime/adapter";
 		export let data;
 		onMount(() => setClientStarted());
 
 		page.subscribe(val => {
-		    setSession(val.data);
+		    setSession(extractSession(val.data));
 		});
 	`)
 })
@@ -1042,7 +1042,7 @@ test('layout inline query', async function () {
 
 	expect(route.layout).toMatchInlineSnapshot(`
 		import { page } from "$app/stores";
-		import { setSession } from "$houdini/runtime/lib/network";
+		import { extractSession, setSession } from "$houdini/runtime/lib/network";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/runtime/adapter";
 		export let data;
@@ -1053,7 +1053,7 @@ test('layout inline query', async function () {
 		onMount(() => setClientStarted());
 
 		page.subscribe(val => {
-		    setSession(val.data);
+		    setSession(extractSession(val.data));
 		});
 	`)
 

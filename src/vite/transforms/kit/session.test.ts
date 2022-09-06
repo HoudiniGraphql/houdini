@@ -15,14 +15,14 @@ test('modifies root +layout.svelte with data prop', async function () {
 
 	expect(result).toMatchInlineSnapshot(`
 		import { page } from "$app/stores";
-		import { setSession } from "$houdini/runtime/lib/network";
+		import { extractSession, setSession } from "$houdini/runtime/lib/network";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/runtime/adapter";
 		export let data;
 		onMount(() => setClientStarted());
 
 		page.subscribe(val => {
-		    setSession(val.data);
+		    setSession(extractSession(val.data));
 		});
 	`)
 })
@@ -33,13 +33,13 @@ test('modifies root +layout.svelte without data prop', async function () {
 
 	expect(result).toMatchInlineSnapshot(`
 		import { page } from "$app/stores";
-		import { setSession } from "$houdini/runtime/lib/network";
+		import { extractSession, setSession } from "$houdini/runtime/lib/network";
 		import { onMount } from "svelte";
 		import { setClientStarted } from "$houdini/runtime/adapter";
 		onMount(() => setClientStarted());
 
 		page.subscribe(val => {
-		    setSession(val.data);
+		    setSession(extractSession(val.data));
 		});
 	`)
 })
@@ -48,13 +48,13 @@ test('adds load to +layout.server.js', async function () {
 	const result = await test_transform_js('src/routes/+layout.server.js', ``)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
+		import { buildSessionObject } from "$houdini/runtime/lib/network";
 
 		export async function load(event) {
 		    const __houdini__vite__plugin__return__value__ = {};
 
 		    return {
-		        ...__houdini_client__.passServerSession(event),
+		        ...buildSessionObject(event),
 		        ...__houdini__vite__plugin__return__value__
 		    };
 		}
@@ -76,7 +76,7 @@ test('modifies existing load +layout.server.js', async function () {
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
+		import { buildSessionObject } from "$houdini/runtime/lib/network";
 
 		export async function load(event) {
 		    "some random stuff that's valid javascript";
@@ -85,7 +85,7 @@ test('modifies existing load +layout.server.js', async function () {
 		    };
 
 		    return {
-		        ...__houdini_client__.passServerSession(event),
+		        ...buildSessionObject(event),
 		        ...__houdini__vite__plugin__return__value__
 		    };
 		}
@@ -103,14 +103,14 @@ test('modifies existing load +layout.server.js - no return', async function () {
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
+		import { buildSessionObject } from "$houdini/runtime/lib/network";
 
 		export async function load(event) {
 		    "some random stuff that's valid javascript";
 		    const __houdini__vite__plugin__return__value__ = {};
 
 		    return {
-		        ...__houdini_client__.passServerSession(event),
+		        ...buildSessionObject(event),
 		        ...__houdini__vite__plugin__return__value__
 		    };
 		}
@@ -131,7 +131,7 @@ test('modifies existing load +layout.server.js - rest params', async function ()
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
+		import { buildSessionObject } from "$houdini/runtime/lib/network";
 
 		export async function load(event) {
 		    let {
@@ -147,7 +147,7 @@ test('modifies existing load +layout.server.js - rest params', async function ()
 		    };
 
 		    return {
-		        ...__houdini_client__.passServerSession(event),
+		        ...buildSessionObject(event),
 		        ...__houdini__vite__plugin__return__value__
 		    };
 		}
@@ -168,7 +168,7 @@ test('modifies existing load +layout.server.js - const arrow function', async fu
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
+		import { buildSessionObject } from "$houdini/runtime/lib/network";
 
 		export const load = event => {
 		    let {
@@ -184,7 +184,7 @@ test('modifies existing load +layout.server.js - const arrow function', async fu
 		    };
 
 		    return {
-		        ...__houdini_client__.passServerSession(event),
+		        ...buildSessionObject(event),
 		        ...__houdini__vite__plugin__return__value__
 		    };
 		};
@@ -205,7 +205,7 @@ test('modifies existing load +layout.server.js - const function', async function
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
+		import { buildSessionObject } from "$houdini/runtime/lib/network";
 
 		export const load = function(event) {
 		    let {
@@ -221,7 +221,7 @@ test('modifies existing load +layout.server.js - const function', async function
 		    };
 
 		    return {
-		        ...__houdini_client__.passServerSession(event),
+		        ...buildSessionObject(event),
 		        ...__houdini__vite__plugin__return__value__
 		    };
 		};
@@ -237,7 +237,7 @@ test('modifies existing load +layout.server.js - implicit return', async functio
 	)
 
 	expect(result).toMatchInlineSnapshot(`
-		import __houdini_client__ from "PROJECT_ROOT/my/client/path";
+		import { buildSessionObject } from "$houdini/runtime/lib/network";
 
 		export const load = event => {
 		    const __houdini__vite__plugin__return__value__ = ({
@@ -245,7 +245,7 @@ test('modifies existing load +layout.server.js - implicit return', async functio
 		    });
 
 		    return {
-		        ...__houdini_client__.passServerSession(event),
+		        ...buildSessionObject(event),
 		        ...__houdini__vite__plugin__return__value__
 		    };
 		};

@@ -6,7 +6,7 @@ import cache from '../cache'
 import type { ConfigFile, QueryArtifact } from '../lib'
 import { deepEquals } from '../lib/deepEquals'
 import * as log from '../lib/log'
-import { fetchQuery, sessionKeyName } from '../lib/network'
+import { fetchQuery } from '../lib/network'
 import { FetchContext, getSession } from '../lib/network'
 import { marshalInputs, unmarshalSelection } from '../lib/scalars'
 // internals
@@ -399,16 +399,9 @@ export async function fetchParams<_Data extends GraphQLObject, _Input>(
 	// cannot re-use the variable from above
 	// we need to check for ourselves to satisfy typescript
 	if (params && 'event' in params && params.event) {
-		// get the session either from the server side event or the client side event
-		if ('locals' in params.event) {
-			// this is a server side event (RequestEvent) -> extract the session from locals
-			session = (params.event.locals as any)[sessionKeyName]
-		} else {
-			// this is a client side event -> await the parent data which include the session
-			session = (await params.event.parent())[sessionKeyName]
-		}
+		session = await getSession(params.event)
 	} else if (isBrowser) {
-		session = getSession()
+		session = await getSession()
 	} else {
 		log.error(contextError(storeName))
 

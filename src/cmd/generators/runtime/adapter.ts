@@ -25,7 +25,6 @@ import { get } from 'svelte/store';
 import { browser, prerendering } from '$app/environment'
 import { page } from '$app/stores'
 import { error as svelteKitError } from '@sveltejs/kit'
-import { sessionKeyName } from './lib/network'
 
 export function goTo(location, options) {
     go(location, options)

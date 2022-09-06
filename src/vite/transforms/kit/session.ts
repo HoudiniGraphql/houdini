@@ -15,18 +15,17 @@ type BlockStatement = recast.types.namedTypes.BlockStatement
 // This is done in three steps:
 // - define a load if there isn't one
 // - set the current return value to some internal name
-// - add a new return statement that mixes in `...client.passServerSession(event)`
+// - add a new return statement that includes the session data from event.locals
 export default function (page: TransformPage) {
 	if (!page.config.isRootLayoutServer(page.filepath)) {
 		return
 	}
 
-	// make sure we have a reference to the client
-	const client_id = ensure_imports({
+	const build_session_object = ensure_imports({
 		page,
-		import: '__houdini_client__',
-		sourceModule: path.join(page.config.projectRoot, page.config.client),
-	}).ids
+		import: ['buildSessionObject'],
+		sourceModule: '$houdini/runtime/lib/network',
+	}).ids[0]
 
 	// before we do anything, we need to find the load function
 	let load_fn = find_exported_fn(page.script.body, 'load')
@@ -123,12 +122,7 @@ export default function (page: TransformPage) {
 		0,
 		AST.returnStatement(
 			AST.objectExpression([
-				AST.spreadElement(
-					AST.callExpression(
-						AST.memberExpression(client_id, AST.identifier('passServerSession')),
-						[event_id]
-					)
-				),
+				AST.spreadElement(AST.callExpression(build_session_object, [event_id])),
 				AST.spreadElement(local_return_var),
 			])
 		)
