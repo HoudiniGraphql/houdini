@@ -26,7 +26,7 @@ export async function handle({ event, resolve }) {
 }
 ```
 
-The only thing that's left is to use the `session` parameter passed to your client's network function to access the information:
+Then, you can use the `session` parameter passed to your client's network function to access the information:
 
 ```typescript
 /// src/lib/client.ts

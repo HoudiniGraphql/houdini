@@ -89,7 +89,7 @@ export async function load(event) {
 }
 ```
 
-This means that when adding a query to a route, tasks like adding a store to a load, pulling that store out of data in your component, etc can be auto completed from just starting with `load_` in your route's load function. It does make the manual logic that uses a fetch result kind of messy since they have to pull out UserInfo but I think that’s a rare situation so I’m in favor of supporting the most people with the clean API and letting the advanced users deal with the complexity.
+This means that when adding a query to a route, tasks like adding a store to a load, pulling that store out of data in your component, etc can be auto completed from just starting with `load_` in your route's load function. It does make the manual logic that uses a fetch result kind of messy since they have to pull out UserInfo but we think that’s a rare situation and so we opted to support the most people with the clean API and letting the advanced users deal with the complexity.
 
 There's one more change to the API for users that were manually creating stores using the store factories. Now, you must instantiate new stores with `new MyQueryStore()`.
 
@@ -103,7 +103,7 @@ You can now import generated typedefs for all of the special functions you defin
 /// src/routes/myProifle/+page.ts
 
 import { graphql } from '$houdini'
-import type { AfterLoad } from './$houdini' // <--- relative houdini import gets route information
+import type { AfterLoadEvent } from './$houdini'
 
 export const houdini_load = graphql`
 	query MyProfile {
@@ -113,7 +113,7 @@ export const houdini_load = graphql`
 	}
 `
 
-export const afterLoad: AfterLoad = ({ data }) => {
+export function afterLoad({ data }: AfterLoadEvent) {
 	console.log(data.MyProfile.viewer.id)
 }
 ```
