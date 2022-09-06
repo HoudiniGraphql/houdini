@@ -14,4 +14,6 @@
   );
 </script>
 
+<p>Data (component):</p>
 <pre>{stry($fragmentData)}</pre>
+<p>Counter (component): <span id="counter-component">{$fragmentData.data}</span></p>
