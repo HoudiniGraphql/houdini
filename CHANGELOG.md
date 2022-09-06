@@ -1,5 +1,11 @@
 # houdini
 
+## 0.16.0-next.7
+
+### Patch Changes
+
+-   [#514](https://github.com/HoudiniGraphql/houdini/pull/514) [`6cba303`](https://github.com/HoudiniGraphql/houdini/commit/6cba3032bd940d77d8ca6cc0c8088efd301b0e62) Thanks [@fehnomenal](https://github.com/fehnomenal)! - Do not force setting session data
+
 ## 0.16.0-next.6
 
 ### Patch Changes
