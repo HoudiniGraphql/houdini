@@ -144,6 +144,7 @@ export const resolvers = {
   },
 
   MutationUpdateFragmentData: {
+    id: () => 4812,
     data: () => mutationUpdateFragmentDataCounter
   },
 

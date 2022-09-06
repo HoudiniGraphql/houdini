@@ -27,6 +27,7 @@ type Mutation {
 }
 
 type MutationUpdateFragmentData {
+  id: ID!
   data: Int!
 }
 
