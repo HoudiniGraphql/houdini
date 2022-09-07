@@ -64,7 +64,7 @@ test('basic store', async function () {
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
 
-			await store.fetch(params)
+			store.result = await store.fetch(params)
 
 			return {
 				TestQuery: store,
@@ -112,7 +112,7 @@ test('change globalStorePrefix to "yop___"', async function () {
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
 
-			await store.fetch(params)
+			store.result = await store.fetch(params)
 
 			return {
 				TestQuery: store,
@@ -160,7 +160,7 @@ test('change globalStorePrefix to ""', async function () {
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
 
-			await store.fetch(params)
+			store.result = await store.fetch(params)
 
 			return {
 				TestQuery: store,
@@ -210,7 +210,7 @@ test('store with required variables', async function () {
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
 
-			await store.fetch(params)
+			store.result = await store.fetch(params)
 
 			return {
 				TestQuery: store,
@@ -260,7 +260,7 @@ test('store with nullable variables', async function () {
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
 
-			await store.fetch(params)
+			store.result = await store.fetch(params)
 
 			return {
 				TestQuery: store,
@@ -310,7 +310,7 @@ test('store with non-null variables with default value', async function () {
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
 
-			await store.fetch(params)
+			store.result = await store.fetch(params)
 
 			return {
 				TestQuery: store,
@@ -366,7 +366,7 @@ test('forward cursor pagination', async function () {
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
 
-			await store.fetch(params)
+			store.result = await store.fetch(params)
 
 			return {
 				TestQuery: store,
@@ -422,7 +422,7 @@ test('backwards cursor pagination', async function () {
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
 
-			await store.fetch(params)
+			store.result = await store.fetch(params)
 
 			return {
 				TestQuery: store,
@@ -474,7 +474,7 @@ test('offset pagination', async function () {
 		export async function load_TestQuery(params) {
 			const store = new TestQueryStore()
 
-			await store.fetch(params)
+			store.result = await store.fetch(params)
 
 			return {
 				TestQuery: store,
