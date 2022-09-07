@@ -323,6 +323,23 @@ export async function load(event) {
 }
 ```
 
+If you are defining a manual load and need to look at the result of the fetch, we recommend _not_ using the `load_`
+utility but instead defining your load explicitly:
+
+```javascript
+import { MyQueryStore } from '$houdini'
+
+export async function load(event) {
+	const MyQuery = new MyQueryStore()
+
+	const result = await MyQuery.fetch(event)
+
+	console.log('do something with', result)
+
+	return { MyQuery }
+}
+```
+
 <DeepDive title="Loading multiple stores simultaneously">
 
 Be careful when loading multiple stores at once.
