@@ -74,18 +74,14 @@ export default {
 
 # Houdini API Reference
 
-Every GraphQL document in your Houdini application has two different ways of interacting with it. You can either define
-your document inside of your svelte components or in an external file. While the approaches are equivalent, their APIs
-do vary slightly for the situation. In order to accommodate this, each document page has a toggle in the top right to flip between the store
-and inline APIs. For more information about the differences in the APIs, checkout out the
-[Working With GraphQL](/guides/working-with-graphql) guide.
+Every GraphQL document in your Houdini application is driven by a Svelte store with specific methods for performing each task.
 
 ## GraphQL Documents
 
 <APIShowcase
-title="routes"
+title="query"
 description="Fetch data from the server"
-href="/api/routes"
+href="/api/query"
 example={queryExample}
 />
 
@@ -129,7 +125,7 @@ example={configExample}
 <APIShowcase
 title="SvelteKit Plugin"
 description="A powerful tool to enable Houdini's declarative API in your svelte+vite projects"
-href="/api/kit"
+href="/api/plugin"
 example={pluginExample}
 />
 

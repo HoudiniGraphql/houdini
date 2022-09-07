@@ -99,7 +99,7 @@ query MyProfile {
 
 The reason we recommend this pattern is that it provides a nice balance between editing experience, co-location, and reliable directory structure.
 If a route directory contains a `+page.gql` file, we immediately know that the route loads data from our API. When you need to
-start doing more complicated things with your queries like variables or custom logic, head over to [plugin docs](/api/kit#generating-route-loads) to see
+start doing more complicated things with your queries like variables or custom logic, head over to [plugin docs](/api/query#automatic-loading) to see
 how you can customize the load function that houdini will generate for you.
 
 ### Fragments
@@ -314,7 +314,7 @@ by multiple users at the same time. By instantiating a new store on every load, 
 without any hassle.
 
 Also, be careful when loading multiple stores in a single load. You want to make sure that you aren't blocking one request while you wait for another. For
-help in this situation, check out the loadAll function. It's described inside the Deep Dive, <a href="/api/query/store#sveltekit" target="_blank" rel="noreferrer">here</a>.
+help in this situation, check out the loadAll function. It's described inside the Deep Dive, <a href="/api/query#manual-loading" target="_blank" rel="noreferrer">here</a>.
 
 </Warning>
 
@@ -322,7 +322,7 @@ help in this situation, check out the loadAll function. It's described inside th
 
 On the other hand, maybe you are the kind of person who gets really tired of typing the same code over and over. For those people, Houdini's vite plugin offers some powerful
 features that dramatically reduce the amount of boilerplate that you are responsible for. As you'll see there are a few different ways to get houdini to generate a load for you
-but they all behave the exact same and can be [customized the same way](/api/kit#generating-route-loads).
+but they all behave the exact same and can be [customized the same way](/api/query#automatic-loading).
 
 The first way to tell houdini to generate a load for you is by exporting a `houdini_load` value from `+page.js` that contains one or more query stores that you want to use in your route:
 

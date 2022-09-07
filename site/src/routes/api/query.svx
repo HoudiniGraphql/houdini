@@ -1,5 +1,5 @@
 ---
-title: Routes
+title: Query
 index: 1
 description: Queries in Houdini
 ---
@@ -73,7 +73,7 @@ type MyFriendsStore = QueryStore & {
 `
 </script>
 
-# Routes
+# Query
 
 Load data from the server and subscribe to any changes of fields we detect from mutations, subscriptions, and other queries.
 
@@ -206,7 +206,7 @@ Called after Houdini executes load queries against the server. You can expect th
 arguments as SvelteKit's [`load`](https://kit.svelte.dev/docs#loading) function, plus an additional
 `data` property referencing query result data. Keep in mind that if you define this hook, Houdini
 will have to block requests to the route in order to wait for the result. For more information about
-blocking during navigation, check out [this section](/api/query/store#server-side-blocking) of the query store
+blocking during navigation, check out the deep dive in [this section](/api/query#manual-loading) of the query store
 docs.
 
 ```javascript
@@ -245,7 +245,7 @@ If defined, the load function will invoked this function instead of throwing an 
 It receives three inputs: the load event, the inputs for each query, and the error that was encountered. Just like
 the other hooks, `onError` can return an object that provides props to the route. If you do define this hook, Houdini
 will have to block requests to the route in order to wait for the result. For more information about
-blocking during navigation, check out [this section](/api/query/store#server-side-blocking) of the query store
+blocking during navigation, check out the deep dive in [this section](/api/query#manual-loading) of the query store
 docs.
 
 ```javascript
@@ -320,6 +320,23 @@ export async function load(event) {
   return {
     ...await load_MyQuery({ event, variables: { ... } })
   }
+}
+```
+
+If you are defining a manual load and need to look at the result of the fetch, we recommend _not_ using the `load_`
+utility but instead defining your load explicitly:
+
+```javascript
+import { MyQueryStore } from '$houdini'
+
+export async function load(event) {
+	const MyQuery = new MyQueryStore()
+
+	const result = await MyQuery.fetch(event)
+
+	console.log('do something with', result)
+
+	return { MyQuery }
 }
 ```
 
@@ -432,6 +449,36 @@ export async function get(event) {
 		}
 	}
 }
+```
+
+## Passing Metadata
+
+Sometimes you need to do something very custom for a specific route. Maybe you need special headers or some other contextual information.
+Whatever the case may be, you can pass a `metadata` parameter to fetch:
+
+```svelte
+<script context="module">
+  import { browser } from '$app/env'
+  import MyQueryStore from '$houdini/stores/MyQuery'
+
+</script>
+
+<script>
+  export let variables
+
+  $: browser && MyQueryStore.fetch({ variables, metadata: { ... } })
+</script>
+```
+
+This value will get forwarded to the network function in your client definition, usually found in `src/client.js`:
+
+```typescript
+async function fetchQuery({ fetch, text, variables, session, metadata }) {
+	// do anything with metadata inside of here
+}
+
+// Export the Houdini client
+export default new HoudiniClient(fetchQuery)
 ```
 
 ## Paginated Queries

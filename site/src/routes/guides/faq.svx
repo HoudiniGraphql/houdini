@@ -10,7 +10,7 @@ Here are some answers to common questions you might have while working with Houd
 
 ### Can I use queries in endpoints?
 
-Yep! You can use queries or any document anywhere you can use a svelte store. Just define your query in an external file and use the store api as described in [Query Store](/api/query/store#endpoints) api docs.
+Yep! You can use queries or any document anywhere you can use a svelte store. Just define your query in an external file and use the store api as described in [Query Store](/api/query#endpoints) api docs.
 
 ### Can I define graphql documents in external files?
 
@@ -86,21 +86,21 @@ If you haven't seen Houdini's document stores before, please check out the [Work
 ### How do I customize the fetching logic on a case-by-case basis?
 
 You should use the `metadata` parameter in the document store to pass arbitrary information into your client's network function. For more information,
-please visit [the query store docs](/api/query/store#passing-metadata).
+please visit [the query store docs](/api/query#passing-metadata).
 
 ### What is this `Generated an empty chunk...` warning from vite?
 
-If you have a route directory that does not contain a `+page.js` file and do not have an inline query in your `+page.svelte`, the
-plugin will generate an empty `+page.js` file that is never used. This confuses vite hence the warning. Don't worry - this empty
-file is never imported if you don't have an inline query so there's no performance implication.
+If you have a route directory that does not contain a `+page.js` file and does not have an inline query in your `+page.svelte`, the
+plugin will generate an empty `+page.js` file that is never used. This confuses vite hence the warning. Don't worry - since this empty
+file is never imported there are no performance implications.
 
 ### My IDE is complaining that the internal directives and fragments don't exist.
 
-Every plugin and editor is different so we can't give you an exact answer but Houdini will write a file inside of the `$houdini` directory that contains all of the custom definitions that it relies on. Be default this file is located at `$houdini/graphql/schema.graphql` and `$houdini/graphql/documents.gql`. You can configure this value in your [config file](/api/config) under the `definitionsPath` value.
+Every plugin and editor is different so we can't give you an exact answer but Houdini will write 2 files inside of the `$houdini` directory that contain all of the schema definitions that it relies on. Be default these files are located at `$houdini/graphql/schema.graphql` and `$houdini/graphql/documents.gql`. You can configure this value in your [config file](/api/config) with `definitionsPath`.
 
 ### When will version `1.0` be released?
 
-Quick answer is when svelekit gets to `1.0`. Until then, we want to be able to break the API in order to create the most convenient experience for the majority of users.
+Quick answer is when SvelteKit gets to `1.0`. Until then, we want to be able to break the API in order to create the most convenient experience for the majority of users.
 
 ### Does Houdini support Framework X?
 

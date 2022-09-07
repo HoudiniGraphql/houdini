@@ -194,7 +194,7 @@ using a suite of integration tests that verify some of the more complex behavior
 [integration folder](https://github.com/HoudiniGraphql/houdini/tree/main/integration) at the root of Houdini's repository.
 
 The general idea is to create specific routes in a SvelteKit application that showcase a single behavior and then
-use [https://playwright.dev/] to simulate a user interacting with the UI and verify that things are working as expected.
+use (Playwright)[https://playwright.dev/] to simulate a user interacting with the UI and verify that things are working as expected.
 
 ## Piecing It All Together
 

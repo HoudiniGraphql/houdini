@@ -40,8 +40,7 @@ A lot of the time we know the value that a mutation will trigger assuming everyt
 
 <button
 	on:click={() => {
-		ToggleItemStore.mutate({
-            variables: { id: itemID },
+		ToggleItemStore.mutate({ id: itemID }, {
             optimisticResponse: {
                 toggleItem: {
                     item: {
