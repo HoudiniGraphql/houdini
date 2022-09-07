@@ -28,6 +28,9 @@ export class QueryStore<
 	// identify it as a query store
 	kind = CompiledQueryKind
 
+	// the current query result
+	result: QueryResult<_Data, _Input, _ExtraFields>
+
 	// at its core, a query store is a writable store with extra methods{
 	protected store: Writable<StoreState<_Data, _Input, _ExtraFields>>
 
@@ -51,10 +54,13 @@ export class QueryStore<
 		super()
 
 		// set the initial state
-		this.store = writable(this.initialState)
+		this.result = this.initialState
+		this.store = writable(this.result)
 		this.artifact = artifact
 		this.storeName = storeName
 		this.variables = variables
+
+		this.store.subscribe((val) => (this.result = val))
 	}
 
 	/**

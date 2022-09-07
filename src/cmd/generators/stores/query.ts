@@ -53,7 +53,7 @@ export class ${storeName} extends ${queryClass} {
 export async function load_${artifactName}(params) {
 	const store = new ${storeName}()
 
-	store.result = await store.fetch(params)
+	await store.fetch(params)
 
 	return {
 		${artifactName}: store,
@@ -80,7 +80,7 @@ export declare class ${storeName} extends ${queryClass}<${_data}, ${_input}> {
 
 export const ${globalStoreName}: ${storeName}
 
-export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName} & { result: Awaited<ReturnType<${storeName}['fetch']>> }}>
+export declare const load_${artifactName}: (params: QueryStoreFetchParams<${_data}, ${_input}>) => Promise<{${artifactName}: ${storeName}}>
 
 export default ${storeName}
 `
