@@ -40,6 +40,7 @@ export const routes = {
   Plugin_load_loadAndGlobal: '/plugin/load/inlineAndGlobal',
   Plugin_load_list: '/plugin/load/list',
   Plugin_load_pageQuery: '/plugin/load/pageQuery',
+  Plugin_load_pageQuerySession: '/plugin/load/pageQuery-session',
 
   Pagination_query_forward_cursor: '/pagination/query/forward-cursor',
   Pagination_query_backwards_cursor: '/pagination/query/backwards-cursor',

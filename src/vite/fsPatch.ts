@@ -92,7 +92,7 @@ filesystem.statSync = function (filepath: string, options: Parameters<filesystem
 		const result = _statSync(filepath, options)
 		return result
 	} catch (error) {
-		return virtualFile(path.basename(filepath), { withFileTypes: true })
+		return virtual_file(path.basename(filepath), { withFileTypes: true })
 	}
 }
 
@@ -112,7 +112,7 @@ filesystem.readdirSync = function (
 	// WORKAROUND: Using `unknown` type because our inherited options are not fully exhaustive.
 	const result: unknown[] = _readDirSync(filepath, options)
 
-	function getFileName(file: unknown) {
+	const file_names = result.map((file) => {
 		if (file instanceof Dirent) {
 			return file.name
 		} else if (typeof file === 'string') {
@@ -120,43 +120,36 @@ filesystem.readdirSync = function (
 		} else {
 			return ''
 		}
-	}
-
-	function hasFileName(...names: string[]) {
-		return result.some((file) => {
-			return names.includes(getFileName(file))
-		})
+	})
+	function contains(...names: string[]) {
+		return names.some((name) => file_names.includes(name))
 	}
 
 	// if there is a route component but no script, add the script
 	if (
-		hasFileName('+page.svelte') &&
-		!hasFileName('+page.js', '+page.ts', '+page.server.js', '+page.server.ts')
+		contains('+page.svelte') &&
+		!contains('+page.js', '+page.ts', '+page.server.js', '+page.server.ts')
 	) {
-		result.push(virtualFile('+page.js', options))
+		result.push(virtual_file('+page.js', options))
 	}
 
 	// if there is a layout file but no layout.js, we need to make one
-	const layoutLoadFiles = ['+layout.ts', '+layout.js']
-	if (
-		hasFileName('+layout.svelte') &&
-		!result.find((fp) => layoutLoadFiles.includes(getFileName(fp)))
-	) {
-		result.push(virtualFile('+layout.js', options))
+	if (contains('+layout.svelte') && !contains('+layout.ts', '+layout.js')) {
+		result.push(virtual_file('+layout.js', options))
 	}
 
 	// if we are in looking inside of src/routes and there's no +layout.svelte file
 	// we need to create one
-	if (is_root_layout(filepath.toString()) && !hasFileName('+layout.svelte')) {
-		result.push(virtualFile('+layout.svelte', options))
+	if (is_root_layout(filepath.toString()) && !contains('+layout.svelte')) {
+		result.push(virtual_file('+layout.svelte', options))
 	}
 	// if we are in looking inside of src/routes and there's no +layout.server.js file
 	// we need to create one
 	if (
 		is_root_layout(filepath.toString()) &&
-		!hasFileName('+layout.server.js', '+layout.server.ts')
+		!contains('+layout.server.js', '+layout.server.ts')
 	) {
-		result.push(virtualFile('+layout.server.js', options))
+		result.push(virtual_file('+layout.server.js', options))
 	}
 
 	// we're done modifying the results
@@ -169,7 +162,7 @@ Object.defineProperty(globalThis, 'fs', {
 	value: filesystem,
 })
 
-function virtualFile(name: string, options: Parameters<typeof filesystem.readdirSync>[1]) {
+function virtual_file(name: string, options: Parameters<typeof filesystem.readdirSync>[1]) {
 	return !options?.withFileTypes
 		? name
 		: {
