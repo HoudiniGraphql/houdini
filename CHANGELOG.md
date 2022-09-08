@@ -1,5 +1,11 @@
 # houdini
 
+## 0.16.0-next.8
+
+### Patch Changes
+
+-   [#523](https://github.com/HoudiniGraphql/houdini/pull/523) [`2c5174c`](https://github.com/HoudiniGraphql/houdini/commit/2c5174c248bf2ae5ee3a8d3a7e910213e859ae2a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix import order so HoudiniClient is always available"
+
 ## 0.16.0-next.7
 
 ### Patch Changes
