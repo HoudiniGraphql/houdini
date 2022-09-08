@@ -1,5 +1,5 @@
 {
-	"mode": "pre",
+	"mode": "exit",
 	"tag": "next",
 	"initialVersions": {
 		"houdini": "0.15.8",
