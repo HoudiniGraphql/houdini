@@ -2,4 +2,4 @@
 'houdini': patch
 ---
 
-fix import order so HoudiniClient is always available"
+fix circular import with HoudiniClient
