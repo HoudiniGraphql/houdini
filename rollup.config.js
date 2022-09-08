@@ -45,9 +45,6 @@ export default {
 		nodeResolve({ preferBuiltins: true }),
 		replace({
 			HOUDINI_VERSION: packgeJSON.version,
-			SITE_URL: fs.existsSync('./.changeset/pre.json')
-				? 'https://docs-next-kohl.vercel.app'
-				: 'https://houdinigraphql.com',
 		}),
 	],
 }
