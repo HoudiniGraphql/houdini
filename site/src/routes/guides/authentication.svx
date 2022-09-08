@@ -6,7 +6,7 @@ description: A guide to authentication in Houdini
 
 # Authentication
 
-Houdini's support for user sessions comes in 2 parts. First, you need to add a `hook.js` file that defines the
+Houdini's support for user sessions comes in 2 parts. First, you need to add a `hooks.server.js` file that defines the
 session for that user:
 
 ```typescript
