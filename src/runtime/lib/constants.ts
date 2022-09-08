@@ -1,4 +1,4 @@
-export const siteURL = 'http://houdinigraphql.com'
+export const siteURL = 'https://houdinigraphql.com'
 
 /**
  * @param focus example "#0160"
