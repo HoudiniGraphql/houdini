@@ -422,42 +422,15 @@ export async function fetchParams<_Data extends GraphQLObject, _Input>(
 const contextError = (storeName: string) => `
 	${log.red(`Missing event args in load function`)}.
 
-	Three options:
-	${log.cyan('1/ Prefetching & SSR')}
-	<script context="module" lang="ts">
-		import type { LoadEvent } from '@sveltejs/kit';
+Please remember to pass event to fetch like so:
 
-		export async function load(${log.yellow('event')}: LoadEvent) {
-			const variables = { ... };
-			await ${log.cyan(storeName)}.fetch({ ${log.yellow('event')}, variables });
+import type { LoadEvent } from '@sveltejs/kit';
 
-			return { props: { variables } };
-		}
-	</script>
-
-	<script lang="ts">
-		import { type ${log.cyan(storeName)}$input } from '$houdini'
-		export let variables: ${log.cyan(storeName)}$input;
-
-		$: browser && ${log.cyan(storeName)}.fetch({ variables });
-	</script>
-
-	${log.cyan('2/ Client only')}
-	<script lang="ts">
-		$: browser && ${log.cyan(storeName)}.fetch({ variables: { ... } });
-	</script>
-
-	${log.cyan('3/ Endpoint')}
-	import { ${log.cyan(storeName)} } from '$houdini';
-
-	export async function get(event) {
-		return {
-			props: {
-				data: await  ${log.cyan(storeName)}.fetch({ event })
-			}
-		};
-	}
-
+export async function load(${log.yellow('event')}: LoadEvent) {
+	return { 
+		...load_MyQuery({ ${log.yellow('event')}, variables: { ... } })
+	};
+}
 `
 
 type FetchGlobalParams<_Data extends GraphQLObject, _Input> = {
