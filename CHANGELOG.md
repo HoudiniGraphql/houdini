@@ -1,5 +1,11 @@
 # houdini
 
+## 0.16.1
+
+### Patch Changes
+
+-   [#527](https://github.com/HoudiniGraphql/houdini/pull/527) [`9b87678`](https://github.com/HoudiniGraphql/houdini/commit/9b876789140978c0726ed9a708677c7c75f3e19b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Update init command to work with latest file template
+
 ## 0.16.0
 
 ### ⚠️ Breaking Changes
