@@ -115,8 +115,34 @@ class FieldCollection {
 			// so we can recreate
 			this.fragmentSpreads[selection.name.value] = selection
 
+			// find whether to include fragment fields
+			const houdiniDirective = selection.directives?.find(
+				({ name }) => name.value === this.config.houdiniDirective
+			)
+			const maskArgument = houdiniDirective?.arguments?.find(
+				({ name }) => name.value === 'mask'
+			)
+			let includeFragments = !this.config.defaultFragmentMasking
+			if (maskArgument) {
+				switch (maskArgument.value.kind) {
+					case 'NullValue':
+						// use the default from the config
+						break
+
+					case 'BooleanValue':
+						includeFragments = !maskArgument.value.value
+						break
+
+					default:
+						throw new HoudiniError({
+							filepath: this.filepath,
+							message: `@${this.config.houdiniDirective}'s mask argument needs to be boolean if specified`,
+						})
+				}
+			}
+
 			// we're finished if we're not supposed to include fragments in the selection
-			if (this.config.defaultFragmentMasking) {
+			if (!includeFragments) {
 				return
 			}
 

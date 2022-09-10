@@ -1220,26 +1220,26 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-					readonly "input": MyQuery$input,
-					readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
 			export type MyQuery$result = {
-					readonly user: {
-							readonly id: string,
-							readonly firstName: string,
-							readonly friends: ({
-									readonly id: string,
-									readonly firstName: string,
-									readonly $fragments: {
-											UserBase: true
-									}
-							} | null)[] | null,
-							readonly $fragments: {
-									UserBase: true,
-									UserMore: true
-							}
-					} | null
+			    readonly user: {
+			        readonly id: string,
+			        readonly firstName: string,
+			        readonly friends: ({
+			            readonly id: string,
+			            readonly firstName: string,
+			            readonly $fragments: {
+			                UserBase: true
+			            }
+			        } | null)[] | null,
+			        readonly $fragments: {
+			            UserBase: true,
+			            UserMore: true
+			        }
+			    } | null
 			};
 
 			export type MyQuery$input = null;
@@ -1292,19 +1292,19 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-					readonly "input": MyQuery$input,
-					readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
 			export type MyQuery$result = {
-					readonly user: {
-							readonly id: string,
-							readonly firstName: string,
-							readonly $fragments: {
-									UserBase: true,
-									UserMore: true
-							}
-					} | null
+			    readonly user: {
+			        readonly id: string,
+			        readonly firstName: string,
+			        readonly $fragments: {
+			            UserBase: true,
+			            UserMore: true
+			        }
+			    } | null
 			};
 
 			export type MyQuery$input = null;
@@ -1316,18 +1316,18 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type UserMore = {
-					readonly "shape"?: UserMore$data,
-					readonly $fragments: {
-							UserMore: true
-					}
+			    readonly "shape"?: UserMore$data,
+			    readonly "$fragments": {
+			        "UserMore": true
+			    }
 			};
 
 			export type UserMore$data = {
-					readonly friends: ({
-							readonly $fragments: {
-								UserBase: true
-							}
-					} | null)[] | null
+			    readonly friends: ({
+			        readonly $fragments: {
+			            UserBase: true
+			        }
+			    } | null)[] | null
 			};
 		`)
 	})
@@ -1378,24 +1378,24 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type MyQuery = {
-					readonly "input": MyQuery$input,
-					readonly "result": MyQuery$result | undefined
+			    readonly "input": MyQuery$input,
+			    readonly "result": MyQuery$result | undefined
 			};
 
 			export type MyQuery$result = {
-					readonly user: {
-							readonly friends: ({
-									readonly id: string,
-									readonly firstName: string,
-									readonly $fragments: {
-											UserBase: true
-									}
-							} | null)[] | null,
-							readonly $fragments: {
-									UserBase: true,
-									UserMore: true
-							}
-					} | null
+			    readonly user: {
+			        readonly friends: ({
+			            readonly id: string,
+			            readonly firstName: string,
+			            readonly $fragments: {
+			                UserBase: true
+			            }
+			        } | null)[] | null,
+			        readonly $fragments: {
+			            UserBase: true,
+			            UserMore: true
+			        }
+			    } | null
 			};
 
 			export type MyQuery$input = null;
@@ -1407,20 +1407,20 @@ describe('typescript', function () {
 			})
 		).toMatchInlineSnapshot(`
 			export type UserMore = {
-					readonly "shape"?: UserMore$data,
-					readonly $fragments: {
-							UserMore: true
-					}
+			    readonly "shape"?: UserMore$data,
+			    readonly "$fragments": {
+			        "UserMore": true
+			    }
 			};
 
 			export type UserMore$data = {
-					readonly friends: ({
-							readonly id: string,
-							readonly firstName: string,
-							readonly $fragments: {
-								UserBase: true
-							}
-					} | null)[] | null
+			    readonly friends: ({
+			        readonly id: string,
+			        readonly firstName: string,
+			        readonly $fragments: {
+			            UserBase: true
+			        }
+			    } | null)[] | null
 			};
 		`)
 	})
