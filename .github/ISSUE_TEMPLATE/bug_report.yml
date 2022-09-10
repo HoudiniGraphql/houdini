@@ -39,34 +39,9 @@ body:
     validations:
       required: true
 
-  - type: textarea
-    id: expected
-    attributes:
-      label: Expected behavior
-      description: Provide a clear and concise description of what you expected to happen.
-      placeholder: As a user, I expected ___ behavior but i am seeing ___
-    validations:
-      required: true
-
-  - type: textarea
-    id: system-info
-    attributes:
-      label: System Info
-      description: Output of `npx envinfo --system --binaries --browsers --npmPackages "{houdini,svelte,@sveltejs/*,vite}"`
-      render: shell
-      placeholder: System, Binaries, Browsers
-    validations:
-      required: true
-
   - type: input
     id: reproduction
     attributes:
       label: Reproduction
       description: To help us, please provide a [stackblitz](https://stackblitz.com/) or [replay.io](https://docs.replay.io/docs/recording-bug-reports-80c37d7d6753485f81497570625d06f0) link showing your bug. _A [minimal reproduction](https://stackoverflow.com/help/minimal-reproducible-example) is a nice option to get your bug fixed asap ([Why?](https://antfu.me/posts/why-reproductions-are-required))._
       placeholder: 🔗 Reproduction link
-
-  - type: textarea
-    id: additional
-    attributes:
-      label: Additional context
-      description: Add any other context you wan't to share?

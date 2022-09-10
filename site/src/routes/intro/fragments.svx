@@ -10,7 +10,7 @@ description: The second part of the Houdini intro focusing how to reuse parts of
 
 # Reusing Parts of a Query
 
-As you've seen, we can get pretty far by just using GraphQL queries to define our route's data requirements. However, as our application grows this practice does not scale very well. To illustrate this point, look at how we used the `Sprite` component earlier (copied below without the unrelated bits):
+As you've seen, we can get pretty far by just using GraphQL queries to define our route's data requirements. However, as our application grows these would quickly become unmanageable. To illustrate this point, look at how we used the `Sprite` component earlier (copied below without the unrelated bits):
 
 ```svelte
 <script>
@@ -96,7 +96,7 @@ Defining a fragment inside of your component looks a lot like the query from bef
 </div>
 ```
 
-Next we have to go back to the route and put this fragment to use. Update the query inside of `src/routes/[...id].svelte` to look like:
+Next we have to go back to the route and put this fragment to use. Update the query inside of `src/routes/[...id]/+page.svelte` to look like:
 
 ```graphql
 query SpeciesInfo($id: Int!) {
@@ -133,7 +133,9 @@ Houdini enables us to use fragments as a way to colocate our component's data re
 
 ## Composing Fragments
 
-It's worth mentioning explicitly that you are free to mix and match fragments how ever you want. Fragments can have fragments inside of them and the same fragment can show up multiple times in a single component. To illustrate this, let's add a section in our Pokédex that shows the different evolved forms of the species we're looking at. Before we add anything to our route, let's update the component defined in `src/components/SpeciesPreview` to use the new fragment we just added to `Sprite`. You might want to give it a try without looking ahead but either way, here's what it should look like now:
+It's worth mentioning explicitly that you are free to mix and match fragments how ever you want. Fragments can have fragments inside of them and the same fragment can show up multiple times in a single component. To illustrate this, let's add a section in our Pokédex that shows the different evolved forms of the species we're looking at.
+
+Before we add anything to our route, let's update the component defined in `src/components/SpeciesPreview` to use the new fragment we just added to `Sprite`. You might want to give it a try without looking ahead but either way, here's what it should look like now:
 
 ```svelte
 <script>
@@ -202,7 +204,7 @@ You should now go and confirm that you can see all of the forms associated with 
 
 This point is kind of hard to get across but maybe you can already see what we mean. In this last example we built a component that had needed a particular selection of data and also used another component which itself had its own requirements. By giving each component their own fragment, we were able to maintain a very loose coupling between our components and not have to leave it up to coincidence that the correct information was part of the route's query.
 
-You should think of fragments as the main building block for describing your component's data requirements in Houdini. As your project grows, you component library will fill with components that are smart enough to ask for exactly the information they need. Can you imagine how this could apply to a `UserAvatar` component that seems to constantly evolve from needing just first and last initials, to also wanting the user's email, and finally some user-configured favorite color?
+You should think of fragments as the main building block for describing your component's data requirements in Houdini. As your project grows, your component library will fill with components that are smart enough to ask for exactly the information they need. Can you imagine how this could apply to a `UserAvatar` component that seems to constantly evolve from needing just first and last initials, to also wanting the user's email, and finally some user-configured favorite color?
 
 </DeepDive>
 

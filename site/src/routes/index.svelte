@@ -58,7 +58,7 @@
 
     $: userInfo = fragment(user, graphql\`
         fragment UserAvatar on User {
-			avatar
+            avatar
         }
     \`)
 <\/script>
