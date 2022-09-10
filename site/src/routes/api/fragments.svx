@@ -135,3 +135,21 @@ The store also has one of the following methods (depending on your fields pagina
 
 - `loadNextPage` is an async function that loads the next page. It takes one optional argument: the page size to load for the next request.
 - `loadPreviousPage` is an async function that loads the previous page. It takes one optional argument: the page size to load for the next request.
+
+## Fragment masking
+
+By default fields from a fragment are not included in a query to encourage separation of concerns.
+With the config option `defaultFragmentMasking` the default behavior can be changed.
+
+Optionally you can override the default behavior per fragment usage.
+E.g. from the document below:
+
+```graphql
+query CurrentUser {
+	uuid
+	...UserProfile @houdini(mask: false)
+}
+```
+
+You can access all fields from the `UserProfile` fragment.
+This is not recursive except for the usages of fragments inside `UserProfile` that also have this directive.
