@@ -65,8 +65,6 @@ export default async function typescriptGenerator(
 				config,
 				filepath: filename,
 				selections: definition.selectionSet.selections,
-				// only globally include internal fragment values if masking is disabled
-				includeFragments: config.disableMasking,
 				fragmentDefinitions,
 			})
 

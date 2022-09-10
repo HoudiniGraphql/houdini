@@ -43,7 +43,7 @@ export class Config {
 	typeConfig: ConfigFile['types']
 	configFile: ConfigFile
 	logLevel: LogLevel
-	disableMasking: boolean
+	defaultFragmentMasking: boolean
 	configIsRoute: ((filepath: string) => boolean) | null = null
 	routesDir: string
 	schemaPollInterval: number | null
@@ -79,7 +79,8 @@ export class Config {
 			defaultKeys,
 			types = {},
 			logLevel,
-			disableMasking = false,
+			disableMasking,
+			defaultFragmentMasking = true,
 			schemaPollInterval = 2000,
 			schemaPollHeaders = {},
 			pageQueryFilename = '+page.gql',
@@ -129,6 +130,14 @@ ${
 			logLevel = LogLevel.Summary
 		}
 
+		if (disableMasking !== undefined) {
+			console.warn(`⚠️ config value \`disableMasking\` has been renamed to \`defaultFragmentMasking\`.
+Please update your config file. Keep in mind, the new config parameter is optional and has a default of "true".
+Fragment masking can be specified for each fragment spread individually with the @${this.houdiniDirective}(mask: false) directive.
+`)
+			defaultFragmentMasking = !disableMasking
+		}
+
 		// save the values we were given
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
@@ -146,7 +155,7 @@ ${
 		this.defaultPartial = defaultPartial
 		this.definitionsFolder = definitionsPath
 		this.logLevel = ((logLevel as LogLevel) || LogLevel.Summary).toLowerCase() as LogLevel
-		this.disableMasking = disableMasking
+		this.defaultFragmentMasking = defaultFragmentMasking
 		this.routesDir = path.join(this.projectRoot, 'src', 'routes')
 		this.schemaPollInterval = schemaPollInterval
 		this.schemaPollHeaders = schemaPollHeaders

@@ -6,13 +6,11 @@ export function flattenSelections({
 	config,
 	filepath,
 	selections,
-	includeFragments,
 	fragmentDefinitions,
 }: {
 	config: Config
 	filepath: string
 	selections: readonly graphql.SelectionNode[]
-	includeFragments: boolean
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 }): readonly graphql.SelectionNode[] {
 	// collect all of the fields together
@@ -20,7 +18,6 @@ export function flattenSelections({
 		config,
 		filepath,
 		selections,
-		includeFragments,
 		fragmentDefinitions,
 	})
 
@@ -30,7 +27,6 @@ export function flattenSelections({
 
 class FieldCollection {
 	config: Config
-	includeFragments: boolean = false
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 	filepath: string
 
@@ -42,11 +38,9 @@ class FieldCollection {
 		config: Config
 		filepath: string
 		selections: readonly graphql.SelectionNode[]
-		includeFragments: boolean
 		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 	}) {
 		this.config = args.config
-		this.includeFragments = args.includeFragments
 		this.fragmentDefinitions = args.fragmentDefinitions
 
 		this.fields = {}
@@ -122,7 +116,7 @@ class FieldCollection {
 			this.fragmentSpreads[selection.name.value] = selection
 
 			// we're finished if we're not supposed to include fragments in the selection
-			if (!this.includeFragments) {
+			if (this.config.defaultFragmentMasking) {
 				return
 			}
 
@@ -163,7 +157,6 @@ class FieldCollection {
 	empty() {
 		return new FieldCollection({
 			config: this.config,
-			includeFragments: this.includeFragments,
 			fragmentDefinitions: this.fragmentDefinitions,
 			selections: [],
 			filepath: this.filepath,
