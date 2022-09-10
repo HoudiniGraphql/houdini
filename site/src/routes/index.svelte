@@ -54,7 +54,7 @@
 			example: `<script>
     import { graphql, fragment } from '$houdini'
 
-	export let user
+    export let user
 
     $: userInfo = fragment(user, graphql\`
         fragment UserAvatar on User {
@@ -73,13 +73,13 @@
     import { graphql } from '$houdini'
 
     const createProject = graphql\`
-            mutation CreateProject {
-                createProject(name: "houdini") {
-                    project {
-                        ...All_Projects_insert
-                    }
+        mutation CreateProject {
+            createProject(name: "houdini") {
+                project {
+                    ...All_Projects_insert
                 }
             }
+        }
     \`
 <\/script>
 
