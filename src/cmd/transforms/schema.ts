@@ -71,9 +71,18 @@ directive @${config.argumentsDirective} on FRAGMENT_DEFINITION
 directive @${config.cacheDirective}(${config.cachePolicyArg}: CachePolicy, ${config.cachePartialArg}: Boolean) on QUERY
 
 """
-	@${config.houdiniDirective} is used to configure houdini's internal behavior such as opting-in an automatic load
+	@${config.houdiniDirective} is used to configure houdini's internal behavior
 """
-directive @${config.houdiniDirective}(load: Boolean = true) on QUERY
+directive @${config.houdiniDirective}(
+	"""
+	Opt-in to an automatic load function (only valid when used at queries)
+	"""
+	load: Boolean! = true
+	"""
+	Mask fragment fields (only valid when used at a fragment spread)
+	"""
+	mask: Boolean = null
+) on QUERY | FRAGMENT_SPREAD
 `
 
 	// if the config does not have the cache directive, then we need to add it
