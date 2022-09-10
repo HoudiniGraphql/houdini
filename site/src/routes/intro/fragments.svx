@@ -10,7 +10,7 @@ description: The second part of the Houdini intro focusing how to reuse parts of
 
 # Reusing Parts of a Query
 
-As you've seen, we can get pretty far by just using GraphQL queries to define our route's data requirements. However, as our application grows this practice does not scale very well. To illustrate this point, look at how we used the `Sprite` component earlier (copied below without the unrelated bits):
+As you've seen, we can get pretty far by just using GraphQL queries to define our route's data requirements. However, as our application grows these would quickly become unmanageable. To illustrate this point, look at how we used the `Sprite` component earlier (copied below without the unrelated bits):
 
 ```svelte
 <script>
