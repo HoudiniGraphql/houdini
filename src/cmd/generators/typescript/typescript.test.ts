@@ -466,7 +466,7 @@ describe('typescript', function () {
 		// the document to test
 		const docs = [
 			mockCollectedDoc(
-				`mutation MyMutation { 
+				`mutation MyMutation {
 						doThing(
 						list: [],
 						id: "1"
@@ -1082,8 +1082,8 @@ describe('typescript', function () {
 		// the document to test
 		const docs = [
 			mockCollectedDoc(`
-				query MyQuery { 
-					users @list(name:"My_Users") { 
+				query MyQuery {
+					users @list(name:"My_Users") {
 						id
 					}
 				}
@@ -1097,7 +1097,7 @@ describe('typescript', function () {
 					$admin: Boolean
 					$age: Int
 					$weight: Float
-				) { 
+				) {
 					doThing(
 						filter: $filter,
 						list: $filterList,
@@ -1173,6 +1173,254 @@ describe('typescript', function () {
 			    readonly doThing?: {
 			        readonly id?: string
 			    } | null
+			};
+		`)
+	})
+
+	test('disable default fragment masking', async function () {
+		const configWithoutMasking = testConfig({
+			defaultFragmentMasking: false,
+			schema: config.schema,
+		})
+
+		const docs = [
+			mockCollectedDoc(`
+				query MyQuery {
+					user {
+						...UserBase
+						...UserMore
+					}
+				}
+			`),
+			mockCollectedDoc(`
+				fragment UserBase on User {
+					id
+					firstName
+				}
+			`),
+			mockCollectedDoc(`
+				fragment UserMore on User {
+					friends {
+						...UserBase
+					}
+				}
+			`),
+		]
+
+		// execute the generator
+		await runPipeline(configWithoutMasking, docs)
+
+		// look up the files in the artifact directory
+		const fileContents = await readFile(configWithoutMasking.artifactTypePath(docs[0].document))
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(fileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyQuery = {
+					readonly "input": MyQuery$input,
+					readonly "result": MyQuery$result | undefined
+			};
+
+			export type MyQuery$result = {
+					readonly user: {
+							readonly id: string,
+							readonly firstName: string,
+							readonly friends: ({
+									readonly id: string,
+									readonly firstName: string,
+									readonly $fragments: {
+											UserBase: true
+									}
+							} | null)[] | null,
+							readonly $fragments: {
+									UserBase: true,
+									UserMore: true
+							}
+					} | null
+			};
+
+			export type MyQuery$input = null;
+		`)
+	})
+
+	test('disable individual fragment masking', async function () {
+		const configWithMasking = testConfig({
+			defaultFragmentMasking: true,
+			schema: config.schema,
+		})
+
+		const docs = [
+			mockCollectedDoc(`
+				query MyQuery {
+					user {
+						...UserBase @houdini(mask: false)
+						...UserMore
+					}
+				}
+			`),
+			mockCollectedDoc(`
+				fragment UserBase on User {
+					id
+					firstName
+				}
+			`),
+			mockCollectedDoc(`
+				fragment UserMore on User {
+					friends {
+						...UserBase
+					}
+				}
+			`),
+		]
+
+		// execute the generator
+		await runPipeline(configWithMasking, docs)
+
+		// look up the files in the artifact directory
+		const [queryFileContents, fragmentFileContents] = await Promise.all([
+			readFile(configWithMasking.artifactTypePath(docs[0].document)),
+			readFile(configWithMasking.artifactTypePath(docs[2].document)),
+		])
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(queryFileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyQuery = {
+					readonly "input": MyQuery$input,
+					readonly "result": MyQuery$result | undefined
+			};
+
+			export type MyQuery$result = {
+					readonly user: {
+							readonly id: string,
+							readonly firstName: string,
+							readonly $fragments: {
+									UserBase: true,
+									UserMore: true
+							}
+					} | null
+			};
+
+			export type MyQuery$input = null;
+		`)
+
+		expect(
+			recast.parse(fragmentFileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type UserMore = {
+					readonly "shape"?: UserMore$data,
+					readonly $fragments: {
+							UserMore: true
+					}
+			};
+
+			export type UserMore$data = {
+					readonly friends: ({
+							readonly $fragments: {
+								UserBase: true
+							}
+					} | null)[] | null
+			};
+		`)
+	})
+
+	test('enable individual fragment masking', async function () {
+		const configWithoutMasking = testConfig({
+			defaultFragmentMasking: false,
+			schema: config.schema,
+		})
+
+		const docs = [
+			mockCollectedDoc(`
+				query MyQuery {
+					user {
+						...UserBase @houdini(mask: true)
+						...UserMore
+					}
+				}
+			`),
+			mockCollectedDoc(`
+				fragment UserBase on User {
+					id
+					firstName
+				}
+			`),
+			mockCollectedDoc(`
+				fragment UserMore on User {
+					friends {
+						...UserBase
+					}
+				}
+			`),
+		]
+
+		// execute the generator
+		await runPipeline(configWithoutMasking, docs)
+
+		// look up the files in the artifact directory
+		const [queryFileContents, fragmentFileContents] = await Promise.all([
+			readFile(configWithoutMasking.artifactTypePath(docs[0].document)),
+			readFile(configWithoutMasking.artifactTypePath(docs[2].document)),
+		])
+
+		// make sure they match what we expect
+		expect(
+			recast.parse(queryFileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type MyQuery = {
+					readonly "input": MyQuery$input,
+					readonly "result": MyQuery$result | undefined
+			};
+
+			export type MyQuery$result = {
+					readonly user: {
+							readonly friends: ({
+									readonly id: string,
+									readonly firstName: string,
+									readonly $fragments: {
+											UserBase: true
+									}
+							} | null)[] | null,
+							readonly $fragments: {
+									UserBase: true,
+									UserMore: true
+							}
+					} | null
+			};
+
+			export type MyQuery$input = null;
+		`)
+
+		expect(
+			recast.parse(fragmentFileContents!, {
+				parser: typeScriptParser,
+			})
+		).toMatchInlineSnapshot(`
+			export type UserMore = {
+					readonly "shape"?: UserMore$data,
+					readonly $fragments: {
+							UserMore: true
+					}
+			};
+
+			export type UserMore$data = {
+					readonly friends: ({
+							readonly id: string,
+							readonly firstName: string,
+							readonly $fragments: {
+								UserBase: true
+							}
+					} | null)[] | null
 			};
 		`)
 	})
