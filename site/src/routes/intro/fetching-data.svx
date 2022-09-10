@@ -228,7 +228,7 @@ export function SpeciesInfoVariables({ params }) {
 	// check that the id falls between 1 and 151
 	if (id < 1 || id > 151) {
 		// return a status code 400 along with the error
-		return this.error(400, 'id must be between 1 and 151')
+		throw this.error(400, 'id must be between 1 and 151')
 	}
 
 	return {
