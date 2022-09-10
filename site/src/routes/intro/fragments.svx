@@ -96,7 +96,7 @@ Defining a fragment inside of your component looks a lot like the query from bef
 </div>
 ```
 
-Next we have to go back to the route and put this fragment to use. Update the query inside of `src/routes/[...id].svelte` to look like:
+Next we have to go back to the route and put this fragment to use. Update the query inside of `src/routes/[...id]/+page.svelte` to look like:
 
 ```graphql
 query SpeciesInfo($id: Int!) {
