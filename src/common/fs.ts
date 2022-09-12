@@ -114,7 +114,7 @@ export async function stat(filepath: string) {
 }
 
 export function isDirectorySync(dirPath: string) {
-	return fsExtra.existsSync(dirPath) && fsExtra.lstatSync(dirPath).isDirectory()
+	return fsExtra.existsSync(dirPath)
 }
 
 export async function readdir(filepath: string): Promise<string[]> {
