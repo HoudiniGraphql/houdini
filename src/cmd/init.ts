@@ -305,7 +305,7 @@ async function updateViteConfig(
 	framework: 'kit' | 'svelte',
 	typescript: boolean
 ) {
-	const viteConfigPath = path.join(targetPath, 'vite.config' + typescript ? '.ts' : '.js')
+	const viteConfigPath = path.join(targetPath, `vite.config${typescript ? '.ts' : '.js'}`)
 
 	const oldViteConfig1 = `import { sveltekit } from '@sveltejs/kit/vite';
 
@@ -339,6 +339,17 @@ const config = {
 export default config;
 `
 
+	const viteConfigKitTs = `import { sveltekit } from '@sveltejs/kit/vite';
+import houdini from 'houdini/vite';
+import type { UserConfig } from "vite";
+
+const config: UserConfig = {
+	plugins: [houdini(), sveltekit()],
+}
+
+export default config;
+`
+
 	const viteConfigSvelte = `import { svelte } from '@sveltejs/vite-plugin-svelte';
 import houdini from 'houdini/vite';
 
@@ -350,36 +361,76 @@ const config = {
 export default config;
 `
 
+	const viteConfigSvelteTs = `import { svelte } from '@sveltejs/vite-plugin-svelte';
+import houdini from 'houdini/vite';
+import type { UserConfig } from "vite";
+
+const config: UserConfig = {
+	plugins: [houdini(), svelte()],
+}
+
+export default config;
+`
+
+	let content = 'NOTHING!'
+	if (framework === 'kit' && typescript) {
+		content = viteConfigKitTs
+	} else if (framework === 'kit' && !typescript) {
+		content = viteConfigKit
+	} else if (framework === 'svelte' && typescript) {
+		content = viteConfigSvelteTs
+	} else if (framework === 'svelte' && !typescript) {
+		content = viteConfigSvelte
+	} else {
+		throw new Error('Unknown updateViteConfig()')
+	}
+
 	// write the vite config file
 	await updateFile({
 		projectPath: targetPath,
 		filepath: viteConfigPath,
-		content: framework === 'kit' ? viteConfigKit : viteConfigSvelte,
+		content,
 		old: [oldViteConfig1, oldViteConfig2],
 	})
+
+	if (typescript) {
+		await updateFile({
+			projectPath: targetPath,
+			filepath: viteConfigPath,
+			content: framework === 'kit' ? viteConfigKitTs : viteConfigSvelteTs,
+			old: [oldViteConfig1, oldViteConfig2],
+		})
+	} else {
+		await updateFile({
+			projectPath: targetPath,
+			filepath: viteConfigPath,
+			content: framework === 'kit' ? viteConfigKit : viteConfigSvelte,
+			old: [oldViteConfig1, oldViteConfig2],
+		})
+	}
 }
 
 async function updateSvelteConfig(targetPath: string) {
 	const svelteConfigPath = path.join(targetPath, 'svelte.config.js')
 
 	const newContent = `import adapter from '@sveltejs/adapter-auto';
-	import preprocess from 'svelte-preprocess';
-	
-	/** @type {import('@sveltejs/kit').Config} */
-	const config = {
-		// Consult https://github.com/sveltejs/svelte-preprocess
-		// for more information about preprocessors
-		preprocess: preprocess(),
-	
-		kit: {
-			adapter: adapter(),
-			alias: {
-				$houdini: './$houdini',
-			}
+import preprocess from 'svelte-preprocess';
+
+/** @type {import('@sveltejs/kit').Config} */
+const config = {
+	// Consult https://github.com/sveltejs/svelte-preprocess
+	// for more information about preprocessors
+	preprocess: preprocess(),
+
+	kit: {
+		adapter: adapter(),
+		alias: {
+			$houdini: './$houdini',
 		}
-	};
-	
-	export default config;
+	}
+};
+
+export default config;
 `
 
 	const oldSvelteConfig1 = `import adapter from '@sveltejs/adapter-auto';
