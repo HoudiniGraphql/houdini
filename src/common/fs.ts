@@ -114,7 +114,12 @@ export async function stat(filepath: string) {
 }
 
 export function isDirectorySync(dirPath: string) {
-	return fsExtra.existsSync(dirPath)
+	// no mock in production
+	if (process.env.NODE_ENV !== 'test') {
+		return fsExtra.existsSync(dirPath)
+	}
+
+	return memfs.existsSync(dirPath)
 }
 
 export async function readdir(filepath: string): Promise<string[]> {
