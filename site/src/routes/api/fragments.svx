@@ -139,17 +139,19 @@ The store also has one of the following methods (depending on your fields pagina
 ## Fragment masking
 
 By default fields from a fragment are not included in a query to encourage separation of concerns.
-With the config option `defaultFragmentMasking` the default behavior can be changed.
-
-Optionally you can override the default behavior per fragment usage.
-E.g. from the document below:
+You can override this default behavior with the config option `defaultFragmentMasking` for all fragment usages or individually per fragment:
 
 ```graphql
 query CurrentUser {
-	uuid
-	...UserProfile @houdini(mask: false)
+	me {
+		uuid
+		...UserProfile @houdini(mask: false)
+		...UserMeta
+	}
 }
 ```
 
-You can access all fields from the `UserProfile` fragment.
-This is not recursive except for the usages of fragments inside `UserProfile` that also have this directive.
+With this directive in place (and the default of masking fragment fields) you can access all fields from the `UserProfile` fragment directly on the `me` object together with `uuid`.
+All fields from `UserMeta` stay masked (without changing the default behavior).
+
+This individual setting works not recursive except for the usages of fragments inside `UserProfile` that also have this directive.
