@@ -123,22 +123,8 @@ class FieldCollection {
 				({ name }) => name.value === 'mask'
 			)
 			let includeFragments = !this.config.defaultFragmentMasking
-			if (maskArgument) {
-				switch (maskArgument.value.kind) {
-					case 'NullValue':
-						// use the default from the config
-						break
-
-					case 'BooleanValue':
-						includeFragments = !maskArgument.value.value
-						break
-
-					default:
-						throw new HoudiniError({
-							filepath: this.filepath,
-							message: `@${this.config.houdiniDirective}'s mask argument needs to be boolean if specified`,
-						})
-				}
+			if (maskArgument?.value.kind === 'BooleanValue') {
+				includeFragments = !maskArgument.value.value
 			}
 
 			// we're finished if we're not supposed to include fragments in the selection

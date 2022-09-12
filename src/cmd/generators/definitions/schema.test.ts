@@ -68,7 +68,7 @@ test('adds internal documents to schema', async function () {
 		  """Opt-in to an automatic load function (only valid when used at queries)"""
 		  load: Boolean! = true
 		  """Mask fragment fields (only valid when used at a fragment spread)"""
-		  mask: Boolean = null
+		  mask: Boolean
 		) on QUERY | FRAGMENT_SPREAD
 	`)
 })
@@ -134,7 +134,7 @@ test('list operations are included', async function () {
 		  """Opt-in to an automatic load function (only valid when used at queries)"""
 		  load: Boolean! = true
 		  """Mask fragment fields (only valid when used at a fragment spread)"""
-		  mask: Boolean = null
+		  mask: Boolean
 		) on QUERY | FRAGMENT_SPREAD
 
 		directive @User_delete repeatable on FIELD
@@ -219,7 +219,7 @@ test("writing twice doesn't duplicate definitions", async function () {
 		  """Opt-in to an automatic load function (only valid when used at queries)"""
 		  load: Boolean! = true
 		  """Mask fragment fields (only valid when used at a fragment spread)"""
-		  mask: Boolean = null
+		  mask: Boolean
 		) on QUERY | FRAGMENT_SPREAD
 	`)
 })

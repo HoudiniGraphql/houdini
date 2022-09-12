@@ -81,7 +81,7 @@ directive @${config.houdiniDirective}(
 	"""
 	Mask fragment fields (only valid when used at a fragment spread)
 	"""
-	mask: Boolean = null
+	mask: Boolean
 ) on QUERY | FRAGMENT_SPREAD
 `
 
