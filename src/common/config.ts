@@ -293,7 +293,7 @@ ${
 		return '$houdini.d.ts'
 	}
 
-	findNodeModulesHoudini(currentLocation: string) {
+	private findNodeModulesHoudini(currentLocation: string) {
 		const pathEndingBy = ['node_modules', 'houdini']
 
 		// Build the first possible location
