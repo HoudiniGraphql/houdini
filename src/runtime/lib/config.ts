@@ -115,14 +115,9 @@ export type ConfigFile = {
 	logLevel?: string
 
 	/**
-	 * @deprecated use defaultFragmentMasking instead
-	 */
-	disableMasking?: boolean
-
-	/**
 	 * A flag to specify the default fragment masking behavior.
 	 */
-	defaultFragmentMasking?: boolean
+	disableMasking?: boolean
 
 	/**
 	 * Configures the houdini plugin's schema polling behavior. By default, houdini will poll your APIs

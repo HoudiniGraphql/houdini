@@ -122,7 +122,7 @@ class FieldCollection {
 			const maskArgument = houdiniDirective?.arguments?.find(
 				({ name }) => name.value === 'mask'
 			)
-			let includeFragments = !this.config.defaultFragmentMasking
+			let includeFragments = this.config.disableMasking
 			if (maskArgument?.value.kind === 'BooleanValue') {
 				includeFragments = !maskArgument.value.value
 			}

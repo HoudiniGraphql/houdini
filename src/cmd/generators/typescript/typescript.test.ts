@@ -1179,7 +1179,7 @@ describe('typescript', function () {
 
 	test('disable default fragment masking', async function () {
 		const configWithoutMasking = testConfig({
-			defaultFragmentMasking: false,
+			disableMasking: true,
 			schema: config.schema,
 		})
 
@@ -1248,7 +1248,7 @@ describe('typescript', function () {
 
 	test('disable individual fragment masking', async function () {
 		const configWithMasking = testConfig({
-			defaultFragmentMasking: true,
+			disableMasking: false,
 			schema: config.schema,
 		})
 
@@ -1334,7 +1334,7 @@ describe('typescript', function () {
 
 	test('enable individual fragment masking', async function () {
 		const configWithoutMasking = testConfig({
-			defaultFragmentMasking: false,
+			disableMasking: true,
 			schema: config.schema,
 		})
 
