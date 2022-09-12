@@ -113,6 +113,10 @@ export async function stat(filepath: string) {
 	return memfs.statSync(filepath)
 }
 
+export function isDirectorySync(dirPath: string) {
+	return fsExtra.existsSync(dirPath) && fsExtra.lstatSync(dirPath).isDirectory()
+}
+
 export async function readdir(filepath: string): Promise<string[]> {
 	// no mock in production
 	if (process.env.NODE_ENV !== 'test') {
