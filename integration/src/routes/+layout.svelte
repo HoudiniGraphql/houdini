@@ -32,4 +32,6 @@
   {/each}
 </nav>
 
-{$info.data.session}
+<div id="layout-session">
+  {$info.data.session}
+</div>
