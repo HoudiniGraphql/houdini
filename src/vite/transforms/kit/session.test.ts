@@ -255,5 +255,14 @@ test('modifies existing load +layout.server.js - implicit return', async functio
 test('passes session from root client-side layout', async function () {
 	const result = await test_transform_js('src/routes/+layout.js', ``)
 
-	expect(result).toMatchInlineSnapshot('')
+	expect(result).toMatchInlineSnapshot(`
+		export async function load(event) {
+		    const __houdini__vite__plugin__return__value__ = {};
+
+		    return {
+		        __houdini__session__: event.data?.__houdini__session__,
+		        ...__houdini__vite__plugin__return__value__
+		    };
+		}
+	`)
 })

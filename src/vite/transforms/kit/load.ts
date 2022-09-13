@@ -228,20 +228,6 @@ function add_load({
 	// added when defining the function
 	let insert_index = 4
 
-	if (page.filepath.endsWith('src/routes/+layout.js')) {
-		preload_fn.body.body.splice(
-			insert_index,
-			0,
-			AST.expressionStatement(
-				AST.callExpression(
-					AST.memberExpression(AST.identifier('console'), AST.identifier('log')),
-					[AST.identifier('context')]
-				)
-			)
-		)
-		insert_index++
-	}
-
 	// every query that we found needs to be triggered in this function
 	for (const query of queries) {
 		const { ids } = ensure_imports({

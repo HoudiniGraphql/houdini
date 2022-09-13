@@ -1004,9 +1004,14 @@ test('layout loads', async function () {
 		        throw err;
 		    }
 
-		    return {
+		    const __houdini__vite__plugin__return__value__ = {
 		        ...houdini_context.returnValue,
 		        ...result
+		    };
+
+		    return {
+		        __houdini__session__: context.data?.__houdini__session__,
+		        ...__houdini__vite__plugin__return__value__
 		    };
 		}
 	`)
@@ -1084,9 +1089,14 @@ test('layout inline query', async function () {
 		        throw err;
 		    }
 
-		    return {
+		    const __houdini__vite__plugin__return__value__ = {
 		        ...houdini_context.returnValue,
 		        ...result
+		    };
+
+		    return {
+		        __houdini__session__: context.data?.__houdini__session__,
+		        ...__houdini__vite__plugin__return__value__
 		    };
 		}
 	`)
