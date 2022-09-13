@@ -2,6 +2,7 @@ import { IdentifierKind } from 'ast-types/gen/kinds'
 import { StatementKind } from 'ast-types/gen/kinds'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
+import { config } from 'process'
 import * as recast from 'recast'
 
 import {
@@ -226,6 +227,20 @@ function add_load({
 	// we can start inserting statements in the generated load after the 2 statements we
 	// added when defining the function
 	let insert_index = 4
+
+	if (page.filepath.endsWith('src/routes/+layout.js')) {
+		preload_fn.body.body.splice(
+			insert_index,
+			0,
+			AST.expressionStatement(
+				AST.callExpression(
+					AST.memberExpression(AST.identifier('console'), AST.identifier('log')),
+					[AST.identifier('context')]
+				)
+			)
+		)
+		insert_index++
+	}
 
 	// every query that we found needs to be triggered in this function
 	for (const query of queries) {

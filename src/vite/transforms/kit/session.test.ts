@@ -251,3 +251,9 @@ test('modifies existing load +layout.server.js - implicit return', async functio
 		};
 	`)
 })
+
+test('passes session from root client-side layout', async function () {
+	const result = await test_transform_js('src/routes/+layout.js', ``)
+
+	expect(result).toMatchInlineSnapshot('')
+})

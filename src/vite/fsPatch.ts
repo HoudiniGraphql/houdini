@@ -21,7 +21,8 @@ export default function HoudiniFsPatch(configFile?: string): Plugin {
 			if (
 				config.isRouteScript(id) ||
 				config.isRootLayout(id) ||
-				config.isRootLayoutServer(id)
+				config.isRootLayoutServer(id) ||
+				id.endsWith('+layout.svelte')
 			) {
 				return {
 					id,
@@ -39,7 +40,7 @@ export default function HoudiniFsPatch(configFile?: string): Plugin {
 				}
 			}
 
-			if (config.isRootLayout(filepath)) {
+			if (filepath.endsWith('+layout.svelte')) {
 				return {
 					code: (await readFile(filepath)) || empty_root_layout,
 				}
@@ -72,7 +73,7 @@ filesystem.readFileSync = function (fp, options) {
 		}
 	}
 
-	if (filepath.endsWith(path.join('src', 'routes', '+layout.svelte'))) {
+	if (filepath.endsWith('+layout.svelte')) {
 		try {
 			return _readFileSync(filepath, options)
 		} catch {
@@ -136,6 +137,11 @@ filesystem.readdirSync = function (
 	// if there is a layout file but no layout.js, we need to make one
 	if (contains('+layout.svelte') && !contains('+layout.ts', '+layout.js')) {
 		result.push(virtual_file('+layout.js', options))
+	}
+
+	// if there is a layout script but no layout file we need one
+	if (contains('+layout.ts', '+layout.js') && !contains('+layout.svelte')) {
+		result.push(virtual_file('+layout.svelte', options))
 	}
 
 	// if we are in looking inside of src/routes and there's no +layout.svelte file

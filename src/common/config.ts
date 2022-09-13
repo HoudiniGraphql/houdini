@@ -659,6 +659,13 @@ ${
 		)
 	}
 
+	isRootLayoutScript(filename: string) {
+		return (
+			this.resolveRelative(filename).replace(this.projectRoot, '').replace('.ts', '.js') ===
+			path.sep + path.join('src', 'routes', '+layout.js')
+		)
+	}
+
 	isComponent(filename: string) {
 		return (
 			this.framework === 'svelte' ||
