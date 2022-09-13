@@ -293,15 +293,43 @@ ${
 		return '$houdini.d.ts'
 	}
 
+	private findNodeModulesHoudini(currentLocation: string) {
+		const pathEndingBy = ['node_modules', 'houdini']
+
+		// Build the first possible location
+		let locationFound = path.join(currentLocation, ...pathEndingBy)
+
+		// previousLocation is nothing
+		let previousLocation = ''
+		const backFolder = []
+
+		// if previousLocation !== locationFound that mean that we can go upper
+		// if the directory doesn't exist, let's go upper.
+		while (previousLocation !== locationFound && !fs.existsSync(locationFound)) {
+			// save the previous path
+			previousLocation = locationFound
+
+			// add a back folder
+			backFolder.push('../')
+
+			// set the new location
+			locationFound = path.join(currentLocation, ...backFolder, ...pathEndingBy)
+		}
+
+		if (previousLocation === locationFound) {
+			throw new Error('Could not find any node_modules/houdini folder')
+		}
+
+		return locationFound
+	}
+
 	get runtimeSource() {
 		// when running in the real world, scripts are nested in a sub directory of build, in tests they aren't nested
 		// under /src so we need to figure out how far up to go to find the appropriately compiled runtime
 		const relative = process.env.TEST
 			? path.join(currentDir, '../../')
-			: // TODO: it's very possible this breaks someones setup. the old version walked up from currentDir
-			  // there isn't a consistent number of steps up anymore since the vite plugin and cmd live at different depths
-			  // a better approach could be to start at current dir and walk up until we find a `houdini` dir
-			  path.join(path.dirname(this.filepath), 'node_modules', 'houdini')
+			: // start here and go to parent until we find the node_modules/houdini folder
+			  this.findNodeModulesHoudini(path.join(path.dirname(this.filepath)))
 
 		// we want to copy the typescript source code for the templates and then compile the files according
 		// to the requirements of the platform
