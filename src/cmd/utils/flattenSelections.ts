@@ -6,13 +6,11 @@ export function flattenSelections({
 	config,
 	filepath,
 	selections,
-	includeFragments,
 	fragmentDefinitions,
 }: {
 	config: Config
 	filepath: string
 	selections: readonly graphql.SelectionNode[]
-	includeFragments: boolean
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 }): readonly graphql.SelectionNode[] {
 	// collect all of the fields together
@@ -20,7 +18,6 @@ export function flattenSelections({
 		config,
 		filepath,
 		selections,
-		includeFragments,
 		fragmentDefinitions,
 	})
 
@@ -30,7 +27,6 @@ export function flattenSelections({
 
 class FieldCollection {
 	config: Config
-	includeFragments: boolean = false
 	fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 	filepath: string
 
@@ -42,11 +38,9 @@ class FieldCollection {
 		config: Config
 		filepath: string
 		selections: readonly graphql.SelectionNode[]
-		includeFragments: boolean
 		fragmentDefinitions: { [name: string]: graphql.FragmentDefinitionNode }
 	}) {
 		this.config = args.config
-		this.includeFragments = args.includeFragments
 		this.fragmentDefinitions = args.fragmentDefinitions
 
 		this.fields = {}
@@ -121,8 +115,20 @@ class FieldCollection {
 			// so we can recreate
 			this.fragmentSpreads[selection.name.value] = selection
 
+			// find whether to include fragment fields
+			const houdiniDirective = selection.directives?.find(
+				({ name }) => name.value === this.config.houdiniDirective
+			)
+			const maskArgument = houdiniDirective?.arguments?.find(
+				({ name }) => name.value === 'mask'
+			)
+			let includeFragments = this.config.disableMasking
+			if (maskArgument?.value.kind === 'BooleanValue') {
+				includeFragments = !maskArgument.value.value
+			}
+
 			// we're finished if we're not supposed to include fragments in the selection
-			if (!this.includeFragments) {
+			if (!includeFragments) {
 				return
 			}
 
@@ -163,7 +169,6 @@ class FieldCollection {
 	empty() {
 		return new FieldCollection({
 			config: this.config,
-			includeFragments: this.includeFragments,
 			fragmentDefinitions: this.fragmentDefinitions,
 			selections: [],
 			filepath: this.filepath,

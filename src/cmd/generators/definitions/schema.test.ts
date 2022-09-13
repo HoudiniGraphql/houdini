@@ -63,8 +63,13 @@ test('adds internal documents to schema', async function () {
 		"""@cache is used to specify cache rules for a query"""
 		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-		"""@houdini is used to configure houdini's internal behavior such as opting-in an automatic load"""
-		directive @houdini(load: Boolean = true) on QUERY
+		"""@houdini is used to configure houdini's internal behavior"""
+		directive @houdini(
+		  """Opt-in to an automatic load function (only valid when used at queries)"""
+		  load: Boolean! = true
+		  """Mask fragment fields (only valid when used at a fragment spread)"""
+		  mask: Boolean! = true
+		) on QUERY | FRAGMENT_SPREAD
 	`)
 })
 
@@ -124,8 +129,13 @@ test('list operations are included', async function () {
 		"""@cache is used to specify cache rules for a query"""
 		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-		"""@houdini is used to configure houdini's internal behavior such as opting-in an automatic load"""
-		directive @houdini(load: Boolean = true) on QUERY
+		"""@houdini is used to configure houdini's internal behavior"""
+		directive @houdini(
+		  """Opt-in to an automatic load function (only valid when used at queries)"""
+		  load: Boolean! = true
+		  """Mask fragment fields (only valid when used at a fragment spread)"""
+		  mask: Boolean! = true
+		) on QUERY | FRAGMENT_SPREAD
 
 		directive @User_delete repeatable on FIELD
 	`)
@@ -204,7 +214,12 @@ test("writing twice doesn't duplicate definitions", async function () {
 		"""@cache is used to specify cache rules for a query"""
 		directive @cache(policy: CachePolicy, partial: Boolean) on QUERY
 
-		"""@houdini is used to configure houdini's internal behavior such as opting-in an automatic load"""
-		directive @houdini(load: Boolean = true) on QUERY
+		"""@houdini is used to configure houdini's internal behavior"""
+		directive @houdini(
+		  """Opt-in to an automatic load function (only valid when used at queries)"""
+		  load: Boolean! = true
+		  """Mask fragment fields (only valid when used at a fragment spread)"""
+		  mask: Boolean! = true
+		) on QUERY | FRAGMENT_SPREAD
 	`)
 })

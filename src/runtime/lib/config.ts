@@ -115,7 +115,7 @@ export type ConfigFile = {
 	logLevel?: string
 
 	/**
-	 * A flag to disable fragment masking when generating your document types
+	 * A flag to specify the default fragment masking behavior.
 	 */
 	disableMasking?: boolean
 
