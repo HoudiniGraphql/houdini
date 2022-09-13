@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { routes } from '../lib/utils/routes.js';
-import { expectToBe, expect_0_gql, goto, navSelector } from '../lib/utils/testsHelper.js';
+import { expectToBe, goto } from '../lib/utils/testsHelper.js';
 
 test.describe('Layout & comp', () => {
   test('Root layout can have query with session', async ({ page }) => {

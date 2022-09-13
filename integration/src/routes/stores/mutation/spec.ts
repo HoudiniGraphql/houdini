@@ -14,7 +14,7 @@ test.describe('Mutation Page', () => {
       isOptimisticResponse: false,
       variables: null
     };
-    await expectToBe(page, stry(defaultStoreValues)!, '[id="store-value"]');
+    await expectToBe(page, stry(defaultStoreValues) ?? '', '[id="store-value"]');
   });
 
   test('Add User + Optimistic + Result', async ({ page }) => {

@@ -15,7 +15,7 @@ test.describe('Metadata Page', () => {
     // Go on the page
     await goto_expect_n_gql(page, routes.Stores_Metadata, 1);
 
-    expect(displayed).toBe(`{\"data\":{\"session\":\"1234-Houdini-Token-5678\"}}`);
+    expect(displayed).toBe(`{"data":{"session":"1234-Houdini-Token-5678"}}`);
 
     //Click the button
     // Mutate the data (that will be displayed in the console)
