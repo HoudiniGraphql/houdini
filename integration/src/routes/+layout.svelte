@@ -32,4 +32,4 @@
   {/each}
 </nav>
 
-{$info}
+{$info.data.session}
