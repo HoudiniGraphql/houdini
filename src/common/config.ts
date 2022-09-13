@@ -305,7 +305,7 @@ ${
 
 		// if previousLocation !== locationFound that mean that we can go upper
 		// if the directory doesn't exist, let's go upper.
-		while (previousLocation !== locationFound && !fs.isDirectorySync(locationFound)) {
+		while (previousLocation !== locationFound && !fs.existsSync(locationFound)) {
 			// save the previous path
 			previousLocation = locationFound
 
