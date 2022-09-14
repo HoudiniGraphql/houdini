@@ -2,11 +2,9 @@ import { IdentifierKind } from 'ast-types/gen/kinds'
 import { StatementKind } from 'ast-types/gen/kinds'
 import { namedTypes } from 'ast-types/gen/namedTypes'
 import * as graphql from 'graphql'
-import { config } from 'process'
 import * as recast from 'recast'
 
 import {
-	Config,
 	formatErrors,
 	operation_requires_variables,
 	parseSvelte,
