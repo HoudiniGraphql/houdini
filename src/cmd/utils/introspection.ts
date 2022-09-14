@@ -7,7 +7,7 @@ export async function pullSchema(
 	url: string,
 	schemaPath: string,
 	headers?: Record<string, string>
-) {
+): Promise<boolean> {
 	try {
 		// send the request
 		const resp = await fetch(url, {
@@ -31,10 +31,9 @@ export async function pullSchema(
 			await writeFile(schemaPath, JSON.stringify(jsonSchema))
 		}
 
-		// return the schema for usage in --pull-schema
-		return schema
+		return true
 	} catch (e) {
-		console.log(`❌ Encountered error when pulling your latest schema: ` + (e as Error).message)
-		process.exit(0)
+		console.warn(`⚠️  Couldn't pull your latest schema: ` + (e as Error).message)
 	}
+	return false
 }

@@ -953,6 +953,7 @@ export async function getConfig({
 
 		// look up the schema if we need to
 		if (_config.schemaPath && !_config.schema) {
+			let schemaOk = true
 			// we might have to pull the schema first
 			if (_config.apiUrl) {
 				// make sure we don't have a pattern pointing to multiple files and a remove URL
@@ -965,12 +966,14 @@ This will prevent your schema from being pulled (potentially resulting in errors
 				// we might have to create the file
 				else if (!(await fs.readFile(_config.schemaPath))) {
 					console.log('⌛ Pulling schema from api')
-					await pullSchema(_config.apiUrl, _config.schemaPath)
+					schemaOk = await pullSchema(_config.apiUrl, _config.schemaPath)
 				}
 			}
 
 			// the schema is safe to load
-			_config.schema = await loadSchemaFile(_config.schemaPath)
+			if (schemaOk) {
+				_config.schema = await loadSchemaFile(_config.schemaPath)
+			}
 		}
 	} catch (e) {
 		reject(e)

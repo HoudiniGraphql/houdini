@@ -14,6 +14,7 @@ export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 		apply: 'serve',
 		async buildStart() {
 			const config = await getConfig({ configFile })
+			let nbPullError = 0
 
 			// validate the config
 
@@ -33,25 +34,30 @@ export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
 			if (interval === null) {
 				return
 			}
+
 			// the function to call on the appropriate interval
-			async function pull(poll: boolean) {
+			async function pull(more: boolean) {
 				try {
 					// Write the schema
-					await pullSchema(
+					const schemaState = await pullSchema(
 						config.apiUrl!,
 						config.schemaPath ?? path.resolve(process.cwd(), 'schema.json'),
 						config.pullHeaders
 					)
+
+					nbPullError = schemaState ? 0 : nbPullError + 1
 				} catch (e) {
 					formatErrors(e)
 				}
 
-				// if we are supposed to poll, wait the appropriate amount of time and then do it again
-				if (poll) {
-					await sleep(interval!)
+				// if we are supposed to poll more, wait the appropriate amount of time and then do it again
+				if (more) {
+					// Wait more and more and more...
+					const timeToWait = interval! + interval! * nbPullError
+					await sleep(timeToWait)
 
 					if (go) {
-						pull(poll)
+						pull(more)
 					}
 				}
 			}
