@@ -73,7 +73,7 @@ filesystem.readFileSync = function (fp, options) {
 		}
 	}
 
-	if (filepath.endsWith('+layout.svelte')) {
+	if (filepath.endsWith(path.join('src', 'routes', '+layout.svelte'))) {
 		try {
 			return _readFileSync(filepath, options)
 		} catch {
