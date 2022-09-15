@@ -1,5 +1,19 @@
 # houdini
 
+## 0.16.2
+
+### Patch Changes
+
+-   [#540](https://github.com/HoudiniGraphql/houdini/pull/540) [`8addece`](https://github.com/HoudiniGraphql/houdini/commit/8addecef1063dfe7d48f539d1c9f6b72949d7fd2) Thanks [@jycouet](https://github.com/jycouet)! - enhancement - Warn users when endpoint is not present in dev
+
+*   [#542](https://github.com/HoudiniGraphql/houdini/pull/542) [`3697e33`](https://github.com/HoudiniGraphql/houdini/commit/3697e33ec644f87f13878b74413b507843d90325) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when loading queries in a layout file
+
+-   [#539](https://github.com/HoudiniGraphql/houdini/pull/539) [`a7d4c2e`](https://github.com/HoudiniGraphql/houdini/commit/a7d4c2e9f650b86f8e19833079c286a64f807d2a) Thanks [@jycouet](https://github.com/jycouet)! - fix - mono repo support
+
+*   [#534](https://github.com/HoudiniGraphql/houdini/pull/534) [`599fc3c`](https://github.com/HoudiniGraphql/houdini/commit/599fc3c9dc7843c40ab25b4c4763e1b3ed9df6c7) Thanks [@fehnomenal](https://github.com/fehnomenal)! - Make fragment masking more flexible
+
+-   [#537](https://github.com/HoudiniGraphql/houdini/pull/537) [`191c775`](https://github.com/HoudiniGraphql/houdini/commit/191c7750a33b11cdbc8f5e7b9719641d5b0a21c5) Thanks [@jycouet](https://github.com/jycouet)! - fix - init cmd, vite.config.ts generated file
+
 ## 0.16.1
 
 ### Patch Changes
