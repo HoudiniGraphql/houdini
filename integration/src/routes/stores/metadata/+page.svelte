@@ -1,6 +1,6 @@
 <script lang="ts">
   import { browser } from '$app/environment';
-  import { GQL_Session, GQL_UpdateUserSubUnsub } from '$houdini';
+  import { CachePolicy, GQL_Session, GQL_UpdateUserSubUnsub } from '$houdini';
 
   async function mutate() {
     await GQL_UpdateUserSubUnsub.mutate(
@@ -14,7 +14,11 @@
     );
   }
 
-  $: browser && GQL_Session.fetch({ metadata: { logResult: true } });
+  $: browser &&
+    GQL_Session.fetch({
+      metadata: { logResult: true },
+      policy: CachePolicy.NetworkOnly // to enforce a new fetch (even if it's alreay in cache somewhere else)
+    });
 </script>
 
 <h1>Metadata</h1>

@@ -448,6 +448,11 @@ export async function getSession(event?: RequestEvent | LoadEvent): Promise<
 		if ('locals' in event) {
 			// this is a server side event (RequestEvent) -> extract the session from locals
 			return extractSession(event.locals as any) || sessionSentinel
+		}
+		// the session data could also already be present in the data field
+		else if ('data' in event && event.data && sessionKeyName in event.data) {
+			// @ts-ignore
+			return extractSession(event.data) || sessionSentinel
 		} else {
 			// this is a client side event -> await the parent data which include the session
 			return extractSession((await event.parent()) as any) || sessionSentinel

@@ -5,7 +5,6 @@ import * as graphql from 'graphql'
 import * as recast from 'recast'
 
 import {
-	Config,
 	formatErrors,
 	operation_requires_variables,
 	parseSvelte,

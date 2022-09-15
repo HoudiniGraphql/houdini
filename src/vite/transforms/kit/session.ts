@@ -1,4 +1,6 @@
+import { load } from 'mock-fs'
 import path from 'path'
+import { resourceUsage } from 'process'
 import * as recast from 'recast'
 
 import { find_exported_fn, find_exported_id, find_insert_index } from '../../ast'
@@ -9,6 +11,16 @@ const AST = recast.types.builders
 
 type ReturnStatement = recast.types.namedTypes.ReturnStatement
 type BlockStatement = recast.types.namedTypes.BlockStatement
+type Identifier = recast.types.namedTypes.Identifier
+type ObjectExpression = recast.types.namedTypes.ObjectExpression
+
+export default function (page: TransformPage) {
+	if (page.config.isRootLayoutServer(page.filepath)) {
+		process_root_layout_server(page)
+	} else if (page.config.isRootLayoutScript(page.filepath)) {
+		process_root_layout_script(page)
+	}
+}
 
 // the root layout server file (src/routes/+layout.server.js) needs to define a load that's accessible
 // to all routes that adds the session set in the application's hook file along with any existing values
@@ -16,17 +28,77 @@ type BlockStatement = recast.types.namedTypes.BlockStatement
 // - define a load if there isn't one
 // - set the current return value to some internal name
 // - add a new return statement that includes the session data from event.locals
-export default function (page: TransformPage) {
-	if (!page.config.isRootLayoutServer(page.filepath)) {
-		return
-	}
-
+function process_root_layout_server(page: TransformPage) {
 	const build_session_object = ensure_imports({
 		page,
 		import: ['buildSessionObject'],
 		sourceModule: '$houdini/runtime/lib/network',
 	}).ids[0]
 
+	add_load_return(page, (event_id) => [
+		AST.spreadElement(AST.callExpression(build_session_object, [event_id])),
+	])
+}
+
+// all we need to do is make sure the session gets passed down by
+// threading the value through the return
+function process_root_layout_script(page: TransformPage) {
+	add_load_return(page, (event_id) => [
+		AST.objectProperty(
+			AST.identifier('__houdini__session__'),
+			AST.optionalMemberExpression(
+				AST.memberExpression(event_id, AST.identifier('data')),
+				AST.identifier('__houdini__session__')
+			)
+		),
+	])
+}
+
+function add_load_return(
+	page: TransformPage,
+	properties: (id: Identifier) => ObjectExpression['properties']
+) {
+	modify_load(page, (body, event_id) => {
+		// we have a load function and `event` is guaranteed to resolve correctly
+
+		// now we need to find the return statement and replace it with a local variable
+		// that we will use later
+		let return_statement_index = body.body.findIndex(
+			(statement) => statement.type === 'ReturnStatement'
+		)
+		let return_statement: ReturnStatement
+		if (return_statement_index !== -1) {
+			return_statement = body.body[return_statement_index] as ReturnStatement
+		}
+		// there was no return statement so its safe to just push one at the end that sets an empty
+		// object
+		else {
+			return_statement = AST.returnStatement(AST.objectExpression([]))
+			body.body.push(return_statement)
+			return_statement_index = body.body.length - 1
+		}
+
+		// replace the return statement with the variable declaration
+		const local_return_var = AST.identifier('__houdini__vite__plugin__return__value__')
+		body.body[return_statement_index] = AST.variableDeclaration('const', [
+			AST.variableDeclarator(local_return_var, return_statement.argument),
+		])
+
+		// its safe to insert a return statement after the declaration that references event
+		body.body.splice(
+			return_statement_index + 1,
+			0,
+			AST.returnStatement(
+				AST.objectExpression([...properties(event_id), AST.spreadElement(local_return_var)])
+			)
+		)
+	})
+}
+
+function modify_load(
+	page: TransformPage,
+	cb: (body: BlockStatement, event_id: Identifier) => void
+) {
 	// before we do anything, we need to find the load function
 	let load_fn = find_exported_fn(page.script.body, 'load')
 	let event_id = AST.identifier('event')
@@ -91,40 +163,6 @@ export default function (page: TransformPage) {
 		}
 	}
 
-	// we have a load function and `event` is guaranteed to resolve correctly
-
-	// now we need to find the return statement and replace it with a local variable
-	// that we will use later
-	let return_statement_index = body.body.findIndex(
-		(statement) => statement.type === 'ReturnStatement'
-	)
-	let return_statement: ReturnStatement
-	if (return_statement_index !== -1) {
-		return_statement = body.body[return_statement_index] as ReturnStatement
-	}
-	// there was no return statement so its safe to just push one at the end that sets an empty
-	// object
-	else {
-		return_statement = AST.returnStatement(AST.objectExpression([]))
-		body.body.push(return_statement)
-		return_statement_index = body.body.length - 1
-	}
-
-	// replace the return statement with the variable declaration
-	const local_return_var = AST.identifier('__houdini__vite__plugin__return__value__')
-	body.body[return_statement_index] = AST.variableDeclaration('const', [
-		AST.variableDeclarator(local_return_var, return_statement.argument),
-	])
-
-	// its safe to insert a return statement after the declaration that references event
-	body.body.splice(
-		return_statement_index + 1,
-		0,
-		AST.returnStatement(
-			AST.objectExpression([
-				AST.spreadElement(AST.callExpression(build_session_object, [event_id])),
-				AST.spreadElement(local_return_var),
-			])
-		)
-	)
+	// modify the body
+	cb(body, event_id)
 }

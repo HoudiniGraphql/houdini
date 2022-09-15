@@ -140,16 +140,18 @@ filesystem.readdirSync = function (
 
 	// if we are in looking inside of src/routes and there's no +layout.svelte file
 	// we need to create one
-	if (is_root_layout(filepath.toString()) && !contains('+layout.svelte')) {
+	if (is_root_route(filepath) && !contains('+layout.svelte')) {
 		result.push(virtual_file('+layout.svelte', options))
 	}
 	// if we are in looking inside of src/routes and there's no +layout.server.js file
 	// we need to create one
-	if (
-		is_root_layout(filepath.toString()) &&
-		!contains('+layout.server.js', '+layout.server.ts')
-	) {
+	if (is_root_route(filepath) && !contains('+layout.server.js', '+layout.server.ts')) {
 		result.push(virtual_file('+layout.server.js', options))
+	}
+
+	// there needs to always be a root load function that passes the session down
+	if (is_root_route(filepath) && !contains('+layout.js', '+layout.ts')) {
+		result.push(virtual_file('+layout.js', options))
 	}
 
 	// we're done modifying the results
@@ -177,7 +179,7 @@ function virtual_file(name: string, options: Parameters<typeof filesystem.readdi
 		  }
 }
 
-function is_root_layout(filepath: string): boolean {
+function is_root_route(filepath: PathLike): boolean {
 	return (
 		filepath.toString().endsWith(path.join('src', 'routes')) &&
 		// ignore the src/routes that exists in the

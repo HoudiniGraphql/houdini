@@ -16,5 +16,10 @@ export default async function SvelteKitProcessor(config: Config, page: Transform
 		return
 	}
 
-	await Promise.all([load(page), session(page), init(page)])
+	// add the load before we do anything else since it will create any functions we need
+	// to mix into
+	await load(page)
+
+	// modify page with the rest of the stuff
+	await Promise.all([session(page), init(page)])
 }
