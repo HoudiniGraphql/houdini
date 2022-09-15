@@ -1,8 +1,24 @@
 # houdini
 
+## 0.16.2
+
+### ✨ Features
+
+-   [#534](https://github.com/HoudiniGraphql/houdini/pull/534) [`599fc3c`](https://github.com/HoudiniGraphql/houdini/commit/599fc3c9dc7843c40ab25b4c4763e1b3ed9df6c7) Thanks [@fehnomenal](https://github.com/fehnomenal)! - Add ability to control masking for a specific fragment
+
+### 🐛 Fixes
+
+-   [#540](https://github.com/HoudiniGraphql/houdini/pull/540) [`8addece`](https://github.com/HoudiniGraphql/houdini/commit/8addecef1063dfe7d48f539d1c9f6b72949d7fd2) Thanks [@jycouet](https://github.com/jycouet)! - Warn users when endpoint is not present in dev instead of crashing
+
+*   [#542](https://github.com/HoudiniGraphql/houdini/pull/542) [`3697e33`](https://github.com/HoudiniGraphql/houdini/commit/3697e33ec644f87f13878b74413b507843d90325) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when loading queries in a layout file
+
+-   [#539](https://github.com/HoudiniGraphql/houdini/pull/539) [`a7d4c2e`](https://github.com/HoudiniGraphql/houdini/commit/a7d4c2e9f650b86f8e19833079c286a64f807d2a) Thanks [@jycouet](https://github.com/jycouet)! - mono repo support
+
+-   [#537](https://github.com/HoudiniGraphql/houdini/pull/537) [`191c775`](https://github.com/HoudiniGraphql/houdini/commit/191c7750a33b11cdbc8f5e7b9719641d5b0a21c5) Thanks [@jycouet](https://github.com/jycouet)! - init cmd, vite.config.ts generated file
+
 ## 0.16.1
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#527](https://github.com/HoudiniGraphql/houdini/pull/527) [`9b87678`](https://github.com/HoudiniGraphql/houdini/commit/9b876789140978c0726ed9a708677c7c75f3e19b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Update init command to work with latest file template
 
@@ -32,23 +48,25 @@
 
 *   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - You can now define the prefix of your global stores with globalStorePrefix param in the config.
 
--   [#485](https://github.com/HoudiniGraphql/houdini/pull/485) [`c21942c`](https://github.com/HoudiniGraphql/houdini/commit/c21942c4a364dbaca4008dc0ad8263fdc940da84) Thanks [@jycouet](https://github.com/jycouet)! - fix peerDependencies of houdini, graphql needs to be <16
-
-*   [#490](https://github.com/HoudiniGraphql/houdini/pull/490) [`71caba7`](https://github.com/HoudiniGraphql/houdini/commit/71caba7c6b23e73754934fd604030f3cd1a9b74b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix generated types for optimistic responses
-
--   [#487](https://github.com/HoudiniGraphql/houdini/pull/487) [`0544a28`](https://github.com/HoudiniGraphql/houdini/commit/0544a2846125673f2f0e67cb02135554458edfb0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issues when rendering kit applications with framework set to "svelte"
-
 *   [#508](https://github.com/HoudiniGraphql/houdini/pull/508) [`60ecb33`](https://github.com/HoudiniGraphql/houdini/commit/60ecb333a1396f9aa7244eac2f38741a58e7281f) Thanks [@fehnomenal](https://github.com/fehnomenal)! - added support for sessions
 
 *   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - graphql tags return store references
 
 *   [#449](https://github.com/HoudiniGraphql/houdini/pull/449) [`59257d1`](https://github.com/HoudiniGraphql/houdini/commit/59257d1dffa6c1d9d250ba0964c6f1f0c35da048) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add generated typedefs for route functions
 
--   [#523](https://github.com/HoudiniGraphql/houdini/pull/523) [`2c5174c`](https://github.com/HoudiniGraphql/houdini/commit/2c5174c248bf2ae5ee3a8d3a7e910213e859ae2a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix circular import with HoudiniClient
-
 -   [#494](https://github.com/HoudiniGraphql/houdini/pull/494) [`5573cfa`](https://github.com/HoudiniGraphql/houdini/commit/5573cfa184d2da322030695044997f5fbf6542bd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add onError hook
 
 -   [#494](https://github.com/HoudiniGraphql/houdini/pull/494) [`5573cfa`](https://github.com/HoudiniGraphql/houdini/commit/5573cfa184d2da322030695044997f5fbf6542bd) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - add `quietQueryError` config value to suppress all query errors
+
+### 🐛 Fixes
+
+-   [#485](https://github.com/HoudiniGraphql/houdini/pull/485) [`c21942c`](https://github.com/HoudiniGraphql/houdini/commit/c21942c4a364dbaca4008dc0ad8263fdc940da84) Thanks [@jycouet](https://github.com/jycouet)! - fix peerDependencies of houdini, graphql needs to be <16
+
+-   [#523](https://github.com/HoudiniGraphql/houdini/pull/523) [`2c5174c`](https://github.com/HoudiniGraphql/houdini/commit/2c5174c248bf2ae5ee3a8d3a7e910213e859ae2a) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix circular import with HoudiniClient
+
+-   [#490](https://github.com/HoudiniGraphql/houdini/pull/490) [`71caba7`](https://github.com/HoudiniGraphql/houdini/commit/71caba7c6b23e73754934fd604030f3cd1a9b74b) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix generated types for optimistic responses
+
+-   [#487](https://github.com/HoudiniGraphql/houdini/pull/487) [`0544a28`](https://github.com/HoudiniGraphql/houdini/commit/0544a2846125673f2f0e67cb02135554458edfb0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix issues when rendering kit applications with framework set to "svelte"
 
 ## 0.15.9
 
