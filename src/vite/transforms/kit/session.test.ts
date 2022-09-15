@@ -260,7 +260,7 @@ test('passes session from root client-side layout', async function () {
 		    const __houdini__vite__plugin__return__value__ = {};
 
 		    return {
-		        __houdini__session__: event.data?.__houdini__session__,
+		        ...event.data,
 		        ...__houdini__vite__plugin__return__value__
 		    };
 		}

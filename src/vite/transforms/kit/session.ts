@@ -44,13 +44,7 @@ function process_root_layout_server(page: TransformPage) {
 // threading the value through the return
 function process_root_layout_script(page: TransformPage) {
 	add_load_return(page, (event_id) => [
-		AST.objectProperty(
-			AST.identifier('__houdini__session__'),
-			AST.optionalMemberExpression(
-				AST.memberExpression(event_id, AST.identifier('data')),
-				AST.identifier('__houdini__session__')
-			)
-		),
+		AST.spreadElement(AST.memberExpression(event_id, AST.identifier('data'))),
 	])
 }
 
