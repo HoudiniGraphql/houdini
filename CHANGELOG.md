@@ -2,7 +2,7 @@
 
 ## 0.16.3
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#545](https://github.com/HoudiniGraphql/houdini/pull/545) [`6cc6765`](https://github.com/HoudiniGraphql/houdini/commit/6cc6765771f57a51711725f3bed458a2ab338278) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fix a bug hiding +layout.server data from client
 
