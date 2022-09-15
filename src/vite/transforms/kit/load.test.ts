@@ -1010,7 +1010,7 @@ test('layout loads', async function () {
 		    };
 
 		    return {
-		        __houdini__session__: context.data?.__houdini__session__,
+		        ...context.data,
 		        ...__houdini__vite__plugin__return__value__
 		    };
 		}
@@ -1095,7 +1095,7 @@ test('layout inline query', async function () {
 		    };
 
 		    return {
-		        __houdini__session__: context.data?.__houdini__session__,
+		        ...context.data,
 		        ...__houdini__vite__plugin__return__value__
 		    };
 		}
