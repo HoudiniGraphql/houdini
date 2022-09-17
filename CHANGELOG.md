@@ -1,5 +1,11 @@
 # houdini
 
+## 0.16.4
+
+### Patch Changes
+
+-   [#548](https://github.com/HoudiniGraphql/houdini/pull/548) [`cd00b5f`](https://github.com/HoudiniGraphql/houdini/commit/cd00b5f436412ecc3ac2225d2ee8a9201b172da0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when unsubscribing between load and render
+
 ## 0.16.3
 
 ### 🐛 Fixes
