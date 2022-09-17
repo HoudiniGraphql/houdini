@@ -166,6 +166,11 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 		// we have a new subscriber
 		this.subscriberCount = (this.subscriberCount ?? 0) + 1
 
+		// make sure that the store is always listening to the cache (on the browser)
+		if (isBrowser && !this.subscriptionSpec) {
+			this.refreshSubscription(this.lastVariables ?? ({} as _Input))
+		}
+
 		// Handle unsubscribe
 		return () => {
 			// we lost a subscriber

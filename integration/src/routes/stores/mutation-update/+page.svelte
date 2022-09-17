@@ -1,16 +1,13 @@
 <script lang="ts">
-  import { GQL_UpdateUser, graphql, MutationUpdateUsersListStore } from '$houdini';
+  import { GQL_UpdateUser, graphql } from '$houdini';
   import { stry } from '@kitql/helper';
+  import type { PageData } from './$types';
 
-  const usersList: MutationUpdateUsersListStore = graphql`
-    query MutationUpdateUsersList {
-      usersList(limit: 5, snapshot: "update-user-mutation") {
-        id
-        name
-        ...UserInfo
-      }
-    }
-  `;
+  export let data: PageData;
+
+  // leave this awkward pattern to make sure this doesn't come back: https://github.com/HoudiniGraphql/houdini/issues/543
+  let { TestMutationUpdateUsersList } = data;
+  $: ({ TestMutationUpdateUsersList } = data);
 
   async function update() {
     await GQL_UpdateUser.mutate({
@@ -32,7 +29,7 @@
 <button id="revert" on:click={revert}>Reset User</button>
 
 <ul>
-  {#each $usersList.data?.usersList ?? [] as user}
+  {#each $TestMutationUpdateUsersList.data?.usersList ?? [] as user}
     <li>
       {user.id} - {user.name}
     </li>
