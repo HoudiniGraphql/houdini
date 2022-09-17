@@ -168,7 +168,7 @@ If this is leftovers from old versions of houdini, you can safely remove this \`
 
 		// make sure that the store is always listening to the cache (on the browser)
 		if (isBrowser && !this.subscriptionSpec) {
-			this.refreshSubscription(this.lastVariables!)
+			this.refreshSubscription(this.lastVariables ?? ({} as _Input))
 		}
 
 		// Handle unsubscribe
