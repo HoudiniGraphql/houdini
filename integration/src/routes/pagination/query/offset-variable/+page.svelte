@@ -3,7 +3,7 @@
 
   const result: OffsetVariablePaginationQueryStore = graphql`
     query OffsetVariablePaginationQuery($limit: Int!) {
-      usersList(limit: $limit, snapshot: "pagination-query-offset") @paginate {
+      usersList(limit: $limit, snapshot: "pagination-query-offset-variable") @paginate {
         name
       }
     }

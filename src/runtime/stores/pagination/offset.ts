@@ -31,7 +31,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 		countPage(artifact.refetch!.path, getValue()) ||
 		artifact.refetch!.pageSize
 
-	let currentOffset = getOffset()
+	let currentOffset = getOffset() ?? 0
 
 	return {
 		loadNextPage: async ({
@@ -47,7 +47,9 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 		} = {}) => {
 			const config = await getConfig()
 
-			offset ??= currentOffset ?? getOffset()
+			// if the offset is zero then we want to count it just to make sure
+			// hence why (|| and not ??)
+			offset ??= currentOffset || getOffset()
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
@@ -88,7 +90,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 
 			// add the page size to the offset so we load the next page next time
 			const pageSize = queryVariables.limit || artifact.refetch!.pageSize
-			currentOffset += pageSize
+			currentOffset = offset + pageSize
 
 			// we're not loading any more
 			setFetching(false)
