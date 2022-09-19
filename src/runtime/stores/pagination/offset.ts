@@ -26,10 +26,12 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 	getConfig: () => Promise<ConfigFile>
 }) {
 	// we need to track the most recent offset for this handler
-	let currentOffset =
+	let getOffset = () =>
 		(artifact.refetch?.start as number) ||
 		countPage(artifact.refetch!.path, getValue()) ||
 		artifact.refetch!.pageSize
+
+	let currentOffset = getOffset()
 
 	return {
 		loadNextPage: async ({
@@ -45,7 +47,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 		} = {}) => {
 			const config = await getConfig()
 
-			offset ??= currentOffset
+			offset ??= currentOffset ?? getOffset()
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
