@@ -111,8 +111,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 
 			// we are updating the current set of items, count the number of items that currently exist
 			// and ask for the full data set
-			const count =
-				countPage(artifact.refetch!.path, getValue()) || artifact.refetch!.pageSize
+			const count = currentOffset || getOffset()
 
 			// build up the variables to pass to the query
 			const queryVariables: Record<string, any> = {
@@ -120,7 +119,7 @@ export function offsetHandlers<_Data extends GraphQLObject, _Input>({
 			}
 
 			// if there are more records than the first page, we need fetch to load everything
-			if (count > artifact.refetch!.pageSize) {
+			if (!artifact.refetch!.pageSize || count > artifact.refetch!.pageSize) {
 				queryVariables.limit = count
 			}
 
