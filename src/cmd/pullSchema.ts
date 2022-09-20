@@ -16,7 +16,7 @@ export default async function (args: { headers: string[] }) {
 	// The target path -> current working directory by default. Should we allow passing custom paths?
 	const targetPath = process.cwd()
 
-	let headers = {}
+	let headers = config.pullHeaders
 	let headerStrings: string[] = []
 
 	if (args.headers) {
@@ -29,7 +29,7 @@ export default async function (args: { headers: string[] }) {
 				...total,
 				[key]: value,
 			}
-		}, {})
+		}, headers)
 	}
 
 	// Write the schema
