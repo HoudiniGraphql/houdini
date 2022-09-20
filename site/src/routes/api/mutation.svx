@@ -122,7 +122,7 @@ and provide an "optimistic response" for the mutation with the second argument t
 
 	export let itemID
 
-	const store: ToggleItemStore = graphql`
+	const toggleItem: ToggleItemStore = graphql`
 		mutation ToggleItem($id: ID!) {
 			toggleItem {
 				item {
