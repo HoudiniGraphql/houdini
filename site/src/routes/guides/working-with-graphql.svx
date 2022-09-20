@@ -35,8 +35,8 @@ const mutate = mutation(graphql\`
     const externalMutationGraphQL = `
 # src/lib/graphql/UpdateUser.gql
 
-mutation UpdateUser($input: UpdateUserInput!) {
-    updateUser(input: $input) {
+mutation UpdateUser($firstName: String!) {
+    updateUser(firstName: $firstName) {
         user {
             firstName
         }
@@ -49,8 +49,8 @@ mutation UpdateUser($input: UpdateUserInput!) {
 
 import { GQL_UpdateUser } from '$houdini'
 
-async function update(){
-    await GQL_UpdateUser.mutate({ input: "..." } )
+async function update() {
+    await GQL_UpdateUser.mutate({ firstName: "..." } )
 }
 `
 
