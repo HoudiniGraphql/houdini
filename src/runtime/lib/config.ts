@@ -36,7 +36,7 @@ export type ConfigFile = {
 	/**
 	 * A pattern used to remove matches from files that satisfy the include value
 	 */
-	exclude?: string
+	exclude?: string | string[]
 
 	/**
 	 * A static representation of your schema

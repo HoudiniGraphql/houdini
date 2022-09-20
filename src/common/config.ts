@@ -29,7 +29,7 @@ export class Config {
 	schemaPath?: string
 	persistedQueryPath?: string
 	include: string
-	exclude?: string
+	exclude?: string[]
 	scalars?: ConfigFile['scalars']
 	framework: 'kit' | 'svelte' = 'kit'
 	module: 'commonjs' | 'esm' = 'esm'
@@ -134,7 +134,7 @@ ${
 		this.apiUrl = apiUrl
 		this.filepath = filepath
 		this.include = include
-		this.exclude = exclude
+		this.exclude = exclude ? (Array.isArray(exclude) ? exclude : [exclude]) : []
 		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(
@@ -450,7 +450,7 @@ ${
 		}
 
 		// if there is an exclude, make sure the path doesn't match
-		return !this.exclude ? true : !minimatch(filepath, this.exclude)
+		return !this.exclude ? true : !this.exclude.find((pattern) => minimatch(filepath, pattern))
 	}
 
 	/*

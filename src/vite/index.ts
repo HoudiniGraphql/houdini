@@ -42,7 +42,10 @@ export default function ({
 					}
 
 					// make sure that the file doesn't match the exclude
-					return !config.exclude || !minimatch(filepath, config.exclude)
+					return (
+						!config.exclude ||
+						!config.exclude?.find((pattern) => minimatch(filepath, pattern))
+					)
 				},
 				async run() {
 					// load the config file

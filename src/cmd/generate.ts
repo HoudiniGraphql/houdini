@@ -202,7 +202,9 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 	// the first step we have to do is grab a list of every file in the source tree
 	let sourceFiles = await promisify(glob)(config.include)
 	if (config.exclude) {
-		sourceFiles = sourceFiles.filter((filepath) => !minimatch(filepath, config.exclude!))
+		sourceFiles = sourceFiles.filter(
+			(filepath) => !config.exclude?.find((pattern) => minimatch(filepath, pattern))
+		)
 	}
 
 	// the list of documents we found
