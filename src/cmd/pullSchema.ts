@@ -11,6 +11,7 @@ export default async function (args: { headers: string[] }) {
 		console.log(
 			'❌ Your project does not have a remote endpoint configured. Please provide one with the `apiUrl` value in your houdini.config.js file.'
 		)
+		process.exit(1)
 		return
 	}
 
