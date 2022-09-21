@@ -863,7 +863,12 @@ export async function readConfigFile(
 		importPath = 'file:///' + importPath
 	}
 
-	const imported = await import(importPath)
+	let imported: any;
+	try {
+		imported =  await import(importPath)
+	} catch (e: any) {
+		throw new Error(`Could not load config file at ${configPath}.\n${e.message}`)
+	}
 
 	// if this is wrapped in a default, use it
 	const config = imported.default || imported
