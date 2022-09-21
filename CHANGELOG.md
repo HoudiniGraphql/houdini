@@ -2,7 +2,7 @@
 
 ## 0.16.5
 
-### Patch Changes
+### 🐛 Fixes
 
 -   [#557](https://github.com/HoudiniGraphql/houdini/pull/557) [`3690f4f`](https://github.com/HoudiniGraphql/houdini/commit/3690f4f081590e129e62b7499f6fa488fc067db1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Configured pull headers are included in pull-schema command
 
@@ -10,9 +10,9 @@
 
 ## 0.16.4
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#548](https://github.com/HoudiniGraphql/houdini/pull/548) [`cd00b5f`](https://github.com/HoudiniGraphql/houdini/commit/cd00b5f436412ecc3ac2225d2ee8a9201b172da0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when unsubscribing between load and render
+-   [#548](https://github.com/HoudiniGraphql/houdini/pull/548) [`cd00b5f`](https://github.com/HoudiniGraphql/houdini/commit/cd00b5f436412ecc3ac2225d2ee8a9201b172da0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when reading store value between load and render
 
 ## 0.16.3
 
