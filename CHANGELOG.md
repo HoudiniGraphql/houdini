@@ -1,10 +1,18 @@
 # houdini
 
+## 0.16.5
+
+### 🐛 Fixes
+
+-   [#557](https://github.com/HoudiniGraphql/houdini/pull/557) [`3690f4f`](https://github.com/HoudiniGraphql/houdini/commit/3690f4f081590e129e62b7499f6fa488fc067db1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Configured pull headers are included in pull-schema command
+
+*   [#553](https://github.com/HoudiniGraphql/houdini/pull/553) [`7666734`](https://github.com/HoudiniGraphql/houdini/commit/7666734110350fb7886eeeeec95108b61f88ece8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fixed bug when loading offset-based pages driven by query variable
+
 ## 0.16.4
 
-### Patch Changes
+### 🐛 Fixes
 
--   [#548](https://github.com/HoudiniGraphql/houdini/pull/548) [`cd00b5f`](https://github.com/HoudiniGraphql/houdini/commit/cd00b5f436412ecc3ac2225d2ee8a9201b172da0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when unsubscribing between load and render
+-   [#548](https://github.com/HoudiniGraphql/houdini/pull/548) [`cd00b5f`](https://github.com/HoudiniGraphql/houdini/commit/cd00b5f436412ecc3ac2225d2ee8a9201b172da0) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Fix bug when reading store value between load and render
 
 ## 0.16.3
 
