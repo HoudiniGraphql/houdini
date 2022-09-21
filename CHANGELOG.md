@@ -1,5 +1,13 @@
 # houdini
 
+## 0.16.5
+
+### Patch Changes
+
+-   [#557](https://github.com/HoudiniGraphql/houdini/pull/557) [`3690f4f`](https://github.com/HoudiniGraphql/houdini/commit/3690f4f081590e129e62b7499f6fa488fc067db1) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - Configured pull headers are included in pull-schema command
+
+*   [#553](https://github.com/HoudiniGraphql/houdini/pull/553) [`7666734`](https://github.com/HoudiniGraphql/houdini/commit/7666734110350fb7886eeeeec95108b61f88ece8) Thanks [@AlecAivazis](https://github.com/AlecAivazis)! - fixed bug when loading offset-based pages driven by query variable
+
 ## 0.16.4
 
 ### Patch Changes
