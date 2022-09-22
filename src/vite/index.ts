@@ -20,7 +20,7 @@ export default function ({
 
 	return [
 		houdini(configPath),
-		schema(configPath),
+		schema({configFile: configPath, ...extraConfig}),
 		fs_patch(configPath),
 		watch_and_run([
 			{
