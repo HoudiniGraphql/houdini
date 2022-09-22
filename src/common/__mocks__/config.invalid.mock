@@ -1,0 +1,6 @@
+const config = {
+    client: malformed
+  };
+  
+export default config;
+  
