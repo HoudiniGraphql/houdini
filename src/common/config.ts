@@ -863,9 +863,9 @@ export async function readConfigFile(
 		importPath = 'file:///' + importPath
 	}
 
-	let imported: any;
+	let imported: any
 	try {
-		imported =  await import(importPath)
+		imported = await import(importPath)
 	} catch (e: any) {
 		throw new Error(`Could not load config file at file://${configPath}.\n${e.message}`)
 	}
