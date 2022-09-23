@@ -31,7 +31,7 @@ export type ConfigFile = {
 	 * for inline queries to work
 	 * @default `src/** /*.{svelte,graphql,gql,ts,js}`
 	 */
-	include?: string
+	include?: string | string[]
 
 	/**
 	 * A pattern used to remove matches from files that satisfy the include value

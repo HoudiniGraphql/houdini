@@ -36,16 +36,14 @@ export default function ({
 						return true
 					}
 
-					// if the filepath does not match the include, ignore it
-					if (!minimatch(filepath, path.join(process.cwd(), config.include))) {
-						return false
+					// if the filepath does match the include, but does match exclude, ignore it
+					if (config.include.some((pattern) => minimatch(filepath, pattern))) {
+						if (!config.exclude?.some((pattern) => minimatch(filepath, pattern))) {
+							return false
+						}
 					}
 
-					// make sure that the file doesn't match the exclude
-					return (
-						!config.exclude ||
-						!config.exclude?.find((pattern) => minimatch(filepath, pattern))
-					)
+					return true
 				},
 				async run() {
 					// load the config file
