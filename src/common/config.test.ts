@@ -2,7 +2,7 @@ import { test, describe, expect } from 'vitest'
 
 import { readConfigFile } from './config'
 
-describe('loadConfifg', function () {
+describe('loadConfig', function () {
 	test('handles malformed config file', async () => {
 		const INVALID_CONFIG = '__mocks__/config.invalid.mock'
 
