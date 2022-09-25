@@ -28,10 +28,10 @@ export class SubscriptionStore<_Data, _Input extends {}> extends BaseStore {
 		return this.store?.subscribe(...args)
 	}
 
-	async listen(variables: _Input) {
+	async listen(variables?: _Input) {
 		// @ts-expect-error: typechecking cjs/esm interop is hard
 		// pull the query text out of the compiled artifact
-		const { raw: text, selection } = artifact.default || artifact
+		const { raw: text, selection } = this.artifact.default || this.artifact
 
 		// subscription.listen is a no-op on the server
 		if (!isBrowser) {
