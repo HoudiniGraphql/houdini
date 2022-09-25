@@ -35,7 +35,7 @@ export class MutationStore<
 			metadata?: App.Metadata
 			fetch?: typeof globalThis.fetch
 		} & MutationConfig<_Data, _Input, _Optimistic> = {}
-	): Promise<_Data | null> {
+	): Promise<_Data> {
 		const config = await this.getConfig()
 
 		this.store.update((c) => {
