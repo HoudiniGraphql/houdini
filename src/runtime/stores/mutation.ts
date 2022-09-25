@@ -132,7 +132,7 @@ export class MutationStore<
 			this.store.set(storeData)
 
 			// return the value to the caller
-			return storeData.data
+			return storeData.data ?? ({} as _Data)
 		} catch (error) {
 			this.store.update((s) => ({
 				...s,
