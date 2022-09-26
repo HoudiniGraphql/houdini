@@ -207,6 +207,12 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 		})
 	}
 
+	if (sourceFiles.length === 0) {
+		throw new Error(
+			'There are no files in your project that match the include. Please check your include and exclude patterns.'
+		)
+	}
+
 	// the list of documents we found
 	const documents: DiscoveredDoc[] = []
 
@@ -234,6 +240,8 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 			}
 		})
 	)
+
+	console.log('Discovered documents', documents)
 
 	return await Promise.all(
 		documents.map(async ({ document, filepath }) => {
