@@ -241,8 +241,6 @@ async function collectDocuments(config: Config): Promise<CollectedGraphQLDocumen
 		})
 	)
 
-	console.log('Discovered documents', documents)
-
 	return await Promise.all(
 		documents.map(async ({ document, filepath }) => {
 			try {
