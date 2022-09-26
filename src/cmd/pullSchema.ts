@@ -8,15 +8,17 @@ export default async function (args: { headers: string[] }) {
 
 	// Check if apiUrl is set in config
 	if (!config.apiUrl) {
-		throw new Error(
+		console.log(
 			'❌ Your project does not have a remote endpoint configured. Please provide one with the `apiUrl` value in your houdini.config.js file.'
 		)
+		process.exit(1)
+		return
 	}
 
 	// The target path -> current working directory by default. Should we allow passing custom paths?
 	const targetPath = process.cwd()
 
-	let headers = {}
+	let headers = config.pullHeaders
 	let headerStrings: string[] = []
 
 	if (args.headers) {
@@ -29,7 +31,7 @@ export default async function (args: { headers: string[] }) {
 				...total,
 				[key]: value,
 			}
-		}, {})
+		}, headers)
 	}
 
 	// Write the schema
