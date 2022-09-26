@@ -7,9 +7,12 @@ import { pullSchema } from '../cmd/utils'
 import { formatErrors, getConfig } from '../common'
 import { ConfigFile } from '../runtime'
 
-export default function HoudiniWatchSchemaPlugin({configFile, ...extraConfig}: {configFile?: string} & Partial<ConfigFile> = {}): Plugin {
+export default function HoudiniWatchSchemaPlugin({
+	configFile,
+	...extraConfig
+}: { configFile?: string } & Partial<ConfigFile> = {}): Plugin {
 	let go = true
-	
+
 	return {
 		name: 'houdini-watch-schema',
 		apply: 'serve',
