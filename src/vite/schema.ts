@@ -5,15 +5,19 @@ import { Plugin } from 'vite'
 
 import { pullSchema } from '../cmd/utils'
 import { formatErrors, getConfig } from '../common'
+import { ConfigFile } from '../runtime'
 
-export default function HoudiniWatchSchemaPlugin(configFile?: string): Plugin {
+export default function HoudiniWatchSchemaPlugin({
+	configFile,
+	...extraConfig
+}: { configFile?: string } & Partial<ConfigFile> = {}): Plugin {
 	let go = true
 
 	return {
 		name: 'houdini-watch-schema',
 		apply: 'serve',
 		async buildStart() {
-			const config = await getConfig({ configFile })
+			const config = await getConfig({ configFile, ...extraConfig })
 			let nbPullError = 0
 
 			// validate the config
