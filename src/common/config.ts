@@ -67,7 +67,7 @@ export class Config {
 			schemaPath = './schema.graphql',
 			sourceGlob,
 			include = `src/**/*.{svelte,graphql,gql,ts,js}`,
-			exclude,
+			exclude = [],
 			apiUrl,
 			framework = 'kit',
 			module = 'esm',
@@ -134,7 +134,7 @@ ${
 		this.apiUrl = apiUrl
 		this.filepath = filepath
 		this.include = Array.isArray(include) ? include : [include]
-		this.exclude = exclude ? (Array.isArray(exclude) ? exclude : [exclude]) : []
+		this.exclude = Array.isArray(exclude) ? exclude : [exclude]
 		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(
