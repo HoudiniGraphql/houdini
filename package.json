@@ -1,6 +1,6 @@
 {
 	"name": "houdini",
-	"version": "0.16.5",
+	"version": "0.16.6",
 	"description": "The disappearing graphql client for SvelteKit",
 	"type": "module",
 	"bin": "./build/cmd.js",
