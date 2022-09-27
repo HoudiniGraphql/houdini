@@ -1,4 +1,4 @@
-import { load_User } from '$houdini';
+import { UserStore } from '$houdini';
 import { routes } from '$lib/utils/routes';
 import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
@@ -8,9 +8,11 @@ export const load: PageLoad = async (event) => {
     throw redirect(307, routes.Home);
   }
 
-  const variables = { id: event.params.userId, tmp: false };
+  // instantiate a store using the class so we can see it work somewhere
+  const User = new UserStore();
+  await User.fetch({ event, variables: { id: event.params.userId, tmp: false } });
 
   return {
-    ...(await load_User({ event, variables }))
+    User
   };
 };

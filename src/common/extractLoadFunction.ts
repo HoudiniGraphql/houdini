@@ -90,7 +90,7 @@ async function processScript(
 
 				// if we are importing a store factory
 				else if (name.endsWith(config.storeSuffix)) {
-					query = name.substring(0, name.length - config.globalStorePrefix.length - 1)
+					query = name.substring(0, name.length - config.storeSuffix.length)
 				}
 
 				// if we are import directly from a store path
