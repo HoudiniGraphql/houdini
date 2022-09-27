@@ -444,14 +444,14 @@ ${
 		)
 	}
 
-	includeFile(filepath: string) {
+	includeFile(filepath: string, root: string = this.projectRoot) {
 		// deal with any relative imports from compiled assets
 		filepath = this.resolveRelative(filepath)
 
 		// if the filepath does match the include, but does match exclude, ignore it
-		if (this.include.some((pattern) => minimatch(filepath, pattern))) {
+		if (this.include.some((pattern) => minimatch(filepath, path.join(root, pattern)))) {
 			// if there is an exclude, make sure the path doesn't match
-			if (!this.exclude?.some((pattern) => minimatch(filepath, pattern))) {
+			if (!this.exclude?.some((pattern) => minimatch(filepath, path.join(root, pattern)))) {
 				return false
 			}
 		}

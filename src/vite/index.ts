@@ -30,20 +30,14 @@ export default function ({
 					// load the config file
 					const config = await getConfig({ configFile: configPath, ...extraConfig })
 
-					// we need to watch some specific files
+					// watch for changes in the schema file
 					const schemaPath = path.join(path.dirname(config.filepath), config.schemaPath!)
 					if (minimatch(filepath, schemaPath)) {
 						return true
 					}
 
-					// if the filepath does match the include, but does match exclude, ignore it
-					if (config.include.some((pattern) => minimatch(filepath, pattern))) {
-						if (!config.exclude?.some((pattern) => minimatch(filepath, pattern))) {
-							return false
-						}
-					}
-
-					return true
+					// or any source file relative to the cwd
+					return config.includeFile(filepath, process.cwd())
 				},
 				async run() {
 					// load the config file
