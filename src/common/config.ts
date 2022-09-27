@@ -452,7 +452,7 @@ ${
 		// if there is an exclude, make sure the path doesn't match any of the exclude patterns
 		return (
 			!this.exclude ||
-			this.exclude.length > 0 ||
+			this.exclude.length === 0 ||
 			!this.exclude.some((pattern) => minimatch(filepath, pattern))
 		)
 	}
