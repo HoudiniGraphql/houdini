@@ -28,8 +28,8 @@ export class Config {
 	apiUrl?: string
 	schemaPath?: string
 	persistedQueryPath?: string
-	include: string[]
-	exclude?: string[]
+	include: string
+	exclude?: string
 	scalars?: ConfigFile['scalars']
 	framework: 'kit' | 'svelte' = 'kit'
 	module: 'commonjs' | 'esm' = 'esm'
@@ -133,12 +133,8 @@ ${
 		this.schemaPath = schemaPath
 		this.apiUrl = apiUrl
 		this.filepath = filepath
-		this.include = include ? (Array.isArray(include) ? include : [include]) : []
-
-		console.log('this.include', this.include)
-		this.exclude = exclude ? (Array.isArray(exclude) ? exclude : [exclude]) : undefined
-		console.log('this.exclude', this.exclude)
-
+		this.include = include
+		this.exclude = exclude
 		this.framework = framework
 		this.module = module
 		this.projectRoot = path.dirname(
@@ -444,18 +440,17 @@ ${
 		)
 	}
 
-	includeFile(filepath: string, root: string = this.projectRoot) {
+	includeFile(filepath: string) {
 		// deal with any relative imports from compiled assets
 		filepath = this.resolveRelative(filepath)
 
-		// if the filepath does match the include, but does match exclude, ignore it
-		if (this.include.some((pattern) => minimatch(filepath, path.join(root, pattern)))) {
-			// if there is an exclude, make sure the path doesn't match
-			if (!this.exclude?.some((pattern) => minimatch(filepath, path.join(root, pattern)))) {
-				return false
-			}
+		// if the filepath doesn't match the include we're done
+		if (!minimatch(filepath, path.join(this.projectRoot, this.include))) {
+			return false
 		}
-		return true
+
+		// if there is an exclude, make sure the path doesn't match
+		return !this.exclude ? true : !minimatch(filepath, this.exclude)
 	}
 
 	/*

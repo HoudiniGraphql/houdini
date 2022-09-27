@@ -31,12 +31,12 @@ export type ConfigFile = {
 	 * for inline queries to work
 	 * @default `src/** /*.{svelte,graphql,gql,ts,js}`
 	 */
-	include?: string | string[]
+	include?: string
 
 	/**
 	 * A pattern used to remove matches from files that satisfy the include value
 	 */
-	exclude?: string | string[]
+	exclude?: string
 
 	/**
 	 * A static representation of your schema
