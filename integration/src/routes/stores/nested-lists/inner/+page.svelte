@@ -6,6 +6,9 @@
       user(id: "1", snapshot: "nested-lists") {
         id
         name
+        nested {
+          something
+        }
       }
     }
   `;
