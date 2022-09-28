@@ -18,6 +18,8 @@ export const routes = {
   Stores_Endpoint_Mutation: '/stores/endpoint-mutation',
   Stores_Session: '/stores/session',
 
+  Stores_NestedList: '/stores/nested-lists',
+
   Stores_Partial_List: '/stores/partial/partial_List',
   Stores_Pagination_query_forward_cursor: '/stores/pagination/query/forward-cursor',
 
