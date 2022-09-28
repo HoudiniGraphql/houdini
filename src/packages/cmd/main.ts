@@ -1,8 +1,8 @@
 import { Command } from 'commander'
 
-import { formatErrors, getConfig, LogLevel, Config } from '../common'
-import { ConfigFile } from '../runtime'
-import generate from './generate'
+import generate from '../../core/codegen/generate'
+import { formatErrors, getConfig, LogLevel, Config } from '../../core/common'
+import { ConfigFile } from '../../core/runtime'
 import init from './init'
 import pullSchema from './pullSchema'
 

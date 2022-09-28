@@ -1,8 +1,8 @@
 import { logGreen } from '@kitql/helper'
 
-import { getConfig } from '../common'
-import { ConfigFile } from '../runtime'
-import transform from '../vite/transforms'
+import { getConfig } from '../../../core/common'
+import { ConfigFile } from '../../../runtime'
+import { transform } from '../vite'
 
 /**
  * The houdini processor automates a lot of boilerplate to make inline documents
@@ -31,7 +31,7 @@ ${logGreen("import 'houdini' from 'houdini/vite';")}
 
 /** @type {import('vite').UserConfig} */
 const config = {
-  plugins: [${logGreen('houdini()')}, sveltekit()] 
+  plugins: [${logGreen('houdini()')}, sveltekit()]
 };
 
 export default config;
