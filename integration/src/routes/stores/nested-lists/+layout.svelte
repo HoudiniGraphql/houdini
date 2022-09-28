@@ -5,6 +5,9 @@
     query NestedListLayoutQuery {
       usersList(snapshot: "nested-list") {
         id
+        nested {
+          something
+        }
       }
     }
   `;
