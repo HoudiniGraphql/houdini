@@ -14,3 +14,5 @@
 <div id="user-info">
   {JSON.stringify($UserInfo.data)}
 </div>
+
+<a href="/stores/nested-lists">back</a>
